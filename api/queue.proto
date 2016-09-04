@@ -10,7 +10,7 @@ service Queue {
     // Enqueue adds the given payload to the queue.
     rpc Enqueue(EnqueueItemRequest) returns (EnqueueItemResponse) {
         option(google.api.http) = {
-            post: "/api/v1/queue/"
+            post: "/api/v1/queue"
             body: "*"
         };
     }
@@ -18,7 +18,7 @@ service Queue {
     // Delete deletes an item from the queue.
     rpc Delete(DeleteQueueItemRequest) returns (DeleteQueueItemResponse) {
         option(google.api.http) = {
-            post: "/api/v1/queue/{id}"
+            delete: "/api/v1/queue/{id}"
         };
     }
 

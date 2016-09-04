@@ -1,0 +1,197 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "queue.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/queue": {
+      "post": {
+        "summary": "Enqueue adds the given payload to the queue.",
+        "operationId": "Enqueue",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiEnqueueItemResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiEnqueueItemRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Queue"
+        ]
+      }
+    },
+    "/api/v1/queue/{devEUI}": {
+      "get": {
+        "summary": "List lists the items in the queue for the given devEUI.",
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListQueueItemsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          }
+        ],
+        "tags": [
+          "Queue"
+        ]
+      }
+    },
+    "/api/v1/queue/{id}": {
+      "delete": {
+        "summary": "Delete deletes an item from the queue.",
+        "operationId": "Delete",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiDeleteQueueItemResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Queue"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiDeleteQueueItemRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "title": "ID of the queue item"
+        }
+      }
+    },
+    "apiDeleteQueueItemResponse": {
+      "type": "object"
+    },
+    "apiEnqueueItemRequest": {
+      "type": "object",
+      "properties": {
+        "confirmed": {
+          "type": "boolean",
+          "format": "boolean",
+          "title": "requires an ack from the node"
+        },
+        "data": {
+          "type": "string",
+          "format": "string",
+          "title": "base64 encoded data"
+        },
+        "devEUI": {
+          "type": "string",
+          "format": "string",
+          "title": "hex encoded DevEUI"
+        },
+        "fPort": {
+          "type": "integer",
+          "format": "int64",
+          "title": "FPort to be used"
+        }
+      }
+    },
+    "apiEnqueueItemResponse": {
+      "type": "object"
+    },
+    "apiListQueueItemsRequest": {
+      "type": "object",
+      "properties": {
+        "devEUI": {
+          "type": "string",
+          "format": "string",
+          "title": "hex encoded DevEUI"
+        }
+      }
+    },
+    "apiListQueueItemsResponse": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiQueueItem"
+          }
+        }
+      }
+    },
+    "apiQueueItem": {
+      "type": "object",
+      "properties": {
+        "confirmed": {
+          "type": "boolean",
+          "format": "boolean",
+          "title": "requires an ack from the node"
+        },
+        "data": {
+          "type": "string",
+          "format": "string",
+          "title": "base64 encoded data"
+        },
+        "devEUI": {
+          "type": "string",
+          "format": "string",
+          "title": "hex encoded DevEUI"
+        },
+        "fPort": {
+          "type": "integer",
+          "format": "int64",
+          "title": "FPort to be used"
+        },
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "title": "id of the queue item"
+        },
+        "pending": {
+          "type": "boolean",
+          "format": "boolean",
+          "title": "the transmission is pending (waiting for an ack)"
+        }
+      }
+    }
+  }
+}

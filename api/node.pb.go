@@ -8,7 +8,6 @@ import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
 import _ "github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis/google/api"
-import api1 "."
 
 import (
 	context "golang.org/x/net/context"
@@ -26,12 +25,12 @@ type CreateNodeRequest struct {
 	// hex encoded AppEUI
 	AppEUI string `protobuf:"bytes,2,opt,name=appEUI" json:"appEUI,omitempty"`
 	// hex encoded AppKey
-	AppKey        string        `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
-	RxDelay       uint32        `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
-	Rx1DROffset   uint32        `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
-	ChannelListID int64         `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
-	RxWindow      api1.RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
-	Rx2DR         uint32        `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
+	AppKey        string   `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
+	RxDelay       uint32   `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
+	Rx1DROffset   uint32   `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
+	ChannelListID int64    `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
+	RxWindow      RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
+	Rx2DR         uint32   `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
 }
 
 func (m *CreateNodeRequest) Reset()                    { *m = CreateNodeRequest{} }
@@ -63,12 +62,12 @@ type GetNodeResponse struct {
 	// hex encoded AppEUI
 	AppEUI string `protobuf:"bytes,2,opt,name=appEUI" json:"appEUI,omitempty"`
 	// hex encoded AppKey
-	AppKey        string        `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
-	RxDelay       uint32        `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
-	Rx1DROffset   uint32        `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
-	ChannelListID int64         `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
-	RxWindow      api1.RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
-	Rx2DR         uint32        `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
+	AppKey        string   `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
+	RxDelay       uint32   `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
+	Rx1DROffset   uint32   `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
+	ChannelListID int64    `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
+	RxWindow      RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
+	Rx2DR         uint32   `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
 }
 
 func (m *GetNodeResponse) Reset()                    { *m = GetNodeResponse{} }
@@ -139,12 +138,12 @@ type UpdateNodeRequest struct {
 	// hex encoded AppEUI
 	AppEUI string `protobuf:"bytes,2,opt,name=appEUI" json:"appEUI,omitempty"`
 	// hex encoded AppKey
-	AppKey        string        `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
-	RxDelay       uint32        `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
-	Rx1DROffset   uint32        `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
-	ChannelListID int64         `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
-	RxWindow      api1.RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
-	Rx2DR         uint32        `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
+	AppKey        string   `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
+	RxDelay       uint32   `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
+	Rx1DROffset   uint32   `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
+	ChannelListID int64    `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
+	RxWindow      RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
+	Rx2DR         uint32   `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
 }
 
 func (m *UpdateNodeRequest) Reset()                    { *m = UpdateNodeRequest{} }

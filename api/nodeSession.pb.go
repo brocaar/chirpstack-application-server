@@ -8,7 +8,6 @@ import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
 import _ "github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis/google/api"
-import api1 "."
 
 import (
 	context "golang.org/x/net/context"
@@ -30,14 +29,14 @@ type CreateNodeSessionRequest struct {
 	// hex encoded AppSKey
 	AppSKey string `protobuf:"bytes,4,opt,name=appSKey" json:"appSKey,omitempty"`
 	// hex encoded NwkSKey
-	NwkSKey     string        `protobuf:"bytes,5,opt,name=nwkSKey" json:"nwkSKey,omitempty"`
-	FCntUp      uint32        `protobuf:"varint,6,opt,name=fCntUp" json:"fCntUp,omitempty"`
-	FCntDown    uint32        `protobuf:"varint,7,opt,name=fCntDown" json:"fCntDown,omitempty"`
-	RxDelay     uint32        `protobuf:"varint,8,opt,name=rxDelay" json:"rxDelay,omitempty"`
-	Rx1DROffset uint32        `protobuf:"varint,9,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
-	CFList      []uint32      `protobuf:"varint,10,rep,packed,name=cFList" json:"cFList,omitempty"`
-	RxWindow    api1.RXWindow `protobuf:"varint,11,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
-	Rx2DR       uint32        `protobuf:"varint,12,opt,name=rx2DR" json:"rx2DR,omitempty"`
+	NwkSKey     string   `protobuf:"bytes,5,opt,name=nwkSKey" json:"nwkSKey,omitempty"`
+	FCntUp      uint32   `protobuf:"varint,6,opt,name=fCntUp" json:"fCntUp,omitempty"`
+	FCntDown    uint32   `protobuf:"varint,7,opt,name=fCntDown" json:"fCntDown,omitempty"`
+	RxDelay     uint32   `protobuf:"varint,8,opt,name=rxDelay" json:"rxDelay,omitempty"`
+	Rx1DROffset uint32   `protobuf:"varint,9,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
+	CFList      []uint32 `protobuf:"varint,10,rep,packed,name=cFList" json:"cFList,omitempty"`
+	RxWindow    RXWindow `protobuf:"varint,11,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
+	Rx2DR       uint32   `protobuf:"varint,12,opt,name=rx2DR" json:"rx2DR,omitempty"`
 }
 
 func (m *CreateNodeSessionRequest) Reset()                    { *m = CreateNodeSessionRequest{} }
@@ -73,14 +72,14 @@ type GetNodeSessionResponse struct {
 	// hex encoded AppSKey
 	AppSKey string `protobuf:"bytes,4,opt,name=appSKey" json:"appSKey,omitempty"`
 	// hex encoded NwkSKey
-	NwkSKey     string        `protobuf:"bytes,5,opt,name=nwkSKey" json:"nwkSKey,omitempty"`
-	FCntUp      uint32        `protobuf:"varint,6,opt,name=fCntUp" json:"fCntUp,omitempty"`
-	FCntDown    uint32        `protobuf:"varint,7,opt,name=fCntDown" json:"fCntDown,omitempty"`
-	RxDelay     uint32        `protobuf:"varint,8,opt,name=rxDelay" json:"rxDelay,omitempty"`
-	Rx1DROffset uint32        `protobuf:"varint,9,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
-	CFList      []uint32      `protobuf:"varint,10,rep,packed,name=cFList" json:"cFList,omitempty"`
-	RxWindow    api1.RXWindow `protobuf:"varint,11,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
-	Rx2DR       uint32        `protobuf:"varint,12,opt,name=rx2DR" json:"rx2DR,omitempty"`
+	NwkSKey     string   `protobuf:"bytes,5,opt,name=nwkSKey" json:"nwkSKey,omitempty"`
+	FCntUp      uint32   `protobuf:"varint,6,opt,name=fCntUp" json:"fCntUp,omitempty"`
+	FCntDown    uint32   `protobuf:"varint,7,opt,name=fCntDown" json:"fCntDown,omitempty"`
+	RxDelay     uint32   `protobuf:"varint,8,opt,name=rxDelay" json:"rxDelay,omitempty"`
+	Rx1DROffset uint32   `protobuf:"varint,9,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
+	CFList      []uint32 `protobuf:"varint,10,rep,packed,name=cFList" json:"cFList,omitempty"`
+	RxWindow    RXWindow `protobuf:"varint,11,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
+	Rx2DR       uint32   `protobuf:"varint,12,opt,name=rx2DR" json:"rx2DR,omitempty"`
 }
 
 func (m *GetNodeSessionResponse) Reset()                    { *m = GetNodeSessionResponse{} }
@@ -98,14 +97,14 @@ type UpdateNodeSessionRequest struct {
 	// hex encoded AppSKey
 	AppSKey string `protobuf:"bytes,4,opt,name=appSKey" json:"appSKey,omitempty"`
 	// hex encoded NwkSKey
-	NwkSKey     string        `protobuf:"bytes,5,opt,name=nwkSKey" json:"nwkSKey,omitempty"`
-	FCntUp      uint32        `protobuf:"varint,6,opt,name=fCntUp" json:"fCntUp,omitempty"`
-	FCntDown    uint32        `protobuf:"varint,7,opt,name=fCntDown" json:"fCntDown,omitempty"`
-	RxDelay     uint32        `protobuf:"varint,8,opt,name=rxDelay" json:"rxDelay,omitempty"`
-	Rx1DROffset uint32        `protobuf:"varint,9,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
-	CFList      []uint32      `protobuf:"varint,10,rep,packed,name=cFList" json:"cFList,omitempty"`
-	RxWindow    api1.RXWindow `protobuf:"varint,11,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
-	Rx2DR       uint32        `protobuf:"varint,12,opt,name=rx2DR" json:"rx2DR,omitempty"`
+	NwkSKey     string   `protobuf:"bytes,5,opt,name=nwkSKey" json:"nwkSKey,omitempty"`
+	FCntUp      uint32   `protobuf:"varint,6,opt,name=fCntUp" json:"fCntUp,omitempty"`
+	FCntDown    uint32   `protobuf:"varint,7,opt,name=fCntDown" json:"fCntDown,omitempty"`
+	RxDelay     uint32   `protobuf:"varint,8,opt,name=rxDelay" json:"rxDelay,omitempty"`
+	Rx1DROffset uint32   `protobuf:"varint,9,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
+	CFList      []uint32 `protobuf:"varint,10,rep,packed,name=cFList" json:"cFList,omitempty"`
+	RxWindow    RXWindow `protobuf:"varint,11,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
+	Rx2DR       uint32   `protobuf:"varint,12,opt,name=rx2DR" json:"rx2DR,omitempty"`
 }
 
 func (m *UpdateNodeSessionRequest) Reset()                    { *m = UpdateNodeSessionRequest{} }

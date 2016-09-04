@@ -11,6 +11,7 @@ It is generated from these files:
 	node.proto
 	queue.proto
 	nodeSession.proto
+	common.proto
 
 It has these top-level messages:
 	CreateChannelRequest

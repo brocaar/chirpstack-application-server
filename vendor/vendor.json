@@ -87,6 +87,30 @@
 			"revisionTime": "2016-01-05T22:08:40Z"
 		},
 		{
+			"checksumSHA1": "dNYxHiBLalTqluak2/Z8c3RsSEM=",
+			"path": "github.com/lib/pq",
+			"revision": "50761b0867bd1d9d069276790bcd4a3bccf2324a",
+			"revisionTime": "2016-08-31T22:25:20Z"
+		},
+		{
+			"checksumSHA1": "xppHi82MLqVx1eyQmbhTesAEjx8=",
+			"path": "github.com/lib/pq/oid",
+			"revision": "50761b0867bd1d9d069276790bcd4a3bccf2324a",
+			"revisionTime": "2016-08-31T22:25:20Z"
+		},
+		{
+			"checksumSHA1": "Y1gIGoR8z/lDf2j+vcH1eKZGDSk=",
+			"path": "github.com/rubenv/sql-migrate",
+			"revision": "6f4757563362064790a6687a6b60f182062c8634",
+			"revisionTime": "2016-06-20T08:32:29Z"
+		},
+		{
+			"checksumSHA1": "aoSLe79p1m0Lznfed0X0SoYofNg=",
+			"path": "github.com/rubenv/sql-migrate/sqlparse",
+			"revision": "6f4757563362064790a6687a6b60f182062c8634",
+			"revisionTime": "2016-06-20T08:32:29Z"
+		},
+		{
 			"checksumSHA1": "6AYg4fjEvFuAVN3wHakGApjhZAM=",
 			"path": "github.com/smartystreets/assertions",
 			"revision": "40711f7748186bbf9c99977cd89f21ce1a229447",
@@ -211,6 +235,12 @@
 			"path": "google.golang.org/grpc/transport",
 			"revision": "52f6504dc290bd928a8139ba94e3ab32ed9a6273",
 			"revisionTime": "2016-09-02T22:12:15Z"
+		},
+		{
+			"checksumSHA1": "xunNOgG8P6Xh4SM+LPQ1zMDXa8Q=",
+			"path": "gopkg.in/gorp.v1",
+			"revision": "c87af80f3cc5036b55b83d77171e156791085e2e",
+			"revisionTime": "2015-02-04T08:55:30Z"
 		}
 	],
 	"rootPath": "github.com/brocaar/lora-app-server"

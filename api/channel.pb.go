@@ -10,6 +10,7 @@ It is generated from these files:
 	channelList.proto
 	node.proto
 	queue.proto
+	nodeSession.proto
 
 It has these top-level messages:
 	CreateChannelRequest
@@ -50,6 +51,16 @@ It has these top-level messages:
 	QueueItem
 	ListQueueItemsRequest
 	ListQueueItemsResponse
+	CreateNodeSessionRequest
+	CreateNodeSessionResponse
+	GetNodeSessionRequest
+	GetNodeSessionResponse
+	UpdateNodeSessionRequest
+	UpdateNodeSessionResponse
+	DeleteNodeSessionRequest
+	DeleteNodeSessionResponse
+	GetRandomDevAddrRequest
+	GetRandomDevAddrResponse
 */
 package api
 

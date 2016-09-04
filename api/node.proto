@@ -4,6 +4,7 @@ package api;
 
 // for grpc-gateway
 import "google/api/annotations.proto";
+import "common.proto";
 
 // Node is the service managing the nodes.
 service Node {
@@ -43,11 +44,6 @@ service Node {
             body: "*"
         };
     }
-}
-
-enum RXWindow {
-    RX1 = 0;
-    RX2 = 1;
 }
 
 message CreateNodeRequest {

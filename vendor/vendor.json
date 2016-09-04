@@ -15,6 +15,12 @@
 			"revisionTime": "2016-07-29T17:46:23Z"
 		},
 		{
+			"checksumSHA1": "EsJksAKyY2+r3mY+rdNocSCe1wg=",
+			"path": "github.com/dgrijalva/jwt-go",
+			"revision": "24c63f56522a87ec5339cc3567883f1039378fdb",
+			"revisionTime": "2016-08-31T18:35:34Z"
+		},
+		{
 			"checksumSHA1": "NgOgDwqQnfQhahsECFCsSPEenE0=",
 			"path": "github.com/golang/protobuf/jsonpb",
 			"revision": "1f49d83d9aa00e6ce4fc8258c71cc7786aec968a",

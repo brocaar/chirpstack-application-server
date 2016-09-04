@@ -114,7 +114,7 @@ func TestGetCFListForNode(t *testing.T) {
 func TestNodeMethods(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database with application", t, func() {
+	Convey("Given a clean database", t, func() {
 		db, err := OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)

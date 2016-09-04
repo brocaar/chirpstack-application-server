@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "queue.proto",
+    "title": "downlinkQueue.proto",
     "version": "version not set"
   },
   "schemes": [
@@ -15,15 +15,15 @@
     "application/json"
   ],
   "paths": {
-    "/api/v1/queue": {
+    "/api/v1/downlinkQueue": {
       "post": {
-        "summary": "Enqueue adds the given payload to the queue.",
+        "summary": "Enqueue adds the given item to the queue.",
         "operationId": "Enqueue",
         "responses": {
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiEnqueueItemResponse"
+              "$ref": "#/definitions/apiEnqueueDownlinkQueueItemResponse"
             }
           }
         },
@@ -33,16 +33,16 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiEnqueueItemRequest"
+              "$ref": "#/definitions/apiEnqueueDownlinkQueueItemRequest"
             }
           }
         ],
         "tags": [
-          "Queue"
+          "DownlinkQueue"
         ]
       }
     },
-    "/api/v1/queue/{devEUI}": {
+    "/api/v1/downlinkQueue/{devEUI}": {
       "get": {
         "summary": "List lists the items in the queue for the given devEUI.",
         "operationId": "List",
@@ -50,7 +50,7 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiListQueueItemsResponse"
+              "$ref": "#/definitions/apiListDownlinkQueueItemsResponse"
             }
           }
         },
@@ -64,11 +64,11 @@
           }
         ],
         "tags": [
-          "Queue"
+          "DownlinkQueue"
         ]
       }
     },
-    "/api/v1/queue/{id}": {
+    "/api/v1/downlinkQueue/{id}": {
       "delete": {
         "summary": "Delete deletes an item from the queue.",
         "operationId": "Delete",
@@ -76,7 +76,7 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiDeleteQueueItemResponse"
+              "$ref": "#/definitions/apiDeleteDownlinkQueueItemResponse"
             }
           }
         },
@@ -90,13 +90,13 @@
           }
         ],
         "tags": [
-          "Queue"
+          "DownlinkQueue"
         ]
       }
     }
   },
   "definitions": {
-    "apiDeleteQueueItemRequest": {
+    "apiDeleteDownlinkQeueueItemRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -106,59 +106,10 @@
         }
       }
     },
-    "apiDeleteQueueItemResponse": {
+    "apiDeleteDownlinkQueueItemResponse": {
       "type": "object"
     },
-    "apiEnqueueItemRequest": {
-      "type": "object",
-      "properties": {
-        "confirmed": {
-          "type": "boolean",
-          "format": "boolean",
-          "title": "requires an ack from the node"
-        },
-        "data": {
-          "type": "string",
-          "format": "string",
-          "title": "base64 encoded data"
-        },
-        "devEUI": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded DevEUI"
-        },
-        "fPort": {
-          "type": "integer",
-          "format": "int64",
-          "title": "FPort to be used"
-        }
-      }
-    },
-    "apiEnqueueItemResponse": {
-      "type": "object"
-    },
-    "apiListQueueItemsRequest": {
-      "type": "object",
-      "properties": {
-        "devEUI": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded DevEUI"
-        }
-      }
-    },
-    "apiListQueueItemsResponse": {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiQueueItem"
-          }
-        }
-      }
-    },
-    "apiQueueItem": {
+    "apiDownlinkQueueItem": {
       "type": "object",
       "properties": {
         "confirmed": {
@@ -190,6 +141,55 @@
           "type": "boolean",
           "format": "boolean",
           "title": "the transmission is pending (waiting for an ack)"
+        }
+      }
+    },
+    "apiEnqueueDownlinkQueueItemRequest": {
+      "type": "object",
+      "properties": {
+        "confirmed": {
+          "type": "boolean",
+          "format": "boolean",
+          "title": "requires an ack from the node"
+        },
+        "data": {
+          "type": "string",
+          "format": "string",
+          "title": "base64 encoded data"
+        },
+        "devEUI": {
+          "type": "string",
+          "format": "string",
+          "title": "hex encoded DevEUI"
+        },
+        "fPort": {
+          "type": "integer",
+          "format": "int64",
+          "title": "FPort to be used"
+        }
+      }
+    },
+    "apiEnqueueDownlinkQueueItemResponse": {
+      "type": "object"
+    },
+    "apiListDownlinkQueueItemsRequest": {
+      "type": "object",
+      "properties": {
+        "devEUI": {
+          "type": "string",
+          "format": "string",
+          "title": "hex encoded DevEUI"
+        }
+      }
+    },
+    "apiListDownlinkQueueItemsResponse": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiDownlinkQueueItem"
+          }
         }
       }
     }

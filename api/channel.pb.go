@@ -9,7 +9,7 @@ It is generated from these files:
 	channel.proto
 	channelList.proto
 	node.proto
-	queue.proto
+	downlinkQueue.proto
 	nodeSession.proto
 	common.proto
 
@@ -45,13 +45,13 @@ It has these top-level messages:
 	ListNodeByAppEUIRequest
 	UpdateNodeRequest
 	UpdateNodeResponse
-	EnqueueItemRequest
-	EnqueueItemResponse
-	DeleteQueueItemRequest
-	DeleteQueueItemResponse
-	QueueItem
-	ListQueueItemsRequest
-	ListQueueItemsResponse
+	EnqueueDownlinkQueueItemRequest
+	EnqueueDownlinkQueueItemResponse
+	DeleteDownlinkQeueueItemRequest
+	DeleteDownlinkQueueItemResponse
+	DownlinkQueueItem
+	ListDownlinkQueueItemsRequest
+	ListDownlinkQueueItemsResponse
 	CreateNodeSessionRequest
 	CreateNodeSessionResponse
 	GetNodeSessionRequest

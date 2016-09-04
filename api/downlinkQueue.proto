@@ -5,32 +5,32 @@ package api;
 // for grpc-gateway
 import "google/api/annotations.proto";
 
-// Queue is the service managing the node queue.
-service Queue {
-    // Enqueue adds the given payload to the queue.
-    rpc Enqueue(EnqueueItemRequest) returns (EnqueueItemResponse) {
+// DownlinkQueue is the service managing the downlink data queue.
+service DownlinkQueue {
+    // Enqueue adds the given item to the queue.
+    rpc Enqueue(EnqueueDownlinkQueueItemRequest) returns (EnqueueDownlinkQueueItemResponse) {
         option(google.api.http) = {
-            post: "/api/v1/queue"
+            post: "/api/v1/downlinkQueue"
             body: "*"
         };
     }
 
     // Delete deletes an item from the queue.
-    rpc Delete(DeleteQueueItemRequest) returns (DeleteQueueItemResponse) {
+    rpc Delete(DeleteDownlinkQeueueItemRequest) returns (DeleteDownlinkQueueItemResponse) {
         option(google.api.http) = {
-            delete: "/api/v1/queue/{id}"
+            delete: "/api/v1/downlinkQueue/{id}"
         };
     }
 
     // List lists the items in the queue for the given devEUI.
-    rpc List(ListQueueItemsRequest) returns (ListQueueItemsResponse) {
+    rpc List(ListDownlinkQueueItemsRequest) returns (ListDownlinkQueueItemsResponse) {
         option(google.api.http) = {
-            get: "/api/v1/queue/{devEUI}"
+            get: "/api/v1/downlinkQueue/{devEUI}"
         };
     }
 }
 
-message EnqueueItemRequest {
+message EnqueueDownlinkQueueItemRequest {
     // hex encoded DevEUI
     string devEUI = 1;
     // requires an ack from the node
@@ -41,16 +41,16 @@ message EnqueueItemRequest {
     string data = 4;
 }
 
-message EnqueueItemResponse {}
+message EnqueueDownlinkQueueItemResponse {}
 
-message DeleteQueueItemRequest {
+message DeleteDownlinkQeueueItemRequest {
     // ID of the queue item
     int64 id = 1;
 }
 
-message DeleteQueueItemResponse {}
+message DeleteDownlinkQueueItemResponse {}
 
-message QueueItem {
+message DownlinkQueueItem {
     // id of the queue item
     int64 id = 1;
     // hex encoded DevEUI
@@ -65,11 +65,11 @@ message QueueItem {
     string data = 6;   
 }
 
-message ListQueueItemsRequest {
+message ListDownlinkQueueItemsRequest {
     // hex encoded DevEUI
     string devEUI = 1;
 }
 
-message ListQueueItemsResponse {
-    repeated QueueItem items = 1;
+message ListDownlinkQueueItemsResponse {
+    repeated DownlinkQueueItem items = 1;
 }

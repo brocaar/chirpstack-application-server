@@ -1,0 +1,31 @@
+appserver:
+  build: .
+  command: make serve
+  volumes:
+    - ./:/go/src/github.com/brocaar/lora-app-server
+  links:
+    - postgres
+    - postgres_test
+    - mosquitto
+  environment:
+    - DB_AUTOMIGRATE=true
+    - POSTGRES_DSN=postgres://loraserver:loraserver@postgres/loraserver?sslmode=disable
+    - TEST_POSTGRES_DSN=postgres://loraserver:loraserver@postgres_test/loraserver?sslmode=disable
+    - TEST_MQTT_SERVER=tcp://mosquitto:1883
+
+postgres:
+  image: postgres:9.5
+  environment:
+    - POSTGRES_PASSWORD=loraserver
+    - POSTGRES_USER=loraserver
+    - POSTGRES_DB=loraserver
+
+postgres_test:
+  image: postgres:9.5
+  environment:
+    - POSTGRES_PASSWORD=loraserver
+    - POSTGRES_USER=loraserver
+    - POSTGRES_DB=loraserver
+
+mosquitto:
+  image: ansi/mosquitto

@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package api;
+
+// for grpc-gateway
+import "google/api/annotations.proto";
+
+// Queue is the service managing the node queue.
+service Queue {
+    // Enqueue adds the given payload to the queue.
+    rpc Enqueue(EnqueueItemRequest) returns (EnqueueItemResponse) {
+        option(google.api.http) = {
+            post: "/api/v1/queue/"
+            body: "*"
+        };
+    }
+
+    // Delete deletes an item from the queue.
+    rpc Delete(DeleteQueueItemRequest) returns (DeleteQueueItemResponse) {
+        option(google.api.http) = {
+            post: "/api/v1/queue/{id}"
+        };
+    }
+
+    // List lists the items in the queue for the given devEUI.
+    rpc List(ListQueueItemsRequest) returns (ListQueueItemsResponse) {
+        option(google.api.http) = {
+            get: "/api/v1/queue/{devEUI}"
+        };
+    }
+}
+
+message EnqueueItemRequest {
+    // hex encoded DevEUI
+    string devEUI = 1;
+    // requires an ack from the node
+    bool confirmed = 2;
+    // FPort to be used
+    uint32 fPort = 3;
+    // base64 encoded data
+    string data = 4;
+}
+
+message EnqueueItemResponse {}
+
+message DeleteQueueItemRequest {
+    // ID of the queue item
+    int64 id = 1;
+}
+
+message DeleteQueueItemResponse {}
+
+message QueueItem {
+    // id of the queue item
+    int64 id = 1;
+    // hex encoded DevEUI
+    string devEUI = 2;
+    // requires an ack from the node
+    bool confirmed = 3;
+    // the transmission is pending (waiting for an ack)
+    bool pending = 4;
+    // FPort to be used
+    uint32 fPort = 5;
+    // base64 encoded data
+    string data = 6;   
+}
+
+message ListQueueItemsRequest {
+    // hex encoded DevEUI
+    string devEUI = 1;
+}
+
+message ListQueueItemsResponse {
+    repeated QueueItem items = 1;
+}

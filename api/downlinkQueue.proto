@@ -38,7 +38,7 @@ message EnqueueDownlinkQueueItemRequest {
     // FPort to be used
     uint32 fPort = 3;
     // base64 encoded data
-    string data = 4;
+    bytes data = 4;
 }
 
 message EnqueueDownlinkQueueItemResponse {}
@@ -62,7 +62,7 @@ message DownlinkQueueItem {
     // FPort to be used
     uint32 fPort = 5;
     // base64 encoded data
-    string data = 6;   
+    bytes data = 6;   
 }
 
 message ListDownlinkQueueItemsRequest {

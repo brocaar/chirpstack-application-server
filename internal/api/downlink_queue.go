@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/hex"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -19,6 +20,14 @@ type DownlinkQueueAPI struct {
 	validator auth.Validator
 }
 
+// NewDownlinkQueueAPI creates a new DownlinkQueueAPI.
+func NewDownlinkQueueAPI(ctx common.Context, validator auth.Validator) *DownlinkQueueAPI {
+	return &DownlinkQueueAPI{
+		ctx:       ctx,
+		validator: validator,
+	}
+}
+
 func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQueueItemRequest) (*pb.EnqueueDownlinkQueueItemResponse, error) {
 	var devEUI lorawan.EUI64
 
@@ -28,7 +37,7 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 
 	node, err := storage.GetNode(d.ctx.DB, devEUI)
 	if err != nil {
-		return grpc.Errorf(codes.Unknown, err.Error())
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
 	if err := d.validator.Validate(ctx,
@@ -44,7 +53,11 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 		FPort:     uint8(req.FPort),
 		Data:      req.Data,
 	}
-	copy(di.DevEUI[:], req.DevEUI)
+
+	if err := qi.DevEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
 	if err := storage.CreateDownlinkQueueItem(d.ctx.DB, &qi); err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
@@ -52,7 +65,7 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 }
 
 func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeueueItemRequest) (*pb.DeleteDownlinkQueueItemResponse, error) {
-	qi, err := storage.GetDownlinkQueueItem(d.ctx.DB, req.ID)
+	qi, err := storage.GetDownlinkQueueItem(d.ctx.DB, req.Id)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
@@ -70,7 +83,7 @@ func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeu
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	if err := storage.DeleteDownlinkQueueItem(d.ctx.DB, req.ID); err != nil {
+	if err := storage.DeleteDownlinkQueueItem(d.ctx.DB, req.Id); err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
@@ -86,7 +99,7 @@ func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueIt
 
 	node, err := storage.GetNode(d.ctx.DB, devEUI)
 	if err != nil {
-		return grpc.Errorf(codes.Unknown, err.Error())
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
 	if err := d.validator.Validate(ctx,
@@ -106,12 +119,12 @@ func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueIt
 	for _, item := range items {
 		qi := pb.DownlinkQueueItem{
 			Id:        item.ID,
+			DevEUI:    hex.EncodeToString(item.DevEUI[:]),
 			Confirmed: item.Confirmed,
 			Pending:   item.Pending,
 			FPort:     uint32(item.FPort),
 			Data:      item.Data,
 		}
-		copy(qi.DevEUI[:], item.DevEUI)
 		resp.Items = append(resp.Items, &qi)
 	}
 

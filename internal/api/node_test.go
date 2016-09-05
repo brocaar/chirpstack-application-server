@@ -15,7 +15,7 @@ import (
 func TestNodeAPI(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database with an application and api instance", t, func() {
+	Convey("Given a clean database with an api instance", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)

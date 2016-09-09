@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"fmt"
 
+	log "github.com/Sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
@@ -32,11 +33,13 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 	var phy lorawan.PHYPayload
 
 	if err := phy.UnmarshalBinary(req.PhyPayload); err != nil {
+		log.Errorf("unmarshal join-request PHYPayload error: %s", err)
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
 	jrPL, ok := phy.MACPayload.(*lorawan.JoinRequestPayload)
 	if !ok {
+		log.Errorf("join-request PHYPayload does not contain a JoinRequestPayload")
 		return nil, grpc.Errorf(codes.InvalidArgument, "PHYPayload does not contain a JoinRequestPayload")
 	}
 
@@ -49,35 +52,62 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 	// get the node from the db and validate the AppEUI
 	node, err := storage.GetNode(a.ctx.DB, jrPL.DevEUI)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"dev_eui": jrPL.DevEUI,
+		}).Errorf("join-request node does not exist")
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 	if node.AppEUI != jrPL.AppEUI {
+		log.WithFields(log.Fields{
+			"dev_eui":          node.DevEUI,
+			"expected_app_eui": node.AppEUI,
+			"request_app_eui":  jrPL.AppEUI,
+		}).Error("join-request DevEUI exists, but with a different AppEUI")
 		return nil, grpc.Errorf(codes.Unknown, "DevEUI exists, but with a different AppEUI")
 	}
 
 	// validate MIC
 	ok, err = phy.ValidateMIC(node.AppKey)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"dev_eui": node.DevEUI,
+			"app_eui": node.AppEUI,
+		}).Errorf("join-request validate mic error: %s", err)
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 	if !ok {
+		log.WithFields(log.Fields{
+			"dev_eui": node.DevEUI,
+			"app_eui": node.AppEUI,
+			"mic":     phy.MIC,
+		}).Error("join-request invalid mic")
 		return nil, grpc.Errorf(codes.InvalidArgument, "invalid MIC")
 	}
 
 	// validate that the DevNonce hasn't been used before
 	if !node.ValidateDevNonce(jrPL.DevNonce) {
+		log.WithFields(log.Fields{
+			"dev_eui":   node.DevEUI,
+			"app_eui":   node.AppEUI,
+			"dev_nonce": jrPL.DevNonce,
+		}).Error("join-request DevNonce has already been used")
 		return nil, grpc.Errorf(codes.InvalidArgument, "DevNonce has already been used")
 	}
 
 	// get app nonce
 	appNonce, err := getAppNonce()
 	if err != nil {
+		log.Errorf("get AppNone error: %s", err)
 		return nil, grpc.Errorf(codes.Unknown, "get AppNonce error: %s", err)
 	}
 
 	// get the (optional) CFList
 	cFList, err := storage.GetCFListForNode(a.ctx.DB, node)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"dev_eui": node.DevEUI,
+			"app_eui": node.AppEUI,
+		}).Errorf("join-request get CFList error: %s", err)
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
@@ -142,6 +172,12 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 		resp.CFList = cFList[:]
 	}
 
+	log.WithFields(log.Fields{
+		"dev_eui":  node.DevEUI,
+		"app_eui":  node.AppEUI,
+		"dev_addr": node.DevAddr,
+	}).Info("join-request accepted")
+
 	return &resp, nil
 }
 
@@ -162,7 +198,14 @@ func (a *ApplicationServerAPI) HandleDataDownACK(ctx context.Context, req *as.Ha
 
 // HandleError handles an incoming error.
 func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleErrorRequest) (*as.HandleErrorResponse, error) {
-	panic("not implemented")
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], req.DevEUI)
+
+	log.WithFields(log.Fields{
+		"type":    req.Type,
+		"dev_eui": devEUI,
+	}).Error(req.Error)
+	return &as.HandleErrorResponse{}, nil
 }
 
 // getAppNonce returns a random application nonce (used for OTAA).

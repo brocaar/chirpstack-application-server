@@ -5,6 +5,8 @@
 // ../../migrations/0003_rx_window_and_rx2_dr.sql
 // ../../migrations/0004_remove_application_table.sql
 // ../../migrations/0005_add_queue.sql
+// ../../migrations/0006_add_app_s_and_nwk_s_keys.sql
+// ../../migrations/0007_add_devaddr.sql
 // DO NOT EDIT!
 
 package migrations
@@ -172,6 +174,46 @@ func _0005_add_queueSql() (*asset, error) {
 	return a, nil
 }
 
+var __0006_add_app_s_and_nwk_s_keysSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x6c\xcd\x31\x0e\x82\x60\x0c\x47\xf1\xd9\x9e\xe2\xbf\x0b\x27\x60\xf5\x0a\xce\xa4\xd8\xc6\x18\x4a\xdb\x7c\x96\x10\x6e\xef\x66\x24\xb2\xbe\xbc\xe4\xd7\xf7\xb8\x2e\xaf\x67\xe3\x52\xdc\x93\xd8\x4a\x1b\x8a\x27\x53\x78\x88\xd2\x85\x45\xf0\x08\x5b\x17\x07\x67\x8e\xef\x71\xd6\x1d\xd3\x5e\xca\xf0\x28\xf8\x6a\xd6\x1d\x2e\xdf\xe6\xd3\x6b\x20\xfa\xc5\x6e\xb1\xf9\x09\x27\x2d\xf2\xcf\xeb\x8e\xfd\x2b\x0c\xf4\x09\x00\x00\xff\xff\x3a\x20\x81\xe7\xbf\x00\x00\x00")
+
+func _0006_add_app_s_and_nwk_s_keysSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0006_add_app_s_and_nwk_s_keysSql,
+		"0006_add_app_s_and_nwk_s_keys.sql",
+	)
+}
+
+func _0006_add_app_s_and_nwk_s_keysSql() (*asset, error) {
+	bytes, err := _0006_add_app_s_and_nwk_s_keysSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0006_add_app_s_and_nwk_s_keys.sql", size: 191, mode: os.FileMode(420), modTime: time.Unix(1473361125, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __0007_add_devaddrSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x6c\xcc\xc1\x09\x42\x31\x0c\x06\xe0\xb3\x99\xe2\xbf\x4b\x27\xe8\xd5\x15\x3c\x4b\x6a\x82\x08\x69\x52\x42\xaa\xb8\xbd\x57\x91\xb7\xc0\xd7\x1a\xce\xf3\xf9\x48\x2e\xc5\x75\x11\x5b\x69\xa2\x78\x98\xc2\x43\x94\x4e\x2c\x82\x7b\xd8\x9e\x0e\xd1\xd7\x8d\x45\x12\xe3\x53\xca\xf0\x28\xf8\x36\xeb\x44\xbf\xca\x25\xde\x7e\xe0\x48\xc6\xfa\x87\x3a\x7d\x03\x00\x00\xff\xff\xa2\x39\x1e\xf0\x7f\x00\x00\x00")
+
+func _0007_add_devaddrSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0007_add_devaddrSql,
+		"0007_add_devaddr.sql",
+	)
+}
+
+func _0007_add_devaddrSql() (*asset, error) {
+	bytes, err := _0007_add_devaddrSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0007_add_devaddr.sql", size: 127, mode: os.FileMode(420), modTime: time.Unix(1473434381, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -229,6 +271,8 @@ var _bindata = map[string]func() (*asset, error){
 	"0003_rx_window_and_rx2_dr.sql": _0003_rx_window_and_rx2_drSql,
 	"0004_remove_application_table.sql": _0004_remove_application_tableSql,
 	"0005_add_queue.sql": _0005_add_queueSql,
+	"0006_add_app_s_and_nwk_s_keys.sql": _0006_add_app_s_and_nwk_s_keysSql,
+	"0007_add_devaddr.sql": _0007_add_devaddrSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -276,6 +320,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"0003_rx_window_and_rx2_dr.sql": &bintree{_0003_rx_window_and_rx2_drSql, map[string]*bintree{}},
 	"0004_remove_application_table.sql": &bintree{_0004_remove_application_tableSql, map[string]*bintree{}},
 	"0005_add_queue.sql": &bintree{_0005_add_queueSql, map[string]*bintree{}},
+	"0006_add_app_s_and_nwk_s_keys.sql": &bintree{_0006_add_app_s_and_nwk_s_keysSql, map[string]*bintree{}},
+	"0007_add_devaddr.sql": &bintree{_0007_add_devaddrSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory

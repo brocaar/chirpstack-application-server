@@ -76,6 +76,9 @@ type Node struct {
 	DevEUI        lorawan.EUI64     `db:"dev_eui" json:"devEUI"`
 	AppEUI        lorawan.EUI64     `db:"app_eui" json:"appEUI"`
 	AppKey        lorawan.AES128Key `db:"app_key" json:"appKey"`
+	DevAddr       lorawan.DevAddr   `db:"dev_addr"`
+	NwkSKey       lorawan.AES128Key `db:"nwk_s_key"`
+	AppSKey       lorawan.AES128Key `db:"app_s_key"`
 	UsedDevNonces DevNonceList      `db:"used_dev_nonces" json:"usedDevNonces"`
 
 	RXWindow      RXWindow `db:"rx_window" json:"rxWindow"`
@@ -113,16 +116,22 @@ func CreateNode(db *sqlx.DB, n Node) error {
 			dev_eui,
 			app_eui,
 			app_key,
+			dev_addr,
+			app_s_key,
+			nwk_s_key,
 			rx_delay,
 			rx1_dr_offset,
 			rx_window,
 			rx2_dr,
 			channel_list_id
 		)
-		values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
 		n.DevEUI[:],
 		n.AppEUI[:],
 		n.AppKey[:],
+		n.DevAddr[:],
+		n.AppSKey[:],
+		n.NwkSKey[:],
 		n.RXDelay,
 		n.RX1DROffset,
 		n.RXWindow,
@@ -144,24 +153,30 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 
 	res, err := db.Exec(`
 		update node set
-			app_eui = $2,
-			app_key = $3,
-			used_dev_nonces = $4,
-			rx_delay = $5,
-			rx1_dr_offset = $6,
-			rx_window = $7,
-			rx2_dr = $8,
-			channel_list_id = $9
-		where dev_eui = $1`,
-		n.DevEUI[:],
+			app_eui = $1,
+			app_key = $2,
+			dev_addr = $3,
+			app_s_key = $4,
+			nwk_s_key = $5,
+			used_dev_nonces = $6,
+			rx_delay = $7,
+			rx1_dr_offset = $8,
+			rx_window = $9,
+			rx2_dr = $10,
+			channel_list_id = $11
+		where dev_eui = $12`,
 		n.AppEUI[:],
 		n.AppKey[:],
+		n.DevAddr[:],
+		n.AppSKey[:],
+		n.NwkSKey[:],
 		n.UsedDevNonces,
 		n.RXDelay,
 		n.RX1DROffset,
 		n.RXWindow,
 		n.RX2DR,
 		n.ChannelListID,
+		n.DevEUI[:],
 	)
 	if err != nil {
 		return fmt.Errorf("update node %s error: %s", n.DevEUI, err)

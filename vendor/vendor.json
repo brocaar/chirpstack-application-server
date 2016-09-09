@@ -9,6 +9,12 @@
 			"revisionTime": "2016-08-29T20:23:21Z"
 		},
 		{
+			"checksumSHA1": "/5LfCbebnpIrSWGy1vyWO1WYiEk=",
+			"path": "github.com/brocaar/loraserver/api/as",
+			"revision": "9609ed97a26f39e80cc6de90ee272212b02b2cb8",
+			"revisionTime": "2016-09-04T07:28:38Z"
+		},
+		{
 			"checksumSHA1": "ya7tMk+wexXh1cmbdp0Sw0lbM1k=",
 			"path": "github.com/brocaar/lorawan",
 			"revision": "8e810fc7af6148d4514c9d873e5f921e9178a9c1",

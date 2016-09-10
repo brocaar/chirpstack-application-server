@@ -193,7 +193,20 @@ func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataD
 
 // HandleDataDownACK handles an ack on a downlink transmission.
 func (a *ApplicationServerAPI) HandleDataDownACK(ctx context.Context, req *as.HandleDataDownACKRequest) (*as.HandleDataDownACKResponse, error) {
-	panic("not implemented")
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], req.DevEUI)
+
+	qi, err := storage.GetPendingDownlinkQueueItem(a.ctx.DB, devEUI)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+	if err := storage.DeleteDownlinkQueueItem(a.ctx.DB, qi.ID); err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+	log.WithFields(log.Fields{
+		"dev_eui": qi.DevEUI,
+	}).Info("downlink queue item acknowledged")
+	return &as.HandleDataDownACKResponse{}, nil
 }
 
 // HandleError handles an incoming error.

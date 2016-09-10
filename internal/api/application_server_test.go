@@ -163,6 +163,27 @@ func TestApplicationServerAPI(t *testing.T) {
 					})
 				})
 			})
+
+			Convey("Given a pending downlink queue item for this node", func() {
+				qi := storage.DownlinkQueueItem{
+					DevEUI:    node.DevEUI,
+					Confirmed: true,
+					Pending:   true,
+					FPort:     10,
+					Data:      []byte{1, 2, 3, 4},
+				}
+				So(storage.CreateDownlinkQueueItem(db, &qi), ShouldBeNil)
+
+				Convey("Then it is removed on a downlink ACK", func() {
+					_, err := api.HandleDataDownACK(ctx, &as.HandleDataDownACKRequest{
+						DevEUI: node.DevEUI[:],
+					})
+					So(err, ShouldBeNil)
+
+					_, err = storage.GetDownlinkQueueItem(db, qi.ID)
+					So(err, ShouldNotBeNil)
+				})
+			})
 		})
 	})
 }

@@ -55,6 +55,17 @@ func GetDownlinkQueueItem(db *sqlx.DB, id int64) (DownlinkQueueItem, error) {
 	return qi, nil
 }
 
+// GetPendingDownlinkQueueItem returns an item from the downlink queue that
+// is pending.
+func GetPendingDownlinkQueueItem(db *sqlx.DB, devEUI lorawan.EUI64) (DownlinkQueueItem, error) {
+	var qi DownlinkQueueItem
+	err := db.Get(&qi, "select * from downlink_queue where dev_eui = $1 and pending = $2", devEUI[:], true)
+	if err != nil {
+		return qi, fmt.Errorf("get pending downlink queue item error: %s", err)
+	}
+	return qi, nil
+}
+
 // UpdateDownlinkQueueItem updates and item in the downlink queue.
 func UpdateDownlinkQueueItem(db *sqlx.DB, item DownlinkQueueItem) error {
 	res, err := db.Exec(`

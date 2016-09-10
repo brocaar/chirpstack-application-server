@@ -36,12 +36,23 @@ func TestDownlinkQueueFuncs(t *testing.T) {
 				So(qi2, ShouldResemble, qi)
 			})
 
-			Convey("When updating a downlink queue item", func() {
+			Convey("Then getting a pending downlink queue item returns an error", func() {
+				_, err := GetPendingDownlinkQueueItem(db, node.DevEUI)
+				So(err, ShouldNotBeNil)
+			})
+
+			Convey("When updating a downlink queue item to pending", func() {
 				qi.Pending = true
 				So(UpdateDownlinkQueueItem(db, qi), ShouldBeNil)
 
 				Convey("Then the downlink queue item has been updated", func() {
 					qi2, err := GetDownlinkQueueItem(db, qi.ID)
+					So(err, ShouldBeNil)
+					So(qi2, ShouldResemble, qi)
+				})
+
+				Convey("Then getting a pending downlink queue item returns this item", func() {
+					qi2, err := GetPendingDownlinkQueueItem(db, node.DevEUI)
 					So(err, ShouldBeNil)
 					So(qi2, ShouldResemble, qi)
 				})

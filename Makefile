@@ -31,8 +31,17 @@ package: clean build
 
 generate:
 	@echo "Running go generate"
+	@go generate api/api.go
+	@go generate cmd/lora-app-server/main.go
 
 # shortcuts for development
+
+requirements:
+	@echo "Installing development tools"
+	@go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+	@go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+	@go get -u github.com/golang/protobuf/protoc-gen-go
+	@go get -u github.com/elazarl/go-bindata-assetfs/...
 
 serve: build
 	@echo "Starting Lora App Server"

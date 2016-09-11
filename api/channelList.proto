@@ -10,7 +10,7 @@ service ChannelList {
 	// Create creates the given channel-list.
 	rpc Create(CreateChannelListRequest) returns (CreateChannelListResponse) {
 		option(google.api.http) = {
-			post: "/api/v1/channelList"
+			post: "/api/channelList"
 			body: "*"
 		};
 	}
@@ -18,7 +18,7 @@ service ChannelList {
 	// Update updates the given channel-list.
 	rpc Update(UpdateChannelListRequest) returns (UpdateChannelListResponse) {
 		option(google.api.http) = {
-			put: "/api/v1/channelList/{id}"
+			put: "/api/channelList/{id}"
 			body: "*"
 		};
 	}
@@ -26,21 +26,21 @@ service ChannelList {
 	// Get returns the channel-list matching the given id.
 	rpc Get(GetChannelListRequest) returns (GetChannelListResponse) {
 		option(google.api.http) = {
-			get: "/api/v1/channelList/{id}"
+			get: "/api/channelList/{id}"
 		};
 	}
 
 	// List lists the channel-lists given an offset and limit.
 	rpc List(ListChannelListRequest) returns (ListChannelListResponse) {
 		option(google.api.http) = {
-			get: "/api/v1/channelList/{offset}/{limit}"
+			get: "/api/channelList/{offset}/{limit}"
 		};
 	}
 
 	// Delete deletes the channel-list matching the given id.
 	rpc Delete(DeleteChannelListRequest) returns (DeleteChannelListResponse) {
 		option(google.api.http) = {
-			delete: "/api/v1/channelList/{id}"
+			delete: "/api/channelList/{id}"
 		};
 	}
 }

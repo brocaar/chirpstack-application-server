@@ -308,15 +308,15 @@ func RegisterNodeSessionHandler(ctx context.Context, mux *runtime.ServeMux, conn
 }
 
 var (
-	pattern_NodeSession_Create_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "nodeSession"}, ""))
+	pattern_NodeSession_Create_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "nodeSession"}, ""))
 
-	pattern_NodeSession_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "nodeSession", "devEUI"}, ""))
+	pattern_NodeSession_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "nodeSession", "devEUI"}, ""))
 
-	pattern_NodeSession_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "nodeSession", "devEUI"}, ""))
+	pattern_NodeSession_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "nodeSession", "devEUI"}, ""))
 
-	pattern_NodeSession_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "nodeSession", "devEUI"}, ""))
+	pattern_NodeSession_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "nodeSession", "devEUI"}, ""))
 
-	pattern_NodeSession_GetRandomDevAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "nodeSession", "getRandomDevAddr"}, ""))
+	pattern_NodeSession_GetRandomDevAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "nodeSession", "getRandomDevAddr"}, ""))
 )
 
 var (

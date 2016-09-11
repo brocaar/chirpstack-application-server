@@ -212,11 +212,11 @@ func RegisterDownlinkQueueHandler(ctx context.Context, mux *runtime.ServeMux, co
 }
 
 var (
-	pattern_DownlinkQueue_Enqueue_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "downlinkQueue"}, ""))
+	pattern_DownlinkQueue_Enqueue_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "downlinkQueue"}, ""))
 
-	pattern_DownlinkQueue_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "downlinkQueue", "id"}, ""))
+	pattern_DownlinkQueue_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "downlinkQueue", "id"}, ""))
 
-	pattern_DownlinkQueue_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "downlinkQueue", "devEUI"}, ""))
+	pattern_DownlinkQueue_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "downlinkQueue", "devEUI"}, ""))
 )
 
 var (

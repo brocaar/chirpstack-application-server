@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/v1/downlinkQueue": {
+    "/api/downlinkQueue": {
       "post": {
         "summary": "Enqueue adds the given item to the queue.",
         "operationId": "Enqueue",
@@ -42,7 +42,7 @@
         ]
       }
     },
-    "/api/v1/downlinkQueue/{devEUI}": {
+    "/api/downlinkQueue/{devEUI}": {
       "get": {
         "summary": "List lists the items in the queue for the given devEUI.",
         "operationId": "List",
@@ -68,7 +68,7 @@
         ]
       }
     },
-    "/api/v1/downlinkQueue/{id}": {
+    "/api/downlinkQueue/{id}": {
       "delete": {
         "summary": "Delete deletes an item from the queue.",
         "operationId": "Delete",

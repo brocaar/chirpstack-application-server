@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/v1/channel": {
+    "/api/channel": {
       "post": {
         "summary": "Create creates the given channel.",
         "operationId": "Create",
@@ -42,7 +42,7 @@
         ]
       }
     },
-    "/api/v1/channel/channelList/{id}": {
+    "/api/channel/channelList/{id}": {
       "get": {
         "summary": "ListByChannelList lists the channels matching the given channel-list id.",
         "operationId": "ListByChannelList",
@@ -68,7 +68,7 @@
         ]
       }
     },
-    "/api/v1/channel/{id}": {
+    "/api/channel/{id}": {
       "get": {
         "summary": "Get returns the channel matching the given id.",
         "operationId": "Get",

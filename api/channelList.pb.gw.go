@@ -337,15 +337,15 @@ func RegisterChannelListHandler(ctx context.Context, mux *runtime.ServeMux, conn
 }
 
 var (
-	pattern_ChannelList_Create_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "channelList"}, ""))
+	pattern_ChannelList_Create_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "channelList"}, ""))
 
-	pattern_ChannelList_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "channelList", "id"}, ""))
+	pattern_ChannelList_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "channelList", "id"}, ""))
 
-	pattern_ChannelList_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "channelList", "id"}, ""))
+	pattern_ChannelList_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "channelList", "id"}, ""))
 
-	pattern_ChannelList_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "v1", "channelList", "offset", "limit"}, ""))
+	pattern_ChannelList_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "channelList", "offset", "limit"}, ""))
 
-	pattern_ChannelList_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "channelList", "id"}, ""))
+	pattern_ChannelList_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "channelList", "id"}, ""))
 )
 
 var (

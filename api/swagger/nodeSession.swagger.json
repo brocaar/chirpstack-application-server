@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/v1/nodeSession": {
+    "/api/nodeSession": {
       "post": {
         "summary": "Create creates the given node-session. The DevAddr must contain the same NwkID as the configured NetID. Node-sessions will expire automatically after the configured TTL.",
         "operationId": "Create",
@@ -42,7 +42,7 @@
         ]
       }
     },
-    "/api/v1/nodeSession/getRandomDevAddr": {
+    "/api/nodeSession/getRandomDevAddr": {
       "post": {
         "summary": "GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.",
         "operationId": "GetRandomDevAddr",
@@ -59,7 +59,7 @@
         ]
       }
     },
-    "/api/v1/nodeSession/{devEUI}": {
+    "/api/nodeSession/{devEUI}": {
       "get": {
         "summary": "Get returns the node-session matching the given DevEUI.",
         "operationId": "Get",

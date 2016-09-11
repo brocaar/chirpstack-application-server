@@ -11,7 +11,7 @@ service Node {
     // Create creates the given node.
     rpc Create(CreateNodeRequest) returns (CreateNodeResponse) {
         option(google.api.http) = {
-            post: "/api/v1/node"
+            post: "/api/gnode"
             body: "*"
         };
     }
@@ -19,28 +19,28 @@ service Node {
     // Get returns the node for the requested DevEUI.
     rpc Get(GetNodeRequest) returns (GetNodeResponse) {
         option (google.api.http) = {
-            get: "/api/v1/node/{devEUI}"
+            get: "/api/gnode/{devEUI}"
         };
     }
 
     // Delete deletes the node matching the given DevEUI.
     rpc Delete(DeleteNodeRequest) returns (DeleteNodeResponse) {
         option (google.api.http) = {
-            delete: "/api/v1/node/{devEUI}"
+            delete: "/api/gnode/{devEUI}"
         };
     }
 
     // List lists the nodes.
     rpc List(ListNodeRequest) returns (ListNodeResponse) {
         option (google.api.http) = {
-            get: "/api/v1/node/{offset}/{limit}"
+            get: "/api/gnode/{offset}/{limit}"
         };
     }
 
     // Update updates the node matching the given DevEUI.
     rpc Update(UpdateNodeRequest) returns (UpdateNodeResponse) {
         option (google.api.http) = {
-            put: "/api/v1/node/{devEUI}"
+            put: "/api/gnode/{devEUI}"
             body: "*"
         };
     }

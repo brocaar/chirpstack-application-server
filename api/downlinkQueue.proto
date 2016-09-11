@@ -10,7 +10,7 @@ service DownlinkQueue {
     // Enqueue adds the given item to the queue.
     rpc Enqueue(EnqueueDownlinkQueueItemRequest) returns (EnqueueDownlinkQueueItemResponse) {
         option(google.api.http) = {
-            post: "/api/v1/downlinkQueue"
+            post: "/api/downlinkQueue"
             body: "*"
         };
     }
@@ -18,14 +18,14 @@ service DownlinkQueue {
     // Delete deletes an item from the queue.
     rpc Delete(DeleteDownlinkQeueueItemRequest) returns (DeleteDownlinkQueueItemResponse) {
         option(google.api.http) = {
-            delete: "/api/v1/downlinkQueue/{id}"
+            delete: "/api/downlinkQueue/{id}"
         };
     }
 
     // List lists the items in the queue for the given devEUI.
     rpc List(ListDownlinkQueueItemsRequest) returns (ListDownlinkQueueItemsResponse) {
         option(google.api.http) = {
-            get: "/api/v1/downlinkQueue/{devEUI}"
+            get: "/api/downlinkQueue/{devEUI}"
         };
     }
 }

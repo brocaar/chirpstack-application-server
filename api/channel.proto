@@ -10,7 +10,7 @@ service Channel {
 	// Create creates the given channel.
 	rpc Create(CreateChannelRequest) returns (CreateChannelResponse) {
 		option(google.api.http) = {
-			post: "/api/v1/channel"
+			post: "/api/channel"
 			body: "*"
 		};
 	}
@@ -18,14 +18,14 @@ service Channel {
 	// Get returns the channel matching the given id.
 	rpc Get(GetChannelRequest) returns (GetChannelResponse) {
 		option(google.api.http) = {
-			get: "/api/v1/channel/{id}"
+			get: "/api/channel/{id}"
 		};
 	}
 
 	// Update updates the given channel.
 	rpc Update(UpdateChannelRequest) returns (UpdateChannelResponse) {
 		option(google.api.http) = {
-			put: "/api/v1/channel/{id}"
+			put: "/api/channel/{id}"
 			body: "*"
 		};
 	}
@@ -33,14 +33,14 @@ service Channel {
 	// Delete deletes the channel matching the given id.
 	rpc Delete(DeleteChannelRequest) returns (DeleteChannelResponse) {
 		option(google.api.http) = {
-			delete: "/api/v1/channel/{id}"
+			delete: "/api/channel/{id}"
 		};
 	}
 
 	// ListByChannelList lists the channels matching the given channel-list id.
 	rpc ListByChannelList(ListChannelsByChannelListRequest) returns (ListChannelsByChannelListResponse) {
 		option(google.api.http) = {
-			get: "/api/v1/channel/channelList/{id}"
+			get: "/api/channel/channelList/{id}"
 		};
 	}
 }

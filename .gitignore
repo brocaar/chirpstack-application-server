@@ -4,3 +4,6 @@
 # binaries
 dist/
 build/
+
+# certificates
+certs/

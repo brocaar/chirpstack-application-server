@@ -15,6 +15,12 @@
 			"revisionTime": "2016-09-04T07:28:38Z"
 		},
 		{
+			"checksumSHA1": "nQM5T2+0NW5EU1MWWcILIOusnIY=",
+			"path": "github.com/brocaar/loraserver/api/ns",
+			"revision": "9609ed97a26f39e80cc6de90ee272212b02b2cb8",
+			"revisionTime": "2016-09-04T07:28:38Z"
+		},
+		{
 			"checksumSHA1": "ya7tMk+wexXh1cmbdp0Sw0lbM1k=",
 			"path": "github.com/brocaar/lorawan",
 			"revision": "8e810fc7af6148d4514c9d873e5f921e9178a9c1",
@@ -25,6 +31,12 @@
 			"path": "github.com/dgrijalva/jwt-go",
 			"revision": "24c63f56522a87ec5339cc3567883f1039378fdb",
 			"revisionTime": "2016-08-31T18:35:34Z"
+		},
+		{
+			"checksumSHA1": "bGdOim32+2dyKoQEtwW1PNwcdBc=",
+			"path": "github.com/elazarl/go-bindata-assetfs",
+			"revision": "9a6736ed45b44bf3835afeebb3034b57ed329f3e",
+			"revisionTime": "2016-08-22T20:44:01Z"
 		},
 		{
 			"checksumSHA1": "NgOgDwqQnfQhahsECFCsSPEenE0=",
@@ -43,6 +55,12 @@
 			"path": "github.com/golang/protobuf/protoc-gen-go/descriptor",
 			"revision": "1f49d83d9aa00e6ce4fc8258c71cc7786aec968a",
 			"revisionTime": "2016-08-24T20:12:15Z"
+		},
+		{
+			"checksumSHA1": "oDsOWp1nBMGpQ9gCFnczGADwZTE=",
+			"path": "github.com/gorilla/mux",
+			"revision": "0a192a193177452756c362c20087ddafcf6829c4",
+			"revisionTime": "2016-09-02T15:33:43Z"
 		},
 		{
 			"checksumSHA1": "0uWDQrsSzyQHYg5et19xtS+EWmY=",

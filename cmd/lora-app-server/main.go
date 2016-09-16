@@ -32,6 +32,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/static"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
+	"github.com/brocaar/loraserver/api/ns"
 )
 
 func init() {
@@ -54,7 +55,12 @@ func run(c *cli.Context) error {
 	lsCtx := mustGetContext(c)
 
 	// start the application-server api
-	log.WithField("bind", c.String("bind")).Info("starting application-server api")
+	log.WithFields(log.Fields{
+		"bind":     c.String("bind"),
+		"ca-cert":  c.String("ca-cert"),
+		"tls-cert": c.String("tls-cert"),
+		"tls-key":  c.String("tls-key"),
+	}).Info("starting application-server api")
 	apiServer := mustGetAPIServer(lsCtx, c)
 	ln, err := net.Listen("tcp", c.String("bind"))
 	if err != nil {
@@ -77,7 +83,11 @@ func run(c *cli.Context) error {
 		}
 	})
 	go func() {
-		log.WithField("bind", c.String("http-bind")).Info("starting client api server")
+		log.WithFields(log.Fields{
+			"bind":     c.String("http-bind"),
+			"tls-cert": c.String("http-tls-cert"),
+			"tls-key":  c.String("http-tls-key"),
+		}).Info("starting client api server")
 		log.Fatal(http.ListenAndServeTLS(c.String("http-bind"), c.String("http-tls-cert"), c.String("http-tls-key"), handler))
 	}()
 
@@ -106,8 +116,30 @@ func mustGetContext(c *cli.Context) common.Context {
 		log.Fatalf("database connection error: %s", err)
 	}
 
+	// setup network-server client
+	log.WithFields(log.Fields{
+		"server":   c.String("ns-server"),
+		"ca-cert":  c.String("ns-ca-cert"),
+		"tls-cert": c.String("ns-tls-cert"),
+		"tls-key":  c.String("ns-tls-key"),
+	}).Info("connecting to network-server api")
+	var nsOpts []grpc.DialOption
+	if c.String("ns-tls-cert") != "" && c.String("ns-tls-key") != "" {
+		nsOpts = append(nsOpts, grpc.WithTransportCredentials(
+			mustGetTransportCredentials(c.String("ns-tls-cert"), c.String("ns-tls-key"), c.String("ns-ca-cert"), false),
+		))
+	} else {
+		nsOpts = append(nsOpts, grpc.WithInsecure())
+	}
+
+	nsConn, err := grpc.Dial(c.String("ns-server"), nsOpts...)
+	if err != nil {
+		log.Fatalf("network-server dial error: %s", err)
+	}
+
 	return common.Context{
-		DB: db,
+		DB:            db,
+		NetworkServer: ns.NewNetworkServerClient(nsConn),
 	}
 }
 
@@ -131,21 +163,18 @@ func mustGetClientAPIServer(ctx context.Context, lsCtx common.Context, c *cli.Co
 }
 
 func mustGetAPIServer(ctx common.Context, c *cli.Context) *grpc.Server {
-	var options []grpc.ServerOption
+	var opts []grpc.ServerOption
 	if c.String("tls-cert") != "" && c.String("tls-key") != "" {
-		options = append(options, grpc.Creds(
-			mustGetTransportCredentials(c.String("tls-cert"), c.String("tls-key"), c.String("ca-cert"), true),
-		))
+		creds := mustGetTransportCredentials(c.String("tls-cert"), c.String("tls-key"), c.String("ca-cert"), false)
+		opts = append(opts, grpc.Creds(creds))
 	}
-
-	gs := grpc.NewServer(options...)
+	gs := grpc.NewServer(opts...)
 	asAPI := api.NewApplicationServerAPI(ctx)
 	as.RegisterApplicationServerServer(gs, asAPI)
 	return gs
 }
 
 func mustGetHTTPHandler(ctx context.Context, lsCtx common.Context, c *cli.Context) http.Handler {
-
 	r := mux.NewRouter()
 
 	// setup json api handler
@@ -224,33 +253,37 @@ func mustGetJSONGateway(ctx context.Context, lsCtx common.Context, c *cli.Contex
 }
 
 func mustGetTransportCredentials(tlsCert, tlsKey, caCert string, verifyClientCert bool) credentials.TransportCredentials {
+	var caCertPool *x509.CertPool
 	cert, err := tls.LoadX509KeyPair(tlsCert, tlsKey)
 	if err != nil {
-		log.Fatal("loading keypair error: %s", err)
+		log.WithFields(log.Fields{
+			"cert": tlsCert,
+			"key":  tlsKey,
+		}).Fatalf("load key-pair error: %s", err)
 	}
 
-	var caCertPool *x509.CertPool
-	var clientAuth tls.ClientAuthType
-
 	if caCert != "" {
-		rawCACert, err := ioutil.ReadFile(caCert)
+		rawCaCert, err := ioutil.ReadFile(caCert)
 		if err != nil {
-			log.Fatal("load ca cert error: %s", err)
+			log.WithField("ca", caCert).Fatalf("load ca cert error: %s")
 		}
 
 		caCertPool = x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(rawCACert)
+		caCertPool.AppendCertsFromPEM(rawCaCert)
 	}
 
 	if verifyClientCert {
-		clientAuth = tls.RequireAndVerifyClientCert
+		return credentials.NewTLS(&tls.Config{
+			Certificates: []tls.Certificate{cert},
+			RootCAs:      caCertPool,
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+		})
+	} else {
+		return credentials.NewTLS(&tls.Config{
+			Certificates: []tls.Certificate{cert},
+			RootCAs:      caCertPool,
+		})
 	}
-
-	return credentials.NewTLS(&tls.Config{
-		Certificates: []tls.Certificate{cert},
-		RootCAs:      caCertPool,
-		ClientAuth:   clientAuth,
-	})
 }
 
 func main() {
@@ -274,20 +307,17 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:   "ca-cert",
-			Usage:  "ca certificate used by the api server",
-			Value:  "certs/ca.pem",
+			Usage:  "ca certificate used by the api server (optional)",
 			EnvVar: "CA_CERT",
 		},
 		cli.StringFlag{
 			Name:   "tls-cert",
-			Usage:  "tls certificate used by the api server",
-			Value:  "certs/as.pem",
+			Usage:  "tls certificate used by the api server (optional)",
 			EnvVar: "TLS_CERT",
 		},
 		cli.StringFlag{
 			Name:   "tls-key",
-			Usage:  "tls key used by the api server",
-			Value:  "certs/as-key.pem",
+			Usage:  "tls key used by the api server (optional)",
 			EnvVar: "TLS_KEY",
 		},
 		cli.StringFlag{
@@ -305,19 +335,38 @@ func main() {
 		cli.StringFlag{
 			Name:   "http-tls-cert",
 			Usage:  "http server TLS certificate",
-			Value:  "certs/as-http.pem",
 			EnvVar: "HTTP_TLS_CERT",
 		},
 		cli.StringFlag{
 			Name:   "http-tls-key",
 			Usage:  "http server TLS key",
-			Value:  "certs/as-http-key.pem",
 			EnvVar: "HTTP_TLS_KEY",
 		},
 		cli.StringFlag{
 			Name:   "jwt-secret",
 			Usage:  "JWT secret used for api authentication / authorization (disabled when left blank)",
 			EnvVar: "JWT_SECRET",
+		},
+		cli.StringFlag{
+			Name:   "ns-server",
+			Usage:  "hostname:port of the network-server api server",
+			Value:  "127.0.0.1:8000",
+			EnvVar: "NS_SERVER",
+		},
+		cli.StringFlag{
+			Name:   "ns-ca-cert",
+			Usage:  "ca certificate used by the network-server client (optional)",
+			EnvVar: "NS_CA_CERT",
+		},
+		cli.StringFlag{
+			Name:   "ns-tls-cert",
+			Usage:  "tls certificate used by the network-server client (optional)",
+			EnvVar: "NS_TLS_CERT",
+		},
+		cli.StringFlag{
+			Name:   "ns-tls-key",
+			Usage:  "tls key used by the network-server client (optional)",
+			EnvVar: "NS_TLS_KEY",
 		},
 	}
 	app.Run(os.Args)

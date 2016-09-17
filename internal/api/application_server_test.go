@@ -8,6 +8,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/lora-app-server/internal/test/testhandler"
 	"github.com/brocaar/loraserver/api/as"
 	"github.com/brocaar/lorawan"
 	. "github.com/smartystreets/goconvey/convey"
@@ -21,7 +22,7 @@ func TestApplicationServerAPI(t *testing.T) {
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
-		h := test.NewHandler()
+		h := testhandler.NewTestHandler()
 
 		ctx := context.Background()
 		lsCtx := common.Context{

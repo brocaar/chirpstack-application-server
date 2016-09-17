@@ -20,6 +20,7 @@ import (
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	migrate "github.com/rubenv/sql-migrate"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -30,6 +31,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/migrations"
 	"github.com/brocaar/lora-app-server/internal/static"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
@@ -54,6 +56,21 @@ func run(c *cli.Context) error {
 
 	// get context
 	lsCtx := mustGetContext(c)
+
+	// migrate the database
+	if c.Bool("db-automigrate") {
+		log.Info("applying database migrations")
+		m := &migrate.AssetMigrationSource{
+			Asset:    migrations.Asset,
+			AssetDir: migrations.AssetDir,
+			Dir:      "",
+		}
+		n, err := migrate.Exec(lsCtx.DB.DB, "postgres", m, migrate.Up)
+		if err != nil {
+			log.Fatalf("applying migrations failed: %s", err)
+		}
+		log.WithField("count", n).Info("migrations applied")
+	}
 
 	// start the application-server api
 	log.WithFields(log.Fields{
@@ -170,7 +187,7 @@ func mustGetClientAPIServer(ctx context.Context, lsCtx common.Context, c *cli.Co
 	pb.RegisterChannelListServer(gs, api.NewChannelListAPI(lsCtx, validator))
 	pb.RegisterDownlinkQueueServer(gs, api.NewDownlinkQueueAPI(lsCtx, validator))
 	pb.RegisterNodeServer(gs, api.NewNodeAPI(lsCtx, validator))
-	//pb.RegisterNodeSessionServer(gs, api.NewNodeSessionAPI(lsCtx, validator))
+	pb.RegisterNodeSessionServer(gs, api.NewNodeSessionAPI(lsCtx, validator))
 
 	return gs
 }

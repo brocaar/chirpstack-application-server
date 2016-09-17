@@ -152,7 +152,7 @@ func mustGetContext(c *cli.Context) common.Context {
 		DB:            db,
 		RedisPool:     rp,
 		NetworkServer: ns.NewNetworkServerClient(nsConn),
-		MQTTHandler:   h,
+		Handler:       h,
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 // DownlinkQueueItem represents an item in the downlink queue.
 type DownlinkQueueItem struct {
 	ID        int64         `db:"id"`
+	Reference string        `db:"reference"`
 	DevEUI    lorawan.EUI64 `db:"dev_eui"`
 	Confirmed bool          `db:"confirmed"`
 	Pending   bool          `db:"pending"`
@@ -24,12 +25,14 @@ func CreateDownlinkQueueItem(db *sqlx.DB, item *DownlinkQueueItem) error {
 	err := db.Get(&item.ID, `
 		insert into downlink_queue (
 			dev_eui,
+			reference,
 			confirmed,
 			pending,
 			fport,
 			data
-		) values ($1, $2, $3, $4, $5) returning id`,
+		) values ($1, $2, $3, $4, $5, $6) returning id`,
 		item.DevEUI[:],
+		item.Reference,
 		item.Confirmed,
 		item.Pending,
 		item.FPort,
@@ -72,12 +75,14 @@ func UpdateDownlinkQueueItem(db *sqlx.DB, item DownlinkQueueItem) error {
 		update downlink_queue
 		set
 			dev_eui = $1,
-			confirmed = $2,
-			pending = $3,
-			fport = $4,
-			data = $5
-		where id = $6`,
+			reference = $2,
+			confirmed = $3,
+			pending = $4,
+			fport = $5,
+			data = $6
+		where id = $7`,
 		item.DevEUI[:],
+		item.Reference,
 		item.Confirmed,
 		item.Pending,
 		item.FPort,

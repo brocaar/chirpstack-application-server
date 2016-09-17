@@ -1,6 +1,7 @@
 -- +migrate Up
 create table downlink_queue (
     id bigserial,
+	reference varchar(100),
     dev_eui bytea references node on delete cascade not null,
     confirmed boolean,
     pending boolean,

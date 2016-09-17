@@ -24,6 +24,7 @@ func TestDownlinkQueueFuncs(t *testing.T) {
 		Convey("When creating a downlink queue item", func() {
 			qi := DownlinkQueueItem{
 				DevEUI:    node.DevEUI,
+				Reference: "abcd1234",
 				Confirmed: true,
 				FPort:     10,
 				Data:      []byte{1, 2, 3, 4},

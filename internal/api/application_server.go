@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/rand"
 	"fmt"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -11,6 +12,7 @@ import (
 	"google.golang.org/grpc/codes"
 
 	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
 	"github.com/brocaar/lorawan"
@@ -178,22 +180,60 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 		"dev_addr": node.DevAddr,
 	}).Info("join-request accepted")
 
+	err = a.ctx.Handler.SendJoinNotification(node.AppEUI, node.DevEUI, handler.JoinNotification{
+		DevAddr: node.DevAddr,
+		DevEUI:  node.DevEUI,
+	})
+	if err != nil {
+		log.Error("send join notification to handler error: %s", err)
+	}
+
 	return &resp, nil
 }
 
 // HandleDataUp handles incoming (uplink) data.
 func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleDataUpRequest) (*as.HandleDataUpResponse, error) {
-	panic("not implemented")
+	if len(req.RxInfo) == 0 {
+		return nil, grpc.Errorf(codes.InvalidArgument, "RxInfo must have length > 0")
+	}
+
+	var appEUI, devEUI lorawan.EUI64
+	copy(appEUI[:], req.AppEUI)
+	copy(devEUI[:], req.DevEUI)
+	ts, err := time.Parse(time.RFC3339Nano, req.RxInfo[0].Time)
+	if err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "could not parse RxInfo.Time: %s", err)
+	}
+
+	pl := handler.DataUpPayload{
+		DevEUI:       devEUI,
+		Time:         ts,
+		FPort:        uint8(req.FPort),
+		GatewayCount: len(req.RxInfo),
+		RSSI:         int(req.RxInfo[0].Rssi),
+		Data:         req.Data,
+	}
+
+	err = a.ctx.Handler.SendDataUp(appEUI, devEUI, pl)
+	if err != nil {
+		errStr := fmt.Sprintf("send data up to mqtt handler error: %s", err)
+		log.Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
+	return &as.HandleDataUpResponse{}, nil
 }
 
 // GetDataDown returns the first payload from the datadown queue.
 func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataDownRequest) (*as.GetDataDownResponse, error) {
-	panic("not implemented")
+	//panic("not implemented")
+	return &as.GetDataDownResponse{}, nil
 }
 
 // HandleDataDownACK handles an ack on a downlink transmission.
 func (a *ApplicationServerAPI) HandleDataDownACK(ctx context.Context, req *as.HandleDataDownACKRequest) (*as.HandleDataDownACKResponse, error) {
-	var devEUI lorawan.EUI64
+	var appEUI, devEUI lorawan.EUI64
+	copy(appEUI[:], req.AppEUI)
 	copy(devEUI[:], req.DevEUI)
 
 	qi, err := storage.GetPendingDownlinkQueueItem(a.ctx.DB, devEUI)
@@ -206,18 +246,40 @@ func (a *ApplicationServerAPI) HandleDataDownACK(ctx context.Context, req *as.Ha
 	log.WithFields(log.Fields{
 		"dev_eui": qi.DevEUI,
 	}).Info("downlink queue item acknowledged")
+
+	err = a.ctx.Handler.SendACKNotification(appEUI, devEUI, handler.ACKNotification{
+		DevEUI:    devEUI,
+		Reference: qi.Reference,
+	})
+	if err != nil {
+		log.Error("send ack notification to handler error: %s", err)
+	}
+
 	return &as.HandleDataDownACKResponse{}, nil
 }
 
 // HandleError handles an incoming error.
 func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleErrorRequest) (*as.HandleErrorResponse, error) {
-	var devEUI lorawan.EUI64
+	var appEUI, devEUI lorawan.EUI64
+	copy(appEUI[:], req.AppEUI)
 	copy(devEUI[:], req.DevEUI)
 
 	log.WithFields(log.Fields{
 		"type":    req.Type,
 		"dev_eui": devEUI,
 	}).Error(req.Error)
+
+	err := a.ctx.Handler.SendErrorNotification(appEUI, devEUI, handler.ErrorNotification{
+		DevEUI: devEUI,
+		Type:   req.Type.String(),
+		Error:  req.Error,
+	})
+	if err != nil {
+		errStr := fmt.Sprintf("send error notification to mqtt handler error: %s", err)
+		log.Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
 	return &as.HandleErrorResponse{}, nil
 }
 

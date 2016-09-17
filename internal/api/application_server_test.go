@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/as"
@@ -20,10 +21,34 @@ func TestApplicationServerAPI(t *testing.T) {
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
+		h := test.NewHandler()
+
 		ctx := context.Background()
-		lsCtx := common.Context{DB: db}
+		lsCtx := common.Context{
+			DB:      db,
+			Handler: h,
+		}
 
 		api := NewApplicationServerAPI(lsCtx)
+
+		Convey("When calling HandleError", func() {
+			_, err := api.HandleError(ctx, &as.HandleErrorRequest{
+				DevEUI: []byte{1, 2, 3, 4, 5, 6, 7, 8},
+				AppEUI: []byte{8, 7, 6, 5, 4, 3, 2, 1},
+				Type:   as.ErrorType_DATA_UP_FCNT,
+				Error:  "BOOM!",
+			})
+			So(err, ShouldBeNil)
+
+			Convey("Then the error has been sent to the handler", func() {
+				So(h.SendErrorNotificationChan, ShouldHaveLength, 1)
+				So(<-h.SendErrorNotificationChan, ShouldResemble, handler.ErrorNotification{
+					DevEUI: [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
+					Type:   "DATA_UP_FCNT",
+					Error:  "BOOM!",
+				})
+			})
+		})
 
 		Convey("Given a node in the database", func() {
 			node := storage.Node{
@@ -55,7 +80,7 @@ func TestApplicationServerAPI(t *testing.T) {
 			b, err := phy.MarshalBinary()
 			So(err, ShouldBeNil)
 
-			Convey("When performing a join-request", func() {
+			Convey("When calling JoinRequest", func() {
 
 				req := as.JoinRequestRequest{
 					PhyPayload: b,
@@ -102,6 +127,14 @@ func TestApplicationServerAPI(t *testing.T) {
 						So(node.DevAddr[:], ShouldResemble, []byte{1, 2, 3, 4})
 					})
 				})
+
+				Convey("Then a notification was sent to the handler", func() {
+					So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
+					So(<-h.SendJoinNotificationChan, ShouldResemble, handler.JoinNotification{
+						DevAddr: [4]byte{1, 2, 3, 4},
+						DevEUI:  node.DevEUI,
+					})
+				})
 			})
 
 			Convey("Given the node as a CFList with three channels", func() {
@@ -128,7 +161,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				node.ChannelListID = &cl.ID
 				So(storage.UpdateNode(db, node), ShouldBeNil)
 
-				Convey("When performing a join-request", func() {
+				Convey("When calling JoinRequest", func() {
 					req := as.JoinRequestRequest{
 						PhyPayload: b,
 						DevAddr:    []byte{1, 2, 3, 4},
@@ -161,12 +194,21 @@ func TestApplicationServerAPI(t *testing.T) {
 							0,
 						})
 					})
+
+					Convey("Then a notification was sent to the handler", func() {
+						So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
+						So(<-h.SendJoinNotificationChan, ShouldResemble, handler.JoinNotification{
+							DevAddr: [4]byte{1, 2, 3, 4},
+							DevEUI:  node.DevEUI,
+						})
+					})
 				})
 			})
 
 			Convey("Given a pending downlink queue item for this node", func() {
 				qi := storage.DownlinkQueueItem{
 					DevEUI:    node.DevEUI,
+					Reference: "abcd1234",
 					Confirmed: true,
 					Pending:   true,
 					FPort:     10,
@@ -174,7 +216,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				}
 				So(storage.CreateDownlinkQueueItem(db, &qi), ShouldBeNil)
 
-				Convey("Then it is removed on a downlink ACK", func() {
+				Convey("Then it is removed when calling HandleDataDownACK", func() {
 					_, err := api.HandleDataDownACK(ctx, &as.HandleDataDownACKRequest{
 						DevEUI: node.DevEUI[:],
 					})
@@ -182,6 +224,14 @@ func TestApplicationServerAPI(t *testing.T) {
 
 					_, err = storage.GetDownlinkQueueItem(db, qi.ID)
 					So(err, ShouldNotBeNil)
+
+					Convey("Then an ack notification was sent to the handler", func() {
+						So(h.SendACKNotificationChan, ShouldHaveLength, 1)
+						So(<-h.SendACKNotificationChan, ShouldResemble, handler.ACKNotification{
+							DevEUI:    qi.DevEUI,
+							Reference: qi.Reference,
+						})
+					})
 				})
 			})
 		})

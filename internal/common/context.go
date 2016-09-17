@@ -11,5 +11,5 @@ type Context struct {
 	DB            *sqlx.DB
 	RedisPool     *redis.Pool
 	NetworkServer ns.NetworkServerClient
-	MQTTHandler   *handler.MQTTHandler
+	Handler       handler.Handler
 }

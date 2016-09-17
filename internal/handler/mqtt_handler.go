@@ -72,7 +72,7 @@ type ErrorNotification struct {
 }
 
 // NewMQTTHandler creates a new MQTTHandler.
-func NewMQTTHandler(p *redis.Pool, server, username, password string) (*MQTTHandler, error) {
+func NewMQTTHandler(p *redis.Pool, server, username, password string) (Handler, error) {
 	h := MQTTHandler{
 		dataDownChan: make(chan DataDownPayload),
 		redisPool:    p,

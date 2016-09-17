@@ -29,6 +29,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/static"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
@@ -116,6 +117,16 @@ func mustGetContext(c *cli.Context) common.Context {
 		log.Fatalf("database connection error: %s", err)
 	}
 
+	// setup redis pool
+	log.Info("setup redis connection pool")
+	rp := storage.NewRedisPool(c.String("redis-url"))
+
+	// setup mqtt handler
+	h, err := handler.NewMQTTHandler(rp, c.String("mqtt-server"), c.String("mqtt-username"), c.String("mqtt-password"))
+	if err != nil {
+		log.Fatalf("setup mqtt handler error: %s", err)
+	}
+
 	// setup network-server client
 	log.WithFields(log.Fields{
 		"server":   c.String("ns-server"),
@@ -139,7 +150,9 @@ func mustGetContext(c *cli.Context) common.Context {
 
 	return common.Context{
 		DB:            db,
+		RedisPool:     rp,
 		NetworkServer: ns.NewNetworkServerClient(nsConn),
+		MQTTHandler:   h,
 	}
 }
 
@@ -304,6 +317,28 @@ func main() {
 			Name:   "db-automigrate",
 			Usage:  "automatically apply database migrations",
 			EnvVar: "DB_AUTOMIGRATE",
+		},
+		cli.StringFlag{
+			Name:   "redis-url",
+			Usage:  "redis url",
+			Value:  "redis://localhost:6379",
+			EnvVar: "REDIS_URL",
+		},
+		cli.StringFlag{
+			Name:   "mqtt-server",
+			Usage:  "mqtt server",
+			Value:  "tcp://localhost:1883",
+			EnvVar: "GW_MQTT_SERVER",
+		},
+		cli.StringFlag{
+			Name:   "gw-mqtt-username",
+			Usage:  "mqtt server username (optional)",
+			EnvVar: "GW_MQTT_USERNAME",
+		},
+		cli.StringFlag{
+			Name:   "gw-mqtt-password",
+			Usage:  "mqtt server password (optional)",
+			EnvVar: "GW_MQTT_PASSWORD",
 		},
 		cli.StringFlag{
 			Name:   "ca-cert",

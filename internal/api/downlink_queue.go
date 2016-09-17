@@ -49,6 +49,7 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 	}
 
 	qi := storage.DownlinkQueueItem{
+		Reference: req.Reference,
 		Confirmed: req.Confirmed,
 		FPort:     uint8(req.FPort),
 		Data:      req.Data,
@@ -119,6 +120,7 @@ func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueIt
 	for _, item := range items {
 		qi := pb.DownlinkQueueItem{
 			Id:        item.ID,
+			Reference: item.Reference,
 			DevEUI:    hex.EncodeToString(item.DevEUI[:]),
 			Confirmed: item.Confirmed,
 			Pending:   item.Pending,

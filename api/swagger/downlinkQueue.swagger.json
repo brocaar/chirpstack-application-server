@@ -141,6 +141,11 @@
           "type": "boolean",
           "format": "boolean",
           "title": "the transmission is pending (waiting for an ack)"
+        },
+        "reference": {
+          "type": "string",
+          "format": "string",
+          "title": "random reference (used on ack notification)"
         }
       }
     },
@@ -166,6 +171,11 @@
           "type": "integer",
           "format": "int64",
           "title": "FPort to be used"
+        },
+        "reference": {
+          "type": "string",
+          "format": "string",
+          "title": "random reference (used on ack notification)"
         }
       }
     },

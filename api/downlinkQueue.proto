@@ -33,12 +33,14 @@ service DownlinkQueue {
 message EnqueueDownlinkQueueItemRequest {
     // hex encoded DevEUI
     string devEUI = 1;
+	// random reference (used on ack notification)
+	string reference = 2;
     // requires an ack from the node
-    bool confirmed = 2;
+    bool confirmed = 3;
     // FPort to be used
-    uint32 fPort = 3;
+    uint32 fPort = 4;
     // base64 encoded data
-    bytes data = 4;
+    bytes data = 5;
 }
 
 message EnqueueDownlinkQueueItemResponse {}
@@ -55,14 +57,16 @@ message DownlinkQueueItem {
     int64 id = 1;
     // hex encoded DevEUI
     string devEUI = 2;
+	// random reference (used on ack notification)
+	string reference = 3;
     // requires an ack from the node
-    bool confirmed = 3;
+    bool confirmed = 4;
     // the transmission is pending (waiting for an ack)
-    bool pending = 4;
+    bool pending = 5;
     // FPort to be used
-    uint32 fPort = 5;
+    uint32 fPort = 6;
     // base64 encoded data
-    bytes data = 6;   
+    bytes data = 7;   
 }
 
 message ListDownlinkQueueItemsRequest {

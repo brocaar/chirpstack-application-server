@@ -234,6 +234,86 @@ func TestApplicationServerAPI(t *testing.T) {
 					})
 				})
 			})
+
+			Convey("Given a downlink queue item in the queue (confirmed=false)", func() {
+				qi := storage.DownlinkQueueItem{
+					DevEUI:    node.DevEUI,
+					Reference: "abcd1234",
+					Confirmed: false,
+					FPort:     1,
+					Data:      []byte{1, 2, 3, 4},
+				}
+				So(storage.CreateDownlinkQueueItem(db, &qi), ShouldBeNil)
+
+				Convey("When calling GetDataDown", func() {
+					resp, err := api.GetDataDown(ctx, &as.GetDataDownRequest{
+						DevEUI:         node.DevEUI[:],
+						MaxPayloadSize: 100,
+						FCnt:           10,
+					})
+					So(err, ShouldBeNil)
+
+					Convey("Then the expected response is returned", func() {
+						b, err := lorawan.EncryptFRMPayload(node.AppSKey, true, node.DevAddr, 10, resp.Data)
+						So(err, ShouldBeNil)
+
+						resp.Data = b
+
+						So(resp, ShouldResemble, &as.GetDataDownResponse{
+							Data:      qi.Data,
+							Confirmed: false,
+							FPort:     1,
+							MoreData:  false,
+						})
+					})
+
+					Convey("Then the item was removed from the queue", func() {
+						size, err := storage.GetDownlinkQueueSize(db, node.DevEUI)
+						So(err, ShouldBeNil)
+						So(size, ShouldEqual, 0)
+					})
+				})
+			})
+
+			Convey("Given a downlink queue item in the queue (confirmed=true)", func() {
+				qi := storage.DownlinkQueueItem{
+					DevEUI:    node.DevEUI,
+					Reference: "abcd1234",
+					Confirmed: true,
+					FPort:     1,
+					Data:      []byte{1, 2, 3, 4},
+				}
+				So(storage.CreateDownlinkQueueItem(db, &qi), ShouldBeNil)
+
+				Convey("When calling GetDataDown", func() {
+					resp, err := api.GetDataDown(ctx, &as.GetDataDownRequest{
+						DevEUI:         node.DevEUI[:],
+						MaxPayloadSize: 100,
+						FCnt:           10,
+					})
+					So(err, ShouldBeNil)
+
+					Convey("Then the expected response is returned", func() {
+						b, err := lorawan.EncryptFRMPayload(node.AppSKey, true, node.DevAddr, 10, resp.Data)
+						So(err, ShouldBeNil)
+
+						resp.Data = b
+
+						So(resp, ShouldResemble, &as.GetDataDownResponse{
+							Data:      qi.Data,
+							Confirmed: true,
+							FPort:     1,
+							MoreData:  false,
+						})
+					})
+
+					Convey("Then the item was set to pending", func() {
+						qi2, err := storage.GetDownlinkQueueItem(db, qi.ID)
+						So(err, ShouldBeNil)
+						So(qi2.Pending, ShouldBeTrue)
+					})
+				})
+			})
 		})
 	})
 }

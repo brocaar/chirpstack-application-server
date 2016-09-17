@@ -226,8 +226,84 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 
 // GetDataDown returns the first payload from the datadown queue.
 func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataDownRequest) (*as.GetDataDownResponse, error) {
-	//panic("not implemented")
-	return &as.GetDataDownResponse{}, nil
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], req.DevEUI)
+
+	qi, err := storage.GetNextDownlinkQueueItem(a.ctx.DB, devEUI, int(req.MaxPayloadSize))
+	if err != nil {
+		errStr := fmt.Sprintf("get next downlink queue item error: %s", err)
+		log.WithFields(log.Fields{
+			"dev_eui":          devEUI,
+			"max_payload_size": req.MaxPayloadSize,
+		}).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
+	// the queue is empty
+	if qi == nil {
+		log.WithField("dev_eui", devEUI).Info("data-down item requested by network-server, but queue is empty")
+		return &as.GetDataDownResponse{}, nil
+	}
+
+	node, err := storage.GetNode(a.ctx.DB, devEUI)
+	if err != nil {
+		errStr := fmt.Sprintf("get node error: %s", err)
+		log.WithField("dev_eui", devEUI).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
+	b, err := lorawan.EncryptFRMPayload(node.AppSKey, true, node.DevAddr, req.FCnt, qi.Data)
+	if err != nil {
+		errStr := fmt.Sprintf("encrypt payload error: %s", err)
+		log.WithFields(log.Fields{
+			"dev_eui": devEUI,
+			"id":      qi.ID,
+		}).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
+	queueSize, err := storage.GetDownlinkQueueSize(a.ctx.DB, devEUI)
+	if err != nil {
+		errStr := fmt.Sprintf("get downlink queue size error: %s", err)
+		log.WithField("dev_eui", devEUI).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
+	if !qi.Confirmed {
+		if err := storage.DeleteDownlinkQueueItem(a.ctx.DB, qi.ID); err != nil {
+			errStr := fmt.Sprintf("delete downlink queue item error: %s", err)
+			log.WithFields(log.Fields{
+				"dev_eui": devEUI,
+				"id":      qi.ID,
+			}).Error(errStr)
+			return nil, grpc.Errorf(codes.Internal, errStr)
+		}
+	} else {
+		qi.Pending = true
+		if err := storage.UpdateDownlinkQueueItem(a.ctx.DB, *qi); err != nil {
+			errStr := fmt.Sprintf("update downlink queue item error: %s", err)
+			log.WithFields(log.Fields{
+				"dev_eui": devEUI,
+				"id":      qi.ID,
+			}).Error(errStr)
+			return nil, grpc.Errorf(codes.Internal, errStr)
+		}
+	}
+
+	log.WithFields(log.Fields{
+		"dev_eui":   devEUI,
+		"confirmed": qi.Confirmed,
+		"id":        qi.ID,
+		"fcnt":      req.FCnt,
+	}).Info("data-down item requested by network-server")
+
+	return &as.GetDataDownResponse{
+		Data:      b,
+		Confirmed: qi.Confirmed,
+		FPort:     uint32(qi.FPort),
+		MoreData:  queueSize > 1,
+	}, nil
+
 }
 
 // HandleDataDownACK handles an ack on a downlink transmission.

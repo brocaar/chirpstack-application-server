@@ -82,6 +82,12 @@ func TestDownlinkQueueFuncs(t *testing.T) {
 			}
 			So(CreateDownlinkQueueItem(db, &qi), ShouldBeNil)
 
+			Convey("Then GetDownlinkQueueSize returns 1", func() {
+				size, err := GetDownlinkQueueSize(db, node.DevEUI)
+				So(err, ShouldBeNil)
+				So(size, ShouldEqual, 1)
+			})
+
 			Convey("Then the downlink queue item can be retrieved", func() {
 				qi2, err := GetDownlinkQueueItem(db, qi.ID)
 				So(err, ShouldBeNil)

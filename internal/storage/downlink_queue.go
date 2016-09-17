@@ -59,6 +59,16 @@ func GetDownlinkQueueItem(db *sqlx.DB, id int64) (DownlinkQueueItem, error) {
 	return qi, nil
 }
 
+// GetDownlinkQueueSize returns the size of the downlink queue.
+func GetDownlinkQueueSize(db *sqlx.DB, devEUI lorawan.EUI64) (int, error) {
+	var count int
+	err := db.Get(&count, "select count(*) from downlink_queue where dev_eui = $1", devEUI[:])
+	if err != nil {
+		return 0, fmt.Errorf("get downlink queue size error: %s", err)
+	}
+	return count, nil
+}
+
 // GetPendingDownlinkQueueItem returns an item from the downlink queue that
 // is pending.
 func GetPendingDownlinkQueueItem(db *sqlx.DB, devEUI lorawan.EUI64) (DownlinkQueueItem, error) {

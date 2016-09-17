@@ -114,6 +114,35 @@ func TestMQTTHandler(t *testing.T) {
 				})
 			})
 
+			Convey("Given the MQTT client is subscribed to application/+/node/+/error", func() {
+				errChan := make(chan ErrorNotification)
+				token := c.Subscribe("application/+/node/+/error", 0, func(c mqtt.Client, msg mqtt.Message) {
+					var pl ErrorNotification
+					if err := json.Unmarshal(msg.Payload(), &pl); err != nil {
+						t.Fatal(err)
+					}
+					errChan <- pl
+				})
+				token.Wait()
+				So(token.Error(), ShouldBeNil)
+
+				Convey("When sending an error notification (from the handler)", func() {
+					devEUI := [8]byte{1, 1, 1, 1, 1, 1, 1, 1}
+					appEUI := [8]byte{2, 2, 2, 2, 2, 2, 2, 2}
+
+					pl := ErrorNotification{
+						DevEUI: devEUI,
+						Type:   "BOOM",
+						Error:  "boom boom boom",
+					}
+					So(handler.SendErrorNotification(appEUI, devEUI, pl), ShouldBeNil)
+
+					Convey("Then the same notification is received by the MQTT client", func() {
+						So(<-errChan, ShouldResemble, pl)
+					})
+				})
+			})
+
 			Convey("Given a DataDownPayload is published by the MQTT client", func() {
 				pl := DataDownPayload{
 					Confirmed: false,

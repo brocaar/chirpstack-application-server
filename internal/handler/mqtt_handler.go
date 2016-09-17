@@ -63,6 +63,14 @@ type ACKNotification struct {
 	DevEUI    lorawan.EUI64 `json:"devEUI"`
 }
 
+// ErrorNotification defines the payload sent to the application
+// on an error event.
+type ErrorNotification struct {
+	DevEUI lorawan.EUI64 `json:"devEUI"`
+	Type   string        `json:"type"`
+	Error  string        `json:"error"`
+}
+
 // NewMQTTHandler creates a new MQTTHandler.
 func NewMQTTHandler(p *redis.Pool, server, username, password string) (*MQTTHandler, error) {
 	h := MQTTHandler{
@@ -137,6 +145,20 @@ func (h *MQTTHandler) SendACKNotification(appEUI, devEUI lorawan.EUI64, payload 
 	log.WithField("topic", topic).Info("handler/mqtt: publishing ack notification")
 	if token := h.conn.Publish(topic, 0, false, b); token.Wait() && token.Error() != nil {
 		return fmt.Errorf("handler/mqtt: publish ack notification error: %s", err)
+	}
+	return nil
+}
+
+// SendErrorNotification sends an ErrorNotification.
+func (h *MQTTHandler) SendErrorNotification(appEUI, devEUI lorawan.EUI64, payload ErrorNotification) error {
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("handler/mqtt: error notification marshal error: %s", err)
+	}
+	topic := fmt.Sprintf("application/%s/node/%s/error", appEUI, devEUI)
+	log.WithField("topic", topic).Info("handler/mqtt: publishing error notification")
+	if token := h.conn.Publish(topic, 0, false, b); token.Wait() && token.Error() != nil {
+		return fmt.Errorf("handler/mqtt: publish error notification error: %s", err)
 	}
 	return nil
 }

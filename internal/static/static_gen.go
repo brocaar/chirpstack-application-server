@@ -136,7 +136,7 @@ func swaggerApiSwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/api.swagger.json", size: 18246, mode: os.FileMode(420), modTime: time.Unix(1474127079, 0)}
+	info := bindataFileInfo{name: "swagger/api.swagger.json", size: 18246, mode: os.FileMode(420), modTime: time.Unix(1474128160, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

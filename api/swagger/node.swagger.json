@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/gnode": {
+    "/api/node": {
       "post": {
         "summary": "Create creates the given node.",
         "operationId": "Create",
@@ -42,7 +42,7 @@
         ]
       }
     },
-    "/api/gnode/{devEUI}": {
+    "/api/node/{devEUI}": {
       "get": {
         "summary": "Get returns the node for the requested DevEUI.",
         "operationId": "Get",
@@ -124,7 +124,7 @@
         ]
       }
     },
-    "/api/gnode/{offset}/{limit}": {
+    "/api/node/{offset}/{limit}": {
       "get": {
         "summary": "List lists the nodes.",
         "operationId": "List",

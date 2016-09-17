@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"database/sql"
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
@@ -129,4 +130,37 @@ func GetDownlinkQueueItems(db *sqlx.DB, devEUI lorawan.EUI64) ([]DownlinkQueueIt
 		return nil, fmt.Errorf("get downlink queue items error: %s", err)
 	}
 	return items, nil
+}
+
+// GetNextDownlinkQueueItem returns the next item from the queue, respecting
+// the given maxPayloadSize. If an item exceeds this size, it is discarded and
+// the next item is retrieved from the queue.
+// When the queue is empty, nil is returned.
+func GetNextDownlinkQueueItem(db *sqlx.DB, devEUI lorawan.EUI64, maxPayloadSize int) (*DownlinkQueueItem, error) {
+	for {
+		var qi DownlinkQueueItem
+		err := db.Get(&qi, "select * from downlink_queue where dev_eui = $1 order by id limit 1", devEUI[:])
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, nil
+			}
+			return nil, fmt.Errorf("get next queue item error: %s", err)
+		}
+
+		if len(qi.Data) > maxPayloadSize {
+			log.WithFields(log.Fields{
+				"reference":        qi.Reference,
+				"dev_eui":          qi.DevEUI,
+				"max_payload_size": maxPayloadSize,
+				"payload_size":     len(qi.Data),
+			}).Warning("queue item discarded as it exceeds max payload size")
+
+			if err := DeleteDownlinkQueueItem(db, qi.ID); err != nil {
+				return nil, fmt.Errorf("delete downlink queue item error: %s", err)
+			}
+			continue
+		}
+
+		return &qi, nil
+	}
 }

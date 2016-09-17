@@ -8,6 +8,57 @@ import (
 	"github.com/brocaar/lora-app-server/internal/test"
 )
 
+func TestGetNextDownlinkQeueueItem(t *testing.T) {
+	conf := test.GetConfig()
+
+	Convey("Given a clean database with node", t, func() {
+		db, err := OpenDatabase(conf.PostgresDSN)
+		So(err, ShouldBeNil)
+		test.MustResetDB(db)
+
+		node := Node{
+			DevEUI: [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
+		}
+		So(CreateNode(db, node), ShouldBeNil)
+
+		Convey("Given a set of four queue items", func() {
+			queue := []*DownlinkQueueItem{
+				{DevEUI: node.DevEUI, Reference: "a", Data: []byte{1, 2, 3, 4, 5, 6, 7}},
+				{DevEUI: node.DevEUI, Reference: "b", Data: []byte{1, 2, 3, 4, 5, 6}},
+				{DevEUI: node.DevEUI, Reference: "c", Data: []byte{1, 2, 3, 4, 5}},
+				{DevEUI: node.DevEUI, Reference: "d", Data: []byte{1, 2, 3, 4}},
+			}
+			for _, qi := range queue {
+				So(CreateDownlinkQueueItem(db, qi), ShouldBeNil)
+			}
+
+			Convey("When getting calling GetNextDownlinkQueueItem with maxPayloadSize=7", func() {
+				qi, err := GetNextDownlinkQueueItem(db, node.DevEUI, 7)
+				So(err, ShouldBeNil)
+				Convey("Then the first item is returned", func() {
+					So(qi, ShouldResemble, queue[0])
+				})
+			})
+
+			Convey("When getting calling GetNextDownlinkQueueItem with maxPayloadSize=5", func() {
+				qi, err := GetNextDownlinkQueueItem(db, node.DevEUI, 5)
+				So(err, ShouldBeNil)
+				Convey("Then the third item is returned", func() {
+					So(qi, ShouldResemble, queue[2])
+				})
+			})
+
+			Convey("When getting calling GetNextDownlinkQueueItem with maxPayloadSize=3", func() {
+				qi, err := GetNextDownlinkQueueItem(db, node.DevEUI, 3)
+				So(err, ShouldBeNil)
+				Convey("Then no item is returned", func() {
+					So(qi, ShouldBeNil)
+				})
+			})
+		})
+	})
+}
+
 func TestDownlinkQueueFuncs(t *testing.T) {
 	conf := test.GetConfig()
 
@@ -24,7 +75,7 @@ func TestDownlinkQueueFuncs(t *testing.T) {
 		Convey("When creating a downlink queue item", func() {
 			qi := DownlinkQueueItem{
 				DevEUI:    node.DevEUI,
-				Reference: "abcd1234",
+				Reference: "abcd1234-1",
 				Confirmed: true,
 				FPort:     10,
 				Data:      []byte{1, 2, 3, 4},

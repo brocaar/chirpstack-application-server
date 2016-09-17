@@ -33,10 +33,34 @@
 			"revisionTime": "2016-08-31T18:35:34Z"
 		},
 		{
+			"checksumSHA1": "Uouj6ZRJ7qieqrCHp6u1cghopIM=",
+			"path": "github.com/eclipse/paho.mqtt.golang",
+			"revision": "b0f0cce24f138f7a1d034f55069883c7dcb6a9d7",
+			"revisionTime": "2016-09-07T14:31:29Z"
+		},
+		{
+			"checksumSHA1": "0KKFo4Q90AHUBTqNWH3DKZHWals=",
+			"path": "github.com/eclipse/paho.mqtt.golang/packets",
+			"revision": "b0f0cce24f138f7a1d034f55069883c7dcb6a9d7",
+			"revisionTime": "2016-09-07T14:31:29Z"
+		},
+		{
 			"checksumSHA1": "bGdOim32+2dyKoQEtwW1PNwcdBc=",
 			"path": "github.com/elazarl/go-bindata-assetfs",
 			"revision": "9a6736ed45b44bf3835afeebb3034b57ed329f3e",
 			"revisionTime": "2016-08-22T20:44:01Z"
+		},
+		{
+			"checksumSHA1": "2UmMbNHc8FBr98mJFN1k8ISOIHk=",
+			"path": "github.com/garyburd/redigo/internal",
+			"revision": "ffa8d46ada782d81cfda81a0fbd9f45ceae448e8",
+			"revisionTime": "2016-08-10T23:49:51Z"
+		},
+		{
+			"checksumSHA1": "qqi0xwKRUSRkYMFZcqWSS/4YAjA=",
+			"path": "github.com/garyburd/redigo/redis",
+			"revision": "ffa8d46ada782d81cfda81a0fbd9f45ceae448e8",
+			"revisionTime": "2016-08-10T23:49:51Z"
 		},
 		{
 			"checksumSHA1": "NgOgDwqQnfQhahsECFCsSPEenE0=",
@@ -217,6 +241,12 @@
 			"path": "golang.org/x/net/trace",
 			"revision": "1358eff22f0dd0c54fc521042cc607f6ff4b531a",
 			"revisionTime": "2016-09-01T04:28:38Z"
+		},
+		{
+			"checksumSHA1": "likOl7O0BJntqagR050kkOBuY4o=",
+			"path": "golang.org/x/net/websocket",
+			"revision": "cfe3c2a7525b50c3d707256e371c90938cfef98a",
+			"revisionTime": "2016-09-03T02:20:35Z"
 		},
 		{
 			"checksumSHA1": "wMObd1dd4H5hoyd3Qz272deSWZ8=",

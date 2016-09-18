@@ -77,15 +77,76 @@ func TestNodeSessionAPI(t *testing.T) {
 					})
 				})
 
-				Convey("Then the AppSKey field on the node was updated", func() {
+				Convey("Then the AppSKey and DevAddr fields on the node are updated", func() {
 					node, err := storage.GetNode(db, node.DevEUI)
 					So(err, ShouldBeNil)
 					So(node.AppSKey[:], ShouldResemble, []byte{1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2})
+					So(node.DevAddr[:], ShouldResemble, []byte{1, 2, 3, 4})
 				})
 			})
 
 			Convey("When creating a node-session for this node but with a different AppEUI", func() {
 				_, err := api.Create(ctx, &pb.CreateNodeSessionRequest{
+					DevAddr: "01020304",
+					AppEUI:  "0102030405060708",
+					DevEUI:  "0202020202020202",
+					AppSKey: "01010101010101010202020202020202",
+					NwkSKey: "02020202020202020101010101010101",
+				})
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 3)
+
+				Convey("Then an error is returned", func() {
+					So(err, ShouldResemble, grpc.Errorf(codes.InvalidArgument, "node belongs to a different AppEUI"))
+				})
+			})
+
+			Convey("When updating a node-session for this node", func() {
+				_, err := api.Update(ctx, &pb.UpdateNodeSessionRequest{
+					DevAddr:     "04030201",
+					AppEUI:      "0101010101010101",
+					DevEUI:      "0202020202020202",
+					NwkSKey:     "01010101010101010202020202020202",
+					AppSKey:     "02020202020202020101010101010101",
+					FCntUp:      1,
+					FCntDown:    2,
+					RxDelay:     3,
+					Rx1DROffset: 4,
+					CFList:      []uint32{868400000},
+					RxWindow:    pb.RXWindow_RX2,
+					Rx2DR:       5,
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 3)
+
+				Convey("Then the NetworkServerClient was called with the expected arguments", func() {
+					So(nsClient.UpdateNodeSessionChan, ShouldHaveLength, 1)
+					So(<-nsClient.UpdateNodeSessionChan, ShouldResemble, ns.UpdateNodeSessionRequest{
+						DevAddr:     []byte{4, 3, 2, 1},
+						AppEUI:      []byte{1, 1, 1, 1, 1, 1, 1, 1},
+						DevEUI:      []byte{2, 2, 2, 2, 2, 2, 2, 2},
+						NwkSKey:     []byte{1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2},
+						FCntUp:      1,
+						FCntDown:    2,
+						RxDelay:     3,
+						Rx1DROffset: 4,
+						CFList:      []uint32{868400000},
+						RxWindow:    ns.RXWindow_RX2,
+						Rx2DR:       5,
+					})
+				})
+
+				Convey("Then the AppSKey and DevAddr fields on the node are updated", func() {
+					node, err := storage.GetNode(db, node.DevEUI)
+					So(err, ShouldBeNil)
+					So(node.AppSKey[:], ShouldResemble, []byte{2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1})
+					So(node.DevAddr[:], ShouldResemble, []byte{4, 3, 2, 1})
+				})
+			})
+
+			Convey("When updating a node-session for this node but with a different AppEUI", func() {
+				_, err := api.Update(ctx, &pb.UpdateNodeSessionRequest{
 					DevAddr: "01020304",
 					AppEUI:  "0102030405060708",
 					DevEUI:  "0202020202020202",

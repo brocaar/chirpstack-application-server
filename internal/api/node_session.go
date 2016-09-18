@@ -85,6 +85,7 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 	}
 
 	node.AppSKey = appSKey
+	node.DevAddr = devAddr
 	if err := storage.UpdateNode(n.ctx.DB, node); err != nil {
 		return nil, grpc.Errorf(codes.Internal, "update node error: %s", err)
 	}
@@ -151,7 +152,73 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 
 // Update updates the given node-session.
 func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRequest) (*pb.UpdateNodeSessionResponse, error) {
-	return nil, nil
+	var devAddr lorawan.DevAddr
+	var appEUI, devEUI lorawan.EUI64
+	var appSKey, nwkSKey lorawan.AES128Key
+
+	if err := devAddr.UnmarshalText([]byte(req.DevAddr)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devAddr: %s", err)
+	}
+	if err := appEUI.UnmarshalText([]byte(req.AppEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "appEUI: %s", err)
+	}
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
+	}
+	if err := appSKey.UnmarshalText([]byte(req.AppSKey)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "appSKey: %s", err)
+	}
+	if err := nwkSKey.UnmarshalText([]byte(req.NwkSKey)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "nwkSKey: %s", err)
+	}
+
+	if err := n.validator.Validate(ctx,
+		auth.ValidateAPIMethod("NodeSession.Update"),
+		auth.ValidateApplication(appEUI),
+		auth.ValidateNode(devEUI),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	node, err := storage.GetNode(n.ctx.DB, devEUI)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, "get node error: %s", err)
+	}
+
+	if node.AppEUI.String() != appEUI.String() {
+		return nil, grpc.Errorf(codes.InvalidArgument, "node belongs to a different AppEUI")
+	}
+
+	_, err = n.ctx.NetworkServer.UpdateNodeSession(context.Background(), &ns.UpdateNodeSessionRequest{
+		DevAddr:     devAddr[:],
+		AppEUI:      appEUI[:],
+		DevEUI:      devEUI[:],
+		NwkSKey:     nwkSKey[:],
+		FCntUp:      req.FCntUp,
+		FCntDown:    req.FCntDown,
+		RxDelay:     req.RxDelay,
+		Rx1DROffset: req.Rx1DROffset,
+		CFList:      req.CFList,
+		RxWindow:    ns.RXWindow(req.RxWindow),
+		Rx2DR:       req.Rx2DR,
+	})
+	if err != nil {
+		return nil, grpc.Errorf(codes.Internal, "create node-session error: %s", err)
+	}
+
+	node.AppSKey = appSKey
+	node.DevAddr = devAddr
+	if err := storage.UpdateNode(n.ctx.DB, node); err != nil {
+		return nil, grpc.Errorf(codes.Internal, "update node error: %s", err)
+	}
+
+	log.WithFields(log.Fields{
+		"dev_addr": devAddr,
+		"app_eui":  appEUI,
+		"dev_eui":  devEUI,
+	}).Info("node-session updated")
+
+	return &pb.UpdateNodeSessionResponse{}, nil
 }
 
 // Delete deletes the node-session matching the given DevEUI.
@@ -180,6 +247,13 @@ func (n *NodeSessionAPI) Delete(ctx context.Context, req *pb.DeleteNodeSessionRe
 	if err != nil {
 		return nil, err
 	}
+
+	log.WithFields(log.Fields{
+		"dev_addr": node.DevAddr,
+		"app_eui":  node.AppEUI,
+		"dev_eui":  node.DevEUI,
+	}).Info("node-session deleted")
+
 	return &pb.DeleteNodeSessionResponse{}, nil
 }
 

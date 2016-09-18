@@ -50,6 +50,7 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 	}
 
 	node := storage.Node{
+		Name:   req.Name,
 		DevEUI: devEUI,
 		AppEUI: appEUI,
 		AppKey: appKey,
@@ -104,6 +105,7 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 	}
 
 	resp := pb.GetNodeResponse{
+		Name:        node.Name,
 		DevEUI:      string(devEUI),
 		AppEUI:      string(appEUI),
 		AppKey:      string(appKey),
@@ -164,6 +166,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
+	node.Name = req.Name
 	node.AppEUI = appEUI
 	node.AppKey = appKey
 	node.RXDelay = uint8(req.RxDelay)
@@ -231,6 +234,7 @@ func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeRespo
 		}
 
 		item := pb.GetNodeResponse{
+			Name:        node.Name,
 			DevEUI:      string(devEUI),
 			AppEUI:      string(appEUI),
 			AppKey:      string(appKey),

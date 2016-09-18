@@ -181,6 +181,10 @@
           "format": "string",
           "title": "hex encoded DevEUI"
         },
+        "name": {
+          "type": "string",
+          "format": "string"
+        },
         "rx1DROffset": {
           "type": "integer",
           "format": "int64"
@@ -245,6 +249,10 @@
           "type": "string",
           "format": "string",
           "title": "hex encoded DevEUI"
+        },
+        "name": {
+          "type": "string",
+          "format": "string"
         },
         "rx1DROffset": {
           "type": "integer",
@@ -320,6 +328,10 @@
           "type": "string",
           "format": "string",
           "title": "hex encoded DevEUI"
+        },
+        "name": {
+          "type": "string",
+          "format": "string"
         },
         "rx1DROffset": {
           "type": "integer",

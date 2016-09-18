@@ -58,6 +58,7 @@ message CreateNodeRequest {
     int64 channelListID = 6;
     RXWindow rxWindow = 7;
     uint32 rx2DR = 8;
+    string name = 9;
 }
 
 message CreateNodeResponse {}
@@ -79,6 +80,7 @@ message GetNodeResponse {
     int64 channelListID = 6;
     RXWindow rxWindow = 7;
     uint32 rx2DR = 8;
+    string name = 9;
 };
 
 message DeleteNodeRequest {
@@ -117,6 +119,7 @@ message UpdateNodeRequest {
     int64 channelListID = 6;
     RXWindow rxWindow = 7;
     uint32 rx2DR = 8;
+    string name = 9;
 }
 
 message UpdateNodeResponse {}

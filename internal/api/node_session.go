@@ -153,5 +153,15 @@ func (n *NodeSessionAPI) Delete(ctx context.Context, req *pb.DeleteNodeSessionRe
 
 // GetRandomDevAddr returns a random DevAddr given the NwkID prefix into account.
 func (n *NodeSessionAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAddrRequest) (*pb.GetRandomDevAddrResponse, error) {
-	return nil, nil
+	resp, err := n.ctx.NetworkServer.GetRandomDevAddr(context.Background(), &ns.GetRandomDevAddrRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	var devAddr lorawan.DevAddr
+	copy(devAddr[:], resp.DevAddr)
+
+	return &pb.GetRandomDevAddrResponse{
+		DevAddr: devAddr.String(),
+	}, nil
 }

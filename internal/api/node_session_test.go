@@ -96,7 +96,7 @@ func TestNodeSessionAPI(t *testing.T) {
 				})
 			})
 
-			Convey("Given a node-session in the network-server", func() {
+			Convey("Given a mocked node-session in the network-server", func() {
 				nsClient.GetNodeSessionResponse = ns.GetNodeSessionResponse{
 					DevAddr:     []byte{1, 2, 3, 4},
 					AppEUI:      []byte{1, 1, 1, 1, 1, 1, 1, 1},
@@ -133,6 +133,18 @@ func TestNodeSessionAPI(t *testing.T) {
 							Rx2DR:       5,
 						})
 					})
+				})
+			})
+
+			Convey("Given a mocked GetRandomDevAddrResponse for the network-server client", func() {
+				nsClient.GetRandomDevAddrResponse = ns.GetRandomDevAddrResponse{
+					DevAddr: []byte{1, 2, 3, 4},
+				}
+
+				Convey("Then GetRandomDevAddr returns the expected result", func() {
+					resp, err := api.GetRandomDevAddr(ctx, &pb.GetRandomDevAddrRequest{})
+					So(err, ShouldBeNil)
+					So(resp.DevAddr, ShouldEqual, "01020304")
 				})
 			})
 		})

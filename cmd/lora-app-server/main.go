@@ -89,14 +89,20 @@ func run(c *cli.Context) error {
 	// setup the client api interface
 	clientAPIHandler := mustGetClientAPIServer(ctx, lsCtx, c)
 
-	// setup the client http interface
-	clientHTTPHandler := mustGetHTTPHandler(ctx, lsCtx, c)
+	// setup the client http interface variable
+	// we need to start the gRPC service first, as it is used by the
+	// grpc-gateway
+	var clientHTTPHandler http.Handler
 
 	// switch between gRPC and "plain" http handler
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
 			clientAPIHandler.ServeHTTP(w, r)
 		} else {
+			if clientHTTPHandler == nil {
+				w.WriteHeader(http.StatusNotImplemented)
+				return
+			}
 			clientHTTPHandler.ServeHTTP(w, r)
 		}
 	})
@@ -108,6 +114,10 @@ func run(c *cli.Context) error {
 		}).Info("starting client api server")
 		log.Fatal(http.ListenAndServeTLS(c.String("http-bind"), c.String("http-tls-cert"), c.String("http-tls-key"), handler))
 	}()
+
+	// now the gRPC gateway has been started, attach the http handlers
+	// (this will setup the grpc-gateway too)
+	clientHTTPHandler = mustGetHTTPHandler(ctx, lsCtx, c)
 
 	sigChan := make(chan os.Signal)
 	exitChan := make(chan struct{})

@@ -117,6 +117,13 @@ func TestNodeSessionAPI(t *testing.T) {
 					})
 					So(err, ShouldBeNil)
 
+					Convey("Then the expected request was made", func() {
+						So(nsClient.GetNodeSessionChan, ShouldHaveLength, 1)
+						So(<-nsClient.GetNodeSessionChan, ShouldResemble, ns.GetNodeSessionRequest{
+							DevEUI: node.DevEUI[:],
+						})
+					})
+
 					Convey("Then the expected response is returned", func() {
 						So(resp, ShouldResemble, &pb.GetNodeSessionResponse{
 							DevAddr:     "01020304",
@@ -145,6 +152,20 @@ func TestNodeSessionAPI(t *testing.T) {
 					resp, err := api.GetRandomDevAddr(ctx, &pb.GetRandomDevAddrRequest{})
 					So(err, ShouldBeNil)
 					So(resp.DevAddr, ShouldEqual, "01020304")
+				})
+			})
+
+			Convey("When deleting a node-session", func() {
+				_, err := api.Delete(ctx, &pb.DeleteNodeSessionRequest{
+					DevEUI: "0202020202020202",
+				})
+				So(err, ShouldBeNil)
+
+				Convey("Then the expected request was made", func() {
+					So(nsClient.DeleteNodeSessionChan, ShouldHaveLength, 1)
+					So(<-nsClient.DeleteNodeSessionChan, ShouldResemble, ns.DeleteNodeSessionRequest{
+						DevEUI: []byte{2, 2, 2, 2, 2, 2, 2, 2},
+					})
 				})
 			})
 		})

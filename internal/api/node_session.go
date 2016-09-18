@@ -148,7 +148,18 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 
 // Delete deletes the node-session matching the given DevEUI.
 func (n *NodeSessionAPI) Delete(ctx context.Context, req *pb.DeleteNodeSessionRequest) (*pb.DeleteNodeSessionResponse, error) {
-	return nil, nil
+	var devEUI lorawan.EUI64
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devAddr: %s", err)
+	}
+
+	_, err := n.ctx.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{
+		DevEUI: devEUI[:],
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &pb.DeleteNodeSessionResponse{}, nil
 }
 
 // GetRandomDevAddr returns a random DevAddr given the NwkID prefix into account.

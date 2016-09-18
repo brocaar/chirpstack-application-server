@@ -35,8 +35,9 @@ func TestNodeSessionAPI(t *testing.T) {
 
 		Convey("Given a node in the database", func() {
 			node := storage.Node{
-				AppEUI: [8]byte{1, 1, 1, 1, 1, 1, 1, 1},
-				DevEUI: [8]byte{2, 2, 2, 2, 2, 2, 2, 2},
+				AppEUI:  [8]byte{1, 1, 1, 1, 1, 1, 1, 1},
+				DevEUI:  [8]byte{2, 2, 2, 2, 2, 2, 2, 2},
+				AppSKey: [16]byte{1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2},
 			}
 			So(storage.CreateNode(db, node), ShouldBeNil)
 
@@ -92,6 +93,46 @@ func TestNodeSessionAPI(t *testing.T) {
 
 				Convey("Then an error is returned", func() {
 					So(err, ShouldResemble, grpc.Errorf(codes.InvalidArgument, "node belongs to a different AppEUI"))
+				})
+			})
+
+			Convey("Given a node-session in the network-server", func() {
+				nsClient.GetNodeSessionResponse = ns.GetNodeSessionResponse{
+					DevAddr:     []byte{1, 2, 3, 4},
+					AppEUI:      []byte{1, 1, 1, 1, 1, 1, 1, 1},
+					DevEUI:      []byte{2, 2, 2, 2, 2, 2, 2, 2},
+					NwkSKey:     []byte{2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1},
+					FCntUp:      1,
+					FCntDown:    2,
+					RxDelay:     3,
+					Rx1DROffset: 4,
+					CFList:      []uint32{868400000},
+					RxWindow:    ns.RXWindow_RX2,
+					Rx2DR:       5,
+				}
+
+				Convey("When getting the node-session", func() {
+					resp, err := api.Get(ctx, &pb.GetNodeSessionRequest{
+						DevEUI: node.DevEUI.String(),
+					})
+					So(err, ShouldBeNil)
+
+					Convey("Then the expected response is returned", func() {
+						So(resp, ShouldResemble, &pb.GetNodeSessionResponse{
+							DevAddr:     "01020304",
+							AppEUI:      "0101010101010101",
+							DevEUI:      "0202020202020202",
+							AppSKey:     "01010101010101010202020202020202",
+							NwkSKey:     "02020202020202020101010101010101",
+							FCntUp:      1,
+							FCntDown:    2,
+							RxDelay:     3,
+							Rx1DROffset: 4,
+							CFList:      []uint32{868400000},
+							RxWindow:    pb.RXWindow_RX2,
+							Rx2DR:       5,
+						})
+					})
 				})
 			})
 		})

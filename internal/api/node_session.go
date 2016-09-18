@@ -100,7 +100,45 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 
 // Get returns the node-session matching the given DevEUI.
 func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest) (*pb.GetNodeSessionResponse, error) {
-	return nil, nil
+	var devAddr lorawan.DevAddr
+	var appEUI, devEUI lorawan.EUI64
+	var nwkSKey lorawan.AES128Key
+
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
+	}
+
+	resp, err := n.ctx.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{
+		DevEUI: devEUI[:],
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	copy(devAddr[:], resp.DevAddr)
+	copy(appEUI[:], resp.AppEUI)
+	copy(nwkSKey[:], resp.NwkSKey)
+
+	node, err := storage.GetNode(n.ctx.DB, devEUI)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Internal, "get node error: %s", err)
+	}
+
+	return &pb.GetNodeSessionResponse{
+		DevAddr:     devAddr.String(),
+		AppEUI:      appEUI.String(),
+		DevEUI:      devEUI.String(),
+		AppSKey:     node.AppSKey.String(),
+		NwkSKey:     nwkSKey.String(),
+		FCntUp:      resp.FCntUp,
+		FCntDown:    resp.FCntDown,
+		RxDelay:     resp.RxDelay,
+		Rx1DROffset: resp.Rx1DROffset,
+		CFList:      resp.CFList,
+		RxWindow:    pb.RXWindow(resp.RxWindow),
+		Rx2DR:       resp.Rx2DR,
+	}, nil
+
 }
 
 // Update updates the given node-session.

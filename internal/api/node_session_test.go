@@ -57,6 +57,8 @@ func TestNodeSessionAPI(t *testing.T) {
 					Rx2DR:       5,
 				})
 				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 3)
 
 				Convey("Then the NetworkServerClient was called with the expected parameters", func() {
 					So(nsClient.CreateNodeSessionChan, ShouldHaveLength, 1)
@@ -90,6 +92,8 @@ func TestNodeSessionAPI(t *testing.T) {
 					AppSKey: "01010101010101010202020202020202",
 					NwkSKey: "02020202020202020101010101010101",
 				})
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 3)
 
 				Convey("Then an error is returned", func() {
 					So(err, ShouldResemble, grpc.Errorf(codes.InvalidArgument, "node belongs to a different AppEUI"))
@@ -116,6 +120,8 @@ func TestNodeSessionAPI(t *testing.T) {
 						DevEUI: node.DevEUI.String(),
 					})
 					So(err, ShouldBeNil)
+					So(validator.ctx, ShouldResemble, ctx)
+					So(validator.validatorFuncs, ShouldHaveLength, 3)
 
 					Convey("Then the expected request was made", func() {
 						So(nsClient.GetNodeSessionChan, ShouldHaveLength, 1)
@@ -151,6 +157,8 @@ func TestNodeSessionAPI(t *testing.T) {
 				Convey("Then GetRandomDevAddr returns the expected result", func() {
 					resp, err := api.GetRandomDevAddr(ctx, &pb.GetRandomDevAddrRequest{})
 					So(err, ShouldBeNil)
+					So(validator.ctx, ShouldResemble, ctx)
+					So(validator.validatorFuncs, ShouldHaveLength, 1)
 					So(resp.DevAddr, ShouldEqual, "01020304")
 				})
 			})
@@ -160,6 +168,8 @@ func TestNodeSessionAPI(t *testing.T) {
 					DevEUI: "0202020202020202",
 				})
 				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 3)
 
 				Convey("Then the expected request was made", func() {
 					So(nsClient.DeleteNodeSessionChan, ShouldHaveLength, 1)

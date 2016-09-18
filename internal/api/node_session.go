@@ -124,6 +124,14 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 		return nil, grpc.Errorf(codes.Internal, "get node error: %s", err)
 	}
 
+	if err := n.validator.Validate(ctx,
+		auth.ValidateAPIMethod("NodeSession.Get"),
+		auth.ValidateNode(devEUI),
+		auth.ValidateApplication(appEUI),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	return &pb.GetNodeSessionResponse{
 		DevAddr:     devAddr.String(),
 		AppEUI:      appEUI.String(),
@@ -153,7 +161,20 @@ func (n *NodeSessionAPI) Delete(ctx context.Context, req *pb.DeleteNodeSessionRe
 		return nil, grpc.Errorf(codes.InvalidArgument, "devAddr: %s", err)
 	}
 
-	_, err := n.ctx.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{
+	node, err := storage.GetNode(n.ctx.DB, devEUI)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, "get node error: %s", err)
+	}
+
+	if err := n.validator.Validate(ctx,
+		auth.ValidateAPIMethod("NodeSession.Delete"),
+		auth.ValidateNode(devEUI),
+		auth.ValidateApplication(node.AppEUI),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	_, err = n.ctx.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{
 		DevEUI: devEUI[:],
 	})
 	if err != nil {
@@ -164,6 +185,12 @@ func (n *NodeSessionAPI) Delete(ctx context.Context, req *pb.DeleteNodeSessionRe
 
 // GetRandomDevAddr returns a random DevAddr given the NwkID prefix into account.
 func (n *NodeSessionAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAddrRequest) (*pb.GetRandomDevAddrResponse, error) {
+	if err := n.validator.Validate(ctx,
+		auth.ValidateAPIMethod("NodeSession.GetRandomDevAddr"),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	resp, err := n.ctx.NetworkServer.GetRandomDevAddr(context.Background(), &ns.GetRandomDevAddrRequest{})
 	if err != nil {
 		return nil, err

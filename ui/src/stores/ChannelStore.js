@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import "whatwg-fetch";
 import dispatcher from "../dispatcher";
+import tokenStore from "./TokenStore";
 
 var checkStatus = (response) => {
   if (response.status >= 200 && response.status < 300) {
@@ -20,7 +21,7 @@ var errorHandler = (error) => {
 
 class ChannelStore extends EventEmitter {
   getAllChannelLists(callbackFunc) {
-    fetch("/api/channelList?limit=999")
+    fetch("/api/channelList?limit=999", {headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -30,7 +31,7 @@ class ChannelStore extends EventEmitter {
   }
 
   getChannelList(id, callbackFunc) {
-    fetch("/api/channelList/"+id)
+    fetch("/api/channelList/"+id, {headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -40,7 +41,7 @@ class ChannelStore extends EventEmitter {
   }
 
   createChannelList(list, callbackFunc) {
-    fetch("/api/channelList", {method: "POST", body: JSON.stringify(list)})
+    fetch("/api/channelList", {method: "POST", body: JSON.stringify(list), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -50,7 +51,7 @@ class ChannelStore extends EventEmitter {
   }
 
   deleteChannelList(id, callbackFunc) {
-    fetch("/api/channelList/"+id, {method: "DELETE"})
+    fetch("/api/channelList/"+id, {method: "DELETE", headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -60,7 +61,7 @@ class ChannelStore extends EventEmitter {
   }
 
   updateChannelList(id, list, callbackFunc) {
-    fetch("/api/channelList/"+id, {method: "PUT", body: JSON.stringify(list)})
+    fetch("/api/channelList/"+id, {method: "PUT", body: JSON.stringify(list), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

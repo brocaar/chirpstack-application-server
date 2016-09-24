@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import "whatwg-fetch";
 import dispatcher from "../dispatcher";
+import tokenStore from "./TokenStore";
 
 var checkStatus = (response) => {
   if (response.status >= 200 && response.status < 300) {
@@ -20,7 +21,7 @@ var errorHandler = (error) => {
 
 class NodeStore extends EventEmitter {
   getAll(callbackFunc) {
-    fetch("/api/node?limit=999")
+    fetch("/api/node?limit=999", {headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -30,7 +31,7 @@ class NodeStore extends EventEmitter {
   }
 
   getNode(devEUI, callbackFunc) {
-    fetch("/api/node/"+devEUI)
+    fetch("/api/node/"+devEUI, {headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -40,7 +41,7 @@ class NodeStore extends EventEmitter {
   }
 
   createNode(node, callbackFunc) {
-    fetch("/api/node", {method: "POST", body: JSON.stringify(node)})
+    fetch("/api/node", {method: "POST", body: JSON.stringify(node), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -50,7 +51,7 @@ class NodeStore extends EventEmitter {
   }
 
   updateNode(devEUI, node, callbackFunc) {
-    fetch("/api/node/"+devEUI, {method: "PUT", body: JSON.stringify(node)})
+    fetch("/api/node/"+devEUI, {method: "PUT", body: JSON.stringify(node), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -60,7 +61,7 @@ class NodeStore extends EventEmitter {
   }
 
   deleteNode(devEUI, callbackFunc) {
-    fetch("/api/node/"+devEUI, {method: "DELETE"})
+    fetch("/api/node/"+devEUI, {method: "DELETE", headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

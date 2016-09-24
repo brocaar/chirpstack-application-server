@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router';
 
 class Navbar extends Component {
   render() {
@@ -10,7 +11,7 @@ class Navbar extends Component {
           </div>
           <div id="navbar" className="navbar-collapse collapse">
             <ul className="nav navbar-nav navbar-right">
-              <li><a href="#">Set JWT token</a></li>
+              <li><Link to="/jwt">Set JWT token</Link></li>
               <li><a href="https://github.com/brocaar/loraserver">GitHub</a></li>
               <li><a href="https://docs.loraserver.io/">Documentation</a></li>
             </ul>

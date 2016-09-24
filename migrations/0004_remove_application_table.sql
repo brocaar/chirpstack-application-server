@@ -1,7 +1,6 @@
 -- +migrate Up
 alter table node
-    drop constraint node_app_eui_fkey,
-    add column name character varying (100) not null default '';
+    drop constraint node_app_eui_fkey;
 
 drop table application;
 

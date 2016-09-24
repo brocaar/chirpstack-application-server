@@ -31,9 +31,11 @@ service Node {
     }
 
     // List lists the nodes.
+    // Note limit and offset url params aren't displayed in Swagger specs, see also:
+    // https://github.com/grpc-ecosystem/grpc-gateway/pull/199
     rpc List(ListNodeRequest) returns (ListNodeResponse) {
         option (google.api.http) = {
-            get: "/api/node/{offset}/{limit}"
+            get: "/api/node"
         };
     }
 

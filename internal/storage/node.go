@@ -113,6 +113,7 @@ func CreateNode(db *sqlx.DB, n Node) error {
 
 	_, err := db.Exec(`
 		insert into node (
+			name,
 			dev_eui,
 			app_eui,
 			app_key,
@@ -125,7 +126,8 @@ func CreateNode(db *sqlx.DB, n Node) error {
 			rx2_dr,
 			channel_list_id
 		)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+		n.Name,
 		n.DevEUI[:],
 		n.AppEUI[:],
 		n.AppKey[:],
@@ -153,18 +155,20 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 
 	res, err := db.Exec(`
 		update node set
-			app_eui = $1,
-			app_key = $2,
-			dev_addr = $3,
-			app_s_key = $4,
-			nwk_s_key = $5,
-			used_dev_nonces = $6,
-			rx_delay = $7,
-			rx1_dr_offset = $8,
-			rx_window = $9,
-			rx2_dr = $10,
-			channel_list_id = $11
-		where dev_eui = $12`,
+			name = $1,
+			app_eui = $2,
+			app_key = $3,
+			dev_addr = $4,
+			app_s_key = $5,
+			nwk_s_key = $6,
+			used_dev_nonces = $7,
+			rx_delay = $8,
+			rx1_dr_offset = $9,
+			rx_window = $10,
+			rx2_dr = $11,
+			channel_list_id = $12
+		where dev_eui = $13`,
+		n.Name,
 		n.AppEUI[:],
 		n.AppKey[:],
 		n.DevAddr[:],

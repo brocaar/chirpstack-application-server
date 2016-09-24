@@ -72,18 +72,12 @@ func TestGetCFListForNode(t *testing.T) {
 		}
 		channelList := ChannelList{
 			Name: "test channels",
+			Channels: []int64{
+				868400000,
+				868500000,
+			},
 		}
 		So(CreateChannelList(ctx.DB, &channelList), ShouldBeNil)
-		So(CreateChannel(ctx.DB, &Channel{
-			ChannelListID: channelList.ID,
-			Channel:       3,
-			Frequency:     868400000,
-		}), ShouldBeNil)
-		So(CreateChannel(ctx.DB, &Channel{
-			ChannelListID: channelList.ID,
-			Channel:       4,
-			Frequency:     868500000,
-		}), ShouldBeNil)
 		node := Node{
 			DevEUI: [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
 		}

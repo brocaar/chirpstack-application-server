@@ -12,7 +12,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/test"
 )
 
-func TestChannelListAndChannelAPI(t *testing.T) {
+func TestChannelListAPI(t *testing.T) {
 	conf := test.GetConfig()
 
 	Convey("Given a clean database and api instances", t, func() {
@@ -24,11 +24,16 @@ func TestChannelListAndChannelAPI(t *testing.T) {
 		lsCtx := common.Context{DB: db}
 		validator := &TestValidator{}
 
-		cAPI := NewChannelAPI(lsCtx, validator)
 		clAPI := NewChannelListAPI(lsCtx, validator)
 
 		Convey("When creating a channel-list", func() {
-			resp, err := clAPI.Create(ctx, &pb.CreateChannelListRequest{Name: "test channel-list"})
+			resp, err := clAPI.Create(ctx, &pb.CreateChannelListRequest{
+				Name: "test channel-list",
+				Channels: []uint32{
+					868400000,
+					868500000,
+				},
+			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
 			So(validator.validatorFuncs, ShouldHaveLength, 1)
@@ -40,11 +45,26 @@ func TestChannelListAndChannelAPI(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
-				So(cl, ShouldResemble, &pb.GetChannelListResponse{Id: clID, Name: "test channel-list"})
+				So(cl, ShouldResemble, &pb.GetChannelListResponse{
+					Id:   clID,
+					Name: "test channel-list",
+					Channels: []uint32{
+						868400000,
+						868500000,
+					},
+				})
 			})
 
 			Convey("When updating the channel-list", func() {
-				_, err := clAPI.Update(ctx, &pb.UpdateChannelListRequest{Id: clID, Name: "test channel-list changed"})
+				_, err := clAPI.Update(ctx, &pb.UpdateChannelListRequest{
+					Id:   clID,
+					Name: "test channel-list changed",
+					Channels: []uint32{
+						868400000,
+						868500000,
+						868600000,
+					},
+				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
@@ -52,7 +72,15 @@ func TestChannelListAndChannelAPI(t *testing.T) {
 				Convey("Then the channel-list has been updated", func() {
 					cl, err := clAPI.Get(ctx, &pb.GetChannelListRequest{Id: clID})
 					So(err, ShouldBeNil)
-					So(cl, ShouldResemble, &pb.GetChannelListResponse{Id: clID, Name: "test channel-list changed"})
+					So(cl, ShouldResemble, &pb.GetChannelListResponse{
+						Id:   clID,
+						Name: "test channel-list changed",
+						Channels: []uint32{
+							868400000,
+							868500000,
+							868600000,
+						},
+					})
 				})
 			})
 
@@ -64,7 +92,14 @@ func TestChannelListAndChannelAPI(t *testing.T) {
 
 				So(resp.TotalCount, ShouldEqual, 1)
 				So(resp.Result, ShouldHaveLength, 1)
-				So(resp.Result[0], ShouldResemble, &pb.GetChannelListResponse{Id: clID, Name: "test channel-list"})
+				So(resp.Result[0], ShouldResemble, &pb.GetChannelListResponse{
+					Id:   clID,
+					Name: "test channel-list",
+					Channels: []uint32{
+						868400000,
+						868500000,
+					},
+				})
 			})
 
 			Convey("When deleting the channel-list", func() {
@@ -78,83 +113,6 @@ func TestChannelListAndChannelAPI(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					So(resp.TotalCount, ShouldEqual, 0)
-				})
-			})
-
-			Convey("When creating a channel", func() {
-				resp, err := cAPI.Create(ctx, &pb.CreateChannelRequest{
-					ChannelListID: clID,
-					Channel:       4,
-					Frequency:     868700000,
-				})
-				So(err, ShouldBeNil)
-				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
-				cID := resp.Id
-
-				Convey("Then the channel has been created", func() {
-					resp, err := cAPI.Get(ctx, &pb.GetChannelRequest{Id: cID})
-					So(err, ShouldBeNil)
-					So(validator.ctx, ShouldResemble, ctx)
-					So(validator.validatorFuncs, ShouldHaveLength, 1)
-					So(resp, ShouldResemble, &pb.GetChannelResponse{
-						Id:            cID,
-						ChannelListID: clID,
-						Channel:       4,
-						Frequency:     868700000,
-					})
-
-					Convey("When updating the channel", func() {
-						_, err := cAPI.Update(ctx, &pb.UpdateChannelRequest{
-							Id:            cID,
-							ChannelListID: clID,
-							Channel:       5,
-							Frequency:     868700000,
-						})
-						So(err, ShouldBeNil)
-						So(validator.ctx, ShouldResemble, ctx)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
-
-						Convey("Then the channel has been updated", func() {
-							resp, err := cAPI.Get(ctx, &pb.GetChannelRequest{Id: cID})
-							So(err, ShouldBeNil)
-							So(validator.ctx, ShouldResemble, ctx)
-							So(validator.validatorFuncs, ShouldHaveLength, 1)
-							So(resp, ShouldResemble, &pb.GetChannelResponse{
-								Id:            cID,
-								ChannelListID: clID,
-								Channel:       5,
-								Frequency:     868700000,
-							})
-						})
-					})
-
-					Convey("When deleting the channel", func() {
-						_, err := cAPI.Delete(ctx, &pb.DeleteChannelRequest{Id: cID})
-						So(err, ShouldBeNil)
-						So(validator.ctx, ShouldResemble, ctx)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
-
-						Convey("Then the channel has been deleted", func() {
-							_, err := cAPI.Get(ctx, &pb.GetChannelRequest{Id: cID})
-							So(err, ShouldNotBeNil)
-						})
-					})
-
-					Convey("When getting all channels for the channel-list", func() {
-						resp, err := cAPI.ListByChannelList(ctx, &pb.ListChannelsByChannelListRequest{Id: clID})
-						So(err, ShouldBeNil)
-
-						Convey("Then it contains the channel", func() {
-							So(resp.Result, ShouldHaveLength, 1)
-							So(resp.Result[0], ShouldResemble, &pb.GetChannelResponse{
-								Id:            cID,
-								ChannelListID: clID,
-								Channel:       4,
-								Frequency:     868700000,
-							})
-						})
-					})
 				})
 			})
 		})

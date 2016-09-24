@@ -141,23 +141,13 @@ func TestApplicationServerAPI(t *testing.T) {
 			Convey("Given the node as a CFList with three channels", func() {
 				cl := storage.ChannelList{
 					Name: "test list",
+					Channels: []int64{
+						868400000,
+						868500000,
+						868600000,
+					},
 				}
 				So(storage.CreateChannelList(db, &cl), ShouldBeNil)
-				So(storage.CreateChannel(db, &storage.Channel{
-					ChannelListID: cl.ID,
-					Channel:       3,
-					Frequency:     868400000,
-				}), ShouldBeNil)
-				So(storage.CreateChannel(db, &storage.Channel{
-					ChannelListID: cl.ID,
-					Channel:       4,
-					Frequency:     868500000,
-				}), ShouldBeNil)
-				So(storage.CreateChannel(db, &storage.Channel{
-					ChannelListID: cl.ID,
-					Channel:       5,
-					Frequency:     868600000,
-				}), ShouldBeNil)
 
 				node.ChannelListID = &cl.ID
 				So(storage.UpdateNode(db, node), ShouldBeNil)

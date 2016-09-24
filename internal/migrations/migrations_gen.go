@@ -6,6 +6,7 @@
 // ../../migrations/0004_remove_application_table.sql
 // ../../migrations/0005_add_queue.sql
 // ../../migrations/0006_add_node_apps_nwks_key_name_devaddr.sql
+// ../../migrations/0007_migrate_channels_to_channel_list.sql
 // DO NOT EDIT!
 
 package migrations
@@ -188,7 +189,27 @@ func _0006_add_node_apps_nwks_key_name_devaddrSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0006_add_node_apps_nwks_key_name_devaddr.sql", size: 321, mode: os.FileMode(420), modTime: time.Unix(1474703350, 0)}
+	info := bindataFileInfo{name: "0006_add_node_apps_nwks_key_name_devaddr.sql", size: 321, mode: os.FileMode(420), modTime: time.Unix(1474703403, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __0007_migrate_channels_to_channel_listSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x7c\x91\xc1\x6e\xc2\x30\x10\x44\xcf\xd9\xaf\xd8\x23\x51\xa1\xaa\xd4\x43\x0f\x69\x38\xf5\x17\x7a\xaa\x2a\x64\xec\x01\x2c\x9c\x4d\x58\x3b\x42\xf9\xfb\xca\xa8\x09\x09\xaa\x7a\x4a\x3c\x3b\x6f\xad\x19\x6f\x36\xfc\xd4\xf8\xa3\x9a\x04\xfe\xec\xc8\x84\x04\xe5\x64\xf6\x01\x6c\x4f\x46\x04\x61\x17\x7c\x4c\x54\x18\xe7\xd8\xb6\xa1\x6f\x64\x1c\x44\xf6\x92\x70\x84\x7e\x7d\x57\x44\x7d\xe7\xf2\x8e\x25\x14\x91\x26\x77\xbd\xa2\xa2\x88\x08\xb0\x89\x8d\xaa\x19\xf2\x79\x14\x0e\x8a\x4b\x0f\xb1\x43\xd6\x0e\xda\x36\xf9\x5b\xfc\xa2\xf9\xff\x7a\x82\x62\x2e\xde\x6e\xd8\x79\x57\xcf\xcf\xcf\xde\x65\x4f\xab\x0e\xca\xfb\x61\xee\x2f\xcb\x8a\xc8\x69\xdb\x2d\xd3\x55\x44\xf3\x0a\x3e\xda\xab\xfc\x53\xc2\x8d\x7f\x68\xa1\x22\xb2\x8a\x0c\x2f\x08\x5e\x51\xe1\x1d\xef\xfd\x31\x42\xbd\x09\xdc\xa9\x6f\x8c\x0e\x7c\xc6\xb0\xa6\xc7\x14\xd9\xe7\x25\xb1\xe2\x00\x85\x58\xc4\xc5\xcd\xdc\x0a\x3b\x04\xe4\x82\x4d\xb4\xc6\x81\xa5\x4d\x2c\x7d\x08\xf7\x5d\xe3\x73\xcc\x47\x53\xaf\x7f\x0d\xed\x09\xf6\xcc\xab\x11\xdf\xd6\xfc\xca\x46\xdc\x94\xe0\xbd\xe6\xb7\x9b\x70\xdf\xb2\xe5\x97\x72\x4d\x45\x2f\xfe\xd2\x63\x42\xc7\x14\xeb\x11\x2d\xa9\xac\xe8\x27\x00\x00\xff\xff\xb3\x84\xa3\xcc\x5b\x02\x00\x00")
+
+func _0007_migrate_channels_to_channel_listSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0007_migrate_channels_to_channel_listSql,
+		"0007_migrate_channels_to_channel_list.sql",
+	)
+}
+
+func _0007_migrate_channels_to_channel_listSql() (*asset, error) {
+	bytes, err := _0007_migrate_channels_to_channel_listSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0007_migrate_channels_to_channel_list.sql", size: 603, mode: os.FileMode(420), modTime: time.Unix(1474738408, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -251,6 +272,7 @@ var _bindata = map[string]func() (*asset, error){
 	"0004_remove_application_table.sql": _0004_remove_application_tableSql,
 	"0005_add_queue.sql": _0005_add_queueSql,
 	"0006_add_node_apps_nwks_key_name_devaddr.sql": _0006_add_node_apps_nwks_key_name_devaddrSql,
+	"0007_migrate_channels_to_channel_list.sql": _0007_migrate_channels_to_channel_listSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -299,6 +321,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"0004_remove_application_table.sql": &bintree{_0004_remove_application_tableSql, map[string]*bintree{}},
 	"0005_add_queue.sql": &bintree{_0005_add_queueSql, map[string]*bintree{}},
 	"0006_add_node_apps_nwks_key_name_devaddr.sql": &bintree{_0006_add_node_apps_nwks_key_name_devaddrSql, map[string]*bintree{}},
+	"0007_migrate_channels_to_channel_list.sql": &bintree{_0007_migrate_channels_to_channel_listSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory

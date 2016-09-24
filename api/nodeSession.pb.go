@@ -42,7 +42,7 @@ type CreateNodeSessionRequest struct {
 func (m *CreateNodeSessionRequest) Reset()                    { *m = CreateNodeSessionRequest{} }
 func (m *CreateNodeSessionRequest) String() string            { return proto.CompactTextString(m) }
 func (*CreateNodeSessionRequest) ProtoMessage()               {}
-func (*CreateNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{0} }
+func (*CreateNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{0} }
 
 type CreateNodeSessionResponse struct {
 }
@@ -50,7 +50,7 @@ type CreateNodeSessionResponse struct {
 func (m *CreateNodeSessionResponse) Reset()                    { *m = CreateNodeSessionResponse{} }
 func (m *CreateNodeSessionResponse) String() string            { return proto.CompactTextString(m) }
 func (*CreateNodeSessionResponse) ProtoMessage()               {}
-func (*CreateNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{1} }
+func (*CreateNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{1} }
 
 type GetNodeSessionRequest struct {
 	// hex encoded DevEUI
@@ -60,7 +60,7 @@ type GetNodeSessionRequest struct {
 func (m *GetNodeSessionRequest) Reset()                    { *m = GetNodeSessionRequest{} }
 func (m *GetNodeSessionRequest) String() string            { return proto.CompactTextString(m) }
 func (*GetNodeSessionRequest) ProtoMessage()               {}
-func (*GetNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{2} }
+func (*GetNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{2} }
 
 type GetNodeSessionResponse struct {
 	// hex encoded DevAddr
@@ -85,7 +85,7 @@ type GetNodeSessionResponse struct {
 func (m *GetNodeSessionResponse) Reset()                    { *m = GetNodeSessionResponse{} }
 func (m *GetNodeSessionResponse) String() string            { return proto.CompactTextString(m) }
 func (*GetNodeSessionResponse) ProtoMessage()               {}
-func (*GetNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{3} }
+func (*GetNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{3} }
 
 type UpdateNodeSessionRequest struct {
 	// hex encoded DevAddr
@@ -110,7 +110,7 @@ type UpdateNodeSessionRequest struct {
 func (m *UpdateNodeSessionRequest) Reset()                    { *m = UpdateNodeSessionRequest{} }
 func (m *UpdateNodeSessionRequest) String() string            { return proto.CompactTextString(m) }
 func (*UpdateNodeSessionRequest) ProtoMessage()               {}
-func (*UpdateNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{4} }
+func (*UpdateNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{4} }
 
 type UpdateNodeSessionResponse struct {
 }
@@ -118,7 +118,7 @@ type UpdateNodeSessionResponse struct {
 func (m *UpdateNodeSessionResponse) Reset()                    { *m = UpdateNodeSessionResponse{} }
 func (m *UpdateNodeSessionResponse) String() string            { return proto.CompactTextString(m) }
 func (*UpdateNodeSessionResponse) ProtoMessage()               {}
-func (*UpdateNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{5} }
+func (*UpdateNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{5} }
 
 type DeleteNodeSessionRequest struct {
 	// hex encoded DevEUI
@@ -128,7 +128,7 @@ type DeleteNodeSessionRequest struct {
 func (m *DeleteNodeSessionRequest) Reset()                    { *m = DeleteNodeSessionRequest{} }
 func (m *DeleteNodeSessionRequest) String() string            { return proto.CompactTextString(m) }
 func (*DeleteNodeSessionRequest) ProtoMessage()               {}
-func (*DeleteNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{6} }
+func (*DeleteNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{6} }
 
 type DeleteNodeSessionResponse struct {
 }
@@ -136,7 +136,7 @@ type DeleteNodeSessionResponse struct {
 func (m *DeleteNodeSessionResponse) Reset()                    { *m = DeleteNodeSessionResponse{} }
 func (m *DeleteNodeSessionResponse) String() string            { return proto.CompactTextString(m) }
 func (*DeleteNodeSessionResponse) ProtoMessage()               {}
-func (*DeleteNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{7} }
+func (*DeleteNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{7} }
 
 type GetRandomDevAddrRequest struct {
 }
@@ -144,7 +144,7 @@ type GetRandomDevAddrRequest struct {
 func (m *GetRandomDevAddrRequest) Reset()                    { *m = GetRandomDevAddrRequest{} }
 func (m *GetRandomDevAddrRequest) String() string            { return proto.CompactTextString(m) }
 func (*GetRandomDevAddrRequest) ProtoMessage()               {}
-func (*GetRandomDevAddrRequest) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{8} }
+func (*GetRandomDevAddrRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{8} }
 
 type GetRandomDevAddrResponse struct {
 	// hex encoded DevAddr
@@ -154,7 +154,7 @@ type GetRandomDevAddrResponse struct {
 func (m *GetRandomDevAddrResponse) Reset()                    { *m = GetRandomDevAddrResponse{} }
 func (m *GetRandomDevAddrResponse) String() string            { return proto.CompactTextString(m) }
 func (*GetRandomDevAddrResponse) ProtoMessage()               {}
-func (*GetRandomDevAddrResponse) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{9} }
+func (*GetRandomDevAddrResponse) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{9} }
 
 func init() {
 	proto.RegisterType((*CreateNodeSessionRequest)(nil), "api.CreateNodeSessionRequest")
@@ -380,12 +380,12 @@ var _NodeSession_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: fileDescriptor4,
+	Metadata: fileDescriptor3,
 }
 
-func init() { proto.RegisterFile("nodeSession.proto", fileDescriptor4) }
+func init() { proto.RegisterFile("nodeSession.proto", fileDescriptor3) }
 
-var fileDescriptor4 = []byte{
+var fileDescriptor3 = []byte{
 	// 546 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xec, 0x55, 0xcb, 0x6e, 0xd3, 0x40,
 	0x14, 0x95, 0x93, 0xd6, 0x4d, 0x6f, 0x5a, 0x54, 0x46, 0xb4, 0x4c, 0xec, 0xb6, 0x72, 0x0d, 0x8b,

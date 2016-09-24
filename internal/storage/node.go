@@ -255,17 +255,18 @@ func GetCFListForNode(db *sqlx.DB, node Node) (*lorawan.CFList, error) {
 		return nil, nil
 	}
 
-	channels, err := GetChannelsForChannelList(db, *node.ChannelListID)
+	var cFList lorawan.CFList
+	cl, err := GetChannelList(db, *node.ChannelListID)
 	if err != nil {
 		return nil, err
 	}
 
-	var cFList lorawan.CFList
-	for _, channel := range channels {
-		if len(cFList) <= channel.Channel-3 {
-			return nil, fmt.Errorf("invalid channel index for CFList: %d", channel.Channel)
-		}
-		cFList[channel.Channel-3] = uint32(channel.Frequency)
+	if len(cl.Channels) > len(cFList) {
+		return nil, errors.New("too many channels in channel-list")
+	}
+
+	for i, v := range cl.Channels {
+		cFList[i] = uint32(v)
 	}
 	return &cFList, nil
 }

@@ -34,6 +34,11 @@ func (a *ChannelListAPI) Create(ctx context.Context, req *pb.CreateChannelListRe
 	cl := storage.ChannelList{
 		Name: req.Name,
 	}
+
+	for _, v := range req.Channels {
+		cl.Channels = append(cl.Channels, int64(v))
+	}
+
 	err := storage.CreateChannelList(a.ctx.DB, &cl)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
@@ -52,6 +57,11 @@ func (a *ChannelListAPI) Update(ctx context.Context, req *pb.UpdateChannelListRe
 		ID:   req.Id,
 		Name: req.Name,
 	}
+
+	for _, v := range req.Channels {
+		cl.Channels = append(cl.Channels, int64(v))
+	}
+
 	err := storage.UpdateChannelList(a.ctx.DB, cl)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
@@ -69,9 +79,16 @@ func (a *ChannelListAPI) Get(ctx context.Context, req *pb.GetChannelListRequest)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
+
+	var channels []uint32
+	for _, v := range cl.Channels {
+		channels = append(channels, uint32(v))
+	}
+
 	return &pb.GetChannelListResponse{
-		Id:   cl.ID,
-		Name: cl.Name,
+		Id:       cl.ID,
+		Name:     cl.Name,
+		Channels: channels,
 	}, nil
 }
 
@@ -94,9 +111,16 @@ func (a *ChannelListAPI) List(ctx context.Context, req *pb.ListChannelListReques
 		TotalCount: int64(count),
 	}
 	for _, l := range lists {
+		var cl []uint32
+
+		for _, v := range l.Channels {
+			cl = append(cl, uint32(v))
+		}
+
 		resp.Result = append(resp.Result, &pb.GetChannelListResponse{
-			Id:   l.ID,
-			Name: l.Name,
+			Id:       l.ID,
+			Name:     l.Name,
+			Channels: cl,
 		})
 	}
 	return &resp, nil
@@ -113,109 +137,4 @@ func (a *ChannelListAPI) Delete(ctx context.Context, req *pb.DeleteChannelListRe
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 	return &pb.DeleteChannelListResponse{}, nil
-}
-
-// ChannelAPI exports the channel related functions.
-type ChannelAPI struct {
-	ctx       common.Context
-	validator auth.Validator
-}
-
-// NewChannelAPI creates a new ChannelAPI.
-func NewChannelAPI(ctx common.Context, validator auth.Validator) *ChannelAPI {
-	return &ChannelAPI{
-		ctx:       ctx,
-		validator: validator,
-	}
-}
-
-// Create creates the given channel.
-func (a *ChannelAPI) Create(ctx context.Context, req *pb.CreateChannelRequest) (*pb.CreateChannelResponse, error) {
-	if err := a.validator.Validate(ctx, auth.ValidateAPIMethod("Channel.Create")); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
-	c := storage.Channel{
-		ChannelListID: req.ChannelListID,
-		Channel:       int(req.Channel),
-		Frequency:     int(req.Frequency),
-	}
-	err := storage.CreateChannel(a.ctx.DB, &c)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-	return &pb.CreateChannelResponse{Id: c.ID}, nil
-}
-
-// Get returns the channel matching the given id.
-func (a *ChannelAPI) Get(ctx context.Context, req *pb.GetChannelRequest) (*pb.GetChannelResponse, error) {
-	if err := a.validator.Validate(ctx, auth.ValidateAPIMethod("Channel.Get")); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
-	c, err := storage.GetChannel(a.ctx.DB, req.Id)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-	return &pb.GetChannelResponse{
-		Id:            c.ID,
-		ChannelListID: c.ChannelListID,
-		Channel:       int64(c.Channel),
-		Frequency:     int64(c.Frequency),
-	}, nil
-}
-
-// Update updates the given channel.
-func (a *ChannelAPI) Update(ctx context.Context, req *pb.UpdateChannelRequest) (*pb.UpdateChannelResponse, error) {
-	if err := a.validator.Validate(ctx, auth.ValidateAPIMethod("Channel.Update")); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
-	c := storage.Channel{
-		ID:            req.Id,
-		ChannelListID: req.ChannelListID,
-		Channel:       int(req.Channel),
-		Frequency:     int(req.Frequency),
-	}
-	err := storage.UpdateChannel(a.ctx.DB, c)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-	return &pb.UpdateChannelResponse{}, nil
-}
-
-// Delete deletest the channel matching the given id.
-func (a *ChannelAPI) Delete(ctx context.Context, req *pb.DeleteChannelRequest) (*pb.DeleteChannelResponse, error) {
-	if err := a.validator.Validate(ctx, auth.ValidateAPIMethod("Channel.Delete")); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
-	err := storage.DeleteChannel(a.ctx.DB, req.Id)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-	return &pb.DeleteChannelResponse{}, nil
-}
-
-// ListByChannelList lists the channels matching the given channel-list id.
-func (a *ChannelAPI) ListByChannelList(ctx context.Context, req *pb.ListChannelsByChannelListRequest) (*pb.ListChannelsByChannelListResponse, error) {
-	if err := a.validator.Validate(ctx, auth.ValidateAPIMethod("Channel.ListByChannelList")); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
-	channels, err := storage.GetChannelsForChannelList(a.ctx.DB, req.Id)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	var resp pb.ListChannelsByChannelListResponse
-	for _, c := range channels {
-		resp.Result = append(resp.Result, &pb.GetChannelResponse{
-			Id:            c.ID,
-			ChannelListID: c.ChannelListID,
-			Channel:       int64(c.Channel),
-			Frequency:     int64(c.Frequency),
-		})
-	}
-	return &resp, nil
 }

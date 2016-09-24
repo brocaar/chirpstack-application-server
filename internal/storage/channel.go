@@ -5,27 +5,22 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 // ChannelList represents a list of channels.
 // This list will be used for the FCList field (if allowed for the used band).
 type ChannelList struct {
-	ID   int64  `db:"id" json:"id"`
-	Name string `db:"name" json:"name"`
-}
-
-// Channel represents a single channel.
-type Channel struct {
-	ID            int64 `db:"id" json:"id"`
-	ChannelListID int64 `db:"channel_list_id" json:"channelListID"`
-	Channel       int   `db:"channel" json:"channel"` // set this to channel 3 - 7
-	Frequency     int   `db:"frequency" json:"frequency"`
+	ID       int64   `db:"id"`
+	Name     string  `db:"name"`
+	Channels []int64 `db:"channels"`
 }
 
 // CreateChannelList creates the given ChannelList.
 func CreateChannelList(db *sqlx.DB, cl *ChannelList) error {
-	err := db.Get(&cl.ID, "insert into channel_list (name) values ($1) returning id",
+	err := db.Get(&cl.ID, "insert into channel_list (name, channels) values ($1, $2) returning id",
 		cl.Name,
+		pq.Int64Array(cl.Channels),
 	)
 	if err != nil {
 		return fmt.Errorf("create channel-list '%s' error: %s", cl.Name, err)
@@ -39,8 +34,9 @@ func CreateChannelList(db *sqlx.DB, cl *ChannelList) error {
 
 // UpdateChannelList updates the given ChannelList.
 func UpdateChannelList(db *sqlx.DB, cl ChannelList) error {
-	res, err := db.Exec("update channel_list set name = $1 where id = $2",
+	res, err := db.Exec("update channel_list set name = $1, channels = $2 where id = $3",
 		cl.Name,
+		pq.Array(cl.Channels),
 		cl.ID,
 	)
 	if err != nil {
@@ -60,7 +56,7 @@ func UpdateChannelList(db *sqlx.DB, cl ChannelList) error {
 // GetChannelList returns the ChannelList for the given id.
 func GetChannelList(db *sqlx.DB, id int64) (ChannelList, error) {
 	var cl ChannelList
-	err := db.Get(&cl, "select * from channel_list where id = $1", id)
+	err := db.QueryRow("select id, name, channels from channel_list where id = $1", id).Scan(&cl.ID, &cl.Name, pq.Array(&cl.Channels))
 	if err != nil {
 		return cl, fmt.Errorf("get channel-list %d error: %s", id, err)
 	}
@@ -70,9 +66,17 @@ func GetChannelList(db *sqlx.DB, id int64) (ChannelList, error) {
 // GetChannelLists returns a list of ChannelList items.
 func GetChannelLists(db *sqlx.DB, limit, offset int) ([]ChannelList, error) {
 	var channelLists []ChannelList
-	err := db.Select(&channelLists, "select * from channel_list order by name limit $1 offset $2", limit, offset)
+	rows, err := db.Query("select id, name, channels from channel_list order by name limit $1 offset $2", limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("get channel-list list error: %s", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var cl ChannelList
+		if err := rows.Scan(&cl.ID, &cl.Name, pq.Array(&cl.Channels)); err != nil {
+			return nil, fmt.Errorf("get channel-list row error: %s", err)
+		}
+		channelLists = append(channelLists, cl)
 	}
 	return channelLists, nil
 }
@@ -106,83 +110,4 @@ func DeleteChannelList(db *sqlx.DB, id int64) error {
 	}
 	log.WithField("id", id).Info("channel-list deleted")
 	return nil
-}
-
-// CreateChannel creates the given channel.
-func CreateChannel(db *sqlx.DB, c *Channel) error {
-	err := db.Get(&c.ID, "insert into channel (channel_list_id, channel, frequency) values ($1, $2, $3) returning id",
-		c.ChannelListID,
-		c.Channel,
-		c.Frequency,
-	)
-	if err != nil {
-		return fmt.Errorf("create channel %d for channel-list %d error: %s", c.Channel, c.ChannelListID, err)
-	}
-	log.WithFields(log.Fields{
-		"channel_list_id": c.ChannelListID,
-		"channel":         c.Channel,
-		"id":              c.ID,
-	}).Info("channel created")
-	return nil
-}
-
-// UpdateChannel updates the given Channel.
-func UpdateChannel(db *sqlx.DB, c Channel) error {
-	res, err := db.Exec("update channel set channel_list_id = $1, channel = $2, frequency = $3 where id = $4",
-		c.ChannelListID,
-		c.Channel,
-		c.Frequency,
-		c.ID,
-	)
-	if err != nil {
-		return fmt.Errorf("update channel %d error: %s", c.ID, err)
-	}
-	ra, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if ra == 0 {
-		return fmt.Errorf("channel %d does not exist", c.ID)
-	}
-	log.WithField("id", c.ID).Info("channel updated")
-	return nil
-}
-
-// DeleteChannel deletes the Channel matching the given id.
-func DeleteChannel(db *sqlx.DB, id int64) error {
-	res, err := db.Exec("delete from channel where id = $1",
-		id,
-	)
-	if err != nil {
-		return fmt.Errorf("delete channel %d error: %s", id, err)
-	}
-	ra, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if ra == 0 {
-		return fmt.Errorf("channel %d does not exist", id)
-	}
-	log.WithField("id", id).Info("channel deleted")
-	return nil
-}
-
-// GetChannel returns the Channel matching the given id.
-func GetChannel(db *sqlx.DB, id int64) (Channel, error) {
-	var channel Channel
-	err := db.Get(&channel, "select * from channel where id = $1", id)
-	if err != nil {
-		return channel, fmt.Errorf("get channel %d error: %s", id, err)
-	}
-	return channel, nil
-}
-
-// GetChannelsForChannelList returns the Channels for the given ChannelList id.
-func GetChannelsForChannelList(db *sqlx.DB, channelListID int64) ([]Channel, error) {
-	var channels []Channel
-	err := db.Select(&channels, "select * from channel where channel_list_id = $1 order by channel", channelListID)
-	if err != nil {
-		return nil, fmt.Errorf("get channels for channel-list %d error: %s", channelListID, err)
-	}
-	return channels, nil
 }

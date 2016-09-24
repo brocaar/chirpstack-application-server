@@ -193,7 +193,6 @@ func mustGetClientAPIServer(ctx context.Context, lsCtx common.Context, c *cli.Co
 	}
 
 	gs := grpc.NewServer()
-	pb.RegisterChannelServer(gs, api.NewChannelAPI(lsCtx, validator))
 	pb.RegisterChannelListServer(gs, api.NewChannelListAPI(lsCtx, validator))
 	pb.RegisterDownlinkQueueServer(gs, api.NewDownlinkQueueAPI(lsCtx, validator))
 	pb.RegisterNodeServer(gs, api.NewNodeAPI(lsCtx, validator))
@@ -273,9 +272,6 @@ func mustGetJSONGateway(ctx context.Context, lsCtx common.Context, c *cli.Contex
 		},
 	))
 
-	if err := pb.RegisterChannelHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
-		log.Fatalf("register channel handler error: %s", err)
-	}
 	if err := pb.RegisterChannelListHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		log.Fatalf("register channel-list handler error: %s", err)
 	}

@@ -37,7 +37,7 @@ type CreateNodeRequest struct {
 func (m *CreateNodeRequest) Reset()                    { *m = CreateNodeRequest{} }
 func (m *CreateNodeRequest) String() string            { return proto.CompactTextString(m) }
 func (*CreateNodeRequest) ProtoMessage()               {}
-func (*CreateNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{0} }
+func (*CreateNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{0} }
 
 type CreateNodeResponse struct {
 }
@@ -45,7 +45,7 @@ type CreateNodeResponse struct {
 func (m *CreateNodeResponse) Reset()                    { *m = CreateNodeResponse{} }
 func (m *CreateNodeResponse) String() string            { return proto.CompactTextString(m) }
 func (*CreateNodeResponse) ProtoMessage()               {}
-func (*CreateNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{1} }
+func (*CreateNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{1} }
 
 type GetNodeRequest struct {
 	// hex encoded DevEUI
@@ -55,7 +55,7 @@ type GetNodeRequest struct {
 func (m *GetNodeRequest) Reset()                    { *m = GetNodeRequest{} }
 func (m *GetNodeRequest) String() string            { return proto.CompactTextString(m) }
 func (*GetNodeRequest) ProtoMessage()               {}
-func (*GetNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{2} }
+func (*GetNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{2} }
 
 type GetNodeResponse struct {
 	// hex encoded DevEUI
@@ -75,7 +75,7 @@ type GetNodeResponse struct {
 func (m *GetNodeResponse) Reset()                    { *m = GetNodeResponse{} }
 func (m *GetNodeResponse) String() string            { return proto.CompactTextString(m) }
 func (*GetNodeResponse) ProtoMessage()               {}
-func (*GetNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{3} }
+func (*GetNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{3} }
 
 type DeleteNodeRequest struct {
 	// hex encoded DevEUI
@@ -85,7 +85,7 @@ type DeleteNodeRequest struct {
 func (m *DeleteNodeRequest) Reset()                    { *m = DeleteNodeRequest{} }
 func (m *DeleteNodeRequest) String() string            { return proto.CompactTextString(m) }
 func (*DeleteNodeRequest) ProtoMessage()               {}
-func (*DeleteNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{4} }
+func (*DeleteNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{4} }
 
 type DeleteNodeResponse struct {
 }
@@ -93,7 +93,7 @@ type DeleteNodeResponse struct {
 func (m *DeleteNodeResponse) Reset()                    { *m = DeleteNodeResponse{} }
 func (m *DeleteNodeResponse) String() string            { return proto.CompactTextString(m) }
 func (*DeleteNodeResponse) ProtoMessage()               {}
-func (*DeleteNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{5} }
+func (*DeleteNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{5} }
 
 type ListNodeRequest struct {
 	Limit  int64 `protobuf:"varint,1,opt,name=limit" json:"limit,omitempty"`
@@ -103,7 +103,7 @@ type ListNodeRequest struct {
 func (m *ListNodeRequest) Reset()                    { *m = ListNodeRequest{} }
 func (m *ListNodeRequest) String() string            { return proto.CompactTextString(m) }
 func (*ListNodeRequest) ProtoMessage()               {}
-func (*ListNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{6} }
+func (*ListNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{6} }
 
 type ListNodeResponse struct {
 	TotalCount int64              `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
@@ -113,7 +113,7 @@ type ListNodeResponse struct {
 func (m *ListNodeResponse) Reset()                    { *m = ListNodeResponse{} }
 func (m *ListNodeResponse) String() string            { return proto.CompactTextString(m) }
 func (*ListNodeResponse) ProtoMessage()               {}
-func (*ListNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{7} }
+func (*ListNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{7} }
 
 func (m *ListNodeResponse) GetResult() []*GetNodeResponse {
 	if m != nil {
@@ -132,7 +132,7 @@ type ListNodeByAppEUIRequest struct {
 func (m *ListNodeByAppEUIRequest) Reset()                    { *m = ListNodeByAppEUIRequest{} }
 func (m *ListNodeByAppEUIRequest) String() string            { return proto.CompactTextString(m) }
 func (*ListNodeByAppEUIRequest) ProtoMessage()               {}
-func (*ListNodeByAppEUIRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{8} }
+func (*ListNodeByAppEUIRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{8} }
 
 type UpdateNodeRequest struct {
 	// hex encoded DevEUI
@@ -152,7 +152,7 @@ type UpdateNodeRequest struct {
 func (m *UpdateNodeRequest) Reset()                    { *m = UpdateNodeRequest{} }
 func (m *UpdateNodeRequest) String() string            { return proto.CompactTextString(m) }
 func (*UpdateNodeRequest) ProtoMessage()               {}
-func (*UpdateNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{9} }
+func (*UpdateNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{9} }
 
 type UpdateNodeResponse struct {
 }
@@ -160,7 +160,7 @@ type UpdateNodeResponse struct {
 func (m *UpdateNodeResponse) Reset()                    { *m = UpdateNodeResponse{} }
 func (m *UpdateNodeResponse) String() string            { return proto.CompactTextString(m) }
 func (*UpdateNodeResponse) ProtoMessage()               {}
-func (*UpdateNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{10} }
+func (*UpdateNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{10} }
 
 func init() {
 	proto.RegisterType((*CreateNodeRequest)(nil), "api.CreateNodeRequest")
@@ -391,12 +391,12 @@ var _Node_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: fileDescriptor2,
+	Metadata: fileDescriptor1,
 }
 
-func init() { proto.RegisterFile("node.proto", fileDescriptor2) }
+func init() { proto.RegisterFile("node.proto", fileDescriptor1) }
 
-var fileDescriptor2 = []byte{
+var fileDescriptor1 = []byte{
 	// 556 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xec, 0x55, 0xc1, 0x6e, 0xd3, 0x40,
 	0x10, 0x95, 0xe3, 0xc4, 0x6d, 0x26, 0x24, 0x25, 0x83, 0x69, 0x2c, 0x0b, 0x50, 0x64, 0x71, 0x30,

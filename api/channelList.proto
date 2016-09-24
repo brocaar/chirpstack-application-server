@@ -31,9 +31,11 @@ service ChannelList {
 	}
 
 	// List lists the channel-lists given an offset and limit.
+    // Note limit and offset url params aren't displayed in Swagger specs, see also:
+    // https://github.com/grpc-ecosystem/grpc-gateway/pull/199
 	rpc List(ListChannelListRequest) returns (ListChannelListResponse) {
 		option(google.api.http) = {
-			get: "/api/channelList/{offset}/{limit}"
+			get: "/api/channelList"
 		};
 	}
 
@@ -47,6 +49,7 @@ service ChannelList {
 
 message CreateChannelListRequest {
 	string name = 1;
+	repeated uint32 channels = 2;
 }
 
 message CreateChannelListResponse {
@@ -56,6 +59,7 @@ message CreateChannelListResponse {
 message UpdateChannelListRequest {
 	int64 id = 1;
 	string name = 2;
+	repeated uint32 channels = 3;
 }
 
 message UpdateChannelListResponse {}
@@ -67,6 +71,7 @@ message GetChannelListRequest {
 message GetChannelListResponse {
 	int64 id = 1;
 	string name = 2;
+	repeated uint32 channels = 3;
 }
 
 message ListChannelListRequest {

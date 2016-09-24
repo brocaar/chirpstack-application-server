@@ -18,6 +18,11 @@ func TestChannelFunctions(t *testing.T) {
 		Convey("When creating a channel-list", func() {
 			cl := ChannelList{
 				Name: "test channel-list",
+				Channels: []int64{
+					868400000,
+					868500000,
+					868600000,
+				},
 			}
 			So(CreateChannelList(db, &cl), ShouldBeNil)
 
@@ -58,51 +63,6 @@ func TestChannelFunctions(t *testing.T) {
 					count, err := GetChannelListsCount(db)
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 0)
-				})
-			})
-
-			Convey("When creating a channel", func() {
-				c := Channel{
-					ChannelListID: cl.ID,
-					Channel:       4,
-					Frequency:     868700000,
-				}
-				So(CreateChannel(db, &c), ShouldBeNil)
-
-				Convey("Then the channel has been created", func() {
-					c2, err := GetChannel(db, c.ID)
-					So(err, ShouldBeNil)
-					So(c2, ShouldResemble, c)
-				})
-
-				Convey("When updating the channel", func() {
-					c.Channel = 5
-					So(UpdateChannel(db, c), ShouldBeNil)
-
-					Convey("Then the channel has been updated", func() {
-						c2, err := GetChannel(db, c.ID)
-						So(err, ShouldBeNil)
-						So(c2, ShouldResemble, c)
-					})
-				})
-
-				Convey("When deleting the channel", func() {
-					So(DeleteChannel(db, c.ID), ShouldBeNil)
-
-					Convey("Then the channel has been deleted", func() {
-						_, err := GetChannel(db, c.ID)
-						So(err, ShouldNotBeNil)
-					})
-				})
-
-				Convey("When getting all channels for the channel-list", func() {
-					channels, err := GetChannelsForChannelList(db, cl.ID)
-					So(err, ShouldBeNil)
-
-					Convey("Then it contains the channel", func() {
-						So(channels, ShouldHaveLength, 1)
-						So(channels[0], ShouldResemble, c)
-					})
 				})
 			})
 		})

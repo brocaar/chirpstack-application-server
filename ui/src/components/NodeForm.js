@@ -1,11 +1,17 @@
 import React, { Component } from 'react';
 
+import ChannelStore from "../stores/ChannelStore";
+
 class NodeForm extends Component {
   constructor() {
     super();
 
-    this.state = {node: {}, devEUIDisabled: false};
+    this.state = {node: {}, devEUIDisabled: false, channelLists: []};
     this.handleSubmit = this.handleSubmit.bind(this);
+
+    ChannelStore.getAllChannelLists((lists) => {
+      this.setState({channelLists: lists});
+    });
   }
 
   componentWillReceiveProps(nextProps) {
@@ -73,6 +79,17 @@ class NodeForm extends Component {
         <div className="form-group">
           <label className="control-label" htmlFor="rx2DR">RX2DR</label>
           <input className="form-control" id="rx2DR" type="number" required value={this.state.node.rx2DR || 0} onChange={this.onChange.bind(this, 'rx2DR')} />
+        </div>
+        <div className="form-group">
+          <label className="control-label" htmlFor="channelListID">Channel-list</label>
+          <select className="form-control" id="channelListID" name="channelListID" value={this.state.node.channelListID} onChange={this.onChange.bind(this, "channelListID")}>
+            <option value="0"></option>
+            {
+              this.state.channelLists.map((cl, i) => {
+                return (<option key={cl.id} value={cl.id}>{cl.name}</option>);
+              })
+            }
+          </select>
         </div>
         <hr />
         <button type="submit" className="btn btn-primary pull-right">Submit</button>

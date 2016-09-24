@@ -39,7 +39,7 @@ class ChannelListForm extends Component {
 
   onFrequencyChange(i, e) {
     let list = this.state.list;
-    list.channels[i] = parseInt(e.target.value);
+    list.channels[i] = parseInt(e.target.value, 10);
     this.setState({list: list});
   }
 

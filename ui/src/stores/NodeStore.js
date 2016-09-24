@@ -10,6 +10,14 @@ var checkStatus = (response) => {
   }
 };
 
+var errorHandler = (error) => {
+  console.log(error);
+  error.then((data) => dispatcher.dispatch({
+    type: "CREATE_ERROR",
+    error: data,
+  }));
+};
+
 class NodeStore extends EventEmitter {
   getAll(callbackFunc) {
     fetch("/api/node?limit=999")
@@ -18,9 +26,7 @@ class NodeStore extends EventEmitter {
       .then((responseData) => {
         callbackFunc(responseData.result);
       })
-      .catch((error) => {
-        alert(error);
-      });
+      .catch(errorHandler);
   }
 
   getNode(devEUI, callbackFunc) {
@@ -30,9 +36,17 @@ class NodeStore extends EventEmitter {
       .then((responseData) => {
         callbackFunc(responseData);
       })
-      .catch((error) => {
-        alert(error);
-      });
+      .catch(errorHandler);
+  }
+
+  createNode(node, callbackFunc) {
+    fetch("/api/node", {method: "POST", body: JSON.stringify(node)})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
   }
 
   updateNode(devEUI, node, callbackFunc) {
@@ -42,12 +56,7 @@ class NodeStore extends EventEmitter {
       .then((responseData) => {
         callbackFunc(responseData);
       })
-      .catch((error) => {
-        error.then((data) => dispatcher.dispatch({
-          type: "CREATE_ERROR",
-          error: data,
-        }));
-      });
+      .catch(errorHandler);
 
   }
 }

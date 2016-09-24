@@ -4,12 +4,15 @@ class NodeForm extends Component {
   constructor() {
     super();
 
-    this.state = {node: {}};
+    this.state = {node: {}, devEUIDisabled: false};
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({node: nextProps.node});
+    this.setState({
+      node: nextProps.node,
+      devEUIDisabled: typeof nextProps.node.devEUI !== "undefined",
+    });
   }
 
   handleSubmit(e) {
@@ -36,7 +39,7 @@ class NodeForm extends Component {
         </div>
         <div className="form-group">
           <label className="control-label" htmlFor="devEUI">DevEUI</label>
-          <input className="form-control" id="devEUI" type="text" required disabled value={this.state.node.devEUI || ''} onChange={this.onChange.bind(this, 'devEUI')} /> 
+          <input className="form-control" id="devEUI" type="text" required disabled={this.state.devEUIDisabled} value={this.state.node.devEUI || ''} onChange={this.onChange.bind(this, 'devEUI')} /> 
         </div>
         <div className="form-group">
           <label className="control-label" htmlFor="appEUI">AppEUI</label>

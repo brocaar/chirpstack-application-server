@@ -16,6 +16,7 @@ class NodeDetails extends Component {
     };
 
     this.onSubmit = this.onSubmit.bind(this);
+    this.onDelete = this.onDelete.bind(this);
   }
 
   componentWillMount() {
@@ -30,6 +31,14 @@ class NodeDetails extends Component {
     });
   }
 
+  onDelete() {
+    if (confirm("Are you sure you want to delete this node?")) {
+      NodeStore.deleteNode(this.props.params.devEUI, (responseData) => {
+        this.context.router.push("/");
+      });
+    } 
+  }
+
   render() {
     return(
       <div>
@@ -39,7 +48,7 @@ class NodeDetails extends Component {
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to="/nodes/create"><button type="button" className="btn btn-default">Create node</button></Link>
+            <button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete</button>
           </div>
         </div>
         <hr />

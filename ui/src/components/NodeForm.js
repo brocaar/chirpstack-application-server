@@ -75,9 +75,7 @@ class NodeForm extends Component {
           <input className="form-control" id="rx2DR" type="number" required value={this.state.node.rx2DR || 0} onChange={this.onChange.bind(this, 'rx2DR')} />
         </div>
         <hr />
-        <div className="form-group">
-          <button type="submit" className="btn btn-primary pull-right">Submit</button>
-        </div>
+        <button type="submit" className="btn btn-primary pull-right">Submit</button>
       </form>
     );
   }

@@ -57,7 +57,16 @@ class NodeStore extends EventEmitter {
         callbackFunc(responseData);
       })
       .catch(errorHandler);
+  }
 
+  deleteNode(devEUI, callbackFunc) {
+    fetch("/api/node/"+devEUI, {method: "DELETE"})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
   }
 }
 

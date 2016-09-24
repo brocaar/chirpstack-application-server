@@ -32,6 +32,7 @@ class ListNodes extends Component {
     return(
       <div>
         <ol className="breadcrumb">
+          <li><Link to="/">Dashboard</Link></li>
           <li className="active">Nodes</li>
         </ol>
         <div className="clearfix">

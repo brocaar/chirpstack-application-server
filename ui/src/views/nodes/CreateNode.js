@@ -27,7 +27,8 @@ class CreateNode extends Component {
     return (
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Nodes</Link></li>
+          <li><Link to="/">Dashboard</Link></li>
+          <li>Nodes</li>
           <li className="active">create node</li>
         </ol>
         <hr />

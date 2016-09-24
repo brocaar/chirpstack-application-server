@@ -36,7 +36,8 @@ class ListNodes extends Component {
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to="/nodes/create"><button type="button" className="btn btn-default">Create node</button></Link>
+            <Link to="/nodes/create"><button type="button" className="btn btn-default">Create node</button></Link> &nbsp;
+            <Link to="/channels"><button type="button" className="btn btn-default">Channel lists</button></Link>
           </div>
         </div>
         <hr />

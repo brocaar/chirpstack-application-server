@@ -6,6 +6,7 @@ import Layout from './Layout';
 import ListNodes from './views/nodes/ListNodes';
 import NodeDetails from './views/nodes/NodeDetails';
 import CreateNode from "./views/nodes/CreateNode";
+import NodeSessionDetails from "./views/nodes/NodeSessionDetails";
 import ChannelLists from "./views/channels/ChannelLists";
 import ChannelListDetails from "./views/channels/ChannelListDetails";
 import CreateChannelList from "./views/channels/CreateChannelList";
@@ -21,6 +22,7 @@ ReactDOM.render(
     <Route path="/" component={Layout}>
       <IndexRoute component={ListNodes}></IndexRoute>
       <Route path="nodes/create" component={CreateNode}></Route>
+      <Route path="nodes/:devEUI/session" component={NodeSessionDetails}></Route>
       <Route path="nodes/:devEUI" component={NodeDetails}></Route>
       <Route path="channels" component={ChannelLists}></Route>
       <Route path="channels/create" component={CreateChannelList}></Route>

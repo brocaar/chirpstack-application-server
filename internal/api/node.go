@@ -9,6 +9,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 )
 
@@ -211,6 +212,11 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.De
 	if err := storage.DeleteNode(a.ctx.DB, eui); err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
+
+	// try to delete the node-session
+	_, _ = a.ctx.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{
+		DevEUI: eui[:],
+	})
 
 	return &pb.DeleteNodeResponse{}, nil
 }

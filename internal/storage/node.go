@@ -197,7 +197,6 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 }
 
 // DeleteNode deletes the Node matching the given DevEUI.
-// TODO: remove node-session
 func DeleteNode(db *sqlx.DB, devEUI lorawan.EUI64) error {
 	res, err := db.Exec("delete from node where dev_eui = $1",
 		devEUI[:],

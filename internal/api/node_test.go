@@ -9,6 +9,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/loraserver/api/ns"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -20,8 +21,9 @@ func TestNodeAPI(t *testing.T) {
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
+		nsClient := test.NewNetworkServerClient()
 		ctx := context.Background()
-		lsCtx := common.Context{DB: db}
+		lsCtx := common.Context{DB: db, NetworkServer: nsClient}
 		validator := &TestValidator{}
 		api := NewNodeAPI(lsCtx, validator)
 
@@ -109,6 +111,13 @@ func TestNodeAPI(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 3)
+
+				Convey("Then an attempt was made to delete the node-session", func() {
+					So(nsClient.DeleteNodeSessionChan, ShouldHaveLength, 1)
+					So(<-nsClient.DeleteNodeSessionChan, ShouldResemble, ns.DeleteNodeSessionRequest{
+						DevEUI: []byte{8, 7, 6, 5, 4, 3, 2, 1},
+					})
+				})
 
 				Convey("Then listing the nodes returns zero nodes", func() {
 					nodes, err := api.List(ctx, &pb.ListNodeRequest{Limit: 10})

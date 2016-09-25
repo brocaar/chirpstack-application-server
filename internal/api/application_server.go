@@ -205,13 +205,29 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 		return nil, grpc.Errorf(codes.InvalidArgument, "could not parse RxInfo.Time: %s", err)
 	}
 
+	node, err := storage.GetNode(a.ctx.DB, devEUI)
+	if err != nil {
+		errStr := fmt.Sprintf("get node error: %s", err)
+		log.WithField("dev_eui", devEUI).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
+	b, err := lorawan.EncryptFRMPayload(node.AppSKey, true, node.DevAddr, req.FCnt, req.Data)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"dev_eui": devEUI,
+			"f_cnt":   req.FCnt,
+		}).Errorf("decrypt payload error: %s", err)
+		return nil, grpc.Errorf(codes.Internal, "decrypt payload error: %s", err)
+	}
+
 	pl := handler.DataUpPayload{
 		DevEUI:       devEUI,
 		Time:         ts,
 		FPort:        uint8(req.FPort),
 		GatewayCount: len(req.RxInfo),
 		RSSI:         int(req.RxInfo[0].Rssi),
-		Data:         req.Data,
+		Data:         b,
 	}
 
 	err = a.ctx.Handler.SendDataUp(appEUI, devEUI, pl)
@@ -252,7 +268,7 @@ func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataD
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
-	b, err := lorawan.EncryptFRMPayload(node.AppSKey, true, node.DevAddr, req.FCnt, qi.Data)
+	b, err := lorawan.EncryptFRMPayload(node.AppSKey, false, node.DevAddr, req.FCnt, qi.Data)
 	if err != nil {
 		errStr := fmt.Sprintf("encrypt payload error: %s", err)
 		log.WithFields(log.Fields{

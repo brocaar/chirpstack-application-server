@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/handler"
@@ -80,6 +81,35 @@ func TestApplicationServerAPI(t *testing.T) {
 
 			b, err := phy.MarshalBinary()
 			So(err, ShouldBeNil)
+
+			Convey("When calling HandleDataUp", func() {
+				now := time.Now().UTC()
+
+				req := as.HandleDataUpRequest{
+					DevEUI: node.DevEUI[:],
+					AppEUI: node.AppEUI[:],
+					FCnt:   10,
+					FPort:  3,
+					Data:   []byte{1, 2, 3, 4},
+					RxInfo: []*as.RXInfo{
+						{Time: now.Format(time.RFC3339Nano), Rssi: -60},
+					},
+				}
+				_, err := api.HandleDataUp(ctx, &req)
+				So(err, ShouldBeNil)
+
+				Convey("Then the expected payload was sent to the handler", func() {
+					So(h.SendDataUpChan, ShouldHaveLength, 1)
+					So(<-h.SendDataUpChan, ShouldResemble, handler.DataUpPayload{
+						DevEUI:       node.DevEUI,
+						Time:         now,
+						FPort:        3,
+						GatewayCount: 1,
+						RSSI:         -60,
+						Data:         []byte{67, 216, 236, 205},
+					})
+				})
+			})
 
 			Convey("When calling JoinRequest", func() {
 
@@ -245,7 +275,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					Convey("Then the expected response is returned", func() {
-						b, err := lorawan.EncryptFRMPayload(node.AppSKey, true, node.DevAddr, 10, resp.Data)
+						b, err := lorawan.EncryptFRMPayload(node.AppSKey, false, node.DevAddr, 10, resp.Data)
 						So(err, ShouldBeNil)
 
 						resp.Data = b
@@ -285,7 +315,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					Convey("Then the expected response is returned", func() {
-						b, err := lorawan.EncryptFRMPayload(node.AppSKey, true, node.DevAddr, 10, resp.Data)
+						b, err := lorawan.EncryptFRMPayload(node.AppSKey, false, node.DevAddr, 10, resp.Data)
 						So(err, ShouldBeNil)
 
 						resp.Data = b

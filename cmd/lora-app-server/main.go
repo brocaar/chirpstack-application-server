@@ -79,6 +79,9 @@ func run(c *cli.Context) error {
 		nsmigrate.Migrate(lsCtx)
 	}
 
+	// handle incoming downlink payloads
+	go storage.EnqueueDataDownPayloads(lsCtx.DB, lsCtx.Handler.DataDownChan())
+
 	// start the application-server api
 	log.WithFields(log.Fields{
 		"bind":     c.String("bind"),

@@ -6,6 +6,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
+	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lorawan"
 	"github.com/jmoiron/sqlx"
 )
@@ -19,6 +20,26 @@ type DownlinkQueueItem struct {
 	Pending   bool          `db:"pending"`
 	FPort     uint8         `db:"fport"`
 	Data      []byte        `db:"data"`
+}
+
+func EnqueueDataDownPayloads(db *sqlx.DB, payloadChan chan handler.DataDownPayload) {
+	for pl := range payloadChan {
+		go func(pl handler.DataDownPayload) {
+			err := CreateDownlinkQueueItem(db, &DownlinkQueueItem{
+				Reference: pl.Reference,
+				DevEUI:    pl.DevEUI,
+				Confirmed: pl.Confirmed,
+				FPort:     pl.FPort,
+				Data:      pl.Data,
+			})
+			if err != nil {
+				log.WithFields(log.Fields{
+					"dev_eui":   pl.DevEUI,
+					"reference": pl.Reference,
+				}).Errorf("enqueue data-down payload: %s", err)
+			}
+		}(pl)
+	}
 }
 
 // CreateDownlinkQueueItem adds an item to the downlink queue.

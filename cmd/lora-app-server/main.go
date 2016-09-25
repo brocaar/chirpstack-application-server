@@ -34,6 +34,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/migrations"
 	"github.com/brocaar/lora-app-server/internal/static"
 	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/lora-app-server/internal/storage/nsmigrate"
 	"github.com/brocaar/loraserver/api/as"
 	"github.com/brocaar/loraserver/api/ns"
 )
@@ -70,6 +71,12 @@ func run(c *cli.Context) error {
 			log.Fatalf("applying migrations failed: %s", err)
 		}
 		log.WithField("count", n).Info("migrations applied")
+
+	}
+
+	if c.Bool("migrate-node-sessions") {
+		log.Info("migrating node-session data from Redis")
+		nsmigrate.Migrate(lsCtx)
 	}
 
 	// start the application-server api
@@ -340,6 +347,11 @@ func main() {
 			Name:   "db-automigrate",
 			Usage:  "automatically apply database migrations",
 			EnvVar: "DB_AUTOMIGRATE",
+		},
+		cli.BoolFlag{
+			Name:   "migrate-node-sessions",
+			Usage:  "migrate some of the node-session data to the application-server storage (run this once when migrating from loraserver 0.11.x)",
+			EnvVar: "MIGRATE_NODE_SESSIONS",
 		},
 		cli.StringFlag{
 			Name:   "redis-url",

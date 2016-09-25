@@ -1,4 +1,4 @@
-# LoRa Server
+# LoRa App Server
 
 [![Build Status](https://travis-ci.org/brocaar/lora-app-server.svg?branch=master)](https://travis-ci.org/brocaar/lora-app-server)
 [![GoDoc](https://godoc.org/github.com/brocaar/lora-app-server?status.svg)](https://godoc.org/github.com/brocaar/lora-app-server)

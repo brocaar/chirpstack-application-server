@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import NodeSessionStore from "../../stores/NodeSessionStore";
 import NodeSessionForm from "../../components/NodeSessionForm";
 import NodeStore from "../../stores/NodeStore";
+import ChannelStore from "../../stores/ChannelStore";
 
 class NodeSessionDetails extends Component {
   static contextTypes = {
@@ -16,6 +17,7 @@ class NodeSessionDetails extends Component {
       session: {},
       node: {},
       sessionExists: false,
+      channels: [],
     };
 
     this.submitHandler = this.submitHandler.bind(this);
@@ -32,6 +34,12 @@ class NodeSessionDetails extends Component {
 
     NodeStore.getNode(this.props.params.devEUI, (node) => {
       this.setState({node: node}); 
+
+      if(node.channelListID !== 0) {
+        ChannelStore.getChannelList(node.channelListID, (list) => {
+          this.setState({channels: list.channels});
+        });
+      }
     });
   }
 
@@ -42,6 +50,7 @@ class NodeSessionDetails extends Component {
     session.rxDelay = this.state.node.rxDelay;
     session.rx1DROffset = this.state.node.rx1DROffset;
     session.rx2DR = this.state.node.rx2DR;
+    session.cFList = this.state.channels;
 
     if (this.state.sessionExists) {
       NodeSessionStore.updateNodeSession(this.props.params.devEUI, session, (responseData) => {

@@ -2,7 +2,7 @@
 
 ## 0.1.0
 
-Initial release.
+Initial release. LoRa App Server requires LoRa Server 0.12.0+.
 
 ### Migrating data from LoRa Server
 

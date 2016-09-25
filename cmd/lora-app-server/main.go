@@ -20,6 +20,7 @@ import (
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/jmoiron/sqlx"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
@@ -80,7 +81,7 @@ func run(c *cli.Context) error {
 	}
 
 	// handle incoming downlink payloads
-	go storage.EnqueueDataDownPayloads(lsCtx.DB, lsCtx.Handler.DataDownChan())
+	go enqueueDataDownPayloads(lsCtx.DB, lsCtx.Handler.DataDownChan())
 
 	// start the application-server api
 	log.WithFields(log.Fields{
@@ -329,6 +330,26 @@ func mustGetTransportCredentials(tlsCert, tlsKey, caCert string, verifyClientCer
 			Certificates: []tls.Certificate{cert},
 			RootCAs:      caCertPool,
 		})
+	}
+}
+
+func enqueueDataDownPayloads(db *sqlx.DB, payloadChan chan handler.DataDownPayload) {
+	for pl := range payloadChan {
+		go func(pl handler.DataDownPayload) {
+			err := storage.CreateDownlinkQueueItem(db, &storage.DownlinkQueueItem{
+				Reference: pl.Reference,
+				DevEUI:    pl.DevEUI,
+				Confirmed: pl.Confirmed,
+				FPort:     pl.FPort,
+				Data:      pl.Data,
+			})
+			if err != nil {
+				log.WithFields(log.Fields{
+					"dev_eui":   pl.DevEUI,
+					"reference": pl.Reference,
+				}).Errorf("enqueue data-down payload error: %s", err)
+			}
+		}(pl)
 	}
 }
 

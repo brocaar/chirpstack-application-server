@@ -209,7 +209,7 @@ func _0007_migrate_channels_to_channel_listSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0007_migrate_channels_to_channel_list.sql", size: 603, mode: os.FileMode(420), modTime: time.Unix(1474738408, 0)}
+	info := bindataFileInfo{name: "0007_migrate_channels_to_channel_list.sql", size: 603, mode: os.FileMode(420), modTime: time.Unix(1474740058, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

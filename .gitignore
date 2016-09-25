@@ -2,8 +2,8 @@
 .*
 
 # binaries
-dist/
-build/
+/dist
+/build
 
 # certificates
-certs/
+/certs

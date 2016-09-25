@@ -25,7 +25,11 @@ class ChannelStore extends EventEmitter {
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
-        callbackFunc(responseData.result);
+        if(typeof(responseData.result) === "undefined") {
+          callbackFunc([]);
+        } else {
+          callbackFunc(responseData.result);
+        }
       })
       .catch(errorHandler);
   }

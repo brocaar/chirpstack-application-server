@@ -366,14 +366,14 @@ func main() {
 			EnvVar: "GW_MQTT_SERVER",
 		},
 		cli.StringFlag{
-			Name:   "gw-mqtt-username",
+			Name:   "mqtt-username",
 			Usage:  "mqtt server username (optional)",
-			EnvVar: "GW_MQTT_USERNAME",
+			EnvVar: "MQTT_USERNAME",
 		},
 		cli.StringFlag{
-			Name:   "gw-mqtt-password",
+			Name:   "mqtt-password",
 			Usage:  "mqtt server password (optional)",
-			EnvVar: "GW_MQTT_PASSWORD",
+			EnvVar: "MQTT_PASSWORD",
 		},
 		cli.StringFlag{
 			Name:   "ca-cert",

@@ -35,7 +35,7 @@ class NodeSessionDetails extends Component {
     NodeStore.getNode(this.props.params.devEUI, (node) => {
       this.setState({node: node}); 
 
-      if(node.channelListID !== 0) {
+      if(node.channelListID != 0) {
         ChannelStore.getChannelList(node.channelListID, (list) => {
           this.setState({channels: list.channels});
         });

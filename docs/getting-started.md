@@ -184,6 +184,15 @@ level=info msg="starting client api server" bind="0.0.0.0:8080" tls-cert="/opt/l
 level=info msg="registering rest api handler and documentation endpoint" path="/api"
 ```
 
+In case you see the following log messages, it means that LoRa App Server
+can't connect to [LoRa Server](https://docs.loraserver.io/loraserver/).
+
+```
+INFO[0001] grpc: addrConn.resetTransport failed to create client transport: connection error: desc = "transport: dial tcp 127.0.0.1:8000: getsockopt: connection refused"; Reconnecting to {"127.0.0.1:8000" <nil>}
+INFO[0002] grpc: addrConn.resetTransport failed to create client transport: connection error: desc = "transport: dial tcp 127.0.0.1:8000: getsockopt: connection refused"; Reconnecting to {"127.0.0.1:8000" <nil>}
+INFO[0005] grpc: addrConn.resetTransport failed to create client transport: connection error: desc = "transport: dial tcp 127.0.0.1:8000: getsockopt: connection refused"; Reconnecting to {"127.0.0.1:8000" <nil>}
+```
+
 To access the webinterface, point your browser to
 [https://localhost:8080](https://localhost:8080). Note that it is normal that
 this will raise a security warning, as a self-signed certificate is being used.
@@ -199,3 +208,8 @@ that configuration variables can be passed as cli arguments and / or environment
 variables (which we did in the above example).
 
 See [Configuration](configuration.md) for details on each config option.
+
+## Setup LoRa Server
+
+If you haven't already done so, continue by setting up 
+[LoRa Server](https://docs.loraserver.io/loraserver/getting-started/).

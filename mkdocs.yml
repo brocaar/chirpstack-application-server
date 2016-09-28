@@ -10,6 +10,7 @@ pages:
   - activating-nodes.md
   - configuration.md
   - api.md
+  - frequently-asked-questions.md
   - changelog.md
 
 extra:

@@ -15,6 +15,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	assetfs "github.com/elazarl/go-bindata-assetfs"
@@ -125,6 +126,9 @@ func run(c *cli.Context) error {
 		}).Info("starting client api server")
 		log.Fatal(http.ListenAndServeTLS(c.String("http-bind"), c.String("http-tls-cert"), c.String("http-tls-key"), handler))
 	}()
+
+	// give the http server some time to start
+	time.Sleep(time.Millisecond * 100)
 
 	// now the gRPC gateway has been started, attach the http handlers
 	// (this will setup the grpc-gateway too)

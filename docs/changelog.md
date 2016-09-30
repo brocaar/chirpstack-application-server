@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1
+
+* Better labels + help text for ui components
+* Redirect to JWT token form on authorization error
+* Add small delay between http server start and gprc-gateway init (to work
+  around internal connection errors)
+
 ## 0.1.0
 
 Initial release. LoRa App Server requires LoRa Server 0.12.0+.

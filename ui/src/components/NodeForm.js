@@ -41,19 +41,19 @@ class NodeForm extends Component {
       <form onSubmit={this.handleSubmit}>
         <div className="form-group">
           <label className="control-label" htmlFor="name">Node name</label>
-          <input className="form-control" id="name" type="text" required value={this.state.node.name || ''} onChange={this.onChange.bind(this, 'name')} />
+          <input className="form-control" id="name" type="text" placeholder="a descriptive name for your node" required value={this.state.node.name || ''} onChange={this.onChange.bind(this, 'name')} />
         </div>
         <div className="form-group">
-          <label className="control-label" htmlFor="devEUI">DevEUI</label>
-          <input className="form-control" id="devEUI" type="text" required disabled={this.state.devEUIDisabled} value={this.state.node.devEUI || ''} onChange={this.onChange.bind(this, 'devEUI')} /> 
+          <label className="control-label" htmlFor="devEUI">Device EUI</label>
+          <input className="form-control" id="devEUI" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required disabled={this.state.devEUIDisabled} value={this.state.node.devEUI || ''} onChange={this.onChange.bind(this, 'devEUI')} /> 
         </div>
         <div className="form-group">
-          <label className="control-label" htmlFor="appEUI">AppEUI</label>
-          <input className="form-control" id="appEUI" type="text" required value={this.state.node.appEUI || ''} onChange={this.onChange.bind(this, 'appEUI')} />
+          <label className="control-label" htmlFor="appEUI">Application EUI</label>
+          <input className="form-control" id="appEUI" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required value={this.state.node.appEUI || ''} onChange={this.onChange.bind(this, 'appEUI')} />
         </div>
         <div className="form-group">
-          <label className="control-label" htmlFor="appKey">AppKey</label>
-          <input className="form-control" id="appKey" type="text" required value={this.state.node.appKey || ''} onChange={this.onChange.bind(this, 'appKey')} />
+          <label className="control-label" htmlFor="appKey">Application key</label>
+          <input className="form-control" id="appKey" type="text" placeholder="00000000000000000000000000000000" pattern="[A-Fa-f0-9]{32}" required value={this.state.node.appKey || ''} onChange={this.onChange.bind(this, 'appKey')} />
         </div>
         <div className="form-group">
           <label className="control-label">Receive window</label>
@@ -64,21 +64,30 @@ class NodeForm extends Component {
           </div>
           <div className="radio">
             <label>
-              <input type="radio" name="rxWindow" id="rxWindow2" value="RX2" checked={this.state.node.rxWindow === "RX2"} onChange={this.onChange.bind(this, 'rxWindow')} /> RX2
+              <input type="radio" name="rxWindow" id="rxWindow2" value="RX2" checked={this.state.node.rxWindow === "RX2"} onChange={this.onChange.bind(this, 'rxWindow')} /> RX2 (one second after RX1)
             </label>
           </div>
         </div>
         <div className="form-group">
-          <label className="control-label" htmlFor="rxDelay">RXDelay</label>
-          <input className="form-control" id="rxDelay" type="number" required value={this.state.node.rxDelay || 0} onChange={this.onChange.bind(this, 'rxDelay')} />
+          <label className="control-label" htmlFor="rxDelay">Receive window delay</label>
+          <input className="form-control" id="rxDelay" type="number" min="0" max="15" required value={this.state.node.rxDelay || 0} onChange={this.onChange.bind(this, 'rxDelay')} />
+          <p className="help-block">The delay in seconds (0-15) between the end of the TX uplink and the opening of the first reception slot (0=1 sec, 1=1 sec, 2=2 sec, 3=3 sec, ... 15=15 sec).</p>
         </div>
         <div className="form-group">
-          <label className="control-label" htmlFor="rx1DROffset">RX1DRoffset</label>
+          <label className="control-label" htmlFor="rx1DROffset">RX1 data-rate offset</label>
           <input className="form-control" id="rx1DROffset" type="number" required value={this.state.node.rx1DROffset || 0} onChange={this.onChange.bind(this, 'rx1DROffset')} />
+          <p className="help-block">
+            Sets the offset between the uplink data rate and the downlink data-rate used to communicate with the end-device on the first reception slot (RX1).
+            Please refer to the LoRaWAN specs for the values that are valid in your region.
+          </p>
         </div>
         <div className="form-group">
-          <label className="control-label" htmlFor="rx2DR">RX2DR</label>
+          <label className="control-label" htmlFor="rx2DR">RX2 data-rate</label>
           <input className="form-control" id="rx2DR" type="number" required value={this.state.node.rx2DR || 0} onChange={this.onChange.bind(this, 'rx2DR')} />
+          <p className="help-block">
+            The data-rate to use when RX2 is used as receive window.
+            Please refer to the LoRaWAN specs for the values that are valid in your region.
+          </p>
         </div>
         <div className="form-group">
           <label className="control-label" htmlFor="channelListID">Channel-list</label>
@@ -90,6 +99,10 @@ class NodeForm extends Component {
               })
             }
           </select>
+          <p className="help-block">
+            Some LoRaWAN ISM bands implement an optional channel-frequency list that can be sent when using OTAA.
+            Please refer to the LoRaWAN specs for the values that are valid in your region.
+          </p>
         </div>
         <hr />
         <button type="submit" className="btn btn-primary pull-right">Submit</button>

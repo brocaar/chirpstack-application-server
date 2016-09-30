@@ -84,7 +84,7 @@ class NodeSessionDetails extends Component {
           <li><Link to="/">Dashboard</Link></li>
           <li>Nodes</li>
           <li><Link to={`/nodes/${this.props.params.devEUI}`}>{this.props.params.devEUI}</Link></li>
-          <li className="active">node-session</li>
+          <li className="active">node-session / ABP</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">

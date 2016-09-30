@@ -1,4 +1,4 @@
-.PHONY: build clean test package serve update-vendor
+.PHONY: build clean test package serve update-vendor ui
 PKGS := $(shell go list ./... | grep -v /vendor/ |grep -v /api | grep -v /migrations | grep -v /static | grep -v /ui)
 VERSION := $(shell git describe --always)
 GOOS ?= linux
@@ -28,6 +28,15 @@ package: clean build
 	@cp build/* dist/$(VERSION)
 	@cd dist/$(VERSION) && tar -pczf ../lora_app_server_$(VERSION)_$(GOOS)_$(GOARCH).tar.gz .
 	@rm -rf dist/$(VERSION)
+
+ui:
+	@echo "Building ui"
+	@rm -f static/index.html
+	@rm -rf static/static
+	@rm -rf ui/build
+	@cd ui && npm run build
+	@mv ui/build/* static
+	@echo "Don't forget to run make generate to include the static files in the Go code!"
 
 generate:
 	@echo "Running go generate"

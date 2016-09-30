@@ -47,9 +47,9 @@ class ListNodes extends Component {
             <table className="table table-hover">
               <thead>
                 <tr>
-                  <th>DevEUI</th>
-                  <th>Name</th>
-                  <th>AppEUI</th>
+                  <th>Device EUI</th>
+                  <th>Device name</th>
+                  <th>Application EUI</th>
                 </tr>
               </thead>
               <tbody>

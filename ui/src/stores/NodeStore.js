@@ -1,4 +1,5 @@
 import { EventEmitter } from "events";
+import { hashHistory } from "react-router";
 import "whatwg-fetch";
 import dispatcher from "../dispatcher";
 import tokenStore from "./TokenStore";
@@ -13,10 +14,16 @@ var checkStatus = (response) => {
 
 var errorHandler = (error) => {
   console.log(error);
-  error.then((data) => dispatcher.dispatch({
-    type: "CREATE_ERROR",
-    error: data,
-  }));
+  error.then((data) => {
+    dispatcher.dispatch({
+      type: "CREATE_ERROR",
+      error: data,
+    });
+
+    if (data.Code === 16) {
+      hashHistory.push("/jwt");
+    }
+  });
 };
 
 class NodeStore extends EventEmitter {

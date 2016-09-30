@@ -50,24 +50,24 @@ class NodeSessionForm extends Component {
     return(
       <form onSubmit={this.handleSubmit}>
         <div className="form-group">
-          <label className="control-label" htmlFor="devAddr">DevAddr</label> (<a href="" onClick={this.getRandomDevAddr}>generate</a>)
-          <input className="form-control" id="devAddr" type="text" required disabled={this.state.devAddrDisabled} value={this.state.session.devAddr || ''} onChange={this.onChange.bind(this, 'devAddr')} />
+          <label className="control-label" htmlFor="devAddr">Device address</label> (<a href="" onClick={this.getRandomDevAddr}>generate</a>)
+          <input className="form-control" id="devAddr" type="text" placeholder="00000000" pattern="[a-fA-F0-9]{8}" required disabled={this.state.devAddrDisabled} value={this.state.session.devAddr || ''} onChange={this.onChange.bind(this, 'devAddr')} />
         </div>
         <div className="form-group">
-          <label className="control-label" htmlFor="nwkSKey">NwkSKey</label>
-          <input className="form-control" id="nwkSKey" type="text" required value={this.state.session.nwkSKey || ''} onChange={this.onChange.bind(this, 'nwkSKey')} />
+          <label className="control-label" htmlFor="nwkSKey">Network session key</label>
+          <input className="form-control" id="nwkSKey" type="text" placeholder="00000000000000000000000000000000" pattern="[A-Fa-f0-9]{32}" required value={this.state.session.nwkSKey || ''} onChange={this.onChange.bind(this, 'nwkSKey')} />
         </div>
         <div className="form-group">
-          <label className="control-label" htmlFor="appSKey">AppSKey</label>
-          <input className="form-control" id="appSKey" type="text" required value={this.state.session.appSKey || ''} onChange={this.onChange.bind(this, 'appSKey')} />
+          <label className="control-label" htmlFor="appSKey">Application session key</label>
+          <input className="form-control" id="appSKey" type="text" placeholder="00000000000000000000000000000000" pattern="[A-Fa-f0-9]{32}" required value={this.state.session.appSKey || ''} onChange={this.onChange.bind(this, 'appSKey')} />
         </div>
         <div className="form-group">
-          <label className="control-label" htmlFor="rx2DR">FCnt up</label>
-          <input className="form-control" id="fCntUp" type="number" required value={this.state.session.fCntUp || 0} onChange={this.onChange.bind(this, 'fCntUp')} />
+          <label className="control-label" htmlFor="rx2DR">Uplink frame-counter</label>
+          <input className="form-control" id="fCntUp" type="number" min="0" required value={this.state.session.fCntUp || 0} onChange={this.onChange.bind(this, 'fCntUp')} />
         </div>
         <div className="form-group">
-          <label className="control-label" htmlFor="rx2DR">FCnt down</label>
-          <input className="form-control" id="fCntDown" type="number" required value={this.state.session.fCntDown || 0} onChange={this.onChange.bind(this, 'fCntDown')} />
+          <label className="control-label" htmlFor="rx2DR">Downlink frame-counter</label>
+          <input className="form-control" id="fCntDown" type="number" min="0" required value={this.state.session.fCntDown || 0} onChange={this.onChange.bind(this, 'fCntDown')} />
         </div>
         <hr />
         <button type="submit" className="btn btn-primary pull-right">Submit</button>

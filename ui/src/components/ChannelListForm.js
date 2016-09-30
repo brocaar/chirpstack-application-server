@@ -5,8 +5,8 @@ class Channel extends Component {
     return (
       <div>
         <div className="form-group">
-          <label className="control-label" htmlFor="name">Channel #{this.props.channel + 4} frequency:</label>
-          <input className="form-control" id="name" type="number" required value={this.props.freqency} onChange={this.props.onChange} />
+          <label className="control-label" htmlFor="name">Channel #{this.props.channel + 4} frequency (in Hz)</label>
+          <input className="form-control" id="name" type="number" min="0" required value={this.props.freqency} onChange={this.props.onChange} />
         </div>
       </div>
     );

@@ -49,7 +49,7 @@ class NodeDetails extends Component {
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to={`/nodes/${this.props.params.devEUI}/session`}><button type="button" className="btn btn-default">Node session</button></Link> &nbsp;
+            <Link to={`/nodes/${this.props.params.devEUI}/session`}><button type="button" className="btn btn-default">Node session / ABP</button></Link> &nbsp;
             <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete</button></Link>
           </div>
         </div>

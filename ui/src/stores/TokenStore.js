@@ -15,8 +15,12 @@ class TokenStore extends EventEmitter {
   }
 
   getHeader() {
-    return {
-      "Grpc-Metadata-Authorization": this.token,
+    if (this.token !== "") {
+      return {
+        "Grpc-Metadata-Authorization": this.token,
+      }
+    } else {
+      return {}
     }
   }
 }

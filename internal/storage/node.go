@@ -11,9 +11,6 @@ import (
 	"github.com/brocaar/lorawan"
 )
 
-// UsedDevNonceCount is the number of used dev-nonces to track.
-const UsedDevNonceCount = 10
-
 // DevNonceList represents a list of dev nonces
 type DevNonceList [][2]byte
 
@@ -98,10 +95,6 @@ func (n *Node) ValidateDevNonce(nonce [2]byte) bool {
 		}
 	}
 	n.UsedDevNonces = append(n.UsedDevNonces, nonce)
-	if len(n.UsedDevNonces) > UsedDevNonceCount {
-		n.UsedDevNonces = n.UsedDevNonces[len(n.UsedDevNonces)-UsedDevNonceCount:]
-	}
-
 	return true
 }
 

@@ -6,6 +6,7 @@
 * Redirect to JWT token form on authorization error
 * Add small delay between http server start and gprc-gateway init (to work
   around internal connection errors)
+* Store all used DevNonce values instead of max. 10.
 
 ## 0.1.0
 

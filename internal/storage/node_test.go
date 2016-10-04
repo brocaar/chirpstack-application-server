@@ -49,12 +49,8 @@ func TestValidateDevNonce(t *testing.T) {
 			Convey("Then a new nonce is valid", func() {
 				So(n.ValidateDevNonce([2]byte{0, 0}), ShouldBeTrue)
 
-				Convey("Then the UsedDevNonces still has length 10", func() {
-					So(n.UsedDevNonces, ShouldHaveLength, 10)
-				})
-
-				Convey("Then the new nonce was added to the back of the list", func() {
-					So(n.UsedDevNonces[9], ShouldEqual, [2]byte{0, 0})
+				Convey("Then the UsedDevNonces has length 11", func() {
+					So(n.UsedDevNonces, ShouldHaveLength, 11)
 				})
 			})
 		})

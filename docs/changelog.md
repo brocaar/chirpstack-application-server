@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+* Add relax frame-counter option (this requires LoRa Server >= 0.12.3)
+
 ## 0.1.1
 
 * Better labels + help text for ui components

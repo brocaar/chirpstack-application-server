@@ -186,6 +186,10 @@
           "format": "string",
           "title": "hex encoded NwkSKey"
         },
+        "relaxFCnt": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "rx1DROffset": {
           "type": "integer",
           "format": "int64"
@@ -272,6 +276,10 @@
           "format": "string",
           "title": "hex encoded NwkSKey"
         },
+        "relaxFCnt": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "rx1DROffset": {
           "type": "integer",
           "format": "int64"
@@ -352,6 +360,10 @@
           "type": "string",
           "format": "string",
           "title": "hex encoded NwkSKey"
+        },
+        "relaxFCnt": {
+          "type": "boolean",
+          "format": "boolean"
         },
         "rx1DROffset": {
           "type": "integer",

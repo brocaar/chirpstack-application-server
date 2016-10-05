@@ -61,6 +61,7 @@ message CreateNodeRequest {
     RXWindow rxWindow = 7;
     uint32 rx2DR = 8;
     string name = 9;
+	bool relaxFCnt = 10;
 }
 
 message CreateNodeResponse {}
@@ -83,6 +84,7 @@ message GetNodeResponse {
     RXWindow rxWindow = 7;
     uint32 rx2DR = 8;
     string name = 9;
+	bool relaxFCnt = 10;
 };
 
 message DeleteNodeRequest {
@@ -122,6 +124,7 @@ message UpdateNodeRequest {
     RXWindow rxWindow = 7;
     uint32 rx2DR = 8;
     string name = 9;
+	bool relaxFCnt = 10;
 }
 
 message UpdateNodeResponse {}

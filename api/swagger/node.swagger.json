@@ -167,6 +167,10 @@
           "type": "string",
           "format": "string"
         },
+        "relaxFCnt": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "rx1DROffset": {
           "type": "integer",
           "format": "int64"
@@ -235,6 +239,10 @@
         "name": {
           "type": "string",
           "format": "string"
+        },
+        "relaxFCnt": {
+          "type": "boolean",
+          "format": "boolean"
         },
         "rx1DROffset": {
           "type": "integer",
@@ -314,6 +322,10 @@
         "name": {
           "type": "string",
           "format": "string"
+        },
+        "relaxFCnt": {
+          "type": "boolean",
+          "format": "boolean"
         },
         "rx1DROffset": {
           "type": "integer",

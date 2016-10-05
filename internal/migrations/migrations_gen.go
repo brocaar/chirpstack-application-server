@@ -8,6 +8,7 @@
 // ../../migrations/0005_add_queue.sql
 // ../../migrations/0006_remove_application_table.sql
 // ../../migrations/0007_migrate_channels_to_channel_list.sql
+// ../../migrations/0008_relax_fcnt.sql
 // DO NOT EDIT!
 
 package migrations
@@ -235,6 +236,26 @@ func _0007_migrate_channels_to_channel_listSql() (*asset, error) {
 	return a, nil
 }
 
+var __0008_relax_fcntSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x6c\xcc\xb1\x0d\xc2\x40\x0c\x05\xd0\x1a\x4f\xf1\x7b\x94\x09\xd2\xb2\x02\x35\x72\x62\x1f\x42\xfa\xb1\x4f\x87\x4f\x30\x3e\x2d\x12\x2c\xf0\x96\x05\xe7\xe3\x71\x1f\x5a\x8e\x6b\x17\x65\xf9\x40\xe9\x46\x47\xa4\xb9\x9c\xd4\x0c\x7b\x72\x1e\x81\xe1\xd4\xf7\xad\xed\x51\xd8\x32\xe9\x1a\x88\x2c\xc4\x24\x61\xde\x74\xb2\xd0\x94\x4f\x5f\x45\xbe\xdd\x4b\xbe\xe2\x8f\x6c\x23\xfb\x2f\xbd\xca\x27\x00\x00\xff\xff\xe7\x7c\x74\x3b\x93\x00\x00\x00")
+
+func _0008_relax_fcntSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0008_relax_fcntSql,
+		"0008_relax_fcnt.sql",
+	)
+}
+
+func _0008_relax_fcntSql() (*asset, error) {
+	bytes, err := _0008_relax_fcntSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0008_relax_fcnt.sql", size: 147, mode: os.FileMode(420), modTime: time.Unix(1475690651, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -295,6 +316,7 @@ var _bindata = map[string]func() (*asset, error){
 	"0005_add_queue.sql": _0005_add_queueSql,
 	"0006_remove_application_table.sql": _0006_remove_application_tableSql,
 	"0007_migrate_channels_to_channel_list.sql": _0007_migrate_channels_to_channel_listSql,
+	"0008_relax_fcnt.sql": _0008_relax_fcntSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -345,6 +367,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"0005_add_queue.sql": &bintree{_0005_add_queueSql, map[string]*bintree{}},
 	"0006_remove_application_table.sql": &bintree{_0006_remove_application_tableSql, map[string]*bintree{}},
 	"0007_migrate_channels_to_channel_list.sql": &bintree{_0007_migrate_channels_to_channel_listSql, map[string]*bintree{}},
+	"0008_relax_fcnt.sql": &bintree{_0008_relax_fcntSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory

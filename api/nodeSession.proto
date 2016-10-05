@@ -64,6 +64,7 @@ message CreateNodeSessionRequest {
     repeated uint32 cFList = 10;
     RXWindow rxWindow = 11;
     uint32 rx2DR = 12;
+	bool relaxFCnt = 13;
 }
 
 message CreateNodeSessionResponse {}
@@ -91,6 +92,7 @@ message GetNodeSessionResponse {
     repeated uint32 cFList = 10;
     RXWindow rxWindow = 11;
     uint32 rx2DR = 12;
+	bool relaxFCnt = 13;
 }
 
 message UpdateNodeSessionRequest {
@@ -111,6 +113,7 @@ message UpdateNodeSessionRequest {
     repeated uint32 cFList = 10;
     RXWindow rxWindow = 11;
     uint32 rx2DR = 12;
+	bool relaxFCnt = 13;
 }
 
 message UpdateNodeSessionResponse {}

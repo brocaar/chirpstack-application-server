@@ -79,6 +79,7 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 		CFList:      req.CFList,
 		RxWindow:    ns.RXWindow(req.RxWindow),
 		Rx2DR:       req.Rx2DR,
+		RelaxFCnt:   req.RelaxFCnt,
 	})
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, "create node-session error: %s", err)
@@ -146,6 +147,7 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 		CFList:      resp.CFList,
 		RxWindow:    pb.RXWindow(resp.RxWindow),
 		Rx2DR:       resp.Rx2DR,
+		RelaxFCnt:   resp.RelaxFCnt,
 	}, nil
 
 }
@@ -201,6 +203,7 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 		CFList:      req.CFList,
 		RxWindow:    ns.RXWindow(req.RxWindow),
 		Rx2DR:       req.Rx2DR,
+		RelaxFCnt:   req.RelaxFCnt,
 	})
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, "create node-session error: %s", err)

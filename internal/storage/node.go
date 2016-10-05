@@ -69,20 +69,21 @@ func (r RXWindow) Value() (driver.Value, error) {
 
 // Node contains the information of a node.
 type Node struct {
-	Name          string            `db:"name" json:"name"`
-	DevEUI        lorawan.EUI64     `db:"dev_eui" json:"devEUI"`
-	AppEUI        lorawan.EUI64     `db:"app_eui" json:"appEUI"`
-	AppKey        lorawan.AES128Key `db:"app_key" json:"appKey"`
+	Name          string            `db:"name"`
+	DevEUI        lorawan.EUI64     `db:"dev_eui"`
+	AppEUI        lorawan.EUI64     `db:"app_eui"`
+	AppKey        lorawan.AES128Key `db:"app_key"`
 	DevAddr       lorawan.DevAddr   `db:"dev_addr"`
 	NwkSKey       lorawan.AES128Key `db:"nwk_s_key"`
 	AppSKey       lorawan.AES128Key `db:"app_s_key"`
-	UsedDevNonces DevNonceList      `db:"used_dev_nonces" json:"usedDevNonces"`
+	UsedDevNonces DevNonceList      `db:"used_dev_nonces"`
+	RelaxFCnt     bool              `db:"relax_fcnt"`
 
-	RXWindow      RXWindow `db:"rx_window" json:"rxWindow"`
-	RXDelay       uint8    `db:"rx_delay" json:"rxDelay"`
-	RX1DROffset   uint8    `db:"rx1_dr_offset" json:"rx1DROffset"`
-	RX2DR         uint8    `db:"rx2_dr" json:"rx2DR"`
-	ChannelListID *int64   `db:"channel_list_id" json:"channelListID"`
+	RXWindow      RXWindow `db:"rx_window"`
+	RXDelay       uint8    `db:"rx_delay"`
+	RX1DROffset   uint8    `db:"rx1_dr_offset"`
+	RX2DR         uint8    `db:"rx2_dr"`
+	ChannelListID *int64   `db:"channel_list_id"`
 }
 
 // ValidateDevNonce returns if the given dev-nonce is valid.
@@ -117,9 +118,10 @@ func CreateNode(db *sqlx.DB, n Node) error {
 			rx1_dr_offset,
 			rx_window,
 			rx2_dr,
-			channel_list_id
+			channel_list_id,
+			relax_fcnt
 		)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
 		n.Name,
 		n.DevEUI[:],
 		n.AppEUI[:],
@@ -132,6 +134,7 @@ func CreateNode(db *sqlx.DB, n Node) error {
 		n.RXWindow,
 		n.RX2DR,
 		n.ChannelListID,
+		n.RelaxFCnt,
 	)
 	if err != nil {
 		return fmt.Errorf("create node %s error: %s", n.DevEUI, err)
@@ -159,8 +162,9 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 			rx1_dr_offset = $9,
 			rx_window = $10,
 			rx2_dr = $11,
-			channel_list_id = $12
-		where dev_eui = $13`,
+			channel_list_id = $12,
+			relax_fcnt = $13
+		where dev_eui = $14`,
 		n.Name,
 		n.AppEUI[:],
 		n.AppKey[:],
@@ -173,6 +177,7 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 		n.RXWindow,
 		n.RX2DR,
 		n.ChannelListID,
+		n.RelaxFCnt,
 		n.DevEUI[:],
 	)
 	if err != nil {

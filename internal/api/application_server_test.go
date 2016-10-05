@@ -62,6 +62,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				RXDelay:     1,
 				RX1DROffset: 2,
 				RX2DR:       3,
+				RelaxFCnt:   true,
 			}
 
 			So(storage.CreateNode(db, node), ShouldBeNil)
@@ -132,6 +133,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					So(resp.CFList, ShouldHaveLength, 0)
 					So(resp.RxWindow, ShouldEqual, as.RXWindow_RX2)
 					So(resp.Rx2DR, ShouldEqual, uint32(node.RX2DR))
+					So(resp.RelaxFCnt, ShouldBeTrue)
 
 					var phy lorawan.PHYPayload
 					So(phy.UnmarshalBinary(resp.PhyPayload), ShouldBeNil)

@@ -30,6 +30,8 @@ class NodeForm extends Component {
     let node = this.state.node;
     if (e.target.type === "number") {
       node[field] = parseInt(e.target.value, 10); 
+    } else if (e.target.type === "checkbox") {
+      node[field] = e.target.checked;
     } else {
       node[field] = e.target.value;
     }
@@ -55,6 +57,11 @@ class NodeForm extends Component {
           <label className="control-label" htmlFor="appKey">Application key</label>
           <input className="form-control" id="appKey" type="text" placeholder="00000000000000000000000000000000" pattern="[A-Fa-f0-9]{32}" required value={this.state.node.appKey || ''} onChange={this.onChange.bind(this, 'appKey')} />
         </div>
+        <hr />
+        <div>
+          <p>Please note that changes made below (when updating a node) only have effect after updating the node-session or after a new OTAA.</p>
+        </div>
+        <hr />
         <div className="form-group">
           <label className="control-label">Receive window</label>
           <div className="radio">
@@ -67,6 +74,15 @@ class NodeForm extends Component {
               <input type="radio" name="rxWindow" id="rxWindow2" value="RX2" checked={this.state.node.rxWindow === "RX2"} onChange={this.onChange.bind(this, 'rxWindow')} /> RX2 (one second after RX1)
             </label>
           </div>
+        </div>
+        <div className="form-group">
+          <label className="control-label">Relax frame-counter</label>
+          <div className="checkbox">
+            <label>
+              <input type="checkbox" name="relaxFCnt" id="relaxFCnt" checked={this.state.node.relaxFCnt} onChange={this.onChange.bind(this, 'relaxFCnt')} /> Enable relax frame-counter
+            </label>
+          </div>
+          <p className="help-block">Note that relax frame-counter mode will compromise security as it enables people to perform replay-attacks.</p>
         </div>
         <div className="form-group">
           <label className="control-label" htmlFor="rxDelay">Receive window delay</label>

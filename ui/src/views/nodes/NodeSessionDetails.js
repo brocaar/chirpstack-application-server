@@ -51,6 +51,7 @@ class NodeSessionDetails extends Component {
     session.rx1DROffset = this.state.node.rx1DROffset;
     session.rx2DR = this.state.node.rx2DR;
     session.cFList = this.state.channels;
+    session.relaxFCnt = this.state.node.relaxFCnt;
 
     if (this.state.sessionExists) {
       NodeSessionStore.updateNodeSession(this.props.params.devEUI, session, (responseData) => {

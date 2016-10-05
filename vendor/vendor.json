@@ -9,16 +9,16 @@
 			"revisionTime": "2016-08-29T20:23:21Z"
 		},
 		{
-			"checksumSHA1": "UDPs+w/+L3rGRrn+e40BBLaM6PQ=",
+			"checksumSHA1": "1knOxMMeUEYgDvtcn3ai7yTSYK0=",
 			"path": "github.com/brocaar/loraserver/api/as",
-			"revision": "6fdc14cd0681d44b9525ba96c2aa8360760d97cd",
-			"revisionTime": "2016-09-17T09:11:24Z"
+			"revision": "c79209ac00d8527e2e2407760f8830a59748d143",
+			"revisionTime": "2016-10-05T17:56:43Z"
 		},
 		{
-			"checksumSHA1": "nQM5T2+0NW5EU1MWWcILIOusnIY=",
+			"checksumSHA1": "C78FrgnThZaZcVbwK3hx3VKLVuo=",
 			"path": "github.com/brocaar/loraserver/api/ns",
-			"revision": "6fdc14cd0681d44b9525ba96c2aa8360760d97cd",
-			"revisionTime": "2016-09-17T09:11:24Z"
+			"revision": "c79209ac00d8527e2e2407760f8830a59748d143",
+			"revisionTime": "2016-10-05T17:56:43Z"
 		},
 		{
 			"checksumSHA1": "ya7tMk+wexXh1cmbdp0Sw0lbM1k=",

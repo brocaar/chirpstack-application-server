@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3
+
+* Make the relax frame-counter option visible in the ui (the static files
+  were not generated and included in 0.1.2).
+
 ## 0.1.2
 
 * Add relax frame-counter option (this requires LoRa Server >= 0.12.3)

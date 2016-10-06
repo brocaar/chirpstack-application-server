@@ -251,7 +251,7 @@ func _0008_relax_fcntSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0008_relax_fcnt.sql", size: 147, mode: os.FileMode(420), modTime: time.Unix(1475690651, 0)}
+	info := bindataFileInfo{name: "0008_relax_fcnt.sql", size: 147, mode: os.FileMode(420), modTime: time.Unix(1475694687, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

@@ -391,7 +391,7 @@ func main() {
 			Name:   "mqtt-server",
 			Usage:  "mqtt server",
 			Value:  "tcp://localhost:1883",
-			EnvVar: "GW_MQTT_SERVER",
+			EnvVar: "MQTT_SERVER",
 		},
 		cli.StringFlag{
 			Name:   "mqtt-username",

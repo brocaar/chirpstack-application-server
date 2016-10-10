@@ -53,24 +53,27 @@ for the following actions:
 5. Click **Join Network**
 
 ## MultiConnect® mDot™
-  Through a serial terminal, use the following commands:
-  ```
-  AT
-  AT+NJM=1
-  AT+NI=0,0807060504030201
-  AT+NK=0,01020304050607080910111213141516
-  AT&W
 
-  ATZ
+Through a serial terminal, use the following commands:
 
-  AT+JOIN
-  ```
+```
+AT
+AT+NJM=1
+AT+NI=0,0807060504030201
+AT+NK=0,01020304050607080910111213141516
+AT&W
 
-  For mDot™ we can't modify DevEUI, it's a factory-programmed setting
-  use the following command to obtain it
-  ```
-  AT+DI?
-  ```
+ATZ
+
+AT+JOIN
+```
+
+For mDot™ we can't modify DevEUI as it's a factory-programmed setting. use the
+following command to obtain it:
+
+```
+AT+DI?
+```
 
 !!! info "Your node not here?"
     Please help making this guide complete! Fork the [github.com/brocaar/loraserver](https://github.com/brocaar/loraserver)

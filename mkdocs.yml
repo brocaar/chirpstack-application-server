@@ -5,11 +5,12 @@ include_next_prev: False
 
 pages:
   - index.md
+  - features.md
   - getting-started.md
   - mqtt-topics.md
   - activating-nodes.md
-  - configuration.md
   - api.md
+  - configuration.md
   - frequently-asked-questions.md
   - changelog.md
 

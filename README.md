@@ -18,6 +18,13 @@ and payloads can be enqueued by using MQTT or the API.
 ![node details](docs/img/web_node_details.png)
 ![swagger api](docs/img/swagger.png)
 
+
+## Documentation
+
+Please refer to the [documentation](https://docs.loraserver.io/lora-app-server/) for the
+[getting started](https://docs.loraserver.io/lora-app-server/getting-started/)
+documentation and implemented [features](https://docs.loraserver.io/lora-app-server/features/).
+
 ## Downloads
 
 Pre-compiled binaries are available for:

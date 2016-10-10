@@ -1,5 +1,13 @@
 # Getting started
 
+A complete LoRa Server setup, requires the setup of the following components
+in place:
+
+
+* [LoRa Gateway Bridge](https://docs.loraserver.io/lora-gateway-bridge/)
+* [LoRa Server](https://docs.loraserver.io/loraserver/)
+* [LoRa App Server](https://docs.loraserver.io/lora-app-server/)
+
 This getting started document describes the steps needed to setup LoRa App
 Server and all its requirements on Ubuntu 16.04 LTS. When using an other Linux
 distribution, you might need to adapt these steps.
@@ -208,8 +216,3 @@ that configuration variables can be passed as cli arguments and / or environment
 variables (which we did in the above example).
 
 See [Configuration](configuration.md) for details on each config option.
-
-## Setup LoRa Server
-
-If you haven't already done so, continue by setting up 
-[LoRa Server](https://docs.loraserver.io/loraserver/getting-started/).

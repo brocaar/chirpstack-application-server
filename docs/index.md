@@ -26,6 +26,13 @@ See [https://github.com/brocaar/lora-app-server/releases](https://github.com/bro
 for downloads. Source-code can be found at
 [https://github.com/brocaar/lora-app-server](https://github.com/brocaar/lora-app-server).
 
+## Building from source
+
+Building from souce requires a working [Go](https://golang.org/) environment
+with vendoring support. Alternatively, you could use the provided
+[docker-compose](https://docs.docker.com/compose/) environment for compiling
+the source.
+
 ## License
 
 LoRa App Server is distributed under the MIT license. See also

@@ -1,5 +1,9 @@
 # Changelog
 
+## Development
+
+* Change `GW_MQTT_SERVER` environment variable to `MQTT_SERVER` (thanks @siscia).
+
 ## 0.1.3
 
 * Make the relax frame-counter option visible in the ui (the static files

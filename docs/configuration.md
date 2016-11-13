@@ -9,7 +9,7 @@ GLOBAL OPTIONS:
    --db-automigrate         automatically apply database migrations [$DB_AUTOMIGRATE]
    --migrate-node-sessions  migrate some of the node-session data to the application-server storage (run this once when migrating from loraserver 0.11.x) [$MIGRATE_NODE_SESSIONS]
    --redis-url value        redis url (e.g. redis://user:password@hostname:port/0) (default: "redis://localhost:6379") [$REDIS_URL]
-   --mqtt-server value      mqtt server (default: "tcp://localhost:1883") [$GW_MQTT_SERVER]
+   --mqtt-server value      mqtt server (default: "tcp://localhost:1883") [$MQTT_SERVER]
    --mqtt-username value    mqtt server username (optional) [$MQTT_USERNAME]
    --mqtt-password value    mqtt server password (optional) [$MQTT_PASSWORD]
    --ca-cert value          ca certificate used by the api server (optional) [$CA_CERT]

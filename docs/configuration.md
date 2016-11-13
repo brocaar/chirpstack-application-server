@@ -8,7 +8,7 @@ GLOBAL OPTIONS:
    --postgres-dsn value     postgresql dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable) (default: "postgres://localhost/loraserver?sslmode=disable") [$POSTGRES_DSN]
    --db-automigrate         automatically apply database migrations [$DB_AUTOMIGRATE]
    --migrate-node-sessions  migrate some of the node-session data to the application-server storage (run this once when migrating from loraserver 0.11.x) [$MIGRATE_NODE_SESSIONS]
-   --redis-url value        redis url (default: "redis://localhost:6379") [$REDIS_URL]
+   --redis-url value        redis url (e.g. redis://user:password@hostname:port/0) (default: "redis://localhost:6379") [$REDIS_URL]
    --mqtt-server value      mqtt server (default: "tcp://localhost:1883") [$GW_MQTT_SERVER]
    --mqtt-username value    mqtt server username (optional) [$MQTT_USERNAME]
    --mqtt-password value    mqtt server password (optional) [$MQTT_PASSWORD]
@@ -57,6 +57,11 @@ Valid values for sslmode are:
 * require - Always SSL (skip verification)
 * verify-ca - Always SSL (verify that the certificate presented by the server was signed by a trusted CA)
 * verify-full - Always SSL (verify that the certification presented by the server was signed by a trusted CA and the server host name matches the one in the certificate)
+
+## Redis connection string
+
+For more information about the Redis URL format, see:
+[https://www.iana.org/assignments/uri-schemes/prov/redis](https://www.iana.org/assignments/uri-schemes/prov/redis).
 
 ## Database migrations
 

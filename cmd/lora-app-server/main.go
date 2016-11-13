@@ -383,7 +383,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:   "redis-url",
-			Usage:  "redis url",
+			Usage:  "redis url (e.g. redis://user:password@hostname/0)",
 			Value:  "redis://localhost:6379",
 			EnvVar: "REDIS_URL",
 		},

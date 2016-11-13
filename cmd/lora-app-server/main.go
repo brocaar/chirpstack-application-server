@@ -389,7 +389,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:   "mqtt-server",
-			Usage:  "mqtt server",
+			Usage:  "mqtt server (e.g. scheme://host:port where scheme is tcp, ssl or ws)",
 			Value:  "tcp://localhost:1883",
 			EnvVar: "MQTT_SERVER",
 		},

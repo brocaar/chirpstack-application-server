@@ -54,7 +54,7 @@ requirements:
 
 serve: build
 	@echo "Starting Lora App Server"
-	./build/lora_app_server
+	./build/lora-app-server
 
 update-vendor:
 	@echo "Updating vendored packages"

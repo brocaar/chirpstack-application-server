@@ -48,7 +48,6 @@ func TestMQTTHandler(t *testing.T) {
 
 					pl := DataUpPayload{
 						DevEUI: devEUI,
-						Time:   time.Now().UTC(),
 					}
 					So(handler.SendDataUp(appEUI, devEUI, pl), ShouldBeNil)
 

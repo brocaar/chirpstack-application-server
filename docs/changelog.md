@@ -1,7 +1,10 @@
 # Changelog
 
-## Development
+## 0.1.4
 
+* Update exposed data which is published to the
+  `application/[AppEUI]/node/[DevEUI]/rx` topic. SNR, RSSI and GPS time (if
+  available) are now included of all receiving gateways.
 * Change `GW_MQTT_SERVER` environment variable to `MQTT_SERVER` (thanks @siscia).
 
 ## 0.1.3

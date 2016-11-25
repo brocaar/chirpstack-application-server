@@ -21,10 +21,16 @@ Topic for payloads received from your nodes. Example payload:
 ```json
 {
     "devEUI": "0202020202020202",  // device EUI
+    "rxInfo": [
+        {
+            "mac": "0303030303030303",                 // MAC of the receiving gateway
+            "time": "2016-11-25T16:24:37.295915988Z",  // time when the package was received (GPS time of gateway, only set when available)
+            "rssi": -57,                               // signal strength (dBm)
+            "loRaSNR": 10                              // signal to noise ratio
+        }
+    ],
+    "fCnt": 10,                    // frame-counter
     "fPort": 5,                    // FPort
-    "gatewayCount": 3,             // number of gateways receiving this payload
-    "rssi": -59,                   // signal strength
-    "time": "2016-05-01T10:50:54.973189Z", // when the message has been received
     "data": "..."                  // base64 encoded payload (decrypted)
 }
 ```

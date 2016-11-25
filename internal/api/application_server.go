@@ -201,10 +201,6 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 	var appEUI, devEUI lorawan.EUI64
 	copy(appEUI[:], req.AppEUI)
 	copy(devEUI[:], req.DevEUI)
-	ts, err := time.Parse(time.RFC3339Nano, req.RxInfo[0].Time)
-	if err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "could not parse RxInfo.Time: %s", err)
-	}
 
 	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
@@ -223,12 +219,35 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 	}
 
 	pl := handler.DataUpPayload{
-		DevEUI:       devEUI,
-		Time:         ts,
-		FPort:        uint8(req.FPort),
-		GatewayCount: len(req.RxInfo),
-		RSSI:         int(req.RxInfo[0].Rssi),
-		Data:         b,
+		DevEUI: devEUI,
+		RXInfo: []handler.RXInfo{},
+		FCnt:   req.FCnt,
+		FPort:  uint8(req.FPort),
+		Data:   b,
+	}
+
+	for _, rxInfo := range req.RxInfo {
+		var timestamp *time.Time
+		var mac lorawan.EUI64
+		copy(mac[:], rxInfo.Mac)
+
+		if len(rxInfo.Time) > 0 {
+			ts, err := time.Parse(time.RFC3339Nano, rxInfo.Time)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"dev_eui":  devEUI,
+					"time_str": rxInfo.Time,
+				}).Errorf("unmarshal time error: %s", err)
+			} else if !ts.Equal(time.Time{}) {
+				timestamp = &ts
+			}
+		}
+		pl.RXInfo = append(pl.RXInfo, handler.RXInfo{
+			MAC:     mac,
+			Time:    timestamp,
+			RSSI:    int(rxInfo.Rssi),
+			LoRaSNR: rxInfo.LoRaSNR,
+		})
 	}
 
 	err = a.ctx.Handler.SendDataUp(appEUI, devEUI, pl)

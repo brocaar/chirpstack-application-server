@@ -85,6 +85,7 @@ func TestApplicationServerAPI(t *testing.T) {
 
 			Convey("When calling HandleDataUp", func() {
 				now := time.Now().UTC()
+				mac := lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}
 
 				req := as.HandleDataUpRequest{
 					DevEUI: node.DevEUI[:],
@@ -93,7 +94,12 @@ func TestApplicationServerAPI(t *testing.T) {
 					FPort:  3,
 					Data:   []byte{1, 2, 3, 4},
 					RxInfo: []*as.RXInfo{
-						{Time: now.Format(time.RFC3339Nano), Rssi: -60},
+						{
+							Mac:     []byte{1, 2, 3, 4, 5, 6, 7, 8},
+							Time:    now.Format(time.RFC3339Nano),
+							Rssi:    -60,
+							LoRaSNR: 5,
+						},
 					},
 				}
 				_, err := api.HandleDataUp(ctx, &req)
@@ -102,12 +108,18 @@ func TestApplicationServerAPI(t *testing.T) {
 				Convey("Then the expected payload was sent to the handler", func() {
 					So(h.SendDataUpChan, ShouldHaveLength, 1)
 					So(<-h.SendDataUpChan, ShouldResemble, handler.DataUpPayload{
-						DevEUI:       node.DevEUI,
-						Time:         now,
-						FPort:        3,
-						GatewayCount: 1,
-						RSSI:         -60,
-						Data:         []byte{67, 216, 236, 205},
+						DevEUI: node.DevEUI,
+						RXInfo: []handler.RXInfo{
+							{
+								MAC:     mac,
+								Time:    &now,
+								RSSI:    -60,
+								LoRaSNR: 5,
+							},
+						},
+						FCnt:  10,
+						FPort: 3,
+						Data:  []byte{67, 216, 236, 205},
 					})
 				})
 			})

@@ -21,14 +21,21 @@ const downlinkLockTTL = time.Millisecond * 100
 
 var txTopicRegex = regexp.MustCompile(`application/(\w+)/node/(\w+)/tx`)
 
+// RXInfo contains the RX information.
+type RXInfo struct {
+	MAC     lorawan.EUI64 `json:"mac"`
+	Time    *time.Time    `json:"time,omitempty"`
+	RSSI    int           `json:"rssi"`
+	LoRaSNR float64       `json:"loRaSNR"`
+}
+
 // DataUpPayload represents a data-up payload.
 type DataUpPayload struct {
-	DevEUI       lorawan.EUI64 `json:"devEUI"`
-	Time         time.Time     `json:"time"`
-	FPort        uint8         `json:"fPort"`
-	GatewayCount int           `json:"gwCount"`
-	RSSI         int           `json:"rssi"`
-	Data         []byte        `json:"data"`
+	DevEUI lorawan.EUI64 `json:"devEUI"`
+	RXInfo []RXInfo      `json:"rxInfo"`
+	FCnt   uint32        `json:"fCnt"`
+	FPort  uint8         `json:"fPort"`
+	Data   []byte        `json:"data"`
 }
 
 // DataDownPayload represents a data-down payload.

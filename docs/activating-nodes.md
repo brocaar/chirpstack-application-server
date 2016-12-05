@@ -13,7 +13,7 @@ AppEUI: 0807060504030201
 AppKey: 01020304050607080910111213141516
 ```
 
-## RN2483 / RN2903
+## RN2483
 
 Through a serial terminal, use the following commands:
 
@@ -23,6 +23,35 @@ mac set appeui 0807060504030201
 mac set appkey 01020304050607080910111213141516
 mac join otaa
 ```
+
+## RN2903
+
+```
+mac set deveui 0102030405060708
+mac set appeui 0807060504030201
+mac set appkey 01020304050607080910111213141516
+mac join otaa
+```
+
+Some additional notes:
+
+All unused channels should be disabled with `mac set ch status <channel_id> off`,
+where `channel_id` is `8..71`, assuming you're using channels `0..7`.
+This should be followed by a `mac save` command to save the channel status
+to EEPROM.
+
+Secondly, any time a `mac save` is done, `mac set devaddr 00000000` should
+first be issued. Not doing so will result in the `mac join otaa` command
+failing. Per the RN2903 manual, *If this parameter was previously saved to
+user EEPROM by issuing the mac save command, after modifying its value, the
+mac save command should be called again.*
+
+A `mac save` must be done any time the application key (`mac set appkey`),
+application EUI (`mac set appeui`), or the device EUI (`mac set deveui`) are
+changed in order to persist these changes. 
+
+Anyone who is this far along probably has figured out that commands to the
+RN2483 / RN2903 must be terminated with `CR + LF`.
 
 ## iM880A-L / iM880B-L
 

@@ -7,3 +7,6 @@
 
 # certificates
 /certs
+
+# node modules
+/ui/node_modules

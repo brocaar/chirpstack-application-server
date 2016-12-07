@@ -37,6 +37,41 @@ func (m *EnqueueDownlinkQueueItemRequest) String() string            { return pr
 func (*EnqueueDownlinkQueueItemRequest) ProtoMessage()               {}
 func (*EnqueueDownlinkQueueItemRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{0} }
 
+func (m *EnqueueDownlinkQueueItemRequest) GetDevEUI() string {
+	if m != nil {
+		return m.DevEUI
+	}
+	return ""
+}
+
+func (m *EnqueueDownlinkQueueItemRequest) GetReference() string {
+	if m != nil {
+		return m.Reference
+	}
+	return ""
+}
+
+func (m *EnqueueDownlinkQueueItemRequest) GetConfirmed() bool {
+	if m != nil {
+		return m.Confirmed
+	}
+	return false
+}
+
+func (m *EnqueueDownlinkQueueItemRequest) GetFPort() uint32 {
+	if m != nil {
+		return m.FPort
+	}
+	return 0
+}
+
+func (m *EnqueueDownlinkQueueItemRequest) GetData() []byte {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
 type EnqueueDownlinkQueueItemResponse struct {
 }
 
@@ -56,6 +91,13 @@ func (m *DeleteDownlinkQeueueItemRequest) Reset()                    { *m = Dele
 func (m *DeleteDownlinkQeueueItemRequest) String() string            { return proto.CompactTextString(m) }
 func (*DeleteDownlinkQeueueItemRequest) ProtoMessage()               {}
 func (*DeleteDownlinkQeueueItemRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{2} }
+
+func (m *DeleteDownlinkQeueueItemRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
 
 type DeleteDownlinkQueueItemResponse struct {
 }
@@ -87,6 +129,55 @@ func (m *DownlinkQueueItem) String() string            { return proto.CompactTex
 func (*DownlinkQueueItem) ProtoMessage()               {}
 func (*DownlinkQueueItem) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{4} }
 
+func (m *DownlinkQueueItem) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *DownlinkQueueItem) GetDevEUI() string {
+	if m != nil {
+		return m.DevEUI
+	}
+	return ""
+}
+
+func (m *DownlinkQueueItem) GetReference() string {
+	if m != nil {
+		return m.Reference
+	}
+	return ""
+}
+
+func (m *DownlinkQueueItem) GetConfirmed() bool {
+	if m != nil {
+		return m.Confirmed
+	}
+	return false
+}
+
+func (m *DownlinkQueueItem) GetPending() bool {
+	if m != nil {
+		return m.Pending
+	}
+	return false
+}
+
+func (m *DownlinkQueueItem) GetFPort() uint32 {
+	if m != nil {
+		return m.FPort
+	}
+	return 0
+}
+
+func (m *DownlinkQueueItem) GetData() []byte {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
 type ListDownlinkQueueItemsRequest struct {
 	// hex encoded DevEUI
 	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
@@ -96,6 +187,13 @@ func (m *ListDownlinkQueueItemsRequest) Reset()                    { *m = ListDo
 func (m *ListDownlinkQueueItemsRequest) String() string            { return proto.CompactTextString(m) }
 func (*ListDownlinkQueueItemsRequest) ProtoMessage()               {}
 func (*ListDownlinkQueueItemsRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{5} }
+
+func (m *ListDownlinkQueueItemsRequest) GetDevEUI() string {
+	if m != nil {
+		return m.DevEUI
+	}
+	return ""
+}
 
 type ListDownlinkQueueItemsResponse struct {
 	Items []*DownlinkQueueItem `protobuf:"bytes,1,rep,name=items" json:"items,omitempty"`
@@ -129,7 +227,7 @@ var _ grpc.ClientConn
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion3
+const _ = grpc.SupportPackageIsVersion4
 
 // Client API for DownlinkQueue service
 
@@ -264,7 +362,7 @@ var _DownlinkQueue_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: fileDescriptor2,
+	Metadata: "downlinkQueue.proto",
 }
 
 func init() { proto.RegisterFile("downlinkQueue.proto", fileDescriptor2) }

@@ -85,6 +85,20 @@ func (m *CreateChannelListRequest) String() string            { return proto.Com
 func (*CreateChannelListRequest) ProtoMessage()               {}
 func (*CreateChannelListRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
 
+func (m *CreateChannelListRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *CreateChannelListRequest) GetChannels() []uint32 {
+	if m != nil {
+		return m.Channels
+	}
+	return nil
+}
+
 type CreateChannelListResponse struct {
 	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
 }
@@ -93,6 +107,13 @@ func (m *CreateChannelListResponse) Reset()                    { *m = CreateChan
 func (m *CreateChannelListResponse) String() string            { return proto.CompactTextString(m) }
 func (*CreateChannelListResponse) ProtoMessage()               {}
 func (*CreateChannelListResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+
+func (m *CreateChannelListResponse) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
 
 type UpdateChannelListRequest struct {
 	Id       int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
@@ -104,6 +125,27 @@ func (m *UpdateChannelListRequest) Reset()                    { *m = UpdateChann
 func (m *UpdateChannelListRequest) String() string            { return proto.CompactTextString(m) }
 func (*UpdateChannelListRequest) ProtoMessage()               {}
 func (*UpdateChannelListRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+
+func (m *UpdateChannelListRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateChannelListRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *UpdateChannelListRequest) GetChannels() []uint32 {
+	if m != nil {
+		return m.Channels
+	}
+	return nil
+}
 
 type UpdateChannelListResponse struct {
 }
@@ -122,6 +164,13 @@ func (m *GetChannelListRequest) String() string            { return proto.Compac
 func (*GetChannelListRequest) ProtoMessage()               {}
 func (*GetChannelListRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
 
+func (m *GetChannelListRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
 type GetChannelListResponse struct {
 	Id       int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
 	Name     string   `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
@@ -133,6 +182,27 @@ func (m *GetChannelListResponse) String() string            { return proto.Compa
 func (*GetChannelListResponse) ProtoMessage()               {}
 func (*GetChannelListResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
 
+func (m *GetChannelListResponse) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *GetChannelListResponse) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *GetChannelListResponse) GetChannels() []uint32 {
+	if m != nil {
+		return m.Channels
+	}
+	return nil
+}
+
 type ListChannelListRequest struct {
 	Limit  int64 `protobuf:"varint,1,opt,name=limit" json:"limit,omitempty"`
 	Offset int64 `protobuf:"varint,2,opt,name=offset" json:"offset,omitempty"`
@@ -143,6 +213,20 @@ func (m *ListChannelListRequest) String() string            { return proto.Compa
 func (*ListChannelListRequest) ProtoMessage()               {}
 func (*ListChannelListRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
 
+func (m *ListChannelListRequest) GetLimit() int64 {
+	if m != nil {
+		return m.Limit
+	}
+	return 0
+}
+
+func (m *ListChannelListRequest) GetOffset() int64 {
+	if m != nil {
+		return m.Offset
+	}
+	return 0
+}
+
 type ListChannelListResponse struct {
 	TotalCount int64                     `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
 	Result     []*GetChannelListResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
@@ -152,6 +236,13 @@ func (m *ListChannelListResponse) Reset()                    { *m = ListChannelL
 func (m *ListChannelListResponse) String() string            { return proto.CompactTextString(m) }
 func (*ListChannelListResponse) ProtoMessage()               {}
 func (*ListChannelListResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{7} }
+
+func (m *ListChannelListResponse) GetTotalCount() int64 {
+	if m != nil {
+		return m.TotalCount
+	}
+	return 0
+}
 
 func (m *ListChannelListResponse) GetResult() []*GetChannelListResponse {
 	if m != nil {
@@ -168,6 +259,13 @@ func (m *DeleteChannelListRequest) Reset()                    { *m = DeleteChann
 func (m *DeleteChannelListRequest) String() string            { return proto.CompactTextString(m) }
 func (*DeleteChannelListRequest) ProtoMessage()               {}
 func (*DeleteChannelListRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
+
+func (m *DeleteChannelListRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
 
 type DeleteChannelListResponse struct {
 }
@@ -196,7 +294,7 @@ var _ grpc.ClientConn
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion3
+const _ = grpc.SupportPackageIsVersion4
 
 // Client API for ChannelList service
 
@@ -405,7 +503,7 @@ var _ChannelList_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: fileDescriptor0,
+	Metadata: "channelList.proto",
 }
 
 func init() { proto.RegisterFile("channelList.proto", fileDescriptor0) }

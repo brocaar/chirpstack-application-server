@@ -146,6 +146,10 @@
     "apiCreateNodeSessionRequest": {
       "type": "object",
       "properties": {
+        "adrInterval": {
+          "type": "integer",
+          "format": "int64"
+        },
         "appEUI": {
           "type": "string",
           "format": "string",
@@ -180,6 +184,10 @@
         "fCntUp": {
           "type": "integer",
           "format": "int64"
+        },
+        "installationMargin": {
+          "type": "number",
+          "format": "double"
         },
         "nwkSKey": {
           "type": "string",
@@ -236,6 +244,10 @@
     "apiGetNodeSessionResponse": {
       "type": "object",
       "properties": {
+        "adrInterval": {
+          "type": "integer",
+          "format": "int64"
+        },
         "appEUI": {
           "type": "string",
           "format": "string",
@@ -271,6 +283,14 @@
           "type": "integer",
           "format": "int64"
         },
+        "installationMargin": {
+          "type": "number",
+          "format": "double"
+        },
+        "nbTrans": {
+          "type": "integer",
+          "format": "int64"
+        },
         "nwkSKey": {
           "type": "string",
           "format": "string",
@@ -294,6 +314,10 @@
         },
         "rxWindow": {
           "$ref": "#/definitions/apiRXWindow"
+        },
+        "txPower": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
@@ -321,6 +345,10 @@
     "apiUpdateNodeSessionRequest": {
       "type": "object",
       "properties": {
+        "adrInterval": {
+          "type": "integer",
+          "format": "int64"
+        },
         "appEUI": {
           "type": "string",
           "format": "string",
@@ -355,6 +383,10 @@
         "fCntUp": {
           "type": "integer",
           "format": "int64"
+        },
+        "installationMargin": {
+          "type": "number",
+          "format": "double"
         },
         "nwkSKey": {
           "type": "string",

@@ -56,11 +56,11 @@ const (
 type Client interface {
 	IsConnected() bool
 	Connect() Token
-	Disconnect(uint)
-	Publish(string, byte, bool, interface{}) Token
-	Subscribe(string, byte, MessageHandler) Token
-	SubscribeMultiple(map[string]byte, MessageHandler) Token
-	Unsubscribe(...string) Token
+	Disconnect(quiesce uint)
+	Publish(topic string, qos byte, retained bool, payload interface{}) Token
+	Subscribe(topic string, qos byte, callback MessageHandler) Token
+	SubscribeMultiple(filters map[string]byte, callback MessageHandler) Token
+	Unsubscribe(topics ...string) Token
 }
 
 // client implements the Client interface
@@ -78,8 +78,6 @@ type client struct {
 	stop            chan struct{}
 	persist         Store
 	options         ClientOptions
-	pingTimer       *time.Timer
-	pingRespTimer   *time.Timer
 	pingResp        chan struct{}
 	status          connStatus
 	workers         sync.WaitGroup
@@ -224,9 +222,6 @@ func (c *client) Connect() Token {
 		c.ibound = make(chan packets.ControlPacket)
 		c.errors = make(chan error, 1)
 		c.stop = make(chan struct{})
-		c.pingTimer = time.NewTimer(c.options.KeepAlive)
-		c.pingRespTimer = time.NewTimer(time.Duration(10) * time.Second)
-		c.pingRespTimer.Stop()
 		c.pingResp = make(chan struct{}, 1)
 
 		c.incomingPubChan = make(chan *packets.PublishPacket, c.options.MessageChannelDepth)
@@ -268,9 +263,12 @@ func (c *client) Connect() Token {
 // internal function used to reconnect the client when it loses its connection
 func (c *client) reconnect() {
 	DEBUG.Println(CLI, "enter reconnect")
-	var rc byte = 1
-	var sleep uint = 1
-	var err error
+	var (
+		err error
+
+		rc    = byte(1)
+		sleep = time.Duration(1 * time.Second)
+	)
 
 	for rc != 0 && c.status != disconnected {
 		cm := newConnectMsgFromOptions(&c.options)
@@ -317,10 +315,14 @@ func (c *client) reconnect() {
 			}
 		}
 		if rc != 0 {
-			DEBUG.Println(CLI, "Reconnect failed, sleeping for", sleep, "seconds")
-			time.Sleep(time.Duration(sleep) * time.Second)
-			if sleep <= uint(c.options.MaxReconnectInterval.Seconds()) {
+			DEBUG.Println(CLI, "Reconnect failed, sleeping for", int(sleep.Seconds()), "seconds")
+			time.Sleep(sleep)
+			if sleep < c.options.MaxReconnectInterval {
 				sleep *= 2
+			}
+
+			if sleep > c.options.MaxReconnectInterval {
+				sleep = c.options.MaxReconnectInterval
 			}
 		}
 	}
@@ -330,7 +332,6 @@ func (c *client) reconnect() {
 		return
 	}
 
-	c.pingTimer.Reset(c.options.KeepAlive)
 	c.stop = make(chan struct{})
 
 	c.workers.Add(1)

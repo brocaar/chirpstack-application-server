@@ -68,18 +68,20 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 	}
 
 	_, err = n.ctx.NetworkServer.CreateNodeSession(context.Background(), &ns.CreateNodeSessionRequest{
-		DevAddr:     devAddr[:],
-		AppEUI:      appEUI[:],
-		DevEUI:      devEUI[:],
-		NwkSKey:     nwkSKey[:],
-		FCntUp:      req.FCntUp,
-		FCntDown:    req.FCntDown,
-		RxDelay:     req.RxDelay,
-		Rx1DROffset: req.Rx1DROffset,
-		CFList:      req.CFList,
-		RxWindow:    ns.RXWindow(req.RxWindow),
-		Rx2DR:       req.Rx2DR,
-		RelaxFCnt:   req.RelaxFCnt,
+		DevAddr:            devAddr[:],
+		AppEUI:             appEUI[:],
+		DevEUI:             devEUI[:],
+		NwkSKey:            nwkSKey[:],
+		FCntUp:             req.FCntUp,
+		FCntDown:           req.FCntDown,
+		RxDelay:            req.RxDelay,
+		Rx1DROffset:        req.Rx1DROffset,
+		CFList:             req.CFList,
+		RxWindow:           ns.RXWindow(req.RxWindow),
+		Rx2DR:              req.Rx2DR,
+		RelaxFCnt:          req.RelaxFCnt,
+		AdrInterval:        req.AdrInterval,
+		InstallationMargin: req.InstallationMargin,
 	})
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, "create node-session error: %s", err)
@@ -135,19 +137,23 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 	}
 
 	return &pb.GetNodeSessionResponse{
-		DevAddr:     devAddr.String(),
-		AppEUI:      appEUI.String(),
-		DevEUI:      devEUI.String(),
-		AppSKey:     node.AppSKey.String(),
-		NwkSKey:     nwkSKey.String(),
-		FCntUp:      resp.FCntUp,
-		FCntDown:    resp.FCntDown,
-		RxDelay:     resp.RxDelay,
-		Rx1DROffset: resp.Rx1DROffset,
-		CFList:      resp.CFList,
-		RxWindow:    pb.RXWindow(resp.RxWindow),
-		Rx2DR:       resp.Rx2DR,
-		RelaxFCnt:   resp.RelaxFCnt,
+		DevAddr:            devAddr.String(),
+		AppEUI:             appEUI.String(),
+		DevEUI:             devEUI.String(),
+		AppSKey:            node.AppSKey.String(),
+		NwkSKey:            nwkSKey.String(),
+		FCntUp:             resp.FCntUp,
+		FCntDown:           resp.FCntDown,
+		RxDelay:            resp.RxDelay,
+		Rx1DROffset:        resp.Rx1DROffset,
+		CFList:             resp.CFList,
+		RxWindow:           pb.RXWindow(resp.RxWindow),
+		Rx2DR:              resp.Rx2DR,
+		RelaxFCnt:          resp.RelaxFCnt,
+		AdrInterval:        resp.AdrInterval,
+		InstallationMargin: resp.InstallationMargin,
+		NbTrans:            resp.NbTrans,
+		TxPower:            resp.TxPower,
 	}, nil
 
 }
@@ -192,18 +198,20 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 	}
 
 	_, err = n.ctx.NetworkServer.UpdateNodeSession(context.Background(), &ns.UpdateNodeSessionRequest{
-		DevAddr:     devAddr[:],
-		AppEUI:      appEUI[:],
-		DevEUI:      devEUI[:],
-		NwkSKey:     nwkSKey[:],
-		FCntUp:      req.FCntUp,
-		FCntDown:    req.FCntDown,
-		RxDelay:     req.RxDelay,
-		Rx1DROffset: req.Rx1DROffset,
-		CFList:      req.CFList,
-		RxWindow:    ns.RXWindow(req.RxWindow),
-		Rx2DR:       req.Rx2DR,
-		RelaxFCnt:   req.RelaxFCnt,
+		DevAddr:            devAddr[:],
+		AppEUI:             appEUI[:],
+		DevEUI:             devEUI[:],
+		NwkSKey:            nwkSKey[:],
+		FCntUp:             req.FCntUp,
+		FCntDown:           req.FCntDown,
+		RxDelay:            req.RxDelay,
+		Rx1DROffset:        req.Rx1DROffset,
+		CFList:             req.CFList,
+		RxWindow:           ns.RXWindow(req.RxWindow),
+		Rx2DR:              req.Rx2DR,
+		RelaxFCnt:          req.RelaxFCnt,
+		AdrInterval:        req.AdrInterval,
+		InstallationMargin: req.InstallationMargin,
 	})
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, "create node-session error: %s", err)

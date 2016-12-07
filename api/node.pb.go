@@ -40,6 +40,76 @@ func (m *CreateNodeRequest) String() string            { return proto.CompactTex
 func (*CreateNodeRequest) ProtoMessage()               {}
 func (*CreateNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{0} }
 
+func (m *CreateNodeRequest) GetDevEUI() string {
+	if m != nil {
+		return m.DevEUI
+	}
+	return ""
+}
+
+func (m *CreateNodeRequest) GetAppEUI() string {
+	if m != nil {
+		return m.AppEUI
+	}
+	return ""
+}
+
+func (m *CreateNodeRequest) GetAppKey() string {
+	if m != nil {
+		return m.AppKey
+	}
+	return ""
+}
+
+func (m *CreateNodeRequest) GetRxDelay() uint32 {
+	if m != nil {
+		return m.RxDelay
+	}
+	return 0
+}
+
+func (m *CreateNodeRequest) GetRx1DROffset() uint32 {
+	if m != nil {
+		return m.Rx1DROffset
+	}
+	return 0
+}
+
+func (m *CreateNodeRequest) GetChannelListID() int64 {
+	if m != nil {
+		return m.ChannelListID
+	}
+	return 0
+}
+
+func (m *CreateNodeRequest) GetRxWindow() RXWindow {
+	if m != nil {
+		return m.RxWindow
+	}
+	return RXWindow_RX1
+}
+
+func (m *CreateNodeRequest) GetRx2DR() uint32 {
+	if m != nil {
+		return m.Rx2DR
+	}
+	return 0
+}
+
+func (m *CreateNodeRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *CreateNodeRequest) GetRelaxFCnt() bool {
+	if m != nil {
+		return m.RelaxFCnt
+	}
+	return false
+}
+
 type CreateNodeResponse struct {
 }
 
@@ -57,6 +127,13 @@ func (m *GetNodeRequest) Reset()                    { *m = GetNodeRequest{} }
 func (m *GetNodeRequest) String() string            { return proto.CompactTextString(m) }
 func (*GetNodeRequest) ProtoMessage()               {}
 func (*GetNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{2} }
+
+func (m *GetNodeRequest) GetDevEUI() string {
+	if m != nil {
+		return m.DevEUI
+	}
+	return ""
+}
 
 type GetNodeResponse struct {
 	// hex encoded DevEUI
@@ -79,6 +156,76 @@ func (m *GetNodeResponse) String() string            { return proto.CompactTextS
 func (*GetNodeResponse) ProtoMessage()               {}
 func (*GetNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{3} }
 
+func (m *GetNodeResponse) GetDevEUI() string {
+	if m != nil {
+		return m.DevEUI
+	}
+	return ""
+}
+
+func (m *GetNodeResponse) GetAppEUI() string {
+	if m != nil {
+		return m.AppEUI
+	}
+	return ""
+}
+
+func (m *GetNodeResponse) GetAppKey() string {
+	if m != nil {
+		return m.AppKey
+	}
+	return ""
+}
+
+func (m *GetNodeResponse) GetRxDelay() uint32 {
+	if m != nil {
+		return m.RxDelay
+	}
+	return 0
+}
+
+func (m *GetNodeResponse) GetRx1DROffset() uint32 {
+	if m != nil {
+		return m.Rx1DROffset
+	}
+	return 0
+}
+
+func (m *GetNodeResponse) GetChannelListID() int64 {
+	if m != nil {
+		return m.ChannelListID
+	}
+	return 0
+}
+
+func (m *GetNodeResponse) GetRxWindow() RXWindow {
+	if m != nil {
+		return m.RxWindow
+	}
+	return RXWindow_RX1
+}
+
+func (m *GetNodeResponse) GetRx2DR() uint32 {
+	if m != nil {
+		return m.Rx2DR
+	}
+	return 0
+}
+
+func (m *GetNodeResponse) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *GetNodeResponse) GetRelaxFCnt() bool {
+	if m != nil {
+		return m.RelaxFCnt
+	}
+	return false
+}
+
 type DeleteNodeRequest struct {
 	// hex encoded DevEUI
 	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
@@ -88,6 +235,13 @@ func (m *DeleteNodeRequest) Reset()                    { *m = DeleteNodeRequest{
 func (m *DeleteNodeRequest) String() string            { return proto.CompactTextString(m) }
 func (*DeleteNodeRequest) ProtoMessage()               {}
 func (*DeleteNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{4} }
+
+func (m *DeleteNodeRequest) GetDevEUI() string {
+	if m != nil {
+		return m.DevEUI
+	}
+	return ""
+}
 
 type DeleteNodeResponse struct {
 }
@@ -107,6 +261,20 @@ func (m *ListNodeRequest) String() string            { return proto.CompactTextS
 func (*ListNodeRequest) ProtoMessage()               {}
 func (*ListNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{6} }
 
+func (m *ListNodeRequest) GetLimit() int64 {
+	if m != nil {
+		return m.Limit
+	}
+	return 0
+}
+
+func (m *ListNodeRequest) GetOffset() int64 {
+	if m != nil {
+		return m.Offset
+	}
+	return 0
+}
+
 type ListNodeResponse struct {
 	TotalCount int64              `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
 	Result     []*GetNodeResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
@@ -116,6 +284,13 @@ func (m *ListNodeResponse) Reset()                    { *m = ListNodeResponse{} 
 func (m *ListNodeResponse) String() string            { return proto.CompactTextString(m) }
 func (*ListNodeResponse) ProtoMessage()               {}
 func (*ListNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{7} }
+
+func (m *ListNodeResponse) GetTotalCount() int64 {
+	if m != nil {
+		return m.TotalCount
+	}
+	return 0
+}
 
 func (m *ListNodeResponse) GetResult() []*GetNodeResponse {
 	if m != nil {
@@ -135,6 +310,27 @@ func (m *ListNodeByAppEUIRequest) Reset()                    { *m = ListNodeByAp
 func (m *ListNodeByAppEUIRequest) String() string            { return proto.CompactTextString(m) }
 func (*ListNodeByAppEUIRequest) ProtoMessage()               {}
 func (*ListNodeByAppEUIRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{8} }
+
+func (m *ListNodeByAppEUIRequest) GetLimit() int64 {
+	if m != nil {
+		return m.Limit
+	}
+	return 0
+}
+
+func (m *ListNodeByAppEUIRequest) GetOffset() int64 {
+	if m != nil {
+		return m.Offset
+	}
+	return 0
+}
+
+func (m *ListNodeByAppEUIRequest) GetAppEUI() string {
+	if m != nil {
+		return m.AppEUI
+	}
+	return ""
+}
 
 type UpdateNodeRequest struct {
 	// hex encoded DevEUI
@@ -156,6 +352,76 @@ func (m *UpdateNodeRequest) Reset()                    { *m = UpdateNodeRequest{
 func (m *UpdateNodeRequest) String() string            { return proto.CompactTextString(m) }
 func (*UpdateNodeRequest) ProtoMessage()               {}
 func (*UpdateNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{9} }
+
+func (m *UpdateNodeRequest) GetDevEUI() string {
+	if m != nil {
+		return m.DevEUI
+	}
+	return ""
+}
+
+func (m *UpdateNodeRequest) GetAppEUI() string {
+	if m != nil {
+		return m.AppEUI
+	}
+	return ""
+}
+
+func (m *UpdateNodeRequest) GetAppKey() string {
+	if m != nil {
+		return m.AppKey
+	}
+	return ""
+}
+
+func (m *UpdateNodeRequest) GetRxDelay() uint32 {
+	if m != nil {
+		return m.RxDelay
+	}
+	return 0
+}
+
+func (m *UpdateNodeRequest) GetRx1DROffset() uint32 {
+	if m != nil {
+		return m.Rx1DROffset
+	}
+	return 0
+}
+
+func (m *UpdateNodeRequest) GetChannelListID() int64 {
+	if m != nil {
+		return m.ChannelListID
+	}
+	return 0
+}
+
+func (m *UpdateNodeRequest) GetRxWindow() RXWindow {
+	if m != nil {
+		return m.RxWindow
+	}
+	return RXWindow_RX1
+}
+
+func (m *UpdateNodeRequest) GetRx2DR() uint32 {
+	if m != nil {
+		return m.Rx2DR
+	}
+	return 0
+}
+
+func (m *UpdateNodeRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *UpdateNodeRequest) GetRelaxFCnt() bool {
+	if m != nil {
+		return m.RelaxFCnt
+	}
+	return false
+}
 
 type UpdateNodeResponse struct {
 }
@@ -185,7 +451,7 @@ var _ grpc.ClientConn
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion3
+const _ = grpc.SupportPackageIsVersion4
 
 // Client API for Node service
 
@@ -394,7 +660,7 @@ var _Node_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: fileDescriptor1,
+	Metadata: "node.proto",
 }
 
 func init() { proto.RegisterFile("node.proto", fileDescriptor1) }

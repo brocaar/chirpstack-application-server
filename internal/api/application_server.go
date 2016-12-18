@@ -223,9 +223,20 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 	pl := handler.DataUpPayload{
 		DevEUI: devEUI,
 		RXInfo: []handler.RXInfo{},
-		FCnt:   req.FCnt,
-		FPort:  uint8(req.FPort),
-		Data:   b,
+		TXInfo: handler.TXInfo{
+			Frequency: int(req.TxInfo.Frequency),
+			DataRate: handler.DataRate{
+				Modulation:   req.TxInfo.DataRate.Modulation,
+				Bandwidth:    int(req.TxInfo.DataRate.BandWidth),
+				SpreadFactor: int(req.TxInfo.DataRate.SpreadFactor),
+				Bitrate:      int(req.TxInfo.DataRate.Bitrate),
+			},
+			ADR:      req.TxInfo.Adr,
+			CodeRate: req.TxInfo.CodeRate,
+		},
+		FCnt:  req.FCnt,
+		FPort: uint8(req.FPort),
+		Data:  b,
 	}
 
 	for _, rxInfo := range req.RxInfo {

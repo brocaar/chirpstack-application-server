@@ -103,6 +103,17 @@ func TestApplicationServerAPI(t *testing.T) {
 							LoRaSNR: 5,
 						},
 					},
+					TxInfo: &as.TXInfo{
+						Frequency: 868100000,
+						DataRate: &as.DataRate{
+							Modulation:   "LORA",
+							BandWidth:    250,
+							SpreadFactor: 5,
+							Bitrate:      50000,
+						},
+						Adr:      true,
+						CodeRate: "4/6",
+					},
 				}
 				_, err := api.HandleDataUp(ctx, &req)
 				So(err, ShouldBeNil)
@@ -118,6 +129,17 @@ func TestApplicationServerAPI(t *testing.T) {
 								RSSI:    -60,
 								LoRaSNR: 5,
 							},
+						},
+						TXInfo: handler.TXInfo{
+							Frequency: 868100000,
+							DataRate: handler.DataRate{
+								Modulation:   "LORA",
+								Bandwidth:    250,
+								SpreadFactor: 5,
+								Bitrate:      50000,
+							},
+							ADR:      true,
+							CodeRate: "4/6",
 						},
 						FCnt:  10,
 						FPort: 3,

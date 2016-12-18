@@ -29,6 +29,17 @@ Topic for payloads received from your nodes. Example payload:
             "loRaSNR": 10                              // signal to noise ratio
         }
     ],
+    "txInfo": {
+        "frequency": 868100000,    // frequency used for transmission
+        "dataRate": {
+            "modulation": "LORA",  // modulation (LORA or FSK)
+            "bandwidth": 250,      // used bandwidth
+            "spreadFactor": 5      // used SF (LORA)
+            // "bitrate": 50000    // used bitrate (FSK)
+        },
+        "adr": false,
+        "codeRate": "4/6"
+    },
     "fCnt": 10,                    // frame-counter
     "fPort": 5,                    // FPort
     "data": "..."                  // base64 encoded payload (decrypted)

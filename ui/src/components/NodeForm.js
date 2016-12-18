@@ -120,6 +120,23 @@ class NodeForm extends Component {
             Please refer to the LoRaWAN specs for the values that are valid in your region.
           </p>
         </div>
+        <div className="form-group">
+          <label className="control-label" htmlFor="adrInterval">ADR interval</label>
+          <input className="form-control" id="adrInterval" type="number" required value={this.state.node.adrInterval || 0} onChange={this.onChange.bind(this, 'adrInterval')} />
+          <p className="help-block">
+            The interval (of frames) after which the network-server will ask the node to change data-rate and / or TX power
+            if it can change to a better data-rate or lower TX power. Setting this to 0 will disable ADR. 
+          </p>
+        </div>
+        <div className="form-group">
+          <label className="control-label" htmlFor="installationMargin">Installation margin (dB)</label>
+          <input className="form-control" id="installationMargin" type="number" required value={this.state.node.installationMargin || 0} onChange={this.onChange.bind(this, 'installationMargin')} />
+          <p className="help-block">
+            The installation margin which is taken into account when calculating the ideal data-rate and TX power.
+            A higher margin will lower the data-rate, a lower margin will increase the data-rate and possibly packet loss.
+            5dB is the default recommended value.
+          </p>
+        </div>
         <hr />
         <button type="submit" className="btn btn-primary pull-right">Submit</button>
       </form>

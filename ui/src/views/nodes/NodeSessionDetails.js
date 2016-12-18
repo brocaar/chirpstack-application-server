@@ -52,6 +52,8 @@ class NodeSessionDetails extends Component {
     session.rx2DR = this.state.node.rx2DR;
     session.cFList = this.state.channels;
     session.relaxFCnt = this.state.node.relaxFCnt;
+    session.adrInterval = this.state.node.adrInterval;
+    session.installationMargin = this.state.node.installationMargin;
 
     if (this.state.sessionExists) {
       NodeSessionStore.updateNodeSession(this.props.params.devEUI, session, (responseData) => {

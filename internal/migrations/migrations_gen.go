@@ -9,6 +9,7 @@
 // ../../migrations/0006_remove_application_table.sql
 // ../../migrations/0007_migrate_channels_to_channel_list.sql
 // ../../migrations/0008_relax_fcnt.sql
+// ../../migrations/0009_adr_interval_and_install_margin.sql
 // DO NOT EDIT!
 
 package migrations
@@ -256,6 +257,26 @@ func _0008_relax_fcntSql() (*asset, error) {
 	return a, nil
 }
 
+var __0009_adr_interval_and_install_marginSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x6c\xce\xc1\xca\xc2\x40\x0c\x04\xe0\xf3\xbf\x4f\x31\xc7\x5f\x6c\x41\x04\x4f\xbd\xfa\x0a\x9e\x4b\x6c\x62\x59\xc8\x66\x4b\xcc\xea\xeb\x8b\x37\x0b\x7b\x0b\x84\x99\xf9\xc6\x11\xc7\x92\x57\xa7\x10\xdc\xb6\x44\x1a\xe2\x08\xba\xab\xc0\x2a\x4b\xfa\x23\x66\x2c\x55\x5b\x31\x10\xfb\x9c\x2d\xc4\x5f\xa4\xf8\x1e\xab\x38\xac\x06\xac\xa9\x82\xe5\x41\x4d\x03\xa7\x61\x17\xca\xf6\x0c\x52\xa5\xc8\xd5\xe6\x42\xbe\x66\x03\xcb\x92\x0b\xe9\xff\x65\x38\x1f\x3a\x05\x53\x4a\xbf\xac\x6b\x7d\x5b\x07\xc6\x5e\xb7\x9e\x6c\xd8\xbf\x3a\xfb\x53\xfa\x04\x00\x00\xff\xff\x49\xf2\xe1\xba\xf6\x00\x00\x00")
+
+func _0009_adr_interval_and_install_marginSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0009_adr_interval_and_install_marginSql,
+		"0009_adr_interval_and_install_margin.sql",
+	)
+}
+
+func _0009_adr_interval_and_install_marginSql() (*asset, error) {
+	bytes, err := _0009_adr_interval_and_install_marginSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0009_adr_interval_and_install_margin.sql", size: 246, mode: os.FileMode(420), modTime: time.Unix(1481138872, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -317,6 +338,7 @@ var _bindata = map[string]func() (*asset, error){
 	"0006_remove_application_table.sql": _0006_remove_application_tableSql,
 	"0007_migrate_channels_to_channel_list.sql": _0007_migrate_channels_to_channel_listSql,
 	"0008_relax_fcnt.sql": _0008_relax_fcntSql,
+	"0009_adr_interval_and_install_margin.sql": _0009_adr_interval_and_install_marginSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -368,6 +390,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"0006_remove_application_table.sql": &bintree{_0006_remove_application_tableSql, map[string]*bintree{}},
 	"0007_migrate_channels_to_channel_list.sql": &bintree{_0007_migrate_channels_to_channel_listSql, map[string]*bintree{}},
 	"0008_relax_fcnt.sql": &bintree{_0008_relax_fcntSql, map[string]*bintree{}},
+	"0009_adr_interval_and_install_margin.sql": &bintree{_0009_adr_interval_and_install_marginSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory

@@ -84,6 +84,9 @@ type Node struct {
 	RX1DROffset   uint8    `db:"rx1_dr_offset"`
 	RX2DR         uint8    `db:"rx2_dr"`
 	ChannelListID *int64   `db:"channel_list_id"`
+
+	ADRInterval        uint32  `db:"adr_interval"`
+	InstallationMargin float64 `db:"installation_margin"`
 }
 
 // ValidateDevNonce returns if the given dev-nonce is valid.
@@ -119,9 +122,11 @@ func CreateNode(db *sqlx.DB, n Node) error {
 			rx_window,
 			rx2_dr,
 			channel_list_id,
-			relax_fcnt
+			relax_fcnt,
+			adr_interval,
+			installation_margin
 		)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
 		n.Name,
 		n.DevEUI[:],
 		n.AppEUI[:],
@@ -135,6 +140,8 @@ func CreateNode(db *sqlx.DB, n Node) error {
 		n.RX2DR,
 		n.ChannelListID,
 		n.RelaxFCnt,
+		n.ADRInterval,
+		n.InstallationMargin,
 	)
 	if err != nil {
 		return fmt.Errorf("create node %s error: %s", n.DevEUI, err)
@@ -163,8 +170,10 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 			rx_window = $10,
 			rx2_dr = $11,
 			channel_list_id = $12,
-			relax_fcnt = $13
-		where dev_eui = $14`,
+			relax_fcnt = $13,
+			adr_interval = $14,
+			installation_margin = $15
+		where dev_eui = $16`,
 		n.Name,
 		n.AppEUI[:],
 		n.AppKey[:],
@@ -178,6 +187,8 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 		n.RX2DR,
 		n.ChannelListID,
 		n.RelaxFCnt,
+		n.ADRInterval,
+		n.InstallationMargin,
 		n.DevEUI[:],
 	)
 	if err != nil {

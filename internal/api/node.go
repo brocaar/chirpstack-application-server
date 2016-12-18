@@ -61,6 +61,9 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 		RX1DROffset: uint8(req.Rx1DROffset),
 		RXWindow:    storage.RXWindow(req.RxWindow),
 		RX2DR:       uint8(req.Rx2DR),
+
+		ADRInterval:        req.AdrInterval,
+		InstallationMargin: req.InstallationMargin,
 	}
 	if req.ChannelListID > 0 {
 		node.ChannelListID = &req.ChannelListID
@@ -107,15 +110,17 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 	}
 
 	resp := pb.GetNodeResponse{
-		Name:        node.Name,
-		DevEUI:      string(devEUI),
-		AppEUI:      string(appEUI),
-		AppKey:      string(appKey),
-		RxDelay:     uint32(node.RXDelay),
-		Rx1DROffset: uint32(node.RX1DROffset),
-		RxWindow:    pb.RXWindow(node.RXWindow),
-		Rx2DR:       uint32(node.RX2DR),
-		RelaxFCnt:   node.RelaxFCnt,
+		Name:               node.Name,
+		DevEUI:             string(devEUI),
+		AppEUI:             string(appEUI),
+		AppKey:             string(appKey),
+		RxDelay:            uint32(node.RXDelay),
+		Rx1DROffset:        uint32(node.RX1DROffset),
+		RxWindow:           pb.RXWindow(node.RXWindow),
+		Rx2DR:              uint32(node.RX2DR),
+		RelaxFCnt:          node.RelaxFCnt,
+		AdrInterval:        node.ADRInterval,
+		InstallationMargin: node.InstallationMargin,
 	}
 
 	if node.ChannelListID != nil {
@@ -177,6 +182,8 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 	node.RXWindow = storage.RXWindow(req.RxWindow)
 	node.RX2DR = uint8(req.Rx2DR)
 	node.RelaxFCnt = req.RelaxFCnt
+	node.ADRInterval = req.AdrInterval
+	node.InstallationMargin = req.InstallationMargin
 	if req.ChannelListID > 0 {
 		node.ChannelListID = &req.ChannelListID
 	} else {
@@ -243,15 +250,17 @@ func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeRespo
 		}
 
 		item := pb.GetNodeResponse{
-			Name:        node.Name,
-			DevEUI:      string(devEUI),
-			AppEUI:      string(appEUI),
-			AppKey:      string(appKey),
-			RxDelay:     uint32(node.RXDelay),
-			Rx1DROffset: uint32(node.RX1DROffset),
-			RxWindow:    pb.RXWindow(node.RXWindow),
-			Rx2DR:       uint32(node.RX2DR),
-			RelaxFCnt:   node.RelaxFCnt,
+			Name:               node.Name,
+			DevEUI:             string(devEUI),
+			AppEUI:             string(appEUI),
+			AppKey:             string(appKey),
+			RxDelay:            uint32(node.RXDelay),
+			Rx1DROffset:        uint32(node.RX1DROffset),
+			RxWindow:           pb.RXWindow(node.RXWindow),
+			Rx2DR:              uint32(node.RX2DR),
+			RelaxFCnt:          node.RelaxFCnt,
+			AdrInterval:        node.ADRInterval,
+			InstallationMargin: node.InstallationMargin,
 		}
 
 		if node.ChannelListID != nil {

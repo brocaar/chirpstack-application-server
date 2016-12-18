@@ -54,15 +54,17 @@ func TestApplicationServerAPI(t *testing.T) {
 
 		Convey("Given a node in the database", func() {
 			node := storage.Node{
-				Name:        "test node",
-				DevEUI:      [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-				AppEUI:      [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
-				AppKey:      [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
-				RXWindow:    storage.RX2,
-				RXDelay:     1,
-				RX1DROffset: 2,
-				RX2DR:       3,
-				RelaxFCnt:   true,
+				Name:               "test node",
+				DevEUI:             [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
+				AppEUI:             [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
+				AppKey:             [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+				RXWindow:           storage.RX2,
+				RXDelay:            1,
+				RX1DROffset:        2,
+				RX2DR:              3,
+				RelaxFCnt:          true,
+				ADRInterval:        20,
+				InstallationMargin: 5,
 			}
 
 			So(storage.CreateNode(db, node), ShouldBeNil)
@@ -146,6 +148,8 @@ func TestApplicationServerAPI(t *testing.T) {
 					So(resp.RxWindow, ShouldEqual, as.RXWindow_RX2)
 					So(resp.Rx2DR, ShouldEqual, uint32(node.RX2DR))
 					So(resp.RelaxFCnt, ShouldBeTrue)
+					So(resp.InstallationMargin, ShouldEqual, 5)
+					So(resp.AdrInterval, ShouldEqual, 20)
 
 					var phy lorawan.PHYPayload
 					So(phy.UnmarshalBinary(resp.PhyPayload), ShouldBeNil)

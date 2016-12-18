@@ -43,18 +43,20 @@ func TestNodeSessionAPI(t *testing.T) {
 
 			Convey("When creating a node-session for this node", func() {
 				_, err := api.Create(ctx, &pb.CreateNodeSessionRequest{
-					DevAddr:     "01020304",
-					AppEUI:      "0101010101010101",
-					DevEUI:      "0202020202020202",
-					AppSKey:     "01010101010101010202020202020202",
-					NwkSKey:     "02020202020202020101010101010101",
-					FCntUp:      1,
-					FCntDown:    2,
-					RxDelay:     3,
-					Rx1DROffset: 4,
-					CFList:      []uint32{868400000},
-					RxWindow:    pb.RXWindow_RX2,
-					Rx2DR:       5,
+					DevAddr:            "01020304",
+					AppEUI:             "0101010101010101",
+					DevEUI:             "0202020202020202",
+					AppSKey:            "01010101010101010202020202020202",
+					NwkSKey:            "02020202020202020101010101010101",
+					FCntUp:             1,
+					FCntDown:           2,
+					RxDelay:            3,
+					Rx1DROffset:        4,
+					CFList:             []uint32{868400000},
+					RxWindow:           pb.RXWindow_RX2,
+					Rx2DR:              5,
+					AdrInterval:        20,
+					InstallationMargin: 5,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -63,17 +65,19 @@ func TestNodeSessionAPI(t *testing.T) {
 				Convey("Then the NetworkServerClient was called with the expected parameters", func() {
 					So(nsClient.CreateNodeSessionChan, ShouldHaveLength, 1)
 					So(<-nsClient.CreateNodeSessionChan, ShouldResemble, ns.CreateNodeSessionRequest{
-						DevAddr:     []byte{1, 2, 3, 4},
-						AppEUI:      []byte{1, 1, 1, 1, 1, 1, 1, 1},
-						DevEUI:      []byte{2, 2, 2, 2, 2, 2, 2, 2},
-						NwkSKey:     []byte{2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1},
-						FCntUp:      1,
-						FCntDown:    2,
-						RxDelay:     3,
-						Rx1DROffset: 4,
-						CFList:      []uint32{868400000},
-						RxWindow:    ns.RXWindow_RX2,
-						Rx2DR:       5,
+						DevAddr:            []byte{1, 2, 3, 4},
+						AppEUI:             []byte{1, 1, 1, 1, 1, 1, 1, 1},
+						DevEUI:             []byte{2, 2, 2, 2, 2, 2, 2, 2},
+						NwkSKey:            []byte{2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1},
+						FCntUp:             1,
+						FCntDown:           2,
+						RxDelay:            3,
+						Rx1DROffset:        4,
+						CFList:             []uint32{868400000},
+						RxWindow:           ns.RXWindow_RX2,
+						Rx2DR:              5,
+						AdrInterval:        20,
+						InstallationMargin: 5,
 					})
 				})
 
@@ -103,18 +107,20 @@ func TestNodeSessionAPI(t *testing.T) {
 
 			Convey("When updating a node-session for this node", func() {
 				_, err := api.Update(ctx, &pb.UpdateNodeSessionRequest{
-					DevAddr:     "04030201",
-					AppEUI:      "0101010101010101",
-					DevEUI:      "0202020202020202",
-					NwkSKey:     "01010101010101010202020202020202",
-					AppSKey:     "02020202020202020101010101010101",
-					FCntUp:      1,
-					FCntDown:    2,
-					RxDelay:     3,
-					Rx1DROffset: 4,
-					CFList:      []uint32{868400000},
-					RxWindow:    pb.RXWindow_RX2,
-					Rx2DR:       5,
+					DevAddr:            "04030201",
+					AppEUI:             "0101010101010101",
+					DevEUI:             "0202020202020202",
+					NwkSKey:            "01010101010101010202020202020202",
+					AppSKey:            "02020202020202020101010101010101",
+					FCntUp:             1,
+					FCntDown:           2,
+					RxDelay:            3,
+					Rx1DROffset:        4,
+					CFList:             []uint32{868400000},
+					RxWindow:           pb.RXWindow_RX2,
+					Rx2DR:              5,
+					AdrInterval:        30,
+					InstallationMargin: 10,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -123,17 +129,19 @@ func TestNodeSessionAPI(t *testing.T) {
 				Convey("Then the NetworkServerClient was called with the expected arguments", func() {
 					So(nsClient.UpdateNodeSessionChan, ShouldHaveLength, 1)
 					So(<-nsClient.UpdateNodeSessionChan, ShouldResemble, ns.UpdateNodeSessionRequest{
-						DevAddr:     []byte{4, 3, 2, 1},
-						AppEUI:      []byte{1, 1, 1, 1, 1, 1, 1, 1},
-						DevEUI:      []byte{2, 2, 2, 2, 2, 2, 2, 2},
-						NwkSKey:     []byte{1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2},
-						FCntUp:      1,
-						FCntDown:    2,
-						RxDelay:     3,
-						Rx1DROffset: 4,
-						CFList:      []uint32{868400000},
-						RxWindow:    ns.RXWindow_RX2,
-						Rx2DR:       5,
+						DevAddr:            []byte{4, 3, 2, 1},
+						AppEUI:             []byte{1, 1, 1, 1, 1, 1, 1, 1},
+						DevEUI:             []byte{2, 2, 2, 2, 2, 2, 2, 2},
+						NwkSKey:            []byte{1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2},
+						FCntUp:             1,
+						FCntDown:           2,
+						RxDelay:            3,
+						Rx1DROffset:        4,
+						CFList:             []uint32{868400000},
+						RxWindow:           ns.RXWindow_RX2,
+						Rx2DR:              5,
+						AdrInterval:        30,
+						InstallationMargin: 10,
 					})
 				})
 
@@ -163,17 +171,22 @@ func TestNodeSessionAPI(t *testing.T) {
 
 			Convey("Given a mocked node-session in the network-server", func() {
 				nsClient.GetNodeSessionResponse = ns.GetNodeSessionResponse{
-					DevAddr:     []byte{1, 2, 3, 4},
-					AppEUI:      []byte{1, 1, 1, 1, 1, 1, 1, 1},
-					DevEUI:      []byte{2, 2, 2, 2, 2, 2, 2, 2},
-					NwkSKey:     []byte{2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1},
-					FCntUp:      1,
-					FCntDown:    2,
-					RxDelay:     3,
-					Rx1DROffset: 4,
-					CFList:      []uint32{868400000},
-					RxWindow:    ns.RXWindow_RX2,
-					Rx2DR:       5,
+					DevAddr:            []byte{1, 2, 3, 4},
+					AppEUI:             []byte{1, 1, 1, 1, 1, 1, 1, 1},
+					DevEUI:             []byte{2, 2, 2, 2, 2, 2, 2, 2},
+					NwkSKey:            []byte{2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1},
+					FCntUp:             1,
+					FCntDown:           2,
+					RxDelay:            3,
+					Rx1DROffset:        4,
+					CFList:             []uint32{868400000},
+					RxWindow:           ns.RXWindow_RX2,
+					Rx2DR:              5,
+					RelaxFCnt:          true,
+					ADRInterval:        20,
+					InstallationMargin: 5,
+					NbTrans:            1,
+					TxPower:            20,
 				}
 
 				Convey("When getting the node-session", func() {
@@ -193,18 +206,23 @@ func TestNodeSessionAPI(t *testing.T) {
 
 					Convey("Then the expected response is returned", func() {
 						So(resp, ShouldResemble, &pb.GetNodeSessionResponse{
-							DevAddr:     "01020304",
-							AppEUI:      "0101010101010101",
-							DevEUI:      "0202020202020202",
-							AppSKey:     "01010101010101010202020202020202",
-							NwkSKey:     "02020202020202020101010101010101",
-							FCntUp:      1,
-							FCntDown:    2,
-							RxDelay:     3,
-							Rx1DROffset: 4,
-							CFList:      []uint32{868400000},
-							RxWindow:    pb.RXWindow_RX2,
-							Rx2DR:       5,
+							DevAddr:            "01020304",
+							AppEUI:             "0101010101010101",
+							DevEUI:             "0202020202020202",
+							AppSKey:            "01010101010101010202020202020202",
+							NwkSKey:            "02020202020202020101010101010101",
+							FCntUp:             1,
+							FCntDown:           2,
+							RxDelay:            3,
+							Rx1DROffset:        4,
+							CFList:             []uint32{868400000},
+							RxWindow:           pb.RXWindow_RX2,
+							Rx2DR:              5,
+							RelaxFCnt:          true,
+							ADRInterval:        20,
+							InstallationMargin: 5,
+							NbTrans:            1,
+							TxPower:            20,
 						})
 					})
 				})

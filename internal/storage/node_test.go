@@ -114,10 +114,12 @@ func TestNodeMethods(t *testing.T) {
 				DevEUI: [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
 				AppKey: [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 
-				RXDelay:     2,
-				RX1DROffset: 3,
-				RXWindow:    RX2,
-				RX2DR:       3,
+				RXDelay:            2,
+				RX1DROffset:        3,
+				RXWindow:           RX2,
+				RX2DR:              3,
+				ADRInterval:        20,
+				InstallationMargin: 5,
 			}
 			So(CreateNode(db, node), ShouldBeNil)
 

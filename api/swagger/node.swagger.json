@@ -144,6 +144,10 @@
     "apiCreateNodeRequest": {
       "type": "object",
       "properties": {
+        "adrInterval": {
+          "type": "integer",
+          "format": "int64"
+        },
         "appEUI": {
           "type": "string",
           "format": "string",
@@ -162,6 +166,10 @@
           "type": "string",
           "format": "string",
           "title": "hex encoded DevEUI"
+        },
+        "installationMargin": {
+          "type": "number",
+          "format": "double"
         },
         "name": {
           "type": "string",
@@ -217,6 +225,10 @@
     "apiGetNodeResponse": {
       "type": "object",
       "properties": {
+        "adrInterval": {
+          "type": "integer",
+          "format": "int64"
+        },
         "appEUI": {
           "type": "string",
           "format": "string",
@@ -235,6 +247,10 @@
           "type": "string",
           "format": "string",
           "title": "hex encoded DevEUI"
+        },
+        "installationMargin": {
+          "type": "number",
+          "format": "double"
         },
         "name": {
           "type": "string",
@@ -300,6 +316,10 @@
     "apiUpdateNodeRequest": {
       "type": "object",
       "properties": {
+        "adrInterval": {
+          "type": "integer",
+          "format": "int64"
+        },
         "appEUI": {
           "type": "string",
           "format": "string",
@@ -318,6 +338,10 @@
           "type": "string",
           "format": "string",
           "title": "hex encoded DevEUI"
+        },
+        "installationMargin": {
+          "type": "number",
+          "format": "double"
         },
         "name": {
           "type": "string",

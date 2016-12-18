@@ -29,13 +29,15 @@ func TestNodeAPI(t *testing.T) {
 
 		Convey("When creating a node", func() {
 			_, err := api.Create(ctx, &pb.CreateNodeRequest{
-				DevEUI:      "0807060504030201",
-				AppEUI:      "0102030405060708",
-				AppKey:      "01020304050607080102030405060708",
-				RxDelay:     1,
-				Rx1DROffset: 3,
-				RxWindow:    pb.RXWindow_RX2,
-				Rx2DR:       3,
+				DevEUI:             "0807060504030201",
+				AppEUI:             "0102030405060708",
+				AppKey:             "01020304050607080102030405060708",
+				RxDelay:            1,
+				Rx1DROffset:        3,
+				RxWindow:           pb.RXWindow_RX2,
+				Rx2DR:              3,
+				AdrInterval:        20,
+				InstallationMargin: 5,
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
@@ -47,13 +49,15 @@ func TestNodeAPI(t *testing.T) {
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 3)
 				So(node, ShouldResemble, &pb.GetNodeResponse{
-					DevEUI:      "0807060504030201",
-					AppEUI:      "0102030405060708",
-					AppKey:      "01020304050607080102030405060708",
-					RxDelay:     1,
-					Rx1DROffset: 3,
-					RxWindow:    pb.RXWindow_RX2,
-					Rx2DR:       3,
+					DevEUI:             "0807060504030201",
+					AppEUI:             "0102030405060708",
+					AppKey:             "01020304050607080102030405060708",
+					RxDelay:            1,
+					Rx1DROffset:        3,
+					RxWindow:           pb.RXWindow_RX2,
+					Rx2DR:              3,
+					AdrInterval:        20,
+					InstallationMargin: 5,
 				})
 			})
 
@@ -67,25 +71,29 @@ func TestNodeAPI(t *testing.T) {
 				So(nodes.Result, ShouldHaveLength, 1)
 				So(nodes.TotalCount, ShouldEqual, 1)
 				So(nodes.Result[0], ShouldResemble, &pb.GetNodeResponse{
-					DevEUI:      "0807060504030201",
-					AppEUI:      "0102030405060708",
-					AppKey:      "01020304050607080102030405060708",
-					RxDelay:     1,
-					Rx1DROffset: 3,
-					RxWindow:    pb.RXWindow_RX2,
-					Rx2DR:       3,
+					DevEUI:             "0807060504030201",
+					AppEUI:             "0102030405060708",
+					AppKey:             "01020304050607080102030405060708",
+					RxDelay:            1,
+					Rx1DROffset:        3,
+					RxWindow:           pb.RXWindow_RX2,
+					Rx2DR:              3,
+					AdrInterval:        20,
+					InstallationMargin: 5,
 				})
 			})
 
 			Convey("When updating the node", func() {
 				_, err := api.Update(ctx, &pb.UpdateNodeRequest{
-					DevEUI:      "0807060504030201",
-					AppEUI:      "0102030405060708",
-					AppKey:      "08070605040302010807060504030201",
-					RxDelay:     3,
-					Rx1DROffset: 1,
-					RxWindow:    pb.RXWindow_RX2,
-					Rx2DR:       4,
+					DevEUI:             "0807060504030201",
+					AppEUI:             "0102030405060708",
+					AppKey:             "08070605040302010807060504030201",
+					RxDelay:            3,
+					Rx1DROffset:        1,
+					RxWindow:           pb.RXWindow_RX2,
+					Rx2DR:              4,
+					AdrInterval:        30,
+					InstallationMargin: 10,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -95,13 +103,15 @@ func TestNodeAPI(t *testing.T) {
 					node, err := api.Get(ctx, &pb.GetNodeRequest{DevEUI: "0807060504030201"})
 					So(err, ShouldBeNil)
 					So(node, ShouldResemble, &pb.GetNodeResponse{
-						DevEUI:      "0807060504030201",
-						AppEUI:      "0102030405060708",
-						AppKey:      "08070605040302010807060504030201",
-						RxDelay:     3,
-						Rx1DROffset: 1,
-						RxWindow:    pb.RXWindow_RX2,
-						Rx2DR:       4,
+						DevEUI:             "0807060504030201",
+						AppEUI:             "0102030405060708",
+						AppKey:             "08070605040302010807060504030201",
+						RxDelay:            3,
+						Rx1DROffset:        1,
+						RxWindow:           pb.RXWindow_RX2,
+						Rx2DR:              4,
+						AdrInterval:        30,
+						InstallationMargin: 10,
 					})
 				})
 			})

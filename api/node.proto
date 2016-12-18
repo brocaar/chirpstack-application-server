@@ -62,6 +62,8 @@ message CreateNodeRequest {
     uint32 rx2DR = 8;
     string name = 9;
 	bool relaxFCnt = 10;
+	uint32 adrInterval = 11;
+	double installationMargin = 12;
 }
 
 message CreateNodeResponse {}
@@ -85,6 +87,8 @@ message GetNodeResponse {
     uint32 rx2DR = 8;
     string name = 9;
 	bool relaxFCnt = 10;
+	uint32 adrInterval = 11;
+	double installationMargin = 12;
 };
 
 message DeleteNodeRequest {
@@ -125,6 +129,8 @@ message UpdateNodeRequest {
     uint32 rx2DR = 8;
     string name = 9;
 	bool relaxFCnt = 10;
+	uint32 adrInterval = 11;
+	double installationMargin = 12;
 }
 
 message UpdateNodeResponse {}

@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.0
+
+**Features:**
+
+* Adaptive data-rate support. See [loraserver/features](https://docs.loraserver.io/loraserver/features/)
+  for more information about ADR. Note:
+
+	* [LoRa Server](https://docs.loraserver.io/loraserver/) 0.13.0 or higher
+	  is required
+	* ADR is currently only implemented for the EU 863-870 ISM band
+	* This is an experimental feature
+
+* Besides RX information, TX information is exposed for received uplink
+  payloads. See [MQTT topics](mqtt-topics.md) for more information.
+
+
 ## 0.1.4
 
 * Update exposed data which is published to the

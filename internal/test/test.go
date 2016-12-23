@@ -27,7 +27,11 @@ type Config struct {
 func GetConfig() *Config {
 	log.SetLevel(log.ErrorLevel)
 
-	c := &Config{}
+	c := &Config{
+		PostgresDSN: "postgres://localhost/loraserver?sslmode=disable",
+		RedisURL:    "redis://localhost:6379",
+		MQTTServer:  "tcp://localhost:1883",
+	}
 
 	if v := os.Getenv("TEST_POSTGRES_DSN"); v != "" {
 		c.PostgresDSN = v

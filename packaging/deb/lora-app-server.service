@@ -1,0 +1,15 @@
+[Unit]
+Description=LoRa App Server
+Documentation=https://docs.loraserver.io
+Wants=network-online.target
+After=network-online.target mosquitto.service redis.service postgresql.service
+
+[Service]
+User=appserver
+Group=appserver
+EnvironmentFile=/etc/default/lora-app-server
+ExecStart=/usr/bin/lora-app-server
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

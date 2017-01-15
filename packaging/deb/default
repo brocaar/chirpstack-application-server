@@ -1,0 +1,56 @@
+# postgresql dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable) (default: "postgres://localhost/loraserver?sslmode=disable")
+POSTGRES_DSN=postgres://localhost/loraserver?sslmode=disable
+
+# automatically apply database migrations
+DB_AUTOMIGRATE=true
+
+# migrate some of the node-session data to the application-server storage (run this once when migrating from loraserver 0.11.x)
+MIGRATE_NODE_SESSIONS=true
+
+# redis url (e.g. redis://user:password@hostname/0) (default: "redis://localhost:6379")
+REDIS_URL=redis://localhost:6379
+
+# mqtt server (e.g. scheme://host:port where scheme is tcp, ssl or ws) (default: "tcp://localhost:1883")
+MQTT_SERVER=tcp://localhost:1883
+
+# mqtt server username (optional)
+MQTT_USERNAME=
+
+# mqtt server password (optional)
+MQTT_PASSWORD=
+
+# ca certificate used by the api server (optional)
+CA_CERT=
+
+# tls certificate used by the api server (optional)
+TLS_CERT=
+
+# tls key used by the api server (optional)
+TLS_KEY=
+
+# ip:port to bind the api server (default: "0.0.0.0:8001")
+BIND=0.0.0.0:8001
+
+# ip:port to bind the (user facing) http server to (web-interface and REST / gRPC api) (default: "0.0.0.0:8080")
+HTTP_BIND=0.0.0.0:8080
+
+# http server TLS certificate
+HTTP_TLS_CERT=/etc/lora-app-server/certs/http.pem
+
+# http server TLS key
+HTTP_TLS_KEY=/etc/lora-app-server/certs/http-key.pem
+
+# JWT secret used for api authentication / authorization (disabled when left blank)
+JWT_SECRET=
+
+# hostname:port of the network-server api server (default: "127.0.0.1:8000")
+NS_SERVER=127.0.0.1:8000
+
+# ca certificate used by the network-server client (optional)
+NS_CA_CERT=
+
+# tls certificate used by the network-server client (optional)
+NS_TLS_CERT=
+
+# tls key used by the network-server client (optional)
+NS_TLS_KEY=

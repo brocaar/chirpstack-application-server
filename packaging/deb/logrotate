@@ -1,0 +1,8 @@
+/var/log/lora-app-server/lora-app-server.log {
+    daily
+    rotate 7
+    missingok
+    dateext
+    copytruncate
+    compress
+}

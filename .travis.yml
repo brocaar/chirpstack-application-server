@@ -1,5 +1,6 @@
 language: go
 sudo: required
+dist: trusty
 
 go:
   - 1.7.x
@@ -27,8 +28,10 @@ script:
   - make test
 
 before_deploy:
-  - sudo apt-get install -y python-pip
+  - rvm --default use system
+  - sudo apt-get install -y python-pip ruby ruby-dev
   - sudo pip install -r requirements.txt
+  - sudo gem install --no-ri --no-rdoc fpm
   - mkdocs build
 
   - GOOS=linux GOARCH=amd64 make package package-deb

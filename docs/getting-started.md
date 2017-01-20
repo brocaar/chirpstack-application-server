@@ -1,46 +1,80 @@
 # Getting started
 
-A complete LoRa Server setup, requires the setup of the following components
-in place:
-
+A complete LoRa Server setup, requires the setup of the following components:
 
 * [LoRa Gateway Bridge](https://docs.loraserver.io/lora-gateway-bridge/)
 * [LoRa Server](https://docs.loraserver.io/loraserver/)
 * [LoRa App Server](https://docs.loraserver.io/lora-app-server/)
 
 This getting started document describes the steps needed to setup LoRa App
-Server and all its requirements on Ubuntu 16.04 LTS. When using an other Linux
-distribution, you might need to adapt these steps.
+Server using the provided Debian package repository. Please note that LoRa
+App Server is not limited to Debian / Ubuntu only! General purpose binaries
+can be downloaded from the 
+[releases](https://github.com/brocaar/lora-app-server/releases) page.
+
+!!! info
+	An alternative way to setup all the components is by using the
+	[loraserver-setup](https://github.com/brocaar/loraserver-setup) Ansible
+	scripts. It automates the steps below and can also be used in combination
+	with [Vagrant](https://www.vagrantup.com/).
 
 !!! warning
     This getting started guide does not cover setting up firewall rules! After
-    setting up LoRa Server and its requirements, don't forget to configure
+    setting up LoRa App Server and its requirements, don't forget to configure
     your firewall rules.
 
-## MQTT broker
+## Setting up LoRa App Server
 
-LoRa App Server makes use of MQTT for publishing and receiving application
-payloads. [Mosquitto](http://mosquitto.org/) is a
-popular open-source MQTT broker. Make sure you install a recent version of
-Mosquitto (the Mosquitto project provides repositories for various Linux
-distributions). Ubuntu 16.04 LTS already includes a recent version which can be
-installed with:
+These steps have been tested with:
+
+* Debian Jessie
+* Ubuntu Trusty (14.04)
+* Ubuntu Xenial (16.06)
+
+### LoRa Server Debian repository
+
+The LoRa Server project provides pre-compiled binaries packaged as Debian (.deb)
+packages. In order to activate this repository, execute the following
+commands:
+
+```bash
+source /etc/lsb-release
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1CE2AFD36DBCCA00
+sudo echo "deb https://repos.loraserver.io/${DISTRIB_ID,,} ${DISTRIB_CODENAME} testing" | sudo tee /etc/apt/sources.list.d/loraserver.list
+sudo apt-get update
+```
+
+### MQTT broker
+
+LoRa App Server makes use of MQTT for publishing and receivng application
+payloads. [Mosquitto](http://mosquitto.org/) is a popular open-source MQTT
+server. Make sure you install a **recent** version of Mosquitto.
+
+For Ubuntu Trusty (14.04), execute the following command in order to add the
+Mosquitto Apt repository:
+
+```bash
+sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
+sudo apt-get update
+```
+
+In order to install Mosquitto, execute the following command:
 
 ```bash
 sudo apt-get install mosquitto
 ```
 
-## Redis
+### Redis
 
-LoRa Server stores all session-related and non-persistent data into a
-[Redis](http://redis.io/) datastore. Note that at least Redis 2.6.0 is required.
-To Install Redis:
+LoRa App Server stores all non-persistent data into a
+[Redis](http://redis.io/) datastore. Note that at least Redis 2.6.0
+is required. To Install Redis:
 
 ```bash
 sudo apt-get install redis-server
 ```
 
-## PostgreSQL server
+### PostgreSQL server
 
 LoRa App Server stores all persistent data into a
 [PostgreSQL](http://www.postgresql.org/) database. To install PostgreSQL:
@@ -49,7 +83,7 @@ LoRa App Server stores all persistent data into a
 sudo apt-get install postgresql
 ```
 
-### Creating a loraserver user and database
+#### Creating a loraserver user and database
 
 Start the PostgreSQL promt as the `postgres` user:
 
@@ -77,102 +111,66 @@ to it:
 psql -h localhost -U loraserver -W loraserver
 ```
 
-## Install LoRa App Server
+### Install LoRa App Server
 
-Create a system user for LoRa App Server:
-
-```bash
-sudo useradd -M -r -s /bin/false appserver
-```
-
-Download and unpack a pre-compiled binary from the
-[releases](https://github.com/brocaar/lora-app-server/releases) page:
+In order to install LoRa App Server, execute the follwing command:
 
 ```bash
-# replace VERSION with the latest version or the version you want to install
-
-# download
-wget https://github.com/brocaar/lora-app-server/releases/download/VERSION/lora_app_server_VERSION_linux_amd64.tar.gz
-
-# unpack
-tar zxf lora_app_server_VERSION_linux_amd64.tar.gz
-
-# move the binary to /opt/lora-app-server/bin
-sudo mkdir -p /opt/lora-app-server/bin
-sudo mv lora-app-server /opt/lora-app-server/bin
+sudo apt-get install lora-app-server
 ```
 
-As the web-interface and API requires a TLS certificate, create a self-signed
-certificate:
+After installation, modify the configuration file which is located at
+`/etc/default/lora-app-server`.
+
+Given you used the password `dbpassword` when creating the PostgreSQL database,
+you want to change the config variable `POSTGRES_DSN` into:
+
+```
+POSTGRES_DSN=postgres://loraserver:dbpassword@localhost/loraserver?sslmode=disable
+```
+
+### Starting LoRa App Server
+
+How you need to (re)start and stop LoRa Gateway Bridge depends on if your
+distribution uses init.d or systemd.
+
+#### init.d
 
 ```bash
-# create cert directory
-sudo mkdir -p /opt/lora-app-server/certs
-
-# generate self-signed certificate
-sudo openssl req -x509 -newkey rsa:4096 -keyout /opt/lora-app-server/certs/http-key.pem -out /opt/lora-app-server/certs/http.pem -days 365 -nodes
+sudo /etc/init.d/lora-app-server [start|stop|restart|status]
 ```
 
-In order to start LoRa App Server as a service, create the file
-`/etc/systemd/system/lora-app-server.service` with as content:
-
-```
-[Unit]
-Description=lora-app-server
-After=mosquitto.service postgresql.service
-
-[Service]
-User=appserver
-Group=appserver
-ExecStart=/opt/lora-app-server/bin/lora-app-server
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-```
-
-In order to configure LoRa App Server, create a directory named
-`/etc/systemd/system/lora-app-server.service.d`:
+#### systemd
 
 ```bash
-sudo mkdir /etc/systemd/system/lora-app-server.service.d
+sudo systemctl [start|stop|restart|status] lora-app-server
 ```
 
-Inside this directory, put a file named `lora-app-server.conf`:
+### LoRa App Server log output
 
-```
-[Service]
-Environment="BIND=127.0.0.1:8001"
-Environment="HTTP_BIND=0.0.0.0:8080"
-Environment="NS_SERVER=127.0.0.1:8000"
-Environment="HTTP_TLS_CERT=/opt/lora-app-server/certs/http.pem"
-Environment="HTTP_TLS_KEY=/opt/lora-app-server/certs/http-key.pem"
-Environment="DB_AUTOMIGRATE=True"
-Environment="MIGRATE_NODE_SESSIONS=True"
-Environment="REDIS_URL=redis://localhost:6379"
-Environment="POSTGRES_DSN=postgres://loraserver:dbpassword@localhost/loraserver?sslmode=disable"
-```
+Now you've setup LoRa App Server, it is a good time to verify that LoRa App
+Server is actually up-and-running. This can be done by looking at the LoRa
+App Server log output.
 
-## Starting LoRa App Server
+Like the previous step, the command you need to use for viewing the
+log output depends on if your distribution uses init.d or systemd.
+
+#### init.d
+
+All logs are written to `/var/log/lora-app-server/lora-app-server.log`.
+To view and follow this logfile:
 
 ```bash
-# start
-sudo systemctl start lora-app-server
-
-# restart
-sudo systemctl restart lora-app-server
-
-# stop
-sudo systemctl stop lora-app-server
+tail -f /var/log/lora-app-server/lora-app-server.log
 ```
 
-Verifiy that LoRa App Server is up-and running by looking at its log-output:
+#### systemd
 
 ```bash
 journalctl -u lora-app-server -f -n 50
 ```
 
-The log should be something like:
+Example output:
 
 ```
 Sep 25 12:44:59 ubuntu-xenial systemd[1]: Started lora-app-server.
@@ -201,7 +199,9 @@ INFO[0002] grpc: addrConn.resetTransport failed to create client transport: conn
 INFO[0005] grpc: addrConn.resetTransport failed to create client transport: connection error: desc = "transport: dial tcp 127.0.0.1:8000: getsockopt: connection refused"; Reconnecting to {"127.0.0.1:8000" <nil>}
 ```
 
-To access the webinterface, point your browser to
+### Accessing LoRa App Server
+
+To access the web-interface, point your browser to
 [https://localhost:8080](https://localhost:8080). Note that it is normal that
 this will raise a security warning, as a self-signed certificate is being used.
 

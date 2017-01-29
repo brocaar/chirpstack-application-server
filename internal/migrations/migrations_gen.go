@@ -272,7 +272,7 @@ func _0009_adr_interval_and_install_marginSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0009_adr_interval_and_install_margin.sql", size: 246, mode: os.FileMode(420), modTime: time.Unix(1481138872, 0)}
+	info := bindataFileInfo{name: "0009_adr_interval_and_install_margin.sql", size: 246, mode: os.FileMode(420), modTime: time.Unix(1482345058, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

@@ -27,6 +27,22 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
         "tags": [
           "ChannelList"
         ]
@@ -144,16 +160,15 @@
     "apiCreateChannelListRequest": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string"
+        },
         "channels": {
           "type": "array",
           "items": {
             "type": "integer",
             "format": "int64"
           }
-        },
-        "name": {
-          "type": "string",
-          "format": "string"
         }
       }
     },
@@ -190,20 +205,19 @@
     "apiGetChannelListResponse": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
         "channels": {
           "type": "array",
           "items": {
             "type": "integer",
             "format": "int64"
           }
-        },
-        "id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "name": {
-          "type": "string",
-          "format": "string"
         }
       }
     },
@@ -223,35 +237,34 @@
     "apiListChannelListResponse": {
       "type": "object",
       "properties": {
+        "totalCount": {
+          "type": "string",
+          "format": "int64"
+        },
         "result": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/apiGetChannelListResponse"
           }
-        },
-        "totalCount": {
-          "type": "string",
-          "format": "int64"
         }
       }
     },
     "apiUpdateChannelListRequest": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
         "channels": {
           "type": "array",
           "items": {
             "type": "integer",
             "format": "int64"
           }
-        },
-        "id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "name": {
-          "type": "string",
-          "format": "string"
         }
       }
     },

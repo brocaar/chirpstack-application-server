@@ -59,8 +59,7 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "string"
+            "type": "string"
           }
         ],
         "tags": [
@@ -112,70 +111,66 @@
     "apiDownlinkQueueItem": {
       "type": "object",
       "properties": {
-        "confirmed": {
-          "type": "boolean",
-          "format": "boolean",
-          "title": "requires an ack from the node"
-        },
-        "data": {
-          "type": "string",
-          "format": "byte",
-          "title": "base64 encoded data"
-        },
-        "devEUI": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded DevEUI"
-        },
-        "fPort": {
-          "type": "integer",
-          "format": "int64",
-          "title": "FPort to be used"
-        },
         "id": {
           "type": "string",
           "format": "int64",
           "title": "id of the queue item"
+        },
+        "devEUI": {
+          "type": "string",
+          "title": "hex encoded DevEUI"
+        },
+        "reference": {
+          "type": "string",
+          "title": "random reference (used on ack notification)"
+        },
+        "confirmed": {
+          "type": "boolean",
+          "format": "boolean",
+          "title": "requires an ack from the node"
         },
         "pending": {
           "type": "boolean",
           "format": "boolean",
           "title": "the transmission is pending (waiting for an ack)"
         },
-        "reference": {
+        "fPort": {
+          "type": "integer",
+          "format": "int64",
+          "title": "FPort to be used"
+        },
+        "data": {
           "type": "string",
-          "format": "string",
-          "title": "random reference (used on ack notification)"
+          "format": "byte",
+          "title": "base64 encoded data"
         }
       }
     },
     "apiEnqueueDownlinkQueueItemRequest": {
       "type": "object",
       "properties": {
+        "devEUI": {
+          "type": "string",
+          "title": "hex encoded DevEUI"
+        },
+        "reference": {
+          "type": "string",
+          "title": "random reference (used on ack notification)"
+        },
         "confirmed": {
           "type": "boolean",
           "format": "boolean",
           "title": "requires an ack from the node"
-        },
-        "data": {
-          "type": "string",
-          "format": "byte",
-          "title": "base64 encoded data"
-        },
-        "devEUI": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded DevEUI"
         },
         "fPort": {
           "type": "integer",
           "format": "int64",
           "title": "FPort to be used"
         },
-        "reference": {
+        "data": {
           "type": "string",
-          "format": "string",
-          "title": "random reference (used on ack notification)"
+          "format": "byte",
+          "title": "base64 encoded data"
         }
       }
     },
@@ -187,7 +182,6 @@
       "properties": {
         "devEUI": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded DevEUI"
         }
       }

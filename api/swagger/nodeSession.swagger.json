@@ -76,8 +76,7 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "string"
+            "type": "string"
           }
         ],
         "tags": [
@@ -100,8 +99,7 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "string"
+            "type": "string"
           }
         ],
         "tags": [
@@ -124,8 +122,7 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "string"
+            "type": "string"
           },
           {
             "name": "body",
@@ -146,19 +143,41 @@
     "apiCreateNodeSessionRequest": {
       "type": "object",
       "properties": {
-        "adrInterval": {
-          "type": "integer",
-          "format": "int64"
+        "devAddr": {
+          "type": "string",
+          "title": "hex encoded DevAddr"
         },
         "appEUI": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded AppEUI"
+        },
+        "devEUI": {
+          "type": "string",
+          "title": "hex encoded DevEUI"
         },
         "appSKey": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded AppSKey"
+        },
+        "nwkSKey": {
+          "type": "string",
+          "title": "hex encoded NwkSKey"
+        },
+        "fCntUp": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "fCntDown": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "rxDelay": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "rx1DROffset": {
+          "type": "integer",
+          "format": "int64"
         },
         "cFList": {
           "type": "array",
@@ -167,51 +186,24 @@
             "format": "int64"
           }
         },
-        "devAddr": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded DevAddr"
+        "rxWindow": {
+          "$ref": "#/definitions/apiRXWindow"
         },
-        "devEUI": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded DevEUI"
-        },
-        "fCntDown": {
+        "rx2DR": {
           "type": "integer",
           "format": "int64"
         },
-        "fCntUp": {
+        "relaxFCnt": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "adrInterval": {
           "type": "integer",
           "format": "int64"
         },
         "installationMargin": {
           "type": "number",
           "format": "double"
-        },
-        "nwkSKey": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded NwkSKey"
-        },
-        "relaxFCnt": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "rx1DROffset": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "rx2DR": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "rxDelay": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow"
         }
       }
     },
@@ -223,7 +215,6 @@
       "properties": {
         "devEUI": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded DevEUI"
         }
       }
@@ -236,7 +227,6 @@
       "properties": {
         "devEUI": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded DevEUI"
         }
       }
@@ -244,19 +234,41 @@
     "apiGetNodeSessionResponse": {
       "type": "object",
       "properties": {
-        "adrInterval": {
-          "type": "integer",
-          "format": "int64"
+        "devAddr": {
+          "type": "string",
+          "title": "hex encoded DevAddr"
         },
         "appEUI": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded AppEUI"
+        },
+        "devEUI": {
+          "type": "string",
+          "title": "hex encoded DevEUI"
         },
         "appSKey": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded AppSKey"
+        },
+        "nwkSKey": {
+          "type": "string",
+          "title": "hex encoded NwkSKey"
+        },
+        "fCntUp": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "fCntDown": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "rxDelay": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "rx1DROffset": {
+          "type": "integer",
+          "format": "int64"
         },
         "cFList": {
           "type": "array",
@@ -265,21 +277,18 @@
             "format": "int64"
           }
         },
-        "devAddr": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded DevAddr"
+        "rxWindow": {
+          "$ref": "#/definitions/apiRXWindow"
         },
-        "devEUI": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded DevEUI"
-        },
-        "fCntDown": {
+        "rx2DR": {
           "type": "integer",
           "format": "int64"
         },
-        "fCntUp": {
+        "relaxFCnt": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "adrInterval": {
           "type": "integer",
           "format": "int64"
         },
@@ -290,30 +299,6 @@
         "nbTrans": {
           "type": "integer",
           "format": "int64"
-        },
-        "nwkSKey": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded NwkSKey"
-        },
-        "relaxFCnt": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "rx1DROffset": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "rx2DR": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "rxDelay": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow"
         },
         "txPower": {
           "type": "integer",
@@ -329,7 +314,6 @@
       "properties": {
         "devAddr": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded DevAddr"
         }
       }
@@ -345,19 +329,41 @@
     "apiUpdateNodeSessionRequest": {
       "type": "object",
       "properties": {
-        "adrInterval": {
-          "type": "integer",
-          "format": "int64"
+        "devAddr": {
+          "type": "string",
+          "title": "hex encoded DevAddr"
         },
         "appEUI": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded AppEUI"
+        },
+        "devEUI": {
+          "type": "string",
+          "title": "hex encoded DevEUI"
         },
         "appSKey": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded AppSKey"
+        },
+        "nwkSKey": {
+          "type": "string",
+          "title": "hex encoded NwkSKey"
+        },
+        "fCntUp": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "fCntDown": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "rxDelay": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "rx1DROffset": {
+          "type": "integer",
+          "format": "int64"
         },
         "cFList": {
           "type": "array",
@@ -366,51 +372,24 @@
             "format": "int64"
           }
         },
-        "devAddr": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded DevAddr"
+        "rxWindow": {
+          "$ref": "#/definitions/apiRXWindow"
         },
-        "devEUI": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded DevEUI"
-        },
-        "fCntDown": {
+        "rx2DR": {
           "type": "integer",
           "format": "int64"
         },
-        "fCntUp": {
+        "relaxFCnt": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "adrInterval": {
           "type": "integer",
           "format": "int64"
         },
         "installationMargin": {
           "type": "number",
           "format": "double"
-        },
-        "nwkSKey": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded NwkSKey"
-        },
-        "relaxFCnt": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "rx1DROffset": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "rx2DR": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "rxDelay": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow"
         }
       }
     },

@@ -7,6 +7,11 @@
 * More descriptive error on missing `--http-tls-cert` and `--http-tls-key`
   configuration.
 
+**Bugfixes:**
+
+* `limit` and `offset` url parameters are now correctly documented in the
+  API console for the `/api/node` endpoint.
+
 ## 0.2.0
 
 **Features:**

@@ -511,8 +511,6 @@ type NodeClient interface {
 	// Delete deletes the node matching the given DevEUI.
 	Delete(ctx context.Context, in *DeleteNodeRequest, opts ...grpc.CallOption) (*DeleteNodeResponse, error)
 	// List lists the nodes.
-	// Note limit and offset url params aren't displayed in Swagger specs, see also:
-	// https://github.com/grpc-ecosystem/grpc-gateway/pull/199
 	List(ctx context.Context, in *ListNodeRequest, opts ...grpc.CallOption) (*ListNodeResponse, error)
 	// Update updates the node matching the given DevEUI.
 	Update(ctx context.Context, in *UpdateNodeRequest, opts ...grpc.CallOption) (*UpdateNodeResponse, error)
@@ -581,8 +579,6 @@ type NodeServer interface {
 	// Delete deletes the node matching the given DevEUI.
 	Delete(context.Context, *DeleteNodeRequest) (*DeleteNodeResponse, error)
 	// List lists the nodes.
-	// Note limit and offset url params aren't displayed in Swagger specs, see also:
-	// https://github.com/grpc-ecosystem/grpc-gateway/pull/199
 	List(context.Context, *ListNodeRequest) (*ListNodeResponse, error)
 	// Update updates the node matching the given DevEUI.
 	Update(context.Context, *UpdateNodeRequest) (*UpdateNodeResponse, error)

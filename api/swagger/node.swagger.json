@@ -17,7 +17,7 @@
   "paths": {
     "/api/node": {
       "get": {
-        "summary": "List lists the nodes.\nNote limit and offset url params aren't displayed in Swagger specs, see also:\nhttps://github.com/grpc-ecosystem/grpc-gateway/pull/199",
+        "summary": "List lists the nodes.",
         "operationId": "List",
         "responses": {
           "200": {
@@ -27,6 +27,22 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
         "tags": [
           "Node"
         ]
@@ -74,8 +90,7 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "string"
+            "type": "string"
           }
         ],
         "tags": [
@@ -98,8 +113,7 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "string"
+            "type": "string"
           }
         ],
         "tags": [
@@ -122,8 +136,7 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "string"
+            "type": "string"
           },
           {
             "name": "body",
@@ -144,55 +157,51 @@
     "apiCreateNodeRequest": {
       "type": "object",
       "properties": {
-        "adrInterval": {
-          "type": "integer",
-          "format": "int64"
+        "devEUI": {
+          "type": "string",
+          "title": "hex encoded DevEUI"
         },
         "appEUI": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded AppEUI"
         },
         "appKey": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded AppKey"
-        },
-        "channelListID": {
-          "type": "string",
-          "format": "int64"
-        },
-        "devEUI": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded DevEUI"
-        },
-        "installationMargin": {
-          "type": "number",
-          "format": "double"
-        },
-        "name": {
-          "type": "string",
-          "format": "string"
-        },
-        "relaxFCnt": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "rx1DROffset": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "rx2DR": {
-          "type": "integer",
-          "format": "int64"
         },
         "rxDelay": {
           "type": "integer",
           "format": "int64"
         },
+        "rx1DROffset": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "channelListID": {
+          "type": "string",
+          "format": "int64"
+        },
         "rxWindow": {
           "$ref": "#/definitions/apiRXWindow"
+        },
+        "rx2DR": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "relaxFCnt": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "adrInterval": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "installationMargin": {
+          "type": "number",
+          "format": "double"
         }
       }
     },
@@ -204,7 +213,6 @@
       "properties": {
         "devEUI": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded DevEUI"
         }
       }
@@ -217,7 +225,6 @@
       "properties": {
         "devEUI": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded DevEUI"
         }
       }
@@ -225,55 +232,51 @@
     "apiGetNodeResponse": {
       "type": "object",
       "properties": {
-        "adrInterval": {
-          "type": "integer",
-          "format": "int64"
+        "devEUI": {
+          "type": "string",
+          "title": "hex encoded DevEUI"
         },
         "appEUI": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded AppEUI"
         },
         "appKey": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded AppKey"
-        },
-        "channelListID": {
-          "type": "string",
-          "format": "int64"
-        },
-        "devEUI": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded DevEUI"
-        },
-        "installationMargin": {
-          "type": "number",
-          "format": "double"
-        },
-        "name": {
-          "type": "string",
-          "format": "string"
-        },
-        "relaxFCnt": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "rx1DROffset": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "rx2DR": {
-          "type": "integer",
-          "format": "int64"
         },
         "rxDelay": {
           "type": "integer",
           "format": "int64"
         },
+        "rx1DROffset": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "channelListID": {
+          "type": "string",
+          "format": "int64"
+        },
         "rxWindow": {
           "$ref": "#/definitions/apiRXWindow"
+        },
+        "rx2DR": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "relaxFCnt": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "adrInterval": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "installationMargin": {
+          "type": "number",
+          "format": "double"
         }
       }
     },
@@ -293,15 +296,15 @@
     "apiListNodeResponse": {
       "type": "object",
       "properties": {
+        "totalCount": {
+          "type": "string",
+          "format": "int64"
+        },
         "result": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/apiGetNodeResponse"
           }
-        },
-        "totalCount": {
-          "type": "string",
-          "format": "int64"
         }
       }
     },
@@ -316,55 +319,51 @@
     "apiUpdateNodeRequest": {
       "type": "object",
       "properties": {
-        "adrInterval": {
-          "type": "integer",
-          "format": "int64"
+        "devEUI": {
+          "type": "string",
+          "title": "hex encoded DevEUI"
         },
         "appEUI": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded AppEUI"
         },
         "appKey": {
           "type": "string",
-          "format": "string",
           "title": "hex encoded AppKey"
-        },
-        "channelListID": {
-          "type": "string",
-          "format": "int64"
-        },
-        "devEUI": {
-          "type": "string",
-          "format": "string",
-          "title": "hex encoded DevEUI"
-        },
-        "installationMargin": {
-          "type": "number",
-          "format": "double"
-        },
-        "name": {
-          "type": "string",
-          "format": "string"
-        },
-        "relaxFCnt": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "rx1DROffset": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "rx2DR": {
-          "type": "integer",
-          "format": "int64"
         },
         "rxDelay": {
           "type": "integer",
           "format": "int64"
         },
+        "rx1DROffset": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "channelListID": {
+          "type": "string",
+          "format": "int64"
+        },
         "rxWindow": {
           "$ref": "#/definitions/apiRXWindow"
+        },
+        "rx2DR": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "relaxFCnt": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "adrInterval": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "installationMargin": {
+          "type": "number",
+          "format": "double"
         }
       }
     },

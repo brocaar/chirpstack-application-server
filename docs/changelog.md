@@ -1,5 +1,12 @@
 # Changelog
 
+## Development
+
+**Features:**
+
+* More descriptive error on missing `--http-tls-cert` and `--http-tls-key`
+  configuration.
+
 ## 0.2.0
 
 **Features:**

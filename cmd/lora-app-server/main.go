@@ -119,6 +119,9 @@ func run(c *cli.Context) error {
 		}
 	})
 	go func() {
+		if c.String("http-tls-cert") == "" || c.String("http-tls-key") == "" {
+			log.Fatal("--http-tls-cert (HTTP_TLS_CERT) and --http-tls-key (HTTP_TLS_KEY) must be set")
+		}
 		log.WithFields(log.Fields{
 			"bind":     c.String("http-bind"),
 			"tls-cert": c.String("http-tls-cert"),

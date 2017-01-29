@@ -10,7 +10,7 @@
 **Bugfixes:**
 
 * `limit` and `offset` url parameters are now correctly documented in the
-  API console for the `/api/node` endpoint.
+  API console for the `/api/node` and `/api/channelList` endpoints.
 
 ## 0.2.0
 

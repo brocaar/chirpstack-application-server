@@ -17,7 +17,7 @@
   "paths": {
     "/api/channelList": {
       "get": {
-        "summary": "List lists the channel-lists given an offset and limit.\nNote limit and offset url params aren't displayed in Swagger specs, see also:\nhttps://github.com/grpc-ecosystem/grpc-gateway/pull/199",
+        "summary": "List lists the channel-lists given an offset and limit.",
         "operationId": "List",
         "responses": {
           "200": {

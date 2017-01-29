@@ -306,8 +306,6 @@ type ChannelListClient interface {
 	// Get returns the channel-list matching the given id.
 	Get(ctx context.Context, in *GetChannelListRequest, opts ...grpc.CallOption) (*GetChannelListResponse, error)
 	// List lists the channel-lists given an offset and limit.
-	// Note limit and offset url params aren't displayed in Swagger specs, see also:
-	// https://github.com/grpc-ecosystem/grpc-gateway/pull/199
 	List(ctx context.Context, in *ListChannelListRequest, opts ...grpc.CallOption) (*ListChannelListResponse, error)
 	// Delete deletes the channel-list matching the given id.
 	Delete(ctx context.Context, in *DeleteChannelListRequest, opts ...grpc.CallOption) (*DeleteChannelListResponse, error)
@@ -376,8 +374,6 @@ type ChannelListServer interface {
 	// Get returns the channel-list matching the given id.
 	Get(context.Context, *GetChannelListRequest) (*GetChannelListResponse, error)
 	// List lists the channel-lists given an offset and limit.
-	// Note limit and offset url params aren't displayed in Swagger specs, see also:
-	// https://github.com/grpc-ecosystem/grpc-gateway/pull/199
 	List(context.Context, *ListChannelListRequest) (*ListChannelListResponse, error)
 	// Delete deletes the channel-list matching the given id.
 	Delete(context.Context, *DeleteChannelListRequest) (*DeleteChannelListResponse, error)

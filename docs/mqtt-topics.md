@@ -12,6 +12,9 @@ mosquitto_sub -t "application/0101010101010101/#" -v          # display everythi
 mosquitto_sub -t "application/0101010101010101/node/+/rx" -v  # display only the RX payloads for the given application
 ```
 
+!!! info
+	Note that the MQTT topics are lowercase
+
 ## Receiving
 
 ### application/[AppEUI]/node/[DevEUI]/rx

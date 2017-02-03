@@ -11,13 +11,19 @@ import (
 func TestGetNextDownlinkQeueueItem(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database with node", t, func() {
+	Convey("Given a clean database with application and node", t, func() {
 		db, err := OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
+		app := Application{
+			Name: "test",
+		}
+		So(CreateApplication(db, &app), ShouldBeNil)
+
 		node := Node{
-			DevEUI: [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
+			ApplicationID: app.ID,
+			DevEUI:        [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		}
 		So(CreateNode(db, node), ShouldBeNil)
 
@@ -62,13 +68,19 @@ func TestGetNextDownlinkQeueueItem(t *testing.T) {
 func TestDownlinkQueueFuncs(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database with node", t, func() {
+	Convey("Given a clean database with application and node", t, func() {
 		db, err := OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
+		app := Application{
+			Name: "test",
+		}
+		So(CreateApplication(db, &app), ShouldBeNil)
+
 		node := Node{
-			DevEUI: [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
+			ApplicationID: app.ID,
+			DevEUI:        [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		}
 		So(CreateNode(db, node), ShouldBeNil)
 

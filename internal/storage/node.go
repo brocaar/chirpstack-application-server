@@ -69,6 +69,7 @@ func (r RXWindow) Value() (driver.Value, error) {
 
 // Node contains the information of a node.
 type Node struct {
+	ApplicationID int64             `db:"application_id"`
 	Name          string            `db:"name"`
 	DevEUI        lorawan.EUI64     `db:"dev_eui"`
 	AppEUI        lorawan.EUI64     `db:"app_eui"`
@@ -110,6 +111,7 @@ func CreateNode(db *sqlx.DB, n Node) error {
 
 	_, err := db.Exec(`
 		insert into node (
+			application_id,
 			name,
 			dev_eui,
 			app_eui,
@@ -126,7 +128,8 @@ func CreateNode(db *sqlx.DB, n Node) error {
 			adr_interval,
 			installation_margin
 		)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+		n.ApplicationID,
 		n.Name,
 		n.DevEUI[:],
 		n.AppEUI[:],
@@ -158,22 +161,25 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 
 	res, err := db.Exec(`
 		update node set
-			name = $1,
-			app_eui = $2,
-			app_key = $3,
-			dev_addr = $4,
-			app_s_key = $5,
-			nwk_s_key = $6,
-			used_dev_nonces = $7,
-			rx_delay = $8,
-			rx1_dr_offset = $9,
-			rx_window = $10,
-			rx2_dr = $11,
-			channel_list_id = $12,
-			relax_fcnt = $13,
-			adr_interval = $14,
-			installation_margin = $15
-		where dev_eui = $16`,
+			application_id = $2,
+			name = $3,
+			app_eui = $4,
+			app_key = $5,
+			dev_addr = $6,
+			app_s_key = $7,
+			nwk_s_key = $8,
+			used_dev_nonces = $9,
+			rx_delay = $10,
+			rx1_dr_offset = $11,
+			rx_window = $12,
+			rx2_dr = $13,
+			channel_list_id = $14,
+			relax_fcnt = $15,
+			adr_interval = $16,
+			installation_margin = $17
+		where dev_eui = $1`,
+		n.DevEUI[:],
+		n.ApplicationID,
 		n.Name,
 		n.AppEUI[:],
 		n.AppKey[:],
@@ -189,7 +195,6 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 		n.RelaxFCnt,
 		n.ADRInterval,
 		n.InstallationMargin,
-		n.DevEUI[:],
 	)
 	if err != nil {
 		return fmt.Errorf("update node %s error: %s", n.DevEUI, err)

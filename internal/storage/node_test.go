@@ -74,8 +74,13 @@ func TestGetCFListForNode(t *testing.T) {
 			},
 		}
 		So(CreateChannelList(ctx.DB, &channelList), ShouldBeNil)
+		app := Application{
+			Name: "test",
+		}
+		So(CreateApplication(db, &app), ShouldBeNil)
 		node := Node{
-			DevEUI: [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
+			ApplicationID: app.ID,
+			DevEUI:        [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
 		}
 		So(CreateNode(ctx.DB, node), ShouldBeNil)
 		Convey("Then GetCFListForNode returns nil", func() {
@@ -104,15 +109,21 @@ func TestGetCFListForNode(t *testing.T) {
 func TestNodeMethods(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database", t, func() {
+	Convey("Given a clean database with an application", t, func() {
 		db, err := OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
+		app := Application{
+			Name: "test",
+		}
+		So(CreateApplication(db, &app), ShouldBeNil)
+
 		Convey("When creating a node", func() {
 			node := Node{
-				DevEUI: [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
-				AppKey: [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+				ApplicationID: app.ID,
+				DevEUI:        [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
+				AppKey:        [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 
 				RXDelay:            2,
 				RX1DROffset:        3,

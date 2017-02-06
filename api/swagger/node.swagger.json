@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/node": {
+    "/api/applications/{applicationName}/nodes": {
       "get": {
         "summary": "List lists the nodes.",
         "operationId": "List",
@@ -28,6 +28,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "limit",
             "in": "query",
@@ -60,6 +66,12 @@
         },
         "parameters": [
           {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -73,7 +85,7 @@
         ]
       }
     },
-    "/api/node/{devEUI}": {
+    "/api/applications/{applicationName}/nodes/{devEUI}": {
       "get": {
         "summary": "Get returns the node for the requested DevEUI.",
         "operationId": "Get",
@@ -86,6 +98,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "devEUI",
             "in": "path",
@@ -110,6 +128,12 @@
         },
         "parameters": [
           {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
             "name": "devEUI",
             "in": "path",
             "required": true,
@@ -132,6 +156,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "devEUI",
             "in": "path",
@@ -202,6 +232,10 @@
         "installationMargin": {
           "type": "number",
           "format": "double"
+        },
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application to which the node must be linked"
         }
       }
     },
@@ -214,6 +248,10 @@
         "devEUI": {
           "type": "string",
           "title": "hex encoded DevEUI"
+        },
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application to which the node is linked"
         }
       }
     },
@@ -226,6 +264,10 @@
         "devEUI": {
           "type": "string",
           "title": "hex encoded DevEUI"
+        },
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application to which the node is linked"
         }
       }
     },
@@ -290,6 +332,10 @@
         "offset": {
           "type": "string",
           "format": "int64"
+        },
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application for which to list the nodes"
         }
       }
     },
@@ -364,6 +410,10 @@
         "installationMargin": {
           "type": "number",
           "format": "double"
+        },
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application to which the node is linked"
         }
       }
     },

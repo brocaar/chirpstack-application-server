@@ -44,18 +44,24 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Create"),
-		auth.ValidateApplication(appEUI),
+		auth.ValidateApplicationName(req.ApplicationName),
 		auth.ValidateNode(devEUI),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
+	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, "get application error: %s", err)
+	}
+
 	node := storage.Node{
-		Name:      req.Name,
-		DevEUI:    devEUI,
-		AppEUI:    appEUI,
-		AppKey:    appKey,
-		RelaxFCnt: req.RelaxFCnt,
+		ApplicationID: app.ID,
+		Name:          req.Name,
+		DevEUI:        devEUI,
+		AppEUI:        appEUI,
+		AppKey:        appKey,
+		RelaxFCnt:     req.RelaxFCnt,
 
 		RXDelay:     uint8(req.RxDelay),
 		RX1DROffset: uint8(req.Rx1DROffset),
@@ -83,17 +89,27 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
+	if err := a.validator.Validate(ctx,
+		auth.ValidateAPIMethod("Node.Get"),
+		auth.ValidateApplicationName(req.ApplicationName),
+		auth.ValidateNode(eui),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+
 	node, err := storage.GetNode(a.ctx.DB, eui)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.Get"),
-		auth.ValidateApplication(node.AppEUI),
-		auth.ValidateNode(node.DevEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	// test that the node belongs to the given application
+	if node.ApplicationID != app.ID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	devEUI, err := node.DevEUI.MarshalText()
@@ -134,11 +150,17 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 func (a *NodeAPI) List(ctx context.Context, req *pb.ListNodeRequest) (*pb.ListNodeResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.List"),
+		auth.ValidateApplicationName(req.ApplicationName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	nodes, err := storage.GetNodes(a.ctx.DB, int(req.Limit), int(req.Offset))
+	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+
+	nodes, err := storage.GetNodesForApplicationID(a.ctx.DB, app.ID, int(req.Limit), int(req.Offset))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, err.Error())
 	}
@@ -163,15 +185,25 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Update"),
-		auth.ValidateApplication(appEUI),
+		auth.ValidateApplicationName(req.ApplicationName),
 		auth.ValidateNode(devEUI),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
+	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+
 	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+
+	// test that the node belongs to the given application
+	if node.ApplicationID != app.ID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	node.Name = req.Name
@@ -204,19 +236,27 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.De
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	// get the node so we can validate if the user has access to this
-	// application
+	if err := a.validator.Validate(ctx,
+		auth.ValidateAPIMethod("Node.Delete"),
+		auth.ValidateApplicationName(req.ApplicationName),
+		auth.ValidateNode(eui),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	node, err := storage.GetNode(a.ctx.DB, eui)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.Delete"),
-		auth.ValidateApplication(node.AppEUI),
-		auth.ValidateNode(node.DevEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+
+	// test that the node belongs to the given application
+	if node.ApplicationID != app.ID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	if err := storage.DeleteNode(a.ctx.DB, eui); err != nil {

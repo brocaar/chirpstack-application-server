@@ -16,7 +16,7 @@ import (
 func TestNodeAPI(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database with an api instance", t, func() {
+	Convey("Given a clean database with an application and api instance", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
@@ -27,8 +27,14 @@ func TestNodeAPI(t *testing.T) {
 		validator := &TestValidator{}
 		api := NewNodeAPI(lsCtx, validator)
 
+		app := storage.Application{
+			Name: "test-app",
+		}
+		So(storage.CreateApplication(db, &app), ShouldBeNil)
+
 		Convey("When creating a node", func() {
 			_, err := api.Create(ctx, &pb.CreateNodeRequest{
+				ApplicationName:    "test-app",
 				DevEUI:             "0807060504030201",
 				AppEUI:             "0102030405060708",
 				AppKey:             "01020304050607080102030405060708",
@@ -44,7 +50,10 @@ func TestNodeAPI(t *testing.T) {
 			So(validator.validatorFuncs, ShouldHaveLength, 3)
 
 			Convey("The node has been created", func() {
-				node, err := api.Get(ctx, &pb.GetNodeRequest{DevEUI: "0807060504030201"})
+				node, err := api.Get(ctx, &pb.GetNodeRequest{
+					ApplicationName: "test-app",
+					DevEUI:          "0807060504030201",
+				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 3)
@@ -61,13 +70,14 @@ func TestNodeAPI(t *testing.T) {
 				})
 			})
 
-			Convey("Then listing the nodes returns a single items", func() {
+			Convey("Then listing the nodes for the application returns a single items", func() {
 				nodes, err := api.List(ctx, &pb.ListNodeRequest{
-					Limit: 10,
+					ApplicationName: "test-app",
+					Limit:           10,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
+				So(validator.validatorFuncs, ShouldHaveLength, 2)
 				So(nodes.Result, ShouldHaveLength, 1)
 				So(nodes.TotalCount, ShouldEqual, 1)
 				So(nodes.Result[0], ShouldResemble, &pb.GetNodeResponse{
@@ -85,6 +95,7 @@ func TestNodeAPI(t *testing.T) {
 
 			Convey("When updating the node", func() {
 				_, err := api.Update(ctx, &pb.UpdateNodeRequest{
+					ApplicationName:    "test-app",
 					DevEUI:             "0807060504030201",
 					AppEUI:             "0102030405060708",
 					AppKey:             "08070605040302010807060504030201",
@@ -100,7 +111,10 @@ func TestNodeAPI(t *testing.T) {
 				So(validator.validatorFuncs, ShouldHaveLength, 3)
 
 				Convey("Then the node has been updated", func() {
-					node, err := api.Get(ctx, &pb.GetNodeRequest{DevEUI: "0807060504030201"})
+					node, err := api.Get(ctx, &pb.GetNodeRequest{
+						ApplicationName: "test-app",
+						DevEUI:          "0807060504030201",
+					})
 					So(err, ShouldBeNil)
 					So(node, ShouldResemble, &pb.GetNodeResponse{
 						DevEUI:             "0807060504030201",
@@ -117,7 +131,10 @@ func TestNodeAPI(t *testing.T) {
 			})
 
 			Convey("After deleting the node", func() {
-				_, err := api.Delete(ctx, &pb.DeleteNodeRequest{DevEUI: "0807060504030201"})
+				_, err := api.Delete(ctx, &pb.DeleteNodeRequest{
+					ApplicationName: "test-app",
+					DevEUI:          "0807060504030201",
+				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 3)
@@ -130,7 +147,10 @@ func TestNodeAPI(t *testing.T) {
 				})
 
 				Convey("Then listing the nodes returns zero nodes", func() {
-					nodes, err := api.List(ctx, &pb.ListNodeRequest{Limit: 10})
+					nodes, err := api.List(ctx, &pb.ListNodeRequest{
+						ApplicationName: "test-app",
+						Limit:           10,
+					})
 					So(err, ShouldBeNil)
 					So(nodes.TotalCount, ShouldEqual, 0)
 					So(nodes.Result, ShouldHaveLength, 0)

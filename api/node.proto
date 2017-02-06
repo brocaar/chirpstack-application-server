@@ -11,7 +11,7 @@ service Node {
     // Create creates the given node.
     rpc Create(CreateNodeRequest) returns (CreateNodeResponse) {
         option(google.api.http) = {
-            post: "/api/node"
+            post: "/api/applications/{applicationName}/nodes"
             body: "*"
         };
     }
@@ -19,28 +19,28 @@ service Node {
     // Get returns the node for the requested DevEUI.
     rpc Get(GetNodeRequest) returns (GetNodeResponse) {
         option (google.api.http) = {
-            get: "/api/node/{devEUI}"
+            get: "/api/applications/{applicationName}/nodes/{devEUI}"
         };
     }
 
     // Delete deletes the node matching the given DevEUI.
     rpc Delete(DeleteNodeRequest) returns (DeleteNodeResponse) {
         option (google.api.http) = {
-            delete: "/api/node/{devEUI}"
+            delete: "/api/applications/{applicationName}/nodes/{devEUI}"
         };
     }
 
     // List lists the nodes.
     rpc List(ListNodeRequest) returns (ListNodeResponse) {
         option (google.api.http) = {
-            get: "/api/node"
+            get: "/api/applications/{applicationName}/nodes"
         };
     }
 
     // Update updates the node matching the given DevEUI.
     rpc Update(UpdateNodeRequest) returns (UpdateNodeResponse) {
         option (google.api.http) = {
-            put: "/api/node/{devEUI}"
+            put: "/api/applications/{applicationName}/nodes/{devEUI}"
             body: "*"
         };
     }
@@ -62,6 +62,8 @@ message CreateNodeRequest {
 	bool relaxFCnt = 10;
 	uint32 adrInterval = 11;
 	double installationMargin = 12;
+	// name of the application to which the node must be linked
+	string applicationName = 13;
 }
 
 message CreateNodeResponse {}
@@ -69,6 +71,8 @@ message CreateNodeResponse {}
 message GetNodeRequest {
     // hex encoded DevEUI
     string devEUI = 1;
+	// name of the application to which the node is linked
+	string applicationName = 2;
 }
 
 message GetNodeResponse {
@@ -92,6 +96,8 @@ message GetNodeResponse {
 message DeleteNodeRequest {
     // hex encoded DevEUI
     string devEUI = 1;
+	// name of the application to which the node is linked
+	string applicationName = 2;
 }
 
 message DeleteNodeResponse {}
@@ -99,6 +105,8 @@ message DeleteNodeResponse {}
 message ListNodeRequest {
     int64 limit = 1;
     int64 offset = 2;
+	// name of the application for which to list the nodes
+	string applicationName = 3;
 }
 
 message ListNodeResponse {
@@ -106,12 +114,6 @@ message ListNodeResponse {
     repeated GetNodeResponse result = 2;
 }
 
-message ListNodeByAppEUIRequest {
-    int64 limit = 1;
-    int64 offset = 2;
-    // hex encoded AppEUI
-    string appEUI = 3;
-}
 
 message UpdateNodeRequest {
     // hex encoded DevEUI
@@ -129,6 +131,8 @@ message UpdateNodeRequest {
 	bool relaxFCnt = 10;
 	uint32 adrInterval = 11;
 	double installationMargin = 12;
+	// name of the application to which the node is linked
+	string applicationName = 13;
 }
 
 message UpdateNodeResponse {}

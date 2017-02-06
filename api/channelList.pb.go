@@ -32,7 +32,6 @@ It has these top-level messages:
 	DeleteNodeResponse
 	ListNodeRequest
 	ListNodeResponse
-	ListNodeByAppEUIRequest
 	UpdateNodeRequest
 	UpdateNodeResponse
 	EnqueueDownlinkQueueItemRequest

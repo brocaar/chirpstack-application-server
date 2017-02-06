@@ -11,6 +11,7 @@ It is generated from these files:
 	downlinkQueue.proto
 	nodeSession.proto
 	common.proto
+	application.proto
 
 It has these top-level messages:
 	CreateChannelListRequest
@@ -51,6 +52,16 @@ It has these top-level messages:
 	DeleteNodeSessionResponse
 	GetRandomDevAddrRequest
 	GetRandomDevAddrResponse
+	CreateApplicationRequest
+	CreateApplicationResponse
+	GetApplicationRequest
+	GetApplicationResponse
+	UpdateApplicationRequest
+	UpdateApplicationResponse
+	DeleteApplicationRequest
+	DeleteApplicationResponse
+	ListApplicationRequest
+	ListApplicationResponse
 */
 package api
 

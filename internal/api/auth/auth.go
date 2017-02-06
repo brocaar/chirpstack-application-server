@@ -128,6 +128,28 @@ func ValidateApplication(appEUI lorawan.EUI64) ValidatorFunc {
 	}
 }
 
+// ValidateApplicationName validates if the user has permission to the given
+// application name.
+func ValidateApplicationName(name string) ValidatorFunc {
+	return func(claims *Claims) error {
+		if claims.Admin {
+			return nil
+		}
+
+		for _, app := range claims.Applications {
+			if app == "*" {
+				return nil
+			}
+
+			if name == app {
+				return nil
+			}
+		}
+
+		return fmt.Errorf("no permission to application %s", name)
+	}
+}
+
 // ValidateNode validates if the user has permission to the given DevEUI.
 func ValidateNode(devEUI lorawan.EUI64) ValidatorFunc {
 	return func(claims *Claims) error {

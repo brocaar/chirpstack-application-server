@@ -272,7 +272,7 @@ func _0010_recreate_application_tableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0010_recreate_application_table.sql", size: 804, mode: os.FileMode(420), modTime: time.Unix(1486123701, 0)}
+	info := bindataFileInfo{name: "0010_recreate_application_table.sql", size: 804, mode: os.FileMode(420), modTime: time.Unix(1486132846, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

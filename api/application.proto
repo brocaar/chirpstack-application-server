@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package api;
+
+// for grpc-gateway
+import "google/api/annotations.proto";
+
+// Application is the service managing applications.
+service Application {
+	// Create creates the given application.
+	rpc Create(CreateApplicationRequest) returns (CreateApplicationResponse) {
+		option(google.api.http) = {
+			post: "/api/applications"
+			body: "*"
+		};
+	}
+
+	// Get returns the application for the requested application id.
+	rpc Get(GetApplicationRequest) returns (GetApplicationResponse) {
+		option(google.api.http) = {
+			get: "/api/applications/{name}"
+		};
+	}
+
+	// Update updates the given application.
+	rpc Update(UpdateApplicationRequest) returns (UpdateApplicationResponse) {
+		option(google.api.http) = {
+			put: "/api/applications/{name}"
+			body: "*"
+		};
+	}
+
+	// Delete deletes the given application.
+	rpc Delete(DeleteApplicationRequest) returns (DeleteApplicationResponse) {
+		option(google.api.http) = {
+			delete: "/api/applications/{name}"
+		};
+	}
+
+	// List lists the available applications.
+	rpc List(ListApplicationRequest) returns (ListApplicationResponse) {
+		option(google.api.http) = {
+			get: "/api/applications"
+		};
+	}
+}
+
+message CreateApplicationRequest {
+	// name of the application (must be unique)
+	string name = 1;
+
+	// description of the application
+	string description = 2;
+}
+
+message CreateApplicationResponse {}
+
+message GetApplicationRequest {
+	// name of the application
+	string name = 1;
+}
+
+message GetApplicationResponse {
+	// name of the application
+	string name = 1;
+
+	// description of the application
+	string description = 2;
+}
+
+message UpdateApplicationRequest {
+	// name of the application (to be updated)
+	string name = 1;
+
+	// description of the application
+	string description = 2;
+}
+
+message UpdateApplicationResponse {}
+
+message DeleteApplicationRequest {
+	// name of the application
+	string name = 1;
+}
+
+message DeleteApplicationResponse {}
+
+message ListApplicationRequest {
+	int64 limit = 1;
+	int64 offset = 2;
+}
+
+message ListApplicationResponse {
+	int64 totalCount = 1;
+	repeated GetApplicationResponse result = 2;
+}

@@ -50,8 +50,11 @@ func TestValidateApplication(t *testing.T) {
 
 		for _, test := range testTable {
 			Convey("Test: "+test.Description, func() {
-				v := ValidateApplication(test.AppEUI)
-				So(v(&test.Claims), ShouldResemble, test.Error)
+				v1 := ValidateApplication(test.AppEUI)
+				So(v1(&test.Claims), ShouldResemble, test.Error)
+
+				v2 := ValidateApplicationName(test.AppEUI.String())
+				So(v2(&test.Claims), ShouldResemble, test.Error)
 			})
 		}
 	})

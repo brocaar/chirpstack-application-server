@@ -10,7 +10,7 @@ service DownlinkQueue {
     // Enqueue adds the given item to the queue.
     rpc Enqueue(EnqueueDownlinkQueueItemRequest) returns (EnqueueDownlinkQueueItemResponse) {
         option(google.api.http) = {
-            post: "/api/downlinkQueue"
+            post: "/api/applications/{applicationName}/nodes/{devEUI}/queue"
             body: "*"
         };
     }
@@ -18,14 +18,14 @@ service DownlinkQueue {
     // Delete deletes an item from the queue.
     rpc Delete(DeleteDownlinkQeueueItemRequest) returns (DeleteDownlinkQueueItemResponse) {
         option(google.api.http) = {
-            delete: "/api/downlinkQueue/{id}"
+            delete: "/api/applications/{applicationName}/nodes/{devEUI}/queue/{id}"
         };
     }
 
     // List lists the items in the queue for the given devEUI.
     rpc List(ListDownlinkQueueItemsRequest) returns (ListDownlinkQueueItemsResponse) {
         option(google.api.http) = {
-            get: "/api/downlinkQueue/{devEUI}"
+            get: "/api/applications/{applicationName}/nodes/{devEUI}/queue"
         };
     }
 }
@@ -41,6 +41,8 @@ message EnqueueDownlinkQueueItemRequest {
     uint32 fPort = 4;
     // base64 encoded data
     bytes data = 5;
+	// name of the application to which the node is linked
+	string applicationName = 6;
 }
 
 message EnqueueDownlinkQueueItemResponse {}
@@ -48,6 +50,10 @@ message EnqueueDownlinkQueueItemResponse {}
 message DeleteDownlinkQeueueItemRequest {
     // ID of the queue item
     int64 id = 1;
+    // hex encoded DevEUI
+    string devEUI = 2;
+	// name of the application to which the node is linked
+	string applicationName = 3;
 }
 
 message DeleteDownlinkQueueItemResponse {}
@@ -72,6 +78,8 @@ message DownlinkQueueItem {
 message ListDownlinkQueueItemsRequest {
     // hex encoded DevEUI
     string devEUI = 1;
+	// name of the application to which the node is linked
+	string applicationName = 2;
 }
 
 message ListDownlinkQueueItemsResponse {

@@ -15,7 +15,36 @@
     "application/json"
   ],
   "paths": {
-    "/api/downlinkQueue": {
+    "/api/applications/{applicationName}/nodes/{devEUI}/queue": {
+      "get": {
+        "summary": "List lists the items in the queue for the given devEUI.",
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListDownlinkQueueItemsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "DownlinkQueue"
+        ]
+      },
       "post": {
         "summary": "Enqueue adds the given item to the queue.",
         "operationId": "Enqueue",
@@ -28,6 +57,18 @@
           }
         },
         "parameters": [
+          {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "body",
             "in": "body",
@@ -42,32 +83,7 @@
         ]
       }
     },
-    "/api/downlinkQueue/{devEUI}": {
-      "get": {
-        "summary": "List lists the items in the queue for the given devEUI.",
-        "operationId": "List",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiListDownlinkQueueItemsResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "devEUI",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "DownlinkQueue"
-        ]
-      }
-    },
-    "/api/downlinkQueue/{id}": {
+    "/api/applications/{applicationName}/nodes/{devEUI}/queue/{id}": {
       "delete": {
         "summary": "Delete deletes an item from the queue.",
         "operationId": "Delete",
@@ -80,6 +96,18 @@
           }
         },
         "parameters": [
+          {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "id",
             "in": "path",
@@ -102,6 +130,14 @@
           "type": "string",
           "format": "int64",
           "title": "ID of the queue item"
+        },
+        "devEUI": {
+          "type": "string",
+          "title": "hex encoded DevEUI"
+        },
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application to which the node is linked"
         }
       }
     },
@@ -171,6 +207,10 @@
           "type": "string",
           "format": "byte",
           "title": "base64 encoded data"
+        },
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application to which the node is linked"
         }
       }
     },
@@ -183,6 +223,10 @@
         "devEUI": {
           "type": "string",
           "title": "hex encoded DevEUI"
+        },
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application to which the node is linked"
         }
       }
     },

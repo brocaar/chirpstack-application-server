@@ -50,6 +50,16 @@ func CreateApplication(db *sqlx.DB, item *Application) error {
 	return nil
 }
 
+// GetApplication returns the Application for the given id.
+func GetApplication(db *sqlx.DB, id int64) (Application, error) {
+	var app Application
+	err := db.Get(&app, "select * from application where id = $1", id)
+	if err != nil {
+		return app, fmt.Errorf("get application error: %s", err)
+	}
+	return app, nil
+}
+
 // GetApplicationByName returns the Application for the given application name.
 func GetApplicationByName(db *sqlx.DB, name string) (Application, error) {
 	var app Application

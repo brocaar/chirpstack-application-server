@@ -30,9 +30,21 @@ func NewDownlinkQueueAPI(ctx common.Context, validator auth.Validator) *Downlink
 
 func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQueueItemRequest) (*pb.EnqueueDownlinkQueueItemResponse, error) {
 	var devEUI lorawan.EUI64
-
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	if err := d.validator.Validate(ctx,
+		auth.ValidateAPIMethod("DownlinkQueue.Enqueue"),
+		auth.ValidateApplicationName(req.ApplicationName),
+		auth.ValidateNode(devEUI),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	app, err := storage.GetApplicationByName(d.ctx.DB, req.ApplicationName)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
 	node, err := storage.GetNode(d.ctx.DB, devEUI)
@@ -40,23 +52,17 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	if err := d.validator.Validate(ctx,
-		auth.ValidateAPIMethod("DownlinkQueue.Enqueue"),
-		auth.ValidateApplication(node.AppEUI),
-		auth.ValidateNode(node.DevEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	// test that the node belongs to the given application
+	if node.ApplicationID != app.ID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	qi := storage.DownlinkQueueItem{
+		DevEUI:    devEUI,
 		Reference: req.Reference,
 		Confirmed: req.Confirmed,
 		FPort:     uint8(req.FPort),
 		Data:      req.Data,
-	}
-
-	if err := qi.DevEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
 	if err := storage.CreateDownlinkQueueItem(d.ctx.DB, &qi); err != nil {
@@ -66,22 +72,39 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 }
 
 func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeueueItemRequest) (*pb.DeleteDownlinkQueueItemResponse, error) {
-	qi, err := storage.GetDownlinkQueueItem(d.ctx.DB, req.Id)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	node, err := storage.GetNode(d.ctx.DB, qi.DevEUI)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	var devEUI lorawan.EUI64
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
 	if err := d.validator.Validate(ctx,
 		auth.ValidateAPIMethod("DownlinkQueue.Delete"),
-		auth.ValidateApplication(node.AppEUI),
-		auth.ValidateNode(node.DevEUI),
+		auth.ValidateApplicationName(req.ApplicationName),
+		auth.ValidateNode(devEUI),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	qi, err := storage.GetDownlinkQueueItem(d.ctx.DB, req.Id)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+	node, err := storage.GetNode(d.ctx.DB, qi.DevEUI)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+	app, err := storage.GetApplication(d.ctx.DB, node.ApplicationID)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Internal, err.Error())
+	}
+
+	// test that the node belongs to the given application
+	if node.ApplicationID != app.ID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
+	}
+	// test that the queue-item belongs to the given node
+	if qi.DevEUI != node.DevEUI {
+		return nil, grpc.Errorf(codes.NotFound, "queue-item does not exist for the given node")
 	}
 
 	if err := storage.DeleteDownlinkQueueItem(d.ctx.DB, req.Id); err != nil {
@@ -93,22 +116,30 @@ func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeu
 
 func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueItemsRequest) (*pb.ListDownlinkQueueItemsResponse, error) {
 	var devEUI lorawan.EUI64
-
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	if err := d.validator.Validate(ctx,
+		auth.ValidateAPIMethod("DownlinkQueue.List"),
+		auth.ValidateApplicationName(req.ApplicationName),
+		auth.ValidateNode(devEUI),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	node, err := storage.GetNode(d.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
+	app, err := storage.GetApplication(d.ctx.DB, node.ApplicationID)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Internal, err.Error())
+	}
 
-	if err := d.validator.Validate(ctx,
-		auth.ValidateAPIMethod("DownlinkQueue.List"),
-		auth.ValidateApplication(node.AppEUI),
-		auth.ValidateNode(node.DevEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	// test that the node belongs to the given application
+	if node.ApplicationID != app.ID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	items, err := storage.GetDownlinkQueueItems(d.ctx.DB, node.DevEUI)

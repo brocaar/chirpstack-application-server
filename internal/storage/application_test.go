@@ -41,6 +41,12 @@ func TestApplication(t *testing.T) {
 				So(app2, ShouldResemble, app)
 			})
 
+			Convey("It can be get by id", func() {
+				app2, err := GetApplication(db, app.ID)
+				So(err, ShouldBeNil)
+				So(app2, ShouldResemble, app)
+			})
+
 			Convey("Then get applications returns a single application", func() {
 				apps, err := GetApplications(db, 10, 0)
 				So(err, ShouldBeNil)

@@ -188,7 +188,7 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 		DevEUI:  node.DevEUI,
 	})
 	if err != nil {
-		log.Error("send join notification to handler error: %s", err)
+		log.Errorf("send join notification to handler error: %s", err)
 	}
 
 	return &resp, nil
@@ -377,7 +377,7 @@ func (a *ApplicationServerAPI) HandleDataDownACK(ctx context.Context, req *as.Ha
 		Reference: qi.Reference,
 	})
 	if err != nil {
-		log.Error("send ack notification to handler error: %s", err)
+		log.Errorf("send ack notification to handler error: %s", err)
 	}
 
 	return &as.HandleDataDownACKResponse{}, nil

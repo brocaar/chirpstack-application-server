@@ -31,14 +31,11 @@ func NewNodeSessionAPI(ctx common.Context, validator auth.Validator) *NodeSessio
 // Create creates the given node-session.
 func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRequest) (*pb.CreateNodeSessionResponse, error) {
 	var devAddr lorawan.DevAddr
-	var appEUI, devEUI lorawan.EUI64
+	var devEUI lorawan.EUI64
 	var appSKey, nwkSKey lorawan.AES128Key
 
 	if err := devAddr.UnmarshalText([]byte(req.DevAddr)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devAddr: %s", err)
-	}
-	if err := appEUI.UnmarshalText([]byte(req.AppEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "appEUI: %s", err)
 	}
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
@@ -52,8 +49,8 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 
 	if err := n.validator.Validate(ctx,
 		auth.ValidateAPIMethod("NodeSession.Create"),
-		auth.ValidateApplication(appEUI),
 		auth.ValidateNode(devEUI),
+		auth.ValidateApplicationName(req.ApplicationName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -62,14 +59,19 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, "get node error: %s", err)
 	}
+	app, err := storage.GetApplicationByName(n.ctx.DB, req.ApplicationName)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
 
-	if node.AppEUI.String() != appEUI.String() {
-		return nil, grpc.Errorf(codes.InvalidArgument, "node belongs to a different AppEUI")
+	// test that the node belongs to the given application
+	if node.ApplicationID != app.ID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	_, err = n.ctx.NetworkServer.CreateNodeSession(context.Background(), &ns.CreateNodeSessionRequest{
 		DevAddr:            devAddr[:],
-		AppEUI:             appEUI[:],
+		AppEUI:             node.AppEUI[:],
 		DevEUI:             devEUI[:],
 		NwkSKey:            nwkSKey[:],
 		FCntUp:             req.FCntUp,
@@ -95,7 +97,7 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 
 	log.WithFields(log.Fields{
 		"dev_addr": devAddr,
-		"app_eui":  appEUI,
+		"app_eui":  node.AppEUI,
 		"dev_eui":  devEUI,
 	}).Info("node-session created")
 
@@ -112,6 +114,28 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
+	if err := n.validator.Validate(ctx,
+		auth.ValidateAPIMethod("NodeSession.Get"),
+		auth.ValidateNode(devEUI),
+		auth.ValidateApplicationName(req.ApplicationName),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	app, err := storage.GetApplicationByName(n.ctx.DB, req.ApplicationName)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+	node, err := storage.GetNode(n.ctx.DB, devEUI)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Internal, "get node error: %s", err)
+	}
+
+	// test that the node belongs to the given application
+	if node.ApplicationID != app.ID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
+	}
+
 	resp, err := n.ctx.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{
 		DevEUI: devEUI[:],
 	})
@@ -122,19 +146,6 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 	copy(devAddr[:], resp.DevAddr)
 	copy(appEUI[:], resp.AppEUI)
 	copy(nwkSKey[:], resp.NwkSKey)
-
-	node, err := storage.GetNode(n.ctx.DB, devEUI)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "get node error: %s", err)
-	}
-
-	if err := n.validator.Validate(ctx,
-		auth.ValidateAPIMethod("NodeSession.Get"),
-		auth.ValidateNode(devEUI),
-		auth.ValidateApplication(appEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
 
 	return &pb.GetNodeSessionResponse{
 		DevAddr:            devAddr.String(),
@@ -161,14 +172,11 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 // Update updates the given node-session.
 func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRequest) (*pb.UpdateNodeSessionResponse, error) {
 	var devAddr lorawan.DevAddr
-	var appEUI, devEUI lorawan.EUI64
+	var devEUI lorawan.EUI64
 	var appSKey, nwkSKey lorawan.AES128Key
 
 	if err := devAddr.UnmarshalText([]byte(req.DevAddr)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devAddr: %s", err)
-	}
-	if err := appEUI.UnmarshalText([]byte(req.AppEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "appEUI: %s", err)
 	}
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
@@ -182,24 +190,29 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 
 	if err := n.validator.Validate(ctx,
 		auth.ValidateAPIMethod("NodeSession.Update"),
-		auth.ValidateApplication(appEUI),
+		auth.ValidateApplicationName(req.ApplicationName),
 		auth.ValidateNode(devEUI),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
+	app, err := storage.GetApplicationByName(n.ctx.DB, req.ApplicationName)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
 	node, err := storage.GetNode(n.ctx.DB, devEUI)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, "get node error: %s", err)
+		return nil, grpc.Errorf(codes.Internal, "get node error: %s", err)
 	}
 
-	if node.AppEUI.String() != appEUI.String() {
-		return nil, grpc.Errorf(codes.InvalidArgument, "node belongs to a different AppEUI")
+	// test that the node belongs to the given application
+	if node.ApplicationID != app.ID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	_, err = n.ctx.NetworkServer.UpdateNodeSession(context.Background(), &ns.UpdateNodeSessionRequest{
 		DevAddr:            devAddr[:],
-		AppEUI:             appEUI[:],
+		AppEUI:             node.AppEUI[:],
 		DevEUI:             devEUI[:],
 		NwkSKey:            nwkSKey[:],
 		FCntUp:             req.FCntUp,
@@ -225,7 +238,7 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 
 	log.WithFields(log.Fields{
 		"dev_addr": devAddr,
-		"app_eui":  appEUI,
+		"app_eui":  node.AppEUI,
 		"dev_eui":  devEUI,
 	}).Info("node-session updated")
 
@@ -239,17 +252,26 @@ func (n *NodeSessionAPI) Delete(ctx context.Context, req *pb.DeleteNodeSessionRe
 		return nil, grpc.Errorf(codes.InvalidArgument, "devAddr: %s", err)
 	}
 
+	if err := n.validator.Validate(ctx,
+		auth.ValidateAPIMethod("NodeSession.Delete"),
+		auth.ValidateNode(devEUI),
+		auth.ValidateApplicationName(req.ApplicationName),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	node, err := storage.GetNode(n.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, "get node error: %s", err)
 	}
+	app, err := storage.GetApplicationByName(n.ctx.DB, req.ApplicationName)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
 
-	if err := n.validator.Validate(ctx,
-		auth.ValidateAPIMethod("NodeSession.Delete"),
-		auth.ValidateNode(devEUI),
-		auth.ValidateApplication(node.AppEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	// test that the node belongs to the given application
+	if node.ApplicationID != app.ID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	_, err = n.ctx.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{

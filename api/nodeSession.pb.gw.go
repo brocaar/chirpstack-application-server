@@ -35,6 +35,35 @@ func request_NodeSession_Create_0(ctx context.Context, marshaler runtime.Marshal
 		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["applicationName"]
+	if !ok {
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
+	}
+
+	protoReq.ApplicationName, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, err
+	}
+
+	val, ok = pathParams["devEUI"]
+	if !ok {
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
+	}
+
+	protoReq.DevEUI, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, err
+	}
+
 	msg, err := client.Create(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -50,6 +79,17 @@ func request_NodeSession_Get_0(ctx context.Context, marshaler runtime.Marshaler,
 		err error
 		_   = err
 	)
+
+	val, ok = pathParams["applicationName"]
+	if !ok {
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
+	}
+
+	protoReq.ApplicationName, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, err
+	}
 
 	val, ok = pathParams["devEUI"]
 	if !ok {
@@ -82,6 +122,17 @@ func request_NodeSession_Update_0(ctx context.Context, marshaler runtime.Marshal
 		_   = err
 	)
 
+	val, ok = pathParams["applicationName"]
+	if !ok {
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
+	}
+
+	protoReq.ApplicationName, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, err
+	}
+
 	val, ok = pathParams["devEUI"]
 	if !ok {
 		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
@@ -109,6 +160,17 @@ func request_NodeSession_Delete_0(ctx context.Context, marshaler runtime.Marshal
 		_   = err
 	)
 
+	val, ok = pathParams["applicationName"]
+	if !ok {
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
+	}
+
+	protoReq.ApplicationName, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, err
+	}
+
 	val, ok = pathParams["devEUI"]
 	if !ok {
 		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
@@ -128,6 +190,35 @@ func request_NodeSession_Delete_0(ctx context.Context, marshaler runtime.Marshal
 func request_NodeSession_GetRandomDevAddr_0(ctx context.Context, marshaler runtime.Marshaler, client NodeSessionClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetRandomDevAddrRequest
 	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["applicationName"]
+	if !ok {
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
+	}
+
+	protoReq.ApplicationName, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, err
+	}
+
+	val, ok = pathParams["devEUI"]
+	if !ok {
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
+	}
+
+	protoReq.DevEUI, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, err
+	}
 
 	msg, err := client.GetRandomDevAddr(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -308,15 +399,15 @@ func RegisterNodeSessionHandler(ctx context.Context, mux *runtime.ServeMux, conn
 }
 
 var (
-	pattern_NodeSession_Create_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "nodeSession"}, ""))
+	pattern_NodeSession_Create_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"api", "applications", "applicationName", "nodes", "devEUI", "session"}, ""))
 
-	pattern_NodeSession_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "nodeSession", "devEUI"}, ""))
+	pattern_NodeSession_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"api", "applications", "applicationName", "nodes", "devEUI", "session"}, ""))
 
-	pattern_NodeSession_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "nodeSession", "devEUI"}, ""))
+	pattern_NodeSession_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"api", "applications", "applicationName", "nodes", "devEUI", "session"}, ""))
 
-	pattern_NodeSession_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "nodeSession", "devEUI"}, ""))
+	pattern_NodeSession_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"api", "applications", "applicationName", "nodes", "devEUI", "session"}, ""))
 
-	pattern_NodeSession_GetRandomDevAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "nodeSession", "getRandomDevAddr"}, ""))
+	pattern_NodeSession_GetRandomDevAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"api", "applications", "applicationName", "nodes", "devEUI", "getRandomDevAddr"}, ""))
 )
 
 var (

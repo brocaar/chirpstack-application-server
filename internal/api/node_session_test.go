@@ -33,18 +33,23 @@ func TestNodeSessionAPI(t *testing.T) {
 		validator := &TestValidator{}
 		api := NewNodeSessionAPI(lsCtx, validator)
 
-		Convey("Given a node in the database", func() {
+		Convey("Given an application + node in the database", func() {
+			app := storage.Application{
+				Name: "test-app",
+			}
+			So(storage.CreateApplication(db, &app), ShouldBeNil)
 			node := storage.Node{
-				AppEUI:  [8]byte{1, 1, 1, 1, 1, 1, 1, 1},
-				DevEUI:  [8]byte{2, 2, 2, 2, 2, 2, 2, 2},
-				AppSKey: [16]byte{1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2},
+				ApplicationID: app.ID,
+				AppEUI:        [8]byte{1, 1, 1, 1, 1, 1, 1, 1},
+				DevEUI:        [8]byte{2, 2, 2, 2, 2, 2, 2, 2},
+				AppSKey:       [16]byte{1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2},
 			}
 			So(storage.CreateNode(db, node), ShouldBeNil)
 
 			Convey("When creating a node-session for this node", func() {
 				_, err := api.Create(ctx, &pb.CreateNodeSessionRequest{
+					ApplicationName:    "test-app",
 					DevAddr:            "01020304",
-					AppEUI:             "0101010101010101",
 					DevEUI:             "0202020202020202",
 					AppSKey:            "01010101010101010202020202020202",
 					NwkSKey:            "02020202020202020101010101010101",
@@ -89,26 +94,26 @@ func TestNodeSessionAPI(t *testing.T) {
 				})
 			})
 
-			Convey("When creating a node-session for this node but with a different AppEUI", func() {
+			Convey("When creating a node-session for this node but with a different application name", func() {
 				_, err := api.Create(ctx, &pb.CreateNodeSessionRequest{
-					DevAddr: "01020304",
-					AppEUI:  "0102030405060708",
-					DevEUI:  "0202020202020202",
-					AppSKey: "01010101010101010202020202020202",
-					NwkSKey: "02020202020202020101010101010101",
+					ApplicationName: "test-app-2",
+					DevAddr:         "01020304",
+					DevEUI:          "0202020202020202",
+					AppSKey:         "01010101010101010202020202020202",
+					NwkSKey:         "02020202020202020101010101010101",
 				})
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 3)
 
 				Convey("Then an error is returned", func() {
-					So(err, ShouldResemble, grpc.Errorf(codes.InvalidArgument, "node belongs to a different AppEUI"))
+					So(err, ShouldResemble, grpc.Errorf(codes.Unknown, "get application error: sql: no rows in result set"))
 				})
 			})
 
 			Convey("When updating a node-session for this node", func() {
 				_, err := api.Update(ctx, &pb.UpdateNodeSessionRequest{
+					ApplicationName:    "test-app",
 					DevAddr:            "04030201",
-					AppEUI:             "0101010101010101",
 					DevEUI:             "0202020202020202",
 					NwkSKey:            "01010101010101010202020202020202",
 					AppSKey:            "02020202020202020101010101010101",
@@ -153,19 +158,19 @@ func TestNodeSessionAPI(t *testing.T) {
 				})
 			})
 
-			Convey("When updating a node-session for this node but with a different AppEUI", func() {
+			Convey("When updating a node-session for this node but with a different application name", func() {
 				_, err := api.Update(ctx, &pb.UpdateNodeSessionRequest{
-					DevAddr: "01020304",
-					AppEUI:  "0102030405060708",
-					DevEUI:  "0202020202020202",
-					AppSKey: "01010101010101010202020202020202",
-					NwkSKey: "02020202020202020101010101010101",
+					ApplicationName: "test-app-2",
+					DevAddr:         "01020304",
+					DevEUI:          "0202020202020202",
+					AppSKey:         "01010101010101010202020202020202",
+					NwkSKey:         "02020202020202020101010101010101",
 				})
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 3)
 
 				Convey("Then an error is returned", func() {
-					So(err, ShouldResemble, grpc.Errorf(codes.InvalidArgument, "node belongs to a different AppEUI"))
+					So(err, ShouldResemble, grpc.Errorf(codes.Unknown, "get application error: sql: no rows in result set"))
 				})
 			})
 
@@ -191,7 +196,8 @@ func TestNodeSessionAPI(t *testing.T) {
 
 				Convey("When getting the node-session", func() {
 					resp, err := api.Get(ctx, &pb.GetNodeSessionRequest{
-						DevEUI: node.DevEUI.String(),
+						ApplicationName: "test-app",
+						DevEUI:          node.DevEUI.String(),
 					})
 					So(err, ShouldBeNil)
 					So(validator.ctx, ShouldResemble, ctx)
@@ -244,7 +250,8 @@ func TestNodeSessionAPI(t *testing.T) {
 
 			Convey("When deleting a node-session", func() {
 				_, err := api.Delete(ctx, &pb.DeleteNodeSessionRequest{
-					DevEUI: "0202020202020202",
+					ApplicationName: "test-app",
+					DevEUI:          "0202020202020202",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)

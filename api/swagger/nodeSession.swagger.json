@@ -15,34 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/nodeSession": {
-      "post": {
-        "summary": "Create creates the given node-session. The DevAddr must contain the same NwkID as the configured NetID. Node-sessions will expire automatically after the configured TTL.",
-        "operationId": "Create",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiCreateNodeSessionResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiCreateNodeSessionRequest"
-            }
-          }
-        ],
-        "tags": [
-          "NodeSession"
-        ]
-      }
-    },
-    "/api/nodeSession/getRandomDevAddr": {
+    "/api/applications/{applicationName}/nodes/{devEUI}/getRandomDevAddr": {
       "post": {
         "summary": "GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.",
         "operationId": "GetRandomDevAddr",
@@ -54,12 +27,26 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "tags": [
           "NodeSession"
         ]
       }
     },
-    "/api/nodeSession/{devEUI}": {
+    "/api/applications/{applicationName}/nodes/{devEUI}/session": {
       "get": {
         "summary": "Get returns the node-session matching the given DevEUI.",
         "operationId": "Get",
@@ -72,6 +59,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "devEUI",
             "in": "path",
@@ -96,10 +89,53 @@
         },
         "parameters": [
           {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
             "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "NodeSession"
+        ]
+      },
+      "post": {
+        "summary": "Create creates the given node-session. The DevAddr must contain the same NwkID as the configured NetID. Node-sessions will expire automatically after the configured TTL.",
+        "operationId": "Create",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiCreateNodeSessionResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateNodeSessionRequest"
+            }
           }
         ],
         "tags": [
@@ -118,6 +154,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "devEUI",
             "in": "path",
@@ -147,9 +189,9 @@
           "type": "string",
           "title": "hex encoded DevAddr"
         },
-        "appEUI": {
+        "applicationName": {
           "type": "string",
-          "title": "hex encoded AppEUI"
+          "title": "name of the application to which the node is linked"
         },
         "devEUI": {
           "type": "string",
@@ -216,6 +258,10 @@
         "devEUI": {
           "type": "string",
           "title": "hex encoded DevEUI"
+        },
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application to which the node is linked"
         }
       }
     },
@@ -228,6 +274,10 @@
         "devEUI": {
           "type": "string",
           "title": "hex encoded DevEUI"
+        },
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application to which the node is linked"
         }
       }
     },
@@ -307,7 +357,17 @@
       }
     },
     "apiGetRandomDevAddrRequest": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "devEUI": {
+          "type": "string",
+          "title": "hex encoded DevEUI"
+        },
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application to which the node is linked"
+        }
+      }
     },
     "apiGetRandomDevAddrResponse": {
       "type": "object",
@@ -333,9 +393,9 @@
           "type": "string",
           "title": "hex encoded DevAddr"
         },
-        "appEUI": {
+        "applicationName": {
           "type": "string",
-          "title": "hex encoded AppEUI"
+          "title": "name of the application to which the node is linked"
         },
         "devEUI": {
           "type": "string",

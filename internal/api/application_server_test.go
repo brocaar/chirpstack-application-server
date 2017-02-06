@@ -52,8 +52,14 @@ func TestApplicationServerAPI(t *testing.T) {
 			})
 		})
 
-		Convey("Given a node in the database", func() {
+		Convey("Given an application and node in the database", func() {
+			app := storage.Application{
+				Name: "test-app",
+			}
+			So(storage.CreateApplication(db, &app), ShouldBeNil)
+
 			node := storage.Node{
+				ApplicationID:      app.ID,
 				Name:               "test node",
 				DevEUI:             [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 				AppEUI:             [8]byte{8, 7, 6, 5, 4, 3, 2, 1},

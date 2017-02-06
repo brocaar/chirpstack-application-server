@@ -164,7 +164,7 @@ func (a *NodeAPI) List(ctx context.Context, req *pb.ListNodeRequest) (*pb.ListNo
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, err.Error())
 	}
-	count, err := storage.GetNodesCount(a.ctx.DB)
+	count, err := storage.GetNodesCountForApplicationID(a.ctx.DB, app.ID)
 	return a.returnList(count, nodes)
 }
 

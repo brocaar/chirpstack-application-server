@@ -151,26 +151,12 @@ func TestNodeMethods(t *testing.T) {
 				So(node2, ShouldResemble, node)
 			})
 
-			Convey("Then get nodes returns a single item", func() {
-				nodes, err := GetNodes(db, 10, 0)
-				So(err, ShouldBeNil)
-				So(nodes, ShouldHaveLength, 1)
-				nodes[0].UsedDevNonces = nil
-				So(nodes[0], ShouldResemble, node)
-			})
-
 			Convey("Then getting all nodes for the application returns this node", func() {
 				nodes, err := GetNodesForApplicationID(db, app.ID, 10, 0)
 				So(err, ShouldBeNil)
 				So(nodes, ShouldHaveLength, 1)
 				nodes[0].UsedDevNonces = nil
 				So(nodes[0], ShouldResemble, node)
-			})
-
-			Convey("Then get nodes count returns 1", func() {
-				count, err := GetNodesCount(db)
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 1)
 			})
 
 			Convey("Then the nodes count for the application returns 1", func() {
@@ -195,7 +181,7 @@ func TestNodeMethods(t *testing.T) {
 				So(DeleteNode(db, node.DevEUI), ShouldBeNil)
 
 				Convey("Then get nodes count returns 0", func() {
-					count, err := GetNodesCount(db)
+					count, err := GetNodesCountForApplicationID(db, app.ID)
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 0)
 				})

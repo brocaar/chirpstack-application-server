@@ -239,30 +239,6 @@ func GetNode(db *sqlx.DB, devEUI lorawan.EUI64) (Node, error) {
 	return node, nil
 }
 
-// GetNodesCount returns the total number of nodes.
-// TODO: can be removed?
-func GetNodesCount(db *sqlx.DB) (int, error) {
-	var count struct {
-		Count int
-	}
-	err := db.Get(&count, "select count(*) as count from node")
-	if err != nil {
-		return 0, fmt.Errorf("get nodes count error: %s", err)
-	}
-	return count.Count, nil
-}
-
-// GetNodes returns a slice of nodes, sorted by DevEUI.
-// TODO: can be removed?
-func GetNodes(db *sqlx.DB, limit, offset int) ([]Node, error) {
-	var nodes []Node
-	err := db.Select(&nodes, "select * from node order by dev_eui limit $1 offset $2", limit, offset)
-	if err != nil {
-		return nodes, fmt.Errorf("get nodes error: %s", err)
-	}
-	return nodes, nil
-}
-
 // GetNodesForApplicationID returns a slice of nodes for the given application
 // id, sorted by DevEUI.
 func GetNodesForApplicationID(db *sqlx.DB, applicationID int64, limit, offset int) ([]Node, error) {

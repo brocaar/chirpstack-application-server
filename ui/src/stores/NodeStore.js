@@ -41,8 +41,8 @@ class NodeStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  getNode(applicationName, devEUI, callbackFunc) {
-    fetch("/api/applications/"+applicationName+"/nodes/"+devEUI, {headers: tokenStore.getHeader()})
+  getNode(applicationName, name, callbackFunc) {
+    fetch("/api/applications/"+applicationName+"/nodes/"+name, {headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -62,7 +62,7 @@ class NodeStore extends EventEmitter {
   }
 
   updateNode(node, callbackFunc) {
-    fetch("/api/applications/"+node.applicationName+"/nodes/"+node.devEUI, {method: "PUT", body: JSON.stringify(node), headers: tokenStore.getHeader()})
+    fetch("/api/applications/"+node.applicationName+"/nodes/"+node.name, {method: "PUT", body: JSON.stringify(node), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -71,8 +71,8 @@ class NodeStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  deleteNode(applicationName, devEUI, callbackFunc) {
-    fetch("/api/applications/"+applicationName+"/nodes/"+devEUI, {method: "DELETE", headers: tokenStore.getHeader()})
+  deleteNode(applicationName, name, callbackFunc) {
+    fetch("/api/applications/"+applicationName+"/nodes/"+name, {method: "DELETE", headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

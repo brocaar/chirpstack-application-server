@@ -30,14 +30,14 @@ class UpdateNodeSession extends Component {
       this.setState({application: application});
     });
 
-    NodeSessionStore.getNodeSession(this.props.params.applicationName, this.props.params.devEUI, (session) => {
+    NodeSessionStore.getNodeSession(this.props.params.applicationName, this.props.params.nodeName, (session) => {
       this.setState({
         session: session,
         sessionExists: true,
       });
     });
 
-    NodeStore.getNode(this.props.params.applicationName, this.props.params.devEUI, (node) => {
+    NodeStore.getNode(this.props.params.applicationName, this.props.params.nodeName, (node) => {
       this.setState({node: node});
 
       // eslint-disable-next-line
@@ -62,20 +62,20 @@ class UpdateNodeSession extends Component {
     session.installationMargin = this.state.node.installationMargin;
 
     if (this.state.sessionExists) {
-      NodeSessionStore.updateNodeSession(this.props.params.applicationName, this.props.params.devEUI, session, (responseData) => {
-        this.context.router.push("/applications/"+this.props.params.applicationName+"/nodes/"+this.props.params.devEUI+"/edit");
+      NodeSessionStore.updateNodeSession(this.props.params.applicationName, this.props.params.nodeName, session, (responseData) => {
+        this.context.router.push("/applications/"+this.props.params.applicationName+"/nodes/"+this.props.params.nodeName+"/edit");
       });
     } else {
-      NodeSessionStore.createNodeSession(this.props.params.applicationName, this.props.params.devEUI, session, (responseData) => {
-        this.context.router.push("/applications/"+this.props.params.applicationName+"/nodes/"+this.props.params.devEUI+"/edit");
+      NodeSessionStore.createNodeSession(this.props.params.applicationName, this.props.params.nodeName, session, (responseData) => {
+        this.context.router.push("/applications/"+this.props.params.applicationName+"/nodes/"+this.props.params.nodeName+"/edit");
       });
     }
   }
 
   deleteHandler() {
     if (confirm("Are you sure you want to delete this node-session (this does not delete the node)?")) {
-      NodeSessionStore.deleteNodeSession(this.props.params.applicationName, this.props.params.devEUI, (responseData) => {
-        this.context.router.push("/applications/"+this.props.params.applicationName+"/nodes/"+this.props.params.devEUI+"/edit");
+      NodeSessionStore.deleteNodeSession(this.props.params.applicationName, this.props.params.nodeName, (responseData) => {
+        this.context.router.push("/applications/"+this.props.params.applicationName+"/nodes/"+this.props.params.nodeName+"/edit");
       });
     }
   }
@@ -93,7 +93,7 @@ class UpdateNodeSession extends Component {
           <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/applications">Applications</Link></li>
           <li><Link to={`/applications/${this.props.params.applicationName}`}>{this.props.params.applicationName}</Link></li>
-          <li><Link to={`/applications/${this.props.params.applicationName}/nodes/${this.props.params.devEUI}/edit`}>{this.props.params.devEUI}</Link></li>
+          <li><Link to={`/applications/${this.props.params.applicationName}/nodes/${this.props.params.nodeName}/edit`}>{this.props.params.nodeName}</Link></li>
           <li className="active">Edit node-session / ABP</li>
         </ol>
         <div className="clearfix">

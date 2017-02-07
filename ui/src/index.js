@@ -37,8 +37,8 @@ ReactDOM.render(
       <Route path="applications/create" component={CreateApplication}></Route>
       <Route path="applications/:applicationName/edit" component={UpdateApplication}></Route>
       <Route path="applications/:applicationName/nodes/create" component={CreateNode}></Route>
-      <Route path="applications/:applicationName/nodes/:devEUI/edit" component={UpdateNode}></Route>
-      <Route path="applications/:applicationName/nodes/:devEUI/session" component={UpdateNodeSession}></Route>
+      <Route path="applications/:applicationName/nodes/:nodeName/edit" component={UpdateNode}></Route>
+      <Route path="applications/:applicationName/nodes/:nodeName/session" component={UpdateNodeSession}></Route>
       <Route path="applications/:applicationName" component={ListNodes}></Route>
       <Route path="channels" component={ChannelLists}></Route>
       <Route path="channels/create" component={CreateChannelList}></Route>

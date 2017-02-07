@@ -22,7 +22,7 @@ class UpdateNode extends Component {
   }
 
   componentWillMount() {
-    NodeStore.getNode(this.props.params.applicationName, this.props.params.devEUI, (node) => {
+    NodeStore.getNode(this.props.params.applicationName, this.props.params.nodeName, (node) => {
       this.setState({node: node});
     });
     ApplicationStore.getApplication(this.props.params.applicationName, (application) => {
@@ -40,7 +40,7 @@ class UpdateNode extends Component {
 
   onDelete() {
     if (confirm("Are you sure you want to delete this node?")) {
-      NodeStore.deleteNode(this.props.params.applicationName, this.props.params.devEUI, (responseData) => {
+      NodeStore.deleteNode(this.props.params.applicationName, this.props.params.nodeName, (responseData) => {
         this.context.router.push('/applications/'+this.props.params.applicationName);
       });
     }
@@ -53,12 +53,12 @@ class UpdateNode extends Component {
           <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/applications">Applications</Link></li>
           <li><Link to={`/applications/${this.props.params.applicationName}`}>{this.state.application.name}</Link></li>
-          <li>{this.props.params.devEUI}</li>
+          <li>{this.props.params.nodeName}</li>
           <li className="active">Edit node</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to={`/applications/${this.props.params.applicationName}/nodes/${this.props.params.devEUI}/session`}><button type="button" className="btn btn-default">Node session / ABP</button></Link> &nbsp;
+            <Link to={`/applications/${this.props.params.applicationName}/nodes/${this.props.params.nodeName}/session`}><button type="button" className="btn btn-default">Node session / ABP</button></Link> &nbsp;
             <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete node</button></Link>
           </div>
         </div>

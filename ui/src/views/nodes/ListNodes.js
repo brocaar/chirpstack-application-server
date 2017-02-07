@@ -8,7 +8,7 @@ class NodeRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`/applications/${this.props.application.name}/nodes/${this.props.node.devEUI}/edit`}>{this.props.node.name}</Link></td>
+        <td><Link to={`/applications/${this.props.application.name}/nodes/${this.props.node.name}/edit`}>{this.props.node.name}</Link></td>
         <td>{this.props.node.devEUI}</td>
         <td>{this.props.node.description}</td>
       </tr>

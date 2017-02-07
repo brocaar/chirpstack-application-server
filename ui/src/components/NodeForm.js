@@ -17,6 +17,7 @@ class NodeForm extends Component {
   componentWillReceiveProps(nextProps) {
     this.setState({
       node: nextProps.node,
+      nameDisabled: typeof nextProps.node.name !== "undefined",
       devEUIDisabled: typeof nextProps.node.devEUI !== "undefined",
     });
   }
@@ -43,7 +44,7 @@ class NodeForm extends Component {
       <form onSubmit={this.handleSubmit}>
         <div className="form-group">
           <label className="control-label" htmlFor="name">Node name</label>
-          <input className="form-control" id="name" type="text" placeholder="e.g. 'garden-sensor'" required value={this.state.node.name || ''} pattern="[\w-]+" onChange={this.onChange.bind(this, 'name')} />
+          <input className="form-control" id="name" type="text" placeholder="e.g. 'garden-sensor'" required disabled={this.state.nameDisabled} value={this.state.node.name || ''} pattern="[\w-]+" onChange={this.onChange.bind(this, 'name')} />
           <p className="help-block">
             The name may only contain words, numbers and dashes. This name will be used as identifier and will be used for MQTT topics.
           </p>

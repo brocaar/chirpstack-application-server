@@ -229,7 +229,7 @@ const _ = grpc.SupportPackageIsVersion4
 type ApplicationClient interface {
 	// Create creates the given application.
 	Create(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*CreateApplicationResponse, error)
-	// Get returns the application for the requested application id.
+	// Get returns the requested application.
 	Get(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*GetApplicationResponse, error)
 	// Update updates the given application.
 	Update(ctx context.Context, in *UpdateApplicationRequest, opts ...grpc.CallOption) (*UpdateApplicationResponse, error)
@@ -297,7 +297,7 @@ func (c *applicationClient) List(ctx context.Context, in *ListApplicationRequest
 type ApplicationServer interface {
 	// Create creates the given application.
 	Create(context.Context, *CreateApplicationRequest) (*CreateApplicationResponse, error)
-	// Get returns the application for the requested application id.
+	// Get returns the requested application.
 	Get(context.Context, *GetApplicationRequest) (*GetApplicationResponse, error)
 	// Update updates the given application.
 	Update(context.Context, *UpdateApplicationRequest) (*UpdateApplicationResponse, error)

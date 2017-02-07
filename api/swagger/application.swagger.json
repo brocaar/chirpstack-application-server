@@ -75,7 +75,7 @@
     },
     "/api/applications/{name}": {
       "get": {
-        "summary": "Get returns the application for the requested application id.",
+        "summary": "Get returns the requested application.",
         "operationId": "Get",
         "responses": {
           "200": {

@@ -16,17 +16,17 @@ service Node {
         };
     }
 
-    // Get returns the node for the requested DevEUI.
+    // Get returns the node for the requested name.
     rpc Get(GetNodeRequest) returns (GetNodeResponse) {
         option (google.api.http) = {
-            get: "/api/applications/{applicationName}/nodes/{devEUI}"
+            get: "/api/applications/{applicationName}/nodes/{name}"
         };
     }
 
-    // Delete deletes the node matching the given DevEUI.
+    // Delete deletes the node matching the given name.
     rpc Delete(DeleteNodeRequest) returns (DeleteNodeResponse) {
         option (google.api.http) = {
-            delete: "/api/applications/{applicationName}/nodes/{devEUI}"
+            delete: "/api/applications/{applicationName}/nodes/{name}"
         };
     }
 
@@ -37,10 +37,10 @@ service Node {
         };
     }
 
-    // Update updates the node matching the given DevEUI.
+    // Update updates the node matching the given name.
     rpc Update(UpdateNodeRequest) returns (UpdateNodeResponse) {
         option (google.api.http) = {
-            put: "/api/applications/{applicationName}/nodes/{devEUI}"
+            put: "/api/applications/{applicationName}/nodes/{name}"
             body: "*"
         };
     }
@@ -70,8 +70,8 @@ message CreateNodeRequest {
 message CreateNodeResponse {}
 
 message GetNodeRequest {
-    // hex encoded DevEUI
-    string devEUI = 1;
+    // name of the node
+    string name = 1;
 	// name of the application to which the node is linked
 	string applicationName = 2;
 }
@@ -96,8 +96,8 @@ message GetNodeResponse {
 };
 
 message DeleteNodeRequest {
-    // hex encoded DevEUI
-    string devEUI = 1;
+    // name of the node
+    string name = 1;
 	// name of the application to which the node is linked
 	string applicationName = 2;
 }
@@ -118,8 +118,6 @@ message ListNodeResponse {
 
 
 message UpdateNodeRequest {
-    // hex encoded DevEUI
-    string devEUI = 1;
     // hex encoded AppEUI
     string appEUI = 2;
     // hex encoded AppKey

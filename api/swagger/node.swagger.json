@@ -85,9 +85,9 @@
         ]
       }
     },
-    "/api/applications/{applicationName}/nodes/{devEUI}": {
+    "/api/applications/{applicationName}/nodes/{name}": {
       "get": {
-        "summary": "Get returns the node for the requested DevEUI.",
+        "summary": "Get returns the node for the requested name.",
         "operationId": "Get",
         "responses": {
           "200": {
@@ -105,7 +105,7 @@
             "type": "string"
           },
           {
-            "name": "devEUI",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -116,7 +116,7 @@
         ]
       },
       "delete": {
-        "summary": "Delete deletes the node matching the given DevEUI.",
+        "summary": "Delete deletes the node matching the given name.",
         "operationId": "Delete",
         "responses": {
           "200": {
@@ -134,7 +134,7 @@
             "type": "string"
           },
           {
-            "name": "devEUI",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -145,7 +145,7 @@
         ]
       },
       "put": {
-        "summary": "Update updates the node matching the given DevEUI.",
+        "summary": "Update updates the node matching the given name.",
         "operationId": "Update",
         "responses": {
           "200": {
@@ -163,7 +163,7 @@
             "type": "string"
           },
           {
-            "name": "devEUI",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -248,9 +248,9 @@
     "apiDeleteNodeRequest": {
       "type": "object",
       "properties": {
-        "devEUI": {
+        "name": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "title": "name of the node"
         },
         "applicationName": {
           "type": "string",
@@ -264,9 +264,9 @@
     "apiGetNodeRequest": {
       "type": "object",
       "properties": {
-        "devEUI": {
+        "name": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "title": "name of the node"
         },
         "applicationName": {
           "type": "string",
@@ -371,10 +371,6 @@
     "apiUpdateNodeRequest": {
       "type": "object",
       "properties": {
-        "devEUI": {
-          "type": "string",
-          "title": "hex encoded DevEUI"
-        },
         "appEUI": {
           "type": "string",
           "title": "hex encoded AppEUI"

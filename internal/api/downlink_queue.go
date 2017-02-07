@@ -1,8 +1,6 @@
 package api
 
 import (
-	"encoding/hex"
-
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -11,7 +9,6 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lorawan"
 )
 
 // DownlinkQueueAPI exposes the downlink queue methods.
@@ -29,15 +26,10 @@ func NewDownlinkQueueAPI(ctx common.Context, validator auth.Validator) *Downlink
 }
 
 func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQueueItemRequest) (*pb.EnqueueDownlinkQueueItemResponse, error) {
-	var devEUI lorawan.EUI64
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
-	}
-
 	if err := d.validator.Validate(ctx,
 		auth.ValidateAPIMethod("DownlinkQueue.Enqueue"),
 		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNode(devEUI),
+		auth.ValidateNodeName(req.NodeName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -47,7 +39,7 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	node, err := storage.GetNode(d.ctx.DB, devEUI)
+	node, err := storage.GetNodeByname(d.ctx.DB, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
@@ -58,7 +50,7 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 	}
 
 	qi := storage.DownlinkQueueItem{
-		DevEUI:    devEUI,
+		DevEUI:    node.DevEUI,
 		Reference: req.Reference,
 		Confirmed: req.Confirmed,
 		FPort:     uint8(req.FPort),
@@ -72,15 +64,10 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 }
 
 func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeueueItemRequest) (*pb.DeleteDownlinkQueueItemResponse, error) {
-	var devEUI lorawan.EUI64
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
-	}
-
 	if err := d.validator.Validate(ctx,
 		auth.ValidateAPIMethod("DownlinkQueue.Delete"),
 		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNode(devEUI),
+		auth.ValidateNodeName(req.NodeName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -89,11 +76,11 @@ func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeu
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	node, err := storage.GetNode(d.ctx.DB, qi.DevEUI)
+	node, err := storage.GetNodeByname(d.ctx.DB, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	app, err := storage.GetApplication(d.ctx.DB, node.ApplicationID)
+	app, err := storage.GetApplicationByName(d.ctx.DB, req.ApplicationName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, err.Error())
 	}
@@ -115,20 +102,15 @@ func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeu
 }
 
 func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueItemsRequest) (*pb.ListDownlinkQueueItemsResponse, error) {
-	var devEUI lorawan.EUI64
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
-	}
-
 	if err := d.validator.Validate(ctx,
 		auth.ValidateAPIMethod("DownlinkQueue.List"),
 		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNode(devEUI),
+		auth.ValidateNodeName(req.NodeName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(d.ctx.DB, devEUI)
+	node, err := storage.GetNodeByname(d.ctx.DB, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
@@ -152,7 +134,7 @@ func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueIt
 		qi := pb.DownlinkQueueItem{
 			Id:        item.ID,
 			Reference: item.Reference,
-			DevEUI:    hex.EncodeToString(item.DevEUI[:]),
+			NodeName:  node.Name,
 			Confirmed: item.Confirmed,
 			Pending:   item.Pending,
 			FPort:     uint32(item.FPort),

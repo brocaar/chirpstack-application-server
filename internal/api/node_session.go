@@ -31,14 +31,10 @@ func NewNodeSessionAPI(ctx common.Context, validator auth.Validator) *NodeSessio
 // Create creates the given node-session.
 func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRequest) (*pb.CreateNodeSessionResponse, error) {
 	var devAddr lorawan.DevAddr
-	var devEUI lorawan.EUI64
 	var appSKey, nwkSKey lorawan.AES128Key
 
 	if err := devAddr.UnmarshalText([]byte(req.DevAddr)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devAddr: %s", err)
-	}
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 	if err := appSKey.UnmarshalText([]byte(req.AppSKey)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "appSKey: %s", err)
@@ -49,13 +45,13 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 
 	if err := n.validator.Validate(ctx,
 		auth.ValidateAPIMethod("NodeSession.Create"),
-		auth.ValidateNode(devEUI),
+		auth.ValidateNodeName(req.NodeName),
 		auth.ValidateApplicationName(req.ApplicationName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(n.ctx.DB, devEUI)
+	node, err := storage.GetNodeByname(n.ctx.DB, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, "get node error: %s", err)
 	}
@@ -72,7 +68,7 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 	_, err = n.ctx.NetworkServer.CreateNodeSession(context.Background(), &ns.CreateNodeSessionRequest{
 		DevAddr:            devAddr[:],
 		AppEUI:             node.AppEUI[:],
-		DevEUI:             devEUI[:],
+		DevEUI:             node.DevEUI[:],
 		NwkSKey:            nwkSKey[:],
 		FCntUp:             req.FCntUp,
 		FCntDown:           req.FCntDown,
@@ -98,7 +94,7 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 	log.WithFields(log.Fields{
 		"dev_addr": devAddr,
 		"app_eui":  node.AppEUI,
-		"dev_eui":  devEUI,
+		"dev_eui":  node.DevEUI,
 	}).Info("node-session created")
 
 	return &pb.CreateNodeSessionResponse{}, nil
@@ -110,13 +106,9 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 	var appEUI, devEUI lorawan.EUI64
 	var nwkSKey lorawan.AES128Key
 
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
-	}
-
 	if err := n.validator.Validate(ctx,
 		auth.ValidateAPIMethod("NodeSession.Get"),
-		auth.ValidateNode(devEUI),
+		auth.ValidateNodeName(req.NodeName),
 		auth.ValidateApplicationName(req.ApplicationName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
@@ -126,7 +118,7 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	node, err := storage.GetNode(n.ctx.DB, devEUI)
+	node, err := storage.GetNodeByname(n.ctx.DB, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, "get node error: %s", err)
 	}
@@ -137,7 +129,7 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 	}
 
 	resp, err := n.ctx.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{
-		DevEUI: devEUI[:],
+		DevEUI: node.DevEUI[:],
 	})
 	if err != nil {
 		return nil, err
@@ -145,6 +137,7 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 
 	copy(devAddr[:], resp.DevAddr)
 	copy(appEUI[:], resp.AppEUI)
+	copy(devEUI[:], resp.DevEUI)
 	copy(nwkSKey[:], resp.NwkSKey)
 
 	return &pb.GetNodeSessionResponse{
@@ -172,14 +165,10 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 // Update updates the given node-session.
 func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRequest) (*pb.UpdateNodeSessionResponse, error) {
 	var devAddr lorawan.DevAddr
-	var devEUI lorawan.EUI64
 	var appSKey, nwkSKey lorawan.AES128Key
 
 	if err := devAddr.UnmarshalText([]byte(req.DevAddr)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devAddr: %s", err)
-	}
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 	if err := appSKey.UnmarshalText([]byte(req.AppSKey)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "appSKey: %s", err)
@@ -191,7 +180,7 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 	if err := n.validator.Validate(ctx,
 		auth.ValidateAPIMethod("NodeSession.Update"),
 		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNode(devEUI),
+		auth.ValidateNodeName(req.NodeName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -200,7 +189,7 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	node, err := storage.GetNode(n.ctx.DB, devEUI)
+	node, err := storage.GetNodeByname(n.ctx.DB, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, "get node error: %s", err)
 	}
@@ -213,7 +202,7 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 	_, err = n.ctx.NetworkServer.UpdateNodeSession(context.Background(), &ns.UpdateNodeSessionRequest{
 		DevAddr:            devAddr[:],
 		AppEUI:             node.AppEUI[:],
-		DevEUI:             devEUI[:],
+		DevEUI:             node.DevEUI[:],
 		NwkSKey:            nwkSKey[:],
 		FCntUp:             req.FCntUp,
 		FCntDown:           req.FCntDown,
@@ -239,7 +228,7 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 	log.WithFields(log.Fields{
 		"dev_addr": devAddr,
 		"app_eui":  node.AppEUI,
-		"dev_eui":  devEUI,
+		"dev_eui":  node.DevEUI,
 	}).Info("node-session updated")
 
 	return &pb.UpdateNodeSessionResponse{}, nil
@@ -247,20 +236,15 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 
 // Delete deletes the node-session matching the given DevEUI.
 func (n *NodeSessionAPI) Delete(ctx context.Context, req *pb.DeleteNodeSessionRequest) (*pb.DeleteNodeSessionResponse, error) {
-	var devEUI lorawan.EUI64
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "devAddr: %s", err)
-	}
-
 	if err := n.validator.Validate(ctx,
 		auth.ValidateAPIMethod("NodeSession.Delete"),
-		auth.ValidateNode(devEUI),
+		auth.ValidateNodeName(req.NodeName),
 		auth.ValidateApplicationName(req.ApplicationName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(n.ctx.DB, devEUI)
+	node, err := storage.GetNodeByname(n.ctx.DB, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, "get node error: %s", err)
 	}
@@ -275,7 +259,7 @@ func (n *NodeSessionAPI) Delete(ctx context.Context, req *pb.DeleteNodeSessionRe
 	}
 
 	_, err = n.ctx.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{
-		DevEUI: devEUI[:],
+		DevEUI: node.DevEUI[:],
 	})
 	if err != nil {
 		return nil, err

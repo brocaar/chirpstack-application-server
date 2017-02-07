@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/applications/{applicationName}/nodes/{devEUI}/getRandomDevAddr": {
+    "/api/applications/{applicationName}/nodes/{nodeName}/getRandomDevAddr": {
       "post": {
         "summary": "GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.",
         "operationId": "GetRandomDevAddr",
@@ -35,7 +35,7 @@
             "type": "string"
           },
           {
-            "name": "devEUI",
+            "name": "nodeName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -46,9 +46,9 @@
         ]
       }
     },
-    "/api/applications/{applicationName}/nodes/{devEUI}/session": {
+    "/api/applications/{applicationName}/nodes/{nodeName}/session": {
       "get": {
-        "summary": "Get returns the node-session matching the given DevEUI.",
+        "summary": "Get returns the node-session matching the given node.",
         "operationId": "Get",
         "responses": {
           "200": {
@@ -66,7 +66,7 @@
             "type": "string"
           },
           {
-            "name": "devEUI",
+            "name": "nodeName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -77,7 +77,7 @@
         ]
       },
       "delete": {
-        "summary": "Delete deletes the node-session matching the given DevEUI.",
+        "summary": "Delete deletes the node-session matching the given node.",
         "operationId": "Delete",
         "responses": {
           "200": {
@@ -95,7 +95,7 @@
             "type": "string"
           },
           {
-            "name": "devEUI",
+            "name": "nodeName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -124,7 +124,7 @@
             "type": "string"
           },
           {
-            "name": "devEUI",
+            "name": "nodeName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -161,7 +161,7 @@
             "type": "string"
           },
           {
-            "name": "devEUI",
+            "name": "nodeName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -193,9 +193,9 @@
           "type": "string",
           "title": "name of the application to which the node is linked"
         },
-        "devEUI": {
+        "nodeName": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "title": "name of the node"
         },
         "appSKey": {
           "type": "string",
@@ -255,9 +255,9 @@
     "apiDeleteNodeSessionRequest": {
       "type": "object",
       "properties": {
-        "devEUI": {
+        "nodeName": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "title": "name of the node"
         },
         "applicationName": {
           "type": "string",
@@ -271,9 +271,9 @@
     "apiGetNodeSessionRequest": {
       "type": "object",
       "properties": {
-        "devEUI": {
+        "nodeName": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "title": "name of the node"
         },
         "applicationName": {
           "type": "string",
@@ -359,9 +359,9 @@
     "apiGetRandomDevAddrRequest": {
       "type": "object",
       "properties": {
-        "devEUI": {
+        "nodeName": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "title": "name of the node"
         },
         "applicationName": {
           "type": "string",
@@ -397,9 +397,9 @@
           "type": "string",
           "title": "name of the application to which the node is linked"
         },
-        "devEUI": {
+        "nodeName": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "title": "name of the node"
         },
         "appSKey": {
           "type": "string",

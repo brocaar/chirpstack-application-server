@@ -45,7 +45,7 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Create"),
 		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNode(devEUI),
+		auth.ValidateNodeName(req.Name),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -83,17 +83,12 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 	return &pb.CreateNodeResponse{}, nil
 }
 
-// Get returns the Node for the given DevEUI.
+// Get returns the Node for the given name.
 func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeResponse, error) {
-	var eui lorawan.EUI64
-	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
-	}
-
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Get"),
 		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNode(eui),
+		auth.ValidateNodeName(req.Name),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -103,7 +98,7 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	node, err := storage.GetNode(a.ctx.DB, eui)
+	node, err := storage.GetNodeByname(a.ctx.DB, req.Name)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
@@ -170,15 +165,12 @@ func (a *NodeAPI) List(ctx context.Context, req *pb.ListNodeRequest) (*pb.ListNo
 	return a.returnList(count, nodes)
 }
 
-// Update updates the node matching the given DevEUI.
+// Update updates the node matching the given name.
 func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.UpdateNodeResponse, error) {
-	var appEUI, devEUI lorawan.EUI64
+	var appEUI lorawan.EUI64
 	var appKey lorawan.AES128Key
 
 	if err := appEUI.UnmarshalText([]byte(req.AppEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
-	}
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 	if err := appKey.UnmarshalText([]byte(req.AppKey)); err != nil {
@@ -188,7 +180,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Update"),
 		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNode(devEUI),
+		auth.ValidateNodeName(req.Name),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -198,7 +190,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	node, err := storage.GetNode(a.ctx.DB, devEUI)
+	node, err := storage.GetNodeByname(a.ctx.DB, req.Name)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
@@ -208,7 +200,6 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
-	node.Name = req.Name
 	node.Description = req.Description
 	node.AppEUI = appEUI
 	node.AppKey = appKey
@@ -232,22 +223,17 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 	return &pb.UpdateNodeResponse{}, nil
 }
 
-// Delete deletes the node matching the given DevEUI.
+// Delete deletes the node matching the given name.
 func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.DeleteNodeResponse, error) {
-	var eui lorawan.EUI64
-	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
-	}
-
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Delete"),
 		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNode(eui),
+		auth.ValidateNodeName(req.Name),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(a.ctx.DB, eui)
+	node, err := storage.GetNodeByname(a.ctx.DB, req.Name)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
@@ -262,13 +248,13 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.De
 		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
-	if err := storage.DeleteNode(a.ctx.DB, eui); err != nil {
+	if err := storage.DeleteNode(a.ctx.DB, node.DevEUI); err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
 	// try to delete the node-session
 	_, _ = a.ctx.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{
-		DevEUI: eui[:],
+		DevEUI: node.DevEUI[:],
 	})
 
 	return &pb.DeleteNodeResponse{}, nil

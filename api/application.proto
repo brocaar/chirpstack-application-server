@@ -15,7 +15,7 @@ service Application {
 		};
 	}
 
-	// Get returns the application for the requested application id.
+	// Get returns the requested application.
 	rpc Get(GetApplicationRequest) returns (GetApplicationResponse) {
 		option(google.api.http) = {
 			get: "/api/applications/{name}"

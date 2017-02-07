@@ -38,7 +38,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 		Convey("When enqueueing a downlink queue item", func() {
 			_, err := api.Enqueue(ctx, &pb.EnqueueDownlinkQueueItemRequest{
 				ApplicationName: "test-app",
-				DevEUI:          "0102030405060708",
+				NodeName:        "test-node",
 				Confirmed:       true,
 				FPort:           10,
 				Data:            []byte{1, 2, 3, 4},
@@ -50,7 +50,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 			Convey("Then the queue contains a single item", func() {
 				resp, err := api.List(ctx, &pb.ListDownlinkQueueItemsRequest{
 					ApplicationName: "test-app",
-					DevEUI:          "0102030405060708",
+					NodeName:        "test-node",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -59,7 +59,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 				So(resp.Items, ShouldHaveLength, 1)
 				So(resp.Items[0], ShouldResemble, &pb.DownlinkQueueItem{
 					Id:        1,
-					DevEUI:    "0102030405060708",
+					NodeName:  "test-node",
 					Confirmed: true,
 					Pending:   false,
 					FPort:     10,
@@ -70,7 +70,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 			Convey("When removing the queue item", func() {
 				_, err := api.Delete(ctx, &pb.DeleteDownlinkQeueueItemRequest{
 					ApplicationName: "test-app",
-					DevEUI:          "0102030405060708",
+					NodeName:        "test-node",
 					Id:              1,
 				})
 				So(err, ShouldBeNil)
@@ -80,7 +80,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 				Convey("Then the downlink queue item has been deleted", func() {
 					resp, err := api.List(ctx, &pb.ListDownlinkQueueItemsRequest{
 						ApplicationName: "test-app",
-						DevEUI:          "0102030405060708",
+						NodeName:        "test-node",
 					})
 					So(err, ShouldBeNil)
 					So(resp.Items, ShouldHaveLength, 0)

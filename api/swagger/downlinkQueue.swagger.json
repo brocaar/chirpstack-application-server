@@ -15,9 +15,9 @@
     "application/json"
   ],
   "paths": {
-    "/api/applications/{applicationName}/nodes/{devEUI}/queue": {
+    "/api/applications/{applicationName}/nodes/{nodeName}/queue": {
       "get": {
-        "summary": "List lists the items in the queue for the given devEUI.",
+        "summary": "List lists the items in the queue for the given node.",
         "operationId": "List",
         "responses": {
           "200": {
@@ -35,7 +35,7 @@
             "type": "string"
           },
           {
-            "name": "devEUI",
+            "name": "nodeName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -64,7 +64,7 @@
             "type": "string"
           },
           {
-            "name": "devEUI",
+            "name": "nodeName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -83,7 +83,7 @@
         ]
       }
     },
-    "/api/applications/{applicationName}/nodes/{devEUI}/queue/{id}": {
+    "/api/applications/{applicationName}/nodes/{nodeName}/queue/{id}": {
       "delete": {
         "summary": "Delete deletes an item from the queue.",
         "operationId": "Delete",
@@ -103,7 +103,7 @@
             "type": "string"
           },
           {
-            "name": "devEUI",
+            "name": "nodeName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -131,9 +131,9 @@
           "format": "int64",
           "title": "ID of the queue item"
         },
-        "devEUI": {
+        "nodeName": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "title": "name of the node"
         },
         "applicationName": {
           "type": "string",
@@ -152,9 +152,9 @@
           "format": "int64",
           "title": "id of the queue item"
         },
-        "devEUI": {
+        "nodeName": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "title": "name of the node"
         },
         "reference": {
           "type": "string",
@@ -185,9 +185,9 @@
     "apiEnqueueDownlinkQueueItemRequest": {
       "type": "object",
       "properties": {
-        "devEUI": {
+        "nodeName": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "title": "name of the node"
         },
         "reference": {
           "type": "string",
@@ -220,9 +220,9 @@
     "apiListDownlinkQueueItemsRequest": {
       "type": "object",
       "properties": {
-        "devEUI": {
+        "nodeName": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "title": "name of the node"
         },
         "applicationName": {
           "type": "string",

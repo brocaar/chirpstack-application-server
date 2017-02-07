@@ -10,6 +10,7 @@
 // ../../migrations/0008_relax_fcnt.sql
 // ../../migrations/0009_adr_interval_and_install_margin.sql
 // ../../migrations/0010_recreate_application_table.sql
+// ../../migrations/0011_node_description.sql
 // DO NOT EDIT!
 
 package migrations
@@ -277,6 +278,26 @@ func _0010_recreate_application_tableSql() (*asset, error) {
 	return a, nil
 }
 
+var __0011_node_descriptionSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x8c\x90\x41\x4e\x03\x31\x0c\x45\xd7\xe4\x14\xde\x75\x10\xd3\x13\x8c\xba\xe3\x0a\xac\xa3\x10\x5b\x60\x91\x71\x42\xc6\x81\xe1\xf6\x28\x16\x45\xad\x9a\x45\xb7\xf6\xff\xdf\xcf\xff\x78\x84\xa7\x95\xdf\x6a\x50\x82\x97\xe2\x42\x52\xaa\xa0\xe1\x35\x11\x48\x46\x72\x0f\x01\x11\x62\x4e\x6d\x15\x40\xda\x62\xe5\xa2\x9c\x05\x94\x76\x5d\x9c\x6b\x05\xbb\xb3\x4b\x61\x23\xbd\x92\x9c\x40\xc2\x4a\xcb\x8d\xa6\x4f\xe1\x04\x24\x31\x23\x4d\x48\x5f\x9e\x1a\xcf\x70\x78\xa7\xfd\xf0\xb8\xb8\x11\x83\x4d\x06\x14\x16\x97\x15\xa4\xa5\x34\x9f\x59\x65\xd3\x1a\x58\xd4\xcc\x3e\x94\x92\x38\x86\x2e\xf7\x8c\xbe\x1f\xf7\x1f\xf4\x03\x4d\xf8\xb3\x11\x4c\xd7\xfb\xd9\xe8\x3a\x45\xac\xd4\xa9\x59\x90\x76\x60\xdc\xbd\xa5\x19\x7b\x16\x8b\x9e\xce\xd2\xcb\x0e\x9f\xf3\xb7\x38\x87\x35\x97\x91\x75\xd0\xd8\x5f\x1b\x17\x5f\x0d\x2b\xb0\xc4\xdb\x06\xe6\xff\xcd\x5d\x5f\x2f\xee\x37\x00\x00\xff\xff\x7a\x8a\xb9\x00\xf0\x01\x00\x00")
+
+func _0011_node_descriptionSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0011_node_descriptionSql,
+		"0011_node_description.sql",
+	)
+}
+
+func _0011_node_descriptionSql() (*asset, error) {
+	bytes, err := _0011_node_descriptionSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0011_node_description.sql", size: 496, mode: os.FileMode(420), modTime: time.Unix(1486470501, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -339,6 +360,7 @@ var _bindata = map[string]func() (*asset, error){
 	"0008_relax_fcnt.sql": _0008_relax_fcntSql,
 	"0009_adr_interval_and_install_margin.sql": _0009_adr_interval_and_install_marginSql,
 	"0010_recreate_application_table.sql": _0010_recreate_application_tableSql,
+	"0011_node_description.sql": _0011_node_descriptionSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -391,6 +413,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"0008_relax_fcnt.sql": &bintree{_0008_relax_fcntSql, map[string]*bintree{}},
 	"0009_adr_interval_and_install_margin.sql": &bintree{_0009_adr_interval_and_install_marginSql, map[string]*bintree{}},
 	"0010_recreate_application_table.sql": &bintree{_0010_recreate_application_tableSql, map[string]*bintree{}},
+	"0011_node_description.sql": &bintree{_0011_node_descriptionSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory

@@ -58,6 +58,7 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 	node := storage.Node{
 		ApplicationID: app.ID,
 		Name:          req.Name,
+		Description:   req.Description,
 		DevEUI:        devEUI,
 		AppEUI:        appEUI,
 		AppKey:        appKey,
@@ -127,6 +128,7 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 
 	resp := pb.GetNodeResponse{
 		Name:               node.Name,
+		Description:        node.Description,
 		DevEUI:             string(devEUI),
 		AppEUI:             string(appEUI),
 		AppKey:             string(appKey),
@@ -207,6 +209,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 	}
 
 	node.Name = req.Name
+	node.Description = req.Description
 	node.AppEUI = appEUI
 	node.AppKey = appKey
 	node.RXDelay = uint8(req.RxDelay)
@@ -291,6 +294,7 @@ func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeRespo
 
 		item := pb.GetNodeResponse{
 			Name:               node.Name,
+			Description:        node.Description,
 			DevEUI:             string(devEUI),
 			AppEUI:             string(appEUI),
 			AppKey:             string(appKey),

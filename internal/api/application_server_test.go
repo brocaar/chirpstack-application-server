@@ -60,7 +60,8 @@ func TestApplicationServerAPI(t *testing.T) {
 
 			node := storage.Node{
 				ApplicationID:      app.ID,
-				Name:               "test node",
+				Name:               "test-node",
+				Description:        "test node description",
 				DevEUI:             [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 				AppEUI:             [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
 				AppKey:             [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},

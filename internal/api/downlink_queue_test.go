@@ -30,6 +30,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 		So(storage.CreateApplication(db, &app), ShouldBeNil)
 		node := storage.Node{
 			ApplicationID: app.ID,
+			Name:          "test-node",
 			DevEUI:        [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		}
 		So(storage.CreateNode(db, node), ShouldBeNil)

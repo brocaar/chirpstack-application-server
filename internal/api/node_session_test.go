@@ -40,6 +40,7 @@ func TestNodeSessionAPI(t *testing.T) {
 			So(storage.CreateApplication(db, &app), ShouldBeNil)
 			node := storage.Node{
 				ApplicationID: app.ID,
+				Name:          "test-node",
 				AppEUI:        [8]byte{1, 1, 1, 1, 1, 1, 1, 1},
 				DevEUI:        [8]byte{2, 2, 2, 2, 2, 2, 2, 2},
 				AppSKey:       [16]byte{1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2},

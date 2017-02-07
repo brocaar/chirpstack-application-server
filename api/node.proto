@@ -64,6 +64,7 @@ message CreateNodeRequest {
 	double installationMargin = 12;
 	// name of the application to which the node must be linked
 	string applicationName = 13;
+	string description = 14;
 }
 
 message CreateNodeResponse {}
@@ -91,6 +92,7 @@ message GetNodeResponse {
 	bool relaxFCnt = 10;
 	uint32 adrInterval = 11;
 	double installationMargin = 12;
+	string description = 13;
 };
 
 message DeleteNodeRequest {
@@ -133,6 +135,7 @@ message UpdateNodeRequest {
 	double installationMargin = 12;
 	// name of the application to which the node is linked
 	string applicationName = 13;
+	string description = 14;
 }
 
 message UpdateNodeResponse {}

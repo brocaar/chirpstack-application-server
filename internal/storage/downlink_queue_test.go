@@ -23,6 +23,7 @@ func TestGetNextDownlinkQeueueItem(t *testing.T) {
 
 		node := Node{
 			ApplicationID: app.ID,
+			Name:          "test-node",
 			DevEUI:        [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		}
 		So(CreateNode(db, node), ShouldBeNil)
@@ -80,6 +81,7 @@ func TestDownlinkQueueFuncs(t *testing.T) {
 
 		node := Node{
 			ApplicationID: app.ID,
+			Name:          "test-node",
 			DevEUI:        [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		}
 		So(CreateNode(db, node), ShouldBeNil)

@@ -35,6 +35,8 @@ func TestNodeAPI(t *testing.T) {
 		Convey("When creating a node", func() {
 			_, err := api.Create(ctx, &pb.CreateNodeRequest{
 				ApplicationName:    "test-app",
+				Name:               "test-node",
+				Description:        "test node description",
 				DevEUI:             "0807060504030201",
 				AppEUI:             "0102030405060708",
 				AppKey:             "01020304050607080102030405060708",
@@ -58,6 +60,8 @@ func TestNodeAPI(t *testing.T) {
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 3)
 				So(node, ShouldResemble, &pb.GetNodeResponse{
+					Name:               "test-node",
+					Description:        "test node description",
 					DevEUI:             "0807060504030201",
 					AppEUI:             "0102030405060708",
 					AppKey:             "01020304050607080102030405060708",
@@ -81,6 +85,8 @@ func TestNodeAPI(t *testing.T) {
 				So(nodes.Result, ShouldHaveLength, 1)
 				So(nodes.TotalCount, ShouldEqual, 1)
 				So(nodes.Result[0], ShouldResemble, &pb.GetNodeResponse{
+					Name:               "test-node",
+					Description:        "test node description",
 					DevEUI:             "0807060504030201",
 					AppEUI:             "0102030405060708",
 					AppKey:             "01020304050607080102030405060708",
@@ -95,6 +101,8 @@ func TestNodeAPI(t *testing.T) {
 
 			Convey("When updating the node", func() {
 				_, err := api.Update(ctx, &pb.UpdateNodeRequest{
+					Name:               "test-node",
+					Description:        "test node description updated",
 					ApplicationName:    "test-app",
 					DevEUI:             "0807060504030201",
 					AppEUI:             "0102030405060708",
@@ -117,6 +125,8 @@ func TestNodeAPI(t *testing.T) {
 					})
 					So(err, ShouldBeNil)
 					So(node, ShouldResemble, &pb.GetNodeResponse{
+						Name:               "test-node",
+						Description:        "test node description updated",
 						DevEUI:             "0807060504030201",
 						AppEUI:             "0102030405060708",
 						AppKey:             "08070605040302010807060504030201",

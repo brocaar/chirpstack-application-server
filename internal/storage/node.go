@@ -4,12 +4,15 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"regexp"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/brocaar/lorawan"
 )
+
+var nodeNameRegexp = regexp.MustCompile(`^[\w-]+$`)
 
 // DevNonceList represents a list of dev nonces
 type DevNonceList [][2]byte
@@ -71,6 +74,7 @@ func (r RXWindow) Value() (driver.Value, error) {
 type Node struct {
 	ApplicationID int64             `db:"application_id"`
 	Name          string            `db:"name"`
+	Description   string            `db:"description"`
 	DevEUI        lorawan.EUI64     `db:"dev_eui"`
 	AppEUI        lorawan.EUI64     `db:"app_eui"`
 	AppKey        lorawan.AES128Key `db:"app_key"`
@@ -90,6 +94,18 @@ type Node struct {
 	InstallationMargin float64 `db:"installation_margin"`
 }
 
+// Validate validates the data of the Node.
+func (n Node) Validate() error {
+	if !nodeNameRegexp.MatchString(n.Name) {
+		return errors.New("node name may only contain words, numbers and dashes")
+	}
+	if n.RXDelay > 15 {
+		return errors.New("max value of RXDelay is 15")
+	}
+
+	return nil
+}
+
 // ValidateDevNonce returns if the given dev-nonce is valid.
 // When valid, it will be added to UsedDevNonces. This does
 // not update the Node in the database!
@@ -105,14 +121,15 @@ func (n *Node) ValidateDevNonce(nonce [2]byte) bool {
 
 // CreateNode creates the given Node.
 func CreateNode(db *sqlx.DB, n Node) error {
-	if n.RXDelay > 15 {
-		return errors.New("max value of RXDelay is 15")
+	if err := n.Validate(); err != nil {
+		return fmt.Errorf("validate node error: %s", err)
 	}
 
 	_, err := db.Exec(`
 		insert into node (
 			application_id,
 			name,
+			description,
 			dev_eui,
 			app_eui,
 			app_key,
@@ -128,9 +145,10 @@ func CreateNode(db *sqlx.DB, n Node) error {
 			adr_interval,
 			installation_margin
 		)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
 		n.ApplicationID,
 		n.Name,
+		n.Description,
 		n.DevEUI[:],
 		n.AppEUI[:],
 		n.AppKey[:],
@@ -155,32 +173,34 @@ func CreateNode(db *sqlx.DB, n Node) error {
 
 // UpdateNode updates the given Node.
 func UpdateNode(db *sqlx.DB, n Node) error {
-	if n.RXDelay > 15 {
-		return errors.New("max value of RXDelay is 15")
+	if err := n.Validate(); err != nil {
+		return fmt.Errorf("validate node error: %s", err)
 	}
 
 	res, err := db.Exec(`
 		update node set
 			application_id = $2,
 			name = $3,
-			app_eui = $4,
-			app_key = $5,
-			dev_addr = $6,
-			app_s_key = $7,
-			nwk_s_key = $8,
-			used_dev_nonces = $9,
-			rx_delay = $10,
-			rx1_dr_offset = $11,
-			rx_window = $12,
-			rx2_dr = $13,
-			channel_list_id = $14,
-			relax_fcnt = $15,
-			adr_interval = $16,
-			installation_margin = $17
+			description = $4,
+			app_eui = $5,
+			app_key = $6,
+			dev_addr = $7,
+			app_s_key = $8,
+			nwk_s_key = $9,
+			used_dev_nonces = $10,
+			rx_delay = $11,
+			rx1_dr_offset = $12,
+			rx_window = $13,
+			rx2_dr = $14,
+			channel_list_id = $15,
+			relax_fcnt = $16,
+			adr_interval = $17,
+			installation_margin = $18
 		where dev_eui = $1`,
 		n.DevEUI[:],
 		n.ApplicationID,
 		n.Name,
+		n.Description,
 		n.AppEUI[:],
 		n.AppKey[:],
 		n.DevAddr[:],

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/brocaar/lora-app-server/internal/common"
@@ -12,6 +13,7 @@ import (
 func TestValidateDevNonce(t *testing.T) {
 	Convey("Given a Node", t, func() {
 		n := Node{
+			Name:          "test-node",
 			UsedDevNonces: make([][2]byte, 0),
 		}
 
@@ -80,6 +82,7 @@ func TestGetCFListForNode(t *testing.T) {
 		So(CreateApplication(db, &app), ShouldBeNil)
 		node := Node{
 			ApplicationID: app.ID,
+			Name:          "test-node",
 			DevEUI:        [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
 		}
 		So(CreateNode(ctx.DB, node), ShouldBeNil)
@@ -129,9 +132,33 @@ func TestNodeMethods(t *testing.T) {
 			So(nodes, ShouldHaveLength, 0)
 		})
 
+		Convey("When creating a node with an invalid name", func() {
+			node := Node{
+				ApplicationID: app.ID,
+				Name:          "test node",
+				Description:   "test node description",
+				DevEUI:        [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
+				AppKey:        [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+
+				RXDelay:            2,
+				RX1DROffset:        3,
+				RXWindow:           RX2,
+				RX2DR:              3,
+				ADRInterval:        20,
+				InstallationMargin: 5,
+			}
+			err := CreateNode(db, node)
+
+			Convey("Then a validation error is returned", func() {
+				So(err, ShouldResemble, errors.New("validate node error: node name may only contain words, numbers and dashes"))
+			})
+		})
+
 		Convey("When creating a node", func() {
 			node := Node{
 				ApplicationID: app.ID,
+				Name:          "test-node",
+				Description:   "test node description",
 				DevEUI:        [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
 				AppKey:        [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 

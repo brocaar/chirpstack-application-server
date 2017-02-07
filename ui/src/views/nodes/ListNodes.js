@@ -8,8 +8,9 @@ class NodeRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`/applications/${this.props.application.name}/nodes/${this.props.node.devEUI}/edit`}>{this.props.node.devEUI}</Link></td>
-        <td>{this.props.node.name}</td>
+        <td><Link to={`/applications/${this.props.application.name}/nodes/${this.props.node.devEUI}/edit`}>{this.props.node.name}</Link></td>
+        <td>{this.props.node.devEUI}</td>
+        <td>{this.props.node.description}</td>
       </tr>
     );
   }
@@ -72,8 +73,9 @@ class ListNodes extends Component {
             <table className="table table-hover">
               <thead>
                 <tr>
-                  <th>Device EUI</th>
                   <th>Device name</th>
+                  <th>Device EUI</th>
+                  <th>Device description</th>
                 </tr>
               </thead>
               <tbody>

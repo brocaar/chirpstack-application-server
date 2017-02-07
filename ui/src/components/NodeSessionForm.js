@@ -5,7 +5,11 @@ class NodeSessionForm extends Component {
   constructor() {
     super();
 
-    this.state = {session: {}, devEUIDisabled: false};
+    this.state = {
+      session: {},
+      devEUIDisabled: false,
+    };
+
     this.handleSubmit = this.handleSubmit.bind(this);
     this.getRandomDevAddr = this.getRandomDevAddr.bind(this);
   }
@@ -39,7 +43,7 @@ class NodeSessionForm extends Component {
       return;
     }
 
-    NodeSessionStore.getRandomDevAddr((responseData) => {
+    NodeSessionStore.getRandomDevAddr(this.props.application.name, this.props.node.devEUI, (responseData) => {
       let session = this.state.session;
       session["devAddr"] = responseData.devAddr;
       this.setState({session: session});

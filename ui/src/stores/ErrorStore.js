@@ -45,6 +45,8 @@ class ErrorStore extends EventEmitter {
         this.deleteError(action.id);
         break;
       }
+      default:
+        break;
     }
   }
 }

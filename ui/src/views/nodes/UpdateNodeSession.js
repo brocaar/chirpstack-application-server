@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
+import ApplicationStore from "../../stores/ApplicationStore";
 import NodeSessionStore from "../../stores/NodeSessionStore";
 import NodeSessionForm from "../../components/NodeSessionForm";
 import NodeStore from "../../stores/NodeStore";
 import ChannelStore from "../../stores/ChannelStore";
 
-class NodeSessionDetails extends Component {
+class UpdateNodeSession extends Component {
   static contextTypes = {
     router: React.PropTypes.object.isRequired
   };
@@ -25,16 +26,21 @@ class NodeSessionDetails extends Component {
   }
 
   componentWillMount() {
-    NodeSessionStore.getNodeSession(this.props.params.devEUI, (session) => {
+    ApplicationStore.getApplication(this.props.params.applicationName, (application) => {
+      this.setState({application: application});
+    });
+
+    NodeSessionStore.getNodeSession(this.props.params.applicationName, this.props.params.devEUI, (session) => {
       this.setState({
         session: session,
         sessionExists: true,
       });
-    }); 
+    });
 
-    NodeStore.getNode(this.props.params.devEUI, (node) => {
-      this.setState({node: node}); 
+    NodeStore.getNode(this.props.params.applicationName, this.props.params.devEUI, (node) => {
+      this.setState({node: node});
 
+      // eslint-disable-next-line
       if(node.channelListID != 0) {
         ChannelStore.getChannelList(node.channelListID, (list) => {
           this.setState({channels: list.channels});
@@ -56,20 +62,20 @@ class NodeSessionDetails extends Component {
     session.installationMargin = this.state.node.installationMargin;
 
     if (this.state.sessionExists) {
-      NodeSessionStore.updateNodeSession(this.props.params.devEUI, session, (responseData) => {
-        this.context.router.push("/nodes/"+this.props.params.devEUI);
+      NodeSessionStore.updateNodeSession(this.props.params.applicationName, this.props.params.devEUI, session, (responseData) => {
+        this.context.router.push("/applications/"+this.props.params.applicationName+"/nodes/"+this.props.params.devEUI+"/edit");
       });
     } else {
-      NodeSessionStore.createNodeSession(session, (responseData) => {
-        this.context.router.push("/nodes/"+ this.props.params.devEUI);
+      NodeSessionStore.createNodeSession(this.props.params.applicationName, this.props.params.devEUI, session, (responseData) => {
+        this.context.router.push("/applications/"+this.props.params.applicationName+"/nodes/"+this.props.params.devEUI+"/edit");
       });
     }
   }
 
   deleteHandler() {
     if (confirm("Are you sure you want to delete this node-session (this does not delete the node)?")) {
-      NodeSessionStore.deleteNodeSession(this.props.params.devEUI, (responseData) => {
-        this.context.router.push("/nodes/"+this.props.params.devEUI);
+      NodeSessionStore.deleteNodeSession(this.props.params.applicationName, this.props.params.devEUI, (responseData) => {
+        this.context.router.push("/applications/"+this.props.params.applicationName+"/nodes/"+this.props.params.devEUI+"/edit");
       });
     }
   }
@@ -78,16 +84,17 @@ class NodeSessionDetails extends Component {
     let deleteButton;
 
     if(this.state.sessionExists) {
-      deleteButton = <Link><button type="button" className="btn btn-danger" onClick={this.deleteHandler}>Delete</button></Link>;
+      deleteButton = <Link><button type="button" className="btn btn-danger" onClick={this.deleteHandler}>Delete node-session</button></Link>;
     }
 
     return(
       <div>
         <ol className="breadcrumb">
           <li><Link to="/">Dashboard</Link></li>
-          <li>Nodes</li>
-          <li><Link to={`/nodes/${this.props.params.devEUI}`}>{this.props.params.devEUI}</Link></li>
-          <li className="active">node-session / ABP</li>
+          <li><Link to="/applications">Applications</Link></li>
+          <li><Link to={`/applications/${this.props.params.applicationName}`}>{this.props.params.applicationName}</Link></li>
+          <li><Link to={`/applications/${this.props.params.applicationName}/nodes/${this.props.params.devEUI}/edit`}>{this.props.params.devEUI}</Link></li>
+          <li className="active">Edit node-session / ABP</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
@@ -97,7 +104,7 @@ class NodeSessionDetails extends Component {
         <hr />
         <div className="panel panel-default">
           <div className="panel-body">
-            <NodeSessionForm session={this.state.session} onSubmit={this.submitHandler} />
+            <NodeSessionForm application={this.state.application} node={this.state.node} session={this.state.session} onSubmit={this.submitHandler} />
           </div>
         </div>
       </div>
@@ -105,4 +112,4 @@ class NodeSessionDetails extends Component {
   }
 }
 
-export default NodeSessionDetails;
+export default UpdateNodeSession;

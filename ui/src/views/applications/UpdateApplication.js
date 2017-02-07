@@ -1,11 +1,10 @@
-import React, { Component } from "react";
-import { Link } from "react-router";
+import React, { Component } from 'react';
+import { Link } from 'react-router';
 
-import NodeStore from "../../stores/NodeStore";
-import NodeForm from "../../components/NodeForm";
 import ApplicationStore from "../../stores/ApplicationStore";
+import ApplicationForm from "../../components/ApplicationForm";
 
-class CreateNode extends Component {
+class UpdateApplication extends Component {
   static contextTypes = {
     router: React.PropTypes.object.isRequired
   };
@@ -14,8 +13,8 @@ class CreateNode extends Component {
     super();
     this.state = {
       application: {},
-      node: {},
     };
+
     this.onSubmit = this.onSubmit.bind(this);
   }
 
@@ -25,27 +24,25 @@ class CreateNode extends Component {
     });
   }
 
-  onSubmit(node) {
-    node.applicationName = this.props.params.applicationName;
-
-    NodeStore.createNode(node, (responseData) => {
-      this.context.router.push('/applications/'+this.props.params.applicationName);
-    }); 
+  onSubmit(application) {
+    ApplicationStore.updateApplication(this.state.application, (responseData) => {
+      this.context.router.push('/applications/'+application.name);
+    });
   }
 
   render() {
-    return (
+    return(
       <div>
         <ol className="breadcrumb">
           <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/applications">Applications</Link></li>
           <li><Link to={`/applications/${this.props.params.applicationName}`}>{this.state.application.name}</Link></li>
-          <li className="active">Create node</li>
+          <li className="active">Edit application</li>
         </ol>
         <hr />
         <div className="panel panel-default">
           <div className="panel-body">
-            <NodeForm node={this.state.node} onSubmit={this.onSubmit} />
+            <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} />
           </div>
         </div>
       </div>
@@ -53,4 +50,4 @@ class CreateNode extends Component {
   }
 }
 
-export default CreateNode;
+export default UpdateApplication;

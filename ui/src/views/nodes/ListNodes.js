@@ -2,43 +2,68 @@ import React, { Component } from 'react';
 import { Link } from 'react-router';
 
 import NodeStore from "../../stores/NodeStore";
+import ApplicationStore from "../../stores/ApplicationStore";
 
 class NodeRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`/nodes/${this.props.node.devEUI}`}>{this.props.node.devEUI}</Link></td>
+        <td><Link to={`/applications/${this.props.application.name}/nodes/${this.props.node.devEUI}/edit`}>{this.props.node.devEUI}</Link></td>
         <td>{this.props.node.name}</td>
-        <td>{this.props.node.appEUI}</td>
       </tr>
     );
   }
 }
 
 class ListNodes extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
+  };
+
   constructor() {
     super();
     this.state = {
+      application: {},
       nodes: [],
     };
-    NodeStore.getAll((nodes) => {
+
+    this.onDelete = this.onDelete.bind(this);
+  }
+
+  componentWillMount() {
+    NodeStore.getAll(this.props.params.applicationName, (nodes) => {
       this.setState({nodes: nodes});
+    });
+
+    ApplicationStore.getApplication(this.props.params.applicationName, (application) => {
+      this.setState({application: application});
     });
   }
 
+  onDelete() {
+    if (confirm("Are you sure you want to delete this application?")) {
+      ApplicationStore.deleteApplication(this.props.params.applicationName, (responseData) => {
+        this.context.router.push("/applications");
+      }); 
+    }
+  }
+
   render() {
-    const NodeRows = this.state.nodes.map((node, i) => <NodeRow key={node.devEUI} node={node} />);
+    const NodeRows = this.state.nodes.map((node, i) => <NodeRow key={node.devEUI} node={node} application={this.state.application} />);
 
     return(
       <div>
         <ol className="breadcrumb">
           <li><Link to="/">Dashboard</Link></li>
+          <li><Link to="/applications">Applications</Link></li>
+          <li>{this.state.application.name}</li>
           <li className="active">Nodes</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to="/nodes/create"><button type="button" className="btn btn-default">Create node</button></Link> &nbsp;
-            <Link to="/channels"><button type="button" className="btn btn-default">Channel lists</button></Link>
+            <Link to={`/applications/${this.props.params.applicationName}/nodes/create`}><button type="button" className="btn btn-default">Create node</button></Link> &nbsp;
+            <Link to={`/applications/${this.props.params.applicationName}/edit`}><button type="button" className="btn btn-default">Edit application</button></Link> &nbsp;
+            <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete application</button></Link>
           </div>
         </div>
         <hr />
@@ -49,7 +74,6 @@ class ListNodes extends Component {
                 <tr>
                   <th>Device EUI</th>
                   <th>Device name</th>
-                  <th>Application EUI</th>
                 </tr>
               </thead>
               <tbody>

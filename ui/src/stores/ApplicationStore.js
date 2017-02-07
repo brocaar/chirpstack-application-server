@@ -13,7 +13,6 @@ var checkStatus = (response) => {
 };
 
 var errorHandler = (error) => {
-  console.log(error);
   error.then((data) => {
     dispatcher.dispatch({
       type: "CREATE_ERROR",
@@ -26,9 +25,9 @@ var errorHandler = (error) => {
   });
 };
 
-class NodeStore extends EventEmitter {
-  getAll(applicationName, callbackFunc) {
-    fetch("/api/applications/"+applicationName+"/nodes?limit=999", {headers: tokenStore.getHeader()})
+class ApplicationStore extends EventEmitter {
+  getAll(callbackFunc) {
+    fetch("/api/applications?limit=999", {headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -41,8 +40,8 @@ class NodeStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  getNode(applicationName, devEUI, callbackFunc) {
-    fetch("/api/applications/"+applicationName+"/nodes/"+devEUI, {headers: tokenStore.getHeader()})
+  getApplication(applicationName, callbackFunc) {
+    fetch("/api/applications/"+applicationName, {headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -51,8 +50,8 @@ class NodeStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  createNode(node, callbackFunc) {
-    fetch("/api/applications/"+node.applicationName+"/nodes", {method: "POST", body: JSON.stringify(node), headers: tokenStore.getHeader()})
+  createApplication(application, callbackFunc) {
+    fetch("/api/applications", {method: "POST", body: JSON.stringify(application), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -61,8 +60,8 @@ class NodeStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  updateNode(node, callbackFunc) {
-    fetch("/api/applications/"+node.applicationName+"/nodes/"+node.devEUI, {method: "PUT", body: JSON.stringify(node), headers: tokenStore.getHeader()})
+  updateApplication(application, callbackFunc) {
+    fetch("/api/applications/"+application.name, {method: "PUT", body: JSON.stringify(application), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -71,8 +70,8 @@ class NodeStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  deleteNode(applicationName, devEUI, callbackFunc) {
-    fetch("/api/applications/"+applicationName+"/nodes/"+devEUI, {method: "DELETE", headers: tokenStore.getHeader()})
+  deleteApplication(applicationName, callbackFunc) {
+    fetch("/api/applications/"+applicationName, {method: "DELETE", headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -82,6 +81,6 @@ class NodeStore extends EventEmitter {
   }
 }
 
-const nodeStore = new NodeStore();
+const applicationStore = new ApplicationStore();
 
-export default nodeStore;
+export default applicationStore;

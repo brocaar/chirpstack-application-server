@@ -13,14 +13,14 @@ class ErrorLine extends Component {
     dispatcher.dispatch({
       type: "DELETE_ERROR",
       id: this.props.id,
-    }); 
+    });
   }
 
   render() {
     return (
       <div className="alert alert-danger">
         <button type="button" className="close" onClick={this.handleDelete}><span>&times;</span></button>
-        <strong>Error</strong> {this.props.error.Error} (code: {this.props.error.Code})
+        <strong>Error</strong> {this.props.error.error} (code: {this.props.error.code})
       </div>
     )
   }

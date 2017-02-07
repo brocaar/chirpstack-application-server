@@ -37,7 +37,7 @@ class NodeForm extends Component {
     }
     this.setState({node: node});
   };
-  
+
   render() {
     return (
       <form onSubmit={this.handleSubmit}>

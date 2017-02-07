@@ -96,8 +96,11 @@ func TestValidateNode(t *testing.T) {
 
 		for _, test := range testTable {
 			Convey("Test: "+test.Description, func() {
-				v := ValidateNode(test.DevEUI)
-				So(v(&test.Claims), ShouldResemble, test.Error)
+				v1 := ValidateNode(test.DevEUI)
+				So(v1(&test.Claims), ShouldResemble, test.Error)
+
+				v2 := ValidateNodeName(test.DevEUI.String())
+				So(v2(&test.Claims), ShouldResemble, test.Error)
 			})
 		}
 	})

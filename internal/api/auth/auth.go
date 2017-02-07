@@ -108,6 +108,7 @@ func (v JWTValidator) Validate(ctx context.Context, funcs ...ValidatorFunc) erro
 }
 
 // ValidateApplication validates if the user has permission to the given AppEUI.
+// TODO: remove?
 func ValidateApplication(appEUI lorawan.EUI64) ValidatorFunc {
 	return func(claims *Claims) error {
 		if claims.Admin {
@@ -151,6 +152,7 @@ func ValidateApplicationName(name string) ValidatorFunc {
 }
 
 // ValidateNode validates if the user has permission to the given DevEUI.
+// TODO: remove?
 func ValidateNode(devEUI lorawan.EUI64) ValidatorFunc {
 	return func(claims *Claims) error {
 		if claims.Admin {
@@ -168,6 +170,28 @@ func ValidateNode(devEUI lorawan.EUI64) ValidatorFunc {
 		}
 
 		return fmt.Errorf("no permission to node %s", devEUI)
+	}
+}
+
+// ValidateNodeName validates if the user has permission to the given node
+// name.
+func ValidateNodeName(name string) ValidatorFunc {
+	return func(claims *Claims) error {
+		if claims.Admin {
+			return nil
+		}
+
+		for _, node := range claims.Nodes {
+			if node == "*" {
+				return nil
+			}
+
+			if name == node {
+				return nil
+			}
+		}
+
+		return fmt.Errorf("no permission to node %s", name)
 	}
 }
 

@@ -171,8 +171,15 @@ func TestNodeMethods(t *testing.T) {
 			}
 			So(CreateNode(db, node), ShouldBeNil)
 
-			Convey("Whe can get it", func() {
+			Convey("It can be get by DevEUI", func() {
 				node2, err := GetNode(db, node.DevEUI)
+				node2.UsedDevNonces = nil
+				So(err, ShouldBeNil)
+				So(node2, ShouldResemble, node)
+			})
+
+			Convey("It can be get by name", func() {
+				node2, err := GetNodeByname(db, node.Name)
 				node2.UsedDevNonces = nil
 				So(err, ShouldBeNil)
 				So(node2, ShouldResemble, node)

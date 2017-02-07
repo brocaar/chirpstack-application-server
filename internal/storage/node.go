@@ -259,6 +259,16 @@ func GetNode(db *sqlx.DB, devEUI lorawan.EUI64) (Node, error) {
 	return node, nil
 }
 
+// GetNodeByName returns the Node for the given name.
+func GetNodeByname(db *sqlx.DB, name string) (Node, error) {
+	var node Node
+	err := db.Get(&node, "select * from node where name = $1", name)
+	if err != nil {
+		return node, fmt.Errorf("get node %s error: %s", name, err)
+	}
+	return node, nil
+}
+
 // GetNodesForApplicationID returns a slice of nodes for the given application
 // id, sorted by DevEUI.
 func GetNodesForApplicationID(db *sqlx.DB, applicationID int64, limit, offset int) ([]Node, error) {

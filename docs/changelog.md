@@ -1,9 +1,21 @@
 # Changelog
 
-## Development
+## 0.3.0
+
+**This release contains changes that are not backwards compatible!**
 
 **Features:**
 
+* Nodes can now be grouped per application (e.g. called `temperature-sensor`
+  for backwards compatibility, the `AppEUI` is used as application name).
+* Nodes can now be given a name (e.g. `garden-sensor`), which must be unique 
+  within an application. For backwards compatibility the `DevEUI` is used as
+  name for the nodes.
+* JWT token validation is now based on the name of the application and node.
+* The gRPC and REST apis have been updated to reflect the above application and
+  node name changes.
+* The MQTT topics (and payloads) are now based on the application and node
+  name (see [mqtt topics](mqtt-topics.md) for more info).
 * More descriptive error on missing `--http-tls-cert` and `--http-tls-key`
   configuration.
 

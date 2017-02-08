@@ -14,6 +14,7 @@ and payloads can be enqueued by using MQTT or the API.
 
 ## Screenshots
 
+![applications](docs/img/web_applications.png)
 ![nodes](docs/img/web_nodes.png)
 ![node details](docs/img/web_node_details.png)
 ![swagger api](docs/img/swagger.png)

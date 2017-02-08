@@ -51,12 +51,12 @@ func request_Application_Get_0(ctx context.Context, marshaler runtime.Marshaler,
 		_   = err
 	)
 
-	val, ok = pathParams["name"]
+	val, ok = pathParams["applicationName"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
 	}
 
-	protoReq.Name, err = runtime.String(val)
+	protoReq.ApplicationName, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, err
@@ -82,12 +82,12 @@ func request_Application_Update_0(ctx context.Context, marshaler runtime.Marshal
 		_   = err
 	)
 
-	val, ok = pathParams["name"]
+	val, ok = pathParams["applicationName"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
 	}
 
-	protoReq.Name, err = runtime.String(val)
+	protoReq.ApplicationName, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, err
@@ -109,12 +109,12 @@ func request_Application_Delete_0(ctx context.Context, marshaler runtime.Marshal
 		_   = err
 	)
 
-	val, ok = pathParams["name"]
+	val, ok = pathParams["applicationName"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
 	}
 
-	protoReq.Name, err = runtime.String(val)
+	protoReq.ApplicationName, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, err
@@ -318,11 +318,11 @@ func RegisterApplicationHandler(ctx context.Context, mux *runtime.ServeMux, conn
 var (
 	pattern_Application_Create_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "applications"}, ""))
 
-	pattern_Application_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "applications", "name"}, ""))
+	pattern_Application_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "applications", "applicationName"}, ""))
 
-	pattern_Application_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "applications", "name"}, ""))
+	pattern_Application_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "applications", "applicationName"}, ""))
 
-	pattern_Application_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "applications", "name"}, ""))
+	pattern_Application_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "applications", "applicationName"}, ""))
 
 	pattern_Application_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "applications"}, ""))
 )

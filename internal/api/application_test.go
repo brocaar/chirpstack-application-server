@@ -36,7 +36,7 @@ func TestApplicationAPI(t *testing.T) {
 
 			Convey("Then the application has been created", func() {
 				app, err := api.Get(ctx, &pb.GetApplicationRequest{
-					Name: "test-app",
+					ApplicationName: "test-app",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -65,8 +65,9 @@ func TestApplicationAPI(t *testing.T) {
 
 			Convey("When updating the application", func() {
 				_, err := api.Update(ctx, &pb.UpdateApplicationRequest{
-					Name:        "test-app",
-					Description: "An updated test description",
+					ApplicationName: "test-app",
+					Name:            "test-app-updated",
+					Description:     "An updated test description",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -74,11 +75,11 @@ func TestApplicationAPI(t *testing.T) {
 
 				Convey("Then the application has been updated", func() {
 					app, err := api.Get(ctx, &pb.GetApplicationRequest{
-						Name: "test-app",
+						ApplicationName: "test-app-updated",
 					})
 					So(err, ShouldBeNil)
 					So(app, ShouldResemble, &pb.GetApplicationResponse{
-						Name:        "test-app",
+						Name:        "test-app-updated",
 						Description: "An updated test description",
 					})
 				})
@@ -86,7 +87,7 @@ func TestApplicationAPI(t *testing.T) {
 
 			Convey("When deleting the application", func() {
 				_, err := api.Delete(ctx, &pb.DeleteApplicationRequest{
-					Name: "test-app",
+					ApplicationName: "test-app",
 				})
 				So(err, ShouldBeNil)
 

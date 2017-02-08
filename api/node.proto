@@ -19,14 +19,14 @@ service Node {
     // Get returns the node for the requested name.
     rpc Get(GetNodeRequest) returns (GetNodeResponse) {
         option (google.api.http) = {
-            get: "/api/applications/{applicationName}/nodes/{name}"
+            get: "/api/applications/{applicationName}/nodes/{nodeName}"
         };
     }
 
     // Delete deletes the node matching the given name.
     rpc Delete(DeleteNodeRequest) returns (DeleteNodeResponse) {
         option (google.api.http) = {
-            delete: "/api/applications/{applicationName}/nodes/{name}"
+            delete: "/api/applications/{applicationName}/nodes/{nodeName}"
         };
     }
 
@@ -40,13 +40,16 @@ service Node {
     // Update updates the node matching the given name.
     rpc Update(UpdateNodeRequest) returns (UpdateNodeResponse) {
         option (google.api.http) = {
-            put: "/api/applications/{applicationName}/nodes/{name}"
+            put: "/api/applications/{applicationName}/nodes/{nodeName}"
             body: "*"
         };
     }
 }
 
 message CreateNodeRequest {
+	// name of the application to which the node belongs
+	string applicationName = 13;
+
     // hex encoded DevEUI
     string devEUI = 1; 
     // hex encoded AppEUI
@@ -62,18 +65,17 @@ message CreateNodeRequest {
 	bool relaxFCnt = 10;
 	uint32 adrInterval = 11;
 	double installationMargin = 12;
-	// name of the application to which the node must be linked
-	string applicationName = 13;
 	string description = 14;
 }
 
 message CreateNodeResponse {}
 
 message GetNodeRequest {
-    // name of the node
-    string name = 1;
-	// name of the application to which the node is linked
+	// name of the application to which the node belongs
 	string applicationName = 2;
+
+    // name of the node
+    string nodeName = 1;
 }
 
 message GetNodeResponse {
@@ -96,19 +98,21 @@ message GetNodeResponse {
 };
 
 message DeleteNodeRequest {
-    // name of the node
-    string name = 1;
-	// name of the application to which the node is linked
+	// name of the application to which the node belongs
 	string applicationName = 2;
+
+    // name of the node
+    string nodeName = 1;
 }
 
 message DeleteNodeResponse {}
 
 message ListNodeRequest {
-    int64 limit = 1;
-    int64 offset = 2;
 	// name of the application for which to list the nodes
 	string applicationName = 3;
+
+    int64 limit = 1;
+    int64 offset = 2;
 }
 
 message ListNodeResponse {
@@ -118,6 +122,11 @@ message ListNodeResponse {
 
 
 message UpdateNodeRequest {
+	// name of the application to which the node is linked
+	string applicationName = 13;
+	// name of the node to update 
+	string nodeName = 14;
+
     // hex encoded AppEUI
     string appEUI = 2;
     // hex encoded AppKey
@@ -127,13 +136,12 @@ message UpdateNodeRequest {
     int64 channelListID = 6;
     RXWindow rxWindow = 7;
     uint32 rx2DR = 8;
+	// new name of the node (e.g. in case the node has been renamed)
     string name = 9;
 	bool relaxFCnt = 10;
 	uint32 adrInterval = 11;
 	double installationMargin = 12;
-	// name of the application to which the node is linked
-	string applicationName = 13;
-	string description = 14;
+	string description = 15;
 }
 
 message UpdateNodeResponse {}

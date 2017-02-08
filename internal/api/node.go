@@ -88,7 +88,7 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Get"),
 		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNodeName(req.Name),
+		auth.ValidateNodeName(req.NodeName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -98,7 +98,7 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	node, err := storage.GetNodeByname(a.ctx.DB, req.Name)
+	node, err := storage.GetNodeByname(a.ctx.DB, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
@@ -180,7 +180,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Update"),
 		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNodeName(req.Name),
+		auth.ValidateNodeName(req.NodeName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -190,7 +190,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	node, err := storage.GetNodeByname(a.ctx.DB, req.Name)
+	node, err := storage.GetNodeByname(a.ctx.DB, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
@@ -200,6 +200,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
+	node.Name = req.Name
 	node.Description = req.Description
 	node.AppEUI = appEUI
 	node.AppKey = appKey
@@ -228,12 +229,12 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.De
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Delete"),
 		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNodeName(req.Name),
+		auth.ValidateNodeName(req.NodeName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNodeByname(a.ctx.DB, req.Name)
+	node, err := storage.GetNodeByname(a.ctx.DB, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}

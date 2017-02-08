@@ -18,14 +18,14 @@ service Application {
 	// Get returns the requested application.
 	rpc Get(GetApplicationRequest) returns (GetApplicationResponse) {
 		option(google.api.http) = {
-			get: "/api/applications/{name}"
+			get: "/api/applications/{applicationName}"
 		};
 	}
 
 	// Update updates the given application.
 	rpc Update(UpdateApplicationRequest) returns (UpdateApplicationResponse) {
 		option(google.api.http) = {
-			put: "/api/applications/{name}"
+			put: "/api/applications/{applicationName}"
 			body: "*"
 		};
 	}
@@ -33,7 +33,7 @@ service Application {
 	// Delete deletes the given application.
 	rpc Delete(DeleteApplicationRequest) returns (DeleteApplicationResponse) {
 		option(google.api.http) = {
-			delete: "/api/applications/{name}"
+			delete: "/api/applications/{applicationName}"
 		};
 	}
 
@@ -57,7 +57,7 @@ message CreateApplicationResponse {}
 
 message GetApplicationRequest {
 	// name of the application
-	string name = 1;
+	string applicationName = 1;
 }
 
 message GetApplicationResponse {
@@ -69,8 +69,11 @@ message GetApplicationResponse {
 }
 
 message UpdateApplicationRequest {
-	// name of the application (to be updated)
-	string name = 1;
+	// name of the application to update
+	string applicationName = 1;
+
+	// new name of the application (e.g. in case the application has been renamed)
+	string name = 3;
 
 	// description of the application
 	string description = 2;
@@ -79,8 +82,8 @@ message UpdateApplicationRequest {
 message UpdateApplicationResponse {}
 
 message DeleteApplicationRequest {
-	// name of the application
-	string name = 1;
+	// name of the application to delete
+	string applicationName = 1;
 }
 
 message DeleteApplicationResponse {}

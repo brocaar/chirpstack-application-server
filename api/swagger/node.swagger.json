@@ -85,7 +85,7 @@
         ]
       }
     },
-    "/api/applications/{applicationName}/nodes/{name}": {
+    "/api/applications/{applicationName}/nodes/{nodeName}": {
       "get": {
         "summary": "Get returns the node for the requested name.",
         "operationId": "Get",
@@ -105,7 +105,7 @@
             "type": "string"
           },
           {
-            "name": "name",
+            "name": "nodeName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -134,7 +134,7 @@
             "type": "string"
           },
           {
-            "name": "name",
+            "name": "nodeName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -163,7 +163,7 @@
             "type": "string"
           },
           {
-            "name": "name",
+            "name": "nodeName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -187,6 +187,10 @@
     "apiCreateNodeRequest": {
       "type": "object",
       "properties": {
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application to which the node belongs"
+        },
         "devEUI": {
           "type": "string",
           "title": "hex encoded DevEUI"
@@ -233,10 +237,6 @@
           "type": "number",
           "format": "double"
         },
-        "applicationName": {
-          "type": "string",
-          "title": "name of the application to which the node must be linked"
-        },
         "description": {
           "type": "string"
         }
@@ -248,13 +248,13 @@
     "apiDeleteNodeRequest": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string",
-          "title": "name of the node"
-        },
         "applicationName": {
           "type": "string",
-          "title": "name of the application to which the node is linked"
+          "title": "name of the application to which the node belongs"
+        },
+        "nodeName": {
+          "type": "string",
+          "title": "name of the node"
         }
       }
     },
@@ -264,13 +264,13 @@
     "apiGetNodeRequest": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string",
-          "title": "name of the node"
-        },
         "applicationName": {
           "type": "string",
-          "title": "name of the application to which the node is linked"
+          "title": "name of the application to which the node belongs"
+        },
+        "nodeName": {
+          "type": "string",
+          "title": "name of the node"
         }
       }
     },
@@ -331,6 +331,10 @@
     "apiListNodeRequest": {
       "type": "object",
       "properties": {
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application for which to list the nodes"
+        },
         "limit": {
           "type": "string",
           "format": "int64"
@@ -338,10 +342,6 @@
         "offset": {
           "type": "string",
           "format": "int64"
-        },
-        "applicationName": {
-          "type": "string",
-          "title": "name of the application for which to list the nodes"
         }
       }
     },
@@ -371,6 +371,14 @@
     "apiUpdateNodeRequest": {
       "type": "object",
       "properties": {
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application to which the node is linked"
+        },
+        "nodeName": {
+          "type": "string",
+          "title": "name of the node to update"
+        },
         "appEUI": {
           "type": "string",
           "title": "hex encoded AppEUI"
@@ -399,7 +407,8 @@
           "format": "int64"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "new name of the node (e.g. in case the node has been renamed)"
         },
         "relaxFCnt": {
           "type": "boolean",
@@ -412,10 +421,6 @@
         "installationMargin": {
           "type": "number",
           "format": "double"
-        },
-        "applicationName": {
-          "type": "string",
-          "title": "name of the application to which the node is linked"
         },
         "description": {
           "type": "string"

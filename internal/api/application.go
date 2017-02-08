@@ -48,12 +48,12 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Application.Get"),
-		auth.ValidateApplicationName(req.Name),
+		auth.ValidateApplicationName(req.ApplicationName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplicationByName(a.ctx.DB, req.Name)
+	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
@@ -66,17 +66,18 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRequest) (*pb.UpdateApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Application.Update"),
-		auth.ValidateApplicationName(req.Name),
+		auth.ValidateApplicationName(req.ApplicationName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplicationByName(a.ctx.DB, req.Name)
+	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
 	// update the fields
+	app.Name = req.Name
 	app.Description = req.Description
 
 	err = storage.UpdateApplication(a.ctx.DB, app)
@@ -90,12 +91,12 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRequest) (*pb.DeleteApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Application.Delete"),
-		auth.ValidateApplicationName(req.Name),
+		auth.ValidateApplicationName(req.ApplicationName),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteApplicationByname(a.ctx.DB, req.Name)
+	err := storage.DeleteApplicationByname(a.ctx.DB, req.ApplicationName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}

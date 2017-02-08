@@ -73,7 +73,7 @@
         ]
       }
     },
-    "/api/applications/{name}": {
+    "/api/applications/{applicationName}": {
       "get": {
         "summary": "Get returns the requested application.",
         "operationId": "Get",
@@ -87,7 +87,7 @@
         },
         "parameters": [
           {
-            "name": "name",
+            "name": "applicationName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -110,7 +110,7 @@
         },
         "parameters": [
           {
-            "name": "name",
+            "name": "applicationName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -133,7 +133,7 @@
         },
         "parameters": [
           {
-            "name": "name",
+            "name": "applicationName",
             "in": "path",
             "required": true,
             "type": "string"
@@ -173,9 +173,9 @@
     "apiDeleteApplicationRequest": {
       "type": "object",
       "properties": {
-        "name": {
+        "applicationName": {
           "type": "string",
-          "title": "name of the application"
+          "title": "name of the application to delete"
         }
       }
     },
@@ -185,7 +185,7 @@
     "apiGetApplicationRequest": {
       "type": "object",
       "properties": {
-        "name": {
+        "applicationName": {
           "type": "string",
           "title": "name of the application"
         }
@@ -235,9 +235,13 @@
     "apiUpdateApplicationRequest": {
       "type": "object",
       "properties": {
+        "applicationName": {
+          "type": "string",
+          "title": "name of the application to update"
+        },
         "name": {
           "type": "string",
-          "title": "name of the application (to be updated)"
+          "title": "new name of the application (e.g. in case the application has been renamed)"
         },
         "description": {
           "type": "string",

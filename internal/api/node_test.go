@@ -54,7 +54,7 @@ func TestNodeAPI(t *testing.T) {
 			Convey("The node has been created", func() {
 				node, err := api.Get(ctx, &pb.GetNodeRequest{
 					ApplicationName: "test-app",
-					Name:            "test-node",
+					NodeName:        "test-node",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -101,9 +101,10 @@ func TestNodeAPI(t *testing.T) {
 
 			Convey("When updating the node", func() {
 				_, err := api.Update(ctx, &pb.UpdateNodeRequest{
-					Name:               "test-node",
-					Description:        "test node description updated",
 					ApplicationName:    "test-app",
+					NodeName:           "test-node",
+					Name:               "test-node-updated",
+					Description:        "test node description updated",
 					AppEUI:             "0102030405060708",
 					AppKey:             "08070605040302010807060504030201",
 					RxDelay:            3,
@@ -120,11 +121,11 @@ func TestNodeAPI(t *testing.T) {
 				Convey("Then the node has been updated", func() {
 					node, err := api.Get(ctx, &pb.GetNodeRequest{
 						ApplicationName: "test-app",
-						Name:            "test-node",
+						NodeName:        "test-node-updated",
 					})
 					So(err, ShouldBeNil)
 					So(node, ShouldResemble, &pb.GetNodeResponse{
-						Name:               "test-node",
+						Name:               "test-node-updated",
 						Description:        "test node description updated",
 						DevEUI:             "0807060504030201",
 						AppEUI:             "0102030405060708",
@@ -142,7 +143,7 @@ func TestNodeAPI(t *testing.T) {
 			Convey("After deleting the node", func() {
 				_, err := api.Delete(ctx, &pb.DeleteNodeRequest{
 					ApplicationName: "test-app",
-					Name:            "test-node",
+					NodeName:        "test-node",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)

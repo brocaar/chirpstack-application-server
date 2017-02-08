@@ -171,6 +171,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 		auth.ValidateAPIMethod("Node.Update"),
 		auth.ValidateApplicationName(req.ApplicationName),
 		auth.ValidateNodeName(req.NodeName),
+		auth.ValidateNodeName(req.Name), // in case of a name update
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}

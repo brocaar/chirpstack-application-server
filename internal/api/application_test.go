@@ -71,7 +71,7 @@ func TestApplicationAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 2)
+				So(validator.validatorFuncs, ShouldHaveLength, 3)
 
 				Convey("Then the application has been updated", func() {
 					app, err := api.Get(ctx, &pb.GetApplicationRequest{

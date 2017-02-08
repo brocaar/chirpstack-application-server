@@ -67,6 +67,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Application.Update"),
 		auth.ValidateApplicationName(req.ApplicationName),
+		auth.ValidateApplicationName(req.Name), // in case of a name update
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}

@@ -60,8 +60,8 @@ class ApplicationStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  updateApplication(application, callbackFunc) {
-    fetch("/api/applications/"+application.name, {method: "PUT", body: JSON.stringify(application), headers: tokenStore.getHeader()})
+  updateApplication(applicationName, application, callbackFunc) {
+    fetch("/api/applications/"+applicationName, {method: "PUT", body: JSON.stringify(application), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

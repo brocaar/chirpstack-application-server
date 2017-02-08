@@ -25,7 +25,7 @@ class UpdateApplication extends Component {
   }
 
   onSubmit(application) {
-    ApplicationStore.updateApplication(this.state.application, (responseData) => {
+    ApplicationStore.updateApplication(this.props.params.applicationName, this.state.application, (responseData) => {
       this.context.router.push('/applications/'+application.name);
     });
   }

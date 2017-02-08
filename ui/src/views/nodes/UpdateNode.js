@@ -31,10 +31,8 @@ class UpdateNode extends Component {
   }
 
   onSubmit(node) {
-    node.applicationName = this.props.params.applicationName;
-
-    NodeStore.updateNode(node, (responseData) => {
-      this.context.router.push('/applications/'+node.applicationName);
+    NodeStore.updateNode(this.props.params.applicationName, this.props.params.nodeName, node, (responseData) => {
+      this.context.router.push('/applications/'+this.props.params.applicationName);
     });
   }
 

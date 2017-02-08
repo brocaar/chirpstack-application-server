@@ -5,7 +5,6 @@ class ApplicationForm extends Component {
     super();
     this.state = {
       application: {},
-      nameDisabled: false,
     };
     this.handleSubmit = this.handleSubmit.bind(this);
   }
@@ -13,7 +12,6 @@ class ApplicationForm extends Component {
   componentWillReceiveProps(nextProps) {
     this.setState({
       application: nextProps.application,
-      nameDisabled: typeof nextProps.application.name !== "undefined",
     });
   }
 
@@ -33,7 +31,7 @@ class ApplicationForm extends Component {
       <form onSubmit={this.handleSubmit}>
         <div className="form-group">
           <label className="control-label" htmlFor="name">Application name</label>
-          <input className="form-control" id="name" type="text" placeholder="e.g. 'temperature-sensor'" pattern="[\w-]+" required value={this.state.application.name || ''} disabled={this.state.nameDisabled} onChange={this.onChange.bind(this, 'name')} />
+          <input className="form-control" id="name" type="text" placeholder="e.g. 'temperature-sensor'" pattern="[\w-]+" required value={this.state.application.name || ''} onChange={this.onChange.bind(this, 'name')} />
           <p className="help-block">
             The name may only contain words, numbers and dashes. This name will be used as identifier and will be used for MQTT topics.
           </p>

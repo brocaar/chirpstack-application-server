@@ -259,12 +259,21 @@ func GetNode(db *sqlx.DB, devEUI lorawan.EUI64) (Node, error) {
 	return node, nil
 }
 
-// GetNodeByName returns the Node for the given name.
-func GetNodeByname(db *sqlx.DB, name string) (Node, error) {
+// GetNodeByName returns the Node for the given application / node name
+// combination. The application name must be given as the node name is only
+// unique within the scope of an application.
+func GetNodeByName(db *sqlx.DB, applicationName, nodeName string) (Node, error) {
 	var node Node
-	err := db.Get(&node, "select * from node where name = $1", name)
+	err := db.Get(&node, `
+		select n.*
+		from node n
+		inner join application a
+			on a.id = n.application_id
+		where
+			n.name = $1
+			and a.name = $2`, nodeName, applicationName)
 	if err != nil {
-		return node, fmt.Errorf("get node %s error: %s", name, err)
+		return node, fmt.Errorf("get node error: %s", err)
 	}
 	return node, nil
 }

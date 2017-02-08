@@ -51,18 +51,9 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNodeByname(n.ctx.DB, req.NodeName)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, "get node error: %s", err)
-	}
-	app, err := storage.GetApplicationByName(n.ctx.DB, req.ApplicationName)
+	node, err := storage.GetNodeByName(n.ctx.DB, req.ApplicationName, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	// test that the node belongs to the given application
-	if node.ApplicationID != app.ID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	_, err = n.ctx.NetworkServer.CreateNodeSession(context.Background(), &ns.CreateNodeSessionRequest{
@@ -114,18 +105,9 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplicationByName(n.ctx.DB, req.ApplicationName)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-	node, err := storage.GetNodeByname(n.ctx.DB, req.NodeName)
+	node, err := storage.GetNodeByName(n.ctx.DB, req.ApplicationName, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, "get node error: %s", err)
-	}
-
-	// test that the node belongs to the given application
-	if node.ApplicationID != app.ID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	resp, err := n.ctx.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{
@@ -185,18 +167,9 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplicationByName(n.ctx.DB, req.ApplicationName)
+	node, err := storage.GetNodeByName(n.ctx.DB, req.ApplicationName, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-	node, err := storage.GetNodeByname(n.ctx.DB, req.NodeName)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "get node error: %s", err)
-	}
-
-	// test that the node belongs to the given application
-	if node.ApplicationID != app.ID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	_, err = n.ctx.NetworkServer.UpdateNodeSession(context.Background(), &ns.UpdateNodeSessionRequest{
@@ -244,18 +217,9 @@ func (n *NodeSessionAPI) Delete(ctx context.Context, req *pb.DeleteNodeSessionRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNodeByname(n.ctx.DB, req.NodeName)
+	node, err := storage.GetNodeByName(n.ctx.DB, req.ApplicationName, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, "get node error: %s", err)
-	}
-	app, err := storage.GetApplicationByName(n.ctx.DB, req.ApplicationName)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	// test that the node belongs to the given application
-	if node.ApplicationID != app.ID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	_, err = n.ctx.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{

@@ -34,19 +34,9 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplicationByName(d.ctx.DB, req.ApplicationName)
+	node, err := storage.GetNodeByName(d.ctx.DB, req.ApplicationName, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	node, err := storage.GetNodeByname(d.ctx.DB, req.NodeName)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	// test that the node belongs to the given application
-	if node.ApplicationID != app.ID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	qi := storage.DownlinkQueueItem{
@@ -76,19 +66,11 @@ func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeu
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	node, err := storage.GetNodeByname(d.ctx.DB, req.NodeName)
+	node, err := storage.GetNodeByName(d.ctx.DB, req.ApplicationName, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	app, err := storage.GetApplicationByName(d.ctx.DB, req.ApplicationName)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
-	}
 
-	// test that the node belongs to the given application
-	if node.ApplicationID != app.ID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
-	}
 	// test that the queue-item belongs to the given node
 	if qi.DevEUI != node.DevEUI {
 		return nil, grpc.Errorf(codes.NotFound, "queue-item does not exist for the given node")
@@ -110,18 +92,9 @@ func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueIt
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNodeByname(d.ctx.DB, req.NodeName)
+	node, err := storage.GetNodeByName(d.ctx.DB, req.ApplicationName, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-	app, err := storage.GetApplication(d.ctx.DB, node.ApplicationID)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
-	}
-
-	// test that the node belongs to the given application
-	if node.ApplicationID != app.ID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	items, err := storage.GetDownlinkQueueItems(d.ctx.DB, node.DevEUI)

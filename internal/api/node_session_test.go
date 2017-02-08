@@ -107,7 +107,7 @@ func TestNodeSessionAPI(t *testing.T) {
 				So(validator.validatorFuncs, ShouldHaveLength, 3)
 
 				Convey("Then an error is returned", func() {
-					So(err, ShouldResemble, grpc.Errorf(codes.Unknown, "get application error: sql: no rows in result set"))
+					So(err, ShouldResemble, grpc.Errorf(codes.Unknown, "get node error: sql: no rows in result set"))
 				})
 			})
 
@@ -171,7 +171,7 @@ func TestNodeSessionAPI(t *testing.T) {
 				So(validator.validatorFuncs, ShouldHaveLength, 3)
 
 				Convey("Then an error is returned", func() {
-					So(err, ShouldResemble, grpc.Errorf(codes.Unknown, "get application error: sql: no rows in result set"))
+					So(err, ShouldResemble, grpc.Errorf(codes.Unknown, "get node error: sql: no rows in result set"))
 				})
 			})
 

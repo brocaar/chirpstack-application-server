@@ -179,7 +179,7 @@ func TestNodeMethods(t *testing.T) {
 			})
 
 			Convey("It can be get by name", func() {
-				node2, err := GetNodeByname(db, node.Name)
+				node2, err := GetNodeByName(db, app.Name, node.Name)
 				node2.UsedDevNonces = nil
 				So(err, ShouldBeNil)
 				So(node2, ShouldResemble, node)

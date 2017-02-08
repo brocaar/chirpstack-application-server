@@ -93,19 +93,9 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
+	node, err := storage.GetNodeByName(a.ctx.DB, req.ApplicationName, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	node, err := storage.GetNodeByname(a.ctx.DB, req.NodeName)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	// test that the node belongs to the given application
-	if node.ApplicationID != app.ID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	devEUI, err := node.DevEUI.MarshalText()
@@ -185,19 +175,9 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
+	node, err := storage.GetNodeByName(a.ctx.DB, req.ApplicationName, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	node, err := storage.GetNodeByname(a.ctx.DB, req.NodeName)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	// test that the node belongs to the given application
-	if node.ApplicationID != app.ID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	node.Name = req.Name
@@ -234,19 +214,9 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.De
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNodeByname(a.ctx.DB, req.NodeName)
+	node, err := storage.GetNodeByName(a.ctx.DB, req.ApplicationName, req.NodeName)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	// test that the node belongs to the given application
-	if node.ApplicationID != app.ID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exists for the given application")
 	}
 
 	if err := storage.DeleteNode(a.ctx.DB, node.DevEUI); err != nil {

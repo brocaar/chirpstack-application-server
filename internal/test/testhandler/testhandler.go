@@ -1,9 +1,6 @@
 package testhandler
 
-import (
-	"github.com/brocaar/lora-app-server/internal/handler"
-	"github.com/brocaar/lorawan"
-)
+import "github.com/brocaar/lora-app-server/internal/handler"
 
 // TestHandler implements a Handler for testing.
 type TestHandler struct {
@@ -28,22 +25,22 @@ func (t *TestHandler) Close() error {
 	return nil
 }
 
-func (t *TestHandler) SendDataUp(appEUI lorawan.EUI64, devEUI lorawan.EUI64, payload handler.DataUpPayload) error {
+func (t *TestHandler) SendDataUp(payload handler.DataUpPayload) error {
 	t.SendDataUpChan <- payload
 	return nil
 }
 
-func (t *TestHandler) SendJoinNotification(appEUI lorawan.EUI64, devEUI lorawan.EUI64, payload handler.JoinNotification) error {
+func (t *TestHandler) SendJoinNotification(payload handler.JoinNotification) error {
 	t.SendJoinNotificationChan <- payload
 	return nil
 }
 
-func (t *TestHandler) SendACKNotification(appEUI lorawan.EUI64, devEUI lorawan.EUI64, payload handler.ACKNotification) error {
+func (t *TestHandler) SendACKNotification(payload handler.ACKNotification) error {
 	t.SendACKNotificationChan <- payload
 	return nil
 }
 
-func (t *TestHandler) SendErrorNotification(appEUI lorawan.EUI64, devEUI lorawan.EUI64, payload handler.ErrorNotification) error {
+func (t *TestHandler) SendErrorNotification(payload handler.ErrorNotification) error {
 	t.SendErrorNotificationChan <- payload
 	return nil
 }

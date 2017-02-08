@@ -348,16 +348,25 @@ func mustGetTransportCredentials(tlsCert, tlsKey, caCert string, verifyClientCer
 func enqueueDataDownPayloads(db *sqlx.DB, payloadChan chan handler.DataDownPayload) {
 	for pl := range payloadChan {
 		go func(pl handler.DataDownPayload) {
-			err := storage.CreateDownlinkQueueItem(db, &storage.DownlinkQueueItem{
+			node, err := storage.GetNodeByName(db, pl.ApplicationName, pl.NodeName)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"application_name": pl.ApplicationName,
+					"node_name":        pl.NodeName,
+				}).Errorf("get node error: %s", err)
+				return
+			}
+
+			err = storage.CreateDownlinkQueueItem(db, &storage.DownlinkQueueItem{
 				Reference: pl.Reference,
-				DevEUI:    pl.DevEUI,
+				DevEUI:    node.DevEUI,
 				Confirmed: pl.Confirmed,
 				FPort:     pl.FPort,
 				Data:      pl.Data,
 			})
 			if err != nil {
 				log.WithFields(log.Fields{
-					"dev_eui":   pl.DevEUI,
+					"dev_eui":   node.DevEUI,
 					"reference": pl.Reference,
 				}).Errorf("enqueue data-down payload error: %s", err)
 			}

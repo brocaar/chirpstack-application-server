@@ -51,7 +51,7 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 	copy(netID[:], req.NetID)
 	copy(devAddr[:], req.DevAddr)
 
-	// get the node from the db and validate the AppEUI
+	// get the node and application from the db and validate the AppEUI
 	node, err := storage.GetNode(a.ctx.DB, jrPL.DevEUI)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -59,6 +59,14 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 		}).Errorf("join-request node does not exist")
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
+	app, err := storage.GetApplication(a.ctx.DB, node.ApplicationID)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"id": node.ApplicationID,
+		}).Errorf("get application error: %s", err)
+		return nil, grpc.Errorf(codes.Internal, err.Error())
+	}
+
 	if node.AppEUI != jrPL.AppEUI {
 		log.WithFields(log.Fields{
 			"dev_eui":          node.DevEUI,
@@ -178,14 +186,18 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 	}
 
 	log.WithFields(log.Fields{
-		"dev_eui":  node.DevEUI,
-		"app_eui":  node.AppEUI,
-		"dev_addr": node.DevAddr,
+		"dev_eui":          node.DevEUI,
+		"app_eui":          node.AppEUI,
+		"dev_addr":         node.DevAddr,
+		"application_name": app.Name,
+		"node_name":        node.Name,
 	}).Info("join-request accepted")
 
-	err = a.ctx.Handler.SendJoinNotification(node.AppEUI, node.DevEUI, handler.JoinNotification{
-		DevAddr: node.DevAddr,
-		DevEUI:  node.DevEUI,
+	err = a.ctx.Handler.SendJoinNotification(handler.JoinNotification{
+		ApplicationName: app.Name,
+		NodeName:        node.Name,
+		DevAddr:         node.DevAddr,
+		DevEUI:          node.DevEUI,
 	})
 	if err != nil {
 		log.Errorf("send join notification to handler error: %s", err)
@@ -210,6 +222,12 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 		log.WithField("dev_eui", devEUI).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
+	app, err := storage.GetApplication(a.ctx.DB, node.ApplicationID)
+	if err != nil {
+		errStr := fmt.Sprintf("get application error: %s", err)
+		log.WithField("id", node.ApplicationID).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
 
 	b, err := lorawan.EncryptFRMPayload(node.AppSKey, true, node.DevAddr, req.FCnt, req.Data)
 	if err != nil {
@@ -221,8 +239,10 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 	}
 
 	pl := handler.DataUpPayload{
-		DevEUI: devEUI,
-		RXInfo: []handler.RXInfo{},
+		ApplicationName: app.Name,
+		NodeName:        node.Name,
+		DevEUI:          devEUI,
+		RXInfo:          []handler.RXInfo{},
 		TXInfo: handler.TXInfo{
 			Frequency: int(req.TxInfo.Frequency),
 			DataRate: handler.DataRate{
@@ -263,9 +283,9 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 		})
 	}
 
-	err = a.ctx.Handler.SendDataUp(appEUI, devEUI, pl)
+	err = a.ctx.Handler.SendDataUp(pl)
 	if err != nil {
-		errStr := fmt.Sprintf("send data up to mqtt handler error: %s", err)
+		errStr := fmt.Sprintf("send data up to handler error: %s", err)
 		log.Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
@@ -357,9 +377,21 @@ func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataD
 
 // HandleDataDownACK handles an ack on a downlink transmission.
 func (a *ApplicationServerAPI) HandleDataDownACK(ctx context.Context, req *as.HandleDataDownACKRequest) (*as.HandleDataDownACKResponse, error) {
-	var appEUI, devEUI lorawan.EUI64
-	copy(appEUI[:], req.AppEUI)
+	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEUI)
+
+	node, err := storage.GetNode(a.ctx.DB, devEUI)
+	if err != nil {
+		errStr := fmt.Sprintf("get node error: %s", err)
+		log.WithField("dev_eui", devEUI).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+	app, err := storage.GetApplication(a.ctx.DB, node.ApplicationID)
+	if err != nil {
+		errStr := fmt.Sprintf("get application error: %s", err)
+		log.WithField("id", node.ApplicationID).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
 
 	qi, err := storage.GetPendingDownlinkQueueItem(a.ctx.DB, devEUI)
 	if err != nil {
@@ -369,12 +401,16 @@ func (a *ApplicationServerAPI) HandleDataDownACK(ctx context.Context, req *as.Ha
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 	log.WithFields(log.Fields{
-		"dev_eui": qi.DevEUI,
+		"application_name": app.Name,
+		"node_name":        node.Name,
+		"dev_eui":          qi.DevEUI,
 	}).Info("downlink queue item acknowledged")
 
-	err = a.ctx.Handler.SendACKNotification(appEUI, devEUI, handler.ACKNotification{
-		DevEUI:    devEUI,
-		Reference: qi.Reference,
+	err = a.ctx.Handler.SendACKNotification(handler.ACKNotification{
+		ApplicationName: app.Name,
+		NodeName:        node.Name,
+		DevEUI:          devEUI,
+		Reference:       qi.Reference,
 	})
 	if err != nil {
 		log.Errorf("send ack notification to handler error: %s", err)
@@ -385,22 +421,38 @@ func (a *ApplicationServerAPI) HandleDataDownACK(ctx context.Context, req *as.Ha
 
 // HandleError handles an incoming error.
 func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleErrorRequest) (*as.HandleErrorResponse, error) {
-	var appEUI, devEUI lorawan.EUI64
-	copy(appEUI[:], req.AppEUI)
+	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEUI)
 
+	node, err := storage.GetNode(a.ctx.DB, devEUI)
+	if err != nil {
+		errStr := fmt.Sprintf("get node error: %s", err)
+		log.WithField("dev_eui", devEUI).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+	app, err := storage.GetApplication(a.ctx.DB, node.ApplicationID)
+	if err != nil {
+		errStr := fmt.Sprintf("get application error: %s", err)
+		log.WithField("id", node.ApplicationID).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
 	log.WithFields(log.Fields{
-		"type":    req.Type,
-		"dev_eui": devEUI,
+		"application_name": app.Name,
+		"node_name":        node.Name,
+		"type":             req.Type,
+		"dev_eui":          devEUI,
 	}).Error(req.Error)
 
-	err := a.ctx.Handler.SendErrorNotification(appEUI, devEUI, handler.ErrorNotification{
-		DevEUI: devEUI,
-		Type:   req.Type.String(),
-		Error:  req.Error,
+	err = a.ctx.Handler.SendErrorNotification(handler.ErrorNotification{
+		ApplicationName: app.Name,
+		NodeName:        node.Name,
+		DevEUI:          devEUI,
+		Type:            req.Type.String(),
+		Error:           req.Error,
 	})
 	if err != nil {
-		errStr := fmt.Sprintf("send error notification to mqtt handler error: %s", err)
+		errStr := fmt.Sprintf("send error notification to handler error: %s", err)
 		log.Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}

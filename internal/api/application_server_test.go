@@ -18,10 +18,30 @@ import (
 func TestApplicationServerAPI(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database and api instance", t, func() {
+	Convey("Given a clean database with application + node and api instance", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
+
+		app := storage.Application{
+			Name: "test-app",
+		}
+		So(storage.CreateApplication(db, &app), ShouldBeNil)
+		node := storage.Node{
+			ApplicationID:      app.ID,
+			Name:               "test-node",
+			DevEUI:             [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
+			AppEUI:             [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
+			AppKey:             [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+			RXWindow:           storage.RX2,
+			RXDelay:            1,
+			RX1DROffset:        2,
+			RX2DR:              3,
+			RelaxFCnt:          true,
+			ADRInterval:        20,
+			InstallationMargin: 5,
+		}
+		So(storage.CreateNode(db, node), ShouldBeNil)
 
 		h := testhandler.NewTestHandler()
 
@@ -45,37 +65,16 @@ func TestApplicationServerAPI(t *testing.T) {
 			Convey("Then the error has been sent to the handler", func() {
 				So(h.SendErrorNotificationChan, ShouldHaveLength, 1)
 				So(<-h.SendErrorNotificationChan, ShouldResemble, handler.ErrorNotification{
-					DevEUI: [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-					Type:   "DATA_UP_FCNT",
-					Error:  "BOOM!",
+					ApplicationName: "test-app",
+					NodeName:        "test-node",
+					DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
+					Type:            "DATA_UP_FCNT",
+					Error:           "BOOM!",
 				})
 			})
 		})
 
-		Convey("Given an application and node in the database", func() {
-			app := storage.Application{
-				Name: "test-app",
-			}
-			So(storage.CreateApplication(db, &app), ShouldBeNil)
-
-			node := storage.Node{
-				ApplicationID:      app.ID,
-				Name:               "test-node",
-				Description:        "test node description",
-				DevEUI:             [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-				AppEUI:             [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
-				AppKey:             [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
-				RXWindow:           storage.RX2,
-				RXDelay:            1,
-				RX1DROffset:        2,
-				RX2DR:              3,
-				RelaxFCnt:          true,
-				ADRInterval:        20,
-				InstallationMargin: 5,
-			}
-
-			So(storage.CreateNode(db, node), ShouldBeNil)
-
+		Convey("Given a join-request", func() {
 			phy := lorawan.PHYPayload{
 				MHDR: lorawan.MHDR{
 					MType: lorawan.JoinRequest,
@@ -128,7 +127,9 @@ func TestApplicationServerAPI(t *testing.T) {
 				Convey("Then the expected payload was sent to the handler", func() {
 					So(h.SendDataUpChan, ShouldHaveLength, 1)
 					So(<-h.SendDataUpChan, ShouldResemble, handler.DataUpPayload{
-						DevEUI: node.DevEUI,
+						ApplicationName: "test-app",
+						NodeName:        "test-node",
+						DevEUI:          node.DevEUI,
 						RXInfo: []handler.RXInfo{
 							{
 								MAC:     mac,
@@ -209,8 +210,10 @@ func TestApplicationServerAPI(t *testing.T) {
 				Convey("Then a notification was sent to the handler", func() {
 					So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
 					So(<-h.SendJoinNotificationChan, ShouldResemble, handler.JoinNotification{
-						DevAddr: [4]byte{1, 2, 3, 4},
-						DevEUI:  node.DevEUI,
+						ApplicationName: "test-app",
+						NodeName:        "test-node",
+						DevAddr:         [4]byte{1, 2, 3, 4},
+						DevEUI:          node.DevEUI,
 					})
 				})
 			})
@@ -266,8 +269,10 @@ func TestApplicationServerAPI(t *testing.T) {
 					Convey("Then a notification was sent to the handler", func() {
 						So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
 						So(<-h.SendJoinNotificationChan, ShouldResemble, handler.JoinNotification{
-							DevAddr: [4]byte{1, 2, 3, 4},
-							DevEUI:  node.DevEUI,
+							ApplicationName: "test-app",
+							NodeName:        "test-node",
+							DevAddr:         [4]byte{1, 2, 3, 4},
+							DevEUI:          node.DevEUI,
 						})
 					})
 				})
@@ -296,8 +301,10 @@ func TestApplicationServerAPI(t *testing.T) {
 					Convey("Then an ack notification was sent to the handler", func() {
 						So(h.SendACKNotificationChan, ShouldHaveLength, 1)
 						So(<-h.SendACKNotificationChan, ShouldResemble, handler.ACKNotification{
-							DevEUI:    qi.DevEUI,
-							Reference: qi.Reference,
+							ApplicationName: "test-app",
+							NodeName:        "test-node",
+							DevEUI:          qi.DevEUI,
+							Reference:       qi.Reference,
 						})
 					})
 				})

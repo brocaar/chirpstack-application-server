@@ -19,7 +19,7 @@ import (
 const txTopic = "application/+/node/+/tx"
 const downlinkLockTTL = time.Millisecond * 100
 
-var txTopicRegex = regexp.MustCompile(`application/(\w+)/node/(\w+)/tx`)
+var txTopicRegex = regexp.MustCompile(`application/([\w-]+)/node/([\w-]+)/tx`)
 
 // DataRate contains the data-rate related fields.
 type DataRate struct {
@@ -47,28 +47,33 @@ type TXInfo struct {
 
 // DataUpPayload represents a data-up payload.
 type DataUpPayload struct {
-	DevEUI lorawan.EUI64 `json:"devEUI"`
-	RXInfo []RXInfo      `json:"rxInfo"`
-	TXInfo TXInfo        `json:"txInfo"`
-	FCnt   uint32        `json:"fCnt"`
-	FPort  uint8         `json:"fPort"`
-	Data   []byte        `json:"data"`
+	ApplicationName string        `json:"applicationName"`
+	NodeName        string        `json:"nodeName"`
+	DevEUI          lorawan.EUI64 `json:"devEUI"`
+	RXInfo          []RXInfo      `json:"rxInfo"`
+	TXInfo          TXInfo        `json:"txInfo"`
+	FCnt            uint32        `json:"fCnt"`
+	FPort           uint8         `json:"fPort"`
+	Data            []byte        `json:"data"`
 }
 
 // DataDownPayload represents a data-down payload.
 type DataDownPayload struct {
-	Reference string        `json:"reference"`
-	Confirmed bool          `json:"confirmed"`
-	DevEUI    lorawan.EUI64 `json:"devEUI"`
-	FPort     uint8         `json:"fPort"`
-	Data      []byte        `json:"data"`
+	ApplicationName string `json:"applicationName"`
+	NodeName        string `json:"nodeName"`
+	Reference       string `json:"reference"`
+	Confirmed       bool   `json:"confirmed"`
+	FPort           uint8  `json:"fPort"`
+	Data            []byte `json:"data"`
 }
 
 // JoinNotification defines the payload sent to the application on
 // a JoinNotificationType event.
 type JoinNotification struct {
-	DevAddr lorawan.DevAddr `json:"devAddr"`
-	DevEUI  lorawan.EUI64   `json:"devEUI"`
+	ApplicationName string          `json:"applicationName"`
+	NodeName        string          `json:"nodeName"`
+	DevEUI          lorawan.EUI64   `json:"devEUI"`
+	DevAddr         lorawan.DevAddr `json:"devAddr"`
 }
 
 // MQTTHandler implements a MQTT handler for sending and receiving data by
@@ -83,16 +88,20 @@ type MQTTHandler struct {
 // ACKNotification defines the payload sent to the application
 // on an ACK event.
 type ACKNotification struct {
-	Reference string        `json:"reference"`
-	DevEUI    lorawan.EUI64 `json:"devEUI"`
+	ApplicationName string        `json:"applicationName"`
+	NodeName        string        `json:"nodeName"`
+	DevEUI          lorawan.EUI64 `json:"devEUI"`
+	Reference       string        `json:"reference"`
 }
 
 // ErrorNotification defines the payload sent to the application
 // on an error event.
 type ErrorNotification struct {
-	DevEUI lorawan.EUI64 `json:"devEUI"`
-	Type   string        `json:"type"`
-	Error  string        `json:"error"`
+	ApplicationName string        `json:"applicationName"`
+	NodeName        string        `json:"nodeName"`
+	DevEUI          lorawan.EUI64 `json:"devEUI"`
+	Type            string        `json:"type"`
+	Error           string        `json:"error"`
 }
 
 // NewMQTTHandler creates a new MQTTHandler.
@@ -131,13 +140,13 @@ func (h *MQTTHandler) Close() error {
 }
 
 // SendDataUp sends a DataUpPayload.
-func (h *MQTTHandler) SendDataUp(appEUI, devEUI lorawan.EUI64, payload DataUpPayload) error {
+func (h *MQTTHandler) SendDataUp(payload DataUpPayload) error {
 	b, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("handler/mqtt: data-up payload marshal error: %s", err)
 	}
 
-	topic := fmt.Sprintf("application/%s/node/%s/rx", appEUI, devEUI)
+	topic := fmt.Sprintf("application/%s/node/%s/rx", payload.ApplicationName, payload.NodeName)
 	log.WithField("topic", topic).Info("handler/mqtt: publishing data-up payload")
 	if token := h.conn.Publish(topic, 0, false, b); token.Wait() && token.Error() != nil {
 		return fmt.Errorf("handler/mqtt: publish data-up payload error: %s", err)
@@ -146,12 +155,12 @@ func (h *MQTTHandler) SendDataUp(appEUI, devEUI lorawan.EUI64, payload DataUpPay
 }
 
 // SendJoinNotification sends a JoinNotification.
-func (h *MQTTHandler) SendJoinNotification(appEUI, devEUI lorawan.EUI64, payload JoinNotification) error {
+func (h *MQTTHandler) SendJoinNotification(payload JoinNotification) error {
 	b, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("handler/mqtt: join notification marshal error: %s", err)
 	}
-	topic := fmt.Sprintf("application/%s/node/%s/join", appEUI, devEUI)
+	topic := fmt.Sprintf("application/%s/node/%s/join", payload.ApplicationName, payload.NodeName)
 	log.WithField("topic", topic).Info("handler/mqtt: publishing join notification")
 	if token := h.conn.Publish(topic, 0, false, b); token.Wait() && token.Error() != nil {
 		return fmt.Errorf("handler/mqtt: publish join notification error: %s", err)
@@ -160,12 +169,12 @@ func (h *MQTTHandler) SendJoinNotification(appEUI, devEUI lorawan.EUI64, payload
 }
 
 // SendACKNotification sends an ACKNotification.
-func (h *MQTTHandler) SendACKNotification(appEUI, devEUI lorawan.EUI64, payload ACKNotification) error {
+func (h *MQTTHandler) SendACKNotification(payload ACKNotification) error {
 	b, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("handler/mqtt: ack notification marshal error: %s", err)
 	}
-	topic := fmt.Sprintf("application/%s/node/%s/ack", appEUI, devEUI)
+	topic := fmt.Sprintf("application/%s/node/%s/ack", payload.ApplicationName, payload.NodeName)
 	log.WithField("topic", topic).Info("handler/mqtt: publishing ack notification")
 	if token := h.conn.Publish(topic, 0, false, b); token.Wait() && token.Error() != nil {
 		return fmt.Errorf("handler/mqtt: publish ack notification error: %s", err)
@@ -174,12 +183,12 @@ func (h *MQTTHandler) SendACKNotification(appEUI, devEUI lorawan.EUI64, payload 
 }
 
 // SendErrorNotification sends an ErrorNotification.
-func (h *MQTTHandler) SendErrorNotification(appEUI, devEUI lorawan.EUI64, payload ErrorNotification) error {
+func (h *MQTTHandler) SendErrorNotification(payload ErrorNotification) error {
 	b, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("handler/mqtt: error notification marshal error: %s", err)
 	}
-	topic := fmt.Sprintf("application/%s/node/%s/error", appEUI, devEUI)
+	topic := fmt.Sprintf("application/%s/node/%s/error", payload.ApplicationName, payload.NodeName)
 	log.WithField("topic", topic).Info("handler/mqtt: publishing error notification")
 	if token := h.conn.Publish(topic, 0, false, b); token.Wait() && token.Error() != nil {
 		return fmt.Errorf("handler/mqtt: publish error notification error: %s", err)
@@ -198,9 +207,7 @@ func (h *MQTTHandler) txPayloadHandler(c mqtt.Client, msg mqtt.Message) {
 
 	log.WithField("topic", msg.Topic()).Info("handler/mqtt: data-down payload received")
 
-	// get the DevEUI from the topic. with mqtt it is possible to perform
-	// authorization on a per topic level. we need to be sure that the
-	// topic DevEUI matches the payload DevEUI.
+	// get the name of the application and node from the topic
 	match := txTopicRegex.FindStringSubmatch(msg.Topic())
 	if len(match) != 3 {
 		log.WithField("topic", msg.Topic()).Error("handler/mqtt: topic regex match error")
@@ -216,19 +223,15 @@ func (h *MQTTHandler) txPayloadHandler(c mqtt.Client, msg mqtt.Message) {
 		return
 	}
 
-	if match[2] != pl.DevEUI.String() {
-		log.WithFields(log.Fields{
-			"topic_dev_eui":   match[2],
-			"payload_dev_eui": pl.DevEUI,
-		}).Warning("handler/mqtt: topic DevEUI must match payload DevEUI")
-		return
-	}
+	// set name of application and node from MQTT topic
+	pl.ApplicationName = match[1]
+	pl.NodeName = match[2]
 
 	// Since with MQTT all subscribers will receive the downlink messages sent
 	// by the application, the first instance receiving the message must lock it,
 	// so that other instances can ignore the message.
 	// As an unique id, the Reference field is used.
-	key := fmt.Sprintf("lora:as:downlink:lock:%s:%s", pl.DevEUI, pl.Reference)
+	key := fmt.Sprintf("lora:as:downlink:lock:%s:%s:%s", pl.ApplicationName, pl.NodeName, pl.Reference)
 	redisConn := h.redisPool.Get()
 	defer redisConn.Close()
 

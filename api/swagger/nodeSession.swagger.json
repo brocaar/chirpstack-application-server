@@ -185,67 +185,77 @@
     "apiCreateNodeSessionRequest": {
       "type": "object",
       "properties": {
-        "devAddr": {
-          "type": "string",
-          "title": "hex encoded DevAddr"
-        },
         "applicationName": {
           "type": "string",
-          "title": "name of the application to which the node is linked"
+          "description": "Name of the application owning the node."
         },
         "nodeName": {
           "type": "string",
-          "title": "name of the node"
+          "description": "Name of the node."
+        },
+        "devAddr": {
+          "type": "string",
+          "description": "Hex encoded DevAddr."
         },
         "appSKey": {
           "type": "string",
-          "title": "hex encoded AppSKey"
+          "description": "Hex encoded AppSKey."
         },
         "nwkSKey": {
           "type": "string",
-          "title": "hex encoded NwkSKey"
+          "description": "Hex encoded NwkSKey."
         },
         "fCntUp": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Uplink frame-counter."
         },
         "fCntDown": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Downlink frame-counter."
         },
         "rxDelay": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX delay."
         },
         "rx1DROffset": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX1 data-rate offset."
         },
         "cFList": {
           "type": "array",
           "items": {
             "type": "integer",
             "format": "int64"
-          }
+          },
+          "description": "Additional frequencies used for CFList (see LoRaWAN regional parameters if this applies to your region)."
         },
         "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow"
+          "$ref": "#/definitions/apiRXWindow",
+          "description": "RX window to use."
         },
         "rx2DR": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Data-rate to use for RX2."
         },
         "relaxFCnt": {
           "type": "boolean",
-          "format": "boolean"
+          "format": "boolean",
+          "description": "Relax frame-counter mode is enabled."
         },
         "adrInterval": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled)."
         },
         "installationMargin": {
           "type": "number",
-          "format": "double"
+          "format": "double",
+          "description": "Installation-margin to use for ADR calculation."
         }
       }
     },
@@ -255,13 +265,13 @@
     "apiDeleteNodeSessionRequest": {
       "type": "object",
       "properties": {
-        "nodeName": {
-          "type": "string",
-          "title": "name of the node"
-        },
         "applicationName": {
           "type": "string",
-          "title": "name of the application to which the node is linked"
+          "description": "Name of the application owning the node."
+        },
+        "nodeName": {
+          "type": "string",
+          "description": "Name of the node."
         }
       }
     },
@@ -271,13 +281,13 @@
     "apiGetNodeSessionRequest": {
       "type": "object",
       "properties": {
-        "nodeName": {
-          "type": "string",
-          "title": "name of the node"
-        },
         "applicationName": {
           "type": "string",
-          "title": "name of the application to which the node is linked"
+          "description": "Name of the application owning the node."
+        },
+        "nodeName": {
+          "type": "string",
+          "description": "Name of the node."
         }
       }
     },
@@ -285,87 +295,98 @@
       "type": "object",
       "properties": {
         "devAddr": {
-          "type": "string",
-          "title": "hex encoded DevAddr"
+          "type": "string"
         },
         "appEUI": {
           "type": "string",
-          "title": "hex encoded AppEUI"
+          "description": "Hex encoded AppEUI."
         },
         "devEUI": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "description": "Hex encoded DevEUI."
         },
         "appSKey": {
           "type": "string",
-          "title": "hex encoded AppSKey"
+          "description": "Hex encoded AppSKey."
         },
         "nwkSKey": {
           "type": "string",
-          "title": "hex encoded NwkSKey"
+          "description": "Hex encoded NwkSKey."
         },
         "fCntUp": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Uplink frame-counter."
         },
         "fCntDown": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Downlink frame-counter."
         },
         "rxDelay": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX delay."
         },
         "rx1DROffset": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX1 data-rate offset."
         },
         "cFList": {
           "type": "array",
           "items": {
             "type": "integer",
             "format": "int64"
-          }
+          },
+          "description": "Additional frequencies used for CFList (see LoRaWAN regional parameters if this applies to your region)."
         },
         "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow"
+          "$ref": "#/definitions/apiRXWindow",
+          "description": "RX window to use."
         },
         "rx2DR": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Data-rate to use for RX2."
         },
         "relaxFCnt": {
           "type": "boolean",
-          "format": "boolean"
+          "format": "boolean",
+          "description": "Relax frame-counter mode is enabled."
         },
         "adrInterval": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled)."
         },
         "installationMargin": {
           "type": "number",
-          "format": "double"
+          "format": "double",
+          "description": "Installation-margin to use for ADR calculation."
         },
         "nbTrans": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "The number of times the node (re)transmits (defined by the ADR engine)."
         },
         "txPower": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "The TX power of the node (defined by the ADR engine)."
         }
       }
     },
     "apiGetRandomDevAddrRequest": {
       "type": "object",
       "properties": {
-        "nodeName": {
-          "type": "string",
-          "title": "name of the node"
-        },
         "applicationName": {
           "type": "string",
-          "title": "name of the application to which the node is linked"
+          "description": "Name of the application owning the node."
+        },
+        "nodeName": {
+          "type": "string",
+          "description": "Name of the node."
         }
       }
     },
@@ -374,7 +395,7 @@
       "properties": {
         "devAddr": {
           "type": "string",
-          "title": "hex encoded DevAddr"
+          "description": "Hex encoded DevAddr."
         }
       }
     },
@@ -389,67 +410,77 @@
     "apiUpdateNodeSessionRequest": {
       "type": "object",
       "properties": {
-        "devAddr": {
-          "type": "string",
-          "title": "hex encoded DevAddr"
-        },
         "applicationName": {
           "type": "string",
-          "title": "name of the application to which the node is linked"
+          "description": "Name of the application owning the node."
         },
         "nodeName": {
           "type": "string",
-          "title": "name of the node"
+          "description": "Name of the node."
+        },
+        "devAddr": {
+          "type": "string",
+          "description": "Hex encoded DevAddr."
         },
         "appSKey": {
           "type": "string",
-          "title": "hex encoded AppSKey"
+          "description": "Hex encoded AppSKey."
         },
         "nwkSKey": {
           "type": "string",
-          "title": "hex encoded NwkSKey"
+          "description": "Hex encoded NwkSKey."
         },
         "fCntUp": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Uplink frame-counter."
         },
         "fCntDown": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Downlink frame-counter."
         },
         "rxDelay": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX delay."
         },
         "rx1DROffset": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX1 data-rate offset."
         },
         "cFList": {
           "type": "array",
           "items": {
             "type": "integer",
             "format": "int64"
-          }
+          },
+          "description": "Additional frequencies used for CFList (see LoRaWAN regional parameters if this applies to your region)."
         },
         "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow"
+          "$ref": "#/definitions/apiRXWindow",
+          "description": "RX window to use."
         },
         "rx2DR": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Data-rate to use for RX2."
         },
         "relaxFCnt": {
           "type": "boolean",
-          "format": "boolean"
+          "format": "boolean",
+          "description": "Relax frame-counter mode is enabled."
         },
         "adrInterval": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled)."
         },
         "installationMargin": {
           "type": "number",
-          "format": "double"
+          "format": "double",
+          "description": "Installation-margin to use for ADR calculation."
         }
       }
     },

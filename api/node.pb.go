@@ -20,24 +20,34 @@ var _ = fmt.Errorf
 var _ = math.Inf
 
 type CreateNodeRequest struct {
-	// name of the application to which the node belongs
+	// Name of the application to which the node must be added.
 	ApplicationName string `protobuf:"bytes,13,opt,name=applicationName" json:"applicationName,omitempty"`
-	// hex encoded DevEUI
+	// Hex encoded DevEUI.
 	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
-	// hex encoded AppEUI
+	// Hex encoded AppEUI.
 	AppEUI string `protobuf:"bytes,2,opt,name=appEUI" json:"appEUI,omitempty"`
-	// hex encoded AppKey
-	AppKey             string   `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
-	RxDelay            uint32   `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
-	Rx1DROffset        uint32   `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
-	ChannelListID      int64    `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
-	RxWindow           RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
-	Rx2DR              uint32   `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
-	Name               string   `protobuf:"bytes,9,opt,name=name" json:"name,omitempty"`
-	RelaxFCnt          bool     `protobuf:"varint,10,opt,name=relaxFCnt" json:"relaxFCnt,omitempty"`
-	AdrInterval        uint32   `protobuf:"varint,11,opt,name=adrInterval" json:"adrInterval,omitempty"`
-	InstallationMargin float64  `protobuf:"fixed64,12,opt,name=installationMargin" json:"installationMargin,omitempty"`
-	Description        string   `protobuf:"bytes,14,opt,name=description" json:"description,omitempty"`
+	// Hex encoded AppKey.
+	AppKey string `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
+	// RX delay.
+	RxDelay uint32 `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
+	// RX1 data-rate offset.
+	Rx1DROffset uint32 `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
+	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
+	ChannelListID int64 `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
+	// RX window to use.
+	RxWindow RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
+	// Data-rate to use for RX2.
+	Rx2DR uint32 `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
+	// Name of the node (if left blank, it will be set to the DevEUI).
+	Name string `protobuf:"bytes,9,opt,name=name" json:"name,omitempty"`
+	// Relax frame-counter mode is enabled.
+	RelaxFCnt bool `protobuf:"varint,10,opt,name=relaxFCnt" json:"relaxFCnt,omitempty"`
+	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
+	AdrInterval uint32 `protobuf:"varint,11,opt,name=adrInterval" json:"adrInterval,omitempty"`
+	// Installation-margin to use for ADR calculation.
+	InstallationMargin float64 `protobuf:"fixed64,12,opt,name=installationMargin" json:"installationMargin,omitempty"`
+	// Description of the node.
+	Description string `protobuf:"bytes,14,opt,name=description" json:"description,omitempty"`
 }
 
 func (m *CreateNodeRequest) Reset()                    { *m = CreateNodeRequest{} }
@@ -152,9 +162,9 @@ func (*CreateNodeResponse) ProtoMessage()               {}
 func (*CreateNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{1} }
 
 type GetNodeRequest struct {
-	// name of the application to which the node belongs
+	// Name of the application owning the node.
 	ApplicationName string `protobuf:"bytes,2,opt,name=applicationName" json:"applicationName,omitempty"`
-	// name of the node
+	// Name of the node.
 	NodeName string `protobuf:"bytes,1,opt,name=nodeName" json:"nodeName,omitempty"`
 }
 
@@ -178,22 +188,32 @@ func (m *GetNodeRequest) GetNodeName() string {
 }
 
 type GetNodeResponse struct {
-	// hex encoded DevEUI
+	// Hex encoded DevEUI.
 	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
-	// hex encoded AppEUI
+	// Hex encoded AppEUI.
 	AppEUI string `protobuf:"bytes,2,opt,name=appEUI" json:"appEUI,omitempty"`
-	// hex encoded AppKey
-	AppKey             string   `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
-	RxDelay            uint32   `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
-	Rx1DROffset        uint32   `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
-	ChannelListID      int64    `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
-	RxWindow           RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
-	Rx2DR              uint32   `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
-	Name               string   `protobuf:"bytes,9,opt,name=name" json:"name,omitempty"`
-	RelaxFCnt          bool     `protobuf:"varint,10,opt,name=relaxFCnt" json:"relaxFCnt,omitempty"`
-	AdrInterval        uint32   `protobuf:"varint,11,opt,name=adrInterval" json:"adrInterval,omitempty"`
-	InstallationMargin float64  `protobuf:"fixed64,12,opt,name=installationMargin" json:"installationMargin,omitempty"`
-	Description        string   `protobuf:"bytes,13,opt,name=description" json:"description,omitempty"`
+	// Hex encoded AppKey.
+	AppKey string `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
+	// RX delay.
+	RxDelay uint32 `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
+	// RX1 data-rate offset.
+	Rx1DROffset uint32 `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
+	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
+	ChannelListID int64 `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
+	// RX window to use.
+	RxWindow RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
+	// Data-rate to use for RX2.
+	Rx2DR uint32 `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
+	// Name of the node.
+	Name string `protobuf:"bytes,9,opt,name=name" json:"name,omitempty"`
+	// Relax frame-counter mode is enabled.
+	RelaxFCnt bool `protobuf:"varint,10,opt,name=relaxFCnt" json:"relaxFCnt,omitempty"`
+	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
+	AdrInterval uint32 `protobuf:"varint,11,opt,name=adrInterval" json:"adrInterval,omitempty"`
+	// Installation-margin to use for ADR calculation.
+	InstallationMargin float64 `protobuf:"fixed64,12,opt,name=installationMargin" json:"installationMargin,omitempty"`
+	// Description of the node.
+	Description string `protobuf:"bytes,13,opt,name=description" json:"description,omitempty"`
 }
 
 func (m *GetNodeResponse) Reset()                    { *m = GetNodeResponse{} }
@@ -293,9 +313,9 @@ func (m *GetNodeResponse) GetDescription() string {
 }
 
 type DeleteNodeRequest struct {
-	// name of the application to which the node belongs
+	// Name of the application owning the node.
 	ApplicationName string `protobuf:"bytes,2,opt,name=applicationName" json:"applicationName,omitempty"`
-	// name of the node
+	// Name of the node.
 	NodeName string `protobuf:"bytes,1,opt,name=nodeName" json:"nodeName,omitempty"`
 }
 
@@ -327,10 +347,12 @@ func (*DeleteNodeResponse) ProtoMessage()               {}
 func (*DeleteNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{5} }
 
 type ListNodeRequest struct {
-	// name of the application for which to list the nodes
+	// Name of the application owning the node.
 	ApplicationName string `protobuf:"bytes,3,opt,name=applicationName" json:"applicationName,omitempty"`
-	Limit           int64  `protobuf:"varint,1,opt,name=limit" json:"limit,omitempty"`
-	Offset          int64  `protobuf:"varint,2,opt,name=offset" json:"offset,omitempty"`
+	// Max number of nodes to return in the result-set.
+	Limit int64 `protobuf:"varint,1,opt,name=limit" json:"limit,omitempty"`
+	// Offset of the result-set (for pagination).
+	Offset int64 `protobuf:"varint,2,opt,name=offset" json:"offset,omitempty"`
 }
 
 func (m *ListNodeRequest) Reset()                    { *m = ListNodeRequest{} }
@@ -360,8 +382,10 @@ func (m *ListNodeRequest) GetOffset() int64 {
 }
 
 type ListNodeResponse struct {
-	TotalCount int64              `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
-	Result     []*GetNodeResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	// Total number of nodes available within the result-set.
+	TotalCount int64 `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
+	// Nodes within this result-set.
+	Result []*GetNodeResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
 }
 
 func (m *ListNodeResponse) Reset()                    { *m = ListNodeResponse{} }
@@ -384,25 +408,34 @@ func (m *ListNodeResponse) GetResult() []*GetNodeResponse {
 }
 
 type UpdateNodeRequest struct {
-	// name of the application to which the node is linked
+	// Name of the application owning the node.
 	ApplicationName string `protobuf:"bytes,13,opt,name=applicationName" json:"applicationName,omitempty"`
-	// name of the node to update
+	// Name of the node to update.
 	NodeName string `protobuf:"bytes,14,opt,name=nodeName" json:"nodeName,omitempty"`
-	// hex encoded AppEUI
+	// Hex encoded AppEUI.
 	AppEUI string `protobuf:"bytes,2,opt,name=appEUI" json:"appEUI,omitempty"`
-	// hex encoded AppKey
-	AppKey        string   `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
-	RxDelay       uint32   `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
-	Rx1DROffset   uint32   `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
-	ChannelListID int64    `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
-	RxWindow      RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
-	Rx2DR         uint32   `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
-	// new name of the node (e.g. in case the node has been renamed)
-	Name               string  `protobuf:"bytes,9,opt,name=name" json:"name,omitempty"`
-	RelaxFCnt          bool    `protobuf:"varint,10,opt,name=relaxFCnt" json:"relaxFCnt,omitempty"`
-	AdrInterval        uint32  `protobuf:"varint,11,opt,name=adrInterval" json:"adrInterval,omitempty"`
+	// Hex encoded AppKey.
+	AppKey string `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
+	// RX delay.
+	RxDelay uint32 `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
+	// RX1 data-rate offset.
+	Rx1DROffset uint32 `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
+	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
+	ChannelListID int64 `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
+	// RX window to use.
+	RxWindow RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
+	// Data-rate to use for RX2.
+	Rx2DR uint32 `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
+	// Name of the node (note that renaming the node affects its api endpoint)
+	Name string `protobuf:"bytes,9,opt,name=name" json:"name,omitempty"`
+	// Relax frame-counter mode is enabled.
+	RelaxFCnt bool `protobuf:"varint,10,opt,name=relaxFCnt" json:"relaxFCnt,omitempty"`
+	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
+	AdrInterval uint32 `protobuf:"varint,11,opt,name=adrInterval" json:"adrInterval,omitempty"`
+	// Installation-margin to use for ADR calculation.
 	InstallationMargin float64 `protobuf:"fixed64,12,opt,name=installationMargin" json:"installationMargin,omitempty"`
-	Description        string  `protobuf:"bytes,15,opt,name=description" json:"description,omitempty"`
+	// Description of the node.
+	Description string `protobuf:"bytes,15,opt,name=description" json:"description,omitempty"`
 }
 
 func (m *UpdateNodeRequest) Reset()                    { *m = UpdateNodeRequest{} }

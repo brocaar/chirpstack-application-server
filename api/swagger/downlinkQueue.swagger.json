@@ -126,18 +126,18 @@
     "apiDeleteDownlinkQeueueItemRequest": {
       "type": "object",
       "properties": {
-        "id": {
+        "applicationName": {
           "type": "string",
-          "format": "int64",
-          "title": "ID of the queue item"
+          "description": "Name of the application owning the node."
         },
         "nodeName": {
           "type": "string",
-          "title": "name of the node"
+          "description": "Name of the node."
         },
-        "applicationName": {
+        "id": {
           "type": "string",
-          "title": "name of the application to which the node is linked"
+          "format": "int64",
+          "description": "ID of the queue item to delete."
         }
       }
     },
@@ -150,67 +150,67 @@
         "id": {
           "type": "string",
           "format": "int64",
-          "title": "id of the queue item"
+          "description": "ID of the queue item."
         },
         "nodeName": {
           "type": "string",
-          "title": "name of the node"
+          "description": "Name of the node."
         },
         "reference": {
           "type": "string",
-          "title": "random reference (used on ack notification)"
+          "description": "Random reference (used on ack notification)."
         },
         "confirmed": {
           "type": "boolean",
           "format": "boolean",
-          "title": "requires an ack from the node"
+          "description": "Is an ACK required from the node."
         },
         "pending": {
           "type": "boolean",
           "format": "boolean",
-          "title": "the transmission is pending (waiting for an ack)"
+          "description": "Transmission is pending (waiting for an ack)."
         },
         "fPort": {
           "type": "integer",
           "format": "int64",
-          "title": "FPort to be used"
+          "description": "FPort used (must be \u003e0)."
         },
         "data": {
           "type": "string",
           "format": "byte",
-          "title": "base64 encoded data"
+          "description": "Base64 encoded data."
         }
       }
     },
     "apiEnqueueDownlinkQueueItemRequest": {
       "type": "object",
       "properties": {
+        "applicationName": {
+          "type": "string",
+          "description": "Name of the application owning the node."
+        },
         "nodeName": {
           "type": "string",
-          "title": "name of the node"
+          "description": "Name of the node."
         },
         "reference": {
           "type": "string",
-          "title": "random reference (used on ack notification)"
+          "description": "Random reference (used on ack notification)."
         },
         "confirmed": {
           "type": "boolean",
           "format": "boolean",
-          "title": "requires an ack from the node"
+          "description": "Is an ACK required from the node."
         },
         "fPort": {
           "type": "integer",
           "format": "int64",
-          "title": "FPort to be used"
+          "title": "FPort used (must be \u003e0)"
         },
         "data": {
           "type": "string",
           "format": "byte",
-          "title": "base64 encoded data"
-        },
-        "applicationName": {
-          "type": "string",
-          "title": "name of the application to which the node is linked"
+          "description": "Base64 encoded data."
         }
       }
     },
@@ -220,13 +220,13 @@
     "apiListDownlinkQueueItemsRequest": {
       "type": "object",
       "properties": {
-        "nodeName": {
-          "type": "string",
-          "title": "name of the node"
-        },
         "applicationName": {
           "type": "string",
-          "title": "name of the application to which the node is linked"
+          "description": "Name of the application owning the node."
+        },
+        "nodeName": {
+          "type": "string",
+          "description": "Name of the node."
         }
       }
     },

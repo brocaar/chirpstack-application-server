@@ -30,6 +30,7 @@
         "parameters": [
           {
             "name": "limit",
+            "description": "Max number of applications to return in the result-test.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -37,6 +38,7 @@
           },
           {
             "name": "offset",
+            "description": "Offset in the result-set (for pagination).",
             "in": "query",
             "required": false,
             "type": "string",
@@ -159,11 +161,11 @@
       "properties": {
         "name": {
           "type": "string",
-          "title": "name of the application (must be unique)"
+          "description": "Name of the application (must be unique)."
         },
         "description": {
           "type": "string",
-          "title": "description of the application"
+          "description": "Description of the application."
         }
       }
     },
@@ -175,7 +177,7 @@
       "properties": {
         "applicationName": {
           "type": "string",
-          "title": "name of the application to delete"
+          "description": "Name of the application."
         }
       }
     },
@@ -187,7 +189,7 @@
       "properties": {
         "applicationName": {
           "type": "string",
-          "title": "name of the application"
+          "description": "Name of the application."
         }
       }
     },
@@ -196,11 +198,11 @@
       "properties": {
         "name": {
           "type": "string",
-          "title": "name of the application"
+          "description": "Name of the application."
         },
         "description": {
           "type": "string",
-          "title": "description of the application"
+          "description": "Description of the application."
         }
       }
     },
@@ -209,11 +211,13 @@
       "properties": {
         "limit": {
           "type": "string",
-          "format": "int64"
+          "format": "int64",
+          "description": "Max number of applications to return in the result-test."
         },
         "offset": {
           "type": "string",
-          "format": "int64"
+          "format": "int64",
+          "description": "Offset in the result-set (for pagination)."
         }
       }
     },
@@ -222,13 +226,15 @@
       "properties": {
         "totalCount": {
           "type": "string",
-          "format": "int64"
+          "format": "int64",
+          "description": "Total number of applications available within the result-set."
         },
         "result": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/apiGetApplicationResponse"
-          }
+          },
+          "description": "Applications within this result-set."
         }
       }
     },
@@ -237,15 +243,15 @@
       "properties": {
         "applicationName": {
           "type": "string",
-          "title": "name of the application to update"
+          "description": "Name of the application to update."
         },
         "name": {
           "type": "string",
-          "title": "new name of the application (e.g. in case the application has been renamed)"
+          "description": "Name of the application (note that renaming an application affects its api endpoint)."
         },
         "description": {
           "type": "string",
-          "title": "description of the application"
+          "description": "Description of the application."
         }
       }
     },

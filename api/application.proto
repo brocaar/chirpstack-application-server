@@ -46,54 +46,60 @@ service Application {
 }
 
 message CreateApplicationRequest {
-	// name of the application (must be unique)
+	// Name of the application (must be unique).
 	string name = 1;
 
-	// description of the application
+	// Description of the application.
 	string description = 2;
 }
 
 message CreateApplicationResponse {}
 
 message GetApplicationRequest {
-	// name of the application
+	// Name of the application.
 	string applicationName = 1;
 }
 
 message GetApplicationResponse {
-	// name of the application
+	// Name of the application.
 	string name = 1;
 
-	// description of the application
+	// Description of the application.
 	string description = 2;
 }
 
 message UpdateApplicationRequest {
-	// name of the application to update
+	// Name of the application to update.
 	string applicationName = 1;
 
-	// new name of the application (e.g. in case the application has been renamed)
+	// Name of the application (note that renaming an application affects its api endpoint).
 	string name = 3;
 
-	// description of the application
+	// Description of the application.
 	string description = 2;
 }
 
 message UpdateApplicationResponse {}
 
 message DeleteApplicationRequest {
-	// name of the application to delete
+	// Name of the application.
 	string applicationName = 1;
 }
 
 message DeleteApplicationResponse {}
 
 message ListApplicationRequest {
+	// Max number of applications to return in the result-test.
 	int64 limit = 1;
+
+	// Offset in the result-set (for pagination).
 	int64 offset = 2;
 }
 
 message ListApplicationResponse {
+	// Total number of applications available within the result-set.
 	int64 totalCount = 1;
+	
+	// Applications within this result-set.
 	repeated GetApplicationResponse result = 2;
 }

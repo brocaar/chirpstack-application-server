@@ -20,9 +20,9 @@ var _ = fmt.Errorf
 var _ = math.Inf
 
 type CreateApplicationRequest struct {
-	// name of the application (must be unique)
+	// Name of the application (must be unique).
 	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
-	// description of the application
+	// Description of the application.
 	Description string `protobuf:"bytes,2,opt,name=description" json:"description,omitempty"`
 }
 
@@ -54,7 +54,7 @@ func (*CreateApplicationResponse) ProtoMessage()               {}
 func (*CreateApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{1} }
 
 type GetApplicationRequest struct {
-	// name of the application
+	// Name of the application.
 	ApplicationName string `protobuf:"bytes,1,opt,name=applicationName" json:"applicationName,omitempty"`
 }
 
@@ -71,9 +71,9 @@ func (m *GetApplicationRequest) GetApplicationName() string {
 }
 
 type GetApplicationResponse struct {
-	// name of the application
+	// Name of the application.
 	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
-	// description of the application
+	// Description of the application.
 	Description string `protobuf:"bytes,2,opt,name=description" json:"description,omitempty"`
 }
 
@@ -97,11 +97,11 @@ func (m *GetApplicationResponse) GetDescription() string {
 }
 
 type UpdateApplicationRequest struct {
-	// name of the application to update
+	// Name of the application to update.
 	ApplicationName string `protobuf:"bytes,1,opt,name=applicationName" json:"applicationName,omitempty"`
-	// new name of the application (e.g. in case the application has been renamed)
+	// Name of the application (note that renaming an application affects its api endpoint).
 	Name string `protobuf:"bytes,3,opt,name=name" json:"name,omitempty"`
-	// description of the application
+	// Description of the application.
 	Description string `protobuf:"bytes,2,opt,name=description" json:"description,omitempty"`
 }
 
@@ -140,7 +140,7 @@ func (*UpdateApplicationResponse) ProtoMessage()               {}
 func (*UpdateApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{5} }
 
 type DeleteApplicationRequest struct {
-	// name of the application to delete
+	// Name of the application.
 	ApplicationName string `protobuf:"bytes,1,opt,name=applicationName" json:"applicationName,omitempty"`
 }
 
@@ -165,7 +165,9 @@ func (*DeleteApplicationResponse) ProtoMessage()               {}
 func (*DeleteApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{7} }
 
 type ListApplicationRequest struct {
-	Limit  int64 `protobuf:"varint,1,opt,name=limit" json:"limit,omitempty"`
+	// Max number of applications to return in the result-test.
+	Limit int64 `protobuf:"varint,1,opt,name=limit" json:"limit,omitempty"`
+	// Offset in the result-set (for pagination).
 	Offset int64 `protobuf:"varint,2,opt,name=offset" json:"offset,omitempty"`
 }
 
@@ -189,8 +191,10 @@ func (m *ListApplicationRequest) GetOffset() int64 {
 }
 
 type ListApplicationResponse struct {
-	TotalCount int64                     `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
-	Result     []*GetApplicationResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	// Total number of applications available within the result-set.
+	TotalCount int64 `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
+	// Applications within this result-set.
+	Result []*GetApplicationResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
 }
 
 func (m *ListApplicationResponse) Reset()                    { *m = ListApplicationResponse{} }

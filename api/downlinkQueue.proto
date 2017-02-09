@@ -31,55 +31,69 @@ service DownlinkQueue {
 }
 
 message EnqueueDownlinkQueueItemRequest {
-    // name of the node
-    string nodeName = 1;
-	// random reference (used on ack notification)
-	string reference = 2;
-    // requires an ack from the node
-    bool confirmed = 3;
-    // FPort to be used
-    uint32 fPort = 4;
-    // base64 encoded data
-    bytes data = 5;
-	// name of the application to which the node is linked
+	// Name of the application owning the node.
 	string applicationName = 6;
+
+    // Name of the node.
+    string nodeName = 1;
+
+	// Random reference (used on ack notification).
+	string reference = 2;
+
+    // Is an ACK required from the node.
+    bool confirmed = 3;
+
+    // FPort used (must be >0)
+    uint32 fPort = 4;
+
+    // Base64 encoded data.
+    bytes data = 5;
 }
 
 message EnqueueDownlinkQueueItemResponse {}
 
 message DeleteDownlinkQeueueItemRequest {
-    // ID of the queue item
-    int64 id = 1;
-    // name of the node
-    string nodeName = 2;
-	// name of the application to which the node is linked
+	// Name of the application owning the node.
 	string applicationName = 3;
+
+    // Name of the node.
+    string nodeName = 2;
+
+    // ID of the queue item to delete.
+    int64 id = 1;
 }
 
 message DeleteDownlinkQueueItemResponse {}
 
 message DownlinkQueueItem {
-    // id of the queue item
+    // ID of the queue item.
     int64 id = 1;
-    // name of the node
+
+    // Name of the node.
     string nodeName = 2;
-	// random reference (used on ack notification)
+
+	// Random reference (used on ack notification).
 	string reference = 3;
-    // requires an ack from the node
+
+    // Is an ACK required from the node.
     bool confirmed = 4;
-    // the transmission is pending (waiting for an ack)
+
+    // Transmission is pending (waiting for an ack).
     bool pending = 5;
-    // FPort to be used
+
+    // FPort used (must be >0).
     uint32 fPort = 6;
-    // base64 encoded data
+
+    // Base64 encoded data.
     bytes data = 7;   
 }
 
 message ListDownlinkQueueItemsRequest {
-    // name of the node
-    string nodeName = 1;
-	// name of the application to which the node is linked
+	// Name of the application owning the node.
 	string applicationName = 2;
+
+    // Name of the node.
+    string nodeName = 1;
 }
 
 message ListDownlinkQueueItemsResponse {

@@ -36,6 +36,7 @@
           },
           {
             "name": "limit",
+            "description": "Max number of nodes to return in the result-set.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -43,6 +44,7 @@
           },
           {
             "name": "offset",
+            "description": "Offset of the result-set (for pagination).",
             "in": "query",
             "required": false,
             "type": "string",
@@ -189,56 +191,66 @@
       "properties": {
         "applicationName": {
           "type": "string",
-          "title": "name of the application to which the node belongs"
+          "description": "Name of the application to which the node must be added."
         },
         "devEUI": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "description": "Hex encoded DevEUI."
         },
         "appEUI": {
           "type": "string",
-          "title": "hex encoded AppEUI"
+          "description": "Hex encoded AppEUI."
         },
         "appKey": {
           "type": "string",
-          "title": "hex encoded AppKey"
+          "description": "Hex encoded AppKey."
         },
         "rxDelay": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX delay."
         },
         "rx1DROffset": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX1 data-rate offset."
         },
         "channelListID": {
           "type": "string",
-          "format": "int64"
+          "format": "int64",
+          "description": "Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region)."
         },
         "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow"
+          "$ref": "#/definitions/apiRXWindow",
+          "description": "RX window to use."
         },
         "rx2DR": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Data-rate to use for RX2."
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "Name of the node (if left blank, it will be set to the DevEUI)."
         },
         "relaxFCnt": {
           "type": "boolean",
-          "format": "boolean"
+          "format": "boolean",
+          "description": "Relax frame-counter mode is enabled."
         },
         "adrInterval": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled)."
         },
         "installationMargin": {
           "type": "number",
-          "format": "double"
+          "format": "double",
+          "description": "Installation-margin to use for ADR calculation."
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Description of the node."
         }
       }
     },
@@ -250,11 +262,11 @@
       "properties": {
         "applicationName": {
           "type": "string",
-          "title": "name of the application to which the node belongs"
+          "description": "Name of the application owning the node."
         },
         "nodeName": {
           "type": "string",
-          "title": "name of the node"
+          "description": "Name of the node."
         }
       }
     },
@@ -266,11 +278,11 @@
       "properties": {
         "applicationName": {
           "type": "string",
-          "title": "name of the application to which the node belongs"
+          "description": "Name of the application owning the node."
         },
         "nodeName": {
           "type": "string",
-          "title": "name of the node"
+          "description": "Name of the node."
         }
       }
     },
@@ -279,52 +291,62 @@
       "properties": {
         "devEUI": {
           "type": "string",
-          "title": "hex encoded DevEUI"
+          "description": "Hex encoded DevEUI."
         },
         "appEUI": {
           "type": "string",
-          "title": "hex encoded AppEUI"
+          "description": "Hex encoded AppEUI."
         },
         "appKey": {
           "type": "string",
-          "title": "hex encoded AppKey"
+          "description": "Hex encoded AppKey."
         },
         "rxDelay": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX delay."
         },
         "rx1DROffset": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX1 data-rate offset."
         },
         "channelListID": {
           "type": "string",
-          "format": "int64"
+          "format": "int64",
+          "description": "Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region)."
         },
         "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow"
+          "$ref": "#/definitions/apiRXWindow",
+          "description": "RX window to use."
         },
         "rx2DR": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Data-rate to use for RX2."
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "Name of the node."
         },
         "relaxFCnt": {
           "type": "boolean",
-          "format": "boolean"
+          "format": "boolean",
+          "description": "Relax frame-counter mode is enabled."
         },
         "adrInterval": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled)."
         },
         "installationMargin": {
           "type": "number",
-          "format": "double"
+          "format": "double",
+          "description": "Installation-margin to use for ADR calculation."
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Description of the node."
         }
       }
     },
@@ -333,15 +355,17 @@
       "properties": {
         "applicationName": {
           "type": "string",
-          "title": "name of the application for which to list the nodes"
+          "description": "Name of the application owning the node."
         },
         "limit": {
           "type": "string",
-          "format": "int64"
+          "format": "int64",
+          "description": "Max number of nodes to return in the result-set."
         },
         "offset": {
           "type": "string",
-          "format": "int64"
+          "format": "int64",
+          "description": "Offset of the result-set (for pagination)."
         }
       }
     },
@@ -350,13 +374,15 @@
       "properties": {
         "totalCount": {
           "type": "string",
-          "format": "int64"
+          "format": "int64",
+          "description": "Total number of nodes available within the result-set."
         },
         "result": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/apiGetNodeResponse"
-          }
+          },
+          "description": "Nodes within this result-set."
         }
       }
     },
@@ -373,57 +399,66 @@
       "properties": {
         "applicationName": {
           "type": "string",
-          "title": "name of the application to which the node is linked"
+          "description": "Name of the application owning the node."
         },
         "nodeName": {
           "type": "string",
-          "title": "name of the node to update"
+          "description": "Name of the node to update."
         },
         "appEUI": {
           "type": "string",
-          "title": "hex encoded AppEUI"
+          "description": "Hex encoded AppEUI."
         },
         "appKey": {
           "type": "string",
-          "title": "hex encoded AppKey"
+          "description": "Hex encoded AppKey."
         },
         "rxDelay": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX delay."
         },
         "rx1DROffset": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX1 data-rate offset."
         },
         "channelListID": {
           "type": "string",
-          "format": "int64"
+          "format": "int64",
+          "description": "Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region)."
         },
         "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow"
+          "$ref": "#/definitions/apiRXWindow",
+          "description": "RX window to use."
         },
         "rx2DR": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Data-rate to use for RX2."
         },
         "name": {
           "type": "string",
-          "title": "new name of the node (e.g. in case the node has been renamed)"
+          "title": "Name of the node (note that renaming the node affects its api endpoint)"
         },
         "relaxFCnt": {
           "type": "boolean",
-          "format": "boolean"
+          "format": "boolean",
+          "description": "Relax frame-counter mode is enabled."
         },
         "adrInterval": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled)."
         },
         "installationMargin": {
           "type": "number",
-          "format": "double"
+          "format": "double",
+          "description": "Installation-margin to use for ADR calculation."
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Description of the node."
         }
       }
     },

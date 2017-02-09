@@ -47,100 +47,171 @@ service Node {
 }
 
 message CreateNodeRequest {
-	// name of the application to which the node belongs
+	// Name of the application to which the node must be added.
 	string applicationName = 13;
 
-    // hex encoded DevEUI
+    // Hex encoded DevEUI.
     string devEUI = 1; 
-    // hex encoded AppEUI
+
+    // Hex encoded AppEUI.
     string appEUI = 2; 
-    // hex encoded AppKey
+
+    // Hex encoded AppKey.
     string appKey = 3; 
+
+	// RX delay.
     uint32 rxDelay = 4;
+
+	// RX1 data-rate offset.
     uint32 rx1DROffset = 5;
+
+	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
     int64 channelListID = 6;
+
+	// RX window to use.
     RXWindow rxWindow = 7;
+
+	// Data-rate to use for RX2.
     uint32 rx2DR = 8;
+
+	// Name of the node (if left blank, it will be set to the DevEUI).
     string name = 9;
+
+	// Relax frame-counter mode is enabled.
 	bool relaxFCnt = 10;
+
+	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
 	uint32 adrInterval = 11;
+
+	// Installation-margin to use for ADR calculation.
 	double installationMargin = 12;
+
+	// Description of the node.
 	string description = 14;
 }
 
 message CreateNodeResponse {}
 
 message GetNodeRequest {
-	// name of the application to which the node belongs
+	// Name of the application owning the node.
 	string applicationName = 2;
 
-    // name of the node
+    // Name of the node.
     string nodeName = 1;
 }
 
 message GetNodeResponse {
-    // hex encoded DevEUI
+    // Hex encoded DevEUI.
     string devEUI = 1; 
-    // hex encoded AppEUI
+
+    // Hex encoded AppEUI.
     string appEUI = 2; 
-    // hex encoded AppKey
+
+    // Hex encoded AppKey.
     string appKey = 3; 
+
+	// RX delay.
     uint32 rxDelay = 4;
+
+	// RX1 data-rate offset.
     uint32 rx1DROffset = 5;
+
+	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
     int64 channelListID = 6;
+
+	// RX window to use.
     RXWindow rxWindow = 7;
+
+	// Data-rate to use for RX2.
     uint32 rx2DR = 8;
+
+	// Name of the node.
     string name = 9;
+
+	// Relax frame-counter mode is enabled.
 	bool relaxFCnt = 10;
+
+	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
 	uint32 adrInterval = 11;
+
+	// Installation-margin to use for ADR calculation.
 	double installationMargin = 12;
+
+	// Description of the node.
 	string description = 13;
 };
 
 message DeleteNodeRequest {
-	// name of the application to which the node belongs
+	// Name of the application owning the node.
 	string applicationName = 2;
 
-    // name of the node
+    // Name of the node.
     string nodeName = 1;
 }
 
 message DeleteNodeResponse {}
 
 message ListNodeRequest {
-	// name of the application for which to list the nodes
+	// Name of the application owning the node.
 	string applicationName = 3;
 
+	// Max number of nodes to return in the result-set.
     int64 limit = 1;
+
+	// Offset of the result-set (for pagination).
     int64 offset = 2;
 }
 
 message ListNodeResponse {
+	// Total number of nodes available within the result-set.
     int64 totalCount = 1;
+
+	// Nodes within this result-set.
     repeated GetNodeResponse result = 2;
 }
 
 
 message UpdateNodeRequest {
-	// name of the application to which the node is linked
+	// Name of the application owning the node.
 	string applicationName = 13;
-	// name of the node to update 
+
+    // Name of the node to update.
 	string nodeName = 14;
 
-    // hex encoded AppEUI
+    // Hex encoded AppEUI.
     string appEUI = 2;
-    // hex encoded AppKey
+
+    // Hex encoded AppKey.
     string appKey = 3;
+
+	// RX delay.
     uint32 rxDelay = 4;
+
+	// RX1 data-rate offset.
     uint32 rx1DROffset = 5;
+
+	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
     int64 channelListID = 6;
+
+	// RX window to use.
     RXWindow rxWindow = 7;
+
+	// Data-rate to use for RX2.
     uint32 rx2DR = 8;
-	// new name of the node (e.g. in case the node has been renamed)
+
+	// Name of the node (note that renaming the node affects its api endpoint)
     string name = 9;
+
+	// Relax frame-counter mode is enabled.
 	bool relaxFCnt = 10;
+
+	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
 	uint32 adrInterval = 11;
+
+	// Installation-margin to use for ADR calculation.
 	double installationMargin = 12;
+
+	// Description of the node.
 	string description = 15;
 }
 

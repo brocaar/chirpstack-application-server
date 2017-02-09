@@ -55,6 +55,11 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 		return nil, grpc.Errorf(codes.Unknown, "get application error: %s", err)
 	}
 
+	// if Name is "", set it to the DevEUI
+	if req.Name == "" {
+		req.Name = req.DevEUI
+	}
+
 	node := storage.Node{
 		ApplicationID: app.ID,
 		Name:          req.Name,

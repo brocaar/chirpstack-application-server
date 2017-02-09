@@ -32,6 +32,33 @@ func TestNodeAPI(t *testing.T) {
 		}
 		So(storage.CreateApplication(db, &app), ShouldBeNil)
 
+		Convey("When creating a node without a name set", func() {
+			_, err := api.Create(ctx, &pb.CreateNodeRequest{
+				ApplicationName:    "test-app",
+				Description:        "test node description",
+				DevEUI:             "0807060504030201",
+				AppEUI:             "0102030405060708",
+				AppKey:             "01020304050607080102030405060708",
+				RxDelay:            1,
+				Rx1DROffset:        3,
+				RxWindow:           pb.RXWindow_RX2,
+				Rx2DR:              3,
+				AdrInterval:        20,
+				InstallationMargin: 5,
+			})
+			So(err, ShouldBeNil)
+			So(validator.ctx, ShouldResemble, ctx)
+			So(validator.validatorFuncs, ShouldHaveLength, 3)
+
+			Convey("Then the DevEUI is used as name", func() {
+				_, err := api.Get(ctx, &pb.GetNodeRequest{
+					ApplicationName: "test-app",
+					NodeName:        "0807060504030201",
+				})
+				So(err, ShouldBeNil)
+			})
+		})
+
 		Convey("When creating a node", func() {
 			_, err := api.Create(ctx, &pb.CreateNodeRequest{
 				ApplicationName:    "test-app",

@@ -34,6 +34,8 @@ It has these top-level messages:
 	ListNodeResponse
 	UpdateNodeRequest
 	UpdateNodeResponse
+	ActivateNodeRequest
+	ActivateNodeResponse
 	EnqueueDownlinkQueueItemRequest
 	EnqueueDownlinkQueueItemResponse
 	DeleteDownlinkQeueueItemRequest

@@ -1,6 +1,7 @@
 package api
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -238,6 +239,95 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.De
 	})
 
 	return &pb.DeleteNodeResponse{}, nil
+}
+
+// Activate activates the node (ABP only).
+func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*pb.ActivateNodeResponse, error) {
+	var devAddr lorawan.DevAddr
+	var appSKey, nwkSKey lorawan.AES128Key
+
+	if err := devAddr.UnmarshalText([]byte(req.DevAddr)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devAddr: %s", err)
+	}
+	if err := appSKey.UnmarshalText([]byte(req.AppSKey)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "appSKey: %s", err)
+	}
+	if err := nwkSKey.UnmarshalText([]byte(req.NwkSKey)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "nwkSKey: %s", err)
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateAPIMethod("Node.Activate"),
+		auth.ValidateNodeName(req.NodeName),
+		auth.ValidateApplicationName(req.ApplicationName),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	node, err := storage.GetNodeByName(a.ctx.DB, req.ApplicationName, req.NodeName)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+
+	if !node.IsABP {
+		return nil, grpc.Errorf(codes.FailedPrecondition, "node must be an ABP node")
+	}
+
+	// try to remove an existing node-session.
+	// TODO: refactor once https://github.com/brocaar/loraserver/pull/124 is in place?
+	// so that we can call something like SaveNodeSession which will either
+	// create or update an existing node-session
+	_, _ = a.ctx.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{
+		DevEUI: node.DevEUI[:],
+	})
+
+	cFList, err := storage.GetCFListForNode(a.ctx.DB, node)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Internal, err.Error())
+	}
+
+	createNSReq := ns.CreateNodeSessionRequest{
+		DevAddr:            devAddr[:],
+		AppEUI:             node.AppEUI[:],
+		DevEUI:             node.DevEUI[:],
+		NwkSKey:            nwkSKey[:],
+		FCntUp:             req.FCntUp,
+		FCntDown:           req.FCntDown,
+		RxDelay:            uint32(node.RXDelay),
+		Rx1DROffset:        uint32(node.RX1DROffset),
+		RxWindow:           ns.RXWindow(node.RXWindow),
+		Rx2DR:              uint32(node.RX2DR),
+		RelaxFCnt:          node.RelaxFCnt,
+		AdrInterval:        node.ADRInterval,
+		InstallationMargin: node.InstallationMargin,
+	}
+	if cFList != nil {
+		for _, freq := range cFList {
+			createNSReq.CFList = append(createNSReq.CFList, freq)
+		}
+	}
+
+	_, err = a.ctx.NetworkServer.CreateNodeSession(context.Background(), &createNSReq)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Internal, err.Error())
+	}
+
+	node.AppSKey = appSKey
+	node.DevAddr = devAddr
+	node.NwkSKey = nwkSKey
+
+	if err = storage.UpdateNode(a.ctx.DB, node); err != nil {
+		return nil, grpc.Errorf(codes.Internal, err.Error())
+	}
+
+	log.WithFields(log.Fields{
+		"dev_addr":         devAddr,
+		"dev_eui":          node.DevEUI,
+		"node_name":        req.NodeName,
+		"application_name": req.ApplicationName,
+	}).Info("node activated")
+
+	return &pb.ActivateNodeResponse{}, nil
 }
 
 func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeResponse, error) {

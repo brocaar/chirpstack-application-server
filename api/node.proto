@@ -44,6 +44,14 @@ service Node {
             body: "*"
         };
     }
+
+	// Activate (re)activates the node (only when ABP is set to true).
+	rpc Activate(ActivateNodeRequest) returns (ActivateNodeResponse) {
+		option (google.api.http) = {
+			post: "/api/applications/{applicationName}/nodes/{nodeName}/activate"
+			body: "*"
+		};
+	}
 }
 
 message CreateNodeRequest {
@@ -56,7 +64,7 @@ message CreateNodeRequest {
     // Hex encoded AppEUI.
     string appEUI = 2; 
 
-    // Hex encoded AppKey.
+    // Hex encoded AppKey. When isABP is set to true, this field is not needed.
     string appKey = 3; 
 
 	// RX delay.
@@ -225,3 +233,28 @@ message UpdateNodeRequest {
 }
 
 message UpdateNodeResponse {}
+
+message ActivateNodeRequest {
+	// Name of the application owning the node.
+	string applicationName = 1;
+
+    // Name of the node to update.
+	string nodeName = 2;
+
+    // Hex encoded DevAddr.
+    string devAddr = 3;
+
+    // Hex encoded AppSKey.
+    string appSKey = 4;
+
+    // Hex encoded NwkSKey.
+    string nwkSKey = 5;
+
+	// Uplink frame-counter.
+    uint32 fCntUp = 6;
+
+	// Downlink frame-counter.
+    uint32 fCntDown = 7;
+}
+
+message ActivateNodeResponse {}

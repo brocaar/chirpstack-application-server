@@ -1,6 +1,7 @@
 -- +migrate Up
 alter table node
-	add column description text;
+	add column description text,
+	add column is_abp boolean;
 
 update node set description = name;
 update node set name = encode(dev_eui, 'hex');
@@ -19,4 +20,5 @@ update node set name = description;
 
 alter table node
 	drop column description,
+	drop column is_abp,
 	drop constraint node_application_id_name_key;

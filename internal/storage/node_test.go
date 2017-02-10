@@ -161,6 +161,7 @@ func TestNodeMethods(t *testing.T) {
 				Description:   "test node description",
 				DevEUI:        [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
 				AppKey:        [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+				IsABP:         true,
 
 				RXDelay:            2,
 				RX1DROffset:        3,
@@ -201,6 +202,7 @@ func TestNodeMethods(t *testing.T) {
 
 			Convey("When updating the node", func() {
 				node.AppKey = [16]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+				node.IsABP = false
 				So(UpdateNode(db, node), ShouldBeNil)
 
 				Convey("Then the nodes has been updated", func() {

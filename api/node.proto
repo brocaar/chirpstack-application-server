@@ -88,6 +88,9 @@ message CreateNodeRequest {
 
 	// Description of the node.
 	string description = 14;
+
+	// Node is activated by ABP.
+	bool isABP = 15;
 }
 
 message CreateNodeResponse {}
@@ -139,6 +142,9 @@ message GetNodeResponse {
 
 	// Description of the node.
 	string description = 13;
+
+	// Node is activated by ABP.
+	bool isABP = 14;
 };
 
 message DeleteNodeRequest {
@@ -213,6 +219,9 @@ message UpdateNodeRequest {
 
 	// Description of the node.
 	string description = 15;
+
+	// Node is activated by ABP.
+	bool isABP = 16;
 }
 
 message UpdateNodeResponse {}

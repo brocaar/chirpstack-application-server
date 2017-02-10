@@ -251,6 +251,11 @@
         "description": {
           "type": "string",
           "description": "Description of the node."
+        },
+        "isABP": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Node is activated by ABP."
         }
       }
     },
@@ -347,6 +352,11 @@
         "description": {
           "type": "string",
           "description": "Description of the node."
+        },
+        "isABP": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Node is activated by ABP."
         }
       }
     },
@@ -459,6 +469,11 @@
         "description": {
           "type": "string",
           "description": "Description of the node."
+        },
+        "isABP": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Node is activated by ABP."
         }
       }
     },

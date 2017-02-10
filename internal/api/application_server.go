@@ -104,6 +104,11 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 		return nil, grpc.Errorf(codes.InvalidArgument, "DevNonce has already been used")
 	}
 
+	// now we know the frame is valid, test if the node is allowed to OTAA
+	if node.IsABP {
+		return nil, grpc.Errorf(codes.FailedPrecondition, "node is ABP device")
+	}
+
 	// get app nonce
 	appNonce, err := getAppNonce()
 	if err != nil {

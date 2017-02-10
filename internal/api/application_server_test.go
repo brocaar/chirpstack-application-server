@@ -5,6 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -152,6 +155,25 @@ func TestApplicationServerAPI(t *testing.T) {
 						FCnt:  10,
 						FPort: 3,
 						Data:  []byte{67, 216, 236, 205},
+					})
+				})
+			})
+
+			Convey("Given the node is an ABP device", func() {
+				node.IsABP = true
+				So(storage.UpdateNode(db, node), ShouldBeNil)
+
+				Convey("When calling JoinRequest", func() {
+					req := as.JoinRequestRequest{
+						PhyPayload: b,
+						DevAddr:    []byte{1, 2, 3, 4},
+						NetID:      []byte{1, 2, 3},
+					}
+
+					_, err := api.JoinRequest(ctx, &req)
+
+					Convey("Then an error was returned", func() {
+						So(err, ShouldResemble, grpc.Errorf(codes.FailedPrecondition, "node is ABP device"))
 					})
 				})
 			})

@@ -4,6 +4,14 @@ import "whatwg-fetch";
 import dispatcher from "../dispatcher";
 import tokenStore from "./TokenStore";
 
+var checkGetActivationStatus = (response) => {
+  if (response.status >= 200 && response.status < 300) {
+    return response
+  } else {
+    // dont return an error when there is no activation
+  }
+};
+
 var checkStatus = (response) => {
   if (response.status >= 200 && response.status < 300) {
     return response
@@ -74,6 +82,26 @@ class NodeStore extends EventEmitter {
   deleteNode(applicationName, nodeName, callbackFunc) {
     fetch("/api/applications/"+applicationName+"/nodes/"+nodeName, {method: "DELETE", headers: tokenStore.getHeader()})
       .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  activateNode(applicationName, nodeName, activation, callbackFunc) {
+    fetch("/api/applications/"+applicationName+"/nodes/"+nodeName+"/activation", {method: "POST", body: JSON.stringify(activation), headers: tokenStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  getActivation(applicationName, nodeName, callbackFunc) {
+    fetch("/api/applications/"+applicationName+"/nodes/"+nodeName+"/activation", {headers: tokenStore.getHeader()})
+      .then(checkGetActivationStatus)
       .then((response) => response.json())
       .then((responseData) => {
         callbackFunc(responseData);

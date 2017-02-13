@@ -56,7 +56,8 @@ class UpdateNode extends Component {
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to={`/applications/${this.props.params.applicationName}/nodes/${this.props.params.nodeName}/session`}><button type="button" className="btn btn-default">Node session / ABP</button></Link> &nbsp;
+            <Link to={`/applications/${this.props.params.applicationName}/nodes/${this.props.params.nodeName}/activation`} className={(this.state.node.isABP ? '' : 'hidden')}><button type="button" className="btn btn-default">(Re)activate node (ABP)</button></Link> &nbsp;
+            <Link to={`/applications/${this.props.params.applicationName}/nodes/${this.props.params.nodeName}/activation`} className={(this.state.node.isABP ? 'hidden' : '')}><button type="button" className="btn btn-default">Show node activation</button></Link> &nbsp;
             <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete node</button></Link>
           </div>
         </div>

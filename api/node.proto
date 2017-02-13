@@ -52,6 +52,13 @@ service Node {
 			body: "*"
 		};
 	}
+
+	// GetActivation returns the current activation details of the node (OTAA and ABP).
+	rpc GetActivation(GetNodeActivationRequest) returns (GetNodeActivationResponse) {
+		option (google.api.http) = {
+			get: "/api/applications/{applicationName}/nodes/{nodeName}/activation"
+		};
+	}
 }
 
 message CreateNodeRequest {
@@ -258,3 +265,28 @@ message ActivateNodeRequest {
 }
 
 message ActivateNodeResponse {}
+
+message GetNodeActivationRequest {
+	// Name of the application owning the node.
+	string applicationName = 1;
+
+    // Name of the node to update.
+	string nodeName = 2;
+}
+
+message GetNodeActivationResponse {
+    // Hex encoded DevAddr.
+    string devAddr = 1;
+
+    // Hex encoded AppSKey.
+    string appSKey = 2;
+
+    // Hex encoded NwkSKey.
+    string nwkSKey = 3;
+
+	// Uplink frame-counter.
+    uint32 fCntUp = 4;
+
+	// Downlink frame-counter.
+    uint32 fCntDown = 5;
+}

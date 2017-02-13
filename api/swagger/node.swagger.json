@@ -185,6 +185,35 @@
       }
     },
     "/api/applications/{applicationName}/nodes/{nodeName}/activation": {
+      "get": {
+        "summary": "GetActivation returns the current activation details of the node (OTAA and ABP).",
+        "operationId": "GetActivation",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetNodeActivationResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "nodeName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Node"
+        ]
+      },
       "post": {
         "summary": "Activate (re)activates the node (only when ABP is set to true).",
         "operationId": "Activate",
@@ -354,6 +383,46 @@
     },
     "apiDeleteNodeResponse": {
       "type": "object"
+    },
+    "apiGetNodeActivationRequest": {
+      "type": "object",
+      "properties": {
+        "applicationName": {
+          "type": "string",
+          "description": "Name of the application owning the node."
+        },
+        "nodeName": {
+          "type": "string",
+          "description": "Name of the node to update."
+        }
+      }
+    },
+    "apiGetNodeActivationResponse": {
+      "type": "object",
+      "properties": {
+        "devAddr": {
+          "type": "string",
+          "description": "Hex encoded DevAddr."
+        },
+        "appSKey": {
+          "type": "string",
+          "description": "Hex encoded AppSKey."
+        },
+        "nwkSKey": {
+          "type": "string",
+          "description": "Hex encoded NwkSKey."
+        },
+        "fCntUp": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Uplink frame-counter."
+        },
+        "fCntDown": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Downlink frame-counter."
+        }
+      }
     },
     "apiGetNodeRequest": {
       "type": "object",

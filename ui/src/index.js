@@ -14,6 +14,7 @@ import UpdateApplication from "./views/applications/UpdateApplication";
 import ListNodes from './views/nodes/ListNodes';
 import UpdateNode from './views/nodes/UpdateNode';
 import CreateNode from "./views/nodes/CreateNode";
+import ActivateNode from "./views/nodes/ActivateNode";
 
 // sessions
 import UpdateNodeSession from "./views/nodes/UpdateNodeSession";
@@ -38,6 +39,7 @@ ReactDOM.render(
       <Route path="applications/:applicationName/edit" component={UpdateApplication}></Route>
       <Route path="applications/:applicationName/nodes/create" component={CreateNode}></Route>
       <Route path="applications/:applicationName/nodes/:nodeName/edit" component={UpdateNode}></Route>
+      <Route path="applications/:applicationName/nodes/:nodeName/activation" component={ActivateNode}></Route>
       <Route path="applications/:applicationName/nodes/:nodeName/session" component={UpdateNodeSession}></Route>
       <Route path="applications/:applicationName" component={ListNodes}></Route>
       <Route path="channels" component={ChannelLists}></Route>

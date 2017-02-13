@@ -330,6 +330,42 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 	return &pb.ActivateNodeResponse{}, nil
 }
 
+func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetNodeActivationRequest) (*pb.GetNodeActivationResponse, error) {
+	var devAddr lorawan.DevAddr
+	var nwkSKey lorawan.AES128Key
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateAPIMethod("Node.GetActivation"),
+		auth.ValidateNodeName(req.NodeName),
+		auth.ValidateApplicationName(req.ApplicationName),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	node, err := storage.GetNodeByName(a.ctx.DB, req.ApplicationName, req.NodeName)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+
+	ns, err := a.ctx.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{
+		DevEUI: node.DevEUI[:],
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	copy(devAddr[:], ns.DevAddr)
+	copy(nwkSKey[:], ns.NwkSKey)
+
+	return &pb.GetNodeActivationResponse{
+		DevAddr:  devAddr.String(),
+		AppSKey:  node.AppSKey.String(),
+		NwkSKey:  nwkSKey.String(),
+		FCntUp:   ns.FCntUp,
+		FCntDown: ns.FCntDown,
+	}, nil
+}
+
 func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeResponse, error) {
 	resp := pb.ListNodeResponse{
 		TotalCount: int64(count),

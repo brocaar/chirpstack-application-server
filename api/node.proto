@@ -48,7 +48,7 @@ service Node {
 	// Activate (re)activates the node (only when ABP is set to true).
 	rpc Activate(ActivateNodeRequest) returns (ActivateNodeResponse) {
 		option (google.api.http) = {
-			post: "/api/applications/{applicationName}/nodes/{nodeName}/activate"
+			post: "/api/applications/{applicationName}/nodes/{nodeName}/activation"
 			body: "*"
 		};
 	}

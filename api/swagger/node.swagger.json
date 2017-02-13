@@ -184,7 +184,7 @@
         ]
       }
     },
-    "/api/applications/{applicationName}/nodes/{nodeName}/activate": {
+    "/api/applications/{applicationName}/nodes/{nodeName}/activation": {
       "post": {
         "summary": "Activate (re)activates the node (only when ABP is set to true).",
         "operationId": "Activate",

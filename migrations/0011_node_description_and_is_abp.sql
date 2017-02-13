@@ -1,7 +1,7 @@
 -- +migrate Up
 alter table node
 	add column description text,
-	add column is_abp boolean;
+	add column is_abp boolean not null default false;
 
 update node set description = name;
 update node set name = encode(dev_eui, 'hex');

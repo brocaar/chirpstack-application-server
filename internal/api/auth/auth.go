@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -107,9 +108,9 @@ func (v JWTValidator) Validate(ctx context.Context, funcs ...ValidatorFunc) erro
 	return nil
 }
 
-// ValidateApplication validates if the user has permission to the given AppEUI.
-// TODO: remove?
-func ValidateApplication(appEUI lorawan.EUI64) ValidatorFunc {
+// ValidateApplicationID validates if the user has permission to the given
+// application id.
+func ValidateApplicationID(id int64) ValidatorFunc {
 	return func(claims *Claims) error {
 		if claims.Admin {
 			return nil
@@ -120,39 +121,16 @@ func ValidateApplication(appEUI lorawan.EUI64) ValidatorFunc {
 				return nil
 			}
 
-			if appEUI.String() == app {
+			if strconv.FormatInt(id, 10) == app {
 				return nil
 			}
 		}
 
-		return fmt.Errorf("no permission to application %s", appEUI)
-	}
-}
-
-// ValidateApplicationName validates if the user has permission to the given
-// application name.
-func ValidateApplicationName(name string) ValidatorFunc {
-	return func(claims *Claims) error {
-		if claims.Admin {
-			return nil
-		}
-
-		for _, app := range claims.Applications {
-			if app == "*" {
-				return nil
-			}
-
-			if name == app {
-				return nil
-			}
-		}
-
-		return fmt.Errorf("no permission to application %s", name)
+		return fmt.Errorf("no permission to application id %d", id)
 	}
 }
 
 // ValidateNode validates if the user has permission to the given DevEUI.
-// TODO: remove?
 func ValidateNode(devEUI lorawan.EUI64) ValidatorFunc {
 	return func(claims *Claims) error {
 		if claims.Admin {
@@ -170,28 +148,6 @@ func ValidateNode(devEUI lorawan.EUI64) ValidatorFunc {
 		}
 
 		return fmt.Errorf("no permission to node %s", devEUI)
-	}
-}
-
-// ValidateNodeName validates if the user has permission to the given node
-// name.
-func ValidateNodeName(name string) ValidatorFunc {
-	return func(claims *Claims) error {
-		if claims.Admin {
-			return nil
-		}
-
-		for _, node := range claims.Nodes {
-			if node == "*" {
-				return nil
-			}
-
-			if name == node {
-				return nil
-			}
-		}
-
-		return fmt.Errorf("no permission to node %s", name)
 	}
 }
 

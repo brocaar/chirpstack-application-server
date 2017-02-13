@@ -8,9 +8,13 @@ class NodeRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`/applications/${this.props.application.name}/nodes/${this.props.node.name}/edit`}>{this.props.node.name}</Link></td>
+        <td><Link to={`/applications/${this.props.application.id}/nodes/${this.props.node.devEUI}/edit`}>{this.props.node.name}</Link></td>
         <td>{this.props.node.devEUI}</td>
         <td>{this.props.node.description}</td>
+        <td>
+          <span className={this.props.node.isABP ? 'hidden' : ''}>OTAA</span>
+          <span className={this.props.node.isABP ? '' : 'hidden'}>ABP</span>
+        </td>
       </tr>
     );
   }
@@ -32,18 +36,18 @@ class ListNodes extends Component {
   }
 
   componentWillMount() {
-    NodeStore.getAll(this.props.params.applicationName, (nodes) => {
+    NodeStore.getAll(this.props.params.applicationID, (nodes) => {
       this.setState({nodes: nodes});
     });
 
-    ApplicationStore.getApplication(this.props.params.applicationName, (application) => {
+    ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
       this.setState({application: application});
     });
   }
 
   onDelete() {
     if (confirm("Are you sure you want to delete this application?")) {
-      ApplicationStore.deleteApplication(this.props.params.applicationName, (responseData) => {
+      ApplicationStore.deleteApplication(this.props.params.applicationID, (responseData) => {
         this.context.router.push("/applications");
       }); 
     }
@@ -62,8 +66,8 @@ class ListNodes extends Component {
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to={`/applications/${this.props.params.applicationName}/nodes/create`}><button type="button" className="btn btn-default">Create node</button></Link> &nbsp;
-            <Link to={`/applications/${this.props.params.applicationName}/edit`}><button type="button" className="btn btn-default">Edit application</button></Link> &nbsp;
+            <Link to={`/applications/${this.props.params.applicationID}/nodes/create`}><button type="button" className="btn btn-default">Create node</button></Link> &nbsp;
+            <Link to={`/applications/${this.props.params.applicationID}/edit`}><button type="button" className="btn btn-default">Edit application</button></Link> &nbsp;
             <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete application</button></Link>
           </div>
         </div>
@@ -76,6 +80,7 @@ class ListNodes extends Component {
                   <th>Device name</th>
                   <th>Device EUI</th>
                   <th>Device description</th>
+                  <th>Mode</th>
                 </tr>
               </thead>
               <tbody>

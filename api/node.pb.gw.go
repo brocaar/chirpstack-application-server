@@ -42,12 +42,12 @@ func request_Node_Create_0(ctx context.Context, marshaler runtime.Marshaler, cli
 		_   = err
 	)
 
-	val, ok = pathParams["applicationName"]
+	val, ok = pathParams["applicationID"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationID")
 	}
 
-	protoReq.ApplicationName, err = runtime.String(val)
+	protoReq.ApplicationID, err = runtime.Int64(val)
 
 	if err != nil {
 		return nil, metadata, err
@@ -69,23 +69,23 @@ func request_Node_Get_0(ctx context.Context, marshaler runtime.Marshaler, client
 		_   = err
 	)
 
-	val, ok = pathParams["applicationName"]
+	val, ok = pathParams["applicationID"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationID")
 	}
 
-	protoReq.ApplicationName, err = runtime.String(val)
+	protoReq.ApplicationID, err = runtime.Int64(val)
 
 	if err != nil {
 		return nil, metadata, err
 	}
 
-	val, ok = pathParams["nodeName"]
+	val, ok = pathParams["devEUI"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "nodeName")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
 	}
 
-	protoReq.NodeName, err = runtime.String(val)
+	protoReq.DevEUI, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, err
@@ -107,23 +107,23 @@ func request_Node_Delete_0(ctx context.Context, marshaler runtime.Marshaler, cli
 		_   = err
 	)
 
-	val, ok = pathParams["applicationName"]
+	val, ok = pathParams["applicationID"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationID")
 	}
 
-	protoReq.ApplicationName, err = runtime.String(val)
+	protoReq.ApplicationID, err = runtime.Int64(val)
 
 	if err != nil {
 		return nil, metadata, err
 	}
 
-	val, ok = pathParams["nodeName"]
+	val, ok = pathParams["devEUI"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "nodeName")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
 	}
 
-	protoReq.NodeName, err = runtime.String(val)
+	protoReq.DevEUI, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, err
@@ -135,7 +135,7 @@ func request_Node_Delete_0(ctx context.Context, marshaler runtime.Marshaler, cli
 }
 
 var (
-	filter_Node_List_0 = &utilities.DoubleArray{Encoding: map[string]int{"applicationName": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Node_List_0 = &utilities.DoubleArray{Encoding: map[string]int{"applicationID": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_Node_List_0(ctx context.Context, marshaler runtime.Marshaler, client NodeClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -149,12 +149,12 @@ func request_Node_List_0(ctx context.Context, marshaler runtime.Marshaler, clien
 		_   = err
 	)
 
-	val, ok = pathParams["applicationName"]
+	val, ok = pathParams["applicationID"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationID")
 	}
 
-	protoReq.ApplicationName, err = runtime.String(val)
+	protoReq.ApplicationID, err = runtime.Int64(val)
 
 	if err != nil {
 		return nil, metadata, err
@@ -184,23 +184,23 @@ func request_Node_Update_0(ctx context.Context, marshaler runtime.Marshaler, cli
 		_   = err
 	)
 
-	val, ok = pathParams["applicationName"]
+	val, ok = pathParams["applicationID"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationID")
 	}
 
-	protoReq.ApplicationName, err = runtime.String(val)
+	protoReq.ApplicationID, err = runtime.Int64(val)
 
 	if err != nil {
 		return nil, metadata, err
 	}
 
-	val, ok = pathParams["nodeName"]
+	val, ok = pathParams["devEUI"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "nodeName")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
 	}
 
-	protoReq.NodeName, err = runtime.String(val)
+	protoReq.DevEUI, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, err
@@ -226,23 +226,23 @@ func request_Node_Activate_0(ctx context.Context, marshaler runtime.Marshaler, c
 		_   = err
 	)
 
-	val, ok = pathParams["applicationName"]
+	val, ok = pathParams["applicationID"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationID")
 	}
 
-	protoReq.ApplicationName, err = runtime.String(val)
+	protoReq.ApplicationID, err = runtime.Int64(val)
 
 	if err != nil {
 		return nil, metadata, err
 	}
 
-	val, ok = pathParams["nodeName"]
+	val, ok = pathParams["devEUI"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "nodeName")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
 	}
 
-	protoReq.NodeName, err = runtime.String(val)
+	protoReq.DevEUI, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, err
@@ -264,23 +264,23 @@ func request_Node_GetActivation_0(ctx context.Context, marshaler runtime.Marshal
 		_   = err
 	)
 
-	val, ok = pathParams["applicationName"]
+	val, ok = pathParams["applicationID"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationName")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationID")
 	}
 
-	protoReq.ApplicationName, err = runtime.String(val)
+	protoReq.ApplicationID, err = runtime.Int64(val)
 
 	if err != nil {
 		return nil, metadata, err
 	}
 
-	val, ok = pathParams["nodeName"]
+	val, ok = pathParams["devEUI"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "nodeName")
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
 	}
 
-	protoReq.NodeName, err = runtime.String(val)
+	protoReq.DevEUI, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, err
@@ -521,19 +521,19 @@ func RegisterNodeHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.
 }
 
 var (
-	pattern_Node_Create_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "applications", "applicationName", "nodes"}, ""))
+	pattern_Node_Create_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "applications", "applicationID", "nodes"}, ""))
 
-	pattern_Node_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "applications", "applicationName", "nodes", "nodeName"}, ""))
+	pattern_Node_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "applications", "applicationID", "nodes", "devEUI"}, ""))
 
-	pattern_Node_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "applications", "applicationName", "nodes", "nodeName"}, ""))
+	pattern_Node_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "applications", "applicationID", "nodes", "devEUI"}, ""))
 
-	pattern_Node_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "applications", "applicationName", "nodes"}, ""))
+	pattern_Node_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "applications", "applicationID", "nodes"}, ""))
 
-	pattern_Node_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "applications", "applicationName", "nodes", "nodeName"}, ""))
+	pattern_Node_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "applications", "applicationID", "nodes", "devEUI"}, ""))
 
-	pattern_Node_Activate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"api", "applications", "applicationName", "nodes", "nodeName", "activation"}, ""))
+	pattern_Node_Activate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"api", "applications", "applicationID", "nodes", "devEUI", "activation"}, ""))
 
-	pattern_Node_GetActivation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"api", "applications", "applicationName", "nodes", "nodeName", "activation"}, ""))
+	pattern_Node_GetActivation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"api", "applications", "applicationID", "nodes", "devEUI", "activation"}, ""))
 )
 
 var (

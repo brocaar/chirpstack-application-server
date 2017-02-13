@@ -19,14 +19,14 @@ class UpdateApplication extends Component {
   }
 
   componentWillMount() {
-    ApplicationStore.getApplication(this.props.params.applicationName, (application) => {
+    ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
       this.setState({application: application});
     });
   }
 
   onSubmit(application) {
-    ApplicationStore.updateApplication(this.props.params.applicationName, this.state.application, (responseData) => {
-      this.context.router.push('/applications/'+application.name);
+    ApplicationStore.updateApplication(this.props.params.applicationID, this.state.application, (responseData) => {
+      this.context.router.push('/applications/'+application.id);
     });
   }
 
@@ -36,7 +36,7 @@ class UpdateApplication extends Component {
         <ol className="breadcrumb">
           <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/applications">Applications</Link></li>
-          <li><Link to={`/applications/${this.props.params.applicationName}`}>{this.state.application.name}</Link></li>
+          <li><Link to={`/applications/${this.props.params.applicationID}`}>{this.state.application.name}</Link></li>
           <li className="active">Edit application</li>
         </ol>
         <hr />

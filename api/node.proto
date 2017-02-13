@@ -11,7 +11,7 @@ service Node {
     // Create creates the given node.
     rpc Create(CreateNodeRequest) returns (CreateNodeResponse) {
         option(google.api.http) = {
-            post: "/api/applications/{applicationName}/nodes"
+            post: "/api/applications/{applicationID}/nodes"
             body: "*"
         };
     }
@@ -19,28 +19,28 @@ service Node {
     // Get returns the node for the requested name.
     rpc Get(GetNodeRequest) returns (GetNodeResponse) {
         option (google.api.http) = {
-            get: "/api/applications/{applicationName}/nodes/{nodeName}"
+            get: "/api/applications/{applicationID}/nodes/{devEUI}"
         };
     }
 
     // Delete deletes the node matching the given name.
     rpc Delete(DeleteNodeRequest) returns (DeleteNodeResponse) {
         option (google.api.http) = {
-            delete: "/api/applications/{applicationName}/nodes/{nodeName}"
+            delete: "/api/applications/{applicationID}/nodes/{devEUI}"
         };
     }
 
     // List lists the nodes.
     rpc List(ListNodeRequest) returns (ListNodeResponse) {
         option (google.api.http) = {
-            get: "/api/applications/{applicationName}/nodes"
+            get: "/api/applications/{applicationID}/nodes"
         };
     }
 
     // Update updates the node matching the given name.
     rpc Update(UpdateNodeRequest) returns (UpdateNodeResponse) {
         option (google.api.http) = {
-            put: "/api/applications/{applicationName}/nodes/{nodeName}"
+            put: "/api/applications/{applicationID}/nodes/{devEUI}"
             body: "*"
         };
     }
@@ -48,7 +48,7 @@ service Node {
 	// Activate (re)activates the node (only when ABP is set to true).
 	rpc Activate(ActivateNodeRequest) returns (ActivateNodeResponse) {
 		option (google.api.http) = {
-			post: "/api/applications/{applicationName}/nodes/{nodeName}/activation"
+			post: "/api/applications/{applicationID}/nodes/{devEUI}/activation"
 			body: "*"
 		};
 	}
@@ -56,14 +56,14 @@ service Node {
 	// GetActivation returns the current activation details of the node (OTAA and ABP).
 	rpc GetActivation(GetNodeActivationRequest) returns (GetNodeActivationResponse) {
 		option (google.api.http) = {
-			get: "/api/applications/{applicationName}/nodes/{nodeName}/activation"
+			get: "/api/applications/{applicationID}/nodes/{devEUI}/activation"
 		};
 	}
 }
 
 message CreateNodeRequest {
-	// Name of the application to which the node must be added.
-	string applicationName = 13;
+	// ID of the application to which the node must be added.
+	int64 applicationID = 13;
 
     // Hex encoded DevEUI.
     string devEUI = 1; 
@@ -111,11 +111,11 @@ message CreateNodeRequest {
 message CreateNodeResponse {}
 
 message GetNodeRequest {
-	// Name of the application owning the node.
-	string applicationName = 2;
+	// ID of the application owning the node.
+	int64 applicationID = 2;
 
-    // Name of the node.
-    string nodeName = 1;
+    // Hex encoded DevEUI of the node.
+    string devEUI = 1;
 }
 
 message GetNodeResponse {
@@ -160,21 +160,24 @@ message GetNodeResponse {
 
 	// Node is activated by ABP.
 	bool isABP = 14;
+
+	// ID of the application owning the node.
+	int64 applicationID = 15;
 };
 
 message DeleteNodeRequest {
-	// Name of the application owning the node.
-	string applicationName = 2;
+	// ID of the application owning the node.
+	int64 applicationID = 2;
 
-    // Name of the node.
-    string nodeName = 1;
+    // Hex encoded DevEUI of the node.
+    string devEUI = 1;
 }
 
 message DeleteNodeResponse {}
 
 message ListNodeRequest {
-	// Name of the application owning the node.
-	string applicationName = 3;
+	// ID of the application owning the nodes.
+	int64 applicationID = 3;
 
 	// Max number of nodes to return in the result-set.
     int64 limit = 1;
@@ -193,11 +196,11 @@ message ListNodeResponse {
 
 
 message UpdateNodeRequest {
-	// Name of the application owning the node.
-	string applicationName = 13;
+	// ID of the application owning the node.
+	int64 applicationID = 13;
 
-    // Name of the node to update.
-	string nodeName = 14;
+    // Hex encoded DevEUI of the node to update.
+	string devEUI = 1;
 
     // Hex encoded AppEUI.
     string appEUI = 2;
@@ -233,20 +236,20 @@ message UpdateNodeRequest {
 	double installationMargin = 12;
 
 	// Description of the node.
-	string description = 15;
+	string description = 14;
 
 	// Node is activated by ABP.
-	bool isABP = 16;
+	bool isABP = 15;
 }
 
 message UpdateNodeResponse {}
 
 message ActivateNodeRequest {
-	// Name of the application owning the node.
-	string applicationName = 1;
+	// ID of the application owning the node.
+	int64 applicationID = 1;
 
-    // Name of the node to update.
-	string nodeName = 2;
+    // Hex encoded DevEUI of the node to activate.
+	string devEUI = 2;
 
     // Hex encoded DevAddr.
     string devAddr = 3;
@@ -267,11 +270,11 @@ message ActivateNodeRequest {
 message ActivateNodeResponse {}
 
 message GetNodeActivationRequest {
-	// Name of the application owning the node.
-	string applicationName = 1;
+	// ID of the application owning the node.
+	int64 applicationID = 1;
 
-    // Name of the node to update.
-	string nodeName = 2;
+    // Hex encoded DevEUI of the node.
+	string devEUI = 2;
 }
 
 message GetNodeActivationResponse {

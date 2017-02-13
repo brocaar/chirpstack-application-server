@@ -10,7 +10,7 @@ service DownlinkQueue {
     // Enqueue adds the given item to the queue.
     rpc Enqueue(EnqueueDownlinkQueueItemRequest) returns (EnqueueDownlinkQueueItemResponse) {
         option(google.api.http) = {
-            post: "/api/applications/{applicationName}/nodes/{nodeName}/queue"
+            post: "/api/applications/{applicationID}/nodes/{devEUI}/queue"
             body: "*"
         };
     }
@@ -18,24 +18,24 @@ service DownlinkQueue {
     // Delete deletes an item from the queue.
     rpc Delete(DeleteDownlinkQeueueItemRequest) returns (DeleteDownlinkQueueItemResponse) {
         option(google.api.http) = {
-            delete: "/api/applications/{applicationName}/nodes/{nodeName}/queue/{id}"
+            delete: "/api/applications/{applicationID}/nodes/{devEUI}/queue/{id}"
         };
     }
 
     // List lists the items in the queue for the given node.
     rpc List(ListDownlinkQueueItemsRequest) returns (ListDownlinkQueueItemsResponse) {
         option(google.api.http) = {
-            get: "/api/applications/{applicationName}/nodes/{nodeName}/queue"
+            get: "/api/applications/{applicationID}/nodes/{devEUI}/queue"
         };
     }
 }
 
 message EnqueueDownlinkQueueItemRequest {
-	// Name of the application owning the node.
-	string applicationName = 6;
+	// ID of the application owning the node.
+	int64 applicationID = 6;
 
-    // Name of the node.
-    string nodeName = 1;
+    // Hex encoded DevEUI of the node.
+    string devEUI = 1;
 
 	// Random reference (used on ack notification).
 	string reference = 2;
@@ -53,11 +53,11 @@ message EnqueueDownlinkQueueItemRequest {
 message EnqueueDownlinkQueueItemResponse {}
 
 message DeleteDownlinkQeueueItemRequest {
-	// Name of the application owning the node.
-	string applicationName = 3;
+	// ID of the application owning the node.
+	int64 applicationID = 3;
 
-    // Name of the node.
-    string nodeName = 2;
+    // Hex encoded DevEUI of the node.
+    string devEUI = 2;
 
     // ID of the queue item to delete.
     int64 id = 1;
@@ -69,8 +69,8 @@ message DownlinkQueueItem {
     // ID of the queue item.
     int64 id = 1;
 
-    // Name of the node.
-    string nodeName = 2;
+    // Hex encoded DevEUI of the node.
+    string devEUI = 2;
 
 	// Random reference (used on ack notification).
 	string reference = 3;
@@ -89,11 +89,11 @@ message DownlinkQueueItem {
 }
 
 message ListDownlinkQueueItemsRequest {
-	// Name of the application owning the node.
-	string applicationName = 2;
+	// ID of the application owning the node.
+	int64 applicationID = 2;
 
-    // Name of the node.
-    string nodeName = 1;
+    // Hex encoded DevEUI of the node.
+    string devEUI = 1;
 }
 
 message ListDownlinkQueueItemsResponse {

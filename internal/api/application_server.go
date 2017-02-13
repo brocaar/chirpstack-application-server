@@ -199,6 +199,7 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 	}).Info("join-request accepted")
 
 	err = a.ctx.Handler.SendJoinNotification(handler.JoinNotification{
+		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		NodeName:        node.Name,
 		DevAddr:         node.DevAddr,
@@ -244,6 +245,7 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 	}
 
 	pl := handler.DataUpPayload{
+		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		NodeName:        node.Name,
 		DevEUI:          devEUI,
@@ -412,6 +414,7 @@ func (a *ApplicationServerAPI) HandleDataDownACK(ctx context.Context, req *as.Ha
 	}).Info("downlink queue item acknowledged")
 
 	err = a.ctx.Handler.SendACKNotification(handler.ACKNotification{
+		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		NodeName:        node.Name,
 		DevEUI:          devEUI,
@@ -450,6 +453,7 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 	}).Error(req.Error)
 
 	err = a.ctx.Handler.SendErrorNotification(handler.ErrorNotification{
+		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		NodeName:        node.Name,
 		DevEUI:          devEUI,

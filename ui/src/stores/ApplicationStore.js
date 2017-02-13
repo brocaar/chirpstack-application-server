@@ -40,8 +40,8 @@ class ApplicationStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  getApplication(applicationName, callbackFunc) {
-    fetch("/api/applications/"+applicationName, {headers: tokenStore.getHeader()})
+  getApplication(applicationID, callbackFunc) {
+    fetch("/api/applications/"+applicationID, {headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -60,8 +60,8 @@ class ApplicationStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  updateApplication(applicationName, application, callbackFunc) {
-    fetch("/api/applications/"+applicationName, {method: "PUT", body: JSON.stringify(application), headers: tokenStore.getHeader()})
+  updateApplication(applicationID, application, callbackFunc) {
+    fetch("/api/applications/"+applicationID, {method: "PUT", body: JSON.stringify(application), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -70,8 +70,8 @@ class ApplicationStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  deleteApplication(applicationName, callbackFunc) {
-    fetch("/api/applications/"+applicationName, {method: "DELETE", headers: tokenStore.getHeader()})
+  deleteApplication(applicationID, callbackFunc) {
+    fetch("/api/applications/"+applicationID, {method: "DELETE", headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

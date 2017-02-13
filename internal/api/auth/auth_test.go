@@ -17,44 +17,41 @@ import (
 func TestValidateApplication(t *testing.T) {
 	Convey("Given a test table", t, func() {
 		testTable := []struct {
-			Description string
-			AppEUI      lorawan.EUI64
-			Claims      Claims
-			Error       error
+			Description   string
+			ApplicationID int64
+			Claims        Claims
+			Error         error
 		}{
 			{
-				Description: "User is admin",
-				AppEUI:      [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-				Claims:      Claims{Admin: true},
-				Error:       nil,
+				Description:   "User is admin",
+				ApplicationID: 123,
+				Claims:        Claims{Admin: true},
+				Error:         nil,
 			},
 			{
-				Description: "User has access to all applications",
-				AppEUI:      [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-				Claims:      Claims{Applications: []string{"*"}},
-				Error:       nil,
+				Description:   "User has access to all applications",
+				ApplicationID: 123,
+				Claims:        Claims{Applications: []string{"*"}},
+				Error:         nil,
 			},
 			{
-				Description: "User has access specific application",
-				AppEUI:      [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-				Claims:      Claims{Applications: []string{"0102030405060708"}},
-				Error:       nil,
+				Description:   "User has access specific application",
+				ApplicationID: 123,
+				Claims:        Claims{Applications: []string{"123"}},
+				Error:         nil,
 			},
 			{
-				Description: "User has no permission to application",
-				AppEUI:      [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-				Claims:      Claims{Applications: []string{"0807060504030201"}},
-				Error:       errors.New("no permission to application 0102030405060708"),
+				Description:   "User has no permission to application",
+				ApplicationID: 123,
+				Claims:        Claims{Applications: []string{"124"}},
+				Error:         errors.New("no permission to application id 123"),
 			},
 		}
 
 		for _, test := range testTable {
 			Convey("Test: "+test.Description, func() {
-				v1 := ValidateApplication(test.AppEUI)
+				v1 := ValidateApplicationID(test.ApplicationID)
 				So(v1(&test.Claims), ShouldResemble, test.Error)
-
-				v2 := ValidateApplicationName(test.AppEUI.String())
-				So(v2(&test.Claims), ShouldResemble, test.Error)
 			})
 		}
 	})
@@ -98,9 +95,6 @@ func TestValidateNode(t *testing.T) {
 			Convey("Test: "+test.Description, func() {
 				v1 := ValidateNode(test.DevEUI)
 				So(v1(&test.Claims), ShouldResemble, test.Error)
-
-				v2 := ValidateNodeName(test.DevEUI.String())
-				So(v2(&test.Claims), ShouldResemble, test.Error)
 			})
 		}
 	})

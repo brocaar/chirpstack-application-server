@@ -75,7 +75,7 @@
         ]
       }
     },
-    "/api/applications/{applicationName}": {
+    "/api/applications/{id}": {
       "get": {
         "summary": "Get returns the requested application.",
         "operationId": "Get",
@@ -89,10 +89,11 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -112,10 +113,11 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -135,10 +137,11 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
             "name": "body",
@@ -170,14 +173,22 @@
       }
     },
     "apiCreateApplicationResponse": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the application that was created."
+        }
+      }
     },
     "apiDeleteApplicationRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "id": {
           "type": "string",
-          "description": "Name of the application."
+          "format": "int64",
+          "description": "ID of the application."
         }
       }
     },
@@ -187,8 +198,9 @@
     "apiGetApplicationRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "id": {
           "type": "string",
+          "format": "int64",
           "description": "Name of the application."
         }
       }
@@ -196,6 +208,11 @@
     "apiGetApplicationResponse": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the application."
+        },
         "name": {
           "type": "string",
           "description": "Name of the application."
@@ -241,13 +258,14 @@
     "apiUpdateApplicationRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "id": {
           "type": "string",
-          "description": "Name of the application to update."
+          "format": "int64",
+          "description": "ID of the application to update."
         },
         "name": {
           "type": "string",
-          "description": "Name of the application (note that renaming an application affects its api endpoint)."
+          "description": "Name of the application (must be unique)."
         },
         "description": {
           "type": "string",

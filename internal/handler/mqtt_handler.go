@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strconv"
 	"sync"
 	"time"
 
@@ -19,7 +20,7 @@ import (
 const txTopic = "application/+/node/+/tx"
 const downlinkLockTTL = time.Millisecond * 100
 
-var txTopicRegex = regexp.MustCompile(`application/([\w-]+)/node/([\w-]+)/tx`)
+var txTopicRegex = regexp.MustCompile(`application/(\w+)/node/(\w+)/tx`)
 
 // DataRate contains the data-rate related fields.
 type DataRate struct {
@@ -47,6 +48,7 @@ type TXInfo struct {
 
 // DataUpPayload represents a data-up payload.
 type DataUpPayload struct {
+	ApplicationID   int64         `json:"applicationID"`
 	ApplicationName string        `json:"applicationName"`
 	NodeName        string        `json:"nodeName"`
 	DevEUI          lorawan.EUI64 `json:"devEUI"`
@@ -59,17 +61,18 @@ type DataUpPayload struct {
 
 // DataDownPayload represents a data-down payload.
 type DataDownPayload struct {
-	ApplicationName string `json:"applicationName"`
-	NodeName        string `json:"nodeName"`
-	Reference       string `json:"reference"`
-	Confirmed       bool   `json:"confirmed"`
-	FPort           uint8  `json:"fPort"`
-	Data            []byte `json:"data"`
+	ApplicationID int64         `json:"applicationID"`
+	DevEUI        lorawan.EUI64 `json:"devEUI"`
+	Reference     string        `json:"reference"`
+	Confirmed     bool          `json:"confirmed"`
+	FPort         uint8         `json:"fPort"`
+	Data          []byte        `json:"data"`
 }
 
 // JoinNotification defines the payload sent to the application on
 // a JoinNotificationType event.
 type JoinNotification struct {
+	ApplicationID   int64           `json:"applicationID"`
 	ApplicationName string          `json:"applicationName"`
 	NodeName        string          `json:"nodeName"`
 	DevEUI          lorawan.EUI64   `json:"devEUI"`
@@ -88,6 +91,7 @@ type MQTTHandler struct {
 // ACKNotification defines the payload sent to the application
 // on an ACK event.
 type ACKNotification struct {
+	ApplicationID   int64         `json:"applicationID"`
 	ApplicationName string        `json:"applicationName"`
 	NodeName        string        `json:"nodeName"`
 	DevEUI          lorawan.EUI64 `json:"devEUI"`
@@ -97,6 +101,7 @@ type ACKNotification struct {
 // ErrorNotification defines the payload sent to the application
 // on an error event.
 type ErrorNotification struct {
+	ApplicationID   int64         `json:"applicationID"`
 	ApplicationName string        `json:"applicationName"`
 	NodeName        string        `json:"nodeName"`
 	DevEUI          lorawan.EUI64 `json:"devEUI"`
@@ -146,7 +151,7 @@ func (h *MQTTHandler) SendDataUp(payload DataUpPayload) error {
 		return fmt.Errorf("handler/mqtt: data-up payload marshal error: %s", err)
 	}
 
-	topic := fmt.Sprintf("application/%s/node/%s/rx", payload.ApplicationName, payload.NodeName)
+	topic := fmt.Sprintf("application/%d/node/%s/rx", payload.ApplicationID, payload.DevEUI)
 	log.WithField("topic", topic).Info("handler/mqtt: publishing data-up payload")
 	if token := h.conn.Publish(topic, 0, false, b); token.Wait() && token.Error() != nil {
 		return fmt.Errorf("handler/mqtt: publish data-up payload error: %s", err)
@@ -160,7 +165,7 @@ func (h *MQTTHandler) SendJoinNotification(payload JoinNotification) error {
 	if err != nil {
 		return fmt.Errorf("handler/mqtt: join notification marshal error: %s", err)
 	}
-	topic := fmt.Sprintf("application/%s/node/%s/join", payload.ApplicationName, payload.NodeName)
+	topic := fmt.Sprintf("application/%d/node/%s/join", payload.ApplicationID, payload.DevEUI)
 	log.WithField("topic", topic).Info("handler/mqtt: publishing join notification")
 	if token := h.conn.Publish(topic, 0, false, b); token.Wait() && token.Error() != nil {
 		return fmt.Errorf("handler/mqtt: publish join notification error: %s", err)
@@ -174,7 +179,7 @@ func (h *MQTTHandler) SendACKNotification(payload ACKNotification) error {
 	if err != nil {
 		return fmt.Errorf("handler/mqtt: ack notification marshal error: %s", err)
 	}
-	topic := fmt.Sprintf("application/%s/node/%s/ack", payload.ApplicationName, payload.NodeName)
+	topic := fmt.Sprintf("application/%d/node/%s/ack", payload.ApplicationID, payload.DevEUI)
 	log.WithField("topic", topic).Info("handler/mqtt: publishing ack notification")
 	if token := h.conn.Publish(topic, 0, false, b); token.Wait() && token.Error() != nil {
 		return fmt.Errorf("handler/mqtt: publish ack notification error: %s", err)
@@ -188,7 +193,7 @@ func (h *MQTTHandler) SendErrorNotification(payload ErrorNotification) error {
 	if err != nil {
 		return fmt.Errorf("handler/mqtt: error notification marshal error: %s", err)
 	}
-	topic := fmt.Sprintf("application/%s/node/%s/error", payload.ApplicationName, payload.NodeName)
+	topic := fmt.Sprintf("application/%d/node/%s/error", payload.ApplicationID, payload.DevEUI)
 	log.WithField("topic", topic).Info("handler/mqtt: publishing error notification")
 	if token := h.conn.Publish(topic, 0, false, b); token.Wait() && token.Error() != nil {
 		return fmt.Errorf("handler/mqtt: publish error notification error: %s", err)
@@ -223,19 +228,32 @@ func (h *MQTTHandler) txPayloadHandler(c mqtt.Client, msg mqtt.Message) {
 		return
 	}
 
-	// set name of application and node from MQTT topic
-	pl.ApplicationName = match[1]
-	pl.NodeName = match[2]
+	// set ApplicationID and DevEUI from topic
+	var err error
+	pl.ApplicationID, err = strconv.ParseInt(match[1], 10, 64)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"topic": msg.Topic(),
+		}).Errorf("handler/mqtt: parse application id error: %s", err)
+		return
+	}
+
+	if err = pl.DevEUI.UnmarshalText([]byte(match[2])); err != nil {
+		log.WithFields(log.Fields{
+			"topic": msg.Topic(),
+		}).Errorf("handler/mqtt: parse dev_eui error: %s", err)
+		return
+	}
 
 	// Since with MQTT all subscribers will receive the downlink messages sent
 	// by the application, the first instance receiving the message must lock it,
 	// so that other instances can ignore the message.
 	// As an unique id, the Reference field is used.
-	key := fmt.Sprintf("lora:as:downlink:lock:%s:%s:%s", pl.ApplicationName, pl.NodeName, pl.Reference)
+	key := fmt.Sprintf("lora:as:downlink:lock:%d:%s:%s", pl.ApplicationID, pl.DevEUI, pl.Reference)
 	redisConn := h.redisPool.Get()
 	defer redisConn.Close()
 
-	_, err := redis.String(redisConn.Do("SET", key, "lock", "PX", int64(downlinkLockTTL/time.Millisecond), "NX"))
+	_, err = redis.String(redisConn.Do("SET", key, "lock", "PX", int64(downlinkLockTTL/time.Millisecond), "NX"))
 	if err != nil {
 		if err == redis.ErrNil {
 			// the payload is already being processed by an other instance

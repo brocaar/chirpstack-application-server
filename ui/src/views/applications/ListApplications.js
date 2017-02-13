@@ -7,7 +7,7 @@ class ApplicationRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`/applications/${this.props.application.name}`}>{this.props.application.name}</Link></td>
+        <td><Link to={`/applications/${this.props.application.id}`}>{this.props.application.name}</Link></td>
         <td>{this.props.application.description}</td>
       </tr>
     );
@@ -26,7 +26,7 @@ class ListApplications extends Component {
   }
 
   render () {
-    const ApplicationRows = this.state.applications.map((application, i) => <ApplicationRow key={application.name} application={application} />);
+    const ApplicationRows = this.state.applications.map((application, i) => <ApplicationRow key={application.id} application={application} />);
 
     return(
       <div>

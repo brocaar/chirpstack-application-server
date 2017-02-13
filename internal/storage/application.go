@@ -60,16 +60,6 @@ func GetApplication(db *sqlx.DB, id int64) (Application, error) {
 	return app, nil
 }
 
-// GetApplicationByName returns the Application for the given application name.
-func GetApplicationByName(db *sqlx.DB, name string) (Application, error) {
-	var app Application
-	err := db.Get(&app, "select * from application where name = $1", name)
-	if err != nil {
-		return app, fmt.Errorf("get application error: %s", err)
-	}
-	return app, nil
-}
-
 // GetApplicationCount returns the total number of applications.
 func GetApplicationCount(db *sqlx.DB) (int, error) {
 	var count int
@@ -125,9 +115,9 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 	return nil
 }
 
-// DeleteApplicationByName deletes the Application matching the given name.
-func DeleteApplicationByname(db *sqlx.DB, name string) error {
-	res, err := db.Exec("delete from application where name = $1", name)
+// DeleteApplication deletes the Application matching the given ID.
+func DeleteApplication(db *sqlx.DB, id int64) error {
+	res, err := db.Exec("delete from application where id = $1", id)
 	if err != nil {
 		return fmt.Errorf("delete application error: %s", err)
 	}
@@ -136,10 +126,10 @@ func DeleteApplicationByname(db *sqlx.DB, name string) error {
 		return err
 	}
 	if ra == 0 {
-		return fmt.Errorf("application with name %s does not exist", name)
+		return fmt.Errorf("application with id %d does not exist", id)
 	}
 	log.WithFields(log.Fields{
-		"name": name,
+		"id": id,
 	}).Info("application deleted")
 
 	return nil

@@ -7,6 +7,7 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/lorawan"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -30,9 +31,9 @@ func TestMQTTHandler(t *testing.T) {
 			defer handler.Close()
 			time.Sleep(time.Millisecond * 100) // give the backend some time to connect
 
-			Convey("Given the MQTT client is subscribed to application/test-app/node/test-node/rx", func() {
+			Convey("Given the MQTT client is subscribed to application/123/node/0102030405060708/rx", func() {
 				dataUpChan := make(chan DataUpPayload)
-				token := c.Subscribe("application/test-app/node/test-node/rx", 0, func(c mqtt.Client, msg mqtt.Message) {
+				token := c.Subscribe("application/123/node/0102030405060708/rx", 0, func(c mqtt.Client, msg mqtt.Message) {
 					var pl DataUpPayload
 					if err := json.Unmarshal(msg.Payload(), &pl); err != nil {
 						t.Fatal(err)
@@ -44,8 +45,8 @@ func TestMQTTHandler(t *testing.T) {
 
 				Convey("When sending a DataUpPayload (from the handler)", func() {
 					pl := DataUpPayload{
-						ApplicationName: "test-app",
-						NodeName:        "test-node",
+						ApplicationID: 123,
+						DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 					}
 					So(handler.SendDataUp(pl), ShouldBeNil)
 
@@ -55,9 +56,9 @@ func TestMQTTHandler(t *testing.T) {
 				})
 			})
 
-			Convey("Given the MQTT client is subscribed to application/test-app/node/test-node/join", func() {
+			Convey("Given the MQTT client is subscribed to application/123/node/0102030405060708/join", func() {
 				joinChan := make(chan JoinNotification)
-				token := c.Subscribe("application/test-app/node/test-node/join", 0, func(c mqtt.Client, msg mqtt.Message) {
+				token := c.Subscribe("application/123/node/0102030405060708/join", 0, func(c mqtt.Client, msg mqtt.Message) {
 					var pl JoinNotification
 					if err := json.Unmarshal(msg.Payload(), &pl); err != nil {
 						t.Fatal(err)
@@ -69,8 +70,10 @@ func TestMQTTHandler(t *testing.T) {
 
 				Convey("When sending a join notification (from the handler)", func() {
 					pl := JoinNotification{
+						ApplicationID:   123,
 						ApplicationName: "test-app",
 						NodeName:        "test-node",
+						DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 						DevAddr:         [4]byte{1, 2, 3, 4},
 					}
 					So(handler.SendJoinNotification(pl), ShouldBeNil)
@@ -81,9 +84,9 @@ func TestMQTTHandler(t *testing.T) {
 				})
 			})
 
-			Convey("Given the MQTT client is subscribed to application/test-app/node/test-node/ack", func() {
+			Convey("Given the MQTT client is subscribed to application/123/node/0102030405060708/ack", func() {
 				ackChan := make(chan ACKNotification)
-				token := c.Subscribe("application/test-app/node/test-node/ack", 0, func(c mqtt.Client, msg mqtt.Message) {
+				token := c.Subscribe("application/123/node/0102030405060708/ack", 0, func(c mqtt.Client, msg mqtt.Message) {
 					var pl ACKNotification
 					if err := json.Unmarshal(msg.Payload(), &pl); err != nil {
 						t.Fatal(err)
@@ -95,7 +98,9 @@ func TestMQTTHandler(t *testing.T) {
 
 				Convey("When sending an ack notification (from the handler)", func() {
 					pl := ACKNotification{
+						ApplicationID:   123,
 						ApplicationName: "test-app",
+						DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 						NodeName:        "test-node",
 						Reference:       "1234",
 					}
@@ -107,9 +112,9 @@ func TestMQTTHandler(t *testing.T) {
 				})
 			})
 
-			Convey("Given the MQTT client is subscribed to application/test-app/node/test-node/error", func() {
+			Convey("Given the MQTT client is subscribed to application/123/node/0102030405060708/error", func() {
 				errChan := make(chan ErrorNotification)
-				token := c.Subscribe("application/test-app/node/test-node/error", 0, func(c mqtt.Client, msg mqtt.Message) {
+				token := c.Subscribe("application/123/node/0102030405060708/error", 0, func(c mqtt.Client, msg mqtt.Message) {
 					var pl ErrorNotification
 					if err := json.Unmarshal(msg.Payload(), &pl); err != nil {
 						t.Fatal(err)
@@ -121,8 +126,10 @@ func TestMQTTHandler(t *testing.T) {
 
 				Convey("When sending an error notification (from the handler)", func() {
 					pl := ErrorNotification{
+						ApplicationID:   123,
 						ApplicationName: "test-app",
 						NodeName:        "test-node",
+						DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 						Type:            "BOOM",
 						Error:           "boom boom boom",
 					}
@@ -142,17 +149,17 @@ func TestMQTTHandler(t *testing.T) {
 				}
 				b, err := json.Marshal(pl)
 				So(err, ShouldBeNil)
-				token := c.Publish("application/test-app/node/test-node/tx", 0, false, b)
+				token := c.Publish("application/123/node/0102030405060708/tx", 0, false, b)
 				token.Wait()
 				So(token.Error(), ShouldBeNil)
 
 				Convey("Then the same payload is received by the handler", func() {
 					So(<-handler.DataDownChan(), ShouldResemble, DataDownPayload{
-						ApplicationName: "test-app",
-						NodeName:        "test-node",
-						Confirmed:       false,
-						FPort:           1,
-						Data:            []byte("hello"),
+						ApplicationID: 123,
+						DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+						Confirmed:     false,
+						FPort:         1,
+						Data:          []byte("hello"),
 					})
 				})
 			})

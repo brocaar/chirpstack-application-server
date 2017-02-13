@@ -37,11 +37,11 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 		Convey("When enqueueing a downlink queue item", func() {
 			_, err := api.Enqueue(ctx, &pb.EnqueueDownlinkQueueItemRequest{
-				ApplicationName: "test-app",
-				NodeName:        "test-node",
-				Confirmed:       true,
-				FPort:           10,
-				Data:            []byte{1, 2, 3, 4},
+				ApplicationID: app.ID,
+				DevEUI:        node.DevEUI.String(),
+				Confirmed:     true,
+				FPort:         10,
+				Data:          []byte{1, 2, 3, 4},
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
@@ -49,8 +49,8 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 			Convey("Then the queue contains a single item", func() {
 				resp, err := api.List(ctx, &pb.ListDownlinkQueueItemsRequest{
-					ApplicationName: "test-app",
-					NodeName:        "test-node",
+					ApplicationID: app.ID,
+					DevEUI:        node.DevEUI.String(),
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -59,7 +59,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 				So(resp.Items, ShouldHaveLength, 1)
 				So(resp.Items[0], ShouldResemble, &pb.DownlinkQueueItem{
 					Id:        1,
-					NodeName:  "test-node",
+					DevEUI:    node.DevEUI.String(),
 					Confirmed: true,
 					Pending:   false,
 					FPort:     10,
@@ -69,9 +69,9 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 			Convey("When removing the queue item", func() {
 				_, err := api.Delete(ctx, &pb.DeleteDownlinkQeueueItemRequest{
-					ApplicationName: "test-app",
-					NodeName:        "test-node",
-					Id:              1,
+					ApplicationID: app.ID,
+					DevEUI:        node.DevEUI.String(),
+					Id:            1,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -79,8 +79,8 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 				Convey("Then the downlink queue item has been deleted", func() {
 					resp, err := api.List(ctx, &pb.ListDownlinkQueueItemsRequest{
-						ApplicationName: "test-app",
-						NodeName:        "test-node",
+						ApplicationID: app.ID,
+						DevEUI:        node.DevEUI.String(),
 					})
 					So(err, ShouldBeNil)
 					So(resp.Items, ShouldHaveLength, 0)

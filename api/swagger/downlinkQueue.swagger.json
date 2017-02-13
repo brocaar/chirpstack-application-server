@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/applications/{applicationName}/nodes/{nodeName}/queue": {
+    "/api/applications/{applicationID}/nodes/{devEUI}/queue": {
       "get": {
         "summary": "List lists the items in the queue for the given node.",
         "operationId": "List",
@@ -29,13 +29,14 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
-            "name": "nodeName",
+            "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
@@ -58,13 +59,14 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
-            "name": "nodeName",
+            "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
@@ -83,7 +85,7 @@
         ]
       }
     },
-    "/api/applications/{applicationName}/nodes/{nodeName}/queue/{id}": {
+    "/api/applications/{applicationID}/nodes/{devEUI}/queue/{id}": {
       "delete": {
         "summary": "Delete deletes an item from the queue.",
         "operationId": "Delete",
@@ -97,13 +99,14 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
-            "name": "nodeName",
+            "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
@@ -126,13 +129,14 @@
     "apiDeleteDownlinkQeueueItemRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node."
+          "description": "Hex encoded DevEUI of the node."
         },
         "id": {
           "type": "string",
@@ -152,9 +156,9 @@
           "format": "int64",
           "description": "ID of the queue item."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node."
+          "description": "Hex encoded DevEUI of the node."
         },
         "reference": {
           "type": "string",
@@ -185,13 +189,14 @@
     "apiEnqueueDownlinkQueueItemRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node."
+          "description": "Hex encoded DevEUI of the node."
         },
         "reference": {
           "type": "string",
@@ -220,13 +225,14 @@
     "apiListDownlinkQueueItemsRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node."
+          "description": "Hex encoded DevEUI of the node."
         }
       }
     },

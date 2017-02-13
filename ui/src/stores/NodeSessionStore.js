@@ -29,8 +29,8 @@ var errorHandler = (error) => {
 };
 
 class NodeSessionStore extends EventEmitter {
-  getNodeSession(applicationName, nodeName, callbackFunc) {
-    fetch("/api/applications/"+applicationName+"/nodes/"+nodeName+"/session", {headers: tokenStore.getHeader()})
+  getNodeSession(applicationID, devEUI, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI+"/session", {headers: tokenStore.getHeader()})
       .then(checkGetStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -39,8 +39,8 @@ class NodeSessionStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  createNodeSession(applicationName, nodeName, session, callbackFunc) {
-    fetch("/api/applications/"+applicationName+"/nodes/"+nodeName+"/session", {method: "POST", body: JSON.stringify(session), headers: tokenStore.getHeader()})
+  createNodeSession(applicationID, devEUI, session, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI+"/session", {method: "POST", body: JSON.stringify(session), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -49,8 +49,8 @@ class NodeSessionStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  updateNodeSession(applicationName, nodeName, session, callbackFunc) {
-    fetch("/api/applications/"+applicationName+"/nodes/"+nodeName+"/session", {method: "PUT", body: JSON.stringify(session), headers: tokenStore.getHeader()})
+  updateNodeSession(applicationID, devEUI, session, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI+"/session", {method: "PUT", body: JSON.stringify(session), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -59,8 +59,8 @@ class NodeSessionStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  deleteNodeSession(applicationName, nodeName, callbackFunc) {
-    fetch("/api/applications/"+applicationName+"/nodes/"+nodeName+"/session", {method: "DELETE", headers: tokenStore.getHeader()})
+  deleteNodeSession(applicationID, devEUI, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI+"/session", {method: "DELETE", headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -69,8 +69,8 @@ class NodeSessionStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  getRandomDevAddr(applicationName, nodeName, callbackFunc) {
-    fetch("/api/applications/"+applicationName+"/nodes/"+nodeName+"/getRandomDevAddr", {method: "POST", headers: tokenStore.getHeader()}) 
+  getRandomDevAddr(applicationID, devEUI, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI+"/getRandomDevAddr", {method: "POST", headers: tokenStore.getHeader()}) 
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

@@ -68,6 +68,7 @@ func TestApplicationServerAPI(t *testing.T) {
 			Convey("Then the error has been sent to the handler", func() {
 				So(h.SendErrorNotificationChan, ShouldHaveLength, 1)
 				So(<-h.SendErrorNotificationChan, ShouldResemble, handler.ErrorNotification{
+					ApplicationID:   app.ID,
 					ApplicationName: "test-app",
 					NodeName:        "test-node",
 					DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
@@ -130,6 +131,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				Convey("Then the expected payload was sent to the handler", func() {
 					So(h.SendDataUpChan, ShouldHaveLength, 1)
 					So(<-h.SendDataUpChan, ShouldResemble, handler.DataUpPayload{
+						ApplicationID:   app.ID,
 						ApplicationName: "test-app",
 						NodeName:        "test-node",
 						DevEUI:          node.DevEUI,
@@ -232,6 +234,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				Convey("Then a notification was sent to the handler", func() {
 					So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
 					So(<-h.SendJoinNotificationChan, ShouldResemble, handler.JoinNotification{
+						ApplicationID:   app.ID,
 						ApplicationName: "test-app",
 						NodeName:        "test-node",
 						DevAddr:         [4]byte{1, 2, 3, 4},
@@ -291,6 +294,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					Convey("Then a notification was sent to the handler", func() {
 						So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
 						So(<-h.SendJoinNotificationChan, ShouldResemble, handler.JoinNotification{
+							ApplicationID:   app.ID,
 							ApplicationName: "test-app",
 							NodeName:        "test-node",
 							DevAddr:         [4]byte{1, 2, 3, 4},
@@ -323,6 +327,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					Convey("Then an ack notification was sent to the handler", func() {
 						So(h.SendACKNotificationChan, ShouldHaveLength, 1)
 						So(<-h.SendACKNotificationChan, ShouldResemble, handler.ACKNotification{
+							ApplicationID:   app.ID,
 							ApplicationName: "test-app",
 							NodeName:        "test-node",
 							DevEUI:          qi.DevEUI,

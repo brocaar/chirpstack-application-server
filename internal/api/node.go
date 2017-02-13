@@ -45,15 +45,10 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Create"),
-		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNodeName(req.Name),
+		auth.ValidateApplicationID(req.ApplicationID),
+		auth.ValidateNode(devEUI),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
-	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, "get application error: %s", err)
 	}
 
 	// if Name is "", set it to the DevEUI
@@ -62,7 +57,7 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 	}
 
 	node := storage.Node{
-		ApplicationID: app.ID,
+		ApplicationID: req.ApplicationID,
 		Name:          req.Name,
 		Description:   req.Description,
 		DevEUI:        devEUI,
@@ -92,38 +87,34 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 
 // Get returns the Node for the given name.
 func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeResponse, error) {
+	var eui lorawan.EUI64
+	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Get"),
-		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNodeName(req.NodeName),
+		auth.ValidateApplicationID(req.ApplicationID),
+		auth.ValidateNode(eui),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNodeByName(a.ctx.DB, req.ApplicationName, req.NodeName)
+	node, err := storage.GetNode(a.ctx.DB, eui)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	devEUI, err := node.DevEUI.MarshalText()
-	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
-	}
-	appEUI, err := node.AppEUI.MarshalText()
-	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
-	}
-	appKey, err := node.AppKey.MarshalText()
-	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+	if node.ApplicationID != req.ApplicationID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
 	}
 
 	resp := pb.GetNodeResponse{
 		Name:               node.Name,
 		Description:        node.Description,
-		DevEUI:             string(devEUI),
-		AppEUI:             string(appEUI),
-		AppKey:             string(appKey),
+		DevEUI:             node.DevEUI.String(),
+		AppEUI:             node.AppEUI.String(),
+		AppKey:             node.AppKey.String(),
 		IsABP:              node.IsABP,
 		RxDelay:            uint32(node.RXDelay),
 		Rx1DROffset:        uint32(node.RX1DROffset),
@@ -132,11 +123,17 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 		RelaxFCnt:          node.RelaxFCnt,
 		AdrInterval:        node.ADRInterval,
 		InstallationMargin: node.InstallationMargin,
+		ApplicationID:      node.ApplicationID,
 	}
 
 	if node.ChannelListID != nil {
 		resp.ChannelListID = *node.ChannelListID
 	}
+
+	log.WithFields(log.Fields{
+		"dev_eui":        node.DevEUI,
+		"application_id": node.ApplicationID,
+	}).Info("node created")
 
 	return &resp, nil
 }
@@ -145,30 +142,28 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 func (a *NodeAPI) List(ctx context.Context, req *pb.ListNodeRequest) (*pb.ListNodeResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.List"),
-		auth.ValidateApplicationName(req.ApplicationName),
+		auth.ValidateApplicationID(req.ApplicationID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	nodes, err := storage.GetNodesForApplicationID(a.ctx.DB, app.ID, int(req.Limit), int(req.Offset))
+	nodes, err := storage.GetNodesForApplicationID(a.ctx.DB, req.ApplicationID, int(req.Limit), int(req.Offset))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, err.Error())
 	}
-	count, err := storage.GetNodesCountForApplicationID(a.ctx.DB, app.ID)
+	count, err := storage.GetNodesCountForApplicationID(a.ctx.DB, req.ApplicationID)
 	return a.returnList(count, nodes)
 }
 
 // Update updates the node matching the given name.
 func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.UpdateNodeResponse, error) {
-	var appEUI lorawan.EUI64
+	var appEUI, devEUI lorawan.EUI64
 	var appKey lorawan.AES128Key
 
 	if err := appEUI.UnmarshalText([]byte(req.AppEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 	if err := appKey.UnmarshalText([]byte(req.AppKey)); err != nil {
@@ -177,16 +172,19 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Update"),
-		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNodeName(req.NodeName),
-		auth.ValidateNodeName(req.Name), // in case of a name update
+		auth.ValidateApplicationID(req.ApplicationID),
+		auth.ValidateNode(devEUI),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNodeByName(a.ctx.DB, req.ApplicationName, req.NodeName)
+	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+
+	if node.ApplicationID != req.ApplicationID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
 	}
 
 	node.Name = req.Name
@@ -211,22 +209,36 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
+	log.WithFields(log.Fields{
+		"dev_eui":        node.DevEUI,
+		"application_id": node.ApplicationID,
+	}).Info("node updated")
+
 	return &pb.UpdateNodeResponse{}, nil
 }
 
 // Delete deletes the node matching the given name.
 func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.DeleteNodeResponse, error) {
+	var eui lorawan.EUI64
+	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Delete"),
-		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNodeName(req.NodeName),
+		auth.ValidateApplicationID(req.ApplicationID),
+		auth.ValidateNode(eui),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNodeByName(a.ctx.DB, req.ApplicationName, req.NodeName)
+	node, err := storage.GetNode(a.ctx.DB, eui)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+
+	if node.ApplicationID != req.ApplicationID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
 	}
 
 	if err := storage.DeleteNode(a.ctx.DB, node.DevEUI); err != nil {
@@ -238,16 +250,25 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.De
 		DevEUI: node.DevEUI[:],
 	})
 
+	log.WithFields(log.Fields{
+		"dev_eui":        node.DevEUI,
+		"application_id": node.ApplicationID,
+	}).Info("node deleted")
+
 	return &pb.DeleteNodeResponse{}, nil
 }
 
 // Activate activates the node (ABP only).
 func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*pb.ActivateNodeResponse, error) {
 	var devAddr lorawan.DevAddr
+	var devEUI lorawan.EUI64
 	var appSKey, nwkSKey lorawan.AES128Key
 
 	if err := devAddr.UnmarshalText([]byte(req.DevAddr)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devAddr: %s", err)
+	}
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 	if err := appSKey.UnmarshalText([]byte(req.AppSKey)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "appSKey: %s", err)
@@ -258,15 +279,19 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.Activate"),
-		auth.ValidateNodeName(req.NodeName),
-		auth.ValidateApplicationName(req.ApplicationName),
+		auth.ValidateNode(devEUI),
+		auth.ValidateApplicationID(req.ApplicationID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNodeByName(a.ctx.DB, req.ApplicationName, req.NodeName)
+	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+
+	if node.ApplicationID != req.ApplicationID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
 	}
 
 	if !node.IsABP {
@@ -321,10 +346,9 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 	}
 
 	log.WithFields(log.Fields{
-		"dev_addr":         devAddr,
-		"dev_eui":          node.DevEUI,
-		"node_name":        req.NodeName,
-		"application_name": req.ApplicationName,
+		"dev_addr":       devAddr,
+		"dev_eui":        node.DevEUI,
+		"application_id": node.ApplicationID,
 	}).Info("node activated")
 
 	return &pb.ActivateNodeResponse{}, nil
@@ -332,19 +356,28 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 
 func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetNodeActivationRequest) (*pb.GetNodeActivationResponse, error) {
 	var devAddr lorawan.DevAddr
+	var devEUI lorawan.EUI64
 	var nwkSKey lorawan.AES128Key
+
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
+	}
 
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.GetActivation"),
-		auth.ValidateNodeName(req.NodeName),
-		auth.ValidateApplicationName(req.ApplicationName),
+		auth.ValidateNode(devEUI),
+		auth.ValidateApplicationID(req.ApplicationID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNodeByName(a.ctx.DB, req.ApplicationName, req.NodeName)
+	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+
+	if node.ApplicationID != req.ApplicationID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
 	}
 
 	ns, err := a.ctx.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{
@@ -371,25 +404,12 @@ func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeRespo
 		TotalCount: int64(count),
 	}
 	for _, node := range nodes {
-		appEUI, err := node.AppEUI.MarshalText()
-		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, err.Error())
-		}
-		devEUI, err := node.DevEUI.MarshalText()
-		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, err.Error())
-		}
-		appKey, err := node.AppKey.MarshalText()
-		if err != nil {
-			return nil, grpc.Errorf(codes.Internal, err.Error())
-		}
-
 		item := pb.GetNodeResponse{
 			Name:               node.Name,
 			Description:        node.Description,
-			DevEUI:             string(devEUI),
-			AppEUI:             string(appEUI),
-			AppKey:             string(appKey),
+			DevEUI:             node.DevEUI.String(),
+			AppEUI:             node.AppEUI.String(),
+			AppKey:             node.AppKey.String(),
 			IsABP:              node.IsABP,
 			RxDelay:            uint32(node.RXDelay),
 			Rx1DROffset:        uint32(node.RX1DROffset),
@@ -398,6 +418,7 @@ func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeRespo
 			RelaxFCnt:          node.RelaxFCnt,
 			AdrInterval:        node.ADRInterval,
 			InstallationMargin: node.InstallationMargin,
+			ApplicationID:      node.ApplicationID,
 		}
 
 		if node.ChannelListID != nil {

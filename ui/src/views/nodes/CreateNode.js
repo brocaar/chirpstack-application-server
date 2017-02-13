@@ -20,14 +20,14 @@ class CreateNode extends Component {
   }
 
   componentWillMount() {
-    ApplicationStore.getApplication(this.props.params.applicationName, (application) => {
+    ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
       this.setState({application: application});
     });
   }
 
   onSubmit(node) {
-    NodeStore.createNode(this.props.params.applicationName, node, (responseData) => {
-      this.context.router.push('/applications/'+this.props.params.applicationName);
+    NodeStore.createNode(this.props.params.applicationID, node, (responseData) => {
+      this.context.router.push('/applications/'+this.props.params.applicationID);
     }); 
   }
 
@@ -37,7 +37,7 @@ class CreateNode extends Component {
         <ol className="breadcrumb">
           <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/applications">Applications</Link></li>
-          <li><Link to={`/applications/${this.props.params.applicationName}`}>{this.state.application.name}</Link></li>
+          <li><Link to={`/applications/${this.props.params.applicationID}`}>{this.state.application.name}</Link></li>
           <li className="active">Create node</li>
         </ol>
         <hr />

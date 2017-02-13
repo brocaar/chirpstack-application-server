@@ -28,7 +28,6 @@ func NewApplicationAPI(ctx common.Context, validator auth.Validator) *Applicatio
 func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRequest) (*pb.CreateApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Application.Create"),
-		auth.ValidateApplicationName(req.Name),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -42,22 +41,25 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	return &pb.CreateApplicationResponse{}, nil
+	return &pb.CreateApplicationResponse{
+		Id: app.ID,
+	}, nil
 }
 
 func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Application.Get"),
-		auth.ValidateApplicationName(req.ApplicationName),
+		auth.ValidateApplicationID(req.Id),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
+	app, err := storage.GetApplication(a.ctx.DB, req.Id)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 	return &pb.GetApplicationResponse{
+		Id:          app.ID,
 		Name:        app.Name,
 		Description: app.Description,
 	}, nil
@@ -66,13 +68,12 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRequest) (*pb.UpdateApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Application.Update"),
-		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateApplicationName(req.Name), // in case of a name update
+		auth.ValidateApplicationID(req.Id),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplicationByName(a.ctx.DB, req.ApplicationName)
+	app, err := storage.GetApplication(a.ctx.DB, req.Id)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
@@ -92,12 +93,12 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRequest) (*pb.DeleteApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Application.Delete"),
-		auth.ValidateApplicationName(req.ApplicationName),
+		auth.ValidateApplicationID(req.Id),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteApplicationByname(a.ctx.DB, req.ApplicationName)
+	err := storage.DeleteApplication(a.ctx.DB, req.Id)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
@@ -126,6 +127,7 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 	}
 	for _, app := range apps {
 		resp.Result = append(resp.Result, &pb.GetApplicationResponse{
+			Id:          app.ID,
 			Name:        app.Name,
 			Description: app.Description,
 		})

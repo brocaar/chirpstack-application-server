@@ -26,22 +26,24 @@ func TestApplicationAPI(t *testing.T) {
 		api := NewApplicationAPI(lsCtx, validator)
 
 		Convey("When creating an application", func() {
-			_, err := api.Create(ctx, &pb.CreateApplicationRequest{
+			createResp, err := api.Create(ctx, &pb.CreateApplicationRequest{
 				Name:        "test-app",
 				Description: "A test application",
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
-			So(validator.validatorFuncs, ShouldHaveLength, 2)
+			So(validator.validatorFuncs, ShouldHaveLength, 1)
+			So(createResp.Id, ShouldBeGreaterThan, 0)
 
 			Convey("Then the application has been created", func() {
 				app, err := api.Get(ctx, &pb.GetApplicationRequest{
-					ApplicationName: "test-app",
+					Id: createResp.Id,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 2)
 				So(app, ShouldResemble, &pb.GetApplicationResponse{
+					Id:          createResp.Id,
 					Name:        "test-app",
 					Description: "A test application",
 				})
@@ -58,6 +60,7 @@ func TestApplicationAPI(t *testing.T) {
 				So(apps.Result, ShouldHaveLength, 1)
 				So(apps.TotalCount, ShouldEqual, 1)
 				So(apps.Result[0], ShouldResemble, &pb.GetApplicationResponse{
+					Id:          createResp.Id,
 					Name:        "test-app",
 					Description: "A test application",
 				})
@@ -65,20 +68,21 @@ func TestApplicationAPI(t *testing.T) {
 
 			Convey("When updating the application", func() {
 				_, err := api.Update(ctx, &pb.UpdateApplicationRequest{
-					ApplicationName: "test-app",
-					Name:            "test-app-updated",
-					Description:     "An updated test description",
+					Id:          createResp.Id,
+					Name:        "test-app-updated",
+					Description: "An updated test description",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 3)
+				So(validator.validatorFuncs, ShouldHaveLength, 2)
 
 				Convey("Then the application has been updated", func() {
 					app, err := api.Get(ctx, &pb.GetApplicationRequest{
-						ApplicationName: "test-app-updated",
+						Id: createResp.Id,
 					})
 					So(err, ShouldBeNil)
 					So(app, ShouldResemble, &pb.GetApplicationResponse{
+						Id:          createResp.Id,
 						Name:        "test-app-updated",
 						Description: "An updated test description",
 					})
@@ -87,7 +91,7 @@ func TestApplicationAPI(t *testing.T) {
 
 			Convey("When deleting the application", func() {
 				_, err := api.Delete(ctx, &pb.DeleteApplicationRequest{
-					ApplicationName: "test-app",
+					Id: createResp.Id,
 				})
 				So(err, ShouldBeNil)
 

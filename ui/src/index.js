@@ -16,9 +16,6 @@ import UpdateNode from './views/nodes/UpdateNode';
 import CreateNode from "./views/nodes/CreateNode";
 import ActivateNode from "./views/nodes/ActivateNode";
 
-// sessions
-import UpdateNodeSession from "./views/nodes/UpdateNodeSession";
-
 // channels
 import ChannelLists from "./views/channels/ChannelLists";
 import ChannelListDetails from "./views/channels/ChannelListDetails";
@@ -36,12 +33,11 @@ ReactDOM.render(
       <IndexRoute component={ListApplications}></IndexRoute>
       <Route path="applications" component={ListApplications}></Route>
       <Route path="applications/create" component={CreateApplication}></Route>
-      <Route path="applications/:applicationName/edit" component={UpdateApplication}></Route>
-      <Route path="applications/:applicationName/nodes/create" component={CreateNode}></Route>
-      <Route path="applications/:applicationName/nodes/:nodeName/edit" component={UpdateNode}></Route>
-      <Route path="applications/:applicationName/nodes/:nodeName/activation" component={ActivateNode}></Route>
-      <Route path="applications/:applicationName/nodes/:nodeName/session" component={UpdateNodeSession}></Route>
-      <Route path="applications/:applicationName" component={ListNodes}></Route>
+      <Route path="applications/:applicationID/edit" component={UpdateApplication}></Route>
+      <Route path="applications/:applicationID/nodes/create" component={CreateNode}></Route>
+      <Route path="applications/:applicationID/nodes/:devEUI/edit" component={UpdateNode}></Route>
+      <Route path="applications/:applicationID/nodes/:devEUI/activation" component={ActivateNode}></Route>
+      <Route path="applications/:applicationID" component={ListNodes}></Route>
       <Route path="channels" component={ChannelLists}></Route>
       <Route path="channels/create" component={CreateChannelList}></Route>
       <Route path="channels/:id" component={ChannelListDetails}></Route>

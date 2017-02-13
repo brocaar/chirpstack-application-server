@@ -9,6 +9,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/lorawan"
 )
 
 // DownlinkQueueAPI exposes the downlink queue methods.
@@ -26,17 +27,26 @@ func NewDownlinkQueueAPI(ctx common.Context, validator auth.Validator) *Downlink
 }
 
 func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQueueItemRequest) (*pb.EnqueueDownlinkQueueItemResponse, error) {
+	var devEUI lorawan.EUI64
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
+	}
+
 	if err := d.validator.Validate(ctx,
 		auth.ValidateAPIMethod("DownlinkQueue.Enqueue"),
-		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNodeName(req.NodeName),
+		auth.ValidateApplicationID(req.ApplicationID),
+		auth.ValidateNode(devEUI),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNodeByName(d.ctx.DB, req.ApplicationName, req.NodeName)
+	node, err := storage.GetNode(d.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+
+	if node.ApplicationID != req.ApplicationID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
 	}
 
 	qi := storage.DownlinkQueueItem{
@@ -54,24 +64,31 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 }
 
 func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeueueItemRequest) (*pb.DeleteDownlinkQueueItemResponse, error) {
+	var devEUI lorawan.EUI64
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
+	}
+
 	if err := d.validator.Validate(ctx,
 		auth.ValidateAPIMethod("DownlinkQueue.Delete"),
-		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNodeName(req.NodeName),
+		auth.ValidateApplicationID(req.ApplicationID),
+		auth.ValidateNode(devEUI),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	node, err := storage.GetNode(d.ctx.DB, devEUI)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+	if node.ApplicationID != req.ApplicationID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
 	}
 
 	qi, err := storage.GetDownlinkQueueItem(d.ctx.DB, req.Id)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	node, err := storage.GetNodeByName(d.ctx.DB, req.ApplicationName, req.NodeName)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	// test that the queue-item belongs to the given node
 	if qi.DevEUI != node.DevEUI {
 		return nil, grpc.Errorf(codes.NotFound, "queue-item does not exist for the given node")
 	}
@@ -84,17 +101,25 @@ func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeu
 }
 
 func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueItemsRequest) (*pb.ListDownlinkQueueItemsResponse, error) {
+	var devEUI lorawan.EUI64
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
+	}
+
 	if err := d.validator.Validate(ctx,
 		auth.ValidateAPIMethod("DownlinkQueue.List"),
-		auth.ValidateApplicationName(req.ApplicationName),
-		auth.ValidateNodeName(req.NodeName),
+		auth.ValidateApplicationID(req.ApplicationID),
+		auth.ValidateNode(devEUI),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNodeByName(d.ctx.DB, req.ApplicationName, req.NodeName)
+	node, err := storage.GetNode(d.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	}
+	if node.ApplicationID != req.ApplicationID {
+		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
 	}
 
 	items, err := storage.GetDownlinkQueueItems(d.ctx.DB, node.DevEUI)
@@ -107,7 +132,7 @@ func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueIt
 		qi := pb.DownlinkQueueItem{
 			Id:        item.ID,
 			Reference: item.Reference,
-			NodeName:  node.Name,
+			DevEUI:    node.DevEUI.String(),
 			Confirmed: item.Confirmed,
 			Pending:   item.Pending,
 			FPort:     uint32(item.FPort),

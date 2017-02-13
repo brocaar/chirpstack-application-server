@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Link } from "react-router";
 
 import NodeStore from "../../stores/NodeStore";
+import ApplicationStore from "../../stores/ApplicationStore";
 import NodeActivationForm from "../../components/NodeActivationForm";
 
 class ActivateNode extends Component {
@@ -20,18 +21,22 @@ class ActivateNode extends Component {
   }
 
   componentWillMount() {
-    NodeStore.getNode(this.props.params.applicationName, this.props.params.nodeName, (node) => {
+    NodeStore.getNode(this.props.params.applicationID, this.props.params.devEUI, (node) => {
       this.setState({node: node});
     });
 
-    NodeStore.getActivation(this.props.params.applicationName, this.props.params.nodeName, (activation) => {
+    NodeStore.getActivation(this.props.params.applicationID, this.props.params.devEUI, (activation) => {
       this.setState({activation: activation});
+    });
+
+    ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
+      this.setState({application: application});
     });
   }
 
   onSubmit(activation) {
-    NodeStore.activateNode(this.props.params.applicationName, this.props.params.nodeName, activation, (responseData) => {
-      this.context.router.push("/applications/"+this.props.params.applicationName);
+    NodeStore.activateNode(this.props.params.applicationID, this.props.params.devEUI, activation, (responseData) => {
+      this.context.router.push("/applications/"+this.props.params.applicationID);
     });
   }
 
@@ -41,8 +46,8 @@ class ActivateNode extends Component {
         <ol className="breadcrumb">
           <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/applications">Applications</Link></li>
-          <li><Link to={`/applications/${this.props.params.applicationName}`}>{this.props.params.applicationName}</Link></li>
-          <li><Link to={`/applications/${this.props.params.applicationName}/nodes/${this.props.params.nodeName}/edit`}>{this.props.params.nodeName}</Link></li>
+          <li><Link to={`/applications/${this.props.params.applicationID}`}>{this.state.application.name}</Link></li>
+          <li><Link to={`/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/edit`}>{this.state.node.name}</Link></li>
           <li className="active">Activation</li>
         </ol>
         <hr />

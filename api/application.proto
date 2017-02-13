@@ -18,14 +18,14 @@ service Application {
 	// Get returns the requested application.
 	rpc Get(GetApplicationRequest) returns (GetApplicationResponse) {
 		option(google.api.http) = {
-			get: "/api/applications/{applicationName}"
+			get: "/api/applications/{id}"
 		};
 	}
 
 	// Update updates the given application.
 	rpc Update(UpdateApplicationRequest) returns (UpdateApplicationResponse) {
 		option(google.api.http) = {
-			put: "/api/applications/{applicationName}"
+			put: "/api/applications/{id}"
 			body: "*"
 		};
 	}
@@ -33,7 +33,7 @@ service Application {
 	// Delete deletes the given application.
 	rpc Delete(DeleteApplicationRequest) returns (DeleteApplicationResponse) {
 		option(google.api.http) = {
-			delete: "/api/applications/{applicationName}"
+			delete: "/api/applications/{id}"
 		};
 	}
 
@@ -53,37 +53,43 @@ message CreateApplicationRequest {
 	string description = 2;
 }
 
-message CreateApplicationResponse {}
+message CreateApplicationResponse {
+	// ID of the application that was created.
+	int64 id = 1;
+}
 
 message GetApplicationRequest {
 	// Name of the application.
-	string applicationName = 1;
+	int64 id = 1;
 }
 
 message GetApplicationResponse {
+	// ID of the application.
+	int64 id = 1;
+
 	// Name of the application.
-	string name = 1;
+	string name = 2;
 
 	// Description of the application.
-	string description = 2;
+	string description = 3;
 }
 
 message UpdateApplicationRequest {
-	// Name of the application to update.
-	string applicationName = 1;
+	// ID of the application to update.
+	int64 id = 1;
 
-	// Name of the application (note that renaming an application affects its api endpoint).
-	string name = 3;
+	// Name of the application (must be unique).
+	string name = 2;
 
 	// Description of the application.
-	string description = 2;
+	string description = 3;
 }
 
 message UpdateApplicationResponse {}
 
 message DeleteApplicationRequest {
-	// Name of the application.
-	string applicationName = 1;
+	// ID of the application.
+	int64 id = 1;
 }
 
 message DeleteApplicationResponse {}

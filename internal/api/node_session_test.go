@@ -49,8 +49,8 @@ func TestNodeSessionAPI(t *testing.T) {
 
 			Convey("When creating a node-session for this node", func() {
 				_, err := api.Create(ctx, &pb.CreateNodeSessionRequest{
-					ApplicationName:    "test-app",
-					NodeName:           "test-node",
+					ApplicationID:      app.ID,
+					DevEUI:             node.DevEUI.String(),
 					DevAddr:            "01020304",
 					AppSKey:            "01010101010101010202020202020202",
 					NwkSKey:            "02020202020202020101010101010101",
@@ -97,24 +97,24 @@ func TestNodeSessionAPI(t *testing.T) {
 
 			Convey("When creating a node-session for this node but with a different application name", func() {
 				_, err := api.Create(ctx, &pb.CreateNodeSessionRequest{
-					ApplicationName: "test-app-2",
-					NodeName:        "test-node",
-					DevAddr:         "01020304",
-					AppSKey:         "01010101010101010202020202020202",
-					NwkSKey:         "02020202020202020101010101010101",
+					ApplicationID: app.ID + 1,
+					DevEUI:        node.DevEUI.String(),
+					DevAddr:       "01020304",
+					AppSKey:       "01010101010101010202020202020202",
+					NwkSKey:       "02020202020202020101010101010101",
 				})
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 3)
 
 				Convey("Then an error is returned", func() {
-					So(err, ShouldResemble, grpc.Errorf(codes.Unknown, "get node error: sql: no rows in result set"))
+					So(err, ShouldResemble, grpc.Errorf(codes.NotFound, "node does not exist for the given application"))
 				})
 			})
 
 			Convey("When updating a node-session for this node", func() {
 				_, err := api.Update(ctx, &pb.UpdateNodeSessionRequest{
-					ApplicationName:    "test-app",
-					NodeName:           "test-node",
+					ApplicationID:      app.ID,
+					DevEUI:             node.DevEUI.String(),
 					DevAddr:            "04030201",
 					NwkSKey:            "01010101010101010202020202020202",
 					AppSKey:            "02020202020202020101010101010101",
@@ -161,17 +161,17 @@ func TestNodeSessionAPI(t *testing.T) {
 
 			Convey("When updating a node-session for this node but with a different application name", func() {
 				_, err := api.Update(ctx, &pb.UpdateNodeSessionRequest{
-					ApplicationName: "test-app-2",
-					NodeName:        "test-node",
-					DevAddr:         "01020304",
-					AppSKey:         "01010101010101010202020202020202",
-					NwkSKey:         "02020202020202020101010101010101",
+					ApplicationID: app.ID + 1,
+					DevEUI:        node.DevEUI.String(),
+					DevAddr:       "01020304",
+					AppSKey:       "01010101010101010202020202020202",
+					NwkSKey:       "02020202020202020101010101010101",
 				})
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 3)
 
 				Convey("Then an error is returned", func() {
-					So(err, ShouldResemble, grpc.Errorf(codes.Unknown, "get node error: sql: no rows in result set"))
+					So(err, ShouldResemble, grpc.Errorf(codes.NotFound, "node does not exist for the given application"))
 				})
 			})
 
@@ -197,8 +197,8 @@ func TestNodeSessionAPI(t *testing.T) {
 
 				Convey("When getting the node-session", func() {
 					resp, err := api.Get(ctx, &pb.GetNodeSessionRequest{
-						ApplicationName: "test-app",
-						NodeName:        "test-node",
+						ApplicationID: app.ID,
+						DevEUI:        node.DevEUI.String(),
 					})
 					So(err, ShouldBeNil)
 					So(validator.ctx, ShouldResemble, ctx)
@@ -251,8 +251,8 @@ func TestNodeSessionAPI(t *testing.T) {
 
 			Convey("When deleting a node-session", func() {
 				_, err := api.Delete(ctx, &pb.DeleteNodeSessionRequest{
-					ApplicationName: "test-app",
-					NodeName:        "test-node",
+					ApplicationID: app.ID,
+					DevEUI:        node.DevEUI.String(),
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)

@@ -11,7 +11,7 @@ service NodeSession {
     // Create creates the given node-session. The DevAddr must contain the same NwkID as the configured NetID. Node-sessions will expire automatically after the configured TTL.
     rpc Create(CreateNodeSessionRequest) returns (CreateNodeSessionResponse) {
         option (google.api.http) = {
-            post: "/api/applications/{applicationName}/nodes/{nodeName}/session"
+            post: "/api/applications/{applicationID}/nodes/{devEUI}/session"
             body: "*"
         };
     }
@@ -19,14 +19,14 @@ service NodeSession {
     // Get returns the node-session matching the given node.
     rpc Get(GetNodeSessionRequest) returns (GetNodeSessionResponse) {
         option (google.api.http) = {
-            get: "/api/applications/{applicationName}/nodes/{nodeName}/session"
+            get: "/api/applications/{applicationID}/nodes/{devEUI}/session"
         };
     }
 
     // Update updates the given node-session.
     rpc Update(UpdateNodeSessionRequest) returns (UpdateNodeSessionResponse) {
         option (google.api.http) = {
-            put: "/api/applications/{applicationName}/nodes/{nodeName}/session"
+            put: "/api/applications/{applicationID}/nodes/{devEUI}/session"
             body: "*"
         };
     }
@@ -34,24 +34,24 @@ service NodeSession {
     // Delete deletes the node-session matching the given node.
     rpc Delete(DeleteNodeSessionRequest) returns (DeleteNodeSessionResponse) {
         option (google.api.http) = {
-            delete: "/api/applications/{applicationName}/nodes/{nodeName}/session"
+            delete: "/api/applications/{applicationID}/nodes/{devEUI}/session"
         };
     }
 
     // GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
     rpc GetRandomDevAddr(GetRandomDevAddrRequest) returns (GetRandomDevAddrResponse) {
         option (google.api.http) = {
-            post: "/api/applications/{applicationName}/nodes/{nodeName}/getRandomDevAddr"
+            post: "/api/applications/{applicationID}/nodes/{devEUI}/getRandomDevAddr"
         };
     }
 }
 
 message CreateNodeSessionRequest {
-    // Name of the application owning the node.
-    string applicationName = 2;
+    // ID of the application owning the node.
+    int64 applicationID = 2;
 
-    // Name of the node.
-    string nodeName = 3;
+    // Hex encoded DevEUI of the node.
+    string devEUI = 3;
 
     // Hex encoded DevAddr.
     string devAddr = 1;
@@ -96,17 +96,17 @@ message CreateNodeSessionRequest {
 message CreateNodeSessionResponse {}
 
 message GetNodeSessionRequest {
-    // Name of the application owning the node.
-    string applicationName = 2;
+    // ID of the application owning the node.
+    int64 applicationID = 2;
 
-    // Name of the node.
-    string nodeName = 1;
+    // Hex encoded DevEUI of the node.
+    string devEUI = 1;
 }
 
 message GetNodeSessionResponse {
     // Hex encoded DevAddr.
-
     string devAddr = 1;
+
     // Hex encoded AppEUI.
     string appEUI = 2;
 
@@ -157,11 +157,11 @@ message GetNodeSessionResponse {
 }
 
 message UpdateNodeSessionRequest {
-    // Name of the application owning the node.
-    string applicationName = 2;
+    // ID of the application owning the node.
+    int64 applicationID = 2;
 
-    // Name of the node.
-    string nodeName = 3;
+    // Hex encoded DevEUI of the node.
+    string devEUI = 3;
 
     // Hex encoded DevAddr.
     string devAddr = 1;
@@ -206,21 +206,21 @@ message UpdateNodeSessionRequest {
 message UpdateNodeSessionResponse {}
 
 message DeleteNodeSessionRequest {
-    // Name of the application owning the node.
-    string applicationName = 2;
+    // ID of the application owning the node.
+    int64 applicationID = 2;
 
-    // Name of the node.
-    string nodeName = 1;
+    // Hex encoded DevEUI of the node.
+    string devEUI = 1;
 }
 
 message DeleteNodeSessionResponse {}
 
 message GetRandomDevAddrRequest {
-    // Name of the application owning the node.
-    string applicationName = 2;
+    // ID of the application owning the node.
+    int64 applicationID = 2;
 
-    // Name of the node.
-    string nodeName = 1;
+    // Hex encoded DevEUI of the node.
+    string devEUI = 1;
 }
 
 message GetRandomDevAddrResponse {

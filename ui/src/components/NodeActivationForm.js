@@ -42,7 +42,7 @@ class NodeActivationForm extends Component {
       return; 
     }
 
-    NodeSessionStore.getRandomDevAddr(this.props.application.name, this.props.node.name, (responseData) => {
+    NodeSessionStore.getRandomDevAddr(this.props.application.id, this.props.node.devEUI, (responseData) => {
       let activation = this.state.activation;
       activation["devAddr"] = responseData.devAddr;
       this.setState({activation: activation});

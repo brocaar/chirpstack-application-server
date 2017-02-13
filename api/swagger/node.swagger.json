@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/applications/{applicationName}/nodes": {
+    "/api/applications/{applicationID}/nodes": {
       "get": {
         "summary": "List lists the nodes.",
         "operationId": "List",
@@ -29,10 +29,11 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
             "name": "limit",
@@ -68,10 +69,11 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
             "name": "body",
@@ -87,7 +89,7 @@
         ]
       }
     },
-    "/api/applications/{applicationName}/nodes/{nodeName}": {
+    "/api/applications/{applicationID}/nodes/{devEUI}": {
       "get": {
         "summary": "Get returns the node for the requested name.",
         "operationId": "Get",
@@ -101,13 +103,14 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
-            "name": "nodeName",
+            "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
@@ -130,13 +133,14 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
-            "name": "nodeName",
+            "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
@@ -159,13 +163,14 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
-            "name": "nodeName",
+            "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
@@ -184,7 +189,7 @@
         ]
       }
     },
-    "/api/applications/{applicationName}/nodes/{nodeName}/activation": {
+    "/api/applications/{applicationID}/nodes/{devEUI}/activation": {
       "get": {
         "summary": "GetActivation returns the current activation details of the node (OTAA and ABP).",
         "operationId": "GetActivation",
@@ -198,13 +203,14 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
-            "name": "nodeName",
+            "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
@@ -227,13 +233,14 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
-            "name": "nodeName",
+            "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
@@ -257,13 +264,14 @@
     "apiActivateNodeRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node to update."
+          "description": "Hex encoded DevEUI of the node to activate."
         },
         "devAddr": {
           "type": "string",
@@ -295,9 +303,10 @@
     "apiCreateNodeRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application to which the node must be added."
+          "format": "int64",
+          "description": "ID of the application to which the node must be added."
         },
         "devEUI": {
           "type": "string",
@@ -371,13 +380,14 @@
     "apiDeleteNodeRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node."
+          "description": "Hex encoded DevEUI of the node."
         }
       }
     },
@@ -387,13 +397,14 @@
     "apiGetNodeActivationRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node to update."
+          "description": "Hex encoded DevEUI of the node."
         }
       }
     },
@@ -427,13 +438,14 @@
     "apiGetNodeRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node."
+          "description": "Hex encoded DevEUI of the node."
         }
       }
     },
@@ -503,15 +515,21 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Node is activated by ABP."
+        },
+        "applicationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the application owning the node."
         }
       }
     },
     "apiListNodeRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the nodes."
         },
         "limit": {
           "type": "string",
@@ -553,13 +571,14 @@
     "apiUpdateNodeRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node to update."
+          "description": "Hex encoded DevEUI of the node to update."
         },
         "appEUI": {
           "type": "string",

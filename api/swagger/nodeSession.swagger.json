@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/applications/{applicationName}/nodes/{nodeName}/getRandomDevAddr": {
+    "/api/applications/{applicationID}/nodes/{devEUI}/getRandomDevAddr": {
       "post": {
         "summary": "GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.",
         "operationId": "GetRandomDevAddr",
@@ -29,13 +29,14 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
-            "name": "nodeName",
+            "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
@@ -46,7 +47,7 @@
         ]
       }
     },
-    "/api/applications/{applicationName}/nodes/{nodeName}/session": {
+    "/api/applications/{applicationID}/nodes/{devEUI}/session": {
       "get": {
         "summary": "Get returns the node-session matching the given node.",
         "operationId": "Get",
@@ -60,13 +61,14 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
-            "name": "nodeName",
+            "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
@@ -89,13 +91,14 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
-            "name": "nodeName",
+            "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
@@ -118,13 +121,14 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
-            "name": "nodeName",
+            "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
@@ -155,13 +159,14 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "applicationID",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "int64"
           },
           {
-            "name": "nodeName",
+            "name": "devEUI",
             "in": "path",
             "required": true,
             "type": "string"
@@ -185,13 +190,14 @@
     "apiCreateNodeSessionRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node."
+          "description": "Hex encoded DevEUI of the node."
         },
         "devAddr": {
           "type": "string",
@@ -265,13 +271,14 @@
     "apiDeleteNodeSessionRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node."
+          "description": "Hex encoded DevEUI of the node."
         }
       }
     },
@@ -281,13 +288,14 @@
     "apiGetNodeSessionRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node."
+          "description": "Hex encoded DevEUI of the node."
         }
       }
     },
@@ -295,7 +303,8 @@
       "type": "object",
       "properties": {
         "devAddr": {
-          "type": "string"
+          "type": "string",
+          "description": "Hex encoded DevAddr."
         },
         "appEUI": {
           "type": "string",
@@ -380,13 +389,14 @@
     "apiGetRandomDevAddrRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node."
+          "description": "Hex encoded DevEUI of the node."
         }
       }
     },
@@ -410,13 +420,14 @@
     "apiUpdateNodeSessionRequest": {
       "type": "object",
       "properties": {
-        "applicationName": {
+        "applicationID": {
           "type": "string",
-          "description": "Name of the application owning the node."
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
-        "nodeName": {
+        "devEUI": {
           "type": "string",
-          "description": "Name of the node."
+          "description": "Hex encoded DevEUI of the node."
         },
         "devAddr": {
           "type": "string",

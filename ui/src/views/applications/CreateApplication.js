@@ -19,7 +19,7 @@ class CreateApplication extends Component {
 
   onSubmit(application) {
     ApplicationStore.createApplication(application, (responseData) => {
-      this.context.router.push('/applications/'+application.name);
+      this.context.router.push('/applications/'+responseData.id);
     });
   }
 

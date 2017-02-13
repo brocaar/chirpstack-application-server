@@ -35,12 +35,6 @@ func TestApplication(t *testing.T) {
 			}
 			So(CreateApplication(db, &app), ShouldBeNil)
 
-			Convey("It can be get by name", func() {
-				app2, err := GetApplicationByName(db, "test-application")
-				So(err, ShouldBeNil)
-				So(app2, ShouldResemble, app)
-			})
-
 			Convey("It can be get by id", func() {
 				app2, err := GetApplication(db, app.ID)
 				So(err, ShouldBeNil)
@@ -65,14 +59,14 @@ func TestApplication(t *testing.T) {
 				So(UpdateApplication(db, app), ShouldBeNil)
 
 				Convey("Then the application has been updated", func() {
-					app2, err := GetApplicationByName(db, app.Name)
+					app2, err := GetApplication(db, app.ID)
 					So(err, ShouldBeNil)
 					So(app2, ShouldResemble, app)
 				})
 			})
 
 			Convey("When deleting the application", func() {
-				So(DeleteApplicationByname(db, app.Name), ShouldBeNil)
+				So(DeleteApplication(db, app.ID), ShouldBeNil)
 
 				Convey("Then the application count returns 0", func() {
 					count, err := GetApplicationCount(db)

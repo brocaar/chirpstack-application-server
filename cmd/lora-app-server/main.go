@@ -348,18 +348,24 @@ func mustGetTransportCredentials(tlsCert, tlsKey, caCert string, verifyClientCer
 func enqueueDataDownPayloads(db *sqlx.DB, payloadChan chan handler.DataDownPayload) {
 	for pl := range payloadChan {
 		go func(pl handler.DataDownPayload) {
-			node, err := storage.GetNodeByName(db, pl.ApplicationName, pl.NodeName)
+			node, err := storage.GetNode(db, pl.DevEUI)
 			if err != nil {
 				log.WithFields(log.Fields{
-					"application_name": pl.ApplicationName,
-					"node_name":        pl.NodeName,
+					"dev_eui": pl.DevEUI,
 				}).Errorf("get node error: %s", err)
+				return
+			}
+			if node.ApplicationID != pl.ApplicationID {
+				log.WithFields(log.Fields{
+					"application_id": pl.ApplicationID,
+					"dev_eui":        pl.DevEUI,
+				}).Error("enqueue data-down payload: node does not exist for given application")
 				return
 			}
 
 			err = storage.CreateDownlinkQueueItem(db, &storage.DownlinkQueueItem{
 				Reference: pl.Reference,
-				DevEUI:    node.DevEUI,
+				DevEUI:    pl.DevEUI,
 				Confirmed: pl.Confirmed,
 				FPort:     pl.FPort,
 				Data:      pl.Data,

@@ -4,25 +4,37 @@
 
 **This release contains changes that are not backwards compatible!**
 
-**Features:**
+**Features & changes:**
 
-* Nodes can now be grouped per application (e.g. called `temperature-sensor`
-  for backwards compatibility, the `AppEUI` is used as application name).
+* Nodes can now be grouped per application (e.g. called `temperature-sensor`).
+  For backwards compatibility, the `AppEUI` is used as application name when
+  upgrading.
 * Nodes can now be given a name (e.g. `garden-sensor`), which must be unique 
   within an application. For backwards compatibility the `DevEUI` is used as
-  name for the nodes.
-* JWT token validation is now based on the name of the application and node.
+  name for the nodes when upgrading.
+* Application ID, and the name of the application and node are included in the
+  MQTT payloads.
+* JWT token validation is now based on the ID of the application instead of the
+  `AppEUI` (which should not be used for grouping nodes by purpose).
 * The gRPC and REST apis have been updated to reflect the above application and
   node name changes.
-* The MQTT topics (and payloads) are now based on the application and node
-  name (see [mqtt topics](mqtt-topics.md) for more info).
-* More descriptive error on missing `--http-tls-cert` and `--http-tls-key`
-  configuration.
+* The MQTT topics (and payloads) are now based on the application ID and node
+  `DevEUI` (see [mqtt topics](mqtt-topics.md) for more info).
+* An endpoint for activating nodes and for fetching the activation status has
+  been added (before this was done by using the node-session endpoint).
+* The node activation mode can now be set (OTAA or ABP). Incoming join-requests
+  for ABP nodes will be rejected.
+* The node-session API is now accessible at `/api/node/{devEUI}/session`.
+
+Many thanks to [@jcampanell-cablelabs](https://github.com/jcampanell-cablelabs)
+and [@VirTERM](https://twitter.com/VirTERM) for their input on the API changes.
 
 **Bugfixes:**
 
 * `limit` and `offset` url parameters are now correctly documented in the
-  API console for the `/api/node` and `/api/channelList` endpoints.
+  API console.
+* More descriptive error on missing `--http-tls-cert` and `--http-tls-key`
+  configuration.
 
 ## 0.2.0
 

@@ -9,7 +9,7 @@ create index idx_application_name on application(name);
 
 insert into application
 	(name, description)
-	select distinct(encode(app_eui, 'hex')) as name, '' as description from node;
+	select distinct(encode(app_eui, 'hex')) as name, 'Application ' || encode(app_eui, 'hex') as description from node;
 
 alter table node 
 	add column application_id bigint references application on delete cascade;

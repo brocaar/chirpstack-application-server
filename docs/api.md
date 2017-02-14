@@ -35,8 +35,8 @@ An example claim illustrating the options that can be included in the token:
     "exp": 1257894000,             // the unix time when the token expires
     "admin": false,                // admin users have access to all api methods and resources
     "apis": ["Node.Get"],          // list of api methods the user has access to
-    "apps": ["temp-sensors"],      // list of application names the user has access to
-    "nodes": ["*"]                 // list of node names the user has access to
+    "apps": ["123"],               // list of application IDs the user has access to
+    "nodes": ["*"]                 // list of nodes (DevEUIs) the user has access to
 }
 ```
 

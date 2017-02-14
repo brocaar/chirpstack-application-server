@@ -8,21 +8,22 @@ Use ``+`` for a single-level wildcard, ``#`` for a multi-level wildcard.
 Examples:
 
 ```bash
-mosquitto_sub -t "application/temperature-sensor/#" -v          # display everything for the given application
-mosquitto_sub -t "application/temperature-sensor/node/+/rx" -v  # display only the RX payloads for the given application
+mosquitto_sub -t "application/123/#" -v          # display everything for the given application ID
+mosquitto_sub -t "application/123/node/+/rx" -v  # display only the RX payloads for the given application ID
 ```
 
 !!! info
-	Note that the MQTT topics are case-sensitive
+	Note that the MQTT topics are case-sensitive.
 
 ## Receiving
 
-### application/[applicationName]/node/[nodeName]/rx
+### application/[applicationID]/node/[devEUI]/rx
 
 Topic for payloads received from your nodes. Example payload:
 
 ```json
 {
+	"applicationID": "123",
 	"applicationName": "temperature-sensor",
 	"nodeName": "garden-sensor",
 	"devEUI": "0202020202020202",
@@ -51,12 +52,13 @@ Topic for payloads received from your nodes. Example payload:
 }
 ```
 
-### application/[applicationName]/node/[nodeName]/join
+### application/[applicationID]/node/[devEUI]/join
 
 Topic for join notifications. Example payload:
 
 ```json
 {
+	"applicationID": "123",
 	"applicationName": "temperature-sensor",
 	"nodeName": "garden-sensor",
     "devAddr": "06682ea2",                    // assigned device address
@@ -64,12 +66,13 @@ Topic for join notifications. Example payload:
 }
 ```
 
-### application/[applicationName]/node/[nodeName]/ack
+### application/[applicationID]/node/[devEUI]/ack
 
 Topic for ACK notifications. Example payload:
 
 ```json
 {
+	"applicationID": "123",
 	"applicationName": "temperature-sensor",
 	"nodeName": "garden-sensor",
     "reference": "abcd1234",                  // the reference given when sending the downlink payload
@@ -77,25 +80,28 @@ Topic for ACK notifications. Example payload:
 }
 ```
 
-### application/[applicationName]/node/[nodeName]/error
+### application/[applicationID]/node/[devEUI]/error
 
 Topic for error notifications. An error might be raised when the downlink
-payload size exceeded to max allowed payload size. Please see the LoRaWAN
-specification for the max allowed payload size for your region. Example:
+payload size exceeded to max allowed payload size, in case of a MIC error,
+... Example payload:
 
 ```json
 {
-    "reference": "abcd1234",    // the reference given when sending the downlink payload
-    "message": "error message"  // the content of the error message
+	"applicationID": "123",
+	"applicationName": "temperature-sensor",
+	"nodeName": "garden-sensor",
+	"type": "DATA_UP_FCNT",
+	"error": "..."
 }
 ```
 
 ## Sending
 
-### application/[applicationName]/node/[nodeName]/tx
+### application/[applicationID]/node/[devEUI]/tx
 
 !!! info
-	The name of the application and node will be taken from the MQTT topic.
+	The application ID and DevEUI of the node will be taken from the topic.
 
 Example payload:
 

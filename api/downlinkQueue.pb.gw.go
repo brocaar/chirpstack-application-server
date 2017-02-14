@@ -42,17 +42,6 @@ func request_DownlinkQueue_Enqueue_0(ctx context.Context, marshaler runtime.Mars
 		_   = err
 	)
 
-	val, ok = pathParams["applicationID"]
-	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationID")
-	}
-
-	protoReq.ApplicationID, err = runtime.Int64(val)
-
-	if err != nil {
-		return nil, metadata, err
-	}
-
 	val, ok = pathParams["devEUI"]
 	if !ok {
 		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
@@ -79,17 +68,6 @@ func request_DownlinkQueue_Delete_0(ctx context.Context, marshaler runtime.Marsh
 		err error
 		_   = err
 	)
-
-	val, ok = pathParams["applicationID"]
-	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationID")
-	}
-
-	protoReq.ApplicationID, err = runtime.Int64(val)
-
-	if err != nil {
-		return nil, metadata, err
-	}
 
 	val, ok = pathParams["devEUI"]
 	if !ok {
@@ -128,17 +106,6 @@ func request_DownlinkQueue_List_0(ctx context.Context, marshaler runtime.Marshal
 		err error
 		_   = err
 	)
-
-	val, ok = pathParams["applicationID"]
-	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "applicationID")
-	}
-
-	protoReq.ApplicationID, err = runtime.Int64(val)
-
-	if err != nil {
-		return nil, metadata, err
-	}
 
 	val, ok = pathParams["devEUI"]
 	if !ok {
@@ -274,11 +241,11 @@ func RegisterDownlinkQueueHandler(ctx context.Context, mux *runtime.ServeMux, co
 }
 
 var (
-	pattern_DownlinkQueue_Enqueue_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"api", "applications", "applicationID", "nodes", "devEUI", "queue"}, ""))
+	pattern_DownlinkQueue_Enqueue_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "nodes", "devEUI", "queue"}, ""))
 
-	pattern_DownlinkQueue_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6}, []string{"api", "applications", "applicationID", "nodes", "devEUI", "queue", "id"}, ""))
+	pattern_DownlinkQueue_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "nodes", "devEUI", "queue", "id"}, ""))
 
-	pattern_DownlinkQueue_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"api", "applications", "applicationID", "nodes", "devEUI", "queue"}, ""))
+	pattern_DownlinkQueue_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "nodes", "devEUI", "queue"}, ""))
 )
 
 var (

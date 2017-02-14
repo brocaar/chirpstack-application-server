@@ -8,80 +8,77 @@ import "common.proto";
 
 // NodeSession is the service managing node-sessions.
 service NodeSession {
-    // Create creates the given node-session. The DevAddr must contain the same NwkID as the configured NetID. Node-sessions will expire automatically after the configured TTL.
-    rpc Create(CreateNodeSessionRequest) returns (CreateNodeSessionResponse) {
-        option (google.api.http) = {
-            post: "/api/applications/{applicationID}/nodes/{devEUI}/session"
-            body: "*"
-        };
-    }
+	// Create creates the given node-session. The DevAddr must contain the same NwkID as the configured NetID. Node-sessions will expire automatically after the configured TTL.
+	rpc Create(CreateNodeSessionRequest) returns (CreateNodeSessionResponse) {
+		option (google.api.http) = {
+			post: "/api/nodes/{devEUI}/session"
+			body: "*"
+		};
+	}
 
-    // Get returns the node-session matching the given node.
-    rpc Get(GetNodeSessionRequest) returns (GetNodeSessionResponse) {
-        option (google.api.http) = {
-            get: "/api/applications/{applicationID}/nodes/{devEUI}/session"
-        };
-    }
+	// Get returns the node-session matching the given node.
+	rpc Get(GetNodeSessionRequest) returns (GetNodeSessionResponse) {
+		option (google.api.http) = {
+			get: "/api/nodes/{devEUI}/session"
+		};
+	}
 
-    // Update updates the given node-session.
-    rpc Update(UpdateNodeSessionRequest) returns (UpdateNodeSessionResponse) {
-        option (google.api.http) = {
-            put: "/api/applications/{applicationID}/nodes/{devEUI}/session"
-            body: "*"
-        };
-    }
+	// Update updates the given node-session.
+	rpc Update(UpdateNodeSessionRequest) returns (UpdateNodeSessionResponse) {
+		option (google.api.http) = {
+			put: "/api/nodes/{devEUI}/session"
+			body: "*"
+		};
+	}
 
-    // Delete deletes the node-session matching the given node.
-    rpc Delete(DeleteNodeSessionRequest) returns (DeleteNodeSessionResponse) {
-        option (google.api.http) = {
-            delete: "/api/applications/{applicationID}/nodes/{devEUI}/session"
-        };
-    }
+	// Delete deletes the node-session matching the given node.
+	rpc Delete(DeleteNodeSessionRequest) returns (DeleteNodeSessionResponse) {
+		option (google.api.http) = {
+			delete: "/api/nodes/{devEUI}/session"
+		};
+	}
 
-    // GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
-    rpc GetRandomDevAddr(GetRandomDevAddrRequest) returns (GetRandomDevAddrResponse) {
-        option (google.api.http) = {
-            post: "/api/applications/{applicationID}/nodes/{devEUI}/getRandomDevAddr"
-        };
-    }
+	// GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
+	rpc GetRandomDevAddr(GetRandomDevAddrRequest) returns (GetRandomDevAddrResponse) {
+		option (google.api.http) = {
+			post: "/api/nodes/{devEUI}/getRandomDevAddr"
+		};
+	}
 }
 
 message CreateNodeSessionRequest {
-    // ID of the application owning the node.
-    int64 applicationID = 2;
+	// Hex encoded DevEUI of the node.
+	string devEUI = 3;
 
-    // Hex encoded DevEUI of the node.
-    string devEUI = 3;
+	// Hex encoded DevAddr.
+	string devAddr = 1;
 
-    // Hex encoded DevAddr.
-    string devAddr = 1;
+	// Hex encoded AppSKey.
+	string appSKey = 4;
 
-    // Hex encoded AppSKey.
-    string appSKey = 4;
-
-    // Hex encoded NwkSKey.
-    string nwkSKey = 5;
+	// Hex encoded NwkSKey.
+	string nwkSKey = 5;
 
 	// Uplink frame-counter.
-    uint32 fCntUp = 6;
+	uint32 fCntUp = 6;
 
 	// Downlink frame-counter.
-    uint32 fCntDown = 7;
+	uint32 fCntDown = 7;
 
 	// RX delay.
-    uint32 rxDelay = 8;
+	uint32 rxDelay = 8;
 
 	// RX1 data-rate offset.
-    uint32 rx1DROffset = 9;
+	uint32 rx1DROffset = 9;
 
 	// Additional frequencies used for CFList (see LoRaWAN regional parameters if this applies to your region).
-    repeated uint32 cFList = 10;
+	repeated uint32 cFList = 10;
 
 	// RX window to use.
-    RXWindow rxWindow = 11;
+	RXWindow rxWindow = 11;
 
 	// Data-rate to use for RX2.
-    uint32 rx2DR = 12;
+	uint32 rx2DR = 12;
 
 	// Relax frame-counter mode is enabled.
 	bool relaxFCnt = 13;
@@ -96,49 +93,46 @@ message CreateNodeSessionRequest {
 message CreateNodeSessionResponse {}
 
 message GetNodeSessionRequest {
-    // ID of the application owning the node.
-    int64 applicationID = 2;
-
-    // Hex encoded DevEUI of the node.
-    string devEUI = 1;
+	// Hex encoded DevEUI of the node.
+	string devEUI = 1;
 }
 
 message GetNodeSessionResponse {
-    // Hex encoded DevAddr.
-    string devAddr = 1;
+	// Hex encoded DevAddr.
+	string devAddr = 1;
 
-    // Hex encoded AppEUI.
-    string appEUI = 2;
+	// Hex encoded AppEUI.
+	string appEUI = 2;
 
-    // Hex encoded DevEUI.
-    string devEUI = 3;
+	// Hex encoded DevEUI.
+	string devEUI = 3;
 
-    // Hex encoded AppSKey.
-    string appSKey = 4;
+	// Hex encoded AppSKey.
+	string appSKey = 4;
 
-    // Hex encoded NwkSKey.
-    string nwkSKey = 5;
+	// Hex encoded NwkSKey.
+	string nwkSKey = 5;
 
 	// Uplink frame-counter.
-    uint32 fCntUp = 6;
+	uint32 fCntUp = 6;
 
 	// Downlink frame-counter.
-    uint32 fCntDown = 7;
+	uint32 fCntDown = 7;
 
 	// RX delay.
-    uint32 rxDelay = 8;
+	uint32 rxDelay = 8;
 
 	// RX1 data-rate offset.
-    uint32 rx1DROffset = 9;
+	uint32 rx1DROffset = 9;
 
 	// Additional frequencies used for CFList (see LoRaWAN regional parameters if this applies to your region).
-    repeated uint32 cFList = 10;
+	repeated uint32 cFList = 10;
 
 	// RX window to use.
-    RXWindow rxWindow = 11;
+	RXWindow rxWindow = 11;
 
 	// Data-rate to use for RX2.
-    uint32 rx2DR = 12;
+	uint32 rx2DR = 12;
 
 	// Relax frame-counter mode is enabled.
 	bool relaxFCnt = 13;
@@ -157,41 +151,38 @@ message GetNodeSessionResponse {
 }
 
 message UpdateNodeSessionRequest {
-    // ID of the application owning the node.
-    int64 applicationID = 2;
+	// Hex encoded DevEUI of the node.
+	string devEUI = 3;
 
-    // Hex encoded DevEUI of the node.
-    string devEUI = 3;
+	// Hex encoded DevAddr.
+	string devAddr = 1;
 
-    // Hex encoded DevAddr.
-    string devAddr = 1;
+	// Hex encoded AppSKey.
+	string appSKey = 4;
 
-    // Hex encoded AppSKey.
-    string appSKey = 4;
-
-    // Hex encoded NwkSKey.
-    string nwkSKey = 5;
+	// Hex encoded NwkSKey.
+	string nwkSKey = 5;
 
 	// Uplink frame-counter.
-    uint32 fCntUp = 6;
+	uint32 fCntUp = 6;
 
 	// Downlink frame-counter.
-    uint32 fCntDown = 7;
+	uint32 fCntDown = 7;
 
 	// RX delay.
-    uint32 rxDelay = 8;
+	uint32 rxDelay = 8;
 
 	// RX1 data-rate offset.
-    uint32 rx1DROffset = 9;
+	uint32 rx1DROffset = 9;
 
 	// Additional frequencies used for CFList (see LoRaWAN regional parameters if this applies to your region).
-    repeated uint32 cFList = 10;
+	repeated uint32 cFList = 10;
 
 	// RX window to use.
-    RXWindow rxWindow = 11;
+	RXWindow rxWindow = 11;
 
 	// Data-rate to use for RX2.
-    uint32 rx2DR = 12;
+	uint32 rx2DR = 12;
 
 	// Relax frame-counter mode is enabled.
 	bool relaxFCnt = 13;
@@ -206,24 +197,18 @@ message UpdateNodeSessionRequest {
 message UpdateNodeSessionResponse {}
 
 message DeleteNodeSessionRequest {
-    // ID of the application owning the node.
-    int64 applicationID = 2;
-
-    // Hex encoded DevEUI of the node.
-    string devEUI = 1;
+	// Hex encoded DevEUI of the node.
+	string devEUI = 1;
 }
 
 message DeleteNodeSessionResponse {}
 
 message GetRandomDevAddrRequest {
-    // ID of the application owning the node.
-    int64 applicationID = 2;
-
-    // Hex encoded DevEUI of the node.
-    string devEUI = 1;
+	// Hex encoded DevEUI of the node.
+	string devEUI = 1;
 }
 
 message GetRandomDevAddrResponse {
-    // Hex encoded DevAddr.
-    string devAddr = 1;
+	// Hex encoded DevAddr.
+	string devAddr = 1;
 }

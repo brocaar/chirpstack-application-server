@@ -30,7 +30,7 @@ var errorHandler = (error) => {
 
 class NodeSessionStore extends EventEmitter {
   getNodeSession(applicationID, devEUI, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI+"/session", {headers: tokenStore.getHeader()})
+    fetch("/api/nodes/"+devEUI+"/session", {headers: tokenStore.getHeader()})
       .then(checkGetStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -40,7 +40,7 @@ class NodeSessionStore extends EventEmitter {
   }
 
   createNodeSession(applicationID, devEUI, session, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI+"/session", {method: "POST", body: JSON.stringify(session), headers: tokenStore.getHeader()})
+    fetch("/api/nodes/"+devEUI+"/session", {method: "POST", body: JSON.stringify(session), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -50,7 +50,7 @@ class NodeSessionStore extends EventEmitter {
   }
 
   updateNodeSession(applicationID, devEUI, session, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI+"/session", {method: "PUT", body: JSON.stringify(session), headers: tokenStore.getHeader()})
+    fetch("/api/nodes/"+devEUI+"/session", {method: "PUT", body: JSON.stringify(session), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -60,7 +60,7 @@ class NodeSessionStore extends EventEmitter {
   }
 
   deleteNodeSession(applicationID, devEUI, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI+"/session", {method: "DELETE", headers: tokenStore.getHeader()})
+    fetch("/api/nodes/"+devEUI+"/session", {method: "DELETE", headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -70,7 +70,7 @@ class NodeSessionStore extends EventEmitter {
   }
 
   getRandomDevAddr(applicationID, devEUI, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI+"/getRandomDevAddr", {method: "POST", headers: tokenStore.getHeader()}) 
+    fetch("/api/nodes/"+devEUI+"/getRandomDevAddr", {method: "POST", headers: tokenStore.getHeader()}) 
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

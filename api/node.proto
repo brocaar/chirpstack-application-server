@@ -8,47 +8,47 @@ import "common.proto";
 
 // Node is the service managing the nodes.
 service Node {
-    // Create creates the given node.
-    rpc Create(CreateNodeRequest) returns (CreateNodeResponse) {
-        option(google.api.http) = {
-            post: "/api/applications/{applicationID}/nodes"
-            body: "*"
-        };
-    }
+	// Create creates the given node.
+	rpc Create(CreateNodeRequest) returns (CreateNodeResponse) {
+		option(google.api.http) = {
+			post: "/api/nodes"
+			body: "*"
+		};
+	}
 
-    // Get returns the node for the requested name.
-    rpc Get(GetNodeRequest) returns (GetNodeResponse) {
-        option (google.api.http) = {
-            get: "/api/applications/{applicationID}/nodes/{devEUI}"
-        };
-    }
+	// Get returns the node for the requested name.
+	rpc Get(GetNodeRequest) returns (GetNodeResponse) {
+		option (google.api.http) = {
+			get: "/api/nodes/{devEUI}"
+		};
+	}
 
-    // Delete deletes the node matching the given name.
-    rpc Delete(DeleteNodeRequest) returns (DeleteNodeResponse) {
-        option (google.api.http) = {
-            delete: "/api/applications/{applicationID}/nodes/{devEUI}"
-        };
-    }
+	// Delete deletes the node matching the given name.
+	rpc Delete(DeleteNodeRequest) returns (DeleteNodeResponse) {
+		option (google.api.http) = {
+			delete: "/api/nodes/{devEUI}"
+		};
+	}
 
-    // List lists the nodes.
-    rpc List(ListNodeRequest) returns (ListNodeResponse) {
-        option (google.api.http) = {
-            get: "/api/applications/{applicationID}/nodes"
-        };
-    }
+	// ListByApplicationID lists the nodes by the given application ID.
+	rpc ListByApplicationID(ListNodeByApplicationIDRequest) returns (ListNodeResponse) {
+		option (google.api.http) = {
+			get: "/api/applications/{applicationID}/nodes"
+		};
+	}
 
-    // Update updates the node matching the given name.
-    rpc Update(UpdateNodeRequest) returns (UpdateNodeResponse) {
-        option (google.api.http) = {
-            put: "/api/applications/{applicationID}/nodes/{devEUI}"
-            body: "*"
-        };
-    }
+	// Update updates the node matching the given name.
+	rpc Update(UpdateNodeRequest) returns (UpdateNodeResponse) {
+		option (google.api.http) = {
+			put: "/api/nodes/{devEUI}"
+			body: "*"
+		};
+	}
 
 	// Activate (re)activates the node (only when ABP is set to true).
 	rpc Activate(ActivateNodeRequest) returns (ActivateNodeResponse) {
 		option (google.api.http) = {
-			post: "/api/applications/{applicationID}/nodes/{devEUI}/activation"
+			post: "/api/nodes/{devEUI}/activation"
 			body: "*"
 		};
 	}
@@ -56,41 +56,38 @@ service Node {
 	// GetActivation returns the current activation details of the node (OTAA and ABP).
 	rpc GetActivation(GetNodeActivationRequest) returns (GetNodeActivationResponse) {
 		option (google.api.http) = {
-			get: "/api/applications/{applicationID}/nodes/{devEUI}/activation"
+			get: "/api/nodes/{devEUI}/activation"
 		};
 	}
 }
 
 message CreateNodeRequest {
-	// ID of the application to which the node must be added.
-	int64 applicationID = 13;
+	// Hex encoded DevEUI.
+	string devEUI = 1; 
 
-    // Hex encoded DevEUI.
-    string devEUI = 1; 
+	// Hex encoded AppEUI.
+	string appEUI = 2; 
 
-    // Hex encoded AppEUI.
-    string appEUI = 2; 
-
-    // Hex encoded AppKey. When isABP is set to true, this field is not needed.
-    string appKey = 3; 
+	// Hex encoded AppKey. When isABP is set to true, this field is not needed.
+	string appKey = 3; 
 
 	// RX delay.
-    uint32 rxDelay = 4;
+	uint32 rxDelay = 4;
 
 	// RX1 data-rate offset.
-    uint32 rx1DROffset = 5;
+	uint32 rx1DROffset = 5;
 
 	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
-    int64 channelListID = 6;
+	int64 channelListID = 6;
 
 	// RX window to use.
-    RXWindow rxWindow = 7;
+	RXWindow rxWindow = 7;
 
 	// Data-rate to use for RX2.
-    uint32 rx2DR = 8;
+	uint32 rx2DR = 8;
 
 	// Name of the node (if left blank, it will be set to the DevEUI).
-    string name = 9;
+	string name = 9;
 
 	// Relax frame-counter mode is enabled.
 	bool relaxFCnt = 10;
@@ -100,6 +97,9 @@ message CreateNodeRequest {
 
 	// Installation-margin to use for ADR calculation.
 	double installationMargin = 12;
+
+	// ID of the application to which the node must be added.
+	int64 applicationID = 13;
 
 	// Description of the node.
 	string description = 14;
@@ -111,40 +111,37 @@ message CreateNodeRequest {
 message CreateNodeResponse {}
 
 message GetNodeRequest {
-	// ID of the application owning the node.
-	int64 applicationID = 2;
-
-    // Hex encoded DevEUI of the node.
-    string devEUI = 1;
+	// Hex encoded DevEUI of the node.
+	string devEUI = 1;
 }
 
 message GetNodeResponse {
-    // Hex encoded DevEUI.
-    string devEUI = 1; 
+	// Hex encoded DevEUI.
+	string devEUI = 1; 
 
-    // Hex encoded AppEUI.
-    string appEUI = 2; 
+	// Hex encoded AppEUI.
+	string appEUI = 2; 
 
-    // Hex encoded AppKey.
-    string appKey = 3; 
+	// Hex encoded AppKey.
+	string appKey = 3; 
 
 	// RX delay.
-    uint32 rxDelay = 4;
+	uint32 rxDelay = 4;
 
 	// RX1 data-rate offset.
-    uint32 rx1DROffset = 5;
+	uint32 rx1DROffset = 5;
 
 	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
-    int64 channelListID = 6;
+	int64 channelListID = 6;
 
 	// RX window to use.
-    RXWindow rxWindow = 7;
+	RXWindow rxWindow = 7;
 
 	// Data-rate to use for RX2.
-    uint32 rx2DR = 8;
+	uint32 rx2DR = 8;
 
 	// Name of the node.
-    string name = 9;
+	string name = 9;
 
 	// Relax frame-counter mode is enabled.
 	bool relaxFCnt = 10;
@@ -166,65 +163,59 @@ message GetNodeResponse {
 };
 
 message DeleteNodeRequest {
-	// ID of the application owning the node.
-	int64 applicationID = 2;
-
-    // Hex encoded DevEUI of the node.
-    string devEUI = 1;
+	// Hex encoded DevEUI of the node.
+	string devEUI = 1;
 }
 
 message DeleteNodeResponse {}
 
-message ListNodeRequest {
-	// ID of the application owning the nodes.
+message ListNodeByApplicationIDRequest {
+	// ID of the application for which to list the nodes.
 	int64 applicationID = 3;
 
 	// Max number of nodes to return in the result-set.
-    int64 limit = 1;
+	int64 limit = 1;
 
 	// Offset of the result-set (for pagination).
-    int64 offset = 2;
+	int64 offset = 2;
 }
 
 message ListNodeResponse {
 	// Total number of nodes available within the result-set.
-    int64 totalCount = 1;
+	int64 totalCount = 1;
 
 	// Nodes within this result-set.
-    repeated GetNodeResponse result = 2;
+	repeated GetNodeResponse result = 2;
 }
 
 
 message UpdateNodeRequest {
-	// ID of the application owning the node.
-	int64 applicationID = 13;
-
-    // Hex encoded DevEUI of the node to update.
+	// Hex encoded DevEUI of the node to update.
 	string devEUI = 1;
 
-    // Hex encoded AppEUI.
-    string appEUI = 2;
+	// Hex encoded AppEUI.
+	string appEUI = 2;
 
-    // Hex encoded AppKey.
-    string appKey = 3;
+	// Hex encoded AppKey.
+	string appKey = 3;
 
 	// RX delay.
-    uint32 rxDelay = 4;
+	uint32 rxDelay = 4;
 
 	// RX1 data-rate offset.
-    uint32 rx1DROffset = 5;
+	uint32 rx1DROffset = 5;
 
 	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
-    int64 channelListID = 6;
+	int64 channelListID = 6;
 
 	// RX window to use.
-    RXWindow rxWindow = 7;
+	RXWindow rxWindow = 7;
 
 	// Data-rate to use for RX2.
-    uint32 rx2DR = 8;
+	uint32 rx2DR = 8;
 
 	// Name of the node (note that renaming the node affects its api endpoint)
-    string name = 9;
+	string name = 9;
 
 	// Relax frame-counter mode is enabled.
 	bool relaxFCnt = 10;
@@ -234,6 +225,9 @@ message UpdateNodeRequest {
 
 	// Installation-margin to use for ADR calculation.
 	double installationMargin = 12;
+
+	// ID of the application owning the node.
+	int64 applicationID = 13;
 
 	// Description of the node.
 	string description = 14;
@@ -245,51 +239,45 @@ message UpdateNodeRequest {
 message UpdateNodeResponse {}
 
 message ActivateNodeRequest {
-	// ID of the application owning the node.
-	int64 applicationID = 1;
+	// Hex encoded DevEUI of the node to activate.
+	string devEUI = 1;
 
-    // Hex encoded DevEUI of the node to activate.
-	string devEUI = 2;
+	// Hex encoded DevAddr.
+	string devAddr = 2;
 
-    // Hex encoded DevAddr.
-    string devAddr = 3;
+	// Hex encoded AppSKey.
+	string appSKey = 3;
 
-    // Hex encoded AppSKey.
-    string appSKey = 4;
-
-    // Hex encoded NwkSKey.
-    string nwkSKey = 5;
+	// Hex encoded NwkSKey.
+	string nwkSKey = 4;
 
 	// Uplink frame-counter.
-    uint32 fCntUp = 6;
+	uint32 fCntUp = 5;
 
 	// Downlink frame-counter.
-    uint32 fCntDown = 7;
+	uint32 fCntDown = 6;
 }
 
 message ActivateNodeResponse {}
 
 message GetNodeActivationRequest {
-	// ID of the application owning the node.
-	int64 applicationID = 1;
-
-    // Hex encoded DevEUI of the node.
-	string devEUI = 2;
+	// Hex encoded DevEUI of the node.
+	string devEUI = 1;
 }
 
 message GetNodeActivationResponse {
-    // Hex encoded DevAddr.
-    string devAddr = 1;
+	// Hex encoded DevAddr.
+	string devAddr = 1;
 
-    // Hex encoded AppSKey.
-    string appSKey = 2;
+	// Hex encoded AppSKey.
+	string appSKey = 2;
 
-    // Hex encoded NwkSKey.
-    string nwkSKey = 3;
+	// Hex encoded NwkSKey.
+	string nwkSKey = 3;
 
 	// Uplink frame-counter.
-    uint32 fCntUp = 4;
+	uint32 fCntUp = 4;
 
 	// Downlink frame-counter.
-    uint32 fCntDown = 5;
+	uint32 fCntDown = 5;
 }

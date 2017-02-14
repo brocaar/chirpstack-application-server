@@ -47,20 +47,17 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 		return nil, grpc.Errorf(codes.InvalidArgument, "nwkSKey: %s", err)
 	}
 
-	if err := n.validator.Validate(ctx,
-		auth.ValidateAPIMethod("NodeSession.Create"),
-		auth.ValidateNode(devEUI),
-		auth.ValidateApplicationID(req.ApplicationID),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
 	node, err := storage.GetNode(n.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	if node.ApplicationID != req.ApplicationID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exist for the given application")
+
+	if err := n.validator.Validate(ctx,
+		auth.ValidateAPIMethod("NodeSession.Create"),
+		auth.ValidateNode(node.DevEUI),
+		auth.ValidateApplicationID(node.ApplicationID),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	_, err = n.ctx.NetworkServer.CreateNodeSession(context.Background(), &ns.CreateNodeSessionRequest{
@@ -108,20 +105,17 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
-	if err := n.validator.Validate(ctx,
-		auth.ValidateAPIMethod("NodeSession.Get"),
-		auth.ValidateNode(devEUI),
-		auth.ValidateApplicationID(req.ApplicationID),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
 	node, err := storage.GetNode(n.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, "get node error: %s", err)
 	}
-	if node.ApplicationID != req.ApplicationID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exist for the given application")
+
+	if err := n.validator.Validate(ctx,
+		auth.ValidateAPIMethod("NodeSession.Get"),
+		auth.ValidateNode(node.DevEUI),
+		auth.ValidateApplicationID(node.ApplicationID),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	resp, err := n.ctx.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{
@@ -177,20 +171,17 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 		return nil, grpc.Errorf(codes.InvalidArgument, "nwkSKey: %s", err)
 	}
 
-	if err := n.validator.Validate(ctx,
-		auth.ValidateAPIMethod("NodeSession.Update"),
-		auth.ValidateApplicationID(req.ApplicationID),
-		auth.ValidateNode(devEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
 	node, err := storage.GetNode(n.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	if node.ApplicationID != req.ApplicationID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exist for the given application")
+
+	if err := n.validator.Validate(ctx,
+		auth.ValidateAPIMethod("NodeSession.Update"),
+		auth.ValidateApplicationID(node.ApplicationID),
+		auth.ValidateNode(node.DevEUI),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	_, err = n.ctx.NetworkServer.UpdateNodeSession(context.Background(), &ns.UpdateNodeSessionRequest{
@@ -235,20 +226,17 @@ func (n *NodeSessionAPI) Delete(ctx context.Context, req *pb.DeleteNodeSessionRe
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
-	if err := n.validator.Validate(ctx,
-		auth.ValidateAPIMethod("NodeSession.Delete"),
-		auth.ValidateNode(devEUI),
-		auth.ValidateApplicationID(req.ApplicationID),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
 	node, err := storage.GetNode(n.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, "get node error: %s", err)
 	}
-	if node.ApplicationID != req.ApplicationID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
+
+	if err := n.validator.Validate(ctx,
+		auth.ValidateAPIMethod("NodeSession.Delete"),
+		auth.ValidateNode(node.DevEUI),
+		auth.ValidateApplicationID(node.ApplicationID),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	_, err = n.ctx.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{

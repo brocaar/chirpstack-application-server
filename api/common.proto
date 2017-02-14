@@ -3,6 +3,6 @@ syntax = "proto3";
 package api;
 
 enum RXWindow {
-    RX1 = 0;
-    RX2 = 1;
+	RX1 = 0;
+	RX2 = 1;
 }

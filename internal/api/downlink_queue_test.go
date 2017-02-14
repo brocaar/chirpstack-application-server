@@ -37,11 +37,10 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 		Convey("When enqueueing a downlink queue item", func() {
 			_, err := api.Enqueue(ctx, &pb.EnqueueDownlinkQueueItemRequest{
-				ApplicationID: app.ID,
-				DevEUI:        node.DevEUI.String(),
-				Confirmed:     true,
-				FPort:         10,
-				Data:          []byte{1, 2, 3, 4},
+				DevEUI:    node.DevEUI.String(),
+				Confirmed: true,
+				FPort:     10,
+				Data:      []byte{1, 2, 3, 4},
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
@@ -49,8 +48,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 			Convey("Then the queue contains a single item", func() {
 				resp, err := api.List(ctx, &pb.ListDownlinkQueueItemsRequest{
-					ApplicationID: app.ID,
-					DevEUI:        node.DevEUI.String(),
+					DevEUI: node.DevEUI.String(),
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -69,9 +67,8 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 			Convey("When removing the queue item", func() {
 				_, err := api.Delete(ctx, &pb.DeleteDownlinkQeueueItemRequest{
-					ApplicationID: app.ID,
-					DevEUI:        node.DevEUI.String(),
-					Id:            1,
+					DevEUI: node.DevEUI.String(),
+					Id:     1,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -79,8 +76,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 				Convey("Then the downlink queue item has been deleted", func() {
 					resp, err := api.List(ctx, &pb.ListDownlinkQueueItemsRequest{
-						ApplicationID: app.ID,
-						DevEUI:        node.DevEUI.String(),
+						DevEUI: node.DevEUI.String(),
 					})
 					So(err, ShouldBeNil)
 					So(resp.Items, ShouldHaveLength, 0)

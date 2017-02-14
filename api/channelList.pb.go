@@ -30,7 +30,7 @@ It has these top-level messages:
 	GetNodeResponse
 	DeleteNodeRequest
 	DeleteNodeResponse
-	ListNodeRequest
+	ListNodeByApplicationIDRequest
 	ListNodeResponse
 	UpdateNodeRequest
 	UpdateNodeResponse

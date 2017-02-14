@@ -80,7 +80,7 @@ class ListNodes extends Component {
                   <th>Device name</th>
                   <th>Device EUI</th>
                   <th>Device description</th>
-                  <th>Mode</th>
+                  <th>Activation</th>
                 </tr>
               </thead>
               <tbody>

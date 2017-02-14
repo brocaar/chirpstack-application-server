@@ -53,8 +53,7 @@ func TestNodeAPI(t *testing.T) {
 
 			Convey("Then the DevEUI is used as name", func() {
 				node, err := api.Get(ctx, &pb.GetNodeRequest{
-					ApplicationID: app.ID,
-					DevEUI:        "0807060504030201",
+					DevEUI: "0807060504030201",
 				})
 				So(err, ShouldBeNil)
 				So(node.Name, ShouldEqual, "0807060504030201")
@@ -83,8 +82,7 @@ func TestNodeAPI(t *testing.T) {
 
 			Convey("The node has been created", func() {
 				node, err := api.Get(ctx, &pb.GetNodeRequest{
-					ApplicationID: app.ID,
-					DevEUI:        "0807060504030201",
+					DevEUI: "0807060504030201",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -107,7 +105,7 @@ func TestNodeAPI(t *testing.T) {
 			})
 
 			Convey("Then listing the nodes for the application returns a single items", func() {
-				nodes, err := api.List(ctx, &pb.ListNodeRequest{
+				nodes, err := api.ListByApplicationID(ctx, &pb.ListNodeByApplicationIDRequest{
 					ApplicationID: app.ID,
 					Limit:         10,
 				})
@@ -151,12 +149,11 @@ func TestNodeAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 3)
+				So(validator.validatorFuncs, ShouldHaveLength, 4)
 
 				Convey("Then the node has been updated", func() {
 					node, err := api.Get(ctx, &pb.GetNodeRequest{
-						ApplicationID: app.ID,
-						DevEUI:        "0807060504030201",
+						DevEUI: "0807060504030201",
 					})
 					So(err, ShouldBeNil)
 					So(node, ShouldResemble, &pb.GetNodeResponse{
@@ -179,8 +176,7 @@ func TestNodeAPI(t *testing.T) {
 
 			Convey("After deleting the node", func() {
 				_, err := api.Delete(ctx, &pb.DeleteNodeRequest{
-					ApplicationID: app.ID,
-					DevEUI:        "0807060504030201",
+					DevEUI: "0807060504030201",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -194,7 +190,7 @@ func TestNodeAPI(t *testing.T) {
 				})
 
 				Convey("Then listing the nodes returns zero nodes", func() {
-					nodes, err := api.List(ctx, &pb.ListNodeRequest{
+					nodes, err := api.ListByApplicationID(ctx, &pb.ListNodeByApplicationIDRequest{
 						ApplicationID: app.ID,
 						Limit:         10,
 					})
@@ -206,13 +202,12 @@ func TestNodeAPI(t *testing.T) {
 
 			Convey("When activating the node (ABP)", func() {
 				_, err := api.Activate(ctx, &pb.ActivateNodeRequest{
-					ApplicationID: app.ID,
-					DevEUI:        "0807060504030201",
-					DevAddr:       "01020304",
-					AppSKey:       "01020304050607080102030405060708",
-					NwkSKey:       "08070605040302010807060504030201",
-					FCntUp:        10,
-					FCntDown:      11,
+					DevEUI:   "0807060504030201",
+					DevAddr:  "01020304",
+					AppSKey:  "01020304050607080102030405060708",
+					NwkSKey:  "08070605040302010807060504030201",
+					FCntUp:   10,
+					FCntDown: 11,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)

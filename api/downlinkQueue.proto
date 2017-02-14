@@ -7,95 +7,86 @@ import "google/api/annotations.proto";
 
 // DownlinkQueue is the service managing the downlink data queue.
 service DownlinkQueue {
-    // Enqueue adds the given item to the queue.
-    rpc Enqueue(EnqueueDownlinkQueueItemRequest) returns (EnqueueDownlinkQueueItemResponse) {
-        option(google.api.http) = {
-            post: "/api/applications/{applicationID}/nodes/{devEUI}/queue"
-            body: "*"
-        };
-    }
+	// Enqueue adds the given item to the queue.
+	rpc Enqueue(EnqueueDownlinkQueueItemRequest) returns (EnqueueDownlinkQueueItemResponse) {
+		option(google.api.http) = {
+			post: "/api/nodes/{devEUI}/queue"
+			body: "*"
+		};
+	}
 
-    // Delete deletes an item from the queue.
-    rpc Delete(DeleteDownlinkQeueueItemRequest) returns (DeleteDownlinkQueueItemResponse) {
-        option(google.api.http) = {
-            delete: "/api/applications/{applicationID}/nodes/{devEUI}/queue/{id}"
-        };
-    }
+	// Delete deletes an item from the queue.
+	rpc Delete(DeleteDownlinkQeueueItemRequest) returns (DeleteDownlinkQueueItemResponse) {
+		option(google.api.http) = {
+			delete: "/api/nodes/{devEUI}/queue/{id}"
+		};
+	}
 
-    // List lists the items in the queue for the given node.
-    rpc List(ListDownlinkQueueItemsRequest) returns (ListDownlinkQueueItemsResponse) {
-        option(google.api.http) = {
-            get: "/api/applications/{applicationID}/nodes/{devEUI}/queue"
-        };
-    }
+	// List lists the items in the queue for the given node.
+	rpc List(ListDownlinkQueueItemsRequest) returns (ListDownlinkQueueItemsResponse) {
+		option(google.api.http) = {
+			get: "/api/nodes/{devEUI}/queue"
+		};
+	}
 }
 
 message EnqueueDownlinkQueueItemRequest {
-	// ID of the application owning the node.
-	int64 applicationID = 6;
-
-    // Hex encoded DevEUI of the node.
-    string devEUI = 1;
+	// Hex encoded DevEUI of the node.
+	string devEUI = 1;
 
 	// Random reference (used on ack notification).
 	string reference = 2;
 
-    // Is an ACK required from the node.
-    bool confirmed = 3;
+	// Is an ACK required from the node.
+	bool confirmed = 3;
 
-    // FPort used (must be >0)
-    uint32 fPort = 4;
+	// FPort used (must be >0)
+	uint32 fPort = 4;
 
-    // Base64 encoded data.
-    bytes data = 5;
+	// Base64 encoded data.
+	bytes data = 5;
 }
 
 message EnqueueDownlinkQueueItemResponse {}
 
 message DeleteDownlinkQeueueItemRequest {
-	// ID of the application owning the node.
-	int64 applicationID = 3;
+	// Hex encoded DevEUI of the node.
+	string devEUI = 2;
 
-    // Hex encoded DevEUI of the node.
-    string devEUI = 2;
-
-    // ID of the queue item to delete.
-    int64 id = 1;
+	// ID of the queue item to delete.
+	int64 id = 1;
 }
 
 message DeleteDownlinkQueueItemResponse {}
 
 message DownlinkQueueItem {
-    // ID of the queue item.
-    int64 id = 1;
+	// ID of the queue item.
+	int64 id = 1;
 
-    // Hex encoded DevEUI of the node.
-    string devEUI = 2;
+	// Hex encoded DevEUI of the node.
+	string devEUI = 2;
 
 	// Random reference (used on ack notification).
 	string reference = 3;
 
-    // Is an ACK required from the node.
-    bool confirmed = 4;
+	// Is an ACK required from the node.
+	bool confirmed = 4;
 
-    // Transmission is pending (waiting for an ack).
-    bool pending = 5;
+	// Transmission is pending (waiting for an ack).
+	bool pending = 5;
 
-    // FPort used (must be >0).
-    uint32 fPort = 6;
+	// FPort used (must be >0).
+	uint32 fPort = 6;
 
-    // Base64 encoded data.
-    bytes data = 7;   
+	// Base64 encoded data.
+	bytes data = 7;   
 }
 
 message ListDownlinkQueueItemsRequest {
-	// ID of the application owning the node.
-	int64 applicationID = 2;
-
-    // Hex encoded DevEUI of the node.
-    string devEUI = 1;
+	// Hex encoded DevEUI of the node.
+	string devEUI = 1;
 }
 
 message ListDownlinkQueueItemsResponse {
-    repeated DownlinkQueueItem items = 1;
+	repeated DownlinkQueueItem items = 1;
 }

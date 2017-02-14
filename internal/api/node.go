@@ -92,21 +92,17 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.Get"),
-		auth.ValidateApplicationID(req.ApplicationID),
-		auth.ValidateNode(eui),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
 	node, err := storage.GetNode(a.ctx.DB, eui)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	if node.ApplicationID != req.ApplicationID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
+	if err := a.validator.Validate(ctx,
+		auth.ValidateAPIMethod("Node.Get"),
+		auth.ValidateApplicationID(node.ApplicationID),
+		auth.ValidateNode(node.DevEUI),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	resp := pb.GetNodeResponse{
@@ -138,8 +134,8 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 	return &resp, nil
 }
 
-// GetList returns a list of nodes (given a limit and offset).
-func (a *NodeAPI) List(ctx context.Context, req *pb.ListNodeRequest) (*pb.ListNodeResponse, error) {
+// ListByApplicationID returns a list of nodes (given an application id, limit and offset).
+func (a *NodeAPI) ListByApplicationID(ctx context.Context, req *pb.ListNodeByApplicationIDRequest) (*pb.ListNodeResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIMethod("Node.List"),
 		auth.ValidateApplicationID(req.ApplicationID),
@@ -170,21 +166,18 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.Update"),
-		auth.ValidateApplicationID(req.ApplicationID),
-		auth.ValidateNode(devEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
 	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	if node.ApplicationID != req.ApplicationID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
+	if err := a.validator.Validate(ctx,
+		auth.ValidateAPIMethod("Node.Update"),
+		auth.ValidateApplicationID(node.ApplicationID),
+		auth.ValidateApplicationID(req.ApplicationID), // in case of an application ID update
+		auth.ValidateNode(node.DevEUI),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	node.Name = req.Name
@@ -199,6 +192,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 	node.RelaxFCnt = req.RelaxFCnt
 	node.ADRInterval = req.AdrInterval
 	node.InstallationMargin = req.InstallationMargin
+	node.ApplicationID = req.ApplicationID
 	if req.ChannelListID > 0 {
 		node.ChannelListID = &req.ChannelListID
 	} else {
@@ -224,21 +218,17 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.De
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.Delete"),
-		auth.ValidateApplicationID(req.ApplicationID),
-		auth.ValidateNode(eui),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
 	node, err := storage.GetNode(a.ctx.DB, eui)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	if node.ApplicationID != req.ApplicationID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
+	if err := a.validator.Validate(ctx,
+		auth.ValidateAPIMethod("Node.Delete"),
+		auth.ValidateApplicationID(node.ApplicationID),
+		auth.ValidateNode(node.DevEUI),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	if err := storage.DeleteNode(a.ctx.DB, node.DevEUI); err != nil {
@@ -277,21 +267,17 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 		return nil, grpc.Errorf(codes.InvalidArgument, "nwkSKey: %s", err)
 	}
 
-	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.Activate"),
-		auth.ValidateNode(devEUI),
-		auth.ValidateApplicationID(req.ApplicationID),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
 	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	if node.ApplicationID != req.ApplicationID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
+	if err := a.validator.Validate(ctx,
+		auth.ValidateAPIMethod("Node.Activate"),
+		auth.ValidateNode(node.DevEUI),
+		auth.ValidateApplicationID(node.ApplicationID),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	if !node.IsABP {
@@ -363,21 +349,17 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetNodeActivationRe
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
-	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.GetActivation"),
-		auth.ValidateNode(devEUI),
-		auth.ValidateApplicationID(req.ApplicationID),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
 	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	if node.ApplicationID != req.ApplicationID {
-		return nil, grpc.Errorf(codes.NotFound, "node does not exist for given application")
+	if err := a.validator.Validate(ctx,
+		auth.ValidateAPIMethod("Node.GetActivation"),
+		auth.ValidateNode(node.DevEUI),
+		auth.ValidateApplicationID(node.ApplicationID),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	ns, err := a.ctx.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{

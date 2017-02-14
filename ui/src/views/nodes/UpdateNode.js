@@ -31,6 +31,7 @@ class UpdateNode extends Component {
   }
 
   onSubmit(node) {
+    node.applicationID = this.props.params.applicationID;
     NodeStore.updateNode(this.props.params.applicationID, this.props.params.devEUI, node, (responseData) => {
       this.context.router.push('/applications/'+this.props.params.applicationID);
     });

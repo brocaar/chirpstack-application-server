@@ -17,8 +17,8 @@
   "paths": {
     "/api/applications/{applicationID}/nodes": {
       "get": {
-        "summary": "List lists the nodes.",
-        "operationId": "List",
+        "summary": "ListByApplicationID lists the nodes by the given application ID.",
+        "operationId": "ListByApplicationID",
         "responses": {
           "200": {
             "description": "",
@@ -55,7 +55,9 @@
         "tags": [
           "Node"
         ]
-      },
+      }
+    },
+    "/api/nodes": {
       "post": {
         "summary": "Create creates the given node.",
         "operationId": "Create",
@@ -68,13 +70,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "applicationID",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
           {
             "name": "body",
             "in": "body",
@@ -89,7 +84,7 @@
         ]
       }
     },
-    "/api/applications/{applicationID}/nodes/{devEUI}": {
+    "/api/nodes/{devEUI}": {
       "get": {
         "summary": "Get returns the node for the requested name.",
         "operationId": "Get",
@@ -102,13 +97,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "applicationID",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
           {
             "name": "devEUI",
             "in": "path",
@@ -133,13 +121,6 @@
         },
         "parameters": [
           {
-            "name": "applicationID",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
             "name": "devEUI",
             "in": "path",
             "required": true,
@@ -163,13 +144,6 @@
         },
         "parameters": [
           {
-            "name": "applicationID",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
             "name": "devEUI",
             "in": "path",
             "required": true,
@@ -189,7 +163,7 @@
         ]
       }
     },
-    "/api/applications/{applicationID}/nodes/{devEUI}/activation": {
+    "/api/nodes/{devEUI}/activation": {
       "get": {
         "summary": "GetActivation returns the current activation details of the node (OTAA and ABP).",
         "operationId": "GetActivation",
@@ -202,13 +176,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "applicationID",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
           {
             "name": "devEUI",
             "in": "path",
@@ -232,13 +199,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "applicationID",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
           {
             "name": "devEUI",
             "in": "path",
@@ -264,11 +224,6 @@
     "apiActivateNodeRequest": {
       "type": "object",
       "properties": {
-        "applicationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application owning the node."
-        },
         "devEUI": {
           "type": "string",
           "description": "Hex encoded DevEUI of the node to activate."
@@ -303,11 +258,6 @@
     "apiCreateNodeRequest": {
       "type": "object",
       "properties": {
-        "applicationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application to which the node must be added."
-        },
         "devEUI": {
           "type": "string",
           "description": "Hex encoded DevEUI."
@@ -363,6 +313,11 @@
           "format": "double",
           "description": "Installation-margin to use for ADR calculation."
         },
+        "applicationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the application to which the node must be added."
+        },
         "description": {
           "type": "string",
           "description": "Description of the node."
@@ -380,11 +335,6 @@
     "apiDeleteNodeRequest": {
       "type": "object",
       "properties": {
-        "applicationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application owning the node."
-        },
         "devEUI": {
           "type": "string",
           "description": "Hex encoded DevEUI of the node."
@@ -397,11 +347,6 @@
     "apiGetNodeActivationRequest": {
       "type": "object",
       "properties": {
-        "applicationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application owning the node."
-        },
         "devEUI": {
           "type": "string",
           "description": "Hex encoded DevEUI of the node."
@@ -438,11 +383,6 @@
     "apiGetNodeRequest": {
       "type": "object",
       "properties": {
-        "applicationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application owning the node."
-        },
         "devEUI": {
           "type": "string",
           "description": "Hex encoded DevEUI of the node."
@@ -523,13 +463,13 @@
         }
       }
     },
-    "apiListNodeRequest": {
+    "apiListNodeByApplicationIDRequest": {
       "type": "object",
       "properties": {
         "applicationID": {
           "type": "string",
           "format": "int64",
-          "description": "ID of the application owning the nodes."
+          "description": "ID of the application for which to list the nodes."
         },
         "limit": {
           "type": "string",
@@ -571,11 +511,6 @@
     "apiUpdateNodeRequest": {
       "type": "object",
       "properties": {
-        "applicationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application owning the node."
-        },
         "devEUI": {
           "type": "string",
           "description": "Hex encoded DevEUI of the node to update."
@@ -630,6 +565,11 @@
           "type": "number",
           "format": "double",
           "description": "Installation-margin to use for ADR calculation."
+        },
+        "applicationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the application owning the node."
         },
         "description": {
           "type": "string",

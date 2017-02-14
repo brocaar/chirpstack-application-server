@@ -50,7 +50,7 @@ class NodeStore extends EventEmitter {
   }
 
   getNode(applicationID, name, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes/"+name, {headers: tokenStore.getHeader()})
+    fetch("/api/nodes/"+name, {headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -60,7 +60,7 @@ class NodeStore extends EventEmitter {
   }
 
   createNode(applicationID, node, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes", {method: "POST", body: JSON.stringify(node), headers: tokenStore.getHeader()})
+    fetch("/api/nodes", {method: "POST", body: JSON.stringify(node), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -70,7 +70,7 @@ class NodeStore extends EventEmitter {
   }
 
   updateNode(applicationID, devEUI, node, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI, {method: "PUT", body: JSON.stringify(node), headers: tokenStore.getHeader()})
+    fetch("/api/nodes/"+devEUI, {method: "PUT", body: JSON.stringify(node), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -80,7 +80,7 @@ class NodeStore extends EventEmitter {
   }
 
   deleteNode(applicationID, devEUI, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI, {method: "DELETE", headers: tokenStore.getHeader()})
+    fetch("/api/nodes/"+devEUI, {method: "DELETE", headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -90,7 +90,7 @@ class NodeStore extends EventEmitter {
   }
 
   activateNode(applicationID, devEUI, activation, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI+"/activation", {method: "POST", body: JSON.stringify(activation), headers: tokenStore.getHeader()})
+    fetch("/api/nodes/"+devEUI+"/activation", {method: "POST", body: JSON.stringify(activation), headers: tokenStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -100,7 +100,7 @@ class NodeStore extends EventEmitter {
   }
 
   getActivation(applicationID, devEUI, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes/"+devEUI+"/activation", {headers: tokenStore.getHeader()})
+    fetch("/api/nodes/"+devEUI+"/activation", {headers: tokenStore.getHeader()})
       .then(checkGetActivationStatus)
       .then((response) => response.json())
       .then((responseData) => {

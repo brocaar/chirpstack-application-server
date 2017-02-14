@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/applications/{applicationID}/nodes/{devEUI}/queue": {
+    "/api/nodes/{devEUI}/queue": {
       "get": {
         "summary": "List lists the items in the queue for the given node.",
         "operationId": "List",
@@ -28,13 +28,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "applicationID",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
           {
             "name": "devEUI",
             "in": "path",
@@ -59,13 +52,6 @@
         },
         "parameters": [
           {
-            "name": "applicationID",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
             "name": "devEUI",
             "in": "path",
             "required": true,
@@ -85,7 +71,7 @@
         ]
       }
     },
-    "/api/applications/{applicationID}/nodes/{devEUI}/queue/{id}": {
+    "/api/nodes/{devEUI}/queue/{id}": {
       "delete": {
         "summary": "Delete deletes an item from the queue.",
         "operationId": "Delete",
@@ -98,13 +84,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "applicationID",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
           {
             "name": "devEUI",
             "in": "path",
@@ -129,11 +108,6 @@
     "apiDeleteDownlinkQeueueItemRequest": {
       "type": "object",
       "properties": {
-        "applicationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application owning the node."
-        },
         "devEUI": {
           "type": "string",
           "description": "Hex encoded DevEUI of the node."
@@ -189,11 +163,6 @@
     "apiEnqueueDownlinkQueueItemRequest": {
       "type": "object",
       "properties": {
-        "applicationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application owning the node."
-        },
         "devEUI": {
           "type": "string",
           "description": "Hex encoded DevEUI of the node."
@@ -225,11 +194,6 @@
     "apiListDownlinkQueueItemsRequest": {
       "type": "object",
       "properties": {
-        "applicationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application owning the node."
-        },
         "devEUI": {
           "type": "string",
           "description": "Hex encoded DevEUI of the node."

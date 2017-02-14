@@ -26,6 +26,7 @@ class CreateNode extends Component {
   }
 
   onSubmit(node) {
+    node.applicationID = this.props.params.applicationID;
     NodeStore.createNode(this.props.params.applicationID, node, (responseData) => {
       this.context.router.push('/applications/'+this.props.params.applicationID);
     }); 

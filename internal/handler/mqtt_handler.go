@@ -48,7 +48,7 @@ type TXInfo struct {
 
 // DataUpPayload represents a data-up payload.
 type DataUpPayload struct {
-	ApplicationID   int64         `json:"applicationID"`
+	ApplicationID   int64         `json:"applicationID,string"`
 	ApplicationName string        `json:"applicationName"`
 	NodeName        string        `json:"nodeName"`
 	DevEUI          lorawan.EUI64 `json:"devEUI"`
@@ -61,7 +61,7 @@ type DataUpPayload struct {
 
 // DataDownPayload represents a data-down payload.
 type DataDownPayload struct {
-	ApplicationID int64         `json:"applicationID"`
+	ApplicationID int64         `json:"applicationID,string"`
 	DevEUI        lorawan.EUI64 `json:"devEUI"`
 	Reference     string        `json:"reference"`
 	Confirmed     bool          `json:"confirmed"`
@@ -72,7 +72,7 @@ type DataDownPayload struct {
 // JoinNotification defines the payload sent to the application on
 // a JoinNotificationType event.
 type JoinNotification struct {
-	ApplicationID   int64           `json:"applicationID"`
+	ApplicationID   int64           `json:"applicationID,string"`
 	ApplicationName string          `json:"applicationName"`
 	NodeName        string          `json:"nodeName"`
 	DevEUI          lorawan.EUI64   `json:"devEUI"`
@@ -91,7 +91,7 @@ type MQTTHandler struct {
 // ACKNotification defines the payload sent to the application
 // on an ACK event.
 type ACKNotification struct {
-	ApplicationID   int64         `json:"applicationID"`
+	ApplicationID   int64         `json:"applicationID,string"`
 	ApplicationName string        `json:"applicationName"`
 	NodeName        string        `json:"nodeName"`
 	DevEUI          lorawan.EUI64 `json:"devEUI"`
@@ -101,7 +101,7 @@ type ACKNotification struct {
 // ErrorNotification defines the payload sent to the application
 // on an error event.
 type ErrorNotification struct {
-	ApplicationID   int64         `json:"applicationID"`
+	ApplicationID   int64         `json:"applicationID,string"`
 	ApplicationName string        `json:"applicationName"`
 	NodeName        string        `json:"nodeName"`
 	DevEUI          lorawan.EUI64 `json:"devEUI"`

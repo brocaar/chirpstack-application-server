@@ -87,12 +87,14 @@ type NetworkServerClient struct {
 	UpdateNodeSessionChan chan ns.UpdateNodeSessionRequest
 	DeleteNodeSessionChan chan ns.DeleteNodeSessionRequest
 	GetRandomDevAddrChan  chan ns.GetRandomDevAddrRequest
+	PushDataDownChan      chan ns.PushDataDownRequest
 
 	CreateNodeSessionResponse ns.CreateNodeSessionResponse
 	GetNodeSessionResponse    ns.GetNodeSessionResponse
 	UpdateNodeSessionResponse ns.UpdateNodeSessionResponse
 	DeleteNodeSessionResponse ns.DeleteNodeSessionResponse
 	GetRandomDevAddrResponse  ns.GetRandomDevAddrResponse
+	PushDataDownResponse      ns.PushDataDownResponse
 }
 
 // NewNetworkServerClient creates a new NetworkServerClient.
@@ -103,6 +105,7 @@ func NewNetworkServerClient() *NetworkServerClient {
 		UpdateNodeSessionChan: make(chan ns.UpdateNodeSessionRequest, 100),
 		DeleteNodeSessionChan: make(chan ns.DeleteNodeSessionRequest, 100),
 		GetRandomDevAddrChan:  make(chan ns.GetRandomDevAddrRequest, 100),
+		PushDataDownChan:      make(chan ns.PushDataDownRequest, 100),
 	}
 }
 
@@ -129,6 +132,11 @@ func (n *NetworkServerClient) DeleteNodeSession(ctx context.Context, in *ns.Dele
 func (n *NetworkServerClient) GetRandomDevAddr(ctx context.Context, in *ns.GetRandomDevAddrRequest, opts ...grpc.CallOption) (*ns.GetRandomDevAddrResponse, error) {
 	n.GetRandomDevAddrChan <- *in
 	return &n.GetRandomDevAddrResponse, nil
+}
+
+func (n *NetworkServerClient) PushDataDown(ctx context.Context, in *ns.PushDataDownRequest, opts ...grpc.CallOption) (*ns.PushDataDownResponse, error) {
+	n.PushDataDownChan <- *in
+	return &n.PushDataDownResponse, nil
 }
 
 func (n *NetworkServerClient) EnqueueDataDownMACCommand(ctx context.Context, in *ns.EnqueueDataDownMACCommandRequest, opts ...grpc.CallOption) (*ns.EnqueueDataDownMACCommandResponse, error) {

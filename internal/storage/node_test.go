@@ -162,6 +162,7 @@ func TestNodeMethods(t *testing.T) {
 				DevEUI:        [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
 				AppKey:        [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 				IsABP:         true,
+				IsClassC:      true,
 
 				RXDelay:            2,
 				RX1DROffset:        3,

@@ -79,6 +79,7 @@ type Node struct {
 	AppEUI        lorawan.EUI64     `db:"app_eui"`
 	AppKey        lorawan.AES128Key `db:"app_key"`
 	IsABP         bool              `db:"is_abp"`
+	IsClassC      bool              `db:"is_class_c"`
 	DevAddr       lorawan.DevAddr   `db:"dev_addr"`
 	NwkSKey       lorawan.AES128Key `db:"nwk_s_key"`
 	AppSKey       lorawan.AES128Key `db:"app_s_key"`
@@ -145,9 +146,10 @@ func CreateNode(db *sqlx.DB, n Node) error {
 			relax_fcnt,
 			adr_interval,
 			installation_margin,
-			is_abp
+			is_abp,
+			is_class_c
 		)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
 		n.ApplicationID,
 		n.Name,
 		n.Description,
@@ -166,6 +168,7 @@ func CreateNode(db *sqlx.DB, n Node) error {
 		n.ADRInterval,
 		n.InstallationMargin,
 		n.IsABP,
+		n.IsClassC,
 	)
 	if err != nil {
 		return fmt.Errorf("create node %s error: %s", n.DevEUI, err)
@@ -199,7 +202,8 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 			relax_fcnt = $16,
 			adr_interval = $17,
 			installation_margin = $18,
-			is_abp = $19
+			is_abp = $19,
+			is_class_c = $20
 		where dev_eui = $1`,
 		n.DevEUI[:],
 		n.ApplicationID,
@@ -220,6 +224,7 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 		n.ADRInterval,
 		n.InstallationMargin,
 		n.IsABP,
+		n.IsClassC,
 	)
 	if err != nil {
 		return fmt.Errorf("update node %s error: %s", n.DevEUI, err)

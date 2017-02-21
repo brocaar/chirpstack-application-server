@@ -64,6 +64,7 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 		AppEUI:        appEUI,
 		AppKey:        appKey,
 		IsABP:         req.IsABP,
+		IsClassC:      req.IsClassC,
 		RelaxFCnt:     req.RelaxFCnt,
 
 		RXDelay:     uint8(req.RxDelay),
@@ -112,6 +113,7 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 		AppEUI:             node.AppEUI.String(),
 		AppKey:             node.AppKey.String(),
 		IsABP:              node.IsABP,
+		IsClassC:           node.IsClassC,
 		RxDelay:            uint32(node.RXDelay),
 		Rx1DROffset:        uint32(node.RX1DROffset),
 		RxWindow:           pb.RXWindow(node.RXWindow),
@@ -185,6 +187,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 	node.AppEUI = appEUI
 	node.AppKey = appKey
 	node.IsABP = req.IsABP
+	node.IsClassC = req.IsClassC
 	node.RXDelay = uint8(req.RxDelay)
 	node.RX1DROffset = uint8(req.Rx1DROffset)
 	node.RXWindow = storage.RXWindow(req.RxWindow)
@@ -393,6 +396,7 @@ func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeRespo
 			AppEUI:             node.AppEUI.String(),
 			AppKey:             node.AppKey.String(),
 			IsABP:              node.IsABP,
+			IsClassC:           node.IsClassC,
 			RxDelay:            uint32(node.RXDelay),
 			Rx1DROffset:        uint32(node.RX1DROffset),
 			RxWindow:           pb.RXWindow(node.RXWindow),

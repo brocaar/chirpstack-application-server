@@ -142,6 +142,16 @@ func GetDownlinkQueueItems(db *sqlx.DB, devEUI lorawan.EUI64) ([]DownlinkQueueIt
 	return items, nil
 }
 
+// DeleteDownlinkQueueItemsForDevEUI deletes all queue items for the given
+// DevEUI.
+func DeleteDownlinkQueueItemsForDevEUI(db *sqlx.DB, devEUI lorawan.EUI64) error {
+	_, err := db.Exec("delete from downlink_queue where dev_eui = $1", devEUI[:])
+	if err != nil {
+		return fmt.Errorf("delete downlink queue items error: %s", err)
+	}
+	return nil
+}
+
 // GetNextDownlinkQueueItem returns the next item from the queue, respecting
 // the given maxPayloadSize. If an item exceeds this size, it is discarded and
 // the next item is retrieved from the queue.

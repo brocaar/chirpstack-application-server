@@ -153,6 +153,16 @@ func TestDownlinkQueueFuncs(t *testing.T) {
 					So(err, ShouldNotBeNil)
 				})
 			})
+
+			Convey("When deleting all queue items for a node", func() {
+				So(DeleteDownlinkQueueItemsForDevEUI(db, node.DevEUI), ShouldBeNil)
+
+				Convey("Then the queue is empty", func() {
+					items, err := GetDownlinkQueueItems(db, node.DevEUI)
+					So(err, ShouldBeNil)
+					So(items, ShouldHaveLength, 0)
+				})
+			})
 		})
 	})
 }

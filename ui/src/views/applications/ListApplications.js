@@ -7,6 +7,7 @@ class ApplicationRow extends Component {
   render() {
     return(
       <tr>
+        <td>{this.props.application.id}</td>
         <td><Link to={`/applications/${this.props.application.id}`}>{this.props.application.name}</Link></td>
         <td>{this.props.application.description}</td>
       </tr>
@@ -46,6 +47,7 @@ class ListApplications extends Component {
             <table className="table table-hover">
               <thead>
                 <tr>
+                  <th>ID</th>
                   <th>Name</th>
                   <th>Description</th>
                 </tr>

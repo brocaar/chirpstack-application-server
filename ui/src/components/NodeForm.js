@@ -93,7 +93,10 @@ class NodeForm extends Component {
                 <input type="checkbox" name="isClassC" id="isClassC" checked={this.state.node.isClassC} onChange={this.onChange.bind(this, 'isClassC')} /> Class-C node
               </label>
             </div>
-            <p className="help-block">When checked, it means that the node operates in Class-C (always listening).</p>
+            <p className="help-block">
+              When checked, it means that the node operates in Class-C mode (always listening) and that data will be sent directly to the node. <br/>
+              In any other case, the data will be sent as soon as a receive window occurs.
+            </p>
           </div>
           <div className="form-group">
             <label className="control-label">ABP (activation by personalisation)</label>

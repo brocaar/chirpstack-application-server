@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0
+
+**Features & changes:**
+
+* Class-C support. When adding / changing nodes, tick the Class-C checkbox
+  to enable Class-C support for a given node.
+* Application ID added to application overview (as it is needed to subscribe
+  to MQTT topics).
+* Nodes are now sorted by name.
+
 ## 0.3.0
 
 **This release contains changes that are not backwards compatible!**

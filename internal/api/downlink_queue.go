@@ -8,6 +8,7 @@ import (
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/downlink"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
@@ -53,9 +54,10 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 		Data:      req.Data,
 	}
 
-	if err := storage.CreateDownlinkQueueItem(d.ctx.DB, &qi); err != nil {
+	if err := downlink.HandleDownlinkQueueItem(d.ctx, node, &qi); err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
+
 	return &pb.EnqueueDownlinkQueueItemResponse{}, nil
 }
 

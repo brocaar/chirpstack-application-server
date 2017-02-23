@@ -128,11 +128,6 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 		resp.ChannelListID = *node.ChannelListID
 	}
 
-	log.WithFields(log.Fields{
-		"dev_eui":        node.DevEUI,
-		"application_id": node.ApplicationID,
-	}).Info("node created")
-
 	return &resp, nil
 }
 

@@ -13,7 +13,9 @@ mosquitto_sub -t "application/123/node/+/rx" -v  # display only the RX payloads 
 ```
 
 !!! info
-	Note that the MQTT topics are case-sensitive.
+	Note that the MQTT topics are case-sensitive. The ApplicationID can be
+	retrieved from the API or from the web-interface (application list).
+	This ID is not equal to the AppEUI.
 
 ## Receiving
 

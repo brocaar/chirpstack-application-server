@@ -17,7 +17,7 @@
   "paths": {
     "/api/applications/{applicationID}/nodes": {
       "get": {
-        "summary": "ListByApplicationID lists the nodes by the given application ID.",
+        "summary": "ListByApplicationID lists the nodes by the given application ID, sorted by the name of the node.",
         "operationId": "ListByApplicationID",
         "responses": {
           "200": {

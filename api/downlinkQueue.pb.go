@@ -241,7 +241,8 @@ const _ = grpc.SupportPackageIsVersion4
 // Client API for DownlinkQueue service
 
 type DownlinkQueueClient interface {
-	// Enqueue adds the given item to the queue.
+	// Enqueue adds the given item to the queue. When the node operates in
+	// Class-C mode, the data will be pushed directly to the network-server.
 	Enqueue(ctx context.Context, in *EnqueueDownlinkQueueItemRequest, opts ...grpc.CallOption) (*EnqueueDownlinkQueueItemResponse, error)
 	// Delete deletes an item from the queue.
 	Delete(ctx context.Context, in *DeleteDownlinkQeueueItemRequest, opts ...grpc.CallOption) (*DeleteDownlinkQueueItemResponse, error)
@@ -287,7 +288,8 @@ func (c *downlinkQueueClient) List(ctx context.Context, in *ListDownlinkQueueIte
 // Server API for DownlinkQueue service
 
 type DownlinkQueueServer interface {
-	// Enqueue adds the given item to the queue.
+	// Enqueue adds the given item to the queue. When the node operates in
+	// Class-C mode, the data will be pushed directly to the network-server.
 	Enqueue(context.Context, *EnqueueDownlinkQueueItemRequest) (*EnqueueDownlinkQueueItemResponse, error)
 	// Delete deletes an item from the queue.
 	Delete(context.Context, *DeleteDownlinkQeueueItemRequest) (*DeleteDownlinkQueueItemResponse, error)

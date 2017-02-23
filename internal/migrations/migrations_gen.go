@@ -314,7 +314,7 @@ func _0012_class_c_nodeSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0012_class_c_node.sql", size: 147, mode: os.FileMode(420), modTime: time.Unix(1487672951, 0)}
+	info := bindataFileInfo{name: "0012_class_c_node.sql", size: 147, mode: os.FileMode(420), modTime: time.Unix(1487752201, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

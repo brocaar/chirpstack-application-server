@@ -30,7 +30,7 @@ service Node {
 		};
 	}
 
-	// ListByApplicationID lists the nodes by the given application ID.
+	// ListByApplicationID lists the nodes by the given application ID, sorted by the name of the node.
 	rpc ListByApplicationID(ListNodeByApplicationIDRequest) returns (ListNodeResponse) {
 		option (google.api.http) = {
 			get: "/api/applications/{applicationID}/nodes"

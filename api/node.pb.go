@@ -768,7 +768,7 @@ type NodeClient interface {
 	Get(ctx context.Context, in *GetNodeRequest, opts ...grpc.CallOption) (*GetNodeResponse, error)
 	// Delete deletes the node matching the given name.
 	Delete(ctx context.Context, in *DeleteNodeRequest, opts ...grpc.CallOption) (*DeleteNodeResponse, error)
-	// ListByApplicationID lists the nodes by the given application ID.
+	// ListByApplicationID lists the nodes by the given application ID, sorted by the name of the node.
 	ListByApplicationID(ctx context.Context, in *ListNodeByApplicationIDRequest, opts ...grpc.CallOption) (*ListNodeResponse, error)
 	// Update updates the node matching the given name.
 	Update(ctx context.Context, in *UpdateNodeRequest, opts ...grpc.CallOption) (*UpdateNodeResponse, error)
@@ -858,7 +858,7 @@ type NodeServer interface {
 	Get(context.Context, *GetNodeRequest) (*GetNodeResponse, error)
 	// Delete deletes the node matching the given name.
 	Delete(context.Context, *DeleteNodeRequest) (*DeleteNodeResponse, error)
-	// ListByApplicationID lists the nodes by the given application ID.
+	// ListByApplicationID lists the nodes by the given application ID, sorted by the name of the node.
 	ListByApplicationID(context.Context, *ListNodeByApplicationIDRequest) (*ListNodeResponse, error)
 	// Update updates the node matching the given name.
 	Update(context.Context, *UpdateNodeRequest) (*UpdateNodeResponse, error)

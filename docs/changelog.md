@@ -10,6 +10,8 @@
   to MQTT topics).
 * Nodes are now sorted by name.
 
+**Note:** For Class-C functionality, upgrade LoRa Server to 0.14.0 or above.
+
 ## 0.3.0
 
 **This release contains changes that are not backwards compatible!**

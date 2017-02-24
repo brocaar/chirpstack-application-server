@@ -21,7 +21,6 @@ import (
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/jmoiron/sqlx"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
@@ -32,6 +31,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/downlink"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/migrations"
 	"github.com/brocaar/lora-app-server/internal/static"
@@ -82,7 +82,7 @@ func run(c *cli.Context) error {
 	}
 
 	// handle incoming downlink payloads
-	go enqueueDataDownPayloads(lsCtx.DB, lsCtx.Handler.DataDownChan())
+	go downlink.HandleDataDownPayloads(lsCtx, lsCtx.Handler.DataDownChan())
 
 	// start the application-server api
 	log.WithFields(log.Fields{
@@ -342,41 +342,6 @@ func mustGetTransportCredentials(tlsCert, tlsKey, caCert string, verifyClientCer
 			Certificates: []tls.Certificate{cert},
 			RootCAs:      caCertPool,
 		})
-	}
-}
-
-func enqueueDataDownPayloads(db *sqlx.DB, payloadChan chan handler.DataDownPayload) {
-	for pl := range payloadChan {
-		go func(pl handler.DataDownPayload) {
-			node, err := storage.GetNode(db, pl.DevEUI)
-			if err != nil {
-				log.WithFields(log.Fields{
-					"dev_eui": pl.DevEUI,
-				}).Errorf("get node error: %s", err)
-				return
-			}
-			if node.ApplicationID != pl.ApplicationID {
-				log.WithFields(log.Fields{
-					"application_id": pl.ApplicationID,
-					"dev_eui":        pl.DevEUI,
-				}).Error("enqueue data-down payload: node does not exist for given application")
-				return
-			}
-
-			err = storage.CreateDownlinkQueueItem(db, &storage.DownlinkQueueItem{
-				Reference: pl.Reference,
-				DevEUI:    pl.DevEUI,
-				Confirmed: pl.Confirmed,
-				FPort:     pl.FPort,
-				Data:      pl.Data,
-			})
-			if err != nil {
-				log.WithFields(log.Fields{
-					"dev_eui":   node.DevEUI,
-					"reference": pl.Reference,
-				}).Errorf("enqueue data-down payload error: %s", err)
-			}
-		}(pl)
 	}
 }
 

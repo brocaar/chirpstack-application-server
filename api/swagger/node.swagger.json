@@ -17,7 +17,7 @@
   "paths": {
     "/api/applications/{applicationID}/nodes": {
       "get": {
-        "summary": "ListByApplicationID lists the nodes by the given application ID.",
+        "summary": "ListByApplicationID lists the nodes by the given application ID, sorted by the name of the node.",
         "operationId": "ListByApplicationID",
         "responses": {
           "200": {
@@ -326,6 +326,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Node is activated by ABP."
+        },
+        "isClassC": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Node operates in Class-C."
         }
       }
     },
@@ -460,6 +465,11 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the application owning the node."
+        },
+        "isClassC": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Node operates in Class-C."
         }
       }
     },
@@ -579,6 +589,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Node is activated by ABP."
+        },
+        "isClassC": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Node operates in Class-C."
         }
       }
     },

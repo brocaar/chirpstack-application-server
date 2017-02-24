@@ -30,7 +30,7 @@ service Node {
 		};
 	}
 
-	// ListByApplicationID lists the nodes by the given application ID.
+	// ListByApplicationID lists the nodes by the given application ID, sorted by the name of the node.
 	rpc ListByApplicationID(ListNodeByApplicationIDRequest) returns (ListNodeResponse) {
 		option (google.api.http) = {
 			get: "/api/applications/{applicationID}/nodes"
@@ -106,6 +106,9 @@ message CreateNodeRequest {
 
 	// Node is activated by ABP.
 	bool isABP = 15;
+
+	// Node operates in Class-C.
+	bool isClassC = 16;
 }
 
 message CreateNodeResponse {}
@@ -160,6 +163,9 @@ message GetNodeResponse {
 
 	// ID of the application owning the node.
 	int64 applicationID = 15;
+
+	// Node operates in Class-C.
+	bool isClassC = 16;
 };
 
 message DeleteNodeRequest {
@@ -234,6 +240,9 @@ message UpdateNodeRequest {
 
 	// Node is activated by ABP.
 	bool isABP = 15;
+
+	// Node operates in Class-C.
+	bool isClassC = 16;
 }
 
 message UpdateNodeResponse {}

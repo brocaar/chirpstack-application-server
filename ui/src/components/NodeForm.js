@@ -87,10 +87,22 @@ class NodeForm extends Component {
             <input className="form-control" id="appEUI" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required value={this.state.node.appEUI || ''} onChange={this.onChange.bind(this, 'appEUI')} />
           </div>
           <div className="form-group">
+            <label className="control-label">Class-C node</label>
+            <div className="checkbox">
+              <label>
+                <input type="checkbox" name="isClassC" id="isClassC" checked={this.state.node.isClassC} onChange={this.onChange.bind(this, 'isClassC')} /> Class-C node
+              </label>
+            </div>
+            <p className="help-block">
+              When checked, it means that the node operates in Class-C mode (always listening) and that data will be sent directly to the node. <br/>
+              In any other case, the data will be sent as soon as a receive window occurs.
+            </p>
+          </div>
+          <div className="form-group">
             <label className="control-label">ABP (activation by personalisation)</label>
             <div className="checkbox">
               <label>
-                <input type="checkbox" name="isABP" id="isABP" checked={this.state.node.isABP} onChange={this.onChange.bind(this, 'isABP')} /> ABP node
+                <input type="checkbox" name="isABP" id="isABP" checked={this.state.node.isABP} onChange={this.onChange.bind(this, 'isABP')} /> ABP activation
               </label>
             </div>
             <p className="help-block">When checked, it means that the node will be manually activated and that over-the-air activation (OTAA) will be disabled.</p>

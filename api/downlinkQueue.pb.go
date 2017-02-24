@@ -241,7 +241,8 @@ const _ = grpc.SupportPackageIsVersion4
 // Client API for DownlinkQueue service
 
 type DownlinkQueueClient interface {
-	// Enqueue adds the given item to the queue.
+	// Enqueue adds the given item to the queue. When the node operates in
+	// Class-C mode, the data will be pushed directly to the network-server.
 	Enqueue(ctx context.Context, in *EnqueueDownlinkQueueItemRequest, opts ...grpc.CallOption) (*EnqueueDownlinkQueueItemResponse, error)
 	// Delete deletes an item from the queue.
 	Delete(ctx context.Context, in *DeleteDownlinkQeueueItemRequest, opts ...grpc.CallOption) (*DeleteDownlinkQueueItemResponse, error)
@@ -287,7 +288,8 @@ func (c *downlinkQueueClient) List(ctx context.Context, in *ListDownlinkQueueIte
 // Server API for DownlinkQueue service
 
 type DownlinkQueueServer interface {
-	// Enqueue adds the given item to the queue.
+	// Enqueue adds the given item to the queue. When the node operates in
+	// Class-C mode, the data will be pushed directly to the network-server.
 	Enqueue(context.Context, *EnqueueDownlinkQueueItemRequest) (*EnqueueDownlinkQueueItemResponse, error)
 	// Delete deletes an item from the queue.
 	Delete(context.Context, *DeleteDownlinkQeueueItemRequest) (*DeleteDownlinkQueueItemResponse, error)
@@ -378,7 +380,7 @@ func init() { proto.RegisterFile("downlinkQueue.proto", fileDescriptor2) }
 
 var fileDescriptor2 = []byte{
 	// 437 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0x84, 0x54, 0x41, 0x6e, 0xd3, 0x40,
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x54, 0x41, 0x6e, 0xd3, 0x40,
 	0x14, 0xd5, 0xd8, 0x8e, 0xd3, 0x7e, 0x28, 0x12, 0x03, 0xaa, 0x8c, 0x29, 0xa9, 0x3b, 0x14, 0x64,
 	0x55, 0x28, 0x96, 0xca, 0x02, 0x89, 0x75, 0xbb, 0x88, 0x84, 0x10, 0x58, 0xe2, 0x00, 0xa6, 0xf3,
 	0x13, 0x8d, 0x48, 0x66, 0x1c, 0x7b, 0x02, 0x8b, 0x24, 0x1b, 0xae, 0xc0, 0x01, 0x38, 0x08, 0xc7,

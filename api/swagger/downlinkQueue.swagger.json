@@ -40,7 +40,7 @@
         ]
       },
       "post": {
-        "summary": "Enqueue adds the given item to the queue.",
+        "summary": "Enqueue adds the given item to the queue. When the node operates in\nClass-C mode, the data will be pushed directly to the network-server.",
         "operationId": "Enqueue",
         "responses": {
           "200": {

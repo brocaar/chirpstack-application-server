@@ -7,7 +7,8 @@ import "google/api/annotations.proto";
 
 // DownlinkQueue is the service managing the downlink data queue.
 service DownlinkQueue {
-	// Enqueue adds the given item to the queue.
+	// Enqueue adds the given item to the queue. When the node operates in
+	// Class-C mode, the data will be pushed directly to the network-server.
 	rpc Enqueue(EnqueueDownlinkQueueItemRequest) returns (EnqueueDownlinkQueueItemResponse) {
 		option(google.api.http) = {
 			post: "/api/nodes/{devEUI}/queue"

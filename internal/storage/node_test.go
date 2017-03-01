@@ -1,13 +1,14 @@
 package storage
 
 import (
-	"errors"
 	"testing"
+
+	"github.com/brocaar/lorawan"
+	"github.com/pkg/errors"
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/test"
-	"github.com/brocaar/lorawan"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestValidateDevNonce(t *testing.T) {
@@ -150,7 +151,7 @@ func TestNodeMethods(t *testing.T) {
 			err := CreateNode(db, node)
 
 			Convey("Then a validation error is returned", func() {
-				So(err, ShouldResemble, errors.New("validate node error: node name may only contain words, numbers and dashes"))
+				So(errors.Cause(err), ShouldResemble, ErrNodeInvalidName)
 			})
 		})
 

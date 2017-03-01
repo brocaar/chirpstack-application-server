@@ -80,7 +80,7 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 	}
 
 	if err := storage.CreateNode(a.ctx.DB, node); err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	return &pb.CreateNodeResponse{}, nil
@@ -95,7 +95,7 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 
 	node, err := storage.GetNode(a.ctx.DB, eui)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	if err := a.validator.Validate(ctx,
@@ -142,9 +142,12 @@ func (a *NodeAPI) ListByApplicationID(ctx context.Context, req *pb.ListNodeByApp
 
 	nodes, err := storage.GetNodesForApplicationID(a.ctx.DB, req.ApplicationID, int(req.Limit), int(req.Offset))
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
 	count, err := storage.GetNodesCountForApplicationID(a.ctx.DB, req.ApplicationID)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
 	return a.returnList(count, nodes)
 }
 
@@ -165,7 +168,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 
 	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	if err := a.validator.Validate(ctx,
@@ -198,7 +201,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 	}
 
 	if err := storage.UpdateNode(a.ctx.DB, node); err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	log.WithFields(log.Fields{
@@ -218,7 +221,7 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.De
 
 	node, err := storage.GetNode(a.ctx.DB, eui)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	if err := a.validator.Validate(ctx,
@@ -230,7 +233,7 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.De
 	}
 
 	if err := storage.DeleteNode(a.ctx.DB, node.DevEUI); err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	// try to delete the node-session
@@ -267,7 +270,7 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 
 	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	if err := a.validator.Validate(ctx,
@@ -292,7 +295,7 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 
 	cFList, err := storage.GetCFListForNode(a.ctx.DB, node)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	createNSReq := ns.CreateNodeSessionRequest{
@@ -318,7 +321,7 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 
 	_, err = a.ctx.NetworkServer.CreateNodeSession(context.Background(), &createNSReq)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	node.AppSKey = appSKey
@@ -326,7 +329,7 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 	node.NwkSKey = nwkSKey
 
 	if err = storage.UpdateNode(a.ctx.DB, node); err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	log.WithFields(log.Fields{
@@ -349,7 +352,7 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetNodeActivationRe
 
 	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	if err := a.validator.Validate(ctx,
@@ -364,7 +367,7 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetNodeActivationRe
 		DevEUI: node.DevEUI[:],
 	})
 	if err != nil {
-		return nil, err
+		return nil, errToRPCError(err)
 	}
 
 	copy(devAddr[:], ns.DevAddr)

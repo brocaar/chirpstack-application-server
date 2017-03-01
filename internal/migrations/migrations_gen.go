@@ -12,6 +12,7 @@
 // ../../migrations/0010_recreate_application_table.sql
 // ../../migrations/0011_node_description_and_is_abp.sql
 // ../../migrations/0012_class_c_node.sql
+// ../../migrations/0013_users_and_application_users.sql
 // DO NOT EDIT!
 
 package migrations
@@ -314,7 +315,27 @@ func _0012_class_c_nodeSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0012_class_c_node.sql", size: 147, mode: os.FileMode(420), modTime: time.Unix(1487752201, 0)}
+	info := bindataFileInfo{name: "0012_class_c_node.sql", size: 147, mode: os.FileMode(420), modTime: time.Unix(1487943610, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __0013_users_and_application_usersSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\xc4\x93\xcd\x72\xab\x30\x0c\x85\xd7\xe8\x29\x34\x59\xc1\x5c\x32\x93\x7b\xb7\x6c\xef\x2b\x74\xcd\x28\x58\x93\x68\x0a\xb2\x6b\x9b\xfc\xf4\xe9\x3b\x14\x68\x89\x43\xa7\xe9\xaa\x3b\x40\x47\xc7\x3a\x1f\xf2\x76\x8b\x7f\x3a\x39\x78\x8a\x8c\x4f\x0e\x1a\xcf\xc3\x53\xa4\x7d\xcb\xb8\xe9\x03\xfb\x0d\xe6\x90\x89\xc1\xbd\x1c\x02\x7b\xa1\x16\x9d\x97\x8e\xfc\x15\x9f\xf9\x5a\x42\x36\x76\x98\x9a\x22\x46\xe9\x38\x44\xea\x1c\x9e\x25\x1e\xdf\x5f\xf1\xd5\x2a\xa3\xda\x88\xda\xb7\x6d\x09\x59\xef\xcc\x8f\xe4\x81\xbd\x52\xc7\xd8\x1c\xc9\x53\x13\xd9\xe3\x89\xfc\x55\xf4\x80\xf9\xdf\xdd\xae\x58\x6a\x1d\x85\x70\xb6\xde\xac\x69\xff\x25\xda\xc0\x21\x88\xd5\x3a\xc6\x76\x48\x26\x1a\x97\x55\x09\x35\x35\x51\x4e\x8c\x7b\x6b\x5b\x26\x4d\x8b\xa6\x13\xbd\xab\x41\x51\xc1\x0c\xb0\x57\x79\xe9\x19\x45\x0d\x5f\x50\xcc\xa5\x1e\x82\xd4\x1f\x69\xac\x4e\x70\xf3\xf9\xd3\xa2\x77\x84\x4f\xce\xb5\xd2\x50\x1c\xa6\x1c\x44\xbf\xfe\x1b\xea\xf1\xf4\x04\xd5\x72\xcc\x55\xc1\x97\xb8\x4a\x80\x6c\xc4\x94\x4f\xf6\x25\xde\xba\x15\x4b\xa2\x9f\x28\x53\x32\xf5\x3c\x9d\xd5\x3b\x6a\xb3\x75\x51\x3d\xe0\x93\x64\x59\xb3\x4b\x06\xac\x00\x60\xba\x41\x83\xf7\x7f\x7b\x56\x30\xde\xba\xc7\x4f\xa9\xbe\xd5\x4f\x09\x26\xe1\xfa\x72\x54\x90\xda\xdc\xec\xdb\x4d\xef\xb8\x78\x15\xbc\x05\x00\x00\xff\xff\xca\xc1\x8d\x60\xfa\x03\x00\x00")
+
+func _0013_users_and_application_usersSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0013_users_and_application_usersSql,
+		"0013_users_and_application_users.sql",
+	)
+}
+
+func _0013_users_and_application_usersSql() (*asset, error) {
+	bytes, err := _0013_users_and_application_usersSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0013_users_and_application_users.sql", size: 1018, mode: os.FileMode(420), modTime: time.Unix(1488371971, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -383,6 +404,7 @@ var _bindata = map[string]func() (*asset, error){
 	"0010_recreate_application_table.sql": _0010_recreate_application_tableSql,
 	"0011_node_description_and_is_abp.sql": _0011_node_description_and_is_abpSql,
 	"0012_class_c_node.sql": _0012_class_c_nodeSql,
+	"0013_users_and_application_users.sql": _0013_users_and_application_usersSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -437,6 +459,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"0010_recreate_application_table.sql": &bintree{_0010_recreate_application_tableSql, map[string]*bintree{}},
 	"0011_node_description_and_is_abp.sql": &bintree{_0011_node_description_and_is_abpSql, map[string]*bintree{}},
 	"0012_class_c_node.sql": &bintree{_0012_class_c_nodeSql, map[string]*bintree{}},
+	"0013_users_and_application_users.sql": &bintree{_0013_users_and_application_usersSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory

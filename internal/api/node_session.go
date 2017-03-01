@@ -49,7 +49,7 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 
 	node, err := storage.GetNode(n.ctx.DB, devEUI)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	if err := n.validator.Validate(ctx,
@@ -77,13 +77,13 @@ func (n *NodeSessionAPI) Create(ctx context.Context, req *pb.CreateNodeSessionRe
 		InstallationMargin: req.InstallationMargin,
 	})
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "create node-session error: %s", err)
+		return nil, errToRPCError(err)
 	}
 
 	node.AppSKey = appSKey
 	node.DevAddr = devAddr
 	if err := storage.UpdateNode(n.ctx.DB, node); err != nil {
-		return nil, grpc.Errorf(codes.Internal, "update node error: %s", err)
+		return nil, errToRPCError(err)
 	}
 
 	log.WithFields(log.Fields{
@@ -107,7 +107,7 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 
 	node, err := storage.GetNode(n.ctx.DB, devEUI)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "get node error: %s", err)
+		return nil, errToRPCError(err)
 	}
 
 	if err := n.validator.Validate(ctx,
@@ -122,7 +122,7 @@ func (n *NodeSessionAPI) Get(ctx context.Context, req *pb.GetNodeSessionRequest)
 		DevEUI: node.DevEUI[:],
 	})
 	if err != nil {
-		return nil, err
+		return nil, errToRPCError(err)
 	}
 
 	copy(devAddr[:], resp.DevAddr)
@@ -173,7 +173,7 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 
 	node, err := storage.GetNode(n.ctx.DB, devEUI)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	if err := n.validator.Validate(ctx,
@@ -201,13 +201,13 @@ func (n *NodeSessionAPI) Update(ctx context.Context, req *pb.UpdateNodeSessionRe
 		InstallationMargin: req.InstallationMargin,
 	})
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "create node-session error: %s", err)
+		return nil, errToRPCError(err)
 	}
 
 	node.AppSKey = appSKey
 	node.DevAddr = devAddr
 	if err := storage.UpdateNode(n.ctx.DB, node); err != nil {
-		return nil, grpc.Errorf(codes.Internal, "update node error: %s", err)
+		return nil, errToRPCError(err)
 	}
 
 	log.WithFields(log.Fields{
@@ -228,7 +228,7 @@ func (n *NodeSessionAPI) Delete(ctx context.Context, req *pb.DeleteNodeSessionRe
 
 	node, err := storage.GetNode(n.ctx.DB, devEUI)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, "get node error: %s", err)
+		return nil, errToRPCError(err)
 	}
 
 	if err := n.validator.Validate(ctx,
@@ -243,7 +243,7 @@ func (n *NodeSessionAPI) Delete(ctx context.Context, req *pb.DeleteNodeSessionRe
 		DevEUI: node.DevEUI[:],
 	})
 	if err != nil {
-		return nil, err
+		return nil, errToRPCError(err)
 	}
 
 	log.WithFields(log.Fields{
@@ -265,7 +265,7 @@ func (n *NodeSessionAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandom
 
 	resp, err := n.ctx.NetworkServer.GetRandomDevAddr(context.Background(), &ns.GetRandomDevAddrRequest{})
 	if err != nil {
-		return nil, err
+		return nil, errToRPCError(err)
 	}
 
 	var devAddr lorawan.DevAddr

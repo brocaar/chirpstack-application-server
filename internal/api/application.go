@@ -38,7 +38,7 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 	}
 
 	if err := storage.CreateApplication(a.ctx.DB, &app); err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	return &pb.CreateApplicationResponse{
@@ -56,7 +56,7 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 
 	app, err := storage.GetApplication(a.ctx.DB, req.Id)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 	return &pb.GetApplicationResponse{
 		Id:          app.ID,
@@ -75,7 +75,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 
 	app, err := storage.GetApplication(a.ctx.DB, req.Id)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	// update the fields
@@ -84,7 +84,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 
 	err = storage.UpdateApplication(a.ctx.DB, app)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	return &pb.UpdateApplicationResponse{}, nil
@@ -100,7 +100,7 @@ func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRe
 
 	err := storage.DeleteApplication(a.ctx.DB, req.Id)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 	return &pb.DeleteApplicationResponse{}, nil
 }
@@ -114,12 +114,12 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 
 	apps, err := storage.GetApplications(a.ctx.DB, int(req.Limit), int(req.Offset))
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	count, err := storage.GetApplicationCount(a.ctx.DB)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	resp := pb.ListApplicationResponse{

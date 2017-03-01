@@ -1,12 +1,14 @@
 package storage
 
 import (
-	"errors"
+	"database/sql"
 	"fmt"
 	"regexp"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
+	"github.com/pkg/errors"
 )
 
 var applicationNameRegexp = regexp.MustCompile(`^[\w-]+$`)
@@ -21,7 +23,7 @@ type Application struct {
 // Validate validates the data of the Application.
 func (a Application) Validate() error {
 	if !applicationNameRegexp.MatchString(a.Name) {
-		return errors.New("application name may only contain words, numbers and dashes")
+		return ErrApplicationInvalidName
 	}
 	return nil
 }
@@ -29,7 +31,7 @@ func (a Application) Validate() error {
 // CreateApplication creates the given Application.
 func CreateApplication(db *sqlx.DB, item *Application) error {
 	if err := item.Validate(); err != nil {
-		return fmt.Errorf("validate application error: %s", err)
+		return errors.Wrap(err, "validate error")
 	}
 
 	err := db.Get(&item.ID, `
@@ -41,7 +43,17 @@ func CreateApplication(db *sqlx.DB, item *Application) error {
 		item.Description,
 	)
 	if err != nil {
-		return fmt.Errorf("create application error: %s", err)
+		switch err := err.(type) {
+		case *pq.Error:
+			switch err.Code.Name() {
+			case "unique_violation":
+				return ErrAlreadyExists
+			default:
+				return errors.Wrap(err, "insert error")
+			}
+		default:
+			return errors.Wrap(err, "insert error")
+		}
 	}
 	log.WithFields(log.Fields{
 		"id":   item.ID,
@@ -55,7 +67,10 @@ func GetApplication(db *sqlx.DB, id int64) (Application, error) {
 	var app Application
 	err := db.Get(&app, "select * from application where id = $1", id)
 	if err != nil {
-		return app, fmt.Errorf("get application error: %s", err)
+		if err == sql.ErrNoRows {
+			return app, ErrDoesNotExist
+		}
+		return app, errors.Wrap(err, "select error")
 	}
 	return app, nil
 }
@@ -65,7 +80,7 @@ func GetApplicationCount(db *sqlx.DB) (int, error) {
 	var count int
 	err := db.Get(&count, "select count(*) from application")
 	if err != nil {
-		return 0, fmt.Errorf("get applications count error: %s", err)
+		return 0, errors.Wrap(err, "select error")
 	}
 	return count, nil
 }
@@ -76,7 +91,7 @@ func GetApplications(db *sqlx.DB, limit, offset int) ([]Application, error) {
 	var apps []Application
 	err := db.Select(&apps, "select * from application order by name limit $1 offset $2", limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("get applications error: %s", err)
+		return nil, errors.Wrap(err, "select error")
 	}
 	return apps, nil
 }
@@ -98,14 +113,24 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 		item.Description,
 	)
 	if err != nil {
-		return fmt.Errorf("update application error: %s", err)
+		switch err := err.(type) {
+		case *pq.Error:
+			switch err.Code.Name() {
+			case "unique_violation":
+				return ErrAlreadyExists
+			default:
+				return errors.Wrap(err, "update error")
+			}
+		default:
+			return errors.Wrap(err, "update error")
+		}
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "get rows affected error")
 	}
 	if ra == 0 {
-		return fmt.Errorf("application %d does not exist", item.ID)
+		return ErrDoesNotExist
 	}
 	log.WithFields(log.Fields{
 		"id":   item.ID,
@@ -119,14 +144,14 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 func DeleteApplication(db *sqlx.DB, id int64) error {
 	res, err := db.Exec("delete from application where id = $1", id)
 	if err != nil {
-		return fmt.Errorf("delete application error: %s", err)
+		return errors.Wrap(err, "delete error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "get rows affected error")
 	}
 	if ra == 0 {
-		return fmt.Errorf("application with id %d does not exist", id)
+		return ErrDoesNotExist
 	}
 	log.WithFields(log.Fields{
 		"id": id,

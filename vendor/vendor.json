@@ -153,6 +153,12 @@
 			"revisionTime": "2017-01-17T20:56:33Z"
 		},
 		{
+			"checksumSHA1": "ynJSWoF6v+3zMnh9R0QmmG6iGV8=",
+			"path": "github.com/pkg/errors",
+			"revision": "bfd5150e4e41705ded2129ec33379de1cb90b513",
+			"revisionTime": "2017-02-27T22:00:37Z"
+		},
+		{
 			"checksumSHA1": "Qgwcmaxcms96cseiKeTu73RiKJw=",
 			"path": "github.com/rubenv/sql-migrate",
 			"revision": "1ed79968dfca5de79adb13c84523caaa4fc865a9",

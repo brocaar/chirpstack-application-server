@@ -1,10 +1,10 @@
 package storage
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -24,7 +24,7 @@ func TestApplication(t *testing.T) {
 
 			Convey("Then an error is returned", func() {
 				So(err, ShouldNotBeNil)
-				So(err, ShouldResemble, errors.New("validate application error: application name may only contain words, numbers and dashes"))
+				So(errors.Cause(err), ShouldResemble, ErrApplicationInvalidName)
 			})
 		})
 

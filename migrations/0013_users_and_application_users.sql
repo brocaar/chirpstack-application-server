@@ -4,7 +4,7 @@ create table "user" (
 	created_at timestamp with time zone not null,
 	updated_at timestamp with time zone not null,
 	username character varying (100) not null,
-	password character varying (200) not null,
+	password_hash character varying (200) not null,
 	session_ttl bigint not null,
 	is_active boolean not null,
 	is_admin boolean not null

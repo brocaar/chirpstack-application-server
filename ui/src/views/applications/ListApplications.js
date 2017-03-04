@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
+import Pagination from "../../components/Pagination";
 import ApplicationStore from "../../stores/ApplicationStore";
 
 class ApplicationRow extends Component {
@@ -19,10 +20,33 @@ class ListApplications extends Component {
   constructor() {
     super();
     this.state = {
+      pageSize: 20,
       applications: [],
+      pageNumber: 1,
+      pages: 1,
     };
-    ApplicationStore.getAll((applications) => {
-      this.setState({applications: applications});
+
+    this.updatePage = this.updatePage.bind(this);
+  }
+
+  componentDidMount() {
+    this.updatePage(this.props);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.updatePage(nextProps);
+  }
+
+  updatePage(props) {
+    const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+
+    ApplicationStore.getAll(this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, applications) => {
+      this.setState({
+        applications: applications,
+        pageNumber: page,
+        pages: Math.ceil(totalCount / this.state.pageSize),
+      });
+      window.scrollTo(0, 0);
     });
   }
 
@@ -57,6 +81,7 @@ class ListApplications extends Component {
               </tbody>
             </table>
           </div>
+          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname="/" />
         </div>
       </div>
     );

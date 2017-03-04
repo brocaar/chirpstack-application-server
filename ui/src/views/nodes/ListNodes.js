@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
+import Pagination from "../../components/Pagination";
 import NodeStore from "../../stores/NodeStore";
 import ApplicationStore from "../../stores/ApplicationStore";
 
@@ -30,18 +31,37 @@ class ListNodes extends Component {
     this.state = {
       application: {},
       nodes: [],
+      pageSize: 20,
+      pageNumber: 1,
+      pages: 1,
     };
 
     this.onDelete = this.onDelete.bind(this);
+    this.updatePage = this.updatePage.bind(this);
   }
 
   componentWillMount() {
-    NodeStore.getAll(this.props.params.applicationID, (nodes) => {
-      this.setState({nodes: nodes});
-    });
-
+    this.updatePage(this.props);
     ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
       this.setState({application: application});
+    });
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.updatePage(nextProps);
+  }
+
+
+  updatePage(props) {
+    const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+  
+    NodeStore.getAll(this.props.params.applicationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, nodes) => {
+      this.setState({
+        nodes: nodes,
+        pageNumber: page,
+        pages: Math.ceil(totalCount / this.state.pageSize),
+      });
+      window.scrollTo(0, 0);
     });
   }
 
@@ -88,6 +108,7 @@ class ListNodes extends Component {
               </tbody>
             </table>
           </div>
+          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/applications/${this.props.params.applicationID}`} />
         </div>
       </div>
     );

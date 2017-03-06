@@ -27,7 +27,7 @@ create index idx_application_user_user_id on application_user(user_id);
 create index idx_application_user_application_id on application_user(application_id);
 
 
--- +migate Down
+-- +migrate Down
 drop index idx_application_user_application_id;
 drop index idx_application_user_user_id;
 drop table application_user;

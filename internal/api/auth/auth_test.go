@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"errors"
 	"testing"
 	"time"
 
@@ -9,150 +8,16 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/brocaar/lorawan"
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestValidateApplication(t *testing.T) {
-	Convey("Given a test table", t, func() {
-		testTable := []struct {
-			Description   string
-			ApplicationID int64
-			Claims        Claims
-			Error         error
-		}{
-			{
-				Description:   "User is admin",
-				ApplicationID: 123,
-				Claims:        Claims{Admin: true},
-				Error:         nil,
-			},
-			{
-				Description:   "User has access to all applications",
-				ApplicationID: 123,
-				Claims:        Claims{Applications: []string{"*"}},
-				Error:         nil,
-			},
-			{
-				Description:   "User has access specific application",
-				ApplicationID: 123,
-				Claims:        Claims{Applications: []string{"123"}},
-				Error:         nil,
-			},
-			{
-				Description:   "User has no permission to application",
-				ApplicationID: 123,
-				Claims:        Claims{Applications: []string{"124"}},
-				Error:         errors.New("no permission to application id 123"),
-			},
-		}
-
-		for _, test := range testTable {
-			Convey("Test: "+test.Description, func() {
-				v1 := ValidateApplicationID(test.ApplicationID)
-				So(v1(&test.Claims), ShouldResemble, test.Error)
-			})
-		}
-	})
-}
-
-func TestValidateNode(t *testing.T) {
-	Convey("Given a test table", t, func() {
-		testTable := []struct {
-			Description string
-			DevEUI      lorawan.EUI64
-			Claims      Claims
-			Error       error
-		}{
-			{
-				Description: "User is admin",
-				DevEUI:      [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-				Claims:      Claims{Admin: true},
-				Error:       nil,
-			},
-			{
-				Description: "User has access to all nodes",
-				DevEUI:      [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-				Claims:      Claims{Nodes: []string{"*"}},
-				Error:       nil,
-			},
-			{
-				Description: "User has access specific node",
-				DevEUI:      [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-				Claims:      Claims{Nodes: []string{"0102030405060708"}},
-				Error:       nil,
-			},
-			{
-				Description: "User has no permission to node",
-				DevEUI:      [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-				Claims:      Claims{Nodes: []string{"0807060504030201"}},
-				Error:       errors.New("no permission to node 0102030405060708"),
-			},
-		}
-
-		for _, test := range testTable {
-			Convey("Test: "+test.Description, func() {
-				v1 := ValidateNode(test.DevEUI)
-				So(v1(&test.Claims), ShouldResemble, test.Error)
-			})
-		}
-	})
-}
-
-func TestValidateAPIMethod(t *testing.T) {
-	Convey("Given a test table", t, func() {
-		testTable := []struct {
-			Description string
-			APIMethod   string
-			Claims      Claims
-			Error       error
-		}{
-			{
-				Description: "User is admin",
-				APIMethod:   "TestAPI.TestMethod",
-				Claims:      Claims{Admin: true},
-				Error:       nil,
-			},
-			{
-				Description: "User has access to all methods",
-				APIMethod:   "TestAPI.TestMethod",
-				Claims:      Claims{APIMethods: []string{"*"}},
-				Error:       nil,
-			},
-			{
-				Description: "User has access to all methods of same API",
-				APIMethod:   "TestAPI.TestMethod",
-				Claims:      Claims{APIMethods: []string{"TestAPI.*"}},
-				Error:       nil,
-			},
-			{
-				Description: "User has access to specific method",
-				APIMethod:   "TestAPI.TestMethod",
-				Claims:      Claims{APIMethods: []string{"TestAPI.TestMethod"}},
-				Error:       nil,
-			},
-			{
-				Description: "User has access to multiple methods of same API",
-				APIMethod:   "TestAPI.TestMethod",
-				Claims:      Claims{APIMethods: []string{"TestAPI.(TestMethod|OtherTestMethod)"}},
-				Error:       nil,
-			},
-			{
-				Description: "User doesn't have access to api method",
-				APIMethod:   "TestAPI.TestMethod",
-				Claims:      Claims{APIMethods: []string{"API.(TestMethod|OtherTestMethod)", "API.*", "API.TestMethod"}},
-				Error:       errors.New("no permission to api method: TestAPI.TestMethod"),
-			},
-		}
-
-		for _, test := range testTable {
-			Convey("Test: "+test.Description, func() {
-				v := ValidateAPIMethod(test.APIMethod)
-				So(v(&test.Claims), ShouldResemble, test.Error)
-			})
-		}
-	})
+func testValidator(pass bool, err error) ValidatorFunc {
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return pass, err
+	}
 }
 
 func TestJWTValidator(t *testing.T) {
@@ -167,35 +32,41 @@ func TestJWTValidator(t *testing.T) {
 			Key           string
 			Claims        Claims
 			ValidatorFunc ValidatorFunc
-			Error         error
+			Error         string
 		}{
 			{
 				Description:   "valid key and passing validation",
 				Key:           v.secret,
-				Claims:        Claims{Admin: true},
-				ValidatorFunc: ValidateNode([8]byte{1, 2, 3, 4, 5, 6, 7, 8}),
-				Error:         nil,
+				Claims:        Claims{},
+				ValidatorFunc: testValidator(true, nil),
 			},
 			{
 				Description:   "valid key and expired token",
 				Key:           v.secret,
-				Claims:        Claims{Admin: true, StandardClaims: jwt.StandardClaims{ExpiresAt: time.Now().Unix() - 1}},
-				ValidatorFunc: ValidateNode([8]byte{1, 2, 3, 4, 5, 6, 7, 8}),
-				Error:         errors.New("api/auth: jwt parse error: token is expired by 1s"),
+				Claims:        Claims{StandardClaims: jwt.StandardClaims{ExpiresAt: time.Now().Unix() - 1}},
+				ValidatorFunc: testValidator(true, nil),
+				Error:         "token is expired by 1s",
 			},
 			{
 				Description:   "invalid key",
 				Key:           "differentsecret",
-				Claims:        Claims{Admin: true},
-				ValidatorFunc: ValidateNode([8]byte{1, 2, 3, 4, 5, 6, 7, 8}),
-				Error:         errors.New("api/auth: jwt parse error: signature is invalid"),
+				Claims:        Claims{},
+				ValidatorFunc: testValidator(true, nil),
+				Error:         "signature is invalid",
 			},
 			{
 				Description:   "valid key but failing validation",
 				Key:           v.secret,
 				Claims:        Claims{},
-				ValidatorFunc: ValidateNode([8]byte{1, 2, 3, 4, 5, 6, 7, 8}),
-				Error:         errors.New("auth/api: no permission to node 0102030405060708"),
+				ValidatorFunc: testValidator(false, nil),
+				Error:         "not authorized",
+			},
+			{
+				Description:   "valid key but validation returning error",
+				Key:           v.secret,
+				Claims:        Claims{},
+				ValidatorFunc: testValidator(true, errors.New("boom!")),
+				Error:         "boom!",
 			},
 		}
 
@@ -210,7 +81,9 @@ func TestJWTValidator(t *testing.T) {
 					"authorization": []string{ss},
 				})
 
-				So(v.Validate(ctx, test.ValidatorFunc), ShouldResemble, test.Error)
+				if test.Error != "" {
+					So(errors.Cause(v.Validate(ctx, test.ValidatorFunc)).Error(), ShouldResemble, test.Error)
+				}
 			})
 		}
 	})

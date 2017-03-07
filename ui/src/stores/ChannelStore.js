@@ -1,23 +1,8 @@
 import { EventEmitter } from "events";
 import "whatwg-fetch";
-import dispatcher from "../dispatcher";
 import tokenStore from "./TokenStore";
+import { checkStatus, errorHandler } from "./helpers";
 
-var checkStatus = (response) => {
-  if (response.status >= 200 && response.status < 300) {
-    return response
-  } else {
-    throw response.json();
-  }
-};
-
-var errorHandler = (error) => {
-  console.log(error);
-  error.then((data) => dispatcher.dispatch({
-    type: "CREATE_ERROR",
-    error: data,
-  }));
-};
 
 class ChannelStore extends EventEmitter {
   getAllChannelLists(callbackFunc) {

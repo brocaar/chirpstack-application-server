@@ -1,8 +1,7 @@
 import { EventEmitter } from "events";
-import { hashHistory } from "react-router";
 import "whatwg-fetch";
-import dispatcher from "../dispatcher";
 import tokenStore from "./TokenStore";
+import { checkStatus, errorHandler } from "./helpers";
 
 var checkGetActivationStatus = (response) => {
   if (response.status >= 200 && response.status < 300) {
@@ -10,28 +9,6 @@ var checkGetActivationStatus = (response) => {
   } else {
     // dont return an error when there is no activation
   }
-};
-
-var checkStatus = (response) => {
-  if (response.status >= 200 && response.status < 300) {
-    return response
-  } else {
-    throw response.json();
-  }
-};
-
-var errorHandler = (error) => {
-  console.log(error);
-  error.then((data) => {
-    dispatcher.dispatch({
-      type: "CREATE_ERROR",
-      error: data,
-    });
-
-    if (data.Code === 16) {
-      hashHistory.push("/jwt");
-    }
-  });
 };
 
 class NodeStore extends EventEmitter {

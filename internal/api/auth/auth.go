@@ -28,6 +28,9 @@ type Validator interface {
 	// func needs to be implemented which validates a given set of funcs as:
 	//   if validatorFunc1 && validatorFunc2 && ValidatorFunc3 ...
 	Validate(context.Context, ...ValidatorFunc) error
+
+	// GetUsername returns the name of the authenticated user.
+	GetUsername(context.Context) (string, error)
 }
 
 // ValidatorFunc defines the signature of a claim validator function.
@@ -63,29 +66,9 @@ func NewJWTValidator(db *sqlx.DB, algorithm, secret string) *JWTValidator {
 // Validate validates the token from the given context against the given
 // validator funcs.
 func (v JWTValidator) Validate(ctx context.Context, funcs ...ValidatorFunc) error {
-	tokenStr, err := getTokenFromContext(ctx)
+	claims, err := v.getClaims(ctx)
 	if err != nil {
-		return errors.Wrap(err, "get token from context error")
-	}
-
-	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if token.Header["alg"] != v.algorithm {
-			return nil, ErrInvalidAlgorithm
-		}
-		return []byte(v.secret), nil
-	})
-	if err != nil {
-		return errors.Wrap(err, "jwt parse error")
-	}
-
-	if !token.Valid {
-		return ErrInvalidToken
-	}
-
-	claims, ok := token.Claims.(*Claims)
-	if !ok {
-		// no need to use a static error, this should never happen
-		return fmt.Errorf("api/auth: expected *Claims, got %T", token.Claims)
+		return err
 	}
 
 	for _, f := range funcs {
@@ -99,6 +82,45 @@ func (v JWTValidator) Validate(ctx context.Context, funcs ...ValidatorFunc) erro
 	}
 
 	return ErrNotAuthorized
+}
+
+// GetUsername returns the username of the authenticated user.
+func (v JWTValidator) GetUsername(ctx context.Context) (string, error) {
+	claims, err := v.getClaims(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	return claims.Username, nil
+}
+
+func (v JWTValidator) getClaims(ctx context.Context) (*Claims, error) {
+	tokenStr, err := getTokenFromContext(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "get token from context error")
+	}
+
+	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		if token.Header["alg"] != v.algorithm {
+			return nil, ErrInvalidAlgorithm
+		}
+		return []byte(v.secret), nil
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "jwt parse error")
+	}
+
+	if !token.Valid {
+		return nil, ErrInvalidToken
+	}
+
+	claims, ok := token.Claims.(*Claims)
+	if !ok {
+		// no need to use a static error, this should never happen
+		return nil, fmt.Errorf("api/auth: expected *Claims, got %T", token.Claims)
+	}
+
+	return claims, nil
 }
 
 func getTokenFromContext(ctx context.Context) (string, error) {

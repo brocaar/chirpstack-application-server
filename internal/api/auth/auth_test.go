@@ -37,7 +37,7 @@ func TestJWTValidator(t *testing.T) {
 			{
 				Description:   "valid key and passing validation",
 				Key:           v.secret,
-				Claims:        Claims{},
+				Claims:        Claims{Username: "foobar"},
 				ValidatorFunc: testValidator(true, nil),
 			},
 			{
@@ -83,6 +83,10 @@ func TestJWTValidator(t *testing.T) {
 
 				if test.Error != "" {
 					So(errors.Cause(v.Validate(ctx, test.ValidatorFunc)).Error(), ShouldResemble, test.Error)
+				} else {
+					username, err := v.GetUsername(ctx)
+					So(err, ShouldBeNil)
+					So(username, ShouldEqual, test.Claims.Username)
 				}
 			})
 		}

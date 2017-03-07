@@ -24,12 +24,14 @@ func TestApplicationAPI(t *testing.T) {
 		lsCtx := common.Context{DB: db}
 		validator := &TestValidator{}
 		api := NewApplicationAPI(lsCtx, validator)
+		apiuser := NewUserAPI(lsCtx, validator)
 
 		Convey("When creating an application", func() {
-			createResp, err := api.Create(ctx, &pb.CreateApplicationRequest{
+			createReq := &pb.CreateApplicationRequest{
 				Name:        "test-app",
 				Description: "A test application",
-			})
+			}	
+			createResp, err := api.Create(ctx, createReq )
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
 			So(validator.validatorFuncs, ShouldHaveLength, 1)
@@ -63,6 +65,93 @@ func TestApplicationAPI(t *testing.T) {
 					Id:          createResp.Id,
 					Name:        "test-app",
 					Description: "A test application",
+				})
+			})
+
+			Convey("When creating a user", func() {
+				createUserReq :=  &pb.UserAddRequest{
+					Username:    "username",
+					Password:    "pass^^ord",
+					IsAdmin:     true,
+					SessionTTL:  180,
+				}
+				createRespUser, err := apiuser.CreateUser(ctx, createUserReq)
+				So(err, ShouldBeNil)
+				So(createRespUser.Id, ShouldBeGreaterThan, 0)
+
+				Convey("Then the user can be added to the application", func() {
+					addReq := &pb.AddApplicationUserRequest{
+						Id: createResp.Id,
+						Userid: createRespUser.Id,
+						IsAdmin: true,
+					}
+					noresp, err := api.AddUser( ctx, addReq )
+					So(err, ShouldBeNil)
+					So(noresp, ShouldNotBeNil)
+					// Reused a lot below.
+					getReq := &pb.ApplicationUserRequest{
+						Id: createResp.Id,
+						Userid: createRespUser.Id,
+					}
+					Convey("Then the user can be accessed via application get", func() {
+						getUserResp, err := api.GetUser(ctx, getReq )
+						So(err, ShouldBeNil)
+						So(getUserResp.Username, ShouldEqual, createUserReq.Username)
+						So(getUserResp.IsAdmin, ShouldEqual, createUserReq.IsAdmin)
+					})
+					Convey("Then the user profile includes the application", func() {
+						getUserFromUser, err := apiuser.GetUser(ctx, &pb.UserRequest{ Id: createRespUser.Id } )
+						So(err, ShouldBeNil)
+						So(getUserFromUser.Info.UserSettings.Username, ShouldEqual, createUserReq.Username)
+						So(getUserFromUser.Info.UserSettings.IsAdmin, ShouldEqual, createUserReq.IsAdmin)
+						So(getUserFromUser.Info.UserSettings.SessionTTL, ShouldEqual, createUserReq.SessionTTL)
+						So(getUserFromUser.Info.UserSettings.CreatedAt, ShouldEqual, getUserFromUser.Info.UserSettings.UpdatedAt)
+						So(getUserFromUser.Info.UserProfile.Applications, ShouldHaveLength, 1)
+						So(getUserFromUser.Info.UserProfile.Applications[0].ApplicationID, ShouldEqual, createResp.Id)
+						So(getUserFromUser.Info.UserProfile.Applications[0].ApplicationName, ShouldEqual, createReq.Name)
+						So(getUserFromUser.Info.UserProfile.Applications[0].IsAdmin, ShouldEqual, createUserReq.IsAdmin)
+						So(getUserFromUser.Info.UserProfile.Applications[0].CreatedAt, ShouldResemble, getUserFromUser.Info.UserProfile.Applications[0].UpdatedAt)
+					})
+					Convey("Then the user can be accessed via get all users for application", func() {
+						getUserList := &pb.ListApplicationUsersRequest{
+							Id: createResp.Id,
+							Limit:  10,
+							Offset: 0,
+						}
+						listAppResp, err := api.ListUsers( ctx, getUserList )
+						So(err, ShouldBeNil)
+						So(listAppResp, ShouldNotBeNil)
+						So(listAppResp.TotalCount, ShouldEqual, 1)
+						So(listAppResp.Result, ShouldHaveLength, 1)
+						So(listAppResp.Result[0].Username, ShouldEqual, createUserReq.Username)
+						So(listAppResp.Result[0].IsAdmin, ShouldEqual, createUserReq.IsAdmin)
+					})
+					Convey("Then the user access to the application can be updated", func() {
+						updReq := &pb.UpdateApplicationUserRequest{
+							Id: createResp.Id,
+							Userid: createRespUser.Id,
+							IsAdmin: false,
+						}
+						empty, err := api.UpdateUser( ctx, updReq )
+						So(err, ShouldBeNil)
+						Convey("Then the user can be accessed showing the new setting", func() {
+							getUserResp, err := api.GetUser(ctx, getReq )
+							So(err, ShouldBeNil)
+							So(empty, ShouldNotBeNil)
+							So(getUserResp.Username, ShouldEqual, createUserReq.Username)
+							So(getUserResp.IsAdmin, ShouldEqual, updReq.IsAdmin)
+						})
+					})
+					Convey("Then the user can be deleted from the application", func() {
+						empty, err := api.DeleteUser( ctx, getReq )
+						So(err, ShouldBeNil)
+						So(empty, ShouldNotBeNil)
+						Convey("Then the user cannot be accessed via get", func() {
+							getUserResp, err := api.GetUser(ctx, getReq )
+							So(err, ShouldNotBeNil)
+							So(getUserResp, ShouldBeNil)
+						})
+					})
 				})
 			})
 

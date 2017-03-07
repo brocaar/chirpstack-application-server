@@ -54,6 +54,65 @@ func TestApplication(t *testing.T) {
 				So(count, ShouldEqual, 1)
 			})
 
+			Convey("When creating a user", func() {
+				user := User {
+					Username: "username",
+					IsAdmin: false,
+					SessionTTL: 20,
+				}
+				password := "somepassword"
+				userId, err := CreateUser(db, &user, password)
+				So(err, ShouldBeNil)
+
+				Convey("Then the user can be added to the application", func() {
+					err := CreateUserForApplication(db, app.ID, userId, true )
+					So(err, ShouldBeNil)
+					Convey("Then the user count for the application is 1", func() {
+						count, err := GetApplicationUsersCount(db, app.ID )
+						So(err, ShouldBeNil)
+						So(count, ShouldEqual, 1)
+					})
+					Convey("Then the user can be accessed via application get", func() {
+						ua, err := GetUserForApplication(db, app.ID, userId )
+						So(err, ShouldBeNil)
+						So(ua.UserId, ShouldEqual, userId)
+						So(ua.Username, ShouldEqual, user.Username)
+						So(ua.IsAdmin, ShouldEqual, true)
+						So(ua.CreatedAt, ShouldResemble, ua.UpdatedAt)
+					})
+					Convey("Then the user can be accessed via get all users for application", func() {
+						uas, err := GetApplicationUsers(db, app.ID, 10, 0 )
+						So(err, ShouldBeNil)
+						So(uas, ShouldNotBeNil)
+						So(uas, ShouldHaveLength, 1)
+						So(uas[0].UserId, ShouldEqual, userId)
+						So(uas[0].Username, ShouldEqual, user.Username)
+						So(uas[0].IsAdmin, ShouldEqual, true)
+						So(uas[0].CreatedAt, ShouldResemble, uas[0].UpdatedAt)
+					})
+					Convey("Then the user access to the application can be updated", func() {
+						err := UpdateUserForApplication(db, app.ID, userId, false )
+						So(err, ShouldBeNil)
+						Convey("Then the user can be accessed showing the new setting", func() {
+							ua, err := GetUserForApplication(db, app.ID, userId )
+							So(err, ShouldBeNil)
+							So(ua.UserId, ShouldEqual, userId)
+							So(ua.IsAdmin, ShouldEqual, false)
+							So(ua.CreatedAt, ShouldNotResemble, ua.UpdatedAt)
+						})
+					})
+					Convey("Then the user can be deleted from the application", func() {
+						err := DeleteUserForApplication(db, app.ID, userId )
+						So(err, ShouldBeNil)
+						Convey("Then the user cannot be accessed via get", func() {
+							ua, err := GetUserForApplication(db, app.ID, userId )
+							So(err, ShouldNotBeNil)
+							So(ua, ShouldBeNil)
+						})
+					})
+				})
+			})
+
 			Convey("When updating the application", func() {
 				app.Description = "some new description"
 				So(UpdateApplication(db, app), ShouldBeNil)

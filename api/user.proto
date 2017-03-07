@@ -1,0 +1,201 @@
+syntax = "proto3";
+
+package api;
+
+
+// for grpc-gateway
+import "google/api/annotations.proto";
+
+// User is the service managing the user access.
+service User {
+    // Get user list.
+    rpc GetUserList(UserListRequest) returns (UserListResponse) {
+        option(google.api.http) = {
+            get: "/api/users"
+        };
+    }
+
+    // Get data for a particular user.
+    rpc GetUser(UserRequest) returns (UserResponse) {
+        option(google.api.http) = {
+            get: "/api/users/{id}"
+        };
+    }
+
+    // Create a new user.
+    rpc CreateUser(UserAddRequest) returns (UserAddResponse) {
+        option(google.api.http) = {
+            post: "/api/users"
+        };
+    }
+
+    // Update an existing user.
+    rpc UpdateUser(UserUpdateRequest) returns (UserEmptyResponse) {
+        option(google.api.http) = {
+            put: "/api/users/{id}"
+        };
+    }
+
+    // Delete a user.
+    rpc DeleteUser(UserRequest) returns (UserEmptyResponse) {
+        option(google.api.http) = {
+            delete: "/api/users/{id}"
+        };
+    }
+
+    // Update a password.
+    rpc UpdateUserPassword(UserPasswordRequest) returns (UserEmptyResponse) {
+        option(google.api.http) = {
+            put: "/api/users/{id}/password/{password}"
+        };
+    }
+
+}
+
+// Internal is the service managing the user login and profile.
+service Internal {
+    // Log in a user
+    rpc Login(LoginRequest) returns (LoginResponse) {
+        option(google.api.http) = {
+            post: "/api/internal/login/{username}/{password}"
+        };
+    }
+
+    // Get the current user's profile
+    rpc Profile(ProfileRequest) returns (ProfileResponse) {
+        option(google.api.http) = {
+            get: "/api/internal/profile"
+        };
+    }
+}
+
+// Defines the applications that the user is associated with.
+message ApplicationLink {
+    int64 applicationID = 1;
+    string applicationName = 2;
+    bool isAdmin = 3;
+    string createdAt = 4;
+    string updatedAt = 5;
+}
+    
+// The user profile, indicating the capabilities of the user.
+message UserProfile {
+	repeated ApplicationLink applications = 1;
+}
+
+// The request for profile requires not input as the profile is returned for 
+// the logged in user based on the JWT token passed in.
+message ProfileRequest {
+}
+
+// The user's profile.  This specifies the access the user has to the data 
+// and should be used limit what the UI presents as options (e.g., read-only
+// access to an application should not allow an "edit" button on that 
+// application).
+message ProfileResponse {
+	UserProfile userProfile = 1;
+}
+
+
+// The data for logging in to the system.  The connection is expected to be 
+// protected by SSL, allowing us to use the username and password in the clear.
+message LoginRequest {
+	// Logs in the user using the username and password
+	string username = 1;
+	string password = 2;
+}
+
+// The response to the login request upon success.  The jwt token is to be 
+// placed in the header field named "Grpc-Metadata-Authorization" for all
+// subsequent queries to the server.
+message LoginResponse {
+	// The JWT tag to be used to access lora-app-server interfaces
+	string jwt = 1;
+	// The user's profile (provided as a convenience so an additional call to
+	// get the profile can be avoided).
+	ProfileResponse profile = 2;
+}
+
+// Request the users defined in the system.
+message UserListRequest {
+	// Max number of user to return in the result-set.
+	int32 limit = 1;
+
+	// Offset in the result-set (for pagination).
+	int32 offset = 2;
+}
+
+// Request the user information.
+message UserRequest {
+	int64 id = 1;
+}
+
+message UserAddResponse {
+	int64 id = 1;
+}
+
+// User data not including the data access profile.
+message UserSettings {
+    int64 id = 1;
+    string username = 2;
+    // The session timeout, in minutes.
+    int32 sessionTTL = 3;
+    // If the user is a system admin, capable of creating other users.
+    bool isAdmin = 4;
+    // When the user was created.
+    string createdAt = 5;
+    // When the user was last updated (excludes changes in application access).
+    string updatedAt = 6;
+}
+
+// All of the info for a user - the settings and profile.
+message UserInfo {
+	// UserInfo includes the general login settings as well as the user profile
+	UserSettings userSettings = 1;
+	UserProfile userProfile = 2;
+}
+
+message UserResponse {
+	// The user settings and profile.
+	UserInfo info = 1;
+}
+
+// Add a new user.  Not quite the UserSettings data as it includes a password 
+// and excludes the ID and create/update dates.
+message UserAddRequest {
+    string username = 1;
+    string password = 2;
+    // The session timeout, in minutes.
+    int32 sessionTTL = 3;
+    // If the user is a system admin, capable of creating other users.
+    bool isAdmin = 4;
+}
+
+// Not quite the UserAddRequest as no password.
+message UserUpdateRequest {
+	// The user to be updated.
+	int64 id = 1;
+	// The new username.
+    string username = 2;
+    // The session timeout, in minutes.
+    int32 sessionTTL = 3;
+    // If the user is a system admin, capable of creating other users.
+    bool isAdmin = 4;
+}
+
+message UserListResponse {
+    int32 totalCount = 1;
+	repeated UserResponse users = 2;
+}
+
+message UserEmptyResponse {
+	// Nothing to return on delete.
+}
+
+message UserPasswordRequest {
+	int64 id = 1;
+	string password = 2;
+}
+
+
+  

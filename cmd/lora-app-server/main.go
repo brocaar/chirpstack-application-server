@@ -80,6 +80,9 @@ func run(c *cli.Context) error {
 		log.Info("migrating node-session data from Redis")
 		nsmigrate.Migrate(lsCtx)
 	}
+	
+	// Set up the JWT secret for making tokens
+	storage.SetUserSecret( c.String( "jwt-secret" ) )
 
 	// handle incoming downlink payloads
 	go downlink.HandleDataDownPayloads(lsCtx, lsCtx.Handler.DataDownChan())

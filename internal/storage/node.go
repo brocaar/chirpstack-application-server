@@ -1,13 +1,15 @@
 package storage
 
 import (
+	"database/sql"
 	"database/sql/driver"
-	"errors"
 	"fmt"
 	"regexp"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
+	"github.com/pkg/errors"
 
 	"github.com/brocaar/lorawan"
 )
@@ -99,10 +101,10 @@ type Node struct {
 // Validate validates the data of the Node.
 func (n Node) Validate() error {
 	if !nodeNameRegexp.MatchString(n.Name) {
-		return errors.New("node name may only contain words, numbers and dashes")
+		return ErrNodeInvalidName
 	}
 	if n.RXDelay > 15 {
-		return errors.New("max value of RXDelay is 15")
+		return ErrNodeMaxRXDelay
 	}
 
 	return nil
@@ -124,7 +126,7 @@ func (n *Node) ValidateDevNonce(nonce [2]byte) bool {
 // CreateNode creates the given Node.
 func CreateNode(db *sqlx.DB, n Node) error {
 	if err := n.Validate(); err != nil {
-		return fmt.Errorf("validate node error: %s", err)
+		return errors.Wrap(err, "validate error")
 	}
 
 	_, err := db.Exec(`
@@ -171,7 +173,19 @@ func CreateNode(db *sqlx.DB, n Node) error {
 		n.IsClassC,
 	)
 	if err != nil {
-		return fmt.Errorf("create node %s error: %s", n.DevEUI, err)
+		switch err := err.(type) {
+		case *pq.Error:
+			switch err.Code.Name() {
+			case "unique_violation":
+				return ErrAlreadyExists
+			case "foreign_key_violation":
+				return ErrDoesNotExist
+			default:
+				return errors.Wrap(err, "insert error")
+			}
+		default:
+			return errors.Wrap(err, "insert error")
+		}
 	}
 	log.WithField("dev_eui", n.DevEUI).Info("node created")
 	return nil
@@ -180,7 +194,7 @@ func CreateNode(db *sqlx.DB, n Node) error {
 // UpdateNode updates the given Node.
 func UpdateNode(db *sqlx.DB, n Node) error {
 	if err := n.Validate(); err != nil {
-		return fmt.Errorf("validate node error: %s", err)
+		return errors.Wrap(err, "validate error")
 	}
 
 	res, err := db.Exec(`
@@ -227,14 +241,26 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 		n.IsClassC,
 	)
 	if err != nil {
-		return fmt.Errorf("update node %s error: %s", n.DevEUI, err)
+		switch err := err.(type) {
+		case *pq.Error:
+			switch err.Code.Name() {
+			case "unique_violation":
+				return ErrAlreadyExists
+			case "foreign_key_violation":
+				return ErrDoesNotExist
+			default:
+				return errors.Wrap(err, "insert error")
+			}
+		default:
+			return errors.Wrap(err, "insert error")
+		}
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "get rows affected error")
 	}
 	if ra == 0 {
-		return fmt.Errorf("node %s does not exist", n.DevEUI)
+		return ErrDoesNotExist
 	}
 	log.WithField("dev_eui", n.DevEUI).Info("node updated")
 	return nil
@@ -246,14 +272,14 @@ func DeleteNode(db *sqlx.DB, devEUI lorawan.EUI64) error {
 		devEUI[:],
 	)
 	if err != nil {
-		return fmt.Errorf("delete node %s error: %s", devEUI, err)
+		return errors.Wrap(err, "delete error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "get rows affected error")
 	}
 	if ra == 0 {
-		return fmt.Errorf("node %s does not exist", devEUI)
+		return ErrDoesNotExist
 	}
 	log.WithField("dev_eui", devEUI).Info("node deleted")
 	return nil
@@ -264,7 +290,10 @@ func GetNode(db *sqlx.DB, devEUI lorawan.EUI64) (Node, error) {
 	var node Node
 	err := db.Get(&node, "select * from node where dev_eui = $1", devEUI[:])
 	if err != nil {
-		return node, fmt.Errorf("get node %s error: %s", devEUI, err)
+		if err == sql.ErrNoRows {
+			return node, ErrDoesNotExist
+		}
+		return node, errors.Wrap(err, "select error")
 	}
 	return node, nil
 }
@@ -285,7 +314,7 @@ func GetNodesForApplicationID(db *sqlx.DB, applicationID int64, limit, offset in
 		offset,
 	)
 	if err != nil {
-		return nodes, fmt.Errorf("get nodes error: %s", err)
+		return nodes, errors.Wrap(err, "select error")
 	}
 	return nodes, nil
 }
@@ -301,7 +330,7 @@ func GetNodesCountForApplicationID(db *sqlx.DB, applicationID int64) (int, error
 			application_id = $1`,
 		applicationID)
 	if err != nil {
-		return 0, fmt.Errorf("get nodes count error: %s", err)
+		return 0, errors.Wrap(err, "select error")
 	}
 	return count, nil
 }
@@ -316,11 +345,11 @@ func GetCFListForNode(db *sqlx.DB, node Node) (*lorawan.CFList, error) {
 	var cFList lorawan.CFList
 	cl, err := GetChannelList(db, *node.ChannelListID)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "get channel list error")
 	}
 
 	if len(cl.Channels) > len(cFList) {
-		return nil, errors.New("too many channels in channel-list")
+		return nil, ErrCFListTooManyChannels
 	}
 
 	for i, v := range cl.Channels {

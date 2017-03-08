@@ -1,11 +1,12 @@
 package storage
 
 import (
-	"fmt"
+	"database/sql"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"github.com/pkg/errors"
 )
 
 // ChannelList represents a list of channels.
@@ -23,7 +24,7 @@ func CreateChannelList(db *sqlx.DB, cl *ChannelList) error {
 		pq.Int64Array(cl.Channels),
 	)
 	if err != nil {
-		return fmt.Errorf("create channel-list '%s' error: %s", cl.Name, err)
+		return errors.Wrap(err, "insert error")
 	}
 	log.WithFields(log.Fields{
 		"id":   cl.ID,
@@ -40,14 +41,14 @@ func UpdateChannelList(db *sqlx.DB, cl ChannelList) error {
 		cl.ID,
 	)
 	if err != nil {
-		return fmt.Errorf("update channel-list %d error: %s", cl.ID, err)
+		return errors.Wrap(err, "update error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "get rows affected error")
 	}
 	if ra == 0 {
-		return fmt.Errorf("channel-list %d does not exist", cl.ID)
+		return ErrDoesNotExist
 	}
 	log.WithField("id", cl.ID).Info("channel-list updated")
 	return nil
@@ -58,7 +59,10 @@ func GetChannelList(db *sqlx.DB, id int64) (ChannelList, error) {
 	var cl ChannelList
 	err := db.QueryRow("select id, name, channels from channel_list where id = $1", id).Scan(&cl.ID, &cl.Name, pq.Array(&cl.Channels))
 	if err != nil {
-		return cl, fmt.Errorf("get channel-list %d error: %s", id, err)
+		if err == sql.ErrNoRows {
+			return cl, ErrDoesNotExist
+		}
+		return cl, errors.Wrap(err, "select error")
 	}
 	return cl, nil
 }
@@ -68,13 +72,13 @@ func GetChannelLists(db *sqlx.DB, limit, offset int) ([]ChannelList, error) {
 	var channelLists []ChannelList
 	rows, err := db.Query("select id, name, channels from channel_list order by name limit $1 offset $2", limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("get channel-list list error: %s", err)
+		return nil, errors.Wrap(err, "select error")
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var cl ChannelList
 		if err := rows.Scan(&cl.ID, &cl.Name, pq.Array(&cl.Channels)); err != nil {
-			return nil, fmt.Errorf("get channel-list row error: %s", err)
+			return nil, errors.Wrap(err, "scan row error")
 		}
 		channelLists = append(channelLists, cl)
 	}
@@ -88,7 +92,7 @@ func GetChannelListsCount(db *sqlx.DB) (int, error) {
 	}
 	err := db.Get(&count, "select count(*) as count from channel_list")
 	if err != nil {
-		return 0, fmt.Errorf("get channel-list count error: %s", err)
+		return 0, errors.Wrap(err, "select error")
 	}
 	return count.Count, nil
 }
@@ -99,14 +103,14 @@ func DeleteChannelList(db *sqlx.DB, id int64) error {
 		id,
 	)
 	if err != nil {
-		return fmt.Errorf("delete channel-list %d error: %s", id, err)
+		return errors.Wrap(err, "delete error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "get rows affected error")
 	}
 	if ra == 0 {
-		return fmt.Errorf("channel-list %d does not exist", id)
+		return ErrDoesNotExist
 	}
 	log.WithField("id", id).Info("channel-list deleted")
 	return nil

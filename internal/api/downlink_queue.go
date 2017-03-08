@@ -35,7 +35,7 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 
 	node, err := storage.GetNode(d.ctx.DB, devEUI)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	if err := d.validator.Validate(ctx,
@@ -55,7 +55,7 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 	}
 
 	if err := downlink.HandleDownlinkQueueItem(d.ctx, node, &qi); err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	return &pb.EnqueueDownlinkQueueItemResponse{}, nil
@@ -69,7 +69,7 @@ func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeu
 
 	node, err := storage.GetNode(d.ctx.DB, devEUI)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	if err := d.validator.Validate(ctx,
@@ -82,7 +82,7 @@ func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeu
 
 	qi, err := storage.GetDownlinkQueueItem(d.ctx.DB, req.Id)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 	if qi.DevEUI != node.DevEUI {
 		return nil, grpc.Errorf(codes.NotFound, "queue-item does not exist for the given node")
@@ -103,7 +103,7 @@ func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueIt
 
 	node, err := storage.GetNode(d.ctx.DB, devEUI)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	if err := d.validator.Validate(ctx,
@@ -116,7 +116,7 @@ func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueIt
 
 	items, err := storage.GetDownlinkQueueItems(d.ctx.DB, node.DevEUI)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	var resp pb.ListDownlinkQueueItemsResponse

@@ -53,7 +53,7 @@ type CreateNodeSessionRequest struct {
 func (m *CreateNodeSessionRequest) Reset()                    { *m = CreateNodeSessionRequest{} }
 func (m *CreateNodeSessionRequest) String() string            { return proto.CompactTextString(m) }
 func (*CreateNodeSessionRequest) ProtoMessage()               {}
-func (*CreateNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{0} }
+func (*CreateNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{0} }
 
 func (m *CreateNodeSessionRequest) GetDevEUI() string {
 	if m != nil {
@@ -159,7 +159,7 @@ type CreateNodeSessionResponse struct {
 func (m *CreateNodeSessionResponse) Reset()                    { *m = CreateNodeSessionResponse{} }
 func (m *CreateNodeSessionResponse) String() string            { return proto.CompactTextString(m) }
 func (*CreateNodeSessionResponse) ProtoMessage()               {}
-func (*CreateNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{1} }
+func (*CreateNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{1} }
 
 type GetNodeSessionRequest struct {
 	// Hex encoded DevEUI of the node.
@@ -169,7 +169,7 @@ type GetNodeSessionRequest struct {
 func (m *GetNodeSessionRequest) Reset()                    { *m = GetNodeSessionRequest{} }
 func (m *GetNodeSessionRequest) String() string            { return proto.CompactTextString(m) }
 func (*GetNodeSessionRequest) ProtoMessage()               {}
-func (*GetNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{2} }
+func (*GetNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{2} }
 
 func (m *GetNodeSessionRequest) GetDevEUI() string {
 	if m != nil {
@@ -218,7 +218,7 @@ type GetNodeSessionResponse struct {
 func (m *GetNodeSessionResponse) Reset()                    { *m = GetNodeSessionResponse{} }
 func (m *GetNodeSessionResponse) String() string            { return proto.CompactTextString(m) }
 func (*GetNodeSessionResponse) ProtoMessage()               {}
-func (*GetNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{3} }
+func (*GetNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{3} }
 
 func (m *GetNodeSessionResponse) GetDevAddr() string {
 	if m != nil {
@@ -373,7 +373,7 @@ type UpdateNodeSessionRequest struct {
 func (m *UpdateNodeSessionRequest) Reset()                    { *m = UpdateNodeSessionRequest{} }
 func (m *UpdateNodeSessionRequest) String() string            { return proto.CompactTextString(m) }
 func (*UpdateNodeSessionRequest) ProtoMessage()               {}
-func (*UpdateNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{4} }
+func (*UpdateNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{4} }
 
 func (m *UpdateNodeSessionRequest) GetDevEUI() string {
 	if m != nil {
@@ -479,7 +479,7 @@ type UpdateNodeSessionResponse struct {
 func (m *UpdateNodeSessionResponse) Reset()                    { *m = UpdateNodeSessionResponse{} }
 func (m *UpdateNodeSessionResponse) String() string            { return proto.CompactTextString(m) }
 func (*UpdateNodeSessionResponse) ProtoMessage()               {}
-func (*UpdateNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{5} }
+func (*UpdateNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{5} }
 
 type DeleteNodeSessionRequest struct {
 	// Hex encoded DevEUI of the node.
@@ -489,7 +489,7 @@ type DeleteNodeSessionRequest struct {
 func (m *DeleteNodeSessionRequest) Reset()                    { *m = DeleteNodeSessionRequest{} }
 func (m *DeleteNodeSessionRequest) String() string            { return proto.CompactTextString(m) }
 func (*DeleteNodeSessionRequest) ProtoMessage()               {}
-func (*DeleteNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{6} }
+func (*DeleteNodeSessionRequest) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{6} }
 
 func (m *DeleteNodeSessionRequest) GetDevEUI() string {
 	if m != nil {
@@ -504,7 +504,7 @@ type DeleteNodeSessionResponse struct {
 func (m *DeleteNodeSessionResponse) Reset()                    { *m = DeleteNodeSessionResponse{} }
 func (m *DeleteNodeSessionResponse) String() string            { return proto.CompactTextString(m) }
 func (*DeleteNodeSessionResponse) ProtoMessage()               {}
-func (*DeleteNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{7} }
+func (*DeleteNodeSessionResponse) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{7} }
 
 type GetRandomDevAddrRequest struct {
 	// Hex encoded DevEUI of the node.
@@ -514,7 +514,7 @@ type GetRandomDevAddrRequest struct {
 func (m *GetRandomDevAddrRequest) Reset()                    { *m = GetRandomDevAddrRequest{} }
 func (m *GetRandomDevAddrRequest) String() string            { return proto.CompactTextString(m) }
 func (*GetRandomDevAddrRequest) ProtoMessage()               {}
-func (*GetRandomDevAddrRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{8} }
+func (*GetRandomDevAddrRequest) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{8} }
 
 func (m *GetRandomDevAddrRequest) GetDevEUI() string {
 	if m != nil {
@@ -531,7 +531,7 @@ type GetRandomDevAddrResponse struct {
 func (m *GetRandomDevAddrResponse) Reset()                    { *m = GetRandomDevAddrResponse{} }
 func (m *GetRandomDevAddrResponse) String() string            { return proto.CompactTextString(m) }
 func (*GetRandomDevAddrResponse) ProtoMessage()               {}
-func (*GetRandomDevAddrResponse) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{9} }
+func (*GetRandomDevAddrResponse) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{9} }
 
 func (m *GetRandomDevAddrResponse) GetDevAddr() string {
 	if m != nil {
@@ -767,9 +767,9 @@ var _NodeSession_serviceDesc = grpc.ServiceDesc{
 	Metadata: "nodeSession.proto",
 }
 
-func init() { proto.RegisterFile("nodeSession.proto", fileDescriptor3) }
+func init() { proto.RegisterFile("nodeSession.proto", fileDescriptor4) }
 
-var fileDescriptor3 = []byte{
+var fileDescriptor4 = []byte{
 	// 632 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x56, 0xcd, 0x4e, 0x14, 0x4d,
 	0x14, 0x4d, 0x33, 0xd0, 0x0c, 0x97, 0x9f, 0x0f, 0x2a, 0x9f, 0x58, 0xf4, 0x80, 0xe9, 0xb4, 0x86,

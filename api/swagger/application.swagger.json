@@ -156,9 +156,174 @@
           "Application"
         ]
       }
+    },
+    "/api/applications/{id}/users": {
+      "get": {
+        "summary": "ListUsers lists the users for an application.",
+        "operationId": "ListUsers",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListApplicationUsersResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "limit",
+            "description": "Max number of applications to return in the result-test.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset",
+            "description": "Offset in the result-set (for pagination).",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      },
+      "post": {
+        "summary": "AddUser adds a user to an application.",
+        "operationId": "AddUser",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiEmptyApplicationUserResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      }
+    },
+    "/api/applications/{id}/users/{userID}": {
+      "get": {
+        "summary": "GetUser gets the user that is associated with the application.",
+        "operationId": "GetUser",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetApplicationUserResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "userID",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      },
+      "put": {
+        "summary": "DeleteUser deletes the user's access to the associated application.",
+        "operationId": "DeleteUser",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiEmptyApplicationUserResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "userID",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      }
     }
   },
   "definitions": {
+    "apiAddApplicationUserRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "title": "The application to be set to allow these users"
+        },
+        "userID": {
+          "type": "string",
+          "format": "int64",
+          "title": "User id"
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "format": "boolean",
+          "title": "admin rights?"
+        }
+      }
+    },
+    "apiApplicationUserRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "title": "The application id"
+        },
+        "userID": {
+          "type": "string",
+          "format": "int64",
+          "title": "The user id"
+        }
+      }
+    },
     "apiCreateApplicationRequest": {
       "type": "object",
       "properties": {
@@ -195,6 +360,9 @@
     "apiDeleteApplicationResponse": {
       "type": "object"
     },
+    "apiEmptyApplicationUserResponse": {
+      "type": "object"
+    },
     "apiGetApplicationRequest": {
       "type": "object",
       "properties": {
@@ -220,6 +388,25 @@
         "description": {
           "type": "string",
           "description": "Description of the application."
+        }
+      }
+    },
+    "apiGetApplicationUserResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "title": "The id of the user"
+        },
+        "username": {
+          "type": "string",
+          "title": "The username for the user"
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Has admin rights."
         }
       }
     },
@@ -255,6 +442,43 @@
         }
       }
     },
+    "apiListApplicationUsersRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "title": "The id of the application"
+        },
+        "limit": {
+          "type": "string",
+          "format": "int64",
+          "description": "Max number of applications to return in the result-test."
+        },
+        "offset": {
+          "type": "string",
+          "format": "int64",
+          "description": "Offset in the result-set (for pagination)."
+        }
+      }
+    },
+    "apiListApplicationUsersResponse": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Total number of applications available within the result-set."
+        },
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGetApplicationUserResponse"
+          },
+          "description": "Applications within this result-set."
+        }
+      }
+    },
     "apiUpdateApplicationRequest": {
       "type": "object",
       "properties": {
@@ -275,6 +499,26 @@
     },
     "apiUpdateApplicationResponse": {
       "type": "object"
+    },
+    "apiUpdateApplicationUserRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "title": "The application id"
+        },
+        "userID": {
+          "type": "string",
+          "format": "int64",
+          "title": "The user id"
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "format": "boolean",
+          "title": "Is admin?"
+        }
+      }
     }
   }
 }

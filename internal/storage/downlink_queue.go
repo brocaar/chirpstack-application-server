@@ -2,9 +2,10 @@ package storage
 
 import (
 	"database/sql"
-	"fmt"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/lib/pq"
+	"github.com/pkg/errors"
 
 	"github.com/brocaar/lorawan"
 	"github.com/jmoiron/sqlx"
@@ -40,7 +41,17 @@ func CreateDownlinkQueueItem(db *sqlx.DB, item *DownlinkQueueItem) error {
 		item.Data,
 	)
 	if err != nil {
-		return fmt.Errorf("enqueue downlink queue item error: %s", err)
+		switch err := err.(type) {
+		case *pq.Error:
+			switch err.Code.Name() {
+			case "foreign_key_violation":
+				return ErrDoesNotExist
+			default:
+				return errors.Wrap(err, "insert error")
+			}
+		default:
+			return errors.Wrap(err, "insert error")
+		}
 	}
 	log.WithFields(log.Fields{
 		"dev_eui": item.DevEUI,
@@ -54,7 +65,10 @@ func GetDownlinkQueueItem(db *sqlx.DB, id int64) (DownlinkQueueItem, error) {
 	var qi DownlinkQueueItem
 	err := db.Get(&qi, "select * from downlink_queue where id = $1", id)
 	if err != nil {
-		return qi, fmt.Errorf("get downlink queue item error: %s", err)
+		if err == sql.ErrNoRows {
+			return qi, ErrDoesNotExist
+		}
+		return qi, errors.Wrap(err, "select error")
 	}
 	return qi, nil
 }
@@ -64,7 +78,7 @@ func GetDownlinkQueueSize(db *sqlx.DB, devEUI lorawan.EUI64) (int, error) {
 	var count int
 	err := db.Get(&count, "select count(*) from downlink_queue where dev_eui = $1", devEUI[:])
 	if err != nil {
-		return 0, fmt.Errorf("get downlink queue size error: %s", err)
+		return 0, errors.Wrap(err, "select error")
 	}
 	return count, nil
 }
@@ -75,7 +89,7 @@ func GetPendingDownlinkQueueItem(db *sqlx.DB, devEUI lorawan.EUI64) (DownlinkQue
 	var qi DownlinkQueueItem
 	err := db.Get(&qi, "select * from downlink_queue where dev_eui = $1 and pending = $2", devEUI[:], true)
 	if err != nil {
-		return qi, fmt.Errorf("get pending downlink queue item error: %s", err)
+		return qi, errors.Wrap(err, "select error")
 	}
 	return qi, nil
 }
@@ -101,14 +115,14 @@ func UpdateDownlinkQueueItem(db *sqlx.DB, item DownlinkQueueItem) error {
 		item.ID,
 	)
 	if err != nil {
-		return fmt.Errorf("update downlink queue item error: %s", err)
+		return errors.Wrap(err, "update error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "get rows affected error")
 	}
 	if ra == 0 {
-		return fmt.Errorf("downlink queue item id %d does not exist", item.ID)
+		return ErrDoesNotExist
 	}
 	log.WithField("id", item.ID).Info("downlink queue item updated")
 	return nil
@@ -118,14 +132,14 @@ func UpdateDownlinkQueueItem(db *sqlx.DB, item DownlinkQueueItem) error {
 func DeleteDownlinkQueueItem(db *sqlx.DB, id int64) error {
 	res, err := db.Exec("delete from downlink_queue where id = $1", id)
 	if err != nil {
-		return fmt.Errorf("delete downlink queue item error: %s", err)
+		return errors.Wrap(err, "delete error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "get rows affected error")
 	}
 	if ra == 0 {
-		return fmt.Errorf("downlink queue item id %d does not exist", id)
+		return ErrDoesNotExist
 	}
 	log.WithField("id", id).Info("downlink queue item deleted")
 	return nil
@@ -137,7 +151,7 @@ func GetDownlinkQueueItems(db *sqlx.DB, devEUI lorawan.EUI64) ([]DownlinkQueueIt
 	var items []DownlinkQueueItem
 	err := db.Select(&items, "select * from downlink_queue where dev_eui = $1 order by id", devEUI[:])
 	if err != nil {
-		return nil, fmt.Errorf("get downlink queue items error: %s", err)
+		return nil, errors.Wrap(err, "select error")
 	}
 	return items, nil
 }
@@ -147,7 +161,7 @@ func GetDownlinkQueueItems(db *sqlx.DB, devEUI lorawan.EUI64) ([]DownlinkQueueIt
 func DeleteDownlinkQueueItemsForDevEUI(db *sqlx.DB, devEUI lorawan.EUI64) error {
 	_, err := db.Exec("delete from downlink_queue where dev_eui = $1", devEUI[:])
 	if err != nil {
-		return fmt.Errorf("delete downlink queue items error: %s", err)
+		return errors.Wrap(err, "delete error")
 	}
 	return nil
 }
@@ -164,7 +178,7 @@ func GetNextDownlinkQueueItem(db *sqlx.DB, devEUI lorawan.EUI64, maxPayloadSize 
 			if err == sql.ErrNoRows {
 				return nil, nil
 			}
-			return nil, fmt.Errorf("get next queue item error: %s", err)
+			return nil, errors.Wrap(err, "select error")
 		}
 
 		if len(qi.Data) > maxPayloadSize {
@@ -176,7 +190,7 @@ func GetNextDownlinkQueueItem(db *sqlx.DB, devEUI lorawan.EUI64, maxPayloadSize 
 			}).Warning("queue item discarded as it exceeds max payload size")
 
 			if err := DeleteDownlinkQueueItem(db, qi.ID); err != nil {
-				return nil, fmt.Errorf("delete downlink queue item error: %s", err)
+				return nil, errors.Wrap(err, "delete downlink queue item error")
 			}
 			continue
 		}

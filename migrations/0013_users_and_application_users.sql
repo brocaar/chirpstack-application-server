@@ -5,7 +5,7 @@ create table "user" (
 	updated_at timestamp with time zone not null,
 	username character varying (100) not null,
 	password_hash character varying (200) not null,
-	session_ttl integer not null,
+	session_ttl bigint not null,
 	is_active boolean not null,
 	is_admin boolean not null
 );
@@ -26,15 +26,11 @@ create table application_user (
 create index idx_application_user_user_id on application_user(user_id);
 create index idx_application_user_application_id on application_user(application_id);
 
--- Initial admin user is admin/lorajwtpass
--- insert into user ( username, passwordHash, is_admin, is_active, session_ttl, created_at, updated_at ) values( 'admin', 'qr96uchuamWUiOBTtk-AUG3evIfdP-BdJuJc6M1uyxk=', true, true, 60, now(), now());
-
-
 
 -- +migrate Down
-drop index if exists idx_application_user_application_id;
-drop index if exists idx_application_user_user_id;
-drop table if exists application_user;
+drop index idx_application_user_application_id;
+drop index idx_application_user_user_id;
+drop table application_user;
 
-drop index if exists idx_user_username;
-drop table if exists "user";
+drop index idx_user_username;
+drop table "user";

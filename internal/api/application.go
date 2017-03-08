@@ -38,7 +38,7 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 	}
 
 	if err := storage.CreateApplication(a.ctx.DB, &app); err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	return &pb.CreateApplicationResponse{
@@ -56,7 +56,7 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 
 	app, err := storage.GetApplication(a.ctx.DB, req.Id)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 	return &pb.GetApplicationResponse{
 		Id:          app.ID,
@@ -75,7 +75,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 
 	app, err := storage.GetApplication(a.ctx.DB, req.Id)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	// update the fields
@@ -84,7 +84,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 
 	err = storage.UpdateApplication(a.ctx.DB, app)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	return &pb.UpdateApplicationResponse{}, nil
@@ -100,7 +100,7 @@ func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRe
 
 	err := storage.DeleteApplication(a.ctx.DB, req.Id)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 	return &pb.DeleteApplicationResponse{}, nil
 }
@@ -114,12 +114,12 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 
 	apps, err := storage.GetApplications(a.ctx.DB, int(req.Limit), int(req.Offset))
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	count, err := storage.GetApplicationCount(a.ctx.DB)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	resp := pb.ListApplicationResponse{
@@ -136,70 +136,70 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 	return &resp, nil
 }
 
-	// ListUsers lists the users for an application.
+// ListUsers lists the users for an application.
 func (a *ApplicationAPI) ListUsers(ctx context.Context, in *pb.ListApplicationUsersRequest) (*pb.ListApplicationUsersResponse, error) {
-	total, err := storage.GetApplicationUsersCount( a.ctx.DB, in.Id )
+	total, err := storage.GetApplicationUsersCount(a.ctx.DB, in.Id)
 	if nil != err {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
-	
-	userAccess, err := storage.GetApplicationUsers( a.ctx.DB, in.Id, int(in.Limit), int(in.Offset) )
+
+	userAccess, err := storage.GetApplicationUsers(a.ctx.DB, in.Id, int(in.Limit), int(in.Offset))
 	if nil != err {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
-	
-	appUsers := make( []*pb.GetApplicationUserResponse, len( userAccess ) )
+
+	appUsers := make([]*pb.GetApplicationUserResponse, len(userAccess))
 	for i, ua := range userAccess {
 		// Get the user information
-		appUsers[ i ] = &pb.GetApplicationUserResponse{
-			Id: ua.UserId,
+		appUsers[i] = &pb.GetApplicationUserResponse{
+			Id:       ua.UserID,
 			Username: ua.Username,
-			IsAdmin: ua.IsAdmin,
+			IsAdmin:  ua.IsAdmin,
 		}
 	}
-	return &pb.ListApplicationUsersResponse{ TotalCount: total, Result: appUsers }, nil
+	return &pb.ListApplicationUsersResponse{TotalCount: total, Result: appUsers}, nil
 }
 
-	// SetUsers sets the users for an application.  Any existing users are
-	// dropped in favor of this list.
+// SetUsers sets the users for an application.  Any existing users are
+// dropped in favor of this list.
 func (a *ApplicationAPI) AddUser(ctx context.Context, in *pb.AddApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
-	err := storage.CreateUserForApplication( a.ctx.DB, in.Id, in.Userid, in.IsAdmin )
+	err := storage.CreateUserForApplication(a.ctx.DB, in.Id, in.UserID, in.IsAdmin)
 	if nil != err {
-		return nil, grpc.Errorf( codes.InvalidArgument, err.Error() )
+		return nil, errToRPCError(err)
 	}
 	return &pb.EmptyApplicationUserResponse{}, nil
 }
 
-	// GetUser gets the user that is associated with the application.
+// GetUser gets the user that is associated with the application.
 func (a *ApplicationAPI) GetUser(ctx context.Context, in *pb.ApplicationUserRequest) (*pb.GetApplicationUserResponse, error) {
-	ua, err := storage.GetUserForApplication( a.ctx.DB, in.Id, in.Userid )
+	ua, err := storage.GetUserForApplication(a.ctx.DB, in.Id, in.UserID)
 	if nil != err {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
-	
+
 	appUser := &pb.GetApplicationUserResponse{
-			Id: ua.UserId,
-			Username: ua.Username,
-			IsAdmin: ua.IsAdmin,
-		}
+		Id:       ua.UserID,
+		Username: ua.Username,
+		IsAdmin:  ua.IsAdmin,
+	}
 
 	return appUser, nil
 }
 
-	// PutUser sets the user's access to the associated application.
+// PutUser sets the user's access to the associated application.
 func (a *ApplicationAPI) UpdateUser(ctx context.Context, in *pb.UpdateApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
-	err := storage.UpdateUserForApplication( a.ctx.DB, in.Id, in.Userid, in.IsAdmin )
+	err := storage.UpdateUserForApplication(a.ctx.DB, in.Id, in.UserID, in.IsAdmin)
 	if nil != err {
-		return nil, grpc.Errorf( codes.InvalidArgument, err.Error() )
+		return nil, errToRPCError(err)
 	}
 	return &pb.EmptyApplicationUserResponse{}, nil
 }
 
-	// DeleteUser deletes the user's access to the associated application.
+// DeleteUser deletes the user's access to the associated application.
 func (a *ApplicationAPI) DeleteUser(ctx context.Context, in *pb.ApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
-	err := storage.DeleteUserForApplication( a.ctx.DB, in.Id, in.Userid )
+	err := storage.DeleteUserForApplication(a.ctx.DB, in.Id, in.UserID)
 	if nil != err {
-		return nil, grpc.Errorf( codes.InvalidArgument, err.Error() )
+		return nil, errToRPCError(err)
 	}
 	return &pb.EmptyApplicationUserResponse{}, nil
 }

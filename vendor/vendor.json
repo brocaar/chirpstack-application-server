@@ -153,6 +153,12 @@
 			"revisionTime": "2017-01-17T20:56:33Z"
 		},
 		{
+			"checksumSHA1": "ynJSWoF6v+3zMnh9R0QmmG6iGV8=",
+			"path": "github.com/pkg/errors",
+			"revision": "bfd5150e4e41705ded2129ec33379de1cb90b513",
+			"revisionTime": "2017-02-27T22:00:37Z"
+		},
+		{
 			"checksumSHA1": "Qgwcmaxcms96cseiKeTu73RiKJw=",
 			"path": "github.com/rubenv/sql-migrate",
 			"revision": "1ed79968dfca5de79adb13c84523caaa4fc865a9",
@@ -205,6 +211,12 @@
 			"path": "github.com/urfave/cli",
 			"revision": "347a9884a87374d000eec7e6445a34487c1f4a2b",
 			"revisionTime": "2017-01-28T21:39:59Z"
+		},
+		{
+			"checksumSHA1": "1MGpGDQqnUoRpv7VEcQrXOBydXE=",
+			"path": "golang.org/x/crypto/pbkdf2",
+			"revision": "728b753d0135da6801d45a38e6f43ff55779c5c2",
+			"revisionTime": "2017-01-24T01:46:54Z"
 		},
 		{
 			"checksumSHA1": "9jjO5GjLa0XF/nfWihF02RoH4qc=",

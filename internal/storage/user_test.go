@@ -1,18 +1,19 @@
 package storage
 
 import (
-	"errors"
 	"testing"
 
-	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/brocaar/lora-app-server/internal/test"
 )
 
 func TestUser(t *testing.T) {
 	conf := test.GetConfig()
-	
+
 	// Set a user secret so JWTs can be assigned
-	SetUserSecret( "DoWahDiddy" )
+	SetUserSecret("DoWahDiddy")
 
 	Convey("Given a clean database", t, func() {
 		db, err := OpenDatabase(conf.PostgresDSN)
@@ -20,35 +21,35 @@ func TestUser(t *testing.T) {
 		test.MustResetDB(db)
 
 		Convey("When creating a user with an invalid username", func() {
-			user := User {
+			user := User{
 				Username: "bad characters %",
 			}
 			_, err := CreateUser(db, &user, "somepassword")
 
 			Convey("Then an error is returned", func() {
 				So(err, ShouldNotBeNil)
-				So(err, ShouldResemble, errors.New("validate username error: user name may only be composed of upper and lower case characters and digits"))
+				So(errors.Cause(err), ShouldResemble, ErrUserInvalidUsername)
 			})
 		})
 
 		Convey("When creating a user with an invalid password", func() {
-			user := User {
-				Username: "okcharacters",
-				IsAdmin: false,
+			user := User{
+				Username:   "okcharacters",
+				IsAdmin:    false,
 				SessionTTL: 40,
 			}
 			_, err := CreateUser(db, &user, "bad")
 
 			Convey("Then an error is returned", func() {
 				So(err, ShouldNotBeNil)
-				So(err, ShouldResemble, errors.New("validate password error: passwords must be at least 6 characters long"))
+				So(errors.Cause(err), ShouldResemble, ErrUserPasswordLength)
 			})
 		})
 
 		Convey("When creating a user", func() {
-			user := User {
-				Username: "goodusername111",
-				IsAdmin: false,
+			user := User{
+				Username:   "goodusername111",
+				IsAdmin:    false,
 				SessionTTL: 20,
 			}
 			password := "somepassword"
@@ -105,10 +106,10 @@ func TestUser(t *testing.T) {
 			})
 
 			Convey("When updating the user", func() {
-				userUpdate := UserUpdate {
-					ID: user.ID,
-					Username: "newusername",
-					IsAdmin: true,
+				userUpdate := UserUpdate{
+					ID:         user.ID,
+					Username:   "newusername",
+					IsAdmin:    true,
 					SessionTTL: 30,
 				}
 				So(UpdateUser(db, userUpdate), ShouldBeNil)

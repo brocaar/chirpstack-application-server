@@ -140,12 +140,12 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 func (a *ApplicationAPI) ListUsers(ctx context.Context, in *pb.ListApplicationUsersRequest) (*pb.ListApplicationUsersResponse, error) {
 	total, err := storage.GetApplicationUsersCount(a.ctx.DB, in.Id)
 	if nil != err {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	userAccess, err := storage.GetApplicationUsers(a.ctx.DB, in.Id, int(in.Limit), int(in.Offset))
 	if nil != err {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	appUsers := make([]*pb.GetApplicationUserResponse, len(userAccess))
@@ -165,7 +165,7 @@ func (a *ApplicationAPI) ListUsers(ctx context.Context, in *pb.ListApplicationUs
 func (a *ApplicationAPI) AddUser(ctx context.Context, in *pb.AddApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
 	err := storage.CreateUserForApplication(a.ctx.DB, in.Id, in.UserID, in.IsAdmin)
 	if nil != err {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+		return nil, errToRPCError(err)
 	}
 	return &pb.EmptyApplicationUserResponse{}, nil
 }
@@ -174,7 +174,7 @@ func (a *ApplicationAPI) AddUser(ctx context.Context, in *pb.AddApplicationUserR
 func (a *ApplicationAPI) GetUser(ctx context.Context, in *pb.ApplicationUserRequest) (*pb.GetApplicationUserResponse, error) {
 	ua, err := storage.GetUserForApplication(a.ctx.DB, in.Id, in.UserID)
 	if nil != err {
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	appUser := &pb.GetApplicationUserResponse{
@@ -190,7 +190,7 @@ func (a *ApplicationAPI) GetUser(ctx context.Context, in *pb.ApplicationUserRequ
 func (a *ApplicationAPI) UpdateUser(ctx context.Context, in *pb.UpdateApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
 	err := storage.UpdateUserForApplication(a.ctx.DB, in.Id, in.UserID, in.IsAdmin)
 	if nil != err {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+		return nil, errToRPCError(err)
 	}
 	return &pb.EmptyApplicationUserResponse{}, nil
 }
@@ -199,7 +199,7 @@ func (a *ApplicationAPI) UpdateUser(ctx context.Context, in *pb.UpdateApplicatio
 func (a *ApplicationAPI) DeleteUser(ctx context.Context, in *pb.ApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
 	err := storage.DeleteUserForApplication(a.ctx.DB, in.Id, in.UserID)
 	if nil != err {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+		return nil, errToRPCError(err)
 	}
 	return &pb.EmptyApplicationUserResponse{}, nil
 }

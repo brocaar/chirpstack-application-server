@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/sha512"
+	"database/sql"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -15,6 +15,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -82,14 +84,14 @@ func SetUserSecret(s string) {
 // Validate validates the data of the Application.
 func ValidateUsername(username string) error {
 	if !usernameValidator.MatchString(username) {
-		return errors.New("user name may only be composed of upper and lower case characters and digits")
+		return ErrUserInvalidUsername
 	}
 	return nil
 }
 
 func ValidatePassword(password string) error {
 	if !passwordValidator.MatchString(password) {
-		return errors.New("passwords must be at least 6 characters long")
+		return ErrUserPasswordLength
 	}
 	return nil
 }
@@ -97,11 +99,11 @@ func ValidatePassword(password string) error {
 // CreateApplication creates the given Application.
 func CreateUser(db *sqlx.DB, user *User, password string) (int64, error) {
 	if err := ValidateUsername(user.Username); err != nil {
-		return 0, fmt.Errorf("validate username error: %s", err)
+		return 0, errors.Wrap(err, "validation error")
 	}
 
 	if err := ValidatePassword(password); err != nil {
-		return 0, fmt.Errorf("validate password error: %s", err)
+		return 0, errors.Wrap(err, "validation error")
 	}
 
 	now := time.Now()
@@ -114,8 +116,17 @@ func CreateUser(db *sqlx.DB, user *User, password string) (int64, error) {
 	err = db.Get(&user.ID, "insert into \"user\" (username, password_hash, is_admin, is_active, session_ttl, created_at, updated_at) values( $1, $2, $3, 'true', $4, $5, $6 ) returning id",
 		user.Username, pwHash, user.IsAdmin, user.SessionTTL, now, now)
 	if err != nil {
-		// Unexpected error
-		return 0, err
+		switch err := err.(type) {
+		case *pq.Error:
+			switch err.Code.Name() {
+			case "unique_violation":
+				return 0, ErrAlreadyExists
+			default:
+				return 0, errors.Wrap(err, "insert error")
+			}
+		default:
+			return 0, errors.Wrap(err, "insert error")
+		}
 	}
 
 	log.WithFields(log.Fields{
@@ -135,7 +146,7 @@ func hash(password string, saltSize int, iterations int) (string, error) {
 	salt := make([]byte, saltSize)
 	_, err := rand.Read(salt)
 	if err != nil {
-		return "", fmt.Errorf("read random bytes error: %s", err)
+		return "", errors.Wrap(err, "read random bytes error")
 	}
 
 	return hashWithSalt(password, salt, iterations), nil
@@ -184,7 +195,10 @@ func GetUser(db *sqlx.DB, id int64) (User, error) {
 	var user User
 	err := db.Get(&user, "select "+externalUserFields+" from \"user\" where id = $1", id)
 	if err != nil {
-		return user, fmt.Errorf("get user error: %s", err)
+		if err == sql.ErrNoRows {
+			return user, ErrDoesNotExist
+		}
+		return user, errors.Wrap(err, "select error")
 	}
 
 	return user, nil
@@ -195,7 +209,10 @@ func GetUserByUsername(db *sqlx.DB, username string) (User, error) {
 	var user User
 	err := db.Get(&user, "select "+externalUserFields+" from \"user\" where username = $1", username)
 	if err != nil {
-		return user, fmt.Errorf("get user error: %s", err)
+		if err == sql.ErrNoRows {
+			return user, ErrDoesNotExist
+		}
+		return user, errors.Wrap(err, "select error")
 	}
 
 	return user, nil
@@ -206,7 +223,7 @@ func GetUserCount(db *sqlx.DB) (int32, error) {
 	var count int32
 	err := db.Get(&count, "select count(*) from \"user\"")
 	if err != nil {
-		return 0, fmt.Errorf("get user count error: %s", err)
+		return 0, errors.Wrap(err, "select error")
 	}
 	return count, nil
 }
@@ -216,7 +233,7 @@ func GetUsers(db *sqlx.DB, limit, offset int32) ([]User, error) {
 	var users []User
 	err := db.Select(&users, "select "+externalUserFields+" from \"user\" order by username limit $1 offset $2", limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("get users error: %s", err)
+		return nil, errors.Wrap(err, "select error")
 	}
 	return users, nil
 }
@@ -241,15 +258,26 @@ func UpdateUser(db *sqlx.DB, item UserUpdate) error {
 		item.SessionTTL,
 	)
 	if err != nil {
-		return fmt.Errorf("update user error: %s", err)
+		switch err := err.(type) {
+		case *pq.Error:
+			switch err.Code.Name() {
+			case "unique_violation":
+				return ErrAlreadyExists
+			default:
+				return errors.Wrap(err, "update error")
+			}
+		default:
+			return errors.Wrap(err, "update error")
+		}
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "get rows affected error")
 	}
 	if ra == 0 {
-		return fmt.Errorf("user %d does not exist", item.ID)
+		return ErrDoesNotExist
 	}
+
 	log.WithFields(log.Fields{
 		"id":          item.ID,
 		"username":    item.Username,
@@ -264,19 +292,19 @@ func UpdateUser(db *sqlx.DB, item UserUpdate) error {
 func DeleteUser(db *sqlx.DB, id int64) error {
 	res, err := db.Exec("delete from \"user\" where id = $1", id)
 	if err != nil {
-		return fmt.Errorf("delete user error: %s", err)
+		return errors.Wrap(err, "delete error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "get rows affected error")
 	}
 	if ra == 0 {
-		return fmt.Errorf("user with id %d does not exist", id)
+		return ErrDoesNotExist
 	}
+
 	log.WithFields(log.Fields{
 		"id": id,
 	}).Info("user deleted")
-
 	return nil
 }
 
@@ -286,12 +314,15 @@ func LoginUser(db *sqlx.DB, username string, password string) (string, error) {
 	var user userInternal
 	err := db.Get(&user, "select "+internalUserFields+" from \"user\" where username = $1", username)
 	if err != nil {
-		return "", fmt.Errorf("Invalid username or password (unknown username)")
+		if err == sql.ErrNoRows {
+			return "", ErrInvalidUsernameOrPassword
+		}
+		return "", errors.Wrap(err, "select error")
 	}
 
 	// Compare the passed in password with the hash in the database.
 	if !hashCompare(password, user.PasswordHash) {
-		return "", fmt.Errorf("Invalid username or password")
+		return "", ErrInvalidUsernameOrPassword
 	}
 
 	// Generate the token.
@@ -309,7 +340,7 @@ func LoginUser(db *sqlx.DB, username string, password string) (string, error) {
 
 	jwt, err := token.SignedString(jwtsecret)
 	if nil != err {
-		return jwt, fmt.Errorf("Failed to generate jwt: %s", err)
+		return jwt, errors.Wrap(err, "get jwt signed string error")
 	}
 	return jwt, err
 }
@@ -317,7 +348,7 @@ func LoginUser(db *sqlx.DB, username string, password string) (string, error) {
 // Update password.
 func UpdatePassword(db *sqlx.DB, id int64, newpassword string) error {
 	if err := ValidatePassword(newpassword); err != nil {
-		return fmt.Errorf("validate password error: %s", err)
+		return errors.Wrap(err, "validation error")
 	}
 
 	pwHash, err := hash(newpassword, SALT_SIZE, ITERATIONS)
@@ -329,8 +360,7 @@ func UpdatePassword(db *sqlx.DB, id int64, newpassword string) error {
 	_, err = db.Exec("update \"user\" set password_hash = $1, updated_at = now() where id = $2",
 		pwHash, id)
 	if err != nil {
-		// Unexpected error
-		return err
+		return errors.Wrap(err, "update error")
 	}
 
 	log.WithFields(log.Fields{
@@ -354,5 +384,8 @@ func GetProfile(db *sqlx.DB, id int64) ([]UserApplicationAccess, error) {
                        from application_user au, application a
                        where au.user_id = $1 and au.application_id = a.id`,
 		id)
-	return userProfile, err
+	if err != nil {
+		return nil, errors.Wrap(err, "select error")
+	}
+	return userProfile, nil
 }

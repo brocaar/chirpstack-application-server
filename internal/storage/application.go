@@ -184,7 +184,7 @@ func GetApplicationUsers(db *sqlx.DB, applicationID int64, limit, offset int) ([
 	                          order by user_id limit $2 offset $3`,
 		applicationID, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("get users for application error: %s", err)
+		return nil, errors.Wrap(err, "select error")
 	}
 	return users, nil
 }
@@ -195,7 +195,7 @@ func GetApplicationUsersCount(db *sqlx.DB, applicationID int64) (int32, error) {
 	var count int32
 	err := db.Get(&count, "select count(*) from application_user where application_id = $1", applicationID)
 	if err != nil {
-		return 0, fmt.Errorf("get user count for application error: %s", err)
+		return 0, errors.Wrap(err, "select error")
 	}
 	return count, nil
 }
@@ -213,7 +213,7 @@ func GetUserForApplication(db *sqlx.DB, applicationID, userID int64) (*UserAcces
 	                          where au.application_id = $1 and au.user_id = $2 and au.user_id = u.id and user_id = $2`,
 		applicationID, userID)
 	if err != nil {
-		return nil, fmt.Errorf("get user for application error: %s", err)
+		return nil, errors.Wrap(err, "select error")
 	}
 	return &user, nil
 }
@@ -221,7 +221,6 @@ func GetUserForApplication(db *sqlx.DB, applicationID, userID int64) (*UserAcces
 // CreateUserForApplication adds the user to the application with the given
 // access.
 func CreateUserForApplication(db *sqlx.DB, applicationID, userID int64, adminAccess bool) error {
-	// Add the new user.
 	_, err := db.Exec(`
 		insert into application_user (
 			application_id,
@@ -234,10 +233,21 @@ func CreateUserForApplication(db *sqlx.DB, applicationID, userID int64, adminAcc
 		userID,
 		adminAccess,
 	)
+
 	if err != nil {
-		// Unexpected error
-		return err
+		switch err := err.(type) {
+		case *pq.Error:
+			switch err.Code.Name() {
+			case "unique_violation":
+				return ErrAlreadyExists
+			default:
+				return errors.Wrap(err, "insert error")
+			}
+		default:
+			return errors.Wrap(err, "insert error")
+		}
 	}
+
 	log.WithFields(log.Fields{
 		"user_id":        userID,
 		"application_id": applicationID,
@@ -255,9 +265,9 @@ func UpdateUserForApplication(db *sqlx.DB, applicationID, userID int64, adminAcc
 		userID,
 	)
 	if err != nil {
-		// Unexpected error
-		return err
+		return errors.Wrap(err, "update error")
 	}
+
 	log.WithFields(log.Fields{
 		"user_id":        userID,
 		"application_id": applicationID,
@@ -268,14 +278,22 @@ func UpdateUserForApplication(db *sqlx.DB, applicationID, userID int64, adminAcc
 
 // DeleteUserForApplication lets the caller remove the user from the application.
 func DeleteUserForApplication(db *sqlx.DB, applicationID, userID int64) error {
-	_, err := db.Exec("delete from application_user where application_id = $1 and user_id = $2",
+	res, err := db.Exec("delete from application_user where application_id = $1 and user_id = $2",
 		applicationID,
 		userID,
 	)
 	if err != nil {
-		// Unexpected error
-		return err
+		return errors.Wrap(err, "delete error")
 	}
+
+	ra, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "get rows affected error")
+	}
+	if ra == 0 {
+		return ErrDoesNotExist
+	}
+
 	log.WithFields(log.Fields{
 		"user_id":        userID,
 		"application_id": applicationID,

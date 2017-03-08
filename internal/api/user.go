@@ -42,7 +42,7 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 
 	id, err := storage.CreateUser(a.ctx.DB, &user, req.Password)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	return &pb.AddUserResponse{Id: id}, nil
@@ -53,12 +53,12 @@ func (a *UserAPI) Get(ctx context.Context, req *pb.UserRequest) (*pb.UserRespons
 
 	user, err := storage.GetUser(a.ctx.DB, req.Id)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	profile, err := getProfile(a.ctx.DB, req.Id)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	return &pb.UserResponse{
@@ -79,18 +79,18 @@ func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUs
 
 	users, err := storage.GetUsers(a.ctx.DB, req.Limit, req.Offset)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	totalUserCount, err := storage.GetUserCount(a.ctx.DB)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 	usersResp := make([]*pb.UserResponse, len(users))
 	for i, user := range users {
 		profile, err := getProfile(a.ctx.DB, user.ID)
 		if err != nil {
-			return nil, grpc.Errorf(codes.Unknown, err.Error())
+			return nil, errToRPCError(err)
 		}
 
 		usersResp[i] = &pb.UserResponse{
@@ -124,7 +124,7 @@ func (a *UserAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.Us
 
 	err := storage.UpdateUser(a.ctx.DB, userUpdate)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	return &pb.UserEmptyResponse{}, nil
@@ -135,7 +135,7 @@ func (a *UserAPI) Delete(ctx context.Context, req *pb.UserRequest) (*pb.UserEmpt
 
 	err := storage.DeleteUser(a.ctx.DB, req.Id)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 	return &pb.UserEmptyResponse{}, nil
 }
@@ -144,7 +144,7 @@ func (a *UserAPI) Delete(ctx context.Context, req *pb.UserRequest) (*pb.UserEmpt
 func (a *UserAPI) UpdatePassword(ctx context.Context, req *pb.UpdateUserPasswordRequest) (*pb.UserEmptyResponse, error) {
 	err := storage.UpdatePassword(a.ctx.DB, req.Id, req.Password)
 	if err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 	return &pb.UserEmptyResponse{}, nil
 }
@@ -161,10 +161,10 @@ func NewInternalUserAPI(ctx common.Context, validator auth.Validator) *InternalU
 func (a *InternalUserAPI) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	jwt, err := storage.LoginUser(a.ctx.DB, req.Username, req.Password)
 	if nil != err {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
-	profile, err := a.Profile(ctx, &pb.ProfileRequest{})
+	profile, _ := a.Profile(ctx, &pb.ProfileRequest{})
 	// Ignore any error, take whatever profile we're given.
 
 	return &pb.LoginResponse{Jwt: jwt, Profile: profile}, nil
@@ -196,7 +196,7 @@ func getProfile(db *sqlx.DB, id int64) (*pb.ProfileResponse, error) {
 	// Get the profile for the user.
 	userProfile, err := storage.GetProfile(db, id)
 	if nil != err {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 
 	// Convert to the external form.

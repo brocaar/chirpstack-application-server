@@ -27,25 +27,25 @@ func TestUserAPI(t *testing.T) {
 		apiInternal := NewInternalUserAPI(lsCtx, validator)
 
 		Convey("When creating a user", func() {
-			createReq :=  &pb.UserAddRequest{
-				Username:    "username",
-				Password:    "pass^^ord",
-				IsAdmin:     true,
-				SessionTTL:  180,
+			createReq := &pb.AddUserRequest{
+				Username:   "username",
+				Password:   "pass^^ord",
+				IsAdmin:    true,
+				SessionTTL: 180,
 			}
-			createResp, err := api.CreateUser(ctx, createReq)
+			createResp, err := api.Create(ctx, createReq)
 			So(err, ShouldBeNil)
 			So(createResp.Id, ShouldBeGreaterThan, 0)
 			Convey("Then the user has been created", func() {
-				user, err := api.GetUser(ctx, &pb.UserRequest{
+				user, err := api.Get(ctx, &pb.UserRequest{
 					Id: createResp.Id,
 				})
 				So(err, ShouldBeNil)
-				So(user.Info.UserSettings.Username, ShouldResemble, createReq.Username )
-				So(user.Info.UserSettings.SessionTTL, ShouldResemble, createReq.SessionTTL )
-				So(user.Info.UserSettings.IsAdmin, ShouldResemble, createReq.IsAdmin )
+				So(user.Info.UserSettings.Username, ShouldResemble, createReq.Username)
+				So(user.Info.UserSettings.SessionTTL, ShouldResemble, createReq.SessionTTL)
+				So(user.Info.UserSettings.IsAdmin, ShouldResemble, createReq.IsAdmin)
 				Convey("Then get all users returns a single item", func() {
-					users, err := api.GetUserList(ctx, &pb.UserListRequest{
+					users, err := api.List(ctx, &pb.ListUserRequest{
 						Limit:  10,
 						Offset: 0,
 					})
@@ -63,32 +63,32 @@ func TestUserAPI(t *testing.T) {
 					So(jwt, ShouldNotBeNil)
 				})
 				Convey("When updating the user", func() {
-					updateUser :=	&pb.UserUpdateRequest{
-						Id:          createResp.Id,
-						Username:    "anotheruser",
-						SessionTTL:  300,
-						IsAdmin: 	 false,
+					updateUser := &pb.UpdateUserRequest{
+						Id:         createResp.Id,
+						Username:   "anotheruser",
+						SessionTTL: 300,
+						IsAdmin:    false,
 					}
-					_, err := api.UpdateUser(ctx, updateUser)
+					_, err := api.Update(ctx, updateUser)
 					So(err, ShouldBeNil)
-	
+
 					Convey("Then the user has been updated", func() {
-						userUpd, err := api.GetUser(ctx, &pb.UserRequest{
+						userUpd, err := api.Get(ctx, &pb.UserRequest{
 							Id: createResp.Id,
 						})
 						So(err, ShouldBeNil)
-						So(userUpd.Info.UserSettings.Username, ShouldResemble, updateUser.Username )
-						So(userUpd.Info.UserSettings.SessionTTL, ShouldResemble, updateUser.SessionTTL )
-						So(userUpd.Info.UserSettings.IsAdmin, ShouldResemble, updateUser.IsAdmin )
+						So(userUpd.Info.UserSettings.Username, ShouldResemble, updateUser.Username)
+						So(userUpd.Info.UserSettings.SessionTTL, ShouldResemble, updateUser.SessionTTL)
+						So(userUpd.Info.UserSettings.IsAdmin, ShouldResemble, updateUser.IsAdmin)
 					})
 					Convey("When updating the user's password", func() {
-						updatePass :=	&pb.UserPasswordRequest{
-							Id:          createResp.Id,
-							Password:    "newpasstest",
+						updatePass := &pb.UpdateUserPasswordRequest{
+							Id:       createResp.Id,
+							Password: "newpasstest",
 						}
-						_, err := api.UpdateUserPassword(ctx, updatePass)
+						_, err := api.UpdatePassword(ctx, updatePass)
 						So(err, ShouldBeNil)
-		
+
 						Convey("Then the user can log in with the new password", func() {
 							jwt, err := apiInternal.Login(ctx, &pb.LoginRequest{
 								Username: updateUser.Username,
@@ -99,15 +99,15 @@ func TestUserAPI(t *testing.T) {
 						})
 					})
 				})
-	
+
 				Convey("When deleting the user", func() {
-					_, err := api.DeleteUser(ctx, &pb.UserRequest{
+					_, err := api.Delete(ctx, &pb.UserRequest{
 						Id: createResp.Id,
 					})
 					So(err, ShouldBeNil)
-	
+
 					Convey("Then the user has been deleted", func() {
-						users, err := api.GetUserList(ctx, &pb.UserListRequest{
+						users, err := api.List(ctx, &pb.ListUserRequest{
 							Limit:  10,
 							Offset: 0,
 						})

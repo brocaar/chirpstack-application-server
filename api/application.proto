@@ -61,21 +61,21 @@ service Application {
 	// GetUser gets the user that is associated with the application.
 	rpc GetUser(ApplicationUserRequest) returns (GetApplicationUserResponse) {
 		option(google.api.http) = {
-			get: "/api/applications/{id}/users/{userid}"
+			get: "/api/applications/{id}/users/{userID}"
 		};
 	}
 	
 	// UpdateUser sets the user's access to the associated application.
 	rpc UpdateUser(UpdateApplicationUserRequest) returns (EmptyApplicationUserResponse) {
 		option(google.api.http) = {
-			put: "/api/applications/{id}/users/{userid}"
+			put: "/api/applications/{id}/users/{userID}"
 		};
 	}
 
 	// DeleteUser deletes the user's access to the associated application.
 	rpc DeleteUser(ApplicationUserRequest) returns (EmptyApplicationUserResponse) {
 		option(google.api.http) = {
-			put: "/api/applications/{id}/users/{userid}"
+			put: "/api/applications/{id}/users/{userID}"
 		};
 	}
 }
@@ -123,7 +123,7 @@ message UpdateApplicationRequest {
 message UpdateApplicationResponse {}
 
 message DeleteApplicationRequest {
-	//, grpc.Errorf( codes.Unavailable, "Not yet implemented" ) ID of the application.
+	// ID of the application.
 	int64 id = 1;
 }
 
@@ -180,7 +180,7 @@ message AddApplicationUserRequest {
 	int64 id = 1;
 	
 	// User id
-	int64 userid = 2;
+	int64 userID = 2;
 	
 	// admin rights?
 	bool isAdmin = 3;
@@ -191,7 +191,7 @@ message ApplicationUserRequest {
 	int64 id = 1;
 	
 	// The user id
-	int64 userid = 2;
+	int64 userID = 2;
 }
 
 message UpdateApplicationUserRequest {
@@ -199,7 +199,7 @@ message UpdateApplicationUserRequest {
 	int64 id = 1;
 	
 	// The user id
-	int64 userid = 2;
+	int64 userID = 2;
 	
 	// Is admin?
 	bool isAdmin = 3;

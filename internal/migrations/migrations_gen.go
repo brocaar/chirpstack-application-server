@@ -335,7 +335,7 @@ func _0013_users_and_application_usersSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0013_users_and_application_users.sql", size: 1024, mode: os.FileMode(420), modTime: time.Unix(1488799141, 0)}
+	info := bindataFileInfo{name: "0013_users_and_application_users.sql", size: 1024, mode: os.FileMode(420), modTime: time.Unix(1488964457, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

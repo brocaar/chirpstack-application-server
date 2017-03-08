@@ -8,10 +8,11 @@ Package api is a generated protocol buffer package.
 It is generated from these files:
 	channelList.proto
 	node.proto
+	application.proto
 	downlinkQueue.proto
 	nodeSession.proto
 	common.proto
-	application.proto
+	user.proto
 
 It has these top-level messages:
 	CreateChannelListRequest
@@ -38,6 +39,23 @@ It has these top-level messages:
 	ActivateNodeResponse
 	GetNodeActivationRequest
 	GetNodeActivationResponse
+	CreateApplicationRequest
+	CreateApplicationResponse
+	GetApplicationRequest
+	GetApplicationResponse
+	UpdateApplicationRequest
+	UpdateApplicationResponse
+	DeleteApplicationRequest
+	DeleteApplicationResponse
+	ListApplicationRequest
+	ListApplicationResponse
+	ListApplicationUsersRequest
+	GetApplicationUserResponse
+	ListApplicationUsersResponse
+	AddApplicationUserRequest
+	ApplicationUserRequest
+	UpdateApplicationUserRequest
+	EmptyApplicationUserResponse
 	EnqueueDownlinkQueueItemRequest
 	EnqueueDownlinkQueueItemResponse
 	DeleteDownlinkQeueueItemRequest
@@ -55,16 +73,23 @@ It has these top-level messages:
 	DeleteNodeSessionResponse
 	GetRandomDevAddrRequest
 	GetRandomDevAddrResponse
-	CreateApplicationRequest
-	CreateApplicationResponse
-	GetApplicationRequest
-	GetApplicationResponse
-	UpdateApplicationRequest
-	UpdateApplicationResponse
-	DeleteApplicationRequest
-	DeleteApplicationResponse
-	ListApplicationRequest
-	ListApplicationResponse
+	ApplicationLink
+	UserProfile
+	ProfileRequest
+	ProfileResponse
+	LoginRequest
+	LoginResponse
+	ListUserRequest
+	UserRequest
+	AddUserResponse
+	UserSettings
+	UserInfo
+	UserResponse
+	AddUserRequest
+	UpdateUserRequest
+	ListUserResponse
+	UserEmptyResponse
+	UpdateUserPasswordRequest
 */
 package api
 

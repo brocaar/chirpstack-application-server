@@ -144,16 +144,38 @@ func ValidateApplicationMembersAccess(applicationID int64, flag Flag) ValidatorF
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "a.id = $2"},
 		}
+	default:
+		panic("unsupported flag")
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, applicationID)
+	}
+}
+
+// ValidateApplicationMemberAccess validates if the client has access to the
+// given application member.
+func ValidateApplicationMemberAccess(applicationID, userID int64, flag Flag) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Read:
+		// global admin, application admin or user itself.
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "au.is_admin = true", "a.id = $2"},
+			{"u.username = $1", "u.is_active = true", "a.id = $2", "au.user_id = $3", "au.user_id = u.id"},
+		}
 	case Update:
 		// global admin or application admin
 		where = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
 			{"u.username = $1", "u.is_active = true", "au.is_admin = true", "a.id = $2"},
 		}
 	case Delete:
 		// global admin or application admin
 		where = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
 			{"u.username = $1", "u.is_active = true", "au.is_admin = true", "a.id = $2"},
 		}
 	default:
@@ -161,7 +183,7 @@ func ValidateApplicationMembersAccess(applicationID int64, flag Flag) ValidatorF
 	}
 
 	return func(db *sqlx.DB, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, applicationID)
+		return executeQuery(db, userQuery, where, claims.Username, applicationID, userID)
 	}
 }
 

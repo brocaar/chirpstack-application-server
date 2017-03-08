@@ -248,20 +248,20 @@ func TestValidators(t *testing.T) {
 		Convey("When testing ValidateApplicationMembersAccess", func() {
 			tests := []validatorTest{
 				{
-					Name:       "global admin user has access to create, list, update and delete",
-					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(1, Create), ValidateApplicationMembersAccess(1, List), ValidateApplicationMembersAccess(1, Update), ValidateApplicationMembersAccess(1, Delete)},
+					Name:       "global admin user has access to create and list",
+					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(1, Create), ValidateApplicationMembersAccess(1, List)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
-					Name:       "application admin user has access to create, list, update and delete",
-					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(1, Create), ValidateApplicationMembersAccess(1, List), ValidateApplicationMembersAccess(1, Update), ValidateApplicationMembersAccess(1, Delete)},
+					Name:       "application admin user has access to create and list",
+					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(1, Create), ValidateApplicationMembersAccess(1, List)},
 					Claims:     Claims{Username: "user2"},
 					ExpectedOK: true,
 				},
 				{
-					Name:       "application admin user of different application has no access to create, list, update or delete",
-					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(1, Create), ValidateApplicationMembersAccess(1, List), ValidateApplicationMembersAccess(1, Update), ValidateApplicationMembersAccess(1, Delete)},
+					Name:       "application admin user of different application has no access to create or list",
+					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(1, Create), ValidateApplicationMembersAccess(1, List)},
 					Claims:     Claims{Username: "user6"},
 					ExpectedOK: false,
 				},
@@ -272,10 +272,47 @@ func TestValidators(t *testing.T) {
 					ExpectedOK: true,
 				},
 				{
-					Name:       "application users are not able to create, update or delete",
-					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(1, Create), ValidateApplicationMembersAccess(1, Update), ValidateApplicationMembersAccess(1, Delete)},
+					Name:       "application users are not able to create",
+					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(1, Create)},
 					Claims:     Claims{Username: "user3"},
 					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateApplicationMemberAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin user has access to read, update and delete",
+					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 3, Read), ValidateApplicationMemberAccess(1, 3, Update), ValidateApplicationMemberAccess(1, 3, Delete)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "application admin user has access to read, update and delete",
+					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 3, Read), ValidateApplicationMemberAccess(1, 3, Update), ValidateApplicationMemberAccess(1, 3, Delete)},
+					Claims:     Claims{Username: "user2"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "application admin user of different application has no access to read, update or delete",
+					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 3, Read), ValidateApplicationMemberAccess(1, 3, Update), ValidateApplicationMemberAccess(1, 3, Delete)},
+					Claims:     Claims{Username: "user6"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "application users are not able to update or delete",
+					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 3, Update), ValidateApplicationMemberAccess(1, 3, Delete)},
+					Claims:     Claims{Username: "user3"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "application user is able to read its own record",
+					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 3, Read)},
+					Claims:     Claims{Username: "user3"},
+					ExpectedOK: true,
 				},
 			}
 

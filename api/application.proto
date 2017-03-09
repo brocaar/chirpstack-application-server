@@ -55,6 +55,7 @@ service Application {
 	rpc AddUser(AddApplicationUserRequest) returns (EmptyApplicationUserResponse) {
 		option(google.api.http) = {
 			post: "/api/applications/{id}/users"
+			body: "*"
 		};
 	}
 	
@@ -69,13 +70,14 @@ service Application {
 	rpc UpdateUser(UpdateApplicationUserRequest) returns (EmptyApplicationUserResponse) {
 		option(google.api.http) = {
 			put: "/api/applications/{id}/users/{userID}"
+			body: "*"
 		};
 	}
 
 	// DeleteUser deletes the user's access to the associated application.
 	rpc DeleteUser(ApplicationUserRequest) returns (EmptyApplicationUserResponse) {
 		option(google.api.http) = {
-			put: "/api/applications/{id}/users/{userID}"
+			delete: "/api/applications/{id}/users/{userID}"
 		};
 	}
 }

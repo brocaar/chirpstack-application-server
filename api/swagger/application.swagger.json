@@ -216,6 +216,14 @@
             "required": true,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiAddApplicationUserRequest"
+            }
           }
         ],
         "tags": [
@@ -255,7 +263,7 @@
           "Application"
         ]
       },
-      "put": {
+      "delete": {
         "summary": "DeleteUser deletes the user's access to the associated application.",
         "operationId": "DeleteUser",
         "responses": {
@@ -280,6 +288,45 @@
             "required": true,
             "type": "string",
             "format": "int64"
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      },
+      "put": {
+        "summary": "UpdateUser sets the user's access to the associated application.",
+        "operationId": "UpdateUser",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiEmptyApplicationUserResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "userID",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateApplicationUserRequest"
+            }
           }
         ],
         "tags": [

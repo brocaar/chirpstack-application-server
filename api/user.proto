@@ -26,6 +26,7 @@ service User {
 	rpc Create(AddUserRequest) returns (AddUserResponse) {
 		option(google.api.http) = {
 			post: "/api/users"
+			body: "*"
 		};
 	}
 
@@ -33,6 +34,7 @@ service User {
 	rpc Update(UpdateUserRequest) returns (UserEmptyResponse) {
 		option(google.api.http) = {
 			put: "/api/users/{id}"
+			body: "*"
 		};
 	}
 
@@ -47,6 +49,7 @@ service User {
 	rpc UpdatePassword(UpdateUserPasswordRequest) returns (UserEmptyResponse) {
 		option(google.api.http) = {
 			put: "/api/users/{id}/password"
+			body: "*"
 		};
 	}
 
@@ -58,6 +61,7 @@ service Internal {
 	rpc Login(LoginRequest) returns (LoginResponse) {
 		option(google.api.http) = {
 			post: "/api/internal/login"
+			body: "*"
 		};
 	}
 

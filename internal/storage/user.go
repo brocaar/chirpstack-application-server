@@ -20,12 +20,14 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
-// PBKDF2 hash generation parameters.
-// SALT_SIZE defines the salt size
-const SALT_SIZE = 16
+// saltSize defines the salt size
+const saltSize = 16
 
-// ITERATIONS defines the number of hash iterations.
-const ITERATIONS = 1024 * 1024
+// hashIterations defines the number of hash iterations.
+const hashIterations = 1024 * 1024
+
+// defaultSessionTTL defines the default session TTL
+const defaultSessionTTL = time.Hour * 24
 
 // Any upper, lower, digit characters, at least 6 characters.
 var usernameValidator = regexp.MustCompile(`^[[:alnum:]]+$`)
@@ -107,7 +109,7 @@ func CreateUser(db *sqlx.DB, user *User, password string) (int64, error) {
 	}
 
 	now := time.Now()
-	pwHash, err := hash(password, SALT_SIZE, ITERATIONS)
+	pwHash, err := hash(password, saltSize, hashIterations)
 	if err != nil {
 		return 0, err
 	}
@@ -328,7 +330,12 @@ func LoginUser(db *sqlx.DB, username string, password string) (string, error) {
 	// Generate the token.
 	now := time.Now()
 	nowSecondsSinceEpoch := now.Unix()
-	expSecondsSinceEpoch := nowSecondsSinceEpoch + (60 * int64(user.SessionTTL))
+	var expSecondsSinceEpoch int64
+	if user.SessionTTL > 0 {
+		expSecondsSinceEpoch = nowSecondsSinceEpoch + (60 * int64(user.SessionTTL))
+	} else {
+		expSecondsSinceEpoch = nowSecondsSinceEpoch + int64(defaultSessionTTL/time.Second)
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"iss":      "lora-app-server",
 		"aud":      "lora-app-server",
@@ -351,7 +358,7 @@ func UpdatePassword(db *sqlx.DB, id int64, newpassword string) error {
 		return errors.Wrap(err, "validation error")
 	}
 
-	pwHash, err := hash(newpassword, SALT_SIZE, ITERATIONS)
+	pwHash, err := hash(newpassword, saltSize, hashIterations)
 	if err != nil {
 		return err
 	}

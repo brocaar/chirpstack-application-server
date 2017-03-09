@@ -69,6 +69,11 @@ func MustResetDB(db *sqlx.DB) {
 	if _, err := migrate.Exec(db.DB, "postgres", m, migrate.Up); err != nil {
 		log.Fatal(err)
 	}
+
+	// delete default "admin"
+	if _, err := db.Exec(`delete from "user"`); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // MustFlushRedis flushes the Redis storage.

@@ -40,7 +40,7 @@ HTTP_TLS_CERT=/etc/lora-app-server/certs/http.pem
 # http server TLS key
 HTTP_TLS_KEY=/etc/lora-app-server/certs/http-key.pem
 
-# JWT secret used for api authentication / authorization (disabled when left blank)
+# JWT secret used for api authentication / authorization
 JWT_SECRET=
 
 # hostname:port of the network-server api server (default: "127.0.0.1:8000")

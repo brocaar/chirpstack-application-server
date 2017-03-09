@@ -95,6 +95,28 @@ func GetApplicationCount(db *sqlx.DB) (int, error) {
 	return count, nil
 }
 
+// GetApplicationCountForUser returns the total number of applications
+// available for the given user.
+func GetApplicationCountForUser(db *sqlx.DB, username string) (int, error) {
+	var count int
+	err := db.Get(&count, `
+		select
+			count(a.*)
+		from application a
+		inner join application_user au
+			on a.id = au.application_id
+		inner join "user" u
+			on au.user_id = u.id
+		where
+			u.username = $1
+			and u.is_active = true
+	`, username)
+	if err != nil {
+		return 0, errors.Wrap(err, "select error")
+	}
+	return count, nil
+}
+
 // GetApplications returns a slice of applications, sorted by name and
 // respecting the given limit and offset.
 func GetApplications(db *sqlx.DB, limit, offset int) ([]Application, error) {
@@ -103,6 +125,28 @@ func GetApplications(db *sqlx.DB, limit, offset int) ([]Application, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
 	}
+	return apps, nil
+}
+
+// GetApplicationsForUser returns a slice of application of which the given
+// user is a member of.
+func GetApplicationsForUser(db *sqlx.DB, username string, limit, offset int) ([]Application, error) {
+	var apps []Application
+	err := db.Select(&apps, `
+		select a.*
+		from application a
+		inner join application_user au
+			on a.id = au.application_id
+		inner join "user" u
+			on au.user_id = u.id
+		where
+			u.username = $1
+			and u.is_active = true
+	`, username)
+	if err != nil {
+		return nil, errors.Wrap(err, "select error")
+	}
+
 	return apps, nil
 }
 

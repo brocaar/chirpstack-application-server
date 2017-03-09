@@ -40,12 +40,13 @@ type User struct {
 	ID         int64     `db:"id"`
 	Username   string    `db:"username"`
 	IsAdmin    bool      `db:"is_admin"`
+	IsActive   bool      `db:"is_active"`
 	SessionTTL int32     `db:"session_ttl"`
 	CreatedAt  time.Time `db:"created_at"`
 	UpdatedAt  time.Time `db:"updated_at"`
 }
 
-const externalUserFields = "id, username, is_admin, session_ttl, created_at, updated_at"
+const externalUserFields = "id, username, is_admin, is_active, session_ttl, created_at, updated_at"
 const internalUserFields = "*"
 
 // UserUpdate represents the user fields that can be "updated" in the simple
@@ -54,6 +55,7 @@ type UserUpdate struct {
 	ID         int64  `db:"id"`
 	Username   string `db:"username"`
 	IsAdmin    bool   `db:"is_admin"`
+	IsActive   bool   `db:"is_active"`
 	SessionTTL int32  `db:"session_ttl"`
 }
 
@@ -108,15 +110,29 @@ func CreateUser(db *sqlx.DB, user *User, password string) (int64, error) {
 		return 0, errors.Wrap(err, "validation error")
 	}
 
-	now := time.Now()
 	pwHash, err := hash(password, saltSize, hashIterations)
 	if err != nil {
 		return 0, err
 	}
 
 	// Add the new user.
-	err = db.Get(&user.ID, "insert into \"user\" (username, password_hash, is_admin, is_active, session_ttl, created_at, updated_at) values( $1, $2, $3, 'true', $4, $5, $6 ) returning id",
-		user.Username, pwHash, user.IsAdmin, user.SessionTTL, now, now)
+	err = db.Get(&user.ID, `
+		insert into "user" (
+			username,
+			password_hash,
+			is_admin,
+			is_active,
+			session_ttl,
+			created_at,
+			updated_at)
+		values (
+			$1, $2, $3, $4, $5, now(), now()) returning id`,
+		user.Username,
+		pwHash,
+		user.IsAdmin,
+		user.IsActive,
+		user.SessionTTL,
+	)
 	if err != nil {
 		switch err := err.(type) {
 		case *pq.Error:
@@ -251,12 +267,14 @@ func UpdateUser(db *sqlx.DB, item UserUpdate) error {
 		set
 			username = $2,
 			is_admin = $3,
-			session_ttl = $4,
+			is_active = $4,
+			session_ttl = $5,
 			updated_at = now()
 		where id = $1`,
 		item.ID,
 		item.Username,
 		item.IsAdmin,
+		item.IsActive,
 		item.SessionTTL,
 	)
 	if err != nil {

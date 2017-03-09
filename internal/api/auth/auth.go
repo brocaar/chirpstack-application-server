@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 
+	"github.com/brocaar/lora-app-server/internal/storage"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -31,6 +32,9 @@ type Validator interface {
 
 	// GetUsername returns the name of the authenticated user.
 	GetUsername(context.Context) (string, error)
+
+	// GetIsAdmin returns if the authenticated user is a global admin.
+	GetIsAdmin(context.Context) (bool, error)
 }
 
 // ValidatorFunc defines the signature of a claim validator function.
@@ -83,6 +87,21 @@ func (v JWTValidator) GetUsername(ctx context.Context) (string, error) {
 	}
 
 	return claims.Username, nil
+}
+
+// GetIsAdmin returns if the authenticated user is a global amin.
+func (v JWTValidator) GetIsAdmin(ctx context.Context) (bool, error) {
+	claims, err := v.getClaims(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	user, err := storage.GetUserByUsername(v.db, claims.Username)
+	if err != nil {
+		return false, errors.Wrap(err, "get user by username error")
+	}
+
+	return user.IsAdmin, nil
 }
 
 func (v JWTValidator) getClaims(ctx context.Context) (*Claims, error) {

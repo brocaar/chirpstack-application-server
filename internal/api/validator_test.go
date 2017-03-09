@@ -10,6 +10,7 @@ type TestValidator struct {
 	validatorFuncs []auth.ValidatorFunc
 	returnError    error
 	returnUsername string
+	returnIsAdmin  bool
 }
 
 func (v *TestValidator) Validate(ctx context.Context, funcs ...auth.ValidatorFunc) error {
@@ -20,4 +21,8 @@ func (v *TestValidator) Validate(ctx context.Context, funcs ...auth.ValidatorFun
 
 func (v *TestValidator) GetUsername(ctx context.Context) (string, error) {
 	return v.returnUsername, v.returnError
+}
+
+func (v *TestValidator) GetIsAdmin(ctx context.Context) (bool, error) {
+	return v.returnIsAdmin, v.returnError
 }

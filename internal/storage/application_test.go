@@ -58,11 +58,22 @@ func TestApplication(t *testing.T) {
 				user := User{
 					Username:   "username",
 					IsAdmin:    false,
+					IsActive:   true,
 					SessionTTL: 20,
 				}
 				password := "somepassword"
 				userId, err := CreateUser(db, &user, password)
 				So(err, ShouldBeNil)
+
+				Convey("Then the application count for the user is 0", func() {
+					count, err := GetApplicationCountForUser(db, user.Username)
+					So(err, ShouldBeNil)
+					So(count, ShouldEqual, 0)
+
+					apps, err := GetApplicationsForUser(db, user.Username, 10, 0)
+					So(err, ShouldBeNil)
+					So(apps, ShouldHaveLength, 0)
+				})
 
 				Convey("Then the user can be added to the application", func() {
 					err := CreateUserForApplication(db, app.ID, userId, true)
@@ -71,6 +82,16 @@ func TestApplication(t *testing.T) {
 						count, err := GetApplicationUsersCount(db, app.ID)
 						So(err, ShouldBeNil)
 						So(count, ShouldEqual, 1)
+
+						Convey("Then the application count for the user is 1", func() {
+							count, err := GetApplicationCountForUser(db, user.Username)
+							So(err, ShouldBeNil)
+							So(count, ShouldEqual, 1)
+
+							apps, err := GetApplicationsForUser(db, user.Username, 10, 0)
+							So(err, ShouldBeNil)
+							So(apps, ShouldHaveLength, 1)
+						})
 					})
 					Convey("Then the user can be accessed via application get", func() {
 						ua, err := GetUserForApplication(db, app.ID, userId)

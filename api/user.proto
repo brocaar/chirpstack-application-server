@@ -155,11 +155,14 @@ message UserSettings {
 	// If the user is a system admin, capable of creating other users.
 	bool isAdmin = 4;
 
+	// If the user is active.
+	bool isActive = 5;
+
 	// When the user was created.
-	string createdAt = 5;
+	string createdAt = 6;
 
 	// When the user was last updated (excludes changes in application access).
-	string updatedAt = 6;
+	string updatedAt = 7;
 }
 
 // UserInfo includes the general login settings as well as the user profile.
@@ -187,6 +190,9 @@ message AddUserRequest {
 
 	// If the user is a system-wide admin.
 	bool isAdmin = 4;
+
+	// If the user is active.
+	bool isActive = 5;
 }
 
 // Not quite the AddUserRequest as no password.
@@ -202,6 +208,9 @@ message UpdateUserRequest {
 
 	// If the user is a system-wide admin.
 	bool isAdmin = 4;
+
+	// If the user is active.
+	bool isActive = 5;
 }
 
 message ListUserResponse {

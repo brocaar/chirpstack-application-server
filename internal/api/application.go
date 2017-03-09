@@ -109,15 +109,37 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	// TODO: retrieve the applications to which the user has permission
-	apps, err := storage.GetApplications(a.ctx.DB, int(req.Limit), int(req.Offset))
+	var count int
+	var apps []storage.Application
+
+	isAdmin, err := a.validator.GetIsAdmin(ctx)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	count, err := storage.GetApplicationCount(a.ctx.DB)
-	if err != nil {
-		return nil, errToRPCError(err)
+	if isAdmin {
+		apps, err = storage.GetApplications(a.ctx.DB, int(req.Limit), int(req.Offset))
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		count, err = storage.GetApplicationCount(a.ctx.DB)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+	} else {
+		username, err := a.validator.GetUsername(ctx)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		apps, err = storage.GetApplicationsForUser(a.ctx.DB, username, int(req.Limit), int(req.Offset))
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		count, err = storage.GetApplicationCountForUser(a.ctx.DB, username)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
 	}
 
 	resp := pb.ListApplicationResponse{

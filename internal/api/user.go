@@ -43,6 +43,7 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 		Username:   req.Username,
 		SessionTTL: req.SessionTTL,
 		IsAdmin:    req.IsAdmin,
+		IsActive:   req.IsActive,
 	}
 
 	id, err := storage.CreateUser(a.ctx.DB, &user, req.Password)
@@ -77,6 +78,7 @@ func (a *UserAPI) Get(ctx context.Context, req *pb.UserRequest) (*pb.UserRespons
 				Username:   user.Username,
 				SessionTTL: user.SessionTTL,
 				IsAdmin:    user.IsAdmin,
+				IsActive:   user.IsActive,
 			},
 			UserProfile: profile.UserProfile,
 		},
@@ -113,6 +115,7 @@ func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUs
 					Username:   user.Username,
 					SessionTTL: user.SessionTTL,
 					IsAdmin:    user.IsAdmin,
+					IsActive:   user.IsActive,
 				},
 				UserProfile: profile.UserProfile,
 			},

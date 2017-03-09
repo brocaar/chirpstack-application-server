@@ -33,17 +33,14 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
+	if err := d.validator.Validate(ctx,
+		auth.ValidateNodeQueueAccess(devEUI, auth.Create)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	node, err := storage.GetNode(d.ctx.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
-	}
-
-	if err := d.validator.Validate(ctx,
-		auth.ValidateAPIMethod("DownlinkQueue.Enqueue"),
-		auth.ValidateApplicationID(node.ApplicationID),
-		auth.ValidateNode(node.DevEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	qi := storage.DownlinkQueueItem{
@@ -67,17 +64,14 @@ func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeu
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
+	if err := d.validator.Validate(ctx,
+		auth.ValidateNodeQueueAccess(devEUI, auth.Delete)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	node, err := storage.GetNode(d.ctx.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
-	}
-
-	if err := d.validator.Validate(ctx,
-		auth.ValidateAPIMethod("DownlinkQueue.Delete"),
-		auth.ValidateApplicationID(node.ApplicationID),
-		auth.ValidateNode(node.DevEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	qi, err := storage.GetDownlinkQueueItem(d.ctx.DB, req.Id)
@@ -101,17 +95,14 @@ func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueIt
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
+	if err := d.validator.Validate(ctx,
+		auth.ValidateNodeQueueAccess(devEUI, auth.List)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	node, err := storage.GetNode(d.ctx.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
-	}
-
-	if err := d.validator.Validate(ctx,
-		auth.ValidateAPIMethod("DownlinkQueue.List"),
-		auth.ValidateApplicationID(node.ApplicationID),
-		auth.ValidateNode(node.DevEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	items, err := storage.GetDownlinkQueueItems(d.ctx.DB, node.DevEUI)

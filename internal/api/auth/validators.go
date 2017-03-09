@@ -18,6 +18,7 @@ const (
 	Update
 	Delete
 	List
+	UpdateProfile
 )
 
 const userQuery = `select count(*) from "user" u left join application_user au on u.id = au.user_id left join application a on au.application_id = a.id left join node n on a.id = n.application_id`
@@ -59,6 +60,12 @@ func ValidateUserAccess(userID int64, flag Flag) ValidatorFunc {
 		// global admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
+		}
+	case UpdateProfile:
+		// global admin and user itself
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "u.id = $2"},
 		}
 	default:
 		panic("unsupported flag")
@@ -243,6 +250,51 @@ func ValidateNodeAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 
 	return func(db *sqlx.DB, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, devEUI[:])
+	}
+}
+
+// ValidateNodeQueueAccess validates if the client has access to the queue
+// of the given node.
+func ValidateNodeQueueAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Create, Read, List, Update, Delete:
+		// global admin users or application users
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "n.dev_eui = $2"},
+		}
+	default:
+		panic("unsupported flag")
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, devEUI[:])
+	}
+}
+
+// ValidateChannelListAccess validates if the client has access to the channel-lists.
+func ValidateChannelListAccess(flag Flag) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Create, Update, Delete:
+		// global admin users
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+		}
+	case Read, List:
+		// any user
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true"},
+		}
+	default:
+		panic("unsupported flag")
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username)
 	}
 }
 

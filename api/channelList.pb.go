@@ -10,7 +10,6 @@ It is generated from these files:
 	node.proto
 	application.proto
 	downlinkQueue.proto
-	nodeSession.proto
 	common.proto
 	user.proto
 
@@ -63,16 +62,6 @@ It has these top-level messages:
 	DownlinkQueueItem
 	ListDownlinkQueueItemsRequest
 	ListDownlinkQueueItemsResponse
-	CreateNodeSessionRequest
-	CreateNodeSessionResponse
-	GetNodeSessionRequest
-	GetNodeSessionResponse
-	UpdateNodeSessionRequest
-	UpdateNodeSessionResponse
-	DeleteNodeSessionRequest
-	DeleteNodeSessionResponse
-	GetRandomDevAddrRequest
-	GetRandomDevAddrResponse
 	ApplicationLink
 	UserProfile
 	ProfileRequest

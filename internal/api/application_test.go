@@ -43,7 +43,7 @@ func TestApplicationAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 2)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
 				So(app, ShouldResemble, &pb.GetApplicationResponse{
 					Id:          createResp.Id,
 					Name:        "test-app",
@@ -96,12 +96,14 @@ func TestApplicationAPI(t *testing.T) {
 					Convey("Then the user can be accessed via application get", func() {
 						getUserResp, err := api.GetUser(ctx, getReq)
 						So(err, ShouldBeNil)
+						So(validator.validatorFuncs, ShouldHaveLength, 1)
 						So(getUserResp.Username, ShouldEqual, createUserReq.Username)
 						So(getUserResp.IsAdmin, ShouldEqual, createUserReq.IsAdmin)
 					})
 					Convey("Then the user profile includes the application", func() {
 						getUserFromUser, err := apiuser.Get(ctx, &pb.UserRequest{Id: createRespUser.Id})
 						So(err, ShouldBeNil)
+						So(validator.validatorFuncs, ShouldHaveLength, 1)
 						So(getUserFromUser.Info.UserSettings.Username, ShouldEqual, createUserReq.Username)
 						So(getUserFromUser.Info.UserSettings.IsAdmin, ShouldEqual, createUserReq.IsAdmin)
 						So(getUserFromUser.Info.UserSettings.SessionTTL, ShouldEqual, createUserReq.SessionTTL)
@@ -120,6 +122,7 @@ func TestApplicationAPI(t *testing.T) {
 						}
 						listAppResp, err := api.ListUsers(ctx, getUserList)
 						So(err, ShouldBeNil)
+						So(validator.validatorFuncs, ShouldHaveLength, 1)
 						So(listAppResp, ShouldNotBeNil)
 						So(listAppResp.TotalCount, ShouldEqual, 1)
 						So(listAppResp.Result, ShouldHaveLength, 1)
@@ -134,6 +137,7 @@ func TestApplicationAPI(t *testing.T) {
 						}
 						empty, err := api.UpdateUser(ctx, updReq)
 						So(err, ShouldBeNil)
+						So(validator.validatorFuncs, ShouldHaveLength, 1)
 						Convey("Then the user can be accessed showing the new setting", func() {
 							getUserResp, err := api.GetUser(ctx, getReq)
 							So(err, ShouldBeNil)
@@ -145,6 +149,7 @@ func TestApplicationAPI(t *testing.T) {
 					Convey("Then the user can be deleted from the application", func() {
 						empty, err := api.DeleteUser(ctx, getReq)
 						So(err, ShouldBeNil)
+						So(validator.validatorFuncs, ShouldHaveLength, 1)
 						So(empty, ShouldNotBeNil)
 						Convey("Then the user cannot be accessed via get", func() {
 							getUserResp, err := api.GetUser(ctx, getReq)
@@ -163,7 +168,7 @@ func TestApplicationAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 2)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the application has been updated", func() {
 					app, err := api.Get(ctx, &pb.GetApplicationRequest{
@@ -183,6 +188,7 @@ func TestApplicationAPI(t *testing.T) {
 					Id: createResp.Id,
 				})
 				So(err, ShouldBeNil)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the application has been deleted", func() {
 					apps, err := api.List(ctx, &pb.ListApplicationRequest{Limit: 10})

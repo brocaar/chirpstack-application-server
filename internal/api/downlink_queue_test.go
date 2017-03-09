@@ -59,7 +59,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 3)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the payload was directly sent to the network-server", func() {
 					b, err := lorawan.EncryptFRMPayload(node.AppSKey, false, node.DevAddr, 12, []byte{1, 2, 3, 4})
@@ -91,7 +91,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 3)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the payload was directly sent to the network-server", func() {
 					b, err := lorawan.EncryptFRMPayload(node.AppSKey, false, node.DevAddr, 12, []byte{1, 2, 3, 4})
@@ -125,7 +125,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
-			So(validator.validatorFuncs, ShouldHaveLength, 3)
+			So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 			Convey("Then the queue contains a single item", func() {
 				resp, err := api.List(ctx, &pb.ListDownlinkQueueItemsRequest{
@@ -133,7 +133,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 3)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				So(resp.Items, ShouldHaveLength, 1)
 				So(resp.Items[0], ShouldResemble, &pb.DownlinkQueueItem{
@@ -157,7 +157,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 3)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the downlink queue item has been deleted", func() {
 					resp, err := api.List(ctx, &pb.ListDownlinkQueueItemsRequest{

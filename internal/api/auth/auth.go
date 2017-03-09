@@ -38,15 +38,6 @@ type Validator interface {
 // error in case an error occured (e.g. db connectivity).
 type ValidatorFunc func(*sqlx.DB, *Claims) (bool, error)
 
-// NopValidator doesn't perform any validation and returns alway true.
-type NopValidator struct{}
-
-// Validate validates the given token against the given validator funcs.
-// In the case of the NopValidator, it returns always nil.
-func (v NopValidator) Validate(db *sqlx.DB, ctx context.Context, funcs ...ValidatorFunc) error {
-	return nil
-}
-
 // JWTValidator validates JWT tokens.
 type JWTValidator struct {
 	db        *sqlx.DB

@@ -34,6 +34,11 @@ func NewUserAPI(ctx common.Context, validator auth.Validator) *UserAPI {
 
 // Create creates the given user.
 func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUserResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateUsersAccess(auth.Create)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	user := storage.User{
 		Username:   req.Username,
 		SessionTTL: req.SessionTTL,
@@ -50,6 +55,10 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 
 // Get returns the user matching the given ID.
 func (a *UserAPI) Get(ctx context.Context, req *pb.UserRequest) (*pb.UserResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateUserAccess(req.Id, auth.Read)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
 
 	user, err := storage.GetUser(a.ctx.DB, req.Id)
 	if err != nil {
@@ -76,6 +85,10 @@ func (a *UserAPI) Get(ctx context.Context, req *pb.UserRequest) (*pb.UserRespons
 
 // List lists the users.
 func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUserResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateUsersAccess(auth.List)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
 
 	users, err := storage.GetUsers(a.ctx.DB, req.Limit, req.Offset)
 	if err != nil {
@@ -114,6 +127,10 @@ func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUs
 
 // Update updates the given user.
 func (a *UserAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserEmptyResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateUserAccess(req.Id, auth.Update)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
 
 	userUpdate := storage.UserUpdate{
 		ID:         req.Id,
@@ -132,6 +149,10 @@ func (a *UserAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.Us
 
 // Delete deletes the user matching the given ID.
 func (a *UserAPI) Delete(ctx context.Context, req *pb.UserRequest) (*pb.UserEmptyResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateUserAccess(req.Id, auth.Delete)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
 
 	err := storage.DeleteUser(a.ctx.DB, req.Id)
 	if err != nil {
@@ -142,6 +163,11 @@ func (a *UserAPI) Delete(ctx context.Context, req *pb.UserRequest) (*pb.UserEmpt
 
 // UpdatePassword updates the password for the user matching the given ID.
 func (a *UserAPI) UpdatePassword(ctx context.Context, req *pb.UpdateUserPasswordRequest) (*pb.UserEmptyResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateUserAccess(req.Id, auth.UpdateProfile)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	err := storage.UpdatePassword(a.ctx.DB, req.Id, req.Password)
 	if err != nil {
 		return nil, errToRPCError(err)
@@ -175,21 +201,18 @@ type claims struct {
 }
 
 func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (*pb.ProfileResponse, error) {
-	/*	// Get the username from the validator.
-		username, err := a.validator.GetUsername( ctx )
-		if nil != err {
-			return nil, grpc.Errorf(codes.Unknown , err.Error())
-		}
+	username, err := a.validator.GetUsername(ctx)
+	if nil != err {
+		return nil, errToRPCError(err)
+	}
 
-		// Get the user id based on the username.
-		user, err := storage.GetUserByUsername( a.ctx.DB, username )
-		if nil != err {
-			return nil, grpc.Errorf(codes.Unknown , err.Error())
-		}
+	// Get the user id based on the username.
+	user, err := storage.GetUserByUsername(a.ctx.DB, username)
+	if nil != err {
+		return nil, errToRPCError(err)
+	}
 
-		return getProfile( a.ctx.DB, user.ID )
-	*/
-	return nil, grpc.Errorf(codes.Unimplemented, "")
+	return getProfile(a.ctx.DB, user.ID)
 }
 
 func getProfile(db *sqlx.DB, id int64) (*pb.ProfileResponse, error) {

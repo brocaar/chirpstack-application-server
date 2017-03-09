@@ -393,6 +393,56 @@ func TestValidators(t *testing.T) {
 
 			runTests(tests, db)
 		})
+
+		Convey("When testing ValidateNodeQueueAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can read, list, update and delete",
+					Validators: []ValidatorFunc{ValidateNodeQueueAccess(nodes[0].DevEUI, Create), ValidateNodeQueueAccess(nodes[0].DevEUI, Read), ValidateNodeQueueAccess(nodes[0].DevEUI, List), ValidateNodeQueueAccess(nodes[0].DevEUI, Update), ValidateNodeQueueAccess(nodes[0].DevEUI, Delete)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "application users can read, list, update and delete",
+					Validators: []ValidatorFunc{ValidateNodeQueueAccess(nodes[0].DevEUI, Read), ValidateNodeQueueAccess(nodes[0].DevEUI, List), ValidateNodeQueueAccess(nodes[0].DevEUI, Update), ValidateNodeQueueAccess(nodes[0].DevEUI, Delete)},
+					Claims:     Claims{Username: "user3"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "other users can not read, list, update and delete",
+					Validators: []ValidatorFunc{ValidateNodeQueueAccess(nodes[0].DevEUI, Create), ValidateNodeQueueAccess(nodes[0].DevEUI, Read), ValidateNodeQueueAccess(nodes[0].DevEUI, List), ValidateNodeQueueAccess(nodes[0].DevEUI, Update), ValidateNodeQueueAccess(nodes[0].DevEUI, Delete)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateChannelListAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can create, read, list, update and delete",
+					Validators: []ValidatorFunc{ValidateChannelListAccess(Create), ValidateChannelListAccess(Read), ValidateChannelListAccess(List), ValidateChannelListAccess(Update), ValidateChannelListAccess(Delete)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "users are able to read and list",
+					Validators: []ValidatorFunc{ValidateChannelListAccess(Read), ValidateChannelListAccess(List)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "users are not able to create update or delete",
+					Validators: []ValidatorFunc{ValidateChannelListAccess(Create), ValidateChannelListAccess(Update), ValidateChannelListAccess(Delete)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
 	})
 }
 

@@ -35,25 +35,31 @@ func TestUserAPI(t *testing.T) {
 			}
 			createResp, err := api.Create(ctx, createReq)
 			So(err, ShouldBeNil)
+			So(validator.validatorFuncs, ShouldHaveLength, 1)
 			So(createResp.Id, ShouldBeGreaterThan, 0)
+
 			Convey("Then the user has been created", func() {
 				user, err := api.Get(ctx, &pb.UserRequest{
 					Id: createResp.Id,
 				})
 				So(err, ShouldBeNil)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
 				So(user.Info.UserSettings.Username, ShouldResemble, createReq.Username)
 				So(user.Info.UserSettings.SessionTTL, ShouldResemble, createReq.SessionTTL)
 				So(user.Info.UserSettings.IsAdmin, ShouldResemble, createReq.IsAdmin)
+
 				Convey("Then get all users returns a single item", func() {
 					users, err := api.List(ctx, &pb.ListUserRequest{
 						Limit:  10,
 						Offset: 0,
 					})
 					So(err, ShouldBeNil)
+					So(validator.validatorFuncs, ShouldHaveLength, 1)
 					So(users.Users, ShouldHaveLength, 1)
 					So(users.TotalCount, ShouldEqual, 1)
 					So(users.Users[0], ShouldResemble, user)
 				})
+
 				Convey("Then login in succeeds", func() {
 					jwt, err := apiInternal.Login(ctx, &pb.LoginRequest{
 						Username: createReq.Username,
@@ -62,6 +68,7 @@ func TestUserAPI(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(jwt, ShouldNotBeNil)
 				})
+
 				Convey("When updating the user", func() {
 					updateUser := &pb.UpdateUserRequest{
 						Id:         createResp.Id,
@@ -71,16 +78,19 @@ func TestUserAPI(t *testing.T) {
 					}
 					_, err := api.Update(ctx, updateUser)
 					So(err, ShouldBeNil)
+					So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 					Convey("Then the user has been updated", func() {
 						userUpd, err := api.Get(ctx, &pb.UserRequest{
 							Id: createResp.Id,
 						})
 						So(err, ShouldBeNil)
+						So(validator.validatorFuncs, ShouldHaveLength, 1)
 						So(userUpd.Info.UserSettings.Username, ShouldResemble, updateUser.Username)
 						So(userUpd.Info.UserSettings.SessionTTL, ShouldResemble, updateUser.SessionTTL)
 						So(userUpd.Info.UserSettings.IsAdmin, ShouldResemble, updateUser.IsAdmin)
 					})
+
 					Convey("When updating the user's password", func() {
 						updatePass := &pb.UpdateUserPasswordRequest{
 							Id:       createResp.Id,
@@ -88,6 +98,7 @@ func TestUserAPI(t *testing.T) {
 						}
 						_, err := api.UpdatePassword(ctx, updatePass)
 						So(err, ShouldBeNil)
+						So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 						Convey("Then the user can log in with the new password", func() {
 							jwt, err := apiInternal.Login(ctx, &pb.LoginRequest{
@@ -105,6 +116,7 @@ func TestUserAPI(t *testing.T) {
 						Id: createResp.Id,
 					})
 					So(err, ShouldBeNil)
+					So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 					Convey("Then the user has been deleted", func() {
 						users, err := api.List(ctx, &pb.ListUserRequest{

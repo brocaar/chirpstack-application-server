@@ -1,6 +1,9 @@
 # hidden files
 .*
 
+# logs
+*.log
+
 # binaries
 /dist
 /build

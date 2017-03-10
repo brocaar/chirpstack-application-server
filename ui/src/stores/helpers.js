@@ -11,13 +11,13 @@ export function checkStatus(response) {
 
 export function errorHandler(error) {
   error.then((data) => {
-    dispatcher.dispatch({
-      type: "CREATE_ERROR",
-      error: data,
-    });
-
-    if (data.Code === 16) {
-      hashHistory.push("/jwt");
+    if (data.code === 16) {
+      hashHistory.push("/login");
+    } else {
+      dispatcher.dispatch({
+        type: "CREATE_ERROR",
+        error: data,
+      });
     }
   });
 };

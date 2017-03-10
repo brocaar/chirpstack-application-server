@@ -126,21 +126,6 @@ func TestApplicationAPI(t *testing.T) {
 						So(getUserResp.IsAdmin, ShouldEqual, createUserReq.IsAdmin)
 					})
 
-					Convey("Then the user profile includes the application", func() {
-						getUserFromUser, err := apiuser.Get(ctx, &pb.UserRequest{Id: createRespUser.Id})
-						So(err, ShouldBeNil)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
-						So(getUserFromUser.Info.UserSettings.Username, ShouldEqual, createUserReq.Username)
-						So(getUserFromUser.Info.UserSettings.IsAdmin, ShouldEqual, createUserReq.IsAdmin)
-						So(getUserFromUser.Info.UserSettings.SessionTTL, ShouldEqual, createUserReq.SessionTTL)
-						So(getUserFromUser.Info.UserSettings.CreatedAt, ShouldEqual, getUserFromUser.Info.UserSettings.UpdatedAt)
-						So(getUserFromUser.Info.UserProfile.Applications, ShouldHaveLength, 1)
-						So(getUserFromUser.Info.UserProfile.Applications[0].ApplicationID, ShouldEqual, createResp.Id)
-						So(getUserFromUser.Info.UserProfile.Applications[0].ApplicationName, ShouldEqual, createReq.Name)
-						So(getUserFromUser.Info.UserProfile.Applications[0].IsAdmin, ShouldEqual, createUserReq.IsAdmin)
-						So(getUserFromUser.Info.UserProfile.Applications[0].CreatedAt, ShouldResemble, getUserFromUser.Info.UserProfile.Applications[0].UpdatedAt)
-					})
-
 					Convey("Then the user can be accessed via get all users for application", func() {
 						getUserList := &pb.ListApplicationUsersRequest{
 							Id:     createResp.Id,

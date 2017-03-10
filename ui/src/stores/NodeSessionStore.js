@@ -1,11 +1,11 @@
 import { EventEmitter } from "events";
 import "whatwg-fetch";
-import tokenStore from "./TokenStore";
+import sessionStore from "./SessionStore";
 import { checkStatus, errorHandler } from "./helpers";
 
 class NodeSessionStore extends EventEmitter {
   getRandomDevAddr(applicationID, devEUI, callbackFunc) {
-    fetch("/api/nodes/"+devEUI+"/getRandomDevAddr", {method: "POST", headers: tokenStore.getHeader()}) 
+    fetch("/api/nodes/"+devEUI+"/getRandomDevAddr", {method: "POST", headers: sessionStore.getHeader()}) 
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import { Router, Route, IndexRoute, hashHistory } from 'react-router';
 
 import Layout from './Layout';
-import JWTToken from "./views/jwt/JWTToken";
 
 // applications
 import ListApplications from './views/applications/ListApplications';
@@ -20,6 +19,9 @@ import ActivateNode from "./views/nodes/ActivateNode";
 import ChannelLists from "./views/channels/ChannelLists";
 import ChannelListDetails from "./views/channels/ChannelListDetails";
 import CreateChannelList from "./views/channels/CreateChannelList";
+
+// users
+import Login from "./views/users/Login";
 
 // styling
 import 'bootstrap/dist/css/bootstrap.css';
@@ -41,7 +43,7 @@ ReactDOM.render(
       <Route path="channels" component={ChannelLists}></Route>
       <Route path="channels/create" component={CreateChannelList}></Route>
       <Route path="channels/:id" component={ChannelListDetails}></Route>
-      <Route path="jwt" component={JWTToken}></Route>
+      <Route path="login" component={Login}></Route>
     </Route>
   </Router>,
   document.getElementById('root')

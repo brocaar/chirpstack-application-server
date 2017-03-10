@@ -37,13 +37,14 @@ var passwordValidator = regexp.MustCompile(`^.{6,}$`)
 
 // User represents a user to external code.
 type User struct {
-	ID         int64     `db:"id"`
-	Username   string    `db:"username"`
-	IsAdmin    bool      `db:"is_admin"`
-	IsActive   bool      `db:"is_active"`
-	SessionTTL int32     `db:"session_ttl"`
-	CreatedAt  time.Time `db:"created_at"`
-	UpdatedAt  time.Time `db:"updated_at"`
+	ID           int64     `db:"id"`
+	Username     string    `db:"username"`
+	IsAdmin      bool      `db:"is_admin"`
+	IsActive     bool      `db:"is_active"`
+	SessionTTL   int32     `db:"session_ttl"`
+	CreatedAt    time.Time `db:"created_at"`
+	UpdatedAt    time.Time `db:"updated_at"`
+	PasswordHash string    `db:"password_hash"`
 }
 
 const externalUserFields = "id, username, is_admin, is_active, session_ttl, created_at, updated_at"
@@ -115,6 +116,9 @@ func CreateUser(db *sqlx.DB, user *User, password string) (int64, error) {
 		return 0, err
 	}
 
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
+
 	// Add the new user.
 	err = db.Get(&user.ID, `
 		insert into "user" (
@@ -126,12 +130,14 @@ func CreateUser(db *sqlx.DB, user *User, password string) (int64, error) {
 			created_at,
 			updated_at)
 		values (
-			$1, $2, $3, $4, $5, now(), now()) returning id`,
+			$1, $2, $3, $4, $5, $6, $7) returning id`,
 		user.Username,
 		pwHash,
 		user.IsAdmin,
 		user.IsActive,
 		user.SessionTTL,
+		user.CreatedAt,
+		user.UpdatedAt,
 	)
 	if err != nil {
 		switch err := err.(type) {

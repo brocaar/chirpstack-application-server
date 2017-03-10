@@ -55,7 +55,7 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 }
 
 // Get returns the user matching the given ID.
-func (a *UserAPI) Get(ctx context.Context, req *pb.UserRequest) (*pb.UserResponse, error) {
+func (a *UserAPI) Get(ctx context.Context, req *pb.UserRequest) (*pb.GetUserResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateUserAccess(req.Id, auth.Read)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
@@ -66,22 +66,14 @@ func (a *UserAPI) Get(ctx context.Context, req *pb.UserRequest) (*pb.UserRespons
 		return nil, errToRPCError(err)
 	}
 
-	profile, err := getProfile(a.ctx.DB, req.Id)
-	if err != nil {
-		return nil, errToRPCError(err)
-	}
-
-	return &pb.UserResponse{
-		Info: &pb.UserInfo{
-			UserSettings: &pb.UserSettings{
-				Id:         user.ID,
-				Username:   user.Username,
-				SessionTTL: user.SessionTTL,
-				IsAdmin:    user.IsAdmin,
-				IsActive:   user.IsActive,
-			},
-			UserProfile: profile.UserProfile,
-		},
+	return &pb.GetUserResponse{
+		Id:         user.ID,
+		Username:   user.Username,
+		SessionTTL: user.SessionTTL,
+		IsAdmin:    user.IsAdmin,
+		IsActive:   user.IsActive,
+		CreatedAt:  user.CreatedAt.String(),
+		UpdatedAt:  user.UpdatedAt.String(),
 	}, nil
 }
 
@@ -101,30 +93,23 @@ func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUs
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	usersResp := make([]*pb.UserResponse, len(users))
-	for i, user := range users {
-		profile, err := getProfile(a.ctx.DB, user.ID)
-		if err != nil {
-			return nil, errToRPCError(err)
-		}
 
-		usersResp[i] = &pb.UserResponse{
-			Info: &pb.UserInfo{
-				UserSettings: &pb.UserSettings{
-					Id:         user.ID,
-					Username:   user.Username,
-					SessionTTL: user.SessionTTL,
-					IsAdmin:    user.IsAdmin,
-					IsActive:   user.IsActive,
-				},
-				UserProfile: profile.UserProfile,
-			},
+	result := make([]*pb.GetUserResponse, len(users))
+	for i, user := range users {
+		result[i] = &pb.GetUserResponse{
+			Id:         user.ID,
+			Username:   user.Username,
+			SessionTTL: user.SessionTTL,
+			IsAdmin:    user.IsAdmin,
+			IsActive:   user.IsActive,
+			CreatedAt:  user.CreatedAt.String(),
+			UpdatedAt:  user.UpdatedAt.String(),
 		}
 	}
 
 	return &pb.ListUserResponse{
 		TotalCount: totalUserCount,
-		Users:      usersResp,
+		Result:     result,
 	}, nil
 }
 
@@ -193,10 +178,7 @@ func (a *InternalUserAPI) Login(ctx context.Context, req *pb.LoginRequest) (*pb.
 		return nil, errToRPCError(err)
 	}
 
-	profile, _ := a.Profile(ctx, &pb.ProfileRequest{})
-	// Ignore any error, take whatever profile we're given.
-
-	return &pb.LoginResponse{Jwt: jwt, Profile: profile}, nil
+	return &pb.LoginResponse{Jwt: jwt}, nil
 }
 
 type claims struct {
@@ -215,10 +197,26 @@ func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (
 		return nil, errToRPCError(err)
 	}
 
-	return getProfile(a.ctx.DB, user.ID)
+	links, err := getApplicationLinks(a.ctx.DB, user.ID)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.ProfileResponse{
+		User: &pb.GetUserResponse{
+			Id:         user.ID,
+			Username:   user.Username,
+			SessionTTL: user.SessionTTL,
+			IsAdmin:    user.IsAdmin,
+			IsActive:   user.IsActive,
+			CreatedAt:  user.CreatedAt.String(),
+			UpdatedAt:  user.UpdatedAt.String(),
+		},
+		Applications: links,
+	}, nil
 }
 
-func getProfile(db *sqlx.DB, id int64) (*pb.ProfileResponse, error) {
+func getApplicationLinks(db *sqlx.DB, id int64) ([]*pb.ApplicationLink, error) {
 	// Get the profile for the user.
 	userProfile, err := storage.GetProfile(db, id)
 	if nil != err {
@@ -226,9 +224,9 @@ func getProfile(db *sqlx.DB, id int64) (*pb.ProfileResponse, error) {
 	}
 
 	// Convert to the external form.
-	profResp := make([]*pb.ApplicationLink, len(userProfile))
+	links := make([]*pb.ApplicationLink, len(userProfile))
 	for i, up := range userProfile {
-		profResp[i] = &pb.ApplicationLink{
+		links[i] = &pb.ApplicationLink{
 			ApplicationID:   up.ID,
 			ApplicationName: up.Name,
 			IsAdmin:         up.IsAdmin,
@@ -237,9 +235,5 @@ func getProfile(db *sqlx.DB, id int64) (*pb.ProfileResponse, error) {
 		}
 	}
 
-	userProf := &pb.UserProfile{
-		Applications: profResp,
-	}
-
-	return &pb.ProfileResponse{UserProfile: userProf}, nil
+	return links, nil
 }

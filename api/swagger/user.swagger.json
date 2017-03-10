@@ -127,7 +127,7 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiUserResponse"
+              "$ref": "#/definitions/apiGetUserResponse"
             }
           }
         },
@@ -298,6 +298,43 @@
       },
       "description": "Defines the applications that the user is associated with."
     },
+    "apiGetUserResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the user."
+        },
+        "username": {
+          "type": "string",
+          "description": "Username of the user."
+        },
+        "sessionTTL": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The session timeout, in minutes."
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "If the user is a system admin, capable of creating other users."
+        },
+        "isActive": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "If the user is active."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "When the user was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "When the user was last updated (excludes changes in application access)."
+        }
+      }
+    },
     "apiListUserRequest": {
       "type": "object",
       "properties": {
@@ -321,10 +358,10 @@
           "type": "integer",
           "format": "int32"
         },
-        "users": {
+        "result": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiUserResponse"
+            "$ref": "#/definitions/apiGetUserResponse"
           }
         }
       }
@@ -349,10 +386,6 @@
         "jwt": {
           "type": "string",
           "description": "The JWT tag to be used to access lora-app-server interfaces."
-        },
-        "profile": {
-          "$ref": "#/definitions/apiProfileResponse",
-          "description": "The user's profile (provided as a convenience so an additional call to\nget the profile can be avoided)."
         }
       },
       "description": "The response to the login request upon success. The jwt token is to be\nplaced in the header field named \"Grpc-Metadata-Authorization\" for all\nsubsequent queries to the server."
@@ -364,8 +397,14 @@
     "apiProfileResponse": {
       "type": "object",
       "properties": {
-        "userProfile": {
-          "$ref": "#/definitions/apiUserProfile"
+        "user": {
+          "$ref": "#/definitions/apiGetUserResponse"
+        },
+        "applications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiApplicationLink"
+          }
         }
       },
       "description": "The user's profile. This specifies the access the user has to the data\nand should be used limit what the UI presents as options (e.g., read-only\naccess to an application should not allow an \"edit\" button on that\napplication)."
@@ -417,30 +456,6 @@
     "apiUserEmptyResponse": {
       "type": "object"
     },
-    "apiUserInfo": {
-      "type": "object",
-      "properties": {
-        "userSettings": {
-          "$ref": "#/definitions/apiUserSettings"
-        },
-        "userProfile": {
-          "$ref": "#/definitions/apiUserProfile"
-        }
-      },
-      "description": "UserInfo includes the general login settings as well as the user profile."
-    },
-    "apiUserProfile": {
-      "type": "object",
-      "properties": {
-        "applications": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiApplicationLink"
-          }
-        }
-      },
-      "description": "The user profile, indicating the capabilities of the user."
-    },
     "apiUserRequest": {
       "type": "object",
       "properties": {
@@ -450,53 +465,6 @@
         }
       },
       "description": "Request the user information."
-    },
-    "apiUserResponse": {
-      "type": "object",
-      "properties": {
-        "info": {
-          "$ref": "#/definitions/apiUserInfo",
-          "description": "The user settings and profile."
-        }
-      }
-    },
-    "apiUserSettings": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the user."
-        },
-        "username": {
-          "type": "string",
-          "description": "Username of the user."
-        },
-        "sessionTTL": {
-          "type": "integer",
-          "format": "int32",
-          "description": "The session timeout, in minutes."
-        },
-        "isAdmin": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "If the user is a system admin, capable of creating other users."
-        },
-        "isActive": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "If the user is active."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "When the user was created."
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "When the user was last updated (excludes changes in application access)."
-        }
-      },
-      "description": "User data not including the data access profile."
     }
   }
 }

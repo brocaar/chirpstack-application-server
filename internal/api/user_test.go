@@ -44,9 +44,9 @@ func TestUserAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
-				So(user.Info.UserSettings.Username, ShouldResemble, createReq.Username)
-				So(user.Info.UserSettings.SessionTTL, ShouldResemble, createReq.SessionTTL)
-				So(user.Info.UserSettings.IsAdmin, ShouldResemble, createReq.IsAdmin)
+				So(user.Username, ShouldResemble, createReq.Username)
+				So(user.SessionTTL, ShouldResemble, createReq.SessionTTL)
+				So(user.IsAdmin, ShouldResemble, createReq.IsAdmin)
 
 				Convey("Then get all users returns a single item", func() {
 					users, err := api.List(ctx, &pb.ListUserRequest{
@@ -55,9 +55,9 @@ func TestUserAPI(t *testing.T) {
 					})
 					So(err, ShouldBeNil)
 					So(validator.validatorFuncs, ShouldHaveLength, 1)
-					So(users.Users, ShouldHaveLength, 1)
+					So(users.Result, ShouldHaveLength, 1)
 					So(users.TotalCount, ShouldEqual, 1)
-					So(users.Users[0], ShouldResemble, user)
+					So(users.Result[0].Username, ShouldResemble, user.Username)
 				})
 
 				Convey("Then login in succeeds", func() {
@@ -86,9 +86,9 @@ func TestUserAPI(t *testing.T) {
 						})
 						So(err, ShouldBeNil)
 						So(validator.validatorFuncs, ShouldHaveLength, 1)
-						So(userUpd.Info.UserSettings.Username, ShouldResemble, updateUser.Username)
-						So(userUpd.Info.UserSettings.SessionTTL, ShouldResemble, updateUser.SessionTTL)
-						So(userUpd.Info.UserSettings.IsAdmin, ShouldResemble, updateUser.IsAdmin)
+						So(userUpd.Username, ShouldResemble, updateUser.Username)
+						So(userUpd.SessionTTL, ShouldResemble, updateUser.SessionTTL)
+						So(userUpd.IsAdmin, ShouldResemble, updateUser.IsAdmin)
 					})
 
 					Convey("When updating the user's password", func() {
@@ -124,7 +124,7 @@ func TestUserAPI(t *testing.T) {
 							Offset: 0,
 						})
 						So(err, ShouldBeNil)
-						So(users.Users, ShouldHaveLength, 0)
+						So(users.Result, ShouldHaveLength, 0)
 						So(users.TotalCount, ShouldEqual, 0)
 					})
 				})

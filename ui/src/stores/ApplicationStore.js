@@ -1,12 +1,12 @@
 import { EventEmitter } from "events";
 import "whatwg-fetch";
-import tokenStore from "./TokenStore";
+import sessionStore from "./SessionStore";
 import { checkStatus, errorHandler } from "./helpers";
 
 
 class ApplicationStore extends EventEmitter {
   getAll(callbackFunc) {
-    fetch("/api/applications?limit=999", {headers: tokenStore.getHeader()})
+    fetch("/api/applications?limit=999", {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -20,7 +20,7 @@ class ApplicationStore extends EventEmitter {
   }
 
   getApplication(applicationID, callbackFunc) {
-    fetch("/api/applications/"+applicationID, {headers: tokenStore.getHeader()})
+    fetch("/api/applications/"+applicationID, {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -30,7 +30,7 @@ class ApplicationStore extends EventEmitter {
   }
 
   createApplication(application, callbackFunc) {
-    fetch("/api/applications", {method: "POST", body: JSON.stringify(application), headers: tokenStore.getHeader()})
+    fetch("/api/applications", {method: "POST", body: JSON.stringify(application), headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -40,7 +40,7 @@ class ApplicationStore extends EventEmitter {
   }
 
   updateApplication(applicationID, application, callbackFunc) {
-    fetch("/api/applications/"+applicationID, {method: "PUT", body: JSON.stringify(application), headers: tokenStore.getHeader()})
+    fetch("/api/applications/"+applicationID, {method: "PUT", body: JSON.stringify(application), headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -50,7 +50,7 @@ class ApplicationStore extends EventEmitter {
   }
 
   deleteApplication(applicationID, callbackFunc) {
-    fetch("/api/applications/"+applicationID, {method: "DELETE", headers: tokenStore.getHeader()})
+    fetch("/api/applications/"+applicationID, {method: "DELETE", headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

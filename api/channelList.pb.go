@@ -73,7 +73,7 @@ It has these top-level messages:
 	AddUserResponse
 	UserSettings
 	UserInfo
-	UserResponse
+	GetUserResponse
 	AddUserRequest
 	UpdateUserRequest
 	ListUserResponse

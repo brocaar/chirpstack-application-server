@@ -124,6 +124,7 @@ func (a *UserAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.Us
 		ID:         req.Id,
 		Username:   req.Username,
 		IsAdmin:    req.IsAdmin,
+		IsActive:   req.IsActive,
 		SessionTTL: req.SessionTTL,
 	}
 

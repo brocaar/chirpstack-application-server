@@ -47,8 +47,8 @@ class ListApplications extends Component {
             <table className="table table-hover">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Name</th>
+                  <th className="col-md-1">ID</th>
+                  <th className="col-md-4">Name</th>
                   <th>Description</th>
                 </tr>
               </thead>

@@ -22,6 +22,10 @@ import CreateChannelList from "./views/channels/CreateChannelList";
 
 // users
 import Login from "./views/users/Login";
+import CreateUser from "./views/users/CreateUser";
+import ListUsers from "./views/users/ListUsers";
+import UpdateUser from "./views/users/UpdateUser";
+import UpdatePassword from "./views/users/UpdatePassword";
 
 // styling
 import 'bootstrap/dist/css/bootstrap.css';
@@ -44,6 +48,10 @@ ReactDOM.render(
       <Route path="channels/create" component={CreateChannelList}></Route>
       <Route path="channels/:id" component={ChannelListDetails}></Route>
       <Route path="login" component={Login}></Route>
+      <Route path="users/create" component={CreateUser}></Route>
+      <Route path="users/:userID/edit" component={UpdateUser}></Route>
+      <Route path="users/:userID/password" component={UpdatePassword}></Route>
+      <Route path="users" component={ListUsers}></Route>
     </Route>
   </Router>,
   document.getElementById('root')

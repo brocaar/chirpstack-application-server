@@ -77,10 +77,10 @@ class ListNodes extends Component {
             <table className="table table-hover">
               <thead>
                 <tr>
-                  <th>Device name</th>
-                  <th>Device EUI</th>
+                  <th className="col-md-3">Device name</th>
+                  <th className="col-md-2">Device EUI</th>
                   <th>Device description</th>
-                  <th>Activation</th>
+                  <th className="col-md-1">Activation</th>
                 </tr>
               </thead>
               <tbody>

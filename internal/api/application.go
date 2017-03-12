@@ -33,8 +33,20 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 	}
 
 	app := storage.Application{
-		Name:        req.Name,
-		Description: req.Description,
+		Name:               req.Name,
+		Description:        req.Description,
+		IsABP:              req.IsABP,
+		IsClassC:           req.IsClassC,
+		RelaxFCnt:          req.RelaxFCnt,
+		RXDelay:            uint8(req.RxDelay),
+		RX1DROffset:        uint8(req.Rx1DROffset),
+		RXWindow:           storage.RXWindow(req.RxWindow),
+		RX2DR:              uint8(req.Rx2DR),
+		ADRInterval:        req.AdrInterval,
+		InstallationMargin: req.InstallationMargin,
+	}
+	if req.ChannelListID > 0 {
+		app.ChannelListID = &req.ChannelListID
 	}
 
 	if err := storage.CreateApplication(a.ctx.DB, &app); err != nil {
@@ -58,11 +70,26 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	return &pb.GetApplicationResponse{
-		Id:          app.ID,
-		Name:        app.Name,
-		Description: app.Description,
-	}, nil
+	resp := pb.GetApplicationResponse{
+		Id:                 app.ID,
+		Name:               app.Name,
+		Description:        app.Description,
+		IsABP:              app.IsABP,
+		IsClassC:           app.IsClassC,
+		RxDelay:            uint32(app.RXDelay),
+		Rx1DROffset:        uint32(app.RX1DROffset),
+		RxWindow:           pb.RXWindow(app.RXWindow),
+		Rx2DR:              uint32(app.RX2DR),
+		RelaxFCnt:          app.RelaxFCnt,
+		AdrInterval:        app.ADRInterval,
+		InstallationMargin: app.InstallationMargin,
+	}
+
+	if app.ChannelListID != nil {
+		resp.ChannelListID = *app.ChannelListID
+	}
+
+	return &resp, nil
 }
 
 func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRequest) (*pb.UpdateApplicationResponse, error) {
@@ -81,6 +108,20 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	// update the fields
 	app.Name = req.Name
 	app.Description = req.Description
+	app.IsABP = req.IsABP
+	app.IsClassC = req.IsClassC
+	app.RXDelay = uint8(req.RxDelay)
+	app.RX1DROffset = uint8(req.Rx1DROffset)
+	app.RXWindow = storage.RXWindow(req.RxWindow)
+	app.RX2DR = uint8(req.Rx2DR)
+	app.RelaxFCnt = req.RelaxFCnt
+	app.ADRInterval = req.AdrInterval
+	app.InstallationMargin = req.InstallationMargin
+	if req.ChannelListID > 0 {
+		app.ChannelListID = &req.ChannelListID
+	} else {
+		app.ChannelListID = nil
+	}
 
 	err = storage.UpdateApplication(a.ctx.DB, app)
 	if err != nil {
@@ -126,11 +167,26 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 		TotalCount: int64(count),
 	}
 	for _, app := range apps {
-		resp.Result = append(resp.Result, &pb.GetApplicationResponse{
-			Id:          app.ID,
-			Name:        app.Name,
-			Description: app.Description,
-		})
+		item := pb.GetApplicationResponse{
+			Id:                 app.ID,
+			Name:               app.Name,
+			Description:        app.Description,
+			IsABP:              app.IsABP,
+			IsClassC:           app.IsClassC,
+			RxDelay:            uint32(app.RXDelay),
+			Rx1DROffset:        uint32(app.RX1DROffset),
+			RxWindow:           pb.RXWindow(app.RXWindow),
+			Rx2DR:              uint32(app.RX2DR),
+			RelaxFCnt:          app.RelaxFCnt,
+			AdrInterval:        app.ADRInterval,
+			InstallationMargin: app.InstallationMargin,
+		}
+
+		if app.ChannelListID != nil {
+			item.ChannelListID = *app.ChannelListID
+		}
+
+		resp.Result = append(resp.Result, &item)
 	}
 
 	return &resp, nil

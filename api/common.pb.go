@@ -32,15 +32,15 @@ var RXWindow_value = map[string]int32{
 func (x RXWindow) String() string {
 	return proto.EnumName(RXWindow_name, int32(x))
 }
-func (RXWindow) EnumDescriptor() ([]byte, []int) { return fileDescriptor4, []int{0} }
+func (RXWindow) EnumDescriptor() ([]byte, []int) { return fileDescriptor5, []int{0} }
 
 func init() {
 	proto.RegisterEnum("api.RXWindow", RXWindow_name, RXWindow_value)
 }
 
-func init() { proto.RegisterFile("common.proto", fileDescriptor4) }
+func init() { proto.RegisterFile("common.proto", fileDescriptor5) }
 
-var fileDescriptor4 = []byte{
+var fileDescriptor5 = []byte{
 	// 74 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x49, 0xce, 0xcf, 0xcd,
 	0xcd, 0xcf, 0xd3, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x4e, 0x2c, 0xc8, 0xd4, 0x92, 0xe1,

@@ -12,6 +12,7 @@
 // ../../migrations/0010_recreate_application_table.sql
 // ../../migrations/0011_node_description_and_is_abp.sql
 // ../../migrations/0012_class_c_node.sql
+// ../../migrations/0013_application_settings.sql
 // DO NOT EDIT!
 
 package migrations
@@ -274,7 +275,7 @@ func _0010_recreate_application_tableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0010_recreate_application_table.sql", size: 842, mode: os.FileMode(420), modTime: time.Unix(1487235367, 0)}
+	info := bindataFileInfo{name: "0010_recreate_application_table.sql", size: 842, mode: os.FileMode(420), modTime: time.Unix(1488376315, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -294,7 +295,7 @@ func _0011_node_description_and_is_abpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0011_node_description_and_is_abp.sql", size: 568, mode: os.FileMode(420), modTime: time.Unix(1487235367, 0)}
+	info := bindataFileInfo{name: "0011_node_description_and_is_abp.sql", size: 568, mode: os.FileMode(420), modTime: time.Unix(1488376315, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -314,7 +315,27 @@ func _0012_class_c_nodeSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "0012_class_c_node.sql", size: 147, mode: os.FileMode(420), modTime: time.Unix(1487752201, 0)}
+	info := bindataFileInfo{name: "0012_class_c_node.sql", size: 147, mode: os.FileMode(420), modTime: time.Unix(1488376315, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __0013_application_settingsSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x94\x92\xc1\x8e\xdb\x30\x0c\x44\xcf\xf5\x57\xf0\xd8\xa2\x09\xd0\x06\xe8\x29\xd7\xfe\x42\xcf\x04\x2d\xd1\x2e\x01\x9a\x32\x24\x7a\x93\xfd\xfb\x85\x83\x60\x61\xcb\x09\x9c\xbd\x52\x33\x43\x0a\xf3\x8e\x47\xf8\x39\x48\x9f\xc9\x19\xfe\x8d\x0d\xa9\x73\x06\xa7\x56\x19\x68\x1c\x55\x02\xb9\x24\x6b\xbe\x51\x8c\x10\x92\x4e\x83\x41\xbe\x62\x64\xa5\x77\x10\xf3\x13\x58\x72\xb0\x49\x15\x22\x77\x34\xa9\xc3\xaf\x43\xa5\xfe\x8d\x31\x63\xea\xba\xc2\xfe\x9a\x25\xfc\x27\x33\x56\x54\x29\x8e\x12\xa1\x95\x5e\xcc\x21\x73\xc7\x99\x2d\x70\x59\x29\x20\x19\x44\x56\x76\x86\x79\xc3\x1c\x5c\x5f\x80\x17\xb1\x98\x2e\xaf\x1e\x7c\xc2\x98\x5f\xd4\xb2\xd2\x15\xbb\x60\x0e\x6d\x4a\xca\x64\x5b\x4b\x47\x5a\x78\x6d\xa3\x98\x51\xcc\x39\xbf\x91\xce\x8b\xb8\xe7\xbc\xbb\x4b\xac\x38\xa9\xde\xfa\xc0\x81\x72\x2f\xf3\xbf\x83\x0c\xa4\xdf\xff\x1c\x4e\x3f\xf6\x03\x0a\x52\x3b\x7e\xe9\x50\x29\x18\x94\x4a\xc1\xb0\x63\x3b\x37\x2b\x74\x2c\x45\x5e\x05\x4d\x85\x71\xc1\x13\x16\x76\x17\xeb\xcb\x7e\x6c\xb3\x24\xf4\x6f\xba\xd8\x73\x46\x63\x4e\x63\x0d\xe9\xa1\x1e\x2f\x68\xac\xde\x2a\xec\x36\xce\x3b\x45\x9b\xf9\x8c\x4b\x3d\xfc\xe4\xa2\x7a\x58\x36\x5f\x3d\x3d\xe8\xb7\x56\xdc\x0a\xdc\x0e\xef\x15\x3d\xec\x60\x29\x7d\x56\xc2\xb9\xf9\x08\x00\x00\xff\xff\x3e\xd7\x7a\xa0\x06\x04\x00\x00")
+
+func _0013_application_settingsSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__0013_application_settingsSql,
+		"0013_application_settings.sql",
+	)
+}
+
+func _0013_application_settingsSql() (*asset, error) {
+	bytes, err := _0013_application_settingsSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "0013_application_settings.sql", size: 1030, mode: os.FileMode(420), modTime: time.Unix(1489310134, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -383,6 +404,7 @@ var _bindata = map[string]func() (*asset, error){
 	"0010_recreate_application_table.sql": _0010_recreate_application_tableSql,
 	"0011_node_description_and_is_abp.sql": _0011_node_description_and_is_abpSql,
 	"0012_class_c_node.sql": _0012_class_c_nodeSql,
+	"0013_application_settings.sql": _0013_application_settingsSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -437,6 +459,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"0010_recreate_application_table.sql": &bintree{_0010_recreate_application_tableSql, map[string]*bintree{}},
 	"0011_node_description_and_is_abp.sql": &bintree{_0011_node_description_and_is_abpSql, map[string]*bintree{}},
 	"0012_class_c_node.sql": &bintree{_0012_class_c_nodeSql, map[string]*bintree{}},
+	"0013_application_settings.sql": &bintree{_0013_application_settingsSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory

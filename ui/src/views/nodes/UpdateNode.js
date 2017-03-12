@@ -65,7 +65,7 @@ class UpdateNode extends Component {
         <hr />
         <div className="panel panel-default">
           <div className="panel-body">
-            <NodeForm node={this.state.node} onSubmit={this.onSubmit} />
+            <NodeForm node={this.state.node} application={this.state.application} onSubmit={this.onSubmit} />
           </div>
         </div>
       </div>

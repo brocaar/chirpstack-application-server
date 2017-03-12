@@ -57,15 +57,16 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 	}
 
 	node := storage.Node{
-		ApplicationID: req.ApplicationID,
-		Name:          req.Name,
-		Description:   req.Description,
-		DevEUI:        devEUI,
-		AppEUI:        appEUI,
-		AppKey:        appKey,
-		IsABP:         req.IsABP,
-		IsClassC:      req.IsClassC,
-		RelaxFCnt:     req.RelaxFCnt,
+		ApplicationID:          req.ApplicationID,
+		UseApplicationSettings: req.UseApplicationSettings,
+		Name:        req.Name,
+		Description: req.Description,
+		DevEUI:      devEUI,
+		AppEUI:      appEUI,
+		AppKey:      appKey,
+		IsABP:       req.IsABP,
+		IsClassC:    req.IsClassC,
+		RelaxFCnt:   req.RelaxFCnt,
 
 		RXDelay:     uint8(req.RxDelay),
 		RX1DROffset: uint8(req.Rx1DROffset),
@@ -107,21 +108,22 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 	}
 
 	resp := pb.GetNodeResponse{
-		Name:               node.Name,
-		Description:        node.Description,
-		DevEUI:             node.DevEUI.String(),
-		AppEUI:             node.AppEUI.String(),
-		AppKey:             node.AppKey.String(),
-		IsABP:              node.IsABP,
-		IsClassC:           node.IsClassC,
-		RxDelay:            uint32(node.RXDelay),
-		Rx1DROffset:        uint32(node.RX1DROffset),
-		RxWindow:           pb.RXWindow(node.RXWindow),
-		Rx2DR:              uint32(node.RX2DR),
-		RelaxFCnt:          node.RelaxFCnt,
-		AdrInterval:        node.ADRInterval,
-		InstallationMargin: node.InstallationMargin,
-		ApplicationID:      node.ApplicationID,
+		Name:                   node.Name,
+		Description:            node.Description,
+		DevEUI:                 node.DevEUI.String(),
+		AppEUI:                 node.AppEUI.String(),
+		AppKey:                 node.AppKey.String(),
+		IsABP:                  node.IsABP,
+		IsClassC:               node.IsClassC,
+		RxDelay:                uint32(node.RXDelay),
+		Rx1DROffset:            uint32(node.RX1DROffset),
+		RxWindow:               pb.RXWindow(node.RXWindow),
+		Rx2DR:                  uint32(node.RX2DR),
+		RelaxFCnt:              node.RelaxFCnt,
+		AdrInterval:            node.ADRInterval,
+		InstallationMargin:     node.InstallationMargin,
+		ApplicationID:          node.ApplicationID,
+		UseApplicationSettings: node.UseApplicationSettings,
 	}
 
 	if node.ChannelListID != nil {
@@ -191,6 +193,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 	node.ADRInterval = req.AdrInterval
 	node.InstallationMargin = req.InstallationMargin
 	node.ApplicationID = req.ApplicationID
+	node.UseApplicationSettings = req.UseApplicationSettings
 	if req.ChannelListID > 0 {
 		node.ChannelListID = &req.ChannelListID
 	} else {
@@ -385,21 +388,22 @@ func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeRespo
 	}
 	for _, node := range nodes {
 		item := pb.GetNodeResponse{
-			Name:               node.Name,
-			Description:        node.Description,
-			DevEUI:             node.DevEUI.String(),
-			AppEUI:             node.AppEUI.String(),
-			AppKey:             node.AppKey.String(),
-			IsABP:              node.IsABP,
-			IsClassC:           node.IsClassC,
-			RxDelay:            uint32(node.RXDelay),
-			Rx1DROffset:        uint32(node.RX1DROffset),
-			RxWindow:           pb.RXWindow(node.RXWindow),
-			Rx2DR:              uint32(node.RX2DR),
-			RelaxFCnt:          node.RelaxFCnt,
-			AdrInterval:        node.ADRInterval,
-			InstallationMargin: node.InstallationMargin,
-			ApplicationID:      node.ApplicationID,
+			Name:                   node.Name,
+			Description:            node.Description,
+			DevEUI:                 node.DevEUI.String(),
+			AppEUI:                 node.AppEUI.String(),
+			AppKey:                 node.AppKey.String(),
+			IsABP:                  node.IsABP,
+			IsClassC:               node.IsClassC,
+			RxDelay:                uint32(node.RXDelay),
+			Rx1DROffset:            uint32(node.RX1DROffset),
+			RxWindow:               pb.RXWindow(node.RXWindow),
+			Rx2DR:                  uint32(node.RX2DR),
+			RelaxFCnt:              node.RelaxFCnt,
+			AdrInterval:            node.ADRInterval,
+			InstallationMargin:     node.InstallationMargin,
+			ApplicationID:          node.ApplicationID,
+			UseApplicationSettings: node.UseApplicationSettings,
 		}
 
 		if node.ChannelListID != nil {

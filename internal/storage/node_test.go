@@ -216,6 +216,43 @@ func TestNodeMethods(t *testing.T) {
 					So(count, ShouldEqual, 0)
 				})
 			})
+
+			Convey("When updating the node with UseApplicationSettings=true", func() {
+				node.UseApplicationSettings = true
+				So(UpdateNode(db, node), ShouldBeNil)
+
+				Convey("Then the application settings are set", func() {
+					node2, err := GetNode(db, node.DevEUI)
+					So(err, ShouldBeNil)
+					So(node2, ShouldResemble, Node{
+						ApplicationID:          app.ID,
+						UseApplicationSettings: true,
+						Name:        "test-node",
+						Description: "test node description",
+						DevEUI:      [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
+						AppKey:      [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+					})
+				})
+
+				Convey("When updating the application settings", func() {
+					app.IsClassC = true
+					So(UpdateApplication(db, app), ShouldBeNil)
+
+					Convey("Then the node has been updated", func() {
+						node2, err := GetNode(db, node.DevEUI)
+						So(err, ShouldBeNil)
+						So(node2, ShouldResemble, Node{
+							ApplicationID:          app.ID,
+							UseApplicationSettings: true,
+							Name:        "test-node",
+							Description: "test node description",
+							DevEUI:      [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
+							AppKey:      [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+							IsClassC:    true,
+						})
+					})
+				})
+			})
 		})
 	})
 }

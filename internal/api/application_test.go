@@ -27,8 +27,16 @@ func TestApplicationAPI(t *testing.T) {
 
 		Convey("When creating an application", func() {
 			createResp, err := api.Create(ctx, &pb.CreateApplicationRequest{
-				Name:        "test-app",
-				Description: "A test application",
+				Name:               "test-app",
+				Description:        "A test application",
+				IsABP:              true,
+				IsClassC:           true,
+				RxDelay:            1,
+				Rx1DROffset:        3,
+				RxWindow:           pb.RXWindow_RX2,
+				Rx2DR:              3,
+				AdrInterval:        20,
+				InstallationMargin: 5,
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
@@ -43,9 +51,17 @@ func TestApplicationAPI(t *testing.T) {
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 2)
 				So(app, ShouldResemble, &pb.GetApplicationResponse{
-					Id:          createResp.Id,
-					Name:        "test-app",
-					Description: "A test application",
+					Id:                 createResp.Id,
+					Name:               "test-app",
+					Description:        "A test application",
+					IsABP:              true,
+					IsClassC:           true,
+					RxDelay:            1,
+					Rx1DROffset:        3,
+					RxWindow:           pb.RXWindow_RX2,
+					Rx2DR:              3,
+					AdrInterval:        20,
+					InstallationMargin: 5,
 				})
 			})
 
@@ -60,17 +76,33 @@ func TestApplicationAPI(t *testing.T) {
 				So(apps.Result, ShouldHaveLength, 1)
 				So(apps.TotalCount, ShouldEqual, 1)
 				So(apps.Result[0], ShouldResemble, &pb.GetApplicationResponse{
-					Id:          createResp.Id,
-					Name:        "test-app",
-					Description: "A test application",
+					Id:                 createResp.Id,
+					Name:               "test-app",
+					Description:        "A test application",
+					IsABP:              true,
+					IsClassC:           true,
+					RxDelay:            1,
+					Rx1DROffset:        3,
+					RxWindow:           pb.RXWindow_RX2,
+					Rx2DR:              3,
+					AdrInterval:        20,
+					InstallationMargin: 5,
 				})
 			})
 
 			Convey("When updating the application", func() {
 				_, err := api.Update(ctx, &pb.UpdateApplicationRequest{
-					Id:          createResp.Id,
-					Name:        "test-app-updated",
-					Description: "An updated test description",
+					Id:                 createResp.Id,
+					Name:               "test-app-updated",
+					Description:        "An updated test description",
+					IsABP:              false,
+					IsClassC:           true,
+					RxDelay:            2,
+					Rx1DROffset:        4,
+					RxWindow:           pb.RXWindow_RX1,
+					Rx2DR:              1,
+					AdrInterval:        40,
+					InstallationMargin: 10,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -82,9 +114,17 @@ func TestApplicationAPI(t *testing.T) {
 					})
 					So(err, ShouldBeNil)
 					So(app, ShouldResemble, &pb.GetApplicationResponse{
-						Id:          createResp.Id,
-						Name:        "test-app-updated",
-						Description: "An updated test description",
+						Id:                 createResp.Id,
+						Name:               "test-app-updated",
+						Description:        "An updated test description",
+						IsABP:              false,
+						IsClassC:           true,
+						RxDelay:            2,
+						Rx1DROffset:        4,
+						RxWindow:           pb.RXWindow_RX1,
+						Rx2DR:              1,
+						AdrInterval:        40,
+						InstallationMargin: 10,
 					})
 				})
 			})

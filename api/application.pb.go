@@ -24,12 +24,32 @@ type CreateApplicationRequest struct {
 	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
 	// Description of the application.
 	Description string `protobuf:"bytes,2,opt,name=description" json:"description,omitempty"`
+	// RX delay.
+	RxDelay uint32 `protobuf:"varint,3,opt,name=rxDelay" json:"rxDelay,omitempty"`
+	// RX1 data-rate offset.
+	Rx1DROffset uint32 `protobuf:"varint,4,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
+	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
+	ChannelListID int64 `protobuf:"varint,5,opt,name=channelListID" json:"channelListID,omitempty"`
+	// RX window to use.
+	RxWindow RXWindow `protobuf:"varint,6,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
+	// Data-rate to use for RX2.
+	Rx2DR uint32 `protobuf:"varint,7,opt,name=rx2DR" json:"rx2DR,omitempty"`
+	// Relax frame-counter mode is enabled.
+	RelaxFCnt bool `protobuf:"varint,8,opt,name=relaxFCnt" json:"relaxFCnt,omitempty"`
+	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
+	AdrInterval uint32 `protobuf:"varint,9,opt,name=adrInterval" json:"adrInterval,omitempty"`
+	// Installation-margin to use for ADR calculation.
+	InstallationMargin float64 `protobuf:"fixed64,10,opt,name=installationMargin" json:"installationMargin,omitempty"`
+	// Node is activated by ABP.
+	IsABP bool `protobuf:"varint,11,opt,name=isABP" json:"isABP,omitempty"`
+	// Node operates in Class-C.
+	IsClassC bool `protobuf:"varint,12,opt,name=isClassC" json:"isClassC,omitempty"`
 }
 
 func (m *CreateApplicationRequest) Reset()                    { *m = CreateApplicationRequest{} }
 func (m *CreateApplicationRequest) String() string            { return proto.CompactTextString(m) }
 func (*CreateApplicationRequest) ProtoMessage()               {}
-func (*CreateApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{0} }
+func (*CreateApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{0} }
 
 func (m *CreateApplicationRequest) GetName() string {
 	if m != nil {
@@ -45,6 +65,76 @@ func (m *CreateApplicationRequest) GetDescription() string {
 	return ""
 }
 
+func (m *CreateApplicationRequest) GetRxDelay() uint32 {
+	if m != nil {
+		return m.RxDelay
+	}
+	return 0
+}
+
+func (m *CreateApplicationRequest) GetRx1DROffset() uint32 {
+	if m != nil {
+		return m.Rx1DROffset
+	}
+	return 0
+}
+
+func (m *CreateApplicationRequest) GetChannelListID() int64 {
+	if m != nil {
+		return m.ChannelListID
+	}
+	return 0
+}
+
+func (m *CreateApplicationRequest) GetRxWindow() RXWindow {
+	if m != nil {
+		return m.RxWindow
+	}
+	return RXWindow_RX1
+}
+
+func (m *CreateApplicationRequest) GetRx2DR() uint32 {
+	if m != nil {
+		return m.Rx2DR
+	}
+	return 0
+}
+
+func (m *CreateApplicationRequest) GetRelaxFCnt() bool {
+	if m != nil {
+		return m.RelaxFCnt
+	}
+	return false
+}
+
+func (m *CreateApplicationRequest) GetAdrInterval() uint32 {
+	if m != nil {
+		return m.AdrInterval
+	}
+	return 0
+}
+
+func (m *CreateApplicationRequest) GetInstallationMargin() float64 {
+	if m != nil {
+		return m.InstallationMargin
+	}
+	return 0
+}
+
+func (m *CreateApplicationRequest) GetIsABP() bool {
+	if m != nil {
+		return m.IsABP
+	}
+	return false
+}
+
+func (m *CreateApplicationRequest) GetIsClassC() bool {
+	if m != nil {
+		return m.IsClassC
+	}
+	return false
+}
+
 type CreateApplicationResponse struct {
 	// ID of the application that was created.
 	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
@@ -53,7 +143,7 @@ type CreateApplicationResponse struct {
 func (m *CreateApplicationResponse) Reset()                    { *m = CreateApplicationResponse{} }
 func (m *CreateApplicationResponse) String() string            { return proto.CompactTextString(m) }
 func (*CreateApplicationResponse) ProtoMessage()               {}
-func (*CreateApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{1} }
+func (*CreateApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{1} }
 
 func (m *CreateApplicationResponse) GetId() int64 {
 	if m != nil {
@@ -70,7 +160,7 @@ type GetApplicationRequest struct {
 func (m *GetApplicationRequest) Reset()                    { *m = GetApplicationRequest{} }
 func (m *GetApplicationRequest) String() string            { return proto.CompactTextString(m) }
 func (*GetApplicationRequest) ProtoMessage()               {}
-func (*GetApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{2} }
+func (*GetApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{2} }
 
 func (m *GetApplicationRequest) GetId() int64 {
 	if m != nil {
@@ -86,12 +176,32 @@ type GetApplicationResponse struct {
 	Name string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
 	// Description of the application.
 	Description string `protobuf:"bytes,3,opt,name=description" json:"description,omitempty"`
+	// RX delay.
+	RxDelay uint32 `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
+	// RX1 data-rate offset.
+	Rx1DROffset uint32 `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
+	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
+	ChannelListID int64 `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
+	// RX window to use.
+	RxWindow RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
+	// Data-rate to use for RX2.
+	Rx2DR uint32 `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
+	// Relax frame-counter mode is enabled.
+	RelaxFCnt bool `protobuf:"varint,9,opt,name=relaxFCnt" json:"relaxFCnt,omitempty"`
+	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
+	AdrInterval uint32 `protobuf:"varint,10,opt,name=adrInterval" json:"adrInterval,omitempty"`
+	// Installation-margin to use for ADR calculation.
+	InstallationMargin float64 `protobuf:"fixed64,11,opt,name=installationMargin" json:"installationMargin,omitempty"`
+	// Node is activated by ABP.
+	IsABP bool `protobuf:"varint,12,opt,name=isABP" json:"isABP,omitempty"`
+	// Node operates in Class-C.
+	IsClassC bool `protobuf:"varint,13,opt,name=isClassC" json:"isClassC,omitempty"`
 }
 
 func (m *GetApplicationResponse) Reset()                    { *m = GetApplicationResponse{} }
 func (m *GetApplicationResponse) String() string            { return proto.CompactTextString(m) }
 func (*GetApplicationResponse) ProtoMessage()               {}
-func (*GetApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{3} }
+func (*GetApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{3} }
 
 func (m *GetApplicationResponse) GetId() int64 {
 	if m != nil {
@@ -114,6 +224,76 @@ func (m *GetApplicationResponse) GetDescription() string {
 	return ""
 }
 
+func (m *GetApplicationResponse) GetRxDelay() uint32 {
+	if m != nil {
+		return m.RxDelay
+	}
+	return 0
+}
+
+func (m *GetApplicationResponse) GetRx1DROffset() uint32 {
+	if m != nil {
+		return m.Rx1DROffset
+	}
+	return 0
+}
+
+func (m *GetApplicationResponse) GetChannelListID() int64 {
+	if m != nil {
+		return m.ChannelListID
+	}
+	return 0
+}
+
+func (m *GetApplicationResponse) GetRxWindow() RXWindow {
+	if m != nil {
+		return m.RxWindow
+	}
+	return RXWindow_RX1
+}
+
+func (m *GetApplicationResponse) GetRx2DR() uint32 {
+	if m != nil {
+		return m.Rx2DR
+	}
+	return 0
+}
+
+func (m *GetApplicationResponse) GetRelaxFCnt() bool {
+	if m != nil {
+		return m.RelaxFCnt
+	}
+	return false
+}
+
+func (m *GetApplicationResponse) GetAdrInterval() uint32 {
+	if m != nil {
+		return m.AdrInterval
+	}
+	return 0
+}
+
+func (m *GetApplicationResponse) GetInstallationMargin() float64 {
+	if m != nil {
+		return m.InstallationMargin
+	}
+	return 0
+}
+
+func (m *GetApplicationResponse) GetIsABP() bool {
+	if m != nil {
+		return m.IsABP
+	}
+	return false
+}
+
+func (m *GetApplicationResponse) GetIsClassC() bool {
+	if m != nil {
+		return m.IsClassC
+	}
+	return false
+}
+
 type UpdateApplicationRequest struct {
 	// ID of the application to update.
 	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
@@ -121,12 +301,32 @@ type UpdateApplicationRequest struct {
 	Name string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
 	// Description of the application.
 	Description string `protobuf:"bytes,3,opt,name=description" json:"description,omitempty"`
+	// RX delay.
+	RxDelay uint32 `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
+	// RX1 data-rate offset.
+	Rx1DROffset uint32 `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
+	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
+	ChannelListID int64 `protobuf:"varint,6,opt,name=channelListID" json:"channelListID,omitempty"`
+	// RX window to use.
+	RxWindow RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
+	// Data-rate to use for RX2.
+	Rx2DR uint32 `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
+	// Relax frame-counter mode is enabled.
+	RelaxFCnt bool `protobuf:"varint,9,opt,name=relaxFCnt" json:"relaxFCnt,omitempty"`
+	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
+	AdrInterval uint32 `protobuf:"varint,10,opt,name=adrInterval" json:"adrInterval,omitempty"`
+	// Installation-margin to use for ADR calculation.
+	InstallationMargin float64 `protobuf:"fixed64,11,opt,name=installationMargin" json:"installationMargin,omitempty"`
+	// Node is activated by ABP.
+	IsABP bool `protobuf:"varint,12,opt,name=isABP" json:"isABP,omitempty"`
+	// Node operates in Class-C.
+	IsClassC bool `protobuf:"varint,13,opt,name=isClassC" json:"isClassC,omitempty"`
 }
 
 func (m *UpdateApplicationRequest) Reset()                    { *m = UpdateApplicationRequest{} }
 func (m *UpdateApplicationRequest) String() string            { return proto.CompactTextString(m) }
 func (*UpdateApplicationRequest) ProtoMessage()               {}
-func (*UpdateApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{4} }
+func (*UpdateApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{4} }
 
 func (m *UpdateApplicationRequest) GetId() int64 {
 	if m != nil {
@@ -149,13 +349,83 @@ func (m *UpdateApplicationRequest) GetDescription() string {
 	return ""
 }
 
+func (m *UpdateApplicationRequest) GetRxDelay() uint32 {
+	if m != nil {
+		return m.RxDelay
+	}
+	return 0
+}
+
+func (m *UpdateApplicationRequest) GetRx1DROffset() uint32 {
+	if m != nil {
+		return m.Rx1DROffset
+	}
+	return 0
+}
+
+func (m *UpdateApplicationRequest) GetChannelListID() int64 {
+	if m != nil {
+		return m.ChannelListID
+	}
+	return 0
+}
+
+func (m *UpdateApplicationRequest) GetRxWindow() RXWindow {
+	if m != nil {
+		return m.RxWindow
+	}
+	return RXWindow_RX1
+}
+
+func (m *UpdateApplicationRequest) GetRx2DR() uint32 {
+	if m != nil {
+		return m.Rx2DR
+	}
+	return 0
+}
+
+func (m *UpdateApplicationRequest) GetRelaxFCnt() bool {
+	if m != nil {
+		return m.RelaxFCnt
+	}
+	return false
+}
+
+func (m *UpdateApplicationRequest) GetAdrInterval() uint32 {
+	if m != nil {
+		return m.AdrInterval
+	}
+	return 0
+}
+
+func (m *UpdateApplicationRequest) GetInstallationMargin() float64 {
+	if m != nil {
+		return m.InstallationMargin
+	}
+	return 0
+}
+
+func (m *UpdateApplicationRequest) GetIsABP() bool {
+	if m != nil {
+		return m.IsABP
+	}
+	return false
+}
+
+func (m *UpdateApplicationRequest) GetIsClassC() bool {
+	if m != nil {
+		return m.IsClassC
+	}
+	return false
+}
+
 type UpdateApplicationResponse struct {
 }
 
 func (m *UpdateApplicationResponse) Reset()                    { *m = UpdateApplicationResponse{} }
 func (m *UpdateApplicationResponse) String() string            { return proto.CompactTextString(m) }
 func (*UpdateApplicationResponse) ProtoMessage()               {}
-func (*UpdateApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{5} }
+func (*UpdateApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{5} }
 
 type DeleteApplicationRequest struct {
 	// ID of the application.
@@ -165,7 +435,7 @@ type DeleteApplicationRequest struct {
 func (m *DeleteApplicationRequest) Reset()                    { *m = DeleteApplicationRequest{} }
 func (m *DeleteApplicationRequest) String() string            { return proto.CompactTextString(m) }
 func (*DeleteApplicationRequest) ProtoMessage()               {}
-func (*DeleteApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{6} }
+func (*DeleteApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{6} }
 
 func (m *DeleteApplicationRequest) GetId() int64 {
 	if m != nil {
@@ -180,7 +450,7 @@ type DeleteApplicationResponse struct {
 func (m *DeleteApplicationResponse) Reset()                    { *m = DeleteApplicationResponse{} }
 func (m *DeleteApplicationResponse) String() string            { return proto.CompactTextString(m) }
 func (*DeleteApplicationResponse) ProtoMessage()               {}
-func (*DeleteApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{7} }
+func (*DeleteApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{7} }
 
 type ListApplicationRequest struct {
 	// Max number of applications to return in the result-test.
@@ -192,7 +462,7 @@ type ListApplicationRequest struct {
 func (m *ListApplicationRequest) Reset()                    { *m = ListApplicationRequest{} }
 func (m *ListApplicationRequest) String() string            { return proto.CompactTextString(m) }
 func (*ListApplicationRequest) ProtoMessage()               {}
-func (*ListApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{8} }
+func (*ListApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{8} }
 
 func (m *ListApplicationRequest) GetLimit() int64 {
 	if m != nil {
@@ -218,7 +488,7 @@ type ListApplicationResponse struct {
 func (m *ListApplicationResponse) Reset()                    { *m = ListApplicationResponse{} }
 func (m *ListApplicationResponse) String() string            { return proto.CompactTextString(m) }
 func (*ListApplicationResponse) ProtoMessage()               {}
-func (*ListApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{9} }
+func (*ListApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{9} }
 
 func (m *ListApplicationResponse) GetTotalCount() int64 {
 	if m != nil {
@@ -461,36 +731,50 @@ var _Application_serviceDesc = grpc.ServiceDesc{
 	Metadata: "application.proto",
 }
 
-func init() { proto.RegisterFile("application.proto", fileDescriptor5) }
+func init() { proto.RegisterFile("application.proto", fileDescriptor2) }
 
-var fileDescriptor5 = []byte{
-	// 435 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0x41, 0x6f, 0xda, 0x30,
-	0x14, 0x16, 0x09, 0x8b, 0xb4, 0x87, 0x34, 0x09, 0x6f, 0xcb, 0x42, 0x60, 0x88, 0xe5, 0x32, 0xc4,
-	0x24, 0x90, 0xe0, 0xb6, 0xdb, 0xc4, 0x34, 0x2e, 0x3b, 0x54, 0x91, 0x7a, 0xab, 0x50, 0x5d, 0x62,
-	0x90, 0xab, 0x10, 0xbb, 0xb1, 0x39, 0x55, 0xbd, 0xf4, 0xd2, 0x1f, 0xd0, 0x9f, 0xd6, 0xbf, 0xd0,
-	0x1f, 0x52, 0xc5, 0x76, 0x0b, 0x22, 0x76, 0xd5, 0x43, 0x6f, 0xd8, 0xef, 0xf3, 0xf7, 0xbd, 0xef,
-	0xbd, 0x8f, 0x40, 0x1b, 0x73, 0x9e, 0xd3, 0x15, 0x96, 0x94, 0x15, 0x63, 0x5e, 0x32, 0xc9, 0x90,
-	0x8f, 0x39, 0x8d, 0x7b, 0x1b, 0xc6, 0x36, 0x39, 0x99, 0x60, 0x4e, 0x27, 0xb8, 0x28, 0x98, 0x54,
-	0x08, 0xa1, 0x21, 0xc9, 0x09, 0x44, 0xf3, 0x92, 0x60, 0x49, 0xfe, 0xec, 0x5f, 0xa7, 0xe4, 0x6a,
-	0x47, 0x84, 0x44, 0x08, 0x9a, 0x05, 0xde, 0x92, 0xa8, 0x31, 0x68, 0x0c, 0x3f, 0xa6, 0xea, 0x37,
-	0x1a, 0x40, 0x2b, 0x23, 0x62, 0x55, 0x52, 0x5e, 0x21, 0x23, 0x4f, 0x95, 0x0e, 0xaf, 0x92, 0x5f,
-	0xd0, 0xb1, 0x30, 0x0a, 0xce, 0x0a, 0x41, 0xd0, 0x27, 0xf0, 0x68, 0xa6, 0x08, 0xfd, 0xd4, 0xa3,
-	0x59, 0xf2, 0x13, 0xbe, 0x2e, 0x88, 0xb4, 0x68, 0x1f, 0x03, 0x97, 0x10, 0x1e, 0x03, 0xed, 0x94,
-	0x2f, 0x5d, 0x7b, 0xee, 0xae, 0xfd, 0x7a, 0xd7, 0xe7, 0x10, 0x9d, 0xf2, 0xcc, 0x3e, 0x87, 0xf7,
-	0x51, 0xe8, 0x42, 0xc7, 0xa2, 0xa0, 0x4d, 0x24, 0x23, 0x88, 0xfe, 0x92, 0x9c, 0xbc, 0x45, 0xbe,
-	0x22, 0xb2, 0x60, 0x0d, 0xd1, 0x3f, 0x08, 0xff, 0x53, 0x61, 0x9b, 0xe8, 0x17, 0xf8, 0x90, 0xd3,
-	0x2d, 0x95, 0x86, 0x49, 0x1f, 0x50, 0x08, 0x01, 0x5b, 0xaf, 0x05, 0x91, 0xca, 0x8d, 0x9f, 0x9a,
-	0x53, 0x52, 0xc0, 0xb7, 0x1a, 0x8f, 0x19, 0x78, 0x1f, 0x40, 0x32, 0x89, 0xf3, 0x39, 0xdb, 0x15,
-	0xcf, 0x6c, 0x07, 0x37, 0x68, 0x06, 0x41, 0x49, 0xc4, 0x2e, 0xaf, 0x28, 0xfd, 0x61, 0x6b, 0xda,
-	0x1d, 0x63, 0x4e, 0xc7, 0xf6, 0xed, 0xa5, 0x06, 0x3a, 0xbd, 0x6b, 0x42, 0xeb, 0xa0, 0x8e, 0x08,
-	0x04, 0x3a, 0x45, 0xe8, 0xbb, 0x7a, 0xee, 0x0a, 0x69, 0xdc, 0x77, 0x95, 0xcd, 0x40, 0x7a, 0xb7,
-	0x0f, 0x8f, 0xf7, 0x5e, 0x98, 0xb4, 0xf5, 0x1f, 0x60, 0x8f, 0x10, 0xbf, 0x1b, 0x23, 0xb4, 0x04,
-	0x7f, 0x41, 0x24, 0x8a, 0xad, 0x2d, 0x6a, 0x81, 0xd7, 0xda, 0x4f, 0xfa, 0x8a, 0x3d, 0x42, 0x61,
-	0x8d, 0x7d, 0x72, 0x4d, 0xb3, 0x1b, 0x74, 0x09, 0x81, 0x5e, 0xba, 0xb1, 0xe1, 0xca, 0x98, 0xb1,
-	0xe1, 0x0e, 0xc8, 0x0f, 0x25, 0xd4, 0x8d, 0x1d, 0x42, 0x95, 0x97, 0x0d, 0x04, 0x3a, 0x17, 0x46,
-	0xcb, 0x15, 0x28, 0xa3, 0xe5, 0xce, 0x90, 0x31, 0x35, 0x72, 0x99, 0x3a, 0x83, 0x66, 0x95, 0x0d,
-	0xa4, 0x27, 0x63, 0x8f, 0x5b, 0xdc, 0xb3, 0x17, 0x8d, 0x44, 0x47, 0x49, 0x7c, 0x46, 0xf5, 0xad,
-	0x5c, 0x04, 0xea, 0xc3, 0x34, 0x7b, 0x0a, 0x00, 0x00, 0xff, 0xff, 0xce, 0x78, 0x5f, 0x6f, 0xd0,
-	0x04, 0x00, 0x00,
+var fileDescriptor2 = []byte{
+	// 662 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x96, 0xdd, 0x6e, 0xd3, 0x30,
+	0x14, 0xc7, 0x95, 0xa6, 0xcd, 0xda, 0xd3, 0x75, 0xd2, 0xcc, 0x28, 0x5e, 0x56, 0xa6, 0x10, 0x21,
+	0x11, 0x86, 0xd4, 0x89, 0xee, 0x8e, 0xbb, 0xd1, 0x6a, 0xd3, 0x24, 0x10, 0x28, 0x12, 0x82, 0x0b,
+	0x84, 0x64, 0x1a, 0xaf, 0x18, 0xb9, 0x4e, 0x88, 0x3d, 0x28, 0x42, 0xdc, 0x70, 0xc3, 0x03, 0x20,
+	0x9e, 0x00, 0xf1, 0x44, 0xbc, 0x02, 0x0f, 0x82, 0x62, 0x67, 0x5b, 0xd9, 0x9c, 0xb5, 0x97, 0x5c,
+	0x70, 0xd7, 0xf3, 0x91, 0xff, 0x39, 0xc7, 0xbf, 0xe3, 0xa4, 0xb0, 0x4e, 0xb2, 0x8c, 0xb3, 0x31,
+	0x51, 0x2c, 0x15, 0xfd, 0x2c, 0x4f, 0x55, 0x8a, 0x5c, 0x92, 0x31, 0xbf, 0x37, 0x49, 0xd3, 0x09,
+	0xa7, 0xbb, 0x24, 0x63, 0xbb, 0x44, 0x88, 0x54, 0xe9, 0x0c, 0x69, 0x52, 0xfc, 0xd5, 0x71, 0x3a,
+	0x9d, 0x9e, 0x3e, 0x10, 0x7e, 0x77, 0x01, 0x0f, 0x73, 0x4a, 0x14, 0xdd, 0x3f, 0x17, 0x8b, 0xe9,
+	0xbb, 0x13, 0x2a, 0x15, 0x42, 0x50, 0x17, 0x64, 0x4a, 0xb1, 0x13, 0x38, 0x51, 0x2b, 0xd6, 0xbf,
+	0x51, 0x00, 0xed, 0x84, 0xca, 0x71, 0xce, 0xb2, 0x22, 0x13, 0xd7, 0x74, 0x68, 0xde, 0x85, 0x30,
+	0xac, 0xe4, 0xb3, 0x11, 0xe5, 0xe4, 0x23, 0x76, 0x03, 0x27, 0xea, 0xc4, 0xa7, 0x66, 0xf1, 0x6c,
+	0x3e, 0xbb, 0x3f, 0x8a, 0x9f, 0x1c, 0x1f, 0x4b, 0xaa, 0x70, 0x5d, 0x47, 0xe7, 0x5d, 0xe8, 0x36,
+	0x74, 0xc6, 0x6f, 0x88, 0x10, 0x94, 0x3f, 0x62, 0x52, 0x1d, 0x8d, 0x70, 0x23, 0x70, 0x22, 0x37,
+	0xfe, 0xdb, 0x89, 0xee, 0x42, 0x33, 0x9f, 0x3d, 0x67, 0x22, 0x49, 0x3f, 0x60, 0x2f, 0x70, 0xa2,
+	0xb5, 0x41, 0xa7, 0x4f, 0x32, 0xd6, 0x8f, 0x5f, 0x18, 0x67, 0x7c, 0x16, 0x46, 0x1b, 0xd0, 0xc8,
+	0x67, 0x83, 0x51, 0x8c, 0x57, 0x74, 0x31, 0x63, 0xa0, 0x1e, 0xb4, 0x72, 0xca, 0xc9, 0xec, 0x60,
+	0x28, 0x14, 0x6e, 0x06, 0x4e, 0xd4, 0x8c, 0xcf, 0x1d, 0x45, 0x9b, 0x24, 0xc9, 0x8f, 0x84, 0xa2,
+	0xf9, 0x7b, 0xc2, 0x71, 0xcb, 0xb4, 0x39, 0xe7, 0x42, 0x7d, 0x40, 0x4c, 0x48, 0x45, 0x38, 0xd7,
+	0xe7, 0xf5, 0x98, 0xe4, 0x13, 0x26, 0x30, 0x04, 0x4e, 0xe4, 0xc4, 0x96, 0x48, 0xd1, 0x05, 0x93,
+	0xfb, 0x0f, 0x9f, 0xe2, 0xb6, 0xae, 0x65, 0x0c, 0xe4, 0x43, 0x93, 0xc9, 0x21, 0x27, 0x52, 0x0e,
+	0xf1, 0xaa, 0x0e, 0x9c, 0xd9, 0xe1, 0x3d, 0xd8, 0xb4, 0x60, 0x91, 0x59, 0x2a, 0x24, 0x45, 0x6b,
+	0x50, 0x63, 0x89, 0xa6, 0xe2, 0xc6, 0x35, 0x96, 0x84, 0x77, 0xe0, 0xfa, 0x21, 0x55, 0x16, 0x80,
+	0x17, 0x13, 0x7f, 0xb8, 0xd0, 0xbd, 0x98, 0x69, 0xd7, 0x3c, 0x63, 0x5f, 0xab, 0x66, 0xef, 0x5e,
+	0xc9, 0xbe, 0x7e, 0x25, 0xfb, 0xc6, 0x12, 0xec, 0xbd, 0x45, 0xec, 0x57, 0x96, 0x64, 0xdf, 0xac,
+	0x64, 0xdf, 0x5a, 0xc0, 0x1e, 0x96, 0x65, 0xdf, 0x5e, 0xcc, 0x7e, 0xb5, 0x8a, 0x7d, 0xe7, 0x02,
+	0xfb, 0x9f, 0x2e, 0xe0, 0x67, 0x59, 0x62, 0xbf, 0x93, 0xff, 0x39, 0xfd, 0x33, 0x9c, 0xb6, 0x60,
+	0xd3, 0x82, 0xc9, 0xdc, 0xa7, 0x70, 0x07, 0xf0, 0x88, 0x72, 0xba, 0x0c, 0xc3, 0x42, 0xc8, 0x92,
+	0x5b, 0x0a, 0x1d, 0x40, 0xb7, 0x38, 0x52, 0x8b, 0xcc, 0x06, 0x34, 0x38, 0x9b, 0x32, 0x55, 0x2a,
+	0x19, 0x03, 0x75, 0xc1, 0x4b, 0x0d, 0xbb, 0x9a, 0x76, 0x97, 0x56, 0x28, 0xe0, 0xc6, 0x25, 0x9d,
+	0xf2, 0xee, 0x6f, 0x03, 0xa8, 0x54, 0x11, 0x3e, 0x4c, 0x4f, 0xc4, 0xa9, 0xda, 0x9c, 0x07, 0xed,
+	0x81, 0x97, 0x53, 0x79, 0xc2, 0x0b, 0x49, 0x37, 0x6a, 0x0f, 0xb6, 0x34, 0x49, 0xfb, 0x8b, 0x24,
+	0x2e, 0x53, 0x07, 0x5f, 0xeb, 0xd0, 0x9e, 0x8b, 0x23, 0x0a, 0x9e, 0x79, 0xa3, 0xa1, 0x9b, 0xfa,
+	0xf1, 0xaa, 0xaf, 0x8e, 0xbf, 0x5d, 0x15, 0x2e, 0x0f, 0xa4, 0xf7, 0xe5, 0xd7, 0xef, 0x6f, 0xb5,
+	0x6e, 0xb8, 0x6e, 0x3e, 0x70, 0xe7, 0x19, 0xf2, 0x81, 0xb3, 0x83, 0x5e, 0x81, 0x7b, 0x48, 0x15,
+	0xf2, 0xad, 0x2d, 0x9a, 0x02, 0x57, 0xb5, 0x1f, 0x6e, 0x6b, 0x75, 0x8c, 0xba, 0x97, 0xd4, 0x77,
+	0x3f, 0xb1, 0xe4, 0x33, 0x7a, 0x0b, 0x9e, 0x81, 0x5e, 0x8e, 0x51, 0x75, 0x51, 0xcb, 0x31, 0xaa,
+	0x17, 0xe4, 0x96, 0x2e, 0xb4, 0xe5, 0x57, 0x14, 0x2a, 0x66, 0x99, 0x80, 0x67, 0xf6, 0xa2, 0xac,
+	0x55, 0xb5, 0x50, 0x65, 0xad, 0xea, 0x1d, 0x2a, 0x87, 0xda, 0xa9, 0x1a, 0xea, 0x25, 0xd4, 0x8b,
+	0xdd, 0x40, 0xe6, 0x64, 0xec, 0xeb, 0xe6, 0xf7, 0xec, 0xc1, 0xb2, 0xc4, 0xa6, 0x2e, 0x71, 0x0d,
+	0x5d, 0xa6, 0xf2, 0xda, 0xd3, 0x7f, 0x35, 0xf6, 0xfe, 0x04, 0x00, 0x00, 0xff, 0xff, 0x66, 0x58,
+	0x82, 0x3b, 0xb0, 0x08, 0x00, 0x00,
 }

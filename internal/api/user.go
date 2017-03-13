@@ -84,12 +84,12 @@ func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	users, err := storage.GetUsers(a.ctx.DB, req.Limit, req.Offset)
+	users, err := storage.GetUsers(a.ctx.DB, req.Limit, req.Offset, req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	totalUserCount, err := storage.GetUserCount(a.ctx.DB)
+	totalUserCount, err := storage.GetUserCount(a.ctx.DB, req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

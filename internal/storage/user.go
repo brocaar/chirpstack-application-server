@@ -243,9 +243,19 @@ func GetUserByUsername(db *sqlx.DB, username string) (User, error) {
 }
 
 // GetUserCount returns the total number of users.
-func GetUserCount(db *sqlx.DB) (int32, error) {
+func GetUserCount(db *sqlx.DB, search string) (int32, error) {
 	var count int32
-	err := db.Get(&count, "select count(*) from \"user\"")
+	if search != "" {
+		search = "%" + search + "%"
+	}
+	err := db.Get(&count, `
+		select
+			count(*)
+		from "user"
+		where
+			($1 != '' and username like $1)
+			or ($1 = '')
+		`, search)
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")
 	}
@@ -253,9 +263,12 @@ func GetUserCount(db *sqlx.DB) (int32, error) {
 }
 
 // GetUsers returns a slice of users, respecting the given limit and offset.
-func GetUsers(db *sqlx.DB, limit, offset int32) ([]User, error) {
+func GetUsers(db *sqlx.DB, limit, offset int32, search string) ([]User, error) {
 	var users []User
-	err := db.Select(&users, "select "+externalUserFields+" from \"user\" order by username limit $1 offset $2", limit, offset)
+	if search != "" {
+		search = "%" + search + "%"
+	}
+	err := db.Select(&users, "select "+externalUserFields+` from "user" where ($3 != '' and username like $3) or ($3 = '') order by username limit $1 offset $2`, limit, offset, search)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
 	}

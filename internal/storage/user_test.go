@@ -74,7 +74,7 @@ func TestUser(t *testing.T) {
 			})
 
 			Convey("Then get users returns a single user", func() {
-				users, err := GetUsers(db, 10, 0)
+				users, err := GetUsers(db, 10, 0, "")
 				So(err, ShouldBeNil)
 				So(users, ShouldHaveLength, 1)
 				So(users[0].Username, ShouldResemble, user.Username)
@@ -83,9 +83,29 @@ func TestUser(t *testing.T) {
 			})
 
 			Convey("Then get user count returns 1", func() {
-				count, err := GetUserCount(db)
+				count, err := GetUserCount(db, "")
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
+			})
+
+			Convey("Then searching for 'good' returns a single item", func() {
+				count, err := GetUserCount(db, "good")
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 1)
+
+				users, err := GetUsers(db, 10, 0, "good")
+				So(err, ShouldBeNil)
+				So(users, ShouldHaveLength, 1)
+			})
+
+			Convey("Then searching for 'foo' returns 0 items", func() {
+				count, err := GetUserCount(db, "foo")
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 0)
+
+				users, err := GetUsers(db, 10, 0, "foo")
+				So(err, ShouldBeNil)
+				So(users, ShouldHaveLength, 0)
 			})
 
 			Convey("Then the user can log in", func() {
@@ -127,7 +147,7 @@ func TestUser(t *testing.T) {
 				So(DeleteUser(db, user.ID), ShouldBeNil)
 
 				Convey("Then the user count returns 0", func() {
-					count, err := GetUserCount(db)
+					count, err := GetUserCount(db, "")
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 0)
 				})

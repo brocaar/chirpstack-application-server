@@ -66,6 +66,7 @@ class ListNodes extends Component {
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
+            <Link to={`/applications/${this.props.params.applicationID}/users`}><button type="button" className="btn btn-default">Users</button></Link> &nbsp;
             <Link to={`/applications/${this.props.params.applicationID}/nodes/create`}><button type="button" className="btn btn-default">Create node</button></Link> &nbsp;
             <Link to={`/applications/${this.props.params.applicationID}/edit`}><button type="button" className="btn btn-default">Edit application</button></Link> &nbsp;
             <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete application</button></Link>

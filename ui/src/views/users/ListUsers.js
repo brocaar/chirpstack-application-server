@@ -30,7 +30,7 @@ class ListUsers extends Component {
   }
 
   componentWillMount() {
-    UserStore.getAll((users) => {
+    UserStore.getAll("", (users) => {
       this.setState({users: users});
     });
   }

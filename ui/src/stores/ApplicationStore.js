@@ -58,6 +58,52 @@ class ApplicationStore extends EventEmitter {
       })
       .catch(errorHandler);
   }
+
+  getUsers(applicationID, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/users?limit=999", {headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        if(typeof(responseData.result) === "undefined") {
+          callbackFunc([]);
+        } else {
+          callbackFunc(responseData.result);
+        }
+      })
+      .catch(errorHandler);
+  }
+
+  addUser(applicationID, user, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/users", {method: "POST", body: JSON.stringify(user), headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+    .catch(errorHandler);
+  } 
+
+  removeUser(applicationID, userID, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/users/"+userID, {method: "DELETE", headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        this.emit("change");
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  updateUser(applicationID, userID, user, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/users/"+userID, {method: "PUT", body: JSON.stringify(user), headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        this.emit("change");
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
 }
 
 const applicationStore = new ApplicationStore();

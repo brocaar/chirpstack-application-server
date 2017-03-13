@@ -4,8 +4,8 @@ import sessionStore from "./SessionStore";
 import { checkStatus, errorHandler } from "./helpers";
 
 class UserStore extends EventEmitter {
-  getAll(callbackFunc) {
-    fetch("/api/users?limit=999", {headers: sessionStore.getHeader()})
+  getAll(search, callbackFunc) {
+    fetch("/api/users?limit=999&search="+encodeURIComponent(search), {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

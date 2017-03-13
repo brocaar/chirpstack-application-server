@@ -27,6 +27,7 @@ func TestUserAPI(t *testing.T) {
 		apiInternal := NewInternalUserAPI(lsCtx, validator)
 
 		Convey("When creating a user", func() {
+			validator.returnIsAdmin = true
 			createReq := &pb.AddUserRequest{
 				Username:   "username",
 				Password:   "pass^^ord",

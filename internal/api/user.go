@@ -46,6 +46,18 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 		IsActive:   req.IsActive,
 	}
 
+	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	if !isAdmin {
+		// non-admin users are not able to modify the fields below
+		user.IsAdmin = false
+		user.IsActive = true
+		user.SessionTTL = 0
+	}
+
 	id, err := storage.CreateUser(a.ctx.DB, &user, req.Password)
 	if err != nil {
 		return nil, errToRPCError(err)

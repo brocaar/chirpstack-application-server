@@ -16,8 +16,8 @@ create table application_user (
 	id bigserial primary key,
 	created_at timestamp with time zone not null,
 	updated_at timestamp with time zone not null,
-	user_id bigint not null,
-	application_id bigint not null,
+	user_id bigint not null references "user" on delete cascade,
+	application_id bigint not null references application on delete cascade,
 	is_admin boolean not null,
 
 	unique(user_id, application_id)

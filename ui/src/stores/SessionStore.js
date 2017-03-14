@@ -57,7 +57,13 @@ class SessionStore extends EventEmitter {
       .then((response) => response.json())
       .then((responseData) => {
         this.user = responseData.user;
-        this.applications = responseData.applications;
+
+        if (typeof(responseData.applications) !== "undefined") {
+          this.applications = responseData.applications;
+        } else {
+          this.applications = [];
+        }
+
         this.emit("change");
         callbackFunc();
       })
@@ -67,7 +73,7 @@ class SessionStore extends EventEmitter {
   logout(callbackFunc) {
     localStorage.setItem("jwt", "");
     this.user = {};
-    this.applications = {};
+    this.applications = [];
     this.emit("change");
     callbackFunc();
   }
@@ -75,8 +81,22 @@ class SessionStore extends EventEmitter {
   getUser() {
     return this.user;
   }
+
+  isAdmin() {
+    return this.user.isAdmin;
+  }
+
+  isApplicationAdmin(applicationID) {
+    for (let i = 0; i < this.applications.length; i++) {
+      if (Number(this.applications[i].applicationID) === Number(applicationID)) {
+        return this.applications[i].isAdmin;
+      }
+    }
+    return false;
+  }
 }
 
 const sessionStore = new SessionStore();
+window.sessionStore = sessionStore;
 
 export default sessionStore;

@@ -10,6 +10,7 @@ export function checkStatus(response) {
 };
 
 export function errorHandler(error) {
+  console.log("error", error);
   error.then((data) => {
     if (data.code === 16) {
       hashHistory.push("/login");

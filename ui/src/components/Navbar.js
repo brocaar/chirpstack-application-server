@@ -12,6 +12,7 @@ class Navbar extends Component {
     super();
     this.state = {
       user: SessionStore.getUser(),
+      isAdmin: SessionStore.isAdmin(),
       dropdownOpen: false,
     }
 
@@ -28,6 +29,7 @@ class Navbar extends Component {
     SessionStore.on("change", () => {
       this.setState({
         user: SessionStore.getUser(),
+        isAdmin: SessionStore.isAdmin(),
       });
     });
   }
@@ -41,12 +43,11 @@ class Navbar extends Component {
           </div>
           <div id="navbar" className="navbar-collapse collapse">
             <ul className="nav navbar-nav navbar-right">
-              <li className={this.state.user.isAdmin === true ? "" : "hidden"}><Link to="users">Manage users</Link></li>
+              <li className={this.state.isAdmin === true ? "" : "hidden"}><Link to="users">Manage users</Link></li>
               <li className={"dropdown " + (typeof(this.state.user.username) === "undefined" ? "hidden" : "") + (this.state.dropdownOpen ? "open" : "")}>
                 <Link onClick={this.toggleDropdown} className="dropdown-toggle">{this.state.user.username} <span className="caret" /></Link>
-                <ul className="dropdown-menu">
-                  <li><Link>Profile</Link></li>
-                  <li><Link>Change password</Link></li>
+                <ul className="dropdown-menu" onClick={this.toggleDropdown}>
+                  <li><Link to={`users/${this.state.user.id}/password`}>Change password</Link></li>
                   <li><Link to="login">Logout</Link></li>
                 </ul>
               </li>

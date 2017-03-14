@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router';
 
 import NodeStore from "../../stores/NodeStore";
+import SessionStore from "../../stores/SessionStore";
 import ApplicationStore from "../../stores/ApplicationStore";
 
 class NodeRow extends Component {
@@ -30,6 +31,7 @@ class ListNodes extends Component {
     this.state = {
       application: {},
       nodes: [],
+      isApplicationAdmin: false,
     };
 
     this.onDelete = this.onDelete.bind(this);
@@ -42,6 +44,16 @@ class ListNodes extends Component {
 
     ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
       this.setState({application: application});
+    });
+
+    this.setState({
+      isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+      });
     });
   }
 
@@ -64,12 +76,14 @@ class ListNodes extends Component {
           <li>{this.state.application.name}</li>
           <li className="active">Nodes</li>
         </ol>
-        <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to={`/applications/${this.props.params.applicationID}/users`}><button type="button" className="btn btn-default">Users</button></Link> &nbsp;
-            <Link to={`/applications/${this.props.params.applicationID}/nodes/create`}><button type="button" className="btn btn-default">Create node</button></Link> &nbsp;
-            <Link to={`/applications/${this.props.params.applicationID}/edit`}><button type="button" className="btn btn-default">Edit application</button></Link> &nbsp;
-            <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete application</button></Link>
+        <div className={(this.state.isApplicationAdmin ? '' : 'hidden')}>
+          <div className="clearfix">
+            <div className="btn-group pull-right" role="group" aria-label="...">
+              <Link to={`/applications/${this.props.params.applicationID}/users`}><button type="button" className="btn btn-default">Users</button></Link> &nbsp;
+              <Link to={`/applications/${this.props.params.applicationID}/nodes/create`}><button type="button" className="btn btn-default">Create node</button></Link> &nbsp;
+              <Link to={`/applications/${this.props.params.applicationID}/edit`}><button type="button" className="btn btn-default">Edit application</button></Link> &nbsp;
+              <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete application</button></Link>
+            </div>
           </div>
         </div>
         <hr />

@@ -29,7 +29,12 @@ class UpdatePassword extends Component {
 
   onSubmit(password) {
     UserStore.updatePassword(this.props.params.userID, password, (responseData) => {
-      this.context.router.push('/users/' + this.props.params.userID + "/edit");
+      if (this.state.user.isAdmin) {
+        this.context.router.push('/users/' + this.props.params.userID + "/edit");
+      } else {
+        // non-admin users don't have access to /users view
+        this.context.router.push("/");
+      }
     });    
   }
 

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router';
 
 import NodeStore from "../../stores/NodeStore";
+import SessionStore from "../../stores/SessionStore";
 import NodeForm from "../../components/NodeForm";
 import ApplicationStore from "../../stores/ApplicationStore";
 
@@ -15,6 +16,7 @@ class UpdateNode extends Component {
     this.state = {
       application: {},
       node: {},
+      isApplicationAdmin: false,
     };
 
     this.onSubmit = this.onSubmit.bind(this);
@@ -27,6 +29,16 @@ class UpdateNode extends Component {
     });
     ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
       this.setState({application: application});
+    });
+
+    this.setState({
+      isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+      });
     });
   }
 
@@ -57,15 +69,15 @@ class UpdateNode extends Component {
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to={`/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/activation`} className={(this.state.node.isABP ? '' : 'hidden')}><button type="button" className="btn btn-default">(Re)activate node (ABP)</button></Link> &nbsp;
+            <Link to={`/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/activation`} className={(this.state.node.isABP ? '' : 'hidden')}><button type="button" className="btn btn-default">ABP activation</button></Link> &nbsp;
             <Link to={`/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/activation`} className={(this.state.node.isABP ? 'hidden' : '')}><button type="button" className="btn btn-default">Show node activation</button></Link> &nbsp;
-            <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete node</button></Link>
+            <Link><button type="button" className={"btn btn-danger " + (this.state.isApplicationAdmin ? '' : 'hidden')} onClick={this.onDelete}>Delete node</button></Link>
           </div>
         </div>
         <hr />
         <div className="panel panel-default">
           <div className="panel-body">
-            <NodeForm node={this.state.node} onSubmit={this.onSubmit} />
+            <NodeForm node={this.state.node} onSubmit={this.onSubmit} disabled={!this.state.isApplicationAdmin} />
           </div>
         </div>
       </div>

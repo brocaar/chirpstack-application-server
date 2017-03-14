@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router';
 
 import ApplicationStore from "../../stores/ApplicationStore";
+import SessionStore from "../../stores/SessionStore";
 
 class ApplicationRow extends Component {
   render() {
@@ -18,11 +19,26 @@ class ApplicationRow extends Component {
 class ListApplications extends Component {
   constructor() {
     super();
+
     this.state = {
       applications: [],
+      isAdmin: false,
     };
+
     ApplicationStore.getAll((applications) => {
       this.setState({applications: applications});
+    });
+  }
+
+  componentWillMount() {
+    this.setState({
+      isAdmin: SessionStore.isAdmin(),
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isAdmin: SessionStore.isAdmin(), 
+      });
     });
   }
 
@@ -35,10 +51,12 @@ class ListApplications extends Component {
           <li><Link to="/">Dashboard</Link></li>
           <li className="active">Applications</li>
         </ol>
-        <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to="/applications/create"><button type="button" className="btn btn-default">Create application</button></Link> &nbsp;
-            <Link to="/channels"><button type="button" className="btn btn-default">Channel lists</button></Link>
+        <div className={(this.state.isAdmin ? '' : 'hidden')}>
+          <div className="clearfix">
+            <div className="btn-group pull-right" role="group" aria-label="...">
+              <Link to="/applications/create"><button type="button" className="btn btn-default">Create application</button></Link> &nbsp;
+              <Link to="/channels"><button type="button" className="btn btn-default">Channel lists</button></Link>
+            </div>
           </div>
         </div>
         <hr />

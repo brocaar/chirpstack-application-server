@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
+import Pagination from "../../components/Pagination";
 import UserStore from "../../stores/UserStore";
 
 class UserRow extends Component {
@@ -25,13 +26,32 @@ class ListUsers extends Component {
 
     this.state = {
       users: [],
+      pageSize: 20,
+      pageNumber: 1,
+      pages: 1,
     };
 
+    this.updatePage = this.updatePage.bind(this);
   }
 
-  componentWillMount() {
-    UserStore.getAll("", (users) => {
-      this.setState({users: users});
+  componentDidMount() {
+    this.updatePage(this.props);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.updatePage(nextProps);
+  }
+
+  updatePage(props) {
+    const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+
+    UserStore.getAll("", this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, users) => {
+      this.setState({
+        users: users,
+        pageNumber: page,
+        pages: Math.ceil(totalCount / this.state.pageSize),
+      });
+      window.scrollTo(0, 0);
     });
   }
 
@@ -65,6 +85,7 @@ class ListUsers extends Component {
               </tbody>
             </table>
           </div>
+          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname="/users" />
         </div>
       </div>
     );

@@ -41,7 +41,7 @@ class AssignUserForm extends Component {
   }
 
   onAutocomplete(input, callbackFunc) {
-    UserStore.getAll(input, (users) => {
+    UserStore.getAll(input, 10, 0, (totalCount, users) => {
       const options = users.map((user, i) => {
         return {
           value: user.id,

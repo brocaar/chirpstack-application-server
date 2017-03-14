@@ -59,15 +59,15 @@ class ApplicationStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  getUsers(applicationID, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/users?limit=999", {headers: sessionStore.getHeader()})
+  getUsers(applicationID, pageSize, offset, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/users?limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
         if(typeof(responseData.result) === "undefined") {
-          callbackFunc([]);
+          callbackFunc(0, []);
         } else {
-          callbackFunc(responseData.result);
+          callbackFunc(responseData.totalCount, responseData.result);
         }
       })
       .catch(errorHandler);

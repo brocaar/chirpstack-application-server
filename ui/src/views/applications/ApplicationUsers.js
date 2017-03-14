@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router';
 
 import ApplicationStore from "../../stores/ApplicationStore";
+import Pagination from "../../components/Pagination";
 
 class ApplicationUserRow extends Component {
   constructor() {
@@ -48,8 +49,20 @@ class ApplicationUsers extends Component {
     this.state = {
       application: {},
       users: [],
+      pageSize: 20,
+      pageNumber: 1,
+      pages: 1,
     };
 
+    this.updatePage = this.updatePage.bind(this);
+  }
+
+  componentDidMount() {
+    this.updatePage(this.props);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.updatePage(nextProps);
   }
 
   componentWillMount() {
@@ -59,17 +72,19 @@ class ApplicationUsers extends Component {
       });
     });
 
-    ApplicationStore.getUsers(this.props.params.applicationID, (users) => {
+    ApplicationStore.on("change", () => {
+      this.updatePage(this.props);
+    });
+  }
+
+  updatePage(props) {
+    const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+
+    ApplicationStore.getUsers(this.props.params.applicationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, users) => {
       this.setState({
         users: users,
-      });
-    });
-
-    ApplicationStore.on("change", () => {
-      ApplicationStore.getUsers(this.props.params.applicationID, (users) => {
-        this.setState({
-          users: users,
-        });
+        pages: Math.ceil(totalCount / this.state.pageSize),
+        pageNumber: page,
       });
     });
   }
@@ -107,6 +122,7 @@ class ApplicationUsers extends Component {
               </tbody>
             </table>
           </div>
+          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`applications/${this.state.application.id}/users`} />
         </div>
       </div>
     );

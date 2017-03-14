@@ -14,7 +14,9 @@ class CreateNode extends Component {
     super();
     this.state = {
       application: {},
-      node: {},
+      node: {
+        useApplicationSettings: true,
+      },
     };
     this.onSubmit = this.onSubmit.bind(this);
   }
@@ -44,7 +46,7 @@ class CreateNode extends Component {
         <hr />
         <div className="panel panel-default">
           <div className="panel-body">
-            <NodeForm node={this.state.node} onSubmit={this.onSubmit} />
+            <NodeForm node={this.state.node} application={this.state.application} onSubmit={this.onSubmit} />
           </div>
         </div>
       </div>

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0
+
+**Features:**
+
+* Per application (network) settings. Settings like Class-C, ADR, receive-window,
+  data-rate etc. can now be managed on an application level. Optionally, they can
+  be overridden per node.
+* Applications and nodes are now paginated per 20 rows.
+
 ## 0.4.0
 
 **Features & changes:**

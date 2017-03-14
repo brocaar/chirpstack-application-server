@@ -5,15 +5,15 @@ import { checkStatus, errorHandler } from "./helpers";
 
 
 class ApplicationStore extends EventEmitter {
-  getAll(callbackFunc) {
-    fetch("/api/applications?limit=999", {headers: sessionStore.getHeader()})
+  getAll(pageSize, offset, callbackFunc) {
+    fetch("/api/applications?limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
         if(typeof(responseData.result) === "undefined") {
-          callbackFunc([]);
+          callbackFunc(0, []);
         } else {
-          callbackFunc(responseData.result);
+          callbackFunc(responseData.totalCount, responseData.result);
         }
       })
       .catch(errorHandler);

@@ -348,6 +348,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Node operates in Class-C."
+        },
+        "useApplicationSettings": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "When set to true, the application settings will be used to populate the node network settings."
         }
       }
     },
@@ -487,6 +492,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Node operates in Class-C."
+        },
+        "useApplicationSettings": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "When set to true, the application settings will be used to populate the node network settings."
         }
       }
     },
@@ -623,6 +633,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Node operates in Class-C."
+        },
+        "useApplicationSettings": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "When set to true, the application settings will be used to populate the node network settings."
         }
       }
     },

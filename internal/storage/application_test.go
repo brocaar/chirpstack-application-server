@@ -30,8 +30,16 @@ func TestApplication(t *testing.T) {
 
 		Convey("When creating an application", func() {
 			app := Application{
-				Name:        "test-application",
-				Description: "A test application",
+				Name:               "test-application",
+				Description:        "A test application",
+				RXDelay:            2,
+				RX1DROffset:        3,
+				RXWindow:           RX2,
+				RX2DR:              3,
+				ADRInterval:        20,
+				InstallationMargin: 5,
+				IsABP:              true,
+				IsClassC:           true,
 			}
 			So(CreateApplication(db, &app), ShouldBeNil)
 

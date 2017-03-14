@@ -116,6 +116,9 @@ message CreateNodeRequest {
 
 	// Node operates in Class-C.
 	bool isClassC = 16;
+
+	// When set to true, the application settings will be used to populate the node network settings.
+	bool useApplicationSettings = 17;
 }
 
 message CreateNodeResponse {}
@@ -173,6 +176,9 @@ message GetNodeResponse {
 
 	// Node operates in Class-C.
 	bool isClassC = 16;
+
+	// When set to true, the application settings will be used to populate the node network settings.
+	bool useApplicationSettings = 17;
 };
 
 message DeleteNodeRequest {
@@ -250,6 +256,9 @@ message UpdateNodeRequest {
 
 	// Node operates in Class-C.
 	bool isClassC = 16;
+
+	// When set to true, the application settings will be used to populate the node network settings.
+	bool useApplicationSettings = 17;
 }
 
 message UpdateNodeResponse {}

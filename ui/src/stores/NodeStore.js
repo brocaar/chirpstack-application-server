@@ -12,15 +12,15 @@ var checkGetActivationStatus = (response) => {
 };
 
 class NodeStore extends EventEmitter {
-  getAll(applicationID, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes?limit=999", {headers: sessionStore.getHeader()})
+  getAll(applicationID, pageSize, offset, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/nodes?limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
         if(typeof(responseData.result) === "undefined") {
-          callbackFunc([]);
+          callbackFunc(0, []);
         } else {
-          callbackFunc(responseData.result);
+          callbackFunc(responseData.totalCount, responseData.result);
         }
       })
       .catch(errorHandler);

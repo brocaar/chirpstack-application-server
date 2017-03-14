@@ -3,7 +3,7 @@ sudo: required
 dist: trusty
 
 go:
-  - 1.7.x
+  - 1.8.x
 
 services:
   - redis-server

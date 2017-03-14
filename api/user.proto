@@ -16,7 +16,7 @@ service User {
 	}
 
 	// Get data for a particular user.
-	rpc Get(UserRequest) returns (UserResponse) {
+	rpc Get(UserRequest) returns (GetUserResponse) {
 		option(google.api.http) = {
 			get: "/api/users/{id}"
 		};
@@ -26,6 +26,7 @@ service User {
 	rpc Create(AddUserRequest) returns (AddUserResponse) {
 		option(google.api.http) = {
 			post: "/api/users"
+			body: "*"
 		};
 	}
 
@@ -33,6 +34,7 @@ service User {
 	rpc Update(UpdateUserRequest) returns (UserEmptyResponse) {
 		option(google.api.http) = {
 			put: "/api/users/{id}"
+			body: "*"
 		};
 	}
 
@@ -47,6 +49,7 @@ service User {
 	rpc UpdatePassword(UpdateUserPasswordRequest) returns (UserEmptyResponse) {
 		option(google.api.http) = {
 			put: "/api/users/{id}/password"
+			body: "*"
 		};
 	}
 
@@ -58,6 +61,7 @@ service Internal {
 	rpc Login(LoginRequest) returns (LoginResponse) {
 		option(google.api.http) = {
 			post: "/api/internal/login"
+			body: "*"
 		};
 	}
 
@@ -93,7 +97,8 @@ message ProfileRequest {
 // access to an application should not allow an "edit" button on that
 // application).
 message ProfileResponse {
-	UserProfile userProfile = 1;
+	GetUserResponse user = 1;
+	repeated ApplicationLink applications = 2;
 }
 
 
@@ -113,10 +118,6 @@ message LoginRequest {
 message LoginResponse {
 	// The JWT tag to be used to access lora-app-server interfaces.
 	string jwt = 1;
-
-	// The user's profile (provided as a convenience so an additional call to
-	// get the profile can be avoided).
-	ProfileResponse profile = 2;
 }
 
 // Request the users defined in the system.
@@ -126,6 +127,9 @@ message ListUserRequest {
 
 	// Offset in the result-set (for pagination).
 	int32 offset = 2;
+
+	// When provided, the given string will be used to search on username.
+	string search = 3;
 }
 
 // Request the user information.
@@ -151,11 +155,14 @@ message UserSettings {
 	// If the user is a system admin, capable of creating other users.
 	bool isAdmin = 4;
 
+	// If the user is active.
+	bool isActive = 5;
+
 	// When the user was created.
-	string createdAt = 5;
+	string createdAt = 6;
 
 	// When the user was last updated (excludes changes in application access).
-	string updatedAt = 6;
+	string updatedAt = 7;
 }
 
 // UserInfo includes the general login settings as well as the user profile.
@@ -164,9 +171,27 @@ message UserInfo {
 	UserProfile userProfile = 2;
 }
 
-message UserResponse {
-	// The user settings and profile.
-	UserInfo info = 1;
+message GetUserResponse {
+	// ID of the user.
+	int64 id = 1;
+	
+	// Username of the user.
+	string username = 2;
+
+	// The session timeout, in minutes.
+	int32 sessionTTL = 3;
+
+	// If the user is a system admin, capable of creating other users.
+	bool isAdmin = 4;
+
+	// If the user is active.
+	bool isActive = 5;
+
+	// When the user was created.
+	string createdAt = 6;
+
+	// When the user was last updated (excludes changes in application access).
+	string updatedAt = 7;
 }
 
 // Add a new user. Not quite the UserSettings data as it includes a password
@@ -183,6 +208,9 @@ message AddUserRequest {
 
 	// If the user is a system-wide admin.
 	bool isAdmin = 4;
+
+	// If the user is active.
+	bool isActive = 5;
 }
 
 // Not quite the AddUserRequest as no password.
@@ -198,11 +226,14 @@ message UpdateUserRequest {
 
 	// If the user is a system-wide admin.
 	bool isAdmin = 4;
+
+	// If the user is active.
+	bool isActive = 5;
 }
 
 message ListUserResponse {
 	int32 totalCount = 1;
-	repeated UserResponse users = 2;
+	repeated GetUserResponse result = 2;
 }
 
 message UserEmptyResponse {

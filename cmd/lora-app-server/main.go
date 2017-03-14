@@ -207,10 +207,9 @@ func mustGetContext(c *cli.Context) common.Context {
 func mustGetClientAPIServer(ctx context.Context, lsCtx common.Context, c *cli.Context) *grpc.Server {
 	var validator auth.Validator
 	if c.String("jwt-secret") != "" {
-		validator = auth.NewJWTValidator("HS256", c.String("jwt-secret"))
+		validator = auth.NewJWTValidator(lsCtx.DB, "HS256", c.String("jwt-secret"))
 	} else {
-		log.Warning("client api authentication and authorization is disabled (set jwt-secret to enable)")
-		validator = auth.NopValidator{}
+		log.Fatal("--jwt-secret must be set")
 	}
 
 	gs := grpc.NewServer()
@@ -218,7 +217,8 @@ func mustGetClientAPIServer(ctx context.Context, lsCtx common.Context, c *cli.Co
 	pb.RegisterChannelListServer(gs, api.NewChannelListAPI(lsCtx, validator))
 	pb.RegisterDownlinkQueueServer(gs, api.NewDownlinkQueueAPI(lsCtx, validator))
 	pb.RegisterNodeServer(gs, api.NewNodeAPI(lsCtx, validator))
-	pb.RegisterNodeSessionServer(gs, api.NewNodeSessionAPI(lsCtx, validator))
+	pb.RegisterUserServer(gs, api.NewUserAPI(lsCtx, validator))
+	pb.RegisterInternalServer(gs, api.NewInternalUserAPI(lsCtx, validator))
 
 	return gs
 }
@@ -307,8 +307,11 @@ func mustGetJSONGateway(ctx context.Context, lsCtx common.Context, c *cli.Contex
 	if err := pb.RegisterNodeHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		log.Fatalf("register node handler error: %s", err)
 	}
-	if err := pb.RegisterNodeSessionHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
-		log.Fatalf("register node-session handler error: %s", err)
+	if err := pb.RegisterUserHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+		log.Fatalf("register user handler error: %s", err)
+	}
+	if err := pb.RegisterInternalHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+		log.Fatalf("register internal handler error: %s", err)
 	}
 
 	return mux

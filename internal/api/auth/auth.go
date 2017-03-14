@@ -1,72 +1,58 @@
 package auth
 
 import (
-	"errors"
 	"fmt"
-	"regexp"
-	"strconv"
-	"strings"
 
+	"github.com/brocaar/lora-app-server/internal/storage"
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
-
-	"github.com/brocaar/lorawan"
 )
 
 // Claims defines the struct containing the token claims.
 type Claims struct {
 	jwt.StandardClaims
 
-	// Admin defines if the user has admin permissions. If true, the user has
-	// all permissions.
-	Admin bool `json:"admin"`
-
-	// APIMethods defines the API methods the user has access to.
-	// The following forms are allowed:
-	// All methods: ["*"]
-	// One Application method: ["Application.Create"]
-	// Multiple Application methods: ["Application.(Create|Delete)"]
-	// All Application methods: ["Application.*"]
-	APIMethods []string `json:"apis"`
-
-	// Applications defines the applications the user has access to.
-	// The following forms are allowed:
-	// All applications: ["*"]
-	// One or multiple applications: ["0102030405060708", ...]
-	Applications []string `json:"apps"`
-
-	// Nodes defines the nodes the user has access to. It follows the same
-	// logic as the applications.
-	Nodes []string `json:"nodes"`
+	// Username defines the identity of the user.
+	Username string `json:"username"`
 }
 
 // Validator defines the interface a validator needs to implement.
 type Validator interface {
+	// Validate validates the given set of validators against the given context.
+	// Must return after the first validator function either returns true or
+	// and error. The way how the validation must be seens is:
+	//   if validatorFunc1 || validatorFunc2 || validatorFunc3 ...
+	// In case multiple validators must validate to true, then a validator
+	// func needs to be implemented which validates a given set of funcs as:
+	//   if validatorFunc1 && validatorFunc2 && ValidatorFunc3 ...
 	Validate(context.Context, ...ValidatorFunc) error
+
+	// GetUsername returns the name of the authenticated user.
+	GetUsername(context.Context) (string, error)
+
+	// GetIsAdmin returns if the authenticated user is a global admin.
+	GetIsAdmin(context.Context) (bool, error)
 }
 
 // ValidatorFunc defines the signature of a claim validator function.
-type ValidatorFunc func(*Claims) error
-
-// NopValidator doesn't perform any validation and returns alway true.
-type NopValidator struct{}
-
-// Validate validates the given token against the given validator funcs.
-// In the case of the NopValidator, it returns always nil.
-func (v NopValidator) Validate(ctx context.Context, funcs ...ValidatorFunc) error {
-	return nil
-}
+// It returns a bool indicating if the validation passed or failed and an
+// error in case an error occured (e.g. db connectivity).
+type ValidatorFunc func(*sqlx.DB, *Claims) (bool, error)
 
 // JWTValidator validates JWT tokens.
 type JWTValidator struct {
+	db        *sqlx.DB
 	secret    string
 	algorithm string
 }
 
 // NewJWTValidator creates a new JWTValidator.
-func NewJWTValidator(algorithm, secret string) *JWTValidator {
+func NewJWTValidator(db *sqlx.DB, algorithm, secret string) *JWTValidator {
 	return &JWTValidator{
+		db:        db,
 		secret:    secret,
 		algorithm: algorithm,
 	}
@@ -75,127 +61,87 @@ func NewJWTValidator(algorithm, secret string) *JWTValidator {
 // Validate validates the token from the given context against the given
 // validator funcs.
 func (v JWTValidator) Validate(ctx context.Context, funcs ...ValidatorFunc) error {
-	tokenStr, err := getTokenFromContext(ctx)
+	claims, err := v.getClaims(ctx)
 	if err != nil {
 		return err
 	}
 
+	for _, f := range funcs {
+		ok, err := f(v.db, claims)
+		if err != nil {
+			return errors.Wrap(err, "validator func error")
+		}
+		if ok {
+			return nil
+		}
+	}
+
+	return ErrNotAuthorized
+}
+
+// GetUsername returns the username of the authenticated user.
+func (v JWTValidator) GetUsername(ctx context.Context) (string, error) {
+	claims, err := v.getClaims(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	return claims.Username, nil
+}
+
+// GetIsAdmin returns if the authenticated user is a global amin.
+func (v JWTValidator) GetIsAdmin(ctx context.Context) (bool, error) {
+	claims, err := v.getClaims(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	user, err := storage.GetUserByUsername(v.db, claims.Username)
+	if err != nil {
+		return false, errors.Wrap(err, "get user by username error")
+	}
+
+	return user.IsAdmin, nil
+}
+
+func (v JWTValidator) getClaims(ctx context.Context) (*Claims, error) {
+	tokenStr, err := getTokenFromContext(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "get token from context error")
+	}
+
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if token.Header["alg"] != v.algorithm {
-			return nil, fmt.Errorf("api/auth: unexpected algorithm %s, expected %s", token.Header["alg"], v.algorithm)
+			return nil, ErrInvalidAlgorithm
 		}
 		return []byte(v.secret), nil
 	})
 	if err != nil {
-		return fmt.Errorf("api/auth: jwt parse error: %s", err)
+		return nil, errors.Wrap(err, "jwt parse error")
 	}
 
 	if !token.Valid {
-		return errors.New("api/auth: invalid token")
+		return nil, ErrInvalidToken
 	}
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok {
-		return fmt.Errorf("api/auth: expected *Claims, got %T", token.Claims)
+		// no need to use a static error, this should never happen
+		return nil, fmt.Errorf("api/auth: expected *Claims, got %T", token.Claims)
 	}
 
-	for _, f := range funcs {
-		if err := f(claims); err != nil {
-			return fmt.Errorf("auth/api: %s", err)
-		}
-	}
-
-	return nil
-}
-
-// ValidateApplicationID validates if the user has permission to the given
-// application id.
-func ValidateApplicationID(id int64) ValidatorFunc {
-	return func(claims *Claims) error {
-		if claims.Admin {
-			return nil
-		}
-
-		for _, app := range claims.Applications {
-			if app == "*" {
-				return nil
-			}
-
-			if strconv.FormatInt(id, 10) == app {
-				return nil
-			}
-		}
-
-		return fmt.Errorf("no permission to application id %d", id)
-	}
-}
-
-// ValidateNode validates if the user has permission to the given DevEUI.
-func ValidateNode(devEUI lorawan.EUI64) ValidatorFunc {
-	return func(claims *Claims) error {
-		if claims.Admin {
-			return nil
-		}
-
-		for _, node := range claims.Nodes {
-			if node == "*" {
-				return nil
-			}
-
-			if devEUI.String() == node {
-				return nil
-			}
-		}
-
-		return fmt.Errorf("no permission to node %s", devEUI)
-	}
-}
-
-// ValidateAPIMethod validates if the user has permission to the given api method.
-func ValidateAPIMethod(apiMethod string) ValidatorFunc {
-	return func(claims *Claims) error {
-		methodParts := strings.SplitN(apiMethod, ".", 2)
-		if len(methodParts) != 2 {
-			return fmt.Errorf("invalid api method: %s", apiMethod)
-		}
-
-		if claims.Admin {
-			return nil
-		}
-
-		for _, meth := range claims.APIMethods {
-			if meth == "*" {
-				return nil
-			}
-
-			if apiMethod == meth {
-				return nil
-			}
-
-			if methodParts[0]+".*" == meth {
-				return nil
-			}
-
-			if match, err := regexp.MatchString("^"+strings.Replace(meth, ".", `\.`, -1)+"$", apiMethod); err != nil {
-				return fmt.Errorf("regexp match error on %s: %s", meth, err)
-			} else if match {
-				return nil
-			}
-		}
-
-		return fmt.Errorf("no permission to api method: %s", apiMethod)
-	}
+	return claims, nil
 }
 
 func getTokenFromContext(ctx context.Context) (string, error) {
 	md, ok := metadata.FromContext(ctx)
 	if !ok {
-		return "", errors.New("could not get metadata from context")
+		return "", ErrNoMetadataInContext
 	}
 
 	token, ok := md["authorization"]
 	if !ok || len(token) == 0 {
-		return "", errors.New("authorization missing in metadata")
+		return "", ErrNoAuthorizationInMetadata
 	}
 
 	return token[0], nil

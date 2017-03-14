@@ -49,7 +49,7 @@ func TestNodeAPI(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
-			So(validator.validatorFuncs, ShouldHaveLength, 3)
+			So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 			Convey("Then the DevEUI is used as name", func() {
 				node, err := api.Get(ctx, &pb.GetNodeRequest{
@@ -79,7 +79,7 @@ func TestNodeAPI(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
-			So(validator.validatorFuncs, ShouldHaveLength, 3)
+			So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 			Convey("The node has been created", func() {
 				node, err := api.Get(ctx, &pb.GetNodeRequest{
@@ -87,7 +87,7 @@ func TestNodeAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 3)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
 				So(node, ShouldResemble, &pb.GetNodeResponse{
 					Name:               "test-node",
 					Description:        "test node description",
@@ -113,7 +113,7 @@ func TestNodeAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 2)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
 				So(nodes.Result, ShouldHaveLength, 1)
 				So(nodes.TotalCount, ShouldEqual, 1)
 				So(nodes.Result[0], ShouldResemble, &pb.GetNodeResponse{
@@ -153,7 +153,7 @@ func TestNodeAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 4)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the node has been updated", func() {
 					node, err := api.Get(ctx, &pb.GetNodeRequest{
@@ -185,7 +185,7 @@ func TestNodeAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 3)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then an attempt was made to delete the node-session", func() {
 					So(nsClient.DeleteNodeSessionChan, ShouldHaveLength, 1)
@@ -216,7 +216,7 @@ func TestNodeAPI(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 3)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then an attempt was made to delete the node-session", func() {
 					So(nsClient.DeleteNodeSessionChan, ShouldHaveLength, 1)

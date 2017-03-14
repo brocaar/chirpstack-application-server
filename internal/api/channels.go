@@ -27,7 +27,8 @@ func NewChannelListAPI(ctx common.Context, validator auth.Validator) *ChannelLis
 
 // Create creates the given channel-list.
 func (a *ChannelListAPI) Create(ctx context.Context, req *pb.CreateChannelListRequest) (*pb.CreateChannelListResponse, error) {
-	if err := a.validator.Validate(ctx, auth.ValidateAPIMethod("ChannelList.Create")); err != nil {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateChannelListAccess(auth.Create)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
@@ -49,7 +50,8 @@ func (a *ChannelListAPI) Create(ctx context.Context, req *pb.CreateChannelListRe
 
 // Update updates the given channel-list.
 func (a *ChannelListAPI) Update(ctx context.Context, req *pb.UpdateChannelListRequest) (*pb.UpdateChannelListResponse, error) {
-	if err := a.validator.Validate(ctx, auth.ValidateAPIMethod("ChannelList.Update")); err != nil {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateChannelListAccess(auth.Update)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
@@ -71,7 +73,8 @@ func (a *ChannelListAPI) Update(ctx context.Context, req *pb.UpdateChannelListRe
 
 // Get returns the channel-list matching the given id.
 func (a *ChannelListAPI) Get(ctx context.Context, req *pb.GetChannelListRequest) (*pb.GetChannelListResponse, error) {
-	if err := a.validator.Validate(ctx, auth.ValidateAPIMethod("ChannelList.Get")); err != nil {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateChannelListAccess(auth.Read)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
@@ -94,7 +97,8 @@ func (a *ChannelListAPI) Get(ctx context.Context, req *pb.GetChannelListRequest)
 
 // List lists the channel-lists.
 func (a *ChannelListAPI) List(ctx context.Context, req *pb.ListChannelListRequest) (*pb.ListChannelListResponse, error) {
-	if err := a.validator.Validate(ctx, auth.ValidateAPIMethod("ChannelList.List")); err != nil {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateChannelListAccess(auth.List)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
@@ -128,7 +132,8 @@ func (a *ChannelListAPI) List(ctx context.Context, req *pb.ListChannelListReques
 
 // Delete deletes the channel-list matching the given id.
 func (a *ChannelListAPI) Delete(ctx context.Context, req *pb.DeleteChannelListRequest) (*pb.DeleteChannelListResponse, error) {
-	if err := a.validator.Validate(ctx, auth.ValidateAPIMethod("ChannelList.Delete")); err != nil {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateChannelListAccess(auth.Delete)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 

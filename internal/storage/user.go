@@ -20,12 +20,14 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
-// PBKDF2 hash generation parameters.
-// SALT_SIZE defines the salt size
-const SALT_SIZE = 16
+// saltSize defines the salt size
+const saltSize = 16
 
-// ITERATIONS defines the number of hash iterations.
-const ITERATIONS = 1024 * 1024
+// hashIterations defines the number of hash iterations.
+const hashIterations = 1024 * 1024
+
+// defaultSessionTTL defines the default session TTL
+const defaultSessionTTL = time.Hour * 24
 
 // Any upper, lower, digit characters, at least 6 characters.
 var usernameValidator = regexp.MustCompile(`^[[:alnum:]]+$`)
@@ -35,15 +37,17 @@ var passwordValidator = regexp.MustCompile(`^.{6,}$`)
 
 // User represents a user to external code.
 type User struct {
-	ID         int64     `db:"id"`
-	Username   string    `db:"username"`
-	IsAdmin    bool      `db:"is_admin"`
-	SessionTTL int32     `db:"session_ttl"`
-	CreatedAt  time.Time `db:"created_at"`
-	UpdatedAt  time.Time `db:"updated_at"`
+	ID           int64     `db:"id"`
+	Username     string    `db:"username"`
+	IsAdmin      bool      `db:"is_admin"`
+	IsActive     bool      `db:"is_active"`
+	SessionTTL   int32     `db:"session_ttl"`
+	CreatedAt    time.Time `db:"created_at"`
+	UpdatedAt    time.Time `db:"updated_at"`
+	PasswordHash string    `db:"password_hash"`
 }
 
-const externalUserFields = "id, username, is_admin, session_ttl, created_at, updated_at"
+const externalUserFields = "id, username, is_admin, is_active, session_ttl, created_at, updated_at"
 const internalUserFields = "*"
 
 // UserUpdate represents the user fields that can be "updated" in the simple
@@ -52,6 +56,7 @@ type UserUpdate struct {
 	ID         int64  `db:"id"`
 	Username   string `db:"username"`
 	IsAdmin    bool   `db:"is_admin"`
+	IsActive   bool   `db:"is_active"`
 	SessionTTL int32  `db:"session_ttl"`
 }
 
@@ -106,15 +111,34 @@ func CreateUser(db *sqlx.DB, user *User, password string) (int64, error) {
 		return 0, errors.Wrap(err, "validation error")
 	}
 
-	now := time.Now()
-	pwHash, err := hash(password, SALT_SIZE, ITERATIONS)
+	pwHash, err := hash(password, saltSize, hashIterations)
 	if err != nil {
 		return 0, err
 	}
 
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
+
 	// Add the new user.
-	err = db.Get(&user.ID, "insert into \"user\" (username, password_hash, is_admin, is_active, session_ttl, created_at, updated_at) values( $1, $2, $3, 'true', $4, $5, $6 ) returning id",
-		user.Username, pwHash, user.IsAdmin, user.SessionTTL, now, now)
+	err = db.Get(&user.ID, `
+		insert into "user" (
+			username,
+			password_hash,
+			is_admin,
+			is_active,
+			session_ttl,
+			created_at,
+			updated_at)
+		values (
+			$1, $2, $3, $4, $5, $6, $7) returning id`,
+		user.Username,
+		pwHash,
+		user.IsAdmin,
+		user.IsActive,
+		user.SessionTTL,
+		user.CreatedAt,
+		user.UpdatedAt,
+	)
 	if err != nil {
 		switch err := err.(type) {
 		case *pq.Error:
@@ -219,9 +243,19 @@ func GetUserByUsername(db *sqlx.DB, username string) (User, error) {
 }
 
 // GetUserCount returns the total number of users.
-func GetUserCount(db *sqlx.DB) (int32, error) {
+func GetUserCount(db *sqlx.DB, search string) (int32, error) {
 	var count int32
-	err := db.Get(&count, "select count(*) from \"user\"")
+	if search != "" {
+		search = "%" + search + "%"
+	}
+	err := db.Get(&count, `
+		select
+			count(*)
+		from "user"
+		where
+			($1 != '' and username like $1)
+			or ($1 = '')
+		`, search)
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")
 	}
@@ -229,9 +263,12 @@ func GetUserCount(db *sqlx.DB) (int32, error) {
 }
 
 // GetUsers returns a slice of users, respecting the given limit and offset.
-func GetUsers(db *sqlx.DB, limit, offset int32) ([]User, error) {
+func GetUsers(db *sqlx.DB, limit, offset int32, search string) ([]User, error) {
 	var users []User
-	err := db.Select(&users, "select "+externalUserFields+" from \"user\" order by username limit $1 offset $2", limit, offset)
+	if search != "" {
+		search = "%" + search + "%"
+	}
+	err := db.Select(&users, "select "+externalUserFields+` from "user" where ($3 != '' and username like $3) or ($3 = '') order by username limit $1 offset $2`, limit, offset, search)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
 	}
@@ -249,12 +286,14 @@ func UpdateUser(db *sqlx.DB, item UserUpdate) error {
 		set
 			username = $2,
 			is_admin = $3,
-			session_ttl = $4,
+			is_active = $4,
+			session_ttl = $5,
 			updated_at = now()
 		where id = $1`,
 		item.ID,
 		item.Username,
 		item.IsAdmin,
+		item.IsActive,
 		item.SessionTTL,
 	)
 	if err != nil {
@@ -328,7 +367,12 @@ func LoginUser(db *sqlx.DB, username string, password string) (string, error) {
 	// Generate the token.
 	now := time.Now()
 	nowSecondsSinceEpoch := now.Unix()
-	expSecondsSinceEpoch := nowSecondsSinceEpoch + (60 * int64(user.SessionTTL))
+	var expSecondsSinceEpoch int64
+	if user.SessionTTL > 0 {
+		expSecondsSinceEpoch = nowSecondsSinceEpoch + (60 * int64(user.SessionTTL))
+	} else {
+		expSecondsSinceEpoch = nowSecondsSinceEpoch + int64(defaultSessionTTL/time.Second)
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"iss":      "lora-app-server",
 		"aud":      "lora-app-server",
@@ -351,7 +395,7 @@ func UpdatePassword(db *sqlx.DB, id int64, newpassword string) error {
 		return errors.Wrap(err, "validation error")
 	}
 
-	pwHash, err := hash(newpassword, SALT_SIZE, ITERATIONS)
+	pwHash, err := hash(newpassword, saltSize, hashIterations)
 	if err != nil {
 		return err
 	}

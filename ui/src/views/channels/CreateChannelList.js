@@ -12,7 +12,9 @@ class CreateChannelList extends Component {
   constructor() {
     super();
     this.state = {
-      list: {},
+      list: {
+        channels: [],
+      },
     };
     this.onSubmit = this.onSubmit.bind(this);
   }

@@ -74,19 +74,20 @@ func (r RXWindow) Value() (driver.Value, error) {
 
 // Node contains the information of a node.
 type Node struct {
-	ApplicationID int64             `db:"application_id"`
-	Name          string            `db:"name"`
-	Description   string            `db:"description"`
-	DevEUI        lorawan.EUI64     `db:"dev_eui"`
-	AppEUI        lorawan.EUI64     `db:"app_eui"`
-	AppKey        lorawan.AES128Key `db:"app_key"`
-	IsABP         bool              `db:"is_abp"`
-	IsClassC      bool              `db:"is_class_c"`
-	DevAddr       lorawan.DevAddr   `db:"dev_addr"`
-	NwkSKey       lorawan.AES128Key `db:"nwk_s_key"`
-	AppSKey       lorawan.AES128Key `db:"app_s_key"`
-	UsedDevNonces DevNonceList      `db:"used_dev_nonces"`
-	RelaxFCnt     bool              `db:"relax_fcnt"`
+	ApplicationID          int64             `db:"application_id"`
+	UseApplicationSettings bool              `db:"use_application_settings"`
+	Name                   string            `db:"name"`
+	Description            string            `db:"description"`
+	DevEUI                 lorawan.EUI64     `db:"dev_eui"`
+	AppEUI                 lorawan.EUI64     `db:"app_eui"`
+	AppKey                 lorawan.AES128Key `db:"app_key"`
+	IsABP                  bool              `db:"is_abp"`
+	IsClassC               bool              `db:"is_class_c"`
+	DevAddr                lorawan.DevAddr   `db:"dev_addr"`
+	NwkSKey                lorawan.AES128Key `db:"nwk_s_key"`
+	AppSKey                lorawan.AES128Key `db:"app_s_key"`
+	UsedDevNonces          DevNonceList      `db:"used_dev_nonces"`
+	RelaxFCnt              bool              `db:"relax_fcnt"`
 
 	RXWindow      RXWindow `db:"rx_window"`
 	RXDelay       uint8    `db:"rx_delay"`
@@ -123,10 +124,36 @@ func (n *Node) ValidateDevNonce(nonce [2]byte) bool {
 	return true
 }
 
+func updateNodeSettingsFromApplication(db *sqlx.DB, n *Node) error {
+	app, err := GetApplication(db, n.ApplicationID)
+	if err != nil {
+		return fmt.Errorf("get application error: %s", err)
+	}
+
+	n.RXDelay = app.RXDelay
+	n.RX1DROffset = app.RX1DROffset
+	n.ChannelListID = app.ChannelListID
+	n.RXWindow = app.RXWindow
+	n.RX2DR = app.RX2DR
+	n.RelaxFCnt = app.RelaxFCnt
+	n.ADRInterval = app.ADRInterval
+	n.InstallationMargin = app.InstallationMargin
+	n.IsABP = app.IsABP
+	n.IsClassC = app.IsClassC
+
+	return nil
+}
+
 // CreateNode creates the given Node.
 func CreateNode(db *sqlx.DB, n Node) error {
 	if err := n.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
+	}
+
+	if n.UseApplicationSettings {
+		if err := updateNodeSettingsFromApplication(db, &n); err != nil {
+			return err
+		}
 	}
 
 	_, err := db.Exec(`
@@ -149,9 +176,10 @@ func CreateNode(db *sqlx.DB, n Node) error {
 			adr_interval,
 			installation_margin,
 			is_abp,
-			is_class_c
+			is_class_c,
+			use_application_settings
 		)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
 		n.ApplicationID,
 		n.Name,
 		n.Description,
@@ -171,6 +199,7 @@ func CreateNode(db *sqlx.DB, n Node) error {
 		n.InstallationMargin,
 		n.IsABP,
 		n.IsClassC,
+		n.UseApplicationSettings,
 	)
 	if err != nil {
 		switch err := err.(type) {
@@ -192,9 +221,16 @@ func CreateNode(db *sqlx.DB, n Node) error {
 }
 
 // UpdateNode updates the given Node.
+// TODO: change node into pointer
 func UpdateNode(db *sqlx.DB, n Node) error {
 	if err := n.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
+	}
+
+	if n.UseApplicationSettings {
+		if err := updateNodeSettingsFromApplication(db, &n); err != nil {
+			return err
+		}
 	}
 
 	res, err := db.Exec(`
@@ -217,7 +253,8 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 			adr_interval = $17,
 			installation_margin = $18,
 			is_abp = $19,
-			is_class_c = $20
+			is_class_c = $20,
+			use_application_settings = $21
 		where dev_eui = $1`,
 		n.DevEUI[:],
 		n.ApplicationID,
@@ -239,6 +276,7 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 		n.InstallationMargin,
 		n.IsABP,
 		n.IsClassC,
+		n.UseApplicationSettings,
 	)
 	if err != nil {
 		switch err := err.(type) {

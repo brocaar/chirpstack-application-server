@@ -4,6 +4,7 @@ package api;
 
 // for grpc-gateway
 import "google/api/annotations.proto";
+import "common.proto";
 
 // Application is the service managing applications.
 service Application {
@@ -55,6 +56,7 @@ service Application {
 	rpc AddUser(AddApplicationUserRequest) returns (EmptyApplicationUserResponse) {
 		option(google.api.http) = {
 			post: "/api/applications/{id}/users"
+			body: "*"
 		};
 	}
 	
@@ -69,13 +71,14 @@ service Application {
 	rpc UpdateUser(UpdateApplicationUserRequest) returns (EmptyApplicationUserResponse) {
 		option(google.api.http) = {
 			put: "/api/applications/{id}/users/{userID}"
+			body: "*"
 		};
 	}
 
 	// DeleteUser deletes the user's access to the associated application.
 	rpc DeleteUser(ApplicationUserRequest) returns (EmptyApplicationUserResponse) {
 		option(google.api.http) = {
-			put: "/api/applications/{id}/users/{userID}"
+			delete: "/api/applications/{id}/users/{userID}"
 		};
 	}
 }
@@ -86,6 +89,36 @@ message CreateApplicationRequest {
 
 	// Description of the application.
 	string description = 2;
+
+	// RX delay.
+	uint32 rxDelay = 3;
+
+	// RX1 data-rate offset.
+	uint32 rx1DROffset = 4;
+
+	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
+	int64 channelListID = 5;
+
+	// RX window to use.
+	RXWindow rxWindow = 6;
+
+	// Data-rate to use for RX2.
+	uint32 rx2DR = 7;
+
+	// Relax frame-counter mode is enabled.
+	bool relaxFCnt = 8;
+
+	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
+	uint32 adrInterval = 9;
+
+	// Installation-margin to use for ADR calculation.
+	double installationMargin = 10;
+
+	// Node is activated by ABP.
+	bool isABP = 11;
+
+	// Node operates in Class-C.
+	bool isClassC = 12;
 }
 
 message CreateApplicationResponse {
@@ -107,6 +140,36 @@ message GetApplicationResponse {
 
 	// Description of the application.
 	string description = 3;
+
+	// RX delay.
+	uint32 rxDelay = 4;
+
+	// RX1 data-rate offset.
+	uint32 rx1DROffset = 5;
+
+	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
+	int64 channelListID = 6;
+
+	// RX window to use.
+	RXWindow rxWindow = 7;
+
+	// Data-rate to use for RX2.
+	uint32 rx2DR = 8;
+
+	// Relax frame-counter mode is enabled.
+	bool relaxFCnt = 9;
+
+	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
+	uint32 adrInterval = 10;
+
+	// Installation-margin to use for ADR calculation.
+	double installationMargin = 11;
+
+	// Node is activated by ABP.
+	bool isABP = 12;
+
+	// Node operates in Class-C.
+	bool isClassC = 13;
 }
 
 message UpdateApplicationRequest {
@@ -118,6 +181,36 @@ message UpdateApplicationRequest {
 
 	// Description of the application.
 	string description = 3;
+
+	// RX delay.
+	uint32 rxDelay = 4;
+
+	// RX1 data-rate offset.
+	uint32 rx1DROffset = 5;
+
+	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
+	int64 channelListID = 6;
+
+	// RX window to use.
+	RXWindow rxWindow = 7;
+
+	// Data-rate to use for RX2.
+	uint32 rx2DR = 8;
+
+	// Relax frame-counter mode is enabled.
+	bool relaxFCnt = 9;
+
+	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
+	uint32 adrInterval = 10;
+
+	// Installation-margin to use for ADR calculation.
+	double installationMargin = 11;
+
+	// Node is activated by ABP.
+	bool isABP = 12;
+
+	// Node operates in Class-C.
+	bool isClassC = 13;
 }
 
 message UpdateApplicationResponse {}

@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
+import Pagination from "../../components/Pagination";
 import NodeStore from "../../stores/NodeStore";
+import SessionStore from "../../stores/SessionStore";
 import ApplicationStore from "../../stores/ApplicationStore";
 
 class NodeRow extends Component {
@@ -30,18 +32,48 @@ class ListNodes extends Component {
     this.state = {
       application: {},
       nodes: [],
+      isApplicationAdmin: false,
+      pageSize: 20,
+      pageNumber: 1,
+      pages: 1,
     };
 
     this.onDelete = this.onDelete.bind(this);
+    this.updatePage = this.updatePage.bind(this);
   }
 
   componentWillMount() {
-    NodeStore.getAll(this.props.params.applicationID, (nodes) => {
-      this.setState({nodes: nodes});
-    });
-
+    this.updatePage(this.props);
     ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
       this.setState({application: application});
+    });
+
+    this.setState({
+      isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+      });
+    });
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.updatePage(nextProps);
+  }
+
+
+  updatePage(props) {
+    const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+  
+    NodeStore.getAll(this.props.params.applicationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, nodes) => {
+      this.setState({
+        nodes: nodes,
+        pageNumber: page,
+        pages: Math.ceil(totalCount / this.state.pageSize),
+      });
+      window.scrollTo(0, 0);
     });
   }
 
@@ -64,11 +96,14 @@ class ListNodes extends Component {
           <li>{this.state.application.name}</li>
           <li className="active">Nodes</li>
         </ol>
-        <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to={`/applications/${this.props.params.applicationID}/nodes/create`}><button type="button" className="btn btn-default">Create node</button></Link> &nbsp;
-            <Link to={`/applications/${this.props.params.applicationID}/edit`}><button type="button" className="btn btn-default">Edit application</button></Link> &nbsp;
-            <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete application</button></Link>
+        <div className={(this.state.isApplicationAdmin ? '' : 'hidden')}>
+          <div className="clearfix">
+            <div className="btn-group pull-right" role="group" aria-label="...">
+              <Link to={`/applications/${this.props.params.applicationID}/users`}><button type="button" className="btn btn-default">Users</button></Link> &nbsp;
+              <Link to={`/applications/${this.props.params.applicationID}/nodes/create`}><button type="button" className="btn btn-default">Create node</button></Link> &nbsp;
+              <Link to={`/applications/${this.props.params.applicationID}/edit`}><button type="button" className="btn btn-default">Edit application</button></Link> &nbsp;
+              <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete application</button></Link>
+            </div>
           </div>
         </div>
         <hr />
@@ -77,10 +112,10 @@ class ListNodes extends Component {
             <table className="table table-hover">
               <thead>
                 <tr>
-                  <th>Device name</th>
-                  <th>Device EUI</th>
+                  <th className="col-md-3">Device name</th>
+                  <th className="col-md-2">Device EUI</th>
                   <th>Device description</th>
-                  <th>Activation</th>
+                  <th className="col-md-1">Activation</th>
                 </tr>
               </thead>
               <tbody>
@@ -88,6 +123,7 @@ class ListNodes extends Component {
               </tbody>
             </table>
           </div>
+          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/applications/${this.props.params.applicationID}`} />
         </div>
       </div>
     );

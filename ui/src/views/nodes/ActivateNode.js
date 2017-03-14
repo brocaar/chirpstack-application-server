@@ -3,6 +3,7 @@ import { Link } from "react-router";
 
 import NodeStore from "../../stores/NodeStore";
 import ApplicationStore from "../../stores/ApplicationStore";
+import SessionStore from "../../stores/SessionStore";
 import NodeActivationForm from "../../components/NodeActivationForm";
 
 class ActivateNode extends Component {
@@ -16,6 +17,7 @@ class ActivateNode extends Component {
       activation: {},
       application: {},
       node: {},
+      isApplicationAdmin: false,
     };
     this.onSubmit = this.onSubmit.bind(this);
   }
@@ -31,6 +33,16 @@ class ActivateNode extends Component {
 
     ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
       this.setState({application: application});
+    });
+
+    this.setState({
+      isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+      });
     });
   }
 
@@ -53,7 +65,7 @@ class ActivateNode extends Component {
         <hr />
         <div className="panel panel-default">
           <div className="panel-body">
-            <NodeActivationForm onSubmit={this.onSubmit} node={this.state.node} application={this.state.application} activation={this.state.activation} />
+            <NodeActivationForm onSubmit={this.onSubmit} node={this.state.node} application={this.state.application} activation={this.state.activation} disabled={!this.state.isApplicationAdmin} />
           </div>
         </div>
       </div>

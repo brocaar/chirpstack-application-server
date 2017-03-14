@@ -44,10 +44,7 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 	}
 
 	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.Create"),
-		auth.ValidateApplicationID(req.ApplicationID),
-		auth.ValidateNode(devEUI),
-	); err != nil {
+		auth.ValidateNodesAccess(req.ApplicationID, auth.Create)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
@@ -57,15 +54,16 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 	}
 
 	node := storage.Node{
-		ApplicationID: req.ApplicationID,
-		Name:          req.Name,
-		Description:   req.Description,
-		DevEUI:        devEUI,
-		AppEUI:        appEUI,
-		AppKey:        appKey,
-		IsABP:         req.IsABP,
-		IsClassC:      req.IsClassC,
-		RelaxFCnt:     req.RelaxFCnt,
+		ApplicationID:          req.ApplicationID,
+		UseApplicationSettings: req.UseApplicationSettings,
+		Name:        req.Name,
+		Description: req.Description,
+		DevEUI:      devEUI,
+		AppEUI:      appEUI,
+		AppKey:      appKey,
+		IsABP:       req.IsABP,
+		IsClassC:    req.IsClassC,
+		RelaxFCnt:   req.RelaxFCnt,
 
 		RXDelay:     uint8(req.RxDelay),
 		RX1DROffset: uint8(req.Rx1DROffset),
@@ -93,35 +91,33 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNodeAccess(eui, auth.Read)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	node, err := storage.GetNode(a.ctx.DB, eui)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.Get"),
-		auth.ValidateApplicationID(node.ApplicationID),
-		auth.ValidateNode(node.DevEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
 	resp := pb.GetNodeResponse{
-		Name:               node.Name,
-		Description:        node.Description,
-		DevEUI:             node.DevEUI.String(),
-		AppEUI:             node.AppEUI.String(),
-		AppKey:             node.AppKey.String(),
-		IsABP:              node.IsABP,
-		IsClassC:           node.IsClassC,
-		RxDelay:            uint32(node.RXDelay),
-		Rx1DROffset:        uint32(node.RX1DROffset),
-		RxWindow:           pb.RXWindow(node.RXWindow),
-		Rx2DR:              uint32(node.RX2DR),
-		RelaxFCnt:          node.RelaxFCnt,
-		AdrInterval:        node.ADRInterval,
-		InstallationMargin: node.InstallationMargin,
-		ApplicationID:      node.ApplicationID,
+		Name:                   node.Name,
+		Description:            node.Description,
+		DevEUI:                 node.DevEUI.String(),
+		AppEUI:                 node.AppEUI.String(),
+		AppKey:                 node.AppKey.String(),
+		IsABP:                  node.IsABP,
+		IsClassC:               node.IsClassC,
+		RxDelay:                uint32(node.RXDelay),
+		Rx1DROffset:            uint32(node.RX1DROffset),
+		RxWindow:               pb.RXWindow(node.RXWindow),
+		Rx2DR:                  uint32(node.RX2DR),
+		RelaxFCnt:              node.RelaxFCnt,
+		AdrInterval:            node.ADRInterval,
+		InstallationMargin:     node.InstallationMargin,
+		ApplicationID:          node.ApplicationID,
+		UseApplicationSettings: node.UseApplicationSettings,
 	}
 
 	if node.ChannelListID != nil {
@@ -134,9 +130,7 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 // ListByApplicationID returns a list of nodes (given an application id, limit and offset).
 func (a *NodeAPI) ListByApplicationID(ctx context.Context, req *pb.ListNodeByApplicationIDRequest) (*pb.ListNodeResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.List"),
-		auth.ValidateApplicationID(req.ApplicationID),
-	); err != nil {
+		auth.ValidateNodesAccess(req.ApplicationID, auth.List)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
@@ -166,18 +160,14 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNodeAccess(devEUI, auth.Update)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
-	}
-
-	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.Update"),
-		auth.ValidateApplicationID(node.ApplicationID),
-		auth.ValidateApplicationID(req.ApplicationID), // in case of an application ID update
-		auth.ValidateNode(node.DevEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	node.Name = req.Name
@@ -194,6 +184,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 	node.ADRInterval = req.AdrInterval
 	node.InstallationMargin = req.InstallationMargin
 	node.ApplicationID = req.ApplicationID
+	node.UseApplicationSettings = req.UseApplicationSettings
 	if req.ChannelListID > 0 {
 		node.ChannelListID = &req.ChannelListID
 	} else {
@@ -219,17 +210,14 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.De
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNodeAccess(eui, auth.Delete)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	node, err := storage.GetNode(a.ctx.DB, eui)
 	if err != nil {
 		return nil, errToRPCError(err)
-	}
-
-	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.Delete"),
-		auth.ValidateApplicationID(node.ApplicationID),
-		auth.ValidateNode(node.DevEUI),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	if err := storage.DeleteNode(a.ctx.DB, node.DevEUI); err != nil {
@@ -268,17 +256,14 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 		return nil, grpc.Errorf(codes.InvalidArgument, "nwkSKey: %s", err)
 	}
 
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNodeAccess(devEUI, auth.Update)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
-	}
-
-	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.Activate"),
-		auth.ValidateNode(node.DevEUI),
-		auth.ValidateApplicationID(node.ApplicationID),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	if !node.IsABP {
@@ -350,17 +335,14 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetNodeActivationRe
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNodeAccess(devEUI, auth.Read)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	node, err := storage.GetNode(a.ctx.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
-	}
-
-	if err := a.validator.Validate(ctx,
-		auth.ValidateAPIMethod("Node.GetActivation"),
-		auth.ValidateNode(node.DevEUI),
-		auth.ValidateApplicationID(node.ApplicationID),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	ns, err := a.ctx.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{
@@ -382,27 +364,43 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetNodeActivationRe
 	}, nil
 }
 
+// GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
+func (a *NodeAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAddrRequest) (*pb.GetRandomDevAddrResponse, error) {
+	resp, err := a.ctx.NetworkServer.GetRandomDevAddr(context.Background(), &ns.GetRandomDevAddrRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	var devAddr lorawan.DevAddr
+	copy(devAddr[:], resp.DevAddr)
+
+	return &pb.GetRandomDevAddrResponse{
+		DevAddr: devAddr.String(),
+	}, nil
+}
+
 func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeResponse, error) {
 	resp := pb.ListNodeResponse{
 		TotalCount: int64(count),
 	}
 	for _, node := range nodes {
 		item := pb.GetNodeResponse{
-			Name:               node.Name,
-			Description:        node.Description,
-			DevEUI:             node.DevEUI.String(),
-			AppEUI:             node.AppEUI.String(),
-			AppKey:             node.AppKey.String(),
-			IsABP:              node.IsABP,
-			IsClassC:           node.IsClassC,
-			RxDelay:            uint32(node.RXDelay),
-			Rx1DROffset:        uint32(node.RX1DROffset),
-			RxWindow:           pb.RXWindow(node.RXWindow),
-			Rx2DR:              uint32(node.RX2DR),
-			RelaxFCnt:          node.RelaxFCnt,
-			AdrInterval:        node.ADRInterval,
-			InstallationMargin: node.InstallationMargin,
-			ApplicationID:      node.ApplicationID,
+			Name:                   node.Name,
+			Description:            node.Description,
+			DevEUI:                 node.DevEUI.String(),
+			AppEUI:                 node.AppEUI.String(),
+			AppKey:                 node.AppKey.String(),
+			IsABP:                  node.IsABP,
+			IsClassC:               node.IsClassC,
+			RxDelay:                uint32(node.RXDelay),
+			Rx1DROffset:            uint32(node.RX1DROffset),
+			RxWindow:               pb.RXWindow(node.RXWindow),
+			Rx2DR:                  uint32(node.RX2DR),
+			RelaxFCnt:              node.RelaxFCnt,
+			AdrInterval:            node.ADRInterval,
+			InstallationMargin:     node.InstallationMargin,
+			ApplicationID:          node.ApplicationID,
+			UseApplicationSettings: node.UseApplicationSettings,
 		}
 
 		if node.ChannelListID != nil {

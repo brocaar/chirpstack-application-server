@@ -19,6 +19,17 @@ type Application struct {
 	ID          int64  `db:"id"`
 	Name        string `db:"name"`
 	Description string `db:"description"`
+
+	IsABP              bool     `db:"is_abp"`
+	IsClassC           bool     `db:"is_class_c"`
+	RelaxFCnt          bool     `db:"relax_fcnt"`
+	RXWindow           RXWindow `db:"rx_window"`
+	RXDelay            uint8    `db:"rx_delay"`
+	RX1DROffset        uint8    `db:"rx1_dr_offset"`
+	RX2DR              uint8    `db:"rx2_dr"`
+	ChannelListID      *int64   `db:"channel_list_id"`
+	ADRInterval        uint32   `db:"adr_interval"`
+	InstallationMargin float64  `db:"installation_margin"`
 }
 
 // UserAccess represents the users that have access to an application
@@ -35,6 +46,11 @@ func (a Application) Validate() error {
 	if !applicationNameRegexp.MatchString(a.Name) {
 		return ErrApplicationInvalidName
 	}
+
+	if a.RXDelay > 15 {
+		return errors.New("max value of RXDelay is 15")
+	}
+
 	return nil
 }
 
@@ -47,10 +63,30 @@ func CreateApplication(db *sqlx.DB, item *Application) error {
 	err := db.Get(&item.ID, `
 		insert into application (
 			name,
-			description
-		) values ($1, $2) returning id`,
+			description,
+			rx_delay,
+			rx1_dr_offset,
+			channel_list_id,
+			rx_window,
+			rx2_dr,
+			relax_fcnt,
+			adr_interval,
+			installation_margin,
+			is_abp,
+			is_class_c
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) returning id`,
 		item.Name,
 		item.Description,
+		item.RXDelay,
+		item.RX1DROffset,
+		item.ChannelListID,
+		item.RXWindow,
+		item.RX2DR,
+		item.RelaxFCnt,
+		item.ADRInterval,
+		item.InstallationMargin,
+		item.IsABP,
+		item.IsClassC,
 	)
 	if err != nil {
 		switch err := err.(type) {
@@ -95,6 +131,28 @@ func GetApplicationCount(db *sqlx.DB) (int, error) {
 	return count, nil
 }
 
+// GetApplicationCountForUser returns the total number of applications
+// available for the given user.
+func GetApplicationCountForUser(db *sqlx.DB, username string) (int, error) {
+	var count int
+	err := db.Get(&count, `
+		select
+			count(a.*)
+		from application a
+		inner join application_user au
+			on a.id = au.application_id
+		inner join "user" u
+			on au.user_id = u.id
+		where
+			u.username = $1
+			and u.is_active = true
+	`, username)
+	if err != nil {
+		return 0, errors.Wrap(err, "select error")
+	}
+	return count, nil
+}
+
 // GetApplications returns a slice of applications, sorted by name and
 // respecting the given limit and offset.
 func GetApplications(db *sqlx.DB, limit, offset int) ([]Application, error) {
@@ -106,7 +164,31 @@ func GetApplications(db *sqlx.DB, limit, offset int) ([]Application, error) {
 	return apps, nil
 }
 
+// GetApplicationsForUser returns a slice of application of which the given
+// user is a member of.
+func GetApplicationsForUser(db *sqlx.DB, username string, limit, offset int) ([]Application, error) {
+	var apps []Application
+	err := db.Select(&apps, `
+		select a.*
+		from application a
+		inner join application_user au
+			on a.id = au.application_id
+		inner join "user" u
+			on au.user_id = u.id
+		where
+			u.username = $1
+			and u.is_active = true
+	`, username)
+	if err != nil {
+		return nil, errors.Wrap(err, "select error")
+	}
+
+	return apps, nil
+}
+
 // UpdateApplication updates the given Application.
+// When the application contains nodes with UseApplicationSettings=true, this
+// will also update these nodes.
 func UpdateApplication(db *sqlx.DB, item Application) error {
 	if err := item.Validate(); err != nil {
 		return fmt.Errorf("validate application error: %s", err)
@@ -116,11 +198,31 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 		update application
 		set
 			name = $2,
-			description = $3
+			description = $3,
+			rx_delay = $4,
+			rx1_dr_offset = $5,
+			channel_list_id = $6,
+			rx_window = $7,
+			rx2_dr = $8,
+			relax_fcnt = $9,
+			adr_interval = $10,
+			installation_margin = $11,
+			is_abp = $12,
+			is_class_c = $13
 		where id = $1`,
 		item.ID,
 		item.Name,
 		item.Description,
+		item.RXDelay,
+		item.RX1DROffset,
+		item.ChannelListID,
+		item.RXWindow,
+		item.RX2DR,
+		item.RelaxFCnt,
+		item.ADRInterval,
+		item.InstallationMargin,
+		item.IsABP,
+		item.IsClassC,
 	)
 	if err != nil {
 		switch err := err.(type) {
@@ -142,6 +244,39 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 	if ra == 0 {
 		return ErrDoesNotExist
 	}
+
+	// update node settings for nodes using the application settings
+	_, err = db.Exec(`
+		update node
+		set
+			rx_delay = $2,
+			rx1_dr_offset = $3,
+			channel_list_id = $4,
+			rx_window = $5,
+			rx2_dr = $6,
+			relax_fcnt = $7,
+			adr_interval = $8,
+			installation_margin = $9,
+			is_abp = $10,
+			is_class_c = $11
+		where application_id = $1
+		and use_application_settings = true`,
+		item.ID,
+		item.RXDelay,
+		item.RX1DROffset,
+		item.ChannelListID,
+		item.RXWindow,
+		item.RX2DR,
+		item.RelaxFCnt,
+		item.ADRInterval,
+		item.InstallationMargin,
+		item.IsABP,
+		item.IsClassC,
+	)
+	if err != nil {
+		return fmt.Errorf("update nodes error: %s", err)
+	}
+
 	log.WithFields(log.Fields{
 		"id":   item.ID,
 		"name": item.Name,

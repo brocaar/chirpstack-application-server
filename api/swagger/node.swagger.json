@@ -84,6 +84,23 @@
         ]
       }
     },
+    "/api/nodes/getRandomDevAddr": {
+      "post": {
+        "summary": "GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.",
+        "operationId": "GetRandomDevAddr",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetRandomDevAddrResponse"
+            }
+          }
+        },
+        "tags": [
+          "Node"
+        ]
+      }
+    },
     "/api/nodes/{devEUI}": {
       "get": {
         "summary": "Get returns the node for the requested name.",
@@ -470,6 +487,18 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Node operates in Class-C."
+        }
+      }
+    },
+    "apiGetRandomDevAddrRequest": {
+      "type": "object"
+    },
+    "apiGetRandomDevAddrResponse": {
+      "type": "object",
+      "properties": {
+        "devAddr": {
+          "type": "string",
+          "description": "Hex encoded DevAddr."
         }
       }
     },

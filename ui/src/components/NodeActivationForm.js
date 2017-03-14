@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import NodeSessionStore from "../stores/NodeSessionStore";
+import NodeStore from "../stores/NodeStore";
 
 class NodeActivationForm extends Component {
   constructor() {
@@ -38,11 +38,11 @@ class NodeActivationForm extends Component {
   getRandomDevAddr(e) {
     e.preventDefault();
 
-    if (!this.props.node.isABP) {
+    if (!this.props.node.isABP || this.props.disabled) {
       return; 
     }
 
-    NodeSessionStore.getRandomDevAddr(this.props.application.id, this.props.node.devEUI, (responseData) => {
+    NodeStore.getRandomDevAddr((responseData) => {
       let activation = this.state.activation;
       activation["devAddr"] = responseData.devAddr;
       this.setState({activation: activation});

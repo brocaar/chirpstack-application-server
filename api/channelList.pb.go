@@ -38,6 +38,8 @@ It has these top-level messages:
 	ActivateNodeResponse
 	GetNodeActivationRequest
 	GetNodeActivationResponse
+	GetRandomDevAddrRequest
+	GetRandomDevAddrResponse
 	CreateApplicationRequest
 	CreateApplicationResponse
 	GetApplicationRequest

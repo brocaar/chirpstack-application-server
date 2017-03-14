@@ -361,6 +361,21 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetNodeActivationRe
 	}, nil
 }
 
+// GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
+func (a *NodeAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAddrRequest) (*pb.GetRandomDevAddrResponse, error) {
+	resp, err := a.ctx.NetworkServer.GetRandomDevAddr(context.Background(), &ns.GetRandomDevAddrRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	var devAddr lorawan.DevAddr
+	copy(devAddr[:], resp.DevAddr)
+
+	return &pb.GetRandomDevAddrResponse{
+		DevAddr: devAddr.String(),
+	}, nil
+}
+
 func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeResponse, error) {
 	resp := pb.ListNodeResponse{
 		TotalCount: int64(count),

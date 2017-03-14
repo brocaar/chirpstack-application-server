@@ -85,6 +85,16 @@ class NodeStore extends EventEmitter {
       })
       .catch(errorHandler);
   }
+
+  getRandomDevAddr(callbackFunc) {
+    fetch("/api/nodes/getRandomDevAddr", {method: "POST", headers: sessionStore.getHeader()}) 
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
 }
 
 const nodeStore = new NodeStore();

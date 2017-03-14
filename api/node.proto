@@ -59,6 +59,13 @@ service Node {
 			get: "/api/nodes/{devEUI}/activation"
 		};
 	}
+
+	// GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
+	rpc GetRandomDevAddr(GetRandomDevAddrRequest) returns (GetRandomDevAddrResponse) {
+		option (google.api.http) = {
+			post: "/api/nodes/getRandomDevAddr"
+		};
+	}
 }
 
 message CreateNodeRequest {
@@ -289,4 +296,11 @@ message GetNodeActivationResponse {
 
 	// Downlink frame-counter.
 	uint32 fCntDown = 5;
+}
+
+message GetRandomDevAddrRequest {}
+
+message GetRandomDevAddrResponse {
+	// Hex encoded DevAddr.
+	string devAddr = 1;
 }

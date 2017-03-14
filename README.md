@@ -51,8 +51,14 @@ docker-compose run --rm appserver bash
 A few example commands that you can run:
 
 ```bash
+# install all requirements
+make requirements ui-requirements
+
 # run the tests
 make test
+
+# build ui (requires NodeJS) and generate static files
+make ui statics 
 
 # compile
 make build

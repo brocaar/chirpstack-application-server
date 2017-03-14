@@ -1,4 +1,4 @@
-.PHONY: build clean test package serve update-vendor ui
+.PHONY: build clean test package package-deb ui api statics requirements ui-requirements serve update-vendor
 PKGS := $(shell go list ./... | grep -v /vendor |grep -v lora-app-server/api | grep -v /migrations | grep -v /static | grep -v /ui)
 VERSION := $(shell git describe --always)
 GOOS ?= linux
@@ -14,7 +14,7 @@ clean:
 	@rm -rf build
 	@rm -rf dist/tar/$(VERSION)
 
-test:
+test: statics
 	@echo "Running tests"
 	@for pkg in $(PKGS) ; do \
 		golint $$pkg ; \
@@ -39,21 +39,30 @@ ui:
 	@rm -rf ui/build
 	@cd ui && npm run build
 	@mv ui/build/* static
-	@echo "Don't forget to run make generate to include the static files in the Go code!"
+	@echo "Don't forget to run make statics to include the static files in the Go code!"
 
-generate:
-	@echo "Running go generate"
+api:
+	@echo "Generating API code from .proto files"
 	@go generate api/api.go
+
+statics:
+	@echo "Generating static files"
 	@go generate cmd/lora-app-server/main.go
 
 # shortcuts for development
 
 requirements:
 	@echo "Installing development tools"
+	@go get -u github.com/golang/lint/golint
 	@go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 	@go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 	@go get -u github.com/golang/protobuf/protoc-gen-go
 	@go get -u github.com/elazarl/go-bindata-assetfs/...
+	@go get -u github.com/jteeuwen/go-bindata/...
+
+ui-requirements:
+	@echo "Installing UI requirements"
+	@cd ui && npm install
 
 serve: build
 	@echo "Starting Lora App Server"

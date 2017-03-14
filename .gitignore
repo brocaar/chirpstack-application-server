@@ -4,9 +4,15 @@
 # logs
 *.log
 
-# binaries
+# builds
 /dist
 /build
+/internal/static
+/internal/migrations
+/static/static
+/static/index.html
+/static/asset-manifest.json
+/ui/build
 
 # certificates
 /certs

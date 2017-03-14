@@ -77,7 +77,7 @@ class UpdateNode extends Component {
         <hr />
         <div className="panel panel-default">
           <div className="panel-body">
-            <NodeForm node={this.state.node} onSubmit={this.onSubmit} disabled={!this.state.isApplicationAdmin} />
+            <NodeForm node={this.state.node} onSubmit={this.onSubmit} disabled={!this.state.isApplicationAdmin} application={this.state.application} />
           </div>
         </div>
       </div>

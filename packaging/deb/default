@@ -41,6 +41,7 @@ HTTP_TLS_CERT=/etc/lora-app-server/certs/http.pem
 HTTP_TLS_KEY=/etc/lora-app-server/certs/http-key.pem
 
 # JWT secret used for api authentication / authorization
+# You could generate this by executing 'openssl rand -base64 32' for example
 JWT_SECRET=
 
 # hostname:port of the network-server api server (default: "127.0.0.1:8000")

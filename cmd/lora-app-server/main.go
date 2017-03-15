@@ -436,7 +436,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:   "jwt-secret",
-			Usage:  "JWT secret used for api authentication / authorization (disabled when left blank)",
+			Usage:  "JWT secret used for api authentication / authorization",
 			EnvVar: "JWT_SECRET",
 		},
 		cli.StringFlag{

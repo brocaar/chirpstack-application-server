@@ -19,7 +19,7 @@ GLOBAL OPTIONS:
    --http-bind value        ip:port to bind the (user facing) http server to (web-interface and REST / gRPC api) (default: "0.0.0.0:8080") [$HTTP_BIND]
    --http-tls-cert value    http server TLS certificate [$HTTP_TLS_CERT]
    --http-tls-key value     http server TLS key [$HTTP_TLS_KEY]
-   --jwt-secret value       JWT secret used for api authentication / authorization (disabled when left blank) [$JWT_SECRET]
+   --jwt-secret value       JWT secret used for api authentication / authorization [$JWT_SECRET]
    --ns-server value        hostname:port of the network-server api server (default: "127.0.0.1:8000") [$NS_SERVER]
    --ns-ca-cert value       ca certificate used by the network-server client (optional) [$NS_CA_CERT]
    --ns-tls-cert value      tls certificate used by the network-server client (optional) [$NS_TLS_CERT]

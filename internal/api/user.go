@@ -199,6 +199,11 @@ type claims struct {
 }
 
 func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (*pb.ProfileResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateActiveUser()); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
 	username, err := a.validator.GetUsername(ctx)
 	if nil != err {
 		return nil, errToRPCError(err)

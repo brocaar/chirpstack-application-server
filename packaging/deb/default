@@ -55,3 +55,6 @@ NS_TLS_CERT=
 
 # tls key used by the network-server client (optional)
 NS_TLS_KEY=
+
+# the number of iterations used to generate the password hash
+PW_HASH_ITERATIONS=100000

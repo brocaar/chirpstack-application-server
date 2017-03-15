@@ -39,7 +39,7 @@ insert into "user" (
 	now(),
 	now(),
 	'admin',
-	'PBKDF2$sha512$1048576$RAq/B/qohf1SuHHMx+wX5Q==$mfmhCypZoUW8uekm+HuOHRnB0ZUQrmTVcNYyhmFtrXfLIQERw1qigBJNFvT317BfijSmBM0UG53G1Ovx+W/HQA==',
+	'PBKDF2$sha512$100000$4u3hL8krvlMIS0KnCYXeMw==$G7c7tuUYq2zSJaUeruvNL/KF30d3TVDORVD56wzvJYmc3muWjoaozH8bHJ7r8zY8dW6Pts2bWyhFfkb/ubQZsA==',
 	0,
 	true,
 	true

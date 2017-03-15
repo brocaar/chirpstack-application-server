@@ -83,6 +83,8 @@ func run(c *cli.Context) error {
 
 	// Set up the JWT secret for making tokens
 	storage.SetUserSecret(c.String("jwt-secret"))
+	// Set the password hash iterations
+	storage.HashIterations = c.Int("pw-hash-iterations")
 
 	// handle incoming downlink payloads
 	go downlink.HandleDataDownPayloads(lsCtx, lsCtx.Handler.DataDownChan())
@@ -459,6 +461,12 @@ func main() {
 			Name:   "ns-tls-key",
 			Usage:  "tls key used by the network-server client (optional)",
 			EnvVar: "NS_TLS_KEY",
+		},
+		cli.IntFlag{
+			Name:   "pw-hash-iterations",
+			Usage:  "the number of iterations used to generate the password hash",
+			Value:  100000,
+			EnvVar: "PW_HASH_ITERATIONS",
 		},
 	}
 	app.Run(os.Args)

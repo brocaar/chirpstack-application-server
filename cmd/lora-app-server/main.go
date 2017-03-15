@@ -48,6 +48,8 @@ func init() {
 var version string // set by the compiler
 
 func run(c *cli.Context) error {
+	log.SetLevel(log.Level(uint8(c.Int("log-level"))))
+
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -467,6 +469,12 @@ func main() {
 			Usage:  "the number of iterations used to generate the password hash",
 			Value:  100000,
 			EnvVar: "PW_HASH_ITERATIONS",
+		},
+		cli.IntFlag{
+			Name:   "log-level",
+			Value:  4,
+			Usage:  "debug=5, info=4, warning=3, error=2, fatal=1, panic=0",
+			EnvVar: "LOG_LEVEL",
 		},
 	}
 	app.Run(os.Args)

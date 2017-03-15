@@ -58,3 +58,6 @@ NS_TLS_KEY=
 
 # the number of iterations used to generate the password hash
 PW_HASH_ITERATIONS=100000
+
+# debug=5, info=4, warning=3, error=2, fatal=1, panic=0
+LOG_LEVEL=4

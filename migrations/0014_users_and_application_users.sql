@@ -11,6 +11,7 @@ create table "user" (
 );
 
 create unique index idx_user_username on "user"(username);
+create index idx_user_username_prefix on "user"(username varchar_pattern_ops);
 
 create table application_user (
 	id bigserial primary key,
@@ -52,4 +53,5 @@ drop index idx_application_user_user_id;
 drop table application_user;
 
 drop index idx_user_username;
+drop index idx_user_username_prefix;
 drop table "user";

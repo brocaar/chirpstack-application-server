@@ -9,6 +9,7 @@
 * User management with support to assign users to applications.
 * API authentication / authorization (JWT token) format has been updated
   (it contains the username instead of all the permissions of the user).
+  See [API documentation](api.md) for more information.
 * `--jwt-secret` / `JWT_SECRET` is now mandatory.
 * An initial user with *admin* / *admin* credentials will be created (change
   this password immediately!).

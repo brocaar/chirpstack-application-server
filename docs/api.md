@@ -23,40 +23,61 @@ The REST API documentation and interactive console can be found at `/api`.
 
 ## Authentication and authorization
 
-Both the gRPC and RESTful JSON interface provide an option for authentication
-and authorization using JSON web tokens / [JWT](https://jwt.io). To enable
-this option, make sure to start LoRa Server with the `--jwt-secret` argument
-(or `JWT_SECRET` environment variable). 
+Both the gRPC and RESTful JSON interface are protected by an authentication
+and authorization meganism. For this [JSON web-tokens](https://jwt.io) are
+used, using the `--jwt-secret` / `JWT_SECRET` value for signing. Therefore
+it is important to choose an unique and strong secret.
 
-An example claim illustrating the options that can be included in the token:
+To generate a random secret, you could use the following command:
+
+```bash
+openssl rand -base64 32
+```
+
+Example claim:
 
 ```json
 {
-    "exp": 1257894000,             // the unix time when the token expires
-    "admin": false,                // admin users have access to all api methods and resources
-    "apis": ["Node.Get"],          // list of api methods the user has access to
-    "apps": ["123"],               // list of application IDs the user has access to
-    "nodes": ["*"]                 // list of nodes (DevEUIs) the user has access to
+	"iss": "lora-app-server",      // issuer of the claim
+	"aud": "lora-app-server",      // audience for which the claim is intended
+	"nbf": 1489566958,             // unix time from which the token is valid
+	"exp": 1489653358,             // unix time when the token expires
+	"sub": "user",                 // subject of the claim (an user)
+	"username": "admin"            // username the client claims to be
 }
 ```
 
-For nodes and applications, besides the (hex encoded) AppEUI / DevEUI a
-wildcard (`*`) can be given to give the user access to all applications
-and / or nodes.
+### Users
 
+!!! warning
+	An initial user named *admin* with password *admin* will be created when
+	installing LoRa App Server. Make sure to change this password immediately!
 
-The API methods can be given as:
+Users can be created using either the API or web-interface. When creating
+an admin user, the user will be able to create other (admin) users,
+applications and assign users to applications. Global admin users have
+system-wide access. Regular users will only gain access when assigned to
+applications.
 
-* `[*]`: all methods of all the APIs
-* `["Node.Get"]`: listing each APIs method
-* `["Node.(Get|Delete)"]`: combining multiple methods for the same API
-* `["Node.*"]`: all methods of the Node API
+### Application users
+
+To give users access to specific applications, an user can be assigned to
+one or multiple applications (again either using the API or web-interface).
+
+An admin user (within the context of an application) is able to:
+
+- assign or create other (admin, within the context of the application) users to that application
+- add, delete and modify nodes
+
+A regular users of an application is able to:
+
+- view all the nodes
 
 ### Setting the authentication token
 
 For requests to the RESTful JSON interface, you need to set the JWT token
 using the `Grpc-Metadata-Authorization` header field. The token needs to
-be present for each request!
+be present for each request.
 
 When using [gRPC](http://grpc.io/), the JWT token needs to be stored in the
 `authorization` key of the request metadata. For example in Go, this can be

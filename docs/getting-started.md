@@ -129,6 +129,8 @@ you want to change the config variable `POSTGRES_DSN` into:
 POSTGRES_DSN=postgres://loraserver:dbpassword@localhost/loraserver?sslmode=disable
 ```
 
+An other required setting you must change is `JWT_SECRET`.
+
 ### Starting LoRa App Server
 
 How you need to (re)start and stop LoRa Gateway Bridge depends on if your
@@ -204,6 +206,7 @@ INFO[0005] grpc: addrConn.resetTransport failed to create client transport: conn
 To access the web-interface, point your browser to
 [https://localhost:8080](https://localhost:8080). Note that it is normal that
 this will raise a security warning, as a self-signed certificate is being used.
+To login, use *admin* / *admin* (don't forget to reset this password!).
 
 To access the REST API endpoint, point your browser to
 [https://localhost:8080/api](https://localhost:8080/api).

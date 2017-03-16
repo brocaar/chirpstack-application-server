@@ -375,6 +375,8 @@ func CreateUserForApplication(db *sqlx.DB, applicationID, userID int64, adminAcc
 			switch err.Code.Name() {
 			case "unique_violation":
 				return ErrAlreadyExists
+			case "foreign_key_violation":
+				return ErrDoesNotExist
 			default:
 				return errors.Wrap(err, "insert error")
 			}

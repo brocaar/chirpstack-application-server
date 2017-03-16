@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.6.0
+
+**This release contains changes that are not backwards compatible!**
+
+**Features & changes:**
+
+* User management with support to assign users to applications.
+* API authentication / authorization (JWT token) format has been updated
+  (it contains the username instead of all the permissions of the user).
+  See [API documentation](api.md) for more information.
+* `--jwt-secret` / `JWT_SECRET` is now mandatory.
+* An initial user with *admin* / *admin* credentials will be created (change
+  this password immediately!).
+* Node-session API has been removed, use the `/api/nodes/{devEUI}/activation`
+  endpoint for getting (and setting) node activations.
+* Updated web-interface to support user management.
+* New API endpoints for creating users and assigning users to applications.
+
+Many thanks to [@jcampanell-cablelabs](https://github.com/jcampanell-cablelabs)
+for collaborating on this feature.
+
 ## 0.5.0
 
 **Features:**

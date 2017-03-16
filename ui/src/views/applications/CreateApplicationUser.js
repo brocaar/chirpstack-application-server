@@ -12,11 +12,27 @@ class AssignUserForm extends Component {
 
     this.state = {
       user: {},
+      initialOptions: [],
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
     this.onAutocompleteSelect = this.onAutocompleteSelect.bind(this);
     this.onAutocomplete = this.onAutocomplete.bind(this);
+  }
+
+  componentWillMount() {
+    UserStore.getAll("", 10, 0, (totalCount, users) => {
+      const options = users.map((user, i) => {
+        return {
+          value: user.id,
+          label: user.username,
+        };
+      });
+
+      this.setState({
+        initialOptions: options,
+      });
+    });
   }
 
   handleSubmit(e) {
@@ -60,13 +76,13 @@ class AssignUserForm extends Component {
       <form onSubmit={this.handleSubmit}>
         <div className="form-group">
           <label className="control-label" htmlFor="name">Username</label>
-          <Select.Async name="username" loadOptions={this.onAutocomplete} value={this.state.user.userID} onChange={this.onAutocompleteSelect} clearable={false} autoload={false} />
+          <Select.Async name="username" required options={this.state.initialOptions} loadOptions={this.onAutocomplete} value={this.state.user.userID} onChange={this.onAutocompleteSelect} clearable={false} autoload={false} />
         </div>
         <div className="form-group">
-          <label className="control-label">Is admin</label>
+          <label className="control-label">Admin</label>
           <div className="checkbox">
             <label>
-              <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is admin
+              <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is application admin
             </label>
           </div>
           <p className="help-block">
@@ -118,10 +134,10 @@ class CreateUserForm extends Component {
           <input className="form-control" id="password" type="password" placeholder="password" value={this.state.user.password || ''} onChange={this.onChange.bind(this, 'password')} />
         </div>
         <div className="form-group">
-          <label className="control-label">Is admin</label>
+          <label className="control-label">Admin</label>
           <div className="checkbox">
             <label>
-              <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is admin
+              <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is application admin
             </label>
           </div>
           <p className="help-block">

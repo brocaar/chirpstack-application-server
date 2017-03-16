@@ -23,8 +23,8 @@ import (
 // saltSize defines the salt size
 const saltSize = 16
 
-// hashIterations defines the number of hash iterations.
-const hashIterations = 1024 * 1024
+// HashIterations defines the number of hash iterations.
+var HashIterations = 100000
 
 // defaultSessionTTL defines the default session TTL
 const defaultSessionTTL = time.Hour * 24
@@ -111,7 +111,7 @@ func CreateUser(db *sqlx.DB, user *User, password string) (int64, error) {
 		return 0, errors.Wrap(err, "validation error")
 	}
 
-	pwHash, err := hash(password, saltSize, hashIterations)
+	pwHash, err := hash(password, saltSize, HashIterations)
 	if err != nil {
 		return 0, err
 	}
@@ -266,7 +266,7 @@ func GetUserCount(db *sqlx.DB, search string) (int32, error) {
 func GetUsers(db *sqlx.DB, limit, offset int32, search string) ([]User, error) {
 	var users []User
 	if search != "" {
-		search = "%" + search + "%"
+		search = search + "%"
 	}
 	err := db.Select(&users, "select "+externalUserFields+` from "user" where ($3 != '' and username like $3) or ($3 = '') order by username limit $1 offset $2`, limit, offset, search)
 	if err != nil {
@@ -395,7 +395,7 @@ func UpdatePassword(db *sqlx.DB, id int64, newpassword string) error {
 		return errors.Wrap(err, "validation error")
 	}
 
-	pwHash, err := hash(newpassword, saltSize, hashIterations)
+	pwHash, err := hash(newpassword, saltSize, HashIterations)
 	if err != nil {
 		return err
 	}

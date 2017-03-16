@@ -1,8 +1,8 @@
 import { EventEmitter } from "events";
-import { checkStatus } from "./helpers";
+import { errorHandler, checkStatus } from "./helpers";
 import dispatcher from "../dispatcher";
 
-var errorHandler = (error) => {
+var loginErrorHandler = (error) => {
   error.then((data) => {
     dispatcher.dispatch({
       type: "CREATE_ERROR",
@@ -48,7 +48,7 @@ class SessionStore extends EventEmitter {
         this.setToken(responseData.jwt);
         this.fetchProfile(callbackFunc);
       })
-      .catch(errorHandler);
+      .catch(loginErrorHandler);
   }
 
   fetchProfile(callbackFunc) {

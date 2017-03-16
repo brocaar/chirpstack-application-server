@@ -3,15 +3,18 @@
 ## API
 
 LoRa App Server provides both a [gRPC](http://www.grpc.io) and RESTful API for
-easy integration with your own applications. Both interfaces can be secured
+easy integration with your own applications. Both interfaces are secured
 using [JWT](http://jwt.io/) to limit users to certain resources. See
 the [API](api.md) documentation for more details.
 
 ## Web interface
 
 On top of the provided API, LoRa App Server provides a web-interface for the
-management of nodes and node settings. In case [JWT](https://jwt.io/) is
-configured, the user is requested to enter his / her JWT token.
+management of users, applications and nodes.
+
+## Users
+
+Users can be granted (admin) access to certain applications.
 
 ## Uplink data
 

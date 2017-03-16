@@ -5,36 +5,15 @@ import ApplicationStore from "../../stores/ApplicationStore";
 import Pagination from "../../components/Pagination";
 
 class ApplicationUserRow extends Component {
-  constructor() {
-    super();
-
-    this.onDelete = this.onDelete.bind(this);
-    this.toggleAdmin = this.toggleAdmin.bind(this);
-  }
-
-  onDelete() {
-    if (confirm("Are you sure you want to delete this application user (this does not remove the user itself)?")) {
-      ApplicationStore.removeUser(this.props.application.id, this.props.user.id, (responseData) => {});
-    }
-  }
-
-  toggleAdmin(e) {
-    e.preventDefault();
-    ApplicationStore.updateUser(this.props.application.id, this.props.user.id, {isAdmin: !this.props.user.isAdmin}, (responseData) => {});
-  }
-
   render() {
     return(
       <tr>
         <td>{this.props.user.id}</td>
-        <td>{this.props.user.username}</td>
         <td>
-          <a href="#" onClick={this.toggleAdmin}>
-            <span className={"glyphicon glyphicon-" + (this.props.user.isAdmin ? 'ok' : 'remove')} aria-hidden="true"></span>
-          </a>
+          <Link to={`applications/${this.props.application.id}/users/${this.props.user.id}/edit`}>{this.props.user.username}</Link>
         </td>
         <td>
-          <button type="button" className="btn btn-link btn-xs" onClick={this.onDelete}>Remove</button>
+          <span className={"glyphicon glyphicon-" + (this.props.user.isAdmin ? 'ok' : 'remove')} aria-hidden="true"></span>
         </td>
       </tr>    
     );
@@ -58,23 +37,17 @@ class ApplicationUsers extends Component {
   }
 
   componentDidMount() {
-    this.updatePage(this.props);
-  }
-
-  componentWillReceiveProps(nextProps) {
-    this.updatePage(nextProps);
-  }
-
-  componentWillMount() {
     ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
       this.setState({
         application: application,
       });
     });
 
-    ApplicationStore.on("change", () => {
-      this.updatePage(this.props);
-    });
+    this.updatePage(this.props);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.updatePage(nextProps);
   }
 
   updatePage(props) {
@@ -114,7 +87,6 @@ class ApplicationUsers extends Component {
                   <th className="col-md-1">ID</th>
                   <th>Username</th>
                   <th className="col-md-1">Admin</th>
-                  <th className="col-md-1"></th>
                 </tr>
               </thead>
               <tbody>

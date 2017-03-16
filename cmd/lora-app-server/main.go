@@ -48,6 +48,8 @@ func init() {
 var version string // set by the compiler
 
 func run(c *cli.Context) error {
+	log.SetLevel(log.Level(uint8(c.Int("log-level"))))
+
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -83,6 +85,8 @@ func run(c *cli.Context) error {
 
 	// Set up the JWT secret for making tokens
 	storage.SetUserSecret(c.String("jwt-secret"))
+	// Set the password hash iterations
+	storage.HashIterations = c.Int("pw-hash-iterations")
 
 	// handle incoming downlink payloads
 	go downlink.HandleDataDownPayloads(lsCtx, lsCtx.Handler.DataDownChan())
@@ -436,7 +440,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:   "jwt-secret",
-			Usage:  "JWT secret used for api authentication / authorization (disabled when left blank)",
+			Usage:  "JWT secret used for api authentication / authorization",
 			EnvVar: "JWT_SECRET",
 		},
 		cli.StringFlag{
@@ -459,6 +463,18 @@ func main() {
 			Name:   "ns-tls-key",
 			Usage:  "tls key used by the network-server client (optional)",
 			EnvVar: "NS_TLS_KEY",
+		},
+		cli.IntFlag{
+			Name:   "pw-hash-iterations",
+			Usage:  "the number of iterations used to generate the password hash",
+			Value:  100000,
+			EnvVar: "PW_HASH_ITERATIONS",
+		},
+		cli.IntFlag{
+			Name:   "log-level",
+			Value:  4,
+			Usage:  "debug=5, info=4, warning=3, error=2, fatal=1, panic=0",
+			EnvVar: "LOG_LEVEL",
 		},
 	}
 	app.Run(os.Args)

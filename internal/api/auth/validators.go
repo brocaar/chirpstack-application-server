@@ -23,6 +23,17 @@ const (
 
 const userQuery = `select count(*) from "user" u left join application_user au on u.id = au.user_id left join application a on au.application_id = a.id left join node n on a.id = n.application_id`
 
+// ValidateActiveUser validates if the user in the JWT claim is active.
+func ValidateActiveUser() ValidatorFunc {
+	where := [][]string{
+		{"u.username = $1", "u.is_active = true"},
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username)
+	}
+}
+
 // ValidateUsersAccess validates if the client has access to the global users
 // resource.
 func ValidateUsersAccess(flag Flag) ValidatorFunc {

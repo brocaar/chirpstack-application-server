@@ -83,6 +83,16 @@ class ApplicationStore extends EventEmitter {
     .catch(errorHandler);
   } 
 
+  getUser(applicationID, userID, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/users/"+userID, {headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
   removeUser(applicationID, userID, callbackFunc) {
     fetch("/api/applications/"+applicationID+"/users/"+userID, {method: "DELETE", headers: sessionStore.getHeader()})
       .then(checkStatus)

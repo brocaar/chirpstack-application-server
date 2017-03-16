@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
+import dispatcher from "../dispatcher";
 import SessionStore from "../stores/SessionStore";
 
 class Navbar extends Component {
@@ -17,12 +18,26 @@ class Navbar extends Component {
     }
 
     this.toggleDropdown = this.toggleDropdown.bind(this);
+    this.handleActions = this.handleActions.bind(this);
   }
 
   toggleDropdown() {
     this.setState({
       dropdownOpen: !this.state.dropdownOpen,
     });
+  }
+
+  handleActions(action) {
+    switch(action.type) {
+      case "BODY_CLICK": {
+        this.setState({
+          dropdownOpen: false,
+        });
+        break;
+      }
+      default:
+        break;
+    }
   }
 
   componentWillMount() {
@@ -32,6 +47,8 @@ class Navbar extends Component {
         isAdmin: SessionStore.isAdmin(),
       });
     });
+
+    dispatcher.register(this.handleActions);
   }
 
   render() {

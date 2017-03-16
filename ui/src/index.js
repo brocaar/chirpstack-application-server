@@ -10,6 +10,7 @@ import CreateApplication from "./views/applications/CreateApplication";
 import UpdateApplication from "./views/applications/UpdateApplication";
 import ApplicationUsers from "./views/applications/ApplicationUsers";
 import CreateApplicationUser from "./views/applications/CreateApplicationUser";
+import UpdateApplicationUser from "./views/applications/UpdateApplicationUser";
 
 // nodes
 import ListNodes from './views/nodes/ListNodes';
@@ -48,6 +49,7 @@ ReactDOM.render(
       <Route path="applications/:applicationID/nodes/:devEUI/activation" component={ActivateNode}></Route>
       <Route path="applications/:applicationID/users" component={ApplicationUsers}></Route>
       <Route path="applications/:applicationID/users/create" component={CreateApplicationUser}></Route>
+      <Route path="applications/:applicationID/users/:userID/edit" component={UpdateApplicationUser}></Route>
       <Route path="applications/:applicationID" component={ListNodes}></Route>
       <Route path="channels" component={ChannelLists}></Route>
       <Route path="channels/create" component={CreateChannelList}></Route>

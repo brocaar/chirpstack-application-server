@@ -13,7 +13,9 @@ class CreateUser extends Component {
     super();
 
     this.state = {
-      user: {},
+      user: {
+        isActive: true,
+      },
     };
 
     this.onSubmit = this.onSubmit.bind(this);

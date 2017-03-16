@@ -59,7 +59,7 @@ class UserForm extends Component {
             <input type="checkbox" name="isActive" id="isActive" checked={this.state.user.isActive} onChange={this.onChange.bind(this, 'isActive')} /> Is active &nbsp;
           </label>
           <label className="checkbox-inline">
-            <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is admin &nbsp;
+            <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is global admin &nbsp;
           </label>
         </div>
         <hr />

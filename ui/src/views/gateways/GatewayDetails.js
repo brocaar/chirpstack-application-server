@@ -1,0 +1,258 @@
+import React, { Component } from 'react';
+import { Link } from 'react-router';
+
+import moment from "moment";
+import { Map, Marker, TileLayer } from 'react-leaflet';
+import { Bar } from "react-chartjs";
+
+import GatewayStore from "../../stores/GatewayStore";
+
+class GatewayStats extends Component {
+  constructor() {
+    super();
+
+    this.state = {
+      periodSelected: '30d',
+      periods: {
+        "hour": {
+          interval: "MINUTE",
+          substract: 60,
+          substractInterval: 'minutes',
+          format: "mm",
+        },
+        "1d": {
+          interval: "HOUR",
+          substract: 24,
+          substractInterval: "hours",
+          format: "HH",
+        },
+        "14d": {
+          interval: "DAY",
+          substract: 14,
+          substractInterval: "days",
+          format: "Do",
+        },
+        "30d": {
+          interval: "DAY",
+          substract: 30,
+          substractInterval: "days",
+          format: "Do",
+        },
+      },
+      statsUp: {
+        labels: [],
+        datasets: [
+          {
+            label: "received",
+            data: [],
+            fillColor: "rgba(33, 150, 243, 0.25)",
+          },
+          {
+            label: "emitted",
+            data: [],
+            fillColor: "rgba(33, 150, 243, 1)",
+          },
+        ],
+      },
+      statsDown: {
+        labels: [],
+        datasets: [
+          {
+            label: "received",
+            data: [],
+            fillColor: "rgba(33, 150, 243, 0.25)",
+          },
+          {
+            label: "valid CRC",
+            data: [],
+            fillColor: "rgba(33, 150, 243, 1)",
+          },
+        ],
+      },
+      statsOptions: {
+        animation: true,
+        barShowStroke: false,
+        barValueSpacing: 4,
+        responsive: true,
+      },
+    };
+
+    this.updateStats = this.updateStats.bind(this);
+  }
+
+  componentWillMount() {
+    this.updateStats(this.state.periodSelected);
+  }
+
+  updateStats(period) {
+    GatewayStore.getGatewayStats(this.props.gateway.mac, this.state.periods[period].interval, moment().subtract(this.state.periods[period].substract, this.state.periods[period].substractInterval).format(), moment().format(), (records) => {
+      let statsUp = this.state.statsUp;
+      let statsDown = this.state.statsDown;
+
+      statsUp.labels = [];
+      statsDown.labels = [];
+      statsUp.datasets[0].data = [];
+      statsUp.datasets[1].data = [];
+      statsDown.datasets[0].data = [];
+      statsDown.datasets[1].data = [];
+
+      for (const record of records) {
+        statsUp.labels.push(moment(record.timestamp).format(this.state.periods[period].format));
+        statsDown.labels.push(moment(record.timestamp).format(this.state.periods[period].format));
+        statsUp.datasets[0].data.push(record.txPacketsReceived);
+        statsUp.datasets[1].data.push(record.txPacketsEmitted);
+        statsDown.datasets[0].data.push(record.rxPacketsReceived);
+        statsDown.datasets[1].data.push(record.rxPacketsReceivedOK);
+      }
+
+      this.setState({
+        statsUp: statsUp,
+        statsDown: statsDown,
+      });
+    });  
+  }
+
+  updatePeriod(p) {
+    this.setState({
+      periodSelected: p,
+    });
+
+    this.updateStats(p);
+  }
+
+
+  render() {
+    return(
+      <div>
+        <div className="clearfix">
+          <div className="btn-group pull-right" role="group" aria-label="...">
+            <button type="button" className={'btn btn-' + (this.state.periodSelected === 'hour' ? 'primary' : 'default')} onClick={this.updatePeriod.bind(this, 'hour')}>hour</button>
+            <button type="button" className={'btn btn-' + (this.state.periodSelected === '1d' ? 'primary' : 'default')} onClick={this.updatePeriod.bind(this, '1d')}>1D</button>
+            <button type="button" className={'btn btn-' + (this.state.periodSelected === '14d' ? 'primary' : 'default')} onClick={this.updatePeriod.bind(this, '14d')}>14D</button>
+            <button type="button" className={'btn btn-' + (this.state.periodSelected === '30d' ? 'primary' : 'default')} onClick={this.updatePeriod.bind(this, '30d')}>30D</button>
+          </div>
+        </div>
+
+        <h4>Frames sent per {this.state.periods[this.state.periodSelected].interval.toLowerCase()}</h4>
+        <Bar height="75" data={this.state.statsUp} options={this.state.statsOptions} redraw />
+        <hr />
+        <h4>Frames received per {this.state.periods[this.state.periodSelected].interval.toLowerCase()}</h4>
+        <Bar height="75" data={this.state.statsDown} options={this.state.statsOptions} redraw /> 
+
+
+      </div>
+    );
+  }
+}
+
+class GatewayDetails extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
+  };
+
+  constructor() {
+    super();
+
+    this.state = {
+      gateway: {},
+    }
+
+    this.onDelete = this.onDelete.bind(this);
+  }
+
+  componentWillMount() {
+    GatewayStore.getGateway(this.props.params.mac, (gateway) => {
+      this.setState({
+        gateway: gateway,
+      });
+    }); 
+  }
+
+  onDelete() {
+    if (confirm("Are you sure you want to delete this gateway?")) {
+      GatewayStore.deleteGateway(this.props.params.mac, (responseData) => {
+        this.context.router.push("/gateways");
+      });
+    }
+  }
+
+  render() {
+    const position = [this.state.gateway.latitude, this.state.gateway.longitude];
+    const style = {
+      height: "400px",
+    };
+
+    let lastseen = "";
+
+    if (typeof(this.state.gateway.lastSeenAt) !== "undefined") {
+      lastseen = moment(this.state.gateway.lastSeenAt).fromNow();    
+    }
+
+    return(
+      <div>
+        <ol className="breadcrumb">
+          <li><Link to="/">Dashboard</Link></li>
+          <li><Link to="gateways">Gateways</Link></li>
+          <li className="active">{this.props.params.mac}</li>
+        </ol>
+        <div className="clearfix">
+          <div className="btn-group pull-right" role="group" aria-label="...">
+            <Link to={`/gateways/${this.props.params.mac}/edit`}><button type="button" className="btn btn-default">Edit gateway</button></Link> &nbsp;
+            <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete gateway</button></Link>
+          </div>
+        </div>
+        <hr />
+        <div className="panel panel-default">
+          <div className="panel-body">
+            <div className="row">
+              <div className="col-md-6">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th colSpan={2}><h4>{this.state.gateway.mac}</h4></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="col-md-4"><strong>Name</strong></td>
+                      <td>{this.state.gateway.name}</td>
+                    </tr>
+                    <tr>
+                      <td className="col-md-4"><strong>Description</strong></td>
+                      <td>{this.state.gateway.description}</td>
+                    </tr>
+                    <tr>
+                      <td className="col-md-4"><strong>Altitude</strong></td>
+                      <td>{this.state.gateway.altitude} meters</td>
+                    </tr>
+                    <tr>
+                      <td className="col-md-4"><strong>GPS coordinates</strong></td>
+                      <td>{this.state.gateway.latitude}, {this.state.gateway.longitude}</td>
+                    </tr>
+                    <tr>
+                      <td className="col-md-4"><strong>Last seen (stats)</strong></td>
+                      <td>{lastseen}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div className="col-md-6">
+                <Map center={position} zoom={15} style={style} animate={true}>
+                  <TileLayer
+                    url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+                    attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                  />
+                  <Marker position={position} />
+                </Map>
+              </div>
+            </div>
+            <hr />
+            <GatewayStats gateway={this.state.gateway} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
+export default GatewayDetails;

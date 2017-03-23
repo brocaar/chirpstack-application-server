@@ -30,10 +30,21 @@ import ListUsers from "./views/users/ListUsers";
 import UpdateUser from "./views/users/UpdateUser";
 import UpdatePassword from "./views/users/UpdatePassword";
 
+// gateways
+import ListGateways from "./views/gateways/ListGateways";
+import GatewayDetails from "./views/gateways/GatewayDetails";
+import CreateGateway from "./views/gateways/CreateGateway";
+import UpdateGateway from "./views/gateways/UpdateGateway";
+
+// fix leaflet image source
+import Leaflet from 'leaflet';
+Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.0/images/'
+
 // styling
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootswatch/paper/bootstrap.css';
 import 'react-select/dist/react-select.css';
+import 'leaflet/dist/leaflet.css';
 import './index.css';
 
 
@@ -59,6 +70,10 @@ ReactDOM.render(
       <Route path="users/:userID/edit" component={UpdateUser}></Route>
       <Route path="users/:userID/password" component={UpdatePassword}></Route>
       <Route path="users" component={ListUsers}></Route>
+      <Route path="gateways" component={ListGateways}></Route>
+      <Route path="gateways/create" component={CreateGateway}></Route>
+      <Route path="gateways/:mac/edit" component={UpdateGateway}></Route>
+      <Route path="gateways/:mac" component={GatewayDetails}></Route>
     </Route>
   </Router>,
   document.getElementById('root')

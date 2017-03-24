@@ -27,22 +27,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          }
-        ],
         "tags": [
           "ChannelList"
         ]
@@ -161,7 +145,8 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "format": "string"
         },
         "channels": {
           "type": "array",
@@ -210,7 +195,8 @@
           "format": "int64"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "format": "string"
         },
         "channels": {
           "type": "array",
@@ -257,7 +243,8 @@
           "format": "int64"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "format": "string"
         },
         "channels": {
           "type": "array",

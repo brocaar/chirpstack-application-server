@@ -1,0 +1,423 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "gateway.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/gateways": {
+      "get": {
+        "summary": "List lists the gateways.",
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListGatewayResponse"
+            }
+          }
+        },
+        "tags": [
+          "Gateway"
+        ]
+      },
+      "post": {
+        "summary": "Create creates the given gateway.",
+        "operationId": "Create",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiCreateGatewayResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateGatewayRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Gateway"
+        ]
+      }
+    },
+    "/api/gateways/{mac}": {
+      "get": {
+        "summary": "Get returns the gateway for the requested mac address.",
+        "operationId": "Get",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetGatewayResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "mac",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          }
+        ],
+        "tags": [
+          "Gateway"
+        ]
+      },
+      "delete": {
+        "summary": "Delete deletes the gateway matching the given mac address.",
+        "operationId": "Delete",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiDeleteGatewayResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "mac",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          }
+        ],
+        "tags": [
+          "Gateway"
+        ]
+      },
+      "put": {
+        "summary": "Update updates the gateway matching the given mac address.",
+        "operationId": "Update",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiUpdateGatewayResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "mac",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateGatewayRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Gateway"
+        ]
+      }
+    },
+    "/api/gateways/{mac}/stats": {
+      "get": {
+        "summary": "GetStats lists the gateway stats given the query parameters.",
+        "operationId": "GetStats",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetGatewayStatsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "mac",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          }
+        ],
+        "tags": [
+          "Gateway"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiCreateGatewayRequest": {
+      "type": "object",
+      "properties": {
+        "mac": {
+          "type": "string",
+          "format": "string",
+          "description": "Hex encoded mac address."
+        },
+        "name": {
+          "type": "string",
+          "format": "string",
+          "title": "A name for the gateway"
+        },
+        "description": {
+          "type": "string",
+          "format": "string",
+          "title": "A description for the gateway"
+        },
+        "latitude": {
+          "type": "number",
+          "format": "double",
+          "title": "Latitude of the gateway -90 to 90"
+        },
+        "longitude": {
+          "type": "number",
+          "format": "double",
+          "title": "Longitude of the gateway -180 to 180"
+        },
+        "altitude": {
+          "type": "number",
+          "format": "double",
+          "title": "Altitude of the gateway in meters"
+        }
+      }
+    },
+    "apiCreateGatewayResponse": {
+      "type": "object"
+    },
+    "apiDeleteGatewayRequest": {
+      "type": "object",
+      "properties": {
+        "mac": {
+          "type": "string",
+          "format": "string",
+          "description": "Hex encoded mac address."
+        }
+      }
+    },
+    "apiDeleteGatewayResponse": {
+      "type": "object"
+    },
+    "apiGatewayStats": {
+      "type": "object",
+      "properties": {
+        "startTimestamp": {
+          "type": "string",
+          "format": "string",
+          "description": "Timestamp of the (aggregated) measurement."
+        },
+        "rxPacketsReceived": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Packets received by the gateway."
+        },
+        "rxPacketsReceivedOK": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Packets received by the gateway that passed the CRC check."
+        },
+        "txPacketsReceived": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Packets received by the gateway for transmission."
+        },
+        "txPacketsEmitted": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Packets transmitted by the gateway."
+        }
+      }
+    },
+    "apiGetGatewayRequest": {
+      "type": "object",
+      "properties": {
+        "mac": {
+          "type": "string",
+          "format": "string",
+          "description": "Hex encoded mac address of the node."
+        }
+      }
+    },
+    "apiGetGatewayResponse": {
+      "type": "object",
+      "properties": {
+        "mac": {
+          "type": "string",
+          "format": "string",
+          "description": "Hex encoded mac address."
+        },
+        "name": {
+          "type": "string",
+          "format": "string",
+          "title": "A name for the gateway"
+        },
+        "description": {
+          "type": "string",
+          "format": "string",
+          "title": "A description for the gateway"
+        },
+        "latitude": {
+          "type": "number",
+          "format": "double",
+          "title": "Latitude of the gateway -90.0 to 90.0"
+        },
+        "longitude": {
+          "type": "number",
+          "format": "double",
+          "title": "Longitude of the gateway -180.0 to 180.0"
+        },
+        "altitude": {
+          "type": "number",
+          "format": "double",
+          "title": "Altitude of the gateway in meters"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "string",
+          "title": "Creation timestamp of the record"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "string",
+          "title": "Last update timestamp of the record"
+        },
+        "firstSeenAt": {
+          "type": "string",
+          "format": "string",
+          "description": "The timestamp of the first data from the gateway."
+        },
+        "lastSeenAt": {
+          "type": "string",
+          "format": "string",
+          "description": "The timestamp of the most recent data from the gateway."
+        }
+      }
+    },
+    "apiGetGatewayStatsRequest": {
+      "type": "object",
+      "properties": {
+        "mac": {
+          "type": "string",
+          "format": "string",
+          "description": "Hex encoded mac address."
+        },
+        "interval": {
+          "type": "string",
+          "format": "string",
+          "description": "Aggregation interval.  One of \"second\", \"minute\", \"hour\", \"day\", \"week\",\n\"month\", \"quarter\", \"year\".  Case insensitive."
+        },
+        "startTimestamp": {
+          "type": "string",
+          "format": "string",
+          "description": "Timestamp to start from."
+        },
+        "endTimestamp": {
+          "type": "string",
+          "format": "string",
+          "description": "Timestamp until to get from."
+        }
+      }
+    },
+    "apiGetGatewayStatsResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGatewayStats"
+          }
+        }
+      }
+    },
+    "apiListGatewayRequest": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Max number of nodes to return in the result-set."
+        },
+        "offset": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Offset of the result-set (for pagination)."
+        }
+      }
+    },
+    "apiListGatewayResponse": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Total number of nodes available within the result-set."
+        },
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGetGatewayResponse"
+          },
+          "description": "Nodes within this result-set."
+        }
+      }
+    },
+    "apiUpdateGatewayRequest": {
+      "type": "object",
+      "properties": {
+        "mac": {
+          "type": "string",
+          "format": "string",
+          "description": "Hex encoded mac address."
+        },
+        "name": {
+          "type": "string",
+          "format": "string",
+          "title": "A name for the gateway"
+        },
+        "description": {
+          "type": "string",
+          "format": "string",
+          "title": "A description for the gateway"
+        },
+        "latitude": {
+          "type": "number",
+          "format": "double",
+          "title": "Latitude of the gateway -90.0 to 90.0"
+        },
+        "longitude": {
+          "type": "number",
+          "format": "double",
+          "title": "Longitude of the gateway -180.0 to 180.0"
+        },
+        "altitude": {
+          "type": "number",
+          "format": "double",
+          "title": "Altitude of the gateway in meters"
+        }
+      }
+    },
+    "apiUpdateGatewayResponse": {
+      "type": "object"
+    }
+  }
+}

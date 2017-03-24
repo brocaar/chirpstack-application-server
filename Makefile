@@ -1,8 +1,8 @@
 .PHONY: build clean test package package-deb ui api statics requirements ui-requirements serve update-vendor
 PKGS := $(shell go list ./... | grep -v /vendor |grep -v lora-app-server/api | grep -v /migrations | grep -v /static | grep -v /ui)
 VERSION := $(shell git describe --always)
-GOOS ?= linux
-GOARCH ?= amd64
+export GOOS ?= linux
+export GOARCH ?= amd64
 
 build:
 	@echo "Compiling source for $(GOOS) $(GOARCH)"
@@ -29,7 +29,8 @@ package: clean build
 	@cd dist/tar/$(VERSION) && tar -pczf ../lora_app_server_$(VERSION)_$(GOOS)_$(GOARCH).tar.gz .
 	@rm -rf dist/tar/$(VERSION)
 
-package-deb:
+package-deb: package
+	@echo "Building deb package for $(GOOS) $(GOARCH)"
 	@cd packaging && TARGET=deb ./package.sh
 
 ui:

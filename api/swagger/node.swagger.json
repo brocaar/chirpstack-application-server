@@ -34,22 +34,6 @@
             "required": true,
             "type": "string",
             "format": "int64"
-          },
-          {
-            "name": "limit",
-            "description": "Max number of nodes to return in the result-set.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "offset",
-            "description": "Offset of the result-set (for pagination).",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
           }
         ],
         "tags": [
@@ -118,7 +102,8 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "string"
           }
         ],
         "tags": [
@@ -141,7 +126,8 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "string"
           }
         ],
         "tags": [
@@ -164,7 +150,8 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "string"
           },
           {
             "name": "body",
@@ -197,7 +184,8 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "string"
           }
         ],
         "tags": [
@@ -220,7 +208,8 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "string"
           },
           {
             "name": "body",
@@ -243,18 +232,22 @@
       "properties": {
         "devEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevEUI of the node to activate."
         },
         "devAddr": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevAddr."
         },
         "appSKey": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded AppSKey."
         },
         "nwkSKey": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded NwkSKey."
         },
         "fCntUp": {
@@ -277,14 +270,17 @@
       "properties": {
         "devEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevEUI."
         },
         "appEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded AppEUI."
         },
         "appKey": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded AppKey. When isABP is set to true, this field is not needed."
         },
         "rxDelay": {
@@ -313,6 +309,7 @@
         },
         "name": {
           "type": "string",
+          "format": "string",
           "description": "Name of the node (if left blank, it will be set to the DevEUI)."
         },
         "relaxFCnt": {
@@ -337,6 +334,7 @@
         },
         "description": {
           "type": "string",
+          "format": "string",
           "description": "Description of the node."
         },
         "isABP": {
@@ -364,6 +362,7 @@
       "properties": {
         "devEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevEUI of the node."
         }
       }
@@ -376,6 +375,7 @@
       "properties": {
         "devEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevEUI of the node."
         }
       }
@@ -385,14 +385,17 @@
       "properties": {
         "devAddr": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevAddr."
         },
         "appSKey": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded AppSKey."
         },
         "nwkSKey": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded NwkSKey."
         },
         "fCntUp": {
@@ -412,6 +415,7 @@
       "properties": {
         "devEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevEUI of the node."
         }
       }
@@ -421,14 +425,17 @@
       "properties": {
         "devEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevEUI."
         },
         "appEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded AppEUI."
         },
         "appKey": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded AppKey."
         },
         "rxDelay": {
@@ -457,6 +464,7 @@
         },
         "name": {
           "type": "string",
+          "format": "string",
           "description": "Name of the node."
         },
         "relaxFCnt": {
@@ -476,6 +484,7 @@
         },
         "description": {
           "type": "string",
+          "format": "string",
           "description": "Description of the node."
         },
         "isABP": {
@@ -508,6 +517,7 @@
       "properties": {
         "devAddr": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevAddr."
         }
       }
@@ -562,14 +572,17 @@
       "properties": {
         "devEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevEUI of the node to update."
         },
         "appEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded AppEUI."
         },
         "appKey": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded AppKey."
         },
         "rxDelay": {
@@ -598,6 +611,7 @@
         },
         "name": {
           "type": "string",
+          "format": "string",
           "title": "Name of the node (note that renaming the node affects its api endpoint)"
         },
         "relaxFCnt": {
@@ -622,6 +636,7 @@
         },
         "description": {
           "type": "string",
+          "format": "string",
           "description": "Description of the node."
         },
         "isABP": {

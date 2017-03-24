@@ -71,31 +71,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "limit",
-            "description": "Max number of user to return in the result-set.",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "offset",
-            "description": "Offset in the result-set (for pagination).",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "search",
-            "description": "When provided, the given string will be used to search on username.",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
         "tags": [
           "User"
         ]
@@ -249,10 +224,12 @@
       "properties": {
         "username": {
           "type": "string",
+          "format": "string",
           "description": "Username of the user."
         },
         "password": {
           "type": "string",
+          "format": "string",
           "description": "Passowrd of the user."
         },
         "sessionTTL": {
@@ -290,17 +267,20 @@
           "format": "int64"
         },
         "applicationName": {
-          "type": "string"
+          "type": "string",
+          "format": "string"
         },
         "isAdmin": {
           "type": "boolean",
           "format": "boolean"
         },
         "createdAt": {
-          "type": "string"
+          "type": "string",
+          "format": "string"
         },
         "updatedAt": {
-          "type": "string"
+          "type": "string",
+          "format": "string"
         }
       },
       "description": "Defines the applications that the user is associated with."
@@ -315,6 +295,7 @@
         },
         "username": {
           "type": "string",
+          "format": "string",
           "description": "Username of the user."
         },
         "sessionTTL": {
@@ -334,10 +315,12 @@
         },
         "createdAt": {
           "type": "string",
+          "format": "string",
           "description": "When the user was created."
         },
         "updatedAt": {
           "type": "string",
+          "format": "string",
           "description": "When the user was last updated (excludes changes in application access)."
         }
       }
@@ -357,6 +340,7 @@
         },
         "search": {
           "type": "string",
+          "format": "string",
           "description": "When provided, the given string will be used to search on username."
         }
       },
@@ -382,10 +366,12 @@
       "properties": {
         "username": {
           "type": "string",
+          "format": "string",
           "description": "Username of the user."
         },
         "password": {
           "type": "string",
+          "format": "string",
           "description": "Password of the user."
         }
       },
@@ -396,6 +382,7 @@
       "properties": {
         "jwt": {
           "type": "string",
+          "format": "string",
           "description": "The JWT tag to be used to access lora-app-server interfaces."
         }
       },
@@ -430,6 +417,7 @@
         },
         "password": {
           "type": "string",
+          "format": "string",
           "description": "The new password to set."
         }
       }
@@ -444,6 +432,7 @@
         },
         "username": {
           "type": "string",
+          "format": "string",
           "description": "The new username."
         },
         "sessionTTL": {

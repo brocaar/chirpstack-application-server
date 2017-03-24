@@ -49,16 +49,15 @@ func TestUserAPI(t *testing.T) {
 				So(user.SessionTTL, ShouldResemble, createReq.SessionTTL)
 				So(user.IsAdmin, ShouldResemble, createReq.IsAdmin)
 
-				Convey("Then get all users returns a single item", func() {
+				Convey("Then get all users returns 2 items (admin user already there)", func() {
 					users, err := api.List(ctx, &pb.ListUserRequest{
 						Limit:  10,
 						Offset: 0,
 					})
 					So(err, ShouldBeNil)
 					So(validator.validatorFuncs, ShouldHaveLength, 1)
-					So(users.Result, ShouldHaveLength, 1)
-					So(users.TotalCount, ShouldEqual, 1)
-					So(users.Result[0].Username, ShouldResemble, user.Username)
+					So(users.Result, ShouldHaveLength, 2)
+					So(users.TotalCount, ShouldEqual, 2)
 				})
 
 				Convey("Then login in succeeds", func() {
@@ -125,8 +124,8 @@ func TestUserAPI(t *testing.T) {
 							Offset: 0,
 						})
 						So(err, ShouldBeNil)
-						So(users.Result, ShouldHaveLength, 0)
-						So(users.TotalCount, ShouldEqual, 0)
+						So(users.Result, ShouldHaveLength, 1)
+						So(users.TotalCount, ShouldEqual, 1)
 					})
 				})
 			})

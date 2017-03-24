@@ -69,11 +69,6 @@ func MustResetDB(db *sqlx.DB) {
 	if _, err := migrate.Exec(db.DB, "postgres", m, migrate.Up); err != nil {
 		log.Fatal(err)
 	}
-
-	// delete default "admin"
-	if _, err := db.Exec(`delete from "user"`); err != nil {
-		log.Fatal(err)
-	}
 }
 
 // MustFlushRedis flushes the Redis storage.
@@ -87,6 +82,13 @@ func MustFlushRedis(p *redis.Pool) {
 
 // NetworkServerClient is a test network-server client.
 type NetworkServerClient struct {
+	CreateGatewayChan   chan ns.CreateGatewayRequest
+	GetGatewayChan	    chan ns.GetGatewayRequest
+	UpdateGatewayChan   chan ns.UpdateGatewayRequest
+	DeleteGatewayChan   chan ns.DeleteGatewayRequest
+	GetGatewayStatsChan chan ns.GetGatewayStatsRequest
+	ListGatewayChan     chan ns.ListGatewayRequest
+
 	CreateNodeSessionChan chan ns.CreateNodeSessionRequest
 	GetNodeSessionChan    chan ns.GetNodeSessionRequest
 	UpdateNodeSessionChan chan ns.UpdateNodeSessionRequest
@@ -94,6 +96,13 @@ type NetworkServerClient struct {
 	GetRandomDevAddrChan  chan ns.GetRandomDevAddrRequest
 	PushDataDownChan      chan ns.PushDataDownRequest
 
+	CreateGatewayResponse   ns.CreateGatewayResponse
+	GetGatewayResponse      ns.GetGatewayResponse
+	UpdateGatewayResponse   ns.UpdateGatewayResponse
+	DeleteGatewayResponse   ns.DeleteGatewayResponse
+	GetGatewayStatsResponse ns.GetGatewayStatsResponse
+	ListGatewayResponse     ns.ListGatewayResponse
+	
 	CreateNodeSessionResponse ns.CreateNodeSessionResponse
 	GetNodeSessionResponse    ns.GetNodeSessionResponse
 	UpdateNodeSessionResponse ns.UpdateNodeSessionResponse
@@ -111,7 +120,50 @@ func NewNetworkServerClient() *NetworkServerClient {
 		DeleteNodeSessionChan: make(chan ns.DeleteNodeSessionRequest, 100),
 		GetRandomDevAddrChan:  make(chan ns.GetRandomDevAddrRequest, 100),
 		PushDataDownChan:      make(chan ns.PushDataDownRequest, 100),
+		CreateGatewayChan:     make(chan ns.CreateGatewayRequest, 100),
+		GetGatewayChan:	       make(chan ns.GetGatewayRequest, 100),
+		UpdateGatewayChan:     make(chan ns.UpdateGatewayRequest, 100),
+		DeleteGatewayChan:     make(chan ns.DeleteGatewayRequest, 100),
+		GetGatewayStatsChan:   make(chan ns.GetGatewayStatsRequest, 100),
+		ListGatewayChan:       make(chan ns.ListGatewayRequest, 100),
+		
+		CreateGatewayResponse:   ns.CreateGatewayResponse{},
+		GetGatewayResponse:      ns.GetGatewayResponse{},
+		UpdateGatewayResponse:   ns.UpdateGatewayResponse{},
+		DeleteGatewayResponse:   ns.DeleteGatewayResponse{},
+		GetGatewayStatsResponse: ns.GetGatewayStatsResponse{},
+		ListGatewayResponse:     ns.ListGatewayResponse{},
 	}
+}
+
+func (n *NetworkServerClient) CreateGateway(ctx context.Context, in *ns.CreateGatewayRequest, opts ...grpc.CallOption) (*ns.CreateGatewayResponse, error) {
+	n.CreateGatewayChan <- *in
+	return &n.CreateGatewayResponse, nil
+}
+
+func (n *NetworkServerClient) GetGateway(ctx context.Context, in *ns.GetGatewayRequest, opts ...grpc.CallOption) (*ns.GetGatewayResponse, error) {
+	n.GetGatewayChan <- *in
+	return &n.GetGatewayResponse, nil
+}
+
+func (n *NetworkServerClient) ListGateways(ctx context.Context, in *ns.ListGatewayRequest, opts ...grpc.CallOption) (*ns.ListGatewayResponse, error) {
+	n.ListGatewayChan <- *in
+	return &n.ListGatewayResponse, nil
+}
+
+func (n *NetworkServerClient) UpdateGateway(ctx context.Context, in *ns.UpdateGatewayRequest, opts ...grpc.CallOption) (*ns.UpdateGatewayResponse, error) {
+	n.UpdateGatewayChan <- *in
+	return &n.UpdateGatewayResponse, nil
+}
+
+func (n *NetworkServerClient) DeleteGateway(ctx context.Context, in *ns.DeleteGatewayRequest, opts ...grpc.CallOption) (*ns.DeleteGatewayResponse, error) {
+	n.DeleteGatewayChan <- *in
+	return &n.DeleteGatewayResponse, nil
+}
+
+func (n *NetworkServerClient) GetGatewayStats(ctx context.Context, in *ns.GetGatewayStatsRequest, opts ...grpc.CallOption) (*ns.GetGatewayStatsResponse, error) {
+	n.GetGatewayStatsChan <- *in
+	return &n.GetGatewayStatsResponse, nil
 }
 
 func (n *NetworkServerClient) CreateNodeSession(ctx context.Context, in *ns.CreateNodeSessionRequest, opts ...grpc.CallOption) (*ns.CreateNodeSessionResponse, error) {

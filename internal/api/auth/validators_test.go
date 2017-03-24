@@ -74,14 +74,14 @@ func TestValidators(t *testing.T) {
 		IsActive bool
 		IsAdmin  bool
 	}{
-		{ID: 1, Username: "user1", IsActive: true, IsAdmin: true},
-		{ID: 2, Username: "user2", IsActive: true},
-		{ID: 3, Username: "user3", IsActive: true},
-		{ID: 4, Username: "user4", IsActive: true},
-		{ID: 5, Username: "user5", IsActive: true},
-		{ID: 6, Username: "user6", IsActive: true},
-		{ID: 7, Username: "user7", IsActive: false},
-		{ID: 8, Username: "user8", IsActive: false, IsAdmin: true},
+		{ID: 11, Username: "user1", IsActive: true, IsAdmin: true},
+		{ID: 12, Username: "user2", IsActive: true},
+		{ID: 13, Username: "user3", IsActive: true},
+		{ID: 14, Username: "user4", IsActive: true},
+		{ID: 15, Username: "user5", IsActive: true},
+		{ID: 16, Username: "user6", IsActive: true},
+		{ID: 17, Username: "user7", IsActive: false},
+		{ID: 18, Username: "user8", IsActive: false, IsAdmin: true},
 	}
 	for _, user := range users {
 		_, err = db.Exec(`insert into "user" (id, created_at, updated_at, username, password_hash, session_ttl, is_active, is_admin) values ($1, now(), now(), $2, '', 0, $3, $4)`, user.ID, user.Username, user.IsActive, user.IsAdmin)
@@ -95,11 +95,11 @@ func TestValidators(t *testing.T) {
 		ApplicationID int64
 		IsAdmin       bool
 	}{
-		{UserID: 2, ApplicationID: applications[0].ID, IsAdmin: true},
-		{UserID: 3, ApplicationID: applications[0].ID, IsAdmin: false},
-		{UserID: 5, ApplicationID: applications[1].ID, IsAdmin: true},
-		{UserID: 6, ApplicationID: applications[1].ID, IsAdmin: false},
-		{UserID: 7, ApplicationID: applications[1].ID, IsAdmin: false},
+		{UserID: 12, ApplicationID: applications[0].ID, IsAdmin: true},
+		{UserID: 13, ApplicationID: applications[0].ID, IsAdmin: false},
+		{UserID: 15, ApplicationID: applications[1].ID, IsAdmin: true},
+		{UserID: 16, ApplicationID: applications[1].ID, IsAdmin: false},
+		{UserID: 17, ApplicationID: applications[1].ID, IsAdmin: false},
 	}
 	for _, appUser := range appUsers {
 		_, err = db.Exec("insert into application_user (created_at, updated_at, user_id, application_id, is_admin) values (now(), now(), $1, $2, $3)", appUser.UserID, appUser.ApplicationID, appUser.IsAdmin)
@@ -144,25 +144,25 @@ func TestValidators(t *testing.T) {
 			tests := []validatorTest{
 				{
 					Name:       "global admin user has access to read, update and delete",
-					Validators: []ValidatorFunc{ValidateUserAccess(4, Read), ValidateUserAccess(4, Update), ValidateUserAccess(4, Delete)},
+					Validators: []ValidatorFunc{ValidateUserAccess(14, Read), ValidateUserAccess(14, Update), ValidateUserAccess(14, Delete)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "user itself has access to read",
-					Validators: []ValidatorFunc{ValidateUserAccess(4, Read)},
+					Validators: []ValidatorFunc{ValidateUserAccess(14, Read)},
 					Claims:     Claims{Username: "user4"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "user itself has no access to update or delete",
-					Validators: []ValidatorFunc{ValidateUserAccess(4, Update), ValidateUserAccess(4, Delete)},
+					Validators: []ValidatorFunc{ValidateUserAccess(14, Update), ValidateUserAccess(14, Delete)},
 					Claims:     Claims{Username: "user4"},
 					ExpectedOK: false,
 				},
 				{
 					Name:       "other users are not able to read, update or delete",
-					Validators: []ValidatorFunc{ValidateUserAccess(4, Read), ValidateUserAccess(4, Update), ValidateUserAccess(4, Delete)},
+					Validators: []ValidatorFunc{ValidateUserAccess(14, Read), ValidateUserAccess(14, Update), ValidateUserAccess(14, Delete)},
 					Claims:     Claims{Username: "user2"},
 					ExpectedOK: false,
 				},
@@ -286,31 +286,31 @@ func TestValidators(t *testing.T) {
 			tests := []validatorTest{
 				{
 					Name:       "global admin user has access to read, update and delete",
-					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 3, Read), ValidateApplicationMemberAccess(1, 3, Update), ValidateApplicationMemberAccess(1, 3, Delete)},
+					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 13, Read), ValidateApplicationMemberAccess(1, 13, Update), ValidateApplicationMemberAccess(1, 13, Delete)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "application admin user has access to read, update and delete",
-					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 3, Read), ValidateApplicationMemberAccess(1, 3, Update), ValidateApplicationMemberAccess(1, 3, Delete)},
+					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 13, Read), ValidateApplicationMemberAccess(1, 13, Update), ValidateApplicationMemberAccess(1, 13, Delete)},
 					Claims:     Claims{Username: "user2"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "application admin user of different application has no access to read, update or delete",
-					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 3, Read), ValidateApplicationMemberAccess(1, 3, Update), ValidateApplicationMemberAccess(1, 3, Delete)},
+					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 13, Read), ValidateApplicationMemberAccess(1, 13, Update), ValidateApplicationMemberAccess(1, 13, Delete)},
 					Claims:     Claims{Username: "user6"},
 					ExpectedOK: false,
 				},
 				{
 					Name:       "application users are not able to update or delete",
-					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 3, Update), ValidateApplicationMemberAccess(1, 3, Delete)},
+					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 13, Update), ValidateApplicationMemberAccess(1, 13, Delete)},
 					Claims:     Claims{Username: "user3"},
 					ExpectedOK: false,
 				},
 				{
 					Name:       "application user is able to read its own record",
-					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 3, Read)},
+					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(1, 13, Read)},
 					Claims:     Claims{Username: "user3"},
 					ExpectedOK: true,
 				},

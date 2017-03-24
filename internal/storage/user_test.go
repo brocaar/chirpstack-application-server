@@ -14,6 +14,8 @@ func TestUser(t *testing.T) {
 
 	// Set a user secret so JWTs can be assigned
 	SetUserSecret("DoWahDiddy")
+	
+	// Note that a "clean" database includes the admin user.
 
 	Convey("Given a clean database", t, func() {
 		db, err := OpenDatabase(conf.PostgresDSN)
@@ -73,19 +75,24 @@ func TestUser(t *testing.T) {
 				So(user2.SessionTTL, ShouldResemble, user.SessionTTL)
 			})
 
-			Convey("Then get users returns a single user", func() {
+			Convey("Then get users returns 2 users", func() {
 				users, err := GetUsers(db, 10, 0, "")
 				So(err, ShouldBeNil)
-				So(users, ShouldHaveLength, 1)
-				So(users[0].Username, ShouldResemble, user.Username)
-				So(users[0].IsAdmin, ShouldResemble, user.IsAdmin)
-				So(users[0].SessionTTL, ShouldResemble, user.SessionTTL)
+				So(users, ShouldHaveLength, 2)
+				checkUser := 0
+				if users[0].Username == "admin" {
+					// No, check entry 1
+					checkUser = 1
+				}
+				So(users[checkUser].Username, ShouldResemble, user.Username)
+				So(users[checkUser].IsAdmin, ShouldResemble, user.IsAdmin)
+				So(users[checkUser].SessionTTL, ShouldResemble, user.SessionTTL)
 			})
 
-			Convey("Then get user count returns 1", func() {
+			Convey("Then get user count returns 2", func() {
 				count, err := GetUserCount(db, "")
 				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 1)
+				So(count, ShouldEqual, 2)
 			})
 
 			Convey("Then searching for 'good' returns a single item", func() {
@@ -146,10 +153,10 @@ func TestUser(t *testing.T) {
 			Convey("When deleting the user", func() {
 				So(DeleteUser(db, user.ID), ShouldBeNil)
 
-				Convey("Then the user count returns 0", func() {
+				Convey("Then the user count returns 1", func() {
 					count, err := GetUserCount(db, "")
 					So(err, ShouldBeNil)
-					So(count, ShouldEqual, 0)
+					So(count, ShouldEqual, 1)
 				})
 			})
 

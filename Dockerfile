@@ -25,3 +25,18 @@ RUN go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 # setup work directory
 RUN mkdir -p $PROJECT_PATH
 WORKDIR $PROJECT_PATH
+
+# install node to build ui
+RUN apt-get update
+RUN apt-get -y install build-essential libssl-dev
+RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.1/install.sh | bash
+ENV NVM_DIR "/root/.nvm"
+RUN /bin/bash -c "source $NVM_DIR/nvm.sh; nvm install node; nvm use node"
+
+# install fpm to build deb package
+RUN apt-get -y install ruby-dev ruby
+RUN gem install fpm
+
+# setup to start lora-app-server process
+RUN mkdir -p /etc/lora-app-server/certs
+RUN openssl req -x509 -newkey rsa:4096 -keyout /etc/lora-app-server/certs/http-key.pem -out /etc/lora-app-server/certs/http.pem -days 365 -nodes -batch -subj "/CN=localhost"

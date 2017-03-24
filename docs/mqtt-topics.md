@@ -32,6 +32,10 @@ Topic for payloads received from your nodes. Example payload:
     "rxInfo": [
         {
             "mac": "0303030303030303",                 // MAC of the receiving gateway
+			"name": "rooftop-gateway",                 // name of the receiving gateway
+			"latitude": 52.3740364,                    // latitude of the receiving gateway
+			"longitude": 4.9144401,                    // longitude of the receiving gateway
+			"altitude": 10.5,                          // altitude of the receiving gateway
             "time": "2016-11-25T16:24:37.295915988Z",  // time when the package was received (GPS time of gateway, only set when available)
             "rssi": -57,                               // signal strength (dBm)
             "loRaSNR": 10                              // signal to noise ratio

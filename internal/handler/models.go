@@ -16,10 +16,14 @@ type DataRate struct {
 
 // RXInfo contains the RX information.
 type RXInfo struct {
-	MAC     lorawan.EUI64 `json:"mac"`
-	Time    *time.Time    `json:"time,omitempty"`
-	RSSI    int           `json:"rssi"`
-	LoRaSNR float64       `json:"loRaSNR"`
+	MAC       lorawan.EUI64 `json:"mac"`
+	Time      *time.Time    `json:"time,omitempty"`
+	RSSI      int           `json:"rssi"`
+	LoRaSNR   float64       `json:"loRaSNR"`
+	Name      string        `json:"name"`
+	Latitude  float64       `json:"latitude"`
+	Longitude float64       `json:"longitude"`
+	Altitude  float64       `json:"altitude"`
 }
 
 // TXInfo contains the TX information.

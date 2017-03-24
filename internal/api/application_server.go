@@ -283,10 +283,14 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 			}
 		}
 		pl.RXInfo = append(pl.RXInfo, handler.RXInfo{
-			MAC:     mac,
-			Time:    timestamp,
-			RSSI:    int(rxInfo.Rssi),
-			LoRaSNR: rxInfo.LoRaSNR,
+			MAC:       mac,
+			Time:      timestamp,
+			RSSI:      int(rxInfo.Rssi),
+			LoRaSNR:   rxInfo.LoRaSNR,
+			Name:      rxInfo.Name,
+			Latitude:  rxInfo.Latitude,
+			Longitude: rxInfo.Longitude,
+			Altitude:  rxInfo.Altitude,
 		})
 	}
 

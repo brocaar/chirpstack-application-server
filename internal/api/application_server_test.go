@@ -107,10 +107,14 @@ func TestApplicationServerAPI(t *testing.T) {
 					Data:   []byte{1, 2, 3, 4},
 					RxInfo: []*as.RXInfo{
 						{
-							Mac:     []byte{1, 2, 3, 4, 5, 6, 7, 8},
-							Time:    now.Format(time.RFC3339Nano),
-							Rssi:    -60,
-							LoRaSNR: 5,
+							Mac:       []byte{1, 2, 3, 4, 5, 6, 7, 8},
+							Name:      "test-gateway",
+							Latitude:  52.3740364,
+							Longitude: 4.9144401,
+							Altitude:  10,
+							Time:      now.Format(time.RFC3339Nano),
+							Rssi:      -60,
+							LoRaSNR:   5,
 						},
 					},
 					TxInfo: &as.TXInfo{
@@ -137,10 +141,14 @@ func TestApplicationServerAPI(t *testing.T) {
 						DevEUI:          node.DevEUI,
 						RXInfo: []handler.RXInfo{
 							{
-								MAC:     mac,
-								Time:    &now,
-								RSSI:    -60,
-								LoRaSNR: 5,
+								MAC:       mac,
+								Name:      "test-gateway",
+								Latitude:  52.3740364,
+								Longitude: 4.9144401,
+								Altitude:  10,
+								Time:      &now,
+								RSSI:      -60,
+								LoRaSNR:   5,
 							},
 						},
 						TXInfo: handler.TXInfo{

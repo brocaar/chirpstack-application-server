@@ -29,20 +29,25 @@ script:
   - make test
 
 before_deploy:
-  - make ui-requirements ui statics
+  - >
+    if ! [ "$BEFORE_DEPLOY_RUN" ]; then
+      export BEFORE_DEPLOY_RUN=1;
 
-  - rvm --default use system
-  - sudo apt-get install -y python-pip ruby ruby-dev
-  - sudo pip install -r requirements.txt
-  - sudo gem install --no-ri --no-rdoc fpm
-  - mkdocs build
+      make ui-requirements;
 
-  - GOOS=linux GOARCH=amd64 make package package-deb
-  - GOOS=linux GOARCH=386 make package package-deb
-  - GOOS=linux GOARCH=arm make package package-deb
-  - GOOS=darwin GOARCH=amd64 make package
-  - GOOS=windows BINEXT=.exe GOARCH=386 make package
-  - GOOS=windows BINEXT=.exe GOARCH=amd64 make package
+      rvm --default use system;
+      sudo apt-get install -y python-pip ruby ruby-dev;
+      sudo pip install -r requirements.txt;
+      sudo gem install --no-ri --no-rdoc fpm;
+      mkdocs build;
+
+      GOOS=linux GOARCH=amd64 make package package-deb;
+      GOOS=linux GOARCH=386 make package package-deb;
+      GOOS=linux GOARCH=arm make package package-deb;
+      GOOS=darwin GOARCH=amd64 make package;
+      GOOS=windows BINEXT=.exe GOARCH=386 make package;
+      GOOS=windows BINEXT=.exe GOARCH=amd64 make package;
+    fi
 
 deploy:
   - provider: releases

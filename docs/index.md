@@ -40,10 +40,16 @@ docker-compose run --rm appserver bash
 A few example commands that you can run:
 
 ```bash
+# install all requirements
+make requirements ui-requirements
+
+# cleanup workspace
+make clean
+
 # run the tests
 make test
 
-# compile
+# compile (this will also compile the ui and generate the static files)
 make build
 
 # cross-compile for Linux ARM

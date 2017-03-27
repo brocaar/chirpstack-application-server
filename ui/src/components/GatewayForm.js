@@ -67,7 +67,7 @@ class GatewayForm extends Component {
 
   componentWillReceiveProps(nextProps) {
     this.setState({
-      gateway: this.props.gateway, 
+      gateway: nextProps.gateway, 
     });
   }
 

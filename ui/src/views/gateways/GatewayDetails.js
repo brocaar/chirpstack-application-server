@@ -16,25 +16,25 @@ class GatewayStats extends Component {
       periods: {
         "hour": {
           interval: "MINUTE",
-          substract: 60,
+          substract: 59,
           substractInterval: 'minutes',
           format: "mm",
         },
         "1d": {
           interval: "HOUR",
-          substract: 24,
+          substract: 23,
           substractInterval: "hours",
           format: "HH",
         },
         "14d": {
           interval: "DAY",
-          substract: 14,
+          substract: 13,
           substractInterval: "days",
           format: "Do",
         },
         "30d": {
           interval: "DAY",
-          substract: 30,
+          substract: 29,
           substractInterval: "days",
           format: "Do",
         },
@@ -43,7 +43,7 @@ class GatewayStats extends Component {
         labels: [],
         datasets: [
           {
-            label: "received",
+            label: "received for transmission",
             data: [],
             fillColor: "rgba(33, 150, 243, 0.25)",
           },
@@ -58,12 +58,12 @@ class GatewayStats extends Component {
         labels: [],
         datasets: [
           {
-            label: "received",
+            label: "total received",
             data: [],
             fillColor: "rgba(33, 150, 243, 0.25)",
           },
           {
-            label: "valid CRC",
+            label: "received with valid CRC",
             data: [],
             fillColor: "rgba(33, 150, 243, 1)",
           },
@@ -85,7 +85,7 @@ class GatewayStats extends Component {
   }
 
   updateStats(period) {
-    GatewayStore.getGatewayStats(this.props.gateway.mac, this.state.periods[period].interval, moment().subtract(this.state.periods[period].substract, this.state.periods[period].substractInterval).format(), moment().format(), (records) => {
+    GatewayStore.getGatewayStats(this.props.mac, this.state.periods[period].interval, moment().subtract(this.state.periods[period].substract, this.state.periods[period].substractInterval).toISOString(), moment().toISOString(), (records) => {
       let statsUp = this.state.statsUp;
       let statsDown = this.state.statsDown;
 
@@ -177,12 +177,18 @@ class GatewayDetails extends Component {
   }
 
   render() {
-    const position = [this.state.gateway.latitude, this.state.gateway.longitude];
     const style = {
       height: "400px",
     };
 
     let lastseen = "";
+    let position = [];
+
+    if (typeof(this.state.gateway.latitude) !== "undefined" && typeof(this.state.gateway.longitude !== "undefined")) {
+      position = [this.state.gateway.latitude, this.state.gateway.longitude]; 
+    } else {
+      position = [0,0];
+    }
 
     if (typeof(this.state.gateway.lastSeenAt) !== "undefined") {
       lastseen = moment(this.state.gateway.lastSeenAt).fromNow();    
@@ -193,7 +199,7 @@ class GatewayDetails extends Component {
         <ol className="breadcrumb">
           <li><Link to="/">Dashboard</Link></li>
           <li><Link to="gateways">Gateways</Link></li>
-          <li className="active">{this.props.params.mac}</li>
+          <li className="active">{this.state.gateway.name}</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
@@ -209,13 +215,13 @@ class GatewayDetails extends Component {
                 <table className="table">
                   <thead>
                     <tr>
-                      <th colSpan={2}><h4>{this.state.gateway.mac}</h4></th>
+                      <th colSpan={2}><h4>{this.state.gateway.name}</h4></th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td className="col-md-4"><strong>Name</strong></td>
-                      <td>{this.state.gateway.name}</td>
+                      <td className="col-md-4"><strong>MAC</strong></td>
+                      <td>{this.state.gateway.mac}</td>
                     </tr>
                     <tr>
                       <td className="col-md-4"><strong>Description</strong></td>
@@ -247,7 +253,7 @@ class GatewayDetails extends Component {
               </div>
             </div>
             <hr />
-            <GatewayStats gateway={this.state.gateway} />
+            <GatewayStats mac={this.props.params.mac} />
           </div>
         </div>
       </div>

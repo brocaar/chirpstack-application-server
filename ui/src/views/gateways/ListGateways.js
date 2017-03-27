@@ -34,8 +34,9 @@ class GatewayRow extends Component {
 
 
   componentWillMount() {
-    GatewayStore.getGatewayStats(this.props.gateway.mac, "DAY", moment().subtract(30, 'days').format(), moment().format(), (records) => {
+    GatewayStore.getGatewayStats(this.props.gateway.mac, "DAY", moment().subtract(29, 'days').toISOString(), moment().toISOString(), (records) => {
       let stats = this.state.stats;
+      console.log(records);
 
       for (const record of records) {
         stats.labels.push(record.timestamp);
@@ -51,8 +52,8 @@ class GatewayRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`gateways/${this.props.gateway.mac}`}>{this.props.gateway.mac}</Link></td>
-        <td>{this.props.gateway.name}</td>
+        <td><Link to={`gateways/${this.props.gateway.mac}`}>{this.props.gateway.name}</Link></td>
+        <td>{this.props.gateway.mac}</td>
         <td>
           <Bar width="380" height="23" data={this.state.stats} options={this.state.options} />
         </td>
@@ -121,8 +122,8 @@ class ListGateways extends Component {
             <table className="table table-hover">
               <thead>
                 <tr>
-                  <th className="col-md-2">MAC</th>
-                  <th>Name</th>
+                  <th className="col-md-3">Name</th>
+                  <th>MAC</th>
                   <th className="col-md-4">Gateway activity (30d)</th>
                 </tr>
               </thead>

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.7.0
+
+**Features & changes:**
+
+* Gateway management and stats
+	* Gateway management UI and API (accessible by global admin users) was added.
+	* Gateway locations are now exposed in the [uplink MQTT topic](mqtt-topics.md)
+	* Requires [LoRa Server](https://docs.loraserver.io) 0.16.0+.
+* On MQTT and PostgreSQL connect error, LoRa App Server will retry instead
+  of fail.
+
+Many thanks again to [@jcampanell-cablelabs](https://github.com/jcampanell-cablelabs)
+for collaborating on this feature.
+
 ## 0.6.0
 
 **This release contains changes that are not backwards compatible!**

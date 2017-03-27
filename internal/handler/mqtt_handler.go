@@ -68,8 +68,13 @@ func NewMQTTHandler(p *redis.Pool, server, username, password string) (Handler, 
 
 	log.WithField("server", server).Info("handler/mqtt: connecting to mqtt broker")
 	h.conn = mqtt.NewClient(opts)
-	if token := h.conn.Connect(); token.Wait() && token.Error() != nil {
-		return nil, fmt.Errorf("handler/mqtt: connecting to broker error: %s", token.Error())
+	for {
+		if token := h.conn.Connect(); token.Wait() && token.Error() != nil {
+			log.Errorf("handler/mqtt: connecting to broker error, will retry in 2s: %s", token.Error())
+			time.Sleep(2 * time.Second)
+		} else {
+			break
+		}
 	}
 	return &h, nil
 }

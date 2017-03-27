@@ -8,11 +8,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	log "github.com/Sirupsen/logrus"
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/loraserver/api/ns"
+	"github.com/brocaar/lorawan"
 )
 
 // GatewayAPI exports the Gateway related functions.
@@ -31,14 +31,14 @@ func NewGatewayAPI(ctx common.Context, validator auth.Validator) *GatewayAPI {
 
 // Create creates the given gateway.
 func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (*pb.CreateGatewayResponse, error) {
-	err := a.validator.Validate(ctx, auth.ValidateActiveUser())
+	err := a.validator.Validate(ctx, auth.ValidateGatewaysAccess(auth.Create))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	macbytes, err := hex.DecodeString(req.Mac)
-	if nil != err {
-		return nil, grpc.Errorf(codes.InvalidArgument, "Bad gateway MAC: %s", err)
+	if err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
 	}
 
 	createReq := ns.CreateGatewayRequest{
@@ -51,54 +51,52 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 	}
 
 	_, err = a.ctx.NetworkServer.CreateGateway(ctx, &createReq)
-
-	var ret *pb.CreateGatewayResponse
-	if nil == err {
-		ret = &pb.CreateGatewayResponse{}
+	if err != nil {
+		return nil, err
 	}
-	return ret, err
+
+	return &pb.CreateGatewayResponse{}, nil
 }
 
 // Get returns the gateway matching the given Mac.
 func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.GetGatewayResponse, error) {
-	err := a.validator.Validate(ctx, auth.ValidateActiveUser())
+	var mac lorawan.EUI64
+	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
+	}
+
+	err := a.validator.Validate(ctx, auth.ValidateGatewayAccess(auth.Read, mac))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	macbytes, err := hex.DecodeString(req.Mac)
-	if nil != err {
-		return nil, grpc.Errorf(codes.InvalidArgument, "Bad gateway MAC: %s", err)
-	}
-
 	getReq := ns.GetGatewayRequest{
-		Mac: macbytes,
+		Mac: mac[:],
 	}
 
 	getResp, err := a.ctx.NetworkServer.GetGateway(ctx, &getReq)
+	if err != nil {
+		return nil, err
+	}
 
-	var ret *pb.GetGatewayResponse
-	if nil == err {
-		ret = &pb.GetGatewayResponse{
-			Mac:         hex.EncodeToString(getResp.Mac),
-			Name:        getResp.Name,
-			Description: getResp.Description,
-			Latitude:    getResp.Latitude,
-			Longitude:   getResp.Longitude,
-			Altitude:    getResp.Altitude,
-			CreatedAt:   getResp.CreatedAt,
-			UpdatedAt:   getResp.UpdatedAt,
-			FirstSeenAt: getResp.FirstSeenAt,
-			LastSeenAt:  getResp.LastSeenAt,
-		}
+	ret := &pb.GetGatewayResponse{
+		Mac:         mac.String(),
+		Name:        getResp.Name,
+		Description: getResp.Description,
+		Latitude:    getResp.Latitude,
+		Longitude:   getResp.Longitude,
+		Altitude:    getResp.Altitude,
+		CreatedAt:   getResp.CreatedAt,
+		UpdatedAt:   getResp.UpdatedAt,
+		FirstSeenAt: getResp.FirstSeenAt,
+		LastSeenAt:  getResp.LastSeenAt,
 	}
 	return ret, err
 }
 
 // List lists the gateways.
 func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.ListGatewayResponse, error) {
-	log.Info("Getting Gateway List")
-	err := a.validator.Validate(ctx, auth.ValidateActiveUser())
+	err := a.validator.Validate(ctx, auth.ValidateGatewaysAccess(auth.List))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -109,7 +107,7 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 	}
 	gws, err := a.ctx.NetworkServer.ListGateways(ctx, &listReq)
 	if err != nil {
-		return nil, errToRPCError(err)
+		return nil, err
 	}
 
 	result := make([]*pb.GetGatewayResponse, len(gws.Result))
@@ -136,18 +134,18 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 
 // Update updates the given gateway.
 func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (*pb.UpdateGatewayResponse, error) {
-	err := a.validator.Validate(ctx, auth.ValidateActiveUser())
+	var mac lorawan.EUI64
+	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
+	}
+
+	err := a.validator.Validate(ctx, auth.ValidateGatewayAccess(auth.Update, mac))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	macbytes, err := hex.DecodeString(req.Mac)
-	if nil != err {
-		return nil, grpc.Errorf(codes.InvalidArgument, "Bad gateway MAC: %s", err)
-	}
-
 	updateReq := ns.UpdateGatewayRequest{
-		Mac:         macbytes,
+		Mac:         mac[:],
 		Name:        req.Name,
 		Description: req.Description,
 		Latitude:    req.Latitude,
@@ -155,66 +153,62 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		Altitude:    req.Altitude,
 	}
 	_, err = a.ctx.NetworkServer.UpdateGateway(ctx, &updateReq)
-
-	var ret *pb.UpdateGatewayResponse
-	if nil == err {
-		ret = &pb.UpdateGatewayResponse{}
+	if err != nil {
+		return nil, err
 	}
-	return ret, err
+
+	return &pb.UpdateGatewayResponse{}, nil
 }
 
 // Delete deletes the gateway matching the given ID.
 func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (*pb.DeleteGatewayResponse, error) {
-	err := a.validator.Validate(ctx, auth.ValidateActiveUser())
+	var mac lorawan.EUI64
+	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
+	}
+
+	err := a.validator.Validate(ctx, auth.ValidateGatewayAccess(auth.Delete, mac))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	macbytes, err := hex.DecodeString(req.Mac)
-	if nil != err {
-		return nil, grpc.Errorf(codes.InvalidArgument, "Bad gateway MAC: %s", err)
-	}
-
 	deleteReq := ns.DeleteGatewayRequest{
-		Mac: macbytes,
+		Mac: mac[:],
 	}
 	_, err = a.ctx.NetworkServer.DeleteGateway(ctx, &deleteReq)
-
-	var ret *pb.DeleteGatewayResponse
-	if nil == err {
-		ret = &pb.DeleteGatewayResponse{}
+	if err != nil {
+		return nil, err
 	}
-	return ret, err
+
+	return &pb.DeleteGatewayResponse{}, nil
 }
 
 // GetStats gets the gateway statistics for the gateway with the given Mac.
 func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsRequest) (*pb.GetGatewayStatsResponse, error) {
-	err := a.validator.Validate(ctx, auth.ValidateActiveUser())
+	var mac lorawan.EUI64
+	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
+	}
+
+	err := a.validator.Validate(ctx, auth.ValidateGatewayAccess(auth.Read, mac))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	macbytes, err := hex.DecodeString(req.Mac)
-	if nil != err {
-		return nil, grpc.Errorf(codes.InvalidArgument, "Bad gateway MAC: %s", err)
-	}
-
 	interval, ok := ns.AggregationInterval_value[strings.ToUpper(req.Interval)]
-
 	if !ok {
-		return nil, grpc.Errorf(codes.InvalidArgument, "Bad interval: %s", req.Interval)
-
+		return nil, grpc.Errorf(codes.InvalidArgument, "bad interval: %s", req.Interval)
 	}
 
 	statsReq := ns.GetGatewayStatsRequest{
-		Mac:            macbytes,
+		Mac:            mac[:],
 		Interval:       ns.AggregationInterval(interval),
 		StartTimestamp: req.StartTimestamp,
 		EndTimestamp:   req.EndTimestamp,
 	}
 	stats, err := a.ctx.NetworkServer.GetGatewayStats(ctx, &statsReq)
 	if err != nil {
-		return nil, errToRPCError(err)
+		return nil, err
 	}
 
 	result := make([]*pb.GatewayStats, len(stats.Result))

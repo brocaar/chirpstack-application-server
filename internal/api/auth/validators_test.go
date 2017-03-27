@@ -443,6 +443,37 @@ func TestValidators(t *testing.T) {
 
 			runTests(tests, db)
 		})
+
+		Convey("When testing ValidateGatewaysAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can create and list",
+					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create), ValidateGatewaysAccess(List)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "application admin users can not create and list",
+					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create), ValidateGatewaysAccess(List)},
+					Claims:     Claims{Username: "user2"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "normal users can not create and list",
+					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create), ValidateGatewaysAccess(List)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "inactive admin users can not create and list",
+					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create), ValidateGatewaysAccess(List)},
+					Claims:     Claims{Username: "user8"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
 	})
 }
 

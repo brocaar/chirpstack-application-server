@@ -309,6 +309,42 @@ func ValidateChannelListAccess(flag Flag) ValidatorFunc {
 	}
 }
 
+// ValidateGatewaysAccess validates if the client has access to the gateways.
+func ValidateGatewaysAccess(flag Flag) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Create, List:
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+		}
+	default:
+		panic("unsupported flag")
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username)
+	}
+}
+
+// ValidateGatewayAccess validates if the client has access to the given gateway.
+func ValidateGatewayAccess(flag Flag, mac lorawan.EUI64) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Read, Update, Delete:
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+		}
+	default:
+		panic("unsupported flag")
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username)
+	}
+}
+
 func executeQuery(db *sqlx.DB, query string, where [][]string, args ...interface{}) (bool, error) {
 	var ors []string
 	for _, ands := range where {

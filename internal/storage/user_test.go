@@ -14,7 +14,7 @@ func TestUser(t *testing.T) {
 
 	// Set a user secret so JWTs can be assigned
 	SetUserSecret("DoWahDiddy")
-	
+
 	// Note that a "clean" database includes the admin user.
 
 	Convey("Given a clean database", t, func() {

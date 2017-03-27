@@ -1,8 +1,8 @@
 .PHONY: build clean test package package-deb ui api statics requirements ui-requirements serve update-vendor
 PKGS := $(shell go list ./... | grep -v /vendor |grep -v lora-app-server/api | grep -v /migrations | grep -v /static | grep -v /ui)
 VERSION := $(shell git describe --always)
-export GOOS ?= linux
-export GOARCH ?= amd64
+GOOS ?= linux
+GOARCH ?= amd64
 
 build:
 	@echo "Compiling source for $(GOOS) $(GOARCH)"

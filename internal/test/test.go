@@ -83,7 +83,7 @@ func MustFlushRedis(p *redis.Pool) {
 // NetworkServerClient is a test network-server client.
 type NetworkServerClient struct {
 	CreateGatewayChan   chan ns.CreateGatewayRequest
-	GetGatewayChan	    chan ns.GetGatewayRequest
+	GetGatewayChan      chan ns.GetGatewayRequest
 	UpdateGatewayChan   chan ns.UpdateGatewayRequest
 	DeleteGatewayChan   chan ns.DeleteGatewayRequest
 	GetGatewayStatsChan chan ns.GetGatewayStatsRequest
@@ -102,7 +102,7 @@ type NetworkServerClient struct {
 	DeleteGatewayResponse   ns.DeleteGatewayResponse
 	GetGatewayStatsResponse ns.GetGatewayStatsResponse
 	ListGatewayResponse     ns.ListGatewayResponse
-	
+
 	CreateNodeSessionResponse ns.CreateNodeSessionResponse
 	GetNodeSessionResponse    ns.GetNodeSessionResponse
 	UpdateNodeSessionResponse ns.UpdateNodeSessionResponse
@@ -121,12 +121,12 @@ func NewNetworkServerClient() *NetworkServerClient {
 		GetRandomDevAddrChan:  make(chan ns.GetRandomDevAddrRequest, 100),
 		PushDataDownChan:      make(chan ns.PushDataDownRequest, 100),
 		CreateGatewayChan:     make(chan ns.CreateGatewayRequest, 100),
-		GetGatewayChan:	       make(chan ns.GetGatewayRequest, 100),
+		GetGatewayChan:        make(chan ns.GetGatewayRequest, 100),
 		UpdateGatewayChan:     make(chan ns.UpdateGatewayRequest, 100),
 		DeleteGatewayChan:     make(chan ns.DeleteGatewayRequest, 100),
 		GetGatewayStatsChan:   make(chan ns.GetGatewayStatsRequest, 100),
 		ListGatewayChan:       make(chan ns.ListGatewayRequest, 100),
-		
+
 		CreateGatewayResponse:   ns.CreateGatewayResponse{},
 		GetGatewayResponse:      ns.GetGatewayResponse{},
 		UpdateGatewayResponse:   ns.UpdateGatewayResponse{},

@@ -27,6 +27,24 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "Max number of applications to return in the result-test.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset",
+            "description": "Offset in the result-set (for pagination).",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
         "tags": [
           "Application"
         ]
@@ -156,6 +174,22 @@
             "name": "id",
             "in": "path",
             "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "limit",
+            "description": "Max number of applications to return in the result-test.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset",
+            "description": "Offset in the result-set (for pagination).",
+            "in": "query",
+            "required": false,
             "type": "string",
             "format": "int64"
           }
@@ -342,12 +376,10 @@
       "properties": {
         "name": {
           "type": "string",
-          "format": "string",
           "description": "Name of the application (must be unique)."
         },
         "description": {
           "type": "string",
-          "format": "string",
           "description": "Description of the application."
         },
         "rxDelay": {
@@ -447,12 +479,10 @@
         },
         "name": {
           "type": "string",
-          "format": "string",
           "description": "Name of the application."
         },
         "description": {
           "type": "string",
-          "format": "string",
           "description": "Description of the application."
         },
         "rxDelay": {
@@ -516,7 +546,6 @@
         },
         "username": {
           "type": "string",
-          "format": "string",
           "title": "The username for the user"
         },
         "isAdmin": {
@@ -613,12 +642,10 @@
         },
         "name": {
           "type": "string",
-          "format": "string",
           "description": "Name of the application (must be unique)."
         },
         "description": {
           "type": "string",
-          "format": "string",
           "description": "Description of the application."
         },
         "rxDelay": {

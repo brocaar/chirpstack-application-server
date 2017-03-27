@@ -214,7 +214,7 @@ func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsReques
 	result := make([]*pb.GatewayStats, len(stats.Result))
 	for i, stat := range stats.Result {
 		result[i] = &pb.GatewayStats{
-			StartTimestamp:      stat.StartTimestamp,
+			Timestamp:           stat.Timestamp,
 			RxPacketsReceived:   stat.RxPacketsReceived,
 			RxPacketsReceivedOK: stat.RxPacketsReceivedOK,
 			TxPacketsReceived:   stat.TxPacketsReceived,

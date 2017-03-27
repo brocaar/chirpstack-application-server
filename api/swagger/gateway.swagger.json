@@ -252,7 +252,7 @@
     "apiGatewayStats": {
       "type": "object",
       "properties": {
-        "startTimestamp": {
+        "timestamp": {
           "type": "string",
           "description": "Timestamp of the (aggregated) measurement."
         },

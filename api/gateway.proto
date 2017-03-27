@@ -161,7 +161,7 @@ message UpdateGatewayResponse {}
 
 message GatewayStats {
 	// Timestamp of the (aggregated) measurement.
-	string startTimestamp = 1;
+	string timestamp = 1;
 
 	// Packets received by the gateway.
 	int32 rxPacketsReceived = 2;

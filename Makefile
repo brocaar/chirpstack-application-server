@@ -24,7 +24,6 @@ test: internal/statics internal/migrations
 
 package: build
 	@echo "Creating package for $(GOOS) $(GOARCH)"
-	@rm -rf build dist/tar/$(VERSION)
 	@mkdir -p dist/tar/$(VERSION)
 	@cp build/* dist/tar/$(VERSION)
 	@cd dist/tar/$(VERSION) && tar -pczf ../lora_app_server_$(VERSION)_$(GOOS)_$(GOARCH).tar.gz .

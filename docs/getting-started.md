@@ -38,9 +38,11 @@ packages. In order to activate this repository, execute the following
 commands:
 
 ```bash
-source /etc/lsb-release
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1CE2AFD36DBCCA00
-sudo echo "deb https://repos.loraserver.io/${DISTRIB_ID,,} ${DISTRIB_CODENAME} testing" | sudo tee /etc/apt/sources.list.d/loraserver.list
+
+# replace {DISTRIBUTION} by the distribution (debian or ubuntu)
+# replace {DIST_VERSION} by the distribution version (jessie, trusty or xenial)
+sudo echo "deb https://repos.loraserver.io/{DISTRIBUTION} {DIST_VERSION} testing" | sudo tee /etc/apt/sources.list.d/loraserver.list
 sudo apt-get update
 ```
 
@@ -76,29 +78,36 @@ sudo apt-get install redis-server
 
 ### PostgreSQL server
 
-LoRa App Server stores all persistent data into a
-[PostgreSQL](http://www.postgresql.org/) database. To install PostgreSQL:
+LoRa App Server persists the gateway data into a
+[PostgreSQL](https://www.postgresql.org) database. Note that PostgreSQL 9.5+
+is required. To install the latest PostgreSQL:
 
 ```bash
-sudo apt-get install postgresql
+get --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
+# replace {DIST_VERSION} by the distribution version (jessie, trusty or xenial)
+sudo echo "deb http://apt.postgresql.org/pub/repos/apt/ {DIST_VERSION}-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+sudo apt-get update
+
+sudo apt-get install postgresql-9.6
 ```
 
 #### Creating a loraserver user and database
 
-Start the PostgreSQL promt as the `postgres` user:
+Start the PostgreSQL prompt as the `postgres` user:
 
 ```bash
 sudo -u postgres psql
 ```
 
-Within the the PostgreSQL promt, enter the following queries:
+Within the the PostgreSQL prompt, enter the following queries:
 
 ```sql
--- create the loraserver user with password "dbpassword"
-create role loraserver with login password 'dbpassword';
+-- create the loraserver_as user
+create role loraserver_as with login password 'dbpassword';
 
--- create the loraserver database
-create database loraserver with owner loraserver;
+-- create the loraserver_as database
+create database loraserver_as with owner loraserver_as;
 
 -- exit the prompt
 \q
@@ -108,7 +117,7 @@ To verify if the user and database have been setup correctly, try to connect
 to it:
 
 ```bash
-psql -h localhost -U loraserver -W loraserver
+psql -h localhost -U loraserver_as -W loraserver_as
 ```
 
 ### Install LoRa App Server
@@ -126,7 +135,7 @@ Given you used the password `dbpassword` when creating the PostgreSQL database,
 you want to change the config variable `POSTGRES_DSN` into:
 
 ```
-POSTGRES_DSN=postgres://loraserver:dbpassword@localhost/loraserver?sslmode=disable
+POSTGRES_DSN=postgres://loraserver_as:dbpassword@localhost/loraserver_as?sslmode=disable
 ```
 
 An other required setting you must change is `JWT_SECRET`.

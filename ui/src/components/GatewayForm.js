@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router';
 
 import { Map, Marker, TileLayer } from 'react-leaflet';
 
@@ -14,6 +15,8 @@ class GatewayForm extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.updatePosition = this.updatePosition.bind(this);
     this.updateZoom = this.updateZoom.bind(this);
+    this.setToCurrentPosition = this.setToCurrentPosition.bind(this);
+    this.handleSetToCurrentPosition = this.handleSetToCurrentPosition.bind(this);
   }
 
   onChange(field, e) {
@@ -51,16 +54,20 @@ class GatewayForm extends Component {
       gateway: this.props.gateway,
     });
 
+    if (typeof(this.state.gateway.latitude) === "undefined" || typeof(this.state.gateway.longitude) === "undefined" || this.state.gateway.latitude === 0 || this.state.gateway.longitude === 0) {
+      this.setToCurrentPosition();
+    }
+  }
+
+  setToCurrentPosition() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
-        if (typeof(this.state.gateway.latitude) === "undefined" || typeof(this.state.gateway.longitude) === "undefined") {
-          let gateway = this.state.gateway;
-          gateway.latitude = position.coords.latitude;
-          gateway.longitude = position.coords.longitude;
-          this.setState({
-            gateway: gateway,
-          });
-        }
+        let gateway = this.state.gateway;
+        gateway.latitude = position.coords.latitude;
+        gateway.longitude = position.coords.longitude;
+        this.setState({
+          gateway: gateway,
+        });
       });
     }
   }
@@ -74,6 +81,11 @@ class GatewayForm extends Component {
   handleSubmit(e) {
     e.preventDefault();
     this.props.onSubmit(this.state.gateway);
+  }
+
+  handleSetToCurrentPosition(e) {
+    e.preventDefault();
+    this.setToCurrentPosition();
   }
 
   render() {
@@ -114,7 +126,7 @@ class GatewayForm extends Component {
             <p className="help-block">When the gateway has an on-board GPS, this value will be set automatically when the network received statistics from the gateway.</p>
           </div>
           <div className="form-group">
-            <label className="control-label">Gateway location</label>
+            <label className="control-label">Gateway location (<Link onClick={this.handleSetToCurrentPosition} href="#">set to current location</Link>)</label>
             <Map zoom={this.state.mapZoom} center={position} style={mapStyle} animate={true} onZoomend={this.updateZoom}>
               <TileLayer
                 url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.1
+
+**Features & changes:**
+
+* Add 'set to current location' (create / update gateway in UI)
+
 ## 0.7.0
 
 **Features & changes:**

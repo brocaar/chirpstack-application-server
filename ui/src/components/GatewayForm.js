@@ -54,20 +54,20 @@ class GatewayForm extends Component {
       gateway: this.props.gateway,
     });
 
-    if (typeof(this.state.gateway.latitude) === "undefined" || typeof(this.state.gateway.longitude) === "undefined" || this.state.gateway.latitude === 0 || this.state.gateway.longitude === 0) {
-      this.setToCurrentPosition();
-    }
+    this.setToCurrentPosition(false);
   }
 
-  setToCurrentPosition() {
+  setToCurrentPosition(overwrite) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
-        let gateway = this.state.gateway;
-        gateway.latitude = position.coords.latitude;
-        gateway.longitude = position.coords.longitude;
-        this.setState({
-          gateway: gateway,
-        });
+        if (overwrite === true || typeof(this.state.gateway.latitude) === "undefined" || typeof(this.state.gateway.longitude) === "undefined" || this.state.gateway.latitude === 0 || this.state.gateway.longitude === 0) {
+          let gateway = this.state.gateway;
+          gateway.latitude = position.coords.latitude;
+          gateway.longitude = position.coords.longitude;
+          this.setState({
+            gateway: gateway,
+          });
+        }
       });
     }
   }
@@ -85,7 +85,7 @@ class GatewayForm extends Component {
 
   handleSetToCurrentPosition(e) {
     e.preventDefault();
-    this.setToCurrentPosition();
+    this.setToCurrentPosition(true);
   }
 
   render() {

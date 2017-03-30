@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.2
+
+**Bugfixes:**
+
+* Fix race-condition between fetching the gateway details and getting the
+  current location if the gateway location is not yet set (UI).
+
 ## 0.7.1
 
 **Features & changes:**

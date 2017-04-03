@@ -116,14 +116,14 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 		return nil, grpc.Errorf(codes.Unknown, "get AppNonce error: %s", err)
 	}
 
-	// get the (optional) CFList
-	cFList, err := storage.GetCFListForNode(a.ctx.DB, node)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"dev_eui": node.DevEUI,
-			"app_eui": node.AppEUI,
-		}).Errorf("join-request get CFList error: %s", err)
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	// optional CFList
+	var cFList *lorawan.CFList
+	if len(req.CFList) > 0 && len(cFList) <= len(lorawan.CFList{}) {
+		var cf lorawan.CFList
+		for i := range req.CFList {
+			cf[i] = req.CFList[i]
+		}
+		cFList = &cf
 	}
 
 	// get keys
@@ -184,10 +184,6 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 		RelaxFCnt:          node.RelaxFCnt,
 		AdrInterval:        node.ADRInterval,
 		InstallationMargin: node.InstallationMargin,
-	}
-
-	if cFList != nil {
-		resp.CFList = cFList[:]
 	}
 
 	log.WithFields(log.Fields{

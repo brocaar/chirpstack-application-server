@@ -33,7 +33,7 @@ type ListOrganizationRequest struct {
 func (m *ListOrganizationRequest) Reset()                    { *m = ListOrganizationRequest{} }
 func (m *ListOrganizationRequest) String() string            { return proto.CompactTextString(m) }
 func (*ListOrganizationRequest) ProtoMessage()               {}
-func (*ListOrganizationRequest) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{0} }
+func (*ListOrganizationRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{0} }
 
 func (m *ListOrganizationRequest) GetLimit() int32 {
 	if m != nil {
@@ -64,7 +64,7 @@ type OrganizationRequest struct {
 func (m *OrganizationRequest) Reset()                    { *m = OrganizationRequest{} }
 func (m *OrganizationRequest) String() string            { return proto.CompactTextString(m) }
 func (*OrganizationRequest) ProtoMessage()               {}
-func (*OrganizationRequest) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{1} }
+func (*OrganizationRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{1} }
 
 func (m *OrganizationRequest) GetId() int64 {
 	if m != nil {
@@ -91,7 +91,7 @@ type GetOrganizationResponse struct {
 func (m *GetOrganizationResponse) Reset()                    { *m = GetOrganizationResponse{} }
 func (m *GetOrganizationResponse) String() string            { return proto.CompactTextString(m) }
 func (*GetOrganizationResponse) ProtoMessage()               {}
-func (*GetOrganizationResponse) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{2} }
+func (*GetOrganizationResponse) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{2} }
 
 func (m *GetOrganizationResponse) GetId() int64 {
 	if m != nil {
@@ -148,7 +148,7 @@ type CreateOrganizationRequest struct {
 func (m *CreateOrganizationRequest) Reset()                    { *m = CreateOrganizationRequest{} }
 func (m *CreateOrganizationRequest) String() string            { return proto.CompactTextString(m) }
 func (*CreateOrganizationRequest) ProtoMessage()               {}
-func (*CreateOrganizationRequest) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{3} }
+func (*CreateOrganizationRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{3} }
 
 func (m *CreateOrganizationRequest) GetName() string {
 	if m != nil {
@@ -179,7 +179,7 @@ type CreateOrganizationResponse struct {
 func (m *CreateOrganizationResponse) Reset()                    { *m = CreateOrganizationResponse{} }
 func (m *CreateOrganizationResponse) String() string            { return proto.CompactTextString(m) }
 func (*CreateOrganizationResponse) ProtoMessage()               {}
-func (*CreateOrganizationResponse) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{4} }
+func (*CreateOrganizationResponse) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{4} }
 
 func (m *CreateOrganizationResponse) GetId() int64 {
 	if m != nil {
@@ -203,7 +203,7 @@ type UpdateOrganizationRequest struct {
 func (m *UpdateOrganizationRequest) Reset()                    { *m = UpdateOrganizationRequest{} }
 func (m *UpdateOrganizationRequest) String() string            { return proto.CompactTextString(m) }
 func (*UpdateOrganizationRequest) ProtoMessage()               {}
-func (*UpdateOrganizationRequest) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{5} }
+func (*UpdateOrganizationRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{5} }
 
 func (m *UpdateOrganizationRequest) GetId() int64 {
 	if m != nil {
@@ -241,7 +241,7 @@ type ListOrganizationResponse struct {
 func (m *ListOrganizationResponse) Reset()                    { *m = ListOrganizationResponse{} }
 func (m *ListOrganizationResponse) String() string            { return proto.CompactTextString(m) }
 func (*ListOrganizationResponse) ProtoMessage()               {}
-func (*ListOrganizationResponse) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{6} }
+func (*ListOrganizationResponse) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{6} }
 
 func (m *ListOrganizationResponse) GetTotalCount() int32 {
 	if m != nil {
@@ -263,7 +263,7 @@ type OrganizationEmptyResponse struct {
 func (m *OrganizationEmptyResponse) Reset()                    { *m = OrganizationEmptyResponse{} }
 func (m *OrganizationEmptyResponse) String() string            { return proto.CompactTextString(m) }
 func (*OrganizationEmptyResponse) ProtoMessage()               {}
-func (*OrganizationEmptyResponse) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{7} }
+func (*OrganizationEmptyResponse) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{7} }
 
 type OrganizationUserRequest struct {
 	// The organization id.
@@ -277,7 +277,7 @@ type OrganizationUserRequest struct {
 func (m *OrganizationUserRequest) Reset()                    { *m = OrganizationUserRequest{} }
 func (m *OrganizationUserRequest) String() string            { return proto.CompactTextString(m) }
 func (*OrganizationUserRequest) ProtoMessage()               {}
-func (*OrganizationUserRequest) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{8} }
+func (*OrganizationUserRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{8} }
 
 func (m *OrganizationUserRequest) GetId() int64 {
 	if m != nil {
@@ -310,7 +310,7 @@ type DeleteOrganizationUserRequest struct {
 func (m *DeleteOrganizationUserRequest) Reset()                    { *m = DeleteOrganizationUserRequest{} }
 func (m *DeleteOrganizationUserRequest) String() string            { return proto.CompactTextString(m) }
 func (*DeleteOrganizationUserRequest) ProtoMessage()               {}
-func (*DeleteOrganizationUserRequest) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{9} }
+func (*DeleteOrganizationUserRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{9} }
 
 func (m *DeleteOrganizationUserRequest) GetId() int64 {
 	if m != nil {
@@ -339,7 +339,7 @@ type ListOrganizationUsersRequest struct {
 func (m *ListOrganizationUsersRequest) Reset()                    { *m = ListOrganizationUsersRequest{} }
 func (m *ListOrganizationUsersRequest) String() string            { return proto.CompactTextString(m) }
 func (*ListOrganizationUsersRequest) ProtoMessage()               {}
-func (*ListOrganizationUsersRequest) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{10} }
+func (*ListOrganizationUsersRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{10} }
 
 func (m *ListOrganizationUsersRequest) GetId() int64 {
 	if m != nil {
@@ -372,7 +372,7 @@ type GetOrganizationUserRequest struct {
 func (m *GetOrganizationUserRequest) Reset()                    { *m = GetOrganizationUserRequest{} }
 func (m *GetOrganizationUserRequest) String() string            { return proto.CompactTextString(m) }
 func (*GetOrganizationUserRequest) ProtoMessage()               {}
-func (*GetOrganizationUserRequest) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{11} }
+func (*GetOrganizationUserRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{11} }
 
 func (m *GetOrganizationUserRequest) GetId() int64 {
 	if m != nil {
@@ -405,7 +405,7 @@ type GetOrganizationUserResponse struct {
 func (m *GetOrganizationUserResponse) Reset()                    { *m = GetOrganizationUserResponse{} }
 func (m *GetOrganizationUserResponse) String() string            { return proto.CompactTextString(m) }
 func (*GetOrganizationUserResponse) ProtoMessage()               {}
-func (*GetOrganizationUserResponse) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{12} }
+func (*GetOrganizationUserResponse) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{12} }
 
 func (m *GetOrganizationUserResponse) GetId() int64 {
 	if m != nil {
@@ -453,7 +453,7 @@ type ListOrganizationUsersResponse struct {
 func (m *ListOrganizationUsersResponse) Reset()                    { *m = ListOrganizationUsersResponse{} }
 func (m *ListOrganizationUsersResponse) String() string            { return proto.CompactTextString(m) }
 func (*ListOrganizationUsersResponse) ProtoMessage()               {}
-func (*ListOrganizationUsersResponse) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{13} }
+func (*ListOrganizationUsersResponse) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{13} }
 
 func (m *ListOrganizationUsersResponse) GetTotalCount() int32 {
 	if m != nil {
@@ -875,9 +875,9 @@ var _Organization_serviceDesc = grpc.ServiceDesc{
 	Metadata: "organization.proto",
 }
 
-func init() { proto.RegisterFile("organization.proto", fileDescriptor7) }
+func init() { proto.RegisterFile("organization.proto", fileDescriptor6) }
 
-var fileDescriptor7 = []byte{
+var fileDescriptor6 = []byte{
 	// 745 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xc1, 0x6e, 0xd3, 0x40,
 	0x10, 0x95, 0xe3, 0xc4, 0x6d, 0xa6, 0x08, 0xa4, 0xa5, 0x6a, 0x1c, 0x37, 0x69, 0xc2, 0x4a, 0x45,

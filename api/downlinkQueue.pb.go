@@ -35,7 +35,7 @@ type EnqueueDownlinkQueueItemRequest struct {
 func (m *EnqueueDownlinkQueueItemRequest) Reset()                    { *m = EnqueueDownlinkQueueItemRequest{} }
 func (m *EnqueueDownlinkQueueItemRequest) String() string            { return proto.CompactTextString(m) }
 func (*EnqueueDownlinkQueueItemRequest) ProtoMessage()               {}
-func (*EnqueueDownlinkQueueItemRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{0} }
+func (*EnqueueDownlinkQueueItemRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{0} }
 
 func (m *EnqueueDownlinkQueueItemRequest) GetDevEUI() string {
 	if m != nil {
@@ -79,7 +79,7 @@ func (m *EnqueueDownlinkQueueItemResponse) Reset()         { *m = EnqueueDownlin
 func (m *EnqueueDownlinkQueueItemResponse) String() string { return proto.CompactTextString(m) }
 func (*EnqueueDownlinkQueueItemResponse) ProtoMessage()    {}
 func (*EnqueueDownlinkQueueItemResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor3, []int{1}
+	return fileDescriptor2, []int{1}
 }
 
 type DeleteDownlinkQeueueItemRequest struct {
@@ -92,7 +92,7 @@ type DeleteDownlinkQeueueItemRequest struct {
 func (m *DeleteDownlinkQeueueItemRequest) Reset()                    { *m = DeleteDownlinkQeueueItemRequest{} }
 func (m *DeleteDownlinkQeueueItemRequest) String() string            { return proto.CompactTextString(m) }
 func (*DeleteDownlinkQeueueItemRequest) ProtoMessage()               {}
-func (*DeleteDownlinkQeueueItemRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{2} }
+func (*DeleteDownlinkQeueueItemRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{2} }
 
 func (m *DeleteDownlinkQeueueItemRequest) GetDevEUI() string {
 	if m != nil {
@@ -114,7 +114,7 @@ type DeleteDownlinkQueueItemResponse struct {
 func (m *DeleteDownlinkQueueItemResponse) Reset()                    { *m = DeleteDownlinkQueueItemResponse{} }
 func (m *DeleteDownlinkQueueItemResponse) String() string            { return proto.CompactTextString(m) }
 func (*DeleteDownlinkQueueItemResponse) ProtoMessage()               {}
-func (*DeleteDownlinkQueueItemResponse) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{3} }
+func (*DeleteDownlinkQueueItemResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{3} }
 
 type DownlinkQueueItem struct {
 	// ID of the queue item.
@@ -136,7 +136,7 @@ type DownlinkQueueItem struct {
 func (m *DownlinkQueueItem) Reset()                    { *m = DownlinkQueueItem{} }
 func (m *DownlinkQueueItem) String() string            { return proto.CompactTextString(m) }
 func (*DownlinkQueueItem) ProtoMessage()               {}
-func (*DownlinkQueueItem) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{4} }
+func (*DownlinkQueueItem) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{4} }
 
 func (m *DownlinkQueueItem) GetId() int64 {
 	if m != nil {
@@ -195,7 +195,7 @@ type ListDownlinkQueueItemsRequest struct {
 func (m *ListDownlinkQueueItemsRequest) Reset()                    { *m = ListDownlinkQueueItemsRequest{} }
 func (m *ListDownlinkQueueItemsRequest) String() string            { return proto.CompactTextString(m) }
 func (*ListDownlinkQueueItemsRequest) ProtoMessage()               {}
-func (*ListDownlinkQueueItemsRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{5} }
+func (*ListDownlinkQueueItemsRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{5} }
 
 func (m *ListDownlinkQueueItemsRequest) GetDevEUI() string {
 	if m != nil {
@@ -211,7 +211,7 @@ type ListDownlinkQueueItemsResponse struct {
 func (m *ListDownlinkQueueItemsResponse) Reset()                    { *m = ListDownlinkQueueItemsResponse{} }
 func (m *ListDownlinkQueueItemsResponse) String() string            { return proto.CompactTextString(m) }
 func (*ListDownlinkQueueItemsResponse) ProtoMessage()               {}
-func (*ListDownlinkQueueItemsResponse) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{6} }
+func (*ListDownlinkQueueItemsResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{6} }
 
 func (m *ListDownlinkQueueItemsResponse) GetItems() []*DownlinkQueueItem {
 	if m != nil {
@@ -376,9 +376,9 @@ var _DownlinkQueue_serviceDesc = grpc.ServiceDesc{
 	Metadata: "downlinkQueue.proto",
 }
 
-func init() { proto.RegisterFile("downlinkQueue.proto", fileDescriptor3) }
+func init() { proto.RegisterFile("downlinkQueue.proto", fileDescriptor2) }
 
-var fileDescriptor3 = []byte{
+var fileDescriptor2 = []byte{
 	// 437 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x54, 0x41, 0x6e, 0xd3, 0x40,
 	0x14, 0xd5, 0xd8, 0x8e, 0xd3, 0x7e, 0x28, 0x12, 0x03, 0xaa, 0x8c, 0x29, 0xa9, 0x3b, 0x14, 0x64,

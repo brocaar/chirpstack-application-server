@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 
-import ChannelStore from "../stores/ChannelStore";
-
 class NodeForm extends Component {
   constructor() {
     super();
@@ -10,17 +8,12 @@ class NodeForm extends Component {
       activeTab: "node",
       node: {},
       devEUIDisabled: false,
-      channelLists: [],
       disabled: false,
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
     this.changeTab = this.changeTab.bind(this);
     this.updateNodeSettings = this.updateNodeSettings.bind(this);
-
-    ChannelStore.getAllChannelLists((lists) => {
-      this.setState({channelLists: lists});
-    });
   }
 
   componentWillReceiveProps(nextProps) {
@@ -56,7 +49,6 @@ class NodeForm extends Component {
     if (node.useApplicationSettings === true) {
       node.rxDelay = application.rxDelay;
       node.rx1DROffset = application.rx1DROffset;
-      node.channelListID = application.channelListID;
       node.rxWindow = application.rxWindow;
       node.rx2DR = application.rx2DR;
       node.relaxFCnt = application.relaxFCnt;
@@ -193,21 +185,6 @@ class NodeForm extends Component {
               <input className="form-control" id="rx2DR" type="number" disabled={this.state.node.useApplicationSettings} required value={this.state.node.rx2DR || 0} onChange={this.onChange.bind(this, 'rx2DR')} />
               <p className="help-block">
                 The data-rate to use when RX2 is used as receive window.
-                Please refer to the LoRaWAN specs for the values that are valid in your region.
-              </p>
-            </div>
-            <div className="form-group">
-              <label className="control-label" htmlFor="channelListID">Channel-list</label>
-              <select className="form-control" id="channelListID" name="channelListID" disabled={this.state.node.useApplicationSettings} value={this.state.node.channelListID} onChange={this.onChange.bind(this, "channelListID")}>
-                <option value="0"></option>
-                {
-                  this.state.channelLists.map((cl, i) => {
-                    return (<option key={cl.id} value={cl.id}>{cl.name}</option>);
-                  })
-                }
-              </select>
-              <p className="help-block">
-                Some LoRaWAN ISM bands implement an optional channel-frequency list that can be sent when using OTAA.
                 Please refer to the LoRaWAN specs for the values that are valid in your region.
               </p>
             </div>

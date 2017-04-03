@@ -84,9 +84,6 @@ message CreateNodeRequest {
 	// RX1 data-rate offset.
 	uint32 rx1DROffset = 5;
 
-	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
-	int64 channelListID = 6;
-
 	// RX window to use.
 	RXWindow rxWindow = 7;
 
@@ -143,9 +140,6 @@ message GetNodeResponse {
 
 	// RX1 data-rate offset.
 	uint32 rx1DROffset = 5;
-
-	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
-	int64 channelListID = 6;
 
 	// RX window to use.
 	RXWindow rxWindow = 7;
@@ -223,9 +217,6 @@ message UpdateNodeRequest {
 
 	// RX1 data-rate offset.
 	uint32 rx1DROffset = 5;
-
-	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
-	int64 channelListID = 6;
 
 	// RX window to use.
 	RXWindow rxWindow = 7;

@@ -21,11 +21,6 @@ import UpdateNode from './views/nodes/UpdateNode';
 import CreateNode from "./views/nodes/CreateNode";
 import ActivateNode from "./views/nodes/ActivateNode";
 
-// channels
-import ChannelLists from "./views/channels/ChannelLists";
-import ChannelListDetails from "./views/channels/ChannelListDetails";
-import CreateChannelList from "./views/channels/CreateChannelList";
-
 // users
 import Login from "./views/users/Login";
 import CreateUser from "./views/users/CreateUser";
@@ -69,9 +64,6 @@ ReactDOM.render(
       <Route path="users/:userID/edit" component={UpdateUser}></Route>
       <Route path="users/:userID/password" component={UpdatePassword}></Route>
       <Route path="users" component={ListUsers}></Route>
-      <Route path="channels" component={ChannelLists}></Route>
-      <Route path="channels/create" component={CreateChannelList}></Route>
-      <Route path="channels/:id" component={ChannelListDetails}></Route>
       <Route path="organizations" component={ListOrganizations}></Route>
       <Route path="organizations/create" component={CreateOrganization}></Route>
       <Route path="organizations/:id/edit" component={UpdateOrganization}></Route>

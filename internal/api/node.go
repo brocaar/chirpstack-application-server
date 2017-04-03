@@ -73,9 +73,6 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 		ADRInterval:        req.AdrInterval,
 		InstallationMargin: req.InstallationMargin,
 	}
-	if req.ChannelListID > 0 {
-		node.ChannelListID = &req.ChannelListID
-	}
 
 	if err := storage.CreateNode(a.ctx.DB, node); err != nil {
 		return nil, errToRPCError(err)
@@ -118,10 +115,6 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 		InstallationMargin:     node.InstallationMargin,
 		ApplicationID:          node.ApplicationID,
 		UseApplicationSettings: node.UseApplicationSettings,
-	}
-
-	if node.ChannelListID != nil {
-		resp.ChannelListID = *node.ChannelListID
 	}
 
 	return &resp, nil
@@ -185,11 +178,6 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 	node.InstallationMargin = req.InstallationMargin
 	node.ApplicationID = req.ApplicationID
 	node.UseApplicationSettings = req.UseApplicationSettings
-	if req.ChannelListID > 0 {
-		node.ChannelListID = &req.ChannelListID
-	} else {
-		node.ChannelListID = nil
-	}
 
 	if err := storage.UpdateNode(a.ctx.DB, node); err != nil {
 		return nil, errToRPCError(err)
@@ -278,11 +266,6 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 		DevEUI: node.DevEUI[:],
 	})
 
-	cFList, err := storage.GetCFListForNode(a.ctx.DB, node)
-	if err != nil {
-		return nil, errToRPCError(err)
-	}
-
 	createNSReq := ns.CreateNodeSessionRequest{
 		DevAddr:            devAddr[:],
 		AppEUI:             node.AppEUI[:],
@@ -297,11 +280,6 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 		RelaxFCnt:          node.RelaxFCnt,
 		AdrInterval:        node.ADRInterval,
 		InstallationMargin: node.InstallationMargin,
-	}
-	if cFList != nil {
-		for _, freq := range cFList {
-			createNSReq.CFList = append(createNSReq.CFList, freq)
-		}
 	}
 
 	_, err = a.ctx.NetworkServer.CreateNodeSession(context.Background(), &createNSReq)
@@ -401,10 +379,6 @@ func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeRespo
 			InstallationMargin:     node.InstallationMargin,
 			ApplicationID:          node.ApplicationID,
 			UseApplicationSettings: node.UseApplicationSettings,
-		}
-
-		if node.ChannelListID != nil {
-			item.ChannelListID = *node.ChannelListID
 		}
 
 		resp.Result = append(resp.Result, &item)

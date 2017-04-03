@@ -194,8 +194,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 			})
 
-			Convey("When calling JoinRequest", func() {
-
+			Convey("When calling JoinRequest without any additional channels", func() {
 				req := as.JoinRequestRequest{
 					PhyPayload: b,
 					DevAddr:    []byte{1, 2, 3, 4},
@@ -212,7 +211,6 @@ func TestApplicationServerAPI(t *testing.T) {
 					So(resp.NwkSKey, ShouldResemble, node.NwkSKey[:])
 					So(resp.RxDelay, ShouldEqual, uint32(node.RXDelay))
 					So(resp.Rx1DROffset, ShouldEqual, uint32(node.RX1DROffset))
-					So(resp.CFList, ShouldHaveLength, 0)
 					So(resp.RxWindow, ShouldEqual, as.RXWindow_RX2)
 					So(resp.Rx2DR, ShouldEqual, uint32(node.RX2DR))
 					So(resp.RelaxFCnt, ShouldBeTrue)
@@ -257,63 +255,52 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 			})
 
-			Convey("Given the node as a CFList with three channels", func() {
-				cl := storage.ChannelList{
-					Name: "test list",
-					Channels: []int64{
+			Convey("When calling JoinRequest with additional channels", func() {
+				req := as.JoinRequestRequest{
+					PhyPayload: b,
+					DevAddr:    []byte{1, 2, 3, 4},
+					NetID:      []byte{1, 2, 3},
+					CFList: []uint32{
 						868400000,
 						868500000,
 						868600000,
 					},
 				}
-				So(storage.CreateChannelList(db, &cl), ShouldBeNil)
+				resp, err := api.JoinRequest(ctx, &req)
+				So(err, ShouldBeNil)
 
-				node.ChannelListID = &cl.ID
-				So(storage.UpdateNode(db, node), ShouldBeNil)
-
-				Convey("When calling JoinRequest", func() {
-					req := as.JoinRequestRequest{
-						PhyPayload: b,
-						DevAddr:    []byte{1, 2, 3, 4},
-						NetID:      []byte{1, 2, 3},
-					}
-
-					resp, err := api.JoinRequest(ctx, &req)
+				Convey("Then the CFlist is set in the response", func() {
+					node, err := storage.GetNode(db, node.DevEUI)
 					So(err, ShouldBeNil)
 
-					Convey("Then the CFlist is set in the response", func() {
-						node, err := storage.GetNode(db, node.DevEUI)
-						So(err, ShouldBeNil)
+					var phy lorawan.PHYPayload
+					So(phy.UnmarshalBinary(resp.PhyPayload), ShouldBeNil)
 
-						var phy lorawan.PHYPayload
-						So(phy.UnmarshalBinary(resp.PhyPayload), ShouldBeNil)
+					So(phy.DecryptJoinAcceptPayload(node.AppKey), ShouldBeNil)
+					ok, err := phy.ValidateMIC(node.AppKey)
+					So(err, ShouldBeNil)
+					So(ok, ShouldBeTrue)
 
-						So(phy.DecryptJoinAcceptPayload(node.AppKey), ShouldBeNil)
-						ok, err := phy.ValidateMIC(node.AppKey)
-						So(err, ShouldBeNil)
-						So(ok, ShouldBeTrue)
+					jaPL, ok := phy.MACPayload.(*lorawan.JoinAcceptPayload)
+					So(ok, ShouldBeTrue)
 
-						jaPL, ok := phy.MACPayload.(*lorawan.JoinAcceptPayload)
-						So(ok, ShouldBeTrue)
-
-						So(jaPL.CFList, ShouldResemble, &lorawan.CFList{
-							868400000,
-							868500000,
-							868600000,
-							0,
-							0,
-						})
+					So(jaPL.CFList, ShouldResemble, &lorawan.CFList{
+						868400000,
+						868500000,
+						868600000,
+						0,
+						0,
 					})
+				})
 
-					Convey("Then a notification was sent to the handler", func() {
-						So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
-						So(<-h.SendJoinNotificationChan, ShouldResemble, handler.JoinNotification{
-							ApplicationID:   app.ID,
-							ApplicationName: "test-app",
-							NodeName:        "test-node",
-							DevAddr:         [4]byte{1, 2, 3, 4},
-							DevEUI:          node.DevEUI,
-						})
+				Convey("Then a notification was sent to the handler", func() {
+					So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
+					So(<-h.SendJoinNotificationChan, ShouldResemble, handler.JoinNotification{
+						ApplicationID:   app.ID,
+						ApplicationName: "test-app",
+						NodeName:        "test-node",
+						DevAddr:         [4]byte{1, 2, 3, 4},
+						DevEUI:          node.DevEUI,
 					})
 				})
 			})

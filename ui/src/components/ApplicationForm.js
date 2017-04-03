@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 
 import Select from "react-select";
 
-import ChannelStore from "../stores/ChannelStore";
 import SessionStore from "../stores/SessionStore";
 import OrganizationStore from "../stores/OrganizationStore";
 
@@ -13,13 +12,8 @@ class ApplicationForm extends Component {
     this.state = {
       activeTab: "application",
       application: {},
-      channelLists: [],
       isGlobalAdmin: false,
     };
-
-    ChannelStore.getAllChannelLists((lists) => {
-      this.setState({channelLists: lists});
-    });
 
     this.handleSubmit = this.handleSubmit.bind(this);
     this.changeTab = this.changeTab.bind(this);
@@ -229,21 +223,6 @@ class ApplicationForm extends Component {
               <input className="form-control" id="rx2DR" type="number" required value={this.state.application.rx2DR || 0} onChange={this.onChange.bind(this, 'rx2DR')} />
               <p className="help-block">
                 The data-rate to use when RX2 is used as receive window.
-                Please refer to the LoRaWAN specs for the values that are valid in your region.
-              </p>
-            </div>
-            <div className="form-group">
-              <label className="control-label" htmlFor="channelListID">Channel-list</label>
-              <select className="form-control" id="channelListID" name="channelListID" value={this.state.application.channelListID} onChange={this.onChange.bind(this, "channelListID")}>
-                <option value="0"></option>
-                {
-                  this.state.channelLists.map((cl, i) => {
-                    return (<option key={cl.id} value={cl.id}>{cl.name}</option>);
-                  })
-                }
-              </select>
-              <p className="help-block">
-                Some LoRaWAN ISM bands implement an optional channel-frequency list that can be sent when using OTAA.
                 Please refer to the LoRaWAN specs for the values that are valid in your region.
               </p>
             </div>

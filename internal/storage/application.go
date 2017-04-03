@@ -28,7 +28,6 @@ type Application struct {
 	RXDelay            uint8    `db:"rx_delay"`
 	RX1DROffset        uint8    `db:"rx1_dr_offset"`
 	RX2DR              uint8    `db:"rx2_dr"`
-	ChannelListID      *int64   `db:"channel_list_id"`
 	ADRInterval        uint32   `db:"adr_interval"`
 	InstallationMargin float64  `db:"installation_margin"`
 }
@@ -67,7 +66,6 @@ func CreateApplication(db *sqlx.DB, item *Application) error {
 			description,
 			rx_delay,
 			rx1_dr_offset,
-			channel_list_id,
 			rx_window,
 			rx2_dr,
 			relax_fcnt,
@@ -76,12 +74,11 @@ func CreateApplication(db *sqlx.DB, item *Application) error {
 			is_abp,
 			is_class_c,
 			organization_id
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) returning id`,
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) returning id`,
 		item.Name,
 		item.Description,
 		item.RXDelay,
 		item.RX1DROffset,
-		item.ChannelListID,
 		item.RXWindow,
 		item.RX2DR,
 		item.RelaxFCnt,
@@ -259,22 +256,20 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 			description = $3,
 			rx_delay = $4,
 			rx1_dr_offset = $5,
-			channel_list_id = $6,
-			rx_window = $7,
-			rx2_dr = $8,
-			relax_fcnt = $9,
-			adr_interval = $10,
-			installation_margin = $11,
-			is_abp = $12,
-			is_class_c = $13,
-			organization_id = $14
+			rx_window = $6,
+			rx2_dr = $7,
+			relax_fcnt = $8,
+			adr_interval = $9,
+			installation_margin = $10,
+			is_abp = $11,
+			is_class_c = $12,
+			organization_id = $13
 		where id = $1`,
 		item.ID,
 		item.Name,
 		item.Description,
 		item.RXDelay,
 		item.RX1DROffset,
-		item.ChannelListID,
 		item.RXWindow,
 		item.RX2DR,
 		item.RelaxFCnt,
@@ -311,20 +306,18 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 		set
 			rx_delay = $2,
 			rx1_dr_offset = $3,
-			channel_list_id = $4,
-			rx_window = $5,
-			rx2_dr = $6,
-			relax_fcnt = $7,
-			adr_interval = $8,
-			installation_margin = $9,
-			is_abp = $10,
-			is_class_c = $11
+			rx_window = $4,
+			rx2_dr = $5,
+			relax_fcnt = $6,
+			adr_interval = $7,
+			installation_margin = $8,
+			is_abp = $9,
+			is_class_c = $10
 		where application_id = $1
 		and use_application_settings = true`,
 		item.ID,
 		item.RXDelay,
 		item.RX1DROffset,
-		item.ChannelListID,
 		item.RXWindow,
 		item.RX2DR,
 		item.RelaxFCnt,

@@ -96,9 +96,6 @@ message CreateApplicationRequest {
 	// RX1 data-rate offset.
 	uint32 rx1DROffset = 4;
 
-	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
-	int64 channelListID = 5;
-
 	// RX window to use.
 	RXWindow rxWindow = 6;
 
@@ -150,9 +147,6 @@ message GetApplicationResponse {
 	// RX1 data-rate offset.
 	uint32 rx1DROffset = 5;
 
-	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
-	int64 channelListID = 6;
-
 	// RX window to use.
 	RXWindow rxWindow = 7;
 
@@ -193,9 +187,6 @@ message UpdateApplicationRequest {
 
 	// RX1 data-rate offset.
 	uint32 rx1DROffset = 5;
-
-	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
-	int64 channelListID = 6;
 
 	// RX window to use.
 	RXWindow rxWindow = 7;

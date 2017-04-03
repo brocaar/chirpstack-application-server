@@ -359,30 +359,6 @@ func ValidateNodeQueueAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 	}
 }
 
-// ValidateChannelListAccess validates if the client has access to the channel-lists.
-func ValidateChannelListAccess(flag Flag) ValidatorFunc {
-	var where = [][]string{}
-
-	switch flag {
-	case Create, Update, Delete:
-		// global admin users
-		where = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-		}
-	case Read, List:
-		// any user
-		where = [][]string{
-			{"u.username = $1", "u.is_active = true"},
-		}
-	default:
-		panic("unsupported flag")
-	}
-
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username)
-	}
-}
-
 // ValidateGatewaysAccess validates if the client has access to the gateways.
 func ValidateGatewaysAccess(flag Flag, organizationID int64) ValidatorFunc {
 	var where = [][]string{}

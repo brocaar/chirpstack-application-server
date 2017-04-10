@@ -430,6 +430,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Node operates in Class-C."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization to which the application belongs."
         }
       }
     },
@@ -533,6 +538,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Node operates in Class-C."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization to which the application belongs."
         }
       }
     },
@@ -696,6 +706,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Node operates in Class-C."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization to which the application belongs."
         }
       }
     },

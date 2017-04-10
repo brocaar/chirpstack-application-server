@@ -21,13 +21,19 @@ import (
 func TestApplicationServerAPI(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database with application + node and api instance", t, func() {
+	Convey("Given a clean database with organization, application + node and api instance", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
+		org := storage.Organization{
+			Name: "test-org",
+		}
+		So(storage.CreateOrganization(db, &org), ShouldBeNil)
+
 		app := storage.Application{
-			Name: "test-app",
+			OrganizationID: org.ID,
+			Name:           "test-app",
 		}
 		So(storage.CreateApplication(db, &app), ShouldBeNil)
 		node := storage.Node{

@@ -11,14 +11,20 @@ import (
 func TestApplication(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database", t, func() {
+	Convey("Given a clean database with an organization", t, func() {
 		db, err := OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
+		org := Organization{
+			Name: "test-org",
+		}
+		So(CreateOrganization(db, &org), ShouldBeNil)
+
 		Convey("When creating an application with an invalid name", func() {
 			app := Application{
-				Name: "i contain spaces",
+				OrganizationID: org.ID,
+				Name:           "i contain spaces",
 			}
 			err := CreateApplication(db, &app)
 
@@ -30,6 +36,7 @@ func TestApplication(t *testing.T) {
 
 		Convey("When creating an application", func() {
 			app := Application{
+				OrganizationID:     org.ID,
 				Name:               "test-application",
 				Description:        "A test application",
 				RXDelay:            2,

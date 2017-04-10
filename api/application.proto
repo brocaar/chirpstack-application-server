@@ -119,6 +119,9 @@ message CreateApplicationRequest {
 
 	// Node operates in Class-C.
 	bool isClassC = 12;
+
+	// ID of the organization to which the application belongs.
+	int64 organizationID = 14;
 }
 
 message CreateApplicationResponse {
@@ -170,6 +173,9 @@ message GetApplicationResponse {
 
 	// Node operates in Class-C.
 	bool isClassC = 13;
+
+	// ID of the organization to which the application belongs.
+	int64 organizationID = 14;
 }
 
 message UpdateApplicationRequest {
@@ -211,6 +217,9 @@ message UpdateApplicationRequest {
 
 	// Node operates in Class-C.
 	bool isClassC = 13;
+
+	// ID of the organization to which the application belongs.
+	int64 organizationID = 14;
 }
 
 message UpdateApplicationResponse {}

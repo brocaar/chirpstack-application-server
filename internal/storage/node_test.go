@@ -77,8 +77,13 @@ func TestGetCFListForNode(t *testing.T) {
 			},
 		}
 		So(CreateChannelList(ctx.DB, &channelList), ShouldBeNil)
+		org := Organization{
+			Name: "test-org",
+		}
+		So(CreateOrganization(db, &org), ShouldBeNil)
 		app := Application{
-			Name: "test",
+			OrganizationID: org.ID,
+			Name:           "test",
 		}
 		So(CreateApplication(db, &app), ShouldBeNil)
 		node := Node{
@@ -113,13 +118,19 @@ func TestGetCFListForNode(t *testing.T) {
 func TestNodeMethods(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database with an application", t, func() {
+	Convey("Given a clean database with an organization and application", t, func() {
 		db, err := OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
+		org := Organization{
+			Name: "test-org",
+		}
+		So(CreateOrganization(db, &org), ShouldBeNil)
+
 		app := Application{
-			Name: "test",
+			OrganizationID: org.ID,
+			Name:           "test",
 		}
 		So(CreateApplication(db, &app), ShouldBeNil)
 

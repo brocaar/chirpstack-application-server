@@ -15,7 +15,7 @@ import (
 func TestApplicationAPI(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database and api instance", t, func() {
+	Convey("Given a clean database with an organization and an api instance", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
@@ -26,8 +26,14 @@ func TestApplicationAPI(t *testing.T) {
 		api := NewApplicationAPI(lsCtx, validator)
 		apiuser := NewUserAPI(lsCtx, validator)
 
+		org := storage.Organization{
+			Name: "test-org",
+		}
+		So(storage.CreateOrganization(db, &org), ShouldBeNil)
+
 		Convey("When creating an application", func() {
 			createResp, err := api.Create(ctx, &pb.CreateApplicationRequest{
+				OrganizationID:     org.ID,
 				Name:               "test-app",
 				Description:        "A test application",
 				IsABP:              true,
@@ -52,6 +58,7 @@ func TestApplicationAPI(t *testing.T) {
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 				So(app, ShouldResemble, &pb.GetApplicationResponse{
+					OrganizationID:     org.ID,
 					Id:                 createResp.Id,
 					Name:               "test-app",
 					Description:        "A test application",
@@ -79,6 +86,7 @@ func TestApplicationAPI(t *testing.T) {
 				So(apps.Result, ShouldHaveLength, 1)
 				So(apps.TotalCount, ShouldEqual, 1)
 				So(apps.Result[0], ShouldResemble, &pb.GetApplicationResponse{
+					OrganizationID:     org.ID,
 					Id:                 createResp.Id,
 					Name:               "test-app",
 					Description:        "A test application",
@@ -135,6 +143,7 @@ func TestApplicationAPI(t *testing.T) {
 						So(apps.Result, ShouldHaveLength, 1)
 						So(apps.TotalCount, ShouldEqual, 1)
 						So(apps.Result[0], ShouldResemble, &pb.GetApplicationResponse{
+							OrganizationID:     org.ID,
 							Id:                 createResp.Id,
 							Name:               "test-app",
 							Description:        "A test application",
@@ -207,6 +216,7 @@ func TestApplicationAPI(t *testing.T) {
 
 			Convey("When updating the application", func() {
 				_, err := api.Update(ctx, &pb.UpdateApplicationRequest{
+					OrganizationID:     org.ID,
 					Id:                 createResp.Id,
 					Name:               "test-app-updated",
 					Description:        "An updated test description",
@@ -229,6 +239,7 @@ func TestApplicationAPI(t *testing.T) {
 					})
 					So(err, ShouldBeNil)
 					So(app, ShouldResemble, &pb.GetApplicationResponse{
+						OrganizationID:     org.ID,
 						Id:                 createResp.Id,
 						Name:               "test-app-updated",
 						Description:        "An updated test description",

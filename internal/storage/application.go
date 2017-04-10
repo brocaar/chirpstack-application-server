@@ -16,9 +16,10 @@ var applicationNameRegexp = regexp.MustCompile(`^[\w-]+$`)
 
 // Application represents an application.
 type Application struct {
-	ID          int64  `db:"id"`
-	Name        string `db:"name"`
-	Description string `db:"description"`
+	ID             int64  `db:"id"`
+	Name           string `db:"name"`
+	Description    string `db:"description"`
+	OrganizationID int64  `db:"organization_id"`
 
 	IsABP              bool     `db:"is_abp"`
 	IsClassC           bool     `db:"is_class_c"`
@@ -73,8 +74,9 @@ func CreateApplication(db *sqlx.DB, item *Application) error {
 			adr_interval,
 			installation_margin,
 			is_abp,
-			is_class_c
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) returning id`,
+			is_class_c,
+			organization_id
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) returning id`,
 		item.Name,
 		item.Description,
 		item.RXDelay,
@@ -87,6 +89,7 @@ func CreateApplication(db *sqlx.DB, item *Application) error {
 		item.InstallationMargin,
 		item.IsABP,
 		item.IsClassC,
+		item.OrganizationID,
 	)
 	if err != nil {
 		switch err := err.(type) {
@@ -208,7 +211,8 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 			adr_interval = $10,
 			installation_margin = $11,
 			is_abp = $12,
-			is_class_c = $13
+			is_class_c = $13,
+			organization_id = $14
 		where id = $1`,
 		item.ID,
 		item.Name,
@@ -223,6 +227,7 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 		item.InstallationMargin,
 		item.IsABP,
 		item.IsClassC,
+		item.OrganizationID,
 	)
 	if err != nil {
 		switch err := err.(type) {

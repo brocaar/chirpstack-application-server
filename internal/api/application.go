@@ -44,6 +44,7 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 		RX2DR:              uint8(req.Rx2DR),
 		ADRInterval:        req.AdrInterval,
 		InstallationMargin: req.InstallationMargin,
+		OrganizationID:     req.OrganizationID,
 	}
 	if req.ChannelListID > 0 {
 		app.ChannelListID = &req.ChannelListID
@@ -82,6 +83,7 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 		RelaxFCnt:          app.RelaxFCnt,
 		AdrInterval:        app.ADRInterval,
 		InstallationMargin: app.InstallationMargin,
+		OrganizationID:     app.OrganizationID,
 	}
 
 	if app.ChannelListID != nil {
@@ -115,6 +117,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	app.RelaxFCnt = req.RelaxFCnt
 	app.ADRInterval = req.AdrInterval
 	app.InstallationMargin = req.InstallationMargin
+	app.OrganizationID = req.OrganizationID
 	if req.ChannelListID > 0 {
 		app.ChannelListID = &req.ChannelListID
 	} else {
@@ -200,6 +203,7 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 			RelaxFCnt:          app.RelaxFCnt,
 			AdrInterval:        app.ADRInterval,
 			InstallationMargin: app.InstallationMargin,
+			OrganizationID:     app.OrganizationID,
 		}
 
 		if app.ChannelListID != nil {

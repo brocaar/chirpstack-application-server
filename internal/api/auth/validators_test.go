@@ -38,6 +38,9 @@ func TestValidators(t *testing.T) {
 		7: member of application 2 (but is_active=false)
 		8: global admin (but is_active=false)
 
+		Organizations:
+		1: organization 1
+
 		Applications:
 		1: application 1
 		2: application 2
@@ -46,12 +49,20 @@ func TestValidators(t *testing.T) {
 		0101010101010101: application 1 node
 		0202020202020202: application 2 node
 	*/
+	organizations := []storage.Organization{
+		{Name: "organization-1"},
+	}
+	for i := range organizations {
+		if err := storage.CreateOrganization(db, &organizations[i]); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	applications := []storage.Application{
-		{Name: "application-1"},
-		{Name: "application-2"},
+		{OrganizationID: organizations[0].ID, Name: "application-1"},
+		{OrganizationID: organizations[0].ID, Name: "application-2"},
 	}
-	for i, _ := range applications {
+	for i := range applications {
 		if err := storage.CreateApplication(db, &applications[i]); err != nil {
 			t.Fatal(err)
 		}

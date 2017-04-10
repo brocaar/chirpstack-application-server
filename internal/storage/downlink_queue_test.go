@@ -11,13 +11,19 @@ import (
 func TestGetNextDownlinkQeueueItem(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database with application and node", t, func() {
+	Convey("Given a clean database with an organization, application and node", t, func() {
 		db, err := OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
+		org := Organization{
+			Name: "test-org",
+		}
+		So(CreateOrganization(db, &org), ShouldBeNil)
+
 		app := Application{
-			Name: "test",
+			OrganizationID: org.ID,
+			Name:           "test",
 		}
 		So(CreateApplication(db, &app), ShouldBeNil)
 
@@ -69,13 +75,19 @@ func TestGetNextDownlinkQeueueItem(t *testing.T) {
 func TestDownlinkQueueFuncs(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database with application and node", t, func() {
+	Convey("Given a clean database with an organization, application and node", t, func() {
 		db, err := OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
+		org := Organization{
+			Name: "test-org",
+		}
+		So(CreateOrganization(db, &org), ShouldBeNil)
+
 		app := Application{
-			Name: "test",
+			OrganizationID: org.ID,
+			Name:           "test",
 		}
 		So(CreateApplication(db, &app), ShouldBeNil)
 

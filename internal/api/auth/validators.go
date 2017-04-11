@@ -21,7 +21,19 @@ const (
 	UpdateProfile
 )
 
-const userQuery = `select count(*) from "user" u left join application_user au on u.id = au.user_id left join application a on au.application_id = a.id left join node n on a.id = n.application_id`
+const userQuery = `
+	select count(*)
+	from "user" u
+	left join organization_user ou
+		on u.id = ou.user_id
+	left join organization o
+		on o.id = ou.organization_id
+	left join application_user au
+		on u.id = au.user_id
+	left join application a
+		on au.application_id = a.id
+	left join node n
+		on a.id = n.application_id`
 
 // ValidateActiveUser validates if the user in the JWT claim is active.
 func ValidateActiveUser() ValidatorFunc {
@@ -127,8 +139,8 @@ func ValidateApplicationAccess(applicationID int64, flag Flag) ValidatorFunc {
 	case Update:
 		// global admin or application admin
 		where = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true", "$2 = $2"},
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "au.is_admin = true", "a.id = $2"},
 		}
 	case Delete:
 		// global admin
@@ -342,6 +354,121 @@ func ValidateGatewayAccess(flag Flag, mac lorawan.EUI64) ValidatorFunc {
 
 	return func(db *sqlx.DB, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username)
+	}
+}
+
+// ValidateOrganizationsAccess validates if the client has access to the
+// organizations.
+func ValidateOrganizationsAccess(flag Flag) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Create, List:
+		// global admin user
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+		}
+	default:
+		panic("unsupported flag")
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username)
+	}
+}
+
+// ValidateOrganizationAccess validates if the client has access to the
+// given organization.
+func ValidateOrganizationAccess(flag Flag, id int64) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Read:
+		// global admin users, organization users or users assigned to
+		// a specific application within the organization
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2"},
+			{"u.username = $1", "u.is_active = true", "a.organization_id = $2"},
+		}
+	case Update:
+		// global admin users or organization admin
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+		}
+	case Delete:
+		// global admin users
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
+		}
+	default:
+		panic("unsupported flag")
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, id)
+	}
+}
+
+// ValidateOrganizationUsersAccess validates if the client has access to
+// the organization users.
+func ValidateOrganizationUsersAccess(flag Flag, id int64) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Create:
+		// global admin users or organzation admin users
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+		}
+	case List:
+		// global admin users or organization users
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2"},
+		}
+	default:
+		panic("unsupported flag")
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, id)
+	}
+}
+
+// ValidateOrganizationUserAccess validates if the client has access to the
+// given user of the given organization.
+func ValidateOrganizationUserAccess(flag Flag, organizationID, userID int64) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Read:
+		// global admin, organization admin or user itself.
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.user_id = $3", "ou.user_id = u.id"},
+		}
+	case Update:
+		// global admin or organization admin
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+		}
+	case Delete:
+		// global admin or organization admin
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+		}
+	default:
+		panic("unsupported flag")
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, organizationID, userID)
 	}
 }
 

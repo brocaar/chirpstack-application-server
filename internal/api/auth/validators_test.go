@@ -37,9 +37,13 @@ func TestValidators(t *testing.T) {
 		6: member of application 2
 		7: member of application 2 (but is_active=false)
 		8: global admin (but is_active=false)
+		9: member of organization 1
+		10: admin of organization 1
+		11: member of organization 1 (but is_active=false)
 
 		Organizations:
 		1: organization 1
+		2: organization 2
 
 		Applications:
 		1: application 1
@@ -51,6 +55,7 @@ func TestValidators(t *testing.T) {
 	*/
 	organizations := []storage.Organization{
 		{Name: "organization-1"},
+		{Name: "organization-2"},
 	}
 	for i := range organizations {
 		if err := storage.CreateOrganization(db, &organizations[i]); err != nil {
@@ -60,7 +65,7 @@ func TestValidators(t *testing.T) {
 
 	applications := []storage.Application{
 		{OrganizationID: organizations[0].ID, Name: "application-1"},
-		{OrganizationID: organizations[0].ID, Name: "application-2"},
+		{OrganizationID: organizations[1].ID, Name: "application-2"},
 	}
 	for i := range applications {
 		if err := storage.CreateApplication(db, &applications[i]); err != nil {
@@ -93,6 +98,9 @@ func TestValidators(t *testing.T) {
 		{ID: 16, Username: "user6", IsActive: true},
 		{ID: 17, Username: "user7", IsActive: false},
 		{ID: 18, Username: "user8", IsActive: false, IsAdmin: true},
+		{ID: 19, Username: "user9", IsActive: true},
+		{ID: 20, Username: "user10", IsActive: true},
+		{ID: 21, Username: "user11", IsActive: false},
 	}
 	for _, user := range users {
 		_, err = db.Exec(`insert into "user" (id, created_at, updated_at, username, password_hash, session_ttl, is_active, is_admin) values ($1, now(), now(), $2, '', 0, $3, $4)`, user.ID, user.Username, user.IsActive, user.IsAdmin)
@@ -115,6 +123,21 @@ func TestValidators(t *testing.T) {
 	for _, appUser := range appUsers {
 		_, err = db.Exec("insert into application_user (created_at, updated_at, user_id, application_id, is_admin) values (now(), now(), $1, $2, $3)", appUser.UserID, appUser.ApplicationID, appUser.IsAdmin)
 		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	orgUsers := []struct {
+		UserID         int64
+		OrganizationID int64
+		IsAdmin        bool
+	}{
+		{UserID: users[8].ID, OrganizationID: organizations[0].ID, IsAdmin: false},
+		{UserID: users[9].ID, OrganizationID: organizations[0].ID, IsAdmin: true},
+		{UserID: users[10].ID, OrganizationID: organizations[0].ID, IsAdmin: false},
+	}
+	for _, orgUser := range orgUsers {
+		if err := storage.CreateOrganizationUser(db, orgUser.OrganizationID, orgUser.UserID, orgUser.IsAdmin); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -479,6 +502,178 @@ func TestValidators(t *testing.T) {
 					Name:       "inactive admin users can not create and list",
 					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create), ValidateGatewaysAccess(List)},
 					Claims:     Claims{Username: "user8"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateOrganizationsAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can create and list",
+					Validators: []ValidatorFunc{ValidateOrganizationsAccess(Create), ValidateOrganizationsAccess(List)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can not create and list",
+					Validators: []ValidatorFunc{ValidateOrganizationsAccess(Create), ValidateOrganizationsAccess(List)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "normal users can not create and list",
+					Validators: []ValidatorFunc{ValidateOrganizationsAccess(Create), ValidateOrganizationsAccess(List)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "inactive global admin users can not create and list",
+					Validators: []ValidatorFunc{ValidateOrganizationsAccess(Create), ValidateOrganizationsAccess(List)},
+					Claims:     Claims{Username: "user8"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateOrganizationAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can read, update and delete",
+					Validators: []ValidatorFunc{ValidateOrganizationAccess(Read, organizations[0].ID), ValidateOrganizationAccess(Update, organizations[0].ID), ValidateOrganizationAccess(Delete, organizations[0].ID)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can read and update",
+					Validators: []ValidatorFunc{ValidateOrganizationAccess(Read, organizations[0].ID), ValidateOrganizationAccess(Update, organizations[0].ID)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can read",
+					Validators: []ValidatorFunc{ValidateOrganizationAccess(Read, organizations[0].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "application users within an organization can read",
+					Validators: []ValidatorFunc{ValidateOrganizationAccess(Read, organizations[0].ID)},
+					Claims:     Claims{Username: "user3"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin can not delete",
+					Validators: []ValidatorFunc{ValidateOrganizationAccess(Delete, organizations[0].ID)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "organization users can not update or delete",
+					Validators: []ValidatorFunc{ValidateOrganizationAccess(Update, organizations[0].ID), ValidateOrganizationAccess(Delete, organizations[0].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "application users within an an organization can not update or delete",
+					Validators: []ValidatorFunc{ValidateOrganizationAccess(Update, organizations[0].ID), ValidateOrganizationAccess(Delete, organizations[0].ID)},
+					Claims:     Claims{Username: "user3"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "normal users can not read, update or delete",
+					Validators: []ValidatorFunc{ValidateOrganizationAccess(Read, organizations[0].ID), ValidateOrganizationAccess(Update, organizations[0].ID), ValidateOrganizationAccess(Delete, organizations[0].ID)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateOrganizationUsersAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can create and list",
+					Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, organizations[0].ID), ValidateOrganizationUsersAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can create and list",
+					Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, organizations[0].ID), ValidateOrganizationUsersAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can list",
+					Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can not create",
+					Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, organizations[0].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "normal users can not create and list",
+					Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, organizations[0].ID), ValidateOrganizationUsersAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "application users within an organization can not create and list",
+					Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, organizations[0].ID), ValidateOrganizationUsersAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user3"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateOrganizationUserAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can read, update or delete",
+					Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, organizations[0].ID, users[8].ID), ValidateOrganizationUserAccess(Update, organizations[0].ID, users[8].ID), ValidateOrganizationUserAccess(Delete, organizations[0].ID, users[8].ID)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can read, update or delete",
+					Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, organizations[0].ID, users[8].ID), ValidateOrganizationUserAccess(Update, organizations[0].ID, users[8].ID), ValidateOrganizationUserAccess(Delete, organizations[0].ID, users[8].ID)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization user can read own user record",
+					Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, organizations[0].ID, users[8].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization user can not read other user record",
+					Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, organizations[0].ID, users[9].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "organization users can not update or delete",
+					Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Update, organizations[0].ID, users[8].ID), ValidateOrganizationUserAccess(Delete, organizations[0].ID, users[8].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "normal users can not read, update or delete",
+					Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, organizations[0].ID, users[8].ID), ValidateOrganizationUserAccess(Update, organizations[0].ID, users[8].ID), ValidateOrganizationUserAccess(Delete, organizations[0].ID, users[8].ID)},
+					Claims:     Claims{Username: "user4"},
 					ExpectedOK: false,
 				},
 			}

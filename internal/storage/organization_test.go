@@ -88,6 +88,122 @@ func TestOrganization(t *testing.T) {
 					So(errors.Cause(err), ShouldResemble, ErrDoesNotExist)
 				})
 			})
+
+			Convey("Then the organization has 0 users", func() {
+				count, err := GetOrganizationUserCount(db, org.ID)
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 0)
+			})
+
+			Convey("When adding an user to the organization", func() {
+				So(CreateOrganizationUser(db, org.ID, 1, false), ShouldBeNil) // admin user
+
+				Convey("Then it can be retrieved", func() {
+					u, err := GetOrganizationUser(db, org.ID, 1)
+					So(err, ShouldBeNil)
+					So(u.UserID, ShouldEqual, 1)
+					So(u.Username, ShouldEqual, "admin")
+					So(u.IsAdmin, ShouldBeFalse)
+				})
+
+				Convey("Then the organization has 1 user", func() {
+					c, err := GetOrganizationUserCount(db, org.ID)
+					So(err, ShouldBeNil)
+					So(c, ShouldEqual, 1)
+
+					users, err := GetOrganizationUsers(db, org.ID, 10, 0)
+					So(err, ShouldBeNil)
+					So(users, ShouldHaveLength, 1)
+				})
+
+				Convey("Then it can be updated", func() {
+					So(UpdateOrganizationUser(db, org.ID, 1, true), ShouldBeNil) // admin user
+
+					u, err := GetOrganizationUser(db, org.ID, 1)
+					So(err, ShouldBeNil)
+					So(u.UserID, ShouldEqual, 1)
+					So(u.Username, ShouldEqual, "admin")
+					So(u.IsAdmin, ShouldBeTrue)
+				})
+
+				Convey("Then it can be deleted", func() {
+					So(DeleteOrganizationUser(db, org.ID, 1), ShouldBeNil) // admin user
+					c, err := GetOrganizationUserCount(db, org.ID)
+					So(err, ShouldBeNil)
+					So(c, ShouldEqual, 0)
+				})
+			})
+
+			Convey("Given an user and application linked to the organization", func() {
+				user := User{
+					Username: "testuser",
+					IsActive: true,
+				}
+				_, err := CreateUser(db, &user, "password123")
+				So(err, ShouldBeNil)
+
+				app := Application{
+					OrganizationID: org.ID,
+					Name:           "test-app",
+				}
+				So(CreateApplication(db, &app), ShouldBeNil)
+
+				Convey("Then no organizations are related to this user", func() {
+					c, err := GetOrganizationCountForUser(db, user.Username)
+					So(err, ShouldBeNil)
+					So(c, ShouldEqual, 0)
+
+					orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0)
+					So(err, ShouldBeNil)
+					So(orgs, ShouldHaveLength, 0)
+				})
+
+				Convey("When the user is linked to the application", func() {
+					So(CreateUserForApplication(db, app.ID, user.ID, false), ShouldBeNil)
+
+					Convey("Then the test organization is returned for the user", func() {
+						c, err := GetOrganizationCountForUser(db, user.Username)
+						So(err, ShouldBeNil)
+						So(c, ShouldEqual, 1)
+
+						orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0)
+						So(err, ShouldBeNil)
+						So(orgs, ShouldHaveLength, 1)
+						So(orgs[0].ID, ShouldEqual, org.ID)
+					})
+				})
+
+				Convey("When the user is linked to the organization", func() {
+					So(CreateOrganizationUser(db, org.ID, user.ID, false), ShouldBeNil)
+
+					Convey("Then the test organization is returned for the user", func() {
+						c, err := GetOrganizationCountForUser(db, user.Username)
+						So(err, ShouldBeNil)
+						So(c, ShouldEqual, 1)
+
+						orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0)
+						So(err, ShouldBeNil)
+						So(orgs, ShouldHaveLength, 1)
+						So(orgs[0].ID, ShouldEqual, org.ID)
+					})
+				})
+
+				Convey("When the user is linked to both the organization and application", func() {
+					So(CreateUserForApplication(db, app.ID, user.ID, false), ShouldBeNil)
+					So(CreateOrganizationUser(db, org.ID, user.ID, false), ShouldBeNil)
+
+					Convey("Then the test organization is returned for the user", func() {
+						c, err := GetOrganizationCountForUser(db, user.Username)
+						So(err, ShouldBeNil)
+						So(c, ShouldEqual, 1)
+
+						orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0)
+						So(err, ShouldBeNil)
+						So(orgs, ShouldHaveLength, 1)
+						So(orgs[0].ID, ShouldEqual, org.ID)
+					})
+				})
+			})
 		})
 	})
 }

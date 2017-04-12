@@ -58,6 +58,8 @@ insert into organization_user (
 
 create table gateway (
 	mac bytea primary key,
+	created_at timestamp with time zone not null,
+	updated_at timestamp with time zone not null,
 	name varchar(100) not null,
 	description text not null,
 	organization_id bigint not null references organization on delete cascade

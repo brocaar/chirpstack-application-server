@@ -32,7 +32,8 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "string"
           }
         ],
         "tags": [
@@ -55,7 +56,8 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "string"
           },
           {
             "name": "body",
@@ -88,7 +90,8 @@
             "name": "devEUI",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "string"
           },
           {
             "name": "id",
@@ -110,6 +113,7 @@
       "properties": {
         "devEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevEUI of the node."
         },
         "id": {
@@ -132,10 +136,12 @@
         },
         "devEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevEUI of the node."
         },
         "reference": {
           "type": "string",
+          "format": "string",
           "description": "Random reference (used on ack notification)."
         },
         "confirmed": {
@@ -165,10 +171,12 @@
       "properties": {
         "devEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevEUI of the node."
         },
         "reference": {
           "type": "string",
+          "format": "string",
           "description": "Random reference (used on ack notification)."
         },
         "confirmed": {
@@ -196,6 +204,7 @@
       "properties": {
         "devEUI": {
           "type": "string",
+          "format": "string",
           "description": "Hex encoded DevEUI of the node."
         }
       }

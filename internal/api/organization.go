@@ -1,6 +1,8 @@
 package api
 
 import (
+	"time"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -11,7 +13,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/storage"
 )
 
-// OrganizationAPI exports the User related functions.
+// OrganizationAPI exports the organization related functions.
 type OrganizationAPI struct {
 	ctx       common.Context
 	validator auth.Validator
@@ -26,15 +28,15 @@ func NewOrganizationAPI(ctx common.Context, validator auth.Validator) *Organizat
 }
 
 // Create creates the given organization.
-func (a *OrganizationAPI) Create(ctx context.Context, req *pb.AddOrganizationRequest) (*pb.OrganizationEmptyResponse, error) {
+func (a *OrganizationAPI) Create(ctx context.Context, req *pb.CreateOrganizationRequest) (*pb.CreateOrganizationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateOrganizationsAccess(auth.Create)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	org := storage.Organization{
-		Name:   	 	 req.Name,
-		DisplayName: 	 req.DisplayName,
+		Name:            req.Name,
+		DisplayName:     req.DisplayName,
 		CanHaveGateways: req.CanHaveGateways,
 	}
 
@@ -43,10 +45,12 @@ func (a *OrganizationAPI) Create(ctx context.Context, req *pb.AddOrganizationReq
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.OrganizationEmptyResponse{}, nil
+	return &pb.CreateOrganizationResponse{
+		Id: org.ID,
+	}, nil
 }
 
-// Get returns the user matching the given ID.
+// Get returns the organization matching the given ID.
 func (a *OrganizationAPI) Get(ctx context.Context, req *pb.OrganizationRequest) (*pb.GetOrganizationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateOrganizationAccess(auth.Read, req.Id)); err != nil {
@@ -59,65 +63,97 @@ func (a *OrganizationAPI) Get(ctx context.Context, req *pb.OrganizationRequest) 
 	}
 
 	return &pb.GetOrganizationResponse{
-		Id:          	 org.ID,
-		Name:        	 org.Name,
-		DisplayName: 	 org.DisplayName,
+		Id:              org.ID,
+		Name:            org.Name,
+		DisplayName:     org.DisplayName,
 		CanHaveGateways: org.CanHaveGateways,
-		CreatedAt:  	 org.CreatedAt.String(),
-		UpdatedAt:  	 org.UpdatedAt.String(),
+		CreatedAt:       org.CreatedAt.Format(time.RFC3339Nano),
+		UpdatedAt:       org.UpdatedAt.Format(time.RFC3339Nano),
 	}, nil
 }
 
-// List lists the users.
+// List lists the organizations to which the user has access.
 func (a *OrganizationAPI) List(ctx context.Context, req *pb.ListOrganizationRequest) (*pb.ListOrganizationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateOrganizationsAccess(auth.List)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	orgs, err := storage.GetOrganizations(a.ctx.DB, int(req.Limit), int(req.Offset))
+	isAdmin, err := a.validator.GetIsAdmin(ctx)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	totalOrgCount, err := storage.GetOrganizationCount(a.ctx.DB)
-	if err != nil {
-		return nil, errToRPCError(err)
+	var count int
+	var orgs []storage.Organization
+
+	if isAdmin {
+		count, err = storage.GetOrganizationCount(a.ctx.DB)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		orgs, err = storage.GetOrganizations(a.ctx.DB, int(req.Limit), int(req.Offset))
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+	} else {
+		username, err := a.validator.GetUsername(ctx)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		count, err = storage.GetOrganizationCountForUser(a.ctx.DB, username)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		orgs, err = storage.GetOrganizationsForUser(a.ctx.DB, username, int(req.Limit), int(req.Offset))
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
 	}
 
 	result := make([]*pb.GetOrganizationResponse, len(orgs))
 	for i, org := range orgs {
 		result[i] = &pb.GetOrganizationResponse{
-			Id:          	 org.ID,
-			Name:        	 org.Name,
-			DisplayName: 	 org.DisplayName,
+			Id:              org.ID,
+			Name:            org.Name,
+			DisplayName:     org.DisplayName,
 			CanHaveGateways: org.CanHaveGateways,
-			CreatedAt:  	 org.CreatedAt.String(),
-			UpdatedAt:  	 org.UpdatedAt.String(),
+			CreatedAt:       org.CreatedAt.Format(time.RFC3339Nano),
+			UpdatedAt:       org.UpdatedAt.Format(time.RFC3339Nano),
 		}
 	}
 
 	return &pb.ListOrganizationResponse{
-		TotalCount: int32(totalOrgCount),
+		TotalCount: int32(count),
 		Result:     result,
 	}, nil
 }
 
-// Update updates the given user.
+// Update updates the given organization.
 func (a *OrganizationAPI) Update(ctx context.Context, req *pb.UpdateOrganizationRequest) (*pb.OrganizationEmptyResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateOrganizationAccess(auth.Update, req.Id)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	orgUpdate := storage.Organization{
-		ID:				 req.Id,
-		Name:   	 	 req.Name,
-		DisplayName: 	 req.DisplayName,
-		CanHaveGateways: req.CanHaveGateways,
+	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	if err != nil {
+		return nil, errToRPCError(err)
 	}
 
-	err := storage.UpdateOrganization(a.ctx.DB, &orgUpdate)
+	org, err := storage.GetOrganization(a.ctx.DB, req.Id)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	org.Name = req.Name
+	org.DisplayName = req.DisplayName
+	if isAdmin {
+		org.CanHaveGateways = req.CanHaveGateways
+	}
+
+	err = storage.UpdateOrganization(a.ctx.DB, &org)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -125,7 +161,7 @@ func (a *OrganizationAPI) Update(ctx context.Context, req *pb.UpdateOrganization
 	return &pb.OrganizationEmptyResponse{}, nil
 }
 
-// Delete deletes the user matching the given ID.
+// Delete deletes the organization matching the given ID.
 func (a *OrganizationAPI) Delete(ctx context.Context, req *pb.OrganizationRequest) (*pb.OrganizationEmptyResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateOrganizationAccess(auth.Delete, req.Id)); err != nil {
@@ -150,7 +186,7 @@ func (a *OrganizationAPI) ListUsers(ctx context.Context, req *pb.ListOrganizatio
 		return nil, errToRPCError(err)
 	}
 
-	orgCount, err := storage.GetOrganizationUserCount(a.ctx.DB, req.Id)
+	userCount, err := storage.GetOrganizationUserCount(a.ctx.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -158,16 +194,16 @@ func (a *OrganizationAPI) ListUsers(ctx context.Context, req *pb.ListOrganizatio
 	result := make([]*pb.GetOrganizationUserResponse, len(users))
 	for i, user := range users {
 		result[i] = &pb.GetOrganizationUserResponse{
-			UserId:     user.UserID,
-			Username:   user.Username,
-			IsAdmin:    user.IsAdmin,
-			CreatedAt:  user.CreatedAt.String(),
-			UpdatedAt:  user.UpdatedAt.String(),
+			UserID:    user.UserID,
+			Username:  user.Username,
+			IsAdmin:   user.IsAdmin,
+			CreatedAt: user.CreatedAt.Format(time.RFC3339Nano),
+			UpdatedAt: user.UpdatedAt.Format(time.RFC3339Nano),
 		}
 	}
 
 	return &pb.ListOrganizationUsersResponse{
-		TotalCount: int32(orgCount),
+		TotalCount: int32(userCount),
 		Result:     result,
 	}, nil
 }
@@ -179,7 +215,7 @@ func (a *OrganizationAPI) AddUser(ctx context.Context, req *pb.OrganizationUserR
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.CreateOrganizationUser(a.ctx.DB, req.Id, req.UserId, req.IsAdmin)
+	err := storage.CreateOrganizationUser(a.ctx.DB, req.Id, req.UserID, req.IsAdmin)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -190,11 +226,11 @@ func (a *OrganizationAPI) AddUser(ctx context.Context, req *pb.OrganizationUserR
 // Update updates the given user.
 func (a *OrganizationAPI) UpdateUser(ctx context.Context, req *pb.OrganizationUserRequest) (*pb.OrganizationEmptyResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateOrganizationUserAccess(auth.Update, req.Id, req.UserId)); err != nil {
+		auth.ValidateOrganizationUserAccess(auth.Update, req.Id, req.UserID)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.UpdateOrganizationUser(a.ctx.DB, req.Id, req.UserId, req.IsAdmin)
+	err := storage.UpdateOrganizationUser(a.ctx.DB, req.Id, req.UserID, req.IsAdmin)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -205,11 +241,11 @@ func (a *OrganizationAPI) UpdateUser(ctx context.Context, req *pb.OrganizationUs
 // Delete deletes the given user from the organization.
 func (a *OrganizationAPI) DeleteUser(ctx context.Context, req *pb.DeleteOrganizationUserRequest) (*pb.OrganizationEmptyResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateOrganizationUserAccess(auth.Delete, req.Id, req.UserId)); err != nil {
+		auth.ValidateOrganizationUserAccess(auth.Delete, req.Id, req.UserID)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteOrganizationUser(a.ctx.DB, req.Id, req.UserId)
+	err := storage.DeleteOrganizationUser(a.ctx.DB, req.Id, req.UserID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -217,3 +253,23 @@ func (a *OrganizationAPI) DeleteUser(ctx context.Context, req *pb.DeleteOrganiza
 	return &pb.OrganizationEmptyResponse{}, nil
 }
 
+// GetUser returns the user details for the given user ID.
+func (a *OrganizationAPI) GetUser(ctx context.Context, req *pb.GetOrganizationUserRequest) (*pb.GetOrganizationUserResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateOrganizationUserAccess(auth.Read, req.Id, req.UserID)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	user, err := storage.GetOrganizationUser(a.ctx.DB, req.Id, req.UserID)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.GetOrganizationUserResponse{
+		UserID:    user.UserID,
+		Username:  user.Username,
+		IsAdmin:   user.IsAdmin,
+		CreatedAt: user.CreatedAt.Format(time.RFC3339Nano),
+		UpdatedAt: user.UpdatedAt.Format(time.RFC3339Nano),
+	}, nil
+}

@@ -25,7 +25,7 @@ service Organization {
 	}
 
 	// Create a new organization.
-	rpc Create(AddOrganizationRequest) returns (OrganizationEmptyResponse) {
+	rpc Create(CreateOrganizationRequest) returns (CreateOrganizationResponse) {
 		option(google.api.http) = {
 			post: "/api/organizations"
 			body: "*"
@@ -54,6 +54,13 @@ service Organization {
 		};
 	}
 
+	// Get data for a particular organization user.
+	rpc GetUser(GetOrganizationUserRequest) returns (GetOrganizationUserResponse) {
+		option(google.api.http) = {
+			get: "/api/organizations/{id}/users/{userID}"
+		};
+	}
+
 	// Add a new user to an organization.
 	rpc AddUser(OrganizationUserRequest) returns (OrganizationEmptyResponse) {
 		option(google.api.http) = {
@@ -65,7 +72,7 @@ service Organization {
 	// Update a user in an organization.
 	rpc UpdateUser(OrganizationUserRequest) returns (OrganizationEmptyResponse) {
 		option(google.api.http) = {
-			put: "/api/organizations/{id}/users/{userId}"
+			put: "/api/organizations/{id}/users/{userID}"
 			body: "*"
 		};
 	}
@@ -73,7 +80,7 @@ service Organization {
 	// Delete a user from an organization.
 	rpc DeleteUser(DeleteOrganizationUserRequest) returns (OrganizationEmptyResponse) {
 		option(google.api.http) = {
-			delete: "/api/organizations/{id}/users/{userId}"
+			delete: "/api/organizations/{id}/users/{userID}"
 		};
 	}
 
@@ -114,7 +121,7 @@ message GetOrganizationResponse {
 }
 
 // Add a new organization. 
-message AddOrganizationRequest {
+message CreateOrganizationRequest {
 	// Organization name.
 	string name = 1;
 	
@@ -123,6 +130,11 @@ message AddOrganizationRequest {
 
 	// Can the organization create and "own" Gateways?
 	bool canHaveGateways = 3;
+}
+
+message CreateOrganizationResponse {
+	// ID of the organization.
+	int64 id = 1;
 }
 
 // Not quite the AddOrganizationRequest.
@@ -154,7 +166,7 @@ message OrganizationUserRequest {
 	int64 id = 1;
 	
 	// The user's id.
-	int64 userId = 2;
+	int64 userID = 2;
 	
 	// The user's admin status for the organization
 	bool isAdmin = 3;
@@ -165,7 +177,7 @@ message DeleteOrganizationUserRequest {
 	int64 id = 1;
 	
 	// The user's id.
-	int64 userId = 2;
+	int64 userID = 2;
 }
 
 // Request the users in an organization.
@@ -180,10 +192,18 @@ message ListOrganizationUsersRequest {
 	int32 offset = 3;
 }
 
+message GetOrganizationUserRequest {
+	// ID of the organization.
+	int64 id = 1;
+
+	// ID of the user.
+	int64 userID = 2;
+}
+
 // Response for a user in the organization
 message GetOrganizationUserResponse {
 	// ID of the user.
-	int64 userId = 1;
+	int64 userID = 1;
 	
 	// Username of the user.
 	string username = 2;

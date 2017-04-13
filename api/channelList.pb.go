@@ -90,6 +90,7 @@ It has these top-level messages:
 	DeleteGatewayRequest
 	DeleteGatewayResponse
 	ListGatewayRequest
+	ListGatewayItem
 	ListGatewayResponse
 	UpdateGatewayRequest
 	UpdateGatewayResponse
@@ -99,13 +100,15 @@ It has these top-level messages:
 	ListOrganizationRequest
 	OrganizationRequest
 	GetOrganizationResponse
-	AddOrganizationRequest
+	CreateOrganizationRequest
+	CreateOrganizationResponse
 	UpdateOrganizationRequest
 	ListOrganizationResponse
 	OrganizationEmptyResponse
 	OrganizationUserRequest
 	DeleteOrganizationUserRequest
 	ListOrganizationUsersRequest
+	GetOrganizationUserRequest
 	GetOrganizationUserResponse
 	ListOrganizationUsersResponse
 */

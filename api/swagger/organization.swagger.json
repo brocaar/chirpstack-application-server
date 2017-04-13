@@ -27,6 +27,24 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "Max number of organizations to return in the result-set.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "description": "Offset in the result-set (for pagination).",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
         "tags": [
           "Organization"
         ]
@@ -38,7 +56,7 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiOrganizationEmptyResponse"
+              "$ref": "#/definitions/apiCreateOrganizationResponse"
             }
           }
         },
@@ -48,7 +66,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiAddOrganizationRequest"
+              "$ref": "#/definitions/apiCreateOrganizationRequest"
             }
           }
         ],
@@ -158,6 +176,22 @@
             "required": true,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "limit",
+            "description": "Max number of users to return in the result-set.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "description": "Offset in the result-set (for pagination).",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
           }
         ],
         "tags": [
@@ -197,7 +231,38 @@
         ]
       }
     },
-    "/api/organizations/{id}/users/{userId}": {
+    "/api/organizations/{id}/users/{userID}": {
+      "get": {
+        "summary": "Get data for a particular organization user.",
+        "operationId": "GetUser",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetOrganizationUserResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "userID",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      },
       "delete": {
         "summary": "Delete a user from an organization.",
         "operationId": "DeleteUser",
@@ -218,7 +283,7 @@
             "format": "int64"
           },
           {
-            "name": "userId",
+            "name": "userID",
             "in": "path",
             "required": true,
             "type": "string",
@@ -249,7 +314,7 @@
             "format": "int64"
           },
           {
-            "name": "userId",
+            "name": "userID",
             "in": "path",
             "required": true,
             "type": "string",
@@ -271,17 +336,15 @@
     }
   },
   "definitions": {
-    "apiAddOrganizationRequest": {
+    "apiCreateOrganizationRequest": {
       "type": "object",
       "properties": {
         "name": {
           "type": "string",
-          "format": "string",
           "description": "Organization name."
         },
         "displayName": {
           "type": "string",
-          "format": "string",
           "description": "Organization display name."
         },
         "canHaveGateways": {
@@ -292,6 +355,16 @@
       },
       "description": "Add a new organization."
     },
+    "apiCreateOrganizationResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization."
+        }
+      }
+    },
     "apiDeleteOrganizationUserRequest": {
       "type": "object",
       "properties": {
@@ -300,7 +373,7 @@
           "format": "int64",
           "description": "The organization id."
         },
-        "userId": {
+        "userID": {
           "type": "string",
           "format": "int64",
           "description": "The user's id."
@@ -317,12 +390,10 @@
         },
         "name": {
           "type": "string",
-          "format": "string",
           "description": "Organization name."
         },
         "displayName": {
           "type": "string",
-          "format": "string",
           "description": "Organization display name."
         },
         "canHaveGateways": {
@@ -332,15 +403,56 @@
         },
         "createdAt": {
           "type": "string",
-          "format": "string",
           "description": "When the user was created."
         },
         "updatedAt": {
           "type": "string",
-          "format": "string",
           "description": "When the user was last updated (excludes changes in application access)."
         }
       }
+    },
+    "apiGetOrganizationUserRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization."
+        },
+        "userID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the user."
+        }
+      }
+    },
+    "apiGetOrganizationUserResponse": {
+      "type": "object",
+      "properties": {
+        "userID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the user."
+        },
+        "username": {
+          "type": "string",
+          "description": "Username of the user."
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "If the user is a system admin, capable of creating other users."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "When the user was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "When the user was last updated (excludes changes in application access)."
+        }
+      },
+      "title": "Response for a user in the organization"
     },
     "apiGetUserResponse": {
       "type": "object",
@@ -352,7 +464,6 @@
         },
         "username": {
           "type": "string",
-          "format": "string",
           "description": "Username of the user."
         },
         "sessionTTL": {
@@ -372,12 +483,10 @@
         },
         "createdAt": {
           "type": "string",
-          "format": "string",
           "description": "When the user was created."
         },
         "updatedAt": {
           "type": "string",
-          "format": "string",
           "description": "When the user was last updated (excludes changes in application access)."
         }
       }
@@ -470,7 +579,7 @@
           "format": "int64",
           "description": "The organization id."
         },
-        "userId": {
+        "userID": {
           "type": "string",
           "format": "int64",
           "description": "The user's id."
@@ -492,12 +601,10 @@
         },
         "name": {
           "type": "string",
-          "format": "string",
           "description": "The new name."
         },
         "displayName": {
           "type": "string",
-          "format": "string",
           "description": "The new display name."
         },
         "canHaveGateways": {

@@ -27,6 +27,24 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "Max number of nodes to return in the result-set.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "description": "Offset of the result-set (for pagination).",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
         "tags": [
           "Gateway"
         ]
@@ -74,8 +92,7 @@
             "name": "mac",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "string"
+            "type": "string"
           }
         ],
         "tags": [
@@ -98,8 +115,7 @@
             "name": "mac",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "string"
+            "type": "string"
           }
         ],
         "tags": [
@@ -122,8 +138,7 @@
             "name": "mac",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "string"
+            "type": "string"
           },
           {
             "name": "body",
@@ -156,8 +171,28 @@
             "name": "mac",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "string"
+            "type": "string"
+          },
+          {
+            "name": "interval",
+            "description": "Aggregation interval.  One of \"second\", \"minute\", \"hour\", \"day\", \"week\",\n\"month\", \"quarter\", \"year\".  Case insensitive.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startTimestamp",
+            "description": "Timestamp to start from.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "endTimestamp",
+            "description": "Timestamp until to get from.",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -172,17 +207,14 @@
       "properties": {
         "mac": {
           "type": "string",
-          "format": "string",
           "description": "Hex encoded mac address."
         },
         "name": {
           "type": "string",
-          "format": "string",
           "title": "A name for the gateway"
         },
         "description": {
           "type": "string",
-          "format": "string",
           "title": "A description for the gateway"
         },
         "latitude": {
@@ -210,7 +242,6 @@
       "properties": {
         "mac": {
           "type": "string",
-          "format": "string",
           "description": "Hex encoded mac address."
         }
       }
@@ -223,7 +254,6 @@
       "properties": {
         "timestamp": {
           "type": "string",
-          "format": "string",
           "description": "Timestamp of the (aggregated) measurement."
         },
         "rxPacketsReceived": {
@@ -253,7 +283,6 @@
       "properties": {
         "mac": {
           "type": "string",
-          "format": "string",
           "description": "Hex encoded mac address of the node."
         }
       }
@@ -263,17 +292,14 @@
       "properties": {
         "mac": {
           "type": "string",
-          "format": "string",
           "description": "Hex encoded mac address."
         },
         "name": {
           "type": "string",
-          "format": "string",
           "title": "A name for the gateway"
         },
         "description": {
           "type": "string",
-          "format": "string",
           "title": "A description for the gateway"
         },
         "latitude": {
@@ -293,22 +319,18 @@
         },
         "createdAt": {
           "type": "string",
-          "format": "string",
           "title": "Creation timestamp of the record"
         },
         "updatedAt": {
           "type": "string",
-          "format": "string",
           "title": "Last update timestamp of the record"
         },
         "firstSeenAt": {
           "type": "string",
-          "format": "string",
           "description": "The timestamp of the first data from the gateway."
         },
         "lastSeenAt": {
           "type": "string",
-          "format": "string",
           "description": "The timestamp of the most recent data from the gateway."
         }
       }
@@ -318,22 +340,18 @@
       "properties": {
         "mac": {
           "type": "string",
-          "format": "string",
           "description": "Hex encoded mac address."
         },
         "interval": {
           "type": "string",
-          "format": "string",
           "description": "Aggregation interval.  One of \"second\", \"minute\", \"hour\", \"day\", \"week\",\n\"month\", \"quarter\", \"year\".  Case insensitive."
         },
         "startTimestamp": {
           "type": "string",
-          "format": "string",
           "description": "Timestamp to start from."
         },
         "endTimestamp": {
           "type": "string",
-          "format": "string",
           "description": "Timestamp until to get from."
         }
       }
@@ -386,17 +404,14 @@
       "properties": {
         "mac": {
           "type": "string",
-          "format": "string",
           "description": "Hex encoded mac address."
         },
         "name": {
           "type": "string",
-          "format": "string",
           "title": "A name for the gateway"
         },
         "description": {
           "type": "string",
-          "format": "string",
           "title": "A description for the gateway"
         },
         "latitude": {

@@ -52,6 +52,10 @@ func TestValidators(t *testing.T) {
 		Nodes:
 		0101010101010101: application 1 node
 		0202020202020202: application 2 node
+
+		Gateways:
+		0101010101010101: organization 1 gw
+		0202020202020202: organization 2 gw
 	*/
 	organizations := []storage.Organization{
 		{Name: "organization-1"},
@@ -138,6 +142,16 @@ func TestValidators(t *testing.T) {
 	}
 	for _, orgUser := range orgUsers {
 		if err := storage.CreateOrganizationUser(db, orgUser.OrganizationID, orgUser.UserID, orgUser.IsAdmin); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	gateways := []storage.Gateway{
+		{MAC: lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1}, Name: "gateway1", OrganizationID: organizations[0].ID},
+		{MAC: lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2}, Name: "gateway2", OrganizationID: organizations[1].ID},
+	}
+	for i := range gateways {
+		if err := storage.CreateGateway(db, &gateways[i]); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -482,26 +496,75 @@ func TestValidators(t *testing.T) {
 			tests := []validatorTest{
 				{
 					Name:       "global admin users can create and list",
-					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create), ValidateGatewaysAccess(List)},
+					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create, organizations[0].ID), ValidateGatewaysAccess(List, organizations[0].ID)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
-					Name:       "application admin users can not create and list",
-					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create), ValidateGatewaysAccess(List)},
-					Claims:     Claims{Username: "user2"},
+					Name:       "organization admin users can create and list",
+					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create, organizations[0].ID), ValidateGatewaysAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "normal user can list",
+					Validators: []ValidatorFunc{ValidateGatewaysAccess(List, 0)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization user can not create",
+					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create, organizations[0].ID)},
+					Claims:     Claims{Username: "user9"},
 					ExpectedOK: false,
 				},
 				{
-					Name:       "normal users can not create and list",
-					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create), ValidateGatewaysAccess(List)},
+					Name:       "normal user can not create",
+					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create, organizations[0].ID)},
 					Claims:     Claims{Username: "user4"},
 					ExpectedOK: false,
 				},
 				{
-					Name:       "inactive admin users can not create and list",
-					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create), ValidateGatewaysAccess(List)},
-					Claims:     Claims{Username: "user8"},
+					Name:       "inactive user can not list",
+					Validators: []ValidatorFunc{ValidateGatewaysAccess(List, 0)},
+					Claims:     Claims{Username: "user11"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateGatewayAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can create, update and delete",
+					Validators: []ValidatorFunc{ValidateGatewayAccess(Read, gateways[0].MAC), ValidateGatewayAccess(Update, gateways[0].MAC), ValidateGatewayAccess(Delete, gateways[0].MAC)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can create, update and delete",
+					Validators: []ValidatorFunc{ValidateGatewayAccess(Read, gateways[0].MAC), ValidateGatewayAccess(Update, gateways[0].MAC), ValidateGatewayAccess(Delete, gateways[0].MAC)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can read",
+					Validators: []ValidatorFunc{ValidateGatewayAccess(Read, gateways[0].MAC)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can not update or delete",
+					Validators: []ValidatorFunc{ValidateGatewayAccess(Update, gateways[0].MAC), ValidateGatewayAccess(Delete, gateways[0].MAC)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "normal users can not read, update or delete",
+					Validators: []ValidatorFunc{ValidateGatewayAccess(Read, gateways[0].MAC), ValidateGatewayAccess(Update, gateways[0].MAC), ValidateGatewayAccess(Delete, gateways[0].MAC)},
+					Claims:     Claims{Username: "user4"},
 					ExpectedOK: false,
 				},
 			}

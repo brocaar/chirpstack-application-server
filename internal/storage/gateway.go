@@ -33,7 +33,7 @@ func (g Gateway) Validate() error {
 }
 
 // CreateGateway creates the given Gateway.
-func CreateGateway(db *sqlx.DB, gw *Gateway) error {
+func CreateGateway(db sqlx.Execer, gw *Gateway) error {
 	if err := gw.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
@@ -83,7 +83,7 @@ func CreateGateway(db *sqlx.DB, gw *Gateway) error {
 }
 
 // UpdateGateway updates the given Gateway.
-func UpdateGateway(db *sqlx.DB, gw *Gateway) error {
+func UpdateGateway(db sqlx.Execer, gw *Gateway) error {
 	if err := gw.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
@@ -136,7 +136,7 @@ func UpdateGateway(db *sqlx.DB, gw *Gateway) error {
 }
 
 // DeleteGateway deletes the gateway matching the given MAC.
-func DeleteGateway(db *sqlx.DB, mac lorawan.EUI64) error {
+func DeleteGateway(db sqlx.Execer, mac lorawan.EUI64) error {
 	res, err := db.Exec("delete from gateway where mac = $1", mac[:])
 	if err != nil {
 		return errors.Wrap(err, "delete error")

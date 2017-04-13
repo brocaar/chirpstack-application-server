@@ -90,6 +90,7 @@ It has these top-level messages:
 	DeleteGatewayRequest
 	DeleteGatewayResponse
 	ListGatewayRequest
+	ListGatewayItem
 	ListGatewayResponse
 	UpdateGatewayRequest
 	UpdateGatewayResponse

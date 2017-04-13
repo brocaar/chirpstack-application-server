@@ -1,8 +1,8 @@
 package api
 
 import (
-	"encoding/hex"
 	"strings"
+	"time"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -11,8 +11,10 @@ import (
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
+	"github.com/jmoiron/sqlx"
 )
 
 // GatewayAPI exports the Gateway related functions.
@@ -31,18 +33,18 @@ func NewGatewayAPI(ctx common.Context, validator auth.Validator) *GatewayAPI {
 
 // Create creates the given gateway.
 func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (*pb.CreateGatewayResponse, error) {
-	err := a.validator.Validate(ctx, auth.ValidateGatewaysAccess(auth.Create))
+	err := a.validator.Validate(ctx, auth.ValidateGatewaysAccess(auth.Create, req.OrganizationID))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	macbytes, err := hex.DecodeString(req.Mac)
-	if err != nil {
+	var mac lorawan.EUI64
+	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
 	}
 
 	createReq := ns.CreateGatewayRequest{
-		Mac:         macbytes,
+		Mac:         mac[:],
 		Name:        req.Name,
 		Description: req.Description,
 		Latitude:    req.Latitude,
@@ -50,7 +52,24 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 		Altitude:    req.Altitude,
 	}
 
-	_, err = a.ctx.NetworkServer.CreateGateway(ctx, &createReq)
+	err = storage.Transaction(a.ctx.DB, func(tx *sqlx.Tx) error {
+		err = storage.CreateGateway(tx, &storage.Gateway{
+			MAC:            mac,
+			Name:           req.Name,
+			Description:    req.Description,
+			OrganizationID: req.OrganizationID,
+		})
+		if err != nil {
+			return errToRPCError(err)
+		}
+
+		_, err = a.ctx.NetworkServer.CreateGateway(ctx, &createReq)
+		if err != nil && grpc.Code(err) != codes.AlreadyExists {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -70,24 +89,27 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	getReq := ns.GetGatewayRequest{
+	getResp, err := a.ctx.NetworkServer.GetGateway(ctx, &ns.GetGatewayRequest{
 		Mac: mac[:],
-	}
-
-	getResp, err := a.ctx.NetworkServer.GetGateway(ctx, &getReq)
+	})
 	if err != nil {
 		return nil, err
 	}
 
+	gw, err := storage.GetGateway(a.ctx.DB, mac)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
 	ret := &pb.GetGatewayResponse{
 		Mac:         mac.String(),
-		Name:        getResp.Name,
-		Description: getResp.Description,
+		Name:        gw.Name,
+		Description: gw.Description,
 		Latitude:    getResp.Latitude,
 		Longitude:   getResp.Longitude,
 		Altitude:    getResp.Altitude,
-		CreatedAt:   getResp.CreatedAt,
-		UpdatedAt:   getResp.UpdatedAt,
+		CreatedAt:   gw.CreatedAt.Format(time.RFC3339Nano),
+		UpdatedAt:   gw.UpdatedAt.Format(time.RFC3339Nano),
 		FirstSeenAt: getResp.FirstSeenAt,
 		LastSeenAt:  getResp.LastSeenAt,
 	}
@@ -96,38 +118,71 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 
 // List lists the gateways.
 func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.ListGatewayResponse, error) {
-	err := a.validator.Validate(ctx, auth.ValidateGatewaysAccess(auth.List))
+	err := a.validator.Validate(ctx, auth.ValidateGatewaysAccess(auth.List, req.OrganizationID))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	listReq := ns.ListGatewayRequest{
-		Limit:  req.Limit,
-		Offset: req.Offset,
-	}
-	gws, err := a.ctx.NetworkServer.ListGateways(ctx, &listReq)
-	if err != nil {
-		return nil, err
-	}
+	var count int
+	var gws []storage.Gateway
 
-	result := make([]*pb.GetGatewayResponse, len(gws.Result))
-	for i, getResp := range gws.Result {
-		result[i] = &pb.GetGatewayResponse{
-			Mac:         hex.EncodeToString(getResp.Mac),
-			Name:        getResp.Name,
-			Description: getResp.Description,
-			Latitude:    getResp.Latitude,
-			Longitude:   getResp.Longitude,
-			Altitude:    getResp.Altitude,
-			CreatedAt:   getResp.CreatedAt,
-			UpdatedAt:   getResp.UpdatedAt,
-			FirstSeenAt: getResp.FirstSeenAt,
-			LastSeenAt:  getResp.LastSeenAt,
+	if req.OrganizationID == 0 {
+		isAdmin, err := a.validator.GetIsAdmin(ctx)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		if isAdmin {
+			// in case of admin user list all gateways
+			count, err = storage.GetGatewayCount(a.ctx.DB)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+
+			gws, err = storage.GetGateways(a.ctx.DB, int(req.Limit), int(req.Offset))
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+		} else {
+			// filter result based on user
+			username, err := a.validator.GetUsername(ctx)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			count, err = storage.GetGatewayCountForUser(a.ctx.DB, username)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			gws, err = storage.GetGatewaysForUser(a.ctx.DB, username, int(req.Limit), int(req.Offset))
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+		}
+	} else {
+		count, err = storage.GetGatewayCountForOrganizationID(a.ctx.DB, req.OrganizationID)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		gws, err = storage.GetGatewaysForOrganizationDB(a.ctx.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+		if err != nil {
+			return nil, errToRPCError(err)
 		}
 	}
 
+	result := make([]*pb.ListGatewayItem, 0, len(gws))
+	for i := range gws {
+		result = append(result, &pb.ListGatewayItem{
+			Mac:            gws[i].MAC.String(),
+			Name:           gws[i].Name,
+			Description:    gws[i].Description,
+			CreatedAt:      gws[i].CreatedAt.Format(time.RFC3339Nano),
+			UpdatedAt:      gws[i].UpdatedAt.Format(time.RFC3339Nano),
+			OrganizationID: gws[i].OrganizationID,
+		})
+	}
+
 	return &pb.ListGatewayResponse{
-		TotalCount: gws.TotalCount,
+		TotalCount: int32(count),
 		Result:     result,
 	}, nil
 }
@@ -144,15 +199,42 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	updateReq := ns.UpdateGatewayRequest{
-		Mac:         mac[:],
-		Name:        req.Name,
-		Description: req.Description,
-		Latitude:    req.Latitude,
-		Longitude:   req.Longitude,
-		Altitude:    req.Altitude,
+	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	if err != nil {
+		return nil, errToRPCError(err)
 	}
-	_, err = a.ctx.NetworkServer.UpdateGateway(ctx, &updateReq)
+
+	err = storage.Transaction(a.ctx.DB, func(tx *sqlx.Tx) error {
+		gw, err := storage.GetGateway(a.ctx.DB, mac)
+		if err != nil {
+			return errToRPCError(err)
+		}
+
+		gw.Name = req.Name
+		gw.Description = req.Description
+		if isAdmin {
+			gw.OrganizationID = req.OrganizationID
+		}
+
+		err = storage.UpdateGateway(tx, &gw)
+		if err != nil {
+			return errToRPCError(err)
+		}
+
+		updateReq := ns.UpdateGatewayRequest{
+			Mac:         mac[:],
+			Name:        req.Name,
+			Description: req.Description,
+			Latitude:    req.Latitude,
+			Longitude:   req.Longitude,
+			Altitude:    req.Altitude,
+		}
+		_, err = a.ctx.NetworkServer.UpdateGateway(ctx, &updateReq)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -172,10 +254,21 @@ func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	deleteReq := ns.DeleteGatewayRequest{
-		Mac: mac[:],
-	}
-	_, err = a.ctx.NetworkServer.DeleteGateway(ctx, &deleteReq)
+	err = storage.Transaction(a.ctx.DB, func(tx *sqlx.Tx) error {
+		err = storage.DeleteGateway(tx, mac)
+		if err != nil {
+			return errToRPCError(err)
+		}
+
+		_, err = a.ctx.NetworkServer.DeleteGateway(ctx, &ns.DeleteGatewayRequest{
+			Mac: mac[:],
+		})
+		if err != nil && grpc.Code(err) != codes.NotFound {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}

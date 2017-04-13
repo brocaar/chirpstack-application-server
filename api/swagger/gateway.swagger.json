@@ -43,6 +43,14 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "organizationID",
+            "description": "ID of the organization for which to filter on, when left blank the\nresponse will return all gateways to which the user has access to.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -231,6 +239,11 @@
           "type": "number",
           "format": "double",
           "title": "Altitude of the gateway in meters"
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization to which this gateway belongs."
         }
       }
     },
@@ -332,6 +345,11 @@
         "lastSeenAt": {
           "type": "string",
           "description": "The timestamp of the most recent data from the gateway."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization to which this gateway belongs."
         }
       }
     },
@@ -367,6 +385,36 @@
         }
       }
     },
+    "apiListGatewayItem": {
+      "type": "object",
+      "properties": {
+        "mac": {
+          "type": "string",
+          "description": "Hex encoded mac address."
+        },
+        "name": {
+          "type": "string",
+          "title": "A name for the gateway"
+        },
+        "description": {
+          "type": "string",
+          "title": "A description for the gateway"
+        },
+        "createdAt": {
+          "type": "string",
+          "title": "Creation timestamp of the record"
+        },
+        "updatedAt": {
+          "type": "string",
+          "title": "Last update timestamp of the record"
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization to which this gateway belongs."
+        }
+      }
+    },
     "apiListGatewayRequest": {
       "type": "object",
       "properties": {
@@ -379,6 +427,11 @@
           "type": "integer",
           "format": "int32",
           "description": "Offset of the result-set (for pagination)."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization for which to filter on, when left blank the\nresponse will return all gateways to which the user has access to."
         }
       }
     },
@@ -393,7 +446,7 @@
         "result": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiGetGatewayResponse"
+            "$ref": "#/definitions/apiListGatewayItem"
           },
           "description": "Nodes within this result-set."
         }
@@ -428,6 +481,11 @@
           "type": "number",
           "format": "double",
           "title": "Altitude of the gateway in meters"
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization to which this gateway belongs."
         }
       }
     },

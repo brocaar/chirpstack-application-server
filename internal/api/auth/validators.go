@@ -28,10 +28,12 @@ const userQuery = `
 		on u.id = ou.user_id
 	left join organization o
 		on o.id = ou.organization_id
+	left join gateway g
+		on o.id = g.organization_id
 	left join application_user au
 		on u.id = au.user_id
 	left join application a
-		on au.application_id = a.id
+		on au.application_id = a.id or a.organization_id = o.id
 	left join node n
 		on a.id = n.application_id`
 
@@ -322,20 +324,31 @@ func ValidateChannelListAccess(flag Flag) ValidatorFunc {
 }
 
 // ValidateGatewaysAccess validates if the client has access to the gateways.
-func ValidateGatewaysAccess(flag Flag) ValidatorFunc {
+func ValidateGatewaysAccess(flag Flag, organizationID int64) ValidatorFunc {
 	var where = [][]string{}
 
 	switch flag {
-	case Create, List:
+	case Create:
+		// global admin users or organization admin users
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+		}
+	case List:
+		// global admin users, or organization users, or when
+		// organizationID == 0 any active user
+		// (in the latter case the results are filtered on user)
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "$2 > 0", "o.id = $2"},
+			{"u.username = $1", "u.is_active = true", "$2 = 0"},
 		}
 	default:
 		panic("unsupported flag")
 	}
 
 	return func(db *sqlx.DB, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username)
+		return executeQuery(db, userQuery, where, claims.Username, organizationID)
 	}
 }
 
@@ -344,16 +357,24 @@ func ValidateGatewayAccess(flag Flag, mac lorawan.EUI64) ValidatorFunc {
 	var where = [][]string{}
 
 	switch flag {
-	case Read, Update, Delete:
+	case Read:
+		// global admin users or organization users
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "g.mac = $2"},
+		}
+	case Update, Delete:
+		where = [][]string{
+			// global admin users or organization admin users
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "g.mac = $2", "ou.is_admin = true"},
 		}
 	default:
 		panic("unsupported flag")
 	}
 
 	return func(db *sqlx.DB, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username)
+		return executeQuery(db, userQuery, where, claims.Username, mac[:])
 	}
 }
 

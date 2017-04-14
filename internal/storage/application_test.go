@@ -69,6 +69,19 @@ func TestApplication(t *testing.T) {
 				So(count, ShouldEqual, 1)
 			})
 
+			Convey("Then the application count for the organization returns 1", func() {
+				count, err := GetApplicationCountForOrganizationID(db, org.ID)
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 1)
+			})
+
+			Convey("Then listing the applications for the organization returns the expected application", func() {
+				apps, err := GetApplicationsForOrganizationID(db, org.ID, 10, 0)
+				So(err, ShouldBeNil)
+				So(apps, ShouldHaveLength, 1)
+				So(apps[0], ShouldResemble, app)
+			})
+
 			Convey("When creating a user", func() {
 				user := User{
 					Username:   "username",

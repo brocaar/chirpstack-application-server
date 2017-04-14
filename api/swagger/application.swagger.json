@@ -43,6 +43,14 @@
             "required": false,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "organizationID",
+            "description": "ID of the organization to filter on.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -577,6 +585,11 @@
           "type": "string",
           "format": "int64",
           "description": "Offset in the result-set (for pagination)."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization to filter on."
         }
       }
     },

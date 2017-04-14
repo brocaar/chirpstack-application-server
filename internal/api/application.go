@@ -27,7 +27,7 @@ func NewApplicationAPI(ctx common.Context, validator auth.Validator) *Applicatio
 
 func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRequest) (*pb.CreateApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationsAccess(auth.Create),
+		auth.ValidateApplicationsAccess(auth.Create, req.OrganizationID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -148,39 +148,50 @@ func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRe
 
 func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationRequest) (*pb.ListApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationsAccess(auth.List),
+		auth.ValidateApplicationsAccess(auth.List, req.OrganizationID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
-
-	var count int
-	var apps []storage.Application
 
 	isAdmin, err := a.validator.GetIsAdmin(ctx)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	if isAdmin {
-		apps, err = storage.GetApplications(a.ctx.DB, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, errToRPCError(err)
-		}
-		count, err = storage.GetApplicationCount(a.ctx.DB)
-		if err != nil {
-			return nil, errToRPCError(err)
+	var count int
+	var apps []storage.Application
+
+	if req.OrganizationID == 0 {
+		if isAdmin {
+			apps, err = storage.GetApplications(a.ctx.DB, int(req.Limit), int(req.Offset))
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			count, err = storage.GetApplicationCount(a.ctx.DB)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+		} else {
+			username, err := a.validator.GetUsername(ctx)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+
+			apps, err = storage.GetApplicationsForUser(a.ctx.DB, username, int(req.Limit), int(req.Offset))
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			count, err = storage.GetApplicationCountForUser(a.ctx.DB, username)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
 		}
 	} else {
-		username, err := a.validator.GetUsername(ctx)
+		apps, err = storage.GetApplicationsForOrganizationID(a.ctx.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
-
-		apps, err = storage.GetApplicationsForUser(a.ctx.DB, username, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, errToRPCError(err)
-		}
-		count, err = storage.GetApplicationCountForUser(a.ctx.DB, username)
+		count, err = storage.GetApplicationCountForOrganizationID(a.ctx.DB, req.OrganizationID)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}

@@ -103,26 +103,31 @@ func ValidateUserAccess(userID int64, flag Flag) ValidatorFunc {
 
 // ValidateApplicationsAccess validates if the client has access to the
 // global applications resource.
-func ValidateApplicationsAccess(flag Flag) ValidatorFunc {
+func ValidateApplicationsAccess(flag Flag, organizationID int64) ValidatorFunc {
 	var where [][]string
 
 	switch flag {
 	case Create:
-		// global admin user
+		// global admin users and organization admins
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
 		}
 	case List:
-		// all users (output will be based on authenticated user)
+		// global admin users, organization users (when an organization id
+		// is given) or any active user (when organization id == 0).
+		// in the latter case the api will filter on user.
 		where = [][]string{
-			{"u.username = $1", "u.is_active = true"},
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "$2 > 0", "o.id = $2"},
+			{"u.username = $1", "u.is_active = true", "$2 = 0"},
 		}
 	default:
 		panic("unsupported flag")
 	}
 
 	return func(db *sqlx.DB, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username)
+		return executeQuery(db, userQuery, where, claims.Username, organizationID)
 	}
 }
 
@@ -133,21 +138,25 @@ func ValidateApplicationAccess(applicationID int64, flag Flag) ValidatorFunc {
 
 	switch flag {
 	case Read:
-		// global admin users or users assigned to application
+		// global admin users, organization users and application users
+		// (note that the application is joined on both the organization
+		// and application_user)
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "a.id = $2"},
 		}
 	case Update:
-		// global admin or application admin
+		// global admin users, organization admin users or application admin
+		// users
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true", "a.id = $2"},
+			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
 		}
 	case Delete:
-		// global admin
+		// global admin users or organization admin users
 		where = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
 		}
 	default:
 		panic("unsupported flag")
@@ -165,13 +174,16 @@ func ValidateApplicationMembersAccess(applicationID int64, flag Flag) ValidatorF
 
 	switch flag {
 	case Create:
-		// global admin or application admin
+		// global admin users, organization admin users or application admin
+		// users
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true", "a.id = $2"},
+			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
 		}
 	case List:
-		// global admin or application user
+		// global admin users, organization users or application users
+		// (note that the application is joined both on application_useri
+		// and organization_user)
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "a.id = $2"},
@@ -192,23 +204,26 @@ func ValidateApplicationMemberAccess(applicationID, userID int64, flag Flag) Val
 
 	switch flag {
 	case Read:
-		// global admin, application admin or user itself.
+		// global admin users, organization admin users, application admin
+		// users or user itself.
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true", "a.id = $2"},
-			{"u.username = $1", "u.is_active = true", "a.id = $2", "au.user_id = $3", "au.user_id = u.id"},
+			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
+			{"u.username = $1", "u.is_active = true", "a.id = $2", "au.user_id = $3 or ou.user_id = $3", "au.user_id = u.id"},
 		}
 	case Update:
-		// global admin or application admin
+		// global admin users, organization admin users or application admin
+		// users
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true", "a.id = $2"},
+			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
 		}
 	case Delete:
-		// global admin or application admin
+		// global admin users, organization admin users or application admin
+		// users
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true", "a.id = $2"},
+			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
 		}
 	default:
 		panic("unsupported flag")
@@ -496,7 +511,7 @@ func ValidateOrganizationUserAccess(flag Flag, organizationID, userID int64) Val
 func executeQuery(db *sqlx.DB, query string, where [][]string, args ...interface{}) (bool, error) {
 	var ors []string
 	for _, ands := range where {
-		ors = append(ors, "("+strings.Join(ands, " and ")+")")
+		ors = append(ors, "(("+strings.Join(ands, ") and (")+"))")
 	}
 	whereStr := strings.Join(ors, " or ")
 	query = query + " where " + whereStr

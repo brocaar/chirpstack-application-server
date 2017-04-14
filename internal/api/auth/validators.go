@@ -241,13 +241,16 @@ func ValidateNodesAccess(applicationID int64, flag Flag) ValidatorFunc {
 
 	switch flag {
 	case Create:
-		// global admin user or application admin
+		// global admin users, organization admin users or application
+		// admin users.
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true", "a.id = $2"},
+			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
 		}
 	case List:
-		// global amdin user or users assigned to application
+		// global admin user or users assigned to application
+		// (note that the application is joined both on organization
+		// and application_user)
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "a.id = $2"},
@@ -273,16 +276,18 @@ func ValidateNodeAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 			{"u.username = $1", "u.is_active = true", "n.dev_eui = $2"},
 		}
 	case Update:
-		// global admin user or application admin
+		// global admin users, organization admin users or application
+		// admin users
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true", "n.dev_eui = $2"},
+			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "n.dev_eui = $2"},
 		}
 	case Delete:
-		// global admin user or application admin
+		// global admin users, organization admin users or application
+		// admin users
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true", "n.dev_eui = $2"},
+			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "n.dev_eui = $2"},
 		}
 	default:
 		panic("unsupported flag")
@@ -300,7 +305,7 @@ func ValidateNodeQueueAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 
 	switch flag {
 	case Create, Read, List, Update, Delete:
-		// global admin users or application users
+		// global admin users or users assigned to application
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "n.dev_eui = $2"},

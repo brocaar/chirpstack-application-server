@@ -1,6 +1,8 @@
 package api
 
 import (
+	"time"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -9,7 +11,6 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/jmoiron/sqlx"
 )
 
 // UserAPI exports the User related functions.
@@ -215,43 +216,44 @@ func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (
 		return nil, errToRPCError(err)
 	}
 
-	links, err := getApplicationLinks(a.ctx.DB, user.ID)
+	prof, err := storage.GetProfile(a.ctx.DB, user.ID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.ProfileResponse{
+	resp := pb.ProfileResponse{
 		User: &pb.GetUserResponse{
-			Id:         user.ID,
-			Username:   user.Username,
-			SessionTTL: user.SessionTTL,
-			IsAdmin:    user.IsAdmin,
-			IsActive:   user.IsActive,
-			CreatedAt:  user.CreatedAt.String(),
-			UpdatedAt:  user.UpdatedAt.String(),
+			Id:         prof.User.ID,
+			Username:   prof.User.Username,
+			SessionTTL: prof.User.SessionTTL,
+			IsAdmin:    prof.User.IsAdmin,
+			IsActive:   prof.User.IsActive,
+			CreatedAt:  prof.User.CreatedAt.Format(time.RFC3339Nano),
+			UpdatedAt:  prof.User.UpdatedAt.Format(time.RFC3339Nano),
 		},
-		Applications: links,
-	}, nil
-}
-
-func getApplicationLinks(db *sqlx.DB, id int64) ([]*pb.ApplicationLink, error) {
-	// Get the profile for the user.
-	userProfile, err := storage.GetProfile(db, id)
-	if nil != err {
-		return nil, errToRPCError(err)
+		Organizations: make([]*pb.OrganizationLink, len(prof.Organizations)),
+		Applications:  make([]*pb.ApplicationLink, len(prof.Applications)),
 	}
 
-	// Convert to the external form.
-	links := make([]*pb.ApplicationLink, len(userProfile))
-	for i, up := range userProfile {
-		links[i] = &pb.ApplicationLink{
-			ApplicationID:   up.ID,
-			ApplicationName: up.Name,
-			IsAdmin:         up.IsAdmin,
-			CreatedAt:       up.CreatedAt.String(),
-			UpdatedAt:       up.UpdatedAt.String(),
+	for i := range prof.Organizations {
+		resp.Organizations[i] = &pb.OrganizationLink{
+			OrganizationID:   prof.Organizations[i].ID,
+			OrganizationName: prof.Organizations[i].Name,
+			IsAdmin:          prof.Organizations[i].IsAdmin,
+			UpdatedAt:        prof.Organizations[i].UpdatedAt.Format(time.RFC3339Nano),
+			CreatedAt:        prof.Organizations[i].CreatedAt.Format(time.RFC3339Nano),
 		}
 	}
 
-	return links, nil
+	for i := range prof.Applications {
+		resp.Applications[i] = &pb.ApplicationLink{
+			ApplicationID:   prof.Applications[i].ID,
+			ApplicationName: prof.Applications[i].Name,
+			IsAdmin:         prof.Applications[i].IsAdmin,
+			UpdatedAt:       prof.Applications[i].UpdatedAt.Format(time.RFC3339Nano),
+			CreatedAt:       prof.Applications[i].CreatedAt.Format(time.RFC3339Nano),
+		}
+	}
+
+	return &resp, nil
 }

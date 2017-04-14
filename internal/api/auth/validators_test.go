@@ -664,15 +664,33 @@ func TestValidators(t *testing.T) {
 					ExpectedOK: true,
 				},
 				{
-					Name:       "organization admin users can not create and list",
-					Validators: []ValidatorFunc{ValidateOrganizationsAccess(Create), ValidateOrganizationsAccess(List)},
+					Name:       "organization admin users can list",
+					Validators: []ValidatorFunc{ValidateOrganizationsAccess(List)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can list",
+					Validators: []ValidatorFunc{ValidateOrganizationsAccess(List)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "normal users users can list",
+					Validators: []ValidatorFunc{ValidateOrganizationsAccess(List)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can not create",
+					Validators: []ValidatorFunc{ValidateOrganizationsAccess(Create)},
 					Claims:     Claims{Username: "user10"},
 					ExpectedOK: false,
 				},
 				{
-					Name:       "normal users can not create and list",
-					Validators: []ValidatorFunc{ValidateOrganizationsAccess(Create), ValidateOrganizationsAccess(List)},
-					Claims:     Claims{Username: "user9"},
+					Name:       "normal users can not create",
+					Validators: []ValidatorFunc{ValidateOrganizationsAccess(Create)},
+					Claims:     Claims{Username: "user4"},
 					ExpectedOK: false,
 				},
 				{

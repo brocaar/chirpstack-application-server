@@ -404,10 +404,15 @@ func ValidateOrganizationsAccess(flag Flag) ValidatorFunc {
 	var where = [][]string{}
 
 	switch flag {
-	case Create, List:
+	case Create:
 		// global admin user
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+		}
+	case List:
+		// any active user (results are filtered by the api)
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true"},
 		}
 	default:
 		panic("unsupported flag")

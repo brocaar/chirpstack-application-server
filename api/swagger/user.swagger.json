@@ -401,6 +401,29 @@
       },
       "description": "The response to the login request upon success. The jwt token is to be\nplaced in the header field named \"Grpc-Metadata-Authorization\" for all\nsubsequent queries to the server."
     },
+    "apiOrganizationLink": {
+      "type": "object",
+      "properties": {
+        "organizationID": {
+          "type": "string",
+          "format": "int64"
+        },
+        "organizationName": {
+          "type": "string"
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "description": "Defines the organizations that the user is associated with."
+    },
     "apiProfileRequest": {
       "type": "object",
       "description": "The request for profile requires not input as the profile is returned for\nthe logged in user based on the JWT token passed in."
@@ -415,6 +438,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/apiApplicationLink"
+          }
+        },
+        "organizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiOrganizationLink"
           }
         }
       },

@@ -237,6 +237,9 @@ message ListApplicationRequest {
 
 	// Offset in the result-set (for pagination).
 	int64 offset = 2;
+
+	// ID of the organization to filter on.
+	int64 organizationID = 3;
 }
 
 message ListApplicationResponse {

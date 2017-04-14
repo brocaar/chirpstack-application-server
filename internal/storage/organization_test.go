@@ -66,13 +66,13 @@ func TestOrganization(t *testing.T) {
 
 			// first org is created in the migrations
 			Convey("Then get organization count returns 2", func() {
-				count, err := GetOrganizationCount(db)
+				count, err := GetOrganizationCount(db, "")
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 2)
 			})
 
 			Convey("Then get organizations returns the expected items", func() {
-				items, err := GetOrganizations(db, 10, 0)
+				items, err := GetOrganizations(db, 10, 0, "")
 				So(err, ShouldBeNil)
 				So(items, ShouldHaveLength, 2)
 				items[1].CreatedAt = items[1].CreatedAt.Truncate(time.Millisecond).UTC()
@@ -149,11 +149,11 @@ func TestOrganization(t *testing.T) {
 				So(CreateApplication(db, &app), ShouldBeNil)
 
 				Convey("Then no organizations are related to this user", func() {
-					c, err := GetOrganizationCountForUser(db, user.Username)
+					c, err := GetOrganizationCountForUser(db, user.Username, "")
 					So(err, ShouldBeNil)
 					So(c, ShouldEqual, 0)
 
-					orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0)
+					orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0, "")
 					So(err, ShouldBeNil)
 					So(orgs, ShouldHaveLength, 0)
 				})
@@ -162,11 +162,11 @@ func TestOrganization(t *testing.T) {
 					So(CreateUserForApplication(db, app.ID, user.ID, false), ShouldBeNil)
 
 					Convey("Then the test organization is returned for the user", func() {
-						c, err := GetOrganizationCountForUser(db, user.Username)
+						c, err := GetOrganizationCountForUser(db, user.Username, "")
 						So(err, ShouldBeNil)
 						So(c, ShouldEqual, 1)
 
-						orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0)
+						orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0, "")
 						So(err, ShouldBeNil)
 						So(orgs, ShouldHaveLength, 1)
 						So(orgs[0].ID, ShouldEqual, org.ID)
@@ -177,11 +177,11 @@ func TestOrganization(t *testing.T) {
 					So(CreateOrganizationUser(db, org.ID, user.ID, false), ShouldBeNil)
 
 					Convey("Then the test organization is returned for the user", func() {
-						c, err := GetOrganizationCountForUser(db, user.Username)
+						c, err := GetOrganizationCountForUser(db, user.Username, "")
 						So(err, ShouldBeNil)
 						So(c, ShouldEqual, 1)
 
-						orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0)
+						orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0, "")
 						So(err, ShouldBeNil)
 						So(orgs, ShouldHaveLength, 1)
 						So(orgs[0].ID, ShouldEqual, org.ID)
@@ -193,11 +193,11 @@ func TestOrganization(t *testing.T) {
 					So(CreateOrganizationUser(db, org.ID, user.ID, false), ShouldBeNil)
 
 					Convey("Then the test organization is returned for the user", func() {
-						c, err := GetOrganizationCountForUser(db, user.Username)
+						c, err := GetOrganizationCountForUser(db, user.Username, "")
 						So(err, ShouldBeNil)
 						So(c, ShouldEqual, 1)
 
-						orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0)
+						orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0, "")
 						So(err, ShouldBeNil)
 						So(orgs, ShouldHaveLength, 1)
 						So(orgs[0].ID, ShouldEqual, org.ID)

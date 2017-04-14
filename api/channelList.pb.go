@@ -67,6 +67,7 @@ It has these top-level messages:
 	ListDownlinkQueueItemsRequest
 	ListDownlinkQueueItemsResponse
 	ApplicationLink
+	OrganizationLink
 	UserProfile
 	ProfileRequest
 	ProfileResponse

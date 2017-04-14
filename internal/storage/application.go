@@ -156,6 +156,23 @@ func GetApplicationCountForUser(db *sqlx.DB, username string) (int, error) {
 	return count, nil
 }
 
+// GetApplicationCountForOrganizationID returns the total number of
+// applications for the given organization.
+func GetApplicationCountForOrganizationID(db *sqlx.DB, organizationID int64) (int, error) {
+	var count int
+	err := db.Get(&count, `
+		select count(*)
+		from application
+		where
+			organization_id = $1`,
+		organizationID,
+	)
+	if err != nil {
+		return 0, errors.Wrap(err, "select error")
+	}
+	return count, nil
+}
+
 // GetApplications returns a slice of applications, sorted by name and
 // respecting the given limit and offset.
 func GetApplications(db *sqlx.DB, limit, offset int) ([]Application, error) {
@@ -181,7 +198,31 @@ func GetApplicationsForUser(db *sqlx.DB, username string, limit, offset int) ([]
 		where
 			u.username = $1
 			and u.is_active = true
-	`, username)
+		order by a.name
+		limit $2 offset $3
+	`, username, limit, offset)
+	if err != nil {
+		return nil, errors.Wrap(err, "select error")
+	}
+
+	return apps, nil
+}
+
+// GetApplicationsForOrganization returns a slice of applications for the given
+// organization.
+func GetApplicationsForOrganizationID(db *sqlx.DB, organizationID int64, limit, offset int) ([]Application, error) {
+	var apps []Application
+	err := db.Select(&apps, `
+		select *
+		from application
+		where
+			organization_id = $1
+		order by name
+		limit $2 offset $3`,
+		organizationID,
+		limit,
+		offset,
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
 	}

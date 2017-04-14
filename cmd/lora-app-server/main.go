@@ -224,6 +224,7 @@ func mustGetClientAPIServer(ctx context.Context, lsCtx common.Context, c *cli.Co
 	pb.RegisterUserServer(gs, api.NewUserAPI(lsCtx, validator))
 	pb.RegisterInternalServer(gs, api.NewInternalUserAPI(lsCtx, validator))
 	pb.RegisterGatewayServer(gs, api.NewGatewayAPI(lsCtx, validator))
+	pb.RegisterOrganizationServer(gs, api.NewOrganizationAPI(lsCtx, validator))
 
 	return gs
 }
@@ -302,7 +303,6 @@ func mustGetJSONGateway(ctx context.Context, lsCtx common.Context, c *cli.Contex
 	if err := pb.RegisterApplicationHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		log.Fatalf("register application handler error: %s", err)
 	}
-
 	if err := pb.RegisterChannelListHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		log.Fatalf("register channel-list handler error: %s", err)
 	}
@@ -319,7 +319,10 @@ func mustGetJSONGateway(ctx context.Context, lsCtx common.Context, c *cli.Contex
 		log.Fatalf("register internal handler error: %s", err)
 	}
 	if err := pb.RegisterGatewayHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
-		log.Fatalf("register internal handler error: %s", err)
+		log.Fatalf("register gateway handler error: %s", err)
+	}
+	if err := pb.RegisterOrganizationHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+		log.Fatalf("register organization handler error: %s", err)
 	}
 
 	return mux

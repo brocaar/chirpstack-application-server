@@ -82,6 +82,15 @@ message ApplicationLink {
 	string updatedAt = 5;
 }
 
+// Defines the organizations that the user is associated with.
+message OrganizationLink {
+	int64 organizationID = 1;
+	string organizationName = 2;
+	bool isAdmin = 3;
+	string createdAt = 4;
+	string updatedAt = 5;
+}
+
 // The user profile, indicating the capabilities of the user.
 message UserProfile {
 	repeated ApplicationLink applications = 1;
@@ -99,6 +108,7 @@ message ProfileRequest {
 message ProfileResponse {
 	GetUserResponse user = 1;
 	repeated ApplicationLink applications = 2;
+	repeated OrganizationLink organizations = 3;
 }
 
 

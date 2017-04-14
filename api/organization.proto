@@ -2,9 +2,6 @@ syntax = "proto3";
 
 package api;
 
-// Get user api definitions reused here.
-import "user.proto";
-
 // for grpc-gateway
 import "google/api/annotations.proto";
 
@@ -48,7 +45,7 @@ service Organization {
 	}
 
 	// Get organization's user list.
-	rpc ListUsers(ListOrganizationUsersRequest) returns (ListUserResponse) {
+	rpc ListUsers(ListOrganizationUsersRequest) returns (ListOrganizationUsersResponse) {
 		option(google.api.http) = {
 			get: "/api/organizations/{id}/users"
 		};

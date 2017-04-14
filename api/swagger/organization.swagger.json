@@ -165,7 +165,7 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiListUserResponse"
+              "$ref": "#/definitions/apiListOrganizationUsersResponse"
             }
           }
         },
@@ -454,43 +454,6 @@
       },
       "title": "Response for a user in the organization"
     },
-    "apiGetUserResponse": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the user."
-        },
-        "username": {
-          "type": "string",
-          "description": "Username of the user."
-        },
-        "sessionTTL": {
-          "type": "integer",
-          "format": "int32",
-          "description": "The session timeout, in minutes."
-        },
-        "isAdmin": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "If the user is a system admin, capable of creating other users."
-        },
-        "isActive": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "If the user is active."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "When the user was created."
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "When the user was last updated (excludes changes in application access)."
-        }
-      }
-    },
     "apiListOrganizationRequest": {
       "type": "object",
       "properties": {
@@ -543,20 +506,23 @@
       },
       "description": "Request the users in an organization."
     },
-    "apiListUserResponse": {
+    "apiListOrganizationUsersResponse": {
       "type": "object",
       "properties": {
         "totalCount": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "description": "The total number of users in the organization."
         },
         "result": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiGetUserResponse"
-          }
+            "$ref": "#/definitions/apiGetOrganizationUserResponse"
+          },
+          "description": "The users in the requested limit, offset range."
         }
-      }
+      },
+      "description": "Response for the users in an organization."
     },
     "apiOrganizationEmptyResponse": {
       "type": "object"

@@ -98,9 +98,21 @@ func GetOrganization(db *sqlx.DB, id int64) (Organization, error) {
 }
 
 // GetOrganizationCount returns the total number of organizations.
-func GetOrganizationCount(db *sqlx.DB) (int, error) {
+func GetOrganizationCount(db *sqlx.DB, search string) (int, error) {
 	var count int
-	err := db.Get(&count, "select count(*) from organization")
+
+	if search != "" {
+		search = "%" + search + "%"
+	}
+
+	err := db.Get(&count, `
+		select count(*)
+		from organization
+		where
+			($1 != '' and display_name ilike $1)
+			or ($1 = '')`,
+		search,
+	)
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")
 	}
@@ -112,8 +124,13 @@ func GetOrganizationCount(db *sqlx.DB) (int, error) {
 // The user has a relation to an organization:
 // - when it has a reference to a specific application within the organization
 // - when it has a reference to the organization itself
-func GetOrganizationCountForUser(db *sqlx.DB, username string) (int, error) {
+func GetOrganizationCountForUser(db *sqlx.DB, username string, search string) (int, error) {
 	var count int
+
+	if search != "" {
+		search = "%" + search + "%"
+	}
+
 	err := db.Get(&count, `
 		select count(o.*)
 		from organization o
@@ -126,8 +143,13 @@ func GetOrganizationCountForUser(db *sqlx.DB, username string) (int, error) {
 		left join application_user au
 			on a.id = au.application_id and u.id = au.user_id
 		where
-			au.user_id is not null or ou.user_id is not null`,
+			(au.user_id is not null or ou.user_id is not null)
+			and (
+				($2 != '' and o.display_name ilike $2)
+				or ($2 = '')
+			)`,
 		username,
+		search,
 	)
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")
@@ -137,9 +159,21 @@ func GetOrganizationCountForUser(db *sqlx.DB, username string) (int, error) {
 
 // GetOrganizations returns a slice of organizations, sorted by name and
 // respecting the given limit and offset.
-func GetOrganizations(db *sqlx.DB, limit, offset int) ([]Organization, error) {
+func GetOrganizations(db *sqlx.DB, limit, offset int, search string) ([]Organization, error) {
 	var orgs []Organization
-	err := db.Select(&orgs, "select * from organization order by name limit $1 offset $2", limit, offset)
+
+	if search != "" {
+		search = "%" + search + "%"
+	}
+
+	err := db.Select(&orgs, `
+		select *
+		from organization
+		where
+			($3 != '' and display_name ilike $3)
+			or ($3 = '')
+		order by name
+		limit $1 offset $2`, limit, offset, search)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
 	}
@@ -151,8 +185,13 @@ func GetOrganizations(db *sqlx.DB, limit, offset int) ([]Organization, error) {
 // The user has a relation to an organization:
 // - when it has a reference to a specific application within the organization
 // - when it has a reference to the organization itself
-func GetOrganizationsForUser(db *sqlx.DB, username string, limit, offset int) ([]Organization, error) {
+func GetOrganizationsForUser(db *sqlx.DB, username string, limit, offset int, search string) ([]Organization, error) {
 	var orgs []Organization
+
+	if search != "" {
+		search = "%" + search + "%"
+	}
+
 	err := db.Select(&orgs, `
 		select o.*
 		from organization o
@@ -165,12 +204,17 @@ func GetOrganizationsForUser(db *sqlx.DB, username string, limit, offset int) ([
 		left join application_user au
 			on a.id = au.application_id and u.id = au.user_id
 		where
-			au.user_id is not null or ou.user_id is not null
+			(au.user_id is not null or ou.user_id is not null)
+			and (
+				($4 != '' and o.display_name ilike $4)
+				or ($4 = '')
+			)
 		order by name
 		limit $2 offset $3`,
 		username,
 		limit,
 		offset,
+		search,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")

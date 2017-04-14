@@ -88,12 +88,12 @@ func (a *OrganizationAPI) List(ctx context.Context, req *pb.ListOrganizationRequ
 	var orgs []storage.Organization
 
 	if isAdmin {
-		count, err = storage.GetOrganizationCount(a.ctx.DB)
+		count, err = storage.GetOrganizationCount(a.ctx.DB, req.Search)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 
-		orgs, err = storage.GetOrganizations(a.ctx.DB, int(req.Limit), int(req.Offset))
+		orgs, err = storage.GetOrganizations(a.ctx.DB, int(req.Limit), int(req.Offset), req.Search)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
@@ -102,11 +102,11 @@ func (a *OrganizationAPI) List(ctx context.Context, req *pb.ListOrganizationRequ
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
-		count, err = storage.GetOrganizationCountForUser(a.ctx.DB, username)
+		count, err = storage.GetOrganizationCountForUser(a.ctx.DB, username, req.Search)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
-		orgs, err = storage.GetOrganizationsForUser(a.ctx.DB, username, int(req.Limit), int(req.Offset))
+		orgs, err = storage.GetOrganizationsForUser(a.ctx.DB, username, int(req.Limit), int(req.Offset), req.Search)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}

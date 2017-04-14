@@ -23,6 +23,7 @@ insert into organization (
 );
 
 create unique index idx_organization_name on organization(name);
+create index idx_organization_display_name_prefix on organization(lower(display_name) varchar_pattern_ops);
 
 create table organization_user (
 	id bigserial primary key,
@@ -89,5 +90,6 @@ drop index idx_organization_user_organization_id;
 drop index idx_organization_user_user_id;
 drop table organization_user;
 
+drop index idx_organization_display_name_prefix;
 drop index idx_organization_name;
 drop table organization;

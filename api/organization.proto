@@ -90,6 +90,10 @@ message ListOrganizationRequest {
 
 	// Offset in the result-set (for pagination).
 	int32 offset = 2;
+
+	// When provided, the given string will be used to search on
+	// displayName.
+	string search = 3;
 }
 
 // Request the user information.

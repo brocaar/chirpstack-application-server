@@ -43,6 +43,13 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "search",
+            "description": "When provided, the given string will be used to search on\ndisplayName.",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -466,6 +473,10 @@
           "type": "integer",
           "format": "int32",
           "description": "Offset in the result-set (for pagination)."
+        },
+        "search": {
+          "type": "string",
+          "description": "When provided, the given string will be used to search on\ndisplayName."
         }
       },
       "description": "Request the organizations defined in the system."

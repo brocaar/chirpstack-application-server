@@ -14,24 +14,33 @@ class Navbar extends Component {
     this.state = {
       user: SessionStore.getUser(),
       isAdmin: SessionStore.isAdmin(),
-      dropdownOpen: false,
+      userDropdownOpen: false,
+      orgDropdownOpen: false,
     }
 
-    this.toggleDropdown = this.toggleDropdown.bind(this);
+    this.userToggleDropdown = this.userToggleDropdown.bind(this);
+    this.orgToggleDropdown = this.orgToggleDropdown.bind(this);
     this.handleActions = this.handleActions.bind(this);
   }
 
-  toggleDropdown() {
-    this.setState({
-      dropdownOpen: !this.state.dropdownOpen,
-    });
-  }
+  userToggleDropdown() {
+	    this.setState({
+	      userDropdownOpen: !this.state.userDropdownOpen,
+	    });
+	  }
+
+  orgToggleDropdown() {
+	    this.setState({
+	      orgDropdownOpen: !this.state.orgDropdownOpen,
+	    });
+	  }
 
   handleActions(action) {
     switch(action.type) {
       case "BODY_CLICK": {
         this.setState({
-          dropdownOpen: false,
+            userDropdownOpen: false,
+            orgDropdownOpen: false,
         });
         break;
       }
@@ -52,19 +61,22 @@ class Navbar extends Component {
   }
 
   render() {
+
     return (
       <nav className="navbar navbar-inverse navbar-fixed-top">
         <div className="container">
           <div className="navbar-header">
             <a className="navbar-brand" href="#">LoRa Server</a>
           </div>
-          <div id="navbar" className="navbar-collapse collapse">
+          <div id="navbar" className="navbar-collapse collapse">  
             <ul className="nav navbar-nav navbar-right">
-              <li className={this.state.isAdmin === true ? "" : "hidden"}><Link to="gateways">Manage gateways</Link></li>
-              <li className={this.state.isAdmin === true ? "" : "hidden"}><Link to="users">Manage users</Link></li>
-              <li className={"dropdown " + (typeof(this.state.user.username) === "undefined" ? "hidden" : "") + (this.state.dropdownOpen ? "open" : "")}>
-                <Link onClick={this.toggleDropdown} className="dropdown-toggle">{this.state.user.username} <span className="caret" /></Link>
-                <ul className="dropdown-menu" onClick={this.toggleDropdown}>
+              <li><Link to="#">Applications</Link></li>
+              <li className={this.state.isAdmin === true ? "" : "hidden"}><Link to="gateways">Gateways</Link></li>
+              <li className={this.state.isAdmin === true ? "" : "hidden"}><Link to="organizations">Organizations</Link></li>
+              <li className={this.state.isAdmin === true ? "" : "hidden"}><Link to="users">Users</Link></li>
+              <li className={"dropdown " + (typeof(this.state.user.username) === "undefined" ? "hidden" : "") + (this.state.userDropdownOpen ? "open" : "")}>
+                <Link onClick={this.userToggleDropdown} className="dropdown-toggle">{this.state.user.username} <span className="caret" /></Link>
+                <ul className="dropdown-menu" onClick={this.userToggleDropdown}>
                   <li><Link to={`users/${this.state.user.id}/password`}>Change password</Link></li>
                   <li><Link to="login">Logout</Link></li>
                 </ul>

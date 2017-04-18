@@ -1,3 +1,69 @@
 body {
   padding-top: 87px;
 }
+
+/* width fix, see https://github.com/JedWatson/react-select/issues/323 */
+.org-select .Select-input {
+  position: absolute !important;
+  top: 0 !important;
+}
+
+.org-select .is-open  {
+	width: 200px !important;
+}
+
+.org-select .Select-value-label {
+  display: block !important;
+}
+
+.org-select .Select-value {
+  position: relative !important;
+}
+
+.org-select .Select-menu-outer {
+  width: auto;
+  min-width: 100%;
+}
+
+.org-select .Select-option {
+  white-space: nowrap;
+}
+
+.org-select .Select-control {
+  min-width: 100%;
+  width: auto;
+}
+
+
+.org-select .Select {
+	height: 20px;
+	top: -1px;
+}
+
+.org-select .Select-control:hover {
+  box-shadow: none;
+}
+
+.org-select .Select-control {
+	background-color: rgba(0,0,0,0);
+	border: 0;
+}
+
+.org-select .Select-control .Select-value {
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+.org-select .Select-control .Select-value .Select-value-label {
+	color: #2196f3 !important;
+}
+
+
+.org-select .Select-control .Select-arrow-zone {
+	top: -1px;
+}
+
+.org-select .Select-menu-outer {
+	margin-top: 15px;
+}
+

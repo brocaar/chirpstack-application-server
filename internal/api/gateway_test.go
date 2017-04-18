@@ -56,14 +56,15 @@ func TestGatewayAPI(t *testing.T) {
 		}
 
 		getGatewayResponseAS := pb.GetGatewayResponse{
-			Mac:         "0102030405060708",
-			Name:        "test-gateway",
-			Description: "test gateway",
-			Latitude:    1.1234,
-			Longitude:   1.1235,
-			Altitude:    5.5,
-			FirstSeenAt: now.UTC().Add(2 * time.Second).Format(time.RFC3339Nano),
-			LastSeenAt:  now.UTC().Add(3 * time.Second).Format(time.RFC3339Nano),
+			Mac:            "0102030405060708",
+			Name:           "test-gateway",
+			Description:    "test gateway",
+			Latitude:       1.1234,
+			Longitude:      1.1235,
+			Altitude:       5.5,
+			FirstSeenAt:    now.UTC().Add(2 * time.Second).Format(time.RFC3339Nano),
+			LastSeenAt:     now.UTC().Add(3 * time.Second).Format(time.RFC3339Nano),
+			OrganizationID: org.ID,
 		}
 
 		Convey("When calling create", func() {

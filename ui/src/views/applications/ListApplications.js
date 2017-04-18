@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
+import OrganizationSelect from "../../components/OrganizationSelect";
 import Pagination from "../../components/Pagination";
 import ApplicationStore from "../../stores/ApplicationStore";
 import SessionStore from "../../stores/SessionStore";
@@ -10,7 +11,7 @@ class ApplicationRow extends Component {
     return(
       <tr>
         <td>{this.props.application.id}</td>
-        <td><Link to={`/applications/${this.props.application.id}`}>{this.props.application.name}</Link></td>
+        <td><Link to={`/organizations/${this.props.application.organizationID}/applications/${this.props.application.id}`}>{this.props.application.name}</Link></td>
         <td>{this.props.application.description}</td>
       </tr>
     );
@@ -43,7 +44,7 @@ class ListApplications extends Component {
   updatePage(props) {
     const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
 
-    ApplicationStore.getAll(this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, applications) => {
+    ApplicationStore.getAllForOrganization(props.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, applications) => {
       this.setState({
         applications: applications,
         pageNumber: page,
@@ -71,13 +72,13 @@ class ListApplications extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
+          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
           <li className="active">Applications</li>
         </ol>
         <div className={(this.state.isAdmin ? '' : 'hidden')}>
           <div className="clearfix">
             <div className="btn-group pull-right" role="group" aria-label="...">
-              <Link to="/applications/create"><button type="button" className="btn btn-default">Create application</button></Link> &nbsp;
+              <Link to={`/organizations/${this.props.params.organizationID}/applications/create`}><button type="button" className="btn btn-default">Create application</button></Link> &nbsp;
               <Link to="/channels"><button type="button" className="btn btn-default">Channel lists</button></Link>
             </div>
           </div>

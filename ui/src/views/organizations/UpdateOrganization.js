@@ -17,6 +17,7 @@ class UpdateOrganization extends Component {
     };
 
     this.onSubmit = this.onSubmit.bind(this);
+    this.onDelete = this.onDelete.bind(this);
   }
 
   componentWillMount() {
@@ -33,6 +34,14 @@ class UpdateOrganization extends Component {
     });
   }
 
+  onDelete() {
+    if (confirm("Are you sure you want to delete this organization?")) {
+      OrganizationStore.deleteOrganization(this.props.params.id, (responseData) => {
+        this.context.router.push('/organizations');
+      });
+    }
+  }
+
   render() {
     return(
       <div>
@@ -42,6 +51,12 @@ class UpdateOrganization extends Component {
           <li><Link to={`/organizations/${this.props.params.id}`}>{this.state.organization.name}</Link></li>
           <li className="active">Edit organization</li>
         </ol>
+        <div className="clearfix">
+          <div className="btn-group pull-right" role="group" aria-label="...">
+            <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete organization</button></Link>
+          </div>
+        </div>
+        <hr />
         <hr />
         <div className="panel panel-default">
           <div className="panel-body">

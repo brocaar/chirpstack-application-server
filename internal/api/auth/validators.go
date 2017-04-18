@@ -352,7 +352,7 @@ func ValidateGatewaysAccess(flag Flag, organizationID int64) ValidatorFunc {
 		// global admin users or organization admin users
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true", "o.can_have_gateways = true"},
 		}
 	case List:
 		// global admin users, or organization users, or when

@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Link } from "react-router";
 
+import OrganizationSelect from "../../components/OrganizationSelect";
 import ApplicationStore from "../../stores/ApplicationStore";
 import ApplicationForm from "../../components/ApplicationForm";
 
@@ -19,16 +20,22 @@ class CreateApplication extends Component {
 
   onSubmit(application) {
     ApplicationStore.createApplication(application, (responseData) => {
-      this.context.router.push('/applications/'+responseData.id);
+      this.context.router.push('/organizations/'+this.props.params.organizationID+'/applications/'+responseData.id);
     });
   }
+
+  componentWillMount() {
+    this.setState({
+      application: {organizationID: this.props.params.organizationID},
+    });
+  } 
 
   render() {
     return (
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
-          <li><Link to="/applications">Applications</Link></li>
+          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
           <li className="active">Create application</li>
         </ol>
         <hr />

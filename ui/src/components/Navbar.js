@@ -15,11 +15,9 @@ class Navbar extends Component {
       user: SessionStore.getUser(),
       isAdmin: SessionStore.isAdmin(),
       userDropdownOpen: false,
-      orgDropdownOpen: false,
     }
 
     this.userToggleDropdown = this.userToggleDropdown.bind(this);
-    this.orgToggleDropdown = this.orgToggleDropdown.bind(this);
     this.handleActions = this.handleActions.bind(this);
   }
 
@@ -29,18 +27,11 @@ class Navbar extends Component {
 	    });
 	  }
 
-  orgToggleDropdown() {
-	    this.setState({
-	      orgDropdownOpen: !this.state.orgDropdownOpen,
-	    });
-	  }
-
   handleActions(action) {
     switch(action.type) {
       case "BODY_CLICK": {
         this.setState({
             userDropdownOpen: false,
-            orgDropdownOpen: false,
         });
         break;
       }

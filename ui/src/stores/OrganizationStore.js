@@ -3,10 +3,9 @@ import "whatwg-fetch";
 import sessionStore from "./SessionStore";
 import { checkStatus, errorHandler } from "./helpers";
 
-
 class OrganizationStore extends EventEmitter {
-  getAll(pageSize, offset, callbackFunc) {
-    fetch("/api/organizations?limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
+  getAll(search, pageSize, offset, callbackFunc) {
+    fetch("/api/organizations?limit="+pageSize+"&offset="+offset+"&search="+encodeURIComponent(search), {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

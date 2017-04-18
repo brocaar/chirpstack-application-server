@@ -30,6 +30,14 @@ class SessionStore extends EventEmitter {
     return localStorage.getItem("jwt");
   }
 
+  setOrganizationID(id) {
+    localStorage.setItem("organizationID", id);
+  }
+
+  getOrganizationID() {
+    return localStorage.getItem("organizationID");
+  }
+
   getHeader() {
     if (this.getToken() !== "") {
       return {

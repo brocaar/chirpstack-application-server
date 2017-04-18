@@ -36,6 +36,11 @@ import GatewayDetails from "./views/gateways/GatewayDetails";
 import CreateGateway from "./views/gateways/CreateGateway";
 import UpdateGateway from "./views/gateways/UpdateGateway";
 
+// organizations
+import ListOrganizations from './views/organizations/ListOrganizations';
+import CreateOrganization from './views/organizations/CreateOrganization';
+import UpdateOrganization from './views/organizations/UpdateOrganization';
+
 // fix leaflet image source
 import Leaflet from 'leaflet';
 Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.0/images/'
@@ -74,6 +79,9 @@ ReactDOM.render(
       <Route path="gateways/create" component={CreateGateway}></Route>
       <Route path="gateways/:mac/edit" component={UpdateGateway}></Route>
       <Route path="gateways/:mac" component={GatewayDetails}></Route>
+      <Route path="organizations" component={ListOrganizations}></Route>
+      <Route path="organizations/create" component={CreateOrganization}></Route>
+      <Route path="organizations/:id/edit" component={UpdateOrganization}></Route>
     </Route>
   </Router>,
   document.getElementById('root')

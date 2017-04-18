@@ -70,10 +70,16 @@ func TestOrganizationAPI(t *testing.T) {
 				// Default org is already in the database.
 				So(orgs.Result, ShouldHaveLength, 2)
 				orgId := int64(0)
-				So(orgs.Result[1].Name, ShouldEqual, createReq.Name)
-				So(orgs.Result[1].DisplayName, ShouldEqual, createReq.DisplayName)
-				So(orgs.Result[1].CanHaveGateways, ShouldEqual, createReq.CanHaveGateways)
-				orgId = createResp.Id
+				
+				// If the length is not what was expected, then these checks 
+				// will, at best, be checking against some random data, and at
+				// worst, crash the test.
+				if 2 == len(orgs.Result) {
+					So(orgs.Result[1].Name, ShouldEqual, createReq.Name)
+					So(orgs.Result[1].DisplayName, ShouldEqual, createReq.DisplayName)
+					So(orgs.Result[1].CanHaveGateways, ShouldEqual, createReq.CanHaveGateways)
+					orgId = createResp.Id
+				}
 
 				Convey("When updating the organization", func() {
 					updateOrg := &pb.UpdateOrganizationRequest{
@@ -96,6 +102,7 @@ func TestOrganizationAPI(t *testing.T) {
 						So(orgUpd.DisplayName, ShouldResemble, updateOrg.DisplayName)
 						So(orgUpd.CanHaveGateways, ShouldResemble, updateOrg.CanHaveGateways)
 					})
+
 				})
 
 				// Add a new user for adding to the organization.

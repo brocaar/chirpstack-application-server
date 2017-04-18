@@ -5,6 +5,7 @@ import moment from "moment";
 import { Map, Marker, TileLayer } from 'react-leaflet';
 import { Bar } from "react-chartjs";
 
+import OrganizationSelect from "../../components/OrganizationSelect";
 import GatewayStore from "../../stores/GatewayStore";
 
 class GatewayStats extends Component {
@@ -171,7 +172,7 @@ class GatewayDetails extends Component {
   onDelete() {
     if (confirm("Are you sure you want to delete this gateway?")) {
       GatewayStore.deleteGateway(this.props.params.mac, (responseData) => {
-        this.context.router.push("/gateways");
+        this.context.router.push("/organizations/"+this.props.params.organizationID+"/gateways");
       });
     }
   }
@@ -197,13 +198,13 @@ class GatewayDetails extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
-          <li><Link to="gateways">Gateways</Link></li>
+          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/gateways`}>Gateways</Link></li>
           <li className="active">{this.state.gateway.name}</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to={`/gateways/${this.props.params.mac}/edit`}><button type="button" className="btn btn-default">Edit gateway</button></Link> &nbsp;
+            <Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}/edit`}><button type="button" className="btn btn-default">Edit gateway</button></Link> &nbsp;
             <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete gateway</button></Link>
           </div>
         </div>

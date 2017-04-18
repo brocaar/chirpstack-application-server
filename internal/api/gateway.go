@@ -102,16 +102,17 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 	}
 
 	ret := &pb.GetGatewayResponse{
-		Mac:         mac.String(),
-		Name:        gw.Name,
-		Description: gw.Description,
-		Latitude:    getResp.Latitude,
-		Longitude:   getResp.Longitude,
-		Altitude:    getResp.Altitude,
-		CreatedAt:   gw.CreatedAt.Format(time.RFC3339Nano),
-		UpdatedAt:   gw.UpdatedAt.Format(time.RFC3339Nano),
-		FirstSeenAt: getResp.FirstSeenAt,
-		LastSeenAt:  getResp.LastSeenAt,
+		Mac:            mac.String(),
+		Name:           gw.Name,
+		Description:    gw.Description,
+		OrganizationID: gw.OrganizationID,
+		Latitude:       getResp.Latitude,
+		Longitude:      getResp.Longitude,
+		Altitude:       getResp.Altitude,
+		CreatedAt:      gw.CreatedAt.Format(time.RFC3339Nano),
+		UpdatedAt:      gw.UpdatedAt.Format(time.RFC3339Nano),
+		FirstSeenAt:    getResp.FirstSeenAt,
+		LastSeenAt:     getResp.LastSeenAt,
 	}
 	return ret, err
 }

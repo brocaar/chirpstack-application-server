@@ -43,7 +43,7 @@ class ListOrganizations extends Component {
   updatePage(props) {
     const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
 
-    OrganizationStore.getAll(this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, organizations) => {
+    OrganizationStore.getAll("", this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, organizations) => {
       this.setState({
     	organizations: organizations,
         pageNumber: page,

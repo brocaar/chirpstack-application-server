@@ -40,6 +40,7 @@ import UpdateGateway from "./views/gateways/UpdateGateway";
 import ListOrganizations from './views/organizations/ListOrganizations';
 import CreateOrganization from './views/organizations/CreateOrganization';
 import UpdateOrganization from './views/organizations/UpdateOrganization';
+import OrganizationRedirect from './views/organizations/OrganizationRedirect';
 
 // fix leaflet image source
 import Leaflet from 'leaflet';
@@ -56,32 +57,34 @@ import './index.css';
 ReactDOM.render(
   <Router history={hashHistory}>
     <Route path="/" component={Layout}>
-      <IndexRoute component={ListApplications}></IndexRoute>
-      <Route path="applications" component={ListApplications}></Route>
-      <Route path="applications/create" component={CreateApplication}></Route>
-      <Route path="applications/:applicationID/edit" component={UpdateApplication}></Route>
-      <Route path="applications/:applicationID/nodes/create" component={CreateNode}></Route>
-      <Route path="applications/:applicationID/nodes/:devEUI/edit" component={UpdateNode}></Route>
-      <Route path="applications/:applicationID/nodes/:devEUI/activation" component={ActivateNode}></Route>
-      <Route path="applications/:applicationID/users" component={ApplicationUsers}></Route>
-      <Route path="applications/:applicationID/users/create" component={CreateApplicationUser}></Route>
-      <Route path="applications/:applicationID/users/:userID/edit" component={UpdateApplicationUser}></Route>
-      <Route path="applications/:applicationID" component={ListNodes}></Route>
-      <Route path="channels" component={ChannelLists}></Route>
-      <Route path="channels/create" component={CreateChannelList}></Route>
-      <Route path="channels/:id" component={ChannelListDetails}></Route>
+      <IndexRoute component={OrganizationRedirect}></IndexRoute>
       <Route path="login" component={Login}></Route>
       <Route path="users/create" component={CreateUser}></Route>
       <Route path="users/:userID/edit" component={UpdateUser}></Route>
       <Route path="users/:userID/password" component={UpdatePassword}></Route>
       <Route path="users" component={ListUsers}></Route>
-      <Route path="gateways" component={ListGateways}></Route>
-      <Route path="gateways/create" component={CreateGateway}></Route>
-      <Route path="gateways/:mac/edit" component={UpdateGateway}></Route>
-      <Route path="gateways/:mac" component={GatewayDetails}></Route>
+      <Route path="channels" component={ChannelLists}></Route>
+      <Route path="channels/create" component={CreateChannelList}></Route>
+      <Route path="channels/:id" component={ChannelListDetails}></Route>
       <Route path="organizations" component={ListOrganizations}></Route>
       <Route path="organizations/create" component={CreateOrganization}></Route>
       <Route path="organizations/:id/edit" component={UpdateOrganization}></Route>
+      <Route path="organizations/:organizationID" component={ListApplications}></Route>
+      <Route path="organizations/:organizationID/applications" component={ListApplications}></Route>
+      <Route path="organizations/:organizationID/applications/:applicationID/edit" component={UpdateApplication}></Route>
+      <Route path="organizations/:organizationID/applications/create" component={CreateApplication}></Route>
+      <Route path="organizations/:organizationID/applications/:applicationID/edit" component={UpdateApplication}></Route>
+      <Route path="organizations/:organizationID/applications/:applicationID" component={ListNodes}></Route>
+      <Route path="organizations/:organizationID/applications/:applicationID/users" component={ApplicationUsers}></Route>
+      <Route path="organizations/:organizationID/applications/:applicationID/users/create" component={CreateApplicationUser}></Route>
+      <Route path="organizations/:organizationID/applications/:applicationID/users/:userID/edit" component={UpdateApplicationUser}></Route>
+      <Route path="organizations/:organizationID/applications/:applicationID/nodes/create" component={CreateNode}></Route>
+      <Route path="organizations/:organizationID/applications/:applicationID/nodes/:devEUI/edit" component={UpdateNode}></Route>
+      <Route path="organizations/:organizationID/applications/:applicationID/nodes/:devEUI/activation" component={ActivateNode}></Route>
+      <Route path="organizations/:organizationID/gateways" component={ListGateways}></Route>
+      <Route path="organizations/:organizationID/gateways/create" component={CreateGateway}></Route>
+      <Route path="organizations/:organizationID/gateways/:mac" component={GatewayDetails}></Route>
+      <Route path="organizations/:organizationID/gateways/:mac/edit" component={UpdateGateway}></Route>
     </Route>
   </Router>,
   document.getElementById('root')

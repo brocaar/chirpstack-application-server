@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import moment from "moment";
 import { Bar } from "react-chartjs";
 
+import OrganizationSelect from "../../components/OrganizationSelect";
 import Pagination from "../../components/Pagination";
 import GatewayStore from "../../stores/GatewayStore";
 
@@ -52,7 +53,7 @@ class GatewayRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`gateways/${this.props.gateway.mac}`}>{this.props.gateway.name}</Link></td>
+        <td><Link to={`organizations/${this.props.gateway.organizationID}/gateways/${this.props.gateway.mac}`}>{this.props.gateway.name}</Link></td>
         <td>{this.props.gateway.mac}</td>
         <td>
           <Bar width="380" height="23" data={this.state.stats} options={this.state.options} />
@@ -91,7 +92,7 @@ class ListGateways extends Component {
   updatePage(props) {
     const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
 
-    GatewayStore.getAll(this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, gateways) => {
+    GatewayStore.getAllForOrganization(this.props.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, gateways) => {
       this.setState({
         gateways: gateways,
         pageNumber: page,
@@ -108,12 +109,12 @@ class ListGateways extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
+          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
           <li className="active">Gateways</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to="gateways/create"><button type="button" className="btn btn-default">Create gateway</button></Link>
+            <Link to={`/organizations/${this.props.params.organizationID}/gateways/create`}><button type="button" className="btn btn-default">Create gateway</button></Link>
           </div>
         </div>
         <hr />

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
+import OrganizationSelect from "../../components/OrganizationSelect";
 import ApplicationStore from "../../stores/ApplicationStore";
 import Pagination from "../../components/Pagination";
 
@@ -10,7 +11,7 @@ class ApplicationUserRow extends Component {
       <tr>
         <td>{this.props.user.id}</td>
         <td>
-          <Link to={`applications/${this.props.application.id}/users/${this.props.user.id}/edit`}>{this.props.user.username}</Link>
+          <Link to={`/organizations/${this.props.application.organizationID}/applications/${this.props.application.id}/users/${this.props.user.id}/edit`}>{this.props.user.username}</Link>
         </td>
         <td>
           <span className={"glyphicon glyphicon-" + (this.props.user.isAdmin ? 'ok' : 'remove')} aria-hidden="true"></span>
@@ -68,14 +69,14 @@ class ApplicationUsers extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
-          <li><Link to="/applications">Applications</Link></li>
-          <li><Link to={`/applications/${this.state.application.id}`}>{this.state.application.name}</Link></li>
+          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}`}>{this.state.application.name}</Link></li>
           <li className="active">Users</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to={`/applications/${this.state.application.id}/users/create`}><button type="button" className="btn btn-default">Add user</button></Link>
+            <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}/users/create`}><button type="button" className="btn btn-default">Add user</button></Link>
           </div>
         </div>
         <hr />

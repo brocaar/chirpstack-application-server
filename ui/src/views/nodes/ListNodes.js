@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
+import OrganizationSelect from "../../components/OrganizationSelect";
 import Pagination from "../../components/Pagination";
 import NodeStore from "../../stores/NodeStore";
 import SessionStore from "../../stores/SessionStore";
@@ -10,7 +11,7 @@ class NodeRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`/applications/${this.props.application.id}/nodes/${this.props.node.devEUI}/edit`}>{this.props.node.name}</Link></td>
+        <td><Link to={`/organizations/${this.props.application.organizationID}/applications/${this.props.application.id}/nodes/${this.props.node.devEUI}/edit`}>{this.props.node.name}</Link></td>
         <td>{this.props.node.devEUI}</td>
         <td>{this.props.node.description}</td>
         <td>
@@ -80,7 +81,7 @@ class ListNodes extends Component {
   onDelete() {
     if (confirm("Are you sure you want to delete this application?")) {
       ApplicationStore.deleteApplication(this.props.params.applicationID, (responseData) => {
-        this.context.router.push("/applications");
+        this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications");
       }); 
     }
   }
@@ -91,17 +92,17 @@ class ListNodes extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
-          <li><Link to="/applications">Applications</Link></li>
+          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
           <li>{this.state.application.name}</li>
           <li className="active">Nodes</li>
         </ol>
         <div className={(this.state.isApplicationAdmin ? '' : 'hidden')}>
           <div className="clearfix">
             <div className="btn-group pull-right" role="group" aria-label="...">
-              <Link to={`/applications/${this.props.params.applicationID}/users`}><button type="button" className="btn btn-default">Users</button></Link> &nbsp;
-              <Link to={`/applications/${this.props.params.applicationID}/nodes/create`}><button type="button" className="btn btn-default">Create node</button></Link> &nbsp;
-              <Link to={`/applications/${this.props.params.applicationID}/edit`}><button type="button" className="btn btn-default">Edit application</button></Link> &nbsp;
+              <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/users`}><button type="button" className="btn btn-default">Users</button></Link> &nbsp;
+              <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/create`}><button type="button" className="btn btn-default">Create node</button></Link> &nbsp;
+              <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/edit`}><button type="button" className="btn btn-default">Edit application</button></Link> &nbsp;
               <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete application</button></Link>
             </div>
           </div>

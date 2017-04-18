@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 
 import Select from "react-select";
 
+import OrganizationSelect from "../../components/OrganizationSelect";
 import ApplicationStore from "../../stores/ApplicationStore";
 import UserStore from "../../stores/UserStore";
 
@@ -188,14 +189,14 @@ class CreateApplicationUser extends Component {
 
   handleAssign(user) {
     ApplicationStore.addUser(this.props.params.applicationID, user, (responseData) => {
-      this.context.router.push("/applications/"+this.props.params.applicationID+"/users");
+      this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID+"/users");
     }); 
   }
 
   handleCreateAndAssign(user) {
     UserStore.createUser({username: user.username, password: user.password, isActive: true}, (resp) => {
       ApplicationStore.addUser(this.props.params.applicationID, {userID: resp.id, isAdmin: user.isAdmin}, (responseData) => {
-        this.context.router.push("/applications/"+this.props.params.applicationID+"/users");
+        this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID+"/users");
       });
     });
   }
@@ -204,10 +205,10 @@ class CreateApplicationUser extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
-          <li><Link to="/applications">Applications</Link></li>
-          <li><Link to={`/applications/${this.state.application.id}`}>{this.state.application.name}</Link></li>
-          <li><Link to={`/applications/${this.state.application.id}/users`}>Users</Link></li>
+          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}`}>{this.state.application.name}</Link></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}/users`}>Users</Link></li>
           <li className="active">Add user</li>
         </ol>
         <hr />

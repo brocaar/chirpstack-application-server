@@ -19,6 +19,20 @@ class ApplicationStore extends EventEmitter {
       .catch(errorHandler);
   }
 
+  getAllForOrganization(organizationID, pageSize, offset, callbackFunc) {
+    fetch("/api/applications?organizationID="+organizationID+"&limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        if(typeof(responseData.result) === "undefined") {
+          callbackFunc(0, []);
+        } else {
+          callbackFunc(responseData.totalCount, responseData.result);
+        }
+      })
+      .catch(errorHandler);
+  }
+
   getApplication(applicationID, callbackFunc) {
     fetch("/api/applications/"+applicationID, {headers: sessionStore.getHeader()})
       .then(checkStatus)

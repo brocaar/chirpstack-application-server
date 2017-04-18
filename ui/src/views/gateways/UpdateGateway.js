@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
+import OrganizationSelect from "../../components/OrganizationSelect";
 import GatewayStore from "../../stores/GatewayStore";
 import GatewayForm from "../../components/GatewayForm";
 
@@ -29,7 +30,7 @@ class UpdateGateway extends Component {
 
   onSubmit(gateway) {
     GatewayStore.updateGateway(this.props.params.mac, gateway, (responseData) => {
-      this.context.router.push('gateways/'+this.props.params.mac);
+      this.context.router.push('/organizations/'+this.props.params.organizationID+'/gateways/'+this.props.params.mac);
     });
   }
 
@@ -37,9 +38,9 @@ class UpdateGateway extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
-          <li><Link to="/gateways">Gateways</Link></li>
-          <li><Link to={`/gateways/${this.props.params.mac}`}>{this.state.gateway.name}</Link></li>
+          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/gateways`}>Gateways</Link></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}`}>{this.state.gateway.name}</Link></li>
           <li className="active">Edit gateway</li>
         </ol>
         <hr />

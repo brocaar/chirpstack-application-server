@@ -18,6 +18,20 @@ class GatewayStore extends EventEmitter {
       .catch(errorHandler);
   }
 
+  getAllForOrganization(organizationID, pageSize, offset, callbackFunc) {
+    fetch("/api/gateways?organizationID="+organizationID+"&limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        if(typeof(responseData.result) === "undefined") {
+          callbackFunc(0, []);
+        } else {
+          callbackFunc(responseData.totalCount, responseData.result);
+        }
+      })
+      .catch(errorHandler);
+  }
+
   getGatewayStats(mac, interval, start, end, callbackFunc) {
     fetch("/api/gateways/"+mac+"/stats?interval="+interval+"&startTimestamp="+start+"&endTimestamp="+end, {headers: sessionStore.getHeader()})
       .then(checkStatus)

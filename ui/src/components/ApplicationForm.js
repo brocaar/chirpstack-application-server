@@ -19,6 +19,12 @@ class ApplicationForm extends Component {
     this.changeTab = this.changeTab.bind(this);
   }
 
+  componentWillMount() {
+    this.setState({
+      application: this.props.application,
+    });
+  }
+
   componentWillReceiveProps(nextProps) {
     this.setState({
       application: nextProps.application,

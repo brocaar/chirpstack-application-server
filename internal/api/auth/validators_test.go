@@ -40,10 +40,11 @@ func TestValidators(t *testing.T) {
 		9: member of organization 1
 		10: admin of organization 1
 		11: member of organization 1 (but is_active=false)
+		12: admin of organization 2
 
 		Organizations:
-		1: organization 1
-		2: organization 2
+		1: organization 1 (can have gateways)
+		2: organization 2 (can not have gateways)
 
 		Applications:
 		1: application 1
@@ -58,8 +59,8 @@ func TestValidators(t *testing.T) {
 		0202020202020202: organization 2 gw
 	*/
 	organizations := []storage.Organization{
-		{Name: "organization-1"},
-		{Name: "organization-2"},
+		{Name: "organization-1", CanHaveGateways: true},
+		{Name: "organization-2", CanHaveGateways: false},
 	}
 	for i := range organizations {
 		if err := storage.CreateOrganization(db, &organizations[i]); err != nil {
@@ -105,6 +106,7 @@ func TestValidators(t *testing.T) {
 		{ID: 19, Username: "user9", IsActive: true},
 		{ID: 20, Username: "user10", IsActive: true},
 		{ID: 21, Username: "user11", IsActive: false},
+		{ID: 22, Username: "user12", IsActive: true},
 	}
 	for _, user := range users {
 		_, err = db.Exec(`insert into "user" (id, created_at, updated_at, username, password_hash, session_ttl, is_active, is_admin) values ($1, now(), now(), $2, '', 0, $3, $4)`, user.ID, user.Username, user.IsActive, user.IsAdmin)
@@ -139,6 +141,7 @@ func TestValidators(t *testing.T) {
 		{UserID: users[8].ID, OrganizationID: organizations[0].ID, IsAdmin: false},
 		{UserID: users[9].ID, OrganizationID: organizations[0].ID, IsAdmin: true},
 		{UserID: users[10].ID, OrganizationID: organizations[0].ID, IsAdmin: false},
+		{UserID: users[11].ID, OrganizationID: organizations[1].ID, IsAdmin: true},
 	}
 	for _, orgUser := range orgUsers {
 		if err := storage.CreateOrganizationUser(db, orgUser.OrganizationID, orgUser.UserID, orgUser.IsAdmin); err != nil {
@@ -584,7 +587,7 @@ func TestValidators(t *testing.T) {
 					ExpectedOK: true,
 				},
 				{
-					Name:       "organization admin users can create and list",
+					Name:       "organization admin users can create and list (org CanHaveGateways=true)",
 					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create, organizations[0].ID), ValidateGatewaysAccess(List, organizations[0].ID)},
 					Claims:     Claims{Username: "user10"},
 					ExpectedOK: true,
@@ -594,6 +597,12 @@ func TestValidators(t *testing.T) {
 					Validators: []ValidatorFunc{ValidateGatewaysAccess(List, 0)},
 					Claims:     Claims{Username: "user4"},
 					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can not create (org CanHaveGateways=false)",
+					Validators: []ValidatorFunc{ValidateGatewaysAccess(Create, organizations[1].ID)},
+					Claims:     Claims{Username: "user12"},
+					ExpectedOK: false,
 				},
 				{
 					Name:       "organization user can not create",

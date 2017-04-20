@@ -46,7 +46,7 @@ class UpdateUser extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
+          <li><Link to="/">LoRa Server</Link></li>
           <li><Link to="/users">Users</Link></li>
           <li className="active">{this.state.user.username}</li>
         </ol>

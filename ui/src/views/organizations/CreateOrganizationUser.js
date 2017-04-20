@@ -4,8 +4,9 @@ import { Link } from 'react-router';
 import Select from "react-select";
 
 import OrganizationSelect from "../../components/OrganizationSelect";
-import ApplicationStore from "../../stores/ApplicationStore";
+import OrganizationStore from "../../stores/OrganizationStore";
 import UserStore from "../../stores/UserStore";
+
 
 class AssignUserForm extends Component {
   constructor() {
@@ -83,11 +84,11 @@ class AssignUserForm extends Component {
           <label className="control-label">Admin</label>
           <div className="checkbox">
             <label>
-              <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is application admin
+              <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is organization admin
             </label>
           </div>
           <p className="help-block">
-            When checked, the user will be assigned admin permissions within the context of the application.
+            When checked, the user will be assigned admin permissions within the context of the organization.
           </p>
         </div>
         <hr />
@@ -96,6 +97,7 @@ class AssignUserForm extends Component {
     );
   }
 }
+
 
 class CreateUserForm extends Component {
   constructor() {
@@ -138,11 +140,11 @@ class CreateUserForm extends Component {
           <label className="control-label">Admin</label>
           <div className="checkbox">
             <label>
-              <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is application admin
+              <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is organization admin
             </label>
           </div>
           <p className="help-block">
-            When checked, the user will be assigned admin permissions within the context of the application.
+            When checked, the user will be assigned admin permissions within the context of the organization.
           </p>
         </div>
         <hr />
@@ -153,7 +155,7 @@ class CreateUserForm extends Component {
 }
 
 
-class CreateApplicationUser extends Component {
+class CreateOrganizationUser extends Component {
   static contextTypes = {
     router: React.PropTypes.object.isRequired
   };
@@ -162,22 +164,12 @@ class CreateApplicationUser extends Component {
     super();
 
     this.state = {
-      application: {},
-      user: {},
       activeTab: "assign",
     };
 
     this.changeTab = this.changeTab.bind(this);
     this.handleAssign = this.handleAssign.bind(this);
     this.handleCreateAndAssign = this.handleCreateAndAssign.bind(this);
-  }
-
-  componentWillMount() {
-    ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
-      this.setState({
-        application: application,
-      });
-    });
   }
 
   changeTab(e) {
@@ -188,15 +180,15 @@ class CreateApplicationUser extends Component {
   }
 
   handleAssign(user) {
-    ApplicationStore.addUser(this.props.params.applicationID, user, (responseData) => {
-      this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID+"/users");
+    OrganizationStore.addUser(this.props.params.organizationID, user, (responseData) => {
+      this.context.router.push("/organizations/"+this.props.params.organizationID+"/users");
     }); 
   }
 
   handleCreateAndAssign(user) {
     UserStore.createUser({username: user.username, password: user.password, isActive: true}, (resp) => {
-      ApplicationStore.addUser(this.props.params.applicationID, {userID: resp.id, isAdmin: user.isAdmin}, (responseData) => {
-        this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID+"/users");
+      OrganizationStore.addUser(this.props.params.organizationID, {userID: resp.id, isAdmin: user.isAdmin}, (responseData) => {
+        this.context.router.push("/organizations/"+this.props.params.organizationID+"/users");
       });
     });
   }
@@ -207,9 +199,7 @@ class CreateApplicationUser extends Component {
         <ol className="breadcrumb">
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}`}>{this.state.application.name}</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}/users`}>Users</Link></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/users`}>Users</Link></li>
           <li className="active">Add user</li>
         </ol>
         <hr />
@@ -233,4 +223,4 @@ class CreateApplicationUser extends Component {
   }
 }
 
-export default CreateApplicationUser;
+export default CreateOrganizationUser;

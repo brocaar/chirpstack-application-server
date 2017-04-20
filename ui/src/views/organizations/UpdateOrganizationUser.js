@@ -2,9 +2,10 @@ import React, { Component } from 'react';
 import { Link } from 'react-router';
 
 import OrganizationSelect from "../../components/OrganizationSelect";
-import ApplicationStore from "../../stores/ApplicationStore";
+import OrganizationStore from "../../stores/OrganizationStore";
 
-class UpdateApplicationUserForm extends Component {
+
+class UpdateOrganizationUserForm extends Component {
   constructor() {
     super();
 
@@ -50,11 +51,11 @@ class UpdateApplicationUserForm extends Component {
           <label className="control-label">Admin</label>
           <div className="checkbox">
             <label>
-              <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is application admin
+              <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is organization admin
             </label>
           </div>
           <p className="help-block">
-            When checked, the user will be assigned admin permissions within the context of the application.
+            When checked, the user will be assigned admin permissions within the context of the organization.
           </p>
         </div>
         <hr />
@@ -64,7 +65,8 @@ class UpdateApplicationUserForm extends Component {
   }
 }
 
-class UpdateApplicationUser extends Component {
+
+class UpdateOrganizationUser extends Component {
   static contextTypes = {
     router: React.PropTypes.object.isRequired
   };
@@ -73,7 +75,6 @@ class UpdateApplicationUser extends Component {
     super();
 
     this.state = {
-      application: {},
       user: {},
     };
 
@@ -82,29 +83,23 @@ class UpdateApplicationUser extends Component {
   }
 
   componentWillMount() {
-    ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
-      this.setState({
-        application: application,
-      });
-    });
-
-    ApplicationStore.getUser(this.props.params.applicationID, this.props.params.userID, (user) => {
+    OrganizationStore.getUser(this.props.params.organizationID, this.props.params.userID, (user) => {
       this.setState({
         user: user,
       });
-    });
+    });    
   }
 
   onSubmit(user) {
-    ApplicationStore.updateUser(this.props.params.applicationID, this.props.params.userID, user, (responseData) => {
-      this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID+"/users");
+    OrganizationStore.updateUser(this.props.params.organizationID, this.props.params.userID, user, (responseData) => {
+      this.context.router.push("/organizations/"+this.props.params.organizationID+"/users");
     });
   }
 
   onDelete() {
-    if (confirm("Are you sure you want to delete this application user (this does not remove the user itself)?")) {
-      ApplicationStore.removeUser(this.props.params.applicationID, this.props.params.userID, (responseData) => {
-        this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID+"/users");
+    if (confirm("Are you sure you want to delete this organization user (this does not remove the user itself)?")) {
+      OrganizationStore.removeUser(this.props.params.organizationID, this.props.params.userID, (responseData) => {
+        this.context.router.push("/organizations/"+this.props.params.organizationID+"/users");
       }); 
     }
   }
@@ -115,9 +110,7 @@ class UpdateApplicationUser extends Component {
         <ol className="breadcrumb">
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}`}>{this.state.application.name}</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}/users`}>Users</Link></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/users`}>Users</Link></li>
           <li className="active">{this.state.user.username}</li>
         </ol>
         <div className="clearfix">
@@ -128,7 +121,7 @@ class UpdateApplicationUser extends Component {
         <hr />
         <div className="panel panel-default">
           <div className="panel-body">
-            <UpdateApplicationUserForm user={this.state.user} onSubmit={this.onSubmit}  />
+            <UpdateOrganizationUserForm user={this.state.user} onSubmit={this.onSubmit}  />
           </div>
         </div>
       </div>
@@ -136,4 +129,4 @@ class UpdateApplicationUser extends Component {
   }
 }
 
-export default UpdateApplicationUser;
+export default UpdateOrganizationUser;

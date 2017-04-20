@@ -199,6 +199,7 @@ class GatewayDetails extends Component {
       <div>
         <ol className="breadcrumb">
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}/gateways`}>Gateways</Link></li>
           <li className="active">{this.state.gateway.name}</li>
         </ol>

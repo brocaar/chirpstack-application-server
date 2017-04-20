@@ -2,16 +2,17 @@ import React, { Component } from 'react';
 import { Link } from 'react-router';
 
 import OrganizationSelect from "../../components/OrganizationSelect";
-import ApplicationStore from "../../stores/ApplicationStore";
+import OrganizationStore from "../../stores/OrganizationStore";
 import Pagination from "../../components/Pagination";
 
-class ApplicationUserRow extends Component {
+
+class OrganizationUserRow extends Component {
   render() {
     return(
       <tr>
         <td>{this.props.user.id}</td>
         <td>
-          <Link to={`/organizations/${this.props.application.organizationID}/applications/${this.props.application.id}/users/${this.props.user.id}/edit`}>{this.props.user.username}</Link>
+          <Link to={`organizations/${this.props.organizationID}/users/${this.props.user.id}/edit`}>{this.props.user.username}</Link>
         </td>
         <td>
           <span className={"glyphicon glyphicon-" + (this.props.user.isAdmin ? 'ok' : 'remove')} aria-hidden="true"></span>
@@ -22,12 +23,12 @@ class ApplicationUserRow extends Component {
 }
 
 
-class ApplicationUsers extends Component {
+class OrganizationUsers extends Component {
   constructor() {
     super();
 
     this.state = {
-      application: {},
+      organization: {},
       users: [],
       pageSize: 20,
       pageNumber: 1,
@@ -38,12 +39,6 @@ class ApplicationUsers extends Component {
   }
 
   componentDidMount() {
-    ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
-      this.setState({
-        application: application,
-      });
-    });
-
     this.updatePage(this.props);
   }
 
@@ -54,7 +49,7 @@ class ApplicationUsers extends Component {
   updatePage(props) {
     const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
 
-    ApplicationStore.getUsers(this.props.params.applicationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, users) => {
+    OrganizationStore.getUsers(this.props.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, users) => {
       this.setState({
         users: users,
         pages: Math.ceil(totalCount / this.state.pageSize),
@@ -64,20 +59,18 @@ class ApplicationUsers extends Component {
   }
 
   render() {
-    const UserRows = this.state.users.map((user, i) => <ApplicationUserRow key={user.id} application={this.state.application} user={user} />);
+    const UserRows = this.state.users.map((user, i) => <OrganizationUserRow key={user.id} organizationID={this.props.params.organizationID} user={user} />);
 
     return(
       <div>
         <ol className="breadcrumb">
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}`}>{this.state.application.name}</Link></li>
           <li className="active">Users</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}/users/create`}><button type="button" className="btn btn-default">Add user</button></Link>
+            <Link to={`/organizations/${this.props.params.organizationID}/users/create`}><button type="button" className="btn btn-default">Add user</button></Link>
           </div>
         </div>
         <hr />
@@ -96,11 +89,11 @@ class ApplicationUsers extends Component {
               </tbody>
             </table>
           </div>
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`applications/${this.state.application.id}/users`} />
+          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/users`} />
         </div>
       </div>
     );
   }
 }
 
-export default ApplicationUsers;
+export default OrganizationUsers;

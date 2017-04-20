@@ -39,6 +39,7 @@ class UpdateGateway extends Component {
       <div>
         <ol className="breadcrumb">
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}/gateways`}>Gateways</Link></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}`}>{this.state.gateway.name}</Link></li>
           <li className="active">Edit gateway</li>

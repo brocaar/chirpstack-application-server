@@ -80,6 +80,7 @@ class SessionStore extends EventEmitter {
 
   logout(callbackFunc) {
     localStorage.setItem("jwt", "");
+    localStorage.setItem("organizationID", "");
     this.user = {};
     this.applications = [];
     this.emit("change");

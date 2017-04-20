@@ -11,7 +11,7 @@ class OrganizationRedirect extends Component {
 
   componentWillMount() {
     const organizationID = SessionStore.getOrganizationID();
-    if (organizationID !== null) {
+    if (organizationID === parseInt(organizationID, 10)) {
       this.context.router.push('/organizations/' + organizationID); 
     } else {
       OrganizationStore.getAll("", 1, 0, (totalCount, orgs) => {

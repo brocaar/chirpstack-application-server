@@ -110,6 +110,7 @@ class ListGateways extends Component {
       <div>
         <ol className="breadcrumb">
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
           <li className="active">Gateways</li>
         </ol>
         <div className="clearfix">

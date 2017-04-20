@@ -42,7 +42,7 @@ class UpdatePassword extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
+          <li><Link to="/">LoRa Server</Link></li>
           <li><Link to="/users">Users</Link></li>
           <li><Link to={`/users/${this.props.params.userID}/edit`}>{this.state.user.username}</Link></li>
           <li className="active">Update password</li>

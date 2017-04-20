@@ -63,6 +63,7 @@ class UpdateNode extends Component {
       <div>
         <ol className="breadcrumb">
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}`}>{this.state.application.name}</Link></li>
           <li>{this.state.node.name}</li>

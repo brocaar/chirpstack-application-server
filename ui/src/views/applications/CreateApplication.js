@@ -35,6 +35,7 @@ class CreateApplication extends Component {
       <div>
         <ol className="breadcrumb">
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
           <li className="active">Create application</li>
         </ol>

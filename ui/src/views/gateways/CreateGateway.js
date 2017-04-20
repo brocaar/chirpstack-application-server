@@ -37,6 +37,7 @@ class CreateGateway extends Component {
       <div>
         <ol className="breadcrumb">
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}/gateways`}>Gateways</Link></li>
           <li className="active">Create gateway</li>
         </ol>

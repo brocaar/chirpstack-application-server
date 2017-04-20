@@ -61,7 +61,7 @@ class ListUsers extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
+          <li><Link to="/">LoRa Server</Link></li>
           <li className="active">Users</li>
         </ol>
         <div className="clearfix">

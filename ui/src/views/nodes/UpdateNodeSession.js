@@ -91,6 +91,7 @@ class UpdateNodeSession extends Component {
       <div>
         <ol className="breadcrumb">
           <li><Link to="/">Dashboard</Link></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
           <li><Link to="/applications">Applications</Link></li>
           <li><Link to={`/applications/${this.props.params.applicationName}`}>{this.props.params.applicationName}</Link></li>
           <li><Link to={`/applications/${this.props.params.applicationName}/nodes/${this.props.params.nodeName}/edit`}>{this.props.params.nodeName}</Link></li>

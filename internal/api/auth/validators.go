@@ -119,7 +119,7 @@ func ValidateApplicationsAccess(flag Flag, organizationID int64) ValidatorFunc {
 		// in the latter case the api will filter on user.
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "$2 > 0", "o.id = $2"},
+			{"u.username = $1", "u.is_active = true", "$2 > 0", "o.id = $2 or a.organization_id = $2"},
 			{"u.username = $1", "u.is_active = true", "$2 = 0"},
 		}
 	default:

@@ -35,6 +35,12 @@ class ListApplications extends Component {
 
   componentDidMount() {
     this.updatePage(this.props);
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID), 
+      });
+    });
   }
 
   componentWillReceiveProps(nextProps) {
@@ -42,6 +48,10 @@ class ListApplications extends Component {
   }
 
   updatePage(props) {
+    this.setState({
+      isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(props.params.organizationID),
+    });
+
     const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
 
     ApplicationStore.getAllForOrganization(props.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, applications) => {
@@ -54,18 +64,6 @@ class ListApplications extends Component {
     });
   }
 
-  componentWillMount() {
-    this.setState({
-      isAdmin: SessionStore.isAdmin(),
-    });
-
-    SessionStore.on("change", () => {
-      this.setState({
-        isAdmin: SessionStore.isAdmin(), 
-      });
-    });
-  }
-
   render () {
     const ApplicationRows = this.state.applications.map((application, i) => <ApplicationRow key={application.id} application={application} />);
 
@@ -73,14 +71,14 @@ class ListApplications extends Component {
       <div>
         <ol className="breadcrumb">
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
           <li className="active">Applications</li>
         </ol>
-        <div className={(this.state.isAdmin ? '' : 'hidden')}>
-          <div className="clearfix">
-            <div className="btn-group pull-right" role="group" aria-label="...">
-              <Link to={`/organizations/${this.props.params.organizationID}/applications/create`}><button type="button" className="btn btn-default">Create application</button></Link> &nbsp;
-              <Link to="/channels"><button type="button" className="btn btn-default">Channel lists</button></Link>
-            </div>
+        <div className="clearfix">
+          <div className="btn-group pull-right" role="group" aria-label="...">
+            &nbsp; <Link className={(this.state.isAdmin ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/applications/create`}><button type="button" className="btn btn-default">Create application</button></Link>
+            &nbsp; <Link to={`/organizations/${this.props.params.organizationID}/gateways`}><button type="button" className="btn btn-default">Gateways</button></Link>
+            &nbsp; <Link className={(this.state.isAdmin ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/users`}><button type="button" className="btn btn-default">Users</button></Link>
           </div>
         </div>
         <hr />

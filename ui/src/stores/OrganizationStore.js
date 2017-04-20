@@ -9,7 +9,7 @@ class OrganizationStore extends EventEmitter {
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
-        if(typeof(responseData.result) === "undefined") {
+        if(typeof(responseData.totalCount) === "undefined") {
           callbackFunc(0, []);
         } else {
           callbackFunc(responseData.totalCount, responseData.result);

@@ -194,7 +194,7 @@ func (a *OrganizationAPI) ListUsers(ctx context.Context, req *pb.ListOrganizatio
 	result := make([]*pb.GetOrganizationUserResponse, len(users))
 	for i, user := range users {
 		result[i] = &pb.GetOrganizationUserResponse{
-			UserID:    user.UserID,
+			Id:        user.UserID,
 			Username:  user.Username,
 			IsAdmin:   user.IsAdmin,
 			CreatedAt: user.CreatedAt.Format(time.RFC3339Nano),
@@ -266,7 +266,7 @@ func (a *OrganizationAPI) GetUser(ctx context.Context, req *pb.GetOrganizationUs
 	}
 
 	return &pb.GetOrganizationUserResponse{
-		UserID:    user.UserID,
+		Id:        user.UserID,
 		Username:  user.Username,
 		IsAdmin:   user.IsAdmin,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339Nano),

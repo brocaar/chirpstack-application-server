@@ -41,6 +41,9 @@ import ListOrganizations from './views/organizations/ListOrganizations';
 import CreateOrganization from './views/organizations/CreateOrganization';
 import UpdateOrganization from './views/organizations/UpdateOrganization';
 import OrganizationRedirect from './views/organizations/OrganizationRedirect';
+import OrganizationUsers from './views/organizations/OrganizationUsers';
+import CreateOrganizationUser from './views/organizations/CreateOrganizationUser';
+import UpdateOrganizationUser from './views/organizations/UpdateOrganizationUser';
 
 // fix leaflet image source
 import Leaflet from 'leaflet';
@@ -85,6 +88,9 @@ ReactDOM.render(
       <Route path="organizations/:organizationID/gateways/create" component={CreateGateway}></Route>
       <Route path="organizations/:organizationID/gateways/:mac" component={GatewayDetails}></Route>
       <Route path="organizations/:organizationID/gateways/:mac/edit" component={UpdateGateway}></Route>
+      <Route path="organizations/:organizationID/users" component={OrganizationUsers}></Route>
+      <Route path="organizations/:organizationID/users/create" component={CreateOrganizationUser}></Route>
+      <Route path="organizations/:organizationID/users/:userID/edit" component={UpdateOrganizationUser}></Route>
     </Route>
   </Router>,
   document.getElementById('root')

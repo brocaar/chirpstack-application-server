@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 
 import ChannelStore from "../stores/ChannelStore";
+import OrganizationStore from "../stores/OrganizationStore";
+import SessionStore from "../stores/SessionStore";
+
+import Select from "react-select";
 
 class ApplicationForm extends Component {
   constructor() {
@@ -9,6 +13,7 @@ class ApplicationForm extends Component {
       activeTab: "application",
       application: {},
       channelLists: [],
+      organizations: [],
     };
 
     ChannelStore.getAllChannelLists((lists) => {
@@ -17,6 +22,22 @@ class ApplicationForm extends Component {
 
     this.handleSubmit = this.handleSubmit.bind(this);
     this.changeTab = this.changeTab.bind(this);
+
+    this.getOrganizationSelectionList();
+  }
+  
+  getOrganizationSelectionList() {
+	  OrganizationStore.getAll( "", 0, 0, (totalCount, noorgs) => {
+		  OrganizationStore.getAll( "", totalCount, 0, (totCnt, orgs) => {
+			  var orgsmap = orgs.map((org, i) => {
+		          return {
+		            value: org.id,
+		            label: org.displayName,
+		          };
+		      });
+	          this.setState({organizations: orgsmap});
+		  });
+	  });
   }
 
   componentWillMount() {
@@ -32,8 +53,10 @@ class ApplicationForm extends Component {
   }
 
   onChange(field, e) {
-    let application = this.state.application;
-    if (e.target.type === "number") {
+	let application = this.state.application;
+	if ( field == "organizationID" ) {
+		application.organizationID = e.value;
+	} else if (e.target.type === "number") {
       application[field] = parseInt(e.target.value, 10); 
     } else if (e.target.type === "checkbox") {
       application[field] = e.target.checked;
@@ -56,6 +79,8 @@ class ApplicationForm extends Component {
   }
 
   render() {
+	  var selectDisabled = !SessionStore.isAdmin();
+	  
     return (
       <div>
         <ul className="nav nav-tabs">
@@ -76,6 +101,21 @@ class ApplicationForm extends Component {
               <label className="control-label" htmlFor="name">Application description</label>
               <input className="form-control" id="description" type="text" placeholder="a short description of your application" required value={this.state.application.description || ''} onChange={this.onChange.bind(this, 'description')} />
             </div>
+              
+            <div className="form-group">
+              <label className="control-label" htmlFor="organization">Application organization</label>
+              <span className="org-select"><Select
+	              name="organization"
+	              disabled={selectDisabled}
+	              options={this.state.organizations}
+	              value={this.state.application.organizationID}
+	              clearable={false}
+	              autosize={true}
+	              autoload={false}
+	              onChange={this.onChange.bind(this, 'organizationID')}
+	            /></span>
+            </div>
+
           </div>
           <div className={(this.state.activeTab === "network-settings" ? '' : 'hidden')}>
             <div className="form-group">

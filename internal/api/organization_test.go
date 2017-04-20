@@ -70,8 +70,8 @@ func TestOrganizationAPI(t *testing.T) {
 				// Default org is already in the database.
 				So(orgs.Result, ShouldHaveLength, 2)
 				orgId := int64(0)
-				
-				// If the length is not what was expected, then these checks 
+
+				// If the length is not what was expected, then these checks
 				// will, at best, be checking against some random data, and at
 				// worst, crash the test.
 				if 2 == len(orgs.Result) {
@@ -162,7 +162,7 @@ func TestOrganizationAPI(t *testing.T) {
 							})
 							So(err, ShouldBeNil)
 							So(orgUsers.Result, ShouldHaveLength, 1)
-							So(orgUsers.Result[0].UserID, ShouldEqual, userResp.Id)
+							So(orgUsers.Result[0].Id, ShouldEqual, userResp.Id)
 							So(orgUsers.Result[0].Username, ShouldEqual, userReq.Username)
 							So(orgUsers.Result[0].IsAdmin, ShouldEqual, addOrgUser.IsAdmin)
 						})
@@ -187,7 +187,7 @@ func TestOrganizationAPI(t *testing.T) {
 								if nil != orgUsers {
 									So(orgUsers.Result, ShouldHaveLength, 1)
 									if 1 == len(orgUsers.Result) {
-										So(orgUsers.Result[0].UserID, ShouldEqual, userResp.Id)
+										So(orgUsers.Result[0].Id, ShouldEqual, userResp.Id)
 										So(orgUsers.Result[0].Username, ShouldEqual, userReq.Username)
 										So(orgUsers.Result[0].IsAdmin, ShouldEqual, updOrgUser.IsAdmin)
 									}

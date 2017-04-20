@@ -136,20 +136,28 @@ func GetApplicationCount(db *sqlx.DB) (int, error) {
 
 // GetApplicationCountForUser returns the total number of applications
 // available for the given user.
-func GetApplicationCountForUser(db *sqlx.DB, username string) (int, error) {
+// When an organizationID is given, the results will be filtered by this
+//
+func GetApplicationCountForUser(db *sqlx.DB, username string, organizationID int64) (int, error) {
 	var count int
 	err := db.Get(&count, `
 		select
 			count(a.*)
 		from application a
-		inner join application_user au
+		left join application_user au
 			on a.id = au.application_id
+		left join organization_user ou
+			on a.organization_id = ou.organization_id
 		inner join "user" u
-			on au.user_id = u.id
+			on au.user_id = u.id or ou.user_id = u.id
 		where
 			u.username = $1
 			and u.is_active = true
-	`, username)
+			and (
+				$2 = 0
+				or a.organization_id = $2
+			)
+	`, username, organizationID)
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")
 	}
@@ -186,21 +194,27 @@ func GetApplications(db *sqlx.DB, limit, offset int) ([]Application, error) {
 
 // GetApplicationsForUser returns a slice of application of which the given
 // user is a member of.
-func GetApplicationsForUser(db *sqlx.DB, username string, limit, offset int) ([]Application, error) {
+func GetApplicationsForUser(db *sqlx.DB, username string, organizationID int64, limit, offset int) ([]Application, error) {
 	var apps []Application
 	err := db.Select(&apps, `
 		select a.*
 		from application a
-		inner join application_user au
+		left join application_user au
 			on a.id = au.application_id
+		left join organization_user ou
+			on a.organization_id = ou.organization_id
 		inner join "user" u
-			on au.user_id = u.id
+			on au.user_id = u.id or ou.user_id = u.id
 		where
 			u.username = $1
 			and u.is_active = true
+			and (
+				$2 = 0
+				or a.organization_id = $2
+			)
 		order by a.name
-		limit $2 offset $3
-	`, username, limit, offset)
+		limit $3 offset $4
+	`, username, organizationID, limit, offset)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
 	}

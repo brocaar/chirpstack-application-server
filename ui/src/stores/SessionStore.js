@@ -16,6 +16,7 @@ class SessionStore extends EventEmitter {
     super();
     this.user = {};
     this.applications = [];
+    this.organizations = [];
 
     if (this.getToken() !== "") {
       this.fetchProfile(() => {});
@@ -72,6 +73,12 @@ class SessionStore extends EventEmitter {
           this.applications = [];
         }
 
+        if (typeof(responseData.organizations) !== "undefined") {
+          this.organizations = responseData.organizations;
+        } else {
+          this.organizations = [];
+        }
+
         this.emit("change");
         callbackFunc();
       })
@@ -80,6 +87,7 @@ class SessionStore extends EventEmitter {
 
   logout(callbackFunc) {
     localStorage.setItem("jwt", "");
+    localStorage.setItem("organizationID", "");
     this.user = {};
     this.applications = [];
     this.emit("change");
@@ -98,6 +106,15 @@ class SessionStore extends EventEmitter {
     for (let i = 0; i < this.applications.length; i++) {
       if (Number(this.applications[i].applicationID) === Number(applicationID)) {
         return this.applications[i].isAdmin;
+      }
+    }
+    return false;
+  }
+
+  isOrganizationAdmin(organizationID) {
+    for (let i = 0; i < this.organizations.length; i++) {
+      if (Number(this.organizations[i].organizationID) === Number(organizationID)) {
+        return this.organizations[i].isAdmin;
       }
     }
     return false;

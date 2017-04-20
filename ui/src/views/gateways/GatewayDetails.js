@@ -7,6 +7,8 @@ import { Bar } from "react-chartjs";
 
 import OrganizationSelect from "../../components/OrganizationSelect";
 import GatewayStore from "../../stores/GatewayStore";
+import SessionStore from "../../stores/SessionStore";
+
 
 class GatewayStats extends Component {
   constructor() {
@@ -167,6 +169,16 @@ class GatewayDetails extends Component {
         gateway: gateway,
       });
     }); 
+
+    this.setState({
+      isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID),
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID), 
+      });
+    });
   }
 
   onDelete() {
@@ -199,11 +211,12 @@ class GatewayDetails extends Component {
       <div>
         <ol className="breadcrumb">
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}/gateways`}>Gateways</Link></li>
           <li className="active">{this.state.gateway.name}</li>
         </ol>
         <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
+          <div className={"btn-group pull-right " + (this.state.isAdmin ? '' : 'hidden')} role="group" aria-label="...">
             <Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}/edit`}><button type="button" className="btn btn-default">Edit gateway</button></Link> &nbsp;
             <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete gateway</button></Link>
           </div>
@@ -246,7 +259,7 @@ class GatewayDetails extends Component {
               <div className="col-md-6">
                 <Map center={position} zoom={15} style={style} animate={true}>
                   <TileLayer
-                    url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+                    url='//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
                     attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                   />
                   <Marker position={position} />

@@ -158,6 +158,11 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 		return nil, errToRPCError(err)
 	}
 
+	username, err := a.validator.GetUsername(ctx)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
 	var count int
 	var apps []storage.Application
 
@@ -172,28 +177,34 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 				return nil, errToRPCError(err)
 			}
 		} else {
-			username, err := a.validator.GetUsername(ctx)
+			apps, err = storage.GetApplicationsForUser(a.ctx.DB, username, 0, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-
-			apps, err = storage.GetApplicationsForUser(a.ctx.DB, username, int(req.Limit), int(req.Offset))
-			if err != nil {
-				return nil, errToRPCError(err)
-			}
-			count, err = storage.GetApplicationCountForUser(a.ctx.DB, username)
+			count, err = storage.GetApplicationCountForUser(a.ctx.DB, username, 0)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		}
 	} else {
-		apps, err = storage.GetApplicationsForOrganizationID(a.ctx.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, errToRPCError(err)
-		}
-		count, err = storage.GetApplicationCountForOrganizationID(a.ctx.DB, req.OrganizationID)
-		if err != nil {
-			return nil, errToRPCError(err)
+		if isAdmin {
+			apps, err = storage.GetApplicationsForOrganizationID(a.ctx.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			count, err = storage.GetApplicationCountForOrganizationID(a.ctx.DB, req.OrganizationID)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+		} else {
+			apps, err = storage.GetApplicationsForUser(a.ctx.DB, username, req.OrganizationID, int(req.Limit), int(req.Offset))
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			count, err = storage.GetApplicationCountForUser(a.ctx.DB, username, req.OrganizationID)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
 		}
 	}
 

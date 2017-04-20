@@ -436,7 +436,7 @@
     "apiGetOrganizationUserResponse": {
       "type": "object",
       "properties": {
-        "userID": {
+        "id": {
           "type": "string",
           "format": "int64",
           "description": "ID of the user."

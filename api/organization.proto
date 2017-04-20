@@ -204,7 +204,7 @@ message GetOrganizationUserRequest {
 // Response for a user in the organization
 message GetOrganizationUserResponse {
 	// ID of the user.
-	int64 userID = 1;
+	int64 id = 1;
 	
 	// Username of the user.
 	string username = 2;

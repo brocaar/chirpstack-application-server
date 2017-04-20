@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
+import OrganizationSelect from "../../components/OrganizationSelect";
 import OrganizationStore from "../../stores/OrganizationStore";
+
 
 class UpdateOrganizationUserForm extends Component {
   constructor() {
@@ -63,6 +65,10 @@ class UpdateOrganizationUserForm extends Component {
   }
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/organizations
 class UpdateOrganizationUser extends Component {
   static contextTypes = {
     router: React.PropTypes.object.isRequired
@@ -72,7 +78,10 @@ class UpdateOrganizationUser extends Component {
     super();
 
     this.state = {
+<<<<<<< HEAD
       organization: {},
+=======
+>>>>>>> upstream/organizations
       user: {},
     };
 
@@ -81,17 +90,24 @@ class UpdateOrganizationUser extends Component {
   }
 
   componentWillMount() {
+<<<<<<< HEAD
     OrganizationStore.getOrganization(this.props.params.organizationID, (organization) => {
       this.setState({
         organization: organization,
       });
     });
 
+=======
+>>>>>>> upstream/organizations
     OrganizationStore.getUser(this.props.params.organizationID, this.props.params.userID, (user) => {
       this.setState({
         user: user,
       });
+<<<<<<< HEAD
     });
+=======
+    });    
+>>>>>>> upstream/organizations
   }
 
   onSubmit(user) {
@@ -112,10 +128,16 @@ class UpdateOrganizationUser extends Component {
     return(
       <div>
         <ol className="breadcrumb">
+<<<<<<< HEAD
           <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/organizations">Organizations</Link></li>
           <li><Link to={`/organizations/${this.state.organization.id}`}>{this.state.organization.name}</Link></li>
           <li><Link to={`/organizations/${this.state.organization.id}/users`}>Users</Link></li>
+=======
+          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/users`}>Users</Link></li>
+>>>>>>> upstream/organizations
           <li className="active">{this.state.user.username}</li>
         </ol>
         <div className="clearfix">

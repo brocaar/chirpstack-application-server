@@ -3,8 +3,10 @@ import { Link } from 'react-router';
 
 import Select from "react-select";
 
+import OrganizationSelect from "../../components/OrganizationSelect";
 import OrganizationStore from "../../stores/OrganizationStore";
 import UserStore from "../../stores/UserStore";
+
 
 class AssignUserForm extends Component {
   constructor() {
@@ -96,6 +98,10 @@ class AssignUserForm extends Component {
   }
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/organizations
 class CreateUserForm extends Component {
   constructor() {
     super();
@@ -161,8 +167,11 @@ class CreateOrganizationUser extends Component {
     super();
 
     this.state = {
+<<<<<<< HEAD
       organization: {},
       user: {},
+=======
+>>>>>>> upstream/organizations
       activeTab: "assign",
     };
 
@@ -171,6 +180,7 @@ class CreateOrganizationUser extends Component {
     this.handleCreateAndAssign = this.handleCreateAndAssign.bind(this);
   }
 
+<<<<<<< HEAD
   componentWillMount() {
     OrganizationStore.getOrganization(this.props.params.organizationID, (organization) => {
       this.setState({
@@ -179,6 +189,8 @@ class CreateOrganizationUser extends Component {
     });
   }
 
+=======
+>>>>>>> upstream/organizations
   changeTab(e) {
     e.preventDefault();
     this.setState({
@@ -204,10 +216,16 @@ class CreateOrganizationUser extends Component {
     return(
       <div>
         <ol className="breadcrumb">
+<<<<<<< HEAD
           <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/organizations">Organizations</Link></li>
           <li><Link to={`/organizations/${this.state.organization.id}`}>{this.state.organization.name}</Link></li>
           <li><Link to={`/organizations/${this.state.organization.id}/users`}>Users</Link></li>
+=======
+          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/users`}>Users</Link></li>
+>>>>>>> upstream/organizations
           <li className="active">Add user</li>
         </ol>
         <hr />

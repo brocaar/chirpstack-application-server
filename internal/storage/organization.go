@@ -132,7 +132,7 @@ func GetOrganizationCountForUser(db *sqlx.DB, username string, search string) (i
 	}
 
 	err := db.Get(&count, `
-		select count(o.*)
+		select count(distinct o.*)
 		from organization o
 		inner join "user" u
 			on u.username = $1
@@ -193,7 +193,7 @@ func GetOrganizationsForUser(db *sqlx.DB, username string, limit, offset int, se
 	}
 
 	err := db.Select(&orgs, `
-		select o.*
+		select distinct o.*
 		from organization o
 		inner join "user" u
 			on u.username = $1
@@ -209,7 +209,7 @@ func GetOrganizationsForUser(db *sqlx.DB, username string, limit, offset int, se
 				($4 != '' and o.display_name ilike $4)
 				or ($4 = '')
 			)
-		order by name
+		order by o.name
 		limit $2 offset $3`,
 		username,
 		limit,

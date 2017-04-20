@@ -94,33 +94,50 @@ func TestApplication(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Then the application count for the user is 0", func() {
-					count, err := GetApplicationCountForUser(db, user.Username)
+					count, err := GetApplicationCountForUser(db, user.Username, org.ID)
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 0)
 
-					apps, err := GetApplicationsForUser(db, user.Username, 10, 0)
+					apps, err := GetApplicationsForUser(db, user.Username, org.ID, 10, 0)
 					So(err, ShouldBeNil)
 					So(apps, ShouldHaveLength, 0)
 				})
 
-				Convey("Then the user can be added to the application", func() {
+				Convey("When adding the user to the organization", func() {
+					err := CreateOrganizationUser(db, org.ID, user.ID, true)
+					So(err, ShouldBeNil)
+
+					Convey("Then the application count for the user is 1", func() {
+						count, err := GetApplicationCountForUser(db, user.Username, org.ID)
+						So(err, ShouldBeNil)
+						So(count, ShouldEqual, 1)
+
+						apps, err := GetApplicationsForUser(db, user.Username, org.ID, 10, 0)
+						So(err, ShouldBeNil)
+						So(apps, ShouldHaveLength, 1)
+					})
+				})
+
+				Convey("When adding the user to the application", func() {
 					err := CreateUserForApplication(db, app.ID, userId, true)
 					So(err, ShouldBeNil)
+
 					Convey("Then the user count for the application is 1", func() {
 						count, err := GetApplicationUsersCount(db, app.ID)
 						So(err, ShouldBeNil)
 						So(count, ShouldEqual, 1)
 
 						Convey("Then the application count for the user is 1", func() {
-							count, err := GetApplicationCountForUser(db, user.Username)
+							count, err := GetApplicationCountForUser(db, user.Username, org.ID)
 							So(err, ShouldBeNil)
 							So(count, ShouldEqual, 1)
 
-							apps, err := GetApplicationsForUser(db, user.Username, 10, 0)
+							apps, err := GetApplicationsForUser(db, user.Username, org.ID, 10, 0)
 							So(err, ShouldBeNil)
 							So(apps, ShouldHaveLength, 1)
 						})
 					})
+
 					Convey("Then the user can be accessed via application get", func() {
 						ua, err := GetUserForApplication(db, app.ID, userId)
 						So(err, ShouldBeNil)

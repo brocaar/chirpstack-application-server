@@ -142,7 +142,8 @@ func TestApplicationAPI(t *testing.T) {
 					})
 				})
 
-				Convey("When listing all applications given an organization ID", func() {
+				Convey("When listing all applications as an admin given an organization ID", func() {
+					validator.returnIsAdmin = true
 					Convey("Then only the applications for that organization are returned", func() {
 						apps, err := api.List(ctx, &pb.ListApplicationRequest{
 							Limit:          10,

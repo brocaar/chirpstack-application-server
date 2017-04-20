@@ -46,7 +46,7 @@ class UpdateOrganization extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
+          <li><Link to="/">LoRa Server</Link></li>
           <li><Link to="/organizations">Organizations</Link></li>
           <li><Link to={`/organizations/${this.props.params.id}`}>{this.state.organization.name}</Link></li>
           <li className="active">Edit organization</li>

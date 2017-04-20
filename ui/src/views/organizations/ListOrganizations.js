@@ -71,7 +71,7 @@ class ListOrganizations extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
+          <li><Link to="/">LoRa Server</Link></li>
           <li className="active">Organizations</li>
         </ol>
         <div className={(this.state.isAdmin ? '' : 'hidden')}>

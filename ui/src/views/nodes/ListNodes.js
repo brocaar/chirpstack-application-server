@@ -33,7 +33,7 @@ class ListNodes extends Component {
     this.state = {
       application: {},
       nodes: [],
-      isApplicationAdmin: false,
+      isAdmin: false,
       pageSize: 20,
       pageNumber: 1,
       pages: 1,
@@ -43,19 +43,19 @@ class ListNodes extends Component {
     this.updatePage = this.updatePage.bind(this);
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this.updatePage(this.props);
     ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
       this.setState({application: application});
     });
 
     this.setState({
-      isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+      isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID) || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
     });
 
     SessionStore.on("change", () => {
       this.setState({
-        isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+        isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID) || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
       });
     });
   }
@@ -98,7 +98,7 @@ class ListNodes extends Component {
           <li>{this.state.application.name}</li>
           <li className="active">Nodes</li>
         </ol>
-        <div className={(this.state.isApplicationAdmin ? '' : 'hidden')}>
+        <div className={(this.state.isAdmin ? '' : 'hidden')}>
           <div className="clearfix">
             <div className="btn-group pull-right" role="group" aria-label="...">
               <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/users`}><button type="button" className="btn btn-default">Users</button></Link> &nbsp;

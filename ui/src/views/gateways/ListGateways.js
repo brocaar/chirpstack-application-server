@@ -7,6 +7,7 @@ import { Bar } from "react-chartjs";
 import OrganizationSelect from "../../components/OrganizationSelect";
 import Pagination from "../../components/Pagination";
 import GatewayStore from "../../stores/GatewayStore";
+import SessionStore from "../../stores/SessionStore";
 
 
 class GatewayRow extends Component {
@@ -37,8 +38,6 @@ class GatewayRow extends Component {
   componentWillMount() {
     GatewayStore.getGatewayStats(this.props.gateway.mac, "DAY", moment().subtract(29, 'days').toISOString(), moment().toISOString(), (records) => {
       let stats = this.state.stats;
-      console.log(records);
-
       for (const record of records) {
         stats.labels.push(record.timestamp);
         stats.datasets[0].data.push(record.rxPacketsReceived + record.txPacketsReceived);
@@ -76,6 +75,7 @@ class ListGateways extends Component {
       pageSize: 20,
       pageNumber: 1,
       pages: 1,
+      isAdmin: false,
     };
 
     this.updatePage = this.updatePage.bind(this);
@@ -83,6 +83,13 @@ class ListGateways extends Component {
 
   componentDidMount() {
     this.updatePage(this.props);
+
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID), 
+      });
+    });
   }
 
   componentWillReceiveProps(nextProps) {
@@ -90,6 +97,10 @@ class ListGateways extends Component {
   }
 
   updatePage(props) {
+    this.setState({
+      isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(props.params.organizationID),
+    });
+
     const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
 
     GatewayStore.getAllForOrganization(this.props.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, gateways) => {
@@ -114,7 +125,7 @@ class ListGateways extends Component {
           <li className="active">Gateways</li>
         </ol>
         <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
+          <div className={"btn-group pull-right " + (this.state.isAdmin ? '' : 'hidden')} role="group" aria-label="...">
             <Link to={`/organizations/${this.props.params.organizationID}/gateways/create`}><button type="button" className="btn btn-default">Create gateway</button></Link>
           </div>
         </div>

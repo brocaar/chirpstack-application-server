@@ -17,7 +17,7 @@ class UpdateNode extends Component {
     this.state = {
       application: {},
       node: {},
-      isApplicationAdmin: false,
+      isAdmin: false,
     };
 
     this.onSubmit = this.onSubmit.bind(this);
@@ -33,12 +33,12 @@ class UpdateNode extends Component {
     });
 
     this.setState({
-      isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+      isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID) || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
     });
 
     SessionStore.on("change", () => {
       this.setState({
-        isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+        isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID) || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
       });
     });
   }
@@ -73,13 +73,13 @@ class UpdateNode extends Component {
           <div className="btn-group pull-right" role="group" aria-label="...">
             <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/activation`} className={(this.state.node.isABP ? '' : 'hidden')}><button type="button" className="btn btn-default">ABP activation</button></Link> &nbsp;
             <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/activation`} className={(this.state.node.isABP ? 'hidden' : '')}><button type="button" className="btn btn-default">Show node activation</button></Link> &nbsp;
-            <Link><button type="button" className={"btn btn-danger " + (this.state.isApplicationAdmin ? '' : 'hidden')} onClick={this.onDelete}>Delete node</button></Link>
+            <Link><button type="button" className={"btn btn-danger " + (this.state.isAdmin ? '' : 'hidden')} onClick={this.onDelete}>Delete node</button></Link>
           </div>
         </div>
         <hr />
         <div className="panel panel-default">
           <div className="panel-body">
-            <NodeForm node={this.state.node} onSubmit={this.onSubmit} disabled={!this.state.isApplicationAdmin} application={this.state.application} />
+            <NodeForm node={this.state.node} onSubmit={this.onSubmit} disabled={!this.state.isAdmin} application={this.state.application} />
           </div>
         </div>
       </div>

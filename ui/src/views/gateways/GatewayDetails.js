@@ -7,6 +7,8 @@ import { Bar } from "react-chartjs";
 
 import OrganizationSelect from "../../components/OrganizationSelect";
 import GatewayStore from "../../stores/GatewayStore";
+import SessionStore from "../../stores/SessionStore";
+
 
 class GatewayStats extends Component {
   constructor() {
@@ -167,6 +169,16 @@ class GatewayDetails extends Component {
         gateway: gateway,
       });
     }); 
+
+    this.setState({
+      isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID),
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID), 
+      });
+    });
   }
 
   onDelete() {
@@ -204,7 +216,7 @@ class GatewayDetails extends Component {
           <li className="active">{this.state.gateway.name}</li>
         </ol>
         <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
+          <div className={"btn-group pull-right " + (this.state.isAdmin ? '' : 'hidden')} role="group" aria-label="...">
             <Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}/edit`}><button type="button" className="btn btn-default">Edit gateway</button></Link> &nbsp;
             <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete gateway</button></Link>
           </div>

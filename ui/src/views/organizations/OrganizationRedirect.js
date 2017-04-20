@@ -9,9 +9,9 @@ class OrganizationRedirect extends Component {
     router: React.PropTypes.object.isRequired
   };
 
-  componentWillMount() {
+  componentDidMount() {
     const organizationID = SessionStore.getOrganizationID();
-    if (organizationID === parseInt(organizationID, 10)) {
+    if (parseInt(organizationID, 10) === parseInt(organizationID, 10)) {
       this.context.router.push('/organizations/' + organizationID); 
     } else {
       OrganizationStore.getAll("", 1, 0, (totalCount, orgs) => {

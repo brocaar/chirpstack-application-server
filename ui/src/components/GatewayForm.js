@@ -129,7 +129,7 @@ class GatewayForm extends Component {
             <label className="control-label">Gateway location (<Link onClick={this.handleSetToCurrentPosition} href="#">set to current location</Link>)</label>
             <Map zoom={this.state.mapZoom} center={position} style={mapStyle} animate={true} onZoomend={this.updateZoom}>
               <TileLayer
-                url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+                url='//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
                 attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
               />
               <Marker position={position} draggable={true} onDragend={this.updatePosition} ref="marker" />

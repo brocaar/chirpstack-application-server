@@ -39,15 +39,12 @@ class OrganizationUsers extends Component {
   }
 
   componentDidMount() {
-<<<<<<< HEAD
     OrganizationStore.getOrganization(this.props.params.organizationID, (organization) => {
       this.setState({
         organization: organization,
       });
     });
 
-=======
->>>>>>> upstream/organizations
     this.updatePage(this.props);
   }
 
@@ -68,32 +65,19 @@ class OrganizationUsers extends Component {
   }
 
   render() {
-<<<<<<< HEAD
     const UserRows = this.state.users.map((user, i) => <OrganizationUserRow key={user.id} organization={this.state.organization} user={user} />);
-=======
-    const UserRows = this.state.users.map((user, i) => <OrganizationUserRow key={user.id} organizationID={this.props.params.organizationID} user={user} />);
->>>>>>> upstream/organizations
 
     return(
       <div>
         <ol className="breadcrumb">
-<<<<<<< HEAD
           <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/organizations">Organizations</Link></li>
           <li><Link to={`/organizations/${this.state.organization.id}`}>{this.state.organization.name}</Link></li>
-=======
-          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
->>>>>>> upstream/organizations
           <li className="active">Users</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-<<<<<<< HEAD
             <Link to={`/organizations/${this.state.organization.id}/users/create`}><button type="button" className="btn btn-default">Add user</button></Link>
-=======
-            <Link to={`/organizations/${this.props.params.organizationID}/users/create`}><button type="button" className="btn btn-default">Add user</button></Link>
->>>>>>> upstream/organizations
           </div>
         </div>
         <hr />
@@ -112,11 +96,7 @@ class OrganizationUsers extends Component {
               </tbody>
             </table>
           </div>
-<<<<<<< HEAD
           <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`organizations/${this.state.organization.id}/users`} />
-=======
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/users`} />
->>>>>>> upstream/organizations
         </div>
       </div>
     );

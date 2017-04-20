@@ -28,6 +28,18 @@ class GatewayForm extends Component {
     this.getOrganizationSelectionList();
     
     this.setToCurrentPosition();
+    
+    // Set up number verification.  Get the decimal point for the locale by 
+    // converting the Number 0.1 to a local string, and then getting rid of the digits.
+    var decpt = 0.1.toLocaleString().replace(/\d/g, '');
+    // RegExps to eliminate invalid characters.  First, anything digit or local 
+    // decimal point or sign is allowed.  Then, the format
+    this.re = {};
+    this.re.cleanup = new RegExp( "[^0-9+-" + decpt + "]", "g" );
+	this.re.valid = new RegExp( "^[+-]?\\d+\\" + decpt + "?\\d*", "");
+	this.re.noleadingzero = new RegExp("^([+-]?)0*([1-9])");
+	this.re.noleadingzeroreplacement = "$1$2";
+    
   }
 
   getOrganizationSelectionList() {
@@ -47,17 +59,29 @@ class GatewayForm extends Component {
   onChange(field, e) {
     let gateway = this.state.gateway;
 
-    if ( field == "organizationID" ) {
+    if ( field === "organizationID" ) {
 		gateway.organizationID = e.value;
-	} else if ( field == "altitude" ) {
-		// Verify we only have an integer or float value.  Ignore all character input.
-		var replaced = e.target.value.replace(/[^0-9\.]/g, '');
-		// Above allows any combination of digits and decimal points.  Make sure
-		// we have something like ddd[.ddd].
-		var validre = /^[+-]?\d+\.?\d*/;
-		gateway["altitude"] = validre.exec(replaced);
-		// TODO: Remove any leading zero.  Because that's just weird.  Can't use
-		// parsefloat as that will also remove decimal points as you are typing.e
+	} else if ( field === "altitude" ) {
+		if ( "" == e.target.value ) {
+			// Translate blank field to 0.
+			gateway["altitude"] = "0";
+		} else {
+			try
+			{
+				// Verify we only have an integer or float value.  Ignore all character input.
+				var validChars = e.target.value.replace(this.re.cleanup, '');
+				// Above allows any combination of digits and decimal points.  Make sure
+				// we have something like [+|-]ddd[.ddd].
+				var validFormat = this.re.valid.exec(validChars);
+				// Remove any leading zero.  Because that's just weird.  Can't use
+				// parsefloat as that will also remove decimal points as you are typing.
+				gateway["altitude"] = validFormat.toLocaleString().replace(this.re.noleadingzero, this.re.noleadingzeroreplacement);
+			} catch ( whatever ) {
+				// Something is funky with what they typed.  Go back to last known 
+				// valid value.
+				gateway["altitude"] = gateway["altitude"];
+			}
+		}
 	} else if (e.target.type === "number") {
       gateway[field] = parseFloat(e.target.value);
     } else {
@@ -114,6 +138,7 @@ class GatewayForm extends Component {
   
   handleSubmit(e) {
     e.preventDefault();
+    this.state.gateway.altitude = parseFloat( this.state.gateway.altitude );
     this.props.onSubmit(this.state.gateway);
   }
 
@@ -162,7 +187,7 @@ class GatewayForm extends Component {
           </div>
           <div className="form-group">
             <label className="control-label">Gateway location (<Link onClick={this.handleSetToCurrentPosition} href="#">set to current location</Link>)</label>
-            <Map zoom={this.state.mapZoom} center={position} style={mapStyle} animate={true} onZoomend={this.updateZoom} scrollWheelZoom="false" >
+            <Map zoom={this.state.mapZoom} center={position} style={mapStyle} animate={true} onZoomend={this.updateZoom} scrollWheelZoom={false}>
               <TileLayer
                 url='//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
                 attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'

@@ -27,7 +27,7 @@ class UpdateApplication extends Component {
 
   onSubmit(application) {
     ApplicationStore.updateApplication(this.props.params.applicationID, this.state.application, (responseData) => {
-      this.context.router.push('/organizations/'+this.props.params.organizationID+'/applications/'+application.id);
+      this.context.router.push('/organizations/'+application.organizationID+'/applications/'+application.id);
     });
   }
 
@@ -44,7 +44,7 @@ class UpdateApplication extends Component {
         <hr />
         <div className="panel panel-default">
           <div className="panel-body">
-            <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} />
+            <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} update={true} />
           </div>
         </div>
       </div>

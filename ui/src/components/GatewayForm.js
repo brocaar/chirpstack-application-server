@@ -2,14 +2,21 @@ import React, { Component } from 'react';
 import { Link } from 'react-router';
 
 import { Map, Marker, TileLayer } from 'react-leaflet';
+import Select from "react-select";
+
+import SessionStore from "../stores/SessionStore";
+import OrganizationStore from "../stores/OrganizationStore";
+
 
 class GatewayForm extends Component {
   constructor() {
     super();
 
     this.state = {
+      isGlobalAdmin: false,
       gateway: {},
       mapZoom: 15,
+      initialOrganizationOptions: [],
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -17,6 +24,10 @@ class GatewayForm extends Component {
     this.updateZoom = this.updateZoom.bind(this);
     this.setToCurrentPosition = this.setToCurrentPosition.bind(this);
     this.handleSetToCurrentPosition = this.handleSetToCurrentPosition.bind(this);
+    this.onOrganizationAutocomplete = this.onOrganizationAutocomplete.bind(this);
+    this.onOrganizationSelect = this.onOrganizationSelect.bind(this);
+    this.setSelectedOrganization = this.setSelectedOrganization.bind(this);
+    this.setInitialOrganizations = this.setInitialOrganizations.bind(this);
   }
 
   onChange(field, e) {
@@ -49,12 +60,21 @@ class GatewayForm extends Component {
     });
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this.setState({
       gateway: this.props.gateway,
+      isGlobalAdmin: SessionStore.isAdmin(),
+    }, () => {
+      this.setSelectedOrganization();
     });
 
     this.setToCurrentPosition(false);
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isGlobalAdmin: SessionStore.isAdmin(),
+      });
+    });
   }
 
   setToCurrentPosition(overwrite) {
@@ -75,6 +95,8 @@ class GatewayForm extends Component {
   componentWillReceiveProps(nextProps) {
     this.setState({
       gateway: nextProps.gateway, 
+    }, () => {
+      this.setSelectedOrganization();
     });
   }
 
@@ -86,6 +108,60 @@ class GatewayForm extends Component {
   handleSetToCurrentPosition(e) {
     e.preventDefault();
     this.setToCurrentPosition(true);
+  }
+
+  onOrganizationAutocomplete(input, callbackFunc) {
+    OrganizationStore.getAll(input, 10, 0, (totalCount, orgs) => {
+      const options = orgs.map((org, i) => {
+        return {
+          value: org.id,
+          label: org.displayName,
+        };
+      });
+
+      callbackFunc(null, {
+        options: options,
+        complete: true,
+      });
+    });
+  }
+
+  onOrganizationSelect(val) {
+    let gateway = this.state.gateway;
+    gateway.organizationID = val.value;
+    this.setState({
+      gateway: gateway,
+      initialOrganizationOptions: [val],
+    });
+  }
+
+  setSelectedOrganization() {
+    if (typeof(this.state.gateway.organizationID) === "undefined") {
+      return;
+    }
+    OrganizationStore.getOrganization(this.state.gateway.organizationID, (org) => {
+      this.setState({
+        initialOrganizationOptions: [{
+          value: org.id,
+          label: org.displayName,
+        }],
+      });
+    });
+  }
+
+  setInitialOrganizations() {
+    OrganizationStore.getAll("", 10, 0, (totalCount, orgs) => {
+      const options = orgs.map((org, i) => {
+        return {
+          value: org.id,
+          label: org.displayName,
+        };
+      });
+
+      this.setState({
+        initialOrganizationOptions: options,
+      });
+    });
   }
 
   render() {
@@ -120,6 +196,21 @@ class GatewayForm extends Component {
             <label className="control-label" htmlFor="mac">MAC address</label>
             <input className="form-control" id="mac" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required value={this.state.gateway.mac || ''} onChange={this.onChange.bind(this, 'mac')} /> 
           </div>
+          <div className={"form-group " + (this.state.isGlobalAdmin && this.props.update ? '' : 'hidden')}>
+            <label className="control-label" htmlFor="organization">Organization</label>
+            <Select.Async
+              name="organization"
+              required
+              options={this.state.initialOrganizationOptions}
+              loadOptions={this.onOrganizationAutocomplete}
+              value={this.state.gateway.organizationID}
+              onChange={this.onOrganizationSelect}
+              clearable={false}
+              autoload={false}
+              onOpen={this.setInitialOrganizations}
+            /> 
+            <p className="help-block">Note that moving a gateway to a different organization can only be done by global admin users.</p>
+          </div>
           <div className="form-group">
             <label className="control-label" htmlFor="altitude">Gateway altitude</label>
             <input className="form-control" id="altitude" type="number" step="0.01" value={this.state.gateway.altitude || 0} onChange={this.onChange.bind(this, 'altitude')} />
@@ -127,7 +218,14 @@ class GatewayForm extends Component {
           </div>
           <div className="form-group">
             <label className="control-label">Gateway location (<Link onClick={this.handleSetToCurrentPosition} href="#">set to current location</Link>)</label>
-            <Map zoom={this.state.mapZoom} center={position} style={mapStyle} animate={true} onZoomend={this.updateZoom}>
+            <Map
+              zoom={this.state.mapZoom}
+              center={position}
+              style={mapStyle}
+              animate={true}
+              onZoomend={this.updateZoom}
+              scrollWheelZoom={false}
+            >
               <TileLayer
                 url='//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
                 attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'

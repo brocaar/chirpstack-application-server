@@ -257,7 +257,7 @@ class GatewayDetails extends Component {
                 </table>
               </div>
               <div className="col-md-6">
-                <Map center={position} zoom={15} style={style} animate={true}>
+                <Map center={position} zoom={15} style={style} animate={true} scrollWheelZoom={false}>
                   <TileLayer
                     url='//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
                     attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'

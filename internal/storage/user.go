@@ -132,7 +132,7 @@ func ValidatePassword(password string) error {
 }
 
 // CreateApplication creates the given Application.
-func CreateUser(db *sqlx.DB, user *User, password string) (int64, error) {
+func CreateUser(db sqlx.Queryer, user *User, password string) (int64, error) {
 	if err := ValidateUsername(user.Username); err != nil {
 		return 0, errors.Wrap(err, "validation error")
 	}
@@ -150,7 +150,7 @@ func CreateUser(db *sqlx.DB, user *User, password string) (int64, error) {
 	user.UpdatedAt = time.Now()
 
 	// Add the new user.
-	err = db.Get(&user.ID, `
+	err = sqlx.Get(db, &user.ID, `
 		insert into "user" (
 			username,
 			password_hash,

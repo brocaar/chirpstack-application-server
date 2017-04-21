@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 
-import ChannelStore from "../stores/ChannelStore";
-import OrganizationStore from "../stores/OrganizationStore";
-import SessionStore from "../stores/SessionStore";
-
 import Select from "react-select";
+
+import ChannelStore from "../stores/ChannelStore";
+import SessionStore from "../stores/SessionStore";
+import OrganizationStore from "../stores/OrganizationStore";
+
 
 class ApplicationForm extends Component {
   constructor() {
@@ -13,7 +14,7 @@ class ApplicationForm extends Component {
       activeTab: "application",
       application: {},
       channelLists: [],
-      organizations: [],
+      isGlobalAdmin: false,
     };
 
     ChannelStore.getAllChannelLists((lists) => {
@@ -22,41 +23,38 @@ class ApplicationForm extends Component {
 
     this.handleSubmit = this.handleSubmit.bind(this);
     this.changeTab = this.changeTab.bind(this);
-
-    this.getOrganizationSelectionList();
-  }
-  
-  getOrganizationSelectionList() {
-	  OrganizationStore.getAll( "", 0, 0, (totalCount, noorgs) => {
-		  OrganizationStore.getAll( "", totalCount, 0, (totCnt, orgs) => {
-			  var orgsmap = orgs.map((org, i) => {
-		          return {
-		            value: org.id,
-		            label: org.displayName,
-		          };
-		      });
-	          this.setState({organizations: orgsmap});
-		  });
-	  });
+    this.onOrganizationAutocomplete = this.onOrganizationAutocomplete.bind(this);
+    this.onOrganizationSelect = this.onOrganizationSelect.bind(this);
+    this.setSelectedOrganization = this.setSelectedOrganization.bind(this);
+    this.setInitialOrganizations = this.setInitialOrganizations.bind(this);
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this.setState({
       application: this.props.application,
+      isGlobalAdmin: SessionStore.isAdmin(),
+    }, () => {
+      this.setSelectedOrganization();
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isGlobalAdmin: SessionStore.isAdmin(),
+      });
     });
   }
 
   componentWillReceiveProps(nextProps) {
     this.setState({
       application: nextProps.application,
+    }, () => {
+      this.setSelectedOrganization();
     });
   }
 
   onChange(field, e) {
-	let application = this.state.application;
-	if ( field == "organizationID" ) {
-		application.organizationID = e.value;
-	} else if (e.target.type === "number") {
+    let application = this.state.application;
+    if (e.target.type === "number") {
       application[field] = parseInt(e.target.value, 10); 
     } else if (e.target.type === "checkbox") {
       application[field] = e.target.checked;
@@ -78,9 +76,61 @@ class ApplicationForm extends Component {
     });
   }
 
+  onOrganizationAutocomplete(input, callbackFunc) {
+    OrganizationStore.getAll(input, 10, 0, (totalCount, orgs) => {
+      const options = orgs.map((org, i) => {
+        return {
+          value: org.id,
+          label: org.displayName,
+        };
+      });
+
+      callbackFunc(null, {
+        options: options,
+        complete: true,
+      });
+    });
+  }
+
+  onOrganizationSelect(val) {
+    let application = this.state.application;
+    application.organizationID = val.value;
+    this.setState({
+      application: application,
+      initialOrganizationOptions: [val],
+    });
+  }
+
+  setSelectedOrganization() {
+    if (typeof(this.state.application.organizationID) === "undefined") {
+      return;
+    }
+    OrganizationStore.getOrganization(this.state.application.organizationID, (org) => {
+      this.setState({
+        initialOrganizationOptions: [{
+          value: org.id,
+          label: org.displayName,
+        }],
+      });
+    });
+  }
+
+  setInitialOrganizations() {
+    OrganizationStore.getAll("", 10, 0, (totalCount, orgs) => {
+      const options = orgs.map((org, i) => {
+        return {
+          value: org.id,
+          label: org.displayName,
+        };
+      });
+
+      this.setState({
+        initialOrganizationOptions: options,
+      });
+    });
+  }
+
   render() {
-	  var selectDisabled = !SessionStore.isAdmin();
-	  
     return (
       <div>
         <ul className="nav nav-tabs">
@@ -101,21 +151,21 @@ class ApplicationForm extends Component {
               <label className="control-label" htmlFor="name">Application description</label>
               <input className="form-control" id="description" type="text" placeholder="a short description of your application" required value={this.state.application.description || ''} onChange={this.onChange.bind(this, 'description')} />
             </div>
-              
-            <div className="form-group">
-              <label className="control-label" htmlFor="organization">Application organization</label>
-              <span className="org-select"><Select
-	              name="organization"
-	              disabled={selectDisabled}
-	              options={this.state.organizations}
-	              value={this.state.application.organizationID}
-	              clearable={false}
-	              autosize={true}
-	              autoload={false}
-	              onChange={this.onChange.bind(this, 'organizationID')}
-	            /></span>
+            <div className={"form-group " + (this.state.isGlobalAdmin && this.props.update ? '' : 'hidden')}>
+              <label className="control-label" htmlFor="organization">Organization</label>
+              <Select.Async
+                name="organization"
+                required
+                options={this.state.initialOrganizationOptions}
+                loadOptions={this.onOrganizationAutocomplete}
+                value={this.state.application.organizationID}
+                onChange={this.onOrganizationSelect}
+                clearable={false}
+                autoload={false}
+                onOpen={this.setInitialOrganizations}
+              /> 
+              <p className="help-block">Note that moving an application to a different organization can only be done by global admin users.</p>
             </div>
-
           </div>
           <div className={(this.state.activeTab === "network-settings" ? '' : 'hidden')}>
             <div className="form-group">

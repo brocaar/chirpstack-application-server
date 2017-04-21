@@ -109,6 +109,13 @@ message ProfileResponse {
 	GetUserResponse user = 1;
 	repeated ApplicationLink applications = 2;
 	repeated OrganizationLink organizations = 3;
+	ProfileSettings settings = 4;
+}
+
+message ProfileSettings {
+	// Existing users in the system can not be assigned to organizations and
+	// application and can not be listed by non global admin users.
+	bool disableAssignExistingUsers = 1;
 }
 
 
@@ -221,6 +228,28 @@ message AddUserRequest {
 
 	// If the user is active.
 	bool isActive = 5;
+
+	// Add the user to the following organizations.
+	repeated AddUserOrganization organizations = 6;
+
+	// Add the user to the following applications.
+	repeated AddUserApplication applications = 7;
+}
+
+message AddUserOrganization {
+	// ID of the organization.
+	int64 organizationID = 1;
+
+	// User has admin rights within the organization.
+	bool isAdmin = 2;
+}
+
+message AddUserApplication {
+	// ID of the application.
+	int64 applicationID = 1;
+
+	// User has admin rights within the application.
+	bool isAdmin = 2;
 }
 
 // Not quite the AddUserRequest as no password.

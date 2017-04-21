@@ -292,7 +292,7 @@ func DeleteOrganization(db *sqlx.DB, id int64) error {
 }
 
 // CreateOrganizationUser adds the given user to the organization.
-func CreateOrganizationUser(db *sqlx.DB, organizationID, userID int64, isAdmin bool) error {
+func CreateOrganizationUser(db sqlx.Execer, organizationID, userID int64, isAdmin bool) error {
 	_, err := db.Exec(`
 		insert into organization_user (
 			organization_id,

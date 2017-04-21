@@ -11,6 +11,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/jmoiron/sqlx"
 )
 
 // UserAPI exports the User related functions.
@@ -40,6 +41,24 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
+	// validate if the client has admin rights for the given organizations
+	// to which the user must be linked
+	for _, org := range req.Organizations {
+		if err := a.validator.Validate(ctx,
+			auth.ValidateIsOrganizationAdmin(org.OrganizationID)); err != nil {
+			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+		}
+	}
+
+	// validate if the client has admin rights for the given applications
+	// to which the user must be linked
+	for _, app := range req.Applications {
+		if err := a.validator.Validate(ctx,
+			auth.ValidateIsApplicationAdmin(app.ApplicationID)); err != nil {
+			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+		}
+	}
+
 	user := storage.User{
 		Username:   req.Username,
 		SessionTTL: req.SessionTTL,
@@ -59,12 +78,33 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 		user.SessionTTL = 0
 	}
 
-	id, err := storage.CreateUser(a.ctx.DB, &user, req.Password)
+	var userID int64
+
+	err = storage.Transaction(a.ctx.DB, func(tx *sqlx.Tx) error {
+		userID, err = storage.CreateUser(tx, &user, req.Password)
+		if err != nil {
+			return err
+		}
+
+		for _, org := range req.Organizations {
+			if err := storage.CreateOrganizationUser(tx, org.OrganizationID, userID, org.IsAdmin); err != nil {
+				return err
+			}
+		}
+
+		for _, app := range req.Applications {
+			if err := storage.CreateUserForApplication(tx, app.ApplicationID, userID, app.IsAdmin); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.AddUserResponse{Id: id}, nil
+	return &pb.AddUserResponse{Id: userID}, nil
 }
 
 // Get returns the user matching the given ID.
@@ -233,6 +273,9 @@ func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (
 		},
 		Organizations: make([]*pb.OrganizationLink, len(prof.Organizations)),
 		Applications:  make([]*pb.ApplicationLink, len(prof.Applications)),
+		Settings: &pb.ProfileSettings{
+			DisableAssignExistingUsers: auth.DisableAssignExistingUsers,
+		},
 	}
 
 	for i := range prof.Organizations {

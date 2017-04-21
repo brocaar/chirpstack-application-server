@@ -11,6 +11,12 @@ import (
 // Flag defines the authorization flag.
 type Flag int
 
+// DisableAssignExistingUsers controls if existing users can be assigned
+// to an organization or application. When set to false (default), organization
+// admin users are able to list all users, which might depending on the
+// context of the setup be a privacy issue.
+var DisableAssignExistingUsers = false
+
 // Authorization flags.
 const (
 	Create Flag = iota
@@ -54,11 +60,24 @@ func ValidateUsersAccess(flag Flag) ValidatorFunc {
 	var where [][]string
 
 	switch flag {
-	case Create, List:
-		// global admin or admin within an application
+	case Create:
+		// global admin or admin within an application or organization
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true"},
+		}
+	case List:
+		if DisableAssignExistingUsers {
+			// global admin users
+			where = [][]string{
+				{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			}
+		} else {
+			// global admin or admin within an application or organization
+			where = [][]string{
+				{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+				{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true"},
+			}
 		}
 	default:
 		panic("unsupported flag")
@@ -98,6 +117,20 @@ func ValidateUserAccess(userID int64, flag Flag) ValidatorFunc {
 
 	return func(db *sqlx.DB, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, userID)
+	}
+}
+
+// ValidateIsApplicationAdmin validates if the client has access to
+// administrate the given application.
+func ValidateIsApplicationAdmin(applicationID int64) ValidatorFunc {
+	// global admin users, organization admin users or application admin users
+	where := [][]string{
+		{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+		{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, applicationID)
 	}
 }
 
@@ -167,18 +200,25 @@ func ValidateApplicationAccess(applicationID int64, flag Flag) ValidatorFunc {
 	}
 }
 
-// ValidateApplicationMembersAccess validates if the client has access to the
+// ValidateApplicationUsersAccess validates if the client has access to the
 // given application members.
-func ValidateApplicationMembersAccess(applicationID int64, flag Flag) ValidatorFunc {
+func ValidateApplicationUsersAccess(applicationID int64, flag Flag) ValidatorFunc {
 	var where = [][]string{}
 
 	switch flag {
 	case Create:
-		// global admin users, organization admin users or application admin
-		// users
-		where = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
+		if DisableAssignExistingUsers {
+			// global admin users
+			where = [][]string{
+				{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
+			}
+		} else {
+			// global admin users, organization admin users or application admin
+			// users
+			where = [][]string{
+				{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+				{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
+			}
 		}
 	case List:
 		// global admin users, organization users or application users
@@ -197,9 +237,9 @@ func ValidateApplicationMembersAccess(applicationID int64, flag Flag) ValidatorF
 	}
 }
 
-// ValidateApplicationMemberAccess validates if the client has access to the
+// ValidateApplicationUserAccess validates if the client has access to the
 // given application member.
-func ValidateApplicationMemberAccess(applicationID, userID int64, flag Flag) ValidatorFunc {
+func ValidateApplicationUserAccess(applicationID, userID int64, flag Flag) ValidatorFunc {
 	var where = [][]string{}
 
 	switch flag {
@@ -398,6 +438,20 @@ func ValidateGatewayAccess(flag Flag, mac lorawan.EUI64) ValidatorFunc {
 	}
 }
 
+// ValidateIsOrganizationAdmin validates if the client has access to
+// administrate the given organization.
+func ValidateIsOrganizationAdmin(organizationID int64) ValidatorFunc {
+	// global admin users and organization admin users
+	where := [][]string{
+		{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+		{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "o.id = $2"},
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, organizationID)
+	}
+}
+
 // ValidateOrganizationsAccess validates if the client has access to the
 // organizations.
 func ValidateOrganizationsAccess(flag Flag) ValidatorFunc {
@@ -464,10 +518,17 @@ func ValidateOrganizationUsersAccess(flag Flag, id int64) ValidatorFunc {
 
 	switch flag {
 	case Create:
-		// global admin users or organzation admin users
-		where = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+		if DisableAssignExistingUsers {
+			// global admin users
+			where = [][]string{
+				{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
+			}
+		} else {
+			// global admin users or organzation admin users
+			where = [][]string{
+				{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+				{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+			}
 		}
 	case List:
 		// global admin users or organization users

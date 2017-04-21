@@ -5,6 +5,7 @@ import OrganizationSelect from "../../components/OrganizationSelect";
 import Pagination from "../../components/Pagination";
 import ApplicationStore from "../../stores/ApplicationStore";
 import SessionStore from "../../stores/SessionStore";
+import OrganizationStore from "../../stores/OrganizationStore";
 
 class ApplicationRow extends Component {
   render() {
@@ -25,6 +26,7 @@ class ListApplications extends Component {
     this.state = {
       pageSize: 20,
       applications: [],
+      organization: {},
       isAdmin: false,
       pageNumber: 1,
       pages: 1,
@@ -44,12 +46,19 @@ class ListApplications extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+
     this.updatePage(nextProps);
   }
 
   updatePage(props) {
     this.setState({
       isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(props.params.organizationID),
+    });
+
+    OrganizationStore.getOrganization(props.params.organizationID, (org) => {
+      this.setState({
+        organization: org,
+      });
     });
 
     const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
@@ -77,8 +86,8 @@ class ListApplications extends Component {
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
             &nbsp; <Link className={(this.state.isAdmin ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/applications/create`}><button type="button" className="btn btn-default">Create application</button></Link>
-            &nbsp; <Link to={`/organizations/${this.props.params.organizationID}/gateways`}><button type="button" className="btn btn-default">Gateways</button></Link>
             &nbsp; <Link className={(this.state.isAdmin ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/users`}><button type="button" className="btn btn-default">Users</button></Link>
+            &nbsp; <Link className={(this.state.organization.canHaveGateways ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/gateways`}><button type="button" className="btn btn-default">Gateways</button></Link>
           </div>
         </div>
         <hr />

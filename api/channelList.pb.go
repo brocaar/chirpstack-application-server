@@ -71,6 +71,7 @@ It has these top-level messages:
 	UserProfile
 	ProfileRequest
 	ProfileResponse
+	ProfileSettings
 	LoginRequest
 	LoginResponse
 	ListUserRequest
@@ -80,6 +81,8 @@ It has these top-level messages:
 	UserInfo
 	GetUserResponse
 	AddUserRequest
+	AddUserOrganization
+	AddUserApplication
 	UpdateUserRequest
 	ListUserResponse
 	UserEmptyResponse

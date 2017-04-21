@@ -30,7 +30,7 @@ class UpdateGateway extends Component {
 
   onSubmit(gateway) {
     GatewayStore.updateGateway(this.props.params.mac, gateway, (responseData) => {
-      this.context.router.push('/organizations/'+this.props.params.organizationID+'/gateways/'+this.props.params.mac);
+      this.context.router.push('/organizations/'+gateway.organizationID+'/gateways/'+gateway.mac);
     });
   }
 
@@ -47,7 +47,7 @@ class UpdateGateway extends Component {
         <hr />
         <div className="panel panel-default">
           <div className="panel-body">
-            <GatewayForm gateway={this.state.gateway} onSubmit={this.onSubmit} />
+            <GatewayForm gateway={this.state.gateway} onSubmit={this.onSubmit} update={true} />
           </div>
         </div>
       </div>

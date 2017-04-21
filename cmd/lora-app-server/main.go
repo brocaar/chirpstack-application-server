@@ -87,6 +87,8 @@ func run(c *cli.Context) error {
 	storage.SetUserSecret(c.String("jwt-secret"))
 	// Set the password hash iterations
 	storage.HashIterations = c.Int("pw-hash-iterations")
+	// Setup DisableAssignExisitngUsers
+	auth.DisableAssignExistingUsers = c.Bool("disable-assign-existing-users")
 
 	// handle incoming downlink payloads
 	go downlink.HandleDataDownPayloads(lsCtx, lsCtx.Handler.DataDownChan())
@@ -482,6 +484,11 @@ func main() {
 			Value:  4,
 			Usage:  "debug=5, info=4, warning=3, error=2, fatal=1, panic=0",
 			EnvVar: "LOG_LEVEL",
+		},
+		cli.BoolFlag{
+			Name:   "disable-assign-existing-users",
+			Usage:  "when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)",
+			EnvVar: "DISABLE_ASSIGN_EXISTING_USERS",
 		},
 	}
 	app.Run(os.Args)

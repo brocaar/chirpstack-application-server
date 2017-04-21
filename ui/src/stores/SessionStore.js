@@ -17,6 +17,7 @@ class SessionStore extends EventEmitter {
     this.user = {};
     this.applications = [];
     this.organizations = [];
+    this.settings = {};
 
     if (this.getToken() !== "") {
       this.fetchProfile(() => {});
@@ -79,6 +80,12 @@ class SessionStore extends EventEmitter {
           this.organizations = [];
         }
 
+        if (typeof(responseData.settings) !== "undefined") {
+          this.settings = responseData.settings;
+        } else {
+          this.settings = {};
+        }
+
         this.emit("change");
         callbackFunc();
       })
@@ -90,12 +97,17 @@ class SessionStore extends EventEmitter {
     localStorage.setItem("organizationID", "");
     this.user = {};
     this.applications = [];
+    this.settings = {};
     this.emit("change");
     callbackFunc();
   }
 
   getUser() {
     return this.user;
+  }
+
+  getSetting(key) {
+    return this.settings[key];
   }
 
   isAdmin() {

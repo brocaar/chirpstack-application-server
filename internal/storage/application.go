@@ -415,7 +415,7 @@ func GetUserForApplication(db *sqlx.DB, applicationID, userID int64) (*UserAcces
 
 // CreateUserForApplication adds the user to the application with the given
 // access.
-func CreateUserForApplication(db *sqlx.DB, applicationID, userID int64, adminAccess bool) error {
+func CreateUserForApplication(db sqlx.Execer, applicationID, userID int64, adminAccess bool) error {
 	_, err := db.Exec(`
 		insert into application_user (
 			application_id,

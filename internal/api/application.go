@@ -241,7 +241,7 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 // ListUsers lists the users for an application.
 func (a *ApplicationAPI) ListUsers(ctx context.Context, in *pb.ListApplicationUsersRequest) (*pb.ListApplicationUsersResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationMembersAccess(in.Id, auth.List),
+		auth.ValidateApplicationUsersAccess(in.Id, auth.List),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -272,7 +272,7 @@ func (a *ApplicationAPI) ListUsers(ctx context.Context, in *pb.ListApplicationUs
 // dropped in favor of this list.
 func (a *ApplicationAPI) AddUser(ctx context.Context, in *pb.AddApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationMembersAccess(in.Id, auth.Create),
+		auth.ValidateApplicationUsersAccess(in.Id, auth.Create),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -287,7 +287,7 @@ func (a *ApplicationAPI) AddUser(ctx context.Context, in *pb.AddApplicationUserR
 // GetUser gets the user that is associated with the application.
 func (a *ApplicationAPI) GetUser(ctx context.Context, in *pb.ApplicationUserRequest) (*pb.GetApplicationUserResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationMemberAccess(in.Id, in.UserID, auth.Read),
+		auth.ValidateApplicationUserAccess(in.Id, in.UserID, auth.Read),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -309,7 +309,7 @@ func (a *ApplicationAPI) GetUser(ctx context.Context, in *pb.ApplicationUserRequ
 // PutUser sets the user's access to the associated application.
 func (a *ApplicationAPI) UpdateUser(ctx context.Context, in *pb.UpdateApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationMemberAccess(in.Id, in.UserID, auth.Update),
+		auth.ValidateApplicationUserAccess(in.Id, in.UserID, auth.Update),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -324,7 +324,7 @@ func (a *ApplicationAPI) UpdateUser(ctx context.Context, in *pb.UpdateApplicatio
 // DeleteUser deletes the user's access to the associated application.
 func (a *ApplicationAPI) DeleteUser(ctx context.Context, in *pb.ApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationMemberAccess(in.Id, in.UserID, auth.Delete),
+		auth.ValidateApplicationUserAccess(in.Id, in.UserID, auth.Delete),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}

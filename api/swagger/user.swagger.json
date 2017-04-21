@@ -244,6 +244,36 @@
     }
   },
   "definitions": {
+    "apiAddUserApplication": {
+      "type": "object",
+      "properties": {
+        "applicationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the application."
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "User has admin rights within the application."
+        }
+      }
+    },
+    "apiAddUserOrganization": {
+      "type": "object",
+      "properties": {
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization."
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "User has admin rights within the organization."
+        }
+      }
+    },
     "apiAddUserRequest": {
       "type": "object",
       "properties": {
@@ -269,6 +299,20 @@
           "type": "boolean",
           "format": "boolean",
           "description": "If the user is active."
+        },
+        "organizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiAddUserOrganization"
+          },
+          "description": "Add the user to the following organizations."
+        },
+        "applications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiAddUserApplication"
+          },
+          "description": "Add the user to the following applications."
         }
       },
       "description": "Add a new user. Not quite the UserSettings data as it includes a password\nand excludes the ID and create/update dates."
@@ -445,9 +489,22 @@
           "items": {
             "$ref": "#/definitions/apiOrganizationLink"
           }
+        },
+        "settings": {
+          "$ref": "#/definitions/apiProfileSettings"
         }
       },
       "description": "The user's profile. This specifies the access the user has to the data\nand should be used limit what the UI presents as options (e.g., read-only\naccess to an application should not allow an \"edit\" button on that\napplication)."
+    },
+    "apiProfileSettings": {
+      "type": "object",
+      "properties": {
+        "disableAssignExistingUsers": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Existing users in the system can not be assigned to organizations and\napplication and can not be listed by non global admin users."
+        }
+      }
     },
     "apiUpdateUserPasswordRequest": {
       "type": "object",

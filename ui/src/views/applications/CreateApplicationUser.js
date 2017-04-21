@@ -6,6 +6,8 @@ import Select from "react-select";
 import OrganizationSelect from "../../components/OrganizationSelect";
 import ApplicationStore from "../../stores/ApplicationStore";
 import UserStore from "../../stores/UserStore";
+import SessionStore from "../../stores/SessionStore";
+
 
 class AssignUserForm extends Component {
   constructor() {
@@ -17,23 +19,26 @@ class AssignUserForm extends Component {
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.setInitialOptions = this.setInitialOptions.bind(this);
     this.onAutocompleteSelect = this.onAutocompleteSelect.bind(this);
     this.onAutocomplete = this.onAutocomplete.bind(this);
   }
 
-  componentWillMount() {
-    UserStore.getAll("", 10, 0, (totalCount, users) => {
-      const options = users.map((user, i) => {
-        return {
-          value: user.id,
-          label: user.username,
-        };
-      });
+  setInitialOptions() {
+    if (this.state.initialOptions.length === 0) {
+      UserStore.getAll("", 10, 0, (totalCount, users) => {
+        const options = users.map((user, i) => {
+          return {
+            value: user.id,
+            label: user.username,
+          };
+        });
 
-      this.setState({
-        initialOptions: options,
+        this.setState({
+          initialOptions: options,
+        });
       });
-    });
+    }
   }
 
   handleSubmit(e) {
@@ -77,7 +82,7 @@ class AssignUserForm extends Component {
       <form onSubmit={this.handleSubmit}>
         <div className="form-group">
           <label className="control-label" htmlFor="name">Username</label>
-          <Select.Async name="username" required options={this.state.initialOptions} loadOptions={this.onAutocomplete} value={this.state.user.userID} onChange={this.onAutocompleteSelect} clearable={false} autoload={false} />
+          <Select.Async name="username" required onOpen={this.setInitialOptions} options={this.state.initialOptions} loadOptions={this.onAutocomplete} value={this.state.user.userID} onChange={this.onAutocompleteSelect} clearable={false} autoload={false} />
         </div>
         <div className="form-group">
           <label className="control-label">Admin</label>
@@ -164,7 +169,8 @@ class CreateApplicationUser extends Component {
     this.state = {
       application: {},
       user: {},
-      activeTab: "assign",
+      activeTab: "create",
+      displayAssignUser: false,
     };
 
     this.changeTab = this.changeTab.bind(this);
@@ -172,10 +178,22 @@ class CreateApplicationUser extends Component {
     this.handleCreateAndAssign = this.handleCreateAndAssign.bind(this);
   }
 
-  componentWillMount() {
+  componentDidMount() {
     ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
       this.setState({
         application: application,
+      });
+    });
+
+    this.setState({
+      displayAssignUser: SessionStore.isAdmin() || !SessionStore.getSetting('disableAssignExistingUsers'),
+      activeTab: (SessionStore.isAdmin() || !SessionStore.getSetting('disableAssignExistingUsers')) ? 'assign' : 'create',
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        displayAssignUser: SessionStore.isAdmin() || !SessionStore.getSetting('disableAssignExistingUsers'),
+        activeTab: (SessionStore.isAdmin() || !SessionStore.getSetting('disableAssignExistingUsers')) ? 'assign' : 'create',
       });
     });
   }
@@ -194,10 +212,8 @@ class CreateApplicationUser extends Component {
   }
 
   handleCreateAndAssign(user) {
-    UserStore.createUser({username: user.username, password: user.password, isActive: true}, (resp) => {
-      ApplicationStore.addUser(this.props.params.applicationID, {userID: resp.id, isAdmin: user.isAdmin}, (responseData) => {
-        this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID+"/users");
-      });
+    UserStore.createUser({username: user.username, password: user.password, isActive: true, applications: [{applicationID: this.props.params.applicationID, isAdmin: user.isAdmin}]}, (resp) => {
+      this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID+"/users");
     });
   }
 
@@ -216,7 +232,7 @@ class CreateApplicationUser extends Component {
         <div className="panel panel-default">
           <div className="panel-body">
             <ul className="nav nav-tabs">
-              <li role="presentation" className={(this.state.activeTab === "assign" ? 'active' : '')}><a onClick={this.changeTab} href="#assign" aria-controls="assign">Assign existing user</a></li>
+              <li role="presentation" className={(this.state.activeTab === "assign" ? 'active' : '') + " " + (this.state.displayAssignUser ? '' : 'hidden')}><a onClick={this.changeTab} href="#assign" aria-controls="assign">Assign existing user</a></li>
               <li role="presentation" className={(this.state.activeTab === "create" ? 'active' : '')}><a onClick={this.changeTab} href="#create" aria-controls="create">Create and assign user</a></li>
             </ul>
             <hr />

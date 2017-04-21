@@ -161,7 +161,8 @@ func TestValidators(t *testing.T) {
 
 	Convey("Given a set of test users, applications and nodes", t, func() {
 
-		Convey("When testing ValidateUsersAccess", func() {
+		Convey("When testing ValidateUsersAccess (DisableAssignExistingUsers=false)", func() {
+			DisableAssignExistingUsers = false
 			tests := []validatorTest{
 				{
 					Name:       "global admin user can create and list",
@@ -176,6 +177,12 @@ func TestValidators(t *testing.T) {
 					ExpectedOK: false,
 				},
 				{
+					Name:       "organization admin user can create, and list",
+					Validators: []ValidatorFunc{ValidateUsersAccess(Create), ValidateUsersAccess(List)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
 					Name:       "application admin user can create, and list",
 					Validators: []ValidatorFunc{ValidateUsersAccess(Create), ValidateUsersAccess(List)},
 					Claims:     Claims{Username: "user2"},
@@ -185,6 +192,43 @@ func TestValidators(t *testing.T) {
 					Name:       "normal user can not create or list",
 					Validators: []ValidatorFunc{ValidateUsersAccess(Create), ValidateUsersAccess(List)},
 					Claims:     Claims{Username: "user4"},
+					ExpectedOK: false,
+				},
+			}
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateUsersAccess (DisableAssignExistingUsers=true)", func() {
+			DisableAssignExistingUsers = true
+			tests := []validatorTest{
+				{
+					Name:       "global admin user can create and list",
+					Validators: []ValidatorFunc{ValidateUsersAccess(Create), ValidateUsersAccess(List)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin user can create",
+					Validators: []ValidatorFunc{ValidateUsersAccess(Create)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "application admin user can create",
+					Validators: []ValidatorFunc{ValidateUsersAccess(Create)},
+					Claims:     Claims{Username: "user2"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin user can not list",
+					Validators: []ValidatorFunc{ValidateUsersAccess(List)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "application admin user can not list",
+					Validators: []ValidatorFunc{ValidateUsersAccess(List)},
+					Claims:     Claims{Username: "user2"},
 					ExpectedOK: false,
 				},
 			}
@@ -215,6 +259,43 @@ func TestValidators(t *testing.T) {
 					Name:       "other users are not able to read, update or delete",
 					Validators: []ValidatorFunc{ValidateUserAccess(14, Read), ValidateUserAccess(14, Update), ValidateUserAccess(14, Delete)},
 					Claims:     Claims{Username: "user2"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateIsApplicationAdmin", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users are",
+					Validators: []ValidatorFunc{ValidateIsApplicationAdmin(applications[0].ID)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users are",
+					Validators: []ValidatorFunc{ValidateIsApplicationAdmin(applications[0].ID)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "application admin users are",
+					Validators: []ValidatorFunc{ValidateIsApplicationAdmin(applications[0].ID)},
+					Claims:     Claims{Username: "user2"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "normal organization users are not",
+					Validators: []ValidatorFunc{ValidateIsApplicationAdmin(applications[0].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "normal application users are not",
+					Validators: []ValidatorFunc{ValidateIsApplicationAdmin(applications[0].ID)},
+					Claims:     Claims{Username: "user3"},
 					ExpectedOK: false,
 				},
 			}
@@ -320,53 +401,54 @@ func TestValidators(t *testing.T) {
 			runTests(tests, db)
 		})
 
-		Convey("When testing ValidateApplicationMembersAccess", func() {
+		Convey("When testing ValidateApplicationUsersAccess (DisableAssignExistingUsers=false)", func() {
+			DisableAssignExistingUsers = false
 			tests := []validatorTest{
 				{
 					Name:       "global admin user has access to create and list",
-					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(applications[0].ID, Create), ValidateApplicationMembersAccess(applications[0].ID, List)},
+					Validators: []ValidatorFunc{ValidateApplicationUsersAccess(applications[0].ID, Create), ValidateApplicationUsersAccess(applications[0].ID, List)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "organization admin user has access to create and list",
-					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(applications[0].ID, Create), ValidateApplicationMembersAccess(applications[0].ID, List)},
+					Validators: []ValidatorFunc{ValidateApplicationUsersAccess(applications[0].ID, Create), ValidateApplicationUsersAccess(applications[0].ID, List)},
 					Claims:     Claims{Username: "user10"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "application admin user has access to create and list",
-					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(applications[0].ID, Create), ValidateApplicationMembersAccess(applications[0].ID, List)},
+					Validators: []ValidatorFunc{ValidateApplicationUsersAccess(applications[0].ID, Create), ValidateApplicationUsersAccess(applications[0].ID, List)},
 					Claims:     Claims{Username: "user2"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "organization users are able to list",
-					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(applications[0].ID, List)},
+					Validators: []ValidatorFunc{ValidateApplicationUsersAccess(applications[0].ID, List)},
 					Claims:     Claims{Username: "user9"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "application users are able to list",
-					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(applications[0].ID, List)},
+					Validators: []ValidatorFunc{ValidateApplicationUsersAccess(applications[0].ID, List)},
 					Claims:     Claims{Username: "user3"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "organization users are not able to create",
-					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(applications[0].ID, Create)},
+					Validators: []ValidatorFunc{ValidateApplicationUsersAccess(applications[0].ID, Create)},
 					Claims:     Claims{Username: "user9"},
 					ExpectedOK: false,
 				},
 				{
 					Name:       "application users are not able to create",
-					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(applications[0].ID, Create)},
+					Validators: []ValidatorFunc{ValidateApplicationUsersAccess(applications[0].ID, Create)},
 					Claims:     Claims{Username: "user3"},
 					ExpectedOK: false,
 				},
 				{
 					Name:       "normal users are not able to create or list",
-					Validators: []ValidatorFunc{ValidateApplicationMembersAccess(applications[0].ID, Create), ValidateApplicationMembersAccess(applications[0].ID, List)},
+					Validators: []ValidatorFunc{ValidateApplicationUsersAccess(applications[0].ID, Create), ValidateApplicationUsersAccess(applications[0].ID, List)},
 					Claims:     Claims{Username: "user4"},
 					ExpectedOK: false,
 				},
@@ -375,41 +457,61 @@ func TestValidators(t *testing.T) {
 			runTests(tests, db)
 		})
 
-		Convey("When testing ValidateApplicationMemberAccess", func() {
+		Convey("When testing ValidateApplicationUsersAccess (DisableAssignExistingUsers=true)", func() {
+			DisableAssignExistingUsers = true
+			tests := []validatorTest{
+				{
+					Name:       "global admin user has access to create and list",
+					Validators: []ValidatorFunc{ValidateApplicationUsersAccess(applications[0].ID, Create), ValidateApplicationUsersAccess(applications[0].ID, List)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can not create",
+					Validators: []ValidatorFunc{ValidateApplicationUsersAccess(applications[0].ID, Create)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateApplicationUserAccess", func() {
 			tests := []validatorTest{
 				{
 					Name:       "global admin user has access to read, update and delete",
-					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(applications[0].ID, 13, Read), ValidateApplicationMemberAccess(applications[0].ID, 13, Update), ValidateApplicationMemberAccess(applications[0].ID, 13, Delete)},
+					Validators: []ValidatorFunc{ValidateApplicationUserAccess(applications[0].ID, 13, Read), ValidateApplicationUserAccess(applications[0].ID, 13, Update), ValidateApplicationUserAccess(applications[0].ID, 13, Delete)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "organization admin user has access to read, update and delete",
-					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(applications[0].ID, 13, Read), ValidateApplicationMemberAccess(applications[0].ID, 13, Update), ValidateApplicationMemberAccess(applications[0].ID, 13, Delete)},
+					Validators: []ValidatorFunc{ValidateApplicationUserAccess(applications[0].ID, 13, Read), ValidateApplicationUserAccess(applications[0].ID, 13, Update), ValidateApplicationUserAccess(applications[0].ID, 13, Delete)},
 					Claims:     Claims{Username: "user10"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "application admin user has access to read, update and delete",
-					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(applications[0].ID, 13, Read), ValidateApplicationMemberAccess(applications[0].ID, 13, Update), ValidateApplicationMemberAccess(applications[0].ID, 13, Delete)},
+					Validators: []ValidatorFunc{ValidateApplicationUserAccess(applications[0].ID, 13, Read), ValidateApplicationUserAccess(applications[0].ID, 13, Update), ValidateApplicationUserAccess(applications[0].ID, 13, Delete)},
 					Claims:     Claims{Username: "user2"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "application admin user of different application has no access to read, update or delete",
-					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(applications[0].ID, 13, Read), ValidateApplicationMemberAccess(applications[0].ID, 13, Update), ValidateApplicationMemberAccess(applications[0].ID, 13, Delete)},
+					Validators: []ValidatorFunc{ValidateApplicationUserAccess(applications[0].ID, 13, Read), ValidateApplicationUserAccess(applications[0].ID, 13, Update), ValidateApplicationUserAccess(applications[0].ID, 13, Delete)},
 					Claims:     Claims{Username: "user6"},
 					ExpectedOK: false,
 				},
 				{
 					Name:       "application users are not able to update or delete",
-					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(applications[0].ID, 13, Update), ValidateApplicationMemberAccess(applications[0].ID, 13, Delete)},
+					Validators: []ValidatorFunc{ValidateApplicationUserAccess(applications[0].ID, 13, Update), ValidateApplicationUserAccess(applications[0].ID, 13, Delete)},
 					Claims:     Claims{Username: "user3"},
 					ExpectedOK: false,
 				},
 				{
 					Name:       "application user is able to read its own record",
-					Validators: []ValidatorFunc{ValidateApplicationMemberAccess(applications[0].ID, 13, Read)},
+					Validators: []ValidatorFunc{ValidateApplicationUserAccess(applications[0].ID, 13, Read)},
 					Claims:     Claims{Username: "user3"},
 					ExpectedOK: true,
 				},
@@ -664,6 +766,43 @@ func TestValidators(t *testing.T) {
 			runTests(tests, db)
 		})
 
+		Convey("When testing ValidateIsOrganizationAdmin", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users are",
+					Validators: []ValidatorFunc{ValidateIsOrganizationAdmin(organizations[0].ID)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users are",
+					Validators: []ValidatorFunc{ValidateIsOrganizationAdmin(organizations[0].ID)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "application admin users are note",
+					Validators: []ValidatorFunc{ValidateIsOrganizationAdmin(organizations[0].ID)},
+					Claims:     Claims{Username: "user2"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "normal organization users are not",
+					Validators: []ValidatorFunc{ValidateIsOrganizationAdmin(applications[0].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "normal application users are not",
+					Validators: []ValidatorFunc{ValidateIsOrganizationAdmin(applications[0].ID)},
+					Claims:     Claims{Username: "user3"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
 		Convey("When testing ValidateOrganizationsAccess", func() {
 			tests := []validatorTest{
 				{
@@ -768,7 +907,8 @@ func TestValidators(t *testing.T) {
 			runTests(tests, db)
 		})
 
-		Convey("When testing ValidateOrganizationUsersAccess", func() {
+		Convey("When testing ValidateOrganizationUsersAccess (DisableAssignExistingUsers=false)", func() {
+			DisableAssignExistingUsers = false
 			tests := []validatorTest{
 				{
 					Name:       "global admin users can create and list",
@@ -804,6 +944,26 @@ func TestValidators(t *testing.T) {
 					Name:       "application users within an organization can not create and list",
 					Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, organizations[0].ID), ValidateOrganizationUsersAccess(List, organizations[0].ID)},
 					Claims:     Claims{Username: "user3"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateOrganizationUsersAccess (DisableAssignExistingUsers=true)", func() {
+			DisableAssignExistingUsers = true
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can create and list",
+					Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, organizations[0].ID), ValidateOrganizationUsersAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can not create",
+					Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, organizations[0].ID)},
+					Claims:     Claims{Username: "user10"},
 					ExpectedOK: false,
 				},
 			}

@@ -38,12 +38,6 @@ class ListApplications extends Component {
   componentDidMount() {
     this.updatePage(this.props);
 
-    OrganizationStore.getOrganization(this.props.params.organizationID, (org) => {
-      this.setState({
-        organization: org,
-      });
-    });
-
     SessionStore.on("change", () => {
       this.setState({
         isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID), 
@@ -52,12 +46,19 @@ class ListApplications extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+
     this.updatePage(nextProps);
   }
 
   updatePage(props) {
     this.setState({
       isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(props.params.organizationID),
+    });
+
+    OrganizationStore.getOrganization(props.params.organizationID, (org) => {
+      this.setState({
+        organization: org,
+      });
     });
 
     const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;

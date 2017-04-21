@@ -48,11 +48,12 @@ class UpdateOrganization extends Component {
         <ol className="breadcrumb">
           <li><Link to="/">LoRa Server</Link></li>
           <li><Link to="/organizations">Organizations</Link></li>
-          <li><Link to={`/organizations/${this.props.params.id}`}>{this.state.organization.name}</Link></li>
+          <li>{this.state.organization.name}</li>
           <li className="active">Edit organization</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
+            <Link to={`/organizations/${this.props.params.id}`}><button type="button" className="btn btn-primary">Goto organization</button></Link> &nbsp;
             <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete organization</button></Link>
           </div>
         </div>

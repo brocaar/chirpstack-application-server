@@ -6,6 +6,7 @@ import Select from "react-select";
 
 import SessionStore from "../stores/SessionStore";
 import OrganizationStore from "../stores/OrganizationStore";
+import LocationStore from "../stores/LocationStore";
 
 
 class GatewayForm extends Component {
@@ -78,18 +79,16 @@ class GatewayForm extends Component {
   }
 
   setToCurrentPosition(overwrite) {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        if (overwrite === true || typeof(this.state.gateway.latitude) === "undefined" || typeof(this.state.gateway.longitude) === "undefined" || this.state.gateway.latitude === 0 || this.state.gateway.longitude === 0) {
-          let gateway = this.state.gateway;
-          gateway.latitude = position.coords.latitude;
-          gateway.longitude = position.coords.longitude;
-          this.setState({
-            gateway: gateway,
-          });
-        }
-      });
-    }
+    LocationStore.getLocation((position) => {
+      if (overwrite === true || typeof(this.state.gateway.latitude) === "undefined" || typeof(this.state.gateway.longitude) === "undefined" || this.state.gateway.latitude === 0 || this.state.gateway.longitude === 0) {
+        let gateway = this.state.gateway;
+        gateway.latitude = position.coords.latitude;
+        gateway.longitude = position.coords.longitude;
+        this.setState({
+          gateway: gateway,
+        });
+      }
+    });
   }
 
   componentWillReceiveProps(nextProps) {

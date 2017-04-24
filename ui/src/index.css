@@ -18,6 +18,11 @@ body {
 
 .org-select .Select-value {
   position: relative !important;
+  line-height: 1.846 !important;
+}
+
+.org-select .Select-input input {
+	padding: 0;
 }
 
 .org-select .Select-menu-outer {
@@ -32,12 +37,18 @@ body {
 .org-select .Select-control {
   min-width: 100%;
   width: auto;
+  height: 24px;
 }
 
+.org-select {
+	display: inline-block;
+}
 
 .org-select .Select {
-	height: 20px;
-	top: -1px;
+	height: 14px;
+	top: -2px;
+	margin-left: -10px;
+	margin-right: -5px;
 }
 
 .org-select .Select-control:hover {
@@ -58,12 +69,7 @@ body {
 	color: #2196f3 !important;
 }
 
-
-.org-select .Select-control .Select-arrow-zone {
-	top: -1px;
-}
-
 .org-select .Select-menu-outer {
-	margin-top: 15px;
+	margin-top: 17px;
 }
 

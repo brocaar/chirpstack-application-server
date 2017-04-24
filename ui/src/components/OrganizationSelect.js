@@ -103,7 +103,7 @@ class OrganizationSelect extends Component {
     let org;
 
     if (this.state.showDropdown) {
-      org = <span className="org-select"><Select
+      org = <div className="org-select"><Select
         name="organization"
         options={this.state.initialOptions}
         value={this.props.organizationID}
@@ -114,7 +114,7 @@ class OrganizationSelect extends Component {
         loadOptions={this.onAutocomplete}
         autoload={false}
         onChange={this.onSelect}
-      /></span>
+      /></div>
     } else {
       org = <Link to={`/organizations/${this.state.organization.id}`}>{this.state.organization.displayName}</Link>;
     }

@@ -86,7 +86,7 @@ class ListApplications extends Component {
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
             &nbsp; <Link className={(this.state.isAdmin ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/applications/create`}><button type="button" className="btn btn-default">Create application</button></Link>
-            &nbsp; <Link className={(this.state.isAdmin ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/users`}><button type="button" className="btn btn-default">Users</button></Link>
+            &nbsp; <Link className={(this.state.isAdmin ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/users`}><button type="button" className="btn btn-default">Organization users</button></Link>
             &nbsp; <Link className={(this.state.organization.canHaveGateways ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/gateways`}><button type="button" className="btn btn-default">Gateways</button></Link>
           </div>
         </div>

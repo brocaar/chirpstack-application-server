@@ -11,6 +11,8 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/loraserver/api/ns"
+	"github.com/jmoiron/sqlx"
 )
 
 // OrganizationAPI exports the organization related functions.
@@ -166,6 +168,40 @@ func (a *OrganizationAPI) Delete(ctx context.Context, req *pb.OrganizationReques
 	if err := a.validator.Validate(ctx,
 		auth.ValidateOrganizationAccess(auth.Delete, req.Id)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	// deleting the organization will remove all gateways in the
+	// LoRa App Server database, however we need to delete these gateways
+	// also from the LoRa Server database.
+	for {
+		gws, err := storage.GetGatewaysForOrganizationDB(a.ctx.DB, req.Id, 100, 0)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		if len(gws) == 0 {
+			break
+		}
+
+		for _, gw := range gws {
+			err = storage.Transaction(a.ctx.DB, func(tx *sqlx.Tx) error {
+				err = storage.DeleteGateway(tx, gw.MAC)
+				if err != nil {
+					return errToRPCError(err)
+				}
+
+				_, err = a.ctx.NetworkServer.DeleteGateway(ctx, &ns.DeleteGatewayRequest{
+					Mac: gw.MAC[:],
+				})
+				if err != nil && grpc.Code(err) != codes.NotFound {
+					return err
+				}
+				return nil
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	err := storage.DeleteOrganization(a.ctx.DB, req.Id)

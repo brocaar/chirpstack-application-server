@@ -203,7 +203,7 @@ class GatewayDetails extends Component {
       position = [0,0];
     }
 
-    if (typeof(this.state.gateway.lastSeenAt) !== "undefined") {
+    if (typeof(this.state.gateway.lastSeenAt) !== "undefined" && this.state.gateway.lastSeenAt !== "") {
       lastseen = moment(this.state.gateway.lastSeenAt).fromNow();    
     }
 

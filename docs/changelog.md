@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.8.0
+
+**Features & changes:**
+
+* Organization management so that applications and gateways can be managed per
+  organization.
+* Node-session migrate function (to migrate from LoRa Server 0.11.*) has
+  been cleaned up.
+
+**Bugfixes:**
+
+* Openstreetmap tiles can now be fetched using https:// (in some cases Safari
+  was not loading any tiles because of mixed content).
+* When the browser does not allow using the location service, freegeoip.net is
+  used as a fallback.
+
+Many thanks again to [@jcampanell-cablelabs](https://github.com/jcampanell-cablelabs)
+for collaborating on this feature.
+
 ## 0.7.2
 
 **Bugfixes:**

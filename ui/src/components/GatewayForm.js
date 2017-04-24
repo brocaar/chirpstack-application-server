@@ -106,7 +106,9 @@ class GatewayForm extends Component {
       this.setSelectedOrganization();
     });
 
-    this.setToCurrentPosition(false);
+    if (!this.props.update) { 
+      this.setToCurrentPosition(false);
+    }
 
     SessionStore.on("change", () => {
       this.setState({

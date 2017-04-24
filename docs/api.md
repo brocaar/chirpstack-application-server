@@ -54,10 +54,33 @@ Example claim:
 	installing LoRa App Server. Make sure to change this password immediately!
 
 Users can be created using either the API or web-interface. When creating
-an admin user, the user will be able to create other (admin) users,
-applications and assign users to applications. Global admin users have
-system-wide access. Regular users will only gain access when assigned to
-applications.
+an admin user, the user will be able to create and modify:
+
+* (admin) users
+* organizations
+* applications
+* gateways
+
+Global admin users have system-wide access. Regular users will only gain access
+when assigned to organizations and / or applications.
+
+### Organization users
+
+To give users access to specific organizations (and the applications and / or
+gateways of this organization), an user can be assigned to one or multiple
+organizations (using the web-interface or API).
+
+An admin user (within the context of an organization) is able to:
+
+- assign or create other (admin, within the context of the organization) users to that organization
+- add, delete, and modify applications (and nodes)
+- appd, delete and modify gateways (if the organization is allowed to have
+  gateways)
+
+A regular user of an organization is able to:
+
+- view application and node data
+- view gateway data
 
 ### Application users
 
@@ -69,7 +92,7 @@ An admin user (within the context of an application) is able to:
 - assign or create other (admin, within the context of the application) users to that application
 - add, delete and modify nodes
 
-A regular users of an application is able to:
+A regular user of an application is able to:
 
 - view all the nodes
 

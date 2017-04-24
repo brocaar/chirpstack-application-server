@@ -75,9 +75,9 @@ func TestOrganizationAPI(t *testing.T) {
 				// will, at best, be checking against some random data, and at
 				// worst, crash the test.
 				if 2 == len(orgs.Result) {
-					So(orgs.Result[1].Name, ShouldEqual, createReq.Name)
-					So(orgs.Result[1].DisplayName, ShouldEqual, createReq.DisplayName)
-					So(orgs.Result[1].CanHaveGateways, ShouldEqual, createReq.CanHaveGateways)
+					So(orgs.Result[0].Name, ShouldEqual, createReq.Name)
+					So(orgs.Result[0].DisplayName, ShouldEqual, createReq.DisplayName)
+					So(orgs.Result[0].CanHaveGateways, ShouldEqual, createReq.CanHaveGateways)
 					orgId = createResp.Id
 				}
 

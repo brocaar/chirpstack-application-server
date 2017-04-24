@@ -36,6 +36,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/migrations"
 	"github.com/brocaar/lora-app-server/internal/static"
 	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/lora-app-server/internal/storage/gwmigrate"
 	"github.com/brocaar/loraserver/api/as"
 	"github.com/brocaar/loraserver/api/ns"
 )
@@ -74,7 +75,11 @@ func run(c *cli.Context) error {
 			log.Fatalf("applying migrations failed: %s", err)
 		}
 		log.WithField("count", n).Info("migrations applied")
+	}
 
+	// migrate gateway data from LoRa Server
+	if err := gwmigrate.MigrateGateways(lsCtx); err != nil {
+		log.Fatalf("migrate gateway data error: %s", err)
 	}
 
 	// Set up the JWT secret for making tokens

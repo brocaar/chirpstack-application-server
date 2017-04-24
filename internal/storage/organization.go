@@ -172,7 +172,7 @@ func GetOrganizations(db *sqlx.DB, limit, offset int, search string) ([]Organiza
 		where
 			($3 != '' and display_name ilike $3)
 			or ($3 = '')
-		order by name
+		order by display_name
 		limit $1 offset $2`, limit, offset, search)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
@@ -209,7 +209,7 @@ func GetOrganizationsForUser(db *sqlx.DB, username string, limit, offset int, se
 				($4 != '' and o.display_name ilike $4)
 				or ($4 = '')
 			)
-		order by o.name
+		order by o.display_name
 		limit $2 offset $3`,
 		username,
 		limit,

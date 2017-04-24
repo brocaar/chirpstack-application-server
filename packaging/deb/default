@@ -4,9 +4,6 @@ POSTGRES_DSN=postgres://localhost/loraserver?sslmode=disable
 # automatically apply database migrations
 DB_AUTOMIGRATE=true
 
-# migrate some of the node-session data to the application-server storage (run this once when migrating from loraserver 0.11.x)
-MIGRATE_NODE_SESSIONS=true
-
 # redis url (e.g. redis://user:password@hostname/0) (default: "redis://localhost:6379")
 REDIS_URL=redis://localhost:6379
 

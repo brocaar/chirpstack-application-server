@@ -42,7 +42,6 @@ class ChannelListDetails extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">LoRa Server</Link></li>
           <li><Link to="/channels">Channel lists</Link></li>
           <li className="active">{this.state.list.name}</li>
         </ol>

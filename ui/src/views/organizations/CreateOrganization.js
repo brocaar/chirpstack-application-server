@@ -29,7 +29,6 @@ class CreateOrganization extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="">LoRa Server</Link></li>
           <li><Link to="organizations">Organizations</Link></li>
           <li className="active">Create organization</li>
         </ol>

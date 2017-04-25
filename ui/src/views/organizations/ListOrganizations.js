@@ -10,8 +10,9 @@ class OrganizationRow extends Component {
     return(
       <tr>
         <td>{this.props.organization.id}</td>
-        <td><Link to={`/organizations/${this.props.organization.id}/edit`}>{this.props.organization.name}</Link></td>
+        <td><Link to={`/organizations/${this.props.organization.id}`}>{this.props.organization.name}</Link></td>
         <td>{this.props.organization.displayName}</td>
+        <td><span className={"glyphicon glyphicon-" + (this.props.organization.canHaveGateways ? 'ok' : 'remove')} aria-hidden="true"></span></td>
       </tr>
     );
   }
@@ -71,7 +72,6 @@ class ListOrganizations extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">LoRa Server</Link></li>
           <li className="active">Organizations</li>
         </ol>
         <div className={(this.state.isAdmin ? '' : 'hidden')}>
@@ -89,7 +89,8 @@ class ListOrganizations extends Component {
                 <tr>
                   <th className="col-md-1">ID</th>
                   <th className="col-md-4">Name</th>
-                  <th>Display Name</th>
+                  <th>Display name</th>
+                  <th className="col-md-2">Can have gateways</th>
                 </tr>
               </thead>
               <tbody>

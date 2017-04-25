@@ -65,6 +65,7 @@ class UpdateOrganizationUserForm extends Component {
   }
 }
 
+
 class UpdateOrganizationUser extends Component {
   static contextTypes = {
     router: React.PropTypes.object.isRequired
@@ -74,7 +75,6 @@ class UpdateOrganizationUser extends Component {
     super();
 
     this.state = {
-      organization: {},
       user: {},
     };
 
@@ -83,12 +83,6 @@ class UpdateOrganizationUser extends Component {
   }
 
   componentWillMount() {
-    OrganizationStore.getOrganization(this.props.params.organizationID, (organization) => {
-      this.setState({
-        organization: organization,
-      });
-    });
-
     OrganizationStore.getUser(this.props.params.organizationID, this.props.params.userID, (user) => {
       this.setState({
         user: user,
@@ -114,10 +108,9 @@ class UpdateOrganizationUser extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/organizations">Organizations</Link></li>
-          <li><Link to={`/organizations/${this.state.organization.id}`}>{this.state.organization.name}</Link></li>
-          <li><Link to={`/organizations/${this.state.organization.id}/users`}>Users</Link></li>
+          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
+          <li><Link to={`/organizations/${this.props.params.organizationID}/users`}>Users</Link></li>
           <li className="active">{this.state.user.username}</li>
         </ol>
         <div className="clearfix">

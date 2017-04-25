@@ -79,14 +79,15 @@ class ListApplications extends Component {
     return(
       <div>
         <ol className="breadcrumb">
+          <li><Link to="/organizations">Organizations</Link></li>
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
           <li className="active">Applications</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
             &nbsp; <Link className={(this.state.isAdmin ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/applications/create`}><button type="button" className="btn btn-default">Create application</button></Link>
             &nbsp; <Link className={(this.state.isAdmin ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/users`}><button type="button" className="btn btn-default">Organization users</button></Link>
+            &nbsp; <Link className={(this.state.isAdmin ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/edit`}><button type="button" className="btn btn-default">Edit organization</button></Link>
             &nbsp; <Link className={(this.state.organization.canHaveGateways ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/gateways`}><button type="button" className="btn btn-default">Gateways</button></Link>
           </div>
         </div>

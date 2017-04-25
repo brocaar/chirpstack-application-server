@@ -32,7 +32,6 @@ class ChannelLists extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">LoRa Server</Link></li>
           <li className="active">Channel lists</li>
         </ol>
         <div className="clearfix">

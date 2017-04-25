@@ -38,8 +38,8 @@ class UpdateGateway extends Component {
     return(
       <div>
         <ol className="breadcrumb">
+          <li><Link to="/organizations">Organizations</Link></li>
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}/gateways`}>Gateways</Link></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}`}>{this.state.gateway.name}</Link></li>
           <li className="active">Edit gateway</li>

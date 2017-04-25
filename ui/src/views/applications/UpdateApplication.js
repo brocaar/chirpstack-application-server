@@ -35,8 +35,8 @@ class UpdateApplication extends Component {
     return(
       <div>
         <ol className="breadcrumb">
+          <li><Link to="/organizations">Organizations</Link></li>
           <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}`}>Dashboard</Link></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
           <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}`}>{this.state.application.name}</Link></li>
           <li className="active">Edit application</li>

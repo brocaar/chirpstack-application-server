@@ -39,12 +39,6 @@ class OrganizationUsers extends Component {
   }
 
   componentDidMount() {
-    OrganizationStore.getOrganization(this.props.params.organizationID, (organization) => {
-      this.setState({
-        organization: organization,
-      });
-    });
-
     this.updatePage(this.props);
   }
 
@@ -65,19 +59,18 @@ class OrganizationUsers extends Component {
   }
 
   render() {
-    const UserRows = this.state.users.map((user, i) => <OrganizationUserRow key={user.id} organization={this.state.organization} user={user} />);
+    const UserRows = this.state.users.map((user, i) => <OrganizationUserRow key={user.id} organizationID={this.props.params.organizationID} user={user} />);
 
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/organizations">Organizations</Link></li>
-          <li><Link to={`/organizations/${this.state.organization.id}`}>{this.state.organization.name}</Link></li>
+          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
           <li className="active">Users</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to={`/organizations/${this.state.organization.id}/users/create`}><button type="button" className="btn btn-default">Add user</button></Link>
+            <Link to={`/organizations/${this.props.params.organizationID}/users/create`}><button type="button" className="btn btn-default">Add user</button></Link>
           </div>
         </div>
         <hr />
@@ -96,7 +89,7 @@ class OrganizationUsers extends Component {
               </tbody>
             </table>
           </div>
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`organizations/${this.state.organization.id}/users`} />
+          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/users`} />
         </div>
       </div>
     );

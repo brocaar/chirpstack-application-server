@@ -50,27 +50,6 @@ class GatewayForm extends Component {
 
     if ( field === "organizationID" ) {
 		gateway.organizationID = e.value;
-	} else if ( field === "altitude" ) {
-		if ( "" == e.target.value ) {
-			// Translate blank field to 0.
-			gateway["altitude"] = "0";
-		} else {
-			try
-			{
-				// Verify we only have an integer or float value.  Ignore all character input.
-				var validChars = e.target.value.replace(this.re.cleanup, '');
-				// Above allows any combination of digits and decimal points.  Make sure
-				// we have something like [+|-]ddd[.ddd].
-				var validFormat = this.re.valid.exec(validChars);
-				// Remove any leading zero.  Because that's just weird.  Can't use
-				// parsefloat as that will also remove decimal points as you are typing.
-				gateway["altitude"] = validFormat.toLocaleString().replace(this.re.noleadingzero, this.re.noleadingzeroreplacement);
-			} catch ( whatever ) {
-				// Something is funky with what they typed.  Go back to last known 
-				// valid value.
-				gateway["altitude"] = gateway["altitude"];
-			}
-		}
 	} else if (e.target.type === "number") {
       gateway[field] = parseFloat(e.target.value);
     } else {
@@ -253,7 +232,7 @@ class GatewayForm extends Component {
           </div>
           <div className="form-group">
             <label className="control-label" htmlFor="altitude">Gateway altitude</label>
-            <input className="form-control" id="altitude" type="text" value={this.state.gateway.altitude || 0} onChange={this.onChange.bind(this, 'altitude')} />
+            <input className="form-control" id="altitude" type="number" value={this.state.gateway.altitude || 0} onChange={this.onChange.bind(this, 'altitude')} />
             <p className="help-block">When the gateway has an on-board GPS, this value will be set automatically when the network received statistics from the gateway.</p>
           </div>
           <div className="form-group">
@@ -274,19 +253,21 @@ class GatewayForm extends Component {
             </Map>
             <p className="help-block">Drag the marker to the location of the gateway. When the gateway has an on-board GPS, this value will be set automatically when the network receives statistics from the gateway.</p>
           </div>
-          <div className="form-group">
-          <label className="control-label" htmlFor="organization">Gateway organization</label>
-          <span className="org-select"><Select
-              name="organization"
-              disabled={selectDisabled}
-              options={this.state.organizations}
-              value={this.state.gateway.organizationID}
-              clearable={false}
-              autosize={true}
-              autoload={false}
-              onChange={this.onChange.bind(this, 'organizationID')}
-            /></span>
-        </div>
+          <div className={"form-group " + (this.state.isGlobalAdmin && this.props.update ? '' : 'hidden')}>
+	        <label className="control-label" htmlFor="organization">Organization</label>
+	        <Select.Async
+	          name="organization"
+	          required
+	          options={this.state.initialOrganizationOptions}
+	          loadOptions={this.onOrganizationAutocomplete}
+	          value={this.state.gateway.organizationID}
+	          onChange={this.onOrganizationSelect}
+	          clearable={false}
+	          autoload={false}
+	          onOpen={this.setInitialOrganizations}
+	        /> 
+	        <p className="help-block">Note that moving an application to a different organization can only be done by global admin users.</p>
+	      </div>
 
           <hr />
           <button type="submit" className="btn btn-primary pull-right">Submit</button>

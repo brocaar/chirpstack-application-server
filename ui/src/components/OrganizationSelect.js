@@ -32,7 +32,7 @@ class OrganizationSelect extends Component {
         organization: org,
       }); 
       this.setSelectedOrganization();
-      this.setOrganizationID(this.props.organizationID);
+      SessionStore.setOrganizationID(this.props.organizationID);
     });
 
     OrganizationStore.getAll("", 2, 0, (totalCount, orgs) => {

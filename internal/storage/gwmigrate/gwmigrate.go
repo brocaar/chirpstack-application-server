@@ -54,6 +54,15 @@ func MigrateGateways(ctx common.Context) error {
 		for _, gw := range gwRes.Result {
 			var mac lorawan.EUI64
 			copy(mac[:], gw.Mac)
+
+			if gw.Name == "" {
+				gw.Name = mac.String()
+			}
+
+			if gw.Description == "" {
+				gw.Description = mac.String()
+			}
+
 			err = storage.CreateGateway(ctx.DB, &storage.Gateway{
 				MAC:            mac,
 				Name:           gw.Name,

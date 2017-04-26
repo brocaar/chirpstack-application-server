@@ -1,8 +1,10 @@
 -- +migrate Up
 create table application (
 	id bigserial primary key,
-	name varchar(100) unique not null,
-	description text not null 
+	name varchar(100) not null,
+	description text not null,
+
+	constraint application_name_key unique (name)
 );
 
 create index idx_application_name on application(name);

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router';
 
 import OrganizationStore from "../../stores/OrganizationStore";
+import SessionStore from "../../stores/SessionStore";
 import OrganizationForm from "../../components/OrganizationForm";
 
 class UpdateOrganization extends Component {
@@ -14,16 +15,27 @@ class UpdateOrganization extends Component {
 
     this.state = {
       organization: {},
+      isAdmin: false,
     };
 
     this.onSubmit = this.onSubmit.bind(this);
     this.onDelete = this.onDelete.bind(this);
   }
 
-  componentWillMount() {
+  componentDidMount() {
     OrganizationStore.getOrganization(this.props.params.id, (organization) => {
       this.setState({
         organization: organization,
+      });
+    });
+
+    this.setState({
+      isAdmin: SessionStore.isAdmin(),
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isAdmin: SessionStore.isAdmin(),
       });
     });
   }
@@ -51,7 +63,7 @@ class UpdateOrganization extends Component {
           <li className="active">Edit organization</li>
         </ol>
         <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
+          <div className={'btn-group pull-right ' + (this.state.isAdmin ? '' : 'hidden')} role="group" aria-label="...">
             <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete organization</button></Link>
           </div>
         </div>

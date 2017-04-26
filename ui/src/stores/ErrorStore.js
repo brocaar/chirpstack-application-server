@@ -11,6 +11,11 @@ class ErrorStore extends EventEmitter {
     return this.errors;
   }
 
+  clear() {
+    this.errors = [];
+    this.emit("change");
+  }
+
   createError(error) {
     const id = Date.now();
 

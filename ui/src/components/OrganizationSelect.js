@@ -62,6 +62,7 @@ class OrganizationSelect extends Component {
         label: this.state.organization.displayName,
       }],
     }); 
+    SessionStore.setOrganizationID(this.state.organization.id);
   }
 
   setInitialOrganizations() {

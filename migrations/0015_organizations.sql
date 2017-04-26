@@ -63,13 +63,16 @@ create table gateway (
 	updated_at timestamp with time zone not null,
 	name varchar(100) not null,
 	description text not null,
-	organization_id bigint not null references organization on delete cascade
+	organization_id bigint not null references organization on delete cascade,
+
+	constraint gateway_name_organization_id_key unique (name, organization_id)
 );
 
-create unique index idx_gateway_name on gateway(name);
 create index idx_gateway_organization_id on gateway(organization_id);
 
 alter table application
+	drop constraint application_name_key,
+	add constraint application_name_organization_id_key unique (name, organization_id),
 	add column organization_id bigint not null references organization on delete cascade default 1;
 
 alter table application
@@ -80,10 +83,11 @@ create index idx_application_organization_id on application(organization_id);
 -- +migrate Down
 drop index idx_application_organization_id;
 alter table application
+	drop constraint application_name_organization_id_key,
+	add constraint application_name_key unique (name),
 	drop column organization_id;
 
 drop index idx_gateway_organization_id;
-drop index idx_gateway_name;
 drop table gateway;
 
 drop index idx_organization_user_organization_id;

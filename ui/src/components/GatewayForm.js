@@ -214,7 +214,7 @@ class GatewayForm extends Component {
           </div>
           <div className="form-group">
             <label className="control-label" htmlFor="altitude">Gateway altitude</label>
-            <input className="form-control" id="altitude" type="number" step="0.01" value={this.state.gateway.altitude || 0} onChange={this.onChange.bind(this, 'altitude')} />
+            <input className="form-control" id="altitude" type="number" value={this.state.gateway.altitude || 0} onChange={this.onChange.bind(this, 'altitude')} />
             <p className="help-block">When the gateway has an on-board GPS, this value will be set automatically when the network received statistics from the gateway.</p>
           </div>
           <div className="form-group">

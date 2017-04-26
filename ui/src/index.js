@@ -4,6 +4,9 @@ import { Router, Route, IndexRoute, hashHistory } from 'react-router';
 
 import Layout from './Layout';
 
+// stores
+import ErrorStore from "./stores/ErrorStore";
+
 // applications
 import ListApplications from './views/applications/ListApplications';
 import CreateApplication from "./views/applications/CreateApplication";
@@ -59,7 +62,7 @@ import './index.css';
 
 ReactDOM.render(
   <Router history={hashHistory}>
-    <Route path="/" component={Layout}>
+    <Route path="/" component={Layout} onChange={clearErrors}>
       <IndexRoute component={OrganizationRedirect}></IndexRoute>
       <Route path="login" component={Login}></Route>
       <Route path="users/create" component={CreateUser}></Route>
@@ -95,3 +98,7 @@ ReactDOM.render(
   </Router>,
   document.getElementById('root')
 );
+
+function clearErrors(prevRoute, nextRoute) {
+  ErrorStore.clear();  
+}

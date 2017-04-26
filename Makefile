@@ -47,10 +47,9 @@ internal/statics internal/migrations: static/swagger/api.swagger.json
 	@go generate cmd/lora-app-server/main.go
 
 
-unexport GOOS GOARCH
 static/swagger/api.swagger.json:
 	@echo "Generating combined Swagger JSON"
-	@go run api/swagger/main.go api/swagger > static/swagger/api.swagger.json
+	@GOOS="" GOARCH="" go run api/swagger/main.go api/swagger > static/swagger/api.swagger.json
 
 
 # shortcuts for development

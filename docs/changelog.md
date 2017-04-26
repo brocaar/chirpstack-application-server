@@ -15,6 +15,8 @@
   was not loading any tiles because of mixed content).
 * When the browser does not allow using the location service, freegeoip.net is
   used as a fallback.
+* Map zoom in/out on scrolling has been disabled (to avoid accidental zoom on
+  scrolling the page).
 
 Many thanks again to [@jcampanell-cablelabs](https://github.com/jcampanell-cablelabs)
 for collaborating on this feature.

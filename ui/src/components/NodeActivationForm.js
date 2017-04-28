@@ -12,6 +12,8 @@ class NodeActivationForm extends Component {
 
     this.handleSubmit = this.handleSubmit.bind(this);
     this.getRandomDevAddr = this.getRandomDevAddr.bind(this);
+    this.getRandomNwkSKey = this.getRandomNwkSKey.bind(this);
+    this.getRandomAppSKey = this.getRandomAppSKey.bind(this);
   }
 
   handleSubmit(e) {
@@ -49,6 +51,40 @@ class NodeActivationForm extends Component {
     });
   }
 
+  getRandomNwkSKey(e) {
+    e.preventDefault();
+
+    if (!this.props.node.isABP || this.props.disabled) {
+      return;
+    }
+
+    let nwkSKey = '';
+    const possible = 'abcdef0123456789';
+    for(let i = 0; i < 32; i++){
+      nwkSKey += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    let activation = this.state.activation;
+    activation["nwkSKey"] = nwkSKey;
+    this.setState({activation: activation});
+  }
+
+  getRandomAppSKey(e) {
+    e.preventDefault();
+
+    if (!this.props.node.isABP || this.props.disabled) {
+      return;
+    }
+
+    let appSKey = '';
+    const possible = 'abcdef0123456789';
+    for(let i = 0; i < 32; i++){
+      appSKey += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    let activation = this.state.activation;
+    activation["appSKey"] = appSKey;
+    this.setState({activation: activation});
+  }
+
   render() {
     return(
       <div>
@@ -59,11 +95,11 @@ class NodeActivationForm extends Component {
               <input className="form-control" id="devAddr" type="text" placeholder="00000000" pattern="[a-fA-F0-9]{8}" required disabled={!this.props.node.isABP} value={this.state.activation.devAddr || ''} onChange={this.onChange.bind(this, 'devAddr')} />
             </div>
             <div className="form-group">
-              <label className="control-label" htmlFor="nwkSKey">Network session key</label>
+              <label className="control-label" htmlFor="nwkSKey">Network session key</label> (<a href="" onClick={this.getRandomNwkSKey}>generate</a>)
               <input className="form-control" id="nwkSKey" type="text" placeholder="00000000000000000000000000000000" pattern="[A-Fa-f0-9]{32}" required value={this.state.activation.nwkSKey || ''} disabled={!this.props.node.isABP} onChange={this.onChange.bind(this, 'nwkSKey')} />
             </div>
             <div className="form-group">
-              <label className="control-label" htmlFor="appSKey">Application session key</label>
+              <label className="control-label" htmlFor="appSKey">Application session key</label> (<a href="" onClick={this.getRandomAppSKey}>generate</a>)
               <input className="form-control" id="appSKey" type="text" placeholder="00000000000000000000000000000000" pattern="[A-Fa-f0-9]{32}" required value={this.state.activation.appSKey || ''} disabled={!this.props.node.isABP} onChange={this.onChange.bind(this, 'appSKey')} />
             </div>
             <div className="form-group">

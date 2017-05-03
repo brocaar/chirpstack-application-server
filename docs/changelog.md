@@ -7,6 +7,11 @@
 * Channel-lists have been removed. Extra channels (if supported by the ISM
   band) are now managed by LoRa Server configuration.
 
+**Bugfixes:**
+
+* On editing a gateway, disable the MAC input field (as this is the unique
+  identifier of the gateway).
+
 **Note:** when upgrading to this version with `--db-automigrate` /
 `DB_AUTOMIGRATE` set, channel-list data will be removed.
 

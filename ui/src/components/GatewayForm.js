@@ -18,6 +18,7 @@ class GatewayForm extends Component {
       gateway: {},
       mapZoom: 15,
       initialOrganizationOptions: [],
+      macDisabled: false,
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -96,6 +97,7 @@ class GatewayForm extends Component {
   componentWillReceiveProps(nextProps) {
     this.setState({
       gateway: nextProps.gateway, 
+      macDisabled: typeof nextProps.gateway.mac !== "undefined",
     }, () => {
       this.setSelectedOrganization();
     });
@@ -195,7 +197,7 @@ class GatewayForm extends Component {
           </div>
           <div className="form-group">
             <label className="control-label" htmlFor="mac">MAC address</label>
-            <input className="form-control" id="mac" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required value={this.state.gateway.mac || ''} onChange={this.onChange.bind(this, 'mac')} /> 
+            <input className="form-control" id="mac" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required disabled={this.state.macDisabled} value={this.state.gateway.mac || ''} onChange={this.onChange.bind(this, 'mac')} /> 
           </div>
           <div className={"form-group " + (this.state.isGlobalAdmin && this.props.update ? '' : 'hidden')}>
             <label className="control-label" htmlFor="organization">Organization</label>

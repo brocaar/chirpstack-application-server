@@ -36,3 +36,6 @@ title = "LoRa App Server documentation"
     identifier = "community"
     url = "/community/"
     weight = 5
+
+[params]
+    version = "0.9.1"

@@ -13,6 +13,7 @@ clean:
 	@echo "Cleaning up workspace"
 	@rm -rf build dist internal/migrations internal/static ui/build static/static
 	@rm -f static/index.html
+	@rm -rf docs/public
 
 test: internal/statics internal/migrations
 	@echo "Running tests"
@@ -21,6 +22,12 @@ test: internal/statics internal/migrations
 	done
 	@go vet $(PKGS)
 	@go test -p 1 -v $(PKGS)
+
+documentation:
+	@echo "Building documentation"
+	@mkdir -p dist/docs
+	@cd docs && hugo
+	@cd docs/public/ && tar -pczf ../../dist/docs/lora-app-server.tar.gz .
 
 package: build
 	@echo "Creating package for $(GOOS) $(GOARCH)"

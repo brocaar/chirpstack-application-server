@@ -47,3 +47,25 @@ body {
 .sidebar-menu .sub li a {
     color: #444444;
 }
+
+img {
+	width: 100%;
+}
+
+pre code {
+	background: none !important;
+	word-wrap: normal;
+	white-space: pre;
+}
+
+pre {
+	margin-bottom: 23px;
+}
+
+body {
+	font-size: 14px;
+}
+
+table {
+    width: 100%;
+}

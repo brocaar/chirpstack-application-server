@@ -145,7 +145,7 @@ class ListGateways extends Component {
               </tbody>
             </table>
           </div>
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname="gateways" />
+          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/gateways`} />
         </div>
       </div>
     );

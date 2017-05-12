@@ -174,7 +174,7 @@ func (a *OrganizationAPI) Delete(ctx context.Context, req *pb.OrganizationReques
 	// LoRa App Server database, however we need to delete these gateways
 	// also from the LoRa Server database.
 	for {
-		gws, err := storage.GetGatewaysForOrganizationDB(a.ctx.DB, req.Id, 100, 0)
+		gws, err := storage.GetGatewaysForOrganizationID(a.ctx.DB, req.Id, 100, 0)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}

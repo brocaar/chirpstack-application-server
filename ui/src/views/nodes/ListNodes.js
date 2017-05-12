@@ -125,7 +125,7 @@ class ListNodes extends Component {
               </tbody>
             </table>
           </div>
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/applications/${this.props.params.applicationID}`} />
+          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}`} />
         </div>
       </div>
     );

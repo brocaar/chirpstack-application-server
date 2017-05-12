@@ -180,7 +180,11 @@ func GetGateways(db *sqlx.DB, limit, offset int) ([]Gateway, error) {
 	err := db.Select(&gws, `
 		select *
 		from gateway
-		order by name`)
+		order by name
+		limit $1 offset $2`,
+		limit,
+		offset,
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
 	}
@@ -206,15 +210,18 @@ func GetGatewayCountForOrganizationID(db *sqlx.DB, organizationID int64) (int, e
 
 // GetGatewaysForOrganizationID returns a slice of gateways sorted by name
 // for the given organization ID.
-func GetGatewaysForOrganizationDB(db *sqlx.DB, organizationID int64, limit, offset int) ([]Gateway, error) {
+func GetGatewaysForOrganizationID(db *sqlx.DB, organizationID int64, limit, offset int) ([]Gateway, error) {
 	var gws []Gateway
 	err := db.Select(&gws, `
 		select *
 		from gateway
 		where
 			organization_id = $1
-		order by name`,
+		order by name
+		limit $2 offset $3`,
 		organizationID,
+		limit,
+		offset,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")

@@ -164,7 +164,7 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
-		gws, err = storage.GetGatewaysForOrganizationDB(a.ctx.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+		gws, err = storage.GetGatewaysForOrganizationID(a.ctx.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, errToRPCError(err)
 		}

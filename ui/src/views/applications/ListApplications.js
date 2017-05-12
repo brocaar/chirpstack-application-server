@@ -107,7 +107,7 @@ class ListApplications extends Component {
               </tbody>
             </table>
           </div>
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname="/" />
+          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}`} />
         </div>
       </div>
     );

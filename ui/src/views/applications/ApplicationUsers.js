@@ -96,7 +96,7 @@ class ApplicationUsers extends Component {
               </tbody>
             </table>
           </div>
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`applications/${this.state.application.id}/users`} />
+          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.state.application.organizationID}/applications/${this.state.application.id}/users`} />
         </div>
       </div>
     );

@@ -95,7 +95,7 @@ func TestGateway(t *testing.T) {
 			})
 
 			Convey("Then getting all gateways for the organization returns the exepected gateway", func() {
-				gws, err := GetGatewaysForOrganizationDB(db, org.ID, 10, 0)
+				gws, err := GetGatewaysForOrganizationID(db, org.ID, 10, 0)
 				So(err, ShouldBeNil)
 				So(gws, ShouldHaveLength, 1)
 				So(gws[0].MAC, ShouldEqual, gw.MAC)

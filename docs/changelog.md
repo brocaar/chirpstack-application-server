@@ -11,6 +11,7 @@
 
 * On editing a gateway, disable the MAC input field (as this is the unique
   identifier of the gateway).
+* A pagination regression has been fixed ([#82](https://github.com/brocaar/lora-app-server/issues/82)).
 
 **Note:** when upgrading to this version with `--db-automigrate` /
 `DB_AUTOMIGRATE` set, channel-list data will be removed.

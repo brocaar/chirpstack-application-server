@@ -37,12 +37,12 @@ class ActivateNode extends Component {
     });
 
     this.setState({
-      isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+      isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID) || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
     });
 
     SessionStore.on("change", () => {
       this.setState({
-        isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+        isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID) || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
       });
     });
   }

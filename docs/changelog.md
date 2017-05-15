@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.1
+
+**Bugfixes:**
+
+* Fix ABP sesstings not editable by organization admin
+  ([#85](https://github.com/brocaar/lora-app-server/issues/85))
+
 ## 0.9.0
 
 **Features & Changes:**

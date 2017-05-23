@@ -3,7 +3,7 @@ title: REST
 menu:
     main:
         parent: integrate
-        weight: 4
+        weight: 5
 ---
 
 ## JSON REST API

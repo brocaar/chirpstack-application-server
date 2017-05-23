@@ -3,7 +3,7 @@ title: API
 menu:
     main:
         parent: integrate
-        weight: 1
+        weight: 2
 ---
 
 ## LoRa App Server API

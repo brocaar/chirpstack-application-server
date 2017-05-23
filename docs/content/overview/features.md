@@ -28,16 +28,16 @@ Users can be granted (admin) access to certain applications.
 
 Uplink data is published to a MQTT broker so that it is easy to subscribe
 to received data. Received data will be decrypted by LoRa App Server before
-being published. See also [send / receive data]({{< ref "use/data.md" >}})
+being published. See also [send / receive data]({{< ref "integrate/data.md" >}})
 for more information.
 
 ### Downlink data
 
 LoRa App Server keeps an internal queue of payloads to be emitted to the nodes.
 Items can be scheduled using the [API]({{< ref "integrate/api.md" >}}) or
-[MQTT topics]({{< ref "use/data.md" >}}). Both confirmed as unconfirmed payloads are
+[MQTT topics]({{< ref "integrate/data.md" >}}). Both confirmed as unconfirmed payloads are
 supported. In case of a confirmed payload, an ACK will be sent over MQTT
-(see [send / receive data]({{< ref "use/data.md" >}})). Payloads will be encrypted by LoRa App
+(see [send / receive data]({{< ref "integrate/data.md" >}})). Payloads will be encrypted by LoRa App
 Server before they are sent to [LoRa Server](/loraserver/).
 
 ### Class-A
@@ -59,5 +59,5 @@ received from the node.
 Besides uplink and downlink payload handling, LoRa App Server will publish also
 events over MQTT. An event can be a node joining, a payload acknowledged by
 a node or an error (e.g. a downlink payload that exceeded the maximum payload
-size). See also [send / receive data]({{< ref "use/data.md" >}}) for more
+size). See also [send / receive data]({{< ref "integrate/data.md" >}}) for more
 information.

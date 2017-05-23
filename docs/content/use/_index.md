@@ -11,4 +11,3 @@ title: Use
 * [Nodes]({{< relref "nodes.md" >}})
 * [Gateways]({{< relref "gateways.md" >}})
 * [Send / receive data]({{< relref "data.md" >}})
-* [Activate nodes]({{< relref "activate-nodes.md" >}})

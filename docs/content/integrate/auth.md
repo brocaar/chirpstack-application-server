@@ -3,7 +3,7 @@ title: Authentication
 menu:
     main:
         parent: integrate
-        weight: 2
+        weight: 3
 ---
 
 ## Authentication / authorization

@@ -17,8 +17,8 @@ title = "LoRa App Server documentation"
     weight = 2
 
 [[menu.main]]
-    pre = "<i class='fa fa-user'></i>"
-    name = "Use"
+    pre = "<i class='fa fa-desktop'></i>"
+    name = "Using the UI"
     identifier = "use"
     url = "/use/"
     weight = 3

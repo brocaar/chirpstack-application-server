@@ -2,8 +2,8 @@
 title: Send / receive data
 menu:
     main:
-        parent: use
-        weight: 7
+        parent: integrate
+        weight: 1
 ---
 
 ## Sending and receiving data

@@ -83,3 +83,8 @@ input[type=number]::-webkit-inner-spin-button {
 input[type=number] {
     -moz-appearance:textfield;
 }
+
+/* tabs underline */
+.nav-tabs {
+	border-bottom: 1px solid #dddddd;
+}

@@ -89,19 +89,21 @@ type NetworkServerClient struct {
 	GetGatewayStatsChan chan ns.GetGatewayStatsRequest
 	ListGatewayChan     chan ns.ListGatewayRequest
 
-	CreateNodeSessionChan chan ns.CreateNodeSessionRequest
-	GetNodeSessionChan    chan ns.GetNodeSessionRequest
-	UpdateNodeSessionChan chan ns.UpdateNodeSessionRequest
-	DeleteNodeSessionChan chan ns.DeleteNodeSessionRequest
-	GetRandomDevAddrChan  chan ns.GetRandomDevAddrRequest
-	PushDataDownChan      chan ns.PushDataDownRequest
+	CreateNodeSessionChan     chan ns.CreateNodeSessionRequest
+	GetNodeSessionChan        chan ns.GetNodeSessionRequest
+	UpdateNodeSessionChan     chan ns.UpdateNodeSessionRequest
+	DeleteNodeSessionChan     chan ns.DeleteNodeSessionRequest
+	GetRandomDevAddrChan      chan ns.GetRandomDevAddrRequest
+	PushDataDownChan          chan ns.PushDataDownRequest
+	GetFrameLogsForDevEUIChan chan ns.GetFrameLogsForDevEUIRequest
 
-	CreateGatewayResponse   ns.CreateGatewayResponse
-	GetGatewayResponse      ns.GetGatewayResponse
-	UpdateGatewayResponse   ns.UpdateGatewayResponse
-	DeleteGatewayResponse   ns.DeleteGatewayResponse
-	GetGatewayStatsResponse ns.GetGatewayStatsResponse
-	ListGatewayResponse     ns.ListGatewayResponse
+	CreateGatewayResponse         ns.CreateGatewayResponse
+	GetGatewayResponse            ns.GetGatewayResponse
+	UpdateGatewayResponse         ns.UpdateGatewayResponse
+	DeleteGatewayResponse         ns.DeleteGatewayResponse
+	GetGatewayStatsResponse       ns.GetGatewayStatsResponse
+	ListGatewayResponse           ns.ListGatewayResponse
+	GetFrameLogsForDevEUIResponse ns.GetFrameLogsResponse
 
 	CreateNodeSessionResponse ns.CreateNodeSessionResponse
 	GetNodeSessionResponse    ns.GetNodeSessionResponse
@@ -114,18 +116,19 @@ type NetworkServerClient struct {
 // NewNetworkServerClient creates a new NetworkServerClient.
 func NewNetworkServerClient() *NetworkServerClient {
 	return &NetworkServerClient{
-		CreateNodeSessionChan: make(chan ns.CreateNodeSessionRequest, 100),
-		GetNodeSessionChan:    make(chan ns.GetNodeSessionRequest, 100),
-		UpdateNodeSessionChan: make(chan ns.UpdateNodeSessionRequest, 100),
-		DeleteNodeSessionChan: make(chan ns.DeleteNodeSessionRequest, 100),
-		GetRandomDevAddrChan:  make(chan ns.GetRandomDevAddrRequest, 100),
-		PushDataDownChan:      make(chan ns.PushDataDownRequest, 100),
-		CreateGatewayChan:     make(chan ns.CreateGatewayRequest, 100),
-		GetGatewayChan:        make(chan ns.GetGatewayRequest, 100),
-		UpdateGatewayChan:     make(chan ns.UpdateGatewayRequest, 100),
-		DeleteGatewayChan:     make(chan ns.DeleteGatewayRequest, 100),
-		GetGatewayStatsChan:   make(chan ns.GetGatewayStatsRequest, 100),
-		ListGatewayChan:       make(chan ns.ListGatewayRequest, 100),
+		CreateNodeSessionChan:     make(chan ns.CreateNodeSessionRequest, 100),
+		GetNodeSessionChan:        make(chan ns.GetNodeSessionRequest, 100),
+		UpdateNodeSessionChan:     make(chan ns.UpdateNodeSessionRequest, 100),
+		DeleteNodeSessionChan:     make(chan ns.DeleteNodeSessionRequest, 100),
+		GetRandomDevAddrChan:      make(chan ns.GetRandomDevAddrRequest, 100),
+		PushDataDownChan:          make(chan ns.PushDataDownRequest, 100),
+		CreateGatewayChan:         make(chan ns.CreateGatewayRequest, 100),
+		GetGatewayChan:            make(chan ns.GetGatewayRequest, 100),
+		UpdateGatewayChan:         make(chan ns.UpdateGatewayRequest, 100),
+		DeleteGatewayChan:         make(chan ns.DeleteGatewayRequest, 100),
+		GetGatewayStatsChan:       make(chan ns.GetGatewayStatsRequest, 100),
+		ListGatewayChan:           make(chan ns.ListGatewayRequest, 100),
+		GetFrameLogsForDevEUIChan: make(chan ns.GetFrameLogsForDevEUIRequest, 100),
 
 		CreateGatewayResponse:   ns.CreateGatewayResponse{},
 		GetGatewayResponse:      ns.GetGatewayResponse{},
@@ -198,4 +201,9 @@ func (n *NetworkServerClient) PushDataDown(ctx context.Context, in *ns.PushDataD
 
 func (n *NetworkServerClient) EnqueueDataDownMACCommand(ctx context.Context, in *ns.EnqueueDataDownMACCommandRequest, opts ...grpc.CallOption) (*ns.EnqueueDataDownMACCommandResponse, error) {
 	panic("not implemented")
+}
+
+func (n *NetworkServerClient) GetFrameLogsForDevEUI(ctx context.Context, in *ns.GetFrameLogsForDevEUIRequest, opts ...grpc.CallOption) (*ns.GetFrameLogsResponse, error) {
+	n.GetFrameLogsForDevEUIChan <- *in
+	return &n.GetFrameLogsForDevEUIResponse, nil
 }

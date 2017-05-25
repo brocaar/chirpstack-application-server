@@ -1,7 +1,5 @@
 import React, { Component } from "react";
-import { Link } from "react-router";
 
-import OrganizationSelect from "../../components/OrganizationSelect";
 import NodeStore from "../../stores/NodeStore";
 import ApplicationStore from "../../stores/ApplicationStore";
 import SessionStore from "../../stores/SessionStore";
@@ -56,15 +54,6 @@ class ActivateNode extends Component {
   render() {
     return(
       <div>
-        <ol className="breadcrumb">
-          <li><Link to="/organizations">Organizations</Link></li>
-          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}`}>{this.state.application.name}</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/edit`}>{this.state.node.name}</Link></li>
-          <li className="active">Activation</li>
-        </ol>
-        <hr />
         <div className="panel panel-default">
           <div className="panel-body">
             <NodeActivationForm onSubmit={this.onSubmit} node={this.state.node} application={this.state.application} activation={this.state.activation} disabled={!this.state.isApplicationAdmin} />

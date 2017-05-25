@@ -1,6 +1,9 @@
 package api
 
 import (
+	"encoding/hex"
+	"encoding/json"
+
 	log "github.com/Sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -340,6 +343,89 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetNodeActivationRe
 		FCntUp:   ns.FCntUp,
 		FCntDown: ns.FCntDown,
 	}, nil
+}
+
+func (a *NodeAPI) GetFrameLogs(ctx context.Context, req *pb.GetFrameLogsRequest) (*pb.GetFrameLogsResponse, error) {
+	var devEUI lorawan.EUI64
+
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNodeAccess(devEUI, auth.Read)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	resp, err := a.ctx.NetworkServer.GetFrameLogsForDevEUI(ctx, &ns.GetFrameLogsForDevEUIRequest{
+		DevEUI: devEUI[:],
+		Limit:  int32(req.Limit),
+		Offset: int32(req.Offset),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	out := pb.GetFrameLogsResponse{
+		TotalCount: resp.TotalCount,
+	}
+
+	for i := range resp.Result {
+		log := pb.FrameLog{
+			CreatedAt: resp.Result[i].CreatedAt,
+		}
+
+		if txInfo := resp.Result[i].TxInfo; txInfo != nil {
+			log.TxInfo = &pb.TXInfo{
+				CodeRate:    txInfo.CodeRate,
+				Frequency:   txInfo.Frequency,
+				Immediately: txInfo.Immediately,
+				Mac:         hex.EncodeToString(txInfo.Mac),
+				Power:       txInfo.Power,
+				Timestamp:   txInfo.Timestamp,
+				DataRate: &pb.DataRate{
+					Modulation:   txInfo.DataRate.Modulation,
+					BandWidth:    txInfo.DataRate.BandWidth,
+					SpreadFactor: txInfo.DataRate.SpreadFactor,
+					Bitrate:      txInfo.DataRate.Bitrate,
+				},
+			}
+		}
+
+		for _, rxInfo := range resp.Result[i].RxInfoSet {
+			log.RxInfoSet = append(log.RxInfoSet, &pb.RXInfo{
+				Channel:   rxInfo.Channel,
+				CodeRate:  rxInfo.CodeRate,
+				Frequency: rxInfo.Frequency,
+				LoRaSNR:   rxInfo.LoRaSNR,
+				Rssi:      rxInfo.Rssi,
+				Time:      rxInfo.Time,
+				Timestamp: rxInfo.Timestamp,
+				Mac:       hex.EncodeToString(rxInfo.Mac),
+				DataRate: &pb.DataRate{
+					Modulation:   rxInfo.DataRate.Modulation,
+					BandWidth:    rxInfo.DataRate.BandWidth,
+					SpreadFactor: rxInfo.DataRate.SpreadFactor,
+					Bitrate:      rxInfo.DataRate.Bitrate,
+				},
+			})
+		}
+
+		var phy lorawan.PHYPayload
+		if err = phy.UnmarshalBinary(resp.Result[i].PhyPayload); err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		phyB, err := json.Marshal(phy)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		log.PhyPayloadJSON = string(phyB)
+
+		out.Result = append(out.Result, &log)
+	}
+
+	return &out, nil
 }
 
 // GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.

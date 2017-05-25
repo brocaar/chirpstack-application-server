@@ -229,7 +229,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					jaPL, ok := phy.MACPayload.(*lorawan.JoinAcceptPayload)
 					So(ok, ShouldBeTrue)
 
-					So(jaPL.NetID, ShouldEqual, [3]byte{1, 2, 3})
+					So(jaPL.NetID, ShouldEqual, lorawan.NetID{1, 2, 3})
 					So(jaPL.DLSettings, ShouldResemble, lorawan.DLSettings{
 						RX2DataRate: node.RX2DR,
 						RX1DROffset: node.RX1DROffset,

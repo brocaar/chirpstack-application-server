@@ -16,10 +16,12 @@ import CreateApplicationUser from "./views/applications/CreateApplicationUser";
 import UpdateApplicationUser from "./views/applications/UpdateApplicationUser";
 
 // nodes
+import NodeLayout from './views/nodes/NodeLayout';
 import ListNodes from './views/nodes/ListNodes';
 import UpdateNode from './views/nodes/UpdateNode';
 import CreateNode from "./views/nodes/CreateNode";
 import ActivateNode from "./views/nodes/ActivateNode";
+import NodeFrameLogs from "./views/nodes/NodeFrameLogs";
 
 // users
 import Login from "./views/users/Login";
@@ -77,8 +79,11 @@ ReactDOM.render(
       <Route path="organizations/:organizationID/applications/:applicationID/users/create" component={CreateApplicationUser}></Route>
       <Route path="organizations/:organizationID/applications/:applicationID/users/:userID/edit" component={UpdateApplicationUser}></Route>
       <Route path="organizations/:organizationID/applications/:applicationID/nodes/create" component={CreateNode}></Route>
-      <Route path="organizations/:organizationID/applications/:applicationID/nodes/:devEUI/edit" component={UpdateNode}></Route>
-      <Route path="organizations/:organizationID/applications/:applicationID/nodes/:devEUI/activation" component={ActivateNode}></Route>
+      <Route path="organizations/:organizationID/applications/:applicationID/nodes/:devEUI" component={NodeLayout}>
+        <Route path="edit" component={UpdateNode}></Route>
+        <Route path="activation" component={ActivateNode}></Route>
+        <Route path="frames" component={NodeFrameLogs}></Route>
+      </Route>
       <Route path="organizations/:organizationID/gateways" component={ListGateways}></Route>
       <Route path="organizations/:organizationID/gateways/create" component={CreateGateway}></Route>
       <Route path="organizations/:organizationID/gateways/:mac" component={GatewayDetails}></Route>

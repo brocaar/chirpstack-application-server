@@ -103,7 +103,7 @@
     },
     "/api/nodes/{devEUI}": {
       "get": {
-        "summary": "Get returns the node for the requested name.",
+        "summary": "Get returns the node for the requested DevEUI.",
         "operationId": "Get",
         "responses": {
           "200": {
@@ -126,7 +126,7 @@
         ]
       },
       "delete": {
-        "summary": "Delete deletes the node matching the given name.",
+        "summary": "Delete deletes the node matching the given DevEUI.",
         "operationId": "Delete",
         "responses": {
           "200": {
@@ -149,7 +149,7 @@
         ]
       },
       "put": {
-        "summary": "Update updates the node matching the given name.",
+        "summary": "Update updates the node matching the given DevEUI.",
         "operationId": "Update",
         "responses": {
           "200": {
@@ -229,6 +229,47 @@
             "schema": {
               "$ref": "#/definitions/apiActivateNodeRequest"
             }
+          }
+        ],
+        "tags": [
+          "Node"
+        ]
+      }
+    },
+    "/api/nodes/{devEUI}/frames": {
+      "get": {
+        "summary": "GetFrameLogs returns the uplink / downlink frame log for the given DevEUI.",
+        "operationId": "GetFrameLogs",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetFrameLogsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "description": "Max number of frames to return in the result-set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset",
+            "description": "Offset of the result-set (for pagination).",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -354,6 +395,26 @@
     "apiCreateNodeResponse": {
       "type": "object"
     },
+    "apiDataRate": {
+      "type": "object",
+      "properties": {
+        "modulation": {
+          "type": "string"
+        },
+        "bandWidth": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "spreadFactor": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bitrate": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
     "apiDeleteNodeRequest": {
       "type": "object",
       "properties": {
@@ -365,6 +426,66 @@
     },
     "apiDeleteNodeResponse": {
       "type": "object"
+    },
+    "apiFrameLog": {
+      "type": "object",
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the frame was logged."
+        },
+        "rxInfoSet": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiRXInfo"
+          },
+          "description": "RX-info set (in case of an uplink)."
+        },
+        "txInfo": {
+          "$ref": "#/definitions/apiTXInfo",
+          "description": "TX-info (in case of a downlink)."
+        },
+        "phyPayloadJSON": {
+          "type": "string",
+          "description": "LoRaWAN PHYPayload as a JSON string."
+        }
+      }
+    },
+    "apiGetFrameLogsRequest": {
+      "type": "object",
+      "properties": {
+        "devEUI": {
+          "type": "string",
+          "description": "Hex encoded DevEUI."
+        },
+        "limit": {
+          "type": "string",
+          "format": "int64",
+          "description": "Max number of frames to return in the result-set."
+        },
+        "offset": {
+          "type": "string",
+          "format": "int64",
+          "description": "Offset of the result-set (for pagination)."
+        }
+      }
+    },
+    "apiGetFrameLogsResponse": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Total number of logs."
+        },
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiFrameLog"
+          },
+          "description": "The result-set."
+        }
+      }
     },
     "apiGetNodeActivationRequest": {
       "type": "object",
@@ -539,6 +660,52 @@
         }
       }
     },
+    "apiRXInfo": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Channel number on which the frame was received."
+        },
+        "codeRate": {
+          "type": "string",
+          "description": "Code-rate."
+        },
+        "frequency": {
+          "type": "string",
+          "format": "int64",
+          "description": "frequency."
+        },
+        "loRaSNR": {
+          "type": "number",
+          "format": "double",
+          "description": "LoRa SNR."
+        },
+        "rssi": {
+          "type": "integer",
+          "format": "int32",
+          "description": "RSSI / signal strength."
+        },
+        "time": {
+          "type": "string",
+          "description": "Time (when the gateway has a GPS)."
+        },
+        "timestamp": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Gateway internal timestamp."
+        },
+        "dataRate": {
+          "$ref": "#/definitions/apiDataRate",
+          "description": "Data-rate."
+        },
+        "mac": {
+          "type": "string",
+          "description": "HEX encoded gateway MAC."
+        }
+      }
+    },
     "apiRXWindow": {
       "type": "string",
       "enum": [
@@ -546,6 +713,43 @@
         "RX2"
       ],
       "default": "RX1"
+    },
+    "apiTXInfo": {
+      "type": "object",
+      "properties": {
+        "codeRate": {
+          "type": "string",
+          "description": "Code-rate."
+        },
+        "frequency": {
+          "type": "string",
+          "format": "int64",
+          "description": "Frequency."
+        },
+        "immediately": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Immediately."
+        },
+        "mac": {
+          "type": "string",
+          "description": "HEX encoded gateway MAC."
+        },
+        "power": {
+          "type": "integer",
+          "format": "int32",
+          "description": "TX power."
+        },
+        "timestamp": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Gateway internal timestamp."
+        },
+        "dataRate": {
+          "$ref": "#/definitions/apiDataRate",
+          "description": "Data-rate."
+        }
+      }
     },
     "apiUpdateNodeRequest": {
       "type": "object",

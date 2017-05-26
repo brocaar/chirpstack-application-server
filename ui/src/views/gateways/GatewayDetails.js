@@ -1,13 +1,10 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
 
 import moment from "moment";
 import { Map, Marker, TileLayer } from 'react-leaflet';
 import { Bar } from "react-chartjs";
 
-import OrganizationSelect from "../../components/OrganizationSelect";
 import GatewayStore from "../../stores/GatewayStore";
-import SessionStore from "../../stores/SessionStore";
 
 
 class GatewayStats extends Component {
@@ -159,8 +156,6 @@ class GatewayDetails extends Component {
     this.state = {
       gateway: {},
     }
-
-    this.onDelete = this.onDelete.bind(this);
   }
 
   componentWillMount() {
@@ -169,24 +164,6 @@ class GatewayDetails extends Component {
         gateway: gateway,
       });
     }); 
-
-    this.setState({
-      isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID),
-    });
-
-    SessionStore.on("change", () => {
-      this.setState({
-        isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID), 
-      });
-    });
-  }
-
-  onDelete() {
-    if (confirm("Are you sure you want to delete this gateway?")) {
-      GatewayStore.deleteGateway(this.props.params.mac, (responseData) => {
-        this.context.router.push("/organizations/"+this.props.params.organizationID+"/gateways");
-      });
-    }
   }
 
   render() {
@@ -208,67 +185,52 @@ class GatewayDetails extends Component {
     }
 
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/organizations">Organizations</Link></li>
-          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/gateways`}>Gateways</Link></li>
-          <li className="active">{this.state.gateway.name}</li>
-        </ol>
-        <div className="clearfix">
-          <div className={"btn-group pull-right " + (this.state.isAdmin ? '' : 'hidden')} role="group" aria-label="...">
-            <Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}/edit`}><button type="button" className="btn btn-default">Edit gateway</button></Link> &nbsp;
-            <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete gateway</button></Link>
-          </div>
-        </div>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <div className="row">
-              <div className="col-md-6">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th colSpan={2}><h4>{this.state.gateway.name}</h4></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="col-md-4"><strong>MAC</strong></td>
-                      <td>{this.state.gateway.mac}</td>
-                    </tr>
-                    <tr>
-                      <td className="col-md-4"><strong>Description</strong></td>
-                      <td>{this.state.gateway.description}</td>
-                    </tr>
-                    <tr>
-                      <td className="col-md-4"><strong>Altitude</strong></td>
-                      <td>{this.state.gateway.altitude} meters</td>
-                    </tr>
-                    <tr>
-                      <td className="col-md-4"><strong>GPS coordinates</strong></td>
-                      <td>{this.state.gateway.latitude}, {this.state.gateway.longitude}</td>
-                    </tr>
-                    <tr>
-                      <td className="col-md-4"><strong>Last seen (stats)</strong></td>
-                      <td>{lastseen}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="col-md-6">
-                <Map center={position} zoom={15} style={style} animate={true} scrollWheelZoom={false}>
-                  <TileLayer
-                    url='//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-                    attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                  />
-                  <Marker position={position} />
-                </Map>
-              </div>
+      <div className="panel panel-default">
+        <div className="panel-body">
+          <div className="row">
+            <div className="col-md-6">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th colSpan={2}><h4>{this.state.gateway.name}</h4></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="col-md-4"><strong>MAC</strong></td>
+                    <td>{this.state.gateway.mac}</td>
+                  </tr>
+                  <tr>
+                    <td className="col-md-4"><strong>Description</strong></td>
+                    <td>{this.state.gateway.description}</td>
+                  </tr>
+                  <tr>
+                    <td className="col-md-4"><strong>Altitude</strong></td>
+                    <td>{this.state.gateway.altitude} meters</td>
+                  </tr>
+                  <tr>
+                    <td className="col-md-4"><strong>GPS coordinates</strong></td>
+                    <td>{this.state.gateway.latitude}, {this.state.gateway.longitude}</td>
+                  </tr>
+                  <tr>
+                    <td className="col-md-4"><strong>Last seen (stats)</strong></td>
+                    <td>{lastseen}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <hr />
-            <GatewayStats mac={this.props.params.mac} />
+            <div className="col-md-6">
+              <Map center={position} zoom={15} style={style} animate={true} scrollWheelZoom={false}>
+                <TileLayer
+                  url='//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+                  attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                />
+                <Marker position={position} />
+              </Map>
+            </div>
           </div>
+          <hr />
+          <GatewayStats mac={this.props.params.mac} />
         </div>
       </div>
     );

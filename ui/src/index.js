@@ -32,6 +32,7 @@ import UpdateUser from "./views/users/UpdateUser";
 import UpdatePassword from "./views/users/UpdatePassword";
 
 // gateways
+import GatewayLayout from "./views/gateways/GatewayLayout";
 import ListGateways from "./views/gateways/ListGateways";
 import GatewayDetails from "./views/gateways/GatewayDetails";
 import CreateGateway from "./views/gateways/CreateGateway";
@@ -78,13 +79,15 @@ ReactDOM.render(
         <Route path="applications/create" component={CreateApplication}></Route>
         <Route path="gateways" component={ListGateways}></Route>
         <Route path="gateways/create" component={CreateGateway}></Route>
-        <Route path="gateways/:mac" component={GatewayDetails}></Route>
-        <Route path="gateways/:mac/edit" component={UpdateGateway}></Route>
         <Route path="users" component={OrganizationUsers}></Route>
         <Route path="users/create" component={CreateOrganizationUser}></Route>
         <Route path="users/:userID/edit" component={UpdateOrganizationUser}></Route>
       </Route>
 
+      <Route path="organizations/:organizationID/gateways/:mac" component={GatewayLayout}>
+        <IndexRoute component={GatewayDetails}></IndexRoute>
+        <Route path="edit" component={UpdateGateway}></Route>
+      </Route>
 
       <Route path="organizations/:organizationID/applications/:applicationID" component={ApplicationLayout}>
         <IndexRoute component={ListNodes}></IndexRoute>

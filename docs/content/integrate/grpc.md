@@ -36,4 +36,42 @@ languages (officially suported by gRPC):
 
 ### Code examples
 
-Todo.
+#### Go
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+
+	"github.com/brocaar/lora-app-server/api"
+	"google.golang.org/grpc"
+)
+
+func main() {
+	// allow insecure / non-tls connections
+	grpcOpts := []grpc.DialOption{
+		grpc.WithInsecure(),
+	}
+
+	// connect to lora-app-server
+	asConn, err := grpc.Dial("localhost:8001", grpcOpts...)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// create a new node
+	nodeAPI := api.NewNodeClient(asConn)
+	_, err = nodeAPI.Create(context.Background(), &api.CreateNodeRequest{
+		DevEUI:                 "0101010101010101",
+		AppEUI:                 "0202020202020202",
+		AppKey:                 "03030303030303030303030303030303",
+		ApplicationID:          1,
+		UseApplicationSettings: true,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```

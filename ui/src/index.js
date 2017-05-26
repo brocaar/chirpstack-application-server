@@ -38,6 +38,7 @@ import CreateGateway from "./views/gateways/CreateGateway";
 import UpdateGateway from "./views/gateways/UpdateGateway";
 
 // organizations
+import OrganizationLayout from './views/organizations/OrganizationLayout';
 import ListOrganizations from './views/organizations/ListOrganizations';
 import CreateOrganization from './views/organizations/CreateOrganization';
 import UpdateOrganization from './views/organizations/UpdateOrganization';
@@ -69,10 +70,22 @@ ReactDOM.render(
       <Route path="users" component={ListUsers}></Route>
       <Route path="organizations" component={ListOrganizations}></Route>
       <Route path="organizations/create" component={CreateOrganization}></Route>
-      <Route path="organizations/:id/edit" component={UpdateOrganization}></Route>
-      <Route path="organizations/:organizationID" component={ListApplications}></Route>
-      <Route path="organizations/:organizationID/applications" component={ListApplications}></Route>
-      <Route path="organizations/:organizationID/applications/create" component={CreateApplication}></Route>
+  
+      <Route path="organizations/:organizationID" component={OrganizationLayout}>
+        <IndexRoute component={ListApplications}></IndexRoute>
+        <Route path="edit" component={UpdateOrganization}></Route>
+        <Route path="applications" component={ListApplications}></Route>
+        <Route path="applications/create" component={CreateApplication}></Route>
+        <Route path="gateways" component={ListGateways}></Route>
+        <Route path="gateways/create" component={CreateGateway}></Route>
+        <Route path="gateways/:mac" component={GatewayDetails}></Route>
+        <Route path="gateways/:mac/edit" component={UpdateGateway}></Route>
+        <Route path="users" component={OrganizationUsers}></Route>
+        <Route path="users/create" component={CreateOrganizationUser}></Route>
+        <Route path="users/:userID/edit" component={UpdateOrganizationUser}></Route>
+      </Route>
+
+
       <Route path="organizations/:organizationID/applications/:applicationID" component={ApplicationLayout}>
         <IndexRoute component={ListNodes}></IndexRoute>
         <Route path="edit" component={UpdateApplication}></Route>
@@ -81,18 +94,13 @@ ReactDOM.render(
         <Route path="users/:userID/edit" component={UpdateApplicationUser}></Route>
         <Route path="nodes/create" component={CreateNode}></Route>
       </Route>
+
       <Route path="organizations/:organizationID/applications/:applicationID/nodes/:devEUI" component={NodeLayout}>
         <Route path="edit" component={UpdateNode}></Route>
         <Route path="activation" component={ActivateNode}></Route>
         <Route path="frames" component={NodeFrameLogs}></Route>
       </Route>
-      <Route path="organizations/:organizationID/gateways" component={ListGateways}></Route>
-      <Route path="organizations/:organizationID/gateways/create" component={CreateGateway}></Route>
-      <Route path="organizations/:organizationID/gateways/:mac" component={GatewayDetails}></Route>
-      <Route path="organizations/:organizationID/gateways/:mac/edit" component={UpdateGateway}></Route>
-      <Route path="organizations/:organizationID/users" component={OrganizationUsers}></Route>
-      <Route path="organizations/:organizationID/users/create" component={CreateOrganizationUser}></Route>
-      <Route path="organizations/:organizationID/users/:userID/edit" component={UpdateOrganizationUser}></Route>
+
     </Route>
   </Router>,
   document.getElementById('root')

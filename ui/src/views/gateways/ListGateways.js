@@ -4,7 +4,6 @@ import { Link } from 'react-router';
 import moment from "moment";
 import { Bar } from "react-chartjs";
 
-import OrganizationSelect from "../../components/OrganizationSelect";
 import Pagination from "../../components/Pagination";
 import GatewayStore from "../../stores/GatewayStore";
 import SessionStore from "../../stores/SessionStore";
@@ -118,35 +117,27 @@ class ListGateways extends Component {
     const GatewayRows = this.state.gateways.map((gw, i) => <GatewayRow key={gw.mac} gateway={gw} />);
 
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/organizations">Organizations</Link></li>
-          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li className="active">Gateways</li>
-        </ol>
-        <div className="clearfix">
-          <div className={"btn-group pull-right " + (this.state.isAdmin ? '' : 'hidden')} role="group" aria-label="...">
-            <Link to={`/organizations/${this.props.params.organizationID}/gateways/create`}><button type="button" className="btn btn-default">Create gateway</button></Link>
+      <div className="panel panel-default">
+        <div className={`panel-heading clearfix ${this.state.isAdmin ? '' : 'hidden'}`}>
+          <div className="btn-group pull-right">
+            <Link to={`/organizations/${this.props.params.organizationID}/gateways/create`}><button type="button" className="btn btn-default btn-sm">Create gateway</button></Link>
           </div>
         </div>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <table className="table table-hover">
-              <thead>
-                <tr>
-                  <th className="col-md-3">Name</th>
-                  <th>MAC</th>
-                  <th className="col-md-4">Gateway activity (30d)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {GatewayRows}
-              </tbody>
-            </table>
-          </div>
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/gateways`} />
+        <div className="panel-body">
+          <table className="table table-hover">
+            <thead>
+              <tr>
+                <th className="col-md-3">Name</th>
+                <th>MAC</th>
+                <th className="col-md-4">Gateway activity (30d)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {GatewayRows}
+            </tbody>
+          </table>
         </div>
+        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/gateways`} />
       </div>
     );
   }

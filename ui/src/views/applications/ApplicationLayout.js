@@ -16,7 +16,7 @@ class ApplicationLayout extends Component {
 
     this.state = {
       application: {},
-        isAdmin: false,
+      isAdmin: false,
     };
 
     this.onDelete = this.onDelete.bind(this);

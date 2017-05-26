@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
-import OrganizationSelect from "../../components/OrganizationSelect";
 import OrganizationStore from "../../stores/OrganizationStore";
 import Pagination from "../../components/Pagination";
 
@@ -62,35 +61,27 @@ class OrganizationUsers extends Component {
     const UserRows = this.state.users.map((user, i) => <OrganizationUserRow key={user.id} organizationID={this.props.params.organizationID} user={user} />);
 
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/organizations">Organizations</Link></li>
-          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li className="active">Users</li>
-        </ol>
-        <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to={`/organizations/${this.props.params.organizationID}/users/create`}><button type="button" className="btn btn-default">Add user</button></Link>
+      <div className="panel panel-default">
+        <div className="panel-heading clearfix">
+          <div className="btn-group pull-right">
+           <Link to={`/organizations/${this.props.params.organizationID}/users/create`}><button type="button" className="btn btn-default btn-sm">Add user</button></Link>
           </div>
         </div>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <table className="table table-hover">
-              <thead>
-                <tr>
-                  <th className="col-md-1">ID</th>
-                  <th>Username</th>
-                  <th className="col-md-1">Admin</th>
-                </tr>
-              </thead>
-              <tbody>
-                {UserRows}
-              </tbody>
-            </table>
-          </div>
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/users`} />
+        <div className="panel-body">
+          <table className="table table-hover">
+            <thead>
+              <tr>
+                <th className="col-md-1">ID</th>
+                <th>Username</th>
+                <th className="col-md-1">Admin</th>
+              </tr>
+            </thead>
+            <tbody>
+              {UserRows}
+            </tbody>
+          </table>
         </div>
+        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/users`} />
       </div>
     );
   }

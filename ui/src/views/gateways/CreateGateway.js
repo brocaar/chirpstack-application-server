@@ -1,7 +1,5 @@
 import React, { Component } from "react";
-import { Link } from "react-router";
 
-import OrganizationSelect from "../../components/OrganizationSelect";
 import GatewayStore from "../../stores/GatewayStore";
 import GatewayForm from "../../components/GatewayForm";
 
@@ -34,18 +32,12 @@ class CreateGateway extends Component {
 
   render() {
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/organizations">Organizations</Link></li>
-          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/gateways`}>Gateways</Link></li>
-          <li className="active">Create gateway</li>
-        </ol>
-        <hr />
         <div className="panel panel-default">
-          <div className="panel-body">
-            <GatewayForm gateway={this.state.gateway} onSubmit={this.onSubmit} />
-          </div>
+        <div className="panel-heading">
+          <h3 className="panel-title">Create gateway</h3>
+        </div>
+        <div className="panel-body">
+          <GatewayForm gateway={this.state.gateway} onSubmit={this.onSubmit} />
         </div>
       </div>
     );

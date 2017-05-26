@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
 
 import Select from "react-select";
 
-import OrganizationSelect from "../../components/OrganizationSelect";
 import ApplicationStore from "../../stores/ApplicationStore";
 import UserStore from "../../stores/UserStore";
 import SessionStore from "../../stores/SessionStore";

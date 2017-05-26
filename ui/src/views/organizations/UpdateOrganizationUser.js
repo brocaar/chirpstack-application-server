@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
-import OrganizationSelect from "../../components/OrganizationSelect";
 import OrganizationStore from "../../stores/OrganizationStore";
 
 
@@ -106,23 +105,15 @@ class UpdateOrganizationUser extends Component {
 
   render() {
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/organizations">Organizations</Link></li>
-          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/users`}>Users</Link></li>
-          <li className="active">{this.state.user.username}</li>
-        </ol>
-        <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Remove user</button></Link>
+      <div className="panel panel-default">
+        <div className="panel-heading clearfix">
+          <h3 className="panel-title panel-title-buttons pull-left">Update user</h3>
+          <div className="btn-group pull-right">
+            <Link><button type="button" className="btn btn-danger btn-sm" onClick={this.onDelete}>Remove user</button></Link>
           </div>
         </div>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <UpdateOrganizationUserForm user={this.state.user} onSubmit={this.onSubmit}  />
-          </div>
+        <div className="panel-body">
+          <UpdateOrganizationUserForm user={this.state.user} onSubmit={this.onSubmit}  />
         </div>
       </div>
     );

@@ -1,7 +1,5 @@
 import React, { Component } from "react";
-import { Link } from "react-router";
 
-import OrganizationSelect from "../../components/OrganizationSelect";
 import ApplicationStore from "../../stores/ApplicationStore";
 import ApplicationForm from "../../components/ApplicationForm";
 
@@ -32,18 +30,12 @@ class CreateApplication extends Component {
 
   render() {
     return (
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/organizations">Organizations</Link></li>
-          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
-          <li className="active">Create application</li>
-        </ol>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} />
-          </div>
+      <div className="panel panel-default">
+        <div className="panel-heading">
+          <h3 className="panel-title">Create application</h3>
+        </div>
+        <div className="panel-body">
+          <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} />
         </div>
       </div>
     );

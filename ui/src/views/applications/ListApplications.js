@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
-import OrganizationSelect from "../../components/OrganizationSelect";
 import Pagination from "../../components/Pagination";
 import ApplicationStore from "../../stores/ApplicationStore";
 import SessionStore from "../../stores/SessionStore";
@@ -77,38 +76,27 @@ class ListApplications extends Component {
     const ApplicationRows = this.state.applications.map((application, i) => <ApplicationRow key={application.id} application={application} />);
 
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/organizations">Organizations</Link></li>
-          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li className="active">Applications</li>
-        </ol>
-        <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
-            &nbsp; <Link className={(this.state.isAdmin ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/applications/create`}><button type="button" className="btn btn-default">Create application</button></Link>
-            &nbsp; <Link className={(this.state.isAdmin ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/users`}><button type="button" className="btn btn-default">Organization users</button></Link>
-            &nbsp; <Link className={(this.state.isAdmin ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/edit`}><button type="button" className="btn btn-default">Edit organization</button></Link>
-            &nbsp; <Link className={(this.state.organization.canHaveGateways ? '' : 'hidden')} to={`/organizations/${this.props.params.organizationID}/gateways`}><button type="button" className="btn btn-default">Gateways</button></Link>
+      <div className="panel panel-default">
+        <div className={`panel-heading clearfix ${this.state.isAdmin ? '' : 'hidden'}`}>
+          <div className="btn-group pull-right">
+            <Link to={`/organizations/${this.props.params.organizationID}/applications/create`}><button type="button" className="btn btn-default btn-sm">Create application</button></Link>
           </div>
         </div>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <table className="table table-hover">
-              <thead>
-                <tr>
-                  <th className="col-md-1">ID</th>
-                  <th className="col-md-4">Name</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ApplicationRows}
-              </tbody>
-            </table>
-          </div>
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}`} />
+        <div className="panel-body">
+          <table className="table table-hover">
+            <thead>
+              <tr>
+                <th className="col-md-1">ID</th>
+                <th className="col-md-4">Name</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ApplicationRows}
+            </tbody>
+          </table>
         </div>
+        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}`} />
       </div>
     );
   }

@@ -37,19 +37,12 @@ class CreateNode extends Component {
 
   render() {
     return (
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/organizations">Organizations</Link></li>
-          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}`}>{this.state.application.name}</Link></li>
-          <li className="active">Create node</li>
-        </ol>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <NodeForm node={this.state.node} application={this.state.application} onSubmit={this.onSubmit} />
-          </div>
+      <div className="panel panel-default">
+        <div className="panel-heading">
+          <h3 className="panel-title">Create node</h3>
+        </div>
+        <div className="panel-body">
+          <NodeForm node={this.state.node} application={this.state.application} onSubmit={this.onSubmit} />
         </div>
       </div>
     );

@@ -219,29 +219,18 @@ class CreateApplicationUser extends Component {
 
   render() {
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/organizations">Organizations</Link></li>
-          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}`}>{this.state.application.name}</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}/users`}>Users</Link></li>
-          <li className="active">Add user</li>
-        </ol>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <ul className="nav nav-tabs">
-              <li role="presentation" className={(this.state.activeTab === "assign" ? 'active' : '') + " " + (this.state.displayAssignUser ? '' : 'hidden')}><a onClick={this.changeTab} href="#assign" aria-controls="assign">Assign existing user</a></li>
-              <li role="presentation" className={(this.state.activeTab === "create" ? 'active' : '')}><a onClick={this.changeTab} href="#create" aria-controls="create">Create and assign user</a></li>
-            </ul>
-            <hr />
-            <div className={(this.state.activeTab === "assign" ? '' : 'hidden')}>
-              <AssignUserForm onSubmit={this.handleAssign} />
-            </div>
-            <div className={(this.state.activeTab === "create" ? '' : 'hidden')}>
-              <CreateUserForm onSubmit={this.handleCreateAndAssign} />
-            </div>
+      <div className="panel panel-default">
+        <div className="panel-body">
+          <ul className="nav nav-tabs">
+            <li role="presentation" className={(this.state.activeTab === "assign" ? 'active' : '') + " " + (this.state.displayAssignUser ? '' : 'hidden')}><a onClick={this.changeTab} href="#assign" aria-controls="assign">Assign existing user</a></li>
+            <li role="presentation" className={(this.state.activeTab === "create" ? 'active' : '')}><a onClick={this.changeTab} href="#create" aria-controls="create">Create and assign user</a></li>
+          </ul>
+          <hr />
+          <div className={(this.state.activeTab === "assign" ? '' : 'hidden')}>
+            <AssignUserForm onSubmit={this.handleAssign} />
+          </div>
+          <div className={(this.state.activeTab === "create" ? '' : 'hidden')}>
+            <CreateUserForm onSubmit={this.handleCreateAndAssign} />
           </div>
         </div>
       </div>

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
-import OrganizationSelect from "../../components/OrganizationSelect";
 import Pagination from "../../components/Pagination";
 import NodeStore from "../../stores/NodeStore";
 import SessionStore from "../../stores/SessionStore";
@@ -24,10 +23,6 @@ class NodeRow extends Component {
 }
 
 class ListNodes extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
     this.state = {
@@ -39,7 +34,6 @@ class ListNodes extends Component {
       pages: 1,
     };
 
-    this.onDelete = this.onDelete.bind(this);
     this.updatePage = this.updatePage.bind(this);
   }
 
@@ -78,55 +72,32 @@ class ListNodes extends Component {
     });
   }
 
-  onDelete() {
-    if (confirm("Are you sure you want to delete this application?")) {
-      ApplicationStore.deleteApplication(this.props.params.applicationID, (responseData) => {
-        this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications");
-      }); 
-    }
-  }
-
   render() {
     const NodeRows = this.state.nodes.map((node, i) => <NodeRow key={node.devEUI} node={node} application={this.state.application} />);
 
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/organizations">Organizations</Link></li>
-          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
-          <li>{this.state.application.name}</li>
-          <li className="active">Nodes</li>
-        </ol>
-        <div className={(this.state.isAdmin ? '' : 'hidden')}>
-          <div className="clearfix">
-            <div className="btn-group pull-right" role="group" aria-label="...">
-              <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/create`}><button type="button" className="btn btn-default">Create node</button></Link> &nbsp;
-              <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/edit`}><button type="button" className="btn btn-default">Edit application</button></Link> &nbsp;
-              <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/users`}><button type="button" className="btn btn-default">Application users</button></Link> &nbsp;
-              <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete application</button></Link>
-            </div>
+      <div className="panel panel-default">
+        <div className={`panel-heading clearfix ${this.state.isAdmin ? '' : 'hidden'}`}>
+          <div className="btn-group pull-right">
+            <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}/nodes/create`}><button type="button" className="btn btn-default btn-sm">Create node</button></Link>
           </div>
         </div>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <table className="table table-hover">
-              <thead>
-                <tr>
-                  <th className="col-md-3">Device name</th>
-                  <th className="col-md-2">Device EUI</th>
-                  <th>Device description</th>
-                  <th className="col-md-1">Activation</th>
-                </tr>
-              </thead>
-              <tbody>
-                {NodeRows}
-              </tbody>
-            </table>
-          </div>
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}`} />
+        <div className="panel-body">
+          <table className="table table-hover">
+            <thead>
+              <tr>
+                <th className="col-md-3">Device name</th>
+                <th className="col-md-2">Device EUI</th>
+                <th>Device description</th>
+                <th className="col-md-1">Activation</th>
+              </tr>
+            </thead>
+            <tbody>
+              {NodeRows}
+            </tbody>
+          </table>
         </div>
+        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}`} />
       </div>
     );
   }

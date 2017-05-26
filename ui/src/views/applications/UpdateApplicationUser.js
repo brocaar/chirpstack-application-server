@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
-import OrganizationSelect from "../../components/OrganizationSelect";
 import ApplicationStore from "../../stores/ApplicationStore";
 
 class UpdateApplicationUserForm extends Component {
@@ -58,7 +57,9 @@ class UpdateApplicationUserForm extends Component {
           </p>
         </div>
         <hr />
-        <button type="submit" className="btn btn-primary pull-right">Submit</button>
+        <div className="btn-group pull-right">
+          <button type="submit" className="btn btn-primary">Submit</button>
+        </div>
       </form>
     );
   }
@@ -111,25 +112,15 @@ class UpdateApplicationUser extends Component {
 
   render() {
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/organizations">Organizations</Link></li>
-          <li><OrganizationSelect organizationID={this.props.params.organizationID} /></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications`}>Applications</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}`}>{this.state.application.name}</Link></li>
-          <li><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}/users`}>Users</Link></li>
-          <li className="active">{this.state.user.username}</li>
-        </ol>
-        <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Remove user</button></Link>
+      <div className="panel panel-default">
+        <div className="panel-heading clearfix">
+          <h3 className="panel-title panel-title-buttons pull-left">Update user</h3>
+          <div className="btn-group pull-right">
+            <Link><button type="button" className="btn btn-danger btn-sm" onClick={this.onDelete}>Remove user</button></Link>
           </div>
         </div>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <UpdateApplicationUserForm user={this.state.user} onSubmit={this.onSubmit}  />
-          </div>
+        <div className="panel-body">
+          <UpdateApplicationUserForm user={this.state.user} onSubmit={this.onSubmit}  />
         </div>
       </div>
     );

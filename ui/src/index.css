@@ -88,3 +88,8 @@ input[type=number] {
 .nav-tabs {
 	border-bottom: 1px solid #dddddd;
 }
+
+/* fix panel-title */
+.panel-title-buttons {
+	padding-top: 7.5px;
+}

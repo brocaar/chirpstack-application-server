@@ -8,6 +8,7 @@ import Layout from './Layout';
 import ErrorStore from "./stores/ErrorStore";
 
 // applications
+import ApplicationLayout from './views/applications/ApplicationLayout';
 import ListApplications from './views/applications/ListApplications';
 import CreateApplication from "./views/applications/CreateApplication";
 import UpdateApplication from "./views/applications/UpdateApplication";
@@ -71,14 +72,15 @@ ReactDOM.render(
       <Route path="organizations/:id/edit" component={UpdateOrganization}></Route>
       <Route path="organizations/:organizationID" component={ListApplications}></Route>
       <Route path="organizations/:organizationID/applications" component={ListApplications}></Route>
-      <Route path="organizations/:organizationID/applications/:applicationID/edit" component={UpdateApplication}></Route>
       <Route path="organizations/:organizationID/applications/create" component={CreateApplication}></Route>
-      <Route path="organizations/:organizationID/applications/:applicationID/edit" component={UpdateApplication}></Route>
-      <Route path="organizations/:organizationID/applications/:applicationID" component={ListNodes}></Route>
-      <Route path="organizations/:organizationID/applications/:applicationID/users" component={ApplicationUsers}></Route>
-      <Route path="organizations/:organizationID/applications/:applicationID/users/create" component={CreateApplicationUser}></Route>
-      <Route path="organizations/:organizationID/applications/:applicationID/users/:userID/edit" component={UpdateApplicationUser}></Route>
-      <Route path="organizations/:organizationID/applications/:applicationID/nodes/create" component={CreateNode}></Route>
+      <Route path="organizations/:organizationID/applications/:applicationID" component={ApplicationLayout}>
+        <IndexRoute component={ListNodes}></IndexRoute>
+        <Route path="edit" component={UpdateApplication}></Route>
+        <Route path="users" component={ApplicationUsers}></Route>
+        <Route path="users/create" component={CreateApplicationUser}></Route>
+        <Route path="users/:userID/edit" component={UpdateApplicationUser}></Route>
+        <Route path="nodes/create" component={CreateNode}></Route>
+      </Route>
       <Route path="organizations/:organizationID/applications/:applicationID/nodes/:devEUI" component={NodeLayout}>
         <Route path="edit" component={UpdateNode}></Route>
         <Route path="activation" component={ActivateNode}></Route>

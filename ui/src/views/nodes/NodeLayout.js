@@ -72,7 +72,7 @@ class NodeLayout extends Component {
           </div>
         </div>
         <ul className="nav nav-tabs">
-          <li role="presentation" className={activeTab === "edit" ? 'active' : ''}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/edit`}>Node settings</Link></li>
+          <li role="presentation" className={activeTab === "edit" ? 'active' : ''}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/edit`}>Node configuration</Link></li>
           <li role="presentation" className={activeTab === "activation" ? 'active' : ''}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/activation`}>Node activation</Link></li>
           <li role="presentation" className={activeTab === "frames" ? 'active' : ''}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/frames`}>Frame logs</Link></li>
         </ul>

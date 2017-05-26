@@ -3,6 +3,10 @@ import React, { Component } from 'react';
 import SessionStore from "../stores/SessionStore";
 
 class OrganizationForm extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
+  };
+
   constructor() {
     super();
 
@@ -64,7 +68,10 @@ class OrganizationForm extends Component {
           </p>
         </div>
         <hr />
-        <button type="submit" className="btn btn-primary pull-right">Submit</button>
+        <div className="btn-toolbar pull-right">
+          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <button type="submit" className="btn btn-primary">Submit</button>
+        </div>
       </form>
     );
   }

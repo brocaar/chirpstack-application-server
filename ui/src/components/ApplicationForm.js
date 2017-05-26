@@ -7,6 +7,10 @@ import OrganizationStore from "../stores/OrganizationStore";
 
 
 class ApplicationForm extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
+  };
+
   constructor() {
     super();
     this.state = {
@@ -245,7 +249,10 @@ class ApplicationForm extends Component {
             </div>
           </div>
           <hr />
-          <button type="submit" className="btn btn-primary pull-right">Submit</button>
+          <div className="btn-toolbar pull-right">
+            <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+            <button type="submit" className="btn btn-primary">Submit</button>
+          </div>
         </form>
       </div>
     );

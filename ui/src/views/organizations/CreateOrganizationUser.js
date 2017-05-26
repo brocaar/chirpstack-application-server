@@ -8,6 +8,10 @@ import SessionStore from "../../stores/SessionStore";
 
 
 class AssignUserForm extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
+  };
+
   constructor() {
     super();
 
@@ -94,7 +98,10 @@ class AssignUserForm extends Component {
           </p>
         </div>
         <hr />
-        <button type="submit" className="btn btn-primary pull-right">Submit</button>
+        <div className="btn-toolbar pull-right">
+          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <button type="submit" className="btn btn-primary">Submit</button>
+        </div>
       </form>
     );
   }
@@ -102,6 +109,10 @@ class AssignUserForm extends Component {
 
 
 class CreateUserForm extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
+  };
+
   constructor() {
     super();
 
@@ -150,7 +161,10 @@ class CreateUserForm extends Component {
           </p>
         </div>
         <hr />
-        <button type="submit" className="btn btn-primary pull-right">Submit</button>
+        <div className="btn-toolbar pull-right">
+          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <button type="submit" className="btn btn-primary">Submit</button>
+        </div>
       </form>
     );
   }

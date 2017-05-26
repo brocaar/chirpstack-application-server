@@ -4,6 +4,10 @@ import { Link } from 'react-router';
 import ApplicationStore from "../../stores/ApplicationStore";
 
 class UpdateApplicationUserForm extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
+  };
+
   constructor() {
     super();
 
@@ -57,7 +61,8 @@ class UpdateApplicationUserForm extends Component {
           </p>
         </div>
         <hr />
-        <div className="btn-group pull-right">
+        <div className="btn-toolbar pull-right">
+          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
           <button type="submit" className="btn btn-primary">Submit</button>
         </div>
       </form>

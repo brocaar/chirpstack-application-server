@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 
 class NodeForm extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
+  };
+
   constructor() {
     super();
 
@@ -207,7 +211,10 @@ class NodeForm extends Component {
             </div>
           </div>
           <hr />
-          <button type="submit" className={"btn btn-primary pull-right " + (this.state.disabled ? 'hidden' : '')}>Submit</button>
+          <div className="btn-toolbar pull-right">
+            <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+            <button type="submit" className={"btn btn-primary " + (this.state.disabled ? 'hidden' : '')}>Submit</button>
+          </div>
         </fieldset>
         </form>
       </div>

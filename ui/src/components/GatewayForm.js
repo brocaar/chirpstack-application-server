@@ -10,6 +10,10 @@ import LocationStore from "../stores/LocationStore";
 
 
 class GatewayForm extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
+  };
+
   constructor() {
     super();
 
@@ -238,7 +242,10 @@ class GatewayForm extends Component {
             <p className="help-block">Drag the marker to the location of the gateway. When the gateway has an on-board GPS, this value will be set automatically when the network receives statistics from the gateway.</p>
           </div>
           <hr />
-          <button type="submit" className="btn btn-primary pull-right">Submit</button>
+          <div className="btn-toolbar pull-right">
+            <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+            <button type="submit" className="btn btn-primary">Submit</button>
+          </div>
         </form>
       </div>
     );

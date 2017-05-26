@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { Link } from 'react-router';
 
 import ApplicationStore from "../../stores/ApplicationStore";
 import ApplicationForm from "../../components/ApplicationForm";
@@ -32,7 +33,7 @@ class CreateApplication extends Component {
     return (
       <div className="panel panel-default">
         <div className="panel-heading">
-          <h3 className="panel-title">Create application</h3>
+          <h3 className="panel-title panel-title-buttons">Create application</h3>
         </div>
         <div className="panel-body">
           <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} />

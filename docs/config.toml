@@ -1,6 +1,7 @@
 baseURL = "https://docs.loraserver.io/lora-app-server/"
 languageCode = "en-us"
 title = "LoRa App Server documentation"
+googleAnalytics = "UA-3512995-9"
 
 [[menu.main]]
     pre = "<i class='fa fa-hand-o-right'></i>"

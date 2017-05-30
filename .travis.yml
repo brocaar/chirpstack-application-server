@@ -86,5 +86,5 @@ deploy:
     acl: private
     region: eu-west-1
     on:
-      branch: documentation
+      branch: master
       repo: brocaar/lora-app-server

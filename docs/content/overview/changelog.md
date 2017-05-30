@@ -8,6 +8,38 @@ menu:
 
 ## Changelog
 
+### 0.10.0
+
+**Features & changes:**
+
+* Added frame logs tab to node to display all uplink and downlink
+  frames of a given node. Note: This requires
+  [LoRa Server](https://docs.loraserver.io/loraserver/) 0.18.0.
+* Updated organization, application and node navigation in UI.
+
+### 0.9.1
+
+**Bugfixes:**
+
+* Fix ABP sesstings not editable by organization admin
+  ([#85](https://github.com/brocaar/lora-app-server/issues/85))
+
+### 0.9.0
+
+**Features & Changes:**
+
+* Channel-lists have been removed. Extra channels (if supported by the ISM
+  band) are now managed by LoRa Server configuration.
+
+**Bugfixes:**
+
+* On editing a gateway, disable the MAC input field (as this is the unique
+  identifier of the gateway).
+* A pagination regression has been fixed ([#82](https://github.com/brocaar/lora-app-server/issues/82)).
+
+**Note:** when upgrading to this version with `--db-automigrate` /
+`DB_AUTOMIGRATE` set, channel-list data will be removed.
+
 ### 0.8.0
 
 **Features & changes:**

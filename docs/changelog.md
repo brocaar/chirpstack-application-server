@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0
+
+**Features & changes:**
+
+* Added frame logs tab to node to display all uplink and downlink
+  frames of a given node. Note: This requires
+  [LoRa Server](https://docs.loraserver.io/loraserver/) 0.18.0.
+* Updated organization, application and node navigation in UI.
+
 ## 0.9.1
 
 **Bugfixes:**

@@ -89,7 +89,7 @@ and that you clone this repository to
 
 There are a couple of ways to get involved:
 
-* Join the discussions and share your feedback at [https://gitter.io/loraserver/lora-app-server](https://gitter.io/loraserver/lora-app-server)
+* Join the discussions and share your feedback at [https://gitter.im/loraserver/lora-app-server](https://gitter.im/loraserver/lora-app-server)
 * Report bugs or make feature-requests by opening an issue at [https://github.com/brocaar/lora-app-server/issues](https://github.com/brocaar/lora-app-server/issues)
 * Fix issues or improve documentation by creating pull-requests
 

@@ -20,10 +20,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
+	"google.golang.org/grpc/status"
 )
 
 var _ codes.Code
 var _ io.Reader
+var _ status.Status
 var _ = runtime.String
 var _ = utilities.NewDoubleArray
 
@@ -32,7 +34,7 @@ func request_DownlinkQueue_Enqueue_0(ctx context.Context, marshaler runtime.Mars
 	var metadata runtime.ServerMetadata
 
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "%v", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	var (
@@ -44,13 +46,13 @@ func request_DownlinkQueue_Enqueue_0(ctx context.Context, marshaler runtime.Mars
 
 	val, ok = pathParams["devEUI"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
 	}
 
 	protoReq.DevEUI, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, err
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "devEUI", err)
 	}
 
 	msg, err := client.Enqueue(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -71,24 +73,24 @@ func request_DownlinkQueue_Delete_0(ctx context.Context, marshaler runtime.Marsh
 
 	val, ok = pathParams["devEUI"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
 	}
 
 	protoReq.DevEUI, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, err
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "devEUI", err)
 	}
 
 	val, ok = pathParams["id"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
 
 	protoReq.Id, err = runtime.Int64(val)
 
 	if err != nil {
-		return nil, metadata, err
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
 	msg, err := client.Delete(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -109,13 +111,13 @@ func request_DownlinkQueue_List_0(ctx context.Context, marshaler runtime.Marshal
 
 	val, ok = pathParams["devEUI"]
 	if !ok {
-		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
 	}
 
 	protoReq.DevEUI, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, err
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "devEUI", err)
 	}
 
 	msg, err := client.List(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -166,18 +168,19 @@ func RegisterDownlinkQueueHandler(ctx context.Context, mux *runtime.ServeMux, co
 			}(ctx.Done(), cn.CloseNotify())
 		}
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
 		if err != nil {
-			runtime.HTTPError(ctx, outboundMarshaler, w, req, err)
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
 		}
 		resp, md, err := request_DownlinkQueue_Enqueue_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
-			runtime.HTTPError(ctx, outboundMarshaler, w, req, err)
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DownlinkQueue_Enqueue_0(ctx, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DownlinkQueue_Enqueue_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -194,18 +197,19 @@ func RegisterDownlinkQueueHandler(ctx context.Context, mux *runtime.ServeMux, co
 			}(ctx.Done(), cn.CloseNotify())
 		}
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
 		if err != nil {
-			runtime.HTTPError(ctx, outboundMarshaler, w, req, err)
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
 		}
 		resp, md, err := request_DownlinkQueue_Delete_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
-			runtime.HTTPError(ctx, outboundMarshaler, w, req, err)
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DownlinkQueue_Delete_0(ctx, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DownlinkQueue_Delete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -222,18 +226,19 @@ func RegisterDownlinkQueueHandler(ctx context.Context, mux *runtime.ServeMux, co
 			}(ctx.Done(), cn.CloseNotify())
 		}
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
 		if err != nil {
-			runtime.HTTPError(ctx, outboundMarshaler, w, req, err)
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
 		}
 		resp, md, err := request_DownlinkQueue_List_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
-			runtime.HTTPError(ctx, outboundMarshaler, w, req, err)
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DownlinkQueue_List_0(ctx, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DownlinkQueue_List_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 

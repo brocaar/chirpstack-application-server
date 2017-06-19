@@ -32,6 +32,7 @@ usage: sql-migrate [--version] [--help] <command> [<args>]
 
 Available commands are:
     down      Undo a database migration
+    new       Create a new migration
     redo      Reapply the last migration
     status    Show migration status
     up        Migrates the database to the most recent version available
@@ -71,6 +72,8 @@ Options:
   -limit=0             Limit the number of migrations (0 = unlimited).
   -dryrun              Don't apply migrations, just print them.
 ```
+
+The `new` command creates a new empty migration template using the following pattern `<current time>-<name>.sql`.
 
 The `up` command applies all available migrations. By contrast, `down` will only apply one migration by default. This behavior can be changed for both by using the `-limit` parameter.
 
@@ -157,6 +160,10 @@ DROP TABLE people;
 
 You can put multiple statements in each block, as long as you end them with a semicolon (`;`).
 
+You can alternatively set up a separator string that matches an entire line by setting `sqlparse.LineSeparator`. This
+can be used to imitate, for example, MS SQL Query Analyzer functionality where commands can be separated by a line with
+contents of `GO`. If `sqlparse.LineSeparator` is matched, it will not be included in the resulting migration scripts.
+
 If you have complex statements which contain semicolons, use `StatementBegin` and `StatementEnd` to indicate boundaries:
 
 ```sql
@@ -234,7 +241,7 @@ The resulting slice of migrations will be executed in the given order, so it sho
 
     (The MIT License)
 
-    Copyright (C) 2014-2016 by Ruben Vermeersch <ruben@rocketeer.be>
+    Copyright (C) 2014-2017 by Ruben Vermeersch <ruben@rocketeer.be>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal

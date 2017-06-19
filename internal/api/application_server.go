@@ -181,7 +181,7 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 		Rx1DROffset:        uint32(node.RX1DROffset),
 		RxWindow:           as.RXWindow(node.RXWindow),
 		Rx2DR:              uint32(node.RX2DR),
-		RelaxFCnt:          node.RelaxFCnt,
+		DisableFCntCheck:   node.RelaxFCnt,
 		AdrInterval:        node.ADRInterval,
 		InstallationMargin: node.InstallationMargin,
 	}

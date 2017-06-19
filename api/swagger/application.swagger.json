@@ -364,21 +364,6 @@
         }
       }
     },
-    "apiApplicationUserRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "title": "The application id"
-        },
-        "userID": {
-          "type": "string",
-          "format": "int64",
-          "title": "The user id"
-        }
-      }
-    },
     "apiCreateApplicationRequest": {
       "type": "object",
       "properties": {
@@ -451,31 +436,11 @@
         }
       }
     },
-    "apiDeleteApplicationRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application."
-        }
-      }
-    },
     "apiDeleteApplicationResponse": {
       "type": "object"
     },
     "apiEmptyApplicationUserResponse": {
       "type": "object"
-    },
-    "apiGetApplicationRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "Name of the application."
-        }
-      }
     },
     "apiGetApplicationResponse": {
       "type": "object",
@@ -563,26 +528,6 @@
         }
       }
     },
-    "apiListApplicationRequest": {
-      "type": "object",
-      "properties": {
-        "limit": {
-          "type": "string",
-          "format": "int64",
-          "description": "Max number of applications to return in the result-test."
-        },
-        "offset": {
-          "type": "string",
-          "format": "int64",
-          "description": "Offset in the result-set (for pagination)."
-        },
-        "organizationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the organization to filter on."
-        }
-      }
-    },
     "apiListApplicationResponse": {
       "type": "object",
       "properties": {
@@ -597,26 +542,6 @@
             "$ref": "#/definitions/apiGetApplicationResponse"
           },
           "description": "Applications within this result-set."
-        }
-      }
-    },
-    "apiListApplicationUsersRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "title": "The id of the application"
-        },
-        "limit": {
-          "type": "string",
-          "format": "int64",
-          "description": "Max number of applications to return in the result-test."
-        },
-        "offset": {
-          "type": "string",
-          "format": "int64",
-          "description": "Offset in the result-set (for pagination)."
         }
       }
     },

@@ -16,7 +16,7 @@ done
 IFS=$OIFS
 
 # generate the gRPC code
-protoc -I/usr/local/include -I. ${GOPATHLIST} --go_out=Mgoogle/api/annotations.proto=github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis/google/api,plugins=grpc:. node.proto application.proto downlinkQueue.proto common.proto user.proto gateway.proto organization.proto
+protoc -I/usr/local/include -I. ${GOPATHLIST} --go_out=plugins=grpc:. node.proto application.proto downlinkQueue.proto common.proto user.proto gateway.proto organization.proto
 # generate the JSON interface code
 protoc -I/usr/local/include -I. ${GOPATHLIST} --grpc-gateway_out=logtostderr=true:. node.proto application.proto downlinkQueue.proto common.proto user.proto gateway.proto organization.proto
 # generate the swagger definitions

@@ -213,7 +213,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					So(resp.Rx1DROffset, ShouldEqual, uint32(node.RX1DROffset))
 					So(resp.RxWindow, ShouldEqual, as.RXWindow_RX2)
 					So(resp.Rx2DR, ShouldEqual, uint32(node.RX2DR))
-					So(resp.RelaxFCnt, ShouldBeTrue)
+					So(resp.DisableFCntCheck, ShouldBeTrue)
 					So(resp.InstallationMargin, ShouldEqual, 5)
 					So(resp.AdrInterval, ShouldEqual, 20)
 

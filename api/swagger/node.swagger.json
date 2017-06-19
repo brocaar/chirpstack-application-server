@@ -415,15 +415,6 @@
         }
       }
     },
-    "apiDeleteNodeRequest": {
-      "type": "object",
-      "properties": {
-        "devEUI": {
-          "type": "string",
-          "description": "Hex encoded DevEUI of the node."
-        }
-      }
-    },
     "apiDeleteNodeResponse": {
       "type": "object"
     },
@@ -451,25 +442,6 @@
         }
       }
     },
-    "apiGetFrameLogsRequest": {
-      "type": "object",
-      "properties": {
-        "devEUI": {
-          "type": "string",
-          "description": "Hex encoded DevEUI."
-        },
-        "limit": {
-          "type": "string",
-          "format": "int64",
-          "description": "Max number of frames to return in the result-set."
-        },
-        "offset": {
-          "type": "string",
-          "format": "int64",
-          "description": "Offset of the result-set (for pagination)."
-        }
-      }
-    },
     "apiGetFrameLogsResponse": {
       "type": "object",
       "properties": {
@@ -484,15 +456,6 @@
             "$ref": "#/definitions/apiFrameLog"
           },
           "description": "The result-set."
-        }
-      }
-    },
-    "apiGetNodeActivationRequest": {
-      "type": "object",
-      "properties": {
-        "devEUI": {
-          "type": "string",
-          "description": "Hex encoded DevEUI of the node."
         }
       }
     },
@@ -520,15 +483,6 @@
           "type": "integer",
           "format": "int64",
           "description": "Downlink frame-counter."
-        }
-      }
-    },
-    "apiGetNodeRequest": {
-      "type": "object",
-      "properties": {
-        "devEUI": {
-          "type": "string",
-          "description": "Hex encoded DevEUI of the node."
         }
       }
     },
@@ -611,35 +565,12 @@
         }
       }
     },
-    "apiGetRandomDevAddrRequest": {
-      "type": "object"
-    },
     "apiGetRandomDevAddrResponse": {
       "type": "object",
       "properties": {
         "devAddr": {
           "type": "string",
           "description": "Hex encoded DevAddr."
-        }
-      }
-    },
-    "apiListNodeByApplicationIDRequest": {
-      "type": "object",
-      "properties": {
-        "applicationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application for which to list the nodes."
-        },
-        "limit": {
-          "type": "string",
-          "format": "int64",
-          "description": "Max number of nodes to return in the result-set."
-        },
-        "offset": {
-          "type": "string",
-          "format": "int64",
-          "description": "Offset of the result-set (for pagination)."
         }
       }
     },

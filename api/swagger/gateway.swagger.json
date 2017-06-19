@@ -250,15 +250,6 @@
     "apiCreateGatewayResponse": {
       "type": "object"
     },
-    "apiDeleteGatewayRequest": {
-      "type": "object",
-      "properties": {
-        "mac": {
-          "type": "string",
-          "description": "Hex encoded mac address."
-        }
-      }
-    },
     "apiDeleteGatewayResponse": {
       "type": "object"
     },
@@ -288,15 +279,6 @@
           "type": "integer",
           "format": "int32",
           "description": "Packets transmitted by the gateway."
-        }
-      }
-    },
-    "apiGetGatewayRequest": {
-      "type": "object",
-      "properties": {
-        "mac": {
-          "type": "string",
-          "description": "Hex encoded mac address of the node."
         }
       }
     },
@@ -353,27 +335,6 @@
         }
       }
     },
-    "apiGetGatewayStatsRequest": {
-      "type": "object",
-      "properties": {
-        "mac": {
-          "type": "string",
-          "description": "Hex encoded mac address."
-        },
-        "interval": {
-          "type": "string",
-          "description": "Aggregation interval.  One of \"second\", \"minute\", \"hour\", \"day\", \"week\",\n\"month\", \"quarter\", \"year\".  Case insensitive."
-        },
-        "startTimestamp": {
-          "type": "string",
-          "description": "Timestamp to start from."
-        },
-        "endTimestamp": {
-          "type": "string",
-          "description": "Timestamp until to get from."
-        }
-      }
-    },
     "apiGetGatewayStatsResponse": {
       "type": "object",
       "properties": {
@@ -412,26 +373,6 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the organization to which this gateway belongs."
-        }
-      }
-    },
-    "apiListGatewayRequest": {
-      "type": "object",
-      "properties": {
-        "limit": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Max number of nodes to return in the result-set."
-        },
-        "offset": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Offset of the result-set (for pagination)."
-        },
-        "organizationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the organization for which to filter on, when left blank the\nresponse will return all gateways to which the user has access to."
         }
       }
     },

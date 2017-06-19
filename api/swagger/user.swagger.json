@@ -386,26 +386,6 @@
         }
       }
     },
-    "apiListUserRequest": {
-      "type": "object",
-      "properties": {
-        "limit": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Max number of user to return in the result-set."
-        },
-        "offset": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Offset in the result-set (for pagination)."
-        },
-        "search": {
-          "type": "string",
-          "description": "When provided, the given string will be used to search on username."
-        }
-      },
-      "description": "Request the users defined in the system."
-    },
     "apiListUserResponse": {
       "type": "object",
       "properties": {
@@ -467,10 +447,6 @@
         }
       },
       "description": "Defines the organizations that the user is associated with."
-    },
-    "apiProfileRequest": {
-      "type": "object",
-      "description": "The request for profile requires not input as the profile is returned for\nthe logged in user based on the JWT token passed in."
     },
     "apiProfileResponse": {
       "type": "object",
@@ -552,16 +528,6 @@
     },
     "apiUserEmptyResponse": {
       "type": "object"
-    },
-    "apiUserRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64"
-        }
-      },
-      "description": "Request the user information."
     }
   }
 }

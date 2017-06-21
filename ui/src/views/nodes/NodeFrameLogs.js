@@ -35,12 +35,12 @@ class FrameRow extends Component {
     let rxtx = {};
     let dir = "";
 
-    if (typeof(this.props.frame.rxInfoSet) !== "undefined") {
-      rxtx["rxInfoSet"] = this.props.frame.rxInfoSet;
-      dir = "up";
-    } else {
+    if (typeof(this.props.frame.txInfo) !== "undefined" && this.props.frame.txInfo !== null) {
       rxtx["txInfo"] = this.props.frame.txInfo;
       dir = "down";
+    } else {
+      rxtx["rxInfoSet"] = this.props.frame.rxInfoSet;
+      dir = "up";
     }
 
     const createdAt = moment(this.props.frame.createdAt).format("LLLL");

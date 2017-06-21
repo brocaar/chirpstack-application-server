@@ -44,6 +44,10 @@ class FrameRow extends Component {
     }
 
     const createdAt = moment(this.props.frame.createdAt).format("LLLL");
+    const treeStyle = {
+      paddingTop: '0',
+      paddingBottom: '0',
+    };
 
     return(
       <tr>
@@ -51,10 +55,10 @@ class FrameRow extends Component {
           <span className={`glyphicon glyphicon-arrow-${dir}`} aria-hidden="true"></span>
         </td>
         <td>{createdAt}</td>
-        <td>
+        <td style={treeStyle}>
           <JSONTree data={rxtx} theme={theme} hideRoot={true} />
         </td>
-        <td>
+        <td style={treeStyle}>
           <JSONTree data={data} theme={theme} hideRoot={true} />
         </td>
       </tr>

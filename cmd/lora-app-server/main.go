@@ -152,8 +152,8 @@ func setNetworkServerClient(c *cli.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "network-server dial error")
 	}
-
 	common.NetworkServer = ns.NewNetworkServerClient(nsConn)
+
 	return nil
 }
 

@@ -25,8 +25,8 @@ type HTTPHandler struct {
 }
 
 // NewHTTPHandler creates a new HTTPHandler.
-func NewHTTPHandler(conf HTTPHandlerConfig) (HTTPHandler, error) {
-	return HTTPHandler{
+func NewHTTPHandler(conf HTTPHandlerConfig) (*HTTPHandler, error) {
+	return &HTTPHandler{
 		config: conf,
 	}, nil
 }

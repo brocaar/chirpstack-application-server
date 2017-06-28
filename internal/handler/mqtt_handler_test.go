@@ -26,7 +26,7 @@ func TestMQTTHandler(t *testing.T) {
 		test.MustFlushRedis(p)
 
 		Convey("Given a new MQTTHandler", func() {
-			handler, err := NewMQTTHandler(p, conf.MQTTServer, conf.MQTTUsername, conf.MQTTPassword)
+			handler, err := NewMQTTHandler(p, conf.MQTTServer, conf.MQTTUsername, conf.MQTTPassword, "")
 			So(err, ShouldBeNil)
 			defer handler.Close()
 			time.Sleep(time.Millisecond * 100) // give the backend some time to connect

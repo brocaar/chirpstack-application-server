@@ -2,9 +2,12 @@ package handler
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"regexp"
 	"strconv"
 	"sync"
@@ -53,7 +56,7 @@ type ErrorNotification struct {
 }
 
 // NewMQTTHandler creates a new MQTTHandler.
-func NewMQTTHandler(p *redis.Pool, server, username, password string) (Handler, error) {
+func NewMQTTHandler(p *redis.Pool, server, username, password, cafile string) (Handler, error) {
 	h := MQTTHandler{
 		dataDownChan: make(chan DataDownPayload),
 		redisPool:    p,
@@ -66,6 +69,15 @@ func NewMQTTHandler(p *redis.Pool, server, username, password string) (Handler, 
 	opts.SetOnConnectHandler(h.onConnected)
 	opts.SetConnectionLostHandler(h.onConnectionLost)
 
+	if cafile != "" {
+		tlsconfig, err := newTLSConfig(cafile)
+		if err != nil {
+			log.Fatalf("Error with the mqtt CA certificate: %s", err)
+		} else {
+			opts.SetTLSConfig(tlsconfig)
+		}
+	}
+
 	log.WithField("server", server).Info("handler/mqtt: connecting to mqtt broker")
 	h.conn = mqtt.NewClient(opts)
 	for {
@@ -77,6 +89,25 @@ func NewMQTTHandler(p *redis.Pool, server, username, password string) (Handler, 
 		}
 	}
 	return &h, nil
+}
+
+func newTLSConfig(cafile string) (*tls.Config, error) {
+	// Import trusted certificates from CAfile.pem.
+
+	cert, err := ioutil.ReadFile(cafile)
+	if err != nil {
+		log.Errorf("backend: couldn't load cafile: %s", err)
+		return nil, err
+	}
+
+	certpool := x509.NewCertPool()
+	certpool.AppendCertsFromPEM(cert)
+
+	// Create tls.Config with desired tls properties
+	return &tls.Config{
+		// RootCAs = certs used to verify server cert.
+		RootCAs: certpool,
+	}, nil
 }
 
 // Close stops the handler.

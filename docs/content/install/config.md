@@ -19,6 +19,7 @@ GLOBAL OPTIONS:
    --mqtt-server value         mqtt server (e.g. scheme://host:port where scheme is tcp, ssl or ws) (default: "tcp://localhost:1883") [$MQTT_SERVER]
    --mqtt-username value       mqtt server username (optional) [$MQTT_USERNAME]
    --mqtt-password value       mqtt server password (optional) [$MQTT_PASSWORD]
+   --mqtt-ca-cert              mqtt CA certificate file used by the gateway backend (optional) [$MQTT_CA_CERT]
    --ca-cert value             ca certificate used by the api server (optional) [$CA_CERT]
    --tls-cert value            tls certificate used by the api server (optional) [$TLS_CERT]
    --tls-key value             tls key used by the api server (optional) [$TLS_KEY]

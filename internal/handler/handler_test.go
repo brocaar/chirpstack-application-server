@@ -43,7 +43,7 @@ func TestMultiHandler(t *testing.T) {
 		token.Wait()
 		So(token.Error(), ShouldBeNil)
 
-		mqttHandler, err := NewMQTTHandler(p, conf.MQTTServer, conf.MQTTUsername, conf.MQTTPassword)
+		mqttHandler, err := NewMQTTHandler(p, conf.MQTTServer, conf.MQTTUsername, conf.MQTTPassword, "")
 		So(err, ShouldBeNil)
 
 		Convey("Given an organization, application with http integration and node", func() {

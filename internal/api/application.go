@@ -1,6 +1,8 @@
 package api
 
 import (
+	"encoding/json"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -8,6 +10,7 @@ import (
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 )
 
@@ -316,4 +319,162 @@ func (a *ApplicationAPI) DeleteUser(ctx context.Context, in *pb.ApplicationUserR
 		return nil, errToRPCError(err)
 	}
 	return &pb.EmptyApplicationUserResponse{}, nil
+}
+
+// CreateHTTPIntegration creates an HTTP application-integration.
+func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.HTTPIntegration) (*pb.EmptyResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Id, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	headers := make(map[string]string)
+	for _, h := range in.Headers {
+		headers[h.Key] = h.Value
+	}
+
+	conf := handler.HTTPHandlerConfig{
+		Headers:              headers,
+		DataUpURL:            in.DataUpURL,
+		JoinNotificationURL:  in.JoinNotificationURL,
+		ACKNotificationURL:   in.AckNotificationURL,
+		ErrorNotificationURL: in.ErrorNotificationURL,
+	}
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	integration := storage.Integration{
+		ApplicationID: in.Id,
+		Kind:          handler.HTTPHandlerKind,
+		Settings:      confJSON,
+	}
+	if err = storage.CreateIntegration(a.ctx.DB, &integration); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.EmptyResponse{}, nil
+}
+
+// GetHTTPIntegration returns the HTTP application-itegration.
+func (a *ApplicationAPI) GetHTTPIntegration(ctx context.Context, in *pb.GetHTTPIntegrationRequest) (*pb.HTTPIntegration, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Id, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(a.ctx.DB, in.Id, handler.HTTPHandlerKind)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	var conf handler.HTTPHandlerConfig
+	if err = json.Unmarshal(integration.Settings, &conf); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	var headers []*pb.HTTPIntegrationHeader
+	for k, v := range conf.Headers {
+		headers = append(headers, &pb.HTTPIntegrationHeader{
+			Key:   k,
+			Value: v,
+		})
+
+	}
+
+	return &pb.HTTPIntegration{
+		Id:                   integration.ApplicationID,
+		Headers:              headers,
+		DataUpURL:            conf.DataUpURL,
+		JoinNotificationURL:  conf.JoinNotificationURL,
+		AckNotificationURL:   conf.ACKNotificationURL,
+		ErrorNotificationURL: conf.ErrorNotificationURL,
+	}, nil
+}
+
+// UpdateHTTPIntegration updates the HTTP application-integration.
+func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.HTTPIntegration) (*pb.EmptyResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Id, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(a.ctx.DB, in.Id, handler.HTTPHandlerKind)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	headers := make(map[string]string)
+	for _, h := range in.Headers {
+		headers[h.Key] = h.Value
+	}
+
+	conf := handler.HTTPHandlerConfig{
+		Headers:              headers,
+		DataUpURL:            in.DataUpURL,
+		JoinNotificationURL:  in.JoinNotificationURL,
+		ACKNotificationURL:   in.AckNotificationURL,
+		ErrorNotificationURL: in.ErrorNotificationURL,
+	}
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+	integration.Settings = confJSON
+
+	if err = storage.UpdateIntegration(a.ctx.DB, &integration); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.EmptyResponse{}, nil
+}
+
+// DeleteIntegration deletes the application-integration of the given type.
+func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.DeleteIntegrationRequest) (*pb.EmptyResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Id, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(a.ctx.DB, in.Id, handler.HTTPHandlerKind)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	if err = storage.DeleteIntegration(a.ctx.DB, integration.ID); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.EmptyResponse{}, nil
+}
+
+// ListIntegrations lists all configured integrations.
+func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegrationRequest) (*pb.ListIntegrationResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Id, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integrations, err := storage.GetIntegrationsForApplicationID(a.ctx.DB, in.Id)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	var out pb.ListIntegrationResponse
+	for _, integration := range integrations {
+		switch integration.Kind {
+		case handler.HTTPHandlerKind:
+			out.Kinds = append(out.Kinds, pb.IntegrationKind_HTTP)
+		default:
+			return nil, grpc.Errorf(codes.Internal, "unknown integration kind: %s", integration.Kind)
+		}
+	}
+
+	return &out, nil
 }

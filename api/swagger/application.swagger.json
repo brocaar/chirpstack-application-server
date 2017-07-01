@@ -165,6 +165,146 @@
         ]
       }
     },
+    "/api/applications/{id}/integrations": {
+      "get": {
+        "summary": "ListIntegrations lists all configured integrations.",
+        "operationId": "ListIntegrations",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListIntegrationResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      }
+    },
+    "/api/applications/{id}/integrations/http": {
+      "get": {
+        "summary": "GetHTTPIntegration returns the HTTP application-itegration.",
+        "operationId": "GetHTTPIntegration",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiHTTPIntegration"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteIntegration deletes the application-integration of the given type.",
+        "operationId": "DeleteHTTPIntegration",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiEmptyResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      },
+      "post": {
+        "summary": "CreateHTTPIntegration creates an HTTP application-integration.",
+        "operationId": "CreateHTTPIntegration",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiEmptyResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiHTTPIntegration"
+            }
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      },
+      "put": {
+        "summary": "UpdateHTTPIntegration updates the HTTP application-integration.",
+        "operationId": "UpdateHTTPIntegration",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiEmptyResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiHTTPIntegration"
+            }
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      }
+    },
     "/api/applications/{id}/users": {
       "get": {
         "summary": "ListUsers lists the users for an application.",
@@ -442,6 +582,9 @@
     "apiEmptyApplicationUserResponse": {
       "type": "object"
     },
+    "apiEmptyResponse": {
+      "type": "object"
+    },
     "apiGetApplicationResponse": {
       "type": "object",
       "properties": {
@@ -528,6 +671,59 @@
         }
       }
     },
+    "apiHTTPIntegration": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "The id of the application."
+        },
+        "headers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiHTTPIntegrationHeader"
+          },
+          "description": "The headers to use when making HTTP callbacks."
+        },
+        "dataUpURL": {
+          "type": "string",
+          "description": "The URL to call for uplink data."
+        },
+        "joinNotificationURL": {
+          "type": "string",
+          "description": "The URL to call for join notifications."
+        },
+        "ackNotificationURL": {
+          "type": "string",
+          "description": "The URL to call for ACK notifications (for confirmed downlink data)."
+        },
+        "errorNotificationURL": {
+          "type": "string",
+          "description": "The URL to call for error notifications."
+        }
+      }
+    },
+    "apiHTTPIntegrationHeader": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "title": "Key"
+        },
+        "value": {
+          "type": "string",
+          "title": "Value"
+        }
+      }
+    },
+    "apiIntegrationKind": {
+      "type": "string",
+      "enum": [
+        "HTTP"
+      ],
+      "default": "HTTP"
+    },
     "apiListApplicationResponse": {
       "type": "object",
       "properties": {
@@ -559,6 +755,18 @@
             "$ref": "#/definitions/apiGetApplicationUserResponse"
           },
           "description": "Applications within this result-set."
+        }
+      }
+    },
+    "apiListIntegrationResponse": {
+      "type": "object",
+      "properties": {
+        "kinds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiIntegrationKind"
+          },
+          "description": "The integration kinds associated with the application."
         }
       }
     },

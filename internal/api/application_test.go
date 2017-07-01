@@ -3,6 +3,9 @@ package api
 import (
 	"testing"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
 
@@ -326,6 +329,59 @@ func TestApplicationAPI(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(apps.TotalCount, ShouldEqual, 0)
 					So(apps.Result, ShouldHaveLength, 0)
+				})
+			})
+
+			Convey("When creating a HTTP integration", func() {
+				integration := pb.HTTPIntegration{
+					Id: createResp.Id,
+					Headers: []*pb.HTTPIntegrationHeader{
+						{Key: "Foo", Value: "bar"},
+					},
+					DataUpURL:            "http://up",
+					JoinNotificationURL:  "http://join",
+					AckNotificationURL:   "http://ack",
+					ErrorNotificationURL: "http://error",
+				}
+				_, err := api.CreateHTTPIntegration(ctx, &integration)
+				So(err, ShouldBeNil)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the integration can be retrieved", func() {
+					i, err := api.GetHTTPIntegration(ctx, &pb.GetHTTPIntegrationRequest{Id: createResp.Id})
+					So(err, ShouldBeNil)
+					So(*i, ShouldResemble, integration)
+					So(validator.validatorFuncs, ShouldHaveLength, 1)
+				})
+
+				Convey("Then the integrations can be listed", func() {
+					resp, err := api.ListIntegrations(ctx, &pb.ListIntegrationRequest{Id: createResp.Id})
+					So(err, ShouldBeNil)
+					So(resp.Kinds, ShouldResemble, []pb.IntegrationKind{pb.IntegrationKind_HTTP})
+				})
+
+				Convey("Then the integration can be updated", func() {
+					integration.DataUpURL = "http://up2"
+					integration.JoinNotificationURL = "http://join2"
+					integration.AckNotificationURL = "http://ack2"
+					integration.ErrorNotificationURL = "http://error"
+					_, err := api.UpdateHTTPIntegration(ctx, &integration)
+					So(err, ShouldBeNil)
+					So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+					i, err := api.GetHTTPIntegration(ctx, &pb.GetHTTPIntegrationRequest{Id: createResp.Id})
+					So(err, ShouldBeNil)
+					So(*i, ShouldResemble, integration)
+				})
+
+				Convey("Then the integration can be deleted", func() {
+					_, err := api.DeleteHTTPIntegration(ctx, &pb.DeleteIntegrationRequest{Id: createResp.Id})
+					So(err, ShouldBeNil)
+					So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+					_, err = api.GetHTTPIntegration(ctx, &pb.GetHTTPIntegrationRequest{Id: createResp.Id})
+					So(err, ShouldNotBeNil)
+					So(grpc.Code(err), ShouldEqual, codes.NotFound)
 				})
 			})
 		})

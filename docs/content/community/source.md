@@ -71,6 +71,9 @@ make requirements ui-requirements
 # cleanup workspace
 make clean
 
+# generate the API source-code (run this after changing the .proto files)
+make api
+
 # run the tests
 make test
 

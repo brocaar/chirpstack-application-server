@@ -1,4 +1,4 @@
-package handler
+package httphandler
 
 import (
 	"bytes"
@@ -8,8 +8,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/brocaar/lorawan"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lorawan"
 )
 
 type testHTTPHandler struct {
@@ -23,15 +25,15 @@ func (h *testHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func TestHTTPHandler(t *testing.T) {
-	Convey("Given a test HTTP server and a HTTPHandler instance", t, func() {
-		h := testHTTPHandler{
+func TestHandler(t *testing.T) {
+	Convey("Given a test HTTP server and a Handler instance", t, func() {
+		httpHandler := testHTTPHandler{
 			requests: make(chan *http.Request, 100),
 		}
-		server := httptest.NewServer(&h)
+		server := httptest.NewServer(&httpHandler)
 		defer server.Close()
 
-		conf := HTTPHandlerConfig{
+		conf := HandlerConfig{
 			Headers: map[string]string{
 				"Foo": "Bar",
 			},
@@ -40,61 +42,61 @@ func TestHTTPHandler(t *testing.T) {
 			ACKNotificationURL:   server.URL + "/ack",
 			ErrorNotificationURL: server.URL + "/error",
 		}
-		handler, err := NewHTTPHandler(conf)
+		h, err := NewHandler(conf)
 		So(err, ShouldBeNil)
 
 		Convey("Then SendDataUp sends the correct notification", func() {
-			reqPL := DataUpPayload{
+			reqPL := handler.DataUpPayload{
 				Data: []byte{1, 2, 3, 4},
 			}
-			So(handler.SendDataUp(reqPL), ShouldBeNil)
+			So(h.SendDataUp(reqPL), ShouldBeNil)
 
-			req := <-h.requests
+			req := <-httpHandler.requests
 			So(req.URL.Path, ShouldEqual, "/dataup")
 
-			var pl DataUpPayload
+			var pl handler.DataUpPayload
 			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
 			So(pl, ShouldResemble, reqPL)
 		})
 
 		Convey("Then SendJoinNotification sends the correct notification", func() {
-			reqPL := JoinNotification{
+			reqPL := handler.JoinNotification{
 				DevAddr: lorawan.DevAddr{1, 2, 3, 4},
 			}
-			So(handler.SendJoinNotification(reqPL), ShouldBeNil)
+			So(h.SendJoinNotification(reqPL), ShouldBeNil)
 
-			req := <-h.requests
+			req := <-httpHandler.requests
 			So(req.URL.Path, ShouldEqual, "/join")
 
-			var pl JoinNotification
+			var pl handler.JoinNotification
 			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
 			So(pl, ShouldResemble, reqPL)
 		})
 
 		Convey("Then SendACKNotification sends the correct notification", func() {
-			reqPL := ACKNotification{
+			reqPL := handler.ACKNotification{
 				Reference: "ack-123",
 			}
-			So(handler.SendACKNotification(reqPL), ShouldBeNil)
+			So(h.SendACKNotification(reqPL), ShouldBeNil)
 
-			req := <-h.requests
+			req := <-httpHandler.requests
 			So(req.URL.Path, ShouldEqual, "/ack")
 
-			var pl ACKNotification
+			var pl handler.ACKNotification
 			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
 			So(pl, ShouldResemble, reqPL)
 		})
 
 		Convey("Then SendErrorNotification sends the correct notification", func() {
-			reqPL := ErrorNotification{
+			reqPL := handler.ErrorNotification{
 				Error: "boom!",
 			}
-			So(handler.SendErrorNotification(reqPL), ShouldBeNil)
+			So(h.SendErrorNotification(reqPL), ShouldBeNil)
 
-			req := <-h.requests
+			req := <-httpHandler.requests
 			So(req.URL.Path, ShouldEqual, "/error")
 
-			var pl ErrorNotification
+			var pl handler.ErrorNotification
 			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
 			So(pl, ShouldResemble, reqPL)
 		})

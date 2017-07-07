@@ -33,7 +33,8 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/downlink"
-	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/handler/mqtthandler"
+	"github.com/brocaar/lora-app-server/internal/handler/multihandler"
 	"github.com/brocaar/lora-app-server/internal/migrations"
 	"github.com/brocaar/lora-app-server/internal/static"
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -124,11 +125,11 @@ func setRedisPool(c *cli.Context) error {
 }
 
 func setHandler(c *cli.Context) error {
-	h, err := handler.NewMQTTHandler(common.RedisPool, c.String("mqtt-server"), c.String("mqtt-username"), c.String("mqtt-password"), c.String("mqtt-ca-cert"))
+	h, err := mqtthandler.NewHandler(c.String("mqtt-server"), c.String("mqtt-username"), c.String("mqtt-password"), c.String("mqtt-ca-cert"))
 	if err != nil {
 		return errors.Wrap(err, "setup mqtt handler error")
 	}
-	common.Handler = h
+	common.Handler = multihandler.NewHandler(h)
 	return nil
 }
 

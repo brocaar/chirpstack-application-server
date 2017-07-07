@@ -41,10 +41,14 @@ class UpdatePassword extends Component {
   render() {
     return(
       <div>
-        <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
+        <ol className={"breadcrumb " + (!this.state.user.isAdmin ? 'hidden' : '')}>
           <li><Link to="/users">Users</Link></li>
           <li><Link to={`/users/${this.props.params.userID}/edit`}>{this.state.user.username}</Link></li>
+          <li className="active">Update password</li>
+        </ol>
+        <ol className={"breadcrumb " + (this.state.user.isAdmin ? 'hidden' : '')}>
+          <li>Users</li>
+          <li>{this.state.user.username}</li>
           <li className="active">Update password</li>
         </ol>
         <hr />

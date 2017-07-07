@@ -89,11 +89,10 @@ type Node struct {
 	UsedDevNonces          DevNonceList      `db:"used_dev_nonces"`
 	RelaxFCnt              bool              `db:"relax_fcnt"`
 
-	RXWindow      RXWindow `db:"rx_window"`
-	RXDelay       uint8    `db:"rx_delay"`
-	RX1DROffset   uint8    `db:"rx1_dr_offset"`
-	RX2DR         uint8    `db:"rx2_dr"`
-	ChannelListID *int64   `db:"channel_list_id"`
+	RXWindow    RXWindow `db:"rx_window"`
+	RXDelay     uint8    `db:"rx_delay"`
+	RX1DROffset uint8    `db:"rx1_dr_offset"`
+	RX2DR       uint8    `db:"rx2_dr"`
 
 	ADRInterval        uint32  `db:"adr_interval"`
 	InstallationMargin float64 `db:"installation_margin"`
@@ -132,7 +131,6 @@ func updateNodeSettingsFromApplication(db *sqlx.DB, n *Node) error {
 
 	n.RXDelay = app.RXDelay
 	n.RX1DROffset = app.RX1DROffset
-	n.ChannelListID = app.ChannelListID
 	n.RXWindow = app.RXWindow
 	n.RX2DR = app.RX2DR
 	n.RelaxFCnt = app.RelaxFCnt
@@ -171,7 +169,6 @@ func CreateNode(db *sqlx.DB, n Node) error {
 			rx1_dr_offset,
 			rx_window,
 			rx2_dr,
-			channel_list_id,
 			relax_fcnt,
 			adr_interval,
 			installation_margin,
@@ -179,7 +176,7 @@ func CreateNode(db *sqlx.DB, n Node) error {
 			is_class_c,
 			use_application_settings
 		)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
 		n.ApplicationID,
 		n.Name,
 		n.Description,
@@ -193,7 +190,6 @@ func CreateNode(db *sqlx.DB, n Node) error {
 		n.RX1DROffset,
 		n.RXWindow,
 		n.RX2DR,
-		n.ChannelListID,
 		n.RelaxFCnt,
 		n.ADRInterval,
 		n.InstallationMargin,
@@ -248,13 +244,12 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 			rx1_dr_offset = $12,
 			rx_window = $13,
 			rx2_dr = $14,
-			channel_list_id = $15,
-			relax_fcnt = $16,
-			adr_interval = $17,
-			installation_margin = $18,
-			is_abp = $19,
-			is_class_c = $20,
-			use_application_settings = $21
+			relax_fcnt = $15,
+			adr_interval = $16,
+			installation_margin = $17,
+			is_abp = $18,
+			is_class_c = $19,
+			use_application_settings = $20
 		where dev_eui = $1`,
 		n.DevEUI[:],
 		n.ApplicationID,
@@ -270,7 +265,6 @@ func UpdateNode(db *sqlx.DB, n Node) error {
 		n.RX1DROffset,
 		n.RXWindow,
 		n.RX2DR,
-		n.ChannelListID,
 		n.RelaxFCnt,
 		n.ADRInterval,
 		n.InstallationMargin,
@@ -371,27 +365,4 @@ func GetNodesCountForApplicationID(db *sqlx.DB, applicationID int64) (int, error
 		return 0, errors.Wrap(err, "select error")
 	}
 	return count, nil
-}
-
-// GetCFListForNode returns the CFList for the given node if the
-// used ISM band allows using a CFList.
-func GetCFListForNode(db *sqlx.DB, node Node) (*lorawan.CFList, error) {
-	if node.ChannelListID == nil {
-		return nil, nil
-	}
-
-	var cFList lorawan.CFList
-	cl, err := GetChannelList(db, *node.ChannelListID)
-	if err != nil {
-		return nil, errors.Wrap(err, "get channel list error")
-	}
-
-	if len(cl.Channels) > len(cFList) {
-		return nil, ErrCFListTooManyChannels
-	}
-
-	for i, v := range cl.Channels {
-		cFList[i] = uint32(v)
-	}
-	return &cFList, nil
 }

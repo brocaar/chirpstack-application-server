@@ -13,4 +13,6 @@ var (
 	ErrUserInvalidUsername       = errors.New("username name may only be composed of upper and lower case characters and digits")
 	ErrUserPasswordLength        = errors.New("passwords must be at least 6 characters long")
 	ErrInvalidUsernameOrPassword = errors.New("invalid username or password")
+	ErrOrganizationInvalidName   = errors.New("invalid organization name")
+	ErrGatewayInvalidName        = errors.New("invalid gateway name")
 )

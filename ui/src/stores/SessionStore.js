@@ -16,6 +16,8 @@ class SessionStore extends EventEmitter {
     super();
     this.user = {};
     this.applications = [];
+    this.organizations = [];
+    this.settings = {};
 
     if (this.getToken() !== "") {
       this.fetchProfile(() => {});
@@ -28,6 +30,14 @@ class SessionStore extends EventEmitter {
 
   getToken() {
     return localStorage.getItem("jwt");
+  }
+
+  setOrganizationID(id) {
+    localStorage.setItem("organizationID", id);
+  }
+
+  getOrganizationID() {
+    return localStorage.getItem("organizationID");
   }
 
   getHeader() {
@@ -64,6 +74,18 @@ class SessionStore extends EventEmitter {
           this.applications = [];
         }
 
+        if (typeof(responseData.organizations) !== "undefined") {
+          this.organizations = responseData.organizations;
+        } else {
+          this.organizations = [];
+        }
+
+        if (typeof(responseData.settings) !== "undefined") {
+          this.settings = responseData.settings;
+        } else {
+          this.settings = {};
+        }
+
         this.emit("change");
         callbackFunc();
       })
@@ -72,14 +94,20 @@ class SessionStore extends EventEmitter {
 
   logout(callbackFunc) {
     localStorage.setItem("jwt", "");
+    localStorage.setItem("organizationID", "");
     this.user = {};
     this.applications = [];
+    this.settings = {};
     this.emit("change");
     callbackFunc();
   }
 
   getUser() {
     return this.user;
+  }
+
+  getSetting(key) {
+    return this.settings[key];
   }
 
   isAdmin() {
@@ -90,6 +118,15 @@ class SessionStore extends EventEmitter {
     for (let i = 0; i < this.applications.length; i++) {
       if (Number(this.applications[i].applicationID) === Number(applicationID)) {
         return this.applications[i].isAdmin;
+      }
+    }
+    return false;
+  }
+
+  isOrganizationAdmin(organizationID) {
+    for (let i = 0; i < this.organizations.length; i++) {
+      if (Number(this.organizations[i].organizationID) === Number(organizationID)) {
+        return this.organizations[i].isAdmin;
       }
     }
     return false;

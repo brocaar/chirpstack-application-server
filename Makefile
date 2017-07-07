@@ -1,20 +1,21 @@
-.PHONY: build clean test package package-deb ui api statics requirements ui-requirements serve update-vendor
+.PHONY: build clean test package package-deb ui api statics requirements ui-requirements serve update-vendor internal/statics internal/migrations static/swagger/api.swagger.json
 PKGS := $(shell go list ./... | grep -v /vendor |grep -v lora-app-server/api | grep -v /migrations | grep -v /static | grep -v /ui)
 VERSION := $(shell git describe --always)
 GOOS ?= linux
 GOARCH ?= amd64
 
-build:
+build: ui/build internal/statics internal/migrations
 	@echo "Compiling source for $(GOOS) $(GOARCH)"
 	@mkdir -p build
 	@GOOS=$(GOOS) GOARCH=$(GOARCH) go build -ldflags "-X main.version=$(VERSION)" -o build/lora-app-server$(BINEXT) cmd/lora-app-server/main.go
 
 clean:
 	@echo "Cleaning up workspace"
-	@rm -rf build
-	@rm -rf dist/tar/$(VERSION)
+	@rm -rf build dist internal/migrations internal/static ui/build static/static
+	@rm -f static/index.html
+	@rm -rf docs/public
 
-test: statics
+test: internal/statics internal/migrations
 	@echo "Running tests"
 	@for pkg in $(PKGS) ; do \
 		golint $$pkg ; \
@@ -22,32 +23,41 @@ test: statics
 	@go vet $(PKGS)
 	@go test -p 1 -v $(PKGS)
 
-package: clean build
+documentation:
+	@echo "Building documentation"
+	@mkdir -p dist/docs
+	@cd docs && hugo
+	@cd docs/public/ && tar -pczf ../../dist/docs/lora-app-server.tar.gz .
+
+package: build
 	@echo "Creating package for $(GOOS) $(GOARCH)"
 	@mkdir -p dist/tar/$(VERSION)
 	@cp build/* dist/tar/$(VERSION)
 	@cd dist/tar/$(VERSION) && tar -pczf ../lora_app_server_$(VERSION)_$(GOOS)_$(GOARCH).tar.gz .
 	@rm -rf dist/tar/$(VERSION)
 
-package-deb:
+package-deb: package
+	@echo "Building deb package for $(GOOS) $(GOARCH)"
 	@cd packaging && TARGET=deb ./package.sh
 
-ui:
+ui/build:
 	@echo "Building ui"
-	@rm -f static/index.html
-	@rm -rf static/static
-	@rm -rf ui/build
 	@cd ui && npm run build
 	@mv ui/build/* static
-	@echo "Don't forget to run make statics to include the static files in the Go code!"
 
 api:
 	@echo "Generating API code from .proto files"
 	@go generate api/api.go
 
-statics:
+internal/statics internal/migrations: static/swagger/api.swagger.json
 	@echo "Generating static files"
 	@go generate cmd/lora-app-server/main.go
+
+
+static/swagger/api.swagger.json:
+	@echo "Generating combined Swagger JSON"
+	@GOOS="" GOARCH="" go run api/swagger/main.go api/swagger > static/swagger/api.swagger.json
+
 
 # shortcuts for development
 

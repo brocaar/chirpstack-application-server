@@ -26,7 +26,60 @@ func TestUserAPI(t *testing.T) {
 		api := NewUserAPI(lsCtx, validator)
 		apiInternal := NewInternalUserAPI(lsCtx, validator)
 
-		Convey("When creating a user", func() {
+		Convey("When creating an user assigned to an application", func() {
+			org := storage.Organization{
+				Name: "test-org",
+			}
+			So(storage.CreateOrganization(db, &org), ShouldBeNil)
+			app := storage.Application{
+				Name:           "test-app",
+				OrganizationID: org.ID,
+			}
+			So(storage.CreateApplication(db, &app), ShouldBeNil)
+
+			createReq := pb.AddUserRequest{
+				Username: "testuser",
+				Password: "testpasswd",
+				Applications: []*pb.AddUserApplication{
+					{ApplicationID: app.ID, IsAdmin: true},
+				},
+			}
+			createResp, err := api.Create(ctx, &createReq)
+			So(err, ShouldBeNil)
+			So(createResp.Id, ShouldBeGreaterThan, 0)
+
+			users, err := storage.GetApplicationUsers(db, app.ID, 10, 0)
+			So(err, ShouldBeNil)
+			So(users, ShouldHaveLength, 1)
+			So(users[0].UserID, ShouldEqual, createResp.Id)
+			So(users[0].IsAdmin, ShouldBeTrue)
+		})
+
+		Convey("When creating an user assigned to an organization", func() {
+			org := storage.Organization{
+				Name: "test-org",
+			}
+			So(storage.CreateOrganization(db, &org), ShouldBeNil)
+
+			createReq := pb.AddUserRequest{
+				Username: "testuser",
+				Password: "testpasswd",
+				Organizations: []*pb.AddUserOrganization{
+					{OrganizationID: org.ID, IsAdmin: true},
+				},
+			}
+			createResp, err := api.Create(ctx, &createReq)
+			So(err, ShouldBeNil)
+			So(createResp.Id, ShouldBeGreaterThan, 0)
+
+			users, err := storage.GetOrganizationUsers(db, org.ID, 10, 0)
+			So(err, ShouldBeNil)
+			So(users, ShouldHaveLength, 1)
+			So(users[0].UserID, ShouldEqual, createResp.Id)
+			So(users[0].IsAdmin, ShouldBeTrue)
+		})
+
+		Convey("When creating an user", func() {
 			validator.returnIsAdmin = true
 			createReq := &pb.AddUserRequest{
 				Username:   "username",
@@ -49,16 +102,15 @@ func TestUserAPI(t *testing.T) {
 				So(user.SessionTTL, ShouldResemble, createReq.SessionTTL)
 				So(user.IsAdmin, ShouldResemble, createReq.IsAdmin)
 
-				Convey("Then get all users returns a single item", func() {
+				Convey("Then get all users returns 2 items (admin user already there)", func() {
 					users, err := api.List(ctx, &pb.ListUserRequest{
 						Limit:  10,
 						Offset: 0,
 					})
 					So(err, ShouldBeNil)
 					So(validator.validatorFuncs, ShouldHaveLength, 1)
-					So(users.Result, ShouldHaveLength, 1)
-					So(users.TotalCount, ShouldEqual, 1)
-					So(users.Result[0].Username, ShouldResemble, user.Username)
+					So(users.Result, ShouldHaveLength, 2)
+					So(users.TotalCount, ShouldEqual, 2)
 				})
 
 				Convey("Then login in succeeds", func() {
@@ -125,8 +177,8 @@ func TestUserAPI(t *testing.T) {
 							Offset: 0,
 						})
 						So(err, ShouldBeNil)
-						So(users.Result, ShouldHaveLength, 0)
-						So(users.TotalCount, ShouldEqual, 0)
+						So(users.Result, ShouldHaveLength, 1)
+						So(users.TotalCount, ShouldEqual, 1)
 					})
 				})
 			})

@@ -31,7 +31,6 @@ class CreateUser extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/users">Users</Link></li>
           <li className="active">Create user</li>
         </ol>

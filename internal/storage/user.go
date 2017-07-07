@@ -60,9 +60,39 @@ type UserUpdate struct {
 	SessionTTL int32  `db:"session_ttl"`
 }
 
-type UserApplicationAccess struct {
+// UserProfile contains the profile of the user.
+type UserProfile struct {
+	User          UserProfileUser
+	Organizations []UserProfileOrganization
+	Applications  []UserProfileApplication
+}
+
+// UserProfileUser contains the user information of the profile.
+type UserProfileUser struct {
+	ID         int64     `db:"id"`
+	Username   string    `db:"username"`
+	IsAdmin    bool      `db:"is_admin"`
+	IsActive   bool      `db:"is_active"`
+	SessionTTL int32     `db:"session_ttl"`
+	CreatedAt  time.Time `db:"created_at"`
+	UpdatedAt  time.Time `db:"updated_at"`
+}
+
+// UserProfileApplication contains the applications to which the user
+// is linked.
+type UserProfileApplication struct {
 	ID        int64     `db:"application_id"`
 	Name      string    `db:"application_name"`
+	IsAdmin   bool      `db:"is_admin"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+// UserProfileOrganization contains the organizations to which the user
+// is linked.
+type UserProfileOrganization struct {
+	ID        int64     `db:"organization_id"`
+	Name      string    `db:"organization_name"`
 	IsAdmin   bool      `db:"is_admin"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
@@ -102,7 +132,7 @@ func ValidatePassword(password string) error {
 }
 
 // CreateApplication creates the given Application.
-func CreateUser(db *sqlx.DB, user *User, password string) (int64, error) {
+func CreateUser(db sqlx.Queryer, user *User, password string) (int64, error) {
 	if err := ValidateUsername(user.Username); err != nil {
 		return 0, errors.Wrap(err, "validation error")
 	}
@@ -120,7 +150,7 @@ func CreateUser(db *sqlx.DB, user *User, password string) (int64, error) {
 	user.UpdatedAt = time.Now()
 
 	// Add the new user.
-	err = db.Get(&user.ID, `
+	err = sqlx.Get(db, &user.ID, `
 		insert into "user" (
 			username,
 			password_hash,
@@ -414,22 +444,61 @@ func UpdatePassword(db *sqlx.DB, id int64, newpassword string) error {
 
 }
 
-// Gets the User Profile, which is the set of applications the user can interact
-// with, including permissions.
-func GetProfile(db *sqlx.DB, id int64) ([]UserApplicationAccess, error) {
-	// Get the user applications.
-	var userProfile []UserApplicationAccess
-	err := db.Select(&userProfile,
-		`select au.application_id as application_id,
-                              a.name as application_name,
-                              au.is_admin as is_admin,
-                              au.created_at as created_at,
-                              au.updated_at as updated_at
-                       from application_user au, application a
-                       where au.user_id = $1 and au.application_id = a.id`,
+// GetProfile returns the user profile (user, applications and organizations
+// to which the user is linked).
+func GetProfile(db *sqlx.DB, id int64) (UserProfile, error) {
+	var prof UserProfile
+
+	user, err := GetUser(db, id)
+	if err != nil {
+		return prof, errors.Wrap(err, "get user error")
+	}
+	prof.User = UserProfileUser{
+		ID:         user.ID,
+		Username:   user.Username,
+		SessionTTL: user.SessionTTL,
+		IsAdmin:    user.IsAdmin,
+		IsActive:   user.IsActive,
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
+	}
+
+	err = db.Select(&prof.Applications, `
+		select
+			au.application_id as application_id,
+			a.name as application_name,
+			au.is_admin as is_admin,
+			au.created_at as created_at,
+			au.updated_at as updated_at
+		from
+			application_user au,
+			application a
+		where
+			au.user_id = $1
+			and au.application_id = a.id`,
 		id)
 	if err != nil {
-		return nil, errors.Wrap(err, "select error")
+		return prof, errors.Wrap(err, "select error")
 	}
-	return userProfile, nil
+
+	err = db.Select(&prof.Organizations, `
+		select
+			ou.organization_id as organization_id,
+			o.name as organization_name,
+			ou.is_admin as is_admin,
+			ou.created_at as created_at,
+			ou.updated_at as updated_at
+		from
+			organization_user ou,
+			organization o
+		where
+			ou.user_id = $1
+			and ou.organization_id = o.id`,
+		id,
+	)
+	if err != nil {
+		return prof, errors.Wrap(err, "select error")
+	}
+
+	return prof, nil
 }

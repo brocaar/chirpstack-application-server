@@ -3,11 +3,9 @@ package storage
 import (
 	"testing"
 
-	"github.com/brocaar/lorawan"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/test"
 )
 
@@ -60,66 +58,22 @@ func TestValidateDevNonce(t *testing.T) {
 	})
 }
 
-func TestGetCFListForNode(t *testing.T) {
-	conf := test.GetConfig()
-	Convey("Given an application, node (without channel-list) and channel-list with 2 channels", t, func() {
-		db, err := OpenDatabase(conf.PostgresDSN)
-		So(err, ShouldBeNil)
-		test.MustResetDB(db)
-		ctx := common.Context{
-			DB: db,
-		}
-		channelList := ChannelList{
-			Name: "test channels",
-			Channels: []int64{
-				868400000,
-				868500000,
-			},
-		}
-		So(CreateChannelList(ctx.DB, &channelList), ShouldBeNil)
-		app := Application{
-			Name: "test",
-		}
-		So(CreateApplication(db, &app), ShouldBeNil)
-		node := Node{
-			ApplicationID: app.ID,
-			Name:          "test-node",
-			DevEUI:        [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
-		}
-		So(CreateNode(ctx.DB, node), ShouldBeNil)
-		Convey("Then GetCFListForNode returns nil", func() {
-			cFList, err := GetCFListForNode(ctx.DB, node)
-			So(err, ShouldBeNil)
-			So(cFList, ShouldBeNil)
-		})
-		Convey("Given the node has the channel-list configured", func() {
-			node.ChannelListID = &channelList.ID
-			So(UpdateNode(ctx.DB, node), ShouldBeNil)
-			Convey("Then GetCFListForNode returns the CFList with the configured channels", func() {
-				cFList, err := GetCFListForNode(ctx.DB, node)
-				So(err, ShouldBeNil)
-				So(cFList, ShouldResemble, &lorawan.CFList{
-					868400000,
-					868500000,
-					0,
-					0,
-					0,
-				})
-			})
-		})
-	})
-}
-
 func TestNodeMethods(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database with an application", t, func() {
+	Convey("Given a clean database with an organization and application", t, func() {
 		db, err := OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
+		org := Organization{
+			Name: "test-org",
+		}
+		So(CreateOrganization(db, &org), ShouldBeNil)
+
 		app := Application{
-			Name: "test",
+			OrganizationID: org.ID,
+			Name:           "test",
 		}
 		So(CreateApplication(db, &app), ShouldBeNil)
 

@@ -54,13 +54,13 @@ A few example commands that you can run:
 # install all requirements
 make requirements ui-requirements
 
+# cleanup workspace
+make clean
+
 # run the tests
 make test
 
-# build ui (requires NodeJS) and generate static files
-make ui statics 
-
-# compile
+# compile (this will also compile the ui and generate the static files)
 make build
 
 # cross-compile for Linux ARM

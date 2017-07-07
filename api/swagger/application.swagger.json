@@ -43,6 +43,14 @@
             "required": false,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "organizationID",
+            "description": "ID of the organization to filter on.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -356,21 +364,6 @@
         }
       }
     },
-    "apiApplicationUserRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "title": "The application id"
-        },
-        "userID": {
-          "type": "string",
-          "format": "int64",
-          "title": "The user id"
-        }
-      }
-    },
     "apiCreateApplicationRequest": {
       "type": "object",
       "properties": {
@@ -391,11 +384,6 @@
           "type": "integer",
           "format": "int64",
           "description": "RX1 data-rate offset."
-        },
-        "channelListID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region)."
         },
         "rxWindow": {
           "$ref": "#/definitions/apiRXWindow",
@@ -430,6 +418,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Node operates in Class-C."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization to which the application belongs."
         }
       }
     },
@@ -443,31 +436,11 @@
         }
       }
     },
-    "apiDeleteApplicationRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application."
-        }
-      }
-    },
     "apiDeleteApplicationResponse": {
       "type": "object"
     },
     "apiEmptyApplicationUserResponse": {
       "type": "object"
-    },
-    "apiGetApplicationRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "Name of the application."
-        }
-      }
     },
     "apiGetApplicationResponse": {
       "type": "object",
@@ -495,11 +468,6 @@
           "format": "int64",
           "description": "RX1 data-rate offset."
         },
-        "channelListID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region)."
-        },
         "rxWindow": {
           "$ref": "#/definitions/apiRXWindow",
           "description": "RX window to use."
@@ -533,6 +501,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Node operates in Class-C."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization to which the application belongs."
         }
       }
     },
@@ -555,21 +528,6 @@
         }
       }
     },
-    "apiListApplicationRequest": {
-      "type": "object",
-      "properties": {
-        "limit": {
-          "type": "string",
-          "format": "int64",
-          "description": "Max number of applications to return in the result-test."
-        },
-        "offset": {
-          "type": "string",
-          "format": "int64",
-          "description": "Offset in the result-set (for pagination)."
-        }
-      }
-    },
     "apiListApplicationResponse": {
       "type": "object",
       "properties": {
@@ -584,26 +542,6 @@
             "$ref": "#/definitions/apiGetApplicationResponse"
           },
           "description": "Applications within this result-set."
-        }
-      }
-    },
-    "apiListApplicationUsersRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "title": "The id of the application"
-        },
-        "limit": {
-          "type": "string",
-          "format": "int64",
-          "description": "Max number of applications to return in the result-test."
-        },
-        "offset": {
-          "type": "string",
-          "format": "int64",
-          "description": "Offset in the result-set (for pagination)."
         }
       }
     },
@@ -658,11 +596,6 @@
           "format": "int64",
           "description": "RX1 data-rate offset."
         },
-        "channelListID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region)."
-        },
         "rxWindow": {
           "$ref": "#/definitions/apiRXWindow",
           "description": "RX window to use."
@@ -696,6 +629,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Node operates in Class-C."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization to which the application belongs."
         }
       }
     },

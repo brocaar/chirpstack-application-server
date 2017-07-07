@@ -10,9 +10,11 @@
 /internal/static
 /internal/migrations
 /static/static
+/static/swagger/api.swagger.json
 /static/index.html
 /static/asset-manifest.json
 /ui/build
+/docs/public
 
 # certificates
 /certs

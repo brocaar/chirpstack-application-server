@@ -77,7 +77,7 @@ func TestJWTValidator(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				ctx := context.Background()
-				ctx = metadata.NewContext(ctx, metadata.MD{
+				ctx = metadata.NewIncomingContext(ctx, metadata.MD{
 					"authorization": []string{ss},
 				})
 

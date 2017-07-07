@@ -95,6 +95,25 @@ class NodeStore extends EventEmitter {
       })
       .catch(errorHandler);
   }
+
+  getFrameLogs(devEUI, pageSize, offset, callbackFunc) {
+    fetch("/api/nodes/"+devEUI+"/frames?limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        if(typeof(responseData.result) === "undefined") {
+          callbackFunc(0, []);
+        } else {
+          callbackFunc(responseData.totalCount, responseData.result.map((row, i) => { return {
+            createdAt: row.createdAt,
+            rxInfoSet: row.rxInfoSet,
+            txInfo: row.txInfo,
+            phyPayload: JSON.parse(row.phyPayloadJSON),
+          }}));
+        }
+      })
+      .catch(errorHandler);
+  }
 }
 
 const nodeStore = new NodeStore();

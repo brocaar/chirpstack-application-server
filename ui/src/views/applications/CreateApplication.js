@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { Link } from "react-router";
 
 import ApplicationStore from "../../stores/ApplicationStore";
 import ApplicationForm from "../../components/ApplicationForm";
@@ -19,23 +18,24 @@ class CreateApplication extends Component {
 
   onSubmit(application) {
     ApplicationStore.createApplication(application, (responseData) => {
-      this.context.router.push('/applications/'+responseData.id);
+      this.context.router.push('/organizations/'+this.props.params.organizationID+'/applications/'+responseData.id);
     });
   }
 
+  componentWillMount() {
+    this.setState({
+      application: {organizationID: this.props.params.organizationID},
+    });
+  } 
+
   render() {
     return (
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
-          <li><Link to="/applications">Applications</Link></li>
-          <li className="active">Create application</li>
-        </ol>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} />
-          </div>
+      <div className="panel panel-default">
+        <div className="panel-heading">
+          <h3 className="panel-title panel-title-buttons">Create application</h3>
+        </div>
+        <div className="panel-body">
+          <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} />
         </div>
       </div>
     );

@@ -1,6 +1,9 @@
 package api
 
 import (
+	"encoding/hex"
+	"encoding/json"
+
 	log "github.com/Sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -73,9 +76,6 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 		ADRInterval:        req.AdrInterval,
 		InstallationMargin: req.InstallationMargin,
 	}
-	if req.ChannelListID > 0 {
-		node.ChannelListID = &req.ChannelListID
-	}
 
 	if err := storage.CreateNode(a.ctx.DB, node); err != nil {
 		return nil, errToRPCError(err)
@@ -118,10 +118,6 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 		InstallationMargin:     node.InstallationMargin,
 		ApplicationID:          node.ApplicationID,
 		UseApplicationSettings: node.UseApplicationSettings,
-	}
-
-	if node.ChannelListID != nil {
-		resp.ChannelListID = *node.ChannelListID
 	}
 
 	return &resp, nil
@@ -185,11 +181,6 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 	node.InstallationMargin = req.InstallationMargin
 	node.ApplicationID = req.ApplicationID
 	node.UseApplicationSettings = req.UseApplicationSettings
-	if req.ChannelListID > 0 {
-		node.ChannelListID = &req.ChannelListID
-	} else {
-		node.ChannelListID = nil
-	}
 
 	if err := storage.UpdateNode(a.ctx.DB, node); err != nil {
 		return nil, errToRPCError(err)
@@ -278,11 +269,6 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 		DevEUI: node.DevEUI[:],
 	})
 
-	cFList, err := storage.GetCFListForNode(a.ctx.DB, node)
-	if err != nil {
-		return nil, errToRPCError(err)
-	}
-
 	createNSReq := ns.CreateNodeSessionRequest{
 		DevAddr:            devAddr[:],
 		AppEUI:             node.AppEUI[:],
@@ -297,11 +283,6 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 		RelaxFCnt:          node.RelaxFCnt,
 		AdrInterval:        node.ADRInterval,
 		InstallationMargin: node.InstallationMargin,
-	}
-	if cFList != nil {
-		for _, freq := range cFList {
-			createNSReq.CFList = append(createNSReq.CFList, freq)
-		}
 	}
 
 	_, err = a.ctx.NetworkServer.CreateNodeSession(context.Background(), &createNSReq)
@@ -364,6 +345,89 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetNodeActivationRe
 	}, nil
 }
 
+func (a *NodeAPI) GetFrameLogs(ctx context.Context, req *pb.GetFrameLogsRequest) (*pb.GetFrameLogsResponse, error) {
+	var devEUI lorawan.EUI64
+
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNodeAccess(devEUI, auth.Read)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	resp, err := a.ctx.NetworkServer.GetFrameLogsForDevEUI(ctx, &ns.GetFrameLogsForDevEUIRequest{
+		DevEUI: devEUI[:],
+		Limit:  int32(req.Limit),
+		Offset: int32(req.Offset),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	out := pb.GetFrameLogsResponse{
+		TotalCount: resp.TotalCount,
+	}
+
+	for i := range resp.Result {
+		log := pb.FrameLog{
+			CreatedAt: resp.Result[i].CreatedAt,
+		}
+
+		if txInfo := resp.Result[i].TxInfo; txInfo != nil {
+			log.TxInfo = &pb.TXInfo{
+				CodeRate:    txInfo.CodeRate,
+				Frequency:   txInfo.Frequency,
+				Immediately: txInfo.Immediately,
+				Mac:         hex.EncodeToString(txInfo.Mac),
+				Power:       txInfo.Power,
+				Timestamp:   txInfo.Timestamp,
+				DataRate: &pb.DataRate{
+					Modulation:   txInfo.DataRate.Modulation,
+					BandWidth:    txInfo.DataRate.BandWidth,
+					SpreadFactor: txInfo.DataRate.SpreadFactor,
+					Bitrate:      txInfo.DataRate.Bitrate,
+				},
+			}
+		}
+
+		for _, rxInfo := range resp.Result[i].RxInfoSet {
+			log.RxInfoSet = append(log.RxInfoSet, &pb.RXInfo{
+				Channel:   rxInfo.Channel,
+				CodeRate:  rxInfo.CodeRate,
+				Frequency: rxInfo.Frequency,
+				LoRaSNR:   rxInfo.LoRaSNR,
+				Rssi:      rxInfo.Rssi,
+				Time:      rxInfo.Time,
+				Timestamp: rxInfo.Timestamp,
+				Mac:       hex.EncodeToString(rxInfo.Mac),
+				DataRate: &pb.DataRate{
+					Modulation:   rxInfo.DataRate.Modulation,
+					BandWidth:    rxInfo.DataRate.BandWidth,
+					SpreadFactor: rxInfo.DataRate.SpreadFactor,
+					Bitrate:      rxInfo.DataRate.Bitrate,
+				},
+			})
+		}
+
+		var phy lorawan.PHYPayload
+		if err = phy.UnmarshalBinary(resp.Result[i].PhyPayload); err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		phyB, err := json.Marshal(phy)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		log.PhyPayloadJSON = string(phyB)
+
+		out.Result = append(out.Result, &log)
+	}
+
+	return &out, nil
+}
+
 // GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
 func (a *NodeAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAddrRequest) (*pb.GetRandomDevAddrResponse, error) {
 	resp, err := a.ctx.NetworkServer.GetRandomDevAddr(context.Background(), &ns.GetRandomDevAddrRequest{})
@@ -401,10 +465,6 @@ func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeRespo
 			InstallationMargin:     node.InstallationMargin,
 			ApplicationID:          node.ApplicationID,
 			UseApplicationSettings: node.UseApplicationSettings,
-		}
-
-		if node.ChannelListID != nil {
-			item.ChannelListID = *node.ChannelListID
 		}
 
 		resp.Result = append(resp.Result, &item)

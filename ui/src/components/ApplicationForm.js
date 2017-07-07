@@ -1,27 +1,52 @@
 import React, { Component } from 'react';
 
-import ChannelStore from "../stores/ChannelStore";
+import Select from "react-select";
+
+import SessionStore from "../stores/SessionStore";
+import OrganizationStore from "../stores/OrganizationStore";
+
 
 class ApplicationForm extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
+  };
+
   constructor() {
     super();
     this.state = {
       activeTab: "application",
       application: {},
-      channelLists: [],
+      isGlobalAdmin: false,
     };
-
-    ChannelStore.getAllChannelLists((lists) => {
-      this.setState({channelLists: lists});
-    });
 
     this.handleSubmit = this.handleSubmit.bind(this);
     this.changeTab = this.changeTab.bind(this);
+    this.onOrganizationAutocomplete = this.onOrganizationAutocomplete.bind(this);
+    this.onOrganizationSelect = this.onOrganizationSelect.bind(this);
+    this.setSelectedOrganization = this.setSelectedOrganization.bind(this);
+    this.setInitialOrganizations = this.setInitialOrganizations.bind(this);
+  }
+
+  componentDidMount() {
+    this.setState({
+      application: this.props.application,
+      isGlobalAdmin: SessionStore.isAdmin(),
+    }, () => {
+      this.setSelectedOrganization();
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isGlobalAdmin: SessionStore.isAdmin(),
+      });
+    });
   }
 
   componentWillReceiveProps(nextProps) {
     this.setState({
       application: nextProps.application,
+    }, () => {
+      this.setSelectedOrganization();
     });
   }
 
@@ -49,6 +74,60 @@ class ApplicationForm extends Component {
     });
   }
 
+  onOrganizationAutocomplete(input, callbackFunc) {
+    OrganizationStore.getAll(input, 10, 0, (totalCount, orgs) => {
+      const options = orgs.map((org, i) => {
+        return {
+          value: org.id,
+          label: org.displayName,
+        };
+      });
+
+      callbackFunc(null, {
+        options: options,
+        complete: true,
+      });
+    });
+  }
+
+  onOrganizationSelect(val) {
+    let application = this.state.application;
+    application.organizationID = val.value;
+    this.setState({
+      application: application,
+      initialOrganizationOptions: [val],
+    });
+  }
+
+  setSelectedOrganization() {
+    if (typeof(this.state.application.organizationID) === "undefined") {
+      return;
+    }
+    OrganizationStore.getOrganization(this.state.application.organizationID, (org) => {
+      this.setState({
+        initialOrganizationOptions: [{
+          value: org.id,
+          label: org.displayName,
+        }],
+      });
+    });
+  }
+
+  setInitialOrganizations() {
+    OrganizationStore.getAll("", 10, 0, (totalCount, orgs) => {
+      const options = orgs.map((org, i) => {
+        return {
+          value: org.id,
+          label: org.displayName,
+        };
+      });
+
+      this.setState({
+        initialOrganizationOptions: options,
+      });
+    });
+  }
+
   render() {
     return (
       <div>
@@ -69,6 +148,21 @@ class ApplicationForm extends Component {
             <div className="form-group">
               <label className="control-label" htmlFor="name">Application description</label>
               <input className="form-control" id="description" type="text" placeholder="a short description of your application" required value={this.state.application.description || ''} onChange={this.onChange.bind(this, 'description')} />
+            </div>
+            <div className={"form-group " + (this.state.isGlobalAdmin && this.props.update ? '' : 'hidden')}>
+              <label className="control-label" htmlFor="organization">Organization</label>
+              <Select.Async
+                name="organization"
+                required
+                options={this.state.initialOrganizationOptions}
+                loadOptions={this.onOrganizationAutocomplete}
+                value={this.state.application.organizationID}
+                onChange={this.onOrganizationSelect}
+                clearable={false}
+                autoload={false}
+                onOpen={this.setInitialOrganizations}
+              /> 
+              <p className="help-block">Note that moving an application to a different organization can only be done by global admin users.</p>
             </div>
           </div>
           <div className={(this.state.activeTab === "network-settings" ? '' : 'hidden')}>
@@ -137,21 +231,6 @@ class ApplicationForm extends Component {
               </p>
             </div>
             <div className="form-group">
-              <label className="control-label" htmlFor="channelListID">Channel-list</label>
-              <select className="form-control" id="channelListID" name="channelListID" value={this.state.application.channelListID} onChange={this.onChange.bind(this, "channelListID")}>
-                <option value="0"></option>
-                {
-                  this.state.channelLists.map((cl, i) => {
-                    return (<option key={cl.id} value={cl.id}>{cl.name}</option>);
-                  })
-                }
-              </select>
-              <p className="help-block">
-                Some LoRaWAN ISM bands implement an optional channel-frequency list that can be sent when using OTAA.
-                Please refer to the LoRaWAN specs for the values that are valid in your region.
-              </p>
-            </div>
-            <div className="form-group">
               <label className="control-label" htmlFor="adrInterval">ADR interval</label>
               <input className="form-control" id="adrInterval" type="number" required value={this.state.application.adrInterval || 0} onChange={this.onChange.bind(this, 'adrInterval')} />
               <p className="help-block">
@@ -170,7 +249,10 @@ class ApplicationForm extends Component {
             </div>
           </div>
           <hr />
-          <button type="submit" className="btn btn-primary pull-right">Submit</button>
+          <div className="btn-toolbar pull-right">
+            <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+            <button type="submit" className="btn btn-primary">Submit</button>
+          </div>
         </form>
       </div>
     );

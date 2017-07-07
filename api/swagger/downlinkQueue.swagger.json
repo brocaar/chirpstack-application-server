@@ -105,20 +105,6 @@
     }
   },
   "definitions": {
-    "apiDeleteDownlinkQeueueItemRequest": {
-      "type": "object",
-      "properties": {
-        "devEUI": {
-          "type": "string",
-          "description": "Hex encoded DevEUI of the node."
-        },
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the queue item to delete."
-        }
-      }
-    },
     "apiDeleteDownlinkQueueItemResponse": {
       "type": "object"
     },
@@ -190,15 +176,6 @@
     },
     "apiEnqueueDownlinkQueueItemResponse": {
       "type": "object"
-    },
-    "apiListDownlinkQueueItemsRequest": {
-      "type": "object",
-      "properties": {
-        "devEUI": {
-          "type": "string",
-          "description": "Hex encoded DevEUI of the node."
-        }
-      }
     },
     "apiListDownlinkQueueItemsResponse": {
       "type": "object",

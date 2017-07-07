@@ -36,7 +36,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/migrations"
 	"github.com/brocaar/lora-app-server/internal/static"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lora-app-server/internal/storage/nsmigrate"
+	"github.com/brocaar/lora-app-server/internal/storage/gwmigrate"
 	"github.com/brocaar/loraserver/api/as"
 	"github.com/brocaar/loraserver/api/ns"
 )
@@ -75,18 +75,19 @@ func run(c *cli.Context) error {
 			log.Fatalf("applying migrations failed: %s", err)
 		}
 		log.WithField("count", n).Info("migrations applied")
-
 	}
 
-	if c.Bool("migrate-node-sessions") {
-		log.Info("migrating node-session data from Redis")
-		nsmigrate.Migrate(lsCtx)
+	// migrate gateway data from LoRa Server
+	if err := gwmigrate.MigrateGateways(lsCtx); err != nil {
+		log.Fatalf("migrate gateway data error: %s", err)
 	}
 
 	// Set up the JWT secret for making tokens
 	storage.SetUserSecret(c.String("jwt-secret"))
 	// Set the password hash iterations
 	storage.HashIterations = c.Int("pw-hash-iterations")
+	// Setup DisableAssignExisitngUsers
+	auth.DisableAssignExistingUsers = c.Bool("disable-assign-existing-users")
 
 	// handle incoming downlink payloads
 	go downlink.HandleDataDownPayloads(lsCtx, lsCtx.Handler.DataDownChan())
@@ -174,7 +175,7 @@ func mustGetContext(c *cli.Context) common.Context {
 	rp := storage.NewRedisPool(c.String("redis-url"))
 
 	// setup mqtt handler
-	h, err := handler.NewMQTTHandler(rp, c.String("mqtt-server"), c.String("mqtt-username"), c.String("mqtt-password"))
+	h, err := handler.NewMQTTHandler(rp, c.String("mqtt-server"), c.String("mqtt-username"), c.String("mqtt-password"), c.String("mqtt-ca-cert"))
 	if err != nil {
 		log.Fatalf("setup mqtt handler error: %s", err)
 	}
@@ -218,11 +219,12 @@ func mustGetClientAPIServer(ctx context.Context, lsCtx common.Context, c *cli.Co
 
 	gs := grpc.NewServer()
 	pb.RegisterApplicationServer(gs, api.NewApplicationAPI(lsCtx, validator))
-	pb.RegisterChannelListServer(gs, api.NewChannelListAPI(lsCtx, validator))
 	pb.RegisterDownlinkQueueServer(gs, api.NewDownlinkQueueAPI(lsCtx, validator))
 	pb.RegisterNodeServer(gs, api.NewNodeAPI(lsCtx, validator))
 	pb.RegisterUserServer(gs, api.NewUserAPI(lsCtx, validator))
 	pb.RegisterInternalServer(gs, api.NewInternalUserAPI(lsCtx, validator))
+	pb.RegisterGatewayServer(gs, api.NewGatewayAPI(lsCtx, validator))
+	pb.RegisterOrganizationServer(gs, api.NewOrganizationAPI(lsCtx, validator))
 
 	return gs
 }
@@ -301,10 +303,6 @@ func mustGetJSONGateway(ctx context.Context, lsCtx common.Context, c *cli.Contex
 	if err := pb.RegisterApplicationHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		log.Fatalf("register application handler error: %s", err)
 	}
-
-	if err := pb.RegisterChannelListHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
-		log.Fatalf("register channel-list handler error: %s", err)
-	}
 	if err := pb.RegisterDownlinkQueueHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		log.Fatalf("register downlink queue handler error: %s", err)
 	}
@@ -316,6 +314,12 @@ func mustGetJSONGateway(ctx context.Context, lsCtx common.Context, c *cli.Contex
 	}
 	if err := pb.RegisterInternalHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		log.Fatalf("register internal handler error: %s", err)
+	}
+	if err := pb.RegisterGatewayHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+		log.Fatalf("register gateway handler error: %s", err)
+	}
+	if err := pb.RegisterOrganizationHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+		log.Fatalf("register organization handler error: %s", err)
 	}
 
 	return mux
@@ -374,11 +378,6 @@ func main() {
 			Usage:  "automatically apply database migrations",
 			EnvVar: "DB_AUTOMIGRATE",
 		},
-		cli.BoolFlag{
-			Name:   "migrate-node-sessions",
-			Usage:  "migrate some of the node-session data to the application-server storage (run this once when migrating from loraserver 0.11.x)",
-			EnvVar: "MIGRATE_NODE_SESSIONS",
-		},
 		cli.StringFlag{
 			Name:   "redis-url",
 			Usage:  "redis url (e.g. redis://user:password@hostname/0)",
@@ -400,6 +399,11 @@ func main() {
 			Name:   "mqtt-password",
 			Usage:  "mqtt server password (optional)",
 			EnvVar: "MQTT_PASSWORD",
+		},
+		cli.StringFlag{
+			Name:   "mqtt-ca-cert",
+			Usage:  "mqtt CA certificate file used by the gateway backend (optional)",
+			EnvVar: "MQTT_CA_CERT",
 		},
 		cli.StringFlag{
 			Name:   "ca-cert",
@@ -475,6 +479,11 @@ func main() {
 			Value:  4,
 			Usage:  "debug=5, info=4, warning=3, error=2, fatal=1, panic=0",
 			EnvVar: "LOG_LEVEL",
+		},
+		cli.BoolFlag{
+			Name:   "disable-assign-existing-users",
+			Usage:  "when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)",
+			EnvVar: "DISABLE_ASSIGN_EXISTING_USERS",
 		},
 	}
 	app.Run(os.Args)

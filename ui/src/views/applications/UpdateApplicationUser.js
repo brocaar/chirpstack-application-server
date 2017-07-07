@@ -4,6 +4,10 @@ import { Link } from 'react-router';
 import ApplicationStore from "../../stores/ApplicationStore";
 
 class UpdateApplicationUserForm extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
+  };
+
   constructor() {
     super();
 
@@ -57,7 +61,10 @@ class UpdateApplicationUserForm extends Component {
           </p>
         </div>
         <hr />
-        <button type="submit" className="btn btn-primary pull-right">Submit</button>
+        <div className="btn-toolbar pull-right">
+          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <button type="submit" className="btn btn-primary">Submit</button>
+        </div>
       </form>
     );
   }
@@ -96,38 +103,29 @@ class UpdateApplicationUser extends Component {
 
   onSubmit(user) {
     ApplicationStore.updateUser(this.props.params.applicationID, this.props.params.userID, user, (responseData) => {
-      this.context.router.push("/applications/"+this.props.params.applicationID+"/users");
+      this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID+"/users");
     });
   }
 
   onDelete() {
     if (confirm("Are you sure you want to delete this application user (this does not remove the user itself)?")) {
       ApplicationStore.removeUser(this.props.params.applicationID, this.props.params.userID, (responseData) => {
-        this.context.router.push("/applications/"+this.props.params.applicationID+"/users");
+        this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID+"/users");
       }); 
     }
   }
 
   render() {
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
-          <li><Link to="/applications">Applications</Link></li>
-          <li><Link to={`/applications/${this.state.application.id}`}>{this.state.application.name}</Link></li>
-          <li><Link to={`/applications/${this.state.application.id}/users`}>Users</Link></li>
-          <li className="active">{this.state.user.username}</li>
-        </ol>
-        <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Remove user</button></Link>
+      <div className="panel panel-default">
+        <div className="panel-heading clearfix">
+          <h3 className="panel-title panel-title-buttons pull-left">Update user</h3>
+          <div className="btn-group pull-right">
+            <Link><button type="button" className="btn btn-danger btn-sm" onClick={this.onDelete}>Remove user</button></Link>
           </div>
         </div>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <UpdateApplicationUserForm user={this.state.user} onSubmit={this.onSubmit}  />
-          </div>
+        <div className="panel-body">
+          <UpdateApplicationUserForm user={this.state.user} onSubmit={this.onSubmit}  />
         </div>
       </div>
     );

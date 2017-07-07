@@ -21,13 +21,19 @@ import (
 func TestApplicationServerAPI(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database with application + node and api instance", t, func() {
+	Convey("Given a clean database with organization, application + node and api instance", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
+		org := storage.Organization{
+			Name: "test-org",
+		}
+		So(storage.CreateOrganization(db, &org), ShouldBeNil)
+
 		app := storage.Application{
-			Name: "test-app",
+			OrganizationID: org.ID,
+			Name:           "test-app",
 		}
 		So(storage.CreateApplication(db, &app), ShouldBeNil)
 		node := storage.Node{
@@ -107,10 +113,14 @@ func TestApplicationServerAPI(t *testing.T) {
 					Data:   []byte{1, 2, 3, 4},
 					RxInfo: []*as.RXInfo{
 						{
-							Mac:     []byte{1, 2, 3, 4, 5, 6, 7, 8},
-							Time:    now.Format(time.RFC3339Nano),
-							Rssi:    -60,
-							LoRaSNR: 5,
+							Mac:       []byte{1, 2, 3, 4, 5, 6, 7, 8},
+							Name:      "test-gateway",
+							Latitude:  52.3740364,
+							Longitude: 4.9144401,
+							Altitude:  10,
+							Time:      now.Format(time.RFC3339Nano),
+							Rssi:      -60,
+							LoRaSNR:   5,
 						},
 					},
 					TxInfo: &as.TXInfo{
@@ -137,10 +147,14 @@ func TestApplicationServerAPI(t *testing.T) {
 						DevEUI:          node.DevEUI,
 						RXInfo: []handler.RXInfo{
 							{
-								MAC:     mac,
-								Time:    &now,
-								RSSI:    -60,
-								LoRaSNR: 5,
+								MAC:       mac,
+								Name:      "test-gateway",
+								Latitude:  52.3740364,
+								Longitude: 4.9144401,
+								Altitude:  10,
+								Time:      &now,
+								RSSI:      -60,
+								LoRaSNR:   5,
 							},
 						},
 						TXInfo: handler.TXInfo{
@@ -180,8 +194,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 			})
 
-			Convey("When calling JoinRequest", func() {
-
+			Convey("When calling JoinRequest without any additional channels", func() {
 				req := as.JoinRequestRequest{
 					PhyPayload: b,
 					DevAddr:    []byte{1, 2, 3, 4},
@@ -198,10 +211,9 @@ func TestApplicationServerAPI(t *testing.T) {
 					So(resp.NwkSKey, ShouldResemble, node.NwkSKey[:])
 					So(resp.RxDelay, ShouldEqual, uint32(node.RXDelay))
 					So(resp.Rx1DROffset, ShouldEqual, uint32(node.RX1DROffset))
-					So(resp.CFList, ShouldHaveLength, 0)
 					So(resp.RxWindow, ShouldEqual, as.RXWindow_RX2)
 					So(resp.Rx2DR, ShouldEqual, uint32(node.RX2DR))
-					So(resp.RelaxFCnt, ShouldBeTrue)
+					So(resp.DisableFCntCheck, ShouldBeTrue)
 					So(resp.InstallationMargin, ShouldEqual, 5)
 					So(resp.AdrInterval, ShouldEqual, 20)
 
@@ -217,7 +229,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					jaPL, ok := phy.MACPayload.(*lorawan.JoinAcceptPayload)
 					So(ok, ShouldBeTrue)
 
-					So(jaPL.NetID, ShouldEqual, [3]byte{1, 2, 3})
+					So(jaPL.NetID, ShouldEqual, lorawan.NetID{1, 2, 3})
 					So(jaPL.DLSettings, ShouldResemble, lorawan.DLSettings{
 						RX2DataRate: node.RX2DR,
 						RX1DROffset: node.RX1DROffset,
@@ -243,63 +255,52 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 			})
 
-			Convey("Given the node as a CFList with three channels", func() {
-				cl := storage.ChannelList{
-					Name: "test list",
-					Channels: []int64{
+			Convey("When calling JoinRequest with additional channels", func() {
+				req := as.JoinRequestRequest{
+					PhyPayload: b,
+					DevAddr:    []byte{1, 2, 3, 4},
+					NetID:      []byte{1, 2, 3},
+					CFList: []uint32{
 						868400000,
 						868500000,
 						868600000,
 					},
 				}
-				So(storage.CreateChannelList(db, &cl), ShouldBeNil)
+				resp, err := api.JoinRequest(ctx, &req)
+				So(err, ShouldBeNil)
 
-				node.ChannelListID = &cl.ID
-				So(storage.UpdateNode(db, node), ShouldBeNil)
-
-				Convey("When calling JoinRequest", func() {
-					req := as.JoinRequestRequest{
-						PhyPayload: b,
-						DevAddr:    []byte{1, 2, 3, 4},
-						NetID:      []byte{1, 2, 3},
-					}
-
-					resp, err := api.JoinRequest(ctx, &req)
+				Convey("Then the CFlist is set in the response", func() {
+					node, err := storage.GetNode(db, node.DevEUI)
 					So(err, ShouldBeNil)
 
-					Convey("Then the CFlist is set in the response", func() {
-						node, err := storage.GetNode(db, node.DevEUI)
-						So(err, ShouldBeNil)
+					var phy lorawan.PHYPayload
+					So(phy.UnmarshalBinary(resp.PhyPayload), ShouldBeNil)
 
-						var phy lorawan.PHYPayload
-						So(phy.UnmarshalBinary(resp.PhyPayload), ShouldBeNil)
+					So(phy.DecryptJoinAcceptPayload(node.AppKey), ShouldBeNil)
+					ok, err := phy.ValidateMIC(node.AppKey)
+					So(err, ShouldBeNil)
+					So(ok, ShouldBeTrue)
 
-						So(phy.DecryptJoinAcceptPayload(node.AppKey), ShouldBeNil)
-						ok, err := phy.ValidateMIC(node.AppKey)
-						So(err, ShouldBeNil)
-						So(ok, ShouldBeTrue)
+					jaPL, ok := phy.MACPayload.(*lorawan.JoinAcceptPayload)
+					So(ok, ShouldBeTrue)
 
-						jaPL, ok := phy.MACPayload.(*lorawan.JoinAcceptPayload)
-						So(ok, ShouldBeTrue)
-
-						So(jaPL.CFList, ShouldResemble, &lorawan.CFList{
-							868400000,
-							868500000,
-							868600000,
-							0,
-							0,
-						})
+					So(jaPL.CFList, ShouldResemble, &lorawan.CFList{
+						868400000,
+						868500000,
+						868600000,
+						0,
+						0,
 					})
+				})
 
-					Convey("Then a notification was sent to the handler", func() {
-						So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
-						So(<-h.SendJoinNotificationChan, ShouldResemble, handler.JoinNotification{
-							ApplicationID:   app.ID,
-							ApplicationName: "test-app",
-							NodeName:        "test-node",
-							DevAddr:         [4]byte{1, 2, 3, 4},
-							DevEUI:          node.DevEUI,
-						})
+				Convey("Then a notification was sent to the handler", func() {
+					So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
+					So(<-h.SendJoinNotificationChan, ShouldResemble, handler.JoinNotification{
+						ApplicationID:   app.ID,
+						ApplicationName: "test-app",
+						NodeName:        "test-node",
+						DevAddr:         [4]byte{1, 2, 3, 4},
+						DevEUI:          node.DevEUI,
 					})
 				})
 			})

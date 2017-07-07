@@ -1,0 +1,229 @@
+syntax = "proto3";
+
+package api;
+
+// for grpc-gateway
+import "google/api/annotations.proto";
+
+// Gateway is the service managing the gateways.
+service Gateway {
+	// Create creates the given gateway.
+	rpc Create(CreateGatewayRequest) returns (CreateGatewayResponse) {
+		option(google.api.http) = {
+			post: "/api/gateways"
+			body: "*"
+		};
+	}
+
+	// Get returns the gateway for the requested mac address.
+	rpc Get(GetGatewayRequest) returns (GetGatewayResponse) {
+		option (google.api.http) = {
+			get: "/api/gateways/{mac}"
+		};
+	}
+
+	// Update updates the gateway matching the given mac address.
+	rpc Update(UpdateGatewayRequest) returns (UpdateGatewayResponse) {
+		option (google.api.http) = {
+			put: "/api/gateways/{mac}"
+			body: "*"
+		};
+	}
+	
+	// Delete deletes the gateway matching the given mac address.
+	rpc Delete(DeleteGatewayRequest) returns (DeleteGatewayResponse) {
+		option (google.api.http) = {
+			delete: "/api/gateways/{mac}"
+		};
+	}
+
+	// List lists the gateways.
+	rpc List(ListGatewayRequest) returns (ListGatewayResponse) {
+		option (google.api.http) = {
+			get: "/api/gateways"
+		};
+	}
+
+	// GetStats lists the gateway stats given the query parameters.
+	rpc GetStats(GetGatewayStatsRequest) returns (GetGatewayStatsResponse) {
+		option (google.api.http) = {
+			get: "/api/gateways/{mac}/stats"
+		};
+	}
+
+
+}
+
+message CreateGatewayRequest {
+	// Hex encoded mac address.
+	string mac = 1;
+	
+	// A name for the gateway
+	string name = 2;
+	
+	// A description for the gateway
+	string description = 3;
+	
+	// Latitude of the gateway -90 to 90
+	double latitude = 4;
+	
+	// Longitude of the gateway -180 to 180
+	double longitude = 5;
+	
+	// Altitude of the gateway in meters
+	double altitude = 6;
+
+	// ID of the organization to which this gateway belongs.
+	int64 organizationID = 7;
+}
+
+message CreateGatewayResponse {}
+
+message GetGatewayRequest {
+	// Hex encoded mac address of the node.
+	string mac = 1;
+}
+
+message GetGatewayResponse {
+	// Hex encoded mac address.
+	string mac = 1;
+	
+	// A name for the gateway
+	string name = 2;
+	
+	// A description for the gateway
+	string description = 3;
+	
+	// Latitude of the gateway -90.0 to 90.0
+	double latitude = 4;
+	
+	// Longitude of the gateway -180.0 to 180.0
+	double longitude = 5;
+	
+	// Altitude of the gateway in meters
+	double altitude = 6;
+	
+	// Creation timestamp of the record
+	string createdAt = 7;
+	
+	// Last update timestamp of the record
+	string updatedAt = 8;
+	
+	// The timestamp of the first data from the gateway.
+	string firstSeenAt = 9;
+	
+	// The timestamp of the most recent data from the gateway.
+	string lastSeenAt = 10;
+
+	// ID of the organization to which this gateway belongs.
+	int64 organizationID = 11;
+};
+
+message DeleteGatewayRequest {
+	// Hex encoded mac address.
+	string mac = 1;
+}
+
+message DeleteGatewayResponse {}
+
+message ListGatewayRequest {
+	// Max number of nodes to return in the result-set.
+	int32 limit = 1;
+
+	// Offset of the result-set (for pagination).
+	int32 offset = 2;
+
+	// ID of the organization for which to filter on, when left blank the
+	// response will return all gateways to which the user has access to.
+	int64 organizationID = 3;
+}
+
+message ListGatewayItem {
+	// Hex encoded mac address.
+	string mac = 1;
+	
+	// A name for the gateway
+	string name = 2;
+	
+	// A description for the gateway
+	string description = 3;
+
+	// Creation timestamp of the record
+	string createdAt = 4;
+	
+	// Last update timestamp of the record
+	string updatedAt = 5;
+
+	// ID of the organization to which this gateway belongs.
+	int64 organizationID = 6;
+}
+
+message ListGatewayResponse {
+	// Total number of nodes available within the result-set.
+	int32 totalCount = 1;
+
+	// Nodes within this result-set.
+	repeated ListGatewayItem result = 2;
+}
+
+
+message UpdateGatewayRequest {
+	// Hex encoded mac address.
+	string mac = 1;
+	
+	// A name for the gateway
+	string name = 2;
+	
+	// A description for the gateway
+	string description = 3;
+	
+	// Latitude of the gateway -90.0 to 90.0
+	double latitude = 4;
+	
+	// Longitude of the gateway -180.0 to 180.0
+	double longitude = 5;
+	
+	// Altitude of the gateway in meters
+	double altitude = 6;
+
+	// ID of the organization to which this gateway belongs.
+	int64 organizationID = 7;
+}
+
+message UpdateGatewayResponse {}
+
+message GatewayStats {
+	// Timestamp of the (aggregated) measurement.
+	string timestamp = 1;
+
+	// Packets received by the gateway.
+	int32 rxPacketsReceived = 2;
+
+	// Packets received by the gateway that passed the CRC check.
+	int32 rxPacketsReceivedOK = 3;
+
+	// Packets received by the gateway for transmission.
+	int32 txPacketsReceived = 4;
+
+	// Packets transmitted by the gateway.
+	int32 txPacketsEmitted = 5;
+}
+
+message GetGatewayStatsRequest {
+	// Hex encoded mac address.
+	string mac = 1;
+
+	// Aggregation interval.  One of "second", "minute", "hour", "day", "week",
+	// "month", "quarter", "year".  Case insensitive.
+	string interval = 2;
+
+	// Timestamp to start from.
+	string startTimestamp = 3;
+
+	// Timestamp until to get from.
+	string endTimestamp = 4;
+}
+
+message GetGatewayStatsResponse {
+	repeated GatewayStats result = 1;
+}

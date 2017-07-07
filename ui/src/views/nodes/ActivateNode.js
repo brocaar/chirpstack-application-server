@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { Link } from "react-router";
 
 import NodeStore from "../../stores/NodeStore";
 import ApplicationStore from "../../stores/ApplicationStore";
@@ -36,33 +35,25 @@ class ActivateNode extends Component {
     });
 
     this.setState({
-      isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+      isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID) || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
     });
 
     SessionStore.on("change", () => {
       this.setState({
-        isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+        isApplicationAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID) || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
       });
     });
   }
 
   onSubmit(activation) {
     NodeStore.activateNode(this.props.params.applicationID, this.props.params.devEUI, activation, (responseData) => {
-      this.context.router.push("/applications/"+this.props.params.applicationID);
+      this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID);
     });
   }
 
   render() {
     return(
       <div>
-        <ol className="breadcrumb">
-          <li><Link to="/">Dashboard</Link></li>
-          <li><Link to="/applications">Applications</Link></li>
-          <li><Link to={`/applications/${this.props.params.applicationID}`}>{this.state.application.name}</Link></li>
-          <li><Link to={`/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/edit`}>{this.state.node.name}</Link></li>
-          <li className="active">Activation</li>
-        </ol>
-        <hr />
         <div className="panel panel-default">
           <div className="panel-body">
             <NodeActivationForm onSubmit={this.onSubmit} node={this.state.node} application={this.state.application} activation={this.state.activation} disabled={!this.state.isApplicationAdmin} />

@@ -1,0 +1,230 @@
+syntax = "proto3";
+
+package api;
+
+// for grpc-gateway
+import "google/api/annotations.proto";
+
+// Organization is the service managing the organization access.
+service Organization {
+	// Get organization list.
+	rpc List(ListOrganizationRequest) returns (ListOrganizationResponse) {
+		option(google.api.http) = {
+			get: "/api/organizations"
+		};
+	}
+
+	// Get data for a particular organization.
+	rpc Get(OrganizationRequest) returns (GetOrganizationResponse) {
+		option(google.api.http) = {
+			get: "/api/organizations/{id}"
+		};
+	}
+
+	// Create a new organization.
+	rpc Create(CreateOrganizationRequest) returns (CreateOrganizationResponse) {
+		option(google.api.http) = {
+			post: "/api/organizations"
+			body: "*"
+		};
+	}
+
+	// Update an existing organization.
+	rpc Update(UpdateOrganizationRequest) returns (OrganizationEmptyResponse) {
+		option(google.api.http) = {
+			put: "/api/organizations/{id}"
+			body: "*"
+		};
+	}
+
+	// Delete an organization.
+	rpc Delete(OrganizationRequest) returns (OrganizationEmptyResponse) {
+		option(google.api.http) = {
+			delete: "/api/organizations/{id}"
+		};
+	}
+
+	// Get organization's user list.
+	rpc ListUsers(ListOrganizationUsersRequest) returns (ListOrganizationUsersResponse) {
+		option(google.api.http) = {
+			get: "/api/organizations/{id}/users"
+		};
+	}
+
+	// Get data for a particular organization user.
+	rpc GetUser(GetOrganizationUserRequest) returns (GetOrganizationUserResponse) {
+		option(google.api.http) = {
+			get: "/api/organizations/{id}/users/{userID}"
+		};
+	}
+
+	// Add a new user to an organization.
+	rpc AddUser(OrganizationUserRequest) returns (OrganizationEmptyResponse) {
+		option(google.api.http) = {
+			post: "/api/organizations/{id}/users"
+			body: "*"
+		};
+	}
+
+	// Update a user in an organization.
+	rpc UpdateUser(OrganizationUserRequest) returns (OrganizationEmptyResponse) {
+		option(google.api.http) = {
+			put: "/api/organizations/{id}/users/{userID}"
+			body: "*"
+		};
+	}
+
+	// Delete a user from an organization.
+	rpc DeleteUser(DeleteOrganizationUserRequest) returns (OrganizationEmptyResponse) {
+		option(google.api.http) = {
+			delete: "/api/organizations/{id}/users/{userID}"
+		};
+	}
+
+}
+
+// Request the organizations defined in the system.
+message ListOrganizationRequest {
+	// Max number of organizations to return in the result-set.
+	int32 limit = 1;
+
+	// Offset in the result-set (for pagination).
+	int32 offset = 2;
+
+	// When provided, the given string will be used to search on
+	// displayName.
+	string search = 3;
+}
+
+// Request the user information.
+message OrganizationRequest {
+	int64 id = 1;
+}
+
+message GetOrganizationResponse {
+	// ID of the user.
+	int64 id = 1;
+	
+	// Organization name.
+	string name = 2;
+
+	// Organization display name.
+	string displayName = 3;
+
+	// Can the organization create and "own" Gateways?
+	bool canHaveGateways = 4;
+
+	// When the user was created.
+	string createdAt = 5;
+
+	// When the user was last updated (excludes changes in application access).
+	string updatedAt = 6;
+}
+
+// Add a new organization. 
+message CreateOrganizationRequest {
+	// Organization name.
+	string name = 1;
+	
+	// Organization display name.
+	string displayName = 2;
+
+	// Can the organization create and "own" Gateways?
+	bool canHaveGateways = 3;
+}
+
+message CreateOrganizationResponse {
+	// ID of the organization.
+	int64 id = 1;
+}
+
+// Not quite the AddOrganizationRequest.
+message UpdateOrganizationRequest {
+	// The ID of the organization to be updated.
+	int64 id = 1;
+
+	// The new name.
+	string name = 2;
+	
+	// The new display name.
+	string displayName = 3;
+
+	// Can the organization create and "own" Gateways?
+	bool canHaveGateways = 4;
+}
+
+message ListOrganizationResponse {
+	int32 totalCount = 1;
+	repeated GetOrganizationResponse result = 2;
+}
+
+message OrganizationEmptyResponse {
+	// Nothing to return on update, delete.
+}
+
+message OrganizationUserRequest {
+	// The organization id.
+	int64 id = 1;
+	
+	// The user's id.
+	int64 userID = 2;
+	
+	// The user's admin status for the organization
+	bool isAdmin = 3;
+}
+
+message DeleteOrganizationUserRequest {
+	// The organization id.
+	int64 id = 1;
+	
+	// The user's id.
+	int64 userID = 2;
+}
+
+// Request the users in an organization.
+message ListOrganizationUsersRequest {
+	// The organization id.
+	int64 id = 1;
+	
+	// Max number of users to return in the result-set.
+	int32 limit = 2;
+
+	// Offset in the result-set (for pagination).
+	int32 offset = 3;
+}
+
+message GetOrganizationUserRequest {
+	// ID of the organization.
+	int64 id = 1;
+
+	// ID of the user.
+	int64 userID = 2;
+}
+
+// Response for a user in the organization
+message GetOrganizationUserResponse {
+	// ID of the user.
+	int64 id = 1;
+	
+	// Username of the user.
+	string username = 2;
+
+	// If the user is a system admin, capable of creating other users.
+	bool isAdmin = 3;
+
+	// When the user was created.
+	string createdAt = 4;
+
+	// When the user was last updated (excludes changes in application access).
+	string updatedAt = 5;
+}
+
+// Response for the users in an organization.
+message ListOrganizationUsersResponse {
+	// The total number of users in the organization.
+	int32 totalCount = 1;
+	
+	// The users in the requested limit, offset range.
+	repeated GetOrganizationUserResponse result = 2;
+}
+

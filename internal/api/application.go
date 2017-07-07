@@ -27,7 +27,7 @@ func NewApplicationAPI(ctx common.Context, validator auth.Validator) *Applicatio
 
 func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRequest) (*pb.CreateApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationsAccess(auth.Create),
+		auth.ValidateApplicationsAccess(auth.Create, req.OrganizationID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -44,9 +44,7 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 		RX2DR:              uint8(req.Rx2DR),
 		ADRInterval:        req.AdrInterval,
 		InstallationMargin: req.InstallationMargin,
-	}
-	if req.ChannelListID > 0 {
-		app.ChannelListID = &req.ChannelListID
+		OrganizationID:     req.OrganizationID,
 	}
 
 	if err := storage.CreateApplication(a.ctx.DB, &app); err != nil {
@@ -82,10 +80,7 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 		RelaxFCnt:          app.RelaxFCnt,
 		AdrInterval:        app.ADRInterval,
 		InstallationMargin: app.InstallationMargin,
-	}
-
-	if app.ChannelListID != nil {
-		resp.ChannelListID = *app.ChannelListID
+		OrganizationID:     app.OrganizationID,
 	}
 
 	return &resp, nil
@@ -115,11 +110,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	app.RelaxFCnt = req.RelaxFCnt
 	app.ADRInterval = req.AdrInterval
 	app.InstallationMargin = req.InstallationMargin
-	if req.ChannelListID > 0 {
-		app.ChannelListID = &req.ChannelListID
-	} else {
-		app.ChannelListID = nil
-	}
+	app.OrganizationID = req.OrganizationID
 
 	err = storage.UpdateApplication(a.ctx.DB, app)
 	if err != nil {
@@ -145,41 +136,63 @@ func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRe
 
 func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationRequest) (*pb.ListApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationsAccess(auth.List),
+		auth.ValidateApplicationsAccess(auth.List, req.OrganizationID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
-
-	var count int
-	var apps []storage.Application
 
 	isAdmin, err := a.validator.GetIsAdmin(ctx)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	if isAdmin {
-		apps, err = storage.GetApplications(a.ctx.DB, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, errToRPCError(err)
-		}
-		count, err = storage.GetApplicationCount(a.ctx.DB)
-		if err != nil {
-			return nil, errToRPCError(err)
+	username, err := a.validator.GetUsername(ctx)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	var count int
+	var apps []storage.Application
+
+	if req.OrganizationID == 0 {
+		if isAdmin {
+			apps, err = storage.GetApplications(a.ctx.DB, int(req.Limit), int(req.Offset))
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			count, err = storage.GetApplicationCount(a.ctx.DB)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+		} else {
+			apps, err = storage.GetApplicationsForUser(a.ctx.DB, username, 0, int(req.Limit), int(req.Offset))
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			count, err = storage.GetApplicationCountForUser(a.ctx.DB, username, 0)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
 		}
 	} else {
-		username, err := a.validator.GetUsername(ctx)
-		if err != nil {
-			return nil, errToRPCError(err)
-		}
-
-		apps, err = storage.GetApplicationsForUser(a.ctx.DB, username, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, errToRPCError(err)
-		}
-		count, err = storage.GetApplicationCountForUser(a.ctx.DB, username)
-		if err != nil {
-			return nil, errToRPCError(err)
+		if isAdmin {
+			apps, err = storage.GetApplicationsForOrganizationID(a.ctx.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			count, err = storage.GetApplicationCountForOrganizationID(a.ctx.DB, req.OrganizationID)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+		} else {
+			apps, err = storage.GetApplicationsForUser(a.ctx.DB, username, req.OrganizationID, int(req.Limit), int(req.Offset))
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			count, err = storage.GetApplicationCountForUser(a.ctx.DB, username, req.OrganizationID)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
 		}
 	}
 
@@ -200,10 +213,7 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 			RelaxFCnt:          app.RelaxFCnt,
 			AdrInterval:        app.ADRInterval,
 			InstallationMargin: app.InstallationMargin,
-		}
-
-		if app.ChannelListID != nil {
-			item.ChannelListID = *app.ChannelListID
+			OrganizationID:     app.OrganizationID,
 		}
 
 		resp.Result = append(resp.Result, &item)
@@ -215,7 +225,7 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 // ListUsers lists the users for an application.
 func (a *ApplicationAPI) ListUsers(ctx context.Context, in *pb.ListApplicationUsersRequest) (*pb.ListApplicationUsersResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationMembersAccess(in.Id, auth.List),
+		auth.ValidateApplicationUsersAccess(in.Id, auth.List),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -246,7 +256,7 @@ func (a *ApplicationAPI) ListUsers(ctx context.Context, in *pb.ListApplicationUs
 // dropped in favor of this list.
 func (a *ApplicationAPI) AddUser(ctx context.Context, in *pb.AddApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationMembersAccess(in.Id, auth.Create),
+		auth.ValidateApplicationUsersAccess(in.Id, auth.Create),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -261,7 +271,7 @@ func (a *ApplicationAPI) AddUser(ctx context.Context, in *pb.AddApplicationUserR
 // GetUser gets the user that is associated with the application.
 func (a *ApplicationAPI) GetUser(ctx context.Context, in *pb.ApplicationUserRequest) (*pb.GetApplicationUserResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationMemberAccess(in.Id, in.UserID, auth.Read),
+		auth.ValidateApplicationUserAccess(in.Id, in.UserID, auth.Read),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -283,7 +293,7 @@ func (a *ApplicationAPI) GetUser(ctx context.Context, in *pb.ApplicationUserRequ
 // PutUser sets the user's access to the associated application.
 func (a *ApplicationAPI) UpdateUser(ctx context.Context, in *pb.UpdateApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationMemberAccess(in.Id, in.UserID, auth.Update),
+		auth.ValidateApplicationUserAccess(in.Id, in.UserID, auth.Update),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -298,7 +308,7 @@ func (a *ApplicationAPI) UpdateUser(ctx context.Context, in *pb.UpdateApplicatio
 // DeleteUser deletes the user's access to the associated application.
 func (a *ApplicationAPI) DeleteUser(ctx context.Context, in *pb.ApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationMemberAccess(in.Id, in.UserID, auth.Delete),
+		auth.ValidateApplicationUserAccess(in.Id, in.UserID, auth.Delete),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}

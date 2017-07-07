@@ -16,9 +16,10 @@ var applicationNameRegexp = regexp.MustCompile(`^[\w-]+$`)
 
 // Application represents an application.
 type Application struct {
-	ID          int64  `db:"id"`
-	Name        string `db:"name"`
-	Description string `db:"description"`
+	ID             int64  `db:"id"`
+	Name           string `db:"name"`
+	Description    string `db:"description"`
+	OrganizationID int64  `db:"organization_id"`
 
 	IsABP              bool     `db:"is_abp"`
 	IsClassC           bool     `db:"is_class_c"`
@@ -27,7 +28,6 @@ type Application struct {
 	RXDelay            uint8    `db:"rx_delay"`
 	RX1DROffset        uint8    `db:"rx1_dr_offset"`
 	RX2DR              uint8    `db:"rx2_dr"`
-	ChannelListID      *int64   `db:"channel_list_id"`
 	ADRInterval        uint32   `db:"adr_interval"`
 	InstallationMargin float64  `db:"installation_margin"`
 }
@@ -66,20 +66,19 @@ func CreateApplication(db *sqlx.DB, item *Application) error {
 			description,
 			rx_delay,
 			rx1_dr_offset,
-			channel_list_id,
 			rx_window,
 			rx2_dr,
 			relax_fcnt,
 			adr_interval,
 			installation_margin,
 			is_abp,
-			is_class_c
+			is_class_c,
+			organization_id
 		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) returning id`,
 		item.Name,
 		item.Description,
 		item.RXDelay,
 		item.RX1DROffset,
-		item.ChannelListID,
 		item.RXWindow,
 		item.RX2DR,
 		item.RelaxFCnt,
@@ -87,6 +86,7 @@ func CreateApplication(db *sqlx.DB, item *Application) error {
 		item.InstallationMargin,
 		item.IsABP,
 		item.IsClassC,
+		item.OrganizationID,
 	)
 	if err != nil {
 		switch err := err.(type) {
@@ -133,20 +133,45 @@ func GetApplicationCount(db *sqlx.DB) (int, error) {
 
 // GetApplicationCountForUser returns the total number of applications
 // available for the given user.
-func GetApplicationCountForUser(db *sqlx.DB, username string) (int, error) {
+// When an organizationID is given, the results will be filtered by this
+//
+func GetApplicationCountForUser(db *sqlx.DB, username string, organizationID int64) (int, error) {
 	var count int
 	err := db.Get(&count, `
 		select
 			count(a.*)
 		from application a
-		inner join application_user au
+		left join application_user au
 			on a.id = au.application_id
+		left join organization_user ou
+			on a.organization_id = ou.organization_id
 		inner join "user" u
-			on au.user_id = u.id
+			on au.user_id = u.id or ou.user_id = u.id
 		where
 			u.username = $1
 			and u.is_active = true
-	`, username)
+			and (
+				$2 = 0
+				or a.organization_id = $2
+			)
+	`, username, organizationID)
+	if err != nil {
+		return 0, errors.Wrap(err, "select error")
+	}
+	return count, nil
+}
+
+// GetApplicationCountForOrganizationID returns the total number of
+// applications for the given organization.
+func GetApplicationCountForOrganizationID(db *sqlx.DB, organizationID int64) (int, error) {
+	var count int
+	err := db.Get(&count, `
+		select count(*)
+		from application
+		where
+			organization_id = $1`,
+		organizationID,
+	)
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")
 	}
@@ -166,19 +191,49 @@ func GetApplications(db *sqlx.DB, limit, offset int) ([]Application, error) {
 
 // GetApplicationsForUser returns a slice of application of which the given
 // user is a member of.
-func GetApplicationsForUser(db *sqlx.DB, username string, limit, offset int) ([]Application, error) {
+func GetApplicationsForUser(db *sqlx.DB, username string, organizationID int64, limit, offset int) ([]Application, error) {
 	var apps []Application
 	err := db.Select(&apps, `
 		select a.*
 		from application a
-		inner join application_user au
+		left join application_user au
 			on a.id = au.application_id
+		left join organization_user ou
+			on a.organization_id = ou.organization_id
 		inner join "user" u
-			on au.user_id = u.id
+			on au.user_id = u.id or ou.user_id = u.id
 		where
 			u.username = $1
 			and u.is_active = true
-	`, username)
+			and (
+				$2 = 0
+				or a.organization_id = $2
+			)
+		order by a.name
+		limit $3 offset $4
+	`, username, organizationID, limit, offset)
+	if err != nil {
+		return nil, errors.Wrap(err, "select error")
+	}
+
+	return apps, nil
+}
+
+// GetApplicationsForOrganization returns a slice of applications for the given
+// organization.
+func GetApplicationsForOrganizationID(db *sqlx.DB, organizationID int64, limit, offset int) ([]Application, error) {
+	var apps []Application
+	err := db.Select(&apps, `
+		select *
+		from application
+		where
+			organization_id = $1
+		order by name
+		limit $2 offset $3`,
+		organizationID,
+		limit,
+		offset,
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
 	}
@@ -201,21 +256,20 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 			description = $3,
 			rx_delay = $4,
 			rx1_dr_offset = $5,
-			channel_list_id = $6,
-			rx_window = $7,
-			rx2_dr = $8,
-			relax_fcnt = $9,
-			adr_interval = $10,
-			installation_margin = $11,
-			is_abp = $12,
-			is_class_c = $13
+			rx_window = $6,
+			rx2_dr = $7,
+			relax_fcnt = $8,
+			adr_interval = $9,
+			installation_margin = $10,
+			is_abp = $11,
+			is_class_c = $12,
+			organization_id = $13
 		where id = $1`,
 		item.ID,
 		item.Name,
 		item.Description,
 		item.RXDelay,
 		item.RX1DROffset,
-		item.ChannelListID,
 		item.RXWindow,
 		item.RX2DR,
 		item.RelaxFCnt,
@@ -223,6 +277,7 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 		item.InstallationMargin,
 		item.IsABP,
 		item.IsClassC,
+		item.OrganizationID,
 	)
 	if err != nil {
 		switch err := err.(type) {
@@ -251,20 +306,18 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 		set
 			rx_delay = $2,
 			rx1_dr_offset = $3,
-			channel_list_id = $4,
-			rx_window = $5,
-			rx2_dr = $6,
-			relax_fcnt = $7,
-			adr_interval = $8,
-			installation_margin = $9,
-			is_abp = $10,
-			is_class_c = $11
+			rx_window = $4,
+			rx2_dr = $5,
+			relax_fcnt = $6,
+			adr_interval = $7,
+			installation_margin = $8,
+			is_abp = $9,
+			is_class_c = $10
 		where application_id = $1
 		and use_application_settings = true`,
 		item.ID,
 		item.RXDelay,
 		item.RX1DROffset,
-		item.ChannelListID,
 		item.RXWindow,
 		item.RX2DR,
 		item.RelaxFCnt,
@@ -355,7 +408,7 @@ func GetUserForApplication(db *sqlx.DB, applicationID, userID int64) (*UserAcces
 
 // CreateUserForApplication adds the user to the application with the given
 // access.
-func CreateUserForApplication(db *sqlx.DB, applicationID, userID int64, adminAccess bool) error {
+func CreateUserForApplication(db sqlx.Execer, applicationID, userID int64, adminAccess bool) error {
 	_, err := db.Exec(`
 		insert into application_user (
 			application_id,

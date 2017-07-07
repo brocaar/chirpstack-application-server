@@ -96,9 +96,6 @@ message CreateApplicationRequest {
 	// RX1 data-rate offset.
 	uint32 rx1DROffset = 4;
 
-	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
-	int64 channelListID = 5;
-
 	// RX window to use.
 	RXWindow rxWindow = 6;
 
@@ -119,6 +116,9 @@ message CreateApplicationRequest {
 
 	// Node operates in Class-C.
 	bool isClassC = 12;
+
+	// ID of the organization to which the application belongs.
+	int64 organizationID = 14;
 }
 
 message CreateApplicationResponse {
@@ -147,9 +147,6 @@ message GetApplicationResponse {
 	// RX1 data-rate offset.
 	uint32 rx1DROffset = 5;
 
-	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
-	int64 channelListID = 6;
-
 	// RX window to use.
 	RXWindow rxWindow = 7;
 
@@ -170,6 +167,9 @@ message GetApplicationResponse {
 
 	// Node operates in Class-C.
 	bool isClassC = 13;
+
+	// ID of the organization to which the application belongs.
+	int64 organizationID = 14;
 }
 
 message UpdateApplicationRequest {
@@ -188,9 +188,6 @@ message UpdateApplicationRequest {
 	// RX1 data-rate offset.
 	uint32 rx1DROffset = 5;
 
-	// Channel-list ID used for CFlist (see LoRaWAN regional parameters if this applies to your region).
-	int64 channelListID = 6;
-
 	// RX window to use.
 	RXWindow rxWindow = 7;
 
@@ -211,6 +208,9 @@ message UpdateApplicationRequest {
 
 	// Node operates in Class-C.
 	bool isClassC = 13;
+
+	// ID of the organization to which the application belongs.
+	int64 organizationID = 14;
 }
 
 message UpdateApplicationResponse {}
@@ -228,6 +228,9 @@ message ListApplicationRequest {
 
 	// Offset in the result-set (for pagination).
 	int64 offset = 2;
+
+	// ID of the organization to filter on.
+	int64 organizationID = 3;
 }
 
 message ListApplicationResponse {

@@ -15,7 +15,7 @@ import (
 func TestApplicationAPI(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database and api instance", t, func() {
+	Convey("Given a clean database with an organization and an api instance", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
@@ -26,8 +26,14 @@ func TestApplicationAPI(t *testing.T) {
 		api := NewApplicationAPI(lsCtx, validator)
 		apiuser := NewUserAPI(lsCtx, validator)
 
+		org := storage.Organization{
+			Name: "test-org",
+		}
+		So(storage.CreateOrganization(db, &org), ShouldBeNil)
+
 		Convey("When creating an application", func() {
 			createResp, err := api.Create(ctx, &pb.CreateApplicationRequest{
+				OrganizationID:     org.ID,
 				Name:               "test-app",
 				Description:        "A test application",
 				IsABP:              true,
@@ -52,6 +58,7 @@ func TestApplicationAPI(t *testing.T) {
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 				So(app, ShouldResemble, &pb.GetApplicationResponse{
+					OrganizationID:     org.ID,
 					Id:                 createResp.Id,
 					Name:               "test-app",
 					Description:        "A test application",
@@ -66,30 +73,90 @@ func TestApplicationAPI(t *testing.T) {
 				})
 			})
 
-			Convey("Then listing the applications as an admin returns a single item", func() {
-				validator.returnIsAdmin = true
+			Convey("Given an extra application belonging to a different organization", func() {
+				org2 := storage.Organization{
+					Name: "test-org-2",
+				}
+				So(storage.CreateOrganization(db, &org2), ShouldBeNil)
+				app2 := storage.Application{
+					OrganizationID: org2.ID,
+					Name:           "test-app-2",
+				}
+				So(storage.CreateApplication(db, &app2), ShouldBeNil)
 
-				apps, err := api.List(ctx, &pb.ListApplicationRequest{
-					Limit:  10,
-					Offset: 0,
+				Convey("When listing all applications", func() {
+					Convey("Then all applications are visible to an admin user", func() {
+						validator.returnIsAdmin = true
+						apps, err := api.List(ctx, &pb.ListApplicationRequest{
+							Limit:  10,
+							Offset: 0,
+						})
+						So(err, ShouldBeNil)
+						So(validator.ctx, ShouldResemble, ctx)
+						So(validator.validatorFuncs, ShouldHaveLength, 1)
+						So(apps.TotalCount, ShouldEqual, 2)
+						So(apps.Result, ShouldHaveLength, 2)
+						So(apps.Result[0], ShouldResemble, &pb.GetApplicationResponse{
+							OrganizationID:     org.ID,
+							Id:                 createResp.Id,
+							Name:               "test-app",
+							Description:        "A test application",
+							IsABP:              true,
+							IsClassC:           true,
+							RxDelay:            1,
+							Rx1DROffset:        3,
+							RxWindow:           pb.RXWindow_RX2,
+							Rx2DR:              3,
+							AdrInterval:        20,
+							InstallationMargin: 5,
+						})
+					})
+
+					Convey("Then applications are only visible to users assigned to the application", func() {
+						user := storage.User{Username: "testtest"}
+						_, err := storage.CreateUser(db, &user, "password123")
+						So(err, ShouldBeNil)
+						validator.returnIsAdmin = false
+						validator.returnUsername = user.Username
+
+						apps, err := api.List(ctx, &pb.ListApplicationRequest{
+							Limit:  10,
+							Offset: 0,
+						})
+						So(err, ShouldBeNil)
+						So(validator.ctx, ShouldResemble, ctx)
+						So(validator.validatorFuncs, ShouldHaveLength, 1)
+						So(apps.TotalCount, ShouldEqual, 0)
+						So(apps.Result, ShouldHaveLength, 0)
+
+						So(storage.CreateUserForApplication(db, createResp.Id, user.ID, false), ShouldBeNil)
+						apps, err = api.List(ctx, &pb.ListApplicationRequest{
+							Limit:  10,
+							Offset: 0,
+						})
+						So(err, ShouldBeNil)
+						So(validator.ctx, ShouldResemble, ctx)
+						So(validator.validatorFuncs, ShouldHaveLength, 1)
+						So(apps.TotalCount, ShouldEqual, 0)
+						So(apps.Result, ShouldHaveLength, 0)
+					})
 				})
-				So(err, ShouldBeNil)
-				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
-				So(apps.Result, ShouldHaveLength, 1)
-				So(apps.TotalCount, ShouldEqual, 1)
-				So(apps.Result[0], ShouldResemble, &pb.GetApplicationResponse{
-					Id:                 createResp.Id,
-					Name:               "test-app",
-					Description:        "A test application",
-					IsABP:              true,
-					IsClassC:           true,
-					RxDelay:            1,
-					Rx1DROffset:        3,
-					RxWindow:           pb.RXWindow_RX2,
-					Rx2DR:              3,
-					AdrInterval:        20,
-					InstallationMargin: 5,
+
+				Convey("When listing all applications as an admin given an organization ID", func() {
+					validator.returnIsAdmin = true
+					Convey("Then only the applications for that organization are returned", func() {
+						apps, err := api.List(ctx, &pb.ListApplicationRequest{
+							Limit:          10,
+							Offset:         0,
+							OrganizationID: org2.ID,
+						})
+						So(err, ShouldBeNil)
+						So(validator.ctx, ShouldResemble, ctx)
+						So(validator.validatorFuncs, ShouldHaveLength, 1)
+						So(apps.TotalCount, ShouldEqual, 1)
+						So(apps.Result, ShouldHaveLength, 1)
+						So(apps.Result[0].OrganizationID, ShouldEqual, org2.ID)
+					})
 				})
 			})
 
@@ -135,6 +202,7 @@ func TestApplicationAPI(t *testing.T) {
 						So(apps.Result, ShouldHaveLength, 1)
 						So(apps.TotalCount, ShouldEqual, 1)
 						So(apps.Result[0], ShouldResemble, &pb.GetApplicationResponse{
+							OrganizationID:     org.ID,
 							Id:                 createResp.Id,
 							Name:               "test-app",
 							Description:        "A test application",
@@ -207,6 +275,7 @@ func TestApplicationAPI(t *testing.T) {
 
 			Convey("When updating the application", func() {
 				_, err := api.Update(ctx, &pb.UpdateApplicationRequest{
+					OrganizationID:     org.ID,
 					Id:                 createResp.Id,
 					Name:               "test-app-updated",
 					Description:        "An updated test description",
@@ -229,6 +298,7 @@ func TestApplicationAPI(t *testing.T) {
 					})
 					So(err, ShouldBeNil)
 					So(app, ShouldResemble, &pb.GetApplicationResponse{
+						OrganizationID:     org.ID,
 						Id:                 createResp.Id,
 						Name:               "test-app-updated",
 						Description:        "An updated test description",

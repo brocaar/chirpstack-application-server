@@ -11,6 +11,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/handler/httphandler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 )
 
@@ -334,7 +335,7 @@ func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 		headers[h.Key] = h.Value
 	}
 
-	conf := handler.HTTPHandlerConfig{
+	conf := httphandler.HandlerConfig{
 		Headers:              headers,
 		DataUpURL:            in.DataUpURL,
 		JoinNotificationURL:  in.JoinNotificationURL,
@@ -351,7 +352,7 @@ func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 		Kind:          handler.HTTPHandlerKind,
 		Settings:      confJSON,
 	}
-	if err = storage.CreateIntegration(a.ctx.DB, &integration); err != nil {
+	if err = storage.CreateIntegration(common.DB, &integration); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -366,12 +367,12 @@ func (a *ApplicationAPI) GetHTTPIntegration(ctx context.Context, in *pb.GetHTTPI
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(a.ctx.DB, in.Id, handler.HTTPHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(common.DB, in.Id, handler.HTTPHandlerKind)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	var conf handler.HTTPHandlerConfig
+	var conf httphandler.HandlerConfig
 	if err = json.Unmarshal(integration.Settings, &conf); err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -403,7 +404,7 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(a.ctx.DB, in.Id, handler.HTTPHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(common.DB, in.Id, handler.HTTPHandlerKind)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -413,7 +414,7 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 		headers[h.Key] = h.Value
 	}
 
-	conf := handler.HTTPHandlerConfig{
+	conf := httphandler.HandlerConfig{
 		Headers:              headers,
 		DataUpURL:            in.DataUpURL,
 		JoinNotificationURL:  in.JoinNotificationURL,
@@ -426,14 +427,14 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 	}
 	integration.Settings = confJSON
 
-	if err = storage.UpdateIntegration(a.ctx.DB, &integration); err != nil {
+	if err = storage.UpdateIntegration(common.DB, &integration); err != nil {
 		return nil, errToRPCError(err)
 	}
 
 	return &pb.EmptyResponse{}, nil
 }
 
-// DeleteIntegration deletes the application-integration of the given type.
+// DeleteHTTPIntegration deletes the application-integration of the given type.
 func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.DeleteIntegrationRequest) (*pb.EmptyResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateApplicationAccess(in.Id, auth.Update),
@@ -441,12 +442,12 @@ func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.Delet
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(a.ctx.DB, in.Id, handler.HTTPHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(common.DB, in.Id, handler.HTTPHandlerKind)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	if err = storage.DeleteIntegration(a.ctx.DB, integration.ID); err != nil {
+	if err = storage.DeleteIntegration(common.DB, integration.ID); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -461,7 +462,7 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integrations, err := storage.GetIntegrationsForApplicationID(a.ctx.DB, in.Id)
+	integrations, err := storage.GetIntegrationsForApplicationID(common.DB, in.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

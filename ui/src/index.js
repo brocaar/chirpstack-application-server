@@ -15,6 +15,9 @@ import UpdateApplication from "./views/applications/UpdateApplication";
 import ApplicationUsers from "./views/applications/ApplicationUsers";
 import CreateApplicationUser from "./views/applications/CreateApplicationUser";
 import UpdateApplicationUser from "./views/applications/UpdateApplicationUser";
+import ApplicationIntegrations from "./views/applications/ApplicationIntegrations";
+import CreateApplicationIntegration from "./views/applications/CreateApplicationIntegration";
+import UpdateApplicationIntegration from "./views/applications/UpdateApplicationIntegration";
 
 // nodes
 import NodeLayout from './views/nodes/NodeLayout';
@@ -103,6 +106,9 @@ ReactDOM.render(
         <Route path="users/create" component={CreateApplicationUser}></Route>
         <Route path="users/:userID/edit" component={UpdateApplicationUser}></Route>
         <Route path="nodes/create" component={CreateNode}></Route>
+        <Route path="integrations" component={ApplicationIntegrations}></Route>
+        <Route path="integrations/create" component={CreateApplicationIntegration}></Route>
+        <Route path="integrations/http" component={UpdateApplicationIntegration}></Route>
       </Route>
 
       <Route path="organizations/:organizationID/applications/:applicationID/nodes/:devEUI" component={NodeLayout}>

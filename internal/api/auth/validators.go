@@ -555,6 +555,29 @@ func ValidateOrganizationUserAccess(flag Flag, organizationID, userID int64) Val
 	}
 }
 
+// ValidateChannelConfigurationAccess validates if the client has access
+// to the channel-configuration.
+func ValidateChannelConfigurationAccess(flag Flag) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Create, Update, Delete:
+		// global admin user
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+		}
+	case Read, List:
+		// any active user
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true"},
+		}
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username)
+	}
+}
+
 func executeQuery(db *sqlx.DB, query string, where [][]string, args ...interface{}) (bool, error) {
 	var ors []string
 	for _, ands := range where {

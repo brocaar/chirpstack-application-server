@@ -97,6 +97,16 @@ type NetworkServerClient struct {
 	PushDataDownChan          chan ns.PushDataDownRequest
 	GetFrameLogsForDevEUIChan chan ns.GetFrameLogsForDevEUIRequest
 
+	CreateChannelConfigurationChan                chan ns.CreateChannelConfigurationRequest
+	GetChannelConfigurationChan                   chan ns.GetChannelConfigurationRequest
+	UpdateChannelConfigurationChan                chan ns.UpdateChannelConfigurationRequest
+	DeleteChannelConfigurationChan                chan ns.DeleteChannelConfigurationRequest
+	ListChannelConfigurationsChan                 chan ns.ListChannelConfigurationsRequest
+	CreateExtraChannelChan                        chan ns.CreateExtraChannelRequest
+	UpdateExtraChannelChan                        chan ns.UpdateExtraChannelRequest
+	DeleteExtraChannelChan                        chan ns.DeleteExtraChannelRequest
+	GetExtraChannelsForChannelConfigurationIDChan chan ns.GetExtraChannelsForChannelConfigurationIDRequest
+
 	CreateGatewayResponse         ns.CreateGatewayResponse
 	GetGatewayResponse            ns.GetGatewayResponse
 	UpdateGatewayResponse         ns.UpdateGatewayResponse
@@ -104,6 +114,16 @@ type NetworkServerClient struct {
 	GetGatewayStatsResponse       ns.GetGatewayStatsResponse
 	ListGatewayResponse           ns.ListGatewayResponse
 	GetFrameLogsForDevEUIResponse ns.GetFrameLogsResponse
+
+	CreateChannelConfigurationResponse                ns.CreateChannelConfigurationResponse
+	GetChannelConfigurationResponse                   ns.GetChannelConfigurationResponse
+	UpdateChannelConfigurationResponse                ns.UpdateChannelConfigurationResponse
+	DeleteChannelConfigurationResponse                ns.DeleteChannelConfigurationResponse
+	ListChannelConfigurationsResponse                 ns.ListChannelConfigurationsResponse
+	CreateExtraChannelResponse                        ns.CreateExtraChannelResponse
+	UpdateExtraChannelResponse                        ns.UpdateExtraChannelResponse
+	DeleteExtraChannelResponse                        ns.DeleteExtraChannelResponse
+	GetExtraChannelsForChannelConfigurationIDResponse ns.GetExtraChannelsForChannelConfigurationIDResponse
 
 	CreateNodeSessionResponse ns.CreateNodeSessionResponse
 	GetNodeSessionResponse    ns.GetNodeSessionResponse
@@ -116,26 +136,37 @@ type NetworkServerClient struct {
 // NewNetworkServerClient creates a new NetworkServerClient.
 func NewNetworkServerClient() *NetworkServerClient {
 	return &NetworkServerClient{
-		CreateNodeSessionChan:     make(chan ns.CreateNodeSessionRequest, 100),
-		GetNodeSessionChan:        make(chan ns.GetNodeSessionRequest, 100),
-		UpdateNodeSessionChan:     make(chan ns.UpdateNodeSessionRequest, 100),
-		DeleteNodeSessionChan:     make(chan ns.DeleteNodeSessionRequest, 100),
-		GetRandomDevAddrChan:      make(chan ns.GetRandomDevAddrRequest, 100),
-		PushDataDownChan:          make(chan ns.PushDataDownRequest, 100),
-		CreateGatewayChan:         make(chan ns.CreateGatewayRequest, 100),
-		GetGatewayChan:            make(chan ns.GetGatewayRequest, 100),
-		UpdateGatewayChan:         make(chan ns.UpdateGatewayRequest, 100),
-		DeleteGatewayChan:         make(chan ns.DeleteGatewayRequest, 100),
-		GetGatewayStatsChan:       make(chan ns.GetGatewayStatsRequest, 100),
-		ListGatewayChan:           make(chan ns.ListGatewayRequest, 100),
-		GetFrameLogsForDevEUIChan: make(chan ns.GetFrameLogsForDevEUIRequest, 100),
+		CreateNodeSessionChan:                         make(chan ns.CreateNodeSessionRequest, 100),
+		GetNodeSessionChan:                            make(chan ns.GetNodeSessionRequest, 100),
+		UpdateNodeSessionChan:                         make(chan ns.UpdateNodeSessionRequest, 100),
+		DeleteNodeSessionChan:                         make(chan ns.DeleteNodeSessionRequest, 100),
+		GetRandomDevAddrChan:                          make(chan ns.GetRandomDevAddrRequest, 100),
+		PushDataDownChan:                              make(chan ns.PushDataDownRequest, 100),
+		CreateGatewayChan:                             make(chan ns.CreateGatewayRequest, 100),
+		GetGatewayChan:                                make(chan ns.GetGatewayRequest, 100),
+		UpdateGatewayChan:                             make(chan ns.UpdateGatewayRequest, 100),
+		DeleteGatewayChan:                             make(chan ns.DeleteGatewayRequest, 100),
+		GetGatewayStatsChan:                           make(chan ns.GetGatewayStatsRequest, 100),
+		ListGatewayChan:                               make(chan ns.ListGatewayRequest, 100),
+		GetFrameLogsForDevEUIChan:                     make(chan ns.GetFrameLogsForDevEUIRequest, 100),
+		CreateChannelConfigurationChan:                make(chan ns.CreateChannelConfigurationRequest, 100),
+		GetChannelConfigurationChan:                   make(chan ns.GetChannelConfigurationRequest, 100),
+		UpdateChannelConfigurationChan:                make(chan ns.UpdateChannelConfigurationRequest, 100),
+		DeleteChannelConfigurationChan:                make(chan ns.DeleteChannelConfigurationRequest, 100),
+		ListChannelConfigurationsChan:                 make(chan ns.ListChannelConfigurationsRequest, 100),
+		CreateExtraChannelChan:                        make(chan ns.CreateExtraChannelRequest, 100),
+		UpdateExtraChannelChan:                        make(chan ns.UpdateExtraChannelRequest, 100),
+		DeleteExtraChannelChan:                        make(chan ns.DeleteExtraChannelRequest, 100),
+		GetExtraChannelsForChannelConfigurationIDChan: make(chan ns.GetExtraChannelsForChannelConfigurationIDRequest, 100),
 
-		CreateGatewayResponse:   ns.CreateGatewayResponse{},
-		GetGatewayResponse:      ns.GetGatewayResponse{},
-		UpdateGatewayResponse:   ns.UpdateGatewayResponse{},
-		DeleteGatewayResponse:   ns.DeleteGatewayResponse{},
-		GetGatewayStatsResponse: ns.GetGatewayStatsResponse{},
-		ListGatewayResponse:     ns.ListGatewayResponse{},
+		/*
+			CreateGatewayResponse:   ns.CreateGatewayResponse{},
+			GetGatewayResponse:      ns.GetGatewayResponse{},
+			UpdateGatewayResponse:   ns.UpdateGatewayResponse{},
+			DeleteGatewayResponse:   ns.DeleteGatewayResponse{},
+			GetGatewayStatsResponse: ns.GetGatewayStatsResponse{},
+			ListGatewayResponse:     ns.ListGatewayResponse{},
+		*/
 	}
 }
 
@@ -206,4 +237,49 @@ func (n *NetworkServerClient) EnqueueDataDownMACCommand(ctx context.Context, in 
 func (n *NetworkServerClient) GetFrameLogsForDevEUI(ctx context.Context, in *ns.GetFrameLogsForDevEUIRequest, opts ...grpc.CallOption) (*ns.GetFrameLogsResponse, error) {
 	n.GetFrameLogsForDevEUIChan <- *in
 	return &n.GetFrameLogsForDevEUIResponse, nil
+}
+
+func (n *NetworkServerClient) CreateChannelConfiguration(ctx context.Context, in *ns.CreateChannelConfigurationRequest, opts ...grpc.CallOption) (*ns.CreateChannelConfigurationResponse, error) {
+	n.CreateChannelConfigurationChan <- *in
+	return &n.CreateChannelConfigurationResponse, nil
+}
+
+func (n *NetworkServerClient) GetChannelConfiguration(ctx context.Context, in *ns.GetChannelConfigurationRequest, opts ...grpc.CallOption) (*ns.GetChannelConfigurationResponse, error) {
+	n.GetChannelConfigurationChan <- *in
+	return &n.GetChannelConfigurationResponse, nil
+}
+
+func (n *NetworkServerClient) UpdateChannelConfiguration(ctx context.Context, in *ns.UpdateChannelConfigurationRequest, opts ...grpc.CallOption) (*ns.UpdateChannelConfigurationResponse, error) {
+	n.UpdateChannelConfigurationChan <- *in
+	return &n.UpdateChannelConfigurationResponse, nil
+}
+
+func (n *NetworkServerClient) DeleteChannelConfiguration(ctx context.Context, in *ns.DeleteChannelConfigurationRequest, opts ...grpc.CallOption) (*ns.DeleteChannelConfigurationResponse, error) {
+	n.DeleteChannelConfigurationChan <- *in
+	return &n.DeleteChannelConfigurationResponse, nil
+}
+
+func (n *NetworkServerClient) ListChannelConfigurations(ctx context.Context, in *ns.ListChannelConfigurationsRequest, opts ...grpc.CallOption) (*ns.ListChannelConfigurationsResponse, error) {
+	n.ListChannelConfigurationsChan <- *in
+	return &n.ListChannelConfigurationsResponse, nil
+}
+
+func (n *NetworkServerClient) CreateExtraChannel(ctx context.Context, in *ns.CreateExtraChannelRequest, opts ...grpc.CallOption) (*ns.CreateExtraChannelResponse, error) {
+	n.CreateExtraChannelChan <- *in
+	return &n.CreateExtraChannelResponse, nil
+}
+
+func (n *NetworkServerClient) UpdateExtraChannel(ctx context.Context, in *ns.UpdateExtraChannelRequest, opts ...grpc.CallOption) (*ns.UpdateExtraChannelResponse, error) {
+	n.UpdateExtraChannelChan <- *in
+	return &n.UpdateExtraChannelResponse, nil
+}
+
+func (n *NetworkServerClient) DeleteExtraChannel(ctx context.Context, in *ns.DeleteExtraChannelRequest, opts ...grpc.CallOption) (*ns.DeleteExtraChannelResponse, error) {
+	n.DeleteExtraChannelChan <- *in
+	return &n.DeleteExtraChannelResponse, nil
+}
+
+func (n *NetworkServerClient) GetExtraChannelsForChannelConfigurationID(ctx context.Context, in *ns.GetExtraChannelsForChannelConfigurationIDRequest, opts ...grpc.CallOption) (*ns.GetExtraChannelsForChannelConfigurationIDResponse, error) {
+	n.GetExtraChannelsForChannelConfigurationIDChan <- *in
+	return &n.GetExtraChannelsForChannelConfigurationIDResponse, nil
 }

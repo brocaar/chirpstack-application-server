@@ -18,6 +18,29 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+type Modulation int32
+
+const (
+	// LoRa
+	Modulation_LORA Modulation = 0
+	// FSK
+	Modulation_FSK Modulation = 1
+)
+
+var Modulation_name = map[int32]string{
+	0: "LORA",
+	1: "FSK",
+}
+var Modulation_value = map[string]int32{
+	"LORA": 0,
+	"FSK":  1,
+}
+
+func (x Modulation) String() string {
+	return proto.EnumName(Modulation_name, int32(x))
+}
+func (Modulation) EnumDescriptor() ([]byte, []int) { return fileDescriptor5, []int{0} }
+
 type CreateGatewayRequest struct {
 	// Hex encoded mac address.
 	Mac string `protobuf:"bytes,1,opt,name=mac" json:"mac,omitempty"`
@@ -563,6 +586,551 @@ func (m *GetGatewayStatsResponse) GetResult() []*GatewayStats {
 	return nil
 }
 
+type CreateChannelConfigurationRequest struct {
+	// Name of the channel-configuration.
+	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+	// Channels active in this configuration. These channel indices must map
+	// to the channel numbers as specified in the LoRaWAN Regional Parameters.
+	Channels []int32 `protobuf:"varint,2,rep,packed,name=channels" json:"channels,omitempty"`
+}
+
+func (m *CreateChannelConfigurationRequest) Reset()         { *m = CreateChannelConfigurationRequest{} }
+func (m *CreateChannelConfigurationRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateChannelConfigurationRequest) ProtoMessage()    {}
+func (*CreateChannelConfigurationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor5, []int{14}
+}
+
+func (m *CreateChannelConfigurationRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *CreateChannelConfigurationRequest) GetChannels() []int32 {
+	if m != nil {
+		return m.Channels
+	}
+	return nil
+}
+
+type CreateChannelConfigurationResponse struct {
+	// ID of the channel-configuration.
+	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+}
+
+func (m *CreateChannelConfigurationResponse) Reset()         { *m = CreateChannelConfigurationResponse{} }
+func (m *CreateChannelConfigurationResponse) String() string { return proto.CompactTextString(m) }
+func (*CreateChannelConfigurationResponse) ProtoMessage()    {}
+func (*CreateChannelConfigurationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor5, []int{15}
+}
+
+func (m *CreateChannelConfigurationResponse) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type GetChannelConfigurationRequest struct {
+	// ID of the channel-configuration.
+	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+}
+
+func (m *GetChannelConfigurationRequest) Reset()                    { *m = GetChannelConfigurationRequest{} }
+func (m *GetChannelConfigurationRequest) String() string            { return proto.CompactTextString(m) }
+func (*GetChannelConfigurationRequest) ProtoMessage()               {}
+func (*GetChannelConfigurationRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{16} }
+
+func (m *GetChannelConfigurationRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type GetChannelConfigurationResponse struct {
+	// ID of the channel-configuration.
+	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	// Name of the channel-configuration.
+	Name string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
+	// Channels active in this configuration. These channel indices must map
+	// to the channel numbers as specified in the LoRaWAN Regional Parameters.
+	Channels []int32 `protobuf:"varint,3,rep,packed,name=channels" json:"channels,omitempty"`
+	// The timestamp when the channel-configuration was created.
+	CreatedAt string `protobuf:"bytes,4,opt,name=createdAt" json:"createdAt,omitempty"`
+	// The timestamp when the channel-configuration was last updated.
+	UpdatedAt string `protobuf:"bytes,5,opt,name=updatedAt" json:"updatedAt,omitempty"`
+}
+
+func (m *GetChannelConfigurationResponse) Reset()         { *m = GetChannelConfigurationResponse{} }
+func (m *GetChannelConfigurationResponse) String() string { return proto.CompactTextString(m) }
+func (*GetChannelConfigurationResponse) ProtoMessage()    {}
+func (*GetChannelConfigurationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor5, []int{17}
+}
+
+func (m *GetChannelConfigurationResponse) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *GetChannelConfigurationResponse) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *GetChannelConfigurationResponse) GetChannels() []int32 {
+	if m != nil {
+		return m.Channels
+	}
+	return nil
+}
+
+func (m *GetChannelConfigurationResponse) GetCreatedAt() string {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return ""
+}
+
+func (m *GetChannelConfigurationResponse) GetUpdatedAt() string {
+	if m != nil {
+		return m.UpdatedAt
+	}
+	return ""
+}
+
+type UpdateChannelConfigurationRequest struct {
+	// ID of the channel-configuration.
+	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	// Name of the channel-configuration.
+	Name string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
+	// Channels active in this configuration. These channel indices must map
+	// to the channel numbers as specified in the LoRaWAN Regional Parameters.
+	Channels []int32 `protobuf:"varint,3,rep,packed,name=channels" json:"channels,omitempty"`
+}
+
+func (m *UpdateChannelConfigurationRequest) Reset()         { *m = UpdateChannelConfigurationRequest{} }
+func (m *UpdateChannelConfigurationRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateChannelConfigurationRequest) ProtoMessage()    {}
+func (*UpdateChannelConfigurationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor5, []int{18}
+}
+
+func (m *UpdateChannelConfigurationRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateChannelConfigurationRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *UpdateChannelConfigurationRequest) GetChannels() []int32 {
+	if m != nil {
+		return m.Channels
+	}
+	return nil
+}
+
+type UpdateChannelConfigurationResponse struct {
+}
+
+func (m *UpdateChannelConfigurationResponse) Reset()         { *m = UpdateChannelConfigurationResponse{} }
+func (m *UpdateChannelConfigurationResponse) String() string { return proto.CompactTextString(m) }
+func (*UpdateChannelConfigurationResponse) ProtoMessage()    {}
+func (*UpdateChannelConfigurationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor5, []int{19}
+}
+
+type DeleteChannelConfigurationRequest struct {
+	// ID of the channel-configuration.
+	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+}
+
+func (m *DeleteChannelConfigurationRequest) Reset()         { *m = DeleteChannelConfigurationRequest{} }
+func (m *DeleteChannelConfigurationRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteChannelConfigurationRequest) ProtoMessage()    {}
+func (*DeleteChannelConfigurationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor5, []int{20}
+}
+
+func (m *DeleteChannelConfigurationRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type DeleteChannelConfigurationResponse struct {
+}
+
+func (m *DeleteChannelConfigurationResponse) Reset()         { *m = DeleteChannelConfigurationResponse{} }
+func (m *DeleteChannelConfigurationResponse) String() string { return proto.CompactTextString(m) }
+func (*DeleteChannelConfigurationResponse) ProtoMessage()    {}
+func (*DeleteChannelConfigurationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor5, []int{21}
+}
+
+type ListChannelConfigurationsRequest struct {
+}
+
+func (m *ListChannelConfigurationsRequest) Reset()         { *m = ListChannelConfigurationsRequest{} }
+func (m *ListChannelConfigurationsRequest) String() string { return proto.CompactTextString(m) }
+func (*ListChannelConfigurationsRequest) ProtoMessage()    {}
+func (*ListChannelConfigurationsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor5, []int{22}
+}
+
+type ListChannelConfigurationsResponse struct {
+	// Result-set.
+	Result []*GetChannelConfigurationResponse `protobuf:"bytes,1,rep,name=result" json:"result,omitempty"`
+}
+
+func (m *ListChannelConfigurationsResponse) Reset()         { *m = ListChannelConfigurationsResponse{} }
+func (m *ListChannelConfigurationsResponse) String() string { return proto.CompactTextString(m) }
+func (*ListChannelConfigurationsResponse) ProtoMessage()    {}
+func (*ListChannelConfigurationsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor5, []int{23}
+}
+
+func (m *ListChannelConfigurationsResponse) GetResult() []*GetChannelConfigurationResponse {
+	if m != nil {
+		return m.Result
+	}
+	return nil
+}
+
+type CreateExtraChannelRequest struct {
+	// ID of the channel-configuration.
+	ChannelConfigurationID int64 `protobuf:"varint,1,opt,name=channelConfigurationID" json:"channelConfigurationID,omitempty"`
+	// Modulation.
+	Modulation Modulation `protobuf:"varint,2,opt,name=modulation,enum=api.Modulation" json:"modulation,omitempty"`
+	// Frequency.
+	Frequency int32 `protobuf:"varint,3,opt,name=frequency" json:"frequency,omitempty"`
+	// Bandwidth.
+	BandWidth int32 `protobuf:"varint,4,opt,name=bandWidth" json:"bandWidth,omitempty"`
+	// Data-rate (in case of FSK modulation).
+	DataRate int32 `protobuf:"varint,5,opt,name=dataRate" json:"dataRate,omitempty"`
+	// Spread-factors (in case of LoRa modulation).
+	SpreadFactors []int32 `protobuf:"varint,6,rep,packed,name=spreadFactors" json:"spreadFactors,omitempty"`
+}
+
+func (m *CreateExtraChannelRequest) Reset()                    { *m = CreateExtraChannelRequest{} }
+func (m *CreateExtraChannelRequest) String() string            { return proto.CompactTextString(m) }
+func (*CreateExtraChannelRequest) ProtoMessage()               {}
+func (*CreateExtraChannelRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{24} }
+
+func (m *CreateExtraChannelRequest) GetChannelConfigurationID() int64 {
+	if m != nil {
+		return m.ChannelConfigurationID
+	}
+	return 0
+}
+
+func (m *CreateExtraChannelRequest) GetModulation() Modulation {
+	if m != nil {
+		return m.Modulation
+	}
+	return Modulation_LORA
+}
+
+func (m *CreateExtraChannelRequest) GetFrequency() int32 {
+	if m != nil {
+		return m.Frequency
+	}
+	return 0
+}
+
+func (m *CreateExtraChannelRequest) GetBandWidth() int32 {
+	if m != nil {
+		return m.BandWidth
+	}
+	return 0
+}
+
+func (m *CreateExtraChannelRequest) GetDataRate() int32 {
+	if m != nil {
+		return m.DataRate
+	}
+	return 0
+}
+
+func (m *CreateExtraChannelRequest) GetSpreadFactors() []int32 {
+	if m != nil {
+		return m.SpreadFactors
+	}
+	return nil
+}
+
+type CreateExtraChannelResponse struct {
+	// ID of the extra channel.
+	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+}
+
+func (m *CreateExtraChannelResponse) Reset()                    { *m = CreateExtraChannelResponse{} }
+func (m *CreateExtraChannelResponse) String() string            { return proto.CompactTextString(m) }
+func (*CreateExtraChannelResponse) ProtoMessage()               {}
+func (*CreateExtraChannelResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{25} }
+
+func (m *CreateExtraChannelResponse) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type UpdateExtraChannelRequest struct {
+	// ID of the extra channel.
+	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	// ID of the channel-configuration.
+	ChannelConfigurationID int64 `protobuf:"varint,2,opt,name=channelConfigurationID" json:"channelConfigurationID,omitempty"`
+	// Modulation.
+	Modulation Modulation `protobuf:"varint,3,opt,name=modulation,enum=api.Modulation" json:"modulation,omitempty"`
+	// Frequency.
+	Frequency int32 `protobuf:"varint,4,opt,name=frequency" json:"frequency,omitempty"`
+	// Bandwidth.
+	BandWidth int32 `protobuf:"varint,5,opt,name=bandWidth" json:"bandWidth,omitempty"`
+	// Data-rate (in case of FSK modulation).
+	DataRate int32 `protobuf:"varint,6,opt,name=dataRate" json:"dataRate,omitempty"`
+	// Spread-factors (in case of LoRa modulation).
+	SpreadFactors []int32 `protobuf:"varint,7,rep,packed,name=spreadFactors" json:"spreadFactors,omitempty"`
+}
+
+func (m *UpdateExtraChannelRequest) Reset()                    { *m = UpdateExtraChannelRequest{} }
+func (m *UpdateExtraChannelRequest) String() string            { return proto.CompactTextString(m) }
+func (*UpdateExtraChannelRequest) ProtoMessage()               {}
+func (*UpdateExtraChannelRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{26} }
+
+func (m *UpdateExtraChannelRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateExtraChannelRequest) GetChannelConfigurationID() int64 {
+	if m != nil {
+		return m.ChannelConfigurationID
+	}
+	return 0
+}
+
+func (m *UpdateExtraChannelRequest) GetModulation() Modulation {
+	if m != nil {
+		return m.Modulation
+	}
+	return Modulation_LORA
+}
+
+func (m *UpdateExtraChannelRequest) GetFrequency() int32 {
+	if m != nil {
+		return m.Frequency
+	}
+	return 0
+}
+
+func (m *UpdateExtraChannelRequest) GetBandWidth() int32 {
+	if m != nil {
+		return m.BandWidth
+	}
+	return 0
+}
+
+func (m *UpdateExtraChannelRequest) GetDataRate() int32 {
+	if m != nil {
+		return m.DataRate
+	}
+	return 0
+}
+
+func (m *UpdateExtraChannelRequest) GetSpreadFactors() []int32 {
+	if m != nil {
+		return m.SpreadFactors
+	}
+	return nil
+}
+
+type UpdateExtraChannelResponse struct {
+}
+
+func (m *UpdateExtraChannelResponse) Reset()                    { *m = UpdateExtraChannelResponse{} }
+func (m *UpdateExtraChannelResponse) String() string            { return proto.CompactTextString(m) }
+func (*UpdateExtraChannelResponse) ProtoMessage()               {}
+func (*UpdateExtraChannelResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{27} }
+
+type DeleteExtraChannelRequest struct {
+	// ID of the extra channel.
+	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+}
+
+func (m *DeleteExtraChannelRequest) Reset()                    { *m = DeleteExtraChannelRequest{} }
+func (m *DeleteExtraChannelRequest) String() string            { return proto.CompactTextString(m) }
+func (*DeleteExtraChannelRequest) ProtoMessage()               {}
+func (*DeleteExtraChannelRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{28} }
+
+func (m *DeleteExtraChannelRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type DeleteExtraChannelResponse struct {
+}
+
+func (m *DeleteExtraChannelResponse) Reset()                    { *m = DeleteExtraChannelResponse{} }
+func (m *DeleteExtraChannelResponse) String() string            { return proto.CompactTextString(m) }
+func (*DeleteExtraChannelResponse) ProtoMessage()               {}
+func (*DeleteExtraChannelResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{29} }
+
+type GetExtraChannelResponse struct {
+	// ID of the extra channel.
+	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	// ID of the channel-configuration.
+	ChannelConfigurationID int64 `protobuf:"varint,2,opt,name=channelConfigurationID" json:"channelConfigurationID,omitempty"`
+	// Created-at timestamp.
+	CreatedAt string `protobuf:"bytes,3,opt,name=createdAt" json:"createdAt,omitempty"`
+	// Updated-at timestamp.
+	UpdatedAt string `protobuf:"bytes,4,opt,name=updatedAt" json:"updatedAt,omitempty"`
+	// Modulation.
+	Modulation Modulation `protobuf:"varint,5,opt,name=modulation,enum=api.Modulation" json:"modulation,omitempty"`
+	// Frequency.
+	Frequency int32 `protobuf:"varint,6,opt,name=frequency" json:"frequency,omitempty"`
+	// Bandwidth.
+	Bandwidth int32 `protobuf:"varint,7,opt,name=bandwidth" json:"bandwidth,omitempty"`
+	// Data-rate (in case of FSK modulation).
+	DataRate int32 `protobuf:"varint,8,opt,name=dataRate" json:"dataRate,omitempty"`
+	// Spread-factors (in case of LoRa modulation).
+	SpreadFactors []int32 `protobuf:"varint,9,rep,packed,name=spreadFactors" json:"spreadFactors,omitempty"`
+}
+
+func (m *GetExtraChannelResponse) Reset()                    { *m = GetExtraChannelResponse{} }
+func (m *GetExtraChannelResponse) String() string            { return proto.CompactTextString(m) }
+func (*GetExtraChannelResponse) ProtoMessage()               {}
+func (*GetExtraChannelResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{30} }
+
+func (m *GetExtraChannelResponse) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *GetExtraChannelResponse) GetChannelConfigurationID() int64 {
+	if m != nil {
+		return m.ChannelConfigurationID
+	}
+	return 0
+}
+
+func (m *GetExtraChannelResponse) GetCreatedAt() string {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return ""
+}
+
+func (m *GetExtraChannelResponse) GetUpdatedAt() string {
+	if m != nil {
+		return m.UpdatedAt
+	}
+	return ""
+}
+
+func (m *GetExtraChannelResponse) GetModulation() Modulation {
+	if m != nil {
+		return m.Modulation
+	}
+	return Modulation_LORA
+}
+
+func (m *GetExtraChannelResponse) GetFrequency() int32 {
+	if m != nil {
+		return m.Frequency
+	}
+	return 0
+}
+
+func (m *GetExtraChannelResponse) GetBandwidth() int32 {
+	if m != nil {
+		return m.Bandwidth
+	}
+	return 0
+}
+
+func (m *GetExtraChannelResponse) GetDataRate() int32 {
+	if m != nil {
+		return m.DataRate
+	}
+	return 0
+}
+
+func (m *GetExtraChannelResponse) GetSpreadFactors() []int32 {
+	if m != nil {
+		return m.SpreadFactors
+	}
+	return nil
+}
+
+type GetExtraChannelsForChannelConfigurationIDRequest struct {
+	// ID of the channel-configuration.
+	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+}
+
+func (m *GetExtraChannelsForChannelConfigurationIDRequest) Reset() {
+	*m = GetExtraChannelsForChannelConfigurationIDRequest{}
+}
+func (m *GetExtraChannelsForChannelConfigurationIDRequest) String() string {
+	return proto.CompactTextString(m)
+}
+func (*GetExtraChannelsForChannelConfigurationIDRequest) ProtoMessage() {}
+func (*GetExtraChannelsForChannelConfigurationIDRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor5, []int{31}
+}
+
+func (m *GetExtraChannelsForChannelConfigurationIDRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type GetExtraChannelsForChannelConfigurationIDResponse struct {
+	// Result-set.
+	Result []*GetExtraChannelResponse `protobuf:"bytes,1,rep,name=result" json:"result,omitempty"`
+}
+
+func (m *GetExtraChannelsForChannelConfigurationIDResponse) Reset() {
+	*m = GetExtraChannelsForChannelConfigurationIDResponse{}
+}
+func (m *GetExtraChannelsForChannelConfigurationIDResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*GetExtraChannelsForChannelConfigurationIDResponse) ProtoMessage() {}
+func (*GetExtraChannelsForChannelConfigurationIDResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor5, []int{32}
+}
+
+func (m *GetExtraChannelsForChannelConfigurationIDResponse) GetResult() []*GetExtraChannelResponse {
+	if m != nil {
+		return m.Result
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*CreateGatewayRequest)(nil), "api.CreateGatewayRequest")
 	proto.RegisterType((*CreateGatewayResponse)(nil), "api.CreateGatewayResponse")
@@ -578,6 +1146,26 @@ func init() {
 	proto.RegisterType((*GatewayStats)(nil), "api.GatewayStats")
 	proto.RegisterType((*GetGatewayStatsRequest)(nil), "api.GetGatewayStatsRequest")
 	proto.RegisterType((*GetGatewayStatsResponse)(nil), "api.GetGatewayStatsResponse")
+	proto.RegisterType((*CreateChannelConfigurationRequest)(nil), "api.CreateChannelConfigurationRequest")
+	proto.RegisterType((*CreateChannelConfigurationResponse)(nil), "api.CreateChannelConfigurationResponse")
+	proto.RegisterType((*GetChannelConfigurationRequest)(nil), "api.GetChannelConfigurationRequest")
+	proto.RegisterType((*GetChannelConfigurationResponse)(nil), "api.GetChannelConfigurationResponse")
+	proto.RegisterType((*UpdateChannelConfigurationRequest)(nil), "api.UpdateChannelConfigurationRequest")
+	proto.RegisterType((*UpdateChannelConfigurationResponse)(nil), "api.UpdateChannelConfigurationResponse")
+	proto.RegisterType((*DeleteChannelConfigurationRequest)(nil), "api.DeleteChannelConfigurationRequest")
+	proto.RegisterType((*DeleteChannelConfigurationResponse)(nil), "api.DeleteChannelConfigurationResponse")
+	proto.RegisterType((*ListChannelConfigurationsRequest)(nil), "api.ListChannelConfigurationsRequest")
+	proto.RegisterType((*ListChannelConfigurationsResponse)(nil), "api.ListChannelConfigurationsResponse")
+	proto.RegisterType((*CreateExtraChannelRequest)(nil), "api.CreateExtraChannelRequest")
+	proto.RegisterType((*CreateExtraChannelResponse)(nil), "api.CreateExtraChannelResponse")
+	proto.RegisterType((*UpdateExtraChannelRequest)(nil), "api.UpdateExtraChannelRequest")
+	proto.RegisterType((*UpdateExtraChannelResponse)(nil), "api.UpdateExtraChannelResponse")
+	proto.RegisterType((*DeleteExtraChannelRequest)(nil), "api.DeleteExtraChannelRequest")
+	proto.RegisterType((*DeleteExtraChannelResponse)(nil), "api.DeleteExtraChannelResponse")
+	proto.RegisterType((*GetExtraChannelResponse)(nil), "api.GetExtraChannelResponse")
+	proto.RegisterType((*GetExtraChannelsForChannelConfigurationIDRequest)(nil), "api.GetExtraChannelsForChannelConfigurationIDRequest")
+	proto.RegisterType((*GetExtraChannelsForChannelConfigurationIDResponse)(nil), "api.GetExtraChannelsForChannelConfigurationIDResponse")
+	proto.RegisterEnum("api.Modulation", Modulation_name, Modulation_value)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -603,6 +1191,26 @@ type GatewayClient interface {
 	List(ctx context.Context, in *ListGatewayRequest, opts ...grpc.CallOption) (*ListGatewayResponse, error)
 	// GetStats lists the gateway stats given the query parameters.
 	GetStats(ctx context.Context, in *GetGatewayStatsRequest, opts ...grpc.CallOption) (*GetGatewayStatsResponse, error)
+	// CreateChannelConfiguration creates the given channel-configuration.
+	CreateChannelConfiguration(ctx context.Context, in *CreateChannelConfigurationRequest, opts ...grpc.CallOption) (*CreateChannelConfigurationResponse, error)
+	// GetChannelConfiguration returns the channel-configuration for the given ID.
+	GetChannelConfiguration(ctx context.Context, in *GetChannelConfigurationRequest, opts ...grpc.CallOption) (*GetChannelConfigurationResponse, error)
+	// UpdateChannelConfiguration updates the given channel-configuration.
+	UpdateChannelConfiguration(ctx context.Context, in *UpdateChannelConfigurationRequest, opts ...grpc.CallOption) (*UpdateChannelConfigurationResponse, error)
+	// DeleteChannelConfiguration deletes the channel-configuration matching the
+	// given ID.
+	DeleteChannelConfiguration(ctx context.Context, in *DeleteChannelConfigurationRequest, opts ...grpc.CallOption) (*DeleteChannelConfigurationResponse, error)
+	// ListChannelConfigurations returns all channel-configurations.
+	ListChannelConfigurations(ctx context.Context, in *ListChannelConfigurationsRequest, opts ...grpc.CallOption) (*ListChannelConfigurationsResponse, error)
+	// CreateExtraChannel creates the given extra channel.
+	CreateExtraChannel(ctx context.Context, in *CreateExtraChannelRequest, opts ...grpc.CallOption) (*CreateExtraChannelResponse, error)
+	// UpdateExtraChannel updates the given extra channel.
+	UpdateExtraChannel(ctx context.Context, in *UpdateExtraChannelRequest, opts ...grpc.CallOption) (*UpdateExtraChannelResponse, error)
+	// DeleteExtraChannel deletes the extra channel matching the given id.
+	DeleteExtraChannel(ctx context.Context, in *DeleteExtraChannelRequest, opts ...grpc.CallOption) (*DeleteExtraChannelResponse, error)
+	// GetExtraChannelsForChannelConfigurationID returns the extra channels for
+	// the given channel-configuration id.
+	GetExtraChannelsForChannelConfigurationID(ctx context.Context, in *GetExtraChannelsForChannelConfigurationIDRequest, opts ...grpc.CallOption) (*GetExtraChannelsForChannelConfigurationIDResponse, error)
 }
 
 type gatewayClient struct {
@@ -667,6 +1275,87 @@ func (c *gatewayClient) GetStats(ctx context.Context, in *GetGatewayStatsRequest
 	return out, nil
 }
 
+func (c *gatewayClient) CreateChannelConfiguration(ctx context.Context, in *CreateChannelConfigurationRequest, opts ...grpc.CallOption) (*CreateChannelConfigurationResponse, error) {
+	out := new(CreateChannelConfigurationResponse)
+	err := grpc.Invoke(ctx, "/api.Gateway/CreateChannelConfiguration", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayClient) GetChannelConfiguration(ctx context.Context, in *GetChannelConfigurationRequest, opts ...grpc.CallOption) (*GetChannelConfigurationResponse, error) {
+	out := new(GetChannelConfigurationResponse)
+	err := grpc.Invoke(ctx, "/api.Gateway/GetChannelConfiguration", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayClient) UpdateChannelConfiguration(ctx context.Context, in *UpdateChannelConfigurationRequest, opts ...grpc.CallOption) (*UpdateChannelConfigurationResponse, error) {
+	out := new(UpdateChannelConfigurationResponse)
+	err := grpc.Invoke(ctx, "/api.Gateway/UpdateChannelConfiguration", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayClient) DeleteChannelConfiguration(ctx context.Context, in *DeleteChannelConfigurationRequest, opts ...grpc.CallOption) (*DeleteChannelConfigurationResponse, error) {
+	out := new(DeleteChannelConfigurationResponse)
+	err := grpc.Invoke(ctx, "/api.Gateway/DeleteChannelConfiguration", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayClient) ListChannelConfigurations(ctx context.Context, in *ListChannelConfigurationsRequest, opts ...grpc.CallOption) (*ListChannelConfigurationsResponse, error) {
+	out := new(ListChannelConfigurationsResponse)
+	err := grpc.Invoke(ctx, "/api.Gateway/ListChannelConfigurations", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayClient) CreateExtraChannel(ctx context.Context, in *CreateExtraChannelRequest, opts ...grpc.CallOption) (*CreateExtraChannelResponse, error) {
+	out := new(CreateExtraChannelResponse)
+	err := grpc.Invoke(ctx, "/api.Gateway/CreateExtraChannel", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayClient) UpdateExtraChannel(ctx context.Context, in *UpdateExtraChannelRequest, opts ...grpc.CallOption) (*UpdateExtraChannelResponse, error) {
+	out := new(UpdateExtraChannelResponse)
+	err := grpc.Invoke(ctx, "/api.Gateway/UpdateExtraChannel", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayClient) DeleteExtraChannel(ctx context.Context, in *DeleteExtraChannelRequest, opts ...grpc.CallOption) (*DeleteExtraChannelResponse, error) {
+	out := new(DeleteExtraChannelResponse)
+	err := grpc.Invoke(ctx, "/api.Gateway/DeleteExtraChannel", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayClient) GetExtraChannelsForChannelConfigurationID(ctx context.Context, in *GetExtraChannelsForChannelConfigurationIDRequest, opts ...grpc.CallOption) (*GetExtraChannelsForChannelConfigurationIDResponse, error) {
+	out := new(GetExtraChannelsForChannelConfigurationIDResponse)
+	err := grpc.Invoke(ctx, "/api.Gateway/GetExtraChannelsForChannelConfigurationID", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Gateway service
 
 type GatewayServer interface {
@@ -682,6 +1371,26 @@ type GatewayServer interface {
 	List(context.Context, *ListGatewayRequest) (*ListGatewayResponse, error)
 	// GetStats lists the gateway stats given the query parameters.
 	GetStats(context.Context, *GetGatewayStatsRequest) (*GetGatewayStatsResponse, error)
+	// CreateChannelConfiguration creates the given channel-configuration.
+	CreateChannelConfiguration(context.Context, *CreateChannelConfigurationRequest) (*CreateChannelConfigurationResponse, error)
+	// GetChannelConfiguration returns the channel-configuration for the given ID.
+	GetChannelConfiguration(context.Context, *GetChannelConfigurationRequest) (*GetChannelConfigurationResponse, error)
+	// UpdateChannelConfiguration updates the given channel-configuration.
+	UpdateChannelConfiguration(context.Context, *UpdateChannelConfigurationRequest) (*UpdateChannelConfigurationResponse, error)
+	// DeleteChannelConfiguration deletes the channel-configuration matching the
+	// given ID.
+	DeleteChannelConfiguration(context.Context, *DeleteChannelConfigurationRequest) (*DeleteChannelConfigurationResponse, error)
+	// ListChannelConfigurations returns all channel-configurations.
+	ListChannelConfigurations(context.Context, *ListChannelConfigurationsRequest) (*ListChannelConfigurationsResponse, error)
+	// CreateExtraChannel creates the given extra channel.
+	CreateExtraChannel(context.Context, *CreateExtraChannelRequest) (*CreateExtraChannelResponse, error)
+	// UpdateExtraChannel updates the given extra channel.
+	UpdateExtraChannel(context.Context, *UpdateExtraChannelRequest) (*UpdateExtraChannelResponse, error)
+	// DeleteExtraChannel deletes the extra channel matching the given id.
+	DeleteExtraChannel(context.Context, *DeleteExtraChannelRequest) (*DeleteExtraChannelResponse, error)
+	// GetExtraChannelsForChannelConfigurationID returns the extra channels for
+	// the given channel-configuration id.
+	GetExtraChannelsForChannelConfigurationID(context.Context, *GetExtraChannelsForChannelConfigurationIDRequest) (*GetExtraChannelsForChannelConfigurationIDResponse, error)
 }
 
 func RegisterGatewayServer(s *grpc.Server, srv GatewayServer) {
@@ -796,6 +1505,168 @@ func _Gateway_GetStats_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Gateway_CreateChannelConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateChannelConfigurationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServer).CreateChannelConfiguration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Gateway/CreateChannelConfiguration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServer).CreateChannelConfiguration(ctx, req.(*CreateChannelConfigurationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Gateway_GetChannelConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetChannelConfigurationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServer).GetChannelConfiguration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Gateway/GetChannelConfiguration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServer).GetChannelConfiguration(ctx, req.(*GetChannelConfigurationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Gateway_UpdateChannelConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateChannelConfigurationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServer).UpdateChannelConfiguration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Gateway/UpdateChannelConfiguration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServer).UpdateChannelConfiguration(ctx, req.(*UpdateChannelConfigurationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Gateway_DeleteChannelConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteChannelConfigurationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServer).DeleteChannelConfiguration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Gateway/DeleteChannelConfiguration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServer).DeleteChannelConfiguration(ctx, req.(*DeleteChannelConfigurationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Gateway_ListChannelConfigurations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListChannelConfigurationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServer).ListChannelConfigurations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Gateway/ListChannelConfigurations",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServer).ListChannelConfigurations(ctx, req.(*ListChannelConfigurationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Gateway_CreateExtraChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateExtraChannelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServer).CreateExtraChannel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Gateway/CreateExtraChannel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServer).CreateExtraChannel(ctx, req.(*CreateExtraChannelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Gateway_UpdateExtraChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateExtraChannelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServer).UpdateExtraChannel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Gateway/UpdateExtraChannel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServer).UpdateExtraChannel(ctx, req.(*UpdateExtraChannelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Gateway_DeleteExtraChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteExtraChannelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServer).DeleteExtraChannel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Gateway/DeleteExtraChannel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServer).DeleteExtraChannel(ctx, req.(*DeleteExtraChannelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Gateway_GetExtraChannelsForChannelConfigurationID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetExtraChannelsForChannelConfigurationIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServer).GetExtraChannelsForChannelConfigurationID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Gateway/GetExtraChannelsForChannelConfigurationID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServer).GetExtraChannelsForChannelConfigurationID(ctx, req.(*GetExtraChannelsForChannelConfigurationIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Gateway_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "api.Gateway",
 	HandlerType: (*GatewayServer)(nil),
@@ -824,6 +1695,42 @@ var _Gateway_serviceDesc = grpc.ServiceDesc{
 			MethodName: "GetStats",
 			Handler:    _Gateway_GetStats_Handler,
 		},
+		{
+			MethodName: "CreateChannelConfiguration",
+			Handler:    _Gateway_CreateChannelConfiguration_Handler,
+		},
+		{
+			MethodName: "GetChannelConfiguration",
+			Handler:    _Gateway_GetChannelConfiguration_Handler,
+		},
+		{
+			MethodName: "UpdateChannelConfiguration",
+			Handler:    _Gateway_UpdateChannelConfiguration_Handler,
+		},
+		{
+			MethodName: "DeleteChannelConfiguration",
+			Handler:    _Gateway_DeleteChannelConfiguration_Handler,
+		},
+		{
+			MethodName: "ListChannelConfigurations",
+			Handler:    _Gateway_ListChannelConfigurations_Handler,
+		},
+		{
+			MethodName: "CreateExtraChannel",
+			Handler:    _Gateway_CreateExtraChannel_Handler,
+		},
+		{
+			MethodName: "UpdateExtraChannel",
+			Handler:    _Gateway_UpdateExtraChannel_Handler,
+		},
+		{
+			MethodName: "DeleteExtraChannel",
+			Handler:    _Gateway_DeleteExtraChannel_Handler,
+		},
+		{
+			MethodName: "GetExtraChannelsForChannelConfigurationID",
+			Handler:    _Gateway_GetExtraChannelsForChannelConfigurationID_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "gateway.proto",
@@ -832,53 +1739,95 @@ var _Gateway_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("gateway.proto", fileDescriptor5) }
 
 var fileDescriptor5 = []byte{
-	// 762 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x56, 0xcd, 0x6e, 0x13, 0x31,
-	0x10, 0xd6, 0x36, 0xc9, 0x36, 0x99, 0xb6, 0xb4, 0x75, 0xd3, 0x66, 0xbb, 0x8d, 0xaa, 0xb0, 0x12,
-	0x28, 0x54, 0x55, 0x83, 0xca, 0x8d, 0x5b, 0xd5, 0xa2, 0xa8, 0x02, 0x89, 0x6a, 0x0b, 0x07, 0x24,
-	0x24, 0x64, 0x12, 0x37, 0x18, 0xf6, 0x8f, 0xf5, 0xa4, 0xfc, 0x89, 0x0b, 0x8f, 0x00, 0xaf, 0xc2,
-	0x95, 0xa7, 0xe0, 0xc2, 0x81, 0x23, 0xe2, 0x39, 0xd0, 0xda, 0x6e, 0xb2, 0xd9, 0x35, 0xf4, 0xc2,
-	0x01, 0x71, 0x8b, 0xbf, 0x19, 0x7f, 0xfb, 0x79, 0xe6, 0xf3, 0x38, 0xb0, 0x34, 0xa2, 0xc8, 0x5e,
-	0xd1, 0x37, 0x7b, 0x49, 0x1a, 0x63, 0x4c, 0x2a, 0x34, 0xe1, 0x6e, 0x7b, 0x14, 0xc7, 0xa3, 0x80,
-	0xf5, 0x68, 0xc2, 0x7b, 0x34, 0x8a, 0x62, 0xa4, 0xc8, 0xe3, 0x48, 0xa8, 0x14, 0xef, 0xbb, 0x05,
-	0xcd, 0xc3, 0x94, 0x51, 0x64, 0x7d, 0xb5, 0xd5, 0x67, 0x2f, 0xc7, 0x4c, 0x20, 0x59, 0x81, 0x4a,
-	0x48, 0x07, 0x8e, 0xd5, 0xb1, 0xba, 0x0d, 0x3f, 0xfb, 0x49, 0x08, 0x54, 0x23, 0x1a, 0x32, 0x67,
-	0x4e, 0x42, 0xf2, 0x37, 0xe9, 0xc0, 0xc2, 0x90, 0x89, 0x41, 0xca, 0x93, 0x8c, 0xd4, 0xa9, 0xc8,
-	0x50, 0x1e, 0x22, 0x2e, 0xd4, 0x03, 0x8a, 0x1c, 0xc7, 0x43, 0xe6, 0x54, 0x3b, 0x56, 0xd7, 0xf2,
-	0x27, 0x6b, 0xd2, 0x86, 0x46, 0x10, 0x47, 0x23, 0x15, 0xac, 0xc9, 0xe0, 0x14, 0xc8, 0x76, 0xd2,
-	0x40, 0xef, 0xb4, 0xd5, 0xce, 0x8b, 0x35, 0xb9, 0x0e, 0x57, 0xe2, 0x74, 0x44, 0x23, 0xfe, 0x56,
-	0x9e, 0xe6, 0xf8, 0xc8, 0x99, 0xef, 0x58, 0xdd, 0x8a, 0x5f, 0x40, 0xbd, 0x16, 0xac, 0x17, 0x4e,
-	0x27, 0x92, 0x38, 0x12, 0xcc, 0xbb, 0x06, 0xab, 0x7d, 0x86, 0x97, 0x9d, 0xd9, 0xfb, 0x36, 0x07,
-	0x24, 0x9f, 0xa7, 0x76, 0xff, 0xe3, 0xc5, 0x69, 0x43, 0x63, 0x20, 0x0f, 0x3d, 0x3c, 0x40, 0x59,
-	0x97, 0x86, 0x3f, 0x05, 0xb2, 0xe8, 0x38, 0x19, 0xea, 0x68, 0x5d, 0x45, 0x27, 0x40, 0xa6, 0xf9,
-	0x8c, 0xa7, 0x02, 0x4f, 0x19, 0x8b, 0x0e, 0xd0, 0x69, 0x28, 0xcd, 0x39, 0x88, 0x6c, 0x03, 0x04,
-	0x74, 0x92, 0x00, 0x32, 0x21, 0x87, 0x18, 0x5a, 0xb3, 0x60, 0x6c, 0x4d, 0x17, 0x9a, 0x47, 0x2c,
-	0x60, 0x97, 0x1b, 0x2f, 0x6b, 0x62, 0x21, 0x53, 0x37, 0xf1, 0x39, 0x90, 0x7b, 0x5c, 0x14, 0xbb,
-	0xd8, 0x84, 0x5a, 0xc0, 0x43, 0x8e, 0x92, 0xa2, 0xe6, 0xab, 0x05, 0xd9, 0x00, 0x3b, 0x3e, 0x3b,
-	0x13, 0x0c, 0x65, 0x8b, 0x6a, 0xbe, 0x5e, 0x19, 0xe4, 0x56, 0x8c, 0x72, 0xbf, 0x58, 0xb0, 0x9c,
-	0xfb, 0xd8, 0x31, 0xb2, 0xf0, 0xaf, 0xd9, 0x60, 0xa6, 0x61, 0xd5, 0x3f, 0x36, 0xac, 0x56, 0x6c,
-	0x58, 0x59, 0xbf, 0x6d, 0xd4, 0x3f, 0x80, 0xb5, 0x99, 0x5a, 0x69, 0x27, 0x6f, 0x03, 0x60, 0x8c,
-	0x34, 0x38, 0x8c, 0xc7, 0xd1, 0x45, 0xc5, 0x72, 0x08, 0xd9, 0x05, 0x3b, 0x65, 0x62, 0x1c, 0x64,
-	0x65, 0xab, 0x74, 0x17, 0xf6, 0x9b, 0x7b, 0x34, 0xe1, 0x7b, 0x85, 0x42, 0xf8, 0x3a, 0x47, 0x4e,
-	0x93, 0x87, 0x52, 0xda, 0xff, 0x3a, 0x4d, 0x0a, 0xa7, 0xd3, 0x46, 0xfc, 0x69, 0xc1, 0xa2, 0xc6,
-	0x4e, 0x91, 0xa2, 0xc8, 0xb4, 0x20, 0x0f, 0x99, 0x40, 0x1a, 0x26, 0xfa, 0xd4, 0x53, 0x80, 0xec,
-	0xc2, 0x6a, 0xfa, 0xfa, 0x84, 0x0e, 0x5e, 0x30, 0x14, 0x3e, 0x1b, 0x30, 0x7e, 0xce, 0x86, 0xda,
-	0x96, 0xe5, 0x00, 0xb9, 0x09, 0x6b, 0x25, 0xf0, 0xfe, 0x5d, 0x59, 0x9d, 0x9a, 0x6f, 0x0a, 0x65,
-	0xfc, 0x58, 0xe2, 0xaf, 0x2a, 0xfe, 0x52, 0x80, 0xec, 0xc0, 0xca, 0x04, 0xbc, 0x13, 0x72, 0x44,
-	0x36, 0x94, 0xe5, 0xab, 0xf9, 0x25, 0xdc, 0xfb, 0x68, 0xc1, 0xc6, 0x74, 0x1e, 0xca, 0xb3, 0xfe,
-	0xbe, 0xc5, 0x2e, 0xd4, 0x79, 0x84, 0x2c, 0x3d, 0xa7, 0x81, 0x6e, 0xf3, 0x64, 0x9d, 0x95, 0x5c,
-	0x20, 0x4d, 0xf1, 0xc1, 0xa4, 0x4a, 0xaa, 0xdb, 0x05, 0x94, 0x78, 0xb0, 0xc8, 0xa2, 0xe1, 0x34,
-	0x4b, 0xdd, 0x8e, 0x19, 0xcc, 0x3b, 0x82, 0x56, 0x49, 0x93, 0xb6, 0xf7, 0x8d, 0x89, 0x7d, 0x2d,
-	0x69, 0xdf, 0x55, 0x69, 0xdf, 0x99, 0x54, 0x9d, 0xb0, 0xff, 0xb9, 0x0a, 0xf3, 0x3a, 0x40, 0x1e,
-	0x81, 0xad, 0x9e, 0x0d, 0xb2, 0x29, 0x37, 0x98, 0x5e, 0x48, 0xd7, 0x35, 0x85, 0xb4, 0x21, 0x9c,
-	0x0f, 0x5f, 0x7f, 0x7c, 0x9a, 0x23, 0xde, 0x92, 0x7c, 0x76, 0xf5, 0xab, 0x2c, 0x6e, 0x5b, 0x3b,
-	0xe4, 0x14, 0x2a, 0x7d, 0x86, 0x64, 0x43, 0x09, 0x29, 0x3e, 0x41, 0x6e, 0xab, 0x84, 0x6b, 0xc6,
-	0x2d, 0xc9, 0xb8, 0x4e, 0xd6, 0x66, 0x18, 0x7b, 0xef, 0x42, 0x3a, 0x78, 0x4f, 0x9e, 0x80, 0xad,
-	0x8c, 0xa9, 0xf5, 0x9a, 0xee, 0xa0, 0xd6, 0x6b, 0x36, 0xf0, 0xb6, 0x64, 0x77, 0x5c, 0x13, 0x7b,
-	0xa6, 0xfa, 0x31, 0xd8, 0x6a, 0x04, 0xeb, 0x0f, 0x98, 0x26, 0xb7, 0xfe, 0x80, 0x79, 0x54, 0x6b,
-	0xf9, 0x3b, 0x46, 0xf9, 0x27, 0x50, 0xcd, 0x26, 0x0a, 0x69, 0x15, 0x87, 0xcb, 0x05, 0xb3, 0x53,
-	0x0e, 0x68, 0xde, 0x75, 0xc9, 0xbb, 0x4c, 0x66, 0x0b, 0x4d, 0x9e, 0x41, 0xbd, 0xcf, 0x50, 0xdd,
-	0xc5, 0xad, 0x42, 0x49, 0xf3, 0xae, 0x75, 0xdb, 0xe6, 0xa0, 0x66, 0xbf, 0x2a, 0xd9, 0xb7, 0xc8,
-	0xa6, 0x41, 0x75, 0x4f, 0x64, 0xa9, 0x4f, 0x6d, 0xf9, 0x3f, 0xea, 0xd6, 0xaf, 0x00, 0x00, 0x00,
-	0xff, 0xff, 0x2b, 0xb2, 0x8f, 0xc3, 0x7b, 0x09, 0x00, 0x00,
+	// 1434 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x58, 0xdf, 0x6e, 0x1b, 0xc5,
+	0x17, 0xfe, 0xad, 0xd7, 0x76, 0xec, 0xd3, 0x3f, 0x49, 0xa7, 0x69, 0x62, 0x6f, 0xac, 0xd4, 0xd9,
+	0xa6, 0xf9, 0xb9, 0xa6, 0xc4, 0xa1, 0x2d, 0x15, 0x42, 0x08, 0xa9, 0x24, 0x6d, 0x54, 0xb5, 0xa8,
+	0xd5, 0x06, 0x84, 0x90, 0x90, 0xd0, 0x74, 0x77, 0xe2, 0x2c, 0xac, 0x77, 0xcd, 0xee, 0xb8, 0x69,
+	0xa9, 0x22, 0xa4, 0x3c, 0x42, 0x91, 0xe0, 0xaa, 0x42, 0xe2, 0x09, 0x78, 0x01, 0xde, 0x80, 0x3b,
+	0x6e, 0x10, 0xe2, 0x12, 0xf1, 0x1c, 0x68, 0x67, 0x66, 0xd7, 0xfb, 0x67, 0xbc, 0xb6, 0x81, 0x0b,
+	0xc4, 0x9d, 0xe7, 0xcc, 0xcc, 0x99, 0xef, 0x7c, 0xdf, 0x99, 0x33, 0x67, 0x0d, 0xe7, 0xfa, 0x98,
+	0x92, 0x63, 0xfc, 0x7c, 0x7b, 0xe8, 0x7b, 0xd4, 0x43, 0x2a, 0x1e, 0xda, 0x5a, 0xab, 0xef, 0x79,
+	0x7d, 0x87, 0xf4, 0xf0, 0xd0, 0xee, 0x61, 0xd7, 0xf5, 0x28, 0xa6, 0xb6, 0xe7, 0x06, 0x7c, 0x89,
+	0xfe, 0x9b, 0x02, 0xcb, 0xbb, 0x3e, 0xc1, 0x94, 0xec, 0xf3, 0xad, 0x06, 0xf9, 0x62, 0x44, 0x02,
+	0x8a, 0x96, 0x40, 0x1d, 0x60, 0xb3, 0xa1, 0xb4, 0x95, 0x4e, 0xdd, 0x08, 0x7f, 0x22, 0x04, 0x65,
+	0x17, 0x0f, 0x48, 0xa3, 0xc4, 0x4c, 0xec, 0x37, 0x6a, 0xc3, 0x19, 0x8b, 0x04, 0xa6, 0x6f, 0x0f,
+	0x43, 0xa7, 0x0d, 0x95, 0x4d, 0x25, 0x4d, 0x48, 0x83, 0x9a, 0x83, 0xa9, 0x4d, 0x47, 0x16, 0x69,
+	0x94, 0xdb, 0x4a, 0x47, 0x31, 0xe2, 0x31, 0x6a, 0x41, 0xdd, 0xf1, 0xdc, 0x3e, 0x9f, 0xac, 0xb0,
+	0xc9, 0xb1, 0x21, 0xdc, 0x89, 0x1d, 0xb1, 0xb3, 0xca, 0x77, 0x46, 0x63, 0xb4, 0x05, 0xe7, 0x3d,
+	0xbf, 0x8f, 0x5d, 0xfb, 0x4b, 0x16, 0xcd, 0xfd, 0xbd, 0xc6, 0x42, 0x5b, 0xe9, 0xa8, 0x46, 0xc6,
+	0xaa, 0xaf, 0xc2, 0xa5, 0x4c, 0x74, 0xc1, 0xd0, 0x73, 0x03, 0xa2, 0x5f, 0x85, 0x0b, 0xfb, 0x84,
+	0x4e, 0x8b, 0x59, 0xff, 0xa5, 0x04, 0x28, 0xb9, 0x8e, 0xef, 0xfe, 0x97, 0x93, 0xd3, 0x82, 0xba,
+	0xc9, 0x82, 0xb6, 0xee, 0x50, 0xc6, 0x4b, 0xdd, 0x18, 0x1b, 0xc2, 0xd9, 0xd1, 0xd0, 0x12, 0xb3,
+	0x35, 0x3e, 0x1b, 0x1b, 0x42, 0xcc, 0x87, 0xb6, 0x1f, 0xd0, 0x03, 0x42, 0xdc, 0x3b, 0xb4, 0x51,
+	0xe7, 0x98, 0x13, 0x26, 0xb4, 0x0e, 0xe0, 0xe0, 0x78, 0x01, 0xb0, 0x05, 0x09, 0x8b, 0x44, 0x9a,
+	0x33, 0x52, 0x69, 0x3a, 0xb0, 0xbc, 0x47, 0x1c, 0x32, 0x3d, 0xf1, 0x42, 0x11, 0x33, 0x2b, 0x85,
+	0x88, 0x9f, 0x01, 0x7a, 0x68, 0x07, 0x59, 0x15, 0x97, 0xa1, 0xe2, 0xd8, 0x03, 0x9b, 0x32, 0x17,
+	0x15, 0x83, 0x0f, 0xd0, 0x0a, 0x54, 0xbd, 0xc3, 0xc3, 0x80, 0x50, 0x26, 0x51, 0xc5, 0x10, 0x23,
+	0x09, 0x5c, 0x55, 0x0a, 0xf7, 0x47, 0x05, 0x16, 0x13, 0x87, 0xdd, 0xa7, 0x64, 0xf0, 0x8f, 0xa5,
+	0x41, 0x4a, 0xb0, 0x72, 0xa1, 0x60, 0x95, 0xac, 0x60, 0x79, 0xfc, 0x55, 0x29, 0x7e, 0x13, 0x2e,
+	0xa6, 0xb8, 0x12, 0x99, 0xbc, 0x0e, 0x40, 0x3d, 0x8a, 0x9d, 0x5d, 0x6f, 0xe4, 0x46, 0x8c, 0x25,
+	0x2c, 0xe8, 0x3a, 0x54, 0x7d, 0x12, 0x8c, 0x9c, 0x90, 0x36, 0xb5, 0x73, 0xe6, 0xc6, 0xf2, 0x36,
+	0x1e, 0xda, 0xdb, 0x19, 0x22, 0x0c, 0xb1, 0x86, 0x55, 0x93, 0x0f, 0x19, 0xb4, 0xff, 0x6a, 0x35,
+	0xc9, 0x44, 0x27, 0x12, 0xf1, 0x0f, 0x05, 0xce, 0x0a, 0xdb, 0x01, 0xc5, 0x34, 0x08, 0xb1, 0x50,
+	0x7b, 0x40, 0x02, 0x8a, 0x07, 0x43, 0x11, 0xf5, 0xd8, 0x80, 0xae, 0xc3, 0x05, 0xff, 0xd9, 0x63,
+	0x6c, 0x7e, 0x4e, 0x68, 0x60, 0x10, 0x93, 0xd8, 0x4f, 0x89, 0x25, 0xd2, 0x32, 0x3f, 0x81, 0x76,
+	0xe0, 0x62, 0xce, 0xf8, 0xe8, 0x01, 0x63, 0xa7, 0x62, 0xc8, 0xa6, 0x42, 0xff, 0x34, 0xe7, 0xbf,
+	0xcc, 0xfd, 0xe7, 0x26, 0x50, 0x17, 0x96, 0x62, 0xe3, 0xdd, 0x81, 0x4d, 0x29, 0xb1, 0x18, 0x7d,
+	0x15, 0x23, 0x67, 0xd7, 0x5f, 0x2a, 0xb0, 0x32, 0xae, 0x87, 0x2c, 0xd6, 0xc9, 0x12, 0x6b, 0x50,
+	0xb3, 0x5d, 0x4a, 0xfc, 0xa7, 0xd8, 0x11, 0x32, 0xc7, 0xe3, 0x90, 0xf2, 0x80, 0x62, 0x9f, 0x7e,
+	0x10, 0xb3, 0xc4, 0xd5, 0xce, 0x58, 0x91, 0x0e, 0x67, 0x89, 0x6b, 0x8d, 0x57, 0xf1, 0xdb, 0x91,
+	0xb2, 0xe9, 0x7b, 0xb0, 0x9a, 0xc3, 0x24, 0xd2, 0xfb, 0x5a, 0x9c, 0xbe, 0x0a, 0x4b, 0xdf, 0x0b,
+	0x2c, 0x7d, 0x53, 0x4b, 0xa3, 0xdc, 0x3d, 0x80, 0x0d, 0xfe, 0x54, 0xec, 0x1e, 0x61, 0xd7, 0x25,
+	0xce, 0xae, 0xe7, 0x1e, 0xda, 0xfd, 0x91, 0xcf, 0xc4, 0x8f, 0x82, 0x8c, 0xb2, 0x56, 0x49, 0x64,
+	0xad, 0x06, 0x35, 0x93, 0x6f, 0x09, 0xd8, 0x25, 0xa9, 0x18, 0xf1, 0x58, 0xbf, 0x05, 0x7a, 0x91,
+	0x53, 0x81, 0xf2, 0x3c, 0x94, 0x6c, 0x8b, 0xf9, 0x54, 0x8d, 0x92, 0x6d, 0xe9, 0x3b, 0xb0, 0xbe,
+	0x4f, 0x68, 0x11, 0x8e, 0xec, 0x8e, 0x57, 0x0a, 0x5c, 0x9e, 0xb8, 0x45, 0x7e, 0x8a, 0xf4, 0x06,
+	0x26, 0x63, 0x51, 0xd3, 0xb1, 0xfc, 0x9d, 0x2a, 0xa5, 0x9b, 0xb0, 0xc1, 0x6f, 0xce, 0x1c, 0x41,
+	0xcd, 0x0b, 0x50, 0xdf, 0x04, 0xbd, 0xe8, 0x10, 0x71, 0x57, 0x6f, 0xc2, 0x06, 0x7f, 0x4d, 0xe6,
+	0xe1, 0x77, 0x13, 0xf4, 0xa2, 0x4d, 0xc2, 0xb5, 0x0e, 0xed, 0xb0, 0x32, 0xca, 0xd6, 0x44, 0xd7,
+	0x44, 0xc7, 0xb0, 0x51, 0xb0, 0x46, 0x48, 0xf5, 0x4e, 0x26, 0x6d, 0x37, 0x79, 0xda, 0x16, 0x0b,
+	0x1c, 0x67, 0xf2, 0x69, 0x09, 0x9a, 0x3c, 0xeb, 0xee, 0x3e, 0xa3, 0x3e, 0x16, 0x7b, 0xa2, 0xd0,
+	0x6e, 0xc3, 0x8a, 0x29, 0xf1, 0x72, 0x7f, 0x4f, 0x84, 0x3b, 0x61, 0x16, 0xf5, 0x00, 0x06, 0x9e,
+	0x35, 0x72, 0xd8, 0x98, 0x69, 0x72, 0xfe, 0xc6, 0x22, 0xc3, 0xf5, 0x7e, 0x6c, 0x36, 0x12, 0x4b,
+	0xc2, 0x8c, 0x38, 0xf4, 0xc3, 0x43, 0x5d, 0xf3, 0xb9, 0xa8, 0x56, 0x63, 0x43, 0x38, 0xfb, 0x04,
+	0xbb, 0xd6, 0x47, 0xb6, 0x45, 0x8f, 0x44, 0x6d, 0x1a, 0x1b, 0x42, 0x99, 0x2d, 0x4c, 0xb1, 0x81,
+	0x29, 0x11, 0xb5, 0x28, 0x1e, 0xa3, 0x4d, 0x38, 0x17, 0x0c, 0x7d, 0x82, 0xad, 0x7b, 0xd8, 0xa4,
+	0x9e, 0x1f, 0x34, 0xaa, 0x2c, 0x0f, 0xd2, 0x46, 0xfd, 0x3a, 0x68, 0x32, 0x0e, 0x26, 0xdc, 0xb8,
+	0x97, 0x25, 0x68, 0xf2, 0xdc, 0x91, 0x51, 0x96, 0x4d, 0xcc, 0xc9, 0x14, 0x96, 0xe6, 0xa0, 0x50,
+	0x9d, 0x93, 0xc2, 0x72, 0x21, 0x85, 0x95, 0x22, 0x0a, 0xab, 0xd3, 0x28, 0x5c, 0x90, 0x51, 0xd8,
+	0x02, 0x4d, 0xc6, 0x89, 0x48, 0xf6, 0xd7, 0xa0, 0xc9, 0xaf, 0xc4, 0x0c, 0x8c, 0x85, 0xae, 0x64,
+	0x8b, 0x85, 0xab, 0x9f, 0x4a, 0xac, 0x82, 0xcf, 0xa2, 0xd4, 0x5f, 0xe6, 0x3e, 0x55, 0xbd, 0xd4,
+	0xc2, 0xea, 0x55, 0xce, 0xf6, 0x58, 0x69, 0xdd, 0x2a, 0x73, 0xea, 0x56, 0x9d, 0xa0, 0xdb, 0x31,
+	0xd3, 0x6d, 0x61, 0xac, 0xdb, 0x71, 0x4e, 0xb7, 0xda, 0x34, 0xdd, 0xea, 0x32, 0xdd, 0xde, 0x83,
+	0x9d, 0x0c, 0x9b, 0xc1, 0x3d, 0xcf, 0xdf, 0x95, 0xf2, 0x32, 0x49, 0x30, 0x1b, 0xde, 0x98, 0xc3,
+	0x87, 0xd0, 0xea, 0x56, 0xa6, 0x6c, 0xb5, 0xa2, 0xb2, 0x25, 0x53, 0x36, 0x2a, 0x57, 0xdd, 0xcb,
+	0x00, 0x63, 0x1a, 0x51, 0x0d, 0xca, 0x0f, 0x1f, 0x19, 0x77, 0x96, 0xfe, 0x87, 0x16, 0x40, 0xbd,
+	0x77, 0xf0, 0x60, 0x49, 0xb9, 0xf1, 0xc3, 0x22, 0x2c, 0x88, 0x27, 0x1b, 0x7d, 0x0c, 0x55, 0x7e,
+	0xad, 0x51, 0x93, 0x39, 0x97, 0x7d, 0xbb, 0x6a, 0x9a, 0x6c, 0x4a, 0xe4, 0x5a, 0xe3, 0xf4, 0xe7,
+	0xdf, 0xbf, 0x2e, 0x21, 0xfd, 0x1c, 0xfb, 0x20, 0x16, 0xdf, 0xcb, 0xc1, 0xdb, 0x4a, 0x17, 0x1d,
+	0x80, 0xba, 0x4f, 0x28, 0x5a, 0x89, 0x40, 0x67, 0x9c, 0xae, 0xe6, 0xec, 0xc2, 0xe3, 0x1a, 0xf3,
+	0x78, 0x09, 0x5d, 0x4c, 0x79, 0xec, 0xbd, 0x18, 0x60, 0xf3, 0x04, 0x7d, 0x0a, 0x55, 0x7e, 0x87,
+	0x04, 0x5e, 0x59, 0x77, 0x2c, 0xf0, 0xca, 0x5b, 0xcb, 0x75, 0xe6, 0xbd, 0xa1, 0xc9, 0xbc, 0x87,
+	0xa8, 0x3f, 0x81, 0x2a, 0xbf, 0x59, 0xe2, 0x00, 0xd9, 0x37, 0x95, 0x38, 0x40, 0xfe, 0x11, 0x25,
+	0xe0, 0x77, 0xa5, 0xf0, 0x1f, 0x43, 0x39, 0x7c, 0xad, 0xd0, 0x6a, 0xb6, 0xed, 0x8f, 0x3c, 0x37,
+	0xf2, 0x13, 0xc2, 0xef, 0x25, 0xe6, 0x77, 0x11, 0xa5, 0x89, 0x46, 0x47, 0x50, 0xdb, 0x27, 0x94,
+	0x77, 0xc9, 0x6b, 0x19, 0x4a, 0x93, 0xfd, 0xa4, 0xd6, 0x92, 0x4f, 0x0a, 0xef, 0x1b, 0xcc, 0xfb,
+	0x1a, 0x6a, 0x4a, 0x50, 0xf7, 0x02, 0xe6, 0xfd, 0x95, 0x12, 0x3d, 0x01, 0xb2, 0xb4, 0x45, 0x5b,
+	0x89, 0x24, 0x29, 0x68, 0x05, 0xb4, 0xff, 0x4f, 0x5d, 0x27, 0x20, 0x6d, 0x33, 0x48, 0x1d, 0xfd,
+	0x4a, 0x1a, 0x92, 0xa8, 0x47, 0x66, 0xea, 0xa5, 0x0f, 0x95, 0xfb, 0x46, 0x61, 0x55, 0x4f, 0x0a,
+	0xee, 0x4a, 0xf1, 0x83, 0xcf, 0x91, 0xcd, 0xd4, 0x15, 0xe8, 0x3b, 0x0c, 0x56, 0x17, 0x75, 0x66,
+	0x80, 0xd5, 0x7b, 0x61, 0x5b, 0x27, 0xe8, 0x7b, 0x25, 0x2a, 0xfc, 0x05, 0xc4, 0x4d, 0x6d, 0xe7,
+	0x04, 0x71, 0xb3, 0x74, 0x64, 0x0c, 0xe1, 0xeb, 0xda, 0xcc, 0x08, 0x43, 0xf6, 0xbe, 0x53, 0xa2,
+	0x27, 0xa5, 0x00, 0xe4, 0xd4, 0x46, 0x4f, 0x80, 0x9c, 0xa1, 0xb7, 0x13, 0x34, 0x76, 0x67, 0xa7,
+	0xf1, 0x5b, 0x05, 0x9a, 0x13, 0x5b, 0x3d, 0x74, 0x35, 0xbe, 0x38, 0x45, 0xed, 0xa2, 0xb6, 0x35,
+	0x6d, 0x59, 0xf4, 0x1a, 0x33, 0x78, 0x57, 0xd1, 0x2c, 0xc9, 0x87, 0x4e, 0x00, 0xe5, 0x7b, 0x23,
+	0xb4, 0x9e, 0x48, 0x74, 0xc9, 0x9b, 0xae, 0x5d, 0x9e, 0x38, 0x2f, 0x30, 0x6c, 0x31, 0x0c, 0x6d,
+	0x7d, 0x2d, 0x8d, 0x81, 0x84, 0x6b, 0xa3, 0x26, 0x3d, 0x94, 0xee, 0x54, 0x01, 0x94, 0x6f, 0x2c,
+	0xc4, 0xf9, 0x13, 0xbb, 0x30, 0x71, 0x7e, 0x51, 0x47, 0xc2, 0x39, 0xd0, 0xda, 0x05, 0xe7, 0xc7,
+	0xf9, 0xf3, 0x15, 0xa0, 0x7c, 0x47, 0x22, 0x30, 0x4c, 0xec, 0x6b, 0x04, 0x86, 0x82, 0x56, 0xa6,
+	0xc3, 0x30, 0xe8, 0xdd, 0xa9, 0x18, 0xd0, 0xaf, 0x0a, 0x5c, 0x9b, 0xf9, 0x89, 0x45, 0x6f, 0xca,
+	0x9e, 0xd2, 0xa9, 0xcf, 0xba, 0x76, 0x7b, 0xde, 0x6d, 0x22, 0x8c, 0x77, 0x59, 0x18, 0x6f, 0xa1,
+	0xdb, 0xb3, 0x66, 0x7b, 0x3a, 0xc2, 0x27, 0x55, 0xf6, 0xef, 0xf2, 0xcd, 0x3f, 0x03, 0x00, 0x00,
+	0xff, 0xff, 0x41, 0xb6, 0x10, 0x98, 0x91, 0x16, 0x00, 0x00,
 }

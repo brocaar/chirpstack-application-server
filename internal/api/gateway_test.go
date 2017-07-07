@@ -333,6 +333,271 @@ func TestGatewayAPI(t *testing.T) {
 					})
 				})
 			})
+
+			Convey("When calling CreateChannelConfiguration", func() {
+				nsClient.CreateChannelConfigurationResponse = ns.CreateChannelConfigurationResponse{
+					Id: 123,
+				}
+
+				resp, err := api.CreateChannelConfiguration(ctx, &pb.CreateChannelConfigurationRequest{
+					Name:     "test-config",
+					Channels: []int32{0, 1, 2},
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the exepcted request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.CreateChannelConfigurationResponse{
+						Id: 123,
+					})
+					So(nsClient.CreateChannelConfigurationChan, ShouldHaveLength, 1)
+					So(<-nsClient.CreateChannelConfigurationChan, ShouldResemble, ns.CreateChannelConfigurationRequest{
+						Name:     "test-config",
+						Channels: []int32{0, 1, 2},
+					})
+				})
+			})
+
+			Convey("When calling GetChannelConfiguration", func() {
+				now := time.Now()
+				nowStr := now.Format(time.RFC3339Nano)
+
+				nsClient.GetChannelConfigurationResponse = ns.GetChannelConfigurationResponse{
+					Id:        123,
+					Name:      "test-config",
+					Channels:  []int32{0, 1, 2},
+					CreatedAt: nowStr,
+					UpdatedAt: nowStr,
+				}
+
+				resp, err := api.GetChannelConfiguration(ctx, &pb.GetChannelConfigurationRequest{
+					Id: 123,
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.GetChannelConfigurationResponse{
+						Id:        123,
+						Name:      "test-config",
+						Channels:  []int32{0, 1, 2},
+						CreatedAt: nowStr,
+						UpdatedAt: nowStr,
+					})
+					So(nsClient.GetChannelConfigurationChan, ShouldHaveLength, 1)
+					So(<-nsClient.GetChannelConfigurationChan, ShouldResemble, ns.GetChannelConfigurationRequest{
+						Id: 123,
+					})
+				})
+			})
+
+			Convey("When calling UpdateChannelConfiguration", func() {
+				resp, err := api.UpdateChannelConfiguration(ctx, &pb.UpdateChannelConfigurationRequest{
+					Id:       123,
+					Name:     "updated-config",
+					Channels: []int32{0, 1},
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.UpdateChannelConfigurationResponse{})
+					So(nsClient.UpdateChannelConfigurationChan, ShouldHaveLength, 1)
+					So(<-nsClient.UpdateChannelConfigurationChan, ShouldResemble, ns.UpdateChannelConfigurationRequest{
+						Id:       123,
+						Name:     "updated-config",
+						Channels: []int32{0, 1},
+					})
+				})
+			})
+
+			Convey("When calling DeleteChannelConfiguration", func() {
+				resp, err := api.DeleteChannelConfiguration(ctx, &pb.DeleteChannelConfigurationRequest{
+					Id: 123,
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.DeleteChannelConfigurationResponse{})
+					So(nsClient.DeleteChannelConfigurationChan, ShouldHaveLength, 1)
+					So(<-nsClient.DeleteChannelConfigurationChan, ShouldResemble, ns.DeleteChannelConfigurationRequest{
+						Id: 123,
+					})
+
+				})
+			})
+
+			Convey("When calling ListChannelConfigurations", func() {
+				now := time.Now()
+				nowStr := now.Format(time.RFC3339Nano)
+
+				nsClient.ListChannelConfigurationsResponse = ns.ListChannelConfigurationsResponse{
+					Result: []*ns.GetChannelConfigurationResponse{
+						{
+							Id:        123,
+							Name:      "test-config",
+							Channels:  []int32{0, 1, 2},
+							CreatedAt: nowStr,
+							UpdatedAt: nowStr,
+						},
+					},
+				}
+
+				resp, err := api.ListChannelConfigurations(ctx, &pb.ListChannelConfigurationsRequest{})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.ListChannelConfigurationsResponse{
+						Result: []*pb.GetChannelConfigurationResponse{
+							{
+								Id:        123,
+								Name:      "test-config",
+								Channels:  []int32{0, 1, 2},
+								CreatedAt: nowStr,
+								UpdatedAt: nowStr,
+							},
+						},
+					})
+					So(nsClient.ListChannelConfigurationsChan, ShouldHaveLength, 1)
+					So(<-nsClient.ListChannelConfigurationsChan, ShouldResemble, ns.ListChannelConfigurationsRequest{})
+				})
+			})
+
+			Convey("When calling CreateExtraChannel", func() {
+				nsClient.CreateExtraChannelResponse = ns.CreateExtraChannelResponse{
+					Id: 321,
+				}
+
+				resp, err := api.CreateExtraChannel(ctx, &pb.CreateExtraChannelRequest{
+					ChannelConfigurationID: 123,
+					Modulation:             pb.Modulation_LORA,
+					Frequency:              867100000,
+					BandWidth:              125,
+					DataRate:               50000,
+					SpreadFactors:          []int32{5},
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.CreateExtraChannelResponse{
+						Id: 321,
+					})
+					So(nsClient.CreateExtraChannelChan, ShouldHaveLength, 1)
+					So(<-nsClient.CreateExtraChannelChan, ShouldResemble, ns.CreateExtraChannelRequest{
+						ChannelConfigurationID: 123,
+						Modulation:             ns.Modulation_LORA,
+						Frequency:              867100000,
+						BandWidth:              125,
+						DataRate:               50000,
+						SpreadFactors:          []int32{5},
+					})
+				})
+			})
+
+			Convey("When calling UpdateExtraChannel", func() {
+				resp, err := api.UpdateExtraChannel(ctx, &pb.UpdateExtraChannelRequest{
+					Id: 321,
+					ChannelConfigurationID: 123,
+					Modulation:             pb.Modulation_LORA,
+					Frequency:              867100000,
+					BandWidth:              125,
+					DataRate:               50000,
+					SpreadFactors:          []int32{5},
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.UpdateExtraChannelResponse{})
+					So(nsClient.UpdateExtraChannelChan, ShouldHaveLength, 1)
+					So(<-nsClient.UpdateExtraChannelChan, ShouldResemble, ns.UpdateExtraChannelRequest{
+						Id: 321,
+						ChannelConfigurationID: 123,
+						Modulation:             ns.Modulation_LORA,
+						Frequency:              867100000,
+						BandWidth:              125,
+						DataRate:               50000,
+						SpreadFactors:          []int32{5},
+					})
+				})
+			})
+
+			Convey("When calling DeleteExtraChannel", func() {
+				resp, err := api.DeleteExtraChannel(ctx, &pb.DeleteExtraChannelRequest{
+					Id: 321,
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.DeleteExtraChannelResponse{})
+					So(nsClient.DeleteExtraChannelChan, ShouldHaveLength, 1)
+					So(<-nsClient.DeleteExtraChannelChan, ShouldResemble, ns.DeleteExtraChannelRequest{
+						Id: 321,
+					})
+				})
+			})
+
+			Convey("When calling GetExtraChannelsForChannelConfigurationID", func() {
+				now := time.Now()
+				nowStr := now.Format(time.RFC3339Nano)
+
+				nsClient.GetExtraChannelsForChannelConfigurationIDResponse = ns.GetExtraChannelsForChannelConfigurationIDResponse{
+					Result: []*ns.GetExtraChannelResponse{
+						{
+							Id: 321,
+							ChannelConfigurationID: 123,
+							CreatedAt:              nowStr,
+							UpdatedAt:              nowStr,
+							Modulation:             ns.Modulation_LORA,
+							Frequency:              867100000,
+							Bandwidth:              125,
+							DataRate:               50000,
+							SpreadFactors:          []int32{5},
+						},
+					},
+				}
+
+				resp, err := api.GetExtraChannelsForChannelConfigurationID(ctx, &pb.GetExtraChannelsForChannelConfigurationIDRequest{
+					Id: 123,
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.GetExtraChannelsForChannelConfigurationIDResponse{
+						Result: []*pb.GetExtraChannelResponse{
+							{
+								Id: 321,
+								ChannelConfigurationID: 123,
+								CreatedAt:              nowStr,
+								UpdatedAt:              nowStr,
+								Modulation:             pb.Modulation_LORA,
+								Frequency:              867100000,
+								Bandwidth:              125,
+								DataRate:               50000,
+								SpreadFactors:          []int32{5},
+							},
+						},
+					})
+					So(nsClient.GetExtraChannelsForChannelConfigurationIDChan, ShouldHaveLength, 1)
+					So(<-nsClient.GetExtraChannelsForChannelConfigurationIDChan, ShouldResemble, ns.GetExtraChannelsForChannelConfigurationIDRequest{
+						Id: 123,
+					})
+				})
+			})
 		})
 	})
 }

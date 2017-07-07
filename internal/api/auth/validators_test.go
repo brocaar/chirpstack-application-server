@@ -988,6 +988,31 @@ func TestValidators(t *testing.T) {
 
 			runTests(tests, db)
 		})
+
+		Convey("WHen testing ValidateChannelConfigurationAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can create, update, delete read and list",
+					Validators: []ValidatorFunc{ValidateChannelConfigurationAccess(Create), ValidateChannelConfigurationAccess(Update), ValidateChannelConfigurationAccess(Delete), ValidateChannelConfigurationAccess(Read), ValidateChannelConfigurationAccess(List)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "normal users can read and list",
+					Validators: []ValidatorFunc{ValidateChannelConfigurationAccess(Read), ValidateChannelConfigurationAccess(List)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "normal users can not create, update and delete",
+					Validators: []ValidatorFunc{ValidateChannelConfigurationAccess(Create), ValidateChannelConfigurationAccess(Update), ValidateChannelConfigurationAccess(Delete)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
 	})
 }
 

@@ -95,6 +95,25 @@ It has these top-level messages:
 	GatewayStats
 	GetGatewayStatsRequest
 	GetGatewayStatsResponse
+	CreateChannelConfigurationRequest
+	CreateChannelConfigurationResponse
+	GetChannelConfigurationRequest
+	GetChannelConfigurationResponse
+	UpdateChannelConfigurationRequest
+	UpdateChannelConfigurationResponse
+	DeleteChannelConfigurationRequest
+	DeleteChannelConfigurationResponse
+	ListChannelConfigurationsRequest
+	ListChannelConfigurationsResponse
+	CreateExtraChannelRequest
+	CreateExtraChannelResponse
+	UpdateExtraChannelRequest
+	UpdateExtraChannelResponse
+	DeleteExtraChannelRequest
+	DeleteExtraChannelResponse
+	GetExtraChannelResponse
+	GetExtraChannelsForChannelConfigurationIDRequest
+	GetExtraChannelsForChannelConfigurationIDResponse
 	ListOrganizationRequest
 	OrganizationRequest
 	GetOrganizationResponse

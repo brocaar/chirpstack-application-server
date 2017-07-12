@@ -37,6 +37,11 @@ import ListGateways from "./views/gateways/ListGateways";
 import GatewayDetails from "./views/gateways/GatewayDetails";
 import CreateGateway from "./views/gateways/CreateGateway";
 import UpdateGateway from "./views/gateways/UpdateGateway";
+import ListChannelConfigurations from "./views/gateways/ListChannelConfigurations";
+import CreateChannelConfiguration from "./views/gateways/CreateChannelConfiguration";
+import ChannelConfigurationLayout from "./views/gateways/ChannelConfigurationLayout";
+import UpdateChannelConfiguration from "./views/gateways/UpdateChannelConfiguration";
+import UpdateChannelConfigurationExtraChannels from "./views/gateways/UpdateChannelConfigurationExtraChannels";
 
 // organizations
 import OrganizationLayout from './views/organizations/OrganizationLayout';
@@ -102,6 +107,16 @@ ReactDOM.render(
         <Route path="edit" component={UpdateNode}></Route>
         <Route path="activation" component={ActivateNode}></Route>
         <Route path="frames" component={NodeFrameLogs}></Route>
+      </Route>
+
+      <Route path="gateways/channelconfigurations">
+        <IndexRoute component={ListChannelConfigurations}></IndexRoute>
+        <Route path="create" component={CreateChannelConfiguration}></Route>
+
+        <Route path=":id" component={ChannelConfigurationLayout}>
+          <Route path="edit" component={UpdateChannelConfiguration}></Route>
+          <Route path="edit/extrachannels" component={UpdateChannelConfigurationExtraChannels}></Route>
+        </Route>
       </Route>
 
     </Route>

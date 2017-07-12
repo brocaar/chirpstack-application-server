@@ -7,50 +7,6 @@ import "google/api/annotations.proto";
 
 // Gateway is the service managing the gateways.
 service Gateway {
-	// Create creates the given gateway.
-	rpc Create(CreateGatewayRequest) returns (CreateGatewayResponse) {
-		option(google.api.http) = {
-			post: "/api/gateways"
-			body: "*"
-		};
-	}
-
-	// Get returns the gateway for the requested mac address.
-	rpc Get(GetGatewayRequest) returns (GetGatewayResponse) {
-		option (google.api.http) = {
-			get: "/api/gateways/{mac}"
-		};
-	}
-
-	// Update updates the gateway matching the given mac address.
-	rpc Update(UpdateGatewayRequest) returns (UpdateGatewayResponse) {
-		option (google.api.http) = {
-			put: "/api/gateways/{mac}"
-			body: "*"
-		};
-	}
-	
-	// Delete deletes the gateway matching the given mac address.
-	rpc Delete(DeleteGatewayRequest) returns (DeleteGatewayResponse) {
-		option (google.api.http) = {
-			delete: "/api/gateways/{mac}"
-		};
-	}
-
-	// List lists the gateways.
-	rpc List(ListGatewayRequest) returns (ListGatewayResponse) {
-		option (google.api.http) = {
-			get: "/api/gateways"
-		};
-	}
-
-	// GetStats lists the gateway stats given the query parameters.
-	rpc GetStats(GetGatewayStatsRequest) returns (GetGatewayStatsResponse) {
-		option (google.api.http) = {
-			get: "/api/gateways/{mac}/stats"
-		};
-	}
-
 	// CreateChannelConfiguration creates the given channel-configuration.
 	rpc CreateChannelConfiguration(CreateChannelConfigurationRequest) returns (CreateChannelConfigurationResponse) {
 		option (google.api.http) = {
@@ -117,6 +73,50 @@ service Gateway {
 	rpc GetExtraChannelsForChannelConfigurationID(GetExtraChannelsForChannelConfigurationIDRequest) returns (GetExtraChannelsForChannelConfigurationIDResponse) {
 		option (google.api.http) = {
 			get: "/api/gateways/channelconfigurations/{id}/extrachannels"
+		};
+	}
+
+	// Create creates the given gateway.
+	rpc Create(CreateGatewayRequest) returns (CreateGatewayResponse) {
+		option(google.api.http) = {
+			post: "/api/gateways"
+			body: "*"
+		};
+	}
+
+	// Get returns the gateway for the requested mac address.
+	rpc Get(GetGatewayRequest) returns (GetGatewayResponse) {
+		option (google.api.http) = {
+			get: "/api/gateways/{mac}"
+		};
+	}
+
+	// Update updates the gateway matching the given mac address.
+	rpc Update(UpdateGatewayRequest) returns (UpdateGatewayResponse) {
+		option (google.api.http) = {
+			put: "/api/gateways/{mac}"
+			body: "*"
+		};
+	}
+	
+	// Delete deletes the gateway matching the given mac address.
+	rpc Delete(DeleteGatewayRequest) returns (DeleteGatewayResponse) {
+		option (google.api.http) = {
+			delete: "/api/gateways/{mac}"
+		};
+	}
+
+	// List lists the gateways.
+	rpc List(ListGatewayRequest) returns (ListGatewayResponse) {
+		option (google.api.http) = {
+			get: "/api/gateways"
+		};
+	}
+
+	// GetStats lists the gateway stats given the query parameters.
+	rpc GetStats(GetGatewayStatsRequest) returns (GetGatewayStatsResponse) {
+		option (google.api.http) = {
+			get: "/api/gateways/{mac}/stats"
 		};
 	}
 }

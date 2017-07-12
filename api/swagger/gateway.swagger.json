@@ -553,6 +553,11 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the organization to which this gateway belongs."
+        },
+        "channelConfigurationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the channel-configuration."
         }
       }
     },
@@ -739,6 +744,11 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the organization to which this gateway belongs."
+        },
+        "channelConfigurationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the channel-configuration."
         }
       }
     },
@@ -925,6 +935,11 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the organization to which this gateway belongs."
+        },
+        "channelConfigurationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the channel-configuration."
         }
       }
     },

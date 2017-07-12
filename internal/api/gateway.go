@@ -44,12 +44,13 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 	}
 
 	createReq := ns.CreateGatewayRequest{
-		Mac:         mac[:],
-		Name:        req.Name,
-		Description: req.Description,
-		Latitude:    req.Latitude,
-		Longitude:   req.Longitude,
-		Altitude:    req.Altitude,
+		Mac:                    mac[:],
+		Name:                   req.Name,
+		Description:            req.Description,
+		Latitude:               req.Latitude,
+		Longitude:              req.Longitude,
+		Altitude:               req.Altitude,
+		ChannelConfigurationID: req.ChannelConfigurationID,
 	}
 
 	err = storage.Transaction(a.ctx.DB, func(tx *sqlx.Tx) error {
@@ -102,17 +103,18 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 	}
 
 	ret := &pb.GetGatewayResponse{
-		Mac:            mac.String(),
-		Name:           gw.Name,
-		Description:    gw.Description,
-		OrganizationID: gw.OrganizationID,
-		Latitude:       getResp.Latitude,
-		Longitude:      getResp.Longitude,
-		Altitude:       getResp.Altitude,
-		CreatedAt:      gw.CreatedAt.Format(time.RFC3339Nano),
-		UpdatedAt:      gw.UpdatedAt.Format(time.RFC3339Nano),
-		FirstSeenAt:    getResp.FirstSeenAt,
-		LastSeenAt:     getResp.LastSeenAt,
+		Mac:                    mac.String(),
+		Name:                   gw.Name,
+		Description:            gw.Description,
+		OrganizationID:         gw.OrganizationID,
+		Latitude:               getResp.Latitude,
+		Longitude:              getResp.Longitude,
+		Altitude:               getResp.Altitude,
+		CreatedAt:              gw.CreatedAt.Format(time.RFC3339Nano),
+		UpdatedAt:              gw.UpdatedAt.Format(time.RFC3339Nano),
+		FirstSeenAt:            getResp.FirstSeenAt,
+		LastSeenAt:             getResp.LastSeenAt,
+		ChannelConfigurationID: getResp.ChannelConfigurationID,
 	}
 	return ret, err
 }
@@ -223,12 +225,13 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		}
 
 		updateReq := ns.UpdateGatewayRequest{
-			Mac:         mac[:],
-			Name:        req.Name,
-			Description: req.Description,
-			Latitude:    req.Latitude,
-			Longitude:   req.Longitude,
-			Altitude:    req.Altitude,
+			Mac:                    mac[:],
+			Name:                   req.Name,
+			Description:            req.Description,
+			Latitude:               req.Latitude,
+			Longitude:              req.Longitude,
+			Altitude:               req.Altitude,
+			ChannelConfigurationID: req.ChannelConfigurationID,
 		}
 		_, err = a.ctx.NetworkServer.UpdateGateway(ctx, &updateReq)
 		if err != nil {

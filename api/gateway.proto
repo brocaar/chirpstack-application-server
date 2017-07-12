@@ -150,6 +150,9 @@ message CreateGatewayRequest {
 
 	// ID of the organization to which this gateway belongs.
 	int64 organizationID = 7;
+
+	// ID of the channel-configuration.
+	int64 channelConfigurationID = 8;
 }
 
 message CreateGatewayResponse {}
@@ -192,6 +195,9 @@ message GetGatewayResponse {
 
 	// ID of the organization to which this gateway belongs.
 	int64 organizationID = 11;
+
+	// ID of the channel-configuration.
+	int64 channelConfigurationID = 12;
 };
 
 message DeleteGatewayRequest {
@@ -263,6 +269,9 @@ message UpdateGatewayRequest {
 
 	// ID of the organization to which this gateway belongs.
 	int64 organizationID = 7;
+
+	// ID of the channel-configuration.
+	int64 channelConfigurationID = 8;
 }
 
 message UpdateGatewayResponse {}

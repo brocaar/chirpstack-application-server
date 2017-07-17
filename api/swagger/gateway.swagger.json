@@ -494,10 +494,10 @@
           "format": "int32",
           "description": "Bandwidth."
         },
-        "dataRate": {
+        "bitRate": {
           "type": "integer",
           "format": "int32",
-          "description": "Data-rate (in case of FSK modulation)."
+          "description": "Bit rate (in case of FSK modulation)."
         },
         "spreadFactors": {
           "type": "array",
@@ -667,10 +667,10 @@
           "format": "int32",
           "description": "Bandwidth."
         },
-        "dataRate": {
+        "bitRate": {
           "type": "integer",
           "format": "int32",
-          "description": "Data-rate (in case of FSK modulation)."
+          "description": "Bit rate (in case of FSK modulation)."
         },
         "spreadFactors": {
           "type": "array",
@@ -883,10 +883,10 @@
           "format": "int32",
           "description": "Bandwidth."
         },
-        "dataRate": {
+        "bitRate": {
           "type": "integer",
           "format": "int32",
-          "description": "Data-rate (in case of FSK modulation)."
+          "description": "Bit rate (in case of FSK modulation)."
         },
         "spreadFactors": {
           "type": "array",

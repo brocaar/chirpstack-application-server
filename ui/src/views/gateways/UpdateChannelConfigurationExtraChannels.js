@@ -26,7 +26,7 @@ class ExtraChannel extends Component {
         <td>{this.props.channel.modulation}</td>
         <td>{this.props.channel.bandwidth}</td>
         <td>{this.props.channel.spreadFactors.join(", ")}</td>
-        <td>{this.props.channel.dataRate > 0 ? this.props.channel.dataRate : ""}</td>
+        <td>{this.props.channel.bitRate > 0 ? this.props.channel.bitRate : ""}</td>
         <td><a className="btn btn-danger btn-xs pull-right" onClick={this.onDelete}><span className="glyphicon glyphicon-remove" aria-hidden="true"></span></a></td>
       </tr>
     );
@@ -71,7 +71,7 @@ class UpdateChannelConfigurationExtraChannels extends Component {
                   <th>Modulation</th>
                   <th>Bandwidth (kHz)</th>
                   <th>Spread-factors (LoRa)</th>
-                  <th>Datarate (FSK)</th>
+                  <th>Bit rate (FSK)</th>
                   <th></th>
                 </tr>
               </thead>
@@ -181,8 +181,8 @@ class ExtraChannelForm extends Component {
           <input className="form-control" name="spreadFactors" id="spreadFactorsStr" type="text" placeholder="e.g. 7, 8, 9, 10, 11, 12" required={this.state.channel.modulation === "LORA"} value={this.state.channel.spreadFactorsStr || ''} onChange={this.onChange.bind(this, 'spreadFactorsStr')} />
         </div>
         <div className={"form-group " + (this.state.channel.modulation === "FSK" ? "" : "hidden")}>
-          <label className="control-label" htmlFor="dataRate">Datarate</label>
-          <input className="form-control" name="dataRate" id="dataRate" type="number" placeholder="e.g. 50000" required={this.state.channel.modulation === "FSK"} value={this.state.channel.dataRate || ''} onChange={this.onChange.bind(this, 'dataRate')} />
+          <label className="control-label" htmlFor="bitRate">Bit rate</label>
+          <input className="form-control" name="bitRate" id="bitRate" type="number" placeholder="e.g. 50000" required={this.state.channel.modulation === "FSK"} value={this.state.channel.bitRate || ''} onChange={this.onChange.bind(this, 'bitRate')} />
         </div>
         <hr />
         <div className="btn-toolbar pull-right">

@@ -480,7 +480,7 @@ func TestGatewayAPI(t *testing.T) {
 					Modulation:             pb.Modulation_LORA,
 					Frequency:              867100000,
 					BandWidth:              125,
-					DataRate:               50000,
+					BitRate:                50000,
 					SpreadFactors:          []int32{5},
 				})
 				So(err, ShouldBeNil)
@@ -497,7 +497,7 @@ func TestGatewayAPI(t *testing.T) {
 						Modulation:             ns.Modulation_LORA,
 						Frequency:              867100000,
 						BandWidth:              125,
-						DataRate:               50000,
+						BitRate:                50000,
 						SpreadFactors:          []int32{5},
 					})
 				})
@@ -510,7 +510,7 @@ func TestGatewayAPI(t *testing.T) {
 					Modulation:             pb.Modulation_LORA,
 					Frequency:              867100000,
 					BandWidth:              125,
-					DataRate:               50000,
+					BitRate:                50000,
 					SpreadFactors:          []int32{5},
 				})
 				So(err, ShouldBeNil)
@@ -526,7 +526,7 @@ func TestGatewayAPI(t *testing.T) {
 						Modulation:             ns.Modulation_LORA,
 						Frequency:              867100000,
 						BandWidth:              125,
-						DataRate:               50000,
+						BitRate:                50000,
 						SpreadFactors:          []int32{5},
 					})
 				})
@@ -563,7 +563,7 @@ func TestGatewayAPI(t *testing.T) {
 							Modulation:             ns.Modulation_LORA,
 							Frequency:              867100000,
 							Bandwidth:              125,
-							DataRate:               50000,
+							BitRate:                50000,
 							SpreadFactors:          []int32{5},
 						},
 					},
@@ -587,7 +587,7 @@ func TestGatewayAPI(t *testing.T) {
 								Modulation:             pb.Modulation_LORA,
 								Frequency:              867100000,
 								Bandwidth:              125,
-								DataRate:               50000,
+								BitRate:                50000,
 								SpreadFactors:          []int32{5},
 							},
 						},

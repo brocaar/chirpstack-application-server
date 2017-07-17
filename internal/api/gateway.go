@@ -442,7 +442,7 @@ func (a *GatewayAPI) CreateExtraChannel(ctx context.Context, req *pb.CreateExtra
 		Modulation:             ns.Modulation(req.Modulation),
 		Frequency:              req.Frequency,
 		BandWidth:              req.BandWidth,
-		DataRate:               req.DataRate,
+		BitRate:                req.BitRate,
 		SpreadFactors:          req.SpreadFactors,
 	})
 	if err != nil {
@@ -467,7 +467,7 @@ func (a *GatewayAPI) UpdateExtraChannel(ctx context.Context, req *pb.UpdateExtra
 		Modulation:             ns.Modulation(req.Modulation),
 		Frequency:              req.Frequency,
 		BandWidth:              req.BandWidth,
-		DataRate:               req.DataRate,
+		BitRate:                req.BitRate,
 		SpreadFactors:          req.SpreadFactors,
 	})
 	if err != nil {
@@ -519,7 +519,7 @@ func (a *GatewayAPI) GetExtraChannelsForChannelConfigurationID(ctx context.Conte
 			Modulation:             pb.Modulation(extraChannelsResp.Result[i].Modulation),
 			Frequency:              extraChannelsResp.Result[i].Frequency,
 			Bandwidth:              extraChannelsResp.Result[i].Bandwidth,
-			DataRate:               extraChannelsResp.Result[i].DataRate,
+			BitRate:                extraChannelsResp.Result[i].BitRate,
 			SpreadFactors:          extraChannelsResp.Result[i].SpreadFactors,
 		})
 	}

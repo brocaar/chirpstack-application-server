@@ -442,6 +442,31 @@
           "Gateway"
         ]
       }
+    },
+    "/api/gateways/{mac}/token": {
+      "post": {
+        "summary": "GenerateToken issues a JWT token which can be used by the gateway\nfor authentication.",
+        "operationId": "GenerateToken",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGenerateGatewayTokenResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "mac",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Gateway"
+        ]
+      }
     }
   },
   "definitions": {
@@ -599,6 +624,15 @@
           "type": "integer",
           "format": "int32",
           "description": "Packets transmitted by the gateway."
+        }
+      }
+    },
+    "apiGenerateGatewayTokenResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Generated token."
         }
       }
     },

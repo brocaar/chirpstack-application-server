@@ -76,6 +76,16 @@ class GatewayStore extends EventEmitter {
       .catch(errorHandler);
   }
 
+  generateGatewayToken(mac, callbackFunc) {
+    fetch("/api/gateways/"+mac+"/token", {method: "POST", headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
   updateGateway(mac, gateway, callbackFunc) {
     fetch("/api/gateways/"+mac, {method: "PUT", body: JSON.stringify(gateway), headers: sessionStore.getHeader()})
       .then(checkStatus)

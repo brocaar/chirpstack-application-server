@@ -86,6 +86,8 @@ It has these top-level messages:
 	GetGatewayRequest
 	GetGatewayResponse
 	DeleteGatewayRequest
+	GenerateGatewayTokenRequest
+	GenerateGatewayTokenResponse
 	DeleteGatewayResponse
 	ListGatewayRequest
 	ListGatewayItem

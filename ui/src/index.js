@@ -42,6 +42,7 @@ import CreateChannelConfiguration from "./views/gateways/CreateChannelConfigurat
 import ChannelConfigurationLayout from "./views/gateways/ChannelConfigurationLayout";
 import UpdateChannelConfiguration from "./views/gateways/UpdateChannelConfiguration";
 import UpdateChannelConfigurationExtraChannels from "./views/gateways/UpdateChannelConfigurationExtraChannels";
+import GatewayToken from "./views/gateways/GatewayToken";
 
 // organizations
 import OrganizationLayout from './views/organizations/OrganizationLayout';
@@ -92,6 +93,7 @@ ReactDOM.render(
       <Route path="organizations/:organizationID/gateways/:mac" component={GatewayLayout}>
         <IndexRoute component={GatewayDetails}></IndexRoute>
         <Route path="edit" component={UpdateGateway}></Route>
+        <Route path="token" component={GatewayToken}></Route>
       </Route>
 
       <Route path="organizations/:organizationID/applications/:applicationID" component={ApplicationLayout}>

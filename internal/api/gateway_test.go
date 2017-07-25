@@ -286,6 +286,30 @@ func TestGatewayAPI(t *testing.T) {
 				})
 			})
 
+			Convey("When calling GenerateToken", func() {
+				nsClient.GenerateGatewayTokenResponse = ns.GenerateGatewayTokenResponse{
+					Token: "secrettoken",
+				}
+
+				tokenResp, err := api.GenerateToken(ctx, &pb.GenerateGatewayTokenRequest{
+					Mac: "0102030405060708",
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the exepcted token was returned", func() {
+					So(tokenResp.Token, ShouldEqual, "secrettoken")
+				})
+
+				Convey("Then the expected request wat sent to the network-server", func() {
+					So(nsClient.GenerateGatewayTokenChan, ShouldHaveLength, 1)
+					So(<-nsClient.GenerateGatewayTokenChan, ShouldResemble, ns.GenerateGatewayTokenRequest{
+						Mac: []byte{1, 2, 3, 4, 5, 6, 7, 8},
+					})
+				})
+			})
+
 			Convey("When calling GetStats", func() {
 				now := time.Now().UTC()
 

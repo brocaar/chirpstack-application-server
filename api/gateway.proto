@@ -106,6 +106,14 @@ service Gateway {
 		};
 	}
 
+	// GenerateToken issues a JWT token which can be used by the gateway
+	// for authentication.
+	rpc GenerateToken(GenerateGatewayTokenRequest) returns (GenerateGatewayTokenResponse) {
+		option (google.api.http) = {
+			post: "/api/gateways/{mac}/token"
+		};
+	}
+
 	// List lists the gateways.
 	rpc List(ListGatewayRequest) returns (ListGatewayResponse) {
 		option (google.api.http) = {
@@ -203,6 +211,16 @@ message GetGatewayResponse {
 message DeleteGatewayRequest {
 	// Hex encoded mac address.
 	string mac = 1;
+}
+
+message GenerateGatewayTokenRequest {
+	// Hex encoded mac address.
+	string mac = 1;
+}
+
+message GenerateGatewayTokenResponse {
+	// Generated token.
+	string token = 1;
 }
 
 message DeleteGatewayResponse {}

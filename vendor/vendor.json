@@ -15,10 +15,10 @@
 			"revisionTime": "2017-06-02T09:33:00Z"
 		},
 		{
-			"checksumSHA1": "1iettNlfLvb2YhJtm4EDF/pDJ0o=",
+			"checksumSHA1": "RPPpMs0zGugULKebah2lTzQw04Q=",
 			"path": "github.com/brocaar/loraserver/api/ns",
-			"revision": "b0dd8bedf5c62cf44ce5c34e4aad992d7e97be15",
-			"revisionTime": "2017-07-17T08:18:53Z"
+			"revision": "d7c3a90e97ca16be244ba467b445e805e85c7f99",
+			"revisionTime": "2017-07-25T08:21:29Z"
 		},
 		{
 			"checksumSHA1": "u52BzfoKG0x7CgBgg/PB1AEVSag=",

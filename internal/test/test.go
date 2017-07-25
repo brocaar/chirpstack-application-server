@@ -82,12 +82,13 @@ func MustFlushRedis(p *redis.Pool) {
 
 // NetworkServerClient is a test network-server client.
 type NetworkServerClient struct {
-	CreateGatewayChan   chan ns.CreateGatewayRequest
-	GetGatewayChan      chan ns.GetGatewayRequest
-	UpdateGatewayChan   chan ns.UpdateGatewayRequest
-	DeleteGatewayChan   chan ns.DeleteGatewayRequest
-	GetGatewayStatsChan chan ns.GetGatewayStatsRequest
-	ListGatewayChan     chan ns.ListGatewayRequest
+	CreateGatewayChan        chan ns.CreateGatewayRequest
+	GetGatewayChan           chan ns.GetGatewayRequest
+	UpdateGatewayChan        chan ns.UpdateGatewayRequest
+	DeleteGatewayChan        chan ns.DeleteGatewayRequest
+	GetGatewayStatsChan      chan ns.GetGatewayStatsRequest
+	ListGatewayChan          chan ns.ListGatewayRequest
+	GenerateGatewayTokenChan chan ns.GenerateGatewayTokenRequest
 
 	CreateNodeSessionChan     chan ns.CreateNodeSessionRequest
 	GetNodeSessionChan        chan ns.GetNodeSessionRequest
@@ -114,6 +115,7 @@ type NetworkServerClient struct {
 	GetGatewayStatsResponse       ns.GetGatewayStatsResponse
 	ListGatewayResponse           ns.ListGatewayResponse
 	GetFrameLogsForDevEUIResponse ns.GetFrameLogsResponse
+	GenerateGatewayTokenResponse  ns.GenerateGatewayTokenResponse
 
 	CreateChannelConfigurationResponse                ns.CreateChannelConfigurationResponse
 	GetChannelConfigurationResponse                   ns.GetChannelConfigurationResponse
@@ -148,6 +150,7 @@ func NewNetworkServerClient() *NetworkServerClient {
 		DeleteGatewayChan:                             make(chan ns.DeleteGatewayRequest, 100),
 		GetGatewayStatsChan:                           make(chan ns.GetGatewayStatsRequest, 100),
 		ListGatewayChan:                               make(chan ns.ListGatewayRequest, 100),
+		GenerateGatewayTokenChan:                      make(chan ns.GenerateGatewayTokenRequest, 100),
 		GetFrameLogsForDevEUIChan:                     make(chan ns.GetFrameLogsForDevEUIRequest, 100),
 		CreateChannelConfigurationChan:                make(chan ns.CreateChannelConfigurationRequest, 100),
 		GetChannelConfigurationChan:                   make(chan ns.GetChannelConfigurationRequest, 100),
@@ -193,6 +196,11 @@ func (n *NetworkServerClient) UpdateGateway(ctx context.Context, in *ns.UpdateGa
 func (n *NetworkServerClient) DeleteGateway(ctx context.Context, in *ns.DeleteGatewayRequest, opts ...grpc.CallOption) (*ns.DeleteGatewayResponse, error) {
 	n.DeleteGatewayChan <- *in
 	return &n.DeleteGatewayResponse, nil
+}
+
+func (n *NetworkServerClient) GenerateGatewayToken(ctx context.Context, in *ns.GenerateGatewayTokenRequest, opts ...grpc.CallOption) (*ns.GenerateGatewayTokenResponse, error) {
+	n.GenerateGatewayTokenChan <- *in
+	return &n.GenerateGatewayTokenResponse, nil
 }
 
 func (n *NetworkServerClient) GetGatewayStats(ctx context.Context, in *ns.GetGatewayStatsRequest, opts ...grpc.CallOption) (*ns.GetGatewayStatsResponse, error) {

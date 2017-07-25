@@ -280,6 +280,31 @@ func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (
 	return &pb.DeleteGatewayResponse{}, nil
 }
 
+// GenerateGatewayToken issues a JWT token which can be used by the gateway
+// for authentication.
+func (a *GatewayAPI) GenerateToken(ctx context.Context, req *pb.GenerateGatewayTokenRequest) (*pb.GenerateGatewayTokenResponse, error) {
+	var mac lorawan.EUI64
+	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
+	}
+
+	err := a.validator.Validate(ctx, auth.ValidateGatewayAccess(auth.Update, mac))
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	tokenResp, err := a.ctx.NetworkServer.GenerateGatewayToken(ctx, &ns.GenerateGatewayTokenRequest{
+		Mac: mac[:],
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.GenerateGatewayTokenResponse{
+		Token: tokenResp.Token,
+	}, nil
+}
+
 // GetStats gets the gateway statistics for the gateway with the given Mac.
 func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsRequest) (*pb.GetGatewayStatsResponse, error) {
 	var mac lorawan.EUI64

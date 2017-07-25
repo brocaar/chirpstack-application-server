@@ -10,9 +10,12 @@ menu:
 
 There are a couple of ways to get involved:
 
-* Join the discussions and share your feedback at [https://gitter.im/loraserver/lora-app-server](https://gitter.im/loraserver/lora-app-server)
+* Join the discussions:
+    * LoRa Server project forum [https://forum.loraserver.io/](https://forum.loraserver.io/)
+    * LoRa Gateway Config Gitter chat [https://gitter.im/loraserver/lora-app-server](https://gitter.im/loraserver/lora-app-server)
 * Report bugs or make feature-requests by opening an issue at [https://github.com/brocaar/lora-app-server/issues](https://github.com/brocaar/lora-app-server/issues)
-* Fix issues or improve documentation by creating pull-requests
+* Help fixing issues or improve documentation by creating pull-requests
+
 
 When you would like to add new features, please discuss the feature first
 by creating an issue describing your feature, how you're planning to implement

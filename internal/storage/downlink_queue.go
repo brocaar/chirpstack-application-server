@@ -2,12 +2,15 @@ package storage
 
 import (
 	"database/sql"
+	"fmt"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 
 	"github.com/brocaar/lorawan"
+	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -20,6 +23,7 @@ type DownlinkQueueItem struct {
 	Pending   bool          `db:"pending"`
 	FPort     uint8         `db:"fport"`
 	Data      []byte        `db:"data"`
+	DateCreated   time.Time `db:"date_created"`
 }
 
 // CreateDownlinkQueueItem adds an item to the downlink queue.
@@ -57,6 +61,25 @@ func CreateDownlinkQueueItem(db *sqlx.DB, item *DownlinkQueueItem) error {
 		"dev_eui": item.DevEUI,
 		"id":      item.ID,
 	}).Info("downlink queue item enqueued")
+	return nil
+}
+
+// ExpireDownlinkQueueItems removes old items from the downlink queue.
+func ExpireDownlinkQueueItems(db *sqlx.DB) (error) {
+	result, err := db.Exec("delete from downlink_queue where (date_created + ($1 * interval '1 second')) < now()", (int64(common.NodeTXPayloadQueueTTL) / int64(time.Second)))
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Info("error expiring items from downlink queue")
+		if err == sql.ErrNoRows {
+			return nil
+		}
+		return fmt.Errorf("expire downlink queue item error: %s", err)
+	}
+	ra, err := result.RowsAffected()
+	log.WithFields(log.Fields{
+		"RowsAffected": ra,
+	}).Info("expired items from downlink queue")
 	return nil
 }
 
@@ -149,6 +172,12 @@ func DeleteDownlinkQueueItem(db *sqlx.DB, id int64) error {
 // given DevEUI.
 func GetDownlinkQueueItems(db *sqlx.DB, devEUI lorawan.EUI64) ([]DownlinkQueueItem, error) {
 	var items []DownlinkQueueItem
+	// Expire old items first
+	experr := ExpireDownlinkQueueItems(db)
+	if experr != nil {
+		return nil, experr
+	}
+	// now proceed
 	err := db.Select(&items, "select * from downlink_queue where dev_eui = $1 order by id", devEUI[:])
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
@@ -171,6 +200,12 @@ func DeleteDownlinkQueueItemsForDevEUI(db *sqlx.DB, devEUI lorawan.EUI64) error 
 // the next item is retrieved from the queue.
 // When the queue is empty, nil is returned.
 func GetNextDownlinkQueueItem(db *sqlx.DB, devEUI lorawan.EUI64, maxPayloadSize int) (*DownlinkQueueItem, error) {
+	// Expire old items first
+	experr := ExpireDownlinkQueueItems(db)
+	if experr != nil {
+		return nil, experr
+	}
+	// now proceed
 	for {
 		var qi DownlinkQueueItem
 		err := db.Get(&qi, "select * from downlink_queue where dev_eui = $1 order by id limit 1", devEUI[:])

@@ -8,6 +8,17 @@ menu:
 
 ## Changelog
 
+### 0.11.0
+
+**Features:**
+
+* Implement support for channel-configuration management. This makes it
+  possible to assign channel-plans to gateways, which then can be used by
+  [LoRa Gateway Config](https://docs.loraserver.io/lora-gateway-config/).
+
+**Note:** This feature is dependent on [LoRa Server](https://docs.loraserver.io/loraserver/)
+version 0.20.0+.
+
 ### 0.10.1
 
 **Improvements:**

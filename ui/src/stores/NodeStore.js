@@ -12,8 +12,8 @@ var checkGetActivationStatus = (response) => {
 };
 
 class NodeStore extends EventEmitter {
-  getAll(applicationID, pageSize, offset, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes?limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
+  getAll(applicationID, pageSize, offset, search, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/nodes?limit="+pageSize+"&offset="+offset+"&search="+search, {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -87,7 +87,7 @@ class NodeStore extends EventEmitter {
   }
 
   getRandomDevAddr(callbackFunc) {
-    fetch("/api/nodes/getRandomDevAddr", {method: "POST", headers: sessionStore.getHeader()}) 
+    fetch("/api/nodes/getRandomDevAddr", {method: "POST", headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

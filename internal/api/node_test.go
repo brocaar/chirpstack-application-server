@@ -117,6 +117,7 @@ func TestNodeAPI(t *testing.T) {
 				nodes, err := api.ListByApplicationID(ctx, &pb.ListNodeByApplicationIDRequest{
 					ApplicationID: app.ID,
 					Limit:         10,
+					Search:        "test",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)

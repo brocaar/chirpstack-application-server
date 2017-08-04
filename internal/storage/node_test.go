@@ -143,6 +143,14 @@ func TestNodeMethods(t *testing.T) {
 				So(nodes[0], ShouldResemble, node)
 			})
 
+			Convey("Then getting nodes by search term test for the application returns this node", func() {
+				nodes, err := GetNodesForApplicationID(db, app.ID, 10, 0, "test")
+				So(err, ShouldBeNil)
+				So(nodes, ShouldHaveLength, 1)
+				nodes[0].UsedDevNonces = nil
+				So(nodes[0], ShouldResemble, node)
+			})
+
 			Convey("Then the nodes count for the application returns 1", func() {
 				count, err := GetNodesCountForApplicationID(db, app.ID)
 				So(err, ShouldBeNil)

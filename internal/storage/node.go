@@ -332,18 +332,20 @@ func GetNode(db *sqlx.DB, devEUI lorawan.EUI64) (Node, error) {
 
 // GetNodesForApplicationID returns a slice of nodes for the given application
 // id, sorted by name.
-func GetNodesForApplicationID(db *sqlx.DB, applicationID int64, limit, offset int) ([]Node, error) {
+func GetNodesForApplicationID(db *sqlx.DB, applicationID int64, limit, offset int, search string) ([]Node, error) {
 	var nodes []Node
 	err := db.Select(&nodes, `
 		select *
 		from node
 		where
 			application_id = $1
+		and (name ilike '%' || $4 || '%' or text(dev_eui) ilike '%' || $4 || '%')
 		order by name
 		limit $2 offset $3`,
 		applicationID,
 		limit,
 		offset,
+		search,
 	)
 	if err != nil {
 		return nodes, errors.Wrap(err, "select error")

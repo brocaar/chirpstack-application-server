@@ -50,6 +50,13 @@
             "required": false,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "search",
+            "description": "Search against name or DevEUI.",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [

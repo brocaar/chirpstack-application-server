@@ -20,4 +20,6 @@ FROM alpine:latest AS production
 WORKDIR /root/
 RUN apk --no-cache add ca-certificates
 COPY --from=development /go/src/github.com/brocaar/lora-app-server/build/lora-app-server .
+COPY --from=development /etc/lora-app-server/certs/http-key.pem /etc/lora-app-server/certs/http-key.pem
+COPY --from=development /etc/lora-app-server/certs/http.pem /etc/lora-app-server/certs/http.pem
 CMD ["./lora-app-server"]

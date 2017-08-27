@@ -6,7 +6,8 @@ create table downlink_queue (
     confirmed boolean not null default false,
     pending boolean not null default false,
     fport smallint not null,
-    data bytea not null
+    data bytea not null,
+    date_created timestamp with time zone not null default now()
 );
 
 create index downlink_queue_dev_eui on downlink_queue(dev_eui);

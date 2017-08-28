@@ -16,10 +16,10 @@ import (
 
 // HandleDataDownPayloads handles received downlink payloads to be emitted to the
 // nodes.
-func HandleDataDownPayloads(ctx common.Context, plChan chan handler.DataDownPayload) {
-	for pl := range plChan {
+func HandleDataDownPayloads() {
+	for pl := range common.Handler.DataDownChan() {
 		go func(pl handler.DataDownPayload) {
-			if err := handleDataDownPayload(ctx, pl); err != nil {
+			if err := handleDataDownPayload(pl); err != nil {
 				log.WithFields(log.Fields{
 					"dev_eui":        pl.DevEUI,
 					"application_id": pl.ApplicationID,
@@ -30,8 +30,8 @@ func HandleDataDownPayloads(ctx common.Context, plChan chan handler.DataDownPayl
 	}
 }
 
-func handleDataDownPayload(ctx common.Context, pl handler.DataDownPayload) error {
-	node, err := storage.GetNode(ctx.DB, pl.DevEUI)
+func handleDataDownPayload(pl handler.DataDownPayload) error {
+	node, err := storage.GetNode(common.DB, pl.DevEUI)
 	if err != nil {
 		return fmt.Errorf("get node error: %s", err)
 	}
@@ -52,13 +52,13 @@ func handleDataDownPayload(ctx common.Context, pl handler.DataDownPayload) error
 		Data:      pl.Data,
 	}
 
-	return HandleDownlinkQueueItem(ctx, node, &qi)
+	return HandleDownlinkQueueItem(node, &qi)
 }
 
 // HandleDownlinkQueueItem handles a DownlinkQueueItem to be emitted to the node.
 // In case of class-c, it will send the payload directly to the network-server.
 // In any other case, it will be enqueued.
-func HandleDownlinkQueueItem(ctx common.Context, node storage.Node, qi *storage.DownlinkQueueItem) error {
+func HandleDownlinkQueueItem(node storage.Node, qi *storage.DownlinkQueueItem) error {
 	if node.IsClassC && qi.Confirmed {
 		qi.Pending = true
 	}
@@ -68,11 +68,11 @@ func HandleDownlinkQueueItem(ctx common.Context, node storage.Node, qi *storage.
 	// Before pushing, we purge the queue to make sure we have always a single
 	// item in the queue in case of confirmed data.
 	if node.IsClassC {
-		if err := storage.DeleteDownlinkQueueItemsForDevEUI(ctx.DB, node.DevEUI); err != nil {
+		if err := storage.DeleteDownlinkQueueItemsForDevEUI(common.DB, node.DevEUI); err != nil {
 			return err
 		}
 
-		if err := pushDataDown(ctx, node, qi); err != nil {
+		if err := pushDataDown(node, qi); err != nil {
 			return err
 		}
 	}
@@ -80,7 +80,7 @@ func HandleDownlinkQueueItem(ctx common.Context, node storage.Node, qi *storage.
 	// save the queue-item in every case, except when the node is a class-c
 	// device and the data is unconfirmed.
 	if !(node.IsClassC && !qi.Confirmed) {
-		if err := storage.CreateDownlinkQueueItem(ctx.DB, qi); err != nil {
+		if err := storage.CreateDownlinkQueueItem(common.DB, qi); err != nil {
 			return fmt.Errorf("create downlink queue item error: %s", err)
 		}
 	}
@@ -88,8 +88,8 @@ func HandleDownlinkQueueItem(ctx common.Context, node storage.Node, qi *storage.
 	return nil
 }
 
-func pushDataDown(ctx common.Context, node storage.Node, qi *storage.DownlinkQueueItem) error {
-	nsResp, err := ctx.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{
+func pushDataDown(node storage.Node, qi *storage.DownlinkQueueItem) error {
+	nsResp, err := common.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{
 		DevEUI: node.DevEUI[:],
 	})
 	if err != nil {
@@ -101,7 +101,7 @@ func pushDataDown(ctx common.Context, node storage.Node, qi *storage.DownlinkQue
 		return fmt.Errorf("encrypt frmpayload error: %s", err)
 	}
 
-	_, err = ctx.NetworkServer.PushDataDown(context.Background(), &ns.PushDataDownRequest{
+	_, err = common.NetworkServer.PushDataDown(context.Background(), &ns.PushDataDownRequest{
 		DevEUI:    qi.DevEUI[:],
 		Data:      b,
 		Confirmed: qi.Confirmed,

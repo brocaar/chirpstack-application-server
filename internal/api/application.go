@@ -13,14 +13,12 @@ import (
 
 // ApplicationAPI exports the Application related functions.
 type ApplicationAPI struct {
-	ctx       common.Context
 	validator auth.Validator
 }
 
 // NewApplicationAPI creates a new ApplicationAPI.
-func NewApplicationAPI(ctx common.Context, validator auth.Validator) *ApplicationAPI {
+func NewApplicationAPI(validator auth.Validator) *ApplicationAPI {
 	return &ApplicationAPI{
-		ctx:       ctx,
 		validator: validator,
 	}
 }
@@ -47,7 +45,7 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 		OrganizationID:     req.OrganizationID,
 	}
 
-	if err := storage.CreateApplication(a.ctx.DB, &app); err != nil {
+	if err := storage.CreateApplication(common.DB, &app); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -63,7 +61,7 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplication(a.ctx.DB, req.Id)
+	app, err := storage.GetApplication(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -93,7 +91,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplication(a.ctx.DB, req.Id)
+	app, err := storage.GetApplication(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -112,7 +110,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	app.InstallationMargin = req.InstallationMargin
 	app.OrganizationID = req.OrganizationID
 
-	err = storage.UpdateApplication(a.ctx.DB, app)
+	err = storage.UpdateApplication(common.DB, app)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -127,7 +125,7 @@ func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteApplication(a.ctx.DB, req.Id)
+	err := storage.DeleteApplication(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -156,40 +154,40 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 
 	if req.OrganizationID == 0 {
 		if isAdmin {
-			apps, err = storage.GetApplications(a.ctx.DB, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplications(common.DB, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCount(a.ctx.DB)
+			count, err = storage.GetApplicationCount(common.DB)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		} else {
-			apps, err = storage.GetApplicationsForUser(a.ctx.DB, username, 0, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplicationsForUser(common.DB, username, 0, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForUser(a.ctx.DB, username, 0)
+			count, err = storage.GetApplicationCountForUser(common.DB, username, 0)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		}
 	} else {
 		if isAdmin {
-			apps, err = storage.GetApplicationsForOrganizationID(a.ctx.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplicationsForOrganizationID(common.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForOrganizationID(a.ctx.DB, req.OrganizationID)
+			count, err = storage.GetApplicationCountForOrganizationID(common.DB, req.OrganizationID)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		} else {
-			apps, err = storage.GetApplicationsForUser(a.ctx.DB, username, req.OrganizationID, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplicationsForUser(common.DB, username, req.OrganizationID, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForUser(a.ctx.DB, username, req.OrganizationID)
+			count, err = storage.GetApplicationCountForUser(common.DB, username, req.OrganizationID)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
@@ -230,12 +228,12 @@ func (a *ApplicationAPI) ListUsers(ctx context.Context, in *pb.ListApplicationUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	total, err := storage.GetApplicationUsersCount(a.ctx.DB, in.Id)
+	total, err := storage.GetApplicationUsersCount(common.DB, in.Id)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
 
-	userAccess, err := storage.GetApplicationUsers(a.ctx.DB, in.Id, int(in.Limit), int(in.Offset))
+	userAccess, err := storage.GetApplicationUsers(common.DB, in.Id, int(in.Limit), int(in.Offset))
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
@@ -261,7 +259,7 @@ func (a *ApplicationAPI) AddUser(ctx context.Context, in *pb.AddApplicationUserR
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.CreateUserForApplication(a.ctx.DB, in.Id, in.UserID, in.IsAdmin)
+	err := storage.CreateUserForApplication(common.DB, in.Id, in.UserID, in.IsAdmin)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
@@ -276,7 +274,7 @@ func (a *ApplicationAPI) GetUser(ctx context.Context, in *pb.ApplicationUserRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	ua, err := storage.GetUserForApplication(a.ctx.DB, in.Id, in.UserID)
+	ua, err := storage.GetUserForApplication(common.DB, in.Id, in.UserID)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
@@ -298,7 +296,7 @@ func (a *ApplicationAPI) UpdateUser(ctx context.Context, in *pb.UpdateApplicatio
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.UpdateUserForApplication(a.ctx.DB, in.Id, in.UserID, in.IsAdmin)
+	err := storage.UpdateUserForApplication(common.DB, in.Id, in.UserID, in.IsAdmin)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
@@ -313,7 +311,7 @@ func (a *ApplicationAPI) DeleteUser(ctx context.Context, in *pb.ApplicationUserR
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteUserForApplication(a.ctx.DB, in.Id, in.UserID)
+	err := storage.DeleteUserForApplication(common.DB, in.Id, in.UserID)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}

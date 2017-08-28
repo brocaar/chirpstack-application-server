@@ -19,14 +19,12 @@ import (
 
 // GatewayAPI exports the Gateway related functions.
 type GatewayAPI struct {
-	ctx       common.Context
 	validator auth.Validator
 }
 
 // NewGatewayAPI creates a new GatewayAPI.
-func NewGatewayAPI(ctx common.Context, validator auth.Validator) *GatewayAPI {
+func NewGatewayAPI(validator auth.Validator) *GatewayAPI {
 	return &GatewayAPI{
-		ctx:       ctx,
 		validator: validator,
 	}
 }
@@ -53,7 +51,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 		ChannelConfigurationID: req.ChannelConfigurationID,
 	}
 
-	err = storage.Transaction(a.ctx.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
 		err = storage.CreateGateway(tx, &storage.Gateway{
 			MAC:            mac,
 			Name:           req.Name,
@@ -64,7 +62,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			return errToRPCError(err)
 		}
 
-		_, err = a.ctx.NetworkServer.CreateGateway(ctx, &createReq)
+		_, err = common.NetworkServer.CreateGateway(ctx, &createReq)
 		if err != nil && grpc.Code(err) != codes.AlreadyExists {
 			return err
 		}
@@ -90,14 +88,14 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	getResp, err := a.ctx.NetworkServer.GetGateway(ctx, &ns.GetGatewayRequest{
+	getResp, err := common.NetworkServer.GetGateway(ctx, &ns.GetGatewayRequest{
 		Mac: mac[:],
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	gw, err := storage.GetGateway(a.ctx.DB, mac)
+	gw, err := storage.GetGateway(common.DB, mac)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -137,12 +135,12 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 
 		if isAdmin {
 			// in case of admin user list all gateways
-			count, err = storage.GetGatewayCount(a.ctx.DB)
+			count, err = storage.GetGatewayCount(common.DB)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 
-			gws, err = storage.GetGateways(a.ctx.DB, int(req.Limit), int(req.Offset))
+			gws, err = storage.GetGateways(common.DB, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
@@ -152,21 +150,21 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetGatewayCountForUser(a.ctx.DB, username)
+			count, err = storage.GetGatewayCountForUser(common.DB, username)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			gws, err = storage.GetGatewaysForUser(a.ctx.DB, username, int(req.Limit), int(req.Offset))
+			gws, err = storage.GetGatewaysForUser(common.DB, username, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		}
 	} else {
-		count, err = storage.GetGatewayCountForOrganizationID(a.ctx.DB, req.OrganizationID)
+		count, err = storage.GetGatewayCountForOrganizationID(common.DB, req.OrganizationID)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
-		gws, err = storage.GetGatewaysForOrganizationID(a.ctx.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+		gws, err = storage.GetGatewaysForOrganizationID(common.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
@@ -207,8 +205,8 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		return nil, errToRPCError(err)
 	}
 
-	err = storage.Transaction(a.ctx.DB, func(tx *sqlx.Tx) error {
-		gw, err := storage.GetGateway(a.ctx.DB, mac)
+	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+		gw, err := storage.GetGateway(common.DB, mac)
 		if err != nil {
 			return errToRPCError(err)
 		}
@@ -233,7 +231,7 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 			Altitude:               req.Altitude,
 			ChannelConfigurationID: req.ChannelConfigurationID,
 		}
-		_, err = a.ctx.NetworkServer.UpdateGateway(ctx, &updateReq)
+		_, err = common.NetworkServer.UpdateGateway(ctx, &updateReq)
 		if err != nil {
 			return err
 		}
@@ -258,13 +256,13 @@ func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err = storage.Transaction(a.ctx.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
 		err = storage.DeleteGateway(tx, mac)
 		if err != nil {
 			return errToRPCError(err)
 		}
 
-		_, err = a.ctx.NetworkServer.DeleteGateway(ctx, &ns.DeleteGatewayRequest{
+		_, err = common.NetworkServer.DeleteGateway(ctx, &ns.DeleteGatewayRequest{
 			Mac: mac[:],
 		})
 		if err != nil && grpc.Code(err) != codes.NotFound {
@@ -293,7 +291,7 @@ func (a *GatewayAPI) GenerateToken(ctx context.Context, req *pb.GenerateGatewayT
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	tokenResp, err := a.ctx.NetworkServer.GenerateGatewayToken(ctx, &ns.GenerateGatewayTokenRequest{
+	tokenResp, err := common.NetworkServer.GenerateGatewayToken(ctx, &ns.GenerateGatewayTokenRequest{
 		Mac: mac[:],
 	})
 	if err != nil {
@@ -328,7 +326,7 @@ func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsReques
 		StartTimestamp: req.StartTimestamp,
 		EndTimestamp:   req.EndTimestamp,
 	}
-	stats, err := a.ctx.NetworkServer.GetGatewayStats(ctx, &statsReq)
+	stats, err := common.NetworkServer.GetGatewayStats(ctx, &statsReq)
 	if err != nil {
 		return nil, err
 	}
@@ -356,7 +354,7 @@ func (a *GatewayAPI) CreateChannelConfiguration(ctx context.Context, req *pb.Cre
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	createResp, err := a.ctx.NetworkServer.CreateChannelConfiguration(ctx, &ns.CreateChannelConfigurationRequest{
+	createResp, err := common.NetworkServer.CreateChannelConfiguration(ctx, &ns.CreateChannelConfigurationRequest{
 		Name:     req.Name,
 		Channels: req.Channels,
 	})
@@ -376,7 +374,7 @@ func (a *GatewayAPI) GetChannelConfiguration(ctx context.Context, req *pb.GetCha
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	getResp, err := a.ctx.NetworkServer.GetChannelConfiguration(ctx, &ns.GetChannelConfigurationRequest{
+	getResp, err := common.NetworkServer.GetChannelConfiguration(ctx, &ns.GetChannelConfigurationRequest{
 		Id: req.Id,
 	})
 	if err != nil {
@@ -399,7 +397,7 @@ func (a *GatewayAPI) UpdateChannelConfiguration(ctx context.Context, req *pb.Upd
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	_, err = a.ctx.NetworkServer.UpdateChannelConfiguration(ctx, &ns.UpdateChannelConfigurationRequest{
+	_, err = common.NetworkServer.UpdateChannelConfiguration(ctx, &ns.UpdateChannelConfigurationRequest{
 		Id:       req.Id,
 		Name:     req.Name,
 		Channels: req.Channels,
@@ -419,7 +417,7 @@ func (a *GatewayAPI) DeleteChannelConfiguration(ctx context.Context, req *pb.Del
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	_, err = a.ctx.NetworkServer.DeleteChannelConfiguration(ctx, &ns.DeleteChannelConfigurationRequest{
+	_, err = common.NetworkServer.DeleteChannelConfiguration(ctx, &ns.DeleteChannelConfigurationRequest{
 		Id: req.Id,
 	})
 	if err != nil {
@@ -436,7 +434,7 @@ func (a *GatewayAPI) ListChannelConfigurations(ctx context.Context, req *pb.List
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	listResp, err := a.ctx.NetworkServer.ListChannelConfigurations(ctx, &ns.ListChannelConfigurationsRequest{})
+	listResp, err := common.NetworkServer.ListChannelConfigurations(ctx, &ns.ListChannelConfigurationsRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -462,7 +460,7 @@ func (a *GatewayAPI) CreateExtraChannel(ctx context.Context, req *pb.CreateExtra
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	createResp, err := a.ctx.NetworkServer.CreateExtraChannel(ctx, &ns.CreateExtraChannelRequest{
+	createResp, err := common.NetworkServer.CreateExtraChannel(ctx, &ns.CreateExtraChannelRequest{
 		ChannelConfigurationID: req.ChannelConfigurationID,
 		Modulation:             ns.Modulation(req.Modulation),
 		Frequency:              req.Frequency,
@@ -486,7 +484,7 @@ func (a *GatewayAPI) UpdateExtraChannel(ctx context.Context, req *pb.UpdateExtra
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	_, err = a.ctx.NetworkServer.UpdateExtraChannel(ctx, &ns.UpdateExtraChannelRequest{
+	_, err = common.NetworkServer.UpdateExtraChannel(ctx, &ns.UpdateExtraChannelRequest{
 		Id: req.Id,
 		ChannelConfigurationID: req.ChannelConfigurationID,
 		Modulation:             ns.Modulation(req.Modulation),
@@ -509,7 +507,7 @@ func (a *GatewayAPI) DeleteExtraChannel(ctx context.Context, req *pb.DeleteExtra
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	_, err = a.ctx.NetworkServer.DeleteExtraChannel(ctx, &ns.DeleteExtraChannelRequest{
+	_, err = common.NetworkServer.DeleteExtraChannel(ctx, &ns.DeleteExtraChannelRequest{
 		Id: req.Id,
 	})
 	if err != nil {
@@ -527,7 +525,7 @@ func (a *GatewayAPI) GetExtraChannelsForChannelConfigurationID(ctx context.Conte
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	extraChannelsResp, err := a.ctx.NetworkServer.GetExtraChannelsForChannelConfigurationID(ctx, &ns.GetExtraChannelsForChannelConfigurationIDRequest{
+	extraChannelsResp, err := common.NetworkServer.GetExtraChannelsForChannelConfigurationID(ctx, &ns.GetExtraChannelsForChannelConfigurationIDRequest{
 		Id: req.Id,
 	})
 	if err != nil {

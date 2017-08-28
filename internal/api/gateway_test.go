@@ -24,22 +24,24 @@ func TestGatewayAPI(t *testing.T) {
 	Convey("Given clean database with an organization and a mocked network-server api", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
-		test.MustResetDB(db)
+		common.DB = db
+		test.MustResetDB(common.DB)
 
 		nsClient := test.NewNetworkServerClient()
+		common.NetworkServer = nsClient
+
 		ctx := context.Background()
-		lsCtx := common.Context{NetworkServer: nsClient, DB: db}
 		validator := &TestValidator{}
-		api := NewGatewayAPI(lsCtx, validator)
+		api := NewGatewayAPI(validator)
 
 		org := storage.Organization{
 			Name: "test-organization",
 		}
-		So(storage.CreateOrganization(db, &org), ShouldBeNil)
+		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
 		org2 := storage.Organization{
 			Name: "test-organization-2",
 		}
-		So(storage.CreateOrganization(db, &org2), ShouldBeNil)
+		So(storage.CreateOrganization(common.DB, &org2), ShouldBeNil)
 
 		now := time.Now().UTC()
 		getGatewayResponseNS := ns.GetGatewayResponse{
@@ -93,8 +95,8 @@ func TestGatewayAPI(t *testing.T) {
 				})
 			})
 
-			Convey("Then the gateway was created in the db", func() {
-				_, err := storage.GetGateway(db, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8})
+			Convey("Then the gateway was created in the common.DB", func() {
+				_, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8})
 				So(err, ShouldBeNil)
 			})
 
@@ -127,13 +129,13 @@ func TestGatewayAPI(t *testing.T) {
 				org2 := storage.Organization{
 					Name: "test-org-2",
 				}
-				So(storage.CreateOrganization(db, &org2), ShouldBeNil)
+				So(storage.CreateOrganization(common.DB, &org2), ShouldBeNil)
 				gw2 := storage.Gateway{
 					Name:           "test-gw-2",
 					MAC:            lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
 					OrganizationID: org2.ID,
 				}
-				So(storage.CreateGateway(db, &gw2), ShouldBeNil)
+				So(storage.CreateGateway(common.DB, &gw2), ShouldBeNil)
 
 				Convey("When listing all gateways", func() {
 					Convey("Then all gateways are visible to an admin user", func() {
@@ -149,7 +151,7 @@ func TestGatewayAPI(t *testing.T) {
 
 					Convey("Then gateways are only visible to users assigned to an organization", func() {
 						user := storage.User{Username: "testuser"}
-						_, err := storage.CreateUser(db, &user, "password123")
+						_, err := storage.CreateUser(common.DB, &user, "password123")
 						So(err, ShouldBeNil)
 						validator.returnIsAdmin = false
 						validator.returnUsername = user.Username
@@ -162,7 +164,7 @@ func TestGatewayAPI(t *testing.T) {
 						So(gws.TotalCount, ShouldEqual, 0)
 						So(gws.Result, ShouldHaveLength, 0)
 
-						So(storage.CreateOrganizationUser(db, org.ID, user.ID, false), ShouldBeNil)
+						So(storage.CreateOrganizationUser(common.DB, org.ID, user.ID, false), ShouldBeNil)
 						gws, err = api.List(ctx, &pb.ListGatewayRequest{
 							Limit:  10,
 							Offset: 0,
@@ -206,7 +208,7 @@ func TestGatewayAPI(t *testing.T) {
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the gateway has been updated and the OrganizationID has been ignored", func() {
-					gw, err := storage.GetGateway(db, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8})
+					gw, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8})
 					So(err, ShouldBeNil)
 					So(gw.Name, ShouldEqual, "test-gateway-updated")
 					So(gw.Description, ShouldEqual, "updated test gateway")
@@ -242,7 +244,7 @@ func TestGatewayAPI(t *testing.T) {
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the gateway has been updated", func() {
-					gw, err := storage.GetGateway(db, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8})
+					gw, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8})
 					So(err, ShouldBeNil)
 					So(gw.Name, ShouldEqual, "test-gateway-updated")
 					So(gw.Description, ShouldEqual, "updated test gateway")

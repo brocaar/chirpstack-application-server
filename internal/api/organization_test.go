@@ -18,13 +18,13 @@ func TestOrganizationAPI(t *testing.T) {
 	Convey("Given a clean database and api instance", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
-		test.MustResetDB(db)
+		common.DB = db
+		test.MustResetDB(common.DB)
 
 		ctx := context.Background()
-		lsCtx := common.Context{DB: db}
 		validator := &TestValidator{}
-		api := NewOrganizationAPI(lsCtx, validator)
-		userApi := NewUserAPI(lsCtx, validator)
+		api := NewOrganizationAPI(validator)
+		userApi := NewUserAPI(validator)
 
 		Convey("When creating an organization with a bad name (spaces)", func() {
 			validator.returnIsAdmin = true

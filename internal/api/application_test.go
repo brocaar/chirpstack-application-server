@@ -18,18 +18,18 @@ func TestApplicationAPI(t *testing.T) {
 	Convey("Given a clean database with an organization and an api instance", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
-		test.MustResetDB(db)
+		common.DB = db
+		test.MustResetDB(common.DB)
 
 		ctx := context.Background()
-		lsCtx := common.Context{DB: db}
 		validator := &TestValidator{}
-		api := NewApplicationAPI(lsCtx, validator)
-		apiuser := NewUserAPI(lsCtx, validator)
+		api := NewApplicationAPI(validator)
+		apiuser := NewUserAPI(validator)
 
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(db, &org), ShouldBeNil)
+		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
 
 		Convey("When creating an application", func() {
 			createResp, err := api.Create(ctx, &pb.CreateApplicationRequest{
@@ -77,12 +77,12 @@ func TestApplicationAPI(t *testing.T) {
 				org2 := storage.Organization{
 					Name: "test-org-2",
 				}
-				So(storage.CreateOrganization(db, &org2), ShouldBeNil)
+				So(storage.CreateOrganization(common.DB, &org2), ShouldBeNil)
 				app2 := storage.Application{
 					OrganizationID: org2.ID,
 					Name:           "test-app-2",
 				}
-				So(storage.CreateApplication(db, &app2), ShouldBeNil)
+				So(storage.CreateApplication(common.DB, &app2), ShouldBeNil)
 
 				Convey("When listing all applications", func() {
 					Convey("Then all applications are visible to an admin user", func() {
@@ -114,7 +114,7 @@ func TestApplicationAPI(t *testing.T) {
 
 					Convey("Then applications are only visible to users assigned to the application", func() {
 						user := storage.User{Username: "testtest"}
-						_, err := storage.CreateUser(db, &user, "password123")
+						_, err := storage.CreateUser(common.DB, &user, "password123")
 						So(err, ShouldBeNil)
 						validator.returnIsAdmin = false
 						validator.returnUsername = user.Username
@@ -129,7 +129,7 @@ func TestApplicationAPI(t *testing.T) {
 						So(apps.TotalCount, ShouldEqual, 0)
 						So(apps.Result, ShouldHaveLength, 0)
 
-						So(storage.CreateUserForApplication(db, createResp.Id, user.ID, false), ShouldBeNil)
+						So(storage.CreateUserForApplication(common.DB, createResp.Id, user.ID, false), ShouldBeNil)
 						apps, err = api.List(ctx, &pb.ListApplicationRequest{
 							Limit:  10,
 							Offset: 0,

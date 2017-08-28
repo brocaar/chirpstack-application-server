@@ -59,8 +59,7 @@ func run(c *cli.Context) error {
 		"docs":    "https://docs.loraserver.io/",
 	}).Info("starting LoRa App Server")
 
-	// get context
-	lsCtx := mustGetContext(c)
+	mustGetContext(c)
 
 	// migrate the database
 	if c.Bool("db-automigrate") {
@@ -70,7 +69,7 @@ func run(c *cli.Context) error {
 			AssetDir: migrations.AssetDir,
 			Dir:      "",
 		}
-		n, err := migrate.Exec(lsCtx.DB.DB, "postgres", m, migrate.Up)
+		n, err := migrate.Exec(common.DB.DB, "postgres", m, migrate.Up)
 		if err != nil {
 			log.Fatalf("applying migrations failed: %s", err)
 		}
@@ -78,7 +77,7 @@ func run(c *cli.Context) error {
 	}
 
 	// migrate gateway data from LoRa Server
-	if err := gwmigrate.MigrateGateways(lsCtx); err != nil {
+	if err := gwmigrate.MigrateGateways(); err != nil {
 		log.Fatalf("migrate gateway data error: %s", err)
 	}
 
@@ -90,7 +89,7 @@ func run(c *cli.Context) error {
 	auth.DisableAssignExistingUsers = c.Bool("disable-assign-existing-users")
 
 	// handle incoming downlink payloads
-	go downlink.HandleDataDownPayloads(lsCtx, lsCtx.Handler.DataDownChan())
+	go downlink.HandleDataDownPayloads()
 
 	// start the application-server api
 	log.WithFields(log.Fields{
@@ -99,7 +98,7 @@ func run(c *cli.Context) error {
 		"tls-cert": c.String("tls-cert"),
 		"tls-key":  c.String("tls-key"),
 	}).Info("starting application-server api")
-	apiServer := mustGetAPIServer(lsCtx, c)
+	apiServer := mustGetAPIServer(c)
 	ln, err := net.Listen("tcp", c.String("bind"))
 	if err != nil {
 		log.Fatalf("start application-server api listener error: %s", err)
@@ -107,7 +106,7 @@ func run(c *cli.Context) error {
 	go apiServer.Serve(ln)
 
 	// setup the client api interface
-	clientAPIHandler := mustGetClientAPIServer(ctx, lsCtx, c)
+	clientAPIHandler := mustGetClientAPIServer(ctx, c)
 
 	// setup the client http interface variable
 	// we need to start the gRPC service first, as it is used by the
@@ -143,7 +142,7 @@ func run(c *cli.Context) error {
 
 	// now the gRPC gateway has been started, attach the http handlers
 	// (this will setup the grpc-gateway too)
-	clientHTTPHandler = mustGetHTTPHandler(ctx, lsCtx, c)
+	clientHTTPHandler = mustGetHTTPHandler(ctx, c)
 
 	sigChan := make(chan os.Signal)
 	exitChan := make(chan struct{})
@@ -163,22 +162,24 @@ func run(c *cli.Context) error {
 	return nil
 }
 
-func mustGetContext(c *cli.Context) common.Context {
+func mustGetContext(c *cli.Context) {
 	log.Info("connecting to postgresql")
 	db, err := storage.OpenDatabase(c.String("postgres-dsn"))
 	if err != nil {
 		log.Fatalf("database connection error: %s", err)
 	}
+	common.DB = db
 
 	// setup redis pool
 	log.Info("setup redis connection pool")
-	rp := storage.NewRedisPool(c.String("redis-url"))
+	common.RedisPool = storage.NewRedisPool(c.String("redis-url"))
 
 	// setup mqtt handler
-	h, err := handler.NewMQTTHandler(rp, c.String("mqtt-server"), c.String("mqtt-username"), c.String("mqtt-password"), c.String("mqtt-ca-cert"))
+	h, err := handler.NewMQTTHandler(common.RedisPool, c.String("mqtt-server"), c.String("mqtt-username"), c.String("mqtt-password"), c.String("mqtt-ca-cert"))
 	if err != nil {
 		log.Fatalf("setup mqtt handler error: %s", err)
 	}
+	common.Handler = h
 
 	// setup network-server client
 	log.WithFields(log.Fields{
@@ -201,51 +202,46 @@ func mustGetContext(c *cli.Context) common.Context {
 		log.Fatalf("network-server dial error: %s", err)
 	}
 
-	return common.Context{
-		DB:            db,
-		RedisPool:     rp,
-		NetworkServer: ns.NewNetworkServerClient(nsConn),
-		Handler:       h,
-	}
+	common.NetworkServer = ns.NewNetworkServerClient(nsConn)
 }
 
-func mustGetClientAPIServer(ctx context.Context, lsCtx common.Context, c *cli.Context) *grpc.Server {
+func mustGetClientAPIServer(ctx context.Context, c *cli.Context) *grpc.Server {
 	var validator auth.Validator
 	if c.String("jwt-secret") != "" {
-		validator = auth.NewJWTValidator(lsCtx.DB, "HS256", c.String("jwt-secret"))
+		validator = auth.NewJWTValidator(common.DB, "HS256", c.String("jwt-secret"))
 	} else {
 		log.Fatal("--jwt-secret must be set")
 	}
 
 	gs := grpc.NewServer()
-	pb.RegisterApplicationServer(gs, api.NewApplicationAPI(lsCtx, validator))
-	pb.RegisterDownlinkQueueServer(gs, api.NewDownlinkQueueAPI(lsCtx, validator))
-	pb.RegisterNodeServer(gs, api.NewNodeAPI(lsCtx, validator))
-	pb.RegisterUserServer(gs, api.NewUserAPI(lsCtx, validator))
-	pb.RegisterInternalServer(gs, api.NewInternalUserAPI(lsCtx, validator))
-	pb.RegisterGatewayServer(gs, api.NewGatewayAPI(lsCtx, validator))
-	pb.RegisterOrganizationServer(gs, api.NewOrganizationAPI(lsCtx, validator))
+	pb.RegisterApplicationServer(gs, api.NewApplicationAPI(validator))
+	pb.RegisterDownlinkQueueServer(gs, api.NewDownlinkQueueAPI(validator))
+	pb.RegisterNodeServer(gs, api.NewNodeAPI(validator))
+	pb.RegisterUserServer(gs, api.NewUserAPI(validator))
+	pb.RegisterInternalServer(gs, api.NewInternalUserAPI(validator))
+	pb.RegisterGatewayServer(gs, api.NewGatewayAPI(validator))
+	pb.RegisterOrganizationServer(gs, api.NewOrganizationAPI(validator))
 
 	return gs
 }
 
-func mustGetAPIServer(ctx common.Context, c *cli.Context) *grpc.Server {
+func mustGetAPIServer(c *cli.Context) *grpc.Server {
 	var opts []grpc.ServerOption
 	if c.String("tls-cert") != "" && c.String("tls-key") != "" {
 		creds := mustGetTransportCredentials(c.String("tls-cert"), c.String("tls-key"), c.String("ca-cert"), false)
 		opts = append(opts, grpc.Creds(creds))
 	}
 	gs := grpc.NewServer(opts...)
-	asAPI := api.NewApplicationServerAPI(ctx)
+	asAPI := api.NewApplicationServerAPI()
 	as.RegisterApplicationServerServer(gs, asAPI)
 	return gs
 }
 
-func mustGetHTTPHandler(ctx context.Context, lsCtx common.Context, c *cli.Context) http.Handler {
+func mustGetHTTPHandler(ctx context.Context, c *cli.Context) http.Handler {
 	r := mux.NewRouter()
 
 	// setup json api handler
-	jsonHandler := mustGetJSONGateway(ctx, lsCtx, c)
+	jsonHandler := mustGetJSONGateway(ctx, c)
 	log.WithField("path", "/api").Info("registering rest api handler and documentation endpoint")
 	r.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
 		data, err := static.Asset("swagger/index.html")
@@ -269,7 +265,7 @@ func mustGetHTTPHandler(ctx context.Context, lsCtx common.Context, c *cli.Contex
 	return r
 }
 
-func mustGetJSONGateway(ctx context.Context, lsCtx common.Context, c *cli.Context) http.Handler {
+func mustGetJSONGateway(ctx context.Context, c *cli.Context) http.Handler {
 	// dial options for the grpc-gateway
 	b, err := ioutil.ReadFile(c.String("http-tls-cert"))
 	if err != nil {

@@ -224,6 +224,15 @@ func (h *MQTTHandler) txPayloadHandler(c mqtt.Client, msg mqtt.Message) {
 		return
 	}
 
+	if pl.FPort == 0 || pl.FPort > 224 {
+		log.WithFields(log.Fields{
+			"topic":   msg.Topic(),
+			"dev_eui": pl.DevEUI,
+			"f_port":  pl.FPort,
+		}).Error("handler/mqtt: fPort must be between 1 - 224")
+		return
+	}
+
 	// Since with MQTT all subscribers will receive the downlink messages sent
 	// by the application, the first instance receiving the message must lock it,
 	// so that other instances can ignore the message.

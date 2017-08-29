@@ -141,26 +141,51 @@ func TestMQTTHandler(t *testing.T) {
 				})
 			})
 
-			Convey("Given a DataDownPayload is published by the MQTT client", func() {
+			Convey("Given a DataDownPayload", func() {
 				pl := DataDownPayload{
 					Confirmed: false,
 					FPort:     1,
 					Data:      []byte("hello"),
 				}
-				b, err := json.Marshal(pl)
-				So(err, ShouldBeNil)
-				token := c.Publish("application/123/node/0102030405060708/tx", 0, false, b)
-				token.Wait()
-				So(token.Error(), ShouldBeNil)
 
-				Convey("Then the same payload is received by the handler", func() {
-					So(<-handler.DataDownChan(), ShouldResemble, DataDownPayload{
-						ApplicationID: 123,
-						DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
-						Confirmed:     false,
-						FPort:         1,
-						Data:          []byte("hello"),
+				Convey("When published with a valid (1-244) port", func() {
+					b, err := json.Marshal(pl)
+					So(err, ShouldBeNil)
+					token := c.Publish("application/123/node/0102030405060708/tx", 0, false, b)
+					token.Wait()
+					So(token.Error(), ShouldBeNil)
+
+					Convey("Then the same payload is received by the handler", func() {
+						So(<-handler.DataDownChan(), ShouldResemble, DataDownPayload{
+							ApplicationID: 123,
+							DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+							Confirmed:     false,
+							FPort:         1,
+							Data:          []byte("hello"),
+						})
 					})
+				})
+
+				Convey("When published with FPort 0, the handler drops the payload", func() {
+					pl.FPort = 0
+					b, err := json.Marshal(pl)
+					So(err, ShouldBeNil)
+					token := c.Publish("application/123/node/0102030405060708/tx", 0, false, b)
+					token.Wait()
+					So(token.Error(), ShouldBeNil)
+
+					So(handler.DataDownChan(), ShouldHaveLength, 0)
+				})
+
+				Convey("When published with FPort > 224, the handler drops the payload", func() {
+					pl.FPort = 225
+					b, err := json.Marshal(pl)
+					So(err, ShouldBeNil)
+					token := c.Publish("application/123/node/0102030405060708/tx", 0, false, b)
+					token.Wait()
+					So(token.Error(), ShouldBeNil)
+
+					So(handler.DataDownChan(), ShouldHaveLength, 0)
 				})
 			})
 		})

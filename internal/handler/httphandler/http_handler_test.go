@@ -3,6 +3,7 @@ package httphandler
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -23,6 +24,47 @@ func (h *testHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.Body = ioutil.NopCloser(bytes.NewReader(b))
 	h.requests <- r
 	w.WriteHeader(http.StatusOK)
+}
+
+func TestHandlerConfig(t *testing.T) {
+	Convey("Given a set of tests", t, func() {
+		testTable := []struct {
+			Name          string
+			HandlerConfig HandlerConfig
+			Valid         bool
+		}{
+			{
+				Name: "Valid headers",
+				HandlerConfig: HandlerConfig{
+					Headers: map[string]string{
+						"Foo":     "Bar",
+						"Foo-Bar": "Test",
+					},
+				},
+				Valid: true,
+			},
+			{
+				Name: "Invalid space in header name",
+				HandlerConfig: HandlerConfig{
+					Headers: map[string]string{
+						"Invalid Header": "Test",
+					},
+				},
+				Valid: false,
+			},
+		}
+
+		for i, test := range testTable {
+			Convey(fmt.Sprintf("Testing: %s [%d]", test.Name, i), func() {
+				err := test.HandlerConfig.Validate()
+				if test.Valid {
+					So(err, ShouldBeNil)
+				} else {
+					So(err, ShouldNotBeNil)
+				}
+			})
+		}
+	})
 }
 
 func TestHandler(t *testing.T) {

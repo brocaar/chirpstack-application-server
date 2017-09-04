@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/brocaar/lora-app-server/internal/handler/httphandler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -17,6 +18,7 @@ var errToCode = map[error]codes.Code{
 	storage.ErrUserInvalidUsername:       codes.InvalidArgument,
 	storage.ErrUserPasswordLength:        codes.InvalidArgument,
 	storage.ErrInvalidUsernameOrPassword: codes.Unauthenticated,
+	httphandler.ErrInvalidHeaderName:     codes.InvalidArgument,
 }
 
 func errToRPCError(err error) error {

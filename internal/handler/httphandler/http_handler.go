@@ -6,12 +6,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
 
 	"github.com/brocaar/lora-app-server/internal/handler"
 )
+
+var headerNameValidator = regexp.MustCompile(`^[A-Za-z0-9-]+$`)
 
 // HandlerConfig contains the configuration for a HTTP handler.
 type HandlerConfig struct {
@@ -20,6 +23,16 @@ type HandlerConfig struct {
 	JoinNotificationURL  string            `json:"joinNotificationURL"`
 	ACKNotificationURL   string            `json:"ackNotificationURL"`
 	ErrorNotificationURL string            `json:"errorNotificationURL"`
+}
+
+// Validate validates the HandlerConfig data.
+func (c HandlerConfig) Validate() error {
+	for k := range c.Headers {
+		if !headerNameValidator.MatchString(k) {
+			return ErrInvalidHeaderName
+		}
+	}
+	return nil
 }
 
 // Handler implements a HTTP handler for sending and notifying a HTTP

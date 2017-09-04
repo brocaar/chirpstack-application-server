@@ -342,6 +342,10 @@ func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 		ACKNotificationURL:   in.AckNotificationURL,
 		ErrorNotificationURL: in.ErrorNotificationURL,
 	}
+	if err := conf.Validate(); err != nil {
+		return nil, errToRPCError(err)
+	}
+
 	confJSON, err := json.Marshal(conf)
 	if err != nil {
 		return nil, errToRPCError(err)
@@ -421,6 +425,10 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 		ACKNotificationURL:   in.AckNotificationURL,
 		ErrorNotificationURL: in.ErrorNotificationURL,
 	}
+	if err := conf.Validate(); err != nil {
+		return nil, errToRPCError(err)
+	}
+
 	confJSON, err := json.Marshal(conf)
 	if err != nil {
 		return nil, errToRPCError(err)

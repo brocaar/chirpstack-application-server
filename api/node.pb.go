@@ -53,6 +53,13 @@ It has these top-level messages:
 	ApplicationUserRequest
 	UpdateApplicationUserRequest
 	EmptyApplicationUserResponse
+	EmptyResponse
+	HTTPIntegrationHeader
+	HTTPIntegration
+	GetHTTPIntegrationRequest
+	DeleteIntegrationRequest
+	ListIntegrationRequest
+	ListIntegrationResponse
 	EnqueueDownlinkQueueItemRequest
 	EnqueueDownlinkQueueItemResponse
 	DeleteDownlinkQeueueItemRequest

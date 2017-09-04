@@ -81,6 +81,44 @@ service Application {
 			delete: "/api/applications/{id}/users/{userID}"
 		};
 	}
+
+	// CreateHTTPIntegration creates an HTTP application-integration.
+	rpc CreateHTTPIntegration(HTTPIntegration) returns (EmptyResponse) {
+		option(google.api.http) = {
+			post: "/api/applications/{id}/integrations/http"
+			body: "*"
+		};
+	}
+
+	// GetHTTPIntegration returns the HTTP application-itegration.
+	rpc GetHTTPIntegration(GetHTTPIntegrationRequest) returns (HTTPIntegration) {
+		option(google.api.http) = {
+			get: "/api/applications/{id}/integrations/http"
+		};
+	}
+
+	// UpdateHTTPIntegration updates the HTTP application-integration.
+	rpc UpdateHTTPIntegration(HTTPIntegration) returns (EmptyResponse) {
+		option(google.api.http) = {
+			put: "/api/applications/{id}/integrations/http"
+			body: "*"
+		};
+	}
+
+	// DeleteIntegration deletes the application-integration of the given type.
+	rpc DeleteHTTPIntegration(DeleteIntegrationRequest) returns (EmptyResponse) {
+		option(google.api.http) = {
+			delete: "/api/applications/{id}/integrations/http"
+		};
+	}
+
+	// ListIntegrations lists all configured integrations.
+	rpc ListIntegrations(ListIntegrationRequest) returns (ListIntegrationResponse) {
+		option(google.api.http) = {
+			get: "/api/applications/{id}/integrations"
+		};
+	}
+	
 }
 
 message CreateApplicationRequest {
@@ -301,6 +339,58 @@ message UpdateApplicationUserRequest {
 	bool isAdmin = 3;
 }
 
-message EmptyApplicationUserResponse {
+message EmptyApplicationUserResponse {}
+
+message EmptyResponse {}
+
+enum IntegrationKind {
+	HTTP = 0;
 }
 
+message HTTPIntegrationHeader {
+	// Key
+	string key = 1;
+
+	// Value
+	string value = 2;
+}
+
+message HTTPIntegration {
+	// The id of the application.
+	int64 id = 1;
+
+	// The headers to use when making HTTP callbacks.
+	repeated HTTPIntegrationHeader headers = 2;
+
+	// The URL to call for uplink data.
+	string dataUpURL = 3;
+
+	// The URL to call for join notifications.
+	string joinNotificationURL = 4;
+
+	// The URL to call for ACK notifications (for confirmed downlink data).
+	string ackNotificationURL = 5;
+
+	// The URL to call for error notifications.
+	string errorNotificationURL = 6;
+}
+
+message GetHTTPIntegrationRequest {
+	// The id of the application.
+	int64 id = 1;
+}
+
+message DeleteIntegrationRequest {
+	// The id of the application.
+	int64 id = 1;
+}
+
+message ListIntegrationRequest {
+	// The id of the application.
+	int64 id = 1;
+}
+
+message ListIntegrationResponse {
+	// The integration kinds associated with the application.
+	repeated IntegrationKind kinds = 1;
+}

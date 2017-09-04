@@ -3,7 +3,7 @@ title: gRPC
 menu:
     main:
         parent: integrate
-        weight: 4
+        weight: 5
 ---
 
 ## gRPC API

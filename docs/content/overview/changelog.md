@@ -8,6 +8,24 @@ menu:
 
 ## Changelog
 
+### 0.12.0
+
+**Features:**
+
+* HTTP data integration. This makes it possible to setup per application
+  http integrations (LoRa App Server posting to configurable HTTP endpoints).
+  Note that LoRa Server will always send the data to the MQTT broker.
+
+**Improvements:**
+
+* Better pagination in case there are many pages (thanks [@iegomez](https://github.com/iegomez)).
+* Various code has been cleaned up.
+
+**Bugfixes:**
+
+* Fixed duplicated resultset-items when requesting all applications within
+  an organization.
+
 ### 0.11.0
 
 **Features:**

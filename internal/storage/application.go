@@ -150,6 +150,8 @@ func GetApplicationCountForUser(db *sqlx.DB, username string, organizationID int
 		where
 			u.username = $1
 			and u.is_active = true
+			and (au.user_id is null or au.user_id = u.id)
+			and (ou.user_id is null or ou.user_id = u.id)
 			and (
 				$2 = 0
 				or a.organization_id = $2
@@ -205,6 +207,8 @@ func GetApplicationsForUser(db *sqlx.DB, username string, organizationID int64, 
 		where
 			u.username = $1
 			and u.is_active = true
+			and (au.user_id is null or au.user_id = u.id)
+			and (ou.user_id is null or ou.user_id = u.id)
 			and (
 				$2 = 0
 				or a.organization_id = $2
@@ -219,7 +223,7 @@ func GetApplicationsForUser(db *sqlx.DB, username string, organizationID int64, 
 	return apps, nil
 }
 
-// GetApplicationsForOrganization returns a slice of applications for the given
+// GetApplicationsForOrganizationID returns a slice of applications for the given
 // organization.
 func GetApplicationsForOrganizationID(db *sqlx.DB, organizationID int64, limit, offset int) ([]Application, error) {
 	var apps []Application

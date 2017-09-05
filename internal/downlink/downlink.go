@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 
 	"github.com/brocaar/lora-app-server/internal/common"

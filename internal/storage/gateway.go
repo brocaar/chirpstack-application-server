@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/brocaar/lorawan"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
@@ -366,13 +366,13 @@ func DeleteApplication(db *sqlx.DB, id int64) error {
 // given the offset into the list and the number of users to return.
 func GetApplicationUsers(db *sqlx.DB, applicationID int64, limit, offset int) ([]UserAccess, error) {
 	var users []UserAccess
-	err := db.Select(&users, `select au.user_id as user_id, 
-	                                 au.is_admin as is_admin, 
-	                                 au.created_at as created_at, 
+	err := db.Select(&users, `select au.user_id as user_id,
+	                                 au.is_admin as is_admin,
+	                                 au.created_at as created_at,
 	                                 au.updated_at as updated_at,
-	                                 u.username as username 
-	                          from application_user au, "user" as u 
-	                          where au.application_id = $1 and au.user_id = u.id 
+	                                 u.username as username
+	                          from application_user au, "user" as u
+	                          where au.application_id = $1 and au.user_id = u.id
 	                          order by user_id limit $2 offset $3`,
 		applicationID, limit, offset)
 	if err != nil {
@@ -396,12 +396,12 @@ func GetApplicationUsersCount(db *sqlx.DB, applicationID int64) (int32, error) {
 // the application.
 func GetUserForApplication(db *sqlx.DB, applicationID, userID int64) (*UserAccess, error) {
 	var user UserAccess
-	err := db.Get(&user, `select au.user_id as user_id, 
-	                             au.is_admin as is_admin, 
-	                             au.created_at as created_at, 
+	err := db.Get(&user, `select au.user_id as user_id,
+	                             au.is_admin as is_admin,
+	                             au.created_at as created_at,
 	                             au.updated_at as updated_at,
-	                             u.username as username 
-	                          from application_user au, "user" as u 
+	                             u.username as username
+	                          from application_user au, "user" as u
 	                          where au.application_id = $1 and au.user_id = $2 and au.user_id = u.id and user_id = $2`,
 		applicationID, userID)
 	if err != nil {

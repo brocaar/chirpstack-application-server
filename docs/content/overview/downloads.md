@@ -23,9 +23,10 @@ menu:
 
 | File name                                                                                                           | OS      | Arch  |
 | --------------------------------------------------------------------------------------------------------------------| ------- | ----- |
-| [lora-app-server_{{< version >}}_amd64.deb](https://dl.loraserver.io/deb/lora-app-server_{{< version >}}_amd64.deb) | Linux   | 386   |
-| [lora-app-server_{{< version >}}_armhf.deb](https://dl.loraserver.io/deb/lora-app-server_{{< version >}}_armhf.deb) | Linux   | amd64 |
-| [lora-app-server_{{< version >}}_i386.deb](https://dl.loraserver.io/deb/lora-app-server_{{< version >}}_i386.deb)   | Linux   | arm   |
+| [lora-app-server_{{< version >}}_i386.deb](https://dl.loraserver.io/deb/lora-app-server_{{< version >}}_i386.deb)   | Linux   | 386   |
+| [lora-app-server_{{< version >}}_amd64.deb](https://dl.loraserver.io/deb/lora-app-server_{{< version >}}_amd64.deb) | Linux   | amd64 |
+| [lora-app-server_{{< version >}}_armhf.deb](https://dl.loraserver.io/deb/lora-app-server_{{< version >}}_armhf.deb) | Linux   | arm   |
+| [lora-app-server_{{< version >}}_arm64.deb](https://dl.loraserver.io/deb/lora-app-server_{{< version >}}_arm64.deb) | Linux   | arm64 |
 
 ### Debian Ubuntu repository
 

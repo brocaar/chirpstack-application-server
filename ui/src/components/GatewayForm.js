@@ -44,6 +44,8 @@ class GatewayForm extends Component {
 
     if (e.target.type === "number") {
       gateway[field] = parseFloat(e.target.value);
+    } else if (e.target.type === "checkbox") {
+      gateway[field] = e.target.checked;
     } else {
       gateway[field] = e.target.value;
     }
@@ -257,6 +259,12 @@ class GatewayForm extends Component {
               onChange={this.onChannelConfigurationChange}
             />
             <p className="help-block">An optional channel-configuration can be assigned to a gateway. This configuration can be used to automatically re-configure the gateway (in the future).</p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="ping">
+              <input type="checkbox" name="ping" id="ping" checked={this.state.gateway.ping} onChange={this.onChange.bind(this, 'ping')} /> Ping enabled
+            </label>
+            <p className="help-block">When enabled (and LoRa App Server is configured to send gateway pings), the gateway will send out periodical pings to test its coverage by other gateways in the same network.</p>
           </div>
           <div className="form-group">
             <label className="control-label" htmlFor="altitude">Gateway altitude (meters)</label>

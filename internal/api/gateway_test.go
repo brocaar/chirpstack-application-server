@@ -67,6 +67,7 @@ func TestGatewayAPI(t *testing.T) {
 			FirstSeenAt:    now.UTC().Add(2 * time.Second).Format(time.RFC3339Nano),
 			LastSeenAt:     now.UTC().Add(3 * time.Second).Format(time.RFC3339Nano),
 			OrganizationID: org.ID,
+			Ping:           true,
 		}
 
 		Convey("When calling create", func() {
@@ -78,6 +79,7 @@ func TestGatewayAPI(t *testing.T) {
 				Longitude:      1.1235,
 				Altitude:       5.5,
 				OrganizationID: org.ID,
+				Ping:           true,
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
@@ -96,7 +98,7 @@ func TestGatewayAPI(t *testing.T) {
 			})
 
 			Convey("Then the gateway was created in the common.DB", func() {
-				_, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8})
+				_, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}, false)
 				So(err, ShouldBeNil)
 			})
 
@@ -202,17 +204,19 @@ func TestGatewayAPI(t *testing.T) {
 					Longitude:      1.1236,
 					Altitude:       5.7,
 					OrganizationID: org2.ID,
+					Ping:           false,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the gateway has been updated and the OrganizationID has been ignored", func() {
-					gw, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8})
+					gw, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}, false)
 					So(err, ShouldBeNil)
 					So(gw.Name, ShouldEqual, "test-gateway-updated")
 					So(gw.Description, ShouldEqual, "updated test gateway")
 					So(gw.OrganizationID, ShouldEqual, org.ID)
+					So(gw.Ping, ShouldBeFalse)
 				})
 
 				Convey("Then the expected request was sent to the network-server", func() {
@@ -244,7 +248,7 @@ func TestGatewayAPI(t *testing.T) {
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the gateway has been updated", func() {
-					gw, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8})
+					gw, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}, false)
 					So(err, ShouldBeNil)
 					So(gw.Name, ShouldEqual, "test-gateway-updated")
 					So(gw.Description, ShouldEqual, "updated test gateway")

@@ -161,6 +161,9 @@ message CreateGatewayRequest {
 
 	// ID of the channel-configuration.
 	int64 channelConfigurationID = 8;
+
+	// Gateway sends out a periodic ping.
+	bool ping = 9;
 }
 
 message CreateGatewayResponse {}
@@ -206,6 +209,9 @@ message GetGatewayResponse {
 
 	// ID of the channel-configuration.
 	int64 channelConfigurationID = 12;
+
+	// Gateway sends out a periodic ping.
+	bool ping = 13;
 };
 
 message DeleteGatewayRequest {
@@ -290,6 +296,9 @@ message UpdateGatewayRequest {
 
 	// ID of the channel-configuration.
 	int64 channelConfigurationID = 8;
+
+	// Gateway sends out a periodic ping.
+	bool ping = 9;
 }
 
 message UpdateGatewayResponse {}

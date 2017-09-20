@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/brocaar/lora-app-server/internal/gwping"
+
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -464,6 +466,18 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 	}
 
 	return &as.HandleErrorResponse{}, nil
+}
+
+// HandleProprietaryUp handles proprietary uplink payloads.
+func (a *ApplicationServerAPI) HandleProprietaryUp(ctx context.Context, req *as.HandleProprietaryUpRequest) (*as.HandleProprietaryUpResponse, error) {
+	err := gwping.HandleReceivedPing(req)
+	if err != nil {
+		errStr := fmt.Sprintf("handle received ping error: %s", err)
+		log.Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
+	return &as.HandleProprietaryUpResponse{}, nil
 }
 
 // getAppNonce returns a random application nonce (used for OTAA).

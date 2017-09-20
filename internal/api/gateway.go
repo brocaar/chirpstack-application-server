@@ -57,6 +57,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			Name:           req.Name,
 			Description:    req.Description,
 			OrganizationID: req.OrganizationID,
+			Ping:           req.Ping,
 		})
 		if err != nil {
 			return errToRPCError(err)
@@ -95,7 +96,7 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 		return nil, err
 	}
 
-	gw, err := storage.GetGateway(common.DB, mac)
+	gw, err := storage.GetGateway(common.DB, mac, false)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -105,6 +106,7 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 		Name:                   gw.Name,
 		Description:            gw.Description,
 		OrganizationID:         gw.OrganizationID,
+		Ping:                   gw.Ping,
 		Latitude:               getResp.Latitude,
 		Longitude:              getResp.Longitude,
 		Altitude:               getResp.Altitude,
@@ -206,13 +208,14 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 	}
 
 	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
-		gw, err := storage.GetGateway(common.DB, mac)
+		gw, err := storage.GetGateway(tx, mac, true)
 		if err != nil {
 			return errToRPCError(err)
 		}
 
 		gw.Name = req.Name
 		gw.Description = req.Description
+		gw.Ping = req.Ping
 		if isAdmin {
 			gw.OrganizationID = req.OrganizationID
 		}
@@ -278,7 +281,7 @@ func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (
 	return &pb.DeleteGatewayResponse{}, nil
 }
 
-// GenerateGatewayToken issues a JWT token which can be used by the gateway
+// GenerateToken issues a JWT token which can be used by the gateway
 // for authentication.
 func (a *GatewayAPI) GenerateToken(ctx context.Context, req *pb.GenerateGatewayTokenRequest) (*pb.GenerateGatewayTokenResponse, error) {
 	var mac lorawan.EUI64

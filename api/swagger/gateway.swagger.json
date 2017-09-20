@@ -583,6 +583,11 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the channel-configuration."
+        },
+        "ping": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Gateway sends out a periodic ping."
         }
       }
     },
@@ -783,6 +788,11 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the channel-configuration."
+        },
+        "ping": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Gateway sends out a periodic ping."
         }
       }
     },
@@ -974,6 +984,11 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the channel-configuration."
+        },
+        "ping": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Gateway sends out a periodic ping."
         }
       }
     },

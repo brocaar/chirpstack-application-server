@@ -17,12 +17,12 @@ import (
 	"syscall"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
 	migrate "github.com/rubenv/sql-migrate"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -33,6 +33,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/downlink"
+	"github.com/brocaar/lora-app-server/internal/gwping"
 	"github.com/brocaar/lora-app-server/internal/handler/mqtthandler"
 	"github.com/brocaar/lora-app-server/internal/handler/multihandler"
 	"github.com/brocaar/lora-app-server/internal/migrations"
@@ -67,6 +68,7 @@ func run(c *cli.Context) error {
 		setDisableAssignExistingUsers,
 		handleDataDownPayloads,
 		startApplicationServerAPI,
+		startGatewayPing,
 		startClientAPI(ctx),
 	}
 
@@ -213,6 +215,23 @@ func startApplicationServerAPI(c *cli.Context) error {
 		log.Fatalf("start application-server api listener error: %s", err)
 	}
 	go apiServer.Serve(ln)
+	return nil
+}
+
+func startGatewayPing(c *cli.Context) error {
+	if !c.Bool("gw-ping") {
+		return nil
+	}
+
+	common.GatewayPingFrequency = c.Int("gw-ping-frequency")
+	common.GatewayPingDR = c.Int("gw-ping-dr")
+	common.GatewayPingInterval = c.Duration("gw-ping-interval")
+
+	if common.GatewayPingFrequency == 0 || common.GatewayPingDR == 0 {
+		log.Fatalf("--gw-ping-frequency and --gw-ping-dr settings must be set")
+	}
+
+	go gwping.SendPingLoop()
 	return nil
 }
 
@@ -539,6 +558,27 @@ func main() {
 			Name:   "disable-assign-existing-users",
 			Usage:  "when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)",
 			EnvVar: "DISABLE_ASSIGN_EXISTING_USERS",
+		},
+		cli.BoolFlag{
+			Name:   "gw-ping",
+			Usage:  "enable sending gateway pings",
+			EnvVar: "GW_PING",
+		},
+		cli.DurationFlag{
+			Name:   "gw-ping-interval",
+			Usage:  "the interval used for each gateway to send a ping",
+			EnvVar: "GW_PING_INTERVAL",
+			Value:  time.Hour * 24,
+		},
+		cli.IntFlag{
+			Name:   "gw-ping-frequency",
+			Usage:  "the frequency used for transmitting the gateway ping (in Hz)",
+			EnvVar: "GW_PING_FREQUENCY",
+		},
+		cli.IntFlag{
+			Name:   "gw-ping-dr",
+			Usage:  "the data-rate to use for transmitting the gateway ping",
+			EnvVar: "GW_PING_DR",
 		},
 	}
 	app.Run(os.Args)

@@ -1,6 +1,8 @@
 package common
 
 import (
+	"time"
+
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/garyburd/redigo/redis"
@@ -18,3 +20,12 @@ var NetworkServer ns.NetworkServerClient
 
 // Handler holds the handler of events.
 var Handler handler.Handler
+
+// GatewayPingFrequency holds the frequency used for sending gateway pings.
+var GatewayPingFrequency int
+
+// GatewayPingDR holds the data-rate used for sending gateway pings.
+var GatewayPingDR int
+
+// GatewayPingInterval holds the interval of the gateway ping.
+var GatewayPingInterval time.Duration

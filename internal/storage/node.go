@@ -355,14 +355,15 @@ func GetNodesForApplicationID(db *sqlx.DB, applicationID int64, limit, offset in
 
 // GetNodesCountForApplicationID returns the total number of nodes for the
 // given applicaiton id.
-func GetNodesCountForApplicationID(db *sqlx.DB, applicationID int64) (int, error) {
+func GetNodesCountForApplicationID(db *sqlx.DB, applicationID int64, search string) (int, error) {
 	var count int
 	err := db.Get(&count, `
 		select count(*)
 		from node
 		where
-			application_id = $1`,
-		applicationID)
+			application_id = $1
+			and (name ilike '%' || $2 || '%' or text(dev_eui) ilike '%' || $2 || '%')`,
+		applicationID, search)
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")
 	}

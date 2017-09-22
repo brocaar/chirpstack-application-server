@@ -32,6 +32,12 @@ create role loraserver_as with login password 'dbpassword';
 -- create the loraserver_as database
 create database loraserver_as with owner loraserver_as;
 
+-- connect to db
+\c loraserver_as
+
+-- create the pg_trgm extension for search capabilities
+create extension pg_trgm;
+
 -- exit the prompt
 \q
 ```

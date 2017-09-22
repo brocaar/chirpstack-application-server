@@ -75,10 +75,13 @@ class ListNodes extends Component {
   }
 
   onChange(e) {
+
     this.setState({
       search: e.target.value,
-    });
-    this.updatePage(this.props);
+    },
+      () => {this.updatePage(this.props);}
+    );
+    
   }
 
   render() {

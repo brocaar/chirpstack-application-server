@@ -134,7 +134,7 @@ func (a *NodeAPI) ListByApplicationID(ctx context.Context, req *pb.ListNodeByApp
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	count, err := storage.GetNodesCountForApplicationID(a.ctx.DB, req.ApplicationID)
+	count, err := storage.GetNodesCountForApplicationID(a.ctx.DB, req.ApplicationID, req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

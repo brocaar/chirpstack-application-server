@@ -364,6 +364,96 @@ func TestGatewayAPI(t *testing.T) {
 				})
 			})
 
+			Convey("Given gateway ping data", func() {
+				gw, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}, false)
+				So(err, ShouldBeNil)
+
+				gw2 := storage.Gateway{
+					OrganizationID: org.ID,
+					MAC:            lorawan.EUI64{2, 2, 3, 4, 5, 6, 7, 8},
+					Name:           "test-gw-2",
+					Description:    "test gw 2",
+				}
+				So(storage.CreateGateway(common.DB, &gw2), ShouldBeNil)
+
+				gw3 := storage.Gateway{
+					OrganizationID: org.ID,
+					MAC:            lorawan.EUI64{3, 2, 3, 4, 5, 6, 7, 8},
+					Name:           "test-gw-3",
+					Description:    "test gw 3",
+				}
+				So(storage.CreateGateway(common.DB, &gw3), ShouldBeNil)
+
+				ping := storage.GatewayPing{
+					GatewayMAC: lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+					Frequency:  868100000,
+					DR:         5,
+				}
+				So(storage.CreateGatewayPing(common.DB, &ping), ShouldBeNil)
+				gw.LastPingID = &ping.ID
+				So(storage.UpdateGateway(common.DB, &gw), ShouldBeNil)
+
+				pingRX := []storage.GatewayPingRX{
+					{
+						PingID:     ping.ID,
+						GatewayMAC: gw2.MAC,
+						RSSI:       12,
+						LoRaSNR:    5.5,
+						Location: storage.GPSPoint{
+							Latitude:  1.12345,
+							Longitude: 2.12345,
+						},
+						Altitude: 10,
+					},
+					{
+						PingID:     ping.ID,
+						GatewayMAC: gw3.MAC,
+						RSSI:       15,
+						LoRaSNR:    7.5,
+						Location: storage.GPSPoint{
+							Latitude:  2.12345,
+							Longitude: 3.12345,
+						},
+						Altitude: 11,
+					},
+				}
+				for i := range pingRX {
+					So(storage.CreateGatewayPingRX(common.DB, &pingRX[i]), ShouldBeNil)
+				}
+
+				Convey("When calling GetLastPing", func() {
+					resp, err := api.GetLastPing(ctx, &pb.GetLastPingRequest{
+						Mac: "0102030405060708",
+					})
+					So(err, ShouldBeNil)
+
+					Convey("Then the expected result is returned", func() {
+						So(resp, ShouldResemble, &pb.GetLastPingResponse{
+							Frequency: 868100000,
+							Dr:        5,
+							PingRX: []*pb.PingRX{
+								{
+									Mac:       "0202030405060708",
+									Rssi:      12,
+									LoraSNR:   5.5,
+									Latitude:  1.12345,
+									Longitude: 2.12345,
+									Altitude:  10,
+								},
+								{
+									Mac:       "0302030405060708",
+									Rssi:      15,
+									LoraSNR:   7.5,
+									Latitude:  2.12345,
+									Longitude: 3.12345,
+									Altitude:  11,
+								},
+							},
+						})
+					})
+				})
+			})
+
 			Convey("When calling CreateChannelConfiguration", func() {
 				nsClient.CreateChannelConfigurationResponse = ns.CreateChannelConfigurationResponse{
 					Id: 123,

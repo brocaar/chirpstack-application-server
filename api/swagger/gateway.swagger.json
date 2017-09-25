@@ -397,6 +397,31 @@
         ]
       }
     },
+    "/api/gateways/{mac}/ping/last": {
+      "get": {
+        "summary": "GetLastPing returns the last emitted ping and gateways receiving this ping.",
+        "operationId": "GetLastPing",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetLastPingResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "mac",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Gateway"
+        ]
+      }
+    },
     "/api/gateways/{mac}/stats": {
       "get": {
         "summary": "GetStats lists the gateway stats given the query parameters.",
@@ -807,6 +832,28 @@
         }
       }
     },
+    "apiGetLastPingResponse": {
+      "type": "object",
+      "properties": {
+        "frequency": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Frequency."
+        },
+        "dr": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Data-rate."
+        },
+        "pingRX": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiPingRX"
+          },
+          "description": "Gateways and meta-data of reception."
+        }
+      }
+    },
     "apiListChannelConfigurationsResponse": {
       "type": "object",
       "properties": {
@@ -874,6 +921,40 @@
       ],
       "default": "LORA",
       "title": "- LORA: LoRa\n - FSK: FSK"
+    },
+    "apiPingRX": {
+      "type": "object",
+      "properties": {
+        "mac": {
+          "type": "string",
+          "description": "Hex encoded mac address."
+        },
+        "rssi": {
+          "type": "integer",
+          "format": "int32",
+          "description": "RSSI."
+        },
+        "loraSNR": {
+          "type": "number",
+          "format": "double",
+          "description": "LoRa SNR."
+        },
+        "latitude": {
+          "type": "number",
+          "format": "double",
+          "description": "Latitude of the gateway -90.0 to 90.0."
+        },
+        "longitude": {
+          "type": "number",
+          "format": "double",
+          "description": "Longitude of the gateway -180.0 to 180.0."
+        },
+        "altitude": {
+          "type": "number",
+          "format": "double",
+          "description": "Altitude of the gateway in meters."
+        }
+      }
     },
     "apiUpdateChannelConfigurationRequest": {
       "type": "object",

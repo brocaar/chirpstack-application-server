@@ -350,6 +350,42 @@ func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsReques
 	}, nil
 }
 
+// GetLastPing returns the last emitted ping and gateways receiving this ping.
+func (a *GatewayAPI) GetLastPing(ctx context.Context, req *pb.GetLastPingRequest) (*pb.GetLastPingResponse, error) {
+	var mac lorawan.EUI64
+	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
+	}
+
+	err := a.validator.Validate(ctx, auth.ValidateGatewayAccess(auth.Read, mac))
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	ping, pingRX, err := storage.GetLastGatewayPingAndRX(common.DB, mac)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	resp := pb.GetLastPingResponse{
+		Frequency: uint32(ping.Frequency),
+		Dr:        uint32(ping.DR),
+	}
+
+	for _, rx := range pingRX {
+		resp.PingRX = append(resp.PingRX, &pb.PingRX{
+			Mac:       rx.GatewayMAC.String(),
+			Rssi:      int32(rx.RSSI),
+			LoraSNR:   rx.LoRaSNR,
+			Latitude:  rx.Location.Latitude,
+			Longitude: rx.Location.Longitude,
+			Altitude:  rx.Altitude,
+		})
+	}
+
+	return &resp, nil
+}
+
 // CreateChannelConfiguration creates the given channel-configuration.
 func (a *GatewayAPI) CreateChannelConfiguration(ctx context.Context, req *pb.CreateChannelConfigurationRequest) (*pb.CreateChannelConfigurationResponse, error) {
 	err := a.validator.Validate(ctx, auth.ValidateChannelConfigurationAccess(auth.Create))

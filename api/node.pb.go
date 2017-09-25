@@ -123,6 +123,9 @@ It has these top-level messages:
 	GetExtraChannelResponse
 	GetExtraChannelsForChannelConfigurationIDRequest
 	GetExtraChannelsForChannelConfigurationIDResponse
+	PingRX
+	GetLastPingRequest
+	GetLastPingResponse
 	ListOrganizationRequest
 	OrganizationRequest
 	GetOrganizationResponse

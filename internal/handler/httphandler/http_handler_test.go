@@ -99,6 +99,8 @@ func TestHandler(t *testing.T) {
 			var pl handler.DataUpPayload
 			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
 			So(pl, ShouldResemble, reqPL)
+			So(req.Header.Get("Foo"), ShouldEqual, "Bar")
+			So(req.Header.Get("Content-Type"), ShouldEqual, "application/json")
 		})
 
 		Convey("Then SendJoinNotification sends the correct notification", func() {
@@ -113,6 +115,8 @@ func TestHandler(t *testing.T) {
 			var pl handler.JoinNotification
 			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
 			So(pl, ShouldResemble, reqPL)
+			So(req.Header.Get("Foo"), ShouldEqual, "Bar")
+			So(req.Header.Get("Content-Type"), ShouldEqual, "application/json")
 		})
 
 		Convey("Then SendACKNotification sends the correct notification", func() {
@@ -127,6 +131,8 @@ func TestHandler(t *testing.T) {
 			var pl handler.ACKNotification
 			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
 			So(pl, ShouldResemble, reqPL)
+			So(req.Header.Get("Foo"), ShouldEqual, "Bar")
+			So(req.Header.Get("Content-Type"), ShouldEqual, "application/json")
 		})
 
 		Convey("Then SendErrorNotification sends the correct notification", func() {
@@ -141,6 +147,8 @@ func TestHandler(t *testing.T) {
 			var pl handler.ErrorNotification
 			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
 			So(pl, ShouldResemble, reqPL)
+			So(req.Header.Get("Foo"), ShouldEqual, "Bar")
+			So(req.Header.Get("Content-Type"), ShouldEqual, "application/json")
 		})
 	})
 }

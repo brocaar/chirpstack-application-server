@@ -368,6 +368,7 @@ func (a *GatewayAPI) GetLastPing(ctx context.Context, req *pb.GetLastPingRequest
 	}
 
 	resp := pb.GetLastPingResponse{
+		CreatedAt: ping.CreatedAt.Format(time.RFC3339Nano),
 		Frequency: uint32(ping.Frequency),
 		Dr:        uint32(ping.DR),
 	}

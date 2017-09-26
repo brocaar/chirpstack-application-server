@@ -996,7 +996,7 @@ var (
 
 	pattern_Gateway_GetStats_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "gateways", "mac", "stats"}, ""))
 
-	pattern_Gateway_GetLastPing_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 2, 4}, []string{"api", "gateways", "mac", "ping", "last"}, ""))
+	pattern_Gateway_GetLastPing_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 2, 4}, []string{"api", "gateways", "mac", "pings", "last"}, ""))
 )
 
 var (

@@ -390,6 +390,8 @@ func TestGatewayAPI(t *testing.T) {
 					DR:         5,
 				}
 				So(storage.CreateGatewayPing(common.DB, &ping), ShouldBeNil)
+				ping.CreatedAt = ping.CreatedAt.Truncate(time.Millisecond)
+
 				gw.LastPingID = &ping.ID
 				So(storage.UpdateGateway(common.DB, &gw), ShouldBeNil)
 
@@ -428,26 +430,27 @@ func TestGatewayAPI(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					Convey("Then the expected result is returned", func() {
-						So(resp, ShouldResemble, &pb.GetLastPingResponse{
-							Frequency: 868100000,
-							Dr:        5,
-							PingRX: []*pb.PingRX{
-								{
-									Mac:       "0202030405060708",
-									Rssi:      12,
-									LoraSNR:   5.5,
-									Latitude:  1.12345,
-									Longitude: 2.12345,
-									Altitude:  10,
-								},
-								{
-									Mac:       "0302030405060708",
-									Rssi:      15,
-									LoraSNR:   7.5,
-									Latitude:  2.12345,
-									Longitude: 3.12345,
-									Altitude:  11,
-								},
+						createdAt, err := time.Parse(time.RFC3339Nano, resp.CreatedAt)
+						So(err, ShouldBeNil)
+						So(createdAt.Truncate(time.Millisecond).Equal(ping.CreatedAt), ShouldBeTrue)
+						So(resp.Frequency, ShouldEqual, 868100000)
+						So(resp.Dr, ShouldEqual, 5)
+						So(resp.PingRX, ShouldResemble, []*pb.PingRX{
+							{
+								Mac:       "0202030405060708",
+								Rssi:      12,
+								LoraSNR:   5.5,
+								Latitude:  1.12345,
+								Longitude: 2.12345,
+								Altitude:  10,
+							},
+							{
+								Mac:       "0302030405060708",
+								Rssi:      15,
+								LoraSNR:   7.5,
+								Latitude:  2.12345,
+								Longitude: 3.12345,
+								Altitude:  11,
 							},
 						})
 					})

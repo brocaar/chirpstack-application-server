@@ -46,6 +46,7 @@ import ChannelConfigurationLayout from "./views/gateways/ChannelConfigurationLay
 import UpdateChannelConfiguration from "./views/gateways/UpdateChannelConfiguration";
 import UpdateChannelConfigurationExtraChannels from "./views/gateways/UpdateChannelConfigurationExtraChannels";
 import GatewayToken from "./views/gateways/GatewayToken";
+import GatewayPing from "./views/gateways/GatewayPing";
 
 // organizations
 import OrganizationLayout from './views/organizations/OrganizationLayout';
@@ -97,6 +98,7 @@ ReactDOM.render(
         <IndexRoute component={GatewayDetails}></IndexRoute>
         <Route path="edit" component={UpdateGateway}></Route>
         <Route path="token" component={GatewayToken}></Route>
+        <Route path="ping" component={GatewayPing}></Route>
       </Route>
 
       <Route path="organizations/:organizationID/applications/:applicationID" component={ApplicationLayout}>

@@ -8,6 +8,19 @@ menu:
 
 ## Changelog
 
+### 0.13.0
+
+**Features:**
+
+* Gateway ping for testing the gateway coverage (by other gateways).
+  When configured, LoRa App Server will send periodically pings through
+  each gateway which has the ping functionality enabled.
+  See also [features]{{<relref "features.md">}}.
+
+**Bugfixes:**
+
+* Content-Type header was missing for HTTP integrations.
+
 ### 0.12.0
 
 **Features:**

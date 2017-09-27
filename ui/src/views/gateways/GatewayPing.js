@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 
 import moment from "moment";
-import { Map, Marker, TileLayer, Polyline, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import { Map, Marker, TileLayer, Polyline, Popup, MapControl } from 'react-leaflet';
 
 import GatewayStore from "../../stores/GatewayStore";
 
@@ -25,6 +27,21 @@ class GatewayPing extends Component {
         ping: ping,
       });
     });
+  }
+
+  getColor(dbm) {
+    if (dbm >= -100) {
+      return "#FF0000";
+    } else if (dbm >= -105) {
+      return "#FF7F00";
+    } else if (dbm >= -110) {
+      return "#FFFF00";
+    } else if (dbm >= -115) {
+      return "#00FF00";
+    } else if (dbm >= -120) {
+      return "#00FFFF";
+    } 
+    return "#0000FF";
   }
 
   render() {
@@ -75,30 +92,16 @@ class GatewayPing extends Component {
         <Popup>
           <span>
             {rx.mac}<br />
-            RSSI: {rx.rssi}<br />
-            SNR: {rx.loraSNR}<br />
+            RSSI: {rx.rssi} dBm<br />
+            SNR: {rx.loraSNR} dB<br />
             Altitude: {rx.altitude} meter(s)
           </span>
         </Popup>
       </Marker>);
       bounds.push(pingPos);
 
-      let color = "";
-      if (rx.rssi >= -100) {
-        color = "#FF0000";
-      } else if (rx.rssi >= -105) {
-        color = "#FF7F00";
-      } else if (rx.rssi >= -110) {
-        color = "#FFFF00";
-      } else if (rx.rssi >= -115) {
-        color = "#00FF00";
-      } else if (rx.rssi >= -120) {
-        color = "#00FFFF";
-      } else {
-        color = "#0000FF";
-      }
 
-      lines.push(<Polyline key={"line" + rx.mac} positions={[gwPos, pingPos]} color={color} opacity="0.7" weight="3" />);
+      lines.push(<Polyline key={"line" + rx.mac} positions={[gwPos, pingPos]} color={this.getColor(rx.rssi)} opacity="0.7" weight="3" />);
     }
 
 
@@ -115,10 +118,39 @@ class GatewayPing extends Component {
             />
             {markers}
             {lines}
+            <LegendControl className="map-legend">
+              <ul>
+                <li><span className="label" style={{background: this.getColor(-100)}}>&nbsp;</span> &gt;= -100 dBm</li>
+                <li><span className="label" style={{background: this.getColor(-105)}}>&nbsp;</span> &gt;= -105 dBm</li>
+                <li><span className="label" style={{background: this.getColor(-110)}}>&nbsp;</span> &gt;= -110 dBm</li>
+                <li><span className="label" style={{background: this.getColor(-115)}}>&nbsp;</span> &gt;= -115 dBm</li>
+                <li><span className="label" style={{background: this.getColor(-120)}}>&nbsp;</span> &gt;= -120 dBm</li>
+                <li><span className="label" style={{background: this.getColor(-121)}}>&nbsp;</span> &lt; -120 dBm</li>
+              </ul>
+            </LegendControl>
           </Map>
         </div>
       </div>
     );
+  }
+}
+
+class LegendControl extends MapControl {
+  componentWillMount() {
+    const legend = L.control({position: "bottomleft"});
+    const jsx = (
+      <div {...this.props}>
+        {this.props.children}
+      </div>
+    );
+
+    legend.onAdd = function(map) {
+      let div = L.DomUtil.create("div", '');
+      ReactDOM.render(jsx, div);
+      return div;
+    };
+
+    this.leafletElement = legend;
   }
 }
 

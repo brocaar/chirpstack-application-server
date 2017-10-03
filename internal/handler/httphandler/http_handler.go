@@ -59,8 +59,8 @@ func (h *Handler) send(url string, payload interface{}) error {
 		return errors.Wrap(err, "new request error")
 	}
 
+	req.Header.Set("Content-Type", "application/json")
 	for k, v := range h.config.Headers {
-		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set(k, v)
 	}
 

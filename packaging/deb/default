@@ -58,3 +58,15 @@ PW_HASH_ITERATIONS=100000
 
 # debug=5, info=4, warning=3, error=2, fatal=1, panic=0
 LOG_LEVEL=4
+
+# enable sending gateway pings
+# GW_PING=true
+
+# the interval used for each gateway to send a ping (default: 24h0m0s)
+# GW_PING_INTERVAL=24h0m0s
+
+# the frequency used for transmitting the gateway ping (in Hz)
+# GW_PING_FREQUENCY=868100000
+
+# the data-rate to use for transmitting the gateway ping
+# GW_PING_DR=5

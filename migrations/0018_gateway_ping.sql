@@ -7,6 +7,7 @@ create table gateway_ping (
     dr integer not null
 );
 
+create index idx_gateway_ping_created_at on gateway_ping(created_at);
 create index idx_gateway_ping_gateway_mac on gateway_ping(gateway_mac);
 
 create table gateway_ping_rx (
@@ -47,4 +48,5 @@ drop index idx_gateway_ping_rx_created_at;
 drop table gateway_ping_rx;
 
 drop index idx_gateway_ping_gateway_mac;
+drop index idx_gateway_ping_created_at;
 drop table gateway_ping;

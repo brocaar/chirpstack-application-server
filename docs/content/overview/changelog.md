@@ -17,6 +17,9 @@ menu:
   each gateway which has the ping functionality enabled.
   See also [features]{{<relref "features.md">}}.
 
+Note: this release requires LoRa Server 0.21+ as the gateway ping feature
+depends on the 'Proprietary' LoRaWAN message-type.
+
 **Bugfixes:**
 
 * Content-Type header was missing for HTTP integrations.

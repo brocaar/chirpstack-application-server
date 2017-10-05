@@ -5,8 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/gwping"
-
+	. "github.com/smartystreets/goconvey/convey"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
@@ -16,8 +15,9 @@ import (
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lora-app-server/internal/test/testhandler"
 	"github.com/brocaar/loraserver/api/as"
+	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/brocaar/lorawan/backend"
 )
 
 func TestApplicationServerAPI(t *testing.T) {
@@ -26,37 +26,69 @@ func TestApplicationServerAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	nsClient := test.NewNetworkServerClient()
+
 	common.DB = db
+	common.NetworkServer = nsClient
 	common.RedisPool = storage.NewRedisPool(conf.RedisURL)
 
-	Convey("Given a clean database with organization, gateway, application + node and api instance", t, func() {
+	Convey("Given a clean database with bootstrap data node and api instance", t, func() {
 		test.MustResetDB(common.DB)
+
+		nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
+			DeviceProfile: &ns.DeviceProfile{
+				SupportsJoin: true,
+			},
+		}
 
 		org := storage.Organization{
 			Name: "test-org",
 		}
 		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
 
+		n := storage.NetworkServer{
+			Name:   "test-ns",
+			Server: "test-ns:1234",
+		}
+		So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+
+		sp := storage.ServiceProfile{
+			OrganizationID:  org.ID,
+			NetworkServerID: n.ID,
+			Name:            "test-sp",
+			ServiceProfile:  backend.ServiceProfile{},
+		}
+		So(storage.CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+
+		dp := storage.DeviceProfile{
+			OrganizationID:  org.ID,
+			NetworkServerID: n.ID,
+			Name:            "test-dp",
+			DeviceProfile:   backend.DeviceProfile{},
+		}
+		So(storage.CreateDeviceProfile(common.DB, &dp), ShouldBeNil)
+
 		app := storage.Application{
-			OrganizationID: org.ID,
-			Name:           "test-app",
+			OrganizationID:   org.ID,
+			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+			Name:             "test-app",
 		}
 		So(storage.CreateApplication(common.DB, &app), ShouldBeNil)
-		node := storage.Node{
-			ApplicationID:      app.ID,
-			Name:               "test-node",
-			DevEUI:             [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-			AppEUI:             [8]byte{8, 7, 6, 5, 4, 3, 2, 1},
-			AppKey:             [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
-			RXWindow:           storage.RX2,
-			RXDelay:            1,
-			RX1DROffset:        2,
-			RX2DR:              3,
-			RelaxFCnt:          true,
-			ADRInterval:        20,
-			InstallationMargin: 5,
+
+		d := storage.Device{
+			ApplicationID:   app.ID,
+			Name:            "test-node",
+			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
+			DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
 		}
-		So(storage.CreateNode(common.DB, node), ShouldBeNil)
+		So(storage.CreateDevice(common.DB, &d), ShouldBeNil)
+
+		dc := storage.DeviceCredentials{
+			DevEUI: d.DevEUI,
+			AppKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+		}
+		So(storage.CreateDeviceCredentials(common.DB, &dc), ShouldBeNil)
 
 		gw := storage.Gateway{
 			MAC:            lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
@@ -94,92 +126,21 @@ func TestApplicationServerAPI(t *testing.T) {
 			})
 		})
 
-		Convey("Given a gateway with ping enabled and a pending ping", func() {
-			pingGW := storage.Gateway{
-				MAC:            lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
-				Name:           "ping-gw",
-				Description:    "ping gateway",
-				OrganizationID: org.ID,
-				Ping:           true,
+		Convey("Given the device is activated", func() {
+			da := storage.DeviceActivation{
+				DevEUI:  d.DevEUI,
+				DevAddr: lorawan.DevAddr{},
+				AppSKey: lorawan.AES128Key{},
+				NwkSKey: lorawan.AES128Key{},
 			}
-			So(storage.CreateGateway(common.DB, &pingGW), ShouldBeNil)
-
-			ping := storage.GatewayPing{
-				GatewayMAC: pingGW.MAC,
-				Frequency:  868100000,
-				DR:         5,
-			}
-			So(storage.CreateGatewayPing(common.DB, &ping), ShouldBeNil)
-
-			pingGW.LastPingID = &ping.ID
-			pingGW.LastPingSentAt = &ping.CreatedAt
-			So(storage.UpdateGateway(common.DB, &pingGW), ShouldBeNil)
-
-			mic := lorawan.MIC{1, 2, 3, 4}
-			So(gwping.CreatePingLookup(mic, ping.ID), ShouldBeNil)
-
-			Convey("When calling HandleProprietaryUp with the ping response", func() {
-				now := time.Now().Truncate(time.Millisecond)
-
-				_, err := api.HandleProprietaryUp(ctx, &as.HandleProprietaryUpRequest{
-					Mic: mic[:],
-					TxInfo: &as.TXInfo{
-						Frequency: 868100000,
-						DataRate: &as.DataRate{
-							Modulation:   "LORA",
-							BandWidth:    125,
-							SpreadFactor: 7,
-						},
-						CodeRate: "4/5",
-					},
-					RxInfo: []*as.RXInfo{
-						{
-							Mac:       []byte{1, 2, 3, 4, 5, 6, 7, 8},
-							Time:      now.Format(time.RFC3339Nano),
-							Rssi:      -10,
-							LoRaSNR:   5.5,
-							Latitude:  1.12345,
-							Longitude: 1.23456,
-							Altitude:  10.5,
-						},
-					},
-				})
-				So(err, ShouldBeNil)
-
-				Convey("Then the ping response has been stored", func() {
-					getPing, getRX, err := storage.GetLastGatewayPingAndRX(common.DB, pingGW.MAC)
-					So(err, ShouldBeNil)
-					So(getPing.ID, ShouldEqual, ping.ID)
-					So(getRX, ShouldHaveLength, 1)
-					So(getRX[0].GatewayMAC, ShouldEqual, gw.MAC)
-				})
-			})
-		})
-
-		Convey("Given a join-request", func() {
-			phy := lorawan.PHYPayload{
-				MHDR: lorawan.MHDR{
-					MType: lorawan.JoinRequest,
-					Major: lorawan.LoRaWANR1,
-				},
-				MACPayload: &lorawan.JoinRequestPayload{
-					AppEUI:   node.AppEUI,
-					DevEUI:   node.DevEUI,
-					DevNonce: [2]byte{1, 2},
-				},
-			}
-			So(phy.SetMIC(node.AppKey), ShouldBeNil)
-
-			b, err := phy.MarshalBinary()
-			So(err, ShouldBeNil)
+			So(storage.CreateDeviceActivation(common.DB, &da), ShouldBeNil)
 
 			Convey("When calling HandleDataUp", func() {
 				now := time.Now().UTC()
 				mac := lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}
 
 				req := as.HandleDataUpRequest{
-					DevEUI: node.DevEUI[:],
-					AppEUI: node.AppEUI[:],
+					DevEUI: d.DevEUI[:],
 					FCnt:   10,
 					FPort:  3,
 					Data:   []byte{1, 2, 3, 4},
@@ -216,7 +177,7 @@ func TestApplicationServerAPI(t *testing.T) {
 						ApplicationID:   app.ID,
 						ApplicationName: "test-app",
 						NodeName:        "test-node",
-						DevEUI:          node.DevEUI,
+						DevEUI:          d.DevEUI,
 						RXInfo: []handler.RXInfo{
 							{
 								MAC:       mac,
@@ -247,9 +208,144 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 			})
 
+			Convey("Given a pending downlink queue item for this node", func() {
+				qi := storage.DeviceQueueItem{
+					DevEUI:    d.DevEUI,
+					Reference: "abcd1234",
+					Confirmed: true,
+					Pending:   true,
+					FPort:     10,
+					Data:      []byte{1, 2, 3, 4},
+				}
+				So(storage.CreateDeviceQueueItem(common.DB, &qi), ShouldBeNil)
+
+				Convey("Then it is removed when calling HandleDataDownACK", func() {
+					_, err := api.HandleDataDownACK(ctx, &as.HandleDataDownACKRequest{
+						DevEUI: d.DevEUI[:],
+					})
+					So(err, ShouldBeNil)
+
+					_, err = storage.GetDeviceQueueItem(common.DB, qi.ID)
+					So(err, ShouldNotBeNil)
+
+					Convey("Then an ack notification was sent to the handler", func() {
+						So(h.SendACKNotificationChan, ShouldHaveLength, 1)
+						So(<-h.SendACKNotificationChan, ShouldResemble, handler.ACKNotification{
+							ApplicationID:   app.ID,
+							ApplicationName: "test-app",
+							NodeName:        "test-node",
+							DevEUI:          qi.DevEUI,
+							Reference:       qi.Reference,
+						})
+					})
+				})
+			})
+
+			Convey("Given a downlink queue item in the queue (confirmed=false)", func() {
+				qi := storage.DeviceQueueItem{
+					DevEUI:    d.DevEUI,
+					Reference: "abcd1234",
+					Confirmed: false,
+					FPort:     1,
+					Data:      []byte{1, 2, 3, 4},
+				}
+				So(storage.CreateDeviceQueueItem(common.DB, &qi), ShouldBeNil)
+
+				Convey("When calling GetDataDown", func() {
+					resp, err := api.GetDataDown(ctx, &as.GetDataDownRequest{
+						DevEUI:         d.DevEUI[:],
+						MaxPayloadSize: 100,
+						FCnt:           10,
+					})
+					So(err, ShouldBeNil)
+
+					Convey("Then the expected response is returned", func() {
+						da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, d.DevEUI)
+						So(err, ShouldBeNil)
+
+						b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 10, resp.Data)
+						So(err, ShouldBeNil)
+
+						resp.Data = b
+
+						So(resp, ShouldResemble, &as.GetDataDownResponse{
+							Data:      qi.Data,
+							Confirmed: false,
+							FPort:     1,
+							MoreData:  false,
+						})
+					})
+
+					Convey("Then the item was removed from the queue", func() {
+						size, err := storage.GetDeviceQueueItemCount(common.DB, d.DevEUI)
+						So(err, ShouldBeNil)
+						So(size, ShouldEqual, 0)
+					})
+				})
+			})
+
+			Convey("Given a downlink queue item in the queue (confirmed=true)", func() {
+				qi := storage.DeviceQueueItem{
+					DevEUI:    d.DevEUI,
+					Reference: "abcd1234",
+					Confirmed: true,
+					FPort:     1,
+					Data:      []byte{1, 2, 3, 4},
+				}
+				So(storage.CreateDeviceQueueItem(common.DB, &qi), ShouldBeNil)
+
+				Convey("When calling GetDataDown", func() {
+					resp, err := api.GetDataDown(ctx, &as.GetDataDownRequest{
+						DevEUI:         d.DevEUI[:],
+						MaxPayloadSize: 100,
+						FCnt:           10,
+					})
+					So(err, ShouldBeNil)
+
+					Convey("Then the expected response is returned", func() {
+						da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, d.DevEUI)
+						So(err, ShouldBeNil)
+
+						b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 10, resp.Data)
+						So(err, ShouldBeNil)
+
+						resp.Data = b
+
+						So(resp, ShouldResemble, &as.GetDataDownResponse{
+							Data:      qi.Data,
+							Confirmed: true,
+							FPort:     1,
+							MoreData:  false,
+						})
+					})
+
+					Convey("Then the item was set to pending", func() {
+						qi2, err := storage.GetDeviceQueueItem(common.DB, qi.ID)
+						So(err, ShouldBeNil)
+						So(qi2.Pending, ShouldBeTrue)
+					})
+				})
+			})
+		})
+
+		Convey("Given a join-request", func() {
+			phy := lorawan.PHYPayload{
+				MHDR: lorawan.MHDR{
+					MType: lorawan.JoinRequest,
+					Major: lorawan.LoRaWANR1,
+				},
+				MACPayload: &lorawan.JoinRequestPayload{
+					DevEUI:   d.DevEUI,
+					DevNonce: [2]byte{1, 2},
+				},
+			}
+			So(phy.SetMIC(dc.AppKey), ShouldBeNil)
+
+			b, err := phy.MarshalBinary()
+			So(err, ShouldBeNil)
+
 			Convey("Given the node is an ABP device", func() {
-				node.IsABP = true
-				So(storage.UpdateNode(common.DB, node), ShouldBeNil)
+				nsClient.GetDeviceProfileResponse.DeviceProfile.SupportsJoin = false
 
 				Convey("When calling JoinRequest", func() {
 					req := as.JoinRequestRequest{
@@ -277,24 +373,20 @@ func TestApplicationServerAPI(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Then the expected response is returned", func() {
-					node, err := storage.GetNode(common.DB, node.DevEUI)
+					da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, d.DevEUI)
 					So(err, ShouldBeNil)
 
-					So(resp.NwkSKey, ShouldResemble, node.NwkSKey[:])
-					So(resp.RxDelay, ShouldEqual, uint32(node.RXDelay))
-					So(resp.Rx1DROffset, ShouldEqual, uint32(node.RX1DROffset))
-					So(resp.RxWindow, ShouldEqual, as.RXWindow_RX2)
-					So(resp.Rx2DR, ShouldEqual, uint32(node.RX2DR))
-					So(resp.DisableFCntCheck, ShouldBeTrue)
-					So(resp.InstallationMargin, ShouldEqual, 5)
-					So(resp.AdrInterval, ShouldEqual, 20)
+					So(resp.NwkSKey, ShouldResemble, da.NwkSKey[:])
+					So(resp.RxDelay, ShouldEqual, uint32(dp.DeviceProfile.RXDelay1))
+					So(resp.Rx1DROffset, ShouldEqual, uint32(dp.DeviceProfile.RXDROffset1))
+					So(resp.Rx2DR, ShouldEqual, uint32(dp.DeviceProfile.RXDataRate2))
 
 					var phy lorawan.PHYPayload
 					So(phy.UnmarshalBinary(resp.PhyPayload), ShouldBeNil)
 
 					So(phy.MHDR.MType, ShouldEqual, lorawan.JoinAccept)
-					So(phy.DecryptJoinAcceptPayload(node.AppKey), ShouldBeNil)
-					ok, err := phy.ValidateMIC(node.AppKey)
+					So(phy.DecryptJoinAcceptPayload(dc.AppKey), ShouldBeNil)
+					ok, err := phy.ValidateMIC(dc.AppKey)
 					So(err, ShouldBeNil)
 					So(ok, ShouldBeTrue)
 
@@ -303,15 +395,15 @@ func TestApplicationServerAPI(t *testing.T) {
 
 					So(jaPL.NetID, ShouldEqual, lorawan.NetID{1, 2, 3})
 					So(jaPL.DLSettings, ShouldResemble, lorawan.DLSettings{
-						RX2DataRate: node.RX2DR,
-						RX1DROffset: node.RX1DROffset,
+						RX2DataRate: uint8(dp.DeviceProfile.RXDataRate2),
+						RX1DROffset: uint8(dp.DeviceProfile.RXDROffset1),
 					})
-					So(jaPL.RXDelay, ShouldEqual, node.RXDelay)
+					So(jaPL.RXDelay, ShouldEqual, uint8(dp.DeviceProfile.RXDelay1))
 					So(jaPL.CFList, ShouldBeNil)
 					So(jaPL.DevAddr[:], ShouldResemble, []byte{1, 2, 3, 4})
 
 					Convey("Then the DevAddr of the node has been updated", func() {
-						So(node.DevAddr[:], ShouldResemble, []byte{1, 2, 3, 4})
+						So(da.DevAddr[:], ShouldResemble, []byte{1, 2, 3, 4})
 					})
 				})
 
@@ -322,7 +414,7 @@ func TestApplicationServerAPI(t *testing.T) {
 						ApplicationName: "test-app",
 						NodeName:        "test-node",
 						DevAddr:         [4]byte{1, 2, 3, 4},
-						DevEUI:          node.DevEUI,
+						DevEUI:          d.DevEUI,
 					})
 				})
 			})
@@ -342,14 +434,11 @@ func TestApplicationServerAPI(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Then the CFlist is set in the response", func() {
-					node, err := storage.GetNode(common.DB, node.DevEUI)
-					So(err, ShouldBeNil)
-
 					var phy lorawan.PHYPayload
 					So(phy.UnmarshalBinary(resp.PhyPayload), ShouldBeNil)
 
-					So(phy.DecryptJoinAcceptPayload(node.AppKey), ShouldBeNil)
-					ok, err := phy.ValidateMIC(node.AppKey)
+					So(phy.DecryptJoinAcceptPayload(dc.AppKey), ShouldBeNil)
+					ok, err := phy.ValidateMIC(dc.AppKey)
 					So(err, ShouldBeNil)
 					So(ok, ShouldBeTrue)
 
@@ -372,120 +461,7 @@ func TestApplicationServerAPI(t *testing.T) {
 						ApplicationName: "test-app",
 						NodeName:        "test-node",
 						DevAddr:         [4]byte{1, 2, 3, 4},
-						DevEUI:          node.DevEUI,
-					})
-				})
-			})
-
-			Convey("Given a pending downlink queue item for this node", func() {
-				qi := storage.DownlinkQueueItem{
-					DevEUI:    node.DevEUI,
-					Reference: "abcd1234",
-					Confirmed: true,
-					Pending:   true,
-					FPort:     10,
-					Data:      []byte{1, 2, 3, 4},
-				}
-				So(storage.CreateDownlinkQueueItem(common.DB, &qi), ShouldBeNil)
-
-				Convey("Then it is removed when calling HandleDataDownACK", func() {
-					_, err := api.HandleDataDownACK(ctx, &as.HandleDataDownACKRequest{
-						DevEUI: node.DevEUI[:],
-					})
-					So(err, ShouldBeNil)
-
-					_, err = storage.GetDownlinkQueueItem(common.DB, qi.ID)
-					So(err, ShouldNotBeNil)
-
-					Convey("Then an ack notification was sent to the handler", func() {
-						So(h.SendACKNotificationChan, ShouldHaveLength, 1)
-						So(<-h.SendACKNotificationChan, ShouldResemble, handler.ACKNotification{
-							ApplicationID:   app.ID,
-							ApplicationName: "test-app",
-							NodeName:        "test-node",
-							DevEUI:          qi.DevEUI,
-							Reference:       qi.Reference,
-						})
-					})
-				})
-			})
-
-			Convey("Given a downlink queue item in the queue (confirmed=false)", func() {
-				qi := storage.DownlinkQueueItem{
-					DevEUI:    node.DevEUI,
-					Reference: "abcd1234",
-					Confirmed: false,
-					FPort:     1,
-					Data:      []byte{1, 2, 3, 4},
-				}
-				So(storage.CreateDownlinkQueueItem(common.DB, &qi), ShouldBeNil)
-
-				Convey("When calling GetDataDown", func() {
-					resp, err := api.GetDataDown(ctx, &as.GetDataDownRequest{
-						DevEUI:         node.DevEUI[:],
-						MaxPayloadSize: 100,
-						FCnt:           10,
-					})
-					So(err, ShouldBeNil)
-
-					Convey("Then the expected response is returned", func() {
-						b, err := lorawan.EncryptFRMPayload(node.AppSKey, false, node.DevAddr, 10, resp.Data)
-						So(err, ShouldBeNil)
-
-						resp.Data = b
-
-						So(resp, ShouldResemble, &as.GetDataDownResponse{
-							Data:      qi.Data,
-							Confirmed: false,
-							FPort:     1,
-							MoreData:  false,
-						})
-					})
-
-					Convey("Then the item was removed from the queue", func() {
-						size, err := storage.GetDownlinkQueueSize(common.DB, node.DevEUI)
-						So(err, ShouldBeNil)
-						So(size, ShouldEqual, 0)
-					})
-				})
-			})
-
-			Convey("Given a downlink queue item in the queue (confirmed=true)", func() {
-				qi := storage.DownlinkQueueItem{
-					DevEUI:    node.DevEUI,
-					Reference: "abcd1234",
-					Confirmed: true,
-					FPort:     1,
-					Data:      []byte{1, 2, 3, 4},
-				}
-				So(storage.CreateDownlinkQueueItem(common.DB, &qi), ShouldBeNil)
-
-				Convey("When calling GetDataDown", func() {
-					resp, err := api.GetDataDown(ctx, &as.GetDataDownRequest{
-						DevEUI:         node.DevEUI[:],
-						MaxPayloadSize: 100,
-						FCnt:           10,
-					})
-					So(err, ShouldBeNil)
-
-					Convey("Then the expected response is returned", func() {
-						b, err := lorawan.EncryptFRMPayload(node.AppSKey, false, node.DevAddr, 10, resp.Data)
-						So(err, ShouldBeNil)
-
-						resp.Data = b
-
-						So(resp, ShouldResemble, &as.GetDataDownResponse{
-							Data:      qi.Data,
-							Confirmed: true,
-							FPort:     1,
-							MoreData:  false,
-						})
-					})
-
-					Convey("Then the item was set to pending", func() {
-						qi2, err := storage.GetDownlinkQueueItem(common.DB, qi.ID)
-						So(err, ShouldBeNil)
-						So(qi2.Pending, ShouldBeTrue)
+						DevEUI:          d.DevEUI,
 					})
 				})
 			})

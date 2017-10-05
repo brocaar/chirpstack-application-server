@@ -4,17 +4,24 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/lorawan/backend"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestOrganization(t *testing.T) {
 	conf := test.GetConfig()
+	db, err := OpenDatabase(conf.PostgresDSN)
+	if err != nil {
+		t.Fatal(err)
+	}
+	common.DB = db
+	nsClient := test.NewNetworkServerClient()
+	common.NetworkServer = nsClient
 
 	Convey("Given a clean database", t, func() {
-		db, err := OpenDatabase(conf.PostgresDSN)
-		So(err, ShouldBeNil)
 		test.MustResetDB(db)
 
 		Convey("When creating an organization with an invalid name", func() {
@@ -142,9 +149,24 @@ func TestOrganization(t *testing.T) {
 				_, err := CreateUser(db, &user, "password123")
 				So(err, ShouldBeNil)
 
+				n := NetworkServer{
+					Name:   "test-ns",
+					Server: "test-ns:1234",
+				}
+				So(CreateNetworkServer(db, &n), ShouldBeNil)
+
+				sp := ServiceProfile{
+					NetworkServerID: n.ID,
+					OrganizationID:  org.ID,
+					Name:            "test-sp",
+					ServiceProfile:  backend.ServiceProfile{},
+				}
+				So(CreateServiceProfile(db, &sp), ShouldBeNil)
+
 				app := Application{
-					OrganizationID: org.ID,
-					Name:           "test-app",
+					OrganizationID:   org.ID,
+					ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+					Name:             "test-app",
 				}
 				So(CreateApplication(db, &app), ShouldBeNil)
 

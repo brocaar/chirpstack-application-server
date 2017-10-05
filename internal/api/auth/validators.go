@@ -40,8 +40,8 @@ const userQuery = `
 		on u.id = au.user_id
 	left join application a
 		on au.application_id = a.id or a.organization_id = o.id
-	left join node n
-		on a.id = n.application_id`
+	left join device d
+		on a.id = d.application_id`
 
 // ValidateActiveUser validates if the user in the JWT claim is active.
 func ValidateActiveUser() ValidatorFunc {
@@ -313,21 +313,21 @@ func ValidateNodeAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 		// global admin user or users assigned to application
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "n.dev_eui = $2"},
+			{"u.username = $1", "u.is_active = true", "d.dev_eui = $2"},
 		}
 	case Update:
 		// global admin users, organization admin users or application
 		// admin users
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "n.dev_eui = $2"},
+			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "d.dev_eui = $2"},
 		}
 	case Delete:
 		// global admin users, organization admin users or application
 		// admin users
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "n.dev_eui = $2"},
+			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "d.dev_eui = $2"},
 		}
 	default:
 		panic("unsupported flag")
@@ -348,7 +348,7 @@ func ValidateNodeQueueAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 		// global admin users or users assigned to application
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "n.dev_eui = $2"},
+			{"u.username = $1", "u.is_active = true", "d.dev_eui = $2"},
 		}
 	default:
 		panic("unsupported flag")

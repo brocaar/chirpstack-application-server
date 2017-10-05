@@ -5,7 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/lorawan/backend"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -16,20 +18,40 @@ type testIntegrationSettings struct {
 
 func TestIntegration(t *testing.T) {
 	conf := test.GetConfig()
+	db, err := OpenDatabase(conf.PostgresDSN)
+	if err != nil {
+		t.Fatal(err)
+	}
+	common.DB = db
+	nsClient := test.NewNetworkServerClient()
+	common.NetworkServer = nsClient
 
-	Convey("Given a clean database with an application", t, func() {
-		db, err := OpenDatabase(conf.PostgresDSN)
-		So(err, ShouldBeNil)
-		test.MustResetDB(db)
+	Convey("Given a clean database with an organization, network-server, service-profile, and application", t, func() {
+		test.MustResetDB(common.DB)
 
 		org := Organization{
 			Name: "test-org",
 		}
 		So(CreateOrganization(db, &org), ShouldBeNil)
 
+		n := NetworkServer{
+			Name:   "test-ns",
+			Server: "test-ns:1234",
+		}
+		So(CreateNetworkServer(common.DB, &n), ShouldBeNil)
+
+		sp := ServiceProfile{
+			OrganizationID:  org.ID,
+			NetworkServerID: n.ID,
+			Name:            "test-sp",
+			ServiceProfile:  backend.ServiceProfile{},
+		}
+		So(CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+
 		app := Application{
-			Name:           "test-app",
-			OrganizationID: org.ID,
+			OrganizationID:   org.ID,
+			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+			Name:             "test-app",
 		}
 		So(CreateApplication(db, &app), ShouldBeNil)
 

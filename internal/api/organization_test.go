@@ -24,7 +24,7 @@ func TestOrganizationAPI(t *testing.T) {
 		ctx := context.Background()
 		validator := &TestValidator{}
 		api := NewOrganizationAPI(validator)
-		userApi := NewUserAPI(validator)
+		userAPI := NewUserAPI(validator)
 
 		Convey("When creating an organization with a bad name (spaces)", func() {
 			validator.returnIsAdmin = true
@@ -113,7 +113,7 @@ func TestOrganizationAPI(t *testing.T) {
 						IsActive:   true,
 						SessionTTL: 180,
 					}
-					userResp, err := userApi.Create(ctx, userReq)
+					userResp, err := userAPI.Create(ctx, userReq)
 					So(err, ShouldBeNil)
 
 					validator.returnIsAdmin = false

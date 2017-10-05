@@ -39,3 +39,7 @@ func handlePSQLError(err error, description string) error {
 
 	return errors.Wrap(err, description)
 }
+
+func handleGrpcError(err error, description string) error {
+	return errors.Wrap(err, description)
+}

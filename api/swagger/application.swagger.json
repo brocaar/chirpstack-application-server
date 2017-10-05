@@ -515,54 +515,14 @@
           "type": "string",
           "description": "Description of the application."
         },
-        "rxDelay": {
-          "type": "integer",
-          "format": "int64",
-          "description": "RX delay."
-        },
-        "rx1DROffset": {
-          "type": "integer",
-          "format": "int64",
-          "description": "RX1 data-rate offset."
-        },
-        "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow",
-          "description": "RX window to use."
-        },
-        "rx2DR": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Data-rate to use for RX2."
-        },
-        "relaxFCnt": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Relax frame-counter mode is enabled."
-        },
-        "adrInterval": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled)."
-        },
-        "installationMargin": {
-          "type": "number",
-          "format": "double",
-          "description": "Installation-margin to use for ADR calculation."
-        },
-        "isABP": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Node is activated by ABP."
-        },
-        "isClassC": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Node operates in Class-C."
-        },
         "organizationID": {
           "type": "string",
           "format": "int64",
           "description": "ID of the organization to which the application belongs."
+        },
+        "serviceProfileID": {
+          "type": "string",
+          "description": "ID of the service profile."
         }
       }
     },
@@ -601,54 +561,14 @@
           "type": "string",
           "description": "Description of the application."
         },
-        "rxDelay": {
-          "type": "integer",
-          "format": "int64",
-          "description": "RX delay."
-        },
-        "rx1DROffset": {
-          "type": "integer",
-          "format": "int64",
-          "description": "RX1 data-rate offset."
-        },
-        "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow",
-          "description": "RX window to use."
-        },
-        "rx2DR": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Data-rate to use for RX2."
-        },
-        "relaxFCnt": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Relax frame-counter mode is enabled."
-        },
-        "adrInterval": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled)."
-        },
-        "installationMargin": {
-          "type": "number",
-          "format": "double",
-          "description": "Installation-margin to use for ADR calculation."
-        },
-        "isABP": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Node is activated by ABP."
-        },
-        "isClassC": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Node operates in Class-C."
-        },
         "organizationID": {
           "type": "string",
           "format": "int64",
           "description": "ID of the organization to which the application belongs."
+        },
+        "serviceProfileID": {
+          "type": "string",
+          "description": "ID of the service profile."
         }
       }
     },
@@ -770,14 +690,6 @@
         }
       }
     },
-    "apiRXWindow": {
-      "type": "string",
-      "enum": [
-        "RX1",
-        "RX2"
-      ],
-      "default": "RX1"
-    },
     "apiUpdateApplicationRequest": {
       "type": "object",
       "properties": {
@@ -794,54 +706,14 @@
           "type": "string",
           "description": "Description of the application."
         },
-        "rxDelay": {
-          "type": "integer",
-          "format": "int64",
-          "description": "RX delay."
-        },
-        "rx1DROffset": {
-          "type": "integer",
-          "format": "int64",
-          "description": "RX1 data-rate offset."
-        },
-        "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow",
-          "description": "RX window to use."
-        },
-        "rx2DR": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Data-rate to use for RX2."
-        },
-        "relaxFCnt": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Relax frame-counter mode is enabled."
-        },
-        "adrInterval": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled)."
-        },
-        "installationMargin": {
-          "type": "number",
-          "format": "double",
-          "description": "Installation-margin to use for ADR calculation."
-        },
-        "isABP": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Node is activated by ABP."
-        },
-        "isClassC": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Node operates in Class-C."
-        },
         "organizationID": {
           "type": "string",
           "format": "int64",
           "description": "ID of the organization to which the application belongs."
+        },
+        "serviceProfileID": {
+          "type": "string",
+          "description": "ID of the service profile."
         }
       }
     },

@@ -3,6 +3,9 @@ package api
 import (
 	"testing"
 
+	"github.com/brocaar/loraserver/api/ns"
+	"github.com/brocaar/lorawan/backend"
+
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/urfave/cli"
 	"golang.org/x/net/context"
@@ -15,12 +18,22 @@ import (
 
 func TestUserAPI(t *testing.T) {
 	conf := test.GetConfig()
+	db, err := storage.OpenDatabase(conf.PostgresDSN)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	common.DB = db
 
 	Convey("Given a clean database and api instance", t, func() {
-		db, err := storage.OpenDatabase(conf.PostgresDSN)
-		So(err, ShouldBeNil)
-		common.DB = db
 		test.MustResetDB(common.DB)
+
+		nsClient := test.NewNetworkServerClient()
+		nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
+			DeviceProfile: &ns.DeviceProfile{},
+		}
+
+		common.NetworkServer = nsClient
 
 		ctx := context.Background()
 		validator := &TestValidator{}
@@ -32,9 +45,25 @@ func TestUserAPI(t *testing.T) {
 				Name: "test-org",
 			}
 			So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
+
+			n := storage.NetworkServer{
+				Name:   "test-ns",
+				Server: "test-ns:1234",
+			}
+			So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+
+			sp := storage.ServiceProfile{
+				Name:            "test-sp",
+				OrganizationID:  org.ID,
+				NetworkServerID: n.ID,
+				ServiceProfile:  backend.ServiceProfile{},
+			}
+			So(storage.CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+
 			app := storage.Application{
-				Name:           "test-app",
-				OrganizationID: org.ID,
+				Name:             "test-app",
+				OrganizationID:   org.ID,
+				ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 			}
 			So(storage.CreateApplication(common.DB, &app), ShouldBeNil)
 

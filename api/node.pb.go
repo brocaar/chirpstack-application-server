@@ -14,20 +14,29 @@ It is generated from these files:
 	organization.proto
 
 It has these top-level messages:
-	CreateNodeRequest
-	CreateNodeResponse
-	GetNodeRequest
-	GetNodeResponse
-	DeleteNodeRequest
-	DeleteNodeResponse
-	ListNodeByApplicationIDRequest
-	ListNodeResponse
-	UpdateNodeRequest
-	UpdateNodeResponse
-	ActivateNodeRequest
-	ActivateNodeResponse
-	GetNodeActivationRequest
-	GetNodeActivationResponse
+	DeviceCredentials
+	CreateDeviceRequest
+	CreateDeviceResponse
+	GetDeviceRequest
+	GetDeviceResponse
+	DeleteDeviceRequest
+	DeleteDeviceResponse
+	ListDeviceByApplicationIDRequest
+	ListDeviceResponse
+	UpdateDeviceRequest
+	UpdateDeviceResponse
+	CreateDeviceCredentialsRequest
+	CreateDeviceCredentialsResponse
+	GetDeviceCredentialsRequest
+	GetDeviceCredentialsResponse
+	UpdateDeviceCredentialsRequest
+	UpdateDeviceCredentialsResponse
+	DeleteDeviceCredentialsRequest
+	DeleteDeviceCredentialsResponse
+	ActivateDeviceRequest
+	ActivateDeviceResponse
+	GetDeviceActivationRequest
+	GetDeviceActivationResponse
 	GetRandomDevAddrRequest
 	GetRandomDevAddrResponse
 	GetFrameLogsRequest
@@ -166,364 +175,183 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-type CreateNodeRequest struct {
+type DeviceCredentials struct {
+	// HEX encoded application key.
+	AppKey string `protobuf:"bytes,1,opt,name=appKey" json:"appKey,omitempty"`
+}
+
+func (m *DeviceCredentials) Reset()                    { *m = DeviceCredentials{} }
+func (m *DeviceCredentials) String() string            { return proto.CompactTextString(m) }
+func (*DeviceCredentials) ProtoMessage()               {}
+func (*DeviceCredentials) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+
+func (m *DeviceCredentials) GetAppKey() string {
+	if m != nil {
+		return m.AppKey
+	}
+	return ""
+}
+
+type CreateDeviceRequest struct {
 	// Hex encoded DevEUI.
 	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
-	// Hex encoded AppEUI.
-	AppEUI string `protobuf:"bytes,2,opt,name=appEUI" json:"appEUI,omitempty"`
-	// Hex encoded AppKey. When isABP is set to true, this field is not needed.
-	AppKey string `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
-	// RX delay.
-	RxDelay uint32 `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
-	// RX1 data-rate offset.
-	Rx1DROffset uint32 `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
-	// RX window to use.
-	RxWindow RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
-	// Data-rate to use for RX2.
-	Rx2DR uint32 `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
-	// Name of the node (if left blank, it will be set to the DevEUI).
+	// Name of the device (if left blank, it will be set to the DevEUI).
 	Name string `protobuf:"bytes,9,opt,name=name" json:"name,omitempty"`
-	// Relax frame-counter mode is enabled.
-	RelaxFCnt bool `protobuf:"varint,10,opt,name=relaxFCnt" json:"relaxFCnt,omitempty"`
-	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
-	AdrInterval uint32 `protobuf:"varint,11,opt,name=adrInterval" json:"adrInterval,omitempty"`
-	// Installation-margin to use for ADR calculation.
-	InstallationMargin float64 `protobuf:"fixed64,12,opt,name=installationMargin" json:"installationMargin,omitempty"`
-	// ID of the application to which the node must be added.
+	// ID of the application to which the device must be added.
 	ApplicationID int64 `protobuf:"varint,13,opt,name=applicationID" json:"applicationID,omitempty"`
-	// Description of the node.
+	// Description of the device.
 	Description string `protobuf:"bytes,14,opt,name=description" json:"description,omitempty"`
-	// Node is activated by ABP.
-	IsABP bool `protobuf:"varint,15,opt,name=isABP" json:"isABP,omitempty"`
-	// Node operates in Class-C.
-	IsClassC bool `protobuf:"varint,16,opt,name=isClassC" json:"isClassC,omitempty"`
-	// When set to true, the application settings will be used to populate the node network settings.
-	UseApplicationSettings bool `protobuf:"varint,17,opt,name=useApplicationSettings" json:"useApplicationSettings,omitempty"`
+	// DeviceProfileID attached to the device.
+	DeviceProfileID string `protobuf:"bytes,18,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
 }
 
-func (m *CreateNodeRequest) Reset()                    { *m = CreateNodeRequest{} }
-func (m *CreateNodeRequest) String() string            { return proto.CompactTextString(m) }
-func (*CreateNodeRequest) ProtoMessage()               {}
-func (*CreateNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+func (m *CreateDeviceRequest) Reset()                    { *m = CreateDeviceRequest{} }
+func (m *CreateDeviceRequest) String() string            { return proto.CompactTextString(m) }
+func (*CreateDeviceRequest) ProtoMessage()               {}
+func (*CreateDeviceRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
 
-func (m *CreateNodeRequest) GetDevEUI() string {
+func (m *CreateDeviceRequest) GetDevEUI() string {
 	if m != nil {
 		return m.DevEUI
 	}
 	return ""
 }
 
-func (m *CreateNodeRequest) GetAppEUI() string {
-	if m != nil {
-		return m.AppEUI
-	}
-	return ""
-}
-
-func (m *CreateNodeRequest) GetAppKey() string {
-	if m != nil {
-		return m.AppKey
-	}
-	return ""
-}
-
-func (m *CreateNodeRequest) GetRxDelay() uint32 {
-	if m != nil {
-		return m.RxDelay
-	}
-	return 0
-}
-
-func (m *CreateNodeRequest) GetRx1DROffset() uint32 {
-	if m != nil {
-		return m.Rx1DROffset
-	}
-	return 0
-}
-
-func (m *CreateNodeRequest) GetRxWindow() RXWindow {
-	if m != nil {
-		return m.RxWindow
-	}
-	return RXWindow_RX1
-}
-
-func (m *CreateNodeRequest) GetRx2DR() uint32 {
-	if m != nil {
-		return m.Rx2DR
-	}
-	return 0
-}
-
-func (m *CreateNodeRequest) GetName() string {
+func (m *CreateDeviceRequest) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *CreateNodeRequest) GetRelaxFCnt() bool {
-	if m != nil {
-		return m.RelaxFCnt
-	}
-	return false
-}
-
-func (m *CreateNodeRequest) GetAdrInterval() uint32 {
-	if m != nil {
-		return m.AdrInterval
-	}
-	return 0
-}
-
-func (m *CreateNodeRequest) GetInstallationMargin() float64 {
-	if m != nil {
-		return m.InstallationMargin
-	}
-	return 0
-}
-
-func (m *CreateNodeRequest) GetApplicationID() int64 {
+func (m *CreateDeviceRequest) GetApplicationID() int64 {
 	if m != nil {
 		return m.ApplicationID
 	}
 	return 0
 }
 
-func (m *CreateNodeRequest) GetDescription() string {
+func (m *CreateDeviceRequest) GetDescription() string {
 	if m != nil {
 		return m.Description
 	}
 	return ""
 }
 
-func (m *CreateNodeRequest) GetIsABP() bool {
+func (m *CreateDeviceRequest) GetDeviceProfileID() string {
 	if m != nil {
-		return m.IsABP
+		return m.DeviceProfileID
 	}
-	return false
+	return ""
 }
 
-func (m *CreateNodeRequest) GetIsClassC() bool {
-	if m != nil {
-		return m.IsClassC
-	}
-	return false
+type CreateDeviceResponse struct {
 }
 
-func (m *CreateNodeRequest) GetUseApplicationSettings() bool {
-	if m != nil {
-		return m.UseApplicationSettings
-	}
-	return false
-}
+func (m *CreateDeviceResponse) Reset()                    { *m = CreateDeviceResponse{} }
+func (m *CreateDeviceResponse) String() string            { return proto.CompactTextString(m) }
+func (*CreateDeviceResponse) ProtoMessage()               {}
+func (*CreateDeviceResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
 
-type CreateNodeResponse struct {
-}
-
-func (m *CreateNodeResponse) Reset()                    { *m = CreateNodeResponse{} }
-func (m *CreateNodeResponse) String() string            { return proto.CompactTextString(m) }
-func (*CreateNodeResponse) ProtoMessage()               {}
-func (*CreateNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
-
-type GetNodeRequest struct {
-	// Hex encoded DevEUI of the node.
+type GetDeviceRequest struct {
+	// Hex encoded DevEUI of the device.
 	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
 }
 
-func (m *GetNodeRequest) Reset()                    { *m = GetNodeRequest{} }
-func (m *GetNodeRequest) String() string            { return proto.CompactTextString(m) }
-func (*GetNodeRequest) ProtoMessage()               {}
-func (*GetNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+func (m *GetDeviceRequest) Reset()                    { *m = GetDeviceRequest{} }
+func (m *GetDeviceRequest) String() string            { return proto.CompactTextString(m) }
+func (*GetDeviceRequest) ProtoMessage()               {}
+func (*GetDeviceRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
 
-func (m *GetNodeRequest) GetDevEUI() string {
+func (m *GetDeviceRequest) GetDevEUI() string {
 	if m != nil {
 		return m.DevEUI
 	}
 	return ""
 }
 
-type GetNodeResponse struct {
+type GetDeviceResponse struct {
 	// Hex encoded DevEUI.
 	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
-	// Hex encoded AppEUI.
-	AppEUI string `protobuf:"bytes,2,opt,name=appEUI" json:"appEUI,omitempty"`
-	// Hex encoded AppKey.
-	AppKey string `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
-	// RX delay.
-	RxDelay uint32 `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
-	// RX1 data-rate offset.
-	Rx1DROffset uint32 `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
-	// RX window to use.
-	RxWindow RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
-	// Data-rate to use for RX2.
-	Rx2DR uint32 `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
-	// Name of the node.
+	// Name of the device (if left blank, it will be set to the DevEUI).
 	Name string `protobuf:"bytes,9,opt,name=name" json:"name,omitempty"`
-	// Relax frame-counter mode is enabled.
-	RelaxFCnt bool `protobuf:"varint,10,opt,name=relaxFCnt" json:"relaxFCnt,omitempty"`
-	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
-	AdrInterval uint32 `protobuf:"varint,11,opt,name=adrInterval" json:"adrInterval,omitempty"`
-	// Installation-margin to use for ADR calculation.
-	InstallationMargin float64 `protobuf:"fixed64,12,opt,name=installationMargin" json:"installationMargin,omitempty"`
-	// Description of the node.
-	Description string `protobuf:"bytes,13,opt,name=description" json:"description,omitempty"`
-	// Node is activated by ABP.
-	IsABP bool `protobuf:"varint,14,opt,name=isABP" json:"isABP,omitempty"`
-	// ID of the application owning the node.
-	ApplicationID int64 `protobuf:"varint,15,opt,name=applicationID" json:"applicationID,omitempty"`
-	// Node operates in Class-C.
-	IsClassC bool `protobuf:"varint,16,opt,name=isClassC" json:"isClassC,omitempty"`
-	// When set to true, the application settings will be used to populate the node network settings.
-	UseApplicationSettings bool `protobuf:"varint,17,opt,name=useApplicationSettings" json:"useApplicationSettings,omitempty"`
+	// ID of the application to which the device must be added.
+	ApplicationID int64 `protobuf:"varint,13,opt,name=applicationID" json:"applicationID,omitempty"`
+	// Description of the device.
+	Description string `protobuf:"bytes,14,opt,name=description" json:"description,omitempty"`
+	// DeviceProfileID attached to the device.
+	DeviceProfileID string `protobuf:"bytes,18,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
 }
 
-func (m *GetNodeResponse) Reset()                    { *m = GetNodeResponse{} }
-func (m *GetNodeResponse) String() string            { return proto.CompactTextString(m) }
-func (*GetNodeResponse) ProtoMessage()               {}
-func (*GetNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
+func (m *GetDeviceResponse) Reset()                    { *m = GetDeviceResponse{} }
+func (m *GetDeviceResponse) String() string            { return proto.CompactTextString(m) }
+func (*GetDeviceResponse) ProtoMessage()               {}
+func (*GetDeviceResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
 
-func (m *GetNodeResponse) GetDevEUI() string {
+func (m *GetDeviceResponse) GetDevEUI() string {
 	if m != nil {
 		return m.DevEUI
 	}
 	return ""
 }
 
-func (m *GetNodeResponse) GetAppEUI() string {
-	if m != nil {
-		return m.AppEUI
-	}
-	return ""
-}
-
-func (m *GetNodeResponse) GetAppKey() string {
-	if m != nil {
-		return m.AppKey
-	}
-	return ""
-}
-
-func (m *GetNodeResponse) GetRxDelay() uint32 {
-	if m != nil {
-		return m.RxDelay
-	}
-	return 0
-}
-
-func (m *GetNodeResponse) GetRx1DROffset() uint32 {
-	if m != nil {
-		return m.Rx1DROffset
-	}
-	return 0
-}
-
-func (m *GetNodeResponse) GetRxWindow() RXWindow {
-	if m != nil {
-		return m.RxWindow
-	}
-	return RXWindow_RX1
-}
-
-func (m *GetNodeResponse) GetRx2DR() uint32 {
-	if m != nil {
-		return m.Rx2DR
-	}
-	return 0
-}
-
-func (m *GetNodeResponse) GetName() string {
+func (m *GetDeviceResponse) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *GetNodeResponse) GetRelaxFCnt() bool {
-	if m != nil {
-		return m.RelaxFCnt
-	}
-	return false
-}
-
-func (m *GetNodeResponse) GetAdrInterval() uint32 {
-	if m != nil {
-		return m.AdrInterval
-	}
-	return 0
-}
-
-func (m *GetNodeResponse) GetInstallationMargin() float64 {
-	if m != nil {
-		return m.InstallationMargin
-	}
-	return 0
-}
-
-func (m *GetNodeResponse) GetDescription() string {
-	if m != nil {
-		return m.Description
-	}
-	return ""
-}
-
-func (m *GetNodeResponse) GetIsABP() bool {
-	if m != nil {
-		return m.IsABP
-	}
-	return false
-}
-
-func (m *GetNodeResponse) GetApplicationID() int64 {
+func (m *GetDeviceResponse) GetApplicationID() int64 {
 	if m != nil {
 		return m.ApplicationID
 	}
 	return 0
 }
 
-func (m *GetNodeResponse) GetIsClassC() bool {
+func (m *GetDeviceResponse) GetDescription() string {
 	if m != nil {
-		return m.IsClassC
+		return m.Description
 	}
-	return false
+	return ""
 }
 
-func (m *GetNodeResponse) GetUseApplicationSettings() bool {
+func (m *GetDeviceResponse) GetDeviceProfileID() string {
 	if m != nil {
-		return m.UseApplicationSettings
+		return m.DeviceProfileID
 	}
-	return false
+	return ""
 }
 
-type DeleteNodeRequest struct {
-	// Hex encoded DevEUI of the node.
+type DeleteDeviceRequest struct {
+	// Hex encoded DevEUI of the device.
 	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
 }
 
-func (m *DeleteNodeRequest) Reset()                    { *m = DeleteNodeRequest{} }
-func (m *DeleteNodeRequest) String() string            { return proto.CompactTextString(m) }
-func (*DeleteNodeRequest) ProtoMessage()               {}
-func (*DeleteNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
+func (m *DeleteDeviceRequest) Reset()                    { *m = DeleteDeviceRequest{} }
+func (m *DeleteDeviceRequest) String() string            { return proto.CompactTextString(m) }
+func (*DeleteDeviceRequest) ProtoMessage()               {}
+func (*DeleteDeviceRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
 
-func (m *DeleteNodeRequest) GetDevEUI() string {
+func (m *DeleteDeviceRequest) GetDevEUI() string {
 	if m != nil {
 		return m.DevEUI
 	}
 	return ""
 }
 
-type DeleteNodeResponse struct {
+type DeleteDeviceResponse struct {
 }
 
-func (m *DeleteNodeResponse) Reset()                    { *m = DeleteNodeResponse{} }
-func (m *DeleteNodeResponse) String() string            { return proto.CompactTextString(m) }
-func (*DeleteNodeResponse) ProtoMessage()               {}
-func (*DeleteNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
+func (m *DeleteDeviceResponse) Reset()                    { *m = DeleteDeviceResponse{} }
+func (m *DeleteDeviceResponse) String() string            { return proto.CompactTextString(m) }
+func (*DeleteDeviceResponse) ProtoMessage()               {}
+func (*DeleteDeviceResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
 
-type ListNodeByApplicationIDRequest struct {
-	// ID of the application for which to list the nodes.
+type ListDeviceByApplicationIDRequest struct {
+	// ID of the application for which to list the devices.
 	ApplicationID int64 `protobuf:"varint,3,opt,name=applicationID" json:"applicationID,omitempty"`
-	// Max number of nodes to return in the result-set.
+	// Max number of devices to return in the result-set.
 	Limit int64 `protobuf:"varint,1,opt,name=limit" json:"limit,omitempty"`
 	// Offset of the result-set (for pagination).
 	Offset int64 `protobuf:"varint,2,opt,name=offset" json:"offset,omitempty"`
@@ -531,227 +359,260 @@ type ListNodeByApplicationIDRequest struct {
 	Search string `protobuf:"bytes,4,opt,name=search" json:"search,omitempty"`
 }
 
-func (m *ListNodeByApplicationIDRequest) Reset()                    { *m = ListNodeByApplicationIDRequest{} }
-func (m *ListNodeByApplicationIDRequest) String() string            { return proto.CompactTextString(m) }
-func (*ListNodeByApplicationIDRequest) ProtoMessage()               {}
-func (*ListNodeByApplicationIDRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
+func (m *ListDeviceByApplicationIDRequest) Reset()         { *m = ListDeviceByApplicationIDRequest{} }
+func (m *ListDeviceByApplicationIDRequest) String() string { return proto.CompactTextString(m) }
+func (*ListDeviceByApplicationIDRequest) ProtoMessage()    {}
+func (*ListDeviceByApplicationIDRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor0, []int{7}
+}
 
-func (m *ListNodeByApplicationIDRequest) GetApplicationID() int64 {
+func (m *ListDeviceByApplicationIDRequest) GetApplicationID() int64 {
 	if m != nil {
 		return m.ApplicationID
 	}
 	return 0
 }
 
-func (m *ListNodeByApplicationIDRequest) GetLimit() int64 {
+func (m *ListDeviceByApplicationIDRequest) GetLimit() int64 {
 	if m != nil {
 		return m.Limit
 	}
 	return 0
 }
 
-func (m *ListNodeByApplicationIDRequest) GetOffset() int64 {
+func (m *ListDeviceByApplicationIDRequest) GetOffset() int64 {
 	if m != nil {
 		return m.Offset
 	}
 	return 0
 }
 
-func (m *ListNodeByApplicationIDRequest) GetSearch() string {
+func (m *ListDeviceByApplicationIDRequest) GetSearch() string {
 	if m != nil {
 		return m.Search
 	}
 	return ""
 }
 
-type ListNodeResponse struct {
-	// Total number of nodes available within the result-set.
+type ListDeviceResponse struct {
+	// Total number of devices available within the result-set.
 	TotalCount int64 `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
-	// Nodes within this result-set.
-	Result []*GetNodeResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	// Devices within this result-set.
+	Result []*GetDeviceResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
 }
 
-func (m *ListNodeResponse) Reset()                    { *m = ListNodeResponse{} }
-func (m *ListNodeResponse) String() string            { return proto.CompactTextString(m) }
-func (*ListNodeResponse) ProtoMessage()               {}
-func (*ListNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{7} }
+func (m *ListDeviceResponse) Reset()                    { *m = ListDeviceResponse{} }
+func (m *ListDeviceResponse) String() string            { return proto.CompactTextString(m) }
+func (*ListDeviceResponse) ProtoMessage()               {}
+func (*ListDeviceResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
 
-func (m *ListNodeResponse) GetTotalCount() int64 {
+func (m *ListDeviceResponse) GetTotalCount() int64 {
 	if m != nil {
 		return m.TotalCount
 	}
 	return 0
 }
 
-func (m *ListNodeResponse) GetResult() []*GetNodeResponse {
+func (m *ListDeviceResponse) GetResult() []*GetDeviceResponse {
 	if m != nil {
 		return m.Result
 	}
 	return nil
 }
 
-type UpdateNodeRequest struct {
-	// Hex encoded DevEUI of the node to update.
+type UpdateDeviceRequest struct {
+	// Hex encoded DevEUI.
 	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
-	// Hex encoded AppEUI.
-	AppEUI string `protobuf:"bytes,2,opt,name=appEUI" json:"appEUI,omitempty"`
-	// Hex encoded AppKey.
-	AppKey string `protobuf:"bytes,3,opt,name=appKey" json:"appKey,omitempty"`
-	// RX delay.
-	RxDelay uint32 `protobuf:"varint,4,opt,name=rxDelay" json:"rxDelay,omitempty"`
-	// RX1 data-rate offset.
-	Rx1DROffset uint32 `protobuf:"varint,5,opt,name=rx1DROffset" json:"rx1DROffset,omitempty"`
-	// RX window to use.
-	RxWindow RXWindow `protobuf:"varint,7,opt,name=rxWindow,enum=api.RXWindow" json:"rxWindow,omitempty"`
-	// Data-rate to use for RX2.
-	Rx2DR uint32 `protobuf:"varint,8,opt,name=rx2DR" json:"rx2DR,omitempty"`
-	// Name of the node (note that renaming the node affects its api endpoint)
+	// Name of the device (if left blank, it will be set to the DevEUI).
 	Name string `protobuf:"bytes,9,opt,name=name" json:"name,omitempty"`
-	// Relax frame-counter mode is enabled.
-	RelaxFCnt bool `protobuf:"varint,10,opt,name=relaxFCnt" json:"relaxFCnt,omitempty"`
-	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
-	AdrInterval uint32 `protobuf:"varint,11,opt,name=adrInterval" json:"adrInterval,omitempty"`
-	// Installation-margin to use for ADR calculation.
-	InstallationMargin float64 `protobuf:"fixed64,12,opt,name=installationMargin" json:"installationMargin,omitempty"`
-	// ID of the application owning the node.
+	// ID of the application to which the device must be added.
 	ApplicationID int64 `protobuf:"varint,13,opt,name=applicationID" json:"applicationID,omitempty"`
-	// Description of the node.
+	// Description of the device.
 	Description string `protobuf:"bytes,14,opt,name=description" json:"description,omitempty"`
-	// Node is activated by ABP.
-	IsABP bool `protobuf:"varint,15,opt,name=isABP" json:"isABP,omitempty"`
-	// Node operates in Class-C.
-	IsClassC bool `protobuf:"varint,16,opt,name=isClassC" json:"isClassC,omitempty"`
-	// When set to true, the application settings will be used to populate the node network settings.
-	UseApplicationSettings bool `protobuf:"varint,17,opt,name=useApplicationSettings" json:"useApplicationSettings,omitempty"`
+	// DeviceProfileID attached to the device.
+	DeviceProfileID string `protobuf:"bytes,18,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
 }
 
-func (m *UpdateNodeRequest) Reset()                    { *m = UpdateNodeRequest{} }
-func (m *UpdateNodeRequest) String() string            { return proto.CompactTextString(m) }
-func (*UpdateNodeRequest) ProtoMessage()               {}
-func (*UpdateNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
+func (m *UpdateDeviceRequest) Reset()                    { *m = UpdateDeviceRequest{} }
+func (m *UpdateDeviceRequest) String() string            { return proto.CompactTextString(m) }
+func (*UpdateDeviceRequest) ProtoMessage()               {}
+func (*UpdateDeviceRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{9} }
 
-func (m *UpdateNodeRequest) GetDevEUI() string {
+func (m *UpdateDeviceRequest) GetDevEUI() string {
 	if m != nil {
 		return m.DevEUI
 	}
 	return ""
 }
 
-func (m *UpdateNodeRequest) GetAppEUI() string {
-	if m != nil {
-		return m.AppEUI
-	}
-	return ""
-}
-
-func (m *UpdateNodeRequest) GetAppKey() string {
-	if m != nil {
-		return m.AppKey
-	}
-	return ""
-}
-
-func (m *UpdateNodeRequest) GetRxDelay() uint32 {
-	if m != nil {
-		return m.RxDelay
-	}
-	return 0
-}
-
-func (m *UpdateNodeRequest) GetRx1DROffset() uint32 {
-	if m != nil {
-		return m.Rx1DROffset
-	}
-	return 0
-}
-
-func (m *UpdateNodeRequest) GetRxWindow() RXWindow {
-	if m != nil {
-		return m.RxWindow
-	}
-	return RXWindow_RX1
-}
-
-func (m *UpdateNodeRequest) GetRx2DR() uint32 {
-	if m != nil {
-		return m.Rx2DR
-	}
-	return 0
-}
-
-func (m *UpdateNodeRequest) GetName() string {
+func (m *UpdateDeviceRequest) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *UpdateNodeRequest) GetRelaxFCnt() bool {
-	if m != nil {
-		return m.RelaxFCnt
-	}
-	return false
-}
-
-func (m *UpdateNodeRequest) GetAdrInterval() uint32 {
-	if m != nil {
-		return m.AdrInterval
-	}
-	return 0
-}
-
-func (m *UpdateNodeRequest) GetInstallationMargin() float64 {
-	if m != nil {
-		return m.InstallationMargin
-	}
-	return 0
-}
-
-func (m *UpdateNodeRequest) GetApplicationID() int64 {
+func (m *UpdateDeviceRequest) GetApplicationID() int64 {
 	if m != nil {
 		return m.ApplicationID
 	}
 	return 0
 }
 
-func (m *UpdateNodeRequest) GetDescription() string {
+func (m *UpdateDeviceRequest) GetDescription() string {
 	if m != nil {
 		return m.Description
 	}
 	return ""
 }
 
-func (m *UpdateNodeRequest) GetIsABP() bool {
+func (m *UpdateDeviceRequest) GetDeviceProfileID() string {
 	if m != nil {
-		return m.IsABP
+		return m.DeviceProfileID
 	}
-	return false
+	return ""
 }
 
-func (m *UpdateNodeRequest) GetIsClassC() bool {
+type UpdateDeviceResponse struct {
+}
+
+func (m *UpdateDeviceResponse) Reset()                    { *m = UpdateDeviceResponse{} }
+func (m *UpdateDeviceResponse) String() string            { return proto.CompactTextString(m) }
+func (*UpdateDeviceResponse) ProtoMessage()               {}
+func (*UpdateDeviceResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{10} }
+
+type CreateDeviceCredentialsRequest struct {
+	// Hex encoded DevEUI of the device.
+	DevEUI            string             `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+	DeviceCredentials *DeviceCredentials `protobuf:"bytes,2,opt,name=deviceCredentials" json:"deviceCredentials,omitempty"`
+}
+
+func (m *CreateDeviceCredentialsRequest) Reset()                    { *m = CreateDeviceCredentialsRequest{} }
+func (m *CreateDeviceCredentialsRequest) String() string            { return proto.CompactTextString(m) }
+func (*CreateDeviceCredentialsRequest) ProtoMessage()               {}
+func (*CreateDeviceCredentialsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{11} }
+
+func (m *CreateDeviceCredentialsRequest) GetDevEUI() string {
 	if m != nil {
-		return m.IsClassC
+		return m.DevEUI
 	}
-	return false
+	return ""
 }
 
-func (m *UpdateNodeRequest) GetUseApplicationSettings() bool {
+func (m *CreateDeviceCredentialsRequest) GetDeviceCredentials() *DeviceCredentials {
 	if m != nil {
-		return m.UseApplicationSettings
+		return m.DeviceCredentials
 	}
-	return false
+	return nil
 }
 
-type UpdateNodeResponse struct {
+type CreateDeviceCredentialsResponse struct {
 }
 
-func (m *UpdateNodeResponse) Reset()                    { *m = UpdateNodeResponse{} }
-func (m *UpdateNodeResponse) String() string            { return proto.CompactTextString(m) }
-func (*UpdateNodeResponse) ProtoMessage()               {}
-func (*UpdateNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{9} }
+func (m *CreateDeviceCredentialsResponse) Reset()         { *m = CreateDeviceCredentialsResponse{} }
+func (m *CreateDeviceCredentialsResponse) String() string { return proto.CompactTextString(m) }
+func (*CreateDeviceCredentialsResponse) ProtoMessage()    {}
+func (*CreateDeviceCredentialsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor0, []int{12}
+}
 
-type ActivateNodeRequest struct {
-	// Hex encoded DevEUI of the node to activate.
+type GetDeviceCredentialsRequest struct {
+	// Hex encoded DevEUI of the device.
+	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+}
+
+func (m *GetDeviceCredentialsRequest) Reset()                    { *m = GetDeviceCredentialsRequest{} }
+func (m *GetDeviceCredentialsRequest) String() string            { return proto.CompactTextString(m) }
+func (*GetDeviceCredentialsRequest) ProtoMessage()               {}
+func (*GetDeviceCredentialsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{13} }
+
+func (m *GetDeviceCredentialsRequest) GetDevEUI() string {
+	if m != nil {
+		return m.DevEUI
+	}
+	return ""
+}
+
+type GetDeviceCredentialsResponse struct {
+	DeviceCredentials *DeviceCredentials `protobuf:"bytes,1,opt,name=deviceCredentials" json:"deviceCredentials,omitempty"`
+}
+
+func (m *GetDeviceCredentialsResponse) Reset()                    { *m = GetDeviceCredentialsResponse{} }
+func (m *GetDeviceCredentialsResponse) String() string            { return proto.CompactTextString(m) }
+func (*GetDeviceCredentialsResponse) ProtoMessage()               {}
+func (*GetDeviceCredentialsResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{14} }
+
+func (m *GetDeviceCredentialsResponse) GetDeviceCredentials() *DeviceCredentials {
+	if m != nil {
+		return m.DeviceCredentials
+	}
+	return nil
+}
+
+type UpdateDeviceCredentialsRequest struct {
+	// Hex encoded DevEUI of the device.
+	DevEUI            string             `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+	DeviceCredentials *DeviceCredentials `protobuf:"bytes,2,opt,name=deviceCredentials" json:"deviceCredentials,omitempty"`
+}
+
+func (m *UpdateDeviceCredentialsRequest) Reset()                    { *m = UpdateDeviceCredentialsRequest{} }
+func (m *UpdateDeviceCredentialsRequest) String() string            { return proto.CompactTextString(m) }
+func (*UpdateDeviceCredentialsRequest) ProtoMessage()               {}
+func (*UpdateDeviceCredentialsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{15} }
+
+func (m *UpdateDeviceCredentialsRequest) GetDevEUI() string {
+	if m != nil {
+		return m.DevEUI
+	}
+	return ""
+}
+
+func (m *UpdateDeviceCredentialsRequest) GetDeviceCredentials() *DeviceCredentials {
+	if m != nil {
+		return m.DeviceCredentials
+	}
+	return nil
+}
+
+type UpdateDeviceCredentialsResponse struct {
+}
+
+func (m *UpdateDeviceCredentialsResponse) Reset()         { *m = UpdateDeviceCredentialsResponse{} }
+func (m *UpdateDeviceCredentialsResponse) String() string { return proto.CompactTextString(m) }
+func (*UpdateDeviceCredentialsResponse) ProtoMessage()    {}
+func (*UpdateDeviceCredentialsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor0, []int{16}
+}
+
+type DeleteDeviceCredentialsRequest struct {
+	// Hex encoded DevEUI of the device.
+	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+}
+
+func (m *DeleteDeviceCredentialsRequest) Reset()                    { *m = DeleteDeviceCredentialsRequest{} }
+func (m *DeleteDeviceCredentialsRequest) String() string            { return proto.CompactTextString(m) }
+func (*DeleteDeviceCredentialsRequest) ProtoMessage()               {}
+func (*DeleteDeviceCredentialsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{17} }
+
+func (m *DeleteDeviceCredentialsRequest) GetDevEUI() string {
+	if m != nil {
+		return m.DevEUI
+	}
+	return ""
+}
+
+type DeleteDeviceCredentialsResponse struct {
+}
+
+func (m *DeleteDeviceCredentialsResponse) Reset()         { *m = DeleteDeviceCredentialsResponse{} }
+func (m *DeleteDeviceCredentialsResponse) String() string { return proto.CompactTextString(m) }
+func (*DeleteDeviceCredentialsResponse) ProtoMessage()    {}
+func (*DeleteDeviceCredentialsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor0, []int{18}
+}
+
+type ActivateDeviceRequest struct {
+	// Hex encoded DevEUI of the device to activate.
 	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
 	// Hex encoded DevAddr.
 	DevAddr string `protobuf:"bytes,2,opt,name=devAddr" json:"devAddr,omitempty"`
@@ -765,79 +626,79 @@ type ActivateNodeRequest struct {
 	FCntDown uint32 `protobuf:"varint,6,opt,name=fCntDown" json:"fCntDown,omitempty"`
 }
 
-func (m *ActivateNodeRequest) Reset()                    { *m = ActivateNodeRequest{} }
-func (m *ActivateNodeRequest) String() string            { return proto.CompactTextString(m) }
-func (*ActivateNodeRequest) ProtoMessage()               {}
-func (*ActivateNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{10} }
+func (m *ActivateDeviceRequest) Reset()                    { *m = ActivateDeviceRequest{} }
+func (m *ActivateDeviceRequest) String() string            { return proto.CompactTextString(m) }
+func (*ActivateDeviceRequest) ProtoMessage()               {}
+func (*ActivateDeviceRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{19} }
 
-func (m *ActivateNodeRequest) GetDevEUI() string {
+func (m *ActivateDeviceRequest) GetDevEUI() string {
 	if m != nil {
 		return m.DevEUI
 	}
 	return ""
 }
 
-func (m *ActivateNodeRequest) GetDevAddr() string {
+func (m *ActivateDeviceRequest) GetDevAddr() string {
 	if m != nil {
 		return m.DevAddr
 	}
 	return ""
 }
 
-func (m *ActivateNodeRequest) GetAppSKey() string {
+func (m *ActivateDeviceRequest) GetAppSKey() string {
 	if m != nil {
 		return m.AppSKey
 	}
 	return ""
 }
 
-func (m *ActivateNodeRequest) GetNwkSKey() string {
+func (m *ActivateDeviceRequest) GetNwkSKey() string {
 	if m != nil {
 		return m.NwkSKey
 	}
 	return ""
 }
 
-func (m *ActivateNodeRequest) GetFCntUp() uint32 {
+func (m *ActivateDeviceRequest) GetFCntUp() uint32 {
 	if m != nil {
 		return m.FCntUp
 	}
 	return 0
 }
 
-func (m *ActivateNodeRequest) GetFCntDown() uint32 {
+func (m *ActivateDeviceRequest) GetFCntDown() uint32 {
 	if m != nil {
 		return m.FCntDown
 	}
 	return 0
 }
 
-type ActivateNodeResponse struct {
+type ActivateDeviceResponse struct {
 }
 
-func (m *ActivateNodeResponse) Reset()                    { *m = ActivateNodeResponse{} }
-func (m *ActivateNodeResponse) String() string            { return proto.CompactTextString(m) }
-func (*ActivateNodeResponse) ProtoMessage()               {}
-func (*ActivateNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{11} }
+func (m *ActivateDeviceResponse) Reset()                    { *m = ActivateDeviceResponse{} }
+func (m *ActivateDeviceResponse) String() string            { return proto.CompactTextString(m) }
+func (*ActivateDeviceResponse) ProtoMessage()               {}
+func (*ActivateDeviceResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{20} }
 
-type GetNodeActivationRequest struct {
-	// Hex encoded DevEUI of the node.
+type GetDeviceActivationRequest struct {
+	// Hex encoded DevEUI of the device.
 	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
 }
 
-func (m *GetNodeActivationRequest) Reset()                    { *m = GetNodeActivationRequest{} }
-func (m *GetNodeActivationRequest) String() string            { return proto.CompactTextString(m) }
-func (*GetNodeActivationRequest) ProtoMessage()               {}
-func (*GetNodeActivationRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{12} }
+func (m *GetDeviceActivationRequest) Reset()                    { *m = GetDeviceActivationRequest{} }
+func (m *GetDeviceActivationRequest) String() string            { return proto.CompactTextString(m) }
+func (*GetDeviceActivationRequest) ProtoMessage()               {}
+func (*GetDeviceActivationRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{21} }
 
-func (m *GetNodeActivationRequest) GetDevEUI() string {
+func (m *GetDeviceActivationRequest) GetDevEUI() string {
 	if m != nil {
 		return m.DevEUI
 	}
 	return ""
 }
 
-type GetNodeActivationResponse struct {
+type GetDeviceActivationResponse struct {
 	// Hex encoded DevAddr.
 	DevAddr string `protobuf:"bytes,1,opt,name=devAddr" json:"devAddr,omitempty"`
 	// Hex encoded AppSKey.
@@ -850,40 +711,40 @@ type GetNodeActivationResponse struct {
 	FCntDown uint32 `protobuf:"varint,5,opt,name=fCntDown" json:"fCntDown,omitempty"`
 }
 
-func (m *GetNodeActivationResponse) Reset()                    { *m = GetNodeActivationResponse{} }
-func (m *GetNodeActivationResponse) String() string            { return proto.CompactTextString(m) }
-func (*GetNodeActivationResponse) ProtoMessage()               {}
-func (*GetNodeActivationResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{13} }
+func (m *GetDeviceActivationResponse) Reset()                    { *m = GetDeviceActivationResponse{} }
+func (m *GetDeviceActivationResponse) String() string            { return proto.CompactTextString(m) }
+func (*GetDeviceActivationResponse) ProtoMessage()               {}
+func (*GetDeviceActivationResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{22} }
 
-func (m *GetNodeActivationResponse) GetDevAddr() string {
+func (m *GetDeviceActivationResponse) GetDevAddr() string {
 	if m != nil {
 		return m.DevAddr
 	}
 	return ""
 }
 
-func (m *GetNodeActivationResponse) GetAppSKey() string {
+func (m *GetDeviceActivationResponse) GetAppSKey() string {
 	if m != nil {
 		return m.AppSKey
 	}
 	return ""
 }
 
-func (m *GetNodeActivationResponse) GetNwkSKey() string {
+func (m *GetDeviceActivationResponse) GetNwkSKey() string {
 	if m != nil {
 		return m.NwkSKey
 	}
 	return ""
 }
 
-func (m *GetNodeActivationResponse) GetFCntUp() uint32 {
+func (m *GetDeviceActivationResponse) GetFCntUp() uint32 {
 	if m != nil {
 		return m.FCntUp
 	}
 	return 0
 }
 
-func (m *GetNodeActivationResponse) GetFCntDown() uint32 {
+func (m *GetDeviceActivationResponse) GetFCntDown() uint32 {
 	if m != nil {
 		return m.FCntDown
 	}
@@ -896,7 +757,7 @@ type GetRandomDevAddrRequest struct {
 func (m *GetRandomDevAddrRequest) Reset()                    { *m = GetRandomDevAddrRequest{} }
 func (m *GetRandomDevAddrRequest) String() string            { return proto.CompactTextString(m) }
 func (*GetRandomDevAddrRequest) ProtoMessage()               {}
-func (*GetRandomDevAddrRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{14} }
+func (*GetRandomDevAddrRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{23} }
 
 type GetRandomDevAddrResponse struct {
 	// Hex encoded DevAddr.
@@ -906,7 +767,7 @@ type GetRandomDevAddrResponse struct {
 func (m *GetRandomDevAddrResponse) Reset()                    { *m = GetRandomDevAddrResponse{} }
 func (m *GetRandomDevAddrResponse) String() string            { return proto.CompactTextString(m) }
 func (*GetRandomDevAddrResponse) ProtoMessage()               {}
-func (*GetRandomDevAddrResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{15} }
+func (*GetRandomDevAddrResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{24} }
 
 func (m *GetRandomDevAddrResponse) GetDevAddr() string {
 	if m != nil {
@@ -927,7 +788,7 @@ type GetFrameLogsRequest struct {
 func (m *GetFrameLogsRequest) Reset()                    { *m = GetFrameLogsRequest{} }
 func (m *GetFrameLogsRequest) String() string            { return proto.CompactTextString(m) }
 func (*GetFrameLogsRequest) ProtoMessage()               {}
-func (*GetFrameLogsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{16} }
+func (*GetFrameLogsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{25} }
 
 func (m *GetFrameLogsRequest) GetDevEUI() string {
 	if m != nil {
@@ -960,7 +821,7 @@ type GetFrameLogsResponse struct {
 func (m *GetFrameLogsResponse) Reset()                    { *m = GetFrameLogsResponse{} }
 func (m *GetFrameLogsResponse) String() string            { return proto.CompactTextString(m) }
 func (*GetFrameLogsResponse) ProtoMessage()               {}
-func (*GetFrameLogsResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{17} }
+func (*GetFrameLogsResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{26} }
 
 func (m *GetFrameLogsResponse) GetTotalCount() int32 {
 	if m != nil {
@@ -990,7 +851,7 @@ type FrameLog struct {
 func (m *FrameLog) Reset()                    { *m = FrameLog{} }
 func (m *FrameLog) String() string            { return proto.CompactTextString(m) }
 func (*FrameLog) ProtoMessage()               {}
-func (*FrameLog) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{18} }
+func (*FrameLog) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{27} }
 
 func (m *FrameLog) GetCreatedAt() string {
 	if m != nil {
@@ -1030,7 +891,7 @@ type DataRate struct {
 func (m *DataRate) Reset()                    { *m = DataRate{} }
 func (m *DataRate) String() string            { return proto.CompactTextString(m) }
 func (*DataRate) ProtoMessage()               {}
-func (*DataRate) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{19} }
+func (*DataRate) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{28} }
 
 func (m *DataRate) GetModulation() string {
 	if m != nil {
@@ -1084,7 +945,7 @@ type RXInfo struct {
 func (m *RXInfo) Reset()                    { *m = RXInfo{} }
 func (m *RXInfo) String() string            { return proto.CompactTextString(m) }
 func (*RXInfo) ProtoMessage()               {}
-func (*RXInfo) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{20} }
+func (*RXInfo) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{29} }
 
 func (m *RXInfo) GetChannel() int32 {
 	if m != nil {
@@ -1169,7 +1030,7 @@ type TXInfo struct {
 func (m *TXInfo) Reset()                    { *m = TXInfo{} }
 func (m *TXInfo) String() string            { return proto.CompactTextString(m) }
 func (*TXInfo) ProtoMessage()               {}
-func (*TXInfo) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{21} }
+func (*TXInfo) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{30} }
 
 func (m *TXInfo) GetCodeRate() string {
 	if m != nil {
@@ -1221,20 +1082,29 @@ func (m *TXInfo) GetDataRate() *DataRate {
 }
 
 func init() {
-	proto.RegisterType((*CreateNodeRequest)(nil), "api.CreateNodeRequest")
-	proto.RegisterType((*CreateNodeResponse)(nil), "api.CreateNodeResponse")
-	proto.RegisterType((*GetNodeRequest)(nil), "api.GetNodeRequest")
-	proto.RegisterType((*GetNodeResponse)(nil), "api.GetNodeResponse")
-	proto.RegisterType((*DeleteNodeRequest)(nil), "api.DeleteNodeRequest")
-	proto.RegisterType((*DeleteNodeResponse)(nil), "api.DeleteNodeResponse")
-	proto.RegisterType((*ListNodeByApplicationIDRequest)(nil), "api.ListNodeByApplicationIDRequest")
-	proto.RegisterType((*ListNodeResponse)(nil), "api.ListNodeResponse")
-	proto.RegisterType((*UpdateNodeRequest)(nil), "api.UpdateNodeRequest")
-	proto.RegisterType((*UpdateNodeResponse)(nil), "api.UpdateNodeResponse")
-	proto.RegisterType((*ActivateNodeRequest)(nil), "api.ActivateNodeRequest")
-	proto.RegisterType((*ActivateNodeResponse)(nil), "api.ActivateNodeResponse")
-	proto.RegisterType((*GetNodeActivationRequest)(nil), "api.GetNodeActivationRequest")
-	proto.RegisterType((*GetNodeActivationResponse)(nil), "api.GetNodeActivationResponse")
+	proto.RegisterType((*DeviceCredentials)(nil), "api.DeviceCredentials")
+	proto.RegisterType((*CreateDeviceRequest)(nil), "api.CreateDeviceRequest")
+	proto.RegisterType((*CreateDeviceResponse)(nil), "api.CreateDeviceResponse")
+	proto.RegisterType((*GetDeviceRequest)(nil), "api.GetDeviceRequest")
+	proto.RegisterType((*GetDeviceResponse)(nil), "api.GetDeviceResponse")
+	proto.RegisterType((*DeleteDeviceRequest)(nil), "api.DeleteDeviceRequest")
+	proto.RegisterType((*DeleteDeviceResponse)(nil), "api.DeleteDeviceResponse")
+	proto.RegisterType((*ListDeviceByApplicationIDRequest)(nil), "api.ListDeviceByApplicationIDRequest")
+	proto.RegisterType((*ListDeviceResponse)(nil), "api.ListDeviceResponse")
+	proto.RegisterType((*UpdateDeviceRequest)(nil), "api.UpdateDeviceRequest")
+	proto.RegisterType((*UpdateDeviceResponse)(nil), "api.UpdateDeviceResponse")
+	proto.RegisterType((*CreateDeviceCredentialsRequest)(nil), "api.CreateDeviceCredentialsRequest")
+	proto.RegisterType((*CreateDeviceCredentialsResponse)(nil), "api.CreateDeviceCredentialsResponse")
+	proto.RegisterType((*GetDeviceCredentialsRequest)(nil), "api.GetDeviceCredentialsRequest")
+	proto.RegisterType((*GetDeviceCredentialsResponse)(nil), "api.GetDeviceCredentialsResponse")
+	proto.RegisterType((*UpdateDeviceCredentialsRequest)(nil), "api.UpdateDeviceCredentialsRequest")
+	proto.RegisterType((*UpdateDeviceCredentialsResponse)(nil), "api.UpdateDeviceCredentialsResponse")
+	proto.RegisterType((*DeleteDeviceCredentialsRequest)(nil), "api.DeleteDeviceCredentialsRequest")
+	proto.RegisterType((*DeleteDeviceCredentialsResponse)(nil), "api.DeleteDeviceCredentialsResponse")
+	proto.RegisterType((*ActivateDeviceRequest)(nil), "api.ActivateDeviceRequest")
+	proto.RegisterType((*ActivateDeviceResponse)(nil), "api.ActivateDeviceResponse")
+	proto.RegisterType((*GetDeviceActivationRequest)(nil), "api.GetDeviceActivationRequest")
+	proto.RegisterType((*GetDeviceActivationResponse)(nil), "api.GetDeviceActivationResponse")
 	proto.RegisterType((*GetRandomDevAddrRequest)(nil), "api.GetRandomDevAddrRequest")
 	proto.RegisterType((*GetRandomDevAddrResponse)(nil), "api.GetRandomDevAddrResponse")
 	proto.RegisterType((*GetFrameLogsRequest)(nil), "api.GetFrameLogsRequest")
@@ -1253,346 +1123,486 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for Node service
+// Client API for Device service
 
-type NodeClient interface {
-	// Create creates the given node.
-	Create(ctx context.Context, in *CreateNodeRequest, opts ...grpc.CallOption) (*CreateNodeResponse, error)
-	// Get returns the node for the requested DevEUI.
-	Get(ctx context.Context, in *GetNodeRequest, opts ...grpc.CallOption) (*GetNodeResponse, error)
-	// Delete deletes the node matching the given DevEUI.
-	Delete(ctx context.Context, in *DeleteNodeRequest, opts ...grpc.CallOption) (*DeleteNodeResponse, error)
-	// ListByApplicationID lists the nodes by the given application ID, sorted by the name of the node.
-	ListByApplicationID(ctx context.Context, in *ListNodeByApplicationIDRequest, opts ...grpc.CallOption) (*ListNodeResponse, error)
-	// Update updates the node matching the given DevEUI.
-	Update(ctx context.Context, in *UpdateNodeRequest, opts ...grpc.CallOption) (*UpdateNodeResponse, error)
-	// Activate (re)activates the node (only when ABP is set to true).
-	Activate(ctx context.Context, in *ActivateNodeRequest, opts ...grpc.CallOption) (*ActivateNodeResponse, error)
-	// GetActivation returns the current activation details of the node (OTAA and ABP).
-	GetActivation(ctx context.Context, in *GetNodeActivationRequest, opts ...grpc.CallOption) (*GetNodeActivationResponse, error)
+type DeviceClient interface {
+	// Create creates the given device.
+	Create(ctx context.Context, in *CreateDeviceRequest, opts ...grpc.CallOption) (*CreateDeviceResponse, error)
+	// Get returns the device matching the given DevEUI.
+	Get(ctx context.Context, in *GetDeviceRequest, opts ...grpc.CallOption) (*GetDeviceResponse, error)
+	// Delete deletes the device matching the given DevEUI.
+	Delete(ctx context.Context, in *DeleteDeviceRequest, opts ...grpc.CallOption) (*DeleteDeviceResponse, error)
+	// ListByApplicationID lists the devices by the given application ID, sorted by the name of the device.
+	ListByApplicationID(ctx context.Context, in *ListDeviceByApplicationIDRequest, opts ...grpc.CallOption) (*ListDeviceResponse, error)
+	// Update updates the device matching the given DevEUI.
+	Update(ctx context.Context, in *UpdateDeviceRequest, opts ...grpc.CallOption) (*UpdateDeviceResponse, error)
+	// CreateCredentials creates the given device-credentials.
+	CreateCredentials(ctx context.Context, in *CreateDeviceCredentialsRequest, opts ...grpc.CallOption) (*CreateDeviceCredentialsResponse, error)
+	// GetCredentials returns the device-credentials for the given DevEUI.
+	GetCredentials(ctx context.Context, in *GetDeviceCredentialsRequest, opts ...grpc.CallOption) (*GetDeviceCredentialsResponse, error)
+	// UpdateCredentials updates the device-credentials.
+	UpdateCredentials(ctx context.Context, in *UpdateDeviceCredentialsRequest, opts ...grpc.CallOption) (*UpdateDeviceCredentialsResponse, error)
+	// DeleteCredentials deletes the device-credentials for the given DevEUI.
+	DeleteCredentials(ctx context.Context, in *DeleteDeviceCredentialsRequest, opts ...grpc.CallOption) (*DeleteDeviceCredentialsResponse, error)
+	// Activate (re)activates the device (only when ABP is set to true).
+	Activate(ctx context.Context, in *ActivateDeviceRequest, opts ...grpc.CallOption) (*ActivateDeviceResponse, error)
+	// GetActivation returns the current activation details of the device (OTAA and ABP).
+	GetActivation(ctx context.Context, in *GetDeviceActivationRequest, opts ...grpc.CallOption) (*GetDeviceActivationResponse, error)
 	// GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
 	GetRandomDevAddr(ctx context.Context, in *GetRandomDevAddrRequest, opts ...grpc.CallOption) (*GetRandomDevAddrResponse, error)
 	// GetFrameLogs returns the uplink / downlink frame log for the given DevEUI.
 	GetFrameLogs(ctx context.Context, in *GetFrameLogsRequest, opts ...grpc.CallOption) (*GetFrameLogsResponse, error)
 }
 
-type nodeClient struct {
+type deviceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewNodeClient(cc *grpc.ClientConn) NodeClient {
-	return &nodeClient{cc}
+func NewDeviceClient(cc *grpc.ClientConn) DeviceClient {
+	return &deviceClient{cc}
 }
 
-func (c *nodeClient) Create(ctx context.Context, in *CreateNodeRequest, opts ...grpc.CallOption) (*CreateNodeResponse, error) {
-	out := new(CreateNodeResponse)
-	err := grpc.Invoke(ctx, "/api.Node/Create", in, out, c.cc, opts...)
+func (c *deviceClient) Create(ctx context.Context, in *CreateDeviceRequest, opts ...grpc.CallOption) (*CreateDeviceResponse, error) {
+	out := new(CreateDeviceResponse)
+	err := grpc.Invoke(ctx, "/api.Device/Create", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nodeClient) Get(ctx context.Context, in *GetNodeRequest, opts ...grpc.CallOption) (*GetNodeResponse, error) {
-	out := new(GetNodeResponse)
-	err := grpc.Invoke(ctx, "/api.Node/Get", in, out, c.cc, opts...)
+func (c *deviceClient) Get(ctx context.Context, in *GetDeviceRequest, opts ...grpc.CallOption) (*GetDeviceResponse, error) {
+	out := new(GetDeviceResponse)
+	err := grpc.Invoke(ctx, "/api.Device/Get", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nodeClient) Delete(ctx context.Context, in *DeleteNodeRequest, opts ...grpc.CallOption) (*DeleteNodeResponse, error) {
-	out := new(DeleteNodeResponse)
-	err := grpc.Invoke(ctx, "/api.Node/Delete", in, out, c.cc, opts...)
+func (c *deviceClient) Delete(ctx context.Context, in *DeleteDeviceRequest, opts ...grpc.CallOption) (*DeleteDeviceResponse, error) {
+	out := new(DeleteDeviceResponse)
+	err := grpc.Invoke(ctx, "/api.Device/Delete", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nodeClient) ListByApplicationID(ctx context.Context, in *ListNodeByApplicationIDRequest, opts ...grpc.CallOption) (*ListNodeResponse, error) {
-	out := new(ListNodeResponse)
-	err := grpc.Invoke(ctx, "/api.Node/ListByApplicationID", in, out, c.cc, opts...)
+func (c *deviceClient) ListByApplicationID(ctx context.Context, in *ListDeviceByApplicationIDRequest, opts ...grpc.CallOption) (*ListDeviceResponse, error) {
+	out := new(ListDeviceResponse)
+	err := grpc.Invoke(ctx, "/api.Device/ListByApplicationID", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nodeClient) Update(ctx context.Context, in *UpdateNodeRequest, opts ...grpc.CallOption) (*UpdateNodeResponse, error) {
-	out := new(UpdateNodeResponse)
-	err := grpc.Invoke(ctx, "/api.Node/Update", in, out, c.cc, opts...)
+func (c *deviceClient) Update(ctx context.Context, in *UpdateDeviceRequest, opts ...grpc.CallOption) (*UpdateDeviceResponse, error) {
+	out := new(UpdateDeviceResponse)
+	err := grpc.Invoke(ctx, "/api.Device/Update", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nodeClient) Activate(ctx context.Context, in *ActivateNodeRequest, opts ...grpc.CallOption) (*ActivateNodeResponse, error) {
-	out := new(ActivateNodeResponse)
-	err := grpc.Invoke(ctx, "/api.Node/Activate", in, out, c.cc, opts...)
+func (c *deviceClient) CreateCredentials(ctx context.Context, in *CreateDeviceCredentialsRequest, opts ...grpc.CallOption) (*CreateDeviceCredentialsResponse, error) {
+	out := new(CreateDeviceCredentialsResponse)
+	err := grpc.Invoke(ctx, "/api.Device/CreateCredentials", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nodeClient) GetActivation(ctx context.Context, in *GetNodeActivationRequest, opts ...grpc.CallOption) (*GetNodeActivationResponse, error) {
-	out := new(GetNodeActivationResponse)
-	err := grpc.Invoke(ctx, "/api.Node/GetActivation", in, out, c.cc, opts...)
+func (c *deviceClient) GetCredentials(ctx context.Context, in *GetDeviceCredentialsRequest, opts ...grpc.CallOption) (*GetDeviceCredentialsResponse, error) {
+	out := new(GetDeviceCredentialsResponse)
+	err := grpc.Invoke(ctx, "/api.Device/GetCredentials", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nodeClient) GetRandomDevAddr(ctx context.Context, in *GetRandomDevAddrRequest, opts ...grpc.CallOption) (*GetRandomDevAddrResponse, error) {
+func (c *deviceClient) UpdateCredentials(ctx context.Context, in *UpdateDeviceCredentialsRequest, opts ...grpc.CallOption) (*UpdateDeviceCredentialsResponse, error) {
+	out := new(UpdateDeviceCredentialsResponse)
+	err := grpc.Invoke(ctx, "/api.Device/UpdateCredentials", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceClient) DeleteCredentials(ctx context.Context, in *DeleteDeviceCredentialsRequest, opts ...grpc.CallOption) (*DeleteDeviceCredentialsResponse, error) {
+	out := new(DeleteDeviceCredentialsResponse)
+	err := grpc.Invoke(ctx, "/api.Device/DeleteCredentials", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceClient) Activate(ctx context.Context, in *ActivateDeviceRequest, opts ...grpc.CallOption) (*ActivateDeviceResponse, error) {
+	out := new(ActivateDeviceResponse)
+	err := grpc.Invoke(ctx, "/api.Device/Activate", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceClient) GetActivation(ctx context.Context, in *GetDeviceActivationRequest, opts ...grpc.CallOption) (*GetDeviceActivationResponse, error) {
+	out := new(GetDeviceActivationResponse)
+	err := grpc.Invoke(ctx, "/api.Device/GetActivation", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceClient) GetRandomDevAddr(ctx context.Context, in *GetRandomDevAddrRequest, opts ...grpc.CallOption) (*GetRandomDevAddrResponse, error) {
 	out := new(GetRandomDevAddrResponse)
-	err := grpc.Invoke(ctx, "/api.Node/GetRandomDevAddr", in, out, c.cc, opts...)
+	err := grpc.Invoke(ctx, "/api.Device/GetRandomDevAddr", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nodeClient) GetFrameLogs(ctx context.Context, in *GetFrameLogsRequest, opts ...grpc.CallOption) (*GetFrameLogsResponse, error) {
+func (c *deviceClient) GetFrameLogs(ctx context.Context, in *GetFrameLogsRequest, opts ...grpc.CallOption) (*GetFrameLogsResponse, error) {
 	out := new(GetFrameLogsResponse)
-	err := grpc.Invoke(ctx, "/api.Node/GetFrameLogs", in, out, c.cc, opts...)
+	err := grpc.Invoke(ctx, "/api.Device/GetFrameLogs", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for Node service
+// Server API for Device service
 
-type NodeServer interface {
-	// Create creates the given node.
-	Create(context.Context, *CreateNodeRequest) (*CreateNodeResponse, error)
-	// Get returns the node for the requested DevEUI.
-	Get(context.Context, *GetNodeRequest) (*GetNodeResponse, error)
-	// Delete deletes the node matching the given DevEUI.
-	Delete(context.Context, *DeleteNodeRequest) (*DeleteNodeResponse, error)
-	// ListByApplicationID lists the nodes by the given application ID, sorted by the name of the node.
-	ListByApplicationID(context.Context, *ListNodeByApplicationIDRequest) (*ListNodeResponse, error)
-	// Update updates the node matching the given DevEUI.
-	Update(context.Context, *UpdateNodeRequest) (*UpdateNodeResponse, error)
-	// Activate (re)activates the node (only when ABP is set to true).
-	Activate(context.Context, *ActivateNodeRequest) (*ActivateNodeResponse, error)
-	// GetActivation returns the current activation details of the node (OTAA and ABP).
-	GetActivation(context.Context, *GetNodeActivationRequest) (*GetNodeActivationResponse, error)
+type DeviceServer interface {
+	// Create creates the given device.
+	Create(context.Context, *CreateDeviceRequest) (*CreateDeviceResponse, error)
+	// Get returns the device matching the given DevEUI.
+	Get(context.Context, *GetDeviceRequest) (*GetDeviceResponse, error)
+	// Delete deletes the device matching the given DevEUI.
+	Delete(context.Context, *DeleteDeviceRequest) (*DeleteDeviceResponse, error)
+	// ListByApplicationID lists the devices by the given application ID, sorted by the name of the device.
+	ListByApplicationID(context.Context, *ListDeviceByApplicationIDRequest) (*ListDeviceResponse, error)
+	// Update updates the device matching the given DevEUI.
+	Update(context.Context, *UpdateDeviceRequest) (*UpdateDeviceResponse, error)
+	// CreateCredentials creates the given device-credentials.
+	CreateCredentials(context.Context, *CreateDeviceCredentialsRequest) (*CreateDeviceCredentialsResponse, error)
+	// GetCredentials returns the device-credentials for the given DevEUI.
+	GetCredentials(context.Context, *GetDeviceCredentialsRequest) (*GetDeviceCredentialsResponse, error)
+	// UpdateCredentials updates the device-credentials.
+	UpdateCredentials(context.Context, *UpdateDeviceCredentialsRequest) (*UpdateDeviceCredentialsResponse, error)
+	// DeleteCredentials deletes the device-credentials for the given DevEUI.
+	DeleteCredentials(context.Context, *DeleteDeviceCredentialsRequest) (*DeleteDeviceCredentialsResponse, error)
+	// Activate (re)activates the device (only when ABP is set to true).
+	Activate(context.Context, *ActivateDeviceRequest) (*ActivateDeviceResponse, error)
+	// GetActivation returns the current activation details of the device (OTAA and ABP).
+	GetActivation(context.Context, *GetDeviceActivationRequest) (*GetDeviceActivationResponse, error)
 	// GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
 	GetRandomDevAddr(context.Context, *GetRandomDevAddrRequest) (*GetRandomDevAddrResponse, error)
 	// GetFrameLogs returns the uplink / downlink frame log for the given DevEUI.
 	GetFrameLogs(context.Context, *GetFrameLogsRequest) (*GetFrameLogsResponse, error)
 }
 
-func RegisterNodeServer(s *grpc.Server, srv NodeServer) {
-	s.RegisterService(&_Node_serviceDesc, srv)
+func RegisterDeviceServer(s *grpc.Server, srv DeviceServer) {
+	s.RegisterService(&_Device_serviceDesc, srv)
 }
 
-func _Node_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateNodeRequest)
+func _Device_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateDeviceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeServer).Create(ctx, in)
+		return srv.(DeviceServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Node/Create",
+		FullMethod: "/api.Device/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServer).Create(ctx, req.(*CreateNodeRequest))
+		return srv.(DeviceServer).Create(ctx, req.(*CreateDeviceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Node_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetNodeRequest)
+func _Device_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDeviceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeServer).Get(ctx, in)
+		return srv.(DeviceServer).Get(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Node/Get",
+		FullMethod: "/api.Device/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServer).Get(ctx, req.(*GetNodeRequest))
+		return srv.(DeviceServer).Get(ctx, req.(*GetDeviceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Node_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteNodeRequest)
+func _Device_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteDeviceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeServer).Delete(ctx, in)
+		return srv.(DeviceServer).Delete(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Node/Delete",
+		FullMethod: "/api.Device/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServer).Delete(ctx, req.(*DeleteNodeRequest))
+		return srv.(DeviceServer).Delete(ctx, req.(*DeleteDeviceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Node_ListByApplicationID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListNodeByApplicationIDRequest)
+func _Device_ListByApplicationID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDeviceByApplicationIDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeServer).ListByApplicationID(ctx, in)
+		return srv.(DeviceServer).ListByApplicationID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Node/ListByApplicationID",
+		FullMethod: "/api.Device/ListByApplicationID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServer).ListByApplicationID(ctx, req.(*ListNodeByApplicationIDRequest))
+		return srv.(DeviceServer).ListByApplicationID(ctx, req.(*ListDeviceByApplicationIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Node_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateNodeRequest)
+func _Device_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateDeviceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeServer).Update(ctx, in)
+		return srv.(DeviceServer).Update(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Node/Update",
+		FullMethod: "/api.Device/Update",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServer).Update(ctx, req.(*UpdateNodeRequest))
+		return srv.(DeviceServer).Update(ctx, req.(*UpdateDeviceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Node_Activate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ActivateNodeRequest)
+func _Device_CreateCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateDeviceCredentialsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeServer).Activate(ctx, in)
+		return srv.(DeviceServer).CreateCredentials(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Node/Activate",
+		FullMethod: "/api.Device/CreateCredentials",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServer).Activate(ctx, req.(*ActivateNodeRequest))
+		return srv.(DeviceServer).CreateCredentials(ctx, req.(*CreateDeviceCredentialsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Node_GetActivation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetNodeActivationRequest)
+func _Device_GetCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDeviceCredentialsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeServer).GetActivation(ctx, in)
+		return srv.(DeviceServer).GetCredentials(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Node/GetActivation",
+		FullMethod: "/api.Device/GetCredentials",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServer).GetActivation(ctx, req.(*GetNodeActivationRequest))
+		return srv.(DeviceServer).GetCredentials(ctx, req.(*GetDeviceCredentialsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Node_GetRandomDevAddr_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Device_UpdateCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateDeviceCredentialsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServer).UpdateCredentials(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Device/UpdateCredentials",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServer).UpdateCredentials(ctx, req.(*UpdateDeviceCredentialsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Device_DeleteCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteDeviceCredentialsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServer).DeleteCredentials(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Device/DeleteCredentials",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServer).DeleteCredentials(ctx, req.(*DeleteDeviceCredentialsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Device_Activate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActivateDeviceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServer).Activate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Device/Activate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServer).Activate(ctx, req.(*ActivateDeviceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Device_GetActivation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDeviceActivationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServer).GetActivation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Device/GetActivation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServer).GetActivation(ctx, req.(*GetDeviceActivationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Device_GetRandomDevAddr_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetRandomDevAddrRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeServer).GetRandomDevAddr(ctx, in)
+		return srv.(DeviceServer).GetRandomDevAddr(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Node/GetRandomDevAddr",
+		FullMethod: "/api.Device/GetRandomDevAddr",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServer).GetRandomDevAddr(ctx, req.(*GetRandomDevAddrRequest))
+		return srv.(DeviceServer).GetRandomDevAddr(ctx, req.(*GetRandomDevAddrRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Node_GetFrameLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Device_GetFrameLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetFrameLogsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeServer).GetFrameLogs(ctx, in)
+		return srv.(DeviceServer).GetFrameLogs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Node/GetFrameLogs",
+		FullMethod: "/api.Device/GetFrameLogs",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServer).GetFrameLogs(ctx, req.(*GetFrameLogsRequest))
+		return srv.(DeviceServer).GetFrameLogs(ctx, req.(*GetFrameLogsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Node_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "api.Node",
-	HandlerType: (*NodeServer)(nil),
+var _Device_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "api.Device",
+	HandlerType: (*DeviceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Create",
-			Handler:    _Node_Create_Handler,
+			Handler:    _Device_Create_Handler,
 		},
 		{
 			MethodName: "Get",
-			Handler:    _Node_Get_Handler,
+			Handler:    _Device_Get_Handler,
 		},
 		{
 			MethodName: "Delete",
-			Handler:    _Node_Delete_Handler,
+			Handler:    _Device_Delete_Handler,
 		},
 		{
 			MethodName: "ListByApplicationID",
-			Handler:    _Node_ListByApplicationID_Handler,
+			Handler:    _Device_ListByApplicationID_Handler,
 		},
 		{
 			MethodName: "Update",
-			Handler:    _Node_Update_Handler,
+			Handler:    _Device_Update_Handler,
+		},
+		{
+			MethodName: "CreateCredentials",
+			Handler:    _Device_CreateCredentials_Handler,
+		},
+		{
+			MethodName: "GetCredentials",
+			Handler:    _Device_GetCredentials_Handler,
+		},
+		{
+			MethodName: "UpdateCredentials",
+			Handler:    _Device_UpdateCredentials_Handler,
+		},
+		{
+			MethodName: "DeleteCredentials",
+			Handler:    _Device_DeleteCredentials_Handler,
 		},
 		{
 			MethodName: "Activate",
-			Handler:    _Node_Activate_Handler,
+			Handler:    _Device_Activate_Handler,
 		},
 		{
 			MethodName: "GetActivation",
-			Handler:    _Node_GetActivation_Handler,
+			Handler:    _Device_GetActivation_Handler,
 		},
 		{
 			MethodName: "GetRandomDevAddr",
-			Handler:    _Node_GetRandomDevAddr_Handler,
+			Handler:    _Device_GetRandomDevAddr_Handler,
 		},
 		{
 			MethodName: "GetFrameLogs",
-			Handler:    _Node_GetFrameLogs_Handler,
+			Handler:    _Device_GetFrameLogs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1602,88 +1612,89 @@ var _Node_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("node.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 1318 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x58, 0x4f, 0x6f, 0x1b, 0x45,
-	0x14, 0xd7, 0xc6, 0x8e, 0xe3, 0xbc, 0xc4, 0x49, 0x3a, 0x49, 0xd3, 0xad, 0x9b, 0x46, 0xd6, 0x06,
-	0x8a, 0x53, 0x50, 0x22, 0x02, 0xe2, 0xc0, 0xcd, 0xb5, 0x69, 0x14, 0xfa, 0x57, 0x13, 0x4a, 0x41,
-	0x08, 0x89, 0xa9, 0x77, 0xec, 0x2c, 0xec, 0xce, 0x2c, 0x3b, 0x93, 0xc4, 0x56, 0xd5, 0x4b, 0x0f,
-	0x9c, 0x2a, 0x2e, 0x9c, 0x91, 0x10, 0x5f, 0x80, 0x0f, 0x83, 0xf8, 0x06, 0x7c, 0x09, 0x6e, 0x68,
-	0xfe, 0xec, 0x7a, 0x6d, 0xaf, 0x93, 0x1e, 0xe0, 0x96, 0x53, 0xf6, 0xfd, 0xde, 0xf8, 0xbd, 0xf7,
-	0x9b, 0xfd, 0xcd, 0x7b, 0xb3, 0x01, 0x60, 0xdc, 0xa7, 0x7b, 0x71, 0xc2, 0x25, 0x47, 0x25, 0x12,
-	0x07, 0xf5, 0xad, 0x3e, 0xe7, 0xfd, 0x90, 0xee, 0x93, 0x38, 0xd8, 0x27, 0x8c, 0x71, 0x49, 0x64,
-	0xc0, 0x99, 0x30, 0x4b, 0xea, 0xcb, 0x5d, 0x1e, 0x45, 0x9c, 0x19, 0xcb, 0xfb, 0xb9, 0x0c, 0xd7,
-	0xda, 0x09, 0x25, 0x92, 0x3e, 0xe6, 0x3e, 0xc5, 0xf4, 0xc7, 0x53, 0x2a, 0x24, 0xda, 0x84, 0x8a,
-	0x4f, 0xcf, 0x3e, 0x7b, 0x76, 0xe4, 0x3a, 0x0d, 0xa7, 0xb9, 0x88, 0xad, 0xa5, 0x70, 0x12, 0xc7,
-	0x0a, 0x9f, 0x33, 0xb8, 0xb1, 0x2c, 0xfe, 0x80, 0x0e, 0xdd, 0x52, 0x86, 0x3f, 0xa0, 0x43, 0xe4,
-	0xc2, 0x42, 0x32, 0xe8, 0xd0, 0x90, 0x0c, 0xdd, 0x72, 0xc3, 0x69, 0xd6, 0x70, 0x6a, 0xa2, 0x06,
-	0x2c, 0x25, 0x83, 0x0f, 0x3b, 0xf8, 0x49, 0xaf, 0x27, 0xa8, 0x74, 0xe7, 0xb5, 0x37, 0x0f, 0xa1,
-	0x5d, 0xa8, 0x26, 0x83, 0xe7, 0x01, 0xf3, 0xf9, 0xb9, 0xbb, 0xd0, 0x70, 0x9a, 0x2b, 0x07, 0xb5,
-	0x3d, 0x12, 0x07, 0x7b, 0xf8, 0x2b, 0x03, 0xe2, 0xcc, 0x8d, 0x36, 0x60, 0x3e, 0x19, 0x1c, 0x74,
-	0xb0, 0x5b, 0xd5, 0x61, 0x8c, 0x81, 0x10, 0x94, 0x19, 0x89, 0xa8, 0xbb, 0xa8, 0x4b, 0xd2, 0xcf,
-	0x68, 0x0b, 0x16, 0x13, 0x1a, 0x92, 0xc1, 0xfd, 0x36, 0x93, 0x2e, 0x34, 0x9c, 0x66, 0x15, 0x8f,
-	0x00, 0x55, 0x14, 0xf1, 0x93, 0x23, 0x26, 0x69, 0x72, 0x46, 0x42, 0x77, 0xc9, 0x14, 0x95, 0x83,
-	0xd0, 0x1e, 0xa0, 0x80, 0x09, 0x49, 0xc2, 0x50, 0xef, 0xe9, 0x23, 0x92, 0xf4, 0x03, 0xe6, 0x2e,
-	0x37, 0x9c, 0xa6, 0x83, 0x0b, 0x3c, 0xe8, 0x1d, 0xa8, 0x91, 0x38, 0x0e, 0x83, 0xae, 0x06, 0x8f,
-	0x3a, 0x6e, 0xad, 0xe1, 0x34, 0x4b, 0x78, 0x1c, 0x54, 0x79, 0x7d, 0x2a, 0xba, 0x49, 0x10, 0x2b,
-	0xc0, 0x5d, 0xd1, 0x05, 0xe7, 0x21, 0xc5, 0x30, 0x10, 0xad, 0x7b, 0x4f, 0xdd, 0x55, 0x5d, 0xb3,
-	0x31, 0x50, 0x1d, 0xaa, 0x81, 0x68, 0x87, 0x44, 0x88, 0xb6, 0xbb, 0xa6, 0x1d, 0x99, 0x8d, 0x3e,
-	0x81, 0xcd, 0x53, 0x41, 0x5b, 0xa3, 0x3c, 0xc7, 0x54, 0xca, 0x80, 0xf5, 0x85, 0x7b, 0x4d, 0xaf,
-	0x9c, 0xe1, 0xf5, 0x36, 0x00, 0xe5, 0xf5, 0x20, 0x62, 0xce, 0x04, 0xf5, 0x9a, 0xb0, 0x72, 0x48,
-	0xe5, 0x5b, 0x48, 0xc4, 0x7b, 0x53, 0x86, 0xd5, 0x6c, 0xa9, 0xf9, 0xf5, 0x95, 0x9c, 0xfe, 0x2b,
-	0x39, 0x4d, 0x08, 0xa5, 0x76, 0x81, 0x50, 0x56, 0xf2, 0x42, 0x99, 0x92, 0xe1, 0x6a, 0x91, 0x0c,
-	0xff, 0x0f, 0x39, 0xbd, 0x0f, 0xd7, 0x3a, 0x34, 0xa4, 0x6f, 0xd5, 0x5e, 0x94, 0xf6, 0xf2, 0x8b,
-	0xad, 0xf6, 0xde, 0x38, 0xb0, 0xfd, 0x30, 0x10, 0x5a, 0x52, 0xf7, 0x86, 0xad, 0x7c, 0xc9, 0x69,
-	0xc0, 0x29, 0x7e, 0xa5, 0x22, 0x7e, 0x1b, 0x30, 0x1f, 0x06, 0x51, 0x20, 0x75, 0xd6, 0x12, 0x36,
-	0x86, 0x2a, 0x86, 0x1b, 0xd5, 0xcc, 0x69, 0xd8, 0x5a, 0x0a, 0x17, 0x94, 0x24, 0xdd, 0x13, 0xad,
-	0xb5, 0x45, 0x6c, 0x2d, 0xef, 0x3b, 0x58, 0x4b, 0xab, 0xc9, 0x04, 0xbe, 0x0d, 0x20, 0xb9, 0x24,
-	0x61, 0x9b, 0x9f, 0xb2, 0x34, 0x7c, 0x0e, 0x41, 0x1f, 0x40, 0x25, 0xa1, 0xe2, 0x34, 0x54, 0x39,
-	0x4a, 0xcd, 0xa5, 0x83, 0x0d, 0x2d, 0xbd, 0x89, 0x63, 0x82, 0xed, 0x1a, 0xdd, 0x93, 0x9f, 0xc5,
-	0xfe, 0x55, 0x4f, 0xbe, 0xea, 0xc9, 0x59, 0x4f, 0xce, 0xeb, 0xc1, 0x9e, 0x8b, 0x3f, 0x1c, 0x58,
-	0x6f, 0x75, 0x65, 0x70, 0xf6, 0x96, 0x42, 0x71, 0x61, 0xc1, 0xa7, 0x67, 0x2d, 0xdf, 0x4f, 0xac,
-	0x52, 0x52, 0x53, 0x79, 0x48, 0x1c, 0x1f, 0x8f, 0xb4, 0x92, 0x9a, 0xca, 0xc3, 0xce, 0x7f, 0xd0,
-	0x1e, 0x73, 0x0a, 0x52, 0x53, 0x65, 0xe9, 0xb5, 0x99, 0x7c, 0x16, 0x5b, 0x9d, 0x58, 0x4b, 0xf1,
-	0x57, 0x4f, 0x1d, 0x7e, 0xce, 0xdc, 0x8a, 0xf6, 0x64, 0xb6, 0xb7, 0x09, 0x1b, 0xe3, 0x05, 0x5b,
-	0x26, 0x07, 0xe0, 0xda, 0xb3, 0x60, 0xdd, 0x01, 0x67, 0x97, 0xf5, 0x8a, 0x5f, 0x1d, 0xb8, 0x59,
-	0xf0, 0x23, 0x7b, 0x20, 0x73, 0x5c, 0x9d, 0x99, 0x5c, 0xe7, 0x66, 0x72, 0x2d, 0xcd, 0xe2, 0x5a,
-	0x9e, 0xc9, 0x75, 0x7e, 0x82, 0xeb, 0x4d, 0xb8, 0x71, 0x48, 0x25, 0x26, 0xcc, 0xe7, 0x51, 0xc7,
-	0xe4, 0xb6, 0x94, 0xbc, 0x8f, 0x35, 0xdd, 0x09, 0xd7, 0x65, 0x85, 0x7b, 0xdf, 0xc0, 0xfa, 0x21,
-	0x95, 0xf7, 0x13, 0x12, 0xd1, 0x87, 0xbc, 0x2f, 0x2e, 0x7b, 0xdb, 0x59, 0xb3, 0x9b, 0x2b, 0x6e,
-	0x76, 0xa5, 0x7c, 0xb3, 0xf3, 0xbe, 0x85, 0x8d, 0xf1, 0xe0, 0x33, 0x1b, 0xdb, 0xfc, 0x58, 0x63,
-	0x7b, 0x77, 0xa2, 0xb1, 0x99, 0x76, 0x90, 0xc6, 0xc9, 0x3a, 0xda, 0x6f, 0x0e, 0x54, 0x53, 0x50,
-	0x9d, 0xf7, 0xae, 0xbe, 0x61, 0xf8, 0x2d, 0x69, 0x8b, 0x1e, 0x01, 0x68, 0x17, 0x16, 0x93, 0xc1,
-	0x11, 0xeb, 0xf1, 0x63, 0x9a, 0x06, 0x5d, 0xb2, 0x3d, 0x46, 0xa1, 0x78, 0xe4, 0x45, 0x3b, 0x50,
-	0x91, 0xda, 0xd0, 0x64, 0xd2, 0x75, 0x5f, 0x98, 0x75, 0xd6, 0x85, 0xee, 0xc0, 0x4a, 0x7c, 0x32,
-	0x7c, 0x4a, 0x86, 0x21, 0x27, 0xfe, 0xe7, 0xc7, 0x4f, 0x1e, 0x5b, 0x21, 0x4f, 0xa0, 0xde, 0x4f,
-	0x0e, 0x54, 0x3b, 0x44, 0x12, 0x4c, 0xa4, 0xa6, 0x1d, 0x71, 0xff, 0xd4, 0xb4, 0x0d, 0x5b, 0x63,
-	0x0e, 0x51, 0x14, 0x5e, 0x10, 0xe6, 0x3f, 0x0f, 0x7c, 0x79, 0xa2, 0x37, 0xb8, 0x86, 0x47, 0x00,
-	0xf2, 0x60, 0x59, 0xc4, 0x09, 0x25, 0xfe, 0x7d, 0xd2, 0x95, 0x3c, 0xd1, 0xd5, 0xd5, 0xf0, 0x18,
-	0xa6, 0xde, 0xf3, 0x8b, 0x40, 0x26, 0x44, 0xd2, 0xb4, 0x0b, 0x5b, 0xd3, 0xfb, 0xc7, 0x81, 0x8a,
-	0xe1, 0xaa, 0x16, 0x75, 0x4f, 0x08, 0x63, 0x34, 0xb4, 0x5b, 0x9f, 0x9a, 0x4a, 0x79, 0x5d, 0x75,
-	0x82, 0xd4, 0xef, 0x8d, 0x8c, 0x33, 0x5b, 0x15, 0xd7, 0x4b, 0x94, 0x3a, 0x58, 0x77, 0x68, 0x5f,
-	0xf3, 0x08, 0x50, 0x31, 0x43, 0x8e, 0xc9, 0xf1, 0x63, 0xac, 0x13, 0x3b, 0x38, 0x35, 0x55, 0x6f,
-	0x4e, 0x84, 0x08, 0xb4, 0x92, 0xe7, 0xb1, 0x7e, 0x56, 0x98, 0x0c, 0x22, 0xaa, 0x4f, 0xf2, 0x22,
-	0xd6, 0xcf, 0x2a, 0xbe, 0xfa, 0x2b, 0x24, 0x89, 0x62, 0x3d, 0x05, 0x6a, 0x78, 0x04, 0xa8, 0x11,
-	0xe1, 0xdb, 0x6d, 0xd4, 0xad, 0x3f, 0xd5, 0x44, 0xba, 0xb7, 0x38, 0x73, 0xa3, 0x35, 0x28, 0x45,
-	0xa4, 0x6b, 0x67, 0x81, 0x7a, 0xf4, 0xfe, 0x72, 0xa0, 0x62, 0xde, 0xdf, 0x18, 0x43, 0xe7, 0x22,
-	0x86, 0x73, 0x93, 0x0c, 0x1b, 0xb0, 0x14, 0x44, 0x11, 0xf5, 0x03, 0x22, 0x69, 0x68, 0x76, 0xa0,
-	0x8a, 0xf3, 0x50, 0x9a, 0xb8, 0x9c, 0x25, 0x56, 0xa7, 0x25, 0xe6, 0xe7, 0x34, 0xb1, 0xe4, 0x8d,
-	0x31, 0xce, 0xb4, 0x72, 0x11, 0xd3, 0x85, 0x0b, 0x99, 0x1e, 0xfc, 0xbe, 0x00, 0x65, 0xd5, 0xa9,
-	0xd0, 0x53, 0xa8, 0x98, 0xdb, 0x35, 0xda, 0xd4, 0x6b, 0xa7, 0x3e, 0xbd, 0xea, 0x37, 0xa6, 0x70,
-	0xdb, 0x24, 0xaf, 0xbf, 0xfe, 0xf3, 0xef, 0x5f, 0xe6, 0x56, 0x3d, 0xd0, 0xdf, 0x75, 0xea, 0x9b,
-	0x4f, 0x7c, 0xea, 0xdc, 0x45, 0x8f, 0xa0, 0x74, 0x48, 0x25, 0x5a, 0x1f, 0xbf, 0x51, 0x98, 0x58,
-	0x85, 0xd7, 0x0c, 0xef, 0x96, 0x0e, 0x74, 0x1d, 0xad, 0x8f, 0x02, 0xed, 0xbf, 0x34, 0x5d, 0xe3,
-	0x15, 0xfa, 0x12, 0x2a, 0xe6, 0x0a, 0x66, 0x0b, 0x9c, 0xba, 0xbc, 0xd9, 0x02, 0x0b, 0xee, 0x69,
-	0x36, 0xee, 0xdd, 0xc2, 0xb8, 0xaf, 0x1d, 0x58, 0x57, 0xd7, 0xa6, 0x89, 0x0b, 0x1c, 0xda, 0xd1,
-	0xd1, 0x2e, 0xbe, 0xde, 0xd5, 0xaf, 0x8f, 0x2d, 0xca, 0x12, 0xee, 0xeb, 0x84, 0xbb, 0xe8, 0x3d,
-	0xf3, 0xa5, 0x3b, 0xfa, 0xa5, 0xd8, 0x7f, 0x39, 0x36, 0xcc, 0x5f, 0x99, 0x6a, 0xd0, 0xd7, 0x50,
-	0x31, 0x73, 0xd4, 0x92, 0x9b, 0xba, 0x64, 0x59, 0x72, 0x05, 0xc3, 0x76, 0x5b, 0xe7, 0x72, 0xeb,
-	0x45, 0xe4, 0xd4, 0x6b, 0xf8, 0x1e, 0xaa, 0xe9, 0x68, 0x43, 0xae, 0x0e, 0x52, 0x30, 0x9a, 0xeb,
-	0x37, 0x0b, 0x3c, 0x36, 0xc1, 0xae, 0x4e, 0xb0, 0xe3, 0x6d, 0x17, 0x24, 0xd8, 0x27, 0xd9, 0x84,
-	0x53, 0xb9, 0xce, 0xa0, 0x76, 0x48, 0xe5, 0x68, 0xea, 0xa1, 0xdb, 0xf9, 0xf7, 0x3c, 0x35, 0x42,
-	0xeb, 0xdb, 0xb3, 0xdc, 0x36, 0xf5, 0x1d, 0x9d, 0xba, 0x81, 0x2e, 0x49, 0x8d, 0x24, 0xac, 0x4d,
-	0xce, 0x2d, 0xb4, 0x95, 0xc6, 0x2e, 0x9a, 0x74, 0xf5, 0xdb, 0x33, 0xbc, 0x36, 0xf1, 0x8e, 0x4e,
-	0x7c, 0xdb, 0xbb, 0x95, 0x4b, 0xdc, 0x9f, 0xcc, 0xd0, 0x87, 0xe5, 0xfc, 0x68, 0xb2, 0xbb, 0x5b,
-	0x30, 0x0a, 0xed, 0xee, 0x16, 0xcd, 0x31, 0xcf, 0xd3, 0x99, 0xb6, 0x50, 0xbd, 0x88, 0x62, 0x4f,
-	0x2d, 0x17, 0x2f, 0x2a, 0xfa, 0x3f, 0x22, 0x1f, 0xfd, 0x1b, 0x00, 0x00, 0xff, 0xff, 0xc1, 0x65,
-	0x05, 0x6c, 0x50, 0x11, 0x00, 0x00,
+	// 1339 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x58, 0xdd, 0x6e, 0xdc, 0xc4,
+	0x17, 0x97, 0xb3, 0xc9, 0x76, 0xf7, 0xa4, 0xdb, 0x7f, 0x33, 0x69, 0x13, 0xd7, 0xcd, 0xc7, 0x66,
+	0x92, 0x54, 0x9b, 0xe4, 0x4f, 0x22, 0x4a, 0x91, 0x10, 0x77, 0x21, 0x4b, 0x57, 0x81, 0xaa, 0x54,
+	0x0e, 0x01, 0x24, 0x40, 0x68, 0x62, 0xcf, 0x26, 0x16, 0x5e, 0x8f, 0xb1, 0x27, 0x09, 0x51, 0x69,
+	0x85, 0xb8, 0x40, 0x20, 0x21, 0x6e, 0x78, 0x00, 0x78, 0x85, 0x8a, 0x47, 0x41, 0xbc, 0x01, 0x2f,
+	0xc1, 0x15, 0x68, 0x3e, 0xec, 0xb5, 0x77, 0xed, 0xdd, 0xed, 0x15, 0x70, 0x95, 0x3d, 0x67, 0xce,
+	0x9c, 0xf3, 0xfb, 0x9d, 0x73, 0x66, 0xe6, 0x38, 0x00, 0x01, 0x73, 0xe9, 0x6e, 0x18, 0x31, 0xce,
+	0x50, 0x85, 0x84, 0x9e, 0xb5, 0x74, 0xca, 0xd8, 0xa9, 0x4f, 0xf7, 0x48, 0xe8, 0xed, 0x91, 0x20,
+	0x60, 0x9c, 0x70, 0x8f, 0x05, 0xb1, 0x32, 0xc1, 0x3b, 0x30, 0xd7, 0xa6, 0x17, 0x9e, 0x43, 0x0f,
+	0x22, 0xea, 0xd2, 0x80, 0x7b, 0xc4, 0x8f, 0xd1, 0x02, 0x54, 0x49, 0x18, 0xbe, 0x4b, 0xaf, 0x4c,
+	0xa3, 0x69, 0xb4, 0xea, 0xb6, 0x96, 0xf0, 0xaf, 0x06, 0xcc, 0x1f, 0x44, 0x94, 0x70, 0xaa, 0xf6,
+	0xd8, 0xf4, 0x8b, 0x73, 0x1a, 0x73, 0x61, 0xef, 0xd2, 0x8b, 0xb7, 0x8f, 0x0f, 0x13, 0x7b, 0x25,
+	0x21, 0x04, 0xd3, 0x01, 0xe9, 0x51, 0xb3, 0x2e, 0xb5, 0xf2, 0x37, 0xda, 0x80, 0x06, 0x09, 0x43,
+	0xdf, 0x73, 0x24, 0x8c, 0xc3, 0xb6, 0xd9, 0x68, 0x1a, 0xad, 0x8a, 0x9d, 0x57, 0xa2, 0x26, 0xcc,
+	0xba, 0x34, 0x76, 0x22, 0x2f, 0x14, 0x0a, 0xf3, 0x86, 0x74, 0x90, 0x55, 0xa1, 0x16, 0xfc, 0xcf,
+	0x95, 0x20, 0x9e, 0x44, 0xac, 0xeb, 0xf9, 0xf4, 0xb0, 0x6d, 0x22, 0x69, 0x35, 0xa8, 0xc6, 0x0b,
+	0x70, 0x2b, 0x0f, 0x3a, 0x0e, 0x59, 0x10, 0x53, 0xbc, 0x0d, 0x37, 0x3b, 0x94, 0x4f, 0xc4, 0x04,
+	0xbf, 0x30, 0x60, 0x2e, 0x63, 0xac, 0x3c, 0xfc, 0xcb, 0x79, 0xbf, 0x02, 0xf3, 0x6d, 0xea, 0xd3,
+	0x09, 0x8b, 0x25, 0xd2, 0x94, 0x37, 0xd7, 0x69, 0xfa, 0xd1, 0x80, 0xe6, 0x23, 0x2f, 0xd6, 0xdc,
+	0xdf, 0xba, 0xda, 0xcf, 0x02, 0x4e, 0x9c, 0x0e, 0xb1, 0xab, 0x14, 0xb1, 0xbb, 0x05, 0x33, 0xbe,
+	0xd7, 0xf3, 0xb8, 0x8c, 0x5c, 0xb1, 0x95, 0x20, 0x00, 0xb1, 0x6e, 0x37, 0xa6, 0xdc, 0x9c, 0x92,
+	0x6a, 0x2d, 0x09, 0x7d, 0x4c, 0x49, 0xe4, 0x9c, 0x99, 0xd3, 0x0a, 0xa8, 0x92, 0xb0, 0x0b, 0xa8,
+	0x8f, 0x27, 0xad, 0xc5, 0x0a, 0x00, 0x67, 0x9c, 0xf8, 0x07, 0xec, 0x3c, 0x48, 0x02, 0x64, 0x34,
+	0x68, 0x17, 0xaa, 0x11, 0x8d, 0xcf, 0x7d, 0x11, 0xa5, 0xd2, 0x9a, 0xbd, 0xbf, 0xb0, 0x4b, 0x42,
+	0x6f, 0x77, 0xa8, 0xa6, 0xb6, 0xb6, 0x92, 0xbd, 0x7e, 0x1c, 0xba, 0xff, 0xbd, 0x5e, 0xcf, 0x83,
+	0xd6, 0x45, 0x7c, 0x0e, 0x2b, 0xd9, 0x33, 0x90, 0x39, 0xec, 0xe3, 0x78, 0xb5, 0x61, 0xce, 0x1d,
+	0xdc, 0x23, 0x0b, 0x95, 0xa4, 0x70, 0xd8, 0xe3, 0xf0, 0x06, 0xbc, 0x06, 0xab, 0xa5, 0xf1, 0x35,
+	0xc4, 0xd7, 0xe1, 0x6e, 0x5a, 0x8d, 0xc9, 0xf1, 0x61, 0x17, 0x96, 0x8a, 0xb7, 0xe9, 0xbe, 0x28,
+	0xc4, 0x6f, 0xbc, 0x2c, 0xfe, 0xe7, 0xb0, 0x92, 0xcd, 0xeb, 0x3f, 0x91, 0xbf, 0xd2, 0xf8, 0x3a,
+	0x7f, 0x6f, 0xc0, 0x4a, 0xf6, 0xfc, 0xbe, 0x44, 0x0a, 0xd7, 0x60, 0xb5, 0x74, 0xa7, 0x76, 0xfe,
+	0xc2, 0x80, 0xdb, 0xfb, 0x0e, 0xf7, 0x2e, 0x26, 0x3e, 0x0f, 0x26, 0x5c, 0x73, 0xe9, 0xc5, 0xbe,
+	0xeb, 0x46, 0x92, 0x6d, 0xdd, 0x4e, 0x44, 0xb1, 0x42, 0xc2, 0xf0, 0x48, 0x3c, 0x2f, 0x15, 0xb5,
+	0xa2, 0x45, 0xb1, 0x12, 0x5c, 0x7e, 0x2e, 0x57, 0xd4, 0x91, 0x4f, 0x44, 0x11, 0xa5, 0x7b, 0x10,
+	0xf0, 0xe3, 0xd0, 0x9c, 0x69, 0x1a, 0xad, 0x86, 0xad, 0x25, 0x64, 0x41, 0x4d, 0xfc, 0x6a, 0xb3,
+	0xcb, 0xc0, 0xac, 0xca, 0x95, 0x54, 0xc6, 0x26, 0x2c, 0x0c, 0x42, 0xd6, 0x6c, 0x1e, 0x80, 0x95,
+	0xf6, 0x8c, 0x36, 0xf1, 0x58, 0x30, 0x2e, 0x4d, 0x3f, 0x1b, 0x99, 0x0e, 0xcd, 0x6e, 0xd3, 0x9d,
+	0x96, 0x61, 0x6c, 0x94, 0x32, 0x9e, 0x2a, 0x65, 0x5c, 0x29, 0x63, 0x3c, 0x5d, 0xca, 0x78, 0x66,
+	0x80, 0xf1, 0x1d, 0x58, 0xec, 0x50, 0x6e, 0x93, 0xc0, 0x65, 0xbd, 0xb6, 0x8a, 0xad, 0x49, 0xe1,
+	0x07, 0x60, 0x0e, 0x2f, 0x8d, 0x03, 0x8e, 0x3f, 0x86, 0xf9, 0x0e, 0xe5, 0x0f, 0x23, 0xd2, 0xa3,
+	0x8f, 0xd8, 0xe9, 0xd8, 0x5e, 0x4f, 0xef, 0xf7, 0xa9, 0xe2, 0xfb, 0xbd, 0x92, 0xbd, 0xdf, 0xf1,
+	0xa7, 0x70, 0x2b, 0xef, 0xbc, 0xf4, 0x26, 0x9f, 0xc9, 0xdd, 0xe4, 0x9b, 0x03, 0x37, 0x79, 0x43,
+	0x1e, 0xa3, 0xc4, 0x4f, 0x7a, 0x81, 0xff, 0x62, 0x40, 0x2d, 0x51, 0xa2, 0x25, 0xa8, 0x3b, 0xf2,
+	0xfe, 0x71, 0xf7, 0xb9, 0x06, 0xdd, 0x57, 0xa0, 0x2d, 0xa8, 0x47, 0x5f, 0x1e, 0x06, 0x5d, 0x76,
+	0x44, 0x13, 0xa7, 0xb3, 0xd2, 0xa9, 0xfd, 0x91, 0xd0, 0xda, 0xfd, 0x55, 0xb4, 0x0e, 0x55, 0x2e,
+	0x05, 0x49, 0x26, 0xb1, 0x7b, 0x5f, 0xd9, 0xe9, 0x25, 0x74, 0x0f, 0x6e, 0x84, 0x67, 0x57, 0x4f,
+	0xc8, 0x95, 0xcf, 0x88, 0xfb, 0xce, 0xd1, 0x7b, 0x8f, 0x75, 0x3b, 0x0f, 0x68, 0xf1, 0xb7, 0x06,
+	0xd4, 0xda, 0x84, 0x13, 0x9b, 0x70, 0x49, 0xbb, 0xc7, 0xdc, 0x73, 0x5f, 0x36, 0x95, 0xc6, 0x98,
+	0xd1, 0x08, 0x0a, 0x27, 0x24, 0x70, 0x3f, 0xf4, 0x5c, 0x7e, 0x26, 0x13, 0xdc, 0xb0, 0xfb, 0x0a,
+	0x84, 0xe1, 0x7a, 0x1c, 0x46, 0x94, 0xb8, 0x0f, 0x89, 0xc3, 0x59, 0x24, 0xd1, 0x35, 0xec, 0x9c,
+	0x4e, 0xd4, 0xf9, 0xc4, 0xe3, 0x11, 0xe1, 0x54, 0xf7, 0x54, 0x22, 0xe2, 0x3f, 0x0d, 0xa8, 0x2a,
+	0xae, 0xc2, 0xc8, 0x39, 0x23, 0x41, 0x40, 0x7d, 0x9d, 0xfa, 0x44, 0x14, 0x9d, 0xe7, 0x30, 0x97,
+	0x0a, 0xb0, 0xba, 0x8d, 0x53, 0x59, 0x80, 0xeb, 0x46, 0xa2, 0x3b, 0x02, 0xe7, 0x4a, 0x97, 0xb9,
+	0xaf, 0x10, 0x3e, 0x7d, 0x66, 0x93, 0xa3, 0xc7, 0xb6, 0x0c, 0x6c, 0xd8, 0x89, 0x28, 0x5e, 0xcd,
+	0x28, 0x8e, 0x3d, 0xd9, 0xc9, 0x33, 0xb6, 0xfc, 0x2d, 0x74, 0xdc, 0xeb, 0x51, 0x79, 0x9e, 0xeb,
+	0xb6, 0xfc, 0x2d, 0xfc, 0x8b, 0xbf, 0x31, 0x27, 0xbd, 0xd0, 0xbc, 0xa6, 0xc8, 0xa7, 0x0a, 0xb4,
+	0x05, 0x35, 0x57, 0xa7, 0xd1, 0xac, 0xc9, 0xb2, 0xa8, 0x9e, 0x48, 0x72, 0x6b, 0xa7, 0xcb, 0xe8,
+	0x26, 0x54, 0x7a, 0xc4, 0xd1, 0xaf, 0xb4, 0xf8, 0x89, 0x7f, 0x37, 0xa0, 0xaa, 0xea, 0x97, 0x63,
+	0x68, 0x8c, 0x62, 0x38, 0x35, 0xc8, 0xb0, 0x09, 0xb3, 0x5e, 0xaf, 0x47, 0x5d, 0x8f, 0x70, 0xea,
+	0xab, 0x0c, 0xd4, 0xec, 0xac, 0x2a, 0x09, 0x3c, 0x9d, 0x06, 0x16, 0xa7, 0x25, 0x64, 0x97, 0x34,
+	0xd2, 0xe4, 0x95, 0x90, 0x67, 0x5a, 0x1d, 0xc5, 0xf4, 0xda, 0x48, 0xa6, 0xf7, 0xff, 0x9a, 0x85,
+	0xaa, 0xba, 0xab, 0xd0, 0x07, 0x50, 0x55, 0xaf, 0x2f, 0x32, 0xa5, 0x75, 0xc1, 0x0c, 0x6f, 0xdd,
+	0x29, 0x58, 0xd1, 0xd7, 0xe5, 0xe2, 0x37, 0xbf, 0xfd, 0xf1, 0xd3, 0xd4, 0x1c, 0xbe, 0x2e, 0xbf,
+	0x21, 0xd4, 0xe3, 0x14, 0xbf, 0x69, 0x6c, 0xa3, 0x23, 0xa8, 0x74, 0x28, 0x47, 0xb7, 0x07, 0x47,
+	0x29, 0xe5, 0xb1, 0x64, 0xc2, 0xc2, 0xcb, 0xd2, 0xdd, 0x22, 0xba, 0x9d, 0x75, 0xb7, 0xf7, 0x54,
+	0xdd, 0x21, 0xcf, 0xd0, 0x27, 0x02, 0xb6, 0x78, 0x8d, 0x34, 0xd8, 0x82, 0x19, 0x56, 0x83, 0x2d,
+	0x1c, 0x57, 0xb5, 0xf7, 0xed, 0x12, 0xef, 0xdf, 0x19, 0x30, 0x2f, 0xa6, 0xc7, 0x81, 0x39, 0x16,
+	0x6d, 0x4a, 0x8f, 0xe3, 0xe6, 0x5c, 0x6b, 0x71, 0xc0, 0x2c, 0x0d, 0xfb, 0xaa, 0x0c, 0xbb, 0x83,
+	0xb6, 0xd4, 0x77, 0x56, 0x7f, 0x6f, 0xbc, 0xf7, 0x34, 0x37, 0xee, 0x3d, 0x4b, 0x30, 0xa1, 0xcf,
+	0xa0, 0xaa, 0xde, 0x74, 0x4d, 0xb4, 0x60, 0xda, 0xd4, 0x44, 0x0b, 0x47, 0xba, 0xa6, 0x8c, 0x68,
+	0x59, 0xc5, 0x44, 0x45, 0x79, 0x7e, 0x30, 0x60, 0x4e, 0x15, 0x34, 0xfb, 0x71, 0xb7, 0x3e, 0x54,
+	0xe8, 0xe1, 0x51, 0xc1, 0xda, 0x18, 0x6d, 0xa4, 0x21, 0xfc, 0x5f, 0x42, 0xb8, 0x87, 0xd7, 0x0a,
+	0x21, 0xec, 0x39, 0xfd, 0x2d, 0x02, 0xce, 0xd7, 0x06, 0xdc, 0xe8, 0x50, 0x9e, 0xc5, 0xd2, 0xcc,
+	0xb7, 0x48, 0x01, 0x90, 0xb5, 0x11, 0x16, 0x1a, 0xc5, 0x96, 0x44, 0xb1, 0x8e, 0xc6, 0xa3, 0x90,
+	0x19, 0x51, 0xc9, 0x1c, 0xce, 0xc8, 0xe8, 0xf9, 0x4e, 0x67, 0x64, 0xdc, 0x10, 0xa6, 0x33, 0x62,
+	0x4d, 0x96, 0x91, 0xef, 0x0d, 0xf1, 0xf5, 0x2d, 0x9a, 0x78, 0x18, 0xce, 0xe8, 0x59, 0x4e, 0xc3,
+	0x19, 0x37, 0xb6, 0xe9, 0xd4, 0x6c, 0x4f, 0x90, 0x9a, 0x10, 0x6a, 0xc9, 0xb4, 0x84, 0x2c, 0xe9,
+	0xbc, 0x70, 0xde, 0xb3, 0xee, 0x16, 0xae, 0xe9, 0x78, 0x3b, 0x32, 0xde, 0x26, 0x6e, 0x16, 0xc7,
+	0x23, 0xe9, 0xd0, 0x24, 0xd8, 0x7f, 0x05, 0x8d, 0x0e, 0xe5, 0xfd, 0x41, 0x0a, 0xad, 0xe6, 0x6b,
+	0x3d, 0x34, 0x99, 0x59, 0xcd, 0x72, 0x03, 0x0d, 0xa0, 0x25, 0x01, 0x60, 0x34, 0x16, 0x00, 0xba,
+	0x90, 0x5f, 0xff, 0xb9, 0x81, 0x08, 0x2d, 0x25, 0xfe, 0x8b, 0x46, 0x28, 0x6b, 0xb9, 0x64, 0x55,
+	0x87, 0xde, 0x94, 0xa1, 0x57, 0xf1, 0x72, 0x2e, 0xf4, 0xe9, 0x60, 0x0c, 0x0f, 0xae, 0x67, 0xa7,
+	0x1e, 0x7d, 0xf6, 0x0b, 0xa6, 0x2c, 0x7d, 0xf6, 0x8b, 0x46, 0x24, 0xbc, 0x21, 0x63, 0xad, 0xa0,
+	0xa5, 0x62, 0x9a, 0x5d, 0xb1, 0x21, 0x3e, 0xa9, 0xca, 0x7f, 0xf1, 0xbc, 0xf6, 0x77, 0x00, 0x00,
+	0x00, 0xff, 0xff, 0xf0, 0xee, 0x06, 0x9a, 0x13, 0x12, 0x00, 0x00,
 }

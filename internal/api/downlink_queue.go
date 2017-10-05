@@ -25,6 +25,8 @@ func NewDownlinkQueueAPI(validator auth.Validator) *DownlinkQueueAPI {
 	}
 }
 
+// Enqueue adds the given item to the queue. When the node operates in
+// Class-C mode, the data will be pushed directly to the network-server.
 func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQueueItemRequest) (*pb.EnqueueDownlinkQueueItemResponse, error) {
 	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
@@ -36,26 +38,27 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(common.DB, devEUI)
+	device, err := storage.GetDevice(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	qi := storage.DownlinkQueueItem{
-		DevEUI:    node.DevEUI,
+	qi := storage.DeviceQueueItem{
+		DevEUI:    device.DevEUI,
 		Reference: req.Reference,
 		Confirmed: req.Confirmed,
 		FPort:     uint8(req.FPort),
 		Data:      req.Data,
 	}
 
-	if err := downlink.HandleDownlinkQueueItem(node, &qi); err != nil {
+	if err := downlink.HandleDownlinkQueueItem(device, &qi); err != nil {
 		return nil, errToRPCError(err)
 	}
 
 	return &pb.EnqueueDownlinkQueueItemResponse{}, nil
 }
 
+// Delete deletes an item from the queue.
 func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeueueItemRequest) (*pb.DeleteDownlinkQueueItemResponse, error) {
 	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
@@ -67,26 +70,27 @@ func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeu
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(common.DB, devEUI)
+	device, err := storage.GetDevice(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	qi, err := storage.GetDownlinkQueueItem(common.DB, req.Id)
+	qi, err := storage.GetDeviceQueueItem(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	if qi.DevEUI != node.DevEUI {
+	if qi.DevEUI != device.DevEUI {
 		return nil, grpc.Errorf(codes.NotFound, "queue-item does not exist for the given node")
 	}
 
-	if err := storage.DeleteDownlinkQueueItem(common.DB, req.Id); err != nil {
+	if err := storage.DeleteDeviceQueueItem(common.DB, req.Id); err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
 	return &pb.DeleteDownlinkQueueItemResponse{}, nil
 }
 
+// List lists the items in the queue for the given node.
 func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueItemsRequest) (*pb.ListDownlinkQueueItemsResponse, error) {
 	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
@@ -98,12 +102,12 @@ func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueIt
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(common.DB, devEUI)
+	device, err := storage.GetDevice(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	items, err := storage.GetDownlinkQueueItems(common.DB, node.DevEUI)
+	items, err := storage.GetDeviceQueueItems(common.DB, device.DevEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -113,7 +117,7 @@ func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueIt
 		qi := pb.DownlinkQueueItem{
 			Id:        item.ID,
 			Reference: item.Reference,
-			DevEUI:    node.DevEUI.String(),
+			DevEUI:    device.DevEUI.String(),
 			Confirmed: item.Confirmed,
 			Pending:   item.Pending,
 			FPort:     uint32(item.FPort),

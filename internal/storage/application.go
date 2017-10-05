@@ -1,35 +1,25 @@
 package storage
 
 import (
-	"database/sql"
 	"fmt"
 	"regexp"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 var applicationNameRegexp = regexp.MustCompile(`^[\w-]+$`)
 
 // Application represents an application.
 type Application struct {
-	ID             int64  `db:"id"`
-	Name           string `db:"name"`
-	Description    string `db:"description"`
-	OrganizationID int64  `db:"organization_id"`
-
-	IsABP              bool     `db:"is_abp"`
-	IsClassC           bool     `db:"is_class_c"`
-	RelaxFCnt          bool     `db:"relax_fcnt"`
-	RXWindow           RXWindow `db:"rx_window"`
-	RXDelay            uint8    `db:"rx_delay"`
-	RX1DROffset        uint8    `db:"rx1_dr_offset"`
-	RX2DR              uint8    `db:"rx2_dr"`
-	ADRInterval        uint32   `db:"adr_interval"`
-	InstallationMargin float64  `db:"installation_margin"`
+	ID               int64  `db:"id"`
+	Name             string `db:"name"`
+	Description      string `db:"description"`
+	OrganizationID   int64  `db:"organization_id"`
+	ServiceProfileID string `db:"service_profile_id"`
 }
 
 // UserAccess represents the users that have access to an application
@@ -47,10 +37,6 @@ func (a Application) Validate() error {
 		return ErrApplicationInvalidName
 	}
 
-	if a.RXDelay > 15 {
-		return errors.New("max value of RXDelay is 15")
-	}
-
 	return nil
 }
 
@@ -64,60 +50,34 @@ func CreateApplication(db *sqlx.DB, item *Application) error {
 		insert into application (
 			name,
 			description,
-			rx_delay,
-			rx1_dr_offset,
-			rx_window,
-			rx2_dr,
-			relax_fcnt,
-			adr_interval,
-			installation_margin,
-			is_abp,
-			is_class_c,
-			organization_id
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) returning id`,
+			organization_id,
+			service_profile_id
+		) values ($1, $2, $3, $4) returning id`,
 		item.Name,
 		item.Description,
-		item.RXDelay,
-		item.RX1DROffset,
-		item.RXWindow,
-		item.RX2DR,
-		item.RelaxFCnt,
-		item.ADRInterval,
-		item.InstallationMargin,
-		item.IsABP,
-		item.IsClassC,
 		item.OrganizationID,
+		item.ServiceProfileID,
 	)
 	if err != nil {
-		switch err := err.(type) {
-		case *pq.Error:
-			switch err.Code.Name() {
-			case "unique_violation":
-				return ErrAlreadyExists
-			default:
-				return errors.Wrap(err, "insert error")
-			}
-		default:
-			return errors.Wrap(err, "insert error")
-		}
+		return handlePSQLError(err, "insert error")
 	}
+
 	log.WithFields(log.Fields{
 		"id":   item.ID,
 		"name": item.Name,
 	}).Info("application created")
+
 	return nil
 }
 
 // GetApplication returns the Application for the given id.
-func GetApplication(db *sqlx.DB, id int64) (Application, error) {
+func GetApplication(db sqlx.Queryer, id int64) (Application, error) {
 	var app Application
-	err := db.Get(&app, "select * from application where id = $1", id)
+	err := sqlx.Get(db, &app, "select * from application where id = $1", id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return app, ErrDoesNotExist
-		}
-		return app, errors.Wrap(err, "select error")
+		return app, handlePSQLError(err, "select error")
 	}
+
 	return app, nil
 }
 
@@ -258,43 +218,17 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 		set
 			name = $2,
 			description = $3,
-			rx_delay = $4,
-			rx1_dr_offset = $5,
-			rx_window = $6,
-			rx2_dr = $7,
-			relax_fcnt = $8,
-			adr_interval = $9,
-			installation_margin = $10,
-			is_abp = $11,
-			is_class_c = $12,
-			organization_id = $13
+			organization_id = $4,
+			service_profile_id = $5
 		where id = $1`,
 		item.ID,
 		item.Name,
 		item.Description,
-		item.RXDelay,
-		item.RX1DROffset,
-		item.RXWindow,
-		item.RX2DR,
-		item.RelaxFCnt,
-		item.ADRInterval,
-		item.InstallationMargin,
-		item.IsABP,
-		item.IsClassC,
 		item.OrganizationID,
+		item.ServiceProfileID,
 	)
 	if err != nil {
-		switch err := err.(type) {
-		case *pq.Error:
-			switch err.Code.Name() {
-			case "unique_violation":
-				return ErrAlreadyExists
-			default:
-				return errors.Wrap(err, "update error")
-			}
-		default:
-			return errors.Wrap(err, "update error")
-		}
+		return handlePSQLError(err, "update error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -302,36 +236,6 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 	}
 	if ra == 0 {
 		return ErrDoesNotExist
-	}
-
-	// update node settings for nodes using the application settings
-	_, err = db.Exec(`
-		update node
-		set
-			rx_delay = $2,
-			rx1_dr_offset = $3,
-			rx_window = $4,
-			rx2_dr = $5,
-			relax_fcnt = $6,
-			adr_interval = $7,
-			installation_margin = $8,
-			is_abp = $9,
-			is_class_c = $10
-		where application_id = $1
-		and use_application_settings = true`,
-		item.ID,
-		item.RXDelay,
-		item.RX1DROffset,
-		item.RXWindow,
-		item.RX2DR,
-		item.RelaxFCnt,
-		item.ADRInterval,
-		item.InstallationMargin,
-		item.IsABP,
-		item.IsClassC,
-	)
-	if err != nil {
-		return fmt.Errorf("update nodes error: %s", err)
 	}
 
 	log.WithFields(log.Fields{
@@ -346,7 +250,7 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 func DeleteApplication(db *sqlx.DB, id int64) error {
 	res, err := db.Exec("delete from application where id = $1", id)
 	if err != nil {
-		return errors.Wrap(err, "delete error")
+		return handlePSQLError(err, "delete error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -355,6 +259,7 @@ func DeleteApplication(db *sqlx.DB, id int64) error {
 	if ra == 0 {
 		return ErrDoesNotExist
 	}
+
 	log.WithFields(log.Fields{
 		"id": id,
 	}).Info("application deleted")
@@ -381,7 +286,7 @@ func GetApplicationUsers(db *sqlx.DB, applicationID int64, limit, offset int) ([
 	return users, nil
 }
 
-// GetApplicationUsers gets the number of users that have rights to the
+// GetApplicationUsersCount gets the number of users that have rights to the
 // application.
 func GetApplicationUsersCount(db *sqlx.DB, applicationID int64) (int32, error) {
 	var count int32
@@ -392,7 +297,7 @@ func GetApplicationUsersCount(db *sqlx.DB, applicationID int64) (int32, error) {
 	return count, nil
 }
 
-// GetUsersForApplication gets the information for the user that has rights to
+// GetUserForApplication gets the information for the user that has rights to
 // the application.
 func GetUserForApplication(db *sqlx.DB, applicationID, userID int64) (*UserAccess, error) {
 	var user UserAccess

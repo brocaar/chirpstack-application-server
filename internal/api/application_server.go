@@ -50,62 +50,51 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 	copy(netID[:], req.NetID)
 	copy(devAddr[:], req.DevAddr)
 
-	// get the node and application from the db and validate the AppEUI
-	node, err := storage.GetNode(common.DB, jrPL.DevEUI)
+	// get the device and application from
+	d, err := storage.GetDevice(common.DB, jrPL.DevEUI)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"dev_eui": jrPL.DevEUI,
-		}).Errorf("join-request node does not exist")
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		}).Errorf("join-request device does not exist")
+		return nil, errToRPCError(err)
 	}
-	app, err := storage.GetApplication(common.DB, node.ApplicationID)
+	app, err := storage.GetApplication(common.DB, d.ApplicationID)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"id": node.ApplicationID,
+			"id": d.ApplicationID,
 		}).Errorf("get application error: %s", err)
-		return nil, grpc.Errorf(codes.Internal, err.Error())
+		return nil, errToRPCError(err)
+	}
+	dp, err := storage.GetDeviceProfile(common.DB, d.DeviceProfileID)
+	if err != nil {
+		log.WithField("device_profile_id", d.DeviceProfileID).Errorf("get device-profile error: %s", err)
+		return nil, errToRPCError(err)
 	}
 
-	if node.AppEUI != jrPL.AppEUI {
-		log.WithFields(log.Fields{
-			"dev_eui":          node.DevEUI,
-			"expected_app_eui": node.AppEUI,
-			"request_app_eui":  jrPL.AppEUI,
-		}).Error("join-request DevEUI exists, but with a different AppEUI")
-		return nil, grpc.Errorf(codes.Unknown, "DevEUI exists, but with a different AppEUI")
+	if !dp.DeviceProfile.SupportsJoin {
+		return nil, grpc.Errorf(codes.FailedPrecondition, "node is ABP device")
+	}
+
+	dc, err := storage.GetDeviceCredentials(common.DB, d.DevEUI)
+	if err != nil {
+		log.WithField("dev_eui", d.DevEUI).Errorf("get device-credentials error: %s", err)
+		return nil, errToRPCError(err)
 	}
 
 	// validate MIC
-	ok, err = phy.ValidateMIC(node.AppKey)
+	ok, err = phy.ValidateMIC(dc.AppKey)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"dev_eui": node.DevEUI,
-			"app_eui": node.AppEUI,
+			"dev_eui": d.DevEUI,
 		}).Errorf("join-request validate mic error: %s", err)
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+		return nil, errToRPCError(err)
 	}
 	if !ok {
 		log.WithFields(log.Fields{
-			"dev_eui": node.DevEUI,
-			"app_eui": node.AppEUI,
+			"dev_eui": d.DevEUI,
 			"mic":     phy.MIC,
 		}).Error("join-request invalid mic")
 		return nil, grpc.Errorf(codes.InvalidArgument, "invalid MIC")
-	}
-
-	// validate that the DevNonce hasn't been used before
-	if !node.ValidateDevNonce(jrPL.DevNonce) {
-		log.WithFields(log.Fields{
-			"dev_eui":   node.DevEUI,
-			"app_eui":   node.AppEUI,
-			"dev_nonce": jrPL.DevNonce,
-		}).Error("join-request DevNonce has already been used")
-		return nil, grpc.Errorf(codes.InvalidArgument, "DevNonce has already been used")
-	}
-
-	// now we know the frame is valid, test if the node is allowed to OTAA
-	if node.IsABP {
-		return nil, grpc.Errorf(codes.FailedPrecondition, "node is ABP device")
 	}
 
 	// get app nonce
@@ -126,21 +115,24 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 	}
 
 	// get keys
-	nwkSKey, err := getNwkSKey(node.AppKey, netID, appNonce, jrPL.DevNonce)
+	nwkSKey, err := getNwkSKey(dc.AppKey, netID, appNonce, jrPL.DevNonce)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	appSKey, err := getAppSKey(node.AppKey, netID, appNonce, jrPL.DevNonce)
+	appSKey, err := getAppSKey(dc.AppKey, netID, appNonce, jrPL.DevNonce)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	// update the node
-	node.DevAddr = devAddr
-	node.NwkSKey = nwkSKey
-	node.AppSKey = appSKey
-	if err = storage.UpdateNode(common.DB, node); err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	// create the device-activation
+	err = storage.CreateDeviceActivation(common.DB, &storage.DeviceActivation{
+		DevEUI:  d.DevEUI,
+		DevAddr: devAddr,
+		AppSKey: appSKey,
+		NwkSKey: nwkSKey,
+	})
+	if err != nil {
+		return nil, errToRPCError(err)
 	}
 
 	// construct response
@@ -153,19 +145,19 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 			AppNonce: appNonce,
 			NetID:    netID,
 			DevAddr:  devAddr,
-			RXDelay:  node.RXDelay,
+			// RXDelay:  node.RXDelay,
 			DLSettings: lorawan.DLSettings{
-				RX2DataRate: uint8(node.RX2DR),
-				RX1DROffset: node.RX1DROffset,
+			// RX2DataRate: uint8(node.RX2DR),
+			// RX1DROffset: node.RX1DROffset,
 			},
 			CFList: cFList,
 		},
 	}
-	if err = jaPHY.SetMIC(node.AppKey); err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	if err = jaPHY.SetMIC(dc.AppKey); err != nil {
+		return nil, errToRPCError(err)
 	}
-	if err = jaPHY.EncryptJoinAcceptPayload(node.AppKey); err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
+	if err = jaPHY.EncryptJoinAcceptPayload(dc.AppKey); err != nil {
+		return nil, errToRPCError(err)
 	}
 
 	b, err := jaPHY.MarshalBinary()
@@ -174,31 +166,28 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 	}
 
 	resp := as.JoinRequestResponse{
-		PhyPayload:         b,
-		NwkSKey:            nwkSKey[:],
-		RxDelay:            uint32(node.RXDelay),
-		Rx1DROffset:        uint32(node.RX1DROffset),
-		RxWindow:           as.RXWindow(node.RXWindow),
-		Rx2DR:              uint32(node.RX2DR),
-		DisableFCntCheck:   node.RelaxFCnt,
-		AdrInterval:        node.ADRInterval,
-		InstallationMargin: node.InstallationMargin,
+		PhyPayload: b,
+		NwkSKey:    nwkSKey[:],
+		// RxDelay:            uint32(node.RXDelay),
+		// Rx1DROffset:        uint32(node.RX1DROffset),
+		// RxWindow:           as.RXWindow(node.RXWindow),
+		// Rx2DR:              uint32(node.RX2DR),
+		// DisableFCntCheck:   node.RelaxFCnt,
+		// AdrInterval:        node.ADRInterval,
+		// InstallationMargin: node.InstallationMargin,
 	}
 
 	log.WithFields(log.Fields{
-		"dev_eui":          node.DevEUI,
-		"app_eui":          node.AppEUI,
-		"dev_addr":         node.DevAddr,
-		"application_name": app.Name,
-		"node_name":        node.Name,
+		"dev_eui":  d.DevEUI,
+		"dev_addr": devAddr,
 	}).Info("join-request accepted")
 
 	err = common.Handler.SendJoinNotification(handler.JoinNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
-		NodeName:        node.Name,
-		DevAddr:         node.DevAddr,
-		DevEUI:          node.DevEUI,
+		NodeName:        d.Name,
+		DevAddr:         devAddr,
+		DevEUI:          d.DevEUI,
 	})
 	if err != nil {
 		log.Errorf("send join notification to handler error: %s", err)
@@ -217,20 +206,28 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 	copy(appEUI[:], req.AppEUI)
 	copy(devEUI[:], req.DevEUI)
 
-	node, err := storage.GetNode(common.DB, devEUI)
+	d, err := storage.GetDevice(common.DB, devEUI)
 	if err != nil {
-		errStr := fmt.Sprintf("get node error: %s", err)
+		errStr := fmt.Sprintf("get device error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
-	app, err := storage.GetApplication(common.DB, node.ApplicationID)
+
+	app, err := storage.GetApplication(common.DB, d.ApplicationID)
 	if err != nil {
 		errStr := fmt.Sprintf("get application error: %s", err)
-		log.WithField("id", node.ApplicationID).Error(errStr)
+		log.WithField("id", d.ApplicationID).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
-	b, err := lorawan.EncryptFRMPayload(node.AppSKey, true, node.DevAddr, req.FCnt, req.Data)
+	da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, d.DevEUI)
+	if err != nil {
+		errStr := fmt.Sprintf("get device-activation error: %s", err)
+		log.WithField("dev_eui", d.DevEUI).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
+	b, err := lorawan.EncryptFRMPayload(da.AppSKey, true, da.DevAddr, req.FCnt, req.Data)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"dev_eui": devEUI,
@@ -242,7 +239,7 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 	pl := handler.DataUpPayload{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
-		NodeName:        node.Name,
+		NodeName:        d.Name,
 		DevEUI:          devEUI,
 		RXInfo:          []handler.RXInfo{},
 		TXInfo: handler.TXInfo{
@@ -304,7 +301,7 @@ func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataD
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEUI)
 
-	qi, err := storage.GetNextDownlinkQueueItem(common.DB, devEUI, int(req.MaxPayloadSize))
+	qi, err := storage.GetNextDeviceQueueItem(common.DB, devEUI, int(req.MaxPayloadSize))
 	if err != nil {
 		errStr := fmt.Sprintf("get next downlink queue item error: %s", err)
 		log.WithFields(log.Fields{
@@ -320,14 +317,21 @@ func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataD
 		return &as.GetDataDownResponse{}, nil
 	}
 
-	node, err := storage.GetNode(common.DB, devEUI)
+	d, err := storage.GetDevice(common.DB, devEUI)
 	if err != nil {
-		errStr := fmt.Sprintf("get node error: %s", err)
+		errStr := fmt.Sprintf("get device error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
-	b, err := lorawan.EncryptFRMPayload(node.AppSKey, false, node.DevAddr, req.FCnt, qi.Data)
+	da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, d.DevEUI)
+	if err != nil {
+		errStr := fmt.Sprintf("get device-activation error: %s", err)
+		log.WithField("dev_eui", devEUI).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
+	b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, req.FCnt, qi.Data)
 	if err != nil {
 		errStr := fmt.Sprintf("encrypt payload error: %s", err)
 		log.WithFields(log.Fields{
@@ -337,7 +341,7 @@ func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataD
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
-	queueSize, err := storage.GetDownlinkQueueSize(common.DB, devEUI)
+	queueSize, err := storage.GetDeviceQueueItemCount(common.DB, devEUI)
 	if err != nil {
 		errStr := fmt.Sprintf("get downlink queue size error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
@@ -345,7 +349,7 @@ func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataD
 	}
 
 	if !qi.Confirmed {
-		if err := storage.DeleteDownlinkQueueItem(common.DB, qi.ID); err != nil {
+		if err := storage.DeleteDeviceQueueItem(common.DB, qi.ID); err != nil {
 			errStr := fmt.Sprintf("delete downlink queue item error: %s", err)
 			log.WithFields(log.Fields{
 				"dev_eui": devEUI,
@@ -355,7 +359,7 @@ func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataD
 		}
 	} else {
 		qi.Pending = true
-		if err := storage.UpdateDownlinkQueueItem(common.DB, *qi); err != nil {
+		if err := storage.UpdateDeviceQueueItem(common.DB, qi); err != nil {
 			errStr := fmt.Sprintf("update downlink queue item error: %s", err)
 			log.WithFields(log.Fields{
 				"dev_eui": devEUI,
@@ -386,36 +390,34 @@ func (a *ApplicationServerAPI) HandleDataDownACK(ctx context.Context, req *as.Ha
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEUI)
 
-	node, err := storage.GetNode(common.DB, devEUI)
+	d, err := storage.GetDevice(common.DB, devEUI)
 	if err != nil {
-		errStr := fmt.Sprintf("get node error: %s", err)
+		errStr := fmt.Sprintf("get device error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
-	app, err := storage.GetApplication(common.DB, node.ApplicationID)
+	app, err := storage.GetApplication(common.DB, d.ApplicationID)
 	if err != nil {
 		errStr := fmt.Sprintf("get application error: %s", err)
-		log.WithField("id", node.ApplicationID).Error(errStr)
+		log.WithField("id", d.ApplicationID).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
-	qi, err := storage.GetPendingDownlinkQueueItem(common.DB, devEUI)
+	qi, err := storage.GetPendingDeviceQueueItem(common.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	if err := storage.DeleteDownlinkQueueItem(common.DB, qi.ID); err != nil {
+	if err := storage.DeleteDeviceQueueItem(common.DB, qi.ID); err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 	log.WithFields(log.Fields{
-		"application_name": app.Name,
-		"node_name":        node.Name,
-		"dev_eui":          qi.DevEUI,
+		"dev_eui": qi.DevEUI,
 	}).Info("downlink queue item acknowledged")
 
 	err = common.Handler.SendACKNotification(handler.ACKNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
-		NodeName:        node.Name,
+		NodeName:        d.Name,
 		DevEUI:          devEUI,
 		Reference:       qi.Reference,
 	})
@@ -431,30 +433,28 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEUI)
 
-	node, err := storage.GetNode(common.DB, devEUI)
+	d, err := storage.GetDevice(common.DB, devEUI)
 	if err != nil {
-		errStr := fmt.Sprintf("get node error: %s", err)
+		errStr := fmt.Sprintf("get device error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
-	app, err := storage.GetApplication(common.DB, node.ApplicationID)
+	app, err := storage.GetApplication(common.DB, d.ApplicationID)
 	if err != nil {
 		errStr := fmt.Sprintf("get application error: %s", err)
-		log.WithField("id", node.ApplicationID).Error(errStr)
+		log.WithField("id", d.ApplicationID).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
 	log.WithFields(log.Fields{
-		"application_name": app.Name,
-		"node_name":        node.Name,
-		"type":             req.Type,
-		"dev_eui":          devEUI,
+		"type":    req.Type,
+		"dev_eui": devEUI,
 	}).Error(req.Error)
 
 	err = common.Handler.SendErrorNotification(handler.ErrorNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
-		NodeName:        node.Name,
+		NodeName:        d.Name,
 		DevEUI:          devEUI,
 		Type:            req.Type.String(),
 		Error:           req.Error,

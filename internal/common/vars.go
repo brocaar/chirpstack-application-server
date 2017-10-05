@@ -29,3 +29,6 @@ var GatewayPingDR int
 
 // GatewayPingInterval holds the interval of the gateway ping.
 var GatewayPingInterval time.Duration
+
+// ApplicationServerID holds the application-server ID (UUID).
+var ApplicationServerID string

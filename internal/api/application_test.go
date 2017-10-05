@@ -13,15 +13,22 @@ import (
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/lorawan/backend"
 )
 
 func TestApplicationAPI(t *testing.T) {
 	conf := test.GetConfig()
+	db, err := storage.OpenDatabase(conf.PostgresDSN)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	nsClient := test.NewNetworkServerClient()
+
+	common.DB = db
+	common.NetworkServer = nsClient
 
 	Convey("Given a clean database with an organization and an api instance", t, func() {
-		db, err := storage.OpenDatabase(conf.PostgresDSN)
-		So(err, ShouldBeNil)
-		common.DB = db
 		test.MustResetDB(common.DB)
 
 		ctx := context.Background()
@@ -34,19 +41,25 @@ func TestApplicationAPI(t *testing.T) {
 		}
 		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
 
+		n := storage.NetworkServer{
+			Name:   "test-ns",
+			Server: "test-ns:1234",
+		}
+		So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+
+		sp := storage.ServiceProfile{
+			OrganizationID:  org.ID,
+			NetworkServerID: n.ID,
+			ServiceProfile:  backend.ServiceProfile{},
+		}
+		So(storage.CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+
 		Convey("When creating an application", func() {
 			createResp, err := api.Create(ctx, &pb.CreateApplicationRequest{
-				OrganizationID:     org.ID,
-				Name:               "test-app",
-				Description:        "A test application",
-				IsABP:              true,
-				IsClassC:           true,
-				RxDelay:            1,
-				Rx1DROffset:        3,
-				RxWindow:           pb.RXWindow_RX2,
-				Rx2DR:              3,
-				AdrInterval:        20,
-				InstallationMargin: 5,
+				OrganizationID:   org.ID,
+				Name:             "test-app",
+				Description:      "A test application",
+				ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
@@ -61,18 +74,11 @@ func TestApplicationAPI(t *testing.T) {
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 				So(app, ShouldResemble, &pb.GetApplicationResponse{
-					OrganizationID:     org.ID,
-					Id:                 createResp.Id,
-					Name:               "test-app",
-					Description:        "A test application",
-					IsABP:              true,
-					IsClassC:           true,
-					RxDelay:            1,
-					Rx1DROffset:        3,
-					RxWindow:           pb.RXWindow_RX2,
-					Rx2DR:              3,
-					AdrInterval:        20,
-					InstallationMargin: 5,
+					OrganizationID:   org.ID,
+					Id:               createResp.Id,
+					Name:             "test-app",
+					Description:      "A test application",
+					ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 				})
 			})
 
@@ -81,9 +87,18 @@ func TestApplicationAPI(t *testing.T) {
 					Name: "test-org-2",
 				}
 				So(storage.CreateOrganization(common.DB, &org2), ShouldBeNil)
+
+				sp2 := storage.ServiceProfile{
+					Name:            "test-sp2",
+					NetworkServerID: n.ID,
+					OrganizationID:  org.ID,
+				}
+				So(storage.CreateServiceProfile(common.DB, &sp2), ShouldBeNil)
+
 				app2 := storage.Application{
-					OrganizationID: org2.ID,
-					Name:           "test-app-2",
+					OrganizationID:   org2.ID,
+					Name:             "test-app-2",
+					ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 				}
 				So(storage.CreateApplication(common.DB, &app2), ShouldBeNil)
 
@@ -100,18 +115,11 @@ func TestApplicationAPI(t *testing.T) {
 						So(apps.TotalCount, ShouldEqual, 2)
 						So(apps.Result, ShouldHaveLength, 2)
 						So(apps.Result[0], ShouldResemble, &pb.GetApplicationResponse{
-							OrganizationID:     org.ID,
-							Id:                 createResp.Id,
-							Name:               "test-app",
-							Description:        "A test application",
-							IsABP:              true,
-							IsClassC:           true,
-							RxDelay:            1,
-							Rx1DROffset:        3,
-							RxWindow:           pb.RXWindow_RX2,
-							Rx2DR:              3,
-							AdrInterval:        20,
-							InstallationMargin: 5,
+							OrganizationID:   org.ID,
+							Id:               createResp.Id,
+							Name:             "test-app",
+							Description:      "A test application",
+							ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 						})
 					})
 
@@ -205,18 +213,11 @@ func TestApplicationAPI(t *testing.T) {
 						So(apps.Result, ShouldHaveLength, 1)
 						So(apps.TotalCount, ShouldEqual, 1)
 						So(apps.Result[0], ShouldResemble, &pb.GetApplicationResponse{
-							OrganizationID:     org.ID,
-							Id:                 createResp.Id,
-							Name:               "test-app",
-							Description:        "A test application",
-							IsABP:              true,
-							IsClassC:           true,
-							RxDelay:            1,
-							Rx1DROffset:        3,
-							RxWindow:           pb.RXWindow_RX2,
-							Rx2DR:              3,
-							AdrInterval:        20,
-							InstallationMargin: 5,
+							OrganizationID:   org.ID,
+							Id:               createResp.Id,
+							Name:             "test-app",
+							Description:      "A test application",
+							ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 						})
 					})
 
@@ -278,18 +279,11 @@ func TestApplicationAPI(t *testing.T) {
 
 			Convey("When updating the application", func() {
 				_, err := api.Update(ctx, &pb.UpdateApplicationRequest{
-					OrganizationID:     org.ID,
-					Id:                 createResp.Id,
-					Name:               "test-app-updated",
-					Description:        "An updated test description",
-					IsABP:              false,
-					IsClassC:           true,
-					RxDelay:            2,
-					Rx1DROffset:        4,
-					RxWindow:           pb.RXWindow_RX1,
-					Rx2DR:              1,
-					AdrInterval:        40,
-					InstallationMargin: 10,
+					OrganizationID:   org.ID,
+					Id:               createResp.Id,
+					Name:             "test-app-updated",
+					Description:      "An updated test description",
+					ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -301,18 +295,11 @@ func TestApplicationAPI(t *testing.T) {
 					})
 					So(err, ShouldBeNil)
 					So(app, ShouldResemble, &pb.GetApplicationResponse{
-						OrganizationID:     org.ID,
-						Id:                 createResp.Id,
-						Name:               "test-app-updated",
-						Description:        "An updated test description",
-						IsABP:              false,
-						IsClassC:           true,
-						RxDelay:            2,
-						Rx1DROffset:        4,
-						RxWindow:           pb.RXWindow_RX1,
-						Rx2DR:              1,
-						AdrInterval:        40,
-						InstallationMargin: 10,
+						OrganizationID:   org.ID,
+						Id:               createResp.Id,
+						Name:             "test-app-updated",
+						Description:      "An updated test description",
+						ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 					})
 				})
 			})

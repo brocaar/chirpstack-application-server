@@ -4,197 +4,165 @@ package api;
 
 // for grpc-gateway
 import "google/api/annotations.proto";
-import "common.proto";
 
-// Node is the service managing the nodes.
-service Node {
-	// Create creates the given node.
-	rpc Create(CreateNodeRequest) returns (CreateNodeResponse) {
-		option(google.api.http) = {
-			post: "/api/nodes"
-			body: "*"
-		};
-	}
+// Device is the service managing the devices.
+service Device {
+    // Create creates the given device.
+    rpc Create(CreateDeviceRequest) returns (CreateDeviceResponse) {
+        option(google.api.http) = {
+            post: "/api/devices"
+            body: "*"
+        };
+    }
 
-	// Get returns the node for the requested DevEUI.
-	rpc Get(GetNodeRequest) returns (GetNodeResponse) {
-		option (google.api.http) = {
-			get: "/api/nodes/{devEUI}"
-		};
-	}
+    // Get returns the device matching the given DevEUI.
+    rpc Get(GetDeviceRequest) returns (GetDeviceResponse) {
+        option (google.api.http) = {
+            get: "/api/devices/{devEUI}"
+        };
+    }
 
-	// Delete deletes the node matching the given DevEUI.
-	rpc Delete(DeleteNodeRequest) returns (DeleteNodeResponse) {
-		option (google.api.http) = {
-			delete: "/api/nodes/{devEUI}"
-		};
-	}
+    // Delete deletes the device matching the given DevEUI.
+    rpc Delete(DeleteDeviceRequest) returns (DeleteDeviceResponse) {
+        option (google.api.http) = {
+            delete: "/api/devices/{devEUI}"
+        };
+    }
 
-	// ListByApplicationID lists the nodes by the given application ID, sorted by the name of the node.
-	rpc ListByApplicationID(ListNodeByApplicationIDRequest) returns (ListNodeResponse) {
-		option (google.api.http) = {
-			get: "/api/applications/{applicationID}/nodes"
-		};
-	}
+    // ListByApplicationID lists the devices by the given application ID, sorted by the name of the device.
+    rpc ListByApplicationID(ListDeviceByApplicationIDRequest) returns (ListDeviceResponse) {
+        option (google.api.http) = {
+            get: "/api/applications/{applicationID}/devices"
+        };
+    }
 
-	// Update updates the node matching the given DevEUI.
-	rpc Update(UpdateNodeRequest) returns (UpdateNodeResponse) {
-		option (google.api.http) = {
-			put: "/api/nodes/{devEUI}"
-			body: "*"
-		};
-	}
+    // Update updates the device matching the given DevEUI.
+    rpc Update(UpdateDeviceRequest) returns (UpdateDeviceResponse) {
+        option (google.api.http) = {
+            put: "/api/devices/{devEUI}"
+            body: "*"
+        };
+    }
 
-	// Activate (re)activates the node (only when ABP is set to true).
-	rpc Activate(ActivateNodeRequest) returns (ActivateNodeResponse) {
-		option (google.api.http) = {
-			post: "/api/nodes/{devEUI}/activation"
-			body: "*"
-		};
-	}
+    // CreateCredentials creates the given device-credentials.
+    rpc CreateCredentials(CreateDeviceCredentialsRequest) returns (CreateDeviceCredentialsResponse) {
+        option (google.api.http) = {
+            post: "/api/devices/{devEUI}/credentials"
+            body: "*"
+        };
+    }
 
-	// GetActivation returns the current activation details of the node (OTAA and ABP).
-	rpc GetActivation(GetNodeActivationRequest) returns (GetNodeActivationResponse) {
-		option (google.api.http) = {
-			get: "/api/nodes/{devEUI}/activation"
-		};
-	}
+    // GetCredentials returns the device-credentials for the given DevEUI.
+    rpc GetCredentials(GetDeviceCredentialsRequest) returns (GetDeviceCredentialsResponse) {
+        option (google.api.http) = {
+            get: "/api/devices/{devEUI}/credentials"
+        };
+    }
 
-	// GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
-	rpc GetRandomDevAddr(GetRandomDevAddrRequest) returns (GetRandomDevAddrResponse) {
-		option (google.api.http) = {
-			post: "/api/nodes/getRandomDevAddr"
-		};
-	}
+    // UpdateCredentials updates the device-credentials.
+    rpc UpdateCredentials(UpdateDeviceCredentialsRequest) returns (UpdateDeviceCredentialsResponse) {
+        option (google.api.http) = {
+            put: "/api/devices/{devEUI}/credentials"
+            body: "*"
+        };
+    }
 
-	// GetFrameLogs returns the uplink / downlink frame log for the given DevEUI.
-	rpc GetFrameLogs(GetFrameLogsRequest) returns (GetFrameLogsResponse) {
-		option (google.api.http) = {
-			get: "/api/nodes/{devEUI}/frames"
-		};
-	}
+    // DeleteCredentials deletes the device-credentials for the given DevEUI.
+    rpc DeleteCredentials(DeleteDeviceCredentialsRequest) returns (DeleteDeviceCredentialsResponse) {
+        option (google.api.http) = {
+            delete: "/api/devices/{devEUI}/credentials"
+        };
+    };
+
+    // Activate (re)activates the device (only when ABP is set to true).
+    rpc Activate(ActivateDeviceRequest) returns (ActivateDeviceResponse) {
+        option (google.api.http) = {
+            post: "/api/devices/{devEUI}/activation"
+            body: "*"
+        };
+    }
+
+    // GetActivation returns the current activation details of the device (OTAA and ABP).
+    rpc GetActivation(GetDeviceActivationRequest) returns (GetDeviceActivationResponse) {
+        option (google.api.http) = {
+            get: "/api/devices/{devEUI}/activation"
+        };
+    }
+
+    // GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
+    rpc GetRandomDevAddr(GetRandomDevAddrRequest) returns (GetRandomDevAddrResponse) {
+        option (google.api.http) = {
+            post: "/api/devices/getRandomDevAddr"
+        };
+    }
+
+    // GetFrameLogs returns the uplink / downlink frame log for the given DevEUI.
+    rpc GetFrameLogs(GetFrameLogsRequest) returns (GetFrameLogsResponse) {
+        option (google.api.http) = {
+            get: "/api/devices/{devEUI}/frames"
+        };
+    }
 }
 
-message CreateNodeRequest {
-	// Hex encoded DevEUI.
-	string devEUI = 1;
-
-	// Hex encoded AppEUI.
-	string appEUI = 2;
-
-	// Hex encoded AppKey. When isABP is set to true, this field is not needed.
-	string appKey = 3;
-
-	// RX delay.
-	uint32 rxDelay = 4;
-
-	// RX1 data-rate offset.
-	uint32 rx1DROffset = 5;
-
-	// RX window to use.
-	RXWindow rxWindow = 7;
-
-	// Data-rate to use for RX2.
-	uint32 rx2DR = 8;
-
-	// Name of the node (if left blank, it will be set to the DevEUI).
-	string name = 9;
-
-	// Relax frame-counter mode is enabled.
-	bool relaxFCnt = 10;
-
-	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
-	uint32 adrInterval = 11;
-
-	// Installation-margin to use for ADR calculation.
-	double installationMargin = 12;
-
-	// ID of the application to which the node must be added.
-	int64 applicationID = 13;
-
-	// Description of the node.
-	string description = 14;
-
-	// Node is activated by ABP.
-	bool isABP = 15;
-
-	// Node operates in Class-C.
-	bool isClassC = 16;
-
-	// When set to true, the application settings will be used to populate the node network settings.
-	bool useApplicationSettings = 17;
+message DeviceCredentials {
+    // HEX encoded application key.
+    string appKey = 1;
 }
 
-message CreateNodeResponse {}
+message CreateDeviceRequest {
+    // Hex encoded DevEUI.
+    string devEUI = 1; 
+    
+    // Name of the device (if left blank, it will be set to the DevEUI).
+    string name = 9;
 
-message GetNodeRequest {
-	// Hex encoded DevEUI of the node.
-	string devEUI = 1;
+    // ID of the application to which the device must be added.
+    int64 applicationID = 13;
+
+    // Description of the device.
+    string description = 14;
+
+    // DeviceProfileID attached to the device.
+    string deviceProfileID = 18;
 }
 
-message GetNodeResponse {
-	// Hex encoded DevEUI.
-	string devEUI = 1;
+message CreateDeviceResponse {}
 
-	// Hex encoded AppEUI.
-	string appEUI = 2;
+message GetDeviceRequest {
+    // Hex encoded DevEUI of the device.
+    string devEUI = 1;
+}
 
-	// Hex encoded AppKey.
-	string appKey = 3;
+message GetDeviceResponse {
+    // Hex encoded DevEUI.
+    string devEUI = 1; 
+    
+    // Name of the device (if left blank, it will be set to the DevEUI).
+    string name = 9;
 
-	// RX delay.
-	uint32 rxDelay = 4;
+    // ID of the application to which the device must be added.
+    int64 applicationID = 13;
 
-	// RX1 data-rate offset.
-	uint32 rx1DROffset = 5;
+    // Description of the device.
+    string description = 14;
 
-	// RX window to use.
-	RXWindow rxWindow = 7;
-
-	// Data-rate to use for RX2.
-	uint32 rx2DR = 8;
-
-	// Name of the node.
-	string name = 9;
-
-	// Relax frame-counter mode is enabled.
-	bool relaxFCnt = 10;
-
-	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
-	uint32 adrInterval = 11;
-
-	// Installation-margin to use for ADR calculation.
-	double installationMargin = 12;
-
-	// Description of the node.
-	string description = 13;
-
-	// Node is activated by ABP.
-	bool isABP = 14;
-
-	// ID of the application owning the node.
-	int64 applicationID = 15;
-
-	// Node operates in Class-C.
-	bool isClassC = 16;
-
-	// When set to true, the application settings will be used to populate the node network settings.
-	bool useApplicationSettings = 17;
+    // DeviceProfileID attached to the device.
+    string deviceProfileID = 18;
 };
 
-message DeleteNodeRequest {
-	// Hex encoded DevEUI of the node.
-	string devEUI = 1;
+message DeleteDeviceRequest {
+    // Hex encoded DevEUI of the device.
+    string devEUI = 1;
 }
 
-message DeleteNodeResponse {}
+message DeleteDeviceResponse {}
 
-message ListNodeByApplicationIDRequest {
-	// ID of the application for which to list the nodes.
-	int64 applicationID = 3;
+message ListDeviceByApplicationIDRequest {
+    // ID of the application for which to list the devices.
+    int64 applicationID = 3;
 
-	// Max number of nodes to return in the result-set.
-	int64 limit = 1;
+    // Max number of devices to return in the result-set.
+    int64 limit = 1;
 
 	// Offset of the result-set (for pagination).
 	int64 offset = 2;
@@ -203,206 +171,207 @@ message ListNodeByApplicationIDRequest {
 	string search = 4;
 }
 
-message ListNodeResponse {
-	// Total number of nodes available within the result-set.
-	int64 totalCount = 1;
+message ListDeviceResponse {
+    // Total number of devices available within the result-set.
+    int64 totalCount = 1;
 
-	// Nodes within this result-set.
-	repeated GetNodeResponse result = 2;
+    // Devices within this result-set.
+    repeated GetDeviceResponse result = 2;
 }
 
 
-message UpdateNodeRequest {
-	// Hex encoded DevEUI of the node to update.
-	string devEUI = 1;
+message UpdateDeviceRequest {
+    // Hex encoded DevEUI.
+    string devEUI = 1; 
+    
+    // Name of the device (if left blank, it will be set to the DevEUI).
+    string name = 9;
 
-	// Hex encoded AppEUI.
-	string appEUI = 2;
+    // ID of the application to which the device must be added.
+    int64 applicationID = 13;
 
-	// Hex encoded AppKey.
-	string appKey = 3;
+    // Description of the device.
+    string description = 14;
 
-	// RX delay.
-	uint32 rxDelay = 4;
-
-	// RX1 data-rate offset.
-	uint32 rx1DROffset = 5;
-
-	// RX window to use.
-	RXWindow rxWindow = 7;
-
-	// Data-rate to use for RX2.
-	uint32 rx2DR = 8;
-
-	// Name of the node (note that renaming the node affects its api endpoint)
-	string name = 9;
-
-	// Relax frame-counter mode is enabled.
-	bool relaxFCnt = 10;
-
-	// Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled).
-	uint32 adrInterval = 11;
-
-	// Installation-margin to use for ADR calculation.
-	double installationMargin = 12;
-
-	// ID of the application owning the node.
-	int64 applicationID = 13;
-
-	// Description of the node.
-	string description = 14;
-
-	// Node is activated by ABP.
-	bool isABP = 15;
-
-	// Node operates in Class-C.
-	bool isClassC = 16;
-
-	// When set to true, the application settings will be used to populate the node network settings.
-	bool useApplicationSettings = 17;
+    // DeviceProfileID attached to the device.
+    string deviceProfileID = 18;
 }
 
-message UpdateNodeResponse {}
+message UpdateDeviceResponse {}
 
-message ActivateNodeRequest {
-	// Hex encoded DevEUI of the node to activate.
-	string devEUI = 1;
+message CreateDeviceCredentialsRequest {
+    // Hex encoded DevEUI of the device.
+    string devEUI = 1;
 
-	// Hex encoded DevAddr.
-	string devAddr = 2;
-
-	// Hex encoded AppSKey.
-	string appSKey = 3;
-
-	// Hex encoded NwkSKey.
-	string nwkSKey = 4;
-
-	// Uplink frame-counter.
-	uint32 fCntUp = 5;
-
-	// Downlink frame-counter.
-	uint32 fCntDown = 6;
+    DeviceCredentials deviceCredentials = 2;
 }
 
-message ActivateNodeResponse {}
+message CreateDeviceCredentialsResponse {}
 
-message GetNodeActivationRequest {
-	// Hex encoded DevEUI of the node.
-	string devEUI = 1;
+message GetDeviceCredentialsRequest {
+    // Hex encoded DevEUI of the device.
+    string devEUI = 1;
 }
 
-message GetNodeActivationResponse {
-	// Hex encoded DevAddr.
-	string devAddr = 1;
+message GetDeviceCredentialsResponse {
+    DeviceCredentials deviceCredentials = 1;
+}
 
-	// Hex encoded AppSKey.
-	string appSKey = 2;
+message UpdateDeviceCredentialsRequest {
+    // Hex encoded DevEUI of the device.
+    string devEUI = 1;
 
-	// Hex encoded NwkSKey.
-	string nwkSKey = 3;
+    DeviceCredentials deviceCredentials = 2;
+}
 
-	// Uplink frame-counter.
-	uint32 fCntUp = 4;
+message UpdateDeviceCredentialsResponse {}
 
-	// Downlink frame-counter.
-	uint32 fCntDown = 5;
+message DeleteDeviceCredentialsRequest {
+    // Hex encoded DevEUI of the device.
+    string devEUI = 1;
+}
+
+message DeleteDeviceCredentialsResponse {}
+
+message ActivateDeviceRequest {
+    // Hex encoded DevEUI of the device to activate.
+    string devEUI = 1;
+
+    // Hex encoded DevAddr.
+    string devAddr = 2;
+
+    // Hex encoded AppSKey.
+    string appSKey = 3;
+
+    // Hex encoded NwkSKey.
+    string nwkSKey = 4;
+
+    // Uplink frame-counter.
+    uint32 fCntUp = 5;
+
+    // Downlink frame-counter.
+    uint32 fCntDown = 6;
+}
+
+message ActivateDeviceResponse {}
+
+message GetDeviceActivationRequest {
+    // Hex encoded DevEUI of the device.
+    string devEUI = 1;
+}
+
+message GetDeviceActivationResponse {
+    // Hex encoded DevAddr.
+    string devAddr = 1;
+
+    // Hex encoded AppSKey.
+    string appSKey = 2;
+
+    // Hex encoded NwkSKey.
+    string nwkSKey = 3;
+
+    // Uplink frame-counter.
+    uint32 fCntUp = 4;
+
+    // Downlink frame-counter.
+    uint32 fCntDown = 5;
 }
 
 message GetRandomDevAddrRequest {}
 
 message GetRandomDevAddrResponse {
-	// Hex encoded DevAddr.
-	string devAddr = 1;
+    // Hex encoded DevAddr.
+    string devAddr = 1;
 }
 
 message GetFrameLogsRequest {
-	// Hex encoded DevEUI.
-	string devEUI = 1;
+    // Hex encoded DevEUI.
+    string devEUI = 1;
 
-	// Max number of frames to return in the result-set.
-	int64 limit = 2;
+    // Max number of frames to return in the result-set.
+    int64 limit = 2;
 
-	// Offset of the result-set (for pagination).
-	int64 offset = 3;
+    // Offset of the result-set (for pagination).
+    int64 offset = 3;
 }
 
 message GetFrameLogsResponse {
-	// Total number of logs.
-	int32 totalCount = 1;
+    // Total number of logs.
+    int32 totalCount = 1;
 
-	// The result-set.
-	repeated FrameLog result = 2;
+    // The result-set.
+    repeated FrameLog result = 2;
 }
 
 message FrameLog {
-	// Timestamp of when the frame was logged.
-	string createdAt = 1;
+    // Timestamp of when the frame was logged.
+    string createdAt = 1;
 
-	// RX-info set (in case of an uplink).
-	repeated RXInfo rxInfoSet = 2;
+    // RX-info set (in case of an uplink).
+    repeated RXInfo rxInfoSet = 2;
 
-	// TX-info (in case of a downlink).
-	TXInfo txInfo = 3;
+    // TX-info (in case of a downlink).
+    TXInfo txInfo = 3;
 
-	// LoRaWAN PHYPayload as a JSON string.
-	string phyPayloadJSON = 4;
+    // LoRaWAN PHYPayload as a JSON string.
+    string phyPayloadJSON = 4;
 }
 
 message DataRate {
-	string modulation = 1;
-	uint32 bandWidth = 2;
-	uint32 spreadFactor = 3;
-	uint32 bitrate = 4;
+    string modulation = 1;
+    uint32 bandWidth = 2;
+    uint32 spreadFactor = 3;
+    uint32 bitrate = 4;
 }
 
 message RXInfo {
-	// Channel number on which the frame was received.
-	int32 channel = 1;
+    // Channel number on which the frame was received.
+    int32 channel = 1;
 
-	// Code-rate.
-	string codeRate = 2;
+    // Code-rate.
+    string codeRate = 2;
 
-	// frequency.
-	int64 frequency = 3;
+    // frequency.
+    int64 frequency = 3;
 
-	// LoRa SNR.
-	double loRaSNR = 4;
+    // LoRa SNR.
+    double loRaSNR = 4;
 
-	// RSSI / signal strength.
-	int32 rssi = 5;
+    // RSSI / signal strength.
+    int32 rssi = 5;
 
-	// Time (when the gateway has a GPS).
-	string time = 6;
+    // Time (when the gateway has a GPS).
+    string time = 6;
+    
+    // Gateway internal timestamp.
+    uint32 timestamp = 7;
 
-	// Gateway internal timestamp.
-	uint32 timestamp = 7;
+    // Data-rate.
+    DataRate dataRate = 8;
 
-	// Data-rate.
-	DataRate dataRate = 8;
-
-	// HEX encoded gateway MAC.
-	string mac = 9;
-}
+    // HEX encoded gateway MAC.
+    string mac = 9;
+} 
 
 message TXInfo {
-	// Code-rate.
-	string codeRate = 1;
+    // Code-rate.
+    string codeRate = 1;
 
-	// Frequency.
-	int64 frequency = 2;
+    // Frequency.
+    int64 frequency = 2;
 
-	// Immediately.
-	bool immediately = 3;
+    // Immediately.
+    bool immediately = 3;
 
-	// HEX encoded gateway MAC.
-	string mac = 4;
+    // HEX encoded gateway MAC.
+    string mac = 4;
 
-	// TX power.
-	int32 power = 5;
+    // TX power.
+    int32 power = 5;
 
-	// Gateway internal timestamp.
-	uint32 timestamp = 6;
+    // Gateway internal timestamp.
+    uint32 timestamp = 6;
 
-	// Data-rate.
-	DataRate dataRate = 7;
+    // Data-rate.
+    DataRate dataRate = 7;
 }

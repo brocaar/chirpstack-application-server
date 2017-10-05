@@ -29,18 +29,10 @@ func NewNodeAPI(validator auth.Validator) *NodeAPI {
 	}
 }
 
-// Create creates the given Node.
-func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.CreateNodeResponse, error) {
-	var appEUI, devEUI lorawan.EUI64
-	var appKey lorawan.AES128Key
-
-	if err := appEUI.UnmarshalText([]byte(req.AppEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
-	}
+// Create creates the given device.
+func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*pb.CreateDeviceResponse, error) {
+	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
-	}
-	if err := appKey.UnmarshalText([]byte(req.AppKey)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
@@ -54,36 +46,25 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 		req.Name = req.DevEUI
 	}
 
-	node := storage.Node{
-		ApplicationID:          req.ApplicationID,
-		UseApplicationSettings: req.UseApplicationSettings,
-		Name:        req.Name,
-		Description: req.Description,
-		DevEUI:      devEUI,
-		AppEUI:      appEUI,
-		AppKey:      appKey,
-		IsABP:       req.IsABP,
-		IsClassC:    req.IsClassC,
-		RelaxFCnt:   req.RelaxFCnt,
-
-		RXDelay:     uint8(req.RxDelay),
-		RX1DROffset: uint8(req.Rx1DROffset),
-		RXWindow:    storage.RXWindow(req.RxWindow),
-		RX2DR:       uint8(req.Rx2DR),
-
-		ADRInterval:        req.AdrInterval,
-		InstallationMargin: req.InstallationMargin,
+	d := storage.Device{
+		DevEUI:          devEUI,
+		ApplicationID:   req.ApplicationID,
+		DeviceProfileID: req.DeviceProfileID,
+		Name:            req.Name,
+		Description:     req.Description,
 	}
 
-	if err := storage.CreateNode(common.DB, node); err != nil {
+	if err := storage.CreateDevice(common.DB, &d); err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.CreateNodeResponse{}, nil
+	log.WithField("dev_eui", devEUI).Info("device created")
+
+	return &pb.CreateDeviceResponse{}, nil
 }
 
-// Get returns the Node for the given name.
-func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeResponse, error) {
+// Get returns the device matching the given DevEUI.
+func (a *NodeAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetDeviceResponse, error) {
 	var eui lorawan.EUI64
 	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
@@ -94,64 +75,44 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(common.DB, eui)
+	d, err := storage.GetDevice(common.DB, eui)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	resp := pb.GetNodeResponse{
-		Name:                   node.Name,
-		Description:            node.Description,
-		DevEUI:                 node.DevEUI.String(),
-		AppEUI:                 node.AppEUI.String(),
-		AppKey:                 node.AppKey.String(),
-		IsABP:                  node.IsABP,
-		IsClassC:               node.IsClassC,
-		RxDelay:                uint32(node.RXDelay),
-		Rx1DROffset:            uint32(node.RX1DROffset),
-		RxWindow:               pb.RXWindow(node.RXWindow),
-		Rx2DR:                  uint32(node.RX2DR),
-		RelaxFCnt:              node.RelaxFCnt,
-		AdrInterval:            node.ADRInterval,
-		InstallationMargin:     node.InstallationMargin,
-		ApplicationID:          node.ApplicationID,
-		UseApplicationSettings: node.UseApplicationSettings,
+	resp := pb.GetDeviceResponse{
+		DevEUI:          d.DevEUI.String(),
+		Name:            d.Name,
+		ApplicationID:   d.ApplicationID,
+		Description:     d.Description,
+		DeviceProfileID: d.DeviceProfileID,
 	}
 
 	return &resp, nil
 }
 
-// ListByApplicationID returns a list of nodes (given an application id, limit and offset).
-func (a *NodeAPI) ListByApplicationID(ctx context.Context, req *pb.ListNodeByApplicationIDRequest) (*pb.ListNodeResponse, error) {
+// ListByApplicationID lists the devices by the given application ID, sorted by the name of the device.
+func (a *NodeAPI) ListByApplicationID(ctx context.Context, req *pb.ListDeviceByApplicationIDRequest) (*pb.ListDeviceResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateNodesAccess(req.ApplicationID, auth.List)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	nodes, err := storage.GetNodesForApplicationID(common.DB, req.ApplicationID, int(req.Limit), int(req.Offset), req.Search)
+	devices, err := storage.GetDevicesForApplicationID(common.DB, req.ApplicationID, int(req.Limit), int(req.Offset), req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	count, err := storage.GetNodesCountForApplicationID(common.DB, req.ApplicationID, req.Search)
-
+	count, err := storage.GetDeviceCountForApplicationID(common.DB, req.ApplicationID, req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	return a.returnList(count, nodes)
+	return a.returnList(count, devices)
 }
 
-// Update updates the node matching the given name.
-func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.UpdateNodeResponse, error) {
-	var appEUI, devEUI lorawan.EUI64
-	var appKey lorawan.AES128Key
-
-	if err := appEUI.UnmarshalText([]byte(req.AppEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
-	}
+// Update updates the device matching the given DevEUI.
+func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*pb.UpdateDeviceResponse, error) {
+	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
-	}
-	if err := appKey.UnmarshalText([]byte(req.AppKey)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
@@ -160,41 +121,26 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(common.DB, devEUI)
+	d, err := storage.GetDevice(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	node.Name = req.Name
-	node.Description = req.Description
-	node.AppEUI = appEUI
-	node.AppKey = appKey
-	node.IsABP = req.IsABP
-	node.IsClassC = req.IsClassC
-	node.RXDelay = uint8(req.RxDelay)
-	node.RX1DROffset = uint8(req.Rx1DROffset)
-	node.RXWindow = storage.RXWindow(req.RxWindow)
-	node.RX2DR = uint8(req.Rx2DR)
-	node.RelaxFCnt = req.RelaxFCnt
-	node.ADRInterval = req.AdrInterval
-	node.InstallationMargin = req.InstallationMargin
-	node.ApplicationID = req.ApplicationID
-	node.UseApplicationSettings = req.UseApplicationSettings
+	d.DeviceProfileID = req.DeviceProfileID
+	d.Name = req.Name
+	d.Description = req.Description
 
-	if err := storage.UpdateNode(common.DB, node); err != nil {
+	if err := storage.UpdateDevice(common.DB, &d); err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	log.WithFields(log.Fields{
-		"dev_eui":        node.DevEUI,
-		"application_id": node.ApplicationID,
-	}).Info("node updated")
+	log.WithField("dev_eui", devEUI).Info("device updated")
 
-	return &pb.UpdateNodeResponse{}, nil
+	return &pb.UpdateDeviceResponse{}, nil
 }
 
 // Delete deletes the node matching the given name.
-func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.DeleteNodeResponse, error) {
+func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*pb.DeleteDeviceResponse, error) {
 	var eui lorawan.EUI64
 	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
@@ -205,30 +151,42 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.De
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(common.DB, eui)
+	d, err := storage.GetDevice(common.DB, eui)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	if err := storage.DeleteNode(common.DB, node.DevEUI); err != nil {
+	if err := storage.DeleteDevice(common.DB, d.DevEUI); err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	// try to delete the node-session
-	_, _ = common.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{
-		DevEUI: node.DevEUI[:],
-	})
+	log.WithField("dev_eui", eui).Info("device deleted")
 
-	log.WithFields(log.Fields{
-		"dev_eui":        node.DevEUI,
-		"application_id": node.ApplicationID,
-	}).Info("node deleted")
+	return &pb.DeleteDeviceResponse{}, nil
+}
 
-	return &pb.DeleteNodeResponse{}, nil
+// CreateCredentials creates the given device-credentials.
+func (a *NodeAPI) CreateCredentials(ctx context.Context, req *pb.CreateDeviceCredentialsRequest) (*pb.CreateDeviceCredentialsResponse, error) {
+	panic("not implemented")
+}
+
+// GetCredentials returns the device-credentials for the given DevEUI.
+func (a *NodeAPI) GetCredentials(ctx context.Context, req *pb.GetDeviceCredentialsRequest) (*pb.GetDeviceCredentialsResponse, error) {
+	panic("not implemented")
+}
+
+// UpdateCredentials updates the device-credentials.
+func (a *NodeAPI) UpdateCredentials(ctx context.Context, req *pb.UpdateDeviceCredentialsRequest) (*pb.UpdateDeviceCredentialsResponse, error) {
+	panic("not implemented")
+}
+
+// DeleteCredentials deletes the device-credentials for the given DevEUI.
+func (a *NodeAPI) DeleteCredentials(ctx context.Context, req *pb.DeleteDeviceCredentialsRequest) (*pb.DeleteDeviceCredentialsResponse, error) {
+	panic("not implemeted")
 }
 
 // Activate activates the node (ABP only).
-func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*pb.ActivateNodeResponse, error) {
+func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest) (*pb.ActivateDeviceResponse, error) {
 	var devAddr lorawan.DevAddr
 	var devEUI lorawan.EUI64
 	var appSKey, nwkSKey lorawan.AES128Key
@@ -251,12 +209,17 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(common.DB, devEUI)
+	d, err := storage.GetDevice(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	if !node.IsABP {
+	dp, err := storage.GetDeviceProfile(common.DB, d.DeviceProfileID)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	if dp.DeviceProfile.SupportsJoin {
 		return nil, grpc.Errorf(codes.FailedPrecondition, "node must be an ABP node")
 	}
 
@@ -264,49 +227,44 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 	// TODO: refactor once https://github.com/brocaar/loraserver/pull/124 is in place?
 	// so that we can call something like SaveNodeSession which will either
 	// create or update an existing node-session
-	_, _ = common.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{
-		DevEUI: node.DevEUI[:],
+	_, _ = common.NetworkServer.DeactivateDevice(context.Background(), &ns.DeactivateDeviceRequest{
+		DevEUI: d.DevEUI[:],
 	})
 
-	createNSReq := ns.CreateNodeSessionRequest{
-		DevAddr:            devAddr[:],
-		AppEUI:             node.AppEUI[:],
-		DevEUI:             node.DevEUI[:],
-		NwkSKey:            nwkSKey[:],
-		FCntUp:             req.FCntUp,
-		FCntDown:           req.FCntDown,
-		RxDelay:            uint32(node.RXDelay),
-		Rx1DROffset:        uint32(node.RX1DROffset),
-		RxWindow:           ns.RXWindow(node.RXWindow),
-		Rx2DR:              uint32(node.RX2DR),
-		RelaxFCnt:          node.RelaxFCnt,
-		AdrInterval:        node.ADRInterval,
-		InstallationMargin: node.InstallationMargin,
+	actReq := ns.ActivateDeviceRequest{
+		DevEUI:   d.DevEUI[:],
+		DevAddr:  devAddr[:],
+		NwkSKey:  nwkSKey[:],
+		FCntUp:   req.FCntUp,
+		FCntDown: req.FCntDown,
+		// SkipFCntCheck: d.RelaxFCnt,
 	}
 
-	_, err = common.NetworkServer.CreateNodeSession(context.Background(), &createNSReq)
+	_, err = common.NetworkServer.ActivateDevice(context.Background(), &actReq)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	node.AppSKey = appSKey
-	node.DevAddr = devAddr
-	node.NwkSKey = nwkSKey
-
-	if err = storage.UpdateNode(common.DB, node); err != nil {
+	err = storage.CreateDeviceActivation(common.DB, &storage.DeviceActivation{
+		DevEUI:  d.DevEUI,
+		DevAddr: devAddr,
+		AppSKey: appSKey,
+		NwkSKey: nwkSKey,
+	})
+	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
 	log.WithFields(log.Fields{
-		"dev_addr":       devAddr,
-		"dev_eui":        node.DevEUI,
-		"application_id": node.ApplicationID,
-	}).Info("node activated")
+		"dev_addr": devAddr,
+		"dev_eui":  d.DevEUI,
+	}).Info("device activated")
 
-	return &pb.ActivateNodeResponse{}, nil
+	return &pb.ActivateDeviceResponse{}, nil
 }
 
-func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetNodeActivationRequest) (*pb.GetNodeActivationResponse, error) {
+// GetActivation returns the device activation for the given DevEUI.
+func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivationRequest) (*pb.GetDeviceActivationResponse, error) {
 	var devAddr lorawan.DevAddr
 	var devEUI lorawan.EUI64
 	var nwkSKey lorawan.AES128Key
@@ -320,30 +278,36 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetNodeActivationRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(common.DB, devEUI)
+	d, err := storage.GetDevice(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	ns, err := common.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{
-		DevEUI: node.DevEUI[:],
+	da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, devEUI)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	devAct, err := common.NetworkServer.GetDeviceActivation(context.Background(), &ns.GetDeviceActivationRequest{
+		DevEUI: d.DevEUI[:],
 	})
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	copy(devAddr[:], ns.DevAddr)
-	copy(nwkSKey[:], ns.NwkSKey)
+	copy(devAddr[:], devAct.DevAddr)
+	copy(nwkSKey[:], devAct.NwkSKey)
 
-	return &pb.GetNodeActivationResponse{
+	return &pb.GetDeviceActivationResponse{
 		DevAddr:  devAddr.String(),
-		AppSKey:  node.AppSKey.String(),
+		AppSKey:  da.AppSKey.String(),
 		NwkSKey:  nwkSKey.String(),
-		FCntUp:   ns.FCntUp,
-		FCntDown: ns.FCntDown,
+		FCntUp:   devAct.FCntUp,
+		FCntDown: devAct.FCntDown,
 	}, nil
 }
 
+// GetFrameLogs returns the uplink / downlink frame log for the given DevEUI.
 func (a *NodeAPI) GetFrameLogs(ctx context.Context, req *pb.GetFrameLogsRequest) (*pb.GetFrameLogsResponse, error) {
 	var devEUI lorawan.EUI64
 
@@ -442,28 +406,17 @@ func (a *NodeAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAddr
 	}, nil
 }
 
-func (a *NodeAPI) returnList(count int, nodes []storage.Node) (*pb.ListNodeResponse, error) {
-	resp := pb.ListNodeResponse{
+func (a *NodeAPI) returnList(count int, devices []storage.Device) (*pb.ListDeviceResponse, error) {
+	resp := pb.ListDeviceResponse{
 		TotalCount: int64(count),
 	}
-	for _, node := range nodes {
-		item := pb.GetNodeResponse{
-			Name:                   node.Name,
-			Description:            node.Description,
-			DevEUI:                 node.DevEUI.String(),
-			AppEUI:                 node.AppEUI.String(),
-			AppKey:                 node.AppKey.String(),
-			IsABP:                  node.IsABP,
-			IsClassC:               node.IsClassC,
-			RxDelay:                uint32(node.RXDelay),
-			Rx1DROffset:            uint32(node.RX1DROffset),
-			RxWindow:               pb.RXWindow(node.RXWindow),
-			Rx2DR:                  uint32(node.RX2DR),
-			RelaxFCnt:              node.RelaxFCnt,
-			AdrInterval:            node.ADRInterval,
-			InstallationMargin:     node.InstallationMargin,
-			ApplicationID:          node.ApplicationID,
-			UseApplicationSettings: node.UseApplicationSettings,
+	for _, device := range devices {
+		item := pb.GetDeviceResponse{
+			DevEUI:          device.DevEUI.String(),
+			Name:            device.Name,
+			Description:     device.Description,
+			ApplicationID:   device.ApplicationID,
+			DeviceProfileID: device.DeviceProfileID,
 		}
 
 		resp.Result = append(resp.Result, &item)

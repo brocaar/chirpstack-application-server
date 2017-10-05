@@ -27,6 +27,7 @@ func NewApplicationAPI(validator auth.Validator) *ApplicationAPI {
 	}
 }
 
+// Create creates the given application.
 func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRequest) (*pb.CreateApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateApplicationsAccess(auth.Create, req.OrganizationID),
@@ -35,18 +36,10 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 	}
 
 	app := storage.Application{
-		Name:               req.Name,
-		Description:        req.Description,
-		IsABP:              req.IsABP,
-		IsClassC:           req.IsClassC,
-		RelaxFCnt:          req.RelaxFCnt,
-		RXDelay:            uint8(req.RxDelay),
-		RX1DROffset:        uint8(req.Rx1DROffset),
-		RXWindow:           storage.RXWindow(req.RxWindow),
-		RX2DR:              uint8(req.Rx2DR),
-		ADRInterval:        req.AdrInterval,
-		InstallationMargin: req.InstallationMargin,
-		OrganizationID:     req.OrganizationID,
+		Name:             req.Name,
+		Description:      req.Description,
+		OrganizationID:   req.OrganizationID,
+		ServiceProfileID: req.ServiceProfileID,
 	}
 
 	if err := storage.CreateApplication(common.DB, &app); err != nil {
@@ -58,6 +51,7 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 	}, nil
 }
 
+// Get returns the requested application.
 func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateApplicationAccess(req.Id, auth.Read),
@@ -70,24 +64,17 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 		return nil, errToRPCError(err)
 	}
 	resp := pb.GetApplicationResponse{
-		Id:                 app.ID,
-		Name:               app.Name,
-		Description:        app.Description,
-		IsABP:              app.IsABP,
-		IsClassC:           app.IsClassC,
-		RxDelay:            uint32(app.RXDelay),
-		Rx1DROffset:        uint32(app.RX1DROffset),
-		RxWindow:           pb.RXWindow(app.RXWindow),
-		Rx2DR:              uint32(app.RX2DR),
-		RelaxFCnt:          app.RelaxFCnt,
-		AdrInterval:        app.ADRInterval,
-		InstallationMargin: app.InstallationMargin,
-		OrganizationID:     app.OrganizationID,
+		Id:               app.ID,
+		Name:             app.Name,
+		Description:      app.Description,
+		OrganizationID:   app.OrganizationID,
+		ServiceProfileID: app.ServiceProfileID,
 	}
 
 	return &resp, nil
 }
 
+// Update updates the given application.
 func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRequest) (*pb.UpdateApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateApplicationAccess(req.Id, auth.Update),
@@ -103,16 +90,8 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	// update the fields
 	app.Name = req.Name
 	app.Description = req.Description
-	app.IsABP = req.IsABP
-	app.IsClassC = req.IsClassC
-	app.RXDelay = uint8(req.RxDelay)
-	app.RX1DROffset = uint8(req.Rx1DROffset)
-	app.RXWindow = storage.RXWindow(req.RxWindow)
-	app.RX2DR = uint8(req.Rx2DR)
-	app.RelaxFCnt = req.RelaxFCnt
-	app.ADRInterval = req.AdrInterval
-	app.InstallationMargin = req.InstallationMargin
 	app.OrganizationID = req.OrganizationID
+	app.ServiceProfileID = req.ServiceProfileID
 
 	err = storage.UpdateApplication(common.DB, app)
 	if err != nil {
@@ -122,6 +101,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	return &pb.UpdateApplicationResponse{}, nil
 }
 
+// Delete deletes the given application.
 func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRequest) (*pb.DeleteApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateApplicationAccess(req.Id, auth.Delete),
@@ -136,6 +116,7 @@ func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRe
 	return &pb.DeleteApplicationResponse{}, nil
 }
 
+// List lists the available applications.
 func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationRequest) (*pb.ListApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateApplicationsAccess(auth.List, req.OrganizationID),
@@ -203,19 +184,11 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 	}
 	for _, app := range apps {
 		item := pb.GetApplicationResponse{
-			Id:                 app.ID,
-			Name:               app.Name,
-			Description:        app.Description,
-			IsABP:              app.IsABP,
-			IsClassC:           app.IsClassC,
-			RxDelay:            uint32(app.RXDelay),
-			Rx1DROffset:        uint32(app.RX1DROffset),
-			RxWindow:           pb.RXWindow(app.RXWindow),
-			Rx2DR:              uint32(app.RX2DR),
-			RelaxFCnt:          app.RelaxFCnt,
-			AdrInterval:        app.ADRInterval,
-			InstallationMargin: app.InstallationMargin,
-			OrganizationID:     app.OrganizationID,
+			Id:               app.ID,
+			Name:             app.Name,
+			Description:      app.Description,
+			OrganizationID:   app.OrganizationID,
+			ServiceProfileID: app.ServiceProfileID,
 		}
 
 		resp.Result = append(resp.Result, &item)
@@ -254,8 +227,7 @@ func (a *ApplicationAPI) ListUsers(ctx context.Context, in *pb.ListApplicationUs
 	return &pb.ListApplicationUsersResponse{TotalCount: total, Result: appUsers}, nil
 }
 
-// SetUsers sets the users for an application.  Any existing users are
-// dropped in favor of this list.
+// AddUser adds a user to an application.
 func (a *ApplicationAPI) AddUser(ctx context.Context, in *pb.AddApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateApplicationUsersAccess(in.Id, auth.Create),
@@ -292,7 +264,7 @@ func (a *ApplicationAPI) GetUser(ctx context.Context, in *pb.ApplicationUserRequ
 	return appUser, nil
 }
 
-// PutUser sets the user's access to the associated application.
+// UpdateUser sets the user's access to the associated application.
 func (a *ApplicationAPI) UpdateUser(ctx context.Context, in *pb.UpdateApplicationUserRequest) (*pb.EmptyApplicationUserResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateApplicationUserAccess(in.Id, in.UserID, auth.Update),

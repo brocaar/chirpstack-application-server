@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan"
@@ -27,50 +28,80 @@ func TestValidators(t *testing.T) {
 	}
 	test.MustResetDB(db)
 
+	nsClient := test.NewNetworkServerClient()
+	common.NetworkServer = nsClient
+
 	/*
-		Users:
-		1: global admin
-		2: admin of application 1
-		3: member of application 1
-		4: no membership
-		5: admin of application 2
-		6: member of application 2
-		7: member of application 2 (but is_active=false)
-		8: global admin (but is_active=false)
-		9: member of organization 1
-		10: admin of organization 1
-		11: member of organization 1 (but is_active=false)
-		12: admin of organization 2
+	   Users:
+	   1: global admin
+	   2: admin of application 1
+	   3: member of application 1
+	   4: no membership
+	   5: admin of application 2
+	   6: member of application 2
+	   7: member of application 2 (but is_active=false)
+	   8: global admin (but is_active=false)
+	   9: member of organization 1
+	   10: admin of organization 1
+	   11: member of organization 1 (but is_active=false)
+	   12: admin of organization 2
 
-		Organizations:
-		1: organization 1 (can have gateways)
-		2: organization 2 (can not have gateways)
+	   Organizations:
+	   1: organization 1 (can have gateways)
+	   2: organization 2 (can not have gateways)
 
-		Applications:
-		1: application 1
-		2: application 2
+	   Applications:
+	   1: application 1
+	   2: application 2
 
-		Nodes:
-		0101010101010101: application 1 node
-		0202020202020202: application 2 node
+	   Nodes:
+	   0101010101010101: application 1 node
+	   0202020202020202: application 2 node
 
-		Gateways:
-		0101010101010101: organization 1 gw
-		0202020202020202: organization 2 gw
+	   Gateways:
+	   0101010101010101: organization 1 gw
+	   0202020202020202: organization 2 gw
 	*/
+	n := storage.NetworkServer{
+		Name:   "test-ns",
+		Server: "test-ns:1234",
+	}
+	if err := storage.CreateNetworkServer(db, &n); err != nil {
+		t.Fatal(err)
+	}
+
 	organizations := []storage.Organization{
 		{Name: "organization-1", CanHaveGateways: true},
 		{Name: "organization-2", CanHaveGateways: false},
+	}
+	serviceProfiles := []storage.ServiceProfile{
+		{Name: "test-sp-1", NetworkServerID: n.ID},
+		{Name: "test-sp-2", NetworkServerID: n.ID},
 	}
 	for i := range organizations {
 		if err := storage.CreateOrganization(db, &organizations[i]); err != nil {
 			t.Fatal(err)
 		}
+
+		serviceProfiles[i].OrganizationID = organizations[i].ID
+		if err := storage.CreateServiceProfile(db, &serviceProfiles[i]); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	deviceProfiles := []storage.DeviceProfile{
+		{Name: "test-dp-1", OrganizationID: organizations[0].ID, NetworkServerID: n.ID},
+		{Name: "test-dp-2", OrganizationID: organizations[1].ID, NetworkServerID: n.ID},
+	}
+	for i := range deviceProfiles {
+		if err := storage.CreateDeviceProfile(db, &deviceProfiles[i]); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	applications := []storage.Application{
-		{OrganizationID: organizations[0].ID, Name: "application-1"},
-		{OrganizationID: organizations[1].ID, Name: "application-2"},
+		{OrganizationID: organizations[0].ID, Name: "application-1", ServiceProfileID: serviceProfiles[0].ServiceProfile.ServiceProfileID},
+		{OrganizationID: organizations[1].ID, Name: "application-2", ServiceProfileID: serviceProfiles[0].ServiceProfile.ServiceProfileID},
 	}
 	for i := range applications {
 		if err := storage.CreateApplication(db, &applications[i]); err != nil {
@@ -78,12 +109,12 @@ func TestValidators(t *testing.T) {
 		}
 	}
 
-	nodes := []storage.Node{
-		{DevEUI: lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1}, Name: "test-1", ApplicationID: applications[0].ID},
-		{DevEUI: lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2}, Name: "test-2", ApplicationID: applications[1].ID},
+	devices := []storage.Device{
+		{DevEUI: lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1}, Name: "test-1", ApplicationID: applications[0].ID, DeviceProfileID: deviceProfiles[0].DeviceProfile.DeviceProfileID},
+		{DevEUI: lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2}, Name: "test-2", ApplicationID: applications[1].ID, DeviceProfileID: deviceProfiles[1].DeviceProfile.DeviceProfileID},
 	}
-	for _, node := range nodes {
-		if err := storage.CreateNode(db, node); err != nil {
+	for _, d := range devices {
+		if err := storage.CreateDevice(db, &d); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -159,7 +190,7 @@ func TestValidators(t *testing.T) {
 		}
 	}
 
-	Convey("Given a set of test users, applications and nodes", t, func() {
+	Convey("Given a set of test users, applications and devices", t, func() {
 
 		Convey("When testing ValidateUsersAccess (DisableAssignExistingUsers=false)", func() {
 			DisableAssignExistingUsers = false
@@ -579,49 +610,49 @@ func TestValidators(t *testing.T) {
 			tests := []validatorTest{
 				{
 					Name:       "global admin users can read, update and delete",
-					Validators: []ValidatorFunc{ValidateNodeAccess(nodes[0].DevEUI, Read), ValidateNodeAccess(nodes[0].DevEUI, Update), ValidateNodeAccess(nodes[0].DevEUI, Delete)},
+					Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Read), ValidateNodeAccess(devices[0].DevEUI, Update), ValidateNodeAccess(devices[0].DevEUI, Delete)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "organization admin users can read, update and delete",
-					Validators: []ValidatorFunc{ValidateNodeAccess(nodes[0].DevEUI, Read), ValidateNodeAccess(nodes[0].DevEUI, Update), ValidateNodeAccess(nodes[0].DevEUI, Delete)},
+					Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Read), ValidateNodeAccess(devices[0].DevEUI, Update), ValidateNodeAccess(devices[0].DevEUI, Delete)},
 					Claims:     Claims{Username: "user10"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "application admin users can read, update and delete",
-					Validators: []ValidatorFunc{ValidateNodeAccess(nodes[0].DevEUI, Read), ValidateNodeAccess(nodes[0].DevEUI, Update), ValidateNodeAccess(nodes[0].DevEUI, Delete)},
+					Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Read), ValidateNodeAccess(devices[0].DevEUI, Update), ValidateNodeAccess(devices[0].DevEUI, Delete)},
 					Claims:     Claims{Username: "user2"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "organization users can read",
-					Validators: []ValidatorFunc{ValidateNodeAccess(nodes[0].DevEUI, Read)},
+					Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Read)},
 					Claims:     Claims{Username: "user9"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "application users can read",
-					Validators: []ValidatorFunc{ValidateNodeAccess(nodes[0].DevEUI, Read)},
+					Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Read)},
 					Claims:     Claims{Username: "user3"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "organization users (non-admin) can not update or delete",
-					Validators: []ValidatorFunc{ValidateNodeAccess(nodes[0].DevEUI, Update), ValidateNodeAccess(nodes[0].DevEUI, Delete)},
+					Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Update), ValidateNodeAccess(devices[0].DevEUI, Delete)},
 					Claims:     Claims{Username: "user9"},
 					ExpectedOK: false,
 				},
 				{
 					Name:       "application users (non-admin) can not update or delete",
-					Validators: []ValidatorFunc{ValidateNodeAccess(nodes[0].DevEUI, Update), ValidateNodeAccess(nodes[0].DevEUI, Delete)},
+					Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Update), ValidateNodeAccess(devices[0].DevEUI, Delete)},
 					Claims:     Claims{Username: "user3"},
 					ExpectedOK: false,
 				},
 				{
 					Name:       "other users can not read, update and delete",
-					Validators: []ValidatorFunc{ValidateNodeAccess(nodes[0].DevEUI, Read), ValidateNodeAccess(nodes[0].DevEUI, Update), ValidateNodeAccess(nodes[0].DevEUI, Delete)},
+					Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Read), ValidateNodeAccess(devices[0].DevEUI, Update), ValidateNodeAccess(devices[0].DevEUI, Delete)},
 					Claims:     Claims{Username: "user4"},
 					ExpectedOK: false,
 				},
@@ -634,19 +665,19 @@ func TestValidators(t *testing.T) {
 			tests := []validatorTest{
 				{
 					Name:       "global admin users can read, list, update and delete",
-					Validators: []ValidatorFunc{ValidateNodeQueueAccess(nodes[0].DevEUI, Create), ValidateNodeQueueAccess(nodes[0].DevEUI, Read), ValidateNodeQueueAccess(nodes[0].DevEUI, List), ValidateNodeQueueAccess(nodes[0].DevEUI, Update), ValidateNodeQueueAccess(nodes[0].DevEUI, Delete)},
+					Validators: []ValidatorFunc{ValidateNodeQueueAccess(devices[0].DevEUI, Create), ValidateNodeQueueAccess(devices[0].DevEUI, Read), ValidateNodeQueueAccess(devices[0].DevEUI, List), ValidateNodeQueueAccess(devices[0].DevEUI, Update), ValidateNodeQueueAccess(devices[0].DevEUI, Delete)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "application users can read, list, update and delete",
-					Validators: []ValidatorFunc{ValidateNodeQueueAccess(nodes[0].DevEUI, Read), ValidateNodeQueueAccess(nodes[0].DevEUI, List), ValidateNodeQueueAccess(nodes[0].DevEUI, Update), ValidateNodeQueueAccess(nodes[0].DevEUI, Delete)},
+					Validators: []ValidatorFunc{ValidateNodeQueueAccess(devices[0].DevEUI, Read), ValidateNodeQueueAccess(devices[0].DevEUI, List), ValidateNodeQueueAccess(devices[0].DevEUI, Update), ValidateNodeQueueAccess(devices[0].DevEUI, Delete)},
 					Claims:     Claims{Username: "user3"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "other users can not read, list, update and delete",
-					Validators: []ValidatorFunc{ValidateNodeQueueAccess(nodes[0].DevEUI, Create), ValidateNodeQueueAccess(nodes[0].DevEUI, Read), ValidateNodeQueueAccess(nodes[0].DevEUI, List), ValidateNodeQueueAccess(nodes[0].DevEUI, Update), ValidateNodeQueueAccess(nodes[0].DevEUI, Delete)},
+					Validators: []ValidatorFunc{ValidateNodeQueueAccess(devices[0].DevEUI, Create), ValidateNodeQueueAccess(devices[0].DevEUI, Read), ValidateNodeQueueAccess(devices[0].DevEUI, List), ValidateNodeQueueAccess(devices[0].DevEUI, Update), ValidateNodeQueueAccess(devices[0].DevEUI, Delete)},
 					Claims:     Claims{Username: "user4"},
 					ExpectedOK: false,
 				},

@@ -15,6 +15,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan"
+	"github.com/brocaar/lorawan/backend"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -32,6 +33,12 @@ func (h *testHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func TestHandler(t *testing.T) {
 	conf := test.GetConfig()
+	db, err := storage.OpenDatabase(conf.PostgresDSN)
+	if err != nil {
+		t.Fatal(err)
+	}
+	common.DB = db
+	common.RedisPool = storage.NewRedisPool(conf.RedisURL)
 
 	Convey("Given an MQTT client and handler, Redis and PostgreSQL databases and test http handler", t, func() {
 		opts := mqtt.NewClientOptions().AddBroker(conf.MQTTServer).SetUsername(conf.MQTTUsername).SetPassword(conf.MQTTPassword)
@@ -40,12 +47,10 @@ func TestHandler(t *testing.T) {
 		token.Wait()
 		So(token.Error(), ShouldBeNil)
 
-		common.RedisPool = storage.NewRedisPool(conf.RedisURL)
-		test.MustFlushRedis(common.RedisPool)
+		nsClient := test.NewNetworkServerClient()
+		common.NetworkServer = nsClient
 
-		db, err := storage.OpenDatabase(conf.PostgresDSN)
-		So(err, ShouldBeNil)
-		common.DB = db
+		test.MustFlushRedis(common.RedisPool)
 		test.MustResetDB(common.DB)
 
 		h := testHTTPHandler{
@@ -70,9 +75,24 @@ func TestHandler(t *testing.T) {
 			}
 			So(storage.CreateOrganization(db, &org), ShouldBeNil)
 
+			n := storage.NetworkServer{
+				Name:   "test-ns",
+				Server: "test-ns:1234",
+			}
+			So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+
+			sp := storage.ServiceProfile{
+				Name:            "test-sp",
+				OrganizationID:  org.ID,
+				NetworkServerID: n.ID,
+				ServiceProfile:  backend.ServiceProfile{},
+			}
+			So(storage.CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+
 			app := storage.Application{
-				OrganizationID: org.ID,
-				Name:           "test-app",
+				OrganizationID:   org.ID,
+				Name:             "test-app",
+				ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 			}
 			So(storage.CreateApplication(db, &app), ShouldBeNil)
 
@@ -91,14 +111,21 @@ func TestHandler(t *testing.T) {
 				Settings:      configJSON,
 			}), ShouldBeNil)
 
-			node := storage.Node{
-				ApplicationID: app.ID,
-				Name:          "test-node",
-				DevEUI:        lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1},
-				AppEUI:        lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2},
-				AppKey:        lorawan.AES128Key{3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3},
+			dp := storage.DeviceProfile{
+				Name:            "test-dp",
+				OrganizationID:  org.ID,
+				NetworkServerID: n.ID,
+				DeviceProfile:   backend.DeviceProfile{},
 			}
-			So(storage.CreateNode(db, node), ShouldBeNil)
+			So(storage.CreateDeviceProfile(common.DB, &dp), ShouldBeNil)
+
+			device := storage.Device{
+				ApplicationID:   app.ID,
+				Name:            "test-node",
+				DevEUI:          lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1},
+				DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+			}
+			So(storage.CreateDevice(db, &device), ShouldBeNil)
 
 			Convey("Getting the multi-handler for the created application", func() {
 				multiHandler := NewHandler(mqttHandler)
@@ -107,7 +134,7 @@ func TestHandler(t *testing.T) {
 				Convey("Calling SendDataUp", func() {
 					So(multiHandler.SendDataUp(handler.DataUpPayload{
 						ApplicationID: app.ID,
-						DevEUI:        node.DevEUI,
+						DevEUI:        device.DevEUI,
 					}), ShouldBeNil)
 
 					Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
@@ -124,7 +151,7 @@ func TestHandler(t *testing.T) {
 				Convey("Calling SendJoinNotification", func() {
 					So(multiHandler.SendJoinNotification(handler.JoinNotification{
 						ApplicationID: app.ID,
-						DevEUI:        node.DevEUI,
+						DevEUI:        device.DevEUI,
 					}), ShouldBeNil)
 
 					Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
@@ -141,7 +168,7 @@ func TestHandler(t *testing.T) {
 				Convey("Calling SendACKNotification", func() {
 					So(multiHandler.SendACKNotification(handler.ACKNotification{
 						ApplicationID: app.ID,
-						DevEUI:        node.DevEUI,
+						DevEUI:        device.DevEUI,
 					}), ShouldBeNil)
 
 					Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
@@ -158,7 +185,7 @@ func TestHandler(t *testing.T) {
 				Convey("Calling SendErrorNotification", func() {
 					So(multiHandler.SendErrorNotification(handler.ErrorNotification{
 						ApplicationID: app.ID,
-						DevEUI:        node.DevEUI,
+						DevEUI:        device.DevEUI,
 					}), ShouldBeNil)
 
 					Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {

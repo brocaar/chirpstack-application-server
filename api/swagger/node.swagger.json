@@ -15,15 +15,15 @@
     "application/json"
   ],
   "paths": {
-    "/api/applications/{applicationID}/nodes": {
+    "/api/applications/{applicationID}/devices": {
       "get": {
-        "summary": "ListByApplicationID lists the nodes by the given application ID, sorted by the name of the node.",
+        "summary": "ListByApplicationID lists the devices by the given application ID, sorted by the name of the device.",
         "operationId": "ListByApplicationID",
         "responses": {
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiListNodeResponse"
+              "$ref": "#/definitions/apiListDeviceResponse"
             }
           }
         },
@@ -37,7 +37,7 @@
           },
           {
             "name": "limit",
-            "description": "Max number of nodes to return in the result-set.",
+            "description": "Max number of devices to return in the result-set.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -60,19 +60,19 @@
           }
         ],
         "tags": [
-          "Node"
+          "Device"
         ]
       }
     },
-    "/api/nodes": {
+    "/api/devices": {
       "post": {
-        "summary": "Create creates the given node.",
+        "summary": "Create creates the given device.",
         "operationId": "Create",
         "responses": {
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiCreateNodeResponse"
+              "$ref": "#/definitions/apiCreateDeviceResponse"
             }
           }
         },
@@ -82,16 +82,16 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiCreateNodeRequest"
+              "$ref": "#/definitions/apiCreateDeviceRequest"
             }
           }
         ],
         "tags": [
-          "Node"
+          "Device"
         ]
       }
     },
-    "/api/nodes/getRandomDevAddr": {
+    "/api/devices/getRandomDevAddr": {
       "post": {
         "summary": "GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.",
         "operationId": "GetRandomDevAddr",
@@ -104,19 +104,19 @@
           }
         },
         "tags": [
-          "Node"
+          "Device"
         ]
       }
     },
-    "/api/nodes/{devEUI}": {
+    "/api/devices/{devEUI}": {
       "get": {
-        "summary": "Get returns the node for the requested DevEUI.",
+        "summary": "Get returns the device matching the given DevEUI.",
         "operationId": "Get",
         "responses": {
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiGetNodeResponse"
+              "$ref": "#/definitions/apiGetDeviceResponse"
             }
           }
         },
@@ -129,17 +129,17 @@
           }
         ],
         "tags": [
-          "Node"
+          "Device"
         ]
       },
       "delete": {
-        "summary": "Delete deletes the node matching the given DevEUI.",
+        "summary": "Delete deletes the device matching the given DevEUI.",
         "operationId": "Delete",
         "responses": {
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiDeleteNodeResponse"
+              "$ref": "#/definitions/apiDeleteDeviceResponse"
             }
           }
         },
@@ -152,17 +152,17 @@
           }
         ],
         "tags": [
-          "Node"
+          "Device"
         ]
       },
       "put": {
-        "summary": "Update updates the node matching the given DevEUI.",
+        "summary": "Update updates the device matching the given DevEUI.",
         "operationId": "Update",
         "responses": {
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiUpdateNodeResponse"
+              "$ref": "#/definitions/apiUpdateDeviceResponse"
             }
           }
         },
@@ -178,24 +178,24 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiUpdateNodeRequest"
+              "$ref": "#/definitions/apiUpdateDeviceRequest"
             }
           }
         ],
         "tags": [
-          "Node"
+          "Device"
         ]
       }
     },
-    "/api/nodes/{devEUI}/activation": {
+    "/api/devices/{devEUI}/activation": {
       "get": {
-        "summary": "GetActivation returns the current activation details of the node (OTAA and ABP).",
+        "summary": "GetActivation returns the current activation details of the device (OTAA and ABP).",
         "operationId": "GetActivation",
         "responses": {
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiGetNodeActivationResponse"
+              "$ref": "#/definitions/apiGetDeviceActivationResponse"
             }
           }
         },
@@ -208,17 +208,17 @@
           }
         ],
         "tags": [
-          "Node"
+          "Device"
         ]
       },
       "post": {
-        "summary": "Activate (re)activates the node (only when ABP is set to true).",
+        "summary": "Activate (re)activates the device (only when ABP is set to true).",
         "operationId": "Activate",
         "responses": {
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiActivateNodeResponse"
+              "$ref": "#/definitions/apiActivateDeviceResponse"
             }
           }
         },
@@ -234,16 +234,126 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiActivateNodeRequest"
+              "$ref": "#/definitions/apiActivateDeviceRequest"
             }
           }
         ],
         "tags": [
-          "Node"
+          "Device"
         ]
       }
     },
-    "/api/nodes/{devEUI}/frames": {
+    "/api/devices/{devEUI}/credentials": {
+      "get": {
+        "summary": "GetCredentials returns the device-credentials for the given DevEUI.",
+        "operationId": "GetCredentials",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetDeviceCredentialsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Device"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteCredentials deletes the device-credentials for the given DevEUI.",
+        "operationId": "DeleteCredentials",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiDeleteDeviceCredentialsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Device"
+        ]
+      },
+      "post": {
+        "summary": "CreateCredentials creates the given device-credentials.",
+        "operationId": "CreateCredentials",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiCreateDeviceCredentialsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateDeviceCredentialsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Device"
+        ]
+      },
+      "put": {
+        "summary": "UpdateCredentials updates the device-credentials.",
+        "operationId": "UpdateCredentials",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiUpdateDeviceCredentialsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateDeviceCredentialsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Device"
+        ]
+      }
+    },
+    "/api/devices/{devEUI}/frames": {
       "get": {
         "summary": "GetFrameLogs returns the uplink / downlink frame log for the given DevEUI.",
         "operationId": "GetFrameLogs",
@@ -280,18 +390,18 @@
           }
         ],
         "tags": [
-          "Node"
+          "Device"
         ]
       }
     }
   },
   "definitions": {
-    "apiActivateNodeRequest": {
+    "apiActivateDeviceRequest": {
       "type": "object",
       "properties": {
         "devEUI": {
           "type": "string",
-          "description": "Hex encoded DevEUI of the node to activate."
+          "description": "Hex encoded DevEUI of the device to activate."
         },
         "devAddr": {
           "type": "string",
@@ -317,89 +427,51 @@
         }
       }
     },
-    "apiActivateNodeResponse": {
+    "apiActivateDeviceResponse": {
       "type": "object"
     },
-    "apiCreateNodeRequest": {
+    "apiCreateDeviceCredentialsRequest": {
+      "type": "object",
+      "properties": {
+        "devEUI": {
+          "type": "string",
+          "description": "Hex encoded DevEUI of the device."
+        },
+        "deviceCredentials": {
+          "$ref": "#/definitions/apiDeviceCredentials"
+        }
+      }
+    },
+    "apiCreateDeviceCredentialsResponse": {
+      "type": "object"
+    },
+    "apiCreateDeviceRequest": {
       "type": "object",
       "properties": {
         "devEUI": {
           "type": "string",
           "description": "Hex encoded DevEUI."
         },
-        "appEUI": {
-          "type": "string",
-          "description": "Hex encoded AppEUI."
-        },
-        "appKey": {
-          "type": "string",
-          "description": "Hex encoded AppKey. When isABP is set to true, this field is not needed."
-        },
-        "rxDelay": {
-          "type": "integer",
-          "format": "int64",
-          "description": "RX delay."
-        },
-        "rx1DROffset": {
-          "type": "integer",
-          "format": "int64",
-          "description": "RX1 data-rate offset."
-        },
-        "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow",
-          "description": "RX window to use."
-        },
-        "rx2DR": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Data-rate to use for RX2."
-        },
         "name": {
           "type": "string",
-          "description": "Name of the node (if left blank, it will be set to the DevEUI)."
-        },
-        "relaxFCnt": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Relax frame-counter mode is enabled."
-        },
-        "adrInterval": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled)."
-        },
-        "installationMargin": {
-          "type": "number",
-          "format": "double",
-          "description": "Installation-margin to use for ADR calculation."
+          "description": "Name of the device (if left blank, it will be set to the DevEUI)."
         },
         "applicationID": {
           "type": "string",
           "format": "int64",
-          "description": "ID of the application to which the node must be added."
+          "description": "ID of the application to which the device must be added."
         },
         "description": {
           "type": "string",
-          "description": "Description of the node."
+          "description": "Description of the device."
         },
-        "isABP": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Node is activated by ABP."
-        },
-        "isClassC": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Node operates in Class-C."
-        },
-        "useApplicationSettings": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "When set to true, the application settings will be used to populate the node network settings."
+        "deviceProfileID": {
+          "type": "string",
+          "description": "DeviceProfileID attached to the device."
         }
       }
     },
-    "apiCreateNodeResponse": {
+    "apiCreateDeviceResponse": {
       "type": "object"
     },
     "apiDataRate": {
@@ -422,8 +494,20 @@
         }
       }
     },
-    "apiDeleteNodeResponse": {
+    "apiDeleteDeviceCredentialsResponse": {
       "type": "object"
+    },
+    "apiDeleteDeviceResponse": {
+      "type": "object"
+    },
+    "apiDeviceCredentials": {
+      "type": "object",
+      "properties": {
+        "appKey": {
+          "type": "string",
+          "description": "HEX encoded application key."
+        }
+      }
     },
     "apiFrameLog": {
       "type": "object",
@@ -449,24 +533,7 @@
         }
       }
     },
-    "apiGetFrameLogsResponse": {
-      "type": "object",
-      "properties": {
-        "totalCount": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Total number of logs."
-        },
-        "result": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiFrameLog"
-          },
-          "description": "The result-set."
-        }
-      }
-    },
-    "apiGetNodeActivationResponse": {
+    "apiGetDeviceActivationResponse": {
       "type": "object",
       "properties": {
         "devAddr": {
@@ -493,82 +560,54 @@
         }
       }
     },
-    "apiGetNodeResponse": {
+    "apiGetDeviceCredentialsResponse": {
+      "type": "object",
+      "properties": {
+        "deviceCredentials": {
+          "$ref": "#/definitions/apiDeviceCredentials"
+        }
+      }
+    },
+    "apiGetDeviceResponse": {
       "type": "object",
       "properties": {
         "devEUI": {
           "type": "string",
           "description": "Hex encoded DevEUI."
         },
-        "appEUI": {
-          "type": "string",
-          "description": "Hex encoded AppEUI."
-        },
-        "appKey": {
-          "type": "string",
-          "description": "Hex encoded AppKey."
-        },
-        "rxDelay": {
-          "type": "integer",
-          "format": "int64",
-          "description": "RX delay."
-        },
-        "rx1DROffset": {
-          "type": "integer",
-          "format": "int64",
-          "description": "RX1 data-rate offset."
-        },
-        "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow",
-          "description": "RX window to use."
-        },
-        "rx2DR": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Data-rate to use for RX2."
-        },
         "name": {
           "type": "string",
-          "description": "Name of the node."
-        },
-        "relaxFCnt": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Relax frame-counter mode is enabled."
-        },
-        "adrInterval": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled)."
-        },
-        "installationMargin": {
-          "type": "number",
-          "format": "double",
-          "description": "Installation-margin to use for ADR calculation."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the node."
-        },
-        "isABP": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Node is activated by ABP."
+          "description": "Name of the device (if left blank, it will be set to the DevEUI)."
         },
         "applicationID": {
           "type": "string",
           "format": "int64",
-          "description": "ID of the application owning the node."
+          "description": "ID of the application to which the device must be added."
         },
-        "isClassC": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Node operates in Class-C."
+        "description": {
+          "type": "string",
+          "description": "Description of the device."
         },
-        "useApplicationSettings": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "When set to true, the application settings will be used to populate the node network settings."
+        "deviceProfileID": {
+          "type": "string",
+          "description": "DeviceProfileID attached to the device."
+        }
+      }
+    },
+    "apiGetFrameLogsResponse": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Total number of logs."
+        },
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiFrameLog"
+          },
+          "description": "The result-set."
         }
       }
     },
@@ -581,20 +620,20 @@
         }
       }
     },
-    "apiListNodeResponse": {
+    "apiListDeviceResponse": {
       "type": "object",
       "properties": {
         "totalCount": {
           "type": "string",
           "format": "int64",
-          "description": "Total number of nodes available within the result-set."
+          "description": "Total number of devices available within the result-set."
         },
         "result": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiGetNodeResponse"
+            "$ref": "#/definitions/apiGetDeviceResponse"
           },
-          "description": "Nodes within this result-set."
+          "description": "Devices within this result-set."
         }
       }
     },
@@ -644,14 +683,6 @@
         }
       }
     },
-    "apiRXWindow": {
-      "type": "string",
-      "enum": [
-        "RX1",
-        "RX2"
-      ],
-      "default": "RX1"
-    },
     "apiTXInfo": {
       "type": "object",
       "properties": {
@@ -689,86 +720,48 @@
         }
       }
     },
-    "apiUpdateNodeRequest": {
+    "apiUpdateDeviceCredentialsRequest": {
       "type": "object",
       "properties": {
         "devEUI": {
           "type": "string",
-          "description": "Hex encoded DevEUI of the node to update."
+          "description": "Hex encoded DevEUI of the device."
         },
-        "appEUI": {
+        "deviceCredentials": {
+          "$ref": "#/definitions/apiDeviceCredentials"
+        }
+      }
+    },
+    "apiUpdateDeviceCredentialsResponse": {
+      "type": "object"
+    },
+    "apiUpdateDeviceRequest": {
+      "type": "object",
+      "properties": {
+        "devEUI": {
           "type": "string",
-          "description": "Hex encoded AppEUI."
-        },
-        "appKey": {
-          "type": "string",
-          "description": "Hex encoded AppKey."
-        },
-        "rxDelay": {
-          "type": "integer",
-          "format": "int64",
-          "description": "RX delay."
-        },
-        "rx1DROffset": {
-          "type": "integer",
-          "format": "int64",
-          "description": "RX1 data-rate offset."
-        },
-        "rxWindow": {
-          "$ref": "#/definitions/apiRXWindow",
-          "description": "RX window to use."
-        },
-        "rx2DR": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Data-rate to use for RX2."
+          "description": "Hex encoded DevEUI."
         },
         "name": {
           "type": "string",
-          "title": "Name of the node (note that renaming the node affects its api endpoint)"
-        },
-        "relaxFCnt": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Relax frame-counter mode is enabled."
-        },
-        "adrInterval": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Interval (in frames) in which the ADR engine may adapt the data-rate of the node (0 = disabled)."
-        },
-        "installationMargin": {
-          "type": "number",
-          "format": "double",
-          "description": "Installation-margin to use for ADR calculation."
+          "description": "Name of the device (if left blank, it will be set to the DevEUI)."
         },
         "applicationID": {
           "type": "string",
           "format": "int64",
-          "description": "ID of the application owning the node."
+          "description": "ID of the application to which the device must be added."
         },
         "description": {
           "type": "string",
-          "description": "Description of the node."
+          "description": "Description of the device."
         },
-        "isABP": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Node is activated by ABP."
-        },
-        "isClassC": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Node operates in Class-C."
-        },
-        "useApplicationSettings": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "When set to true, the application settings will be used to populate the node network settings."
+        "deviceProfileID": {
+          "type": "string",
+          "description": "DeviceProfileID attached to the device."
         }
       }
     },
-    "apiUpdateNodeResponse": {
+    "apiUpdateDeviceResponse": {
       "type": "object"
     }
   }

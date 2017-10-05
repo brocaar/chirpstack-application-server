@@ -12,6 +12,7 @@ It is generated from these files:
 	user.proto
 	gateway.proto
 	organization.proto
+	networkServer.proto
 
 It has these top-level messages:
 	DeviceCredentials
@@ -151,6 +152,16 @@ It has these top-level messages:
 	GetOrganizationUserRequest
 	GetOrganizationUserResponse
 	ListOrganizationUsersResponse
+	CreateNetworkServerRequest
+	CreateNetworkServerResponse
+	GetNetworkServerRequest
+	GetNetworkServerResponse
+	UpdateNetworkServerRequest
+	UpdateNetworkServerResponse
+	DeleteNetworkServerRequest
+	DeleteNetworkServerResponse
+	ListNetworkServerRequest
+	ListNetworkServerResponse
 */
 package api
 

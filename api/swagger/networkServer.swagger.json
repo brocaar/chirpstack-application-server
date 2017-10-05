@@ -1,0 +1,253 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "networkServer.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/network-servers": {
+      "get": {
+        "summary": "List lists the available network-servers.",
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListNetworkServerResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "Max number of items to return.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset",
+            "description": "Offset in the result-set (for pagination).",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "NetworkServer"
+        ]
+      },
+      "post": {
+        "summary": "Create creates the given network-server.",
+        "operationId": "Create",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiCreateNetworkServerResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateNetworkServerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "NetworkServer"
+        ]
+      }
+    },
+    "/api/network-servers/{id}": {
+      "get": {
+        "summary": "Get returns the network-server matching the given id.",
+        "operationId": "Get",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetNetworkServerResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "NetworkServer"
+        ]
+      },
+      "delete": {
+        "summary": "Delete deletes the network-server matching the given id.",
+        "operationId": "Delete",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiDeleteNetworkServerResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "NetworkServer"
+        ]
+      },
+      "put": {
+        "summary": "Update updates the given network-server.",
+        "operationId": "Update",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiUpdateNetworkServerResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateNetworkServerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "NetworkServer"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiCreateNetworkServerRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the network-server."
+        },
+        "server": {
+          "type": "string",
+          "description": "hostname:ip of the network-server."
+        }
+      }
+    },
+    "apiCreateNetworkServerResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the network-server."
+        }
+      }
+    },
+    "apiDeleteNetworkServerResponse": {
+      "type": "object"
+    },
+    "apiGetNetworkServerResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the network-server."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the record was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the record was last updated."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the network-server."
+        },
+        "server": {
+          "type": "string",
+          "description": "hostname:ip of the network-server."
+        }
+      }
+    },
+    "apiListNetworkServerResponse": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "string",
+          "format": "int64",
+          "description": "Total number of network-servers."
+        },
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGetNetworkServerResponse"
+          },
+          "description": "Network-servers within the result-set."
+        }
+      }
+    },
+    "apiUpdateNetworkServerRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the network-server."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the network-server."
+        },
+        "server": {
+          "type": "string",
+          "description": "hostname:ip of the network-server."
+        }
+      }
+    },
+    "apiUpdateNetworkServerResponse": {
+      "type": "object"
+    }
+  }
+}

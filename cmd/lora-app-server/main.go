@@ -253,6 +253,7 @@ func startClientAPI(ctx context.Context) func(*cli.Context) error {
 		pb.RegisterInternalServer(clientAPIHandler, api.NewInternalUserAPI(validator, c))
 		pb.RegisterGatewayServer(clientAPIHandler, api.NewGatewayAPI(validator))
 		pb.RegisterOrganizationServer(clientAPIHandler, api.NewOrganizationAPI(validator))
+		pb.RegisterNetworkServerServer(clientAPIHandler, api.NewNetworkServerAPI(validator))
 
 		// setup the client http interface variable
 		// we need to start the gRPC service first, as it is used by the
@@ -394,6 +395,9 @@ func getJSONGateway(ctx context.Context, c *cli.Context) (http.Handler, error) {
 	}
 	if err := pb.RegisterOrganizationHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register organization handler error")
+	}
+	if err := pb.RegisterNetworkServerHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+		return nil, errors.Wrap(err, "register network-server handler error")
 	}
 
 	return mux, nil

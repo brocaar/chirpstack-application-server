@@ -125,3 +125,32 @@ func DeleteNetworkServer(db sqlx.Execer, id int64) error {
 	log.WithField("id", id).Info("network-server deleted")
 	return nil
 }
+
+// GetNetworkServerCount returns the total number of network-servers.
+func GetNetworkServerCount(db sqlx.Queryer) (int, error) {
+	var count int
+	err := sqlx.Get(db, &count, "select count(*) from network_server")
+	if err != nil {
+		return 0, handlePSQLError(err, "select error")
+	}
+
+	return count, nil
+}
+
+// GetNetworkServers returns a slice of network-servers.
+func GetNetworkServers(db sqlx.Queryer, limit, offset int) ([]NetworkServer, error) {
+	var nss []NetworkServer
+	err := sqlx.Select(db, &nss, `
+		select *
+		from network_server
+		order by name
+		limit $1 offset $2`,
+		limit,
+		offset,
+	)
+	if err != nil {
+		return nil, handlePSQLError(err, "select error")
+	}
+
+	return nss, nil
+}

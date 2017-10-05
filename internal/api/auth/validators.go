@@ -578,6 +578,40 @@ func ValidateChannelConfigurationAccess(flag Flag) ValidatorFunc {
 	}
 }
 
+// ValidateNetworkServersAccess validates if the client has access to the
+// network-servers.
+func ValidateNetworkServersAccess(flag Flag) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Create, List:
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+		}
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username)
+	}
+}
+
+// ValidateNetworkServerAccess validates if the client has access to the
+// given network-server.
+func ValidateNetworkServerAccess(flag Flag, id int64) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Read, Update, Delete:
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+		}
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username)
+	}
+}
+
 func executeQuery(db *sqlx.DB, query string, where [][]string, args ...interface{}) (bool, error) {
 	var ors []string
 	for _, ands := range where {

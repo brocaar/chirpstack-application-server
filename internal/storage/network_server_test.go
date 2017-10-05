@@ -43,6 +43,18 @@ func TestNetworkServer(t *testing.T) {
 				So(nsGet, ShouldResemble, ns)
 			})
 
+			Convey("Then GetNetworkServerCount returns 1", func() {
+				count, err := GetNetworkServerCount(db)
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 1)
+			})
+
+			Convey("Then GetNetworkServers returns a single item", func() {
+				items, err := GetNetworkServers(db, 10, 0)
+				So(err, ShouldBeNil)
+				So(items, ShouldHaveLength, 1)
+			})
+
 			Convey("Then UpdateNetworkServer updates the network-server", func() {
 				ns.Name = "new-nw-server"
 				ns.Server = "new-nw-server:123"

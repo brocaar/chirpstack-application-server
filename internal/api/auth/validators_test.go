@@ -1044,6 +1044,25 @@ func TestValidators(t *testing.T) {
 
 			runTests(tests, db)
 		})
+
+		Convey("When testing ValidateNetworkServersAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can create read, update, delete and list",
+					Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create), ValidateNetworkServerAccess(Read, n.ID), ValidateNetworkServerAccess(Update, n.ID), ValidateNetworkServerAccess(Update, n.ID), ValidateNetworkServerAccess(Delete, n.ID), ValidateNetworkServersAccess(List)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "regular users can not create, read, update, delete and list",
+					Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create), ValidateNetworkServerAccess(Read, n.ID), ValidateNetworkServerAccess(Update, n.ID), ValidateNetworkServerAccess(Update, n.ID), ValidateNetworkServerAccess(Delete, n.ID), ValidateNetworkServersAccess(List)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
 	})
 }
 

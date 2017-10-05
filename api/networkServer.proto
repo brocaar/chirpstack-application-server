@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package api;
+
+// for grpc-gateway
+import "google/api/annotations.proto";
+
+// NetworkServerService is the service managing network-servers.
+service NetworkServer {
+    // Create creates the given network-server.
+    rpc Create(CreateNetworkServerRequest) returns (CreateNetworkServerResponse) {
+        option(google.api.http) = {
+            post: "/api/network-servers"
+            body: "*"
+        };
+    }
+
+    // Get returns the network-server matching the given id.
+    rpc Get(GetNetworkServerRequest) returns (GetNetworkServerResponse) {
+        option(google.api.http) = {
+            get: "/api/network-servers/{id}"
+        };
+    }
+
+    // Update updates the given network-server.
+    rpc Update(UpdateNetworkServerRequest) returns (UpdateNetworkServerResponse) {
+        option(google.api.http) = {
+            put: "/api/network-servers/{id}"
+            body: "*"
+        };
+    }
+
+    // Delete deletes the network-server matching the given id.
+    rpc Delete(DeleteNetworkServerRequest) returns (DeleteNetworkServerResponse) {
+        option(google.api.http) = {
+            delete: "/api/network-servers/{id}"
+        };
+    };
+
+    // List lists the available network-servers.
+    rpc List(ListNetworkServerRequest) returns (ListNetworkServerResponse) {
+        option(google.api.http) = {
+            get: "/api/network-servers"
+        };
+    }
+}
+
+message CreateNetworkServerRequest {
+    // Name of the network-server.
+    string name = 1;
+
+    // hostname:ip of the network-server.
+    string server = 2;
+}
+
+message CreateNetworkServerResponse {
+    // ID of the network-server.
+    int64 id = 1;
+}
+
+message GetNetworkServerRequest {
+    // ID of the network-server.
+    int64 id = 1;
+}
+
+message GetNetworkServerResponse {
+    // ID of the network-server.
+    int64 id = 1;
+
+    // Timestamp when the record was created.
+    string createdAt = 2;
+
+    // Timestamp when the record was last updated.
+    string updatedAt = 3;
+
+    // Name of the network-server.
+    string name = 4;
+
+    // hostname:ip of the network-server.
+    string server = 5;
+}
+
+message UpdateNetworkServerRequest {
+    // ID of the network-server.
+    int64 id = 1;
+
+    // Name of the network-server.
+    string name = 2;
+
+    // hostname:ip of the network-server.
+    string server = 3;
+}
+
+message UpdateNetworkServerResponse {}
+
+message DeleteNetworkServerRequest {
+    // ID of the network-server.
+    int64 id = 1;
+}
+
+message DeleteNetworkServerResponse {}
+
+message ListNetworkServerRequest {
+    // Max number of items to return.
+    int64 limit = 1;
+
+    // Offset in the result-set (for pagination).
+    int64 offset = 2;
+}
+
+message ListNetworkServerResponse {
+    // Total number of network-servers.
+    int64 totalCount = 1;
+
+    // Network-servers within the result-set.
+    repeated GetNetworkServerResponse result = 2;
+}

@@ -8,8 +8,8 @@ menu:
 
 ## LoRa App Server
 
-LoRa App Server is an open-source LoRaWAN application-server, compatible
-with [LoRa Server](https://github.com/brocaar/loraserver). It is responsible
+LoRa App Server is an open-source LoRaWAN application-server, part of the
+[LoRa Server](https://docs.loraserver.io/) project. It is responsible
 for the node "inventory" part of a LoRaWAN infrastructure, handling of received
 application payloads and the downlink application payload queue. It comes
 with a web-interface and API (RESTful JSON and gRPC) and supports authorization

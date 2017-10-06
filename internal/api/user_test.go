@@ -18,24 +18,24 @@ func TestUserAPI(t *testing.T) {
 	Convey("Given a clean database and api instance", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
-		test.MustResetDB(db)
+		common.DB = db
+		test.MustResetDB(common.DB)
 
 		ctx := context.Background()
-		lsCtx := common.Context{DB: db}
 		validator := &TestValidator{}
-		api := NewUserAPI(lsCtx, validator)
-		apiInternal := NewInternalUserAPI(lsCtx, validator)
+		api := NewUserAPI(validator)
+		apiInternal := NewInternalUserAPI(validator)
 
 		Convey("When creating an user assigned to an application", func() {
 			org := storage.Organization{
 				Name: "test-org",
 			}
-			So(storage.CreateOrganization(db, &org), ShouldBeNil)
+			So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
 			app := storage.Application{
 				Name:           "test-app",
 				OrganizationID: org.ID,
 			}
-			So(storage.CreateApplication(db, &app), ShouldBeNil)
+			So(storage.CreateApplication(common.DB, &app), ShouldBeNil)
 
 			createReq := pb.AddUserRequest{
 				Username: "testuser",
@@ -48,7 +48,7 @@ func TestUserAPI(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(createResp.Id, ShouldBeGreaterThan, 0)
 
-			users, err := storage.GetApplicationUsers(db, app.ID, 10, 0)
+			users, err := storage.GetApplicationUsers(common.DB, app.ID, 10, 0)
 			So(err, ShouldBeNil)
 			So(users, ShouldHaveLength, 1)
 			So(users[0].UserID, ShouldEqual, createResp.Id)
@@ -59,7 +59,7 @@ func TestUserAPI(t *testing.T) {
 			org := storage.Organization{
 				Name: "test-org",
 			}
-			So(storage.CreateOrganization(db, &org), ShouldBeNil)
+			So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
 
 			createReq := pb.AddUserRequest{
 				Username: "testuser",
@@ -72,7 +72,7 @@ func TestUserAPI(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(createResp.Id, ShouldBeGreaterThan, 0)
 
-			users, err := storage.GetOrganizationUsers(db, org.ID, 10, 0)
+			users, err := storage.GetOrganizationUsers(common.DB, org.ID, 10, 0)
 			So(err, ShouldBeNil)
 			So(users, ShouldHaveLength, 1)
 			So(users[0].UserID, ShouldEqual, createResp.Id)

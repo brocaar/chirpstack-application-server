@@ -128,6 +128,56 @@ class ApplicationStore extends EventEmitter {
       })
       .catch(errorHandler);
   }
+
+  createHTTPIntegration(applicationID, integration, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/integrations/http", {method: "POST", body: JSON.stringify(integration), headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  getHTTPIntegration(applicationID, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/integrations/http", {headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  updateHTTPIntegration(applicationID, integration, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/integrations/http", {method: "PUT", body: JSON.stringify(integration), headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  deleteHTTPIntegration(applicationID, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/integrations/http", {method: "DELETE", headers: sessionStore.getHeader()}) 
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  listIntegrations(applicationID, callbackFunc) {
+    fetch("/api/applications/"+applicationID+"/integrations", {headers: sessionStore.getHeader()}) 
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
 }
 
 const applicationStore = new ApplicationStore();

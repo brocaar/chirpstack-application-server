@@ -28,8 +28,8 @@ class GatewayToken extends Component {
       <div className="panel panel-default">
         <div className="panel-body">
           <p>
-            In order to grant <Link to="https://docs.loraserver.io/lora-gateway-config/overview/">LoRa Gateway Config</Link> access
-            to the gateway API provided by <Link to="https://docs.loraserver.io/loraserver/">LoRa Server</Link>, a token must be generated.
+            In order to grant <Link href="https://docs.loraserver.io/lora-gateway-config/overview/">LoRa Gateway Config</Link> access
+            to the gateway API provided by <Link href="https://docs.loraserver.io/loraserver/">LoRa Server</Link>, a token must be generated.
             Note that this token is specific to this gateway. Generating a new token does not invalidate a previous
             generated token.
           </p>

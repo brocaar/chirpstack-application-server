@@ -11,7 +11,7 @@ menu:
 To list all configuration options, start `lora-app-server` with the `--help`
 flag. This will display:
 
-```
+```text
 GLOBAL OPTIONS:
    --postgres-dsn value             postgresql dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable) (default: "postgres://localhost/loraserver?sslmode=disable") [$POSTGRES_DSN]
    --db-automigrate                 automatically apply database migrations [$DB_AUTOMIGRATE]
@@ -35,6 +35,10 @@ GLOBAL OPTIONS:
    --pw-hash-iterations value       the number of iterations used to generate the password hash (default: 100000) [$PW_HASH_ITERATIONS]
    --log-level value                debug=5, info=4, warning=3, error=2, fatal=1, panic=0 (default: 4) [$LOG_LEVEL]
    --disable-assign-existing-users  when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin) [$DISABLE_ASSIGN_EXISTING_USERS]
+   --gw-ping                        enable sending gateway pings [$GW_PING]
+   --gw-ping-interval value         the interval used for each gateway to send a ping (default: 24h0m0s) [$GW_PING_INTERVAL]
+   --gw-ping-frequency value        the frequency used for transmitting the gateway ping (in Hz) (default: 0) [$GW_PING_FREQUENCY]
+   --gw-ping-dr value               the data-rate to use for transmitting the gateway ping (default: 0) [$GW_PING_DR]
    --help, -h                       show help
    --version, -v                    print the version
 ```
@@ -110,3 +114,9 @@ instructions. When the `letsencrypt` cli tool has been installed, execute:
 letsencrypt certonly --standalone -d DOMAINNAME.HERE 
 ```
 
+### Gateway discovery
+
+By configuring the `--gw-ping` / `GW_PING` settings LoRa App Server will
+emit periodical gateway pings to test the coverage of each gateway. Make sure
+that the `--gw-ping-frequency` / `GW_PING_FREQUENCY` setting is set to a
+frequency that is part of the channel-plan of the other receiving gateways.

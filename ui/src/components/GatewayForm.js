@@ -44,6 +44,8 @@ class GatewayForm extends Component {
 
     if (e.target.type === "number") {
       gateway[field] = parseFloat(e.target.value);
+    } else if (e.target.type === "checkbox") {
+      gateway[field] = e.target.checked;
     } else {
       gateway[field] = e.target.value;
     }
@@ -229,6 +231,9 @@ class GatewayForm extends Component {
           <div className="form-group">
             <label className="control-label" htmlFor="mac">MAC address</label>
             <input className="form-control" id="mac" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required disabled={this.state.macDisabled} value={this.state.gateway.mac || ''} onChange={this.onChange.bind(this, 'mac')} /> 
+            <p className="help-block">
+              Enter the gateway MAC address as configured in the packet-forwarder configuration on the gateway.
+            </p>
           </div>
           <div className={"form-group " + (this.state.isGlobalAdmin && this.props.update ? '' : 'hidden')}>
             <label className="control-label" htmlFor="organization">Organization</label>
@@ -256,7 +261,13 @@ class GatewayForm extends Component {
             <p className="help-block">An optional channel-configuration can be assigned to a gateway. This configuration can be used to automatically re-configure the gateway (in the future).</p>
           </div>
           <div className="form-group">
-            <label className="control-label" htmlFor="altitude">Gateway altitude</label>
+            <label className="control-label" htmlFor="ping">
+              <input type="checkbox" name="ping" id="ping" checked={this.state.gateway.ping} onChange={this.onChange.bind(this, 'ping')} /> Discovery enabled
+            </label>
+            <p className="help-block">When enabled (and LoRa App Server is configured with the gateway discover feature enabled), the gateway will send out periodical pings to test its coverage by other gateways in the same network.</p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="altitude">Gateway altitude (meters)</label>
             <input className="form-control" id="altitude" type="number" value={this.state.gateway.altitude || 0} onChange={this.onChange.bind(this, 'altitude')} />
             <p className="help-block">When the gateway has an on-board GPS, this value will be set automatically when the network received statistics from the gateway.</p>
           </div>

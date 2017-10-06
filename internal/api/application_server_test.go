@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brocaar/lora-app-server/internal/gwping"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
@@ -20,22 +22,26 @@ import (
 
 func TestApplicationServerAPI(t *testing.T) {
 	conf := test.GetConfig()
+	db, err := storage.OpenDatabase(conf.PostgresDSN)
+	if err != nil {
+		t.Fatal(err)
+	}
+	common.DB = db
+	common.RedisPool = storage.NewRedisPool(conf.RedisURL)
 
-	Convey("Given a clean database with organization, application + node and api instance", t, func() {
-		db, err := storage.OpenDatabase(conf.PostgresDSN)
-		So(err, ShouldBeNil)
-		test.MustResetDB(db)
+	Convey("Given a clean database with organization, gateway, application + node and api instance", t, func() {
+		test.MustResetDB(common.DB)
 
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(db, &org), ShouldBeNil)
+		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
 
 		app := storage.Application{
 			OrganizationID: org.ID,
 			Name:           "test-app",
 		}
-		So(storage.CreateApplication(db, &app), ShouldBeNil)
+		So(storage.CreateApplication(common.DB, &app), ShouldBeNil)
 		node := storage.Node{
 			ApplicationID:      app.ID,
 			Name:               "test-node",
@@ -50,17 +56,21 @@ func TestApplicationServerAPI(t *testing.T) {
 			ADRInterval:        20,
 			InstallationMargin: 5,
 		}
-		So(storage.CreateNode(db, node), ShouldBeNil)
+		So(storage.CreateNode(common.DB, node), ShouldBeNil)
+
+		gw := storage.Gateway{
+			MAC:            lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+			Name:           "test-gw",
+			Description:    "test gateway",
+			OrganizationID: org.ID,
+		}
+		So(storage.CreateGateway(common.DB, &gw), ShouldBeNil)
 
 		h := testhandler.NewTestHandler()
+		common.Handler = h
 
 		ctx := context.Background()
-		lsCtx := common.Context{
-			DB:      db,
-			Handler: h,
-		}
-
-		api := NewApplicationServerAPI(lsCtx)
+		api := NewApplicationServerAPI()
 
 		Convey("When calling HandleError", func() {
 			_, err := api.HandleError(ctx, &as.HandleErrorRequest{
@@ -80,6 +90,68 @@ func TestApplicationServerAPI(t *testing.T) {
 					DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 					Type:            "DATA_UP_FCNT",
 					Error:           "BOOM!",
+				})
+			})
+		})
+
+		Convey("Given a gateway with ping enabled and a pending ping", func() {
+			pingGW := storage.Gateway{
+				MAC:            lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
+				Name:           "ping-gw",
+				Description:    "ping gateway",
+				OrganizationID: org.ID,
+				Ping:           true,
+			}
+			So(storage.CreateGateway(common.DB, &pingGW), ShouldBeNil)
+
+			ping := storage.GatewayPing{
+				GatewayMAC: pingGW.MAC,
+				Frequency:  868100000,
+				DR:         5,
+			}
+			So(storage.CreateGatewayPing(common.DB, &ping), ShouldBeNil)
+
+			pingGW.LastPingID = &ping.ID
+			pingGW.LastPingSentAt = &ping.CreatedAt
+			So(storage.UpdateGateway(common.DB, &pingGW), ShouldBeNil)
+
+			mic := lorawan.MIC{1, 2, 3, 4}
+			So(gwping.CreatePingLookup(mic, ping.ID), ShouldBeNil)
+
+			Convey("When calling HandleProprietaryUp with the ping response", func() {
+				now := time.Now().Truncate(time.Millisecond)
+
+				_, err := api.HandleProprietaryUp(ctx, &as.HandleProprietaryUpRequest{
+					Mic: mic[:],
+					TxInfo: &as.TXInfo{
+						Frequency: 868100000,
+						DataRate: &as.DataRate{
+							Modulation:   "LORA",
+							BandWidth:    125,
+							SpreadFactor: 7,
+						},
+						CodeRate: "4/5",
+					},
+					RxInfo: []*as.RXInfo{
+						{
+							Mac:       []byte{1, 2, 3, 4, 5, 6, 7, 8},
+							Time:      now.Format(time.RFC3339Nano),
+							Rssi:      -10,
+							LoRaSNR:   5.5,
+							Latitude:  1.12345,
+							Longitude: 1.23456,
+							Altitude:  10.5,
+						},
+					},
+				})
+				So(err, ShouldBeNil)
+
+				Convey("Then the ping response has been stored", func() {
+					getPing, getRX, err := storage.GetLastGatewayPingAndRX(common.DB, pingGW.MAC)
+					So(err, ShouldBeNil)
+					So(getPing.ID, ShouldEqual, ping.ID)
+					So(getRX, ShouldHaveLength, 1)
+					So(getRX[0].GatewayMAC, ShouldEqual, gw.MAC)
 				})
 			})
 		})
@@ -177,7 +249,7 @@ func TestApplicationServerAPI(t *testing.T) {
 
 			Convey("Given the node is an ABP device", func() {
 				node.IsABP = true
-				So(storage.UpdateNode(db, node), ShouldBeNil)
+				So(storage.UpdateNode(common.DB, node), ShouldBeNil)
 
 				Convey("When calling JoinRequest", func() {
 					req := as.JoinRequestRequest{
@@ -205,7 +277,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Then the expected response is returned", func() {
-					node, err := storage.GetNode(db, node.DevEUI)
+					node, err := storage.GetNode(common.DB, node.DevEUI)
 					So(err, ShouldBeNil)
 
 					So(resp.NwkSKey, ShouldResemble, node.NwkSKey[:])
@@ -270,7 +342,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Then the CFlist is set in the response", func() {
-					node, err := storage.GetNode(db, node.DevEUI)
+					node, err := storage.GetNode(common.DB, node.DevEUI)
 					So(err, ShouldBeNil)
 
 					var phy lorawan.PHYPayload
@@ -314,7 +386,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					FPort:     10,
 					Data:      []byte{1, 2, 3, 4},
 				}
-				So(storage.CreateDownlinkQueueItem(db, &qi), ShouldBeNil)
+				So(storage.CreateDownlinkQueueItem(common.DB, &qi), ShouldBeNil)
 
 				Convey("Then it is removed when calling HandleDataDownACK", func() {
 					_, err := api.HandleDataDownACK(ctx, &as.HandleDataDownACKRequest{
@@ -322,7 +394,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					})
 					So(err, ShouldBeNil)
 
-					_, err = storage.GetDownlinkQueueItem(db, qi.ID)
+					_, err = storage.GetDownlinkQueueItem(common.DB, qi.ID)
 					So(err, ShouldNotBeNil)
 
 					Convey("Then an ack notification was sent to the handler", func() {
@@ -346,7 +418,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					FPort:     1,
 					Data:      []byte{1, 2, 3, 4},
 				}
-				So(storage.CreateDownlinkQueueItem(db, &qi), ShouldBeNil)
+				So(storage.CreateDownlinkQueueItem(common.DB, &qi), ShouldBeNil)
 
 				Convey("When calling GetDataDown", func() {
 					resp, err := api.GetDataDown(ctx, &as.GetDataDownRequest{
@@ -371,7 +443,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					})
 
 					Convey("Then the item was removed from the queue", func() {
-						size, err := storage.GetDownlinkQueueSize(db, node.DevEUI)
+						size, err := storage.GetDownlinkQueueSize(common.DB, node.DevEUI)
 						So(err, ShouldBeNil)
 						So(size, ShouldEqual, 0)
 					})
@@ -386,7 +458,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					FPort:     1,
 					Data:      []byte{1, 2, 3, 4},
 				}
-				So(storage.CreateDownlinkQueueItem(db, &qi), ShouldBeNil)
+				So(storage.CreateDownlinkQueueItem(common.DB, &qi), ShouldBeNil)
 
 				Convey("When calling GetDataDown", func() {
 					resp, err := api.GetDataDown(ctx, &as.GetDataDownRequest{
@@ -411,7 +483,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					})
 
 					Convey("Then the item was set to pending", func() {
-						qi2, err := storage.GetDownlinkQueueItem(db, qi.ID)
+						qi2, err := storage.GetDownlinkQueueItem(common.DB, qi.ID)
 						So(err, ShouldBeNil)
 						So(qi2.Pending, ShouldBeTrue)
 					})

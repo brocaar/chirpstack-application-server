@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -19,14 +19,12 @@ import (
 
 // NodeAPI exports the Node related functions.
 type NodeAPI struct {
-	ctx       common.Context
 	validator auth.Validator
 }
 
 // NewNodeAPI creates a new NodeAPI.
-func NewNodeAPI(ctx common.Context, validator auth.Validator) *NodeAPI {
+func NewNodeAPI(validator auth.Validator) *NodeAPI {
 	return &NodeAPI{
-		ctx:       ctx,
 		validator: validator,
 	}
 }
@@ -77,7 +75,7 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Cr
 		InstallationMargin: req.InstallationMargin,
 	}
 
-	if err := storage.CreateNode(a.ctx.DB, node); err != nil {
+	if err := storage.CreateNode(common.DB, node); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -96,7 +94,7 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetNodeRequest) (*pb.GetNodeR
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(a.ctx.DB, eui)
+	node, err := storage.GetNode(common.DB, eui)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -135,6 +133,7 @@ func (a *NodeAPI) ListByApplicationID(ctx context.Context, req *pb.ListNodeByApp
 		return nil, errToRPCError(err)
 	}
 	count, err := storage.GetNodesCountForApplicationID(a.ctx.DB, req.ApplicationID, req.Search)
+
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -161,7 +160,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(a.ctx.DB, devEUI)
+	node, err := storage.GetNode(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -182,7 +181,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateNodeRequest) (*pb.Up
 	node.ApplicationID = req.ApplicationID
 	node.UseApplicationSettings = req.UseApplicationSettings
 
-	if err := storage.UpdateNode(a.ctx.DB, node); err != nil {
+	if err := storage.UpdateNode(common.DB, node); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -206,17 +205,17 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.De
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(a.ctx.DB, eui)
+	node, err := storage.GetNode(common.DB, eui)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	if err := storage.DeleteNode(a.ctx.DB, node.DevEUI); err != nil {
+	if err := storage.DeleteNode(common.DB, node.DevEUI); err != nil {
 		return nil, errToRPCError(err)
 	}
 
 	// try to delete the node-session
-	_, _ = a.ctx.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{
+	_, _ = common.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{
 		DevEUI: node.DevEUI[:],
 	})
 
@@ -252,7 +251,7 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(a.ctx.DB, devEUI)
+	node, err := storage.GetNode(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -265,7 +264,7 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 	// TODO: refactor once https://github.com/brocaar/loraserver/pull/124 is in place?
 	// so that we can call something like SaveNodeSession which will either
 	// create or update an existing node-session
-	_, _ = a.ctx.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{
+	_, _ = common.NetworkServer.DeleteNodeSession(context.Background(), &ns.DeleteNodeSessionRequest{
 		DevEUI: node.DevEUI[:],
 	})
 
@@ -285,7 +284,7 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 		InstallationMargin: node.InstallationMargin,
 	}
 
-	_, err = a.ctx.NetworkServer.CreateNodeSession(context.Background(), &createNSReq)
+	_, err = common.NetworkServer.CreateNodeSession(context.Background(), &createNSReq)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -294,7 +293,7 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateNodeRequest) (*p
 	node.DevAddr = devAddr
 	node.NwkSKey = nwkSKey
 
-	if err = storage.UpdateNode(a.ctx.DB, node); err != nil {
+	if err = storage.UpdateNode(common.DB, node); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -321,12 +320,12 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetNodeActivationRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(a.ctx.DB, devEUI)
+	node, err := storage.GetNode(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	ns, err := a.ctx.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{
+	ns, err := common.NetworkServer.GetNodeSession(context.Background(), &ns.GetNodeSessionRequest{
 		DevEUI: node.DevEUI[:],
 	})
 	if err != nil {
@@ -357,7 +356,7 @@ func (a *NodeAPI) GetFrameLogs(ctx context.Context, req *pb.GetFrameLogsRequest)
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	resp, err := a.ctx.NetworkServer.GetFrameLogsForDevEUI(ctx, &ns.GetFrameLogsForDevEUIRequest{
+	resp, err := common.NetworkServer.GetFrameLogsForDevEUI(ctx, &ns.GetFrameLogsForDevEUIRequest{
 		DevEUI: devEUI[:],
 		Limit:  int32(req.Limit),
 		Offset: int32(req.Offset),
@@ -430,7 +429,7 @@ func (a *NodeAPI) GetFrameLogs(ctx context.Context, req *pb.GetFrameLogsRequest)
 
 // GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
 func (a *NodeAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAddrRequest) (*pb.GetRandomDevAddrResponse, error) {
-	resp, err := a.ctx.NetworkServer.GetRandomDevAddr(context.Background(), &ns.GetRandomDevAddrRequest{})
+	resp, err := common.NetworkServer.GetRandomDevAddr(context.Background(), &ns.GetRandomDevAddrRequest{})
 	if err != nil {
 		return nil, err
 	}

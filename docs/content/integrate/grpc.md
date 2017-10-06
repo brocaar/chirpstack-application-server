@@ -3,7 +3,7 @@ title: gRPC
 menu:
     main:
         parent: integrate
-        weight: 4
+        weight: 5
 ---
 
 ## gRPC API
@@ -12,7 +12,10 @@ LoRa App Server provices a [gRPC](http://www.grpc.io/) API for easy integration
 with your own projects. gRPC is a RPC framework on top of [protocol-buffers](https://developers.google.com/protocol-buffers/).
 gRPC is really easy to work with, as the protocol buffer file can be seen as
 a contract between the provider and consumer, in other words the fields and
-their datatypes are known. 
+their datatypes are known.
+
+The gRPC server is listening on the port configured in the
+`--http-bind` / `HTTP_BIND` configuration.
 
 Using the gRPC toolset, it is possible to generate client code for the following
 languages (officially suported by gRPC):
@@ -56,7 +59,7 @@ func main() {
 	}
 
 	// connect to lora-app-server
-	asConn, err := grpc.Dial("localhost:8001", grpcOpts...)
+	asConn, err := grpc.Dial("localhost:8080", grpcOpts...)
 	if err != nil {
 		log.Fatal(err)
 	}

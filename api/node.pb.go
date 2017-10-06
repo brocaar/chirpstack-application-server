@@ -53,6 +53,13 @@ It has these top-level messages:
 	ApplicationUserRequest
 	UpdateApplicationUserRequest
 	EmptyApplicationUserResponse
+	EmptyResponse
+	HTTPIntegrationHeader
+	HTTPIntegration
+	GetHTTPIntegrationRequest
+	DeleteIntegrationRequest
+	ListIntegrationRequest
+	ListIntegrationResponse
 	EnqueueDownlinkQueueItemRequest
 	EnqueueDownlinkQueueItemResponse
 	DeleteDownlinkQeueueItemRequest
@@ -116,6 +123,9 @@ It has these top-level messages:
 	GetExtraChannelResponse
 	GetExtraChannelsForChannelConfigurationIDRequest
 	GetExtraChannelsForChannelConfigurationIDResponse
+	PingRX
+	GetLastPingRequest
+	GetLastPingResponse
 	ListOrganizationRequest
 	OrganizationRequest
 	GetOrganizationResponse

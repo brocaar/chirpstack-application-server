@@ -1,42 +1,34 @@
-appserver:
-  build: .
-  command: make serve
-  volumes:
-    - ./:/go/src/github.com/brocaar/lora-app-server
-  links:
-    - postgres
-    - postgres_test
-    - redis
-    - redis_test
-    - mosquitto
-  environment:
-    - DB_AUTOMIGRATE=true
-    - POSTGRES_DSN=postgres://loraserver:loraserver@postgres/loraserver?sslmode=disable
-    - REDIS_URL=redis://redis:6379
-    - MQTT_SERVER=tcp://mosquitto:1883
-    - TEST_POSTGRES_DSN=postgres://loraserver:loraserver@postgres_test/loraserver?sslmode=disable
-    - TEST_REDIS_URL=redis://redis_test:6379
-    - TEST_MQTT_SERVER=tcp://mosquitto:1883
+version: "2"
+services:
+  appserver:
+    build: 
+      context: .
+      dockerfile: Dockerfile-devel
+    command: make serve
+    volumes:
+      - ./:/go/src/github.com/brocaar/lora-app-server
+    links:
+      - postgres
+      - redis
+      - mosquitto
+    environment:
+      - DB_AUTOMIGRATE=true
+      - POSTGRES_DSN=postgres://loraserver:loraserver@postgres/loraserver?sslmode=disable
+      - REDIS_URL=redis://redis:6379
+      - MQTT_SERVER=tcp://mosquitto:1883
+      - TEST_POSTGRES_DSN=postgres://loraserver:loraserver@postgres/loraserver?sslmode=disable
+      - TEST_REDIS_URL=redis://redis:6379
+      - TEST_MQTT_SERVER=tcp://mosquitto:1883
 
-postgres:
-  image: postgres:9.5
-  environment:
-    - POSTGRES_PASSWORD=loraserver
-    - POSTGRES_USER=loraserver
-    - POSTGRES_DB=loraserver
+  postgres:
+    image: postgres:9.5
+    environment:
+      - POSTGRES_PASSWORD=loraserver
+      - POSTGRES_USER=loraserver
+      - POSTGRES_DB=loraserver
 
-postgres_test:
-  image: postgres:9.5
-  environment:
-    - POSTGRES_PASSWORD=loraserver
-    - POSTGRES_USER=loraserver
-    - POSTGRES_DB=loraserver
+  redis:
+    image: redis:3.0.7-alpine
 
-redis:
-  image: redis:3.0.7-alpine
-
-redis_test:
-  image: redis:3.0.7-alpine
-
-mosquitto:
-  image: ansi/mosquitto
+  mosquitto:
+    image: ansi/mosquitto

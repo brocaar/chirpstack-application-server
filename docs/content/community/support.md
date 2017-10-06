@@ -8,13 +8,13 @@ menu:
 
 ## Support
 
-### Bugs
+### Bugs & features
 
-Did you find a bug? Please check first if this issue has already been reported.
-If not, please create an issue at:
+Did you find a bug or want to request a new feature? Please first check if
+this issue has already been reported. If not, please create an issue:
+
 [https://github.com/brocaar/lora-app-server/issues](https://github.com/brocaar/lora-app-server/issues).
 
 ### Questions
 
-For questions please refer to the LoRa App Server Gitter channel:
-[https://gitter.im/loraserver/lora-app-server](https://gitter.im/loraserver/lora-app-server).
+For support questions, please refer to the [LoRa Server project forum](https://forum.loraserver.io/).

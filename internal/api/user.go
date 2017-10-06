@@ -16,20 +16,17 @@ import (
 
 // UserAPI exports the User related functions.
 type UserAPI struct {
-	ctx       common.Context
 	validator auth.Validator
 }
 
 // InternalUserAPI exports the internal User related functions.
 type InternalUserAPI struct {
-	ctx       common.Context
 	validator auth.Validator
 }
 
 // NewUserAPI creates a new UserAPI.
-func NewUserAPI(ctx common.Context, validator auth.Validator) *UserAPI {
+func NewUserAPI(validator auth.Validator) *UserAPI {
 	return &UserAPI{
-		ctx:       ctx,
 		validator: validator,
 	}
 }
@@ -80,7 +77,7 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 
 	var userID int64
 
-	err = storage.Transaction(a.ctx.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
 		userID, err = storage.CreateUser(tx, &user, req.Password)
 		if err != nil {
 			return err
@@ -114,7 +111,7 @@ func (a *UserAPI) Get(ctx context.Context, req *pb.UserRequest) (*pb.GetUserResp
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	user, err := storage.GetUser(a.ctx.DB, req.Id)
+	user, err := storage.GetUser(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -137,12 +134,12 @@ func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	users, err := storage.GetUsers(a.ctx.DB, req.Limit, req.Offset, req.Search)
+	users, err := storage.GetUsers(common.DB, req.Limit, req.Offset, req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	totalUserCount, err := storage.GetUserCount(a.ctx.DB, req.Search)
+	totalUserCount, err := storage.GetUserCount(common.DB, req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -181,7 +178,7 @@ func (a *UserAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.Us
 		SessionTTL: req.SessionTTL,
 	}
 
-	err := storage.UpdateUser(a.ctx.DB, userUpdate)
+	err := storage.UpdateUser(common.DB, userUpdate)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -196,7 +193,7 @@ func (a *UserAPI) Delete(ctx context.Context, req *pb.UserRequest) (*pb.UserEmpt
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteUser(a.ctx.DB, req.Id)
+	err := storage.DeleteUser(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -210,7 +207,7 @@ func (a *UserAPI) UpdatePassword(ctx context.Context, req *pb.UpdateUserPassword
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.UpdatePassword(a.ctx.DB, req.Id, req.Password)
+	err := storage.UpdatePassword(common.DB, req.Id, req.Password)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -218,16 +215,15 @@ func (a *UserAPI) UpdatePassword(ctx context.Context, req *pb.UpdateUserPassword
 }
 
 // NewInternalUserAPI creates a new InternalUserAPI.
-func NewInternalUserAPI(ctx common.Context, validator auth.Validator) *InternalUserAPI {
+func NewInternalUserAPI(validator auth.Validator) *InternalUserAPI {
 	return &InternalUserAPI{
-		ctx:       ctx,
 		validator: validator,
 	}
 }
 
 // Login validates the login request and returns a JWT token.
 func (a *InternalUserAPI) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	jwt, err := storage.LoginUser(a.ctx.DB, req.Username, req.Password)
+	jwt, err := storage.LoginUser(common.DB, req.Username, req.Password)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
@@ -251,12 +247,12 @@ func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (
 	}
 
 	// Get the user id based on the username.
-	user, err := storage.GetUserByUsername(a.ctx.DB, username)
+	user, err := storage.GetUserByUsername(common.DB, username)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
 
-	prof, err := storage.GetProfile(a.ctx.DB, user.ID)
+	prof, err := storage.GetProfile(common.DB, user.ID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

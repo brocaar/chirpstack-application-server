@@ -1,6 +1,8 @@
 package api
 
 import (
+	"encoding/json"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -8,19 +10,19 @@ import (
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/handler/httphandler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 )
 
 // ApplicationAPI exports the Application related functions.
 type ApplicationAPI struct {
-	ctx       common.Context
 	validator auth.Validator
 }
 
 // NewApplicationAPI creates a new ApplicationAPI.
-func NewApplicationAPI(ctx common.Context, validator auth.Validator) *ApplicationAPI {
+func NewApplicationAPI(validator auth.Validator) *ApplicationAPI {
 	return &ApplicationAPI{
-		ctx:       ctx,
 		validator: validator,
 	}
 }
@@ -47,7 +49,7 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 		OrganizationID:     req.OrganizationID,
 	}
 
-	if err := storage.CreateApplication(a.ctx.DB, &app); err != nil {
+	if err := storage.CreateApplication(common.DB, &app); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -63,7 +65,7 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplication(a.ctx.DB, req.Id)
+	app, err := storage.GetApplication(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -93,7 +95,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplication(a.ctx.DB, req.Id)
+	app, err := storage.GetApplication(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -112,7 +114,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	app.InstallationMargin = req.InstallationMargin
 	app.OrganizationID = req.OrganizationID
 
-	err = storage.UpdateApplication(a.ctx.DB, app)
+	err = storage.UpdateApplication(common.DB, app)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -127,7 +129,7 @@ func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteApplication(a.ctx.DB, req.Id)
+	err := storage.DeleteApplication(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -156,40 +158,40 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 
 	if req.OrganizationID == 0 {
 		if isAdmin {
-			apps, err = storage.GetApplications(a.ctx.DB, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplications(common.DB, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCount(a.ctx.DB)
+			count, err = storage.GetApplicationCount(common.DB)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		} else {
-			apps, err = storage.GetApplicationsForUser(a.ctx.DB, username, 0, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplicationsForUser(common.DB, username, 0, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForUser(a.ctx.DB, username, 0)
+			count, err = storage.GetApplicationCountForUser(common.DB, username, 0)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		}
 	} else {
 		if isAdmin {
-			apps, err = storage.GetApplicationsForOrganizationID(a.ctx.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplicationsForOrganizationID(common.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForOrganizationID(a.ctx.DB, req.OrganizationID)
+			count, err = storage.GetApplicationCountForOrganizationID(common.DB, req.OrganizationID)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		} else {
-			apps, err = storage.GetApplicationsForUser(a.ctx.DB, username, req.OrganizationID, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplicationsForUser(common.DB, username, req.OrganizationID, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForUser(a.ctx.DB, username, req.OrganizationID)
+			count, err = storage.GetApplicationCountForUser(common.DB, username, req.OrganizationID)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
@@ -230,12 +232,12 @@ func (a *ApplicationAPI) ListUsers(ctx context.Context, in *pb.ListApplicationUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	total, err := storage.GetApplicationUsersCount(a.ctx.DB, in.Id)
+	total, err := storage.GetApplicationUsersCount(common.DB, in.Id)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
 
-	userAccess, err := storage.GetApplicationUsers(a.ctx.DB, in.Id, int(in.Limit), int(in.Offset))
+	userAccess, err := storage.GetApplicationUsers(common.DB, in.Id, int(in.Limit), int(in.Offset))
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
@@ -261,7 +263,7 @@ func (a *ApplicationAPI) AddUser(ctx context.Context, in *pb.AddApplicationUserR
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.CreateUserForApplication(a.ctx.DB, in.Id, in.UserID, in.IsAdmin)
+	err := storage.CreateUserForApplication(common.DB, in.Id, in.UserID, in.IsAdmin)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
@@ -276,7 +278,7 @@ func (a *ApplicationAPI) GetUser(ctx context.Context, in *pb.ApplicationUserRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	ua, err := storage.GetUserForApplication(a.ctx.DB, in.Id, in.UserID)
+	ua, err := storage.GetUserForApplication(common.DB, in.Id, in.UserID)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
@@ -298,7 +300,7 @@ func (a *ApplicationAPI) UpdateUser(ctx context.Context, in *pb.UpdateApplicatio
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.UpdateUserForApplication(a.ctx.DB, in.Id, in.UserID, in.IsAdmin)
+	err := storage.UpdateUserForApplication(common.DB, in.Id, in.UserID, in.IsAdmin)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
@@ -313,9 +315,175 @@ func (a *ApplicationAPI) DeleteUser(ctx context.Context, in *pb.ApplicationUserR
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteUserForApplication(a.ctx.DB, in.Id, in.UserID)
+	err := storage.DeleteUserForApplication(common.DB, in.Id, in.UserID)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
 	return &pb.EmptyApplicationUserResponse{}, nil
+}
+
+// CreateHTTPIntegration creates an HTTP application-integration.
+func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.HTTPIntegration) (*pb.EmptyResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Id, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	headers := make(map[string]string)
+	for _, h := range in.Headers {
+		headers[h.Key] = h.Value
+	}
+
+	conf := httphandler.HandlerConfig{
+		Headers:              headers,
+		DataUpURL:            in.DataUpURL,
+		JoinNotificationURL:  in.JoinNotificationURL,
+		ACKNotificationURL:   in.AckNotificationURL,
+		ErrorNotificationURL: in.ErrorNotificationURL,
+	}
+	if err := conf.Validate(); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	integration := storage.Integration{
+		ApplicationID: in.Id,
+		Kind:          handler.HTTPHandlerKind,
+		Settings:      confJSON,
+	}
+	if err = storage.CreateIntegration(common.DB, &integration); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.EmptyResponse{}, nil
+}
+
+// GetHTTPIntegration returns the HTTP application-itegration.
+func (a *ApplicationAPI) GetHTTPIntegration(ctx context.Context, in *pb.GetHTTPIntegrationRequest) (*pb.HTTPIntegration, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Id, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(common.DB, in.Id, handler.HTTPHandlerKind)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	var conf httphandler.HandlerConfig
+	if err = json.Unmarshal(integration.Settings, &conf); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	var headers []*pb.HTTPIntegrationHeader
+	for k, v := range conf.Headers {
+		headers = append(headers, &pb.HTTPIntegrationHeader{
+			Key:   k,
+			Value: v,
+		})
+
+	}
+
+	return &pb.HTTPIntegration{
+		Id:                   integration.ApplicationID,
+		Headers:              headers,
+		DataUpURL:            conf.DataUpURL,
+		JoinNotificationURL:  conf.JoinNotificationURL,
+		AckNotificationURL:   conf.ACKNotificationURL,
+		ErrorNotificationURL: conf.ErrorNotificationURL,
+	}, nil
+}
+
+// UpdateHTTPIntegration updates the HTTP application-integration.
+func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.HTTPIntegration) (*pb.EmptyResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Id, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(common.DB, in.Id, handler.HTTPHandlerKind)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	headers := make(map[string]string)
+	for _, h := range in.Headers {
+		headers[h.Key] = h.Value
+	}
+
+	conf := httphandler.HandlerConfig{
+		Headers:              headers,
+		DataUpURL:            in.DataUpURL,
+		JoinNotificationURL:  in.JoinNotificationURL,
+		ACKNotificationURL:   in.AckNotificationURL,
+		ErrorNotificationURL: in.ErrorNotificationURL,
+	}
+	if err := conf.Validate(); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+	integration.Settings = confJSON
+
+	if err = storage.UpdateIntegration(common.DB, &integration); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.EmptyResponse{}, nil
+}
+
+// DeleteHTTPIntegration deletes the application-integration of the given type.
+func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.DeleteIntegrationRequest) (*pb.EmptyResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Id, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(common.DB, in.Id, handler.HTTPHandlerKind)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	if err = storage.DeleteIntegration(common.DB, integration.ID); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.EmptyResponse{}, nil
+}
+
+// ListIntegrations lists all configured integrations.
+func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegrationRequest) (*pb.ListIntegrationResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Id, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integrations, err := storage.GetIntegrationsForApplicationID(common.DB, in.Id)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	var out pb.ListIntegrationResponse
+	for _, integration := range integrations {
+		switch integration.Kind {
+		case handler.HTTPHandlerKind:
+			out.Kinds = append(out.Kinds, pb.IntegrationKind_HTTP)
+		default:
+			return nil, grpc.Errorf(codes.Internal, "unknown integration kind: %s", integration.Kind)
+		}
+	}
+
+	return &out, nil
 }

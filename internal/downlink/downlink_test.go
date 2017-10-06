@@ -18,28 +18,24 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 	Convey("Given a clean database an organization, application + node", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
-		test.MustResetDB(db)
+		common.DB = db
+		test.MustResetDB(common.DB)
 
 		nsClient := test.NewNetworkServerClient()
 		nsClient.GetNodeSessionResponse = ns.GetNodeSessionResponse{
 			FCntDown: 12,
 		}
-
-		//ctx := context.Background()
-		lsCtx := common.Context{
-			DB:            db,
-			NetworkServer: nsClient,
-		}
+		common.NetworkServer = nsClient
 
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(db, &org), ShouldBeNil)
+		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
 		app := storage.Application{
 			OrganizationID: org.ID,
 			Name:           "test-app",
 		}
-		So(storage.CreateApplication(db, &app), ShouldBeNil)
+		So(storage.CreateApplication(common.DB, &app), ShouldBeNil)
 		node := storage.Node{
 			ApplicationID: app.ID,
 			Name:          "test-node",
@@ -47,7 +43,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			DevAddr:       [4]byte{1, 2, 3, 4},
 			AppSKey:       [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
 		}
-		So(storage.CreateNode(db, node), ShouldBeNil)
+		So(storage.CreateNode(common.DB, node), ShouldBeNil)
 
 		qi := storage.DownlinkQueueItem{
 			Reference: "test",
@@ -61,10 +57,10 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("When calling HandleDownlinkQueueItem for a non class-c device", func() {
-			So(HandleDownlinkQueueItem(lsCtx, node, &qi), ShouldBeNil)
+			So(HandleDownlinkQueueItem(node, &qi), ShouldBeNil)
 
 			Convey("Then the item was added to the queue", func() {
-				items, err := storage.GetDownlinkQueueItems(db, node.DevEUI)
+				items, err := storage.GetDownlinkQueueItems(common.DB, node.DevEUI)
 				So(err, ShouldBeNil)
 				So(items, ShouldHaveLength, 1)
 				So(items[0], ShouldResemble, qi)
@@ -77,12 +73,12 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 
 		Convey("When calling HandleDownlinkQueueItem for a class-c device", func() {
 			node.IsClassC = true
-			So(storage.UpdateNode(db, node), ShouldBeNil)
+			So(storage.UpdateNode(common.DB, node), ShouldBeNil)
 
 			Convey("When the queue item is confirmed", func() {
 				qi.Confirmed = true
 
-				So(HandleDownlinkQueueItem(lsCtx, node, &qi), ShouldBeNil)
+				So(HandleDownlinkQueueItem(node, &qi), ShouldBeNil)
 
 				Convey("Then the payload was sent to the network-server", func() {
 					So(nsClient.PushDataDownChan, ShouldHaveLength, 1)
@@ -96,7 +92,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 				})
 
 				Convey("Then the item was added as pending to the queue", func() {
-					items, err := storage.GetDownlinkQueueItems(db, node.DevEUI)
+					items, err := storage.GetDownlinkQueueItems(common.DB, node.DevEUI)
 					So(err, ShouldBeNil)
 					So(items, ShouldHaveLength, 1)
 					So(items[0].Pending, ShouldBeTrue)
@@ -104,7 +100,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			})
 
 			Convey("When the queue item is unconfirmed", func() {
-				So(HandleDownlinkQueueItem(lsCtx, node, &qi), ShouldBeNil)
+				So(HandleDownlinkQueueItem(node, &qi), ShouldBeNil)
 
 				Convey("Then the payload was sent to the network-server", func() {
 					So(nsClient.PushDataDownChan, ShouldHaveLength, 1)
@@ -118,7 +114,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 				})
 
 				Convey("Then the queue is empty", func() {
-					items, err := storage.GetDownlinkQueueItems(db, node.DevEUI)
+					items, err := storage.GetDownlinkQueueItems(common.DB, node.DevEUI)
 					So(err, ShouldBeNil)
 					So(items, ShouldHaveLength, 0)
 				})

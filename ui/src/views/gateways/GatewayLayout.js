@@ -37,6 +37,14 @@ class GatewayLayout extends Component {
         isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID), 
       });
     });
+
+    GatewayStore.on("change", () => {
+      GatewayStore.getGateway(this.props.params.mac, (gateway) => {
+        this.setState({
+          gateway: gateway,
+        });
+      });
+    });
   }
 
   onDelete() {
@@ -71,6 +79,7 @@ class GatewayLayout extends Component {
           <li role="presentation" className={activeTab === "" ? 'active' : ''}><Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}`}>Gateway details</Link></li>
           <li role="presentation" className={(activeTab === "edit" ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}/edit`}>Gateway configuration</Link></li>
           <li role="presentation" className={(activeTab === "token" ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}/token`}>Gateway token</Link></li>
+          <li role="presentation" className={(activeTab === "ping" ? 'active' : '') + (this.state.gateway.ping ? '' : 'hidden')}><Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}/ping`}>Gateway discovery</Link></li>
         </ul>
         <hr />
         {this.props.children}

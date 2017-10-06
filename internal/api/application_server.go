@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/brocaar/lora-app-server/internal/gwping"
+
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -20,14 +22,11 @@ import (
 
 // ApplicationServerAPI implements the as.ApplicationServerServer interface.
 type ApplicationServerAPI struct {
-	ctx common.Context
 }
 
 // NewApplicationServerAPI returns a new ApplicationServerAPI.
-func NewApplicationServerAPI(ctx common.Context) *ApplicationServerAPI {
-	return &ApplicationServerAPI{
-		ctx: ctx,
-	}
+func NewApplicationServerAPI() *ApplicationServerAPI {
+	return &ApplicationServerAPI{}
 }
 
 // JoinRequest handles a join-request.
@@ -52,14 +51,14 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 	copy(devAddr[:], req.DevAddr)
 
 	// get the node and application from the db and validate the AppEUI
-	node, err := storage.GetNode(a.ctx.DB, jrPL.DevEUI)
+	node, err := storage.GetNode(common.DB, jrPL.DevEUI)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"dev_eui": jrPL.DevEUI,
 		}).Errorf("join-request node does not exist")
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	app, err := storage.GetApplication(a.ctx.DB, node.ApplicationID)
+	app, err := storage.GetApplication(common.DB, node.ApplicationID)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"id": node.ApplicationID,
@@ -140,7 +139,7 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 	node.DevAddr = devAddr
 	node.NwkSKey = nwkSKey
 	node.AppSKey = appSKey
-	if err = storage.UpdateNode(a.ctx.DB, node); err != nil {
+	if err = storage.UpdateNode(common.DB, node); err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
@@ -194,7 +193,7 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 		"node_name":        node.Name,
 	}).Info("join-request accepted")
 
-	err = a.ctx.Handler.SendJoinNotification(handler.JoinNotification{
+	err = common.Handler.SendJoinNotification(handler.JoinNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		NodeName:        node.Name,
@@ -218,13 +217,13 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 	copy(appEUI[:], req.AppEUI)
 	copy(devEUI[:], req.DevEUI)
 
-	node, err := storage.GetNode(a.ctx.DB, devEUI)
+	node, err := storage.GetNode(common.DB, devEUI)
 	if err != nil {
 		errStr := fmt.Sprintf("get node error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
-	app, err := storage.GetApplication(a.ctx.DB, node.ApplicationID)
+	app, err := storage.GetApplication(common.DB, node.ApplicationID)
 	if err != nil {
 		errStr := fmt.Sprintf("get application error: %s", err)
 		log.WithField("id", node.ApplicationID).Error(errStr)
@@ -290,7 +289,7 @@ func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleD
 		})
 	}
 
-	err = a.ctx.Handler.SendDataUp(pl)
+	err = common.Handler.SendDataUp(pl)
 	if err != nil {
 		errStr := fmt.Sprintf("send data up to handler error: %s", err)
 		log.Error(errStr)
@@ -305,7 +304,7 @@ func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataD
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEUI)
 
-	qi, err := storage.GetNextDownlinkQueueItem(a.ctx.DB, devEUI, int(req.MaxPayloadSize))
+	qi, err := storage.GetNextDownlinkQueueItem(common.DB, devEUI, int(req.MaxPayloadSize))
 	if err != nil {
 		errStr := fmt.Sprintf("get next downlink queue item error: %s", err)
 		log.WithFields(log.Fields{
@@ -321,7 +320,7 @@ func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataD
 		return &as.GetDataDownResponse{}, nil
 	}
 
-	node, err := storage.GetNode(a.ctx.DB, devEUI)
+	node, err := storage.GetNode(common.DB, devEUI)
 	if err != nil {
 		errStr := fmt.Sprintf("get node error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
@@ -338,7 +337,7 @@ func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataD
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
-	queueSize, err := storage.GetDownlinkQueueSize(a.ctx.DB, devEUI)
+	queueSize, err := storage.GetDownlinkQueueSize(common.DB, devEUI)
 	if err != nil {
 		errStr := fmt.Sprintf("get downlink queue size error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
@@ -346,7 +345,7 @@ func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataD
 	}
 
 	if !qi.Confirmed {
-		if err := storage.DeleteDownlinkQueueItem(a.ctx.DB, qi.ID); err != nil {
+		if err := storage.DeleteDownlinkQueueItem(common.DB, qi.ID); err != nil {
 			errStr := fmt.Sprintf("delete downlink queue item error: %s", err)
 			log.WithFields(log.Fields{
 				"dev_eui": devEUI,
@@ -356,7 +355,7 @@ func (a *ApplicationServerAPI) GetDataDown(ctx context.Context, req *as.GetDataD
 		}
 	} else {
 		qi.Pending = true
-		if err := storage.UpdateDownlinkQueueItem(a.ctx.DB, *qi); err != nil {
+		if err := storage.UpdateDownlinkQueueItem(common.DB, *qi); err != nil {
 			errStr := fmt.Sprintf("update downlink queue item error: %s", err)
 			log.WithFields(log.Fields{
 				"dev_eui": devEUI,
@@ -387,24 +386,24 @@ func (a *ApplicationServerAPI) HandleDataDownACK(ctx context.Context, req *as.Ha
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEUI)
 
-	node, err := storage.GetNode(a.ctx.DB, devEUI)
+	node, err := storage.GetNode(common.DB, devEUI)
 	if err != nil {
 		errStr := fmt.Sprintf("get node error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
-	app, err := storage.GetApplication(a.ctx.DB, node.ApplicationID)
+	app, err := storage.GetApplication(common.DB, node.ApplicationID)
 	if err != nil {
 		errStr := fmt.Sprintf("get application error: %s", err)
 		log.WithField("id", node.ApplicationID).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
-	qi, err := storage.GetPendingDownlinkQueueItem(a.ctx.DB, devEUI)
+	qi, err := storage.GetPendingDownlinkQueueItem(common.DB, devEUI)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
-	if err := storage.DeleteDownlinkQueueItem(a.ctx.DB, qi.ID); err != nil {
+	if err := storage.DeleteDownlinkQueueItem(common.DB, qi.ID); err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 	log.WithFields(log.Fields{
@@ -413,7 +412,7 @@ func (a *ApplicationServerAPI) HandleDataDownACK(ctx context.Context, req *as.Ha
 		"dev_eui":          qi.DevEUI,
 	}).Info("downlink queue item acknowledged")
 
-	err = a.ctx.Handler.SendACKNotification(handler.ACKNotification{
+	err = common.Handler.SendACKNotification(handler.ACKNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		NodeName:        node.Name,
@@ -432,13 +431,13 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEUI)
 
-	node, err := storage.GetNode(a.ctx.DB, devEUI)
+	node, err := storage.GetNode(common.DB, devEUI)
 	if err != nil {
 		errStr := fmt.Sprintf("get node error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
-	app, err := storage.GetApplication(a.ctx.DB, node.ApplicationID)
+	app, err := storage.GetApplication(common.DB, node.ApplicationID)
 	if err != nil {
 		errStr := fmt.Sprintf("get application error: %s", err)
 		log.WithField("id", node.ApplicationID).Error(errStr)
@@ -452,7 +451,7 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		"dev_eui":          devEUI,
 	}).Error(req.Error)
 
-	err = a.ctx.Handler.SendErrorNotification(handler.ErrorNotification{
+	err = common.Handler.SendErrorNotification(handler.ErrorNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		NodeName:        node.Name,
@@ -467,6 +466,18 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 	}
 
 	return &as.HandleErrorResponse{}, nil
+}
+
+// HandleProprietaryUp handles proprietary uplink payloads.
+func (a *ApplicationServerAPI) HandleProprietaryUp(ctx context.Context, req *as.HandleProprietaryUpRequest) (*as.HandleProprietaryUpResponse, error) {
+	err := gwping.HandleReceivedPing(req)
+	if err != nil {
+		errStr := fmt.Sprintf("handle received ping error: %s", err)
+		log.Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
+	return &as.HandleProprietaryUpResponse{}, nil
 }
 
 // getAppNonce returns a random application nonce (used for OTAA).

@@ -127,6 +127,13 @@ service Gateway {
 			get: "/api/gateways/{mac}/stats"
 		};
 	}
+
+	// GetLastPing returns the last emitted ping and gateways receiving this ping.
+	rpc GetLastPing(GetLastPingRequest) returns (GetLastPingResponse) {
+		option (google.api.http) = {
+			get: "/api/gateways/{mac}/pings/last"
+		};
+	}
 }
 
 enum Modulation {
@@ -161,6 +168,9 @@ message CreateGatewayRequest {
 
 	// ID of the channel-configuration.
 	int64 channelConfigurationID = 8;
+
+	// Gateway sends out a periodic ping.
+	bool ping = 9;
 }
 
 message CreateGatewayResponse {}
@@ -206,6 +216,9 @@ message GetGatewayResponse {
 
 	// ID of the channel-configuration.
 	int64 channelConfigurationID = 12;
+
+	// Gateway sends out a periodic ping.
+	bool ping = 13;
 };
 
 message DeleteGatewayRequest {
@@ -290,6 +303,9 @@ message UpdateGatewayRequest {
 
 	// ID of the channel-configuration.
 	int64 channelConfigurationID = 8;
+
+	// Gateway sends out a periodic ping.
+	bool ping = 9;
 }
 
 message UpdateGatewayResponse {}
@@ -489,4 +505,43 @@ message GetExtraChannelsForChannelConfigurationIDRequest {
 message GetExtraChannelsForChannelConfigurationIDResponse {
 	// Result-set.
 	repeated GetExtraChannelResponse result = 1;
+}
+
+message PingRX {
+	// Hex encoded mac address.
+	string mac = 1;
+
+	// RSSI.
+	int32 rssi = 2;
+
+	// LoRa SNR.
+	double loraSNR = 3;
+
+	// Latitude of the gateway -90.0 to 90.0.
+	double latitude = 4;
+	
+	// Longitude of the gateway -180.0 to 180.0.
+	double longitude = 5;
+	
+	// Altitude of the gateway in meters.
+	double altitude = 6;
+}
+
+message GetLastPingRequest {
+	// Hex encoded mac address.
+	string mac = 1;
+}
+
+message GetLastPingResponse {
+	// Created at.
+	string createdAt = 1;
+
+	// Frequency.
+	uint32 frequency = 2;
+
+	// Data-rate.
+	uint32 dr = 3;
+
+	// Gateways and meta-data of reception.
+	repeated PingRX pingRX = 4;
 }

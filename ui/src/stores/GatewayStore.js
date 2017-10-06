@@ -91,6 +91,7 @@ class GatewayStore extends EventEmitter {
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
+        this.emit("change");
         callbackFunc(responseData);
       })
       .catch(errorHandler);
@@ -190,6 +191,16 @@ class GatewayStore extends EventEmitter {
         } else {
           callbackFunc(responseData.result);
         }
+      })
+      .catch(errorHandler);
+  }
+
+  getLastPing(mac, callbackFunc) {
+    fetch("/api/gateways/"+mac+"/pings/last", {headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
       })
       .catch(errorHandler);
   }

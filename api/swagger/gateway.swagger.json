@@ -397,6 +397,31 @@
         ]
       }
     },
+    "/api/gateways/{mac}/pings/last": {
+      "get": {
+        "summary": "GetLastPing returns the last emitted ping and gateways receiving this ping.",
+        "operationId": "GetLastPing",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetLastPingResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "mac",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Gateway"
+        ]
+      }
+    },
     "/api/gateways/{mac}/stats": {
       "get": {
         "summary": "GetStats lists the gateway stats given the query parameters.",
@@ -583,6 +608,11 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the channel-configuration."
+        },
+        "ping": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Gateway sends out a periodic ping."
         }
       }
     },
@@ -783,6 +813,11 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the channel-configuration."
+        },
+        "ping": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Gateway sends out a periodic ping."
         }
       }
     },
@@ -794,6 +829,32 @@
           "items": {
             "$ref": "#/definitions/apiGatewayStats"
           }
+        }
+      }
+    },
+    "apiGetLastPingResponse": {
+      "type": "object",
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "description": "Created at."
+        },
+        "frequency": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Frequency."
+        },
+        "dr": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Data-rate."
+        },
+        "pingRX": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiPingRX"
+          },
+          "description": "Gateways and meta-data of reception."
         }
       }
     },
@@ -864,6 +925,40 @@
       ],
       "default": "LORA",
       "title": "- LORA: LoRa\n - FSK: FSK"
+    },
+    "apiPingRX": {
+      "type": "object",
+      "properties": {
+        "mac": {
+          "type": "string",
+          "description": "Hex encoded mac address."
+        },
+        "rssi": {
+          "type": "integer",
+          "format": "int32",
+          "description": "RSSI."
+        },
+        "loraSNR": {
+          "type": "number",
+          "format": "double",
+          "description": "LoRa SNR."
+        },
+        "latitude": {
+          "type": "number",
+          "format": "double",
+          "description": "Latitude of the gateway -90.0 to 90.0."
+        },
+        "longitude": {
+          "type": "number",
+          "format": "double",
+          "description": "Longitude of the gateway -180.0 to 180.0."
+        },
+        "altitude": {
+          "type": "number",
+          "format": "double",
+          "description": "Altitude of the gateway in meters."
+        }
+      }
     },
     "apiUpdateChannelConfigurationRequest": {
       "type": "object",
@@ -974,6 +1069,11 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the channel-configuration."
+        },
+        "ping": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Gateway sends out a periodic ping."
         }
       }
     },

@@ -66,3 +66,24 @@ type JoinNotification struct {
 	DevEUI          lorawan.EUI64   `json:"devEUI"`
 	DevAddr         lorawan.DevAddr `json:"devAddr"`
 }
+
+// ACKNotification defines the payload sent to the application
+// on an ACK event.
+type ACKNotification struct {
+	ApplicationID   int64         `json:"applicationID,string"`
+	ApplicationName string        `json:"applicationName"`
+	NodeName        string        `json:"nodeName"`
+	DevEUI          lorawan.EUI64 `json:"devEUI"`
+	Reference       string        `json:"reference"`
+}
+
+// ErrorNotification defines the payload sent to the application
+// on an error event.
+type ErrorNotification struct {
+	ApplicationID   int64         `json:"applicationID,string"`
+	ApplicationName string        `json:"applicationName"`
+	NodeName        string        `json:"nodeName"`
+	DevEUI          lorawan.EUI64 `json:"devEUI"`
+	Type            string        `json:"type"`
+	Error           string        `json:"error"`
+}

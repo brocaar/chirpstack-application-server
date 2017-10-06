@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -15,8 +15,8 @@ import (
 
 // MigrateGateways is a temp. function to migrate gateway info from LoRa Server
 // to LoRa App Server.
-func MigrateGateways(ctx common.Context) error {
-	count, err := storage.GetGatewayCount(ctx.DB)
+func MigrateGateways() error {
+	count, err := storage.GetGatewayCount(common.DB)
 	if err != nil {
 		return errors.Wrap(err, "get gateway count error")
 	}
@@ -26,7 +26,7 @@ func MigrateGateways(ctx common.Context) error {
 		return nil
 	}
 
-	orgs, err := storage.GetOrganizations(ctx.DB, 2, 0, "")
+	orgs, err := storage.GetOrganizations(common.DB, 2, 0, "")
 	if err != nil {
 		return errors.Wrap(err, "get organizations error")
 	}
@@ -41,7 +41,7 @@ func MigrateGateways(ctx common.Context) error {
 		var limit int32 = 100
 		var offset int32 = 0
 
-		gwRes, err := ctx.NetworkServer.ListGateways(context.Background(), &ns.ListGatewayRequest{
+		gwRes, err := common.NetworkServer.ListGateways(context.Background(), &ns.ListGatewayRequest{
 			Limit:  limit,
 			Offset: offset,
 		})
@@ -63,7 +63,7 @@ func MigrateGateways(ctx common.Context) error {
 				gw.Description = mac.String()
 			}
 
-			err = storage.CreateGateway(ctx.DB, &storage.Gateway{
+			err = storage.CreateGateway(common.DB, &storage.Gateway{
 				MAC:            mac,
 				Name:           gw.Name,
 				Description:    gw.Description,

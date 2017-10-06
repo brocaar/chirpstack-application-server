@@ -75,13 +75,14 @@ class ListNodes extends Component {
   }
 
   onChange(e) {
-
     this.setState({
       search: e.target.value,
-    },
-      () => {this.updatePage(this.props);}
-    );
+    });
     
+  }
+
+  searchNodes() {
+    this.updatePage(this.props);
   }
 
   render() {
@@ -96,7 +97,10 @@ class ListNodes extends Component {
         </div>
         <div className="panel-body">
           <div className="input-group col-md-3">
-            <input type="text" className="form-control" placeholder="Search for..." onChange={this.onChange} />
+            <input type="text" className="form-control" placeholder="Search for..." onChange={this.onChange} value={this.state.search || ''} />
+            <span className="input-group-btn">
+              <button className="btn btn-default" onClick={this.searchNodes} type="button"><span className="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+            </span>
           </div>
           <table className="table table-hover">
             <thead>

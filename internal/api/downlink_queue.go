@@ -15,14 +15,12 @@ import (
 
 // DownlinkQueueAPI exposes the downlink queue methods.
 type DownlinkQueueAPI struct {
-	ctx       common.Context
 	validator auth.Validator
 }
 
 // NewDownlinkQueueAPI creates a new DownlinkQueueAPI.
-func NewDownlinkQueueAPI(ctx common.Context, validator auth.Validator) *DownlinkQueueAPI {
+func NewDownlinkQueueAPI(validator auth.Validator) *DownlinkQueueAPI {
 	return &DownlinkQueueAPI{
-		ctx:       ctx,
 		validator: validator,
 	}
 }
@@ -38,7 +36,7 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(d.ctx.DB, devEUI)
+	node, err := storage.GetNode(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -51,7 +49,7 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 		Data:      req.Data,
 	}
 
-	if err := downlink.HandleDownlinkQueueItem(d.ctx, node, &qi); err != nil {
+	if err := downlink.HandleDownlinkQueueItem(node, &qi); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -69,12 +67,12 @@ func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeu
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(d.ctx.DB, devEUI)
+	node, err := storage.GetNode(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	qi, err := storage.GetDownlinkQueueItem(d.ctx.DB, req.Id)
+	qi, err := storage.GetDownlinkQueueItem(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -82,7 +80,7 @@ func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeu
 		return nil, grpc.Errorf(codes.NotFound, "queue-item does not exist for the given node")
 	}
 
-	if err := storage.DeleteDownlinkQueueItem(d.ctx.DB, req.Id); err != nil {
+	if err := storage.DeleteDownlinkQueueItem(common.DB, req.Id); err != nil {
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
@@ -100,12 +98,12 @@ func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueIt
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	node, err := storage.GetNode(d.ctx.DB, devEUI)
+	node, err := storage.GetNode(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	items, err := storage.GetDownlinkQueueItems(d.ctx.DB, node.DevEUI)
+	items, err := storage.GetDownlinkQueueItems(common.DB, node.DevEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

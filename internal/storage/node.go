@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"regexp"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lorawan"
 )
@@ -339,7 +339,7 @@ func GetNodesForApplicationID(db *sqlx.DB, applicationID int64, limit, offset in
 		from node
 		where
 			application_id = $1
-		and (name ilike '%' || $4 || '%' or text(dev_eui) ilike '%' || $4 || '%')
+		and (name ilike '%' || $4 || '%' or encode(dev_eui, 'hex') ilike '%' || $4 || '%')
 		order by name
 		limit $2 offset $3`,
 		applicationID,
@@ -362,7 +362,7 @@ func GetNodesCountForApplicationID(db *sqlx.DB, applicationID int64, search stri
 		from node
 		where
 			application_id = $1
-			and (name ilike '%' || $2 || '%' or text(dev_eui) ilike '%' || $2 || '%')`,
+			and (name ilike '%' || $2 || '%' or encode(dev_eui, 'hex') ilike '%' || $2 || '%')`,
 		applicationID, search)
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")

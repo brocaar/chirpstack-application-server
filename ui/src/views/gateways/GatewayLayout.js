@@ -79,7 +79,7 @@ class GatewayLayout extends Component {
           <li role="presentation" className={activeTab === "" ? 'active' : ''}><Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}`}>Gateway details</Link></li>
           <li role="presentation" className={(activeTab === "edit" ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}/edit`}>Gateway configuration</Link></li>
           <li role="presentation" className={(activeTab === "token" ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}/token`}>Gateway token</Link></li>
-          <li role="presentation" className={(activeTab === "ping" ? 'active' : '') + (this.state.gateway.ping ? '' : 'hidden')}><Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}/ping`}>Gateway ping</Link></li>
+          <li role="presentation" className={(activeTab === "ping" ? 'active' : '') + (this.state.gateway.ping ? '' : 'hidden')}><Link to={`/organizations/${this.props.params.organizationID}/gateways/${this.props.params.mac}/ping`}>Gateway discovery</Link></li>
         </ul>
         <hr />
         {this.props.children}

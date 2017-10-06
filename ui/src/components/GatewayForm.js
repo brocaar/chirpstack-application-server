@@ -262,9 +262,9 @@ class GatewayForm extends Component {
           </div>
           <div className="form-group">
             <label className="control-label" htmlFor="ping">
-              <input type="checkbox" name="ping" id="ping" checked={this.state.gateway.ping} onChange={this.onChange.bind(this, 'ping')} /> Ping enabled
+              <input type="checkbox" name="ping" id="ping" checked={this.state.gateway.ping} onChange={this.onChange.bind(this, 'ping')} /> Discovery enabled
             </label>
-            <p className="help-block">When enabled (and LoRa App Server is configured to send gateway pings), the gateway will send out periodical pings to test its coverage by other gateways in the same network.</p>
+            <p className="help-block">When enabled (and LoRa App Server is configured with the gateway discover feature enabled), the gateway will send out periodical pings to test its coverage by other gateways in the same network.</p>
           </div>
           <div className="form-group">
             <label className="control-label" htmlFor="altitude">Gateway altitude (meters)</label>

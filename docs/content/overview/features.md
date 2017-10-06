@@ -62,11 +62,11 @@ a node or an error (e.g. a downlink payload that exceeded the maximum payload
 size). See also [send / receive data]({{< ref "integrate/data.md" >}}) for more
 information.
 
-### Gateway coverage tool
+### Gateway discovery
 
 For networks containing multiple gateways, LoRa App Server provides a feature
 to test the gateway network coverage. By sending out periodical "pings" through
-each gateway, LoRa App Server is able to detect how well these are received by
+each gateway, LoRa App Server is able to discover how well these are received by
 other gateways in the same network.
 
 To enable this feature, LoRa App Server needs to be configured to send gateway

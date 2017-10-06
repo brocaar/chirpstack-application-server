@@ -114,7 +114,7 @@ instructions. When the `letsencrypt` cli tool has been installed, execute:
 letsencrypt certonly --standalone -d DOMAINNAME.HERE 
 ```
 
-### Gateway coverage ping
+### Gateway discovery
 
 By configuring the `--gw-ping` / `GW_PING` settings LoRa App Server will
 emit periodical gateway pings to test the coverage of each gateway. Make sure

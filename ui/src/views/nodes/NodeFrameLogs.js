@@ -106,23 +106,29 @@ class NodeFrameLogs extends Component {
 
     if (FrameRows.length > 0) {
       return (
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th className="col-md-1">&nbsp;</th>
-                  <th className="col-md-3">Created at</th>
-                  <th className="col-md-3">RX / TX parameters</th>
-                  <th>Frame</th>
-                </tr>
-              </thead>
-              <tbody>
-                {FrameRows}
-              </tbody>
-            </table>
+        <div>
+          <div className="alert alert-warning" role="alert">
+            The table below displays the raw and encrypted LoRaWAN frames. Use this data for debugging purposes.
+            For application integration, please see the <a href="https://docs.loraserver.io/lora-app-server/integrate/data/">Send / receive data</a> documentation page.
           </div>
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/frames`} />
+          <div className="panel panel-default">
+            <div className="panel-body">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th className="col-md-1">&nbsp;</th>
+                    <th className="col-md-3">Created at</th>
+                    <th className="col-md-3">RX / TX parameters</th>
+                    <th>Frame</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {FrameRows}
+                </tbody>
+              </table>
+            </div>
+            <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/frames`} />
+          </div>
         </div>
       );
     } else {

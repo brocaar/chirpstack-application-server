@@ -8,6 +8,13 @@ menu:
 
 ## Changelog
 
+### 0.13.1
+
+**Improvements:**
+
+* Rename Gateway ping to Gateway discovery.
+* Rename Frame logs to Raw frame logs and add note that these frames are encrypted.
+
 ### 0.13.0
 
 **Features:**

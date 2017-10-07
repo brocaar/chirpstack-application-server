@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+package api;
+
+// for grpc-gateway
+import "google/api/annotations.proto";
+
+// profiles
+import "profiles.proto";
+
+// ServiceProfileService is the service managing service-profiles.
+service ServiceProfileService {
+    // Create creates the given service-profile.
+    rpc Create(CreateServiceProfileRequest) returns (CreateServiceProfileResponse) {
+        option(google.api.http) = {
+            post: "/api/service-profiles"
+            body: "*"
+        };
+    }
+
+    // Get returns the service-profile matching the given id.
+    rpc Get(GetServiceProfileRequest) returns (GetServiceProfileResponse) {
+        option(google.api.http) = {
+            get: "/api/service-profiles/{serviceProfileID}"
+        };
+    }
+
+    // Update updates the given serviceprofile.
+    rpc Update(UpdateServiceProfileRequest) returns (UpdateServiceProfileResponse) {
+        option(google.api.http) = {
+            put: "/api/service-profiles/{serviceProfile.serviceProfileID}"
+            body: "*"
+        };
+    }
+
+    // Delete deletes the service-profile matching the given id.
+    rpc Delete(DeleteServiceProfileRequest) returns (DeleteServiceProfileResponse) {
+        option(google.api.http) = {
+            delete: "/api/service-profiles/{serviceProfileID}"
+        };
+    }
+
+    // List lists the available service-profiles.
+    rpc List(ListServiceProfileRequest) returns (ListServiceProfileResponse) {
+        option(google.api.http) = {
+            get: "/api/service-profiles"
+        };
+    }
+}
+
+message CreateServiceProfileRequest {
+    ServiceProfile serviceProfile = 1;
+
+    // Name of the service-profile.
+    string name = 2;
+
+    // Organization id of the service-profile.
+    int64 organizationID = 3;
+
+    // Network-server id of the service-profile.
+    int64 networkServerID = 4;
+}
+
+message CreateServiceProfileResponse{
+    // ID of the service-profile.
+    string serviceProfileID = 1;
+}
+
+message GetServiceProfileRequest{
+    // ID of the service-profile.
+    string serviceProfileID = 1;
+}
+
+message GetServiceProfileResponse{
+    ServiceProfile serviceProfile = 1;
+
+    // Name of the service-profile.
+    string name = 2;
+
+    // Organization id of the service-profile.
+    int64 organizationID = 3;
+
+    // Network-server id of the service-profile.
+    int64 networkServerID = 4;
+
+    // Timestamp when the record was created.
+    string createdAt = 5;
+
+    // Timestamp when the record was last updated.
+    string updatedAt = 6;
+}
+
+message UpdateServiceProfileRequest{
+    ServiceProfile serviceProfile = 1;
+
+    // Name of the service-profile.
+    string name = 2;
+}
+
+message UpdateServiceProfileResponse{}
+
+message DeleteServiceProfileRequest{
+    // ID of the service-profile.
+    string serviceProfileID = 1;
+}
+
+message DeleteServiceProfileResponse{}
+
+message ListServiceProfileRequest{
+    // Max number of items to return.
+    int64 limit = 1;
+
+    // Offset in the result-set (for pagination).
+    int64 offset = 2;
+}
+
+message ServiceProfileMeta {
+    // ID of the service-profile.
+    string serviceProfileID = 1;
+
+    // Name of the service-profile.
+    string name = 2;
+
+    // Organization id of the service-profile.
+    int64 organizationID = 3;
+
+    // Network-server id of the service-profile.
+    int64 networkServerID = 4;
+
+    // Timestamp when the record was created.
+    string createdAt = 5;
+
+    // Timestamp when the record was last updated.
+    string updatedAt = 6;
+}
+
+message ListServiceProfileResponse{
+    // Total number of service-profiles.
+    int64 totalCount = 1;
+
+    repeated ServiceProfileMeta result = 2;
+}

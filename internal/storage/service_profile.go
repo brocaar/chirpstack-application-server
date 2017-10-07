@@ -24,6 +24,16 @@ type ServiceProfile struct {
 	ServiceProfile  backend.ServiceProfile `db:"-"`
 }
 
+// ServiceProfileMeta defines the service-profile meta record.
+type ServiceProfileMeta struct {
+	ServiceProfileID string    `db:"service_profile_id"`
+	NetworkServerID  int64     `db:"network_server_id"`
+	OrganizationID   int64     `db:"organization_id"`
+	CreatedAt        time.Time `db:"created_at"`
+	UpdatedAt        time.Time `db:"updated_at"`
+	Name             string    `db:"name"`
+}
+
 // Validate validates the service-profile data.
 func (sp ServiceProfile) Validate() error {
 	return nil
@@ -275,4 +285,32 @@ func DeleteServiceProfile(db sqlx.Execer, id string) error {
 	log.WithField("service_profile_id", id).Info("service-profile deleted")
 
 	return nil
+}
+
+// GetServiceProfileCount returns the total number of service-profiles.
+func GetServiceProfileCount(db sqlx.Queryer) (int, error) {
+	var count int
+	err := sqlx.Get(db, &count, "select count(*) from service_profile")
+	if err != nil {
+		return 0, handlePSQLError(err, "select error")
+	}
+	return count, nil
+}
+
+// GetServiceProfiles returns a slice of service-profiles.
+func GetServiceProfiles(db sqlx.Queryer, limit, offset int) ([]ServiceProfileMeta, error) {
+	var sps []ServiceProfileMeta
+	err := sqlx.Select(db, &sps, `
+		select *
+		from service_profile
+		order by name
+		limit $1 offset $2`,
+		limit,
+		offset,
+	)
+	if err != nil {
+		return nil, handlePSQLError(err, "select error")
+	}
+
+	return sps, nil
 }

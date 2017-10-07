@@ -189,6 +189,19 @@ func TestServiceProfile(t *testing.T) {
 				_, err := GetServiceProfile(common.DB, sp.ServiceProfile.ServiceProfileID)
 				So(err, ShouldEqual, ErrDoesNotExist)
 			})
+
+			Convey("Then GetServiceProfileCount returns 1", func() {
+				count, err := GetServiceProfileCount(common.DB)
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 1)
+			})
+
+			Convey("Then GetServiceProfiles includes the created service-profile", func() {
+				profiles, err := GetServiceProfiles(common.DB, 10, 0)
+				So(err, ShouldBeNil)
+				So(profiles, ShouldHaveLength, 1)
+				So(profiles[0].Name, ShouldEqual, sp.Name)
+			})
 		})
 	})
 }

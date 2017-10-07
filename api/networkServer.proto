@@ -5,7 +5,7 @@ package api;
 // for grpc-gateway
 import "google/api/annotations.proto";
 
-// NetworkServerService is the service managing network-servers.
+// NetworkServer is the service managing network-servers.
 service NetworkServer {
     // Create creates the given network-server.
     rpc Create(CreateNetworkServerRequest) returns (CreateNetworkServerResponse) {

@@ -148,6 +148,9 @@ type NetworkServerClient struct {
 	SendDownlinkDataChan     chan ns.SendDownlinkDataRequest
 	SendDownlinkDataResponse ns.SendDownlinkDataResponse
 
+	SendProprietaryPayloadChan     chan ns.SendProprietaryPayloadRequest
+	SendProprietaryPayloadResponse ns.SendProprietaryPayloadResponse
+
 	CreateGatewayChan     chan ns.CreateGatewayRequest
 	CreateGatewayResponse ns.CreateGatewayResponse
 
@@ -198,9 +201,6 @@ type NetworkServerClient struct {
 
 	GetExtraChannelsForChannelConfigurationIDChan     chan ns.GetExtraChannelsForChannelConfigurationIDRequest
 	GetExtraChannelsForChannelConfigurationIDResponse ns.GetExtraChannelsForChannelConfigurationIDResponse
-
-	SendProprietaryPayloadChan     chan ns.SendProprietaryPayloadRequest
-	SendProprietaryPayloadResponse ns.SendProprietaryPayloadResponse
 }
 
 // NewNetworkServerClient creates a new NetworkServerClient.
@@ -228,6 +228,7 @@ func NewNetworkServerClient() *NetworkServerClient {
 		GetRandomDevAddrChan:                          make(chan ns.GetRandomDevAddrRequest, 100),
 		EnqueueDownlinkMACCommandChan:                 make(chan ns.EnqueueDownlinkMACCommandRequest, 100),
 		SendDownlinkDataChan:                          make(chan ns.SendDownlinkDataRequest, 100),
+		SendProprietaryPayloadChan:                    make(chan ns.SendProprietaryPayloadRequest, 100),
 		CreateGatewayChan:                             make(chan ns.CreateGatewayRequest, 100),
 		GetGatewayChan:                                make(chan ns.GetGatewayRequest, 100),
 		UpdateGatewayChan:                             make(chan ns.UpdateGatewayRequest, 100),
@@ -422,6 +423,12 @@ func (n *NetworkServerClient) SendDownlinkData(ctx context.Context, in *ns.SendD
 	return &n.SendDownlinkDataResponse, nil
 }
 
+// SendProprietaryPayload method.
+func (n *NetworkServerClient) SendProprietaryPayload(ctx context.Context, in *ns.SendProprietaryPayloadRequest, opts ...grpc.CallOption) (*ns.SendProprietaryPayloadResponse, error) {
+	n.SendProprietaryPayloadChan <- *in
+	return &n.SendProprietaryPayloadResponse, nil
+}
+
 // GetFrameLogsForDevEUI method.
 func (n *NetworkServerClient) GetFrameLogsForDevEUI(ctx context.Context, in *ns.GetFrameLogsForDevEUIRequest, opts ...grpc.CallOption) (*ns.GetFrameLogsResponse, error) {
 	n.GetFrameLogsForDevEUIChan <- *in
@@ -480,10 +487,4 @@ func (n *NetworkServerClient) DeleteExtraChannel(ctx context.Context, in *ns.Del
 func (n *NetworkServerClient) GetExtraChannelsForChannelConfigurationID(ctx context.Context, in *ns.GetExtraChannelsForChannelConfigurationIDRequest, opts ...grpc.CallOption) (*ns.GetExtraChannelsForChannelConfigurationIDResponse, error) {
 	n.GetExtraChannelsForChannelConfigurationIDChan <- *in
 	return &n.GetExtraChannelsForChannelConfigurationIDResponse, nil
-}
-
-// SendProprietaryPayload method.
-func (n *NetworkServerClient) SendProprietaryPayload(ctx context.Context, in *ns.SendProprietaryPayloadRequest, opts ...grpc.CallOption) (*ns.SendProprietaryPayloadResponse, error) {
-	n.SendProprietaryPayloadChan <- *in
-	return &n.SendProprietaryPayloadResponse, nil
 }

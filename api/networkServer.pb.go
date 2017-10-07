@@ -28,7 +28,7 @@ type CreateNetworkServerRequest struct {
 func (m *CreateNetworkServerRequest) Reset()                    { *m = CreateNetworkServerRequest{} }
 func (m *CreateNetworkServerRequest) String() string            { return proto.CompactTextString(m) }
 func (*CreateNetworkServerRequest) ProtoMessage()               {}
-func (*CreateNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{0} }
+func (*CreateNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{0} }
 
 func (m *CreateNetworkServerRequest) GetName() string {
 	if m != nil {
@@ -52,7 +52,7 @@ type CreateNetworkServerResponse struct {
 func (m *CreateNetworkServerResponse) Reset()                    { *m = CreateNetworkServerResponse{} }
 func (m *CreateNetworkServerResponse) String() string            { return proto.CompactTextString(m) }
 func (*CreateNetworkServerResponse) ProtoMessage()               {}
-func (*CreateNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{1} }
+func (*CreateNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{1} }
 
 func (m *CreateNetworkServerResponse) GetId() int64 {
 	if m != nil {
@@ -69,7 +69,7 @@ type GetNetworkServerRequest struct {
 func (m *GetNetworkServerRequest) Reset()                    { *m = GetNetworkServerRequest{} }
 func (m *GetNetworkServerRequest) String() string            { return proto.CompactTextString(m) }
 func (*GetNetworkServerRequest) ProtoMessage()               {}
-func (*GetNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{2} }
+func (*GetNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{2} }
 
 func (m *GetNetworkServerRequest) GetId() int64 {
 	if m != nil {
@@ -94,7 +94,7 @@ type GetNetworkServerResponse struct {
 func (m *GetNetworkServerResponse) Reset()                    { *m = GetNetworkServerResponse{} }
 func (m *GetNetworkServerResponse) String() string            { return proto.CompactTextString(m) }
 func (*GetNetworkServerResponse) ProtoMessage()               {}
-func (*GetNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{3} }
+func (*GetNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{3} }
 
 func (m *GetNetworkServerResponse) GetId() int64 {
 	if m != nil {
@@ -143,7 +143,7 @@ type UpdateNetworkServerRequest struct {
 func (m *UpdateNetworkServerRequest) Reset()                    { *m = UpdateNetworkServerRequest{} }
 func (m *UpdateNetworkServerRequest) String() string            { return proto.CompactTextString(m) }
 func (*UpdateNetworkServerRequest) ProtoMessage()               {}
-func (*UpdateNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{4} }
+func (*UpdateNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{4} }
 
 func (m *UpdateNetworkServerRequest) GetId() int64 {
 	if m != nil {
@@ -172,7 +172,7 @@ type UpdateNetworkServerResponse struct {
 func (m *UpdateNetworkServerResponse) Reset()                    { *m = UpdateNetworkServerResponse{} }
 func (m *UpdateNetworkServerResponse) String() string            { return proto.CompactTextString(m) }
 func (*UpdateNetworkServerResponse) ProtoMessage()               {}
-func (*UpdateNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{5} }
+func (*UpdateNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{5} }
 
 type DeleteNetworkServerRequest struct {
 	// ID of the network-server.
@@ -182,7 +182,7 @@ type DeleteNetworkServerRequest struct {
 func (m *DeleteNetworkServerRequest) Reset()                    { *m = DeleteNetworkServerRequest{} }
 func (m *DeleteNetworkServerRequest) String() string            { return proto.CompactTextString(m) }
 func (*DeleteNetworkServerRequest) ProtoMessage()               {}
-func (*DeleteNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{6} }
+func (*DeleteNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{6} }
 
 func (m *DeleteNetworkServerRequest) GetId() int64 {
 	if m != nil {
@@ -197,7 +197,7 @@ type DeleteNetworkServerResponse struct {
 func (m *DeleteNetworkServerResponse) Reset()                    { *m = DeleteNetworkServerResponse{} }
 func (m *DeleteNetworkServerResponse) String() string            { return proto.CompactTextString(m) }
 func (*DeleteNetworkServerResponse) ProtoMessage()               {}
-func (*DeleteNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{7} }
+func (*DeleteNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{7} }
 
 type ListNetworkServerRequest struct {
 	// Max number of items to return.
@@ -209,7 +209,7 @@ type ListNetworkServerRequest struct {
 func (m *ListNetworkServerRequest) Reset()                    { *m = ListNetworkServerRequest{} }
 func (m *ListNetworkServerRequest) String() string            { return proto.CompactTextString(m) }
 func (*ListNetworkServerRequest) ProtoMessage()               {}
-func (*ListNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{8} }
+func (*ListNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{8} }
 
 func (m *ListNetworkServerRequest) GetLimit() int64 {
 	if m != nil {
@@ -235,7 +235,7 @@ type ListNetworkServerResponse struct {
 func (m *ListNetworkServerResponse) Reset()                    { *m = ListNetworkServerResponse{} }
 func (m *ListNetworkServerResponse) String() string            { return proto.CompactTextString(m) }
 func (*ListNetworkServerResponse) ProtoMessage()               {}
-func (*ListNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{9} }
+func (*ListNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{9} }
 
 func (m *ListNetworkServerResponse) GetTotalCount() int64 {
 	if m != nil {
@@ -478,9 +478,9 @@ var _NetworkServer_serviceDesc = grpc.ServiceDesc{
 	Metadata: "networkServer.proto",
 }
 
-func init() { proto.RegisterFile("networkServer.proto", fileDescriptor7) }
+func init() { proto.RegisterFile("networkServer.proto", fileDescriptor8) }
 
-var fileDescriptor7 = []byte{
+var fileDescriptor8 = []byte{
 	// 466 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x54, 0xc1, 0x6e, 0xd4, 0x30,
 	0x10, 0xd5, 0x26, 0x69, 0xa4, 0x0e, 0x82, 0x83, 0xa9, 0x4a, 0x36, 0x9b, 0x6e, 0x4b, 0xc4, 0xa1,

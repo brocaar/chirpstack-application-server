@@ -1063,6 +1063,43 @@ func TestValidators(t *testing.T) {
 
 			runTests(tests, db)
 		})
+
+		Convey("When testing ValidateServiceProfilesAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can create, read, update, delete and list",
+					Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create), ValidateServiceProfileAccess(Read, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfileAccess(Update, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfileAccess(Delete, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfilesAccess(List)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "related organization users can read",
+					Validators: []ValidatorFunc{ValidateServiceProfileAccess(Read, serviceProfiles[0].ServiceProfile.ServiceProfileID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users of an other organization can not read",
+					Validators: []ValidatorFunc{ValidateServiceProfileAccess(Read, serviceProfiles[0].ServiceProfile.ServiceProfileID)},
+					Claims:     Claims{Username: "user12"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "related organization users can not create, update, delete and list",
+					Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create), ValidateServiceProfileAccess(Update, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfileAccess(Delete, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfilesAccess(List)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "other users can not create, read, update, delete and list",
+					Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create), ValidateServiceProfileAccess(Read, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfileAccess(Update, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfileAccess(Delete, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfilesAccess(List)},
+					Claims:     Claims{Username: "user12"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
 	})
 }
 

@@ -1,0 +1,379 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "serviceProfile.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/service-profiles": {
+      "get": {
+        "summary": "List lists the available service-profiles.",
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListServiceProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "Max number of items to return.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset",
+            "description": "Offset in the result-set (for pagination).",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "ServiceProfileService"
+        ]
+      },
+      "post": {
+        "summary": "Create creates the given service-profile.",
+        "operationId": "Create",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiCreateServiceProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateServiceProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceProfileService"
+        ]
+      }
+    },
+    "/api/service-profiles/{serviceProfile.serviceProfileID}": {
+      "put": {
+        "summary": "Update updates the given serviceprofile.",
+        "operationId": "Update",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiUpdateServiceProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "serviceProfile.serviceProfileID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateServiceProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceProfileService"
+        ]
+      }
+    },
+    "/api/service-profiles/{serviceProfileID}": {
+      "get": {
+        "summary": "Get returns the service-profile matching the given id.",
+        "operationId": "Get",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetServiceProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "serviceProfileID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ServiceProfileService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete deletes the service-profile matching the given id.",
+        "operationId": "Delete",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiDeleteServiceProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "serviceProfileID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ServiceProfileService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiCreateServiceProfileRequest": {
+      "type": "object",
+      "properties": {
+        "serviceProfile": {
+          "$ref": "#/definitions/apiServiceProfile"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the service-profile."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Organization id of the service-profile."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Network-server id of the service-profile."
+        }
+      }
+    },
+    "apiCreateServiceProfileResponse": {
+      "type": "object",
+      "properties": {
+        "serviceProfileID": {
+          "type": "string",
+          "description": "ID of the service-profile."
+        }
+      }
+    },
+    "apiDeleteServiceProfileResponse": {
+      "type": "object"
+    },
+    "apiGetServiceProfileResponse": {
+      "type": "object",
+      "properties": {
+        "serviceProfile": {
+          "$ref": "#/definitions/apiServiceProfile"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the service-profile."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Organization id of the service-profile."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Network-server id of the service-profile."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the record was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the record was last updated."
+        }
+      }
+    },
+    "apiListServiceProfileResponse": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "string",
+          "format": "int64",
+          "description": "Total number of service-profiles."
+        },
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiServiceProfileMeta"
+          }
+        }
+      }
+    },
+    "apiRatePolicy": {
+      "type": "string",
+      "enum": [
+        "DROP",
+        "MARK"
+      ],
+      "default": "DROP",
+      "title": "- DROP: Drop\n - MARK: Mark"
+    },
+    "apiServiceProfile": {
+      "type": "object",
+      "properties": {
+        "serviceProfileID": {
+          "type": "string"
+        },
+        "ulRate": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ulBucketSize": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ulRatePolicy": {
+          "$ref": "#/definitions/apiRatePolicy"
+        },
+        "dlRate": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "dlBucketSize": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "dlRatePolicy": {
+          "$ref": "#/definitions/apiRatePolicy"
+        },
+        "addGWMetadata": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "devStatusReqFreq": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "reportDevStatusBattery": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "reportDevStatusMargin": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "drMin": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "drMax": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "channelMask": {
+          "type": "string",
+          "format": "byte"
+        },
+        "prAllowed": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "hrAllowed": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "raAllowed": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "nwkGeoLoc": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "targetPER": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "minGWDiversity": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "apiServiceProfileMeta": {
+      "type": "object",
+      "properties": {
+        "serviceProfileID": {
+          "type": "string",
+          "description": "ID of the service-profile."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the service-profile."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Organization id of the service-profile."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Network-server id of the service-profile."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the record was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the record was last updated."
+        }
+      }
+    },
+    "apiUpdateServiceProfileRequest": {
+      "type": "object",
+      "properties": {
+        "serviceProfile": {
+          "$ref": "#/definitions/apiServiceProfile"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the service-profile."
+        }
+      }
+    },
+    "apiUpdateServiceProfileResponse": {
+      "type": "object"
+    }
+  }
+}

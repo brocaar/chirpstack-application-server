@@ -40,6 +40,8 @@ const userQuery = `
 		on u.id = au.user_id
 	left join application a
 		on au.application_id = a.id or a.organization_id = o.id
+	left join service_profile sp
+		on sp.organization_id = o.id
 	left join device d
 		on a.id = d.application_id`
 
@@ -609,6 +611,48 @@ func ValidateNetworkServerAccess(flag Flag, id int64) ValidatorFunc {
 
 	return func(db *sqlx.DB, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username)
+	}
+}
+
+// ValidateServiceProfilesAccess validates if the client has access to the
+// service-profiles.
+func ValidateServiceProfilesAccess(flag Flag) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Create, List:
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+		}
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username)
+	}
+}
+
+// ValidateServiceProfileAccess validates if the client has access to the
+// given service-profile.
+func ValidateServiceProfileAccess(flag Flag, id string) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Read:
+		// global admin
+		// organization users to which the service-profile is linked
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "sp.service_profile_id = $2"},
+		}
+	case Update, Delete:
+		// global admin
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
+		}
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, id)
 	}
 }
 

@@ -30,6 +30,15 @@ func TestDeviceProfile(t *testing.T) {
 		}
 		So(CreateOrganization(common.DB, &org), ShouldBeNil)
 
+		u := User{
+			Username: "testuser",
+			IsAdmin:  false,
+			IsActive: true,
+		}
+		uID, err := CreateUser(common.DB, &u, "testpassword")
+		So(err, ShouldBeNil)
+		So(CreateOrganizationUser(common.DB, org.ID, uID, false), ShouldBeNil)
+
 		n := NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
@@ -195,6 +204,62 @@ func TestDeviceProfile(t *testing.T) {
 
 				_, err := GetDeviceProfile(common.DB, dp.DeviceProfile.DeviceProfileID)
 				So(err, ShouldEqual, ErrDoesNotExist)
+			})
+
+			Convey("Then GetDeviceProfileCount returns 1", func() {
+				count, err := GetDeviceProfileCount(common.DB)
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 1)
+			})
+
+			Convey("Then GetDeviceProfileCountForOrganizationID returns the number of device-profiles for the given organization", func() {
+				count, err := GetDeviceProfileCountForOrganizationID(common.DB, org.ID)
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 1)
+
+				count, err = GetDeviceProfileCountForOrganizationID(common.DB, org.ID+1)
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 0)
+			})
+
+			Convey("Then GetDeviceProfileCountForUser returns the device-profile accessible by a given user", func() {
+				count, err := GetDeviceProfileCountForUser(common.DB, u.Username)
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 1)
+
+				count, err = GetDeviceProfileCountForUser(common.DB, "fakeuser")
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 0)
+			})
+
+			Convey("Then GetDeviceProfiles includes the device-profile", func() {
+				dps, err := GetDeviceProfiles(common.DB, 10, 0)
+				So(err, ShouldBeNil)
+				So(dps, ShouldHaveLength, 1)
+				So(dps[0].Name, ShouldEqual, dp.Name)
+				So(dps[0].OrganizationID, ShouldEqual, dp.OrganizationID)
+				So(dps[0].NetworkServerID, ShouldEqual, dp.NetworkServerID)
+				So(dps[0].DeviceProfileID, ShouldEqual, dp.DeviceProfile.DeviceProfileID)
+			})
+
+			Convey("Then GetDeviceProfilesForOrganizationID returns the device-profiles for the given organization", func() {
+				dps, err := GetDeviceProfilesForOrganizationID(common.DB, org.ID, 10, 0)
+				So(err, ShouldBeNil)
+				So(dps, ShouldHaveLength, 1)
+
+				dps, err = GetDeviceProfilesForOrganizationID(common.DB, org.ID+1, 10, 0)
+				So(err, ShouldBeNil)
+				So(dps, ShouldHaveLength, 0)
+			})
+
+			Convey("Then GetDeviceProfilesForUser returns the device-profiles accessible by a given user", func() {
+				dps, err := GetDeviceProfilesForUser(common.DB, u.Username, 10, 0)
+				So(err, ShouldBeNil)
+				So(dps, ShouldHaveLength, 1)
+
+				dps, err = GetDeviceProfilesForUser(common.DB, "fakeuser", 10, 0)
+				So(err, ShouldBeNil)
+				So(dps, ShouldHaveLength, 0)
 			})
 		})
 	})

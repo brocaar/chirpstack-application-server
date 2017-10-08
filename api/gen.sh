@@ -26,7 +26,8 @@ protoc  -I/usr/local/include -I. ${GOPATHLIST} --go_out=plugins=grpc:. \
     organization.proto \
     profiles.proto \
     networkServer.proto \
-    serviceProfile.proto
+    serviceProfile.proto \
+    deviceProfile.proto
 
 # generate the JSON interface code
 protoc -I/usr/local/include -I. ${GOPATHLIST} --grpc-gateway_out=logtostderr=true:. \
@@ -39,7 +40,8 @@ protoc -I/usr/local/include -I. ${GOPATHLIST} --grpc-gateway_out=logtostderr=tru
     organization.proto \
     profiles.proto \
     networkServer.proto \
-    serviceProfile.proto
+    serviceProfile.proto \
+    deviceProfile.proto
 
 # generate the swagger definitions
 protoc -I/usr/local/include -I. ${GOPATHLIST} --swagger_out=logtostderr=true:./swagger \
@@ -52,7 +54,8 @@ protoc -I/usr/local/include -I. ${GOPATHLIST} --swagger_out=logtostderr=true:./s
     organization.proto \
     profiles.proto \
     networkServer.proto \
-    serviceProfile.proto
+    serviceProfile.proto \
+    deviceProfile.proto
 
 # merge the swagger code into one file
 go run swagger/main.go swagger > ../static/swagger/api.swagger.json

@@ -1,0 +1,145 @@
+syntax = "proto3";
+
+package api;
+
+// for grpc-gateway
+import "google/api/annotations.proto";
+
+// profiles
+import "profiles.proto";
+
+// DeviceProfileService is the service managing device-profiles.
+service DeviceProfileService {
+    // Create creates the given device-profile.
+    rpc Create(CreateDeviceProfileRequest) returns (CreateDeviceProfileResponse) {
+        option(google.api.http) = {
+            post: "/api/device-profiles"
+            body: "*"
+        };
+    }
+
+    // Get returns the device-profile matching the given id.
+    rpc Get(GetDeviceProfileRequest) returns (GetDeviceProfileResponse) {
+        option(google.api.http) = {
+            get: "/api/device-profiles/{deviceProfileID}"
+        };
+    }
+
+    // Update updates the given device-profile.
+    rpc Update(UpdateDeviceProfileRequest) returns (UpdateDeviceProfileResponse) {
+        option(google.api.http) = {
+            put: "/api/device-profiles/{deviceProfile.deviceProfileID}"
+            body: "*"
+        };
+    }
+
+    // Delete deletes the device-profile matching the given id.
+    rpc Delete(DeleteDeviceProfileRequest) returns (DeleteDeviceProfileResponse) {
+        option(google.api.http) = {
+            delete: "/api/device-profiles/{deviceProfileID}"
+        };
+    }
+
+    // List lists the available device-profiles.
+    rpc List(ListDeviceProfileRequest) returns (ListDeviceProfileResponse) {
+        option(google.api.http) = {
+            get: "/api/device-profiles"
+        };
+    }
+}
+
+message CreateDeviceProfileRequest {
+    DeviceProfile deviceProfile = 1;
+
+    // Name of the device-profile.
+    string name = 2;
+
+    // Organization id of the device-profile.
+    int64 organizationID = 3;
+
+    // Network-server id of the device-profile.
+    int64 networkServerID = 4;
+}
+
+message CreateDeviceProfileResponse {
+    // ID of the device-profile.
+    string deviceProfileID = 1;
+}
+
+message GetDeviceProfileRequest {
+    // ID of the device-profile.
+    string deviceProfileID = 1;
+}
+
+message GetDeviceProfileResponse {
+    DeviceProfile deviceProfile = 1;
+
+    // Name of the device-profile.
+    string name = 2;
+
+    // Organization id of the device-profile.
+    int64 organizationID = 3;
+
+    // Network-server id of the device-profile.
+    int64 networkServerID = 4;
+
+    // Timestamp when the record was created.
+    string createdAt = 5;
+
+    // Timestamp when the record was last updated.
+    string updatedAt = 6;
+}
+
+message UpdateDeviceProfileRequest {
+    DeviceProfile deviceProfile = 1;
+
+    // Name of the device-profile.
+    string name = 2;
+}
+
+message UpdateDeviceProfileResponse {}
+
+message DeleteDeviceProfileRequest {
+    // ID of the device-profile.
+    string deviceProfileID = 1;
+}
+
+message DeleteDeviceProfileResponse {}
+
+message ListDeviceProfileRequest {
+    // Max number of items to return.
+    int64 limit = 1;
+
+    // Offset in the result-set (for pagination).
+    int64 offset = 2;
+
+    // Organization id to filter on.
+    int64 organizationID = 3;
+}
+
+message DeviceProfileMeta {
+    // ID of the device-profile.
+    string deviceProfileID = 1;
+
+    // Name of the device-profile.
+    string name = 2;
+
+    // Organization id of the device-profile.
+    int64 organizationID = 3;
+
+    // Network-server id of the device-profile.
+    int64 networkServerID = 4;
+
+    // Timestamp when the record was created.
+    string createdAt = 5;
+
+    // Timestamp when the record was last updated.
+    string updatedAt = 6;
+}
+
+message ListDeviceProfileResponse {
+    // Total number of device-profiles.
+    int64 totalCount = 1;
+
+    repeated DeviceProfileMeta result = 2;
+}

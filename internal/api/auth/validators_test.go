@@ -1100,6 +1100,86 @@ func TestValidators(t *testing.T) {
 
 			runTests(tests, db)
 		})
+
+		Convey("When testing ValidateDeviceProfilesAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can create and list",
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, organizations[0].ID), ValidateDeviceProfilesAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can create and list",
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, organizations[0].ID), ValidateDeviceProfilesAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can list",
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "any user can list when organization id = 0",
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(List, 0)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can not create",
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, organizations[0].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "non-organization users can not create or list",
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, organizations[0].ID), ValidateDeviceProfilesAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user12"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateDeviceProfileAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can read, update and delete",
+					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Update, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Delete, deviceProfiles[0].DeviceProfile.DeviceProfileID)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can read, update and delete",
+					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Update, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Delete, deviceProfiles[0].DeviceProfile.DeviceProfileID)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can read",
+					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfiles[0].DeviceProfile.DeviceProfileID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can not update and delete",
+					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Update, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Delete, deviceProfiles[0].DeviceProfile.DeviceProfileID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "non-organization users can not read, update ande delete",
+					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Update, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Delete, deviceProfiles[0].DeviceProfile.DeviceProfileID)},
+					Claims:     Claims{Username: "user12"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
 	})
 }
 

@@ -42,6 +42,8 @@ const userQuery = `
 		on au.application_id = a.id or a.organization_id = o.id
 	left join service_profile sp
 		on sp.organization_id = o.id
+	left join device_profile dp
+		on dp.organization_id = o.id
 	left join device d
 		on a.id = d.application_id`
 
@@ -648,6 +650,62 @@ func ValidateServiceProfileAccess(flag Flag, id string) ValidatorFunc {
 		// global admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
+		}
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, id)
+	}
+}
+
+// ValidateDeviceProfilesAccess validates if the client has access to the
+// device-profiles.
+func ValidateDeviceProfilesAccess(flag Flag, organizationID int64) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Create:
+		// global admin
+		// organization admin
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+		}
+	case List:
+		// global admin
+		// organization user (when organization id is given)
+		// any active user (filtered by user)
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "$2 > 0", "o.id = $2"},
+			{"u.username = $1", "u.is_active = true", "$2 = 0"},
+		}
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, organizationID)
+	}
+}
+
+// ValidateDeviceProfileAccess validates if the client has access to the
+// given device-profile.
+func ValidateDeviceProfileAccess(flag Flag, id string) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Read:
+		// gloabal admin
+		// organization users
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "dp.device_profile_id = $2"},
+		}
+	case Update, Delete:
+		// global admin
+		// organization admin users
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin=true", "dp.device_profile_id = $2"},
 		}
 	}
 

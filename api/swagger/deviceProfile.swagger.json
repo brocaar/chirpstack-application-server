@@ -1,0 +1,380 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "deviceProfile.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/device-profiles": {
+      "get": {
+        "summary": "List lists the available device-profiles.",
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListDeviceProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "Max number of items to return.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset",
+            "description": "Offset in the result-set (for pagination).",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "organizationID",
+            "description": "Organization id to filter on.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "DeviceProfileService"
+        ]
+      },
+      "post": {
+        "summary": "Create creates the given device-profile.",
+        "operationId": "Create",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiCreateDeviceProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateDeviceProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "DeviceProfileService"
+        ]
+      }
+    },
+    "/api/device-profiles/{deviceProfile.deviceProfileID}": {
+      "put": {
+        "summary": "Update updates the given device-profile.",
+        "operationId": "Update",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiUpdateDeviceProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "deviceProfile.deviceProfileID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateDeviceProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "DeviceProfileService"
+        ]
+      }
+    },
+    "/api/device-profiles/{deviceProfileID}": {
+      "get": {
+        "summary": "Get returns the device-profile matching the given id.",
+        "operationId": "Get",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetDeviceProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "deviceProfileID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "DeviceProfileService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete deletes the device-profile matching the given id.",
+        "operationId": "Delete",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiDeleteDeviceProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "deviceProfileID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "DeviceProfileService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiCreateDeviceProfileRequest": {
+      "type": "object",
+      "properties": {
+        "deviceProfile": {
+          "$ref": "#/definitions/apiDeviceProfile"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the device-profile."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Organization id of the device-profile."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Network-server id of the device-profile."
+        }
+      }
+    },
+    "apiCreateDeviceProfileResponse": {
+      "type": "object",
+      "properties": {
+        "deviceProfileID": {
+          "type": "string",
+          "description": "ID of the device-profile."
+        }
+      }
+    },
+    "apiDeleteDeviceProfileResponse": {
+      "type": "object"
+    },
+    "apiDeviceProfile": {
+      "type": "object",
+      "properties": {
+        "deviceProfileID": {
+          "type": "string"
+        },
+        "supportsClassB": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "classBTimeout": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "pingSlotPeriod": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "pingSlotDR": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "pingSlotFreq": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "supportsClassC": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "classCTimeout": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "macVersion": {
+          "type": "string"
+        },
+        "regParamsRevision": {
+          "type": "string"
+        },
+        "rxDelay1": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "rxDROffset1": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "rxDataRate2": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "rxFreq2": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "factoryPresetFreqs": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "maxEIRP": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "maxDutyCycle": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "supportsJoin": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "rfRegion": {
+          "type": "string"
+        },
+        "supports32bitFCnt": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
+    "apiDeviceProfileMeta": {
+      "type": "object",
+      "properties": {
+        "deviceProfileID": {
+          "type": "string",
+          "description": "ID of the device-profile."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the device-profile."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Organization id of the device-profile."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Network-server id of the device-profile."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the record was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the record was last updated."
+        }
+      }
+    },
+    "apiGetDeviceProfileResponse": {
+      "type": "object",
+      "properties": {
+        "deviceProfile": {
+          "$ref": "#/definitions/apiDeviceProfile"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the device-profile."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Organization id of the device-profile."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Network-server id of the device-profile."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the record was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the record was last updated."
+        }
+      }
+    },
+    "apiListDeviceProfileResponse": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "string",
+          "format": "int64",
+          "description": "Total number of device-profiles."
+        },
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiDeviceProfileMeta"
+          }
+        }
+      }
+    },
+    "apiUpdateDeviceProfileRequest": {
+      "type": "object",
+      "properties": {
+        "deviceProfile": {
+          "$ref": "#/definitions/apiDeviceProfile"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the device-profile."
+        }
+      }
+    },
+    "apiUpdateDeviceProfileResponse": {
+      "type": "object"
+    }
+  }
+}

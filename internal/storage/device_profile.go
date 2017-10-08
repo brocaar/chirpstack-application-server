@@ -25,6 +25,16 @@ type DeviceProfile struct {
 	DeviceProfile   backend.DeviceProfile `db:"-"`
 }
 
+// DeviceProfileMeta defines the device-profile meta record.
+type DeviceProfileMeta struct {
+	DeviceProfileID string    `db:"device_profile_id"`
+	NetworkServerID int64     `db:"network_server_id"`
+	OrganizationID  int64     `db:"organization_id"`
+	CreatedAt       time.Time `db:"created_at"`
+	UpdatedAt       time.Time `db:"updated_at"`
+	Name            string    `db:"name"`
+}
+
 // Validate validates the device-profile data.
 func (dp DeviceProfile) Validate() error {
 	return nil
@@ -263,4 +273,116 @@ func DeleteDeviceProfile(db sqlx.Execer, id string) error {
 	log.WithField("device_profile_id", id).Info("device-profile deleted")
 
 	return nil
+}
+
+// GetDeviceProfileCount returns the total number of device-profiles.
+func GetDeviceProfileCount(db sqlx.Queryer) (int, error) {
+	var count int
+	err := sqlx.Get(db, &count, "select count(*) from device_profile")
+	if err != nil {
+		return 0, handlePSQLError(err, "select error")
+	}
+
+	return count, nil
+}
+
+// GetDeviceProfileCountForOrganizationID returns the total number of
+// device-profiles for the given organization id.
+func GetDeviceProfileCountForOrganizationID(db sqlx.Queryer, organizationID int64) (int, error) {
+	var count int
+	err := sqlx.Get(db, &count, "select count(*) from device_profile where organization_id = $1", organizationID)
+	if err != nil {
+		return 0, handlePSQLError(err, "select error")
+	}
+	return count, nil
+}
+
+// GetDeviceProfileCountForUser returns the total number of device-profiles
+// for the given username.
+func GetDeviceProfileCountForUser(db sqlx.Queryer, username string) (int, error) {
+	var count int
+	err := sqlx.Get(db, &count, `
+		select
+			count(dp.*)
+		from device_profile dp
+		inner join organization o
+			on o.id = dp.organization_id
+		inner join organization_user ou
+			on ou.organization_id = o.id
+		inner join "user" u
+			on u.id = ou.user_id
+		where
+			u.username = $1`,
+		username,
+	)
+	if err != nil {
+		return 0, handlePSQLError(err, "select error")
+	}
+	return count, nil
+}
+
+// GetDeviceProfiles returns a slice of device-profiles.
+func GetDeviceProfiles(db sqlx.Queryer, limit, offset int) ([]DeviceProfileMeta, error) {
+	var dps []DeviceProfileMeta
+	err := sqlx.Select(db, &dps, `
+		select *
+		from device_profile
+		order by name
+		limit $1 offset $2`,
+		limit,
+		offset,
+	)
+	if err != nil {
+		return nil, handlePSQLError(err, "select error")
+	}
+	return dps, nil
+}
+
+// GetDeviceProfilesForOrganizationID returns a slice of device-profiles
+// for the given organization id.
+func GetDeviceProfilesForOrganizationID(db sqlx.Queryer, organizationID int64, limit, offset int) ([]DeviceProfileMeta, error) {
+	var dps []DeviceProfileMeta
+	err := sqlx.Select(db, &dps, `
+		select *
+		from device_profile
+		where
+			organization_id = $1
+		order by name
+		limit $2 offset $3`,
+		organizationID,
+		limit,
+		offset,
+	)
+	if err != nil {
+		return nil, handlePSQLError(err, "select error")
+	}
+	return dps, nil
+}
+
+// GetDeviceProfilesForUser returns a slice of device-profiles for the given
+// username.
+func GetDeviceProfilesForUser(db sqlx.Queryer, username string, limit, offset int) ([]DeviceProfileMeta, error) {
+	var dps []DeviceProfileMeta
+	err := sqlx.Select(db, &dps, `
+		select dp.*
+		from device_profile dp
+		inner join organization o
+			on o.id = dp.organization_id
+		inner join organization_user ou
+			on ou.organization_id = o.id
+		inner join "user" u
+			on u.id = ou.user_id
+		where
+			u.username = $1
+		order by dp.name
+		limit $2 offset $3`,
+		username,
+		limit,
+		offset,
+	)
+	if err != nil {
+		handlePSQLError(err, "select error")
+	}
+
+	return dps, nil
 }

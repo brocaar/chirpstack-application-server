@@ -1064,36 +1064,93 @@ func TestValidators(t *testing.T) {
 			runTests(tests, db)
 		})
 
-		Convey("When testing ValidateServiceProfilesAccess", func() {
+		Convey("Then testing ValidateServiceProfilesAccess", func() {
 			tests := []validatorTest{
 				{
-					Name:       "global admin users can create, read, update, delete and list",
-					Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create), ValidateServiceProfileAccess(Read, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfileAccess(Update, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfileAccess(Delete, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfilesAccess(List)},
+					Name:       "global admin users can create and list",
+					Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create, organizations[0].ID), ValidateServiceProfilesAccess(List, organizations[0].ID)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
-					Name:       "related organization users can read",
-					Validators: []ValidatorFunc{ValidateServiceProfileAccess(Read, serviceProfiles[0].ServiceProfile.ServiceProfileID)},
+					Name:       "organization admin users can list",
+					Validators: []ValidatorFunc{ValidateServiceProfilesAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can list",
+					Validators: []ValidatorFunc{ValidateServiceProfilesAccess(List, organizations[0].ID)},
 					Claims:     Claims{Username: "user9"},
 					ExpectedOK: true,
 				},
 				{
-					Name:       "organization users of an other organization can not read",
-					Validators: []ValidatorFunc{ValidateServiceProfileAccess(Read, serviceProfiles[0].ServiceProfile.ServiceProfileID)},
-					Claims:     Claims{Username: "user12"},
+					Name:       "any user can list when organization id = 0",
+					Validators: []ValidatorFunc{ValidateServiceProfilesAccess(List, 0)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can not create",
+					Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create, organizations[0].ID)},
+					Claims:     Claims{Username: "user10"},
 					ExpectedOK: false,
 				},
 				{
-					Name:       "related organization users can not create, update, delete and list",
-					Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create), ValidateServiceProfileAccess(Update, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfileAccess(Delete, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfilesAccess(List)},
+					Name:       "organization users can not create",
+					Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create, organizations[0].ID)},
 					Claims:     Claims{Username: "user9"},
 					ExpectedOK: false,
 				},
 				{
-					Name:       "other users can not create, read, update, delete and list",
-					Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create), ValidateServiceProfileAccess(Read, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfileAccess(Update, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfileAccess(Delete, serviceProfiles[0].ServiceProfile.ServiceProfileID), ValidateServiceProfilesAccess(List)},
-					Claims:     Claims{Username: "user12"},
+					Name:       "non-organization can not create or list",
+					Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create, organizations[1].ID), ValidateServiceProfilesAccess(List, organizations[1].ID)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateServiceProfileAccess", func() {
+			id := serviceProfiles[0].ServiceProfile.ServiceProfileID
+
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can read, update and delete",
+					Validators: []ValidatorFunc{ValidateServiceProfileAccess(Read, id), ValidateServiceProfileAccess(Update, id), ValidateServiceProfileAccess(Delete, id)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can read",
+					Validators: []ValidatorFunc{ValidateServiceProfileAccess(Read, id)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can read",
+					Validators: []ValidatorFunc{ValidateServiceProfileAccess(Read, id)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can not update or delete",
+					Validators: []ValidatorFunc{ValidateServiceProfileAccess(Update, id), ValidateServiceProfileAccess(Delete, id)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "organization users can not update or delete",
+					Validators: []ValidatorFunc{ValidateServiceProfileAccess(Update, id), ValidateServiceProfileAccess(Delete, id)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "non-organization users can not read, update or delete",
+					Validators: []ValidatorFunc{ValidateServiceProfileAccess(Read, id), ValidateServiceProfileAccess(Update, id), ValidateServiceProfileAccess(Delete, id)},
+					Claims:     Claims{Username: "user4"},
 					ExpectedOK: false,
 				},
 			}

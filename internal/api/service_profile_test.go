@@ -192,19 +192,64 @@ func TestServiceProfileServiceAPI(t *testing.T) {
 				So(grpc.Code(err), ShouldEqual, codes.NotFound)
 			})
 
-			Convey("Then List lists the service-profiles", func() {
+			Convey("Given a global admin user", func() {
+				validator.returnIsAdmin = true
+
+				Convey("Then List without organization id returns all service-profiles", func() {
+					listResp, err := api.List(ctx, &pb.ListServiceProfileRequest{
+						Limit: 10,
+					})
+					So(err, ShouldBeNil)
+					So(listResp.TotalCount, ShouldEqual, 1)
+					So(listResp.Result, ShouldHaveLength, 1)
+				})
+			})
+
+			Convey("GIven an organization user", func() {
+				userID, err := storage.CreateUser(common.DB, &storage.User{
+					Username: "testuser",
+					IsActive: true,
+				}, "testpassword")
+				So(err, ShouldBeNil)
+				So(storage.CreateOrganizationUser(common.DB, org.ID, userID, false), ShouldBeNil)
+
+				Convey("Then List without organization id returns all service-profiles related to the user", func() {
+					validator.returnUsername = "testuser"
+					listResp, err := api.List(ctx, &pb.ListServiceProfileRequest{
+						Limit: 10,
+					})
+					So(err, ShouldBeNil)
+					So(listResp.TotalCount, ShouldEqual, 1)
+					So(listResp.Result, ShouldHaveLength, 1)
+				})
+
+				Convey("Then calling List using a different username returns no items", func() {
+					validator.returnUsername = "differentuser"
+					listResp, err := api.List(ctx, &pb.ListServiceProfileRequest{
+						Limit: 10,
+					})
+					So(err, ShouldBeNil)
+					So(listResp.TotalCount, ShouldEqual, 0)
+					So(listResp.Result, ShouldHaveLength, 0)
+				})
+			})
+
+			Convey("Then List returns the service-profiles for the given organization id", func() {
 				listResp, err := api.List(ctx, &pb.ListServiceProfileRequest{
-					Limit:  10,
-					Offset: 0,
+					Limit:          10,
+					OrganizationID: org.ID,
 				})
 				So(err, ShouldBeNil)
-
 				So(listResp.TotalCount, ShouldEqual, 1)
 				So(listResp.Result, ShouldHaveLength, 1)
-				So(listResp.Result[0].Name, ShouldEqual, createReq.Name)
-				So(listResp.Result[0].NetworkServerID, ShouldEqual, n.ID)
-				So(listResp.Result[0].OrganizationID, ShouldEqual, org.ID)
-				So(listResp.Result[0].ServiceProfileID, ShouldEqual, createResp.ServiceProfileID)
+
+				listResp, err = api.List(ctx, &pb.ListServiceProfileRequest{
+					Limit:          10,
+					OrganizationID: org.ID + 1,
+				})
+				So(err, ShouldBeNil)
+				So(listResp.TotalCount, ShouldEqual, 0)
+				So(listResp.Result, ShouldHaveLength, 0)
 			})
 		})
 	})

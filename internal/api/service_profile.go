@@ -30,7 +30,7 @@ func NewServiceProfileServiceAPI(validator auth.Validator) *ServiceProfileServic
 // Create creates the given service-profile.
 func (a *ServiceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateServiceProfileRequest) (*pb.CreateServiceProfileResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateServiceProfilesAccess(auth.Create),
+		auth.ValidateServiceProfilesAccess(auth.Create, req.OrganizationID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -228,25 +228,62 @@ func (a *ServiceProfileServiceAPI) Delete(ctx context.Context, req *pb.DeleteSer
 // List lists the available service-profiles.
 func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListServiceProfileRequest) (*pb.ListServiceProfileResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateServiceProfilesAccess(auth.List),
+		auth.ValidateServiceProfilesAccess(auth.List, req.OrganizationID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	count, err := storage.GetServiceProfileCount(common.DB)
+	isAdmin, err := a.validator.GetIsAdmin(ctx)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	profiles, err := storage.GetServiceProfiles(common.DB, int(req.Limit), int(req.Offset))
+	username, err := a.validator.GetUsername(ctx)
 	if err != nil {
 		return nil, errToRPCError(err)
+	}
+
+	var count int
+	var sps []storage.ServiceProfileMeta
+
+	if req.OrganizationID == 0 {
+		if isAdmin {
+			sps, err = storage.GetServiceProfiles(common.DB, int(req.Limit), int(req.Offset))
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+
+			count, err = storage.GetServiceProfileCount(common.DB)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+		} else {
+			sps, err = storage.GetServiceProfilesForUser(common.DB, username, int(req.Limit), int(req.Offset))
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+
+			count, err = storage.GetServiceProfileCountForUser(common.DB, username)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+		}
+	} else {
+		sps, err = storage.GetServiceProfilesForOrganizationID(common.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		count, err = storage.GetServiceProfileCountForOrganizationID(common.DB, req.OrganizationID)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
 	}
 
 	resp := pb.ListServiceProfileResponse{
 		TotalCount: int64(count),
 	}
-	for _, sp := range profiles {
+	for _, sp := range sps {
 		resp.Result = append(resp.Result, &pb.ServiceProfileMeta{
 			ServiceProfileID: sp.ServiceProfileID,
 			Name:             sp.Name,

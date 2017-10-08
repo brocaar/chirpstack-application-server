@@ -297,6 +297,41 @@ func GetServiceProfileCount(db sqlx.Queryer) (int, error) {
 	return count, nil
 }
 
+// GetServiceProfileCountForOrganizationID returns the total number of
+// service-profiles for the given organization id.
+func GetServiceProfileCountForOrganizationID(db sqlx.Queryer, organizationID int64) (int, error) {
+	var count int
+	err := sqlx.Get(db, &count, "select count(*) from service_profile where organization_id = $1", organizationID)
+	if err != nil {
+		return 0, handlePSQLError(err, "select error")
+	}
+	return count, nil
+}
+
+// GetServiceProfileCountForUser returns the total number of service-profiles
+// for the given username.
+func GetServiceProfileCountForUser(db sqlx.Queryer, username string) (int, error) {
+	var count int
+	err := sqlx.Get(db, &count, `
+		select
+			count(sp.*)
+		from service_profile sp
+		inner join organization o
+			on o.id = sp.organization_id
+		inner join organization_user ou
+			on ou.organization_id = o.id
+		inner join "user" u
+			on u.id = ou.user_id
+		where
+			u.username = $1`,
+		username,
+	)
+	if err != nil {
+		return 0, handlePSQLError(err, "select error")
+	}
+	return count, nil
+}
+
 // GetServiceProfiles returns a slice of service-profiles.
 func GetServiceProfiles(db sqlx.Queryer, limit, offset int) ([]ServiceProfileMeta, error) {
 	var sps []ServiceProfileMeta
@@ -305,6 +340,57 @@ func GetServiceProfiles(db sqlx.Queryer, limit, offset int) ([]ServiceProfileMet
 		from service_profile
 		order by name
 		limit $1 offset $2`,
+		limit,
+		offset,
+	)
+	if err != nil {
+		return nil, handlePSQLError(err, "select error")
+	}
+
+	return sps, nil
+}
+
+// GetServiceProfilesForOrganizationID returns a slice of service-profiles
+// for the given organization id.
+func GetServiceProfilesForOrganizationID(db sqlx.Queryer, organizationID int64, limit, offset int) ([]ServiceProfileMeta, error) {
+	var sps []ServiceProfileMeta
+	err := sqlx.Select(db, &sps, `
+		select *
+		from service_profile
+		where
+			organization_id = $1
+		order by name
+		limit $2 offset $3`,
+		organizationID,
+		limit,
+		offset,
+	)
+	if err != nil {
+		return nil, handlePSQLError(err, "select error")
+	}
+
+	return sps, nil
+}
+
+// GetServiceProfilesForUser returns a slice of service-profile for the given
+// username.
+func GetServiceProfilesForUser(db sqlx.Queryer, username string, limit, offset int) ([]ServiceProfileMeta, error) {
+	var sps []ServiceProfileMeta
+	err := sqlx.Select(db, &sps, `
+		select
+			sp.*
+		from service_profile sp
+		inner join organization o
+			on o.id = sp.organization_id
+		inner join organization_user ou
+			on ou.organization_id = o.id
+		inner join "user" u
+			on u.id = ou.user_id
+		where
+			u.username = $1
+		order by sp.name
+		limit $2 offset $3`,
+		username,
 		limit,
 		offset,
 	)

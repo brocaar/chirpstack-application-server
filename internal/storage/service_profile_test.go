@@ -29,6 +29,15 @@ func TestServiceProfile(t *testing.T) {
 		}
 		So(CreateOrganization(common.DB, &org), ShouldBeNil)
 
+		u := User{
+			Username: "testuser",
+			IsAdmin:  false,
+			IsActive: true,
+		}
+		uID, err := CreateUser(common.DB, &u, "testpassword")
+		So(err, ShouldBeNil)
+		So(CreateOrganizationUser(common.DB, org.ID, uID, false), ShouldBeNil)
+
 		n := NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
@@ -196,11 +205,51 @@ func TestServiceProfile(t *testing.T) {
 				So(count, ShouldEqual, 1)
 			})
 
+			Convey("Then GetServiceProfileCountForOrganizationID returns the number of service-profiles for the given organization", func() {
+				count, err := GetServiceProfileCountForOrganizationID(common.DB, org.ID)
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 1)
+
+				count, err = GetServiceProfileCountForOrganizationID(common.DB, org.ID+1)
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 0)
+			})
+
+			Convey("Then GetServiceProfileCountForUser returns the service-profile count accessible by the given user", func() {
+				count, err := GetServiceProfileCountForUser(common.DB, u.Username)
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 1)
+
+				count, err = GetServiceProfileCountForUser(common.DB, "fakeuser")
+				So(err, ShouldBeNil)
+				So(count, ShouldEqual, 0)
+			})
+
 			Convey("Then GetServiceProfiles includes the created service-profile", func() {
 				profiles, err := GetServiceProfiles(common.DB, 10, 0)
 				So(err, ShouldBeNil)
 				So(profiles, ShouldHaveLength, 1)
 				So(profiles[0].Name, ShouldEqual, sp.Name)
+			})
+
+			Convey("Then GetServiceProfilesForOrganizationID returns the service-profiles for the given organization", func() {
+				sps, err := GetServiceProfilesForOrganizationID(common.DB, org.ID, 10, 0)
+				So(err, ShouldBeNil)
+				So(sps, ShouldHaveLength, 1)
+
+				sps, err = GetServiceProfilesForOrganizationID(common.DB, org.ID+1, 10, 0)
+				So(err, ShouldBeNil)
+				So(sps, ShouldHaveLength, 0)
+			})
+
+			Convey("Then GetServiceProfilesForUser returns the service-profiles accessible by a given user", func() {
+				sps, err := GetServiceProfilesForUser(common.DB, u.Username, 10, 0)
+				So(err, ShouldBeNil)
+				So(sps, ShouldHaveLength, 1)
+
+				sps, err = GetServiceProfilesForUser(common.DB, "fakeuser", 10, 0)
+				So(err, ShouldBeNil)
+				So(sps, ShouldHaveLength, 0)
 			})
 		})
 	})

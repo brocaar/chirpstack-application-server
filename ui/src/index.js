@@ -58,6 +58,11 @@ import OrganizationUsers from './views/organizations/OrganizationUsers';
 import CreateOrganizationUser from './views/organizations/CreateOrganizationUser';
 import UpdateOrganizationUser from './views/organizations/UpdateOrganizationUser';
 
+// network-servers
+import ListNetworkServers from "./views/networkservers/ListNetworkServers";
+import CreateNetworkServer from "./views/networkservers/CreateNetworkServer";
+import UpdateNetworkServer from "./views/networkservers/UpdateNetworkServer";
+
 // fix leaflet image source
 import Leaflet from 'leaflet';
 Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.0/images/'
@@ -82,6 +87,10 @@ ReactDOM.render(
       <Route path="organizations" component={ListOrganizations}></Route>
       <Route path="organizations/create" component={CreateOrganization}></Route>
   
+      <Route path="network-servers" component={ListNetworkServers}></Route>
+      <Route path="network-servers/create" component={CreateNetworkServer}></Route>
+      <Route path="network-servers/:networkServerID" component={UpdateNetworkServer}></Route>
+
       <Route path="organizations/:organizationID" component={OrganizationLayout}>
         <IndexRoute component={ListApplications}></IndexRoute>
         <Route path="edit" component={UpdateOrganization}></Route>

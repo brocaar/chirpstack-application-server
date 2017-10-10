@@ -35,9 +35,6 @@ create database loraserver_as with owner loraserver_as;
 -- connect to db
 \c loraserver_as
 
--- create the pg_trgm extension for search capabilities (if done later, remember to do it with user postgres or other superuser)
-create extension pg_trgm;
-
 -- exit the prompt
 \q
 ```

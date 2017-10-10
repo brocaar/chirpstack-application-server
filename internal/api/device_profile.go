@@ -28,6 +28,10 @@ func NewDeviceProfileServiceAPI(validator auth.Validator) *DeviceProfileServiceA
 
 // Create creates the given device-profile.
 func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDeviceProfileRequest) (*pb.CreateDeviceProfileResponse, error) {
+	if req.DeviceProfile == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "deviceProfile expected")
+	}
+
 	if err := a.validator.Validate(ctx,
 		auth.ValidateDeviceProfilesAccess(auth.Create, req.OrganizationID),
 	); err != nil {
@@ -129,6 +133,10 @@ func (a *DeviceProfileServiceAPI) Get(ctx context.Context, req *pb.GetDeviceProf
 
 // Update updates the given device-profile.
 func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDeviceProfileRequest) (*pb.UpdateDeviceProfileResponse, error) {
+	if req.DeviceProfile == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "deviceProfile expected")
+	}
+
 	if err := a.validator.Validate(ctx,
 		auth.ValidateDeviceProfileAccess(auth.Update, req.DeviceProfile.DeviceProfileID),
 	); err != nil {

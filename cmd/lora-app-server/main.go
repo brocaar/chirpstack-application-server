@@ -254,6 +254,8 @@ func startClientAPI(ctx context.Context) func(*cli.Context) error {
 		pb.RegisterGatewayServer(clientAPIHandler, api.NewGatewayAPI(validator))
 		pb.RegisterOrganizationServer(clientAPIHandler, api.NewOrganizationAPI(validator))
 		pb.RegisterNetworkServerServer(clientAPIHandler, api.NewNetworkServerAPI(validator))
+		pb.RegisterServiceProfileServiceServer(clientAPIHandler, api.NewServiceProfileServiceAPI(validator))
+		pb.RegisterDeviceProfileServiceServer(clientAPIHandler, api.NewDeviceProfileServiceAPI(validator))
 
 		// setup the client http interface variable
 		// we need to start the gRPC service first, as it is used by the
@@ -398,6 +400,12 @@ func getJSONGateway(ctx context.Context, c *cli.Context) (http.Handler, error) {
 	}
 	if err := pb.RegisterNetworkServerHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register network-server handler error")
+	}
+	if err := pb.RegisterServiceProfileServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+		return nil, errors.Wrap(err, "register service-profile handler error")
+	}
+	if err := pb.RegisterDeviceProfileServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+		return nil, errors.Wrap(err, "register device-profile handler error")
 	}
 
 	return mux, nil

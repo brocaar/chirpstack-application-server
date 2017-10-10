@@ -58,6 +58,11 @@ import OrganizationUsers from './views/organizations/OrganizationUsers';
 import CreateOrganizationUser from './views/organizations/CreateOrganizationUser';
 import UpdateOrganizationUser from './views/organizations/UpdateOrganizationUser';
 
+// service profiles
+import ListServiceProfiles from "./views/serviceprofiles/ListServiceProfiles";
+import CreateServiceProfile from "./views/serviceprofiles/CreateServiceProfile";
+import UpdateServiceProfile from "./views/serviceprofiles/UpdateServiceProfile";
+
 // network-servers
 import ListNetworkServers from "./views/networkservers/ListNetworkServers";
 import CreateNetworkServer from "./views/networkservers/CreateNetworkServer";
@@ -101,6 +106,9 @@ ReactDOM.render(
         <Route path="users" component={OrganizationUsers}></Route>
         <Route path="users/create" component={CreateOrganizationUser}></Route>
         <Route path="users/:userID/edit" component={UpdateOrganizationUser}></Route>
+        <Route path="service-profiles" component={ListServiceProfiles}></Route>
+        <Route path="service-profiles/create" component={CreateServiceProfile}></Route>
+        <Route path="service-profiles/:serviceProfileID" component={UpdateServiceProfile}></Route>
       </Route>
 
       <Route path="organizations/:organizationID/gateways/:mac" component={GatewayLayout}>

@@ -29,6 +29,10 @@ func NewServiceProfileServiceAPI(validator auth.Validator) *ServiceProfileServic
 
 // Create creates the given service-profile.
 func (a *ServiceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateServiceProfileRequest) (*pb.CreateServiceProfileResponse, error) {
+	if req.ServiceProfile == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "serviceProfile expected")
+	}
+
 	if err := a.validator.Validate(ctx,
 		auth.ValidateServiceProfilesAccess(auth.Create, req.OrganizationID),
 	); err != nil {
@@ -148,6 +152,10 @@ func (a *ServiceProfileServiceAPI) Get(ctx context.Context, req *pb.GetServicePr
 
 // Update updates the given serviceprofile.
 func (a *ServiceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateServiceProfileRequest) (*pb.UpdateServiceProfileResponse, error) {
+	if req.ServiceProfile == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "serviceProfile expected")
+	}
+
 	if err := a.validator.Validate(ctx,
 		auth.ValidateServiceProfileAccess(auth.Update, req.ServiceProfile.ServiceProfileID),
 	); err != nil {

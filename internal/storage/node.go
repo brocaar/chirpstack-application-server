@@ -334,6 +334,9 @@ func GetNode(db *sqlx.DB, devEUI lorawan.EUI64) (Node, error) {
 // id, sorted by name.
 func GetNodesForApplicationID(db *sqlx.DB, applicationID int64, limit, offset int, search string) ([]Node, error) {
 	var nodes []Node
+	if search != "" {
+		search = search + "%"
+	}
 	err := db.Select(&nodes, `
 		select *
 		from node
@@ -357,6 +360,9 @@ func GetNodesForApplicationID(db *sqlx.DB, applicationID int64, limit, offset in
 // given applicaiton id.
 func GetNodesCountForApplicationID(db *sqlx.DB, applicationID int64, search string) (int, error) {
 	var count int
+	if search != "" {
+		search = search + "%"
+	}
 	err := db.Get(&count, `
 		select count(*)
 		from node

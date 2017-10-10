@@ -2,27 +2,28 @@ import React, { Component } from 'react';
 import { Link } from 'react-router';
 
 import Pagination from "../../components/Pagination";
-import ServiceProfileStore from "../../stores/ServiceProfileStore";
+import DeviceProfileStore from "../../stores/DeviceProfileStore";
 import SessionStore from "../../stores/SessionStore";
 
 
-class ServiceProfileRow extends Component {
+class DeviceProfileRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`organizations/${this.props.organizationID}/service-profiles/${this.props.serviceProfile.serviceProfileID}`}>{this.props.serviceProfile.name}</Link></td>
+        <td><Link to={`organizations/${this.props.organizationID}/device-profiles/${this.props.deviceProfile.deviceProfileID}`}>{this.props.deviceProfile.name}</Link></td>
       </tr>
     );
   }
 }
 
-class ListServiceProfiles extends Component {
+
+class ListDeviceProfiles extends Component {
   constructor() {
     super();
 
     this.state = {
       pageSize: 20,
-      serviceProfiles: [],
+      deviceProfiles: [],
       isAdmin: false,
       pageNumber: 1,
       pages: 1,
@@ -36,21 +37,21 @@ class ListServiceProfiles extends Component {
 
     SessionStore.on("change", () => {
       this.setState({
-        isAdmin: SessionStore.isAdmin(),
+        isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID),
       });
     });
   }
 
   updatePage(props) {
     this.setState({
-      isAdmin: SessionStore.isAdmin(),
+      isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID),
     });
 
     const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
 
-    ServiceProfileStore.getAllForOrganizationID(props.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, serviceProfiles) => {
+    DeviceProfileStore.getAllForOrganizationID(props.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, deviceProfiles) => {
       this.setState({
-        serviceProfiles: serviceProfiles,
+        deviceProfiles: deviceProfiles,
         pageNumber: page,
         pages: Math.ceil(totalCount / this.state.pageSize),
       });
@@ -59,13 +60,13 @@ class ListServiceProfiles extends Component {
   }
 
   render() {
-    const ServiceProfileRows = this.state.serviceProfiles.map((serviceProfile, i) => <ServiceProfileRow key={serviceProfile.serviceProfileID} serviceProfile={serviceProfile} organizationID={this.props.params.organizationID} />);
+    const DeviceProfileRows = this.state.deviceProfiles.map((deviceProfile, i) => <DeviceProfileRow key={deviceProfile.deviceProfileID} deviceProfile={deviceProfile} organizationID={this.props.params.organizationID} />);
 
     return(
       <div className="panel panel-default">
         <div className={`panel-heading clearfix ${this.state.isAdmin ? '' : 'hidden'}`}>
           <div className="btn-group pull-right">
-            <Link to={`organizations/${this.props.params.organizationID}/service-profiles/create`}><button type="button" className="btn btn-default btn-sm">Create service-profile</button></Link>
+            <Link to={`organizations/${this.props.params.organizationID}/device-profiles/create`}><button type="button" className="btn btn-default btn-sm">Create device-profile</button></Link>
           </div>
         </div>
         <div className="panel-body">
@@ -76,14 +77,14 @@ class ListServiceProfiles extends Component {
               </tr>
             </thead>
             <tbody>
-              {ServiceProfileRows}
+              {DeviceProfileRows}
             </tbody>
           </table>
         </div>
-        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`organizations/${this.props.params.organizationID}/service-profiles`} />
+        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`organizations/${this.props.params.organizationID}/device-profiles`} />
       </div>
     );
   }
 }
 
-export default ListServiceProfiles;
+export default ListDeviceProfiles;

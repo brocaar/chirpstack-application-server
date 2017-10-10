@@ -85,6 +85,7 @@ class OrganizationLayout extends Component {
           <li role="presentation" className={(activeTab === "edit" ? 'active': '') + (this.state.isGlobalAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.params.organizationID}/edit`}>Organization configuration</Link></li>
           <li role="presentation" className={(activeTab.startsWith("users") ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.params.organizationID}/users`}>Organization users</Link></li>
           <li role="presentation" className={activeTab.startsWith("service-profiles") ? 'active' : ''}><Link to={`/organizations/${this.props.params.organizationID}/service-profiles`}>Service profiles</Link></li>
+          <li role="presentation" className={activeTab.startsWith("device-profiles") ? 'active' : ''}><Link to={`/organizations/${this.props.params.organizationID}/device-profiles`}>Device profiles</Link></li>
         </ul>
         <hr />
         {this.props.children} 

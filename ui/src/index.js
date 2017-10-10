@@ -63,6 +63,11 @@ import ListServiceProfiles from "./views/serviceprofiles/ListServiceProfiles";
 import CreateServiceProfile from "./views/serviceprofiles/CreateServiceProfile";
 import UpdateServiceProfile from "./views/serviceprofiles/UpdateServiceProfile";
 
+// device profiles
+import ListDeviceProfiles from "./views/deviceprofiles/ListDeviceProfiles";
+import CreateDeviceProfile from "./views/deviceprofiles/CreateDeviceProfile";
+import UpdateDeviceProfile from "./views/deviceprofiles/UpdateDeviceProfile";
+
 // network-servers
 import ListNetworkServers from "./views/networkservers/ListNetworkServers";
 import CreateNetworkServer from "./views/networkservers/CreateNetworkServer";
@@ -109,6 +114,9 @@ ReactDOM.render(
         <Route path="service-profiles" component={ListServiceProfiles}></Route>
         <Route path="service-profiles/create" component={CreateServiceProfile}></Route>
         <Route path="service-profiles/:serviceProfileID" component={UpdateServiceProfile}></Route>
+        <Route path="device-profiles" component={ListDeviceProfiles}></Route>
+        <Route path="device-profiles/create" component={CreateDeviceProfile}></Route>
+        <Route path="device-profiles/:deviceProfileID" component={UpdateDeviceProfile}></Route>
       </Route>
 
       <Route path="organizations/:organizationID/gateways/:mac" component={GatewayLayout}>

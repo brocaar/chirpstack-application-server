@@ -85,7 +85,7 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 // Get returns the device-profile matching the given id.
 func (a *DeviceProfileServiceAPI) Get(ctx context.Context, req *pb.GetDeviceProfileRequest) (*pb.GetDeviceProfileResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateDeviceProfileAccess(auth.Create, req.DeviceProfileID),
+		auth.ValidateDeviceProfileAccess(auth.Read, req.DeviceProfileID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}

@@ -1,7 +1,11 @@
 package storage
 
 import (
+	"context"
 	"time"
+
+	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/loraserver/api/ns"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -23,16 +27,16 @@ func (ns NetworkServer) Validate() error {
 }
 
 // CreateNetworkServer creates the given network-server.
-func CreateNetworkServer(db sqlx.Queryer, ns *NetworkServer) error {
-	if err := ns.Validate(); err != nil {
+func CreateNetworkServer(db sqlx.Queryer, n *NetworkServer) error {
+	if err := n.Validate(); err != nil {
 		return errors.Wrap(err, "validation error")
 	}
 
 	now := time.Now()
-	ns.CreatedAt = now
-	ns.UpdatedAt = now
+	n.CreatedAt = now
+	n.UpdatedAt = now
 
-	err := sqlx.Get(db, &ns.ID, `
+	err := sqlx.Get(db, &n.ID, `
 		insert into network_server (
 			created_at,
 			updated_at,
@@ -40,19 +44,30 @@ func CreateNetworkServer(db sqlx.Queryer, ns *NetworkServer) error {
 			server
 		) values ($1, $2, $3, $4)
 		returning id`,
-		ns.CreatedAt,
-		ns.UpdatedAt,
-		ns.Name,
-		ns.Server,
+		n.CreatedAt,
+		n.UpdatedAt,
+		n.Name,
+		n.Server,
 	)
 	if err != nil {
 		return handlePSQLError(err, "insert error")
 	}
 
+	_, err = common.NetworkServer.CreateRoutingProfile(context.Background(), &ns.CreateRoutingProfileRequest{
+		RoutingProfile: &ns.RoutingProfile{
+			RoutingProfileID: common.ApplicationServerID,
+			AsID:             common.ApplicationServerServer,
+		},
+	})
+	if err != nil {
+		log.WithError(err).Error("network-server create routing-profile api error")
+		return handleGrpcError(err, "create routing-profile error")
+	}
+
 	log.WithFields(log.Fields{
-		"id":     ns.ID,
-		"name":   ns.Name,
-		"server": ns.Server,
+		"id":     n.ID,
+		"name":   n.Name,
+		"server": n.Server,
 	}).Info("network-server created")
 	return nil
 }
@@ -69,12 +84,12 @@ func GetNetworkServer(db sqlx.Queryer, id int64) (NetworkServer, error) {
 }
 
 // UpdateNetworkServer updates the given network-server.
-func UpdateNetworkServer(db sqlx.Execer, ns *NetworkServer) error {
-	if err := ns.Validate(); err != nil {
+func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
+	if err := n.Validate(); err != nil {
 		return errors.Wrap(err, "validation error")
 	}
 
-	ns.UpdatedAt = time.Now()
+	n.UpdatedAt = time.Now()
 
 	res, err := db.Exec(`
 		update network_server
@@ -83,10 +98,10 @@ func UpdateNetworkServer(db sqlx.Execer, ns *NetworkServer) error {
 			name = $3,
 			server = $4
 		where id = $1`,
-		ns.ID,
-		ns.UpdatedAt,
-		ns.Name,
-		ns.Server,
+		n.ID,
+		n.UpdatedAt,
+		n.Name,
+		n.Server,
 	)
 	if err != nil {
 		return handlePSQLError(err, "update error")
@@ -100,10 +115,21 @@ func UpdateNetworkServer(db sqlx.Execer, ns *NetworkServer) error {
 		return ErrDoesNotExist
 	}
 
+	_, err = common.NetworkServer.UpdateRoutingProfile(context.Background(), &ns.UpdateRoutingProfileRequest{
+		RoutingProfile: &ns.RoutingProfile{
+			RoutingProfileID: common.ApplicationServerID,
+			AsID:             common.ApplicationServerServer,
+		},
+	})
+	if err != nil {
+		log.WithError(err).Error("network-server update routing-profile api error")
+		return handleGrpcError(err, "update routing-profile error")
+	}
+
 	log.WithFields(log.Fields{
-		"id":     ns.ID,
-		"name":   ns.Name,
-		"server": ns.Server,
+		"id":     n.ID,
+		"name":   n.Name,
+		"server": n.Server,
 	}).Info("network-server updated")
 	return nil
 }
@@ -120,6 +146,14 @@ func DeleteNetworkServer(db sqlx.Execer, id int64) error {
 	}
 	if ra == 0 {
 		return ErrDoesNotExist
+	}
+
+	_, err = common.NetworkServer.DeleteRoutingProfile(context.Background(), &ns.DeleteRoutingProfileRequest{
+		RoutingProfileID: common.ApplicationServerID,
+	})
+	if err != nil {
+		log.WithError(err).Error("network-server delete routing-profile api error")
+		return handleGrpcError(err, "delete routing-profile error")
 	}
 
 	log.WithField("id", id).Info("network-server deleted")

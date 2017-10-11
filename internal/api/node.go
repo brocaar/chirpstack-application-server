@@ -4,6 +4,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
+	"github.com/jmoiron/sqlx"
+
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -54,11 +56,14 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*pb.
 		Description:     req.Description,
 	}
 
-	if err := storage.CreateDevice(common.DB, &d); err != nil {
+	// as this also performs a remote call to create the node on the
+	// network-server, wrap it in a transaction
+	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+		return storage.CreateDevice(tx, &d)
+	})
+	if err != nil {
 		return nil, errToRPCError(err)
 	}
-
-	log.WithField("dev_eui", devEUI).Info("device created")
 
 	return &pb.CreateDeviceResponse{}, nil
 }
@@ -130,11 +135,14 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*pb.
 	d.Name = req.Name
 	d.Description = req.Description
 
-	if err := storage.UpdateDevice(common.DB, &d); err != nil {
+	// as this also performs a remote call to update the node on the
+	// network-server, wrap it in a transaction
+	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+		return storage.UpdateDevice(tx, &d)
+	})
+	if err != nil {
 		return nil, errToRPCError(err)
 	}
-
-	log.WithField("dev_eui", devEUI).Info("device updated")
 
 	return &pb.UpdateDeviceResponse{}, nil
 }
@@ -156,11 +164,14 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*pb.
 		return nil, errToRPCError(err)
 	}
 
-	if err := storage.DeleteDevice(common.DB, d.DevEUI); err != nil {
+	// as this also performs a remote call to delete the node from the
+	// network-server, wrap it in a transaction
+	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+		return storage.DeleteDevice(tx, d.DevEUI)
+	})
+	if err != nil {
 		return nil, errToRPCError(err)
 	}
-
-	log.WithField("dev_eui", eui).Info("device deleted")
 
 	return &pb.DeleteDeviceResponse{}, nil
 }

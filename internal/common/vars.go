@@ -31,4 +31,7 @@ var GatewayPingDR int
 var GatewayPingInterval time.Duration
 
 // ApplicationServerID holds the application-server ID (UUID).
-var ApplicationServerID string
+var ApplicationServerID = "6d5db27e-4ce2-4b2b-b5d7-91f069397978"
+
+// ApplicationServerServer holds the hostname:IP of the application-server.
+var ApplicationServerServer = "localhost:8001"

@@ -20,11 +20,13 @@ func TestNetworkServerAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	common.DB = db
 
 	Convey("Given a clean database and api instance", t, func() {
 		test.MustResetDB(common.DB)
+
+		nsClient := test.NewNetworkServerClient()
+		common.NetworkServer = nsClient
 
 		ctx := context.Background()
 		validator := &TestValidator{}

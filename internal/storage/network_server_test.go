@@ -6,6 +6,7 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/loraserver/api/ns"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -20,27 +21,37 @@ func TestNetworkServer(t *testing.T) {
 	Convey("Given a clean database with an organization", t, func() {
 		test.MustResetDB(db)
 
+		nsClient := test.NewNetworkServerClient()
+		common.NetworkServer = nsClient
+
 		org := Organization{
 			Name: "test-org",
 		}
 		So(CreateOrganization(db, &org), ShouldBeNil)
 
 		Convey("Then CreateNetworkServer creates a network-server", func() {
-			ns := NetworkServer{
+			n := NetworkServer{
 				Name:   "test-ns",
 				Server: "test-ns:123",
 			}
-			So(CreateNetworkServer(db, &ns), ShouldBeNil)
-			ns.CreatedAt = ns.CreatedAt.UTC().Truncate(time.Millisecond)
-			ns.UpdatedAt = ns.UpdatedAt.UTC().Truncate(time.Millisecond)
+			So(CreateNetworkServer(db, &n), ShouldBeNil)
+			n.CreatedAt = n.CreatedAt.UTC().Truncate(time.Millisecond)
+			n.UpdatedAt = n.UpdatedAt.UTC().Truncate(time.Millisecond)
+			So(nsClient.CreateRoutingProfileChan, ShouldHaveLength, 1)
+			So(<-nsClient.CreateRoutingProfileChan, ShouldResemble, ns.CreateRoutingProfileRequest{
+				RoutingProfile: &ns.RoutingProfile{
+					RoutingProfileID: common.ApplicationServerID,
+					AsID:             common.ApplicationServerServer,
+				},
+			})
 
 			Convey("Then GetNetworkServer returns the network-server", func() {
-				nsGet, err := GetNetworkServer(db, ns.ID)
+				nsGet, err := GetNetworkServer(db, n.ID)
 				So(err, ShouldBeNil)
 				nsGet.CreatedAt = nsGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				nsGet.UpdatedAt = nsGet.UpdatedAt.UTC().Truncate(time.Millisecond)
 
-				So(nsGet, ShouldResemble, ns)
+				So(nsGet, ShouldResemble, n)
 			})
 
 			Convey("Then GetNetworkServerCount returns 1", func() {
@@ -56,22 +67,35 @@ func TestNetworkServer(t *testing.T) {
 			})
 
 			Convey("Then UpdateNetworkServer updates the network-server", func() {
-				ns.Name = "new-nw-server"
-				ns.Server = "new-nw-server:123"
-				So(UpdateNetworkServer(db, &ns), ShouldBeNil)
-				ns.UpdatedAt = ns.UpdatedAt.UTC().Truncate(time.Millisecond)
+				n.Name = "new-nw-server"
+				n.Server = "new-nw-server:123"
+				So(UpdateNetworkServer(db, &n), ShouldBeNil)
+				So(nsClient.UpdateRoutingProfileChan, ShouldHaveLength, 1)
+				So(<-nsClient.UpdateRoutingProfileChan, ShouldResemble, ns.UpdateRoutingProfileRequest{
+					RoutingProfile: &ns.RoutingProfile{
+						RoutingProfileID: common.ApplicationServerID,
+						AsID:             common.ApplicationServerServer,
+					},
+				})
 
-				nsGet, err := GetNetworkServer(db, ns.ID)
+				n.UpdatedAt = n.UpdatedAt.UTC().Truncate(time.Millisecond)
+
+				nsGet, err := GetNetworkServer(db, n.ID)
 				So(err, ShouldBeNil)
 				nsGet.CreatedAt = nsGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				nsGet.UpdatedAt = nsGet.UpdatedAt.UTC().Truncate(time.Millisecond)
 
-				So(nsGet, ShouldResemble, ns)
+				So(nsGet, ShouldResemble, n)
 			})
 
 			Convey("Then DeleteNetworkServer deletes the network-server", func() {
-				So(DeleteNetworkServer(db, ns.ID), ShouldBeNil)
-				_, err := GetNetworkServer(db, ns.ID)
+				So(DeleteNetworkServer(db, n.ID), ShouldBeNil)
+				So(nsClient.DeleteRoutingProfileChan, ShouldHaveLength, 1)
+				So(<-nsClient.DeleteRoutingProfileChan, ShouldResemble, ns.DeleteRoutingProfileRequest{
+					RoutingProfileID: common.ApplicationServerID,
+				})
+
+				_, err := GetNetworkServer(db, n.ID)
 				So(err, ShouldNotBeNil)
 				So(err, ShouldEqual, ErrDoesNotExist)
 			})

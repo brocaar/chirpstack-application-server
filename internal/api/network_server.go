@@ -7,6 +7,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -36,7 +37,11 @@ func (a *NetworkServerAPI) Create(ctx context.Context, req *pb.CreateNetworkServ
 		Name:   req.Name,
 		Server: req.Server,
 	}
-	if err := storage.CreateNetworkServer(common.DB, &ns); err != nil {
+
+	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+		return storage.CreateNetworkServer(tx, &ns)
+	})
+	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -83,7 +88,9 @@ func (a *NetworkServerAPI) Update(ctx context.Context, req *pb.UpdateNetworkServ
 	ns.Name = req.Name
 	ns.Server = req.Server
 
-	err = storage.UpdateNetworkServer(common.DB, &ns)
+	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+		return storage.UpdateNetworkServer(tx, &ns)
+	})
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -99,7 +106,9 @@ func (a *NetworkServerAPI) Delete(ctx context.Context, req *pb.DeleteNetworkServ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteNetworkServer(common.DB, req.Id)
+	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+		return storage.DeleteNetworkServer(tx, req.Id)
+	})
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

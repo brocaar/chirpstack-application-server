@@ -35,7 +35,7 @@ class CreateApplication extends Component {
           <h3 className="panel-title panel-title-buttons">Create application</h3>
         </div>
         <div className="panel-body">
-          <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} />
+          <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} organizationID={this.props.params.organizationID} />
         </div>
       </div>
     );

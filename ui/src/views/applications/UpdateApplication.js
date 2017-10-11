@@ -17,7 +17,7 @@ class UpdateApplication extends Component {
     this.onSubmit = this.onSubmit.bind(this);
   }
 
-  componentWillMount() {
+  componentDidMount() {
     ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
       this.setState({application: application});
     });
@@ -33,7 +33,7 @@ class UpdateApplication extends Component {
     return(
       <div className="panel panel-default">
         <div className="panel-body">
-          <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} update={true} />
+          <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} update={true} organizationID={this.props.params.organizationID} />
         </div>
       </div>
     );

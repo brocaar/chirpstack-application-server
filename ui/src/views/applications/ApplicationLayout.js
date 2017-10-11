@@ -69,7 +69,7 @@ class ApplicationLayout extends Component {
           </div>
         </div>
         <ul className="nav nav-tabs">
-          <li role="presentation" className={(activeTab === "" || activeTab === "nodes/create") ? 'active' : ''}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}`}>Nodes</Link></li>
+          <li role="presentation" className={(activeTab === "" || activeTab === "nodes/create") ? 'active' : ''}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}`}>Devices</Link></li>
           <li role="presentation" className={(activeTab === "edit" ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/edit`}>Application configuration</Link></li>
           <li role="presentation" className={((activeTab === "users" || activeTab === "users/:userID/edit" || activeTab === "users/create") ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/users`}>Application users</Link></li>
           <li role="presentation" className={((activeTab === "integrations" || activeTab === "integrations/create" || activeTab === "integrations/http") ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/integrations`}>Integrations</Link></li>

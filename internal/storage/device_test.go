@@ -182,38 +182,38 @@ func TestDevice(t *testing.T) {
 					So(err, ShouldEqual, ErrDoesNotExist)
 				})
 
-				Convey("Then CreateDeviceCredentials creates the device-credentials", func() {
-					dc := DeviceCredentials{
+				Convey("Then CreateDeviceKeys creates the device-keys", func() {
+					dc := DeviceKeys{
 						DevEUI: d.DevEUI,
 						AppKey: lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
 					}
-					So(CreateDeviceCredentials(common.DB, &dc), ShouldBeNil)
+					So(CreateDeviceKeys(common.DB, &dc), ShouldBeNil)
 					dc.CreatedAt = dc.CreatedAt.UTC().Truncate(time.Millisecond)
 					dc.UpdatedAt = dc.UpdatedAt.UTC().Truncate(time.Millisecond)
 
-					Convey("Then GetDeviceCredentials returns the device-credentials", func() {
-						dcGet, err := GetDeviceCredentials(common.DB, dc.DevEUI)
+					Convey("Then GetDeviceKeys returns the device-keys", func() {
+						dcGet, err := GetDeviceKeys(common.DB, dc.DevEUI)
 						So(err, ShouldBeNil)
 						dcGet.CreatedAt = dc.CreatedAt.UTC().Truncate(time.Millisecond)
 						dcGet.UpdatedAt = dc.UpdatedAt.UTC().Truncate(time.Millisecond)
 						So(dcGet, ShouldResemble, dc)
 					})
 
-					Convey("Then UpdateDeviceCredentials updates the device-credentials", func() {
+					Convey("Then UpdateDeviceKeys updates the device-keys", func() {
 						dc.AppKey = lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
-						So(UpdateDeviceCredentials(common.DB, &dc), ShouldBeNil)
+						So(UpdateDeviceKeys(common.DB, &dc), ShouldBeNil)
 						dc.UpdatedAt = dc.UpdatedAt.UTC().Truncate(time.Millisecond)
 
-						dcGet, err := GetDeviceCredentials(common.DB, dc.DevEUI)
+						dcGet, err := GetDeviceKeys(common.DB, dc.DevEUI)
 						So(err, ShouldBeNil)
 						dcGet.CreatedAt = dc.CreatedAt.UTC().Truncate(time.Millisecond)
 						dcGet.UpdatedAt = dc.UpdatedAt.UTC().Truncate(time.Millisecond)
 						So(dcGet, ShouldResemble, dc)
 					})
 
-					Convey("Then DeleteDeviceCredentials deletes the device-credentials", func() {
-						So(DeleteDeviceCredentials(common.DB, dc.DevEUI), ShouldBeNil)
-						_, err := GetDeviceCredentials(common.DB, dc.DevEUI)
+					Convey("Then DeleteDeviceKeys deletes the device-keys", func() {
+						So(DeleteDeviceKeys(common.DB, dc.DevEUI), ShouldBeNil)
+						_, err := GetDeviceKeys(common.DB, dc.DevEUI)
 						So(err, ShouldEqual, ErrDoesNotExist)
 					})
 				})

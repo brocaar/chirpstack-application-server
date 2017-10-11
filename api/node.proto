@@ -44,33 +44,33 @@ service Device {
         };
     }
 
-    // CreateCredentials creates the given device-credentials.
-    rpc CreateCredentials(CreateDeviceCredentialsRequest) returns (CreateDeviceCredentialsResponse) {
+    // CreateKeys creates the given device-keys.
+    rpc CreateKeys(CreateDeviceKeysRequest) returns (CreateDeviceKeysResponse) {
         option (google.api.http) = {
-            post: "/api/devices/{devEUI}/credentials"
+            post: "/api/devices/{devEUI}/keys"
             body: "*"
         };
     }
 
-    // GetCredentials returns the device-credentials for the given DevEUI.
-    rpc GetCredentials(GetDeviceCredentialsRequest) returns (GetDeviceCredentialsResponse) {
+    // GetKeys returns the device-keys for the given DevEUI.
+    rpc GetKeys(GetDeviceKeysRequest) returns (GetDeviceKeysResponse) {
         option (google.api.http) = {
-            get: "/api/devices/{devEUI}/credentials"
+            get: "/api/devices/{devEUI}/keys"
         };
     }
 
-    // UpdateCredentials updates the device-credentials.
-    rpc UpdateCredentials(UpdateDeviceCredentialsRequest) returns (UpdateDeviceCredentialsResponse) {
+    // UpdateKeys updates the device-keys.
+    rpc UpdateKeys(UpdateDeviceKeysRequest) returns (UpdateDeviceKeysResponse) {
         option (google.api.http) = {
-            put: "/api/devices/{devEUI}/credentials"
+            put: "/api/devices/{devEUI}/keys"
             body: "*"
         };
     }
 
-    // DeleteCredentials deletes the device-credentials for the given DevEUI.
-    rpc DeleteCredentials(DeleteDeviceCredentialsRequest) returns (DeleteDeviceCredentialsResponse) {
+    // DeleteKeys deletes the device-keys for the given DevEUI.
+    rpc DeleteKeys(DeleteDeviceKeysRequest) returns (DeleteDeviceKeysResponse) {
         option (google.api.http) = {
-            delete: "/api/devices/{devEUI}/credentials"
+            delete: "/api/devices/{devEUI}/keys"
         };
     };
 
@@ -104,7 +104,7 @@ service Device {
     }
 }
 
-message DeviceCredentials {
+message DeviceKeys {
     // HEX encoded application key.
     string appKey = 1;
 }
@@ -199,39 +199,39 @@ message UpdateDeviceRequest {
 
 message UpdateDeviceResponse {}
 
-message CreateDeviceCredentialsRequest {
+message CreateDeviceKeysRequest {
     // Hex encoded DevEUI of the device.
     string devEUI = 1;
 
-    DeviceCredentials deviceCredentials = 2;
+    DeviceKeys deviceKeys = 2;
 }
 
-message CreateDeviceCredentialsResponse {}
+message CreateDeviceKeysResponse {}
 
-message GetDeviceCredentialsRequest {
-    // Hex encoded DevEUI of the device.
-    string devEUI = 1;
-}
-
-message GetDeviceCredentialsResponse {
-    DeviceCredentials deviceCredentials = 1;
-}
-
-message UpdateDeviceCredentialsRequest {
-    // Hex encoded DevEUI of the device.
-    string devEUI = 1;
-
-    DeviceCredentials deviceCredentials = 2;
-}
-
-message UpdateDeviceCredentialsResponse {}
-
-message DeleteDeviceCredentialsRequest {
+message GetDeviceKeysRequest {
     // Hex encoded DevEUI of the device.
     string devEUI = 1;
 }
 
-message DeleteDeviceCredentialsResponse {}
+message GetDeviceKeysResponse {
+    DeviceKeys deviceKeys = 1;
+}
+
+message UpdateDeviceKeysRequest {
+    // Hex encoded DevEUI of the device.
+    string devEUI = 1;
+
+    DeviceKeys deviceKeys = 2;
+}
+
+message UpdateDeviceKeysResponse {}
+
+message DeleteDeviceKeysRequest {
+    // Hex encoded DevEUI of the device.
+    string devEUI = 1;
+}
+
+message DeleteDeviceKeysResponse {}
 
 message ActivateDeviceRequest {
     // Hex encoded DevEUI of the device to activate.

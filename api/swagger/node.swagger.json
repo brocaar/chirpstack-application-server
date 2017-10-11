@@ -243,116 +243,6 @@
         ]
       }
     },
-    "/api/devices/{devEUI}/credentials": {
-      "get": {
-        "summary": "GetCredentials returns the device-credentials for the given DevEUI.",
-        "operationId": "GetCredentials",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiGetDeviceCredentialsResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "devEUI",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Device"
-        ]
-      },
-      "delete": {
-        "summary": "DeleteCredentials deletes the device-credentials for the given DevEUI.",
-        "operationId": "DeleteCredentials",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiDeleteDeviceCredentialsResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "devEUI",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Device"
-        ]
-      },
-      "post": {
-        "summary": "CreateCredentials creates the given device-credentials.",
-        "operationId": "CreateCredentials",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiCreateDeviceCredentialsResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "devEUI",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiCreateDeviceCredentialsRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Device"
-        ]
-      },
-      "put": {
-        "summary": "UpdateCredentials updates the device-credentials.",
-        "operationId": "UpdateCredentials",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiUpdateDeviceCredentialsResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "devEUI",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiUpdateDeviceCredentialsRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Device"
-        ]
-      }
-    },
     "/api/devices/{devEUI}/frames": {
       "get": {
         "summary": "GetFrameLogs returns the uplink / downlink frame log for the given DevEUI.",
@@ -387,6 +277,116 @@
             "required": false,
             "type": "string",
             "format": "int64"
+          }
+        ],
+        "tags": [
+          "Device"
+        ]
+      }
+    },
+    "/api/devices/{devEUI}/keys": {
+      "get": {
+        "summary": "GetKeys returns the device-keys for the given DevEUI.",
+        "operationId": "GetKeys",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetDeviceKeysResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Device"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteKeys deletes the device-keys for the given DevEUI.",
+        "operationId": "DeleteKeys",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiDeleteDeviceKeysResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Device"
+        ]
+      },
+      "post": {
+        "summary": "CreateKeys creates the given device-keys.",
+        "operationId": "CreateKeys",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiCreateDeviceKeysResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateDeviceKeysRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Device"
+        ]
+      },
+      "put": {
+        "summary": "UpdateKeys updates the device-keys.",
+        "operationId": "UpdateKeys",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiUpdateDeviceKeysResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateDeviceKeysRequest"
+            }
           }
         ],
         "tags": [
@@ -430,19 +430,19 @@
     "apiActivateDeviceResponse": {
       "type": "object"
     },
-    "apiCreateDeviceCredentialsRequest": {
+    "apiCreateDeviceKeysRequest": {
       "type": "object",
       "properties": {
         "devEUI": {
           "type": "string",
           "description": "Hex encoded DevEUI of the device."
         },
-        "deviceCredentials": {
-          "$ref": "#/definitions/apiDeviceCredentials"
+        "deviceKeys": {
+          "$ref": "#/definitions/apiDeviceKeys"
         }
       }
     },
-    "apiCreateDeviceCredentialsResponse": {
+    "apiCreateDeviceKeysResponse": {
       "type": "object"
     },
     "apiCreateDeviceRequest": {
@@ -494,13 +494,13 @@
         }
       }
     },
-    "apiDeleteDeviceCredentialsResponse": {
+    "apiDeleteDeviceKeysResponse": {
       "type": "object"
     },
     "apiDeleteDeviceResponse": {
       "type": "object"
     },
-    "apiDeviceCredentials": {
+    "apiDeviceKeys": {
       "type": "object",
       "properties": {
         "appKey": {
@@ -560,11 +560,11 @@
         }
       }
     },
-    "apiGetDeviceCredentialsResponse": {
+    "apiGetDeviceKeysResponse": {
       "type": "object",
       "properties": {
-        "deviceCredentials": {
-          "$ref": "#/definitions/apiDeviceCredentials"
+        "deviceKeys": {
+          "$ref": "#/definitions/apiDeviceKeys"
         }
       }
     },
@@ -720,19 +720,19 @@
         }
       }
     },
-    "apiUpdateDeviceCredentialsRequest": {
+    "apiUpdateDeviceKeysRequest": {
       "type": "object",
       "properties": {
         "devEUI": {
           "type": "string",
           "description": "Hex encoded DevEUI of the device."
         },
-        "deviceCredentials": {
-          "$ref": "#/definitions/apiDeviceCredentials"
+        "deviceKeys": {
+          "$ref": "#/definitions/apiDeviceKeys"
         }
       }
     },
-    "apiUpdateDeviceCredentialsResponse": {
+    "apiUpdateDeviceKeysResponse": {
       "type": "object"
     },
     "apiUpdateDeviceRequest": {

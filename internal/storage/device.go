@@ -30,8 +30,8 @@ func (d Device) Validate() error {
 	return nil
 }
 
-// DeviceCredentials defines the credentials for a LoRaWAN device.
-type DeviceCredentials struct {
+// DeviceKeys defines the keys for a LoRaWAN device.
+type DeviceKeys struct {
 	CreatedAt time.Time         `db:"created_at"`
 	UpdatedAt time.Time         `db:"updated_at"`
 	DevEUI    lorawan.EUI64     `db:"dev_eui"`
@@ -59,15 +59,15 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 	d.UpdatedAt = now
 
 	_, err := db.Exec(`
-		insert into device (
-			dev_eui,
-			created_at,
-			updated_at,
-			application_id,
-			device_profile_id,
-			name,
-			description
-		) values ($1, $2, $3, $4, $5, $6, $7)`,
+        insert into device (
+            dev_eui,
+            created_at,
+            updated_at,
+            application_id,
+            device_profile_id,
+            name,
+            description
+        ) values ($1, $2, $3, $4, $5, $6, $7)`,
 		d.DevEUI[:],
 		d.CreatedAt,
 		d.UpdatedAt,
@@ -178,15 +178,15 @@ func UpdateDevice(db sqlx.Ext, d *Device) error {
 	d.UpdatedAt = time.Now()
 
 	res, err := db.Exec(`
-		update device
-		set
-			updated_at = $2,
-			application_id = $3,
-			device_profile_id = $4,
-			name = $5,
-			description = $6
-		where
-			dev_eui = $1`,
+        update device
+        set
+            updated_at = $2,
+            application_id = $3,
+            device_profile_id = $4,
+            name = $5,
+            description = $6
+        where
+            dev_eui = $1`,
 		d.DevEUI[:],
 		d.UpdatedAt,
 		d.ApplicationID,
@@ -259,19 +259,19 @@ func DeleteDevice(db sqlx.Execer, devEUI lorawan.EUI64) error {
 	return nil
 }
 
-// CreateDeviceCredentials creates the credentials for the given device.
-func CreateDeviceCredentials(db sqlx.Execer, dc *DeviceCredentials) error {
+// CreateDeviceKeys creates the keys for the given device.
+func CreateDeviceKeys(db sqlx.Execer, dc *DeviceKeys) error {
 	now := time.Now()
 	dc.CreatedAt = now
 	dc.UpdatedAt = now
 
 	_, err := db.Exec(`
-		insert into device_credentials (
-			created_at,
-			updated_at,
-			dev_eui,
-			app_key
-		) values ($1, $2, $3, $4)`,
+        insert into device_keys (
+            created_at,
+            updated_at,
+            dev_eui,
+            app_key
+        ) values ($1, $2, $3, $4)`,
 		dc.CreatedAt,
 		dc.UpdatedAt,
 		dc.DevEUI[:],
@@ -283,16 +283,16 @@ func CreateDeviceCredentials(db sqlx.Execer, dc *DeviceCredentials) error {
 
 	log.WithFields(log.Fields{
 		"dev_eui": dc.DevEUI,
-	}).Info("device-credentials created")
+	}).Info("device-keys created")
 
 	return nil
 }
 
-// GetDeviceCredentials returns the device-credentials for the given DevEUI.
-func GetDeviceCredentials(db sqlx.Queryer, devEUI lorawan.EUI64) (DeviceCredentials, error) {
-	var dc DeviceCredentials
+// GetDeviceKeys returns the device-keys for the given DevEUI.
+func GetDeviceKeys(db sqlx.Queryer, devEUI lorawan.EUI64) (DeviceKeys, error) {
+	var dc DeviceKeys
 
-	err := sqlx.Get(db, &dc, "select * from device_credentials where dev_eui = $1", devEUI[:])
+	err := sqlx.Get(db, &dc, "select * from device_keys where dev_eui = $1", devEUI[:])
 	if err != nil {
 		return dc, handlePSQLError(err, "select error")
 	}
@@ -300,17 +300,17 @@ func GetDeviceCredentials(db sqlx.Queryer, devEUI lorawan.EUI64) (DeviceCredenti
 	return dc, nil
 }
 
-// UpdateDeviceCredentials updates the given device-credentials.
-func UpdateDeviceCredentials(db sqlx.Execer, dc *DeviceCredentials) error {
+// UpdateDeviceKeys updates the given device-keys.
+func UpdateDeviceKeys(db sqlx.Execer, dc *DeviceKeys) error {
 	dc.UpdatedAt = time.Now()
 
 	res, err := db.Exec(`
-		update device_credentials
-		set
-			updated_at = $2,
-			app_key = $3
-		where
-			dev_eui = $1`,
+        update device_keys
+        set
+            updated_at = $2,
+            app_key = $3
+        where
+            dev_eui = $1`,
 		dc.DevEUI[:],
 		dc.UpdatedAt,
 		dc.AppKey[:],
@@ -328,14 +328,14 @@ func UpdateDeviceCredentials(db sqlx.Execer, dc *DeviceCredentials) error {
 
 	log.WithFields(log.Fields{
 		"dev_eui": dc.DevEUI,
-	}).Info("device-credentials updated")
+	}).Info("device-keys updated")
 
 	return nil
 }
 
-// DeleteDeviceCredentials deletes the device-credentials for the given DevEUI.
-func DeleteDeviceCredentials(db sqlx.Execer, devEUI lorawan.EUI64) error {
-	res, err := db.Exec("delete from device_credentials where dev_eui = $1", devEUI[:])
+// DeleteDeviceKeys deletes the device-keys for the given DevEUI.
+func DeleteDeviceKeys(db sqlx.Execer, devEUI lorawan.EUI64) error {
+	res, err := db.Exec("delete from device_keys where dev_eui = $1", devEUI[:])
 	if err != nil {
 		return handlePSQLError(err, "delete error")
 	}
@@ -347,7 +347,7 @@ func DeleteDeviceCredentials(db sqlx.Execer, devEUI lorawan.EUI64) error {
 		return ErrDoesNotExist
 	}
 
-	log.WithField("dev_eui", devEUI).Info("device-credentials deleted")
+	log.WithField("dev_eui", devEUI).Info("device-keys deleted")
 
 	return nil
 }
@@ -357,14 +357,14 @@ func CreateDeviceActivation(db sqlx.Queryer, da *DeviceActivation) error {
 	da.CreatedAt = time.Now()
 
 	err := sqlx.Get(db, &da.ID, `
-		insert into device_activation (
-			created_at,
-			dev_eui,
-			dev_addr,
-			app_s_key,
-			nwk_s_key
-		) values ($1, $2, $3, $4, $5)
-		returning id`,
+        insert into device_activation (
+            created_at,
+            dev_eui,
+            dev_addr,
+            app_s_key,
+            nwk_s_key
+        ) values ($1, $2, $3, $4, $5)
+        returning id`,
 		da.CreatedAt,
 		da.DevEUI[:],
 		da.DevAddr[:],
@@ -388,13 +388,13 @@ func GetLastDeviceActivationForDevEUI(db sqlx.Queryer, devEUI lorawan.EUI64) (De
 	var da DeviceActivation
 
 	err := sqlx.Get(db, &da, `
-		select *
-		from device_activation
-		where
-			dev_eui = $1
-		order by
-			created_at desc
-		limit 1`,
+        select *
+        from device_activation
+        where
+            dev_eui = $1
+        order by
+            created_at desc
+        limit 1`,
 		devEUI[:],
 	)
 	if err != nil {

@@ -55,15 +55,15 @@ create index idx_device_device_profile_id on device(device_profile_id);
 create index idx_device_dev_eui_prefix on device(encode(dev_eui, 'hex') varchar_pattern_ops);
 create index idx_device_name_prefix on device(name varchar_pattern_ops);
 
-create table device_credentials (
+create table device_keys (
     dev_eui bytea primary key references device on delete cascade,
     created_at timestamp with time zone not null,
     updated_at timestamp with time zone not null,
     app_key bytea not null
 );
 
-create index idx_device_credentials_created_at on device_credentials(created_at);
-create index idx_device_credentials_updated_at on device_credentials(updated_at);
+create index idx_device_keys_created_at on device_keys(created_at);
+create index idx_device_keys_updated_at on device_keys(updated_at);
 
 create table device_activation (
     id bigserial primary key,
@@ -95,15 +95,15 @@ create index idx_device_queue_dev_eui on device_queue(dev_eui);
 
 alter table application
     add column service_profile_id uuid references service_profile,
-	drop column rx_delay,
-	drop column rx1_dr_offset,
-	drop column rx_window,
-	drop column rx2_dr,
-	drop column relax_fcnt,
-	drop column adr_interval,
-	drop column installation_margin,
-	drop column is_abp,
-	drop column is_class_c;
+    drop column rx_delay,
+    drop column rx1_dr_offset,
+    drop column rx_window,
+    drop column rx2_dr,
+    drop column relax_fcnt,
+    drop column adr_interval,
+    drop column installation_margin,
+    drop column is_abp,
+    drop column is_class_c;
 
 create index idx_application_service_profile_id on application(service_profile_id);
 
@@ -111,15 +111,15 @@ create index idx_application_service_profile_id on application(service_profile_i
 drop index idx_application_service_profile_id;
 alter table application
     drop column service_profile_id,
-	add column rx_delay int2 not null default 0,
-	add column rx1_dr_offset int2 not null default 0,
-	add column rx_window int2 not null default 0,
-	add column rx2_dr int2 not null default 0,
-	add column relax_fcnt boolean not null default false,
-	add column adr_interval integer not null default 0,
-	add column installation_margin decimal(5,2) not null default 0,
-	add column is_abp boolean not null default false,
-	add column is_class_c boolean not null default false;
+    add column rx_delay int2 not null default 0,
+    add column rx1_dr_offset int2 not null default 0,
+    add column rx_window int2 not null default 0,
+    add column rx2_dr int2 not null default 0,
+    add column relax_fcnt boolean not null default false,
+    add column adr_interval integer not null default 0,
+    add column installation_margin decimal(5,2) not null default 0,
+    add column is_abp boolean not null default false,
+    add column is_class_c boolean not null default false;
 
 drop index idx_device_queue_dev_eui;
 drop index idx_device_queue_updated_at;
@@ -130,9 +130,9 @@ drop index idx_device_activation_dev_eui;
 drop index idx_device_activation_created_at;
 drop table device_activation;
 
-drop index idx_device_credentials_updated_at;
-drop index idx_device_credentials_created_at;
-drop table device_credentials;
+drop index idx_device_keys_updated_at;
+drop index idx_device_keys_created_at;
+drop table device_keys;
 
 drop index idx_device_dev_eui_prefix;
 drop index idx_device_name_prefix;

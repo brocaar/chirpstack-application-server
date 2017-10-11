@@ -84,11 +84,11 @@ func TestApplicationServerAPI(t *testing.T) {
 		}
 		So(storage.CreateDevice(common.DB, &d), ShouldBeNil)
 
-		dc := storage.DeviceCredentials{
+		dc := storage.DeviceKeys{
 			DevEUI: d.DevEUI,
 			AppKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 		}
-		So(storage.CreateDeviceCredentials(common.DB, &dc), ShouldBeNil)
+		So(storage.CreateDeviceKeys(common.DB, &dc), ShouldBeNil)
 
 		gw := storage.Gateway{
 			MAC:            lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},

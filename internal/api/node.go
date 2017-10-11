@@ -176,24 +176,118 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*pb.
 	return &pb.DeleteDeviceResponse{}, nil
 }
 
-// CreateCredentials creates the given device-credentials.
-func (a *NodeAPI) CreateCredentials(ctx context.Context, req *pb.CreateDeviceCredentialsRequest) (*pb.CreateDeviceCredentialsResponse, error) {
-	panic("not implemented")
+// CreateKeys creates the given device-keys.
+func (a *NodeAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequest) (*pb.CreateDeviceKeysResponse, error) {
+	if req.DeviceKeys == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devicesKeys expected")
+	}
+
+	var key lorawan.AES128Key
+	if err := key.UnmarshalText([]byte(req.DeviceKeys.AppKey)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	var eui lorawan.EUI64
+	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNodeAccess(eui, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	err := storage.CreateDeviceKeys(common.DB, &storage.DeviceKeys{
+		DevEUI: eui,
+		AppKey: key,
+	})
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.CreateDeviceKeysResponse{}, nil
 }
 
-// GetCredentials returns the device-credentials for the given DevEUI.
-func (a *NodeAPI) GetCredentials(ctx context.Context, req *pb.GetDeviceCredentialsRequest) (*pb.GetDeviceCredentialsResponse, error) {
-	panic("not implemented")
+// GetKeys returns the device-keys for the given DevEUI.
+func (a *NodeAPI) GetKeys(ctx context.Context, req *pb.GetDeviceKeysRequest) (*pb.GetDeviceKeysResponse, error) {
+	var eui lorawan.EUI64
+	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNodeAccess(eui, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	dk, err := storage.GetDeviceKeys(common.DB, eui)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.GetDeviceKeysResponse{
+		DeviceKeys: &pb.DeviceKeys{
+			AppKey: dk.AppKey.String(),
+		},
+	}, nil
 }
 
-// UpdateCredentials updates the device-credentials.
-func (a *NodeAPI) UpdateCredentials(ctx context.Context, req *pb.UpdateDeviceCredentialsRequest) (*pb.UpdateDeviceCredentialsResponse, error) {
-	panic("not implemented")
+// UpdateKeys updates the device-keys.
+func (a *NodeAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequest) (*pb.UpdateDeviceKeysResponse, error) {
+	if req.DeviceKeys == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devicesKeys expected")
+	}
+
+	var key lorawan.AES128Key
+	if err := key.UnmarshalText([]byte(req.DeviceKeys.AppKey)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	var eui lorawan.EUI64
+	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNodeAccess(eui, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	dk, err := storage.GetDeviceKeys(common.DB, eui)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+	dk.AppKey = key
+
+	err = storage.UpdateDeviceKeys(common.DB, &dk)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.UpdateDeviceKeysResponse{}, nil
 }
 
-// DeleteCredentials deletes the device-credentials for the given DevEUI.
-func (a *NodeAPI) DeleteCredentials(ctx context.Context, req *pb.DeleteDeviceCredentialsRequest) (*pb.DeleteDeviceCredentialsResponse, error) {
-	panic("not implemeted")
+// DeleteKeys deletes the device-keys for the given DevEUI.
+func (a *NodeAPI) DeleteKeys(ctx context.Context, req *pb.DeleteDeviceKeysRequest) (*pb.DeleteDeviceKeysResponse, error) {
+	var eui lorawan.EUI64
+	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNodeAccess(eui, auth.Delete),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	if err := storage.DeleteDeviceKeys(common.DB, eui); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.DeleteDeviceKeysResponse{}, nil
 }
 
 // Activate activates the node (ABP only).

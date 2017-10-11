@@ -5,6 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+
 	"golang.org/x/net/context"
 
 	pb "github.com/brocaar/lora-app-server/api"
@@ -184,6 +187,61 @@ func TestNodeAPI(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(devices.TotalCount, ShouldEqual, 0)
 					So(devices.Result, ShouldHaveLength, 0)
+				})
+			})
+
+			Convey("Then CreateKeys creates device-keys", func() {
+				_, err := api.CreateKeys(ctx, &pb.CreateDeviceKeysRequest{
+					DevEUI: "0807060504030201",
+					DeviceKeys: &pb.DeviceKeys{
+						AppKey: "01020304050607080807060504030201",
+					},
+				})
+				So(err, ShouldBeNil)
+
+				Convey("Then GetKeys returns the device-keys", func() {
+					dk, err := api.GetKeys(ctx, &pb.GetDeviceKeysRequest{
+						DevEUI: "0807060504030201",
+					})
+					So(err, ShouldBeNil)
+					So(dk, ShouldResemble, &pb.GetDeviceKeysResponse{
+						DeviceKeys: &pb.DeviceKeys{
+							AppKey: "01020304050607080807060504030201",
+						},
+					})
+				})
+
+				Convey("Then UpdateKeys updates the device-keys", func() {
+					_, err := api.UpdateKeys(ctx, &pb.UpdateDeviceKeysRequest{
+						DevEUI: "0807060504030201",
+						DeviceKeys: &pb.DeviceKeys{
+							AppKey: "08070605040302010102030405060708",
+						},
+					})
+					So(err, ShouldBeNil)
+
+					dk, err := api.GetKeys(ctx, &pb.GetDeviceKeysRequest{
+						DevEUI: "0807060504030201",
+					})
+					So(err, ShouldBeNil)
+					So(dk, ShouldResemble, &pb.GetDeviceKeysResponse{
+						DeviceKeys: &pb.DeviceKeys{
+							AppKey: "08070605040302010102030405060708",
+						},
+					})
+				})
+
+				Convey("Then DeleteKeys deletes the device-keys", func() {
+					_, err := api.DeleteKeys(ctx, &pb.DeleteDeviceKeysRequest{
+						DevEUI: "0807060504030201",
+					})
+					So(err, ShouldBeNil)
+
+					_, err = api.DeleteKeys(ctx, &pb.DeleteDeviceKeysRequest{
+						DevEUI: "0807060504030201",
+					})
+					So(err, ShouldNotBeNil)
+					So(grpc.Code(err), ShouldEqual, codes.NotFound)
 				})
 			})
 

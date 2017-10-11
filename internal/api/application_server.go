@@ -75,7 +75,7 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 		return nil, grpc.Errorf(codes.FailedPrecondition, "node is ABP device")
 	}
 
-	dc, err := storage.GetDeviceCredentials(common.DB, d.DevEUI)
+	dc, err := storage.GetDeviceKeys(common.DB, d.DevEUI)
 	if err != nil {
 		log.WithField("dev_eui", d.DevEUI).Errorf("get device-credentials error: %s", err)
 		return nil, errToRPCError(err)

@@ -138,11 +138,9 @@ func TestHandler(t *testing.T) {
 					}), ShouldBeNil)
 
 					Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
-						So(mqttMessages, ShouldHaveLength, 1)
 						msg := <-mqttMessages
 						So(msg.Topic(), ShouldEqual, "application/1/node/0101010101010101/rx")
 
-						So(h.requests, ShouldHaveLength, 1)
 						req := <-h.requests
 						So(req.URL.Path, ShouldEqual, "/rx")
 					})
@@ -155,11 +153,9 @@ func TestHandler(t *testing.T) {
 					}), ShouldBeNil)
 
 					Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
-						So(mqttMessages, ShouldHaveLength, 1)
 						msg := <-mqttMessages
 						So(msg.Topic(), ShouldEqual, "application/1/node/0101010101010101/join")
 
-						So(h.requests, ShouldHaveLength, 1)
 						req := <-h.requests
 						So(req.URL.Path, ShouldEqual, "/join")
 					})
@@ -172,11 +168,9 @@ func TestHandler(t *testing.T) {
 					}), ShouldBeNil)
 
 					Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
-						So(mqttMessages, ShouldHaveLength, 1)
 						msg := <-mqttMessages
 						So(msg.Topic(), ShouldEqual, "application/1/node/0101010101010101/ack")
 
-						So(h.requests, ShouldHaveLength, 1)
 						req := <-h.requests
 						So(req.URL.Path, ShouldEqual, "/ack")
 					})
@@ -189,11 +183,9 @@ func TestHandler(t *testing.T) {
 					}), ShouldBeNil)
 
 					Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
-						So(mqttMessages, ShouldHaveLength, 1)
 						msg := <-mqttMessages
 						So(msg.Topic(), ShouldEqual, "application/1/node/0101010101010101/error")
 
-						So(h.requests, ShouldHaveLength, 1)
 						req := <-h.requests
 						So(req.URL.Path, ShouldEqual, "/error")
 					})

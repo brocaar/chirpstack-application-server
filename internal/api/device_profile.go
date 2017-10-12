@@ -33,7 +33,7 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 	}
 
 	if err := a.validator.Validate(ctx,
-		auth.ValidateDeviceProfilesAccess(auth.Create, req.OrganizationID),
+		auth.ValidateDeviceProfilesAccess(auth.Create, req.OrganizationID, 0),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -209,10 +209,18 @@ func (a *DeviceProfileServiceAPI) Delete(ctx context.Context, req *pb.DeleteDevi
 
 // List lists the available device-profiles.
 func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDeviceProfileRequest) (*pb.ListDeviceProfileResponse, error) {
-	if err := a.validator.Validate(ctx,
-		auth.ValidateDeviceProfilesAccess(auth.List, req.OrganizationID),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	if req.ApplicationID != 0 {
+		if err := a.validator.Validate(ctx,
+			auth.ValidateDeviceProfilesAccess(auth.List, 0, req.ApplicationID),
+		); err != nil {
+			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+		}
+	} else {
+		if err := a.validator.Validate(ctx,
+			auth.ValidateDeviceProfilesAccess(auth.List, req.OrganizationID, 0),
+		); err != nil {
+			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+		}
 	}
 
 	isAdmin, err := a.validator.GetIsAdmin(ctx)
@@ -228,7 +236,27 @@ func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDevicePr
 	var count int
 	var dps []storage.DeviceProfileMeta
 
-	if req.OrganizationID == 0 {
+	if req.ApplicationID != 0 {
+		dps, err = storage.GetDeviceProfilesForApplicationID(common.DB, req.ApplicationID, int(req.Limit), int(req.Offset))
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		count, err = storage.GetDeviceProfileCountForApplicationID(common.DB, req.ApplicationID)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+	} else if req.OrganizationID != 0 {
+		dps, err = storage.GetDeviceProfilesForOrganizationID(common.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		count, err = storage.GetDeviceProfileCountForOrganizationID(common.DB, req.OrganizationID)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+	} else {
 		if isAdmin {
 			dps, err = storage.GetDeviceProfiles(common.DB, int(req.Limit), int(req.Offset))
 			if err != nil {
@@ -249,16 +277,6 @@ func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDevicePr
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-		}
-	} else {
-		dps, err = storage.GetDeviceProfilesForOrganizationID(common.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, errToRPCError(err)
-		}
-
-		count, err = storage.GetDeviceProfileCountForOrganizationID(common.DB, req.OrganizationID)
-		if err != nil {
-			return nil, errToRPCError(err)
 		}
 	}
 

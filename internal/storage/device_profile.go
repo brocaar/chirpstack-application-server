@@ -321,6 +321,31 @@ func GetDeviceProfileCountForUser(db sqlx.Queryer, username string) (int, error)
 	return count, nil
 }
 
+// GetDeviceProfileCountForApplicationID returns the total number of
+// device-profiles that can be used for the given application id (based
+// on the service-profile of the application).
+func GetDeviceProfileCountForApplicationID(db sqlx.Queryer, applicationID int64) (int, error) {
+	var count int
+	err := sqlx.Get(db, &count, `
+		select
+			count(dp.*)
+		from device_profile dp
+		inner join network_server ns
+			on ns.id = dp.network_server_id
+		inner join service_profile sp
+			on sp.network_server_id = ns.id
+		inner join application a
+			on a.service_profile_id = sp.service_profile_id
+		where
+			a.id = $1`,
+		applicationID,
+	)
+	if err != nil {
+		return 0, handlePSQLError(err, "select error")
+	}
+	return count, nil
+}
+
 // GetDeviceProfiles returns a slice of device-profiles.
 func GetDeviceProfiles(db sqlx.Queryer, limit, offset int) ([]DeviceProfileMeta, error) {
 	var dps []DeviceProfileMeta
@@ -381,8 +406,37 @@ func GetDeviceProfilesForUser(db sqlx.Queryer, username string, limit, offset in
 		offset,
 	)
 	if err != nil {
-		handlePSQLError(err, "select error")
+		return nil, handlePSQLError(err, "select error")
 	}
 
+	return dps, nil
+}
+
+// GetDeviceProfilesForApplicationID returns a slice of device-profiles that
+// can be used for the given application id (based on the service-profile
+// of the application).
+func GetDeviceProfilesForApplicationID(db sqlx.Queryer, applicationID int64, limit, offset int) ([]DeviceProfileMeta, error) {
+	var dps []DeviceProfileMeta
+	err := sqlx.Select(db, &dps, `
+		select
+			dp.*
+		from device_profile dp
+		inner join network_server ns
+			on ns.id = dp.network_server_id
+		inner join service_profile sp
+			on sp.network_server_id = ns.id
+		inner join application a
+			on a.service_profile_id = sp.service_profile_id
+		where
+			a.id = $1
+		order by dp.name
+		limit $2 offset $3`,
+		applicationID,
+		limit,
+		offset,
+	)
+	if err != nil {
+		return nil, handlePSQLError(err, "select error")
+	}
 	return dps, nil
 }

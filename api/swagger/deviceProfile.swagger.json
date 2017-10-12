@@ -51,6 +51,14 @@
             "required": false,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "applicationID",
+            "description": "Application id to filter on.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [

@@ -115,6 +115,9 @@ message ListDeviceProfileRequest {
 
     // Organization id to filter on.
     int64 organizationID = 3;
+
+    // Application id to filter on.
+    int64 applicationID = 4;
 }
 
 message DeviceProfileMeta {

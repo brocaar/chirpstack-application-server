@@ -1162,38 +1162,50 @@ func TestValidators(t *testing.T) {
 			tests := []validatorTest{
 				{
 					Name:       "global admin users can create and list",
-					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, organizations[0].ID), ValidateDeviceProfilesAccess(List, organizations[0].ID)},
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, organizations[0].ID, 0), ValidateDeviceProfilesAccess(List, organizations[0].ID, 0)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "organization admin users can create and list",
-					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, organizations[0].ID), ValidateDeviceProfilesAccess(List, organizations[0].ID)},
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, organizations[0].ID, 0), ValidateDeviceProfilesAccess(List, organizations[0].ID, 0)},
 					Claims:     Claims{Username: "user10"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "organization users can list",
-					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(List, organizations[0].ID)},
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(List, organizations[0].ID, 0)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can list with an application id is given",
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(List, 0, applications[0].ID)},
 					Claims:     Claims{Username: "user9"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "any user can list when organization id = 0",
-					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(List, 0)},
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(List, 0, 0)},
 					Claims:     Claims{Username: "user4"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "organization users can not create",
-					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, organizations[0].ID)},
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, organizations[0].ID, 0)},
 					Claims:     Claims{Username: "user9"},
 					ExpectedOK: false,
 				},
 				{
 					Name:       "non-organization users can not create or list",
-					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, organizations[0].ID), ValidateDeviceProfilesAccess(List, organizations[0].ID)},
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, organizations[0].ID, 0), ValidateDeviceProfilesAccess(List, organizations[0].ID, 0)},
 					Claims:     Claims{Username: "user12"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "non-organization users can not list when an application id is given beloning to a different organization",
+					Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(List, 0, applications[1].ID)},
+					Claims:     Claims{Username: "user9"},
 					ExpectedOK: false,
 				},
 			}

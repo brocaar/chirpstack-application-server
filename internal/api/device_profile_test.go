@@ -254,6 +254,63 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 				So(listResp.TotalCount, ShouldEqual, 0)
 				So(listResp.Result, ShouldHaveLength, 0)
 			})
+
+			Convey("Given two service-profiles and applications", func() {
+				n2 := storage.NetworkServer{
+					Name:   "ns-server-2",
+					Server: "ns-server-2:1234",
+				}
+				So(storage.CreateNetworkServer(common.DB, &n2), ShouldBeNil)
+
+				sp1 := storage.ServiceProfile{
+					Name:            "test-sp",
+					NetworkServerID: n.ID,
+					OrganizationID:  org.ID,
+				}
+				So(storage.CreateServiceProfile(common.DB, &sp1), ShouldBeNil)
+
+				sp2 := storage.ServiceProfile{
+					Name:            "test-sp-2",
+					NetworkServerID: n2.ID,
+					OrganizationID:  org.ID,
+				}
+				So(storage.CreateServiceProfile(common.DB, &sp2), ShouldBeNil)
+
+				app1 := storage.Application{
+					Name:             "test-app",
+					Description:      "test app",
+					OrganizationID:   org.ID,
+					ServiceProfileID: sp1.ServiceProfile.ServiceProfileID,
+				}
+				So(storage.CreateApplication(common.DB, &app1), ShouldBeNil)
+
+				app2 := storage.Application{
+					Name:             "test-app-2",
+					Description:      "test app 2",
+					OrganizationID:   org.ID,
+					ServiceProfileID: sp2.ServiceProfile.ServiceProfileID,
+				}
+				So(storage.CreateApplication(common.DB, &app2), ShouldBeNil)
+
+				Convey("Then List filtered on application id returns the device-profiles accessible by the given application id", func() {
+					listResp, err := api.List(ctx, &pb.ListDeviceProfileRequest{
+						Limit:         10,
+						ApplicationID: app1.ID,
+					})
+					So(err, ShouldBeNil)
+					So(listResp.TotalCount, ShouldEqual, 1)
+					So(listResp.Result, ShouldHaveLength, 1)
+					So(listResp.Result[0].DeviceProfileID, ShouldEqual, createResp.DeviceProfileID)
+
+					listResp, err = api.List(ctx, &pb.ListDeviceProfileRequest{
+						Limit:         10,
+						ApplicationID: app2.ID,
+					})
+					So(err, ShouldBeNil)
+					So(listResp.TotalCount, ShouldEqual, 0)
+					So(listResp.Result, ShouldHaveLength, 0)
+				})
+			})
 		})
 	})
 }

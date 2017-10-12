@@ -261,6 +261,65 @@ func TestDeviceProfile(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(dps, ShouldHaveLength, 0)
 			})
+
+			Convey("Given two service-profiles and applications", func() {
+				n2 := NetworkServer{
+					Name:   "ns-server-2",
+					Server: "ns-server-2:1234",
+				}
+				So(CreateNetworkServer(common.DB, &n2), ShouldBeNil)
+
+				sp1 := ServiceProfile{
+					Name:            "test-sp",
+					NetworkServerID: n.ID,
+					OrganizationID:  org.ID,
+				}
+				So(CreateServiceProfile(common.DB, &sp1), ShouldBeNil)
+
+				sp2 := ServiceProfile{
+					Name:            "test-sp-2",
+					NetworkServerID: n2.ID,
+					OrganizationID:  org.ID,
+				}
+				So(CreateServiceProfile(common.DB, &sp2), ShouldBeNil)
+
+				app1 := Application{
+					Name:             "test-app",
+					Description:      "test app",
+					OrganizationID:   org.ID,
+					ServiceProfileID: sp1.ServiceProfile.ServiceProfileID,
+				}
+				So(CreateApplication(common.DB, &app1), ShouldBeNil)
+
+				app2 := Application{
+					Name:             "test-app-2",
+					Description:      "test app 2",
+					OrganizationID:   org.ID,
+					ServiceProfileID: sp2.ServiceProfile.ServiceProfileID,
+				}
+				So(CreateApplication(common.DB, &app2), ShouldBeNil)
+
+				Convey("Then GetDeviceProfileCountForApplicationID returns the devices-profiles for the given application", func() {
+					count, err := GetDeviceProfileCountForApplicationID(common.DB, app1.ID)
+					So(err, ShouldBeNil)
+					So(count, ShouldEqual, 1)
+
+					count, err = GetDeviceProfileCountForApplicationID(common.DB, app2.ID)
+					So(err, ShouldBeNil)
+					So(count, ShouldEqual, 0)
+				})
+
+				Convey("Then GetDeviceProfilesForApplicationID returns the device-profile available for the given application id", func() {
+					dps, err := GetDeviceProfilesForApplicationID(common.DB, app1.ID, 10, 0)
+					So(err, ShouldBeNil)
+					So(dps, ShouldHaveLength, 1)
+					So(dps[0].DeviceProfileID, ShouldEqual, dp.DeviceProfile.DeviceProfileID)
+
+					dps, err = GetDeviceProfilesForApplicationID(common.DB, app2.ID, 10, 0)
+					So(err, ShouldBeNil)
+					So(dps, ShouldHaveLength, 0)
+				})
+			})
 		})
 	})
 }

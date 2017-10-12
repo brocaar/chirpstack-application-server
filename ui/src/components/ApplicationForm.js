@@ -98,6 +98,7 @@ class ApplicationForm extends Component {
             value={this.state.application.serviceProfileID}
             onChange={this.onSelectChange.bind(this, 'serviceProfileID')}
             disabled={this.state.update}
+            required={true}
           />
           <p className="help-block">
             The service-profile to which this application will be attached. Note that you can't change this value after the application has been created.

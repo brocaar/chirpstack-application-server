@@ -187,30 +187,7 @@
         ]
       }
     },
-    "/api/devices/{devEUI}/activation": {
-      "get": {
-        "summary": "GetActivation returns the current activation details of the device (OTAA and ABP).",
-        "operationId": "GetActivation",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiGetDeviceActivationResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "devEUI",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Device"
-        ]
-      },
+    "/api/devices/{devEUI}/activate": {
       "post": {
         "summary": "Activate (re)activates the device (only when ABP is set to true).",
         "operationId": "Activate",
@@ -236,6 +213,31 @@
             "schema": {
               "$ref": "#/definitions/apiActivateDeviceRequest"
             }
+          }
+        ],
+        "tags": [
+          "Device"
+        ]
+      }
+    },
+    "/api/devices/{devEUI}/activation": {
+      "get": {
+        "summary": "GetActivation returns the current activation details of the device (OTAA and ABP).",
+        "operationId": "GetActivation",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetDeviceActivationResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [

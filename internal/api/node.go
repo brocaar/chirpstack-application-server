@@ -397,7 +397,7 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivation
 		DevEUI: d.DevEUI[:],
 	})
 	if err != nil {
-		return nil, errToRPCError(err)
+		return nil, err
 	}
 
 	copy(devAddr[:], devAct.DevAddr)

@@ -10,11 +10,23 @@ export function checkStatus(response) {
 };
 
 export function errorHandler(error) {
-  console.log("error", error);
   error.then((data) => {
     if (data.code === 16) {
       hashHistory.push("/login");
     } else {
+      dispatcher.dispatch({
+        type: "CREATE_ERROR",
+        error: data,
+      });
+    }
+  });
+};
+
+export function errorHandlerIgnoreNotFound(error) {
+  error.then((data) => {
+    if (data.code === 16) {
+      hashHistory.push("/login");
+    } else if (data.code !== 5) {
       dispatcher.dispatch({
         type: "CREATE_ERROR",
         error: data,

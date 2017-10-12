@@ -20,6 +20,20 @@ class DeviceProfileStore extends EventEmitter {
       .catch(errorHandler);
   }
 
+  getAllForApplicationID(applicationID, pageSize, offset, callbackFunc) {
+    fetch("/api/device-profiles?applicationID="+applicationID+"&limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        if(typeof(responseData.result) === "undefined") {
+          callbackFunc(0, []);
+        } else {
+          callbackFunc(responseData.totalCount, responseData.result);
+        }
+      })
+      .catch(errorHandler);
+  }
+
   getDeviceProfile(deviceProfileID, callbackFunc) {
     fetch("/api/device-profiles/"+deviceProfileID, {headers: sessionStore.getHeader()})
       .then(checkStatus)

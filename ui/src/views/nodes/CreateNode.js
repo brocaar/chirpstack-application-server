@@ -1,8 +1,9 @@
 import React, { Component } from "react";
 
+import DeviceProfileStore from "../../stores/DeviceProfileStore";
 import NodeStore from "../../stores/NodeStore";
 import NodeForm from "../../components/NodeForm";
-import ApplicationStore from "../../stores/ApplicationStore";
+
 
 class CreateNode extends Component {
   static contextTypes = {
@@ -13,23 +14,28 @@ class CreateNode extends Component {
     super();
     this.state = {
       application: {},
-      node: {
-        useApplicationSettings: true,
-      },
+      node: {},
     };
     this.onSubmit = this.onSubmit.bind(this);
   }
 
-  componentWillMount() {
-    ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
-      this.setState({application: application});
+  componentDidMount() {
+    this.setState({
+      node: {
+        applicationID: this.props.params.applicationID,
+      },
     });
   }
 
   onSubmit(node) {
-    node.applicationID = this.props.params.applicationID;
     NodeStore.createNode(this.props.params.applicationID, node, (responseData) => {
-      this.context.router.push('/organizations/'+this.props.params.organizationID+'/applications/'+this.props.params.applicationID);
+      DeviceProfileStore.getDeviceProfile(node.deviceProfileID, (deviceProfile) => {
+        if (deviceProfile.deviceProfile.supportsJoin) {
+          this.context.router.push('/organizations/'+this.props.params.organizationID+'/applications/'+this.props.params.applicationID+"/nodes/"+node.devEUI+"/keys");
+        } else {
+          this.context.router.push('/organizations/'+this.props.params.organizationID+'/applications/'+this.props.params.applicationID+"/nodes/"+node.devEUI+"/activate");
+        }
+      });
     }); 
   }
 
@@ -37,10 +43,10 @@ class CreateNode extends Component {
     return (
       <div className="panel panel-default">
         <div className="panel-heading">
-          <h3 className="panel-title">Create node</h3>
+          <h3 className="panel-title">Create device</h3>
         </div>
         <div className="panel-body">
-          <NodeForm node={this.state.node} application={this.state.application} onSubmit={this.onSubmit} />
+          <NodeForm node={this.state.node} applicationID={this.props.params.applicationID} onSubmit={this.onSubmit} />
         </div>
       </div>
     );

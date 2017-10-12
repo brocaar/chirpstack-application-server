@@ -108,7 +108,7 @@ class ListNodes extends Component {
             </div>
           </form>
           <div className={`btn-group pull-right ${this.state.isAdmin ? "" : "hidden"}`}>
-            <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}/nodes/create`}><button type="button" className="btn btn-default btn-sm">Create node</button></Link>
+            <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}/nodes/create`}><button type="button" className="btn btn-default btn-sm">Create device</button></Link>
           </div>
         </div>
         <div className="panel-body">

@@ -77,7 +77,7 @@ service Device {
     // Activate (re)activates the device (only when ABP is set to true).
     rpc Activate(ActivateDeviceRequest) returns (ActivateDeviceResponse) {
         option (google.api.http) = {
-            post: "/api/devices/{devEUI}/activation"
+            post: "/api/devices/{devEUI}/activate"
             body: "*"
         };
     }

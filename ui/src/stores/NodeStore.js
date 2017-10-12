@@ -1,19 +1,12 @@
 import { EventEmitter } from "events";
 import "whatwg-fetch";
 import sessionStore from "./SessionStore";
-import { checkStatus, errorHandler } from "./helpers";
+import { checkStatus, errorHandler, errorHandlerIgnoreNotFound } from "./helpers";
 
-var checkGetActivationStatus = (response) => {
-  if (response.status >= 200 && response.status < 300) {
-    return response
-  } else {
-    // dont return an error when there is no activation
-  }
-};
 
 class NodeStore extends EventEmitter {
   getAll(applicationID, pageSize, offset, search, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/nodes?limit="+pageSize+"&offset="+offset+"&search="+search, {headers: sessionStore.getHeader()})
+    fetch("/api/applications/"+applicationID+"/devices?limit="+pageSize+"&offset="+offset+"&search="+search, {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -27,7 +20,7 @@ class NodeStore extends EventEmitter {
   }
 
   getNode(applicationID, name, callbackFunc) {
-    fetch("/api/nodes/"+name, {headers: sessionStore.getHeader()})
+    fetch("/api/devices/"+name, {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -37,7 +30,7 @@ class NodeStore extends EventEmitter {
   }
 
   createNode(applicationID, node, callbackFunc) {
-    fetch("/api/nodes", {method: "POST", body: JSON.stringify(node), headers: sessionStore.getHeader()})
+    fetch("/api/devices", {method: "POST", body: JSON.stringify(node), headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -47,7 +40,7 @@ class NodeStore extends EventEmitter {
   }
 
   updateNode(applicationID, devEUI, node, callbackFunc) {
-    fetch("/api/nodes/"+devEUI, {method: "PUT", body: JSON.stringify(node), headers: sessionStore.getHeader()})
+    fetch("/api/devices/"+devEUI, {method: "PUT", body: JSON.stringify(node), headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -57,7 +50,7 @@ class NodeStore extends EventEmitter {
   }
 
   deleteNode(applicationID, devEUI, callbackFunc) {
-    fetch("/api/nodes/"+devEUI, {method: "DELETE", headers: sessionStore.getHeader()})
+    fetch("/api/devices/"+devEUI, {method: "DELETE", headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -66,8 +59,8 @@ class NodeStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  activateNode(applicationID, devEUI, activation, callbackFunc) {
-    fetch("/api/nodes/"+devEUI+"/activation", {method: "POST", body: JSON.stringify(activation), headers: sessionStore.getHeader()})
+  createNodeKeys(devEUI, nodeKeys, callbackFunc) {
+    fetch("/api/devices/"+devEUI+"/keys", {method: "POST", body: JSON.stringify(nodeKeys), headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -76,18 +69,58 @@ class NodeStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  getActivation(applicationID, devEUI, callbackFunc) {
-    fetch("/api/nodes/"+devEUI+"/activation", {headers: sessionStore.getHeader()})
-      .then(checkGetActivationStatus)
+  getNodeKeys(devEUI, callbackFunc) {
+    fetch("/api/devices/"+devEUI+"/keys", {headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandlerIgnoreNotFound);
+  }
+
+  updateNodeKeys(devEUI, nodeKeys, callbackFunc) {
+    fetch("/api/devices/"+devEUI+"/keys", {method: "PUT", body: JSON.stringify(nodeKeys), headers: sessionStore.getHeader()})
+      .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
         callbackFunc(responseData);
       })
       .catch(errorHandler);
+  }
+
+  deleteNodeKeys(devEUI, callbackFunc) {
+    fetch("/api/devices/"+devEUI+"/keys", {method: "DELETE", headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  activateNode(devEUI, activation, callbackFunc) {
+    fetch("/api/devices/"+devEUI+"/activate", {method: "POST", body: JSON.stringify(activation), headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  getActivation(devEUI, callbackFunc) {
+    fetch("/api/devices/"+devEUI+"/activation", {headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandlerIgnoreNotFound);
   }
 
   getRandomDevAddr(callbackFunc) {
-    fetch("/api/nodes/getRandomDevAddr", {method: "POST", headers: sessionStore.getHeader()})
+    fetch("/api/devices/getRandomDevAddr", {method: "POST", headers: sessionStore.getHeader()}) 
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -97,7 +130,7 @@ class NodeStore extends EventEmitter {
   }
 
   getFrameLogs(devEUI, pageSize, offset, callbackFunc) {
-    fetch("/api/nodes/"+devEUI+"/frames?limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
+    fetch("/api/devices/"+devEUI+"/frames?limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

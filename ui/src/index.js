@@ -26,6 +26,8 @@ import UpdateNode from './views/nodes/UpdateNode';
 import CreateNode from "./views/nodes/CreateNode";
 import ActivateNode from "./views/nodes/ActivateNode";
 import NodeFrameLogs from "./views/nodes/NodeFrameLogs";
+import NodeKeys from "./views/nodes/NodeKeys";
+import NodeActivation from "./views/nodes/NodeActivation";
 
 // users
 import Login from "./views/users/Login";
@@ -140,8 +142,10 @@ ReactDOM.render(
 
       <Route path="organizations/:organizationID/applications/:applicationID/nodes/:devEUI" component={NodeLayout}>
         <Route path="edit" component={UpdateNode}></Route>
-        <Route path="activation" component={ActivateNode}></Route>
+        <Route path="activate" component={ActivateNode}></Route>
         <Route path="frames" component={NodeFrameLogs}></Route>
+        <Route path="keys" component={NodeKeys}></Route>
+        <Route path="activation" component={NodeActivation}></Route>
       </Route>
 
       <Route path="gateways/channelconfigurations">

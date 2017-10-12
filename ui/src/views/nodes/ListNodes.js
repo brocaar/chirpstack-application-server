@@ -29,7 +29,7 @@ class ListNodes extends Component {
       application: {},
       nodes: [],
       isAdmin: false,
-      pageSize: 20,
+      pageSize: 2,
       pageNumber: 1,
       pages: 1,
       search: "",
@@ -37,6 +37,7 @@ class ListNodes extends Component {
 
     this.updatePage = this.updatePage.bind(this);
     this.onChange = this.onChange.bind(this);
+    this.searchNodes = this.searchNodes.bind(this);
   }
 
   componentDidMount() {
@@ -64,7 +65,7 @@ class ListNodes extends Component {
   updatePage(props) {
     const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
 
-    NodeStore.getAll(this.props.params.applicationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, nodes) => {
+    NodeStore.getAll(this.props.params.applicationID, this.state.pageSize, (page-1) * this.state.pageSize, this.state.search, (totalCount, nodes) => {
       this.setState({
         nodes: nodes,
         pageNumber: page,

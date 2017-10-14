@@ -36,10 +36,8 @@ const userQuery = `
 		on o.id = ou.organization_id
 	left join gateway g
 		on o.id = g.organization_id
-	left join application_user au
-		on u.id = au.user_id
 	left join application a
-		on au.application_id = a.id or a.organization_id = o.id
+		on a.organization_id = o.id
 	left join service_profile sp
 		on sp.organization_id = o.id
 	left join device_profile dp
@@ -65,10 +63,11 @@ func ValidateUsersAccess(flag Flag) ValidatorFunc {
 
 	switch flag {
 	case Create:
-		// global admin or admin within an application or organization
+		// global admin
+		// organization admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true"},
 		}
 	case List:
 		if DisableAssignExistingUsers {
@@ -77,10 +76,11 @@ func ValidateUsersAccess(flag Flag) ValidatorFunc {
 				{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			}
 		} else {
-			// global admin or admin within an application or organization
+			// global admin
+			// organization admin
 			where = [][]string{
 				{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-				{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true"},
+				{"u.username = $1", "u.is_active = true", "ou.is_admin = true"},
 			}
 		}
 	default:
@@ -99,7 +99,8 @@ func ValidateUserAccess(userID int64, flag Flag) ValidatorFunc {
 
 	switch flag {
 	case Read:
-		// global admin or user itself
+		// global admin
+		// user itself
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "u.id = $2"},
@@ -110,7 +111,8 @@ func ValidateUserAccess(userID int64, flag Flag) ValidatorFunc {
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
 		}
 	case UpdateProfile:
-		// global admin and user itself
+		// global admin
+		// user itself
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "u.id = $2"},
@@ -127,10 +129,11 @@ func ValidateUserAccess(userID int64, flag Flag) ValidatorFunc {
 // ValidateIsApplicationAdmin validates if the client has access to
 // administrate the given application.
 func ValidateIsApplicationAdmin(applicationID int64) ValidatorFunc {
-	// global admin users, organization admin users or application admin users
+	// global admin
+	// organization admin
 	where := [][]string{
 		{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-		{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
+		{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
 	}
 
 	return func(db *sqlx.DB, claims *Claims) (bool, error) {
@@ -145,15 +148,16 @@ func ValidateApplicationsAccess(flag Flag, organizationID int64) ValidatorFunc {
 
 	switch flag {
 	case Create:
-		// global admin users and organization admins
+		// global admin
+		// organization admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
 		}
 	case List:
-		// global admin users, organization users (when an organization id
-		// is given) or any active user (when organization id == 0).
-		// in the latter case the api will filter on user.
+		// global admin
+		// organization user (when organization id is given)
+		// any active user (api will filter on user)
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "$2 > 0", "o.id = $2 or a.organization_id = $2"},
@@ -175,22 +179,22 @@ func ValidateApplicationAccess(applicationID int64, flag Flag) ValidatorFunc {
 
 	switch flag {
 	case Read:
-		// global admin users, organization users and application users
-		// (note that the application is joined on both the organization
-		// and application_user)
+		// global admin
+		// organization user
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "a.id = $2"},
 		}
 	case Update:
-		// global admin users, organization admin users or application admin
-		// users
+		// global admin
+		// organization admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
 		}
 	case Delete:
-		// global admin users or organization admin users
+		// global admin
+		// organization admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
@@ -212,22 +216,21 @@ func ValidateApplicationUsersAccess(applicationID int64, flag Flag) ValidatorFun
 	switch flag {
 	case Create:
 		if DisableAssignExistingUsers {
-			// global admin users
+			// global admin
 			where = [][]string{
 				{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
 			}
 		} else {
-			// global admin users, organization admin users or application admin
-			// users
+			// global admin
+			// organization admin
 			where = [][]string{
 				{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-				{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
+				{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
 			}
 		}
 	case List:
-		// global admin users, organization users or application users
-		// (note that the application is joined both on application_useri
-		// and organization_user)
+		// global admin
+		// organization user
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "a.id = $2"},
@@ -248,26 +251,27 @@ func ValidateApplicationUserAccess(applicationID, userID int64, flag Flag) Valid
 
 	switch flag {
 	case Read:
-		// global admin users, organization admin users, application admin
-		// users or user itself.
+		// global admin
+		// organization admin
+		// user itself
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
-			{"u.username = $1", "u.is_active = true", "a.id = $2", "au.user_id = $3 or ou.user_id = $3", "au.user_id = u.id"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
+			{"u.username = $1", "u.is_active = true", "a.id = $2", "ou.user_id = $3"},
 		}
 	case Update:
-		// global admin users, organization admin users or application admin
-		// users
+		// global admin
+		// organization admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
 		}
 	case Delete:
-		// global admin users, organization admin users or application admin
-		// users
+		// global admin
+		// organization admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
 		}
 	default:
 		panic("unsupported flag")
@@ -285,16 +289,15 @@ func ValidateNodesAccess(applicationID int64, flag Flag) ValidatorFunc {
 
 	switch flag {
 	case Create:
-		// global admin users, organization admin users or application
-		// admin users.
+		// global admin
+		// organization admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "a.id = $2"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
 		}
 	case List:
-		// global admin user or users assigned to application
-		// (note that the application is joined both on organization
-		// and application_user)
+		// global admin
+		// organization user
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "a.id = $2"},
@@ -314,24 +317,25 @@ func ValidateNodeAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 
 	switch flag {
 	case Read:
-		// global admin user or users assigned to application
+		// global admin
+		// organization user
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "d.dev_eui = $2"},
 		}
 	case Update:
-		// global admin users, organization admin users or application
-		// admin users
+		// global admin
+		// organization admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "d.dev_eui = $2"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "d.dev_eui = $2"},
 		}
 	case Delete:
-		// global admin users, organization admin users or application
-		// admin users
+		// global admin
+		// organization admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "au.is_admin = true or ou.is_admin = true", "d.dev_eui = $2"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "d.dev_eui = $2"},
 		}
 	default:
 		panic("unsupported flag")
@@ -349,7 +353,8 @@ func ValidateNodeQueueAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 
 	switch flag {
 	case Create, Read, List, Update, Delete:
-		// global admin users or users assigned to application
+		// global admin
+		// organization user
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "d.dev_eui = $2"},
@@ -369,15 +374,16 @@ func ValidateGatewaysAccess(flag Flag, organizationID int64) ValidatorFunc {
 
 	switch flag {
 	case Create:
-		// global admin users or organization admin users
+		// global admin
+		// organization admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true", "o.can_have_gateways = true"},
 		}
 	case List:
-		// global admin users, or organization users, or when
-		// organizationID == 0 any active user
-		// (in the latter case the results are filtered on user)
+		// global admin
+		// organization user
+		// any active user (result filtered on user)
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "$2 > 0", "o.id = $2"},
@@ -398,14 +404,16 @@ func ValidateGatewayAccess(flag Flag, mac lorawan.EUI64) ValidatorFunc {
 
 	switch flag {
 	case Read:
-		// global admin users or organization users
+		// global admin
+		// organization user
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "g.mac = $2"},
 		}
 	case Update, Delete:
 		where = [][]string{
-			// global admin users or organization admin users
+			// global admin
+			// organization admin
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "g.mac = $2", "ou.is_admin = true"},
 		}
@@ -421,7 +429,8 @@ func ValidateGatewayAccess(flag Flag, mac lorawan.EUI64) ValidatorFunc {
 // ValidateIsOrganizationAdmin validates if the client has access to
 // administrate the given organization.
 func ValidateIsOrganizationAdmin(organizationID int64) ValidatorFunc {
-	// global admin users and organization admin users
+	// global admin
+	// organization admin
 	where := [][]string{
 		{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 		{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "o.id = $2"},
@@ -439,7 +448,7 @@ func ValidateOrganizationsAccess(flag Flag) ValidatorFunc {
 
 	switch flag {
 	case Create:
-		// global admin user
+		// global admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 		}
@@ -464,21 +473,22 @@ func ValidateOrganizationAccess(flag Flag, id int64) ValidatorFunc {
 
 	switch flag {
 	case Read:
-		// global admin users, organization users or users assigned to
-		// a specific application within the organization
+		// global admin
+		// organization user
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "o.id = $2"},
 			{"u.username = $1", "u.is_active = true", "a.organization_id = $2"},
 		}
 	case Update:
-		// global admin users or organization admin
+		// global admin
+		// organization admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
 		}
 	case Delete:
-		// global admin users
+		// global admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
 		}
@@ -499,19 +509,21 @@ func ValidateOrganizationUsersAccess(flag Flag, id int64) ValidatorFunc {
 	switch flag {
 	case Create:
 		if DisableAssignExistingUsers {
-			// global admin users
+			// global admin
 			where = [][]string{
 				{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
 			}
 		} else {
-			// global admin users or organzation admin users
+			// global admin
+			// organization admin
 			where = [][]string{
 				{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 				{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
 			}
 		}
 	case List:
-		// global admin users or organization users
+		// global admin
+		// organization user
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "o.id = $2"},
@@ -532,20 +544,24 @@ func ValidateOrganizationUserAccess(flag Flag, organizationID, userID int64) Val
 
 	switch flag {
 	case Read:
-		// global admin, organization admin or user itself.
+		// global admin
+		// organization admin
+		// user itself
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.user_id = $3", "ou.user_id = u.id"},
 		}
 	case Update:
-		// global admin or organization admin
+		// global admin
+		// organization admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
 			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
 		}
 	case Delete:
-		// global admin or organization admin
+		// global admin
+		// organization admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
 			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
@@ -566,7 +582,7 @@ func ValidateChannelConfigurationAccess(flag Flag) ValidatorFunc {
 
 	switch flag {
 	case Create, Update, Delete:
-		// global admin user
+		// global admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 		}
@@ -589,6 +605,7 @@ func ValidateNetworkServersAccess(flag Flag) ValidatorFunc {
 
 	switch flag {
 	case Create, List:
+		// global admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 		}
@@ -606,6 +623,7 @@ func ValidateNetworkServerAccess(flag Flag, id int64) ValidatorFunc {
 
 	switch flag {
 	case Read, Update, Delete:
+		// global admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 		}

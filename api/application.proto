@@ -44,43 +44,6 @@ service Application {
 		};
 	}
 	
-	// ListUsers lists the users for an application.
-	rpc ListUsers(ListApplicationUsersRequest) returns (ListApplicationUsersResponse) {
-		option(google.api.http) = {
-			get: "/api/applications/{id}/users"
-		};
-	}
-	
-	// AddUser adds a user to an application.
-	rpc AddUser(AddApplicationUserRequest) returns (EmptyApplicationUserResponse) {
-		option(google.api.http) = {
-			post: "/api/applications/{id}/users"
-			body: "*"
-		};
-	}
-	
-	// GetUser gets the user that is associated with the application.
-	rpc GetUser(ApplicationUserRequest) returns (GetApplicationUserResponse) {
-		option(google.api.http) = {
-			get: "/api/applications/{id}/users/{userID}"
-		};
-	}
-	
-	// UpdateUser sets the user's access to the associated application.
-	rpc UpdateUser(UpdateApplicationUserRequest) returns (EmptyApplicationUserResponse) {
-		option(google.api.http) = {
-			put: "/api/applications/{id}/users/{userID}"
-			body: "*"
-		};
-	}
-
-	// DeleteUser deletes the user's access to the associated application.
-	rpc DeleteUser(ApplicationUserRequest) returns (EmptyApplicationUserResponse) {
-		option(google.api.http) = {
-			delete: "/api/applications/{id}/users/{userID}"
-		};
-	}
-
 	// CreateHTTPIntegration creates an HTTP application-integration.
 	rpc CreateHTTPIntegration(HTTPIntegration) returns (EmptyResponse) {
 		option(google.api.http) = {
@@ -205,68 +168,6 @@ message ListApplicationResponse {
 	// Applications within this result-set.
 	repeated GetApplicationResponse result = 2;
 }
-
-message ListApplicationUsersRequest {
-	// The id of the application
-	int64 id = 1;
-	
-	// Max number of applications to return in the result-test.
-	int64 limit = 2;
-
-	// Offset in the result-set (for pagination).
-	int64 offset = 3;
-}
-
-message GetApplicationUserResponse {
-	// The id of the user
-	int64 id = 1;
-	
-	// The username for the user
-	string username = 2;
-	
-	// Has admin rights.
-	bool isAdmin = 3;
-}
-
-message ListApplicationUsersResponse {
-	// Total number of applications available within the result-set.
-	int32 totalCount = 1;
-	
-	// Applications within this result-set.
-	repeated GetApplicationUserResponse result = 2;
-}
-
-message AddApplicationUserRequest {
-	// The application to be set to allow these users
-	int64 id = 1;
-	
-	// User id
-	int64 userID = 2;
-	
-	// admin rights?
-	bool isAdmin = 3;
-}
-
-message ApplicationUserRequest {
-	// The application id
-	int64 id = 1;
-	
-	// The user id
-	int64 userID = 2;
-}
-
-message UpdateApplicationUserRequest {
-	// The application id
-	int64 id = 1;
-	
-	// The user id
-	int64 userID = 2;
-	
-	// Is admin?
-	bool isAdmin = 3;
-}
-
-message EmptyApplicationUserResponse {}
 
 message EmptyResponse {}
 

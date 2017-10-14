@@ -12,9 +12,6 @@ import ApplicationLayout from './views/applications/ApplicationLayout';
 import ListApplications from './views/applications/ListApplications';
 import CreateApplication from "./views/applications/CreateApplication";
 import UpdateApplication from "./views/applications/UpdateApplication";
-import ApplicationUsers from "./views/applications/ApplicationUsers";
-import CreateApplicationUser from "./views/applications/CreateApplicationUser";
-import UpdateApplicationUser from "./views/applications/UpdateApplicationUser";
 import ApplicationIntegrations from "./views/applications/ApplicationIntegrations";
 import CreateApplicationIntegration from "./views/applications/CreateApplicationIntegration";
 import UpdateApplicationIntegration from "./views/applications/UpdateApplicationIntegration";
@@ -131,9 +128,6 @@ ReactDOM.render(
       <Route path="organizations/:organizationID/applications/:applicationID" component={ApplicationLayout}>
         <IndexRoute component={ListNodes}></IndexRoute>
         <Route path="edit" component={UpdateApplication}></Route>
-        <Route path="users" component={ApplicationUsers}></Route>
-        <Route path="users/create" component={CreateApplicationUser}></Route>
-        <Route path="users/:userID/edit" component={UpdateApplicationUser}></Route>
         <Route path="nodes/create" component={CreateNode}></Route>
         <Route path="integrations" component={ApplicationIntegrations}></Route>
         <Route path="integrations/create" component={CreateApplicationIntegration}></Route>

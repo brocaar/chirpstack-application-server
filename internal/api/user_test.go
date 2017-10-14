@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/brocaar/loraserver/api/ns"
-	"github.com/brocaar/lorawan/backend"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/urfave/cli"
@@ -39,51 +38,6 @@ func TestUserAPI(t *testing.T) {
 		validator := &TestValidator{}
 		api := NewUserAPI(validator)
 		apiInternal := NewInternalUserAPI(validator, &cli.Context{})
-
-		Convey("When creating an user assigned to an application", func() {
-			org := storage.Organization{
-				Name: "test-org",
-			}
-			So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
-
-			n := storage.NetworkServer{
-				Name:   "test-ns",
-				Server: "test-ns:1234",
-			}
-			So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
-
-			sp := storage.ServiceProfile{
-				Name:            "test-sp",
-				OrganizationID:  org.ID,
-				NetworkServerID: n.ID,
-				ServiceProfile:  backend.ServiceProfile{},
-			}
-			So(storage.CreateServiceProfile(common.DB, &sp), ShouldBeNil)
-
-			app := storage.Application{
-				Name:             "test-app",
-				OrganizationID:   org.ID,
-				ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
-			}
-			So(storage.CreateApplication(common.DB, &app), ShouldBeNil)
-
-			createReq := pb.AddUserRequest{
-				Username: "testuser",
-				Password: "testpasswd",
-				Applications: []*pb.AddUserApplication{
-					{ApplicationID: app.ID, IsAdmin: true},
-				},
-			}
-			createResp, err := api.Create(ctx, &createReq)
-			So(err, ShouldBeNil)
-			So(createResp.Id, ShouldBeGreaterThan, 0)
-
-			users, err := storage.GetApplicationUsers(common.DB, app.ID, 10, 0)
-			So(err, ShouldBeNil)
-			So(users, ShouldHaveLength, 1)
-			So(users[0].UserID, ShouldEqual, createResp.Id)
-			So(users[0].IsAdmin, ShouldBeTrue)
-		})
 
 		Convey("When creating an user assigned to an organization", func() {
 			org := storage.Organization{

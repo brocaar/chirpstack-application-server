@@ -261,21 +261,6 @@
     }
   },
   "definitions": {
-    "apiAddUserApplication": {
-      "type": "object",
-      "properties": {
-        "applicationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application."
-        },
-        "isAdmin": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "User has admin rights within the application."
-        }
-      }
-    },
     "apiAddUserOrganization": {
       "type": "object",
       "properties": {
@@ -323,13 +308,6 @@
             "$ref": "#/definitions/apiAddUserOrganization"
           },
           "description": "Add the user to the following organizations."
-        },
-        "applications": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiAddUserApplication"
-          },
-          "description": "Add the user to the following applications."
         }
       },
       "description": "Add a new user. Not quite the UserSettings data as it includes a password\nand excludes the ID and create/update dates."
@@ -342,29 +320,6 @@
           "format": "int64"
         }
       }
-    },
-    "apiApplicationLink": {
-      "type": "object",
-      "properties": {
-        "applicationID": {
-          "type": "string",
-          "format": "int64"
-        },
-        "applicationName": {
-          "type": "string"
-        },
-        "isAdmin": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "createdAt": {
-          "type": "string"
-        },
-        "updatedAt": {
-          "type": "string"
-        }
-      },
-      "description": "Defines the applications that the user is associated with."
     },
     "apiBrandingResponse": {
       "type": "object",
@@ -485,12 +440,6 @@
       "properties": {
         "user": {
           "$ref": "#/definitions/apiGetUserResponse"
-        },
-        "applications": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiApplicationLink"
-          }
         },
         "organizations": {
           "type": "array",

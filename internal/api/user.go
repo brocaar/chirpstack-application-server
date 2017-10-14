@@ -49,15 +49,6 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 		}
 	}
 
-	// validate if the client has admin rights for the given applications
-	// to which the user must be linked
-	for _, app := range req.Applications {
-		if err := a.validator.Validate(ctx,
-			auth.ValidateIsApplicationAdmin(app.ApplicationID)); err != nil {
-			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-		}
-	}
-
 	user := storage.User{
 		Username:   req.Username,
 		SessionTTL: req.SessionTTL,
@@ -87,12 +78,6 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 
 		for _, org := range req.Organizations {
 			if err := storage.CreateOrganizationUser(tx, org.OrganizationID, userID, org.IsAdmin); err != nil {
-				return err
-			}
-		}
-
-		for _, app := range req.Applications {
-			if err := storage.CreateUserForApplication(tx, app.ApplicationID, userID, app.IsAdmin); err != nil {
 				return err
 			}
 		}
@@ -271,7 +256,6 @@ func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (
 			UpdatedAt:  prof.User.UpdatedAt.Format(time.RFC3339Nano),
 		},
 		Organizations: make([]*pb.OrganizationLink, len(prof.Organizations)),
-		Applications:  make([]*pb.ApplicationLink, len(prof.Applications)),
 		Settings: &pb.ProfileSettings{
 			DisableAssignExistingUsers: auth.DisableAssignExistingUsers,
 		},
@@ -284,16 +268,6 @@ func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (
 			IsAdmin:          prof.Organizations[i].IsAdmin,
 			UpdatedAt:        prof.Organizations[i].UpdatedAt.Format(time.RFC3339Nano),
 			CreatedAt:        prof.Organizations[i].CreatedAt.Format(time.RFC3339Nano),
-		}
-	}
-
-	for i := range prof.Applications {
-		resp.Applications[i] = &pb.ApplicationLink{
-			ApplicationID:   prof.Applications[i].ID,
-			ApplicationName: prof.Applications[i].Name,
-			IsAdmin:         prof.Applications[i].IsAdmin,
-			UpdatedAt:       prof.Applications[i].UpdatedAt.Format(time.RFC3339Nano),
-			CreatedAt:       prof.Applications[i].CreatedAt.Format(time.RFC3339Nano),
 		}
 	}
 

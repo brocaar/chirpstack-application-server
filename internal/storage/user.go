@@ -64,7 +64,6 @@ type UserUpdate struct {
 type UserProfile struct {
 	User          UserProfileUser
 	Organizations []UserProfileOrganization
-	Applications  []UserProfileApplication
 }
 
 // UserProfileUser contains the user information of the profile.
@@ -461,24 +460,6 @@ func GetProfile(db *sqlx.DB, id int64) (UserProfile, error) {
 		IsActive:   user.IsActive,
 		CreatedAt:  user.CreatedAt,
 		UpdatedAt:  user.UpdatedAt,
-	}
-
-	err = db.Select(&prof.Applications, `
-		select
-			au.application_id as application_id,
-			a.name as application_name,
-			au.is_admin as is_admin,
-			au.created_at as created_at,
-			au.updated_at as updated_at
-		from
-			application_user au,
-			application a
-		where
-			au.user_id = $1
-			and au.application_id = a.id`,
-		id)
-	if err != nil {
-		return prof, errors.Wrap(err, "select error")
 	}
 
 	err = db.Select(&prof.Organizations, `

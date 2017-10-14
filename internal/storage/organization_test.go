@@ -6,7 +6,6 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/test"
-	"github.com/brocaar/lorawan/backend"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -141,34 +140,13 @@ func TestOrganization(t *testing.T) {
 				})
 			})
 
-			Convey("Given an user and application linked to the organization", func() {
+			Convey("Given an user", func() {
 				user := User{
 					Username: "testuser",
 					IsActive: true,
 				}
 				_, err := CreateUser(db, &user, "password123")
 				So(err, ShouldBeNil)
-
-				n := NetworkServer{
-					Name:   "test-ns",
-					Server: "test-ns:1234",
-				}
-				So(CreateNetworkServer(db, &n), ShouldBeNil)
-
-				sp := ServiceProfile{
-					NetworkServerID: n.ID,
-					OrganizationID:  org.ID,
-					Name:            "test-sp",
-					ServiceProfile:  backend.ServiceProfile{},
-				}
-				So(CreateServiceProfile(db, &sp), ShouldBeNil)
-
-				app := Application{
-					OrganizationID:   org.ID,
-					ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
-					Name:             "test-app",
-				}
-				So(CreateApplication(db, &app), ShouldBeNil)
 
 				Convey("Then no organizations are related to this user", func() {
 					c, err := GetOrganizationCountForUser(db, user.Username, "")
@@ -180,38 +158,7 @@ func TestOrganization(t *testing.T) {
 					So(orgs, ShouldHaveLength, 0)
 				})
 
-				Convey("When the user is linked to the application", func() {
-					So(CreateUserForApplication(db, app.ID, user.ID, false), ShouldBeNil)
-
-					Convey("Then the test organization is returned for the user", func() {
-						c, err := GetOrganizationCountForUser(db, user.Username, "")
-						So(err, ShouldBeNil)
-						So(c, ShouldEqual, 1)
-
-						orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0, "")
-						So(err, ShouldBeNil)
-						So(orgs, ShouldHaveLength, 1)
-						So(orgs[0].ID, ShouldEqual, org.ID)
-					})
-				})
-
 				Convey("When the user is linked to the organization", func() {
-					So(CreateOrganizationUser(db, org.ID, user.ID, false), ShouldBeNil)
-
-					Convey("Then the test organization is returned for the user", func() {
-						c, err := GetOrganizationCountForUser(db, user.Username, "")
-						So(err, ShouldBeNil)
-						So(c, ShouldEqual, 1)
-
-						orgs, err := GetOrganizationsForUser(db, user.Username, 10, 0, "")
-						So(err, ShouldBeNil)
-						So(orgs, ShouldHaveLength, 1)
-						So(orgs[0].ID, ShouldEqual, org.ID)
-					})
-				})
-
-				Convey("When the user is linked to both the organization and application", func() {
-					So(CreateUserForApplication(db, app.ID, user.ID, false), ShouldBeNil)
 					So(CreateOrganizationUser(db, org.ID, user.ID, false), ShouldBeNil)
 
 					Convey("Then the test organization is returned for the user", func() {

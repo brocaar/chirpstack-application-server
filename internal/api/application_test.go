@@ -34,7 +34,6 @@ func TestApplicationAPI(t *testing.T) {
 		ctx := context.Background()
 		validator := &TestValidator{}
 		api := NewApplicationAPI(validator)
-		apiuser := NewUserAPI(validator)
 
 		org := storage.Organization{
 			Name: "test-org",
@@ -122,35 +121,6 @@ func TestApplicationAPI(t *testing.T) {
 							ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 						})
 					})
-
-					Convey("Then applications are only visible to users assigned to the application", func() {
-						user := storage.User{Username: "testtest"}
-						_, err := storage.CreateUser(common.DB, &user, "password123")
-						So(err, ShouldBeNil)
-						validator.returnIsAdmin = false
-						validator.returnUsername = user.Username
-
-						apps, err := api.List(ctx, &pb.ListApplicationRequest{
-							Limit:  10,
-							Offset: 0,
-						})
-						So(err, ShouldBeNil)
-						So(validator.ctx, ShouldResemble, ctx)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
-						So(apps.TotalCount, ShouldEqual, 0)
-						So(apps.Result, ShouldHaveLength, 0)
-
-						So(storage.CreateUserForApplication(common.DB, createResp.Id, user.ID, false), ShouldBeNil)
-						apps, err = api.List(ctx, &pb.ListApplicationRequest{
-							Limit:  10,
-							Offset: 0,
-						})
-						So(err, ShouldBeNil)
-						So(validator.ctx, ShouldResemble, ctx)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
-						So(apps.TotalCount, ShouldEqual, 0)
-						So(apps.Result, ShouldHaveLength, 0)
-					})
 				})
 
 				Convey("When listing all applications as an admin given an organization ID", func() {
@@ -167,112 +137,6 @@ func TestApplicationAPI(t *testing.T) {
 						So(apps.TotalCount, ShouldEqual, 1)
 						So(apps.Result, ShouldHaveLength, 1)
 						So(apps.Result[0].OrganizationID, ShouldEqual, org2.ID)
-					})
-				})
-			})
-
-			Convey("When creating a user", func() {
-				createUserReq := &pb.AddUserRequest{
-					Username:   "username",
-					Password:   "pass^^ord",
-					IsAdmin:    true,
-					IsActive:   true,
-					SessionTTL: 180,
-				}
-				createRespUser, err := apiuser.Create(ctx, createUserReq)
-				So(err, ShouldBeNil)
-				So(createRespUser.Id, ShouldBeGreaterThan, 0)
-
-				Convey("Then the user can be added to the application", func() {
-					addReq := &pb.AddApplicationUserRequest{
-						Id:      createResp.Id,
-						UserID:  createRespUser.Id,
-						IsAdmin: true,
-					}
-					noresp, err := api.AddUser(ctx, addReq)
-					So(err, ShouldBeNil)
-					So(noresp, ShouldNotBeNil)
-
-					// Reused a lot below.
-					getReq := &pb.ApplicationUserRequest{
-						Id:     createResp.Id,
-						UserID: createRespUser.Id,
-					}
-
-					Convey("Then listing the applications returns a single item", func() {
-						validator.returnIsAdmin = false
-						validator.returnUsername = createUserReq.Username
-
-						apps, err := api.List(ctx, &pb.ListApplicationRequest{
-							Limit:  10,
-							Offset: 0,
-						})
-						So(err, ShouldBeNil)
-						So(validator.ctx, ShouldResemble, ctx)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
-						So(apps.Result, ShouldHaveLength, 1)
-						So(apps.TotalCount, ShouldEqual, 1)
-						So(apps.Result[0], ShouldResemble, &pb.GetApplicationResponse{
-							OrganizationID:   org.ID,
-							Id:               createResp.Id,
-							Name:             "test-app",
-							Description:      "A test application",
-							ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
-						})
-					})
-
-					Convey("Then the user can be accessed via application get", func() {
-						getUserResp, err := api.GetUser(ctx, getReq)
-						So(err, ShouldBeNil)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
-						So(getUserResp.Username, ShouldEqual, createUserReq.Username)
-						So(getUserResp.IsAdmin, ShouldEqual, createUserReq.IsAdmin)
-					})
-
-					Convey("Then the user can be accessed via get all users for application", func() {
-						getUserList := &pb.ListApplicationUsersRequest{
-							Id:     createResp.Id,
-							Limit:  10,
-							Offset: 0,
-						}
-						listAppResp, err := api.ListUsers(ctx, getUserList)
-						So(err, ShouldBeNil)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
-						So(listAppResp, ShouldNotBeNil)
-						So(listAppResp.TotalCount, ShouldEqual, 1)
-						So(listAppResp.Result, ShouldHaveLength, 1)
-						So(listAppResp.Result[0].Username, ShouldEqual, createUserReq.Username)
-						So(listAppResp.Result[0].IsAdmin, ShouldEqual, createUserReq.IsAdmin)
-					})
-
-					Convey("Then the user access to the application can be updated", func() {
-						updReq := &pb.UpdateApplicationUserRequest{
-							Id:      createResp.Id,
-							UserID:  createRespUser.Id,
-							IsAdmin: false,
-						}
-						empty, err := api.UpdateUser(ctx, updReq)
-						So(err, ShouldBeNil)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
-						Convey("Then the user can be accessed showing the new setting", func() {
-							getUserResp, err := api.GetUser(ctx, getReq)
-							So(err, ShouldBeNil)
-							So(empty, ShouldNotBeNil)
-							So(getUserResp.Username, ShouldEqual, createUserReq.Username)
-							So(getUserResp.IsAdmin, ShouldEqual, updReq.IsAdmin)
-						})
-					})
-
-					Convey("Then the user can be deleted from the application", func() {
-						empty, err := api.DeleteUser(ctx, getReq)
-						So(err, ShouldBeNil)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
-						So(empty, ShouldNotBeNil)
-						Convey("Then the user cannot be accessed via get", func() {
-							getUserResp, err := api.GetUser(ctx, getReq)
-							So(err, ShouldNotBeNil)
-							So(getUserResp, ShouldBeNil)
-						})
 					})
 				})
 			})

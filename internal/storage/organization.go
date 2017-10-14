@@ -5,10 +5,10 @@ import (
 	"regexp"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 var organizationNameRegexp = regexp.MustCompile(`^[\w-]+$`)
@@ -120,10 +120,7 @@ func GetOrganizationCount(db *sqlx.DB, search string) (int, error) {
 }
 
 // GetOrganizationCountForUser returns the number of organizations to which
-// the given user is related to.
-// The user has a relation to an organization:
-// - when it has a reference to a specific application within the organization
-// - when it has a reference to the organization itself
+// the given user is member of.
 func GetOrganizationCountForUser(db *sqlx.DB, username string, search string) (int, error) {
 	var count int
 
@@ -132,18 +129,15 @@ func GetOrganizationCountForUser(db *sqlx.DB, username string, search string) (i
 	}
 
 	err := db.Get(&count, `
-		select count(distinct o.*)
+		select
+			count(o.*)
 		from organization o
+		inner join organization_user ou
+			on ou.organization_id = o.id
 		inner join "user" u
-			on u.username = $1
-		left join organization_user ou
-			on o.id = ou.organization_id and u.id = ou.user_id
-		left join application a
-			on o.id = a.organization_id
-		left join application_user au
-			on a.id = au.application_id and u.id = au.user_id
+			on u.id = ou.user_id
 		where
-			(au.user_id is not null or ou.user_id is not null)
+			u.username = $1
 			and (
 				($2 != '' and o.display_name ilike $2)
 				or ($2 = '')
@@ -181,10 +175,7 @@ func GetOrganizations(db *sqlx.DB, limit, offset int, search string) ([]Organiza
 }
 
 // GetOrganizationsForUser returns a slice of organizations to which the given
-// user is related to.
-// The user has a relation to an organization:
-// - when it has a reference to a specific application within the organization
-// - when it has a reference to the organization itself
+// user is member of.
 func GetOrganizationsForUser(db *sqlx.DB, username string, limit, offset int, search string) ([]Organization, error) {
 	var orgs []Organization
 
@@ -193,18 +184,15 @@ func GetOrganizationsForUser(db *sqlx.DB, username string, limit, offset int, se
 	}
 
 	err := db.Select(&orgs, `
-		select distinct o.*
+		select
+			o.*
 		from organization o
+		inner join organization_user ou
+			on ou.organization_id = o.id
 		inner join "user" u
-			on u.username = $1
-		left join organization_user ou
-			on o.id = ou.organization_id and u.id = ou.user_id
-		left join application a
-			on o.id = a.organization_id
-		left join application_user au
-			on a.id = au.application_id and u.id = au.user_id
+			on u.id = ou.user_id
 		where
-			(au.user_id is not null or ou.user_id is not null)
+			u.username = $1
 			and (
 				($4 != '' and o.display_name ilike $4)
 				or ($4 = '')

@@ -80,15 +80,6 @@ service Internal {
 	} 
 }
 
-// Defines the applications that the user is associated with.
-message ApplicationLink {
-	int64 applicationID = 1;
-	string applicationName = 2;
-	bool isAdmin = 3;
-	string createdAt = 4;
-	string updatedAt = 5;
-}
-
 // Defines the organizations that the user is associated with.
 message OrganizationLink {
 	int64 organizationID = 1;
@@ -96,11 +87,6 @@ message OrganizationLink {
 	bool isAdmin = 3;
 	string createdAt = 4;
 	string updatedAt = 5;
-}
-
-// The user profile, indicating the capabilities of the user.
-message UserProfile {
-	repeated ApplicationLink applications = 1;
 }
 
 // The request for profile requires not input as the profile is returned for
@@ -114,7 +100,6 @@ message ProfileRequest {
 // application).
 message ProfileResponse {
 	GetUserResponse user = 1;
-	repeated ApplicationLink applications = 2;
 	repeated OrganizationLink organizations = 3;
 	ProfileSettings settings = 4;
 }
@@ -189,12 +174,6 @@ message UserSettings {
 	string updatedAt = 7;
 }
 
-// UserInfo includes the general login settings as well as the user profile.
-message UserInfo {
-	UserSettings userSettings = 1;
-	UserProfile userProfile = 2;
-}
-
 message GetUserResponse {
 	// ID of the user.
 	int64 id = 1;
@@ -238,9 +217,6 @@ message AddUserRequest {
 
 	// Add the user to the following organizations.
 	repeated AddUserOrganization organizations = 6;
-
-	// Add the user to the following applications.
-	repeated AddUserApplication applications = 7;
 }
 
 message AddUserOrganization {
@@ -248,14 +224,6 @@ message AddUserOrganization {
 	int64 organizationID = 1;
 
 	// User has admin rights within the organization.
-	bool isAdmin = 2;
-}
-
-message AddUserApplication {
-	// ID of the application.
-	int64 applicationID = 1;
-
-	// User has admin rights within the application.
 	bool isAdmin = 2;
 }
 

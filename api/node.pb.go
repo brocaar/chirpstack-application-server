@@ -59,13 +59,6 @@ It has these top-level messages:
 	DeleteApplicationResponse
 	ListApplicationRequest
 	ListApplicationResponse
-	ListApplicationUsersRequest
-	GetApplicationUserResponse
-	ListApplicationUsersResponse
-	AddApplicationUserRequest
-	ApplicationUserRequest
-	UpdateApplicationUserRequest
-	EmptyApplicationUserResponse
 	EmptyResponse
 	HTTPIntegrationHeader
 	HTTPIntegration
@@ -80,9 +73,7 @@ It has these top-level messages:
 	DownlinkQueueItem
 	ListDownlinkQueueItemsRequest
 	ListDownlinkQueueItemsResponse
-	ApplicationLink
 	OrganizationLink
-	UserProfile
 	ProfileRequest
 	ProfileResponse
 	ProfileSettings
@@ -92,11 +83,9 @@ It has these top-level messages:
 	UserRequest
 	AddUserResponse
 	UserSettings
-	UserInfo
 	GetUserResponse
 	AddUserRequest
 	AddUserOrganization
-	AddUserApplication
 	UpdateUserRequest
 	ListUserResponse
 	UserEmptyResponse

@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import Select from "react-select";
 
 import NetworkServerStore from "../stores/NetworkServerStore";
+import SessionStore from "../stores/SessionStore";
 
 
 class ServiceProfileForm extends Component {
@@ -19,6 +20,7 @@ class ServiceProfileForm extends Component {
       },
       networkServers: [],
       update: false,
+      isAdmin: false,
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -26,10 +28,27 @@ class ServiceProfileForm extends Component {
   }
 
   componentDidMount() {
-    NetworkServerStore.getAll(9999, 0, (totalCount, networkServers) => {
+    if (SessionStore.isAdmin()) {
+      NetworkServerStore.getAll(9999, 0, (totalCount, networkServers) => {
+        this.setState({
+          serviceProfile: this.props.serviceProfile,
+          networkServers: networkServers,
+          isAdmin: true,
+        });
+      });
+    } else {
+      NetworkServerStore.getAllForOrganizationID(this.props.organizationID, 9999, 0, (totalCount, networkServers) => {
+        this.setState({
+          serviceProfile: this.props.serviceProfile,
+          networkServers: networkServers,
+          isAdmin: false,
+        });
+      });
+    }
+
+    SessionStore.on("change", () => {
       this.setState({
-        serviceProfile: this.props.serviceProfile,
-        networkServers: networkServers,
+        isAdmin: SessionStore.isAdmin(),
       });
     });
   }
@@ -93,82 +112,84 @@ class ServiceProfileForm extends Component {
 
     return(
       <form onSubmit={this.handleSubmit}>
-        <div className="form-group">
-          <label className="control-label" htmlFor="name">Service-profile name</label>
-          <input className="form-control" id="name" type="text" placeholder="e.g. my service-profile" required value={this.state.serviceProfile.name || ''} onChange={this.onChange.bind(this, 'name')} />
-          <p className="help-block">
-            A memorable name for the service-profile.
-          </p>
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="networkServerID">Network-server</label>
-          <Select
-            name="networkServerID"
-            options={networkServerOptions}
-            value={this.state.serviceProfile.networkServerID}
-            onChange={this.onNetworkServerChange}
-            disabled={this.state.update}
-          />
-          <p className="help-block">
-            The network-server on which this service-profile will be provisioned. After creating the service-profile, this value can't be changed.
-          </p>
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="addGWMetadata">Add gateway meta-data</label>
-          <div className="checkbox">
-            <label>
-              <input type="checkbox" name="addGWMetadata" id="addGWMetadata" checked={this.state.serviceProfile.serviceProfile.addGWMetadata} onChange={this.onChange.bind(this, 'serviceProfile.addGWMetadata')} /> Add gateway meta-data
-            </label>
+        <fieldset disabled={!this.state.isAdmin}>
+          <div className="form-group">
+            <label className="control-label" htmlFor="name">Service-profile name</label>
+            <input className="form-control" id="name" type="text" placeholder="e.g. my service-profile" required value={this.state.serviceProfile.name || ''} onChange={this.onChange.bind(this, 'name')} />
+            <p className="help-block">
+              A memorable name for the service-profile.
+            </p>
           </div>
-          <p className="help-block">
-            GW metadata (RSSI, SNR, GW geoloc., etc.) are added to the packet sent to the application-server.
-          </p>
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="devStatusReqFreq">Device-status request frequency</label>
-          <input className="form-control" id="devStatusReqFreq" type="number" required value={this.state.serviceProfile.serviceProfile.devStatusReqFreq || 0} onChange={this.onChange.bind(this, 'serviceProfile.devStatusReqFreq')} />
-          <p className="help-block">
-            Frequency to initiate an End-Device status request (request/day).
-          </p>
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="reportDevStatusBattery">Report device battery level</label>
-          <div className="checkbox">
-            <label>
-              <input type="checkbox" name="reportDevStatusBattery" id="reportDevStatusBattery" checked={this.state.serviceProfile.serviceProfile.reportDevStatusBattery} onChange={this.onChange.bind(this, 'serviceProfile.reportDevStatusBattery')} /> Report device battery level
-            </label>
+          <div className="form-group">
+            <label className="control-label" htmlFor="networkServerID">Network-server</label>
+            <Select
+              name="networkServerID"
+              options={networkServerOptions}
+              value={this.state.serviceProfile.networkServerID}
+              onChange={this.onNetworkServerChange}
+              disabled={this.state.update}
+            />
+            <p className="help-block">
+              The network-server on which this service-profile will be provisioned. After creating the service-profile, this value can't be changed.
+            </p>
           </div>
-          <p className="help-block">
-            Report End-Device battery level to the application-server.
-          </p>
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="reportDevStatusMargin">Report device margin</label>
-          <div className="checkbox">
-            <label>
-              <input type="checkbox" name="reportDevStatusMargin" id="reportDevStatusMargin" checked={this.state.serviceProfile.serviceProfile.reportDevStatusMargin} onChange={this.onChange.bind(this, 'serviceProfile.reportDevStatusMargin')} /> Report device margin
-            </label>
+          <div className="form-group">
+            <label className="control-label" htmlFor="addGWMetadata">Add gateway meta-data</label>
+            <div className="checkbox">
+              <label>
+                <input type="checkbox" name="addGWMetadata" id="addGWMetadata" checked={this.state.serviceProfile.serviceProfile.addGWMetadata} onChange={this.onChange.bind(this, 'serviceProfile.addGWMetadata')} /> Add gateway meta-data
+              </label>
+            </div>
+            <p className="help-block">
+              GW metadata (RSSI, SNR, GW geoloc., etc.) are added to the packet sent to the application-server.
+            </p>
           </div>
-          <p className="help-block">
-            Report End-Device margin to the application-server.
-          </p>
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="drMin">Minimum allowed data-rate</label>
-          <input className="form-control" id="drMin" type="number" required value={this.state.serviceProfile.serviceProfile.drMin || 0} onChange={this.onChange.bind(this, 'serviceProfile.drMin')} />
-          <p className="help-block">
-            Minimum allowed data rate. Used for ADR.
-          </p>
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="drMax">Maximum allowed data-rate</label>
-          <input className="form-control" id="drMax" type="number" required value={this.state.serviceProfile.serviceProfile.drMax || 0} onChange={this.onChange.bind(this, 'serviceProfile.drMax')} />
-          <p className="help-block">
-            Maximum allowed data rate. Used for ADR.
-          </p>
-        </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="devStatusReqFreq">Device-status request frequency</label>
+            <input className="form-control" id="devStatusReqFreq" type="number" required value={this.state.serviceProfile.serviceProfile.devStatusReqFreq || 0} onChange={this.onChange.bind(this, 'serviceProfile.devStatusReqFreq')} />
+            <p className="help-block">
+              Frequency to initiate an End-Device status request (request/day).
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="reportDevStatusBattery">Report device battery level</label>
+            <div className="checkbox">
+              <label>
+                <input type="checkbox" name="reportDevStatusBattery" id="reportDevStatusBattery" checked={this.state.serviceProfile.serviceProfile.reportDevStatusBattery} onChange={this.onChange.bind(this, 'serviceProfile.reportDevStatusBattery')} /> Report device battery level
+              </label>
+            </div>
+            <p className="help-block">
+              Report End-Device battery level to the application-server.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="reportDevStatusMargin">Report device margin</label>
+            <div className="checkbox">
+              <label>
+                <input type="checkbox" name="reportDevStatusMargin" id="reportDevStatusMargin" checked={this.state.serviceProfile.serviceProfile.reportDevStatusMargin} onChange={this.onChange.bind(this, 'serviceProfile.reportDevStatusMargin')} /> Report device margin
+              </label>
+            </div>
+            <p className="help-block">
+              Report End-Device margin to the application-server.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="drMin">Minimum allowed data-rate</label>
+            <input className="form-control" id="drMin" type="number" required value={this.state.serviceProfile.serviceProfile.drMin || 0} onChange={this.onChange.bind(this, 'serviceProfile.drMin')} />
+            <p className="help-block">
+              Minimum allowed data rate. Used for ADR.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="drMax">Maximum allowed data-rate</label>
+            <input className="form-control" id="drMax" type="number" required value={this.state.serviceProfile.serviceProfile.drMax || 0} onChange={this.onChange.bind(this, 'serviceProfile.drMax')} />
+            <p className="help-block">
+              Maximum allowed data rate. Used for ADR.
+            </p>
+          </div>
+        </fieldset>
         <hr />
-        <div className="btn-toolbar pull-right">
+        <div className={"btn-toolbar pull-right " + (this.state.isAdmin ? "" : "hidden")}>
           <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
           <button type="submit" className="btn btn-primary">Submit</button>
         </div>

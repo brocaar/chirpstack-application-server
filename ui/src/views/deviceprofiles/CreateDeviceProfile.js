@@ -43,7 +43,7 @@ class CreateDeviceProfile extends Component {
           <h3 className="panel-title panel-title-buttons">Create device-profile</h3>
         </div>
         <div className="panel-body">
-          <DeviceProfileForm deviceProfile={this.state.deviceProfile} onSubmit={this.onSubmit} />
+          <DeviceProfileForm organizationID={this.props.params.organizationID} deviceProfile={this.state.deviceProfile} onSubmit={this.onSubmit} />
         </div>
       </div>
     );

@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Link } from 'react-router';
 
 import ServiceProfileStore from "../../stores/ServiceProfileStore";
+import SessionStore from "../../stores/SessionStore";
 import ServiceProfileForm from "../../components/ServiceProfileForm";
 
 
@@ -17,6 +18,7 @@ class UpdateServiceProfile extends Component {
       serviceProfile: {
           serviceProfile: {},
       },
+      isAdmin: false,
     };
 
     this.onSubmit = this.onSubmit.bind(this);
@@ -27,6 +29,13 @@ class UpdateServiceProfile extends Component {
     ServiceProfileStore.getServiceProfile(this.props.params.serviceProfileID, (serviceProfile) => {
       this.setState({
         serviceProfile: serviceProfile,
+        isAdmin: SessionStore.isAdmin(),
+      });
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isAdmin: SessionStore.isAdmin(),
       });
     });
   }
@@ -50,12 +59,12 @@ class UpdateServiceProfile extends Component {
       <div className="panel panel-default">
         <div className="panel-heading clearfix">
           <h3 className="panel-title panel-title-buttons pull-left">Update service-profile</h3>
-          <div className="btn-group pull-right">
+          <div className={"btn-group pull-right " + (this.state.isAdmin ? "" : "hidden")}>
             <Link><button type="button" className="btn btn-danger btn-sm" onClick={this.onDelete}>Remove service-profile</button></Link>
           </div>
         </div>
         <div className="panel-body">
-          <ServiceProfileForm serviceProfile={this.state.serviceProfile} onSubmit={this.onSubmit} />
+          <ServiceProfileForm organizationID={this.props.params.organizationID} serviceProfile={this.state.serviceProfile} onSubmit={this.onSubmit} />
         </div>
       </div>
     );

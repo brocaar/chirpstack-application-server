@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Link } from 'react-router';
 
 import DeviceProfileStore from "../../stores/DeviceProfileStore";
+import SessionStore from "../../stores/SessionStore";
 import DeviceProfileForm from "../../components/DeviceProfileForm";
 
 
@@ -17,6 +18,7 @@ class UpdateDeviceProfile extends Component {
       deviceProfile: {
           deviceProfile: {},
       },
+      isAdmin: false,
     };
 
     this.onSubmit = this.onSubmit.bind(this);
@@ -27,6 +29,7 @@ class UpdateDeviceProfile extends Component {
     DeviceProfileStore.getDeviceProfile(this.props.params.deviceProfileID, (deviceProfile) => {
       this.setState({
         deviceProfile: deviceProfile,
+        isAdmin: SessionStore.isAdmin(),
       });
     });
   }
@@ -50,12 +53,12 @@ class UpdateDeviceProfile extends Component {
       <div className="panel panel-default">
         <div className="panel-heading clearfix">
           <h3 className="panel-title panel-title-buttons pull-left">Update device-profile</h3>
-          <div className="btn-group pull-right">
+          <div className={"btn-group pull-right " + (this.state.isAdmin ? "" : "hidden")}>
             <Link><button type="button" className="btn btn-danger btn-sm" onClick={this.onDelete}>Remove device-profile</button></Link>
           </div>
         </div>
         <div className="panel-body">
-          <DeviceProfileForm deviceProfile={this.state.deviceProfile} onSubmit={this.onSubmit} />
+          <DeviceProfileForm organizationID={this.props.params.organizationID} deviceProfile={this.state.deviceProfile} onSubmit={this.onSubmit} />
         </div>
       </div>
     );

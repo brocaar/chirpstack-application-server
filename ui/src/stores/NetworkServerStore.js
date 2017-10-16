@@ -19,6 +19,20 @@ class NetworkServerStore extends EventEmitter {
       .catch(errorHandler);
   }
 
+  getAllForOrganizationID(organizationID, pageSize, offset, callbackFunc) {
+    fetch("/api/network-servers?limit="+pageSize+"&offset="+offset+"&organizationID="+organizationID, {headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        if(typeof(responseData.result) === "undefined") {
+          callbackFunc(0, []);
+        } else {
+          callbackFunc(responseData.totalCount, responseData.result);
+        }
+      })
+      .catch(errorHandler);
+  }
+
   getNetworkServer(networkServerID, callbackFunc) {
     fetch("/api/network-servers/"+networkServerID, {headers: sessionStore.getHeader()})
       .then(checkStatus)

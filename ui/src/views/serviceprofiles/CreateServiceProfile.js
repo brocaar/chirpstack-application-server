@@ -43,7 +43,7 @@ class CreateServiceProfile extends Component {
           <h3 className="panel-title panel-title-buttons">Create service-profile</h3>
         </div>
         <div className="panel-body">
-          <ServiceProfileForm serviceProfile={this.state.serviceProfile} onSubmit={this.onSubmit} />
+          <ServiceProfileForm organizationID={this.props.params.organizationID} serviceProfile={this.state.serviceProfile} onSubmit={this.onSubmit} />
         </div>
       </div>
     );

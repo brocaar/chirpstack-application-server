@@ -604,10 +604,15 @@ func ValidateNetworkServersAccess(flag Flag) ValidatorFunc {
 	var where = [][]string{}
 
 	switch flag {
-	case Create, List:
+	case Create:
 		// global admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+		}
+	case List:
+		// any active user
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true"},
 		}
 	}
 

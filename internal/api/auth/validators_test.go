@@ -780,14 +780,39 @@ func TestValidators(t *testing.T) {
 		Convey("When testing ValidateNetworkServersAccess", func() {
 			tests := []validatorTest{
 				{
-					Name:       "global admin users can create read, update, delete and list",
-					Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create), ValidateNetworkServerAccess(Read, n.ID), ValidateNetworkServerAccess(Update, n.ID), ValidateNetworkServerAccess(Update, n.ID), ValidateNetworkServerAccess(Delete, n.ID), ValidateNetworkServersAccess(List)},
+					Name:       "global admin users can create and list",
+					Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create), ValidateNetworkServersAccess(List)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
-					Name:       "regular users can not create, read, update, delete and list",
-					Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create), ValidateNetworkServerAccess(Read, n.ID), ValidateNetworkServerAccess(Update, n.ID), ValidateNetworkServerAccess(Update, n.ID), ValidateNetworkServerAccess(Delete, n.ID), ValidateNetworkServersAccess(List)},
+					Name:       "regular users can list",
+					Validators: []ValidatorFunc{ValidateNetworkServersAccess(List)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "regular users can not create",
+					Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateNetworkServerAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can read, update and delete",
+					Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, n.ID), ValidateNetworkServerAccess(Update, n.ID), ValidateNetworkServerAccess(Delete, n.ID)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "regular users can not read, update and delete",
+					Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, n.ID), ValidateNetworkServerAccess(Update, n.ID), ValidateNetworkServerAccess(Delete, n.ID)},
 					Claims:     Claims{Username: "user4"},
 					ExpectedOK: false,
 				},

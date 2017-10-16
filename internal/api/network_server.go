@@ -28,7 +28,7 @@ func NewNetworkServerAPI(validator auth.Validator) *NetworkServerAPI {
 // Create creates the given network-server.
 func (a *NetworkServerAPI) Create(ctx context.Context, req *pb.CreateNetworkServerRequest) (*pb.CreateNetworkServerResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateNetworkServersAccess(auth.Create),
+		auth.ValidateNetworkServersAccess(auth.Create, 0),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -119,18 +119,39 @@ func (a *NetworkServerAPI) Delete(ctx context.Context, req *pb.DeleteNetworkServ
 // List lists the available network-servers.
 func (a *NetworkServerAPI) List(ctx context.Context, req *pb.ListNetworkServerRequest) (*pb.ListNetworkServerResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateNetworkServersAccess(auth.List),
+		auth.ValidateNetworkServersAccess(auth.List, req.OrganizationID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	count, err := storage.GetNetworkServerCount(common.DB)
+	isAdmin, err := a.validator.GetIsAdmin(ctx)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	nss, err := storage.GetNetworkServers(common.DB, int(req.Limit), int(req.Offset))
-	if err != nil {
-		return nil, errToRPCError(err)
+
+	var count int
+	var nss []storage.NetworkServer
+
+	if req.OrganizationID == 0 {
+		if isAdmin {
+			count, err = storage.GetNetworkServerCount(common.DB)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			nss, err = storage.GetNetworkServers(common.DB, int(req.Limit), int(req.Offset))
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+		}
+	} else {
+		count, err = storage.GetNetworkServerCountForOrganizationID(common.DB, req.OrganizationID)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		nss, err = storage.GetNetworkServersForOrganizationID(common.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
 	}
 
 	resp := pb.ListNetworkServerResponse{

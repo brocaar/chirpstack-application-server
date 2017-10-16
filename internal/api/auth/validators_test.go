@@ -781,19 +781,25 @@ func TestValidators(t *testing.T) {
 			tests := []validatorTest{
 				{
 					Name:       "global admin users can create and list",
-					Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create), ValidateNetworkServersAccess(List)},
+					Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create, organizations[0].ID), ValidateNetworkServersAccess(List, organizations[0].ID)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
-					Name:       "regular users can list",
-					Validators: []ValidatorFunc{ValidateNetworkServersAccess(List)},
-					Claims:     Claims{Username: "user4"},
+					Name:       "organization users can list",
+					Validators: []ValidatorFunc{ValidateNetworkServersAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user9"},
 					ExpectedOK: true,
 				},
 				{
-					Name:       "regular users can not create",
-					Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create)},
+					Name:       "organization users can not create",
+					Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create, organizations[0].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "non-organization users can not create or list",
+					Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create, organizations[0].ID), ValidateNetworkServersAccess(List, organizations[0].ID)},
 					Claims:     Claims{Username: "user4"},
 					ExpectedOK: false,
 				},

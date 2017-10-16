@@ -600,24 +600,26 @@ func ValidateChannelConfigurationAccess(flag Flag) ValidatorFunc {
 
 // ValidateNetworkServersAccess validates if the client has access to the
 // network-servers.
-func ValidateNetworkServersAccess(flag Flag) ValidatorFunc {
+func ValidateNetworkServersAccess(flag Flag, organizationID int64) ValidatorFunc {
 	var where = [][]string{}
 
 	switch flag {
 	case Create:
 		// global admin
 		where = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
 		}
 	case List:
-		// any active user
+		// global admin
+		// organization user
 		where = [][]string{
-			{"u.username = $1", "u.is_active = true"},
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2"},
 		}
 	}
 
 	return func(db *sqlx.DB, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username)
+		return executeQuery(db, userQuery, where, claims.Username, organizationID)
 	}
 }
 

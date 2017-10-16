@@ -171,6 +171,29 @@ func GetNetworkServerCount(db sqlx.Queryer) (int, error) {
 	return count, nil
 }
 
+// GetNetworkServerCountForOrganizationID returns the total number of
+// network-servers accessible for the given organization id.
+// A network-server is accessible for an organization when it is used by one
+// of its service-profiles.
+func GetNetworkServerCountForOrganizationID(db sqlx.Queryer, organizationID int64) (int, error) {
+	var count int
+	err := sqlx.Get(db, &count, `
+		select
+			count (ns.*)
+		from
+			network_server ns
+		inner join service_profile sp
+			on sp.network_server_id = ns.id
+		where
+			sp.organization_id = $1`,
+		organizationID,
+	)
+	if err != nil {
+		return 0, handlePSQLError(err, "select error")
+	}
+	return count, nil
+}
+
 // GetNetworkServers returns a slice of network-servers.
 func GetNetworkServers(db sqlx.Queryer, limit, offset int) ([]NetworkServer, error) {
 	var nss []NetworkServer
@@ -179,6 +202,34 @@ func GetNetworkServers(db sqlx.Queryer, limit, offset int) ([]NetworkServer, err
 		from network_server
 		order by name
 		limit $1 offset $2`,
+		limit,
+		offset,
+	)
+	if err != nil {
+		return nil, handlePSQLError(err, "select error")
+	}
+
+	return nss, nil
+}
+
+// GetNetworkServersForOrganizationID returns a slice of network-server
+// accessible for the given organization id.
+// A network-server is accessible for an organization when it is used by one
+// of its service-profiles.
+func GetNetworkServersForOrganizationID(db sqlx.Queryer, organizationID int64, limit, offset int) ([]NetworkServer, error) {
+	var nss []NetworkServer
+	err := sqlx.Select(db, &nss, `
+		select
+			ns.*
+		from
+			network_server ns
+		inner join service_profile sp
+			on sp.network_server_id = ns.id
+		where
+			sp.organization_id = $1
+		order by name
+		limit $2 offset $3`,
+		organizationID,
 		limit,
 		offset,
 	)

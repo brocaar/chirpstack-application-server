@@ -7,6 +7,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
+	"github.com/brocaar/lorawan/backend"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -64,6 +65,41 @@ func TestNetworkServer(t *testing.T) {
 				items, err := GetNetworkServers(db, 10, 0)
 				So(err, ShouldBeNil)
 				So(items, ShouldHaveLength, 1)
+			})
+
+			Convey("Given a second organization and a service-profile attached to the first organization", func() {
+				org2 := Organization{
+					Name: "test-org-2",
+				}
+				So(CreateOrganization(common.DB, &org2), ShouldBeNil)
+
+				sp := ServiceProfile{
+					NetworkServerID: n.ID,
+					OrganizationID:  org.ID,
+					Name:            "test-service-profile",
+					ServiceProfile:  backend.ServiceProfile{},
+				}
+				So(CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+
+				Convey("Then GetNetworkServerCountForOrganizationID returns the number of network-servers for the given organization", func() {
+					count, err := GetNetworkServerCountForOrganizationID(common.DB, org.ID)
+					So(err, ShouldBeNil)
+					So(count, ShouldEqual, 1)
+
+					count, err = GetNetworkServerCountForOrganizationID(common.DB, org2.ID)
+					So(err, ShouldBeNil)
+					So(count, ShouldEqual, 0)
+				})
+
+				Convey("Then GetNetworkServersForOrganizationID returns the network-servers for the given organization", func() {
+					items, err := GetNetworkServersForOrganizationID(common.DB, org.ID, 10, 0)
+					So(err, ShouldBeNil)
+					So(items, ShouldHaveLength, 1)
+
+					items, err = GetNetworkServersForOrganizationID(common.DB, org2.ID, 10, 0)
+					So(err, ShouldBeNil)
+					So(items, ShouldHaveLength, 0)
+				})
 			})
 
 			Convey("Then UpdateNetworkServer updates the network-server", func() {

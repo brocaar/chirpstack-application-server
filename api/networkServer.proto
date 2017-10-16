@@ -106,6 +106,9 @@ message ListNetworkServerRequest {
 
     // Offset in the result-set (for pagination).
     int64 offset = 2;
+
+    // Organization id to filter on.
+    int64 organizationID = 3;
 }
 
 message ListNetworkServerResponse {

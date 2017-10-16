@@ -32,9 +32,6 @@ create role loraserver_as with login password 'dbpassword';
 -- create the loraserver_as database
 create database loraserver_as with owner loraserver_as;
 
--- connect to db
-\c loraserver_as
-
 -- exit the prompt
 \q
 ```

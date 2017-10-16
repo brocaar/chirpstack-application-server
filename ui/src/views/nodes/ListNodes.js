@@ -29,7 +29,7 @@ class ListNodes extends Component {
       application: {},
       nodes: [],
       isAdmin: false,
-      pageSize: 2,
+      pageSize: 20,
       pageNumber: 1,
       pages: 1,
       search: "",

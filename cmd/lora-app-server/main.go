@@ -222,7 +222,7 @@ func mustGetClientAPIServer(ctx context.Context, lsCtx common.Context, c *cli.Co
 	pb.RegisterDownlinkQueueServer(gs, api.NewDownlinkQueueAPI(lsCtx, validator))
 	pb.RegisterNodeServer(gs, api.NewNodeAPI(lsCtx, validator))
 	pb.RegisterUserServer(gs, api.NewUserAPI(lsCtx, validator))
-	pb.RegisterInternalServer(gs, api.NewInternalUserAPI(lsCtx, validator))
+	pb.RegisterInternalServer(gs, api.NewInternalUserAPI(lsCtx, validator, c))
 	pb.RegisterGatewayServer(gs, api.NewGatewayAPI(lsCtx, validator))
 	pb.RegisterOrganizationServer(gs, api.NewOrganizationAPI(lsCtx, validator))
 
@@ -480,10 +480,25 @@ func main() {
 			Usage:  "debug=5, info=4, warning=3, error=2, fatal=1, panic=0",
 			EnvVar: "LOG_LEVEL",
 		},
-		cli.BoolFlag{
+        cli.BoolFlag{
 			Name:   "disable-assign-existing-users",
 			Usage:  "when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)",
 			EnvVar: "DISABLE_ASSIGN_EXISTING_USERS",
+		},
+        cli.StringFlag{
+			Name:   "branding-header",
+			Usage:  "when set, this html is inserted into the header of the ui, before \"LoRa Server\"",
+			EnvVar: "BRANDING_HEADER",
+		},
+        cli.StringFlag{
+			Name:   "branding-footer",
+			Usage:  "when set, this html is inserted as a footer of the ui pages",
+			EnvVar: "BRANDING_FOOTER",
+		},
+        cli.StringFlag{
+			Name:   "branding-registration",
+			Usage:  "when set, this html is inserted onto the login page, under the login area",
+			EnvVar: "BRANDING_REGISTRATION",
 		},
 	}
 	app.Run(os.Args)

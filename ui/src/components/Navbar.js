@@ -15,6 +15,7 @@ class Navbar extends Component {
       user: SessionStore.getUser(),
       isAdmin: SessionStore.isAdmin(),
       userDropdownOpen: false,
+      logo: SessionStore.getLogo(),
     }
 
     this.userToggleDropdown = this.userToggleDropdown.bind(this);
@@ -45,6 +46,7 @@ class Navbar extends Component {
       this.setState({
         user: SessionStore.getUser(),
         isAdmin: SessionStore.isAdmin(),
+        logo: SessionStore.getLogo(),
       });
     });
 
@@ -56,9 +58,12 @@ class Navbar extends Component {
       <nav className="navbar navbar-inverse navbar-fixed-top">
         <div className="container">
           <div className="navbar-header">
-            <a className="navbar-brand" href="#">LoRa Server</a>
+            <a className="navbar-brand" href="#">
+                <span className="navbar-brand-logo" dangerouslySetInnerHTML={{ __html: ( typeof(this.state.logo) === "undefined" ? "" : this.state.logo) }} />
+                LoRa Server
+            </a>
           </div>
-          <div id="navbar" className="navbar-collapse collapse">  
+          <div id="navbar" className="navbar-collapse collapse">
             <ul className="nav navbar-nav navbar-right">
               <li className={typeof(this.state.user.username) === "undefined" ? "hidden" : ""}><Link to="organizations">Organizations</Link></li>
               <li className={this.state.isAdmin === true ? "" : "hidden"}><Link to="users">Users</Link></li>

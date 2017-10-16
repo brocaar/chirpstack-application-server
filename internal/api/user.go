@@ -12,6 +12,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/jmoiron/sqlx"
+	"github.com/urfave/cli"
 )
 
 // UserAPI exports the User related functions.
@@ -24,6 +25,7 @@ type UserAPI struct {
 type InternalUserAPI struct {
 	ctx       common.Context
 	validator auth.Validator
+    input     *cli.Context
 }
 
 // NewUserAPI creates a new UserAPI.
@@ -218,10 +220,12 @@ func (a *UserAPI) UpdatePassword(ctx context.Context, req *pb.UpdateUserPassword
 }
 
 // NewInternalUserAPI creates a new InternalUserAPI.
-func NewInternalUserAPI(ctx common.Context, validator auth.Validator) *InternalUserAPI {
+func NewInternalUserAPI(ctx common.Context, validator auth.Validator, c *cli.Context) *InternalUserAPI {
+
 	return &InternalUserAPI{
 		ctx:       ctx,
 		validator: validator,
+        input:     c,
 	}
 }
 
@@ -297,6 +301,16 @@ func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (
 			CreatedAt:       prof.Applications[i].CreatedAt.Format(time.RFC3339Nano),
 		}
 	}
+
+	return &resp, nil
+}
+
+func (a *InternalUserAPI) Branding(ctx context.Context, req *pb.BrandingRequest) (*pb.BrandingResponse, error) {
+	resp := pb.BrandingResponse {
+        Logo:         a.input.String( "branding-header" ),
+        Registration: a.input.String( "branding-registration" ),
+        Footer:       a.input.String( "branding-footer" ),
+    }
 
 	return &resp, nil
 }

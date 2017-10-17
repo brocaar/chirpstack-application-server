@@ -128,11 +128,12 @@ func (a *NodeAPI) ListByApplicationID(ctx context.Context, req *pb.ListNodeByApp
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	nodes, err := storage.GetNodesForApplicationID(common.DB, req.ApplicationID, int(req.Limit), int(req.Offset))
+	nodes, err := storage.GetNodesForApplicationID(common.DB, req.ApplicationID, int(req.Limit), int(req.Offset), req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	count, err := storage.GetNodesCountForApplicationID(common.DB, req.ApplicationID)
+	count, err := storage.GetNodesCountForApplicationID(common.DB, req.ApplicationID, req.Search)
+
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

@@ -77,13 +77,13 @@ service Node {
 
 message CreateNodeRequest {
 	// Hex encoded DevEUI.
-	string devEUI = 1; 
+	string devEUI = 1;
 
 	// Hex encoded AppEUI.
-	string appEUI = 2; 
+	string appEUI = 2;
 
 	// Hex encoded AppKey. When isABP is set to true, this field is not needed.
-	string appKey = 3; 
+	string appKey = 3;
 
 	// RX delay.
 	uint32 rxDelay = 4;
@@ -134,13 +134,13 @@ message GetNodeRequest {
 
 message GetNodeResponse {
 	// Hex encoded DevEUI.
-	string devEUI = 1; 
+	string devEUI = 1;
 
 	// Hex encoded AppEUI.
-	string appEUI = 2; 
+	string appEUI = 2;
 
 	// Hex encoded AppKey.
-	string appKey = 3; 
+	string appKey = 3;
 
 	// RX delay.
 	uint32 rxDelay = 4;
@@ -198,6 +198,9 @@ message ListNodeByApplicationIDRequest {
 
 	// Offset of the result-set (for pagination).
 	int64 offset = 2;
+
+	// Search against name or DevEUI
+	string search = 4;
 }
 
 message ListNodeResponse {
@@ -370,7 +373,7 @@ message RXInfo {
 
 	// Time (when the gateway has a GPS).
 	string time = 6;
-	
+
 	// Gateway internal timestamp.
 	uint32 timestamp = 7;
 
@@ -379,7 +382,7 @@ message RXInfo {
 
 	// HEX encoded gateway MAC.
 	string mac = 9;
-} 
+}
 
 message TXInfo {
 	// Code-rate.

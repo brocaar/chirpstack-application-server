@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -276,7 +276,7 @@ func GetUserByUsername(db *sqlx.DB, username string) (User, error) {
 func GetUserCount(db *sqlx.DB, search string) (int32, error) {
 	var count int32
 	if search != "" {
-		search = "%" + search + "%"
+		search = search + "%"
 	}
 	err := db.Get(&count, `
 		select

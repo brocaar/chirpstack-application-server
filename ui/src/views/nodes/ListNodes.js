@@ -32,9 +32,12 @@ class ListNodes extends Component {
       pageSize: 20,
       pageNumber: 1,
       pages: 1,
+      search: "",
     };
 
     this.updatePage = this.updatePage.bind(this);
+    this.onChange = this.onChange.bind(this);
+    this.searchNodes = this.searchNodes.bind(this);
   }
 
   componentDidMount() {
@@ -61,8 +64,8 @@ class ListNodes extends Component {
 
   updatePage(props) {
     const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
-  
-    NodeStore.getAll(this.props.params.applicationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, nodes) => {
+
+    NodeStore.getAll(this.props.params.applicationID, this.state.pageSize, (page-1) * this.state.pageSize, this.state.search, (totalCount, nodes) => {
       this.setState({
         nodes: nodes,
         pageNumber: page,
@@ -70,6 +73,17 @@ class ListNodes extends Component {
       });
       window.scrollTo(0, 0);
     });
+  }
+
+  onChange(e) {
+    this.setState({
+      search: e.target.value,
+    });
+    
+  }
+
+  searchNodes() {
+    this.updatePage(this.props);
   }
 
   render() {
@@ -83,6 +97,12 @@ class ListNodes extends Component {
           </div>
         </div>
         <div className="panel-body">
+          <div className="input-group col-md-3">
+            <input type="text" className="form-control" placeholder="Search for..." onChange={this.onChange} value={this.state.search || ''} />
+            <span className="input-group-btn">
+              <button className="btn btn-default" onClick={this.searchNodes} type="button"><span className="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+            </span>
+          </div>
           <table className="table table-hover">
             <thead>
               <tr>

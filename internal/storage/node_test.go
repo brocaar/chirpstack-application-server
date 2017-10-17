@@ -78,11 +78,11 @@ func TestNodeMethods(t *testing.T) {
 		So(CreateApplication(db, &app), ShouldBeNil)
 
 		Convey("The application doesn't contain any nodes", func() {
-			count, err := GetNodesCountForApplicationID(db, app.ID)
+			count, err := GetNodesCountForApplicationID(db, app.ID, "")
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
 
-			nodes, err := GetNodesForApplicationID(db, app.ID, 10, 0)
+			nodes, err := GetNodesForApplicationID(db, app.ID, 10, 0, "")
 			So(err, ShouldBeNil)
 			So(nodes, ShouldHaveLength, 0)
 		})
@@ -136,7 +136,15 @@ func TestNodeMethods(t *testing.T) {
 			})
 
 			Convey("Then getting all nodes for the application returns this node", func() {
-				nodes, err := GetNodesForApplicationID(db, app.ID, 10, 0)
+				nodes, err := GetNodesForApplicationID(db, app.ID, 10, 0, "")
+				So(err, ShouldBeNil)
+				So(nodes, ShouldHaveLength, 1)
+				nodes[0].UsedDevNonces = nil
+				So(nodes[0], ShouldResemble, node)
+			})
+
+			Convey("Then getting nodes by search term test for the application returns this node", func() {
+				nodes, err := GetNodesForApplicationID(db, app.ID, 10, 0, "test")
 				So(err, ShouldBeNil)
 				So(nodes, ShouldHaveLength, 1)
 				nodes[0].UsedDevNonces = nil
@@ -144,7 +152,7 @@ func TestNodeMethods(t *testing.T) {
 			})
 
 			Convey("Then the nodes count for the application returns 1", func() {
-				count, err := GetNodesCountForApplicationID(db, app.ID)
+				count, err := GetNodesCountForApplicationID(db, app.ID, "")
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 			})
@@ -166,7 +174,7 @@ func TestNodeMethods(t *testing.T) {
 				So(DeleteNode(db, node.DevEUI), ShouldBeNil)
 
 				Convey("Then get nodes count returns 0", func() {
-					count, err := GetNodesCountForApplicationID(db, app.ID)
+					count, err := GetNodesCountForApplicationID(db, app.ID, "")
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 0)
 				})

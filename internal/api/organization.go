@@ -17,14 +17,12 @@ import (
 
 // OrganizationAPI exports the organization related functions.
 type OrganizationAPI struct {
-	ctx       common.Context
 	validator auth.Validator
 }
 
 // NewOrganizationAPI creates a new OrganizationAPI.
-func NewOrganizationAPI(ctx common.Context, validator auth.Validator) *OrganizationAPI {
+func NewOrganizationAPI(validator auth.Validator) *OrganizationAPI {
 	return &OrganizationAPI{
-		ctx:       ctx,
 		validator: validator,
 	}
 }
@@ -42,7 +40,7 @@ func (a *OrganizationAPI) Create(ctx context.Context, req *pb.CreateOrganization
 		CanHaveGateways: req.CanHaveGateways,
 	}
 
-	err := storage.CreateOrganization(a.ctx.DB, &org)
+	err := storage.CreateOrganization(common.DB, &org)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -59,7 +57,7 @@ func (a *OrganizationAPI) Get(ctx context.Context, req *pb.OrganizationRequest) 
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	org, err := storage.GetOrganization(a.ctx.DB, req.Id)
+	org, err := storage.GetOrganization(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -90,12 +88,12 @@ func (a *OrganizationAPI) List(ctx context.Context, req *pb.ListOrganizationRequ
 	var orgs []storage.Organization
 
 	if isAdmin {
-		count, err = storage.GetOrganizationCount(a.ctx.DB, req.Search)
+		count, err = storage.GetOrganizationCount(common.DB, req.Search)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 
-		orgs, err = storage.GetOrganizations(a.ctx.DB, int(req.Limit), int(req.Offset), req.Search)
+		orgs, err = storage.GetOrganizations(common.DB, int(req.Limit), int(req.Offset), req.Search)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
@@ -104,11 +102,11 @@ func (a *OrganizationAPI) List(ctx context.Context, req *pb.ListOrganizationRequ
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
-		count, err = storage.GetOrganizationCountForUser(a.ctx.DB, username, req.Search)
+		count, err = storage.GetOrganizationCountForUser(common.DB, username, req.Search)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
-		orgs, err = storage.GetOrganizationsForUser(a.ctx.DB, username, int(req.Limit), int(req.Offset), req.Search)
+		orgs, err = storage.GetOrganizationsForUser(common.DB, username, int(req.Limit), int(req.Offset), req.Search)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
@@ -144,7 +142,7 @@ func (a *OrganizationAPI) Update(ctx context.Context, req *pb.UpdateOrganization
 		return nil, errToRPCError(err)
 	}
 
-	org, err := storage.GetOrganization(a.ctx.DB, req.Id)
+	org, err := storage.GetOrganization(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -155,7 +153,7 @@ func (a *OrganizationAPI) Update(ctx context.Context, req *pb.UpdateOrganization
 		org.CanHaveGateways = req.CanHaveGateways
 	}
 
-	err = storage.UpdateOrganization(a.ctx.DB, &org)
+	err = storage.UpdateOrganization(common.DB, &org)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -174,7 +172,7 @@ func (a *OrganizationAPI) Delete(ctx context.Context, req *pb.OrganizationReques
 	// LoRa App Server database, however we need to delete these gateways
 	// also from the LoRa Server database.
 	for {
-		gws, err := storage.GetGatewaysForOrganizationID(a.ctx.DB, req.Id, 100, 0)
+		gws, err := storage.GetGatewaysForOrganizationID(common.DB, req.Id, 100, 0)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
@@ -184,13 +182,13 @@ func (a *OrganizationAPI) Delete(ctx context.Context, req *pb.OrganizationReques
 		}
 
 		for _, gw := range gws {
-			err = storage.Transaction(a.ctx.DB, func(tx *sqlx.Tx) error {
+			err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
 				err = storage.DeleteGateway(tx, gw.MAC)
 				if err != nil {
 					return errToRPCError(err)
 				}
 
-				_, err = a.ctx.NetworkServer.DeleteGateway(ctx, &ns.DeleteGatewayRequest{
+				_, err = common.NetworkServer.DeleteGateway(ctx, &ns.DeleteGatewayRequest{
 					Mac: gw.MAC[:],
 				})
 				if err != nil && grpc.Code(err) != codes.NotFound {
@@ -204,7 +202,7 @@ func (a *OrganizationAPI) Delete(ctx context.Context, req *pb.OrganizationReques
 		}
 	}
 
-	err := storage.DeleteOrganization(a.ctx.DB, req.Id)
+	err := storage.DeleteOrganization(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -217,12 +215,12 @@ func (a *OrganizationAPI) ListUsers(ctx context.Context, req *pb.ListOrganizatio
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	users, err := storage.GetOrganizationUsers(a.ctx.DB, req.Id, int(req.Limit), int(req.Offset))
+	users, err := storage.GetOrganizationUsers(common.DB, req.Id, int(req.Limit), int(req.Offset))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	userCount, err := storage.GetOrganizationUserCount(a.ctx.DB, req.Id)
+	userCount, err := storage.GetOrganizationUserCount(common.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -251,7 +249,7 @@ func (a *OrganizationAPI) AddUser(ctx context.Context, req *pb.OrganizationUserR
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.CreateOrganizationUser(a.ctx.DB, req.Id, req.UserID, req.IsAdmin)
+	err := storage.CreateOrganizationUser(common.DB, req.Id, req.UserID, req.IsAdmin)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -266,7 +264,7 @@ func (a *OrganizationAPI) UpdateUser(ctx context.Context, req *pb.OrganizationUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.UpdateOrganizationUser(a.ctx.DB, req.Id, req.UserID, req.IsAdmin)
+	err := storage.UpdateOrganizationUser(common.DB, req.Id, req.UserID, req.IsAdmin)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -281,7 +279,7 @@ func (a *OrganizationAPI) DeleteUser(ctx context.Context, req *pb.DeleteOrganiza
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteOrganizationUser(a.ctx.DB, req.Id, req.UserID)
+	err := storage.DeleteOrganizationUser(common.DB, req.Id, req.UserID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -296,7 +294,7 @@ func (a *OrganizationAPI) GetUser(ctx context.Context, req *pb.GetOrganizationUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	user, err := storage.GetOrganizationUser(a.ctx.DB, req.Id, req.UserID)
+	user, err := storage.GetOrganizationUser(common.DB, req.Id, req.UserID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

@@ -76,8 +76,127 @@ class GatewayStore extends EventEmitter {
       .catch(errorHandler);
   }
 
+  generateGatewayToken(mac, callbackFunc) {
+    fetch("/api/gateways/"+mac+"/token", {method: "POST", headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
   updateGateway(mac, gateway, callbackFunc) {
     fetch("/api/gateways/"+mac, {method: "PUT", body: JSON.stringify(gateway), headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        this.emit("change");
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  createChannelConfiguration(conf, callbackFunc) {
+    fetch("/api/gateways/channelconfigurations", {method: "POST", body: JSON.stringify(conf), headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  getChannelConfiguration(id, callbackFunc) {
+    fetch("/api/gateways/channelconfigurations/"+id, {headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  updateChannelConfiguration(id, conf, callbackFunc) {
+    fetch("/api/gateways/channelconfigurations/"+id, {method: "PUT", body: JSON.stringify(conf), headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  deleteChannelConfiguration(id, callbackFunc) {
+    fetch("/api/gateways/channelconfigurations/"+id, {method: "DELETE", headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  getAllChannelConfigurations(callbackFunc) {
+    fetch("/api/gateways/channelconfigurations", {headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        if (typeof(responseData.result) === "undefined") {
+          callbackFunc([]);
+        } else {
+          callbackFunc(responseData.result);
+        }
+      })
+      .catch(errorHandler);
+  }
+
+  createExtraChannel(chan, callbackFunc) {
+    fetch("/api/gateways/extrachannels", {method: "POST", body: JSON.stringify(chan), headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  updateExtraChannel(id, chan, callbackFunc) {
+    fetch("/api/gateways/extrachannels/"+id, {method: "PUT", body: JSON.stringify(chan), headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  deleteExtraChannel(id, callbackFunc) {
+    fetch("/api/gateways/extrachannels/"+id, {method: "DELETE", headers: sessionStore.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        callbackFunc(responseData);
+      })
+      .catch(errorHandler);
+  }
+
+  getExtraChannelsForChannelConfigurationID(id, callbackFunc) {
+    fetch("/api/gateways/channelconfigurations/"+id+"/extrachannels", {headers: sessionStore.getHeader()}) 
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        if (typeof(responseData.result) === "undefined") {
+          callbackFunc([]);
+        } else {
+          callbackFunc(responseData.result);
+        }
+      })
+      .catch(errorHandler);
+  }
+
+  getLastPing(mac, callbackFunc) {
+    fetch("/api/gateways/"+mac+"/pings/last", {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

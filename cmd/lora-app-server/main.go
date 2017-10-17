@@ -17,11 +17,12 @@ import (
 	"syscall"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/pkg/errors"
 	migrate "github.com/rubenv/sql-migrate"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -32,7 +33,9 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/downlink"
-	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/gwping"
+	"github.com/brocaar/lora-app-server/internal/handler/mqtthandler"
+	"github.com/brocaar/lora-app-server/internal/handler/multihandler"
 	"github.com/brocaar/lora-app-server/internal/migrations"
 	"github.com/brocaar/lora-app-server/internal/static"
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -48,102 +51,32 @@ func init() {
 var version string // set by the compiler
 
 func run(c *cli.Context) error {
-	log.SetLevel(log.Level(uint8(c.Int("log-level"))))
-
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	log.WithFields(log.Fields{
-		"version": version,
-		"docs":    "https://docs.loraserver.io/",
-	}).Info("starting LoRa App Server")
-
-	// get context
-	lsCtx := mustGetContext(c)
-
-	// migrate the database
-	if c.Bool("db-automigrate") {
-		log.Info("applying database migrations")
-		m := &migrate.AssetMigrationSource{
-			Asset:    migrations.Asset,
-			AssetDir: migrations.AssetDir,
-			Dir:      "",
-		}
-		n, err := migrate.Exec(lsCtx.DB.DB, "postgres", m, migrate.Up)
-		if err != nil {
-			log.Fatalf("applying migrations failed: %s", err)
-		}
-		log.WithField("count", n).Info("migrations applied")
+	tasks := []func(*cli.Context) error{
+		setLogLevel,
+		printStartMessage,
+		setPostgreSQLConnection,
+		setRedisPool,
+		setHandler,
+		setNetworkServerClient,
+		runDatabaseMigrations,
+		setJWTSecret,
+		setHashIterations,
+		setDisableAssignExistingUsers,
+		handleDataDownPayloads,
+		startApplicationServerAPI,
+		startGatewayPing,
+		startClientAPI(ctx),
 	}
 
-	// migrate gateway data from LoRa Server
-	if err := gwmigrate.MigrateGateways(lsCtx); err != nil {
-		log.Fatalf("migrate gateway data error: %s", err)
-	}
-
-	// Set up the JWT secret for making tokens
-	storage.SetUserSecret(c.String("jwt-secret"))
-	// Set the password hash iterations
-	storage.HashIterations = c.Int("pw-hash-iterations")
-	// Setup DisableAssignExisitngUsers
-	auth.DisableAssignExistingUsers = c.Bool("disable-assign-existing-users")
-
-	// handle incoming downlink payloads
-	go downlink.HandleDataDownPayloads(lsCtx, lsCtx.Handler.DataDownChan())
-
-	// start the application-server api
-	log.WithFields(log.Fields{
-		"bind":     c.String("bind"),
-		"ca-cert":  c.String("ca-cert"),
-		"tls-cert": c.String("tls-cert"),
-		"tls-key":  c.String("tls-key"),
-	}).Info("starting application-server api")
-	apiServer := mustGetAPIServer(lsCtx, c)
-	ln, err := net.Listen("tcp", c.String("bind"))
-	if err != nil {
-		log.Fatalf("start application-server api listener error: %s", err)
-	}
-	go apiServer.Serve(ln)
-
-	// setup the client api interface
-	clientAPIHandler := mustGetClientAPIServer(ctx, lsCtx, c)
-
-	// setup the client http interface variable
-	// we need to start the gRPC service first, as it is used by the
-	// grpc-gateway
-	var clientHTTPHandler http.Handler
-
-	// switch between gRPC and "plain" http handler
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
-			clientAPIHandler.ServeHTTP(w, r)
-		} else {
-			if clientHTTPHandler == nil {
-				w.WriteHeader(http.StatusNotImplemented)
-				return
-			}
-			clientHTTPHandler.ServeHTTP(w, r)
+	for _, t := range tasks {
+		if err := t(c); err != nil {
+			log.Fatal(err)
 		}
-	})
-	go func() {
-		if c.String("http-tls-cert") == "" || c.String("http-tls-key") == "" {
-			log.Fatal("--http-tls-cert (HTTP_TLS_CERT) and --http-tls-key (HTTP_TLS_KEY) must be set")
-		}
-		log.WithFields(log.Fields{
-			"bind":     c.String("http-bind"),
-			"tls-cert": c.String("http-tls-cert"),
-			"tls-key":  c.String("http-tls-key"),
-		}).Info("starting client api server")
-		log.Fatal(http.ListenAndServeTLS(c.String("http-bind"), c.String("http-tls-cert"), c.String("http-tls-key"), handler))
-	}()
-
-	// give the http server some time to start
-	time.Sleep(time.Millisecond * 100)
-
-	// now the gRPC gateway has been started, attach the http handlers
-	// (this will setup the grpc-gateway too)
-	clientHTTPHandler = mustGetHTTPHandler(ctx, lsCtx, c)
+	}
 
 	sigChan := make(chan os.Signal)
 	exitChan := make(chan struct{})
@@ -163,24 +96,46 @@ func run(c *cli.Context) error {
 	return nil
 }
 
-func mustGetContext(c *cli.Context) common.Context {
+func setLogLevel(c *cli.Context) error {
+	log.SetLevel(log.Level(uint8(c.Int("log-level"))))
+	return nil
+}
+
+func printStartMessage(c *cli.Context) error {
+	log.WithFields(log.Fields{
+		"version": version,
+		"docs":    "https://docs.loraserver.io/",
+	}).Info("starting LoRa App Server")
+	return nil
+}
+
+func setPostgreSQLConnection(c *cli.Context) error {
 	log.Info("connecting to postgresql")
 	db, err := storage.OpenDatabase(c.String("postgres-dsn"))
 	if err != nil {
-		log.Fatalf("database connection error: %s", err)
+		return errors.Wrap(err, "database connection error")
 	}
+	common.DB = db
+	return nil
+}
 
+func setRedisPool(c *cli.Context) error {
 	// setup redis pool
 	log.Info("setup redis connection pool")
-	rp := storage.NewRedisPool(c.String("redis-url"))
+	common.RedisPool = storage.NewRedisPool(c.String("redis-url"))
+	return nil
+}
 
-	// setup mqtt handler
-	h, err := handler.NewMQTTHandler(rp, c.String("mqtt-server"), c.String("mqtt-username"), c.String("mqtt-password"), c.String("mqtt-ca-cert"))
+func setHandler(c *cli.Context) error {
+	h, err := mqtthandler.NewHandler(c.String("mqtt-server"), c.String("mqtt-username"), c.String("mqtt-password"), c.String("mqtt-ca-cert"))
 	if err != nil {
-		log.Fatalf("setup mqtt handler error: %s", err)
+		return errors.Wrap(err, "setup mqtt handler error")
 	}
+	common.Handler = multihandler.NewHandler(h)
+	return nil
+}
 
-	// setup network-server client
+func setNetworkServerClient(c *cli.Context) error {
 	log.WithFields(log.Fields{
 		"server":   c.String("ns-server"),
 		"ca-cert":  c.String("ns-ca-cert"),
@@ -198,54 +153,173 @@ func mustGetContext(c *cli.Context) common.Context {
 
 	nsConn, err := grpc.Dial(c.String("ns-server"), nsOpts...)
 	if err != nil {
-		log.Fatalf("network-server dial error: %s", err)
+		return errors.Wrap(err, "network-server dial error")
+	}
+	common.NetworkServer = ns.NewNetworkServerClient(nsConn)
+
+	return nil
+}
+
+func runDatabaseMigrations(c *cli.Context) error {
+	if c.Bool("db-automigrate") {
+		log.Info("applying database migrations")
+		m := &migrate.AssetMigrationSource{
+			Asset:    migrations.Asset,
+			AssetDir: migrations.AssetDir,
+			Dir:      "",
+		}
+		n, err := migrate.Exec(common.DB.DB, "postgres", m, migrate.Up)
+		if err != nil {
+			return errors.Wrap(err, "applying migrations error")
+		}
+		log.WithField("count", n).Info("migrations applied")
 	}
 
-	return common.Context{
-		DB:            db,
-		RedisPool:     rp,
-		NetworkServer: ns.NewNetworkServerClient(nsConn),
-		Handler:       h,
+	if err := gwmigrate.MigrateGateways(); err != nil {
+		log.Fatalf("migrate gateway data error: %s", err)
+	}
+
+	return nil
+}
+
+func setJWTSecret(c *cli.Context) error {
+	storage.SetUserSecret(c.String("jwt-secret"))
+	return nil
+}
+
+func setHashIterations(c *cli.Context) error {
+	storage.HashIterations = c.Int("pw-hash-iterations")
+	return nil
+}
+
+func setDisableAssignExistingUsers(c *cli.Context) error {
+	auth.DisableAssignExistingUsers = c.Bool("disable-assign-existing-users")
+	return nil
+}
+
+func handleDataDownPayloads(c *cli.Context) error {
+	go downlink.HandleDataDownPayloads()
+	return nil
+}
+
+func startApplicationServerAPI(c *cli.Context) error {
+	log.WithFields(log.Fields{
+		"bind":     c.String("bind"),
+		"ca-cert":  c.String("ca-cert"),
+		"tls-cert": c.String("tls-cert"),
+		"tls-key":  c.String("tls-key"),
+	}).Info("starting application-server api")
+	apiServer := mustGetAPIServer(c)
+	ln, err := net.Listen("tcp", c.String("bind"))
+	if err != nil {
+		log.Fatalf("start application-server api listener error: %s", err)
+	}
+	go apiServer.Serve(ln)
+	return nil
+}
+
+func startGatewayPing(c *cli.Context) error {
+	if !c.Bool("gw-ping") {
+		return nil
+	}
+
+	common.GatewayPingFrequency = c.Int("gw-ping-frequency")
+	common.GatewayPingDR = c.Int("gw-ping-dr")
+	common.GatewayPingInterval = c.Duration("gw-ping-interval")
+
+	if common.GatewayPingFrequency == 0 || common.GatewayPingDR == 0 {
+		log.Fatalf("--gw-ping-frequency and --gw-ping-dr settings must be set")
+	}
+
+	go gwping.SendPingLoop()
+	return nil
+}
+
+func startClientAPI(ctx context.Context) func(*cli.Context) error {
+	return func(c *cli.Context) error {
+		// setup the client API interface
+		var validator auth.Validator
+		if c.String("jwt-secret") != "" {
+			validator = auth.NewJWTValidator(common.DB, "HS256", c.String("jwt-secret"))
+		} else {
+			log.Fatal("--jwt-secret must be set")
+		}
+
+		clientAPIHandler := grpc.NewServer()
+		pb.RegisterApplicationServer(clientAPIHandler, api.NewApplicationAPI(validator))
+		pb.RegisterDownlinkQueueServer(clientAPIHandler, api.NewDownlinkQueueAPI(validator))
+		pb.RegisterNodeServer(clientAPIHandler, api.NewNodeAPI(validator))
+		pb.RegisterUserServer(clientAPIHandler, api.NewUserAPI(validator))
+		pb.RegisterInternalServer(clientAPIHandler, api.NewInternalUserAPI(validator, c))
+		pb.RegisterGatewayServer(clientAPIHandler, api.NewGatewayAPI(validator))
+		pb.RegisterOrganizationServer(clientAPIHandler, api.NewOrganizationAPI(validator))
+
+		// setup the client http interface variable
+		// we need to start the gRPC service first, as it is used by the
+		// grpc-gateway
+		var clientHTTPHandler http.Handler
+
+		// switch between gRPC and "plain" http handler
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
+				clientAPIHandler.ServeHTTP(w, r)
+			} else {
+				if clientHTTPHandler == nil {
+					w.WriteHeader(http.StatusNotImplemented)
+					return
+				}
+				clientHTTPHandler.ServeHTTP(w, r)
+			}
+		})
+
+		// start the API server
+		go func() {
+			if c.String("http-tls-cert") == "" || c.String("http-tls-key") == "" {
+				log.Fatal("--http-tls-cert (HTTP_TLS_CERT) and --http-tls-key (HTTP_TLS_KEY) must be set")
+			}
+			log.WithFields(log.Fields{
+				"bind":     c.String("http-bind"),
+				"tls-cert": c.String("http-tls-cert"),
+				"tls-key":  c.String("http-tls-key"),
+			}).Info("starting client api server")
+			log.Fatal(http.ListenAndServeTLS(c.String("http-bind"), c.String("http-tls-cert"), c.String("http-tls-key"), handler))
+		}()
+
+		// give the http server some time to start
+		time.Sleep(time.Millisecond * 100)
+
+		// setup the HTTP handler
+		var err error
+		clientHTTPHandler, err = getHTTPHandler(ctx, c)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 }
 
-func mustGetClientAPIServer(ctx context.Context, lsCtx common.Context, c *cli.Context) *grpc.Server {
-	var validator auth.Validator
-	if c.String("jwt-secret") != "" {
-		validator = auth.NewJWTValidator(lsCtx.DB, "HS256", c.String("jwt-secret"))
-	} else {
-		log.Fatal("--jwt-secret must be set")
-	}
-
-	gs := grpc.NewServer()
-	pb.RegisterApplicationServer(gs, api.NewApplicationAPI(lsCtx, validator))
-	pb.RegisterDownlinkQueueServer(gs, api.NewDownlinkQueueAPI(lsCtx, validator))
-	pb.RegisterNodeServer(gs, api.NewNodeAPI(lsCtx, validator))
-	pb.RegisterUserServer(gs, api.NewUserAPI(lsCtx, validator))
-	pb.RegisterInternalServer(gs, api.NewInternalUserAPI(lsCtx, validator, c))
-	pb.RegisterGatewayServer(gs, api.NewGatewayAPI(lsCtx, validator))
-	pb.RegisterOrganizationServer(gs, api.NewOrganizationAPI(lsCtx, validator))
-
-	return gs
-}
-
-func mustGetAPIServer(ctx common.Context, c *cli.Context) *grpc.Server {
+func mustGetAPIServer(c *cli.Context) *grpc.Server {
 	var opts []grpc.ServerOption
 	if c.String("tls-cert") != "" && c.String("tls-key") != "" {
 		creds := mustGetTransportCredentials(c.String("tls-cert"), c.String("tls-key"), c.String("ca-cert"), false)
 		opts = append(opts, grpc.Creds(creds))
 	}
 	gs := grpc.NewServer(opts...)
-	asAPI := api.NewApplicationServerAPI(ctx)
+	asAPI := api.NewApplicationServerAPI()
 	as.RegisterApplicationServerServer(gs, asAPI)
 	return gs
 }
 
-func mustGetHTTPHandler(ctx context.Context, lsCtx common.Context, c *cli.Context) http.Handler {
+func getHTTPHandler(ctx context.Context, c *cli.Context) (http.Handler, error) {
 	r := mux.NewRouter()
 
 	// setup json api handler
-	jsonHandler := mustGetJSONGateway(ctx, lsCtx, c)
+	jsonHandler, err := getJSONGateway(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+
 	log.WithField("path", "/api").Info("registering rest api handler and documentation endpoint")
 	r.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
 		data, err := static.Asset("swagger/index.html")
@@ -266,18 +340,18 @@ func mustGetHTTPHandler(ctx context.Context, lsCtx common.Context, c *cli.Contex
 		Prefix:    "",
 	}))
 
-	return r
+	return r, nil
 }
 
-func mustGetJSONGateway(ctx context.Context, lsCtx common.Context, c *cli.Context) http.Handler {
+func getJSONGateway(ctx context.Context, c *cli.Context) (http.Handler, error) {
 	// dial options for the grpc-gateway
 	b, err := ioutil.ReadFile(c.String("http-tls-cert"))
 	if err != nil {
-		log.Fatalf("read http-tls-cert cert error: %s", err)
+		return nil, errors.Wrap(err, "read http-tls-cert cert error")
 	}
 	cp := x509.NewCertPool()
 	if !cp.AppendCertsFromPEM(b) {
-		log.Fatal("failed to append certificate")
+		return nil, errors.Wrap(err, "failed to append certificate")
 	}
 	grpcDialOpts := []grpc.DialOption{grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
 		// given the grpc-gateway is always connecting to localhost, does
@@ -301,28 +375,28 @@ func mustGetJSONGateway(ctx context.Context, lsCtx common.Context, c *cli.Contex
 	))
 
 	if err := pb.RegisterApplicationHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
-		log.Fatalf("register application handler error: %s", err)
+		return nil, errors.Wrap(err, "register application handler error")
 	}
 	if err := pb.RegisterDownlinkQueueHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
-		log.Fatalf("register downlink queue handler error: %s", err)
+		return nil, errors.Wrap(err, "register downlink queue handler error")
 	}
 	if err := pb.RegisterNodeHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
-		log.Fatalf("register node handler error: %s", err)
+		return nil, errors.Wrap(err, "register node handler error")
 	}
 	if err := pb.RegisterUserHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
-		log.Fatalf("register user handler error: %s", err)
+		return nil, errors.Wrap(err, "register user handler error")
 	}
 	if err := pb.RegisterInternalHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
-		log.Fatalf("register internal handler error: %s", err)
+		return nil, errors.Wrap(err, "register internal handler error")
 	}
 	if err := pb.RegisterGatewayHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
-		log.Fatalf("register gateway handler error: %s", err)
+		return nil, errors.Wrap(err, "register gateway handler error")
 	}
 	if err := pb.RegisterOrganizationHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
-		log.Fatalf("register organization handler error: %s", err)
+		return nil, errors.Wrap(err, "register organization handler error")
 	}
 
-	return mux
+	return mux, nil
 }
 
 func mustGetTransportCredentials(tlsCert, tlsKey, caCert string, verifyClientCert bool) credentials.TransportCredentials {
@@ -351,12 +425,12 @@ func mustGetTransportCredentials(tlsCert, tlsKey, caCert string, verifyClientCer
 			RootCAs:      caCertPool,
 			ClientAuth:   tls.RequireAndVerifyClientCert,
 		})
-	} else {
-		return credentials.NewTLS(&tls.Config{
-			Certificates: []tls.Certificate{cert},
-			RootCAs:      caCertPool,
-		})
 	}
+
+	return credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{cert},
+		RootCAs:      caCertPool,
+	})
 }
 
 func main() {
@@ -485,6 +559,27 @@ func main() {
 			Usage:  "when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)",
 			EnvVar: "DISABLE_ASSIGN_EXISTING_USERS",
 		},
+		cli.BoolFlag{
+			Name:   "gw-ping",
+			Usage:  "enable sending gateway pings",
+			EnvVar: "GW_PING",
+		},
+		cli.DurationFlag{
+			Name:   "gw-ping-interval",
+			Usage:  "the interval used for each gateway to send a ping",
+			EnvVar: "GW_PING_INTERVAL",
+			Value:  time.Hour * 24,
+		},
+		cli.IntFlag{
+			Name:   "gw-ping-frequency",
+			Usage:  "the frequency used for transmitting the gateway ping (in Hz)",
+			EnvVar: "GW_PING_FREQUENCY",
+		},
+		cli.IntFlag{
+			Name:   "gw-ping-dr",
+			Usage:  "the data-rate to use for transmitting the gateway ping",
+			EnvVar: "GW_PING_DR",
+        },
         cli.StringFlag{
 			Name:   "branding-header",
 			Usage:  "when set, this html is inserted into the header of the ui, before \"LoRa Server\"",

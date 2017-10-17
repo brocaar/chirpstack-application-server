@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"regexp"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lorawan"
 )
@@ -332,18 +332,23 @@ func GetNode(db *sqlx.DB, devEUI lorawan.EUI64) (Node, error) {
 
 // GetNodesForApplicationID returns a slice of nodes for the given application
 // id, sorted by name.
-func GetNodesForApplicationID(db *sqlx.DB, applicationID int64, limit, offset int) ([]Node, error) {
+func GetNodesForApplicationID(db *sqlx.DB, applicationID int64, limit, offset int, search string) ([]Node, error) {
 	var nodes []Node
+	if search != "" {
+		search = search + "%"
+	}
 	err := db.Select(&nodes, `
 		select *
 		from node
 		where
 			application_id = $1
+		and ( ($4 = '') or ($4 != '' and (name ilike $4 or encode(dev_eui, 'hex') ilike $4)) )
 		order by name
 		limit $2 offset $3`,
 		applicationID,
 		limit,
 		offset,
+		search,
 	)
 	if err != nil {
 		return nodes, errors.Wrap(err, "select error")
@@ -353,14 +358,18 @@ func GetNodesForApplicationID(db *sqlx.DB, applicationID int64, limit, offset in
 
 // GetNodesCountForApplicationID returns the total number of nodes for the
 // given applicaiton id.
-func GetNodesCountForApplicationID(db *sqlx.DB, applicationID int64) (int, error) {
+func GetNodesCountForApplicationID(db *sqlx.DB, applicationID int64, search string) (int, error) {
 	var count int
+	if search != "" {
+		search = search + "%"
+	}
 	err := db.Get(&count, `
 		select count(*)
 		from node
 		where
-			application_id = $1`,
-		applicationID)
+			application_id = $1
+			and ( ($2 = '') or ($2 != '' and (name ilike $2 or encode(dev_eui, 'hex') ilike $2)) )`,
+		applicationID, search)
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")
 	}

@@ -1,4 +1,4 @@
-package handler
+package mqtthandler
 
 import (
 	"bytes"
@@ -13,9 +13,10 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lorawan"
+	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/handler"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/garyburd/redigo/redis"
 )
@@ -29,37 +30,15 @@ var txTopicRegex = regexp.MustCompile(`application/(\w+)/node/(\w+)/tx`)
 // an application.
 type MQTTHandler struct {
 	conn         mqtt.Client
-	dataDownChan chan DataDownPayload
+	dataDownChan chan handler.DataDownPayload
 	wg           sync.WaitGroup
 	redisPool    *redis.Pool
 }
 
-// ACKNotification defines the payload sent to the application
-// on an ACK event.
-type ACKNotification struct {
-	ApplicationID   int64         `json:"applicationID,string"`
-	ApplicationName string        `json:"applicationName"`
-	NodeName        string        `json:"nodeName"`
-	DevEUI          lorawan.EUI64 `json:"devEUI"`
-	Reference       string        `json:"reference"`
-}
-
-// ErrorNotification defines the payload sent to the application
-// on an error event.
-type ErrorNotification struct {
-	ApplicationID   int64         `json:"applicationID,string"`
-	ApplicationName string        `json:"applicationName"`
-	NodeName        string        `json:"nodeName"`
-	DevEUI          lorawan.EUI64 `json:"devEUI"`
-	Type            string        `json:"type"`
-	Error           string        `json:"error"`
-}
-
-// NewMQTTHandler creates a new MQTTHandler.
-func NewMQTTHandler(p *redis.Pool, server, username, password, cafile string) (Handler, error) {
+// NewHandler creates a new MQTTHandler.
+func NewHandler(server, username, password, cafile string) (handler.Handler, error) {
 	h := MQTTHandler{
-		dataDownChan: make(chan DataDownPayload),
-		redisPool:    p,
+		dataDownChan: make(chan handler.DataDownPayload),
 	}
 
 	opts := mqtt.NewClientOptions()
@@ -124,7 +103,7 @@ func (h *MQTTHandler) Close() error {
 }
 
 // SendDataUp sends a DataUpPayload.
-func (h *MQTTHandler) SendDataUp(payload DataUpPayload) error {
+func (h *MQTTHandler) SendDataUp(payload handler.DataUpPayload) error {
 	b, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("handler/mqtt: data-up payload marshal error: %s", err)
@@ -139,7 +118,7 @@ func (h *MQTTHandler) SendDataUp(payload DataUpPayload) error {
 }
 
 // SendJoinNotification sends a JoinNotification.
-func (h *MQTTHandler) SendJoinNotification(payload JoinNotification) error {
+func (h *MQTTHandler) SendJoinNotification(payload handler.JoinNotification) error {
 	b, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("handler/mqtt: join notification marshal error: %s", err)
@@ -153,7 +132,7 @@ func (h *MQTTHandler) SendJoinNotification(payload JoinNotification) error {
 }
 
 // SendACKNotification sends an ACKNotification.
-func (h *MQTTHandler) SendACKNotification(payload ACKNotification) error {
+func (h *MQTTHandler) SendACKNotification(payload handler.ACKNotification) error {
 	b, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("handler/mqtt: ack notification marshal error: %s", err)
@@ -167,7 +146,7 @@ func (h *MQTTHandler) SendACKNotification(payload ACKNotification) error {
 }
 
 // SendErrorNotification sends an ErrorNotification.
-func (h *MQTTHandler) SendErrorNotification(payload ErrorNotification) error {
+func (h *MQTTHandler) SendErrorNotification(payload handler.ErrorNotification) error {
 	b, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("handler/mqtt: error notification marshal error: %s", err)
@@ -181,7 +160,7 @@ func (h *MQTTHandler) SendErrorNotification(payload ErrorNotification) error {
 }
 
 // DataDownChan returns the channel containing the received DataDownPayload.
-func (h *MQTTHandler) DataDownChan() chan DataDownPayload {
+func (h *MQTTHandler) DataDownChan() chan handler.DataDownPayload {
 	return h.dataDownChan
 }
 
@@ -198,7 +177,7 @@ func (h *MQTTHandler) txPayloadHandler(c mqtt.Client, msg mqtt.Message) {
 		return
 	}
 
-	var pl DataDownPayload
+	var pl handler.DataDownPayload
 	dec := json.NewDecoder(bytes.NewReader(msg.Payload()))
 	if err := dec.Decode(&pl); err != nil {
 		log.WithFields(log.Fields{
@@ -224,12 +203,21 @@ func (h *MQTTHandler) txPayloadHandler(c mqtt.Client, msg mqtt.Message) {
 		return
 	}
 
+	if pl.FPort == 0 || pl.FPort > 224 {
+		log.WithFields(log.Fields{
+			"topic":   msg.Topic(),
+			"dev_eui": pl.DevEUI,
+			"f_port":  pl.FPort,
+		}).Error("handler/mqtt: fPort must be between 1 - 224")
+		return
+	}
+
 	// Since with MQTT all subscribers will receive the downlink messages sent
 	// by the application, the first instance receiving the message must lock it,
 	// so that other instances can ignore the message.
 	// As an unique id, the Reference field is used.
 	key := fmt.Sprintf("lora:as:downlink:lock:%d:%s:%s", pl.ApplicationID, pl.DevEUI, pl.Reference)
-	redisConn := h.redisPool.Get()
+	redisConn := common.RedisPool.Get()
 	defer redisConn.Close()
 
 	_, err = redis.String(redisConn.Do("SET", key, "lock", "PX", int64(downlinkLockTTL/time.Millisecond), "NX"))

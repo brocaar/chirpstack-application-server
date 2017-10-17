@@ -8,6 +8,58 @@ menu:
 
 ## Changelog
 
+### 0.13.1
+
+**Improvements:**
+
+* Rename Gateway ping to Gateway discovery.
+* Rename Frame logs to Raw frame logs and add note that these frames are encrypted.
+
+### 0.13.0
+
+**Features:**
+
+* Gateway ping for testing the gateway coverage (by other gateways).
+  When configured, LoRa App Server will send periodically pings through
+  each gateway which has the ping functionality enabled.
+  See also [features]{{<relref "features.md">}}.
+
+Note: this release requires LoRa Server 0.21+ as the gateway ping feature
+depends on the 'Proprietary' LoRaWAN message-type.
+
+**Bugfixes:**
+
+* Content-Type header was missing for HTTP integrations.
+
+### 0.12.0
+
+**Features:**
+
+* HTTP data integration. This makes it possible to setup per application
+  http integrations (LoRa App Server posting to configurable HTTP endpoints).
+  Note that LoRa Server will always send the data to the MQTT broker.
+
+**Improvements:**
+
+* Better pagination in case there are many pages (thanks [@iegomez](https://github.com/iegomez)).
+* Various code has been cleaned up.
+
+**Bugfixes:**
+
+* Fixed duplicated resultset-items when requesting all applications within
+  an organization.
+
+### 0.11.0
+
+**Features:**
+
+* Implement support for channel-configuration management. This makes it
+  possible to assign channel-plans to gateways, which then can be used by
+  [LoRa Gateway Config](https://docs.loraserver.io/lora-gateway-config/).
+
+**Note:** This feature is dependent on [LoRa Server](https://docs.loraserver.io/loraserver/)
+version 0.20.0+.
+
 ### 0.10.1
 
 **Improvements:**

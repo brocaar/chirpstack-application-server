@@ -67,6 +67,7 @@ class Navbar extends Component {
             <ul className="nav navbar-nav navbar-right">
               <li className={typeof(this.state.user.username) === "undefined" ? "hidden" : ""}><Link to="organizations">Organizations</Link></li>
               <li className={this.state.isAdmin === true ? "" : "hidden"}><Link to="users">Users</Link></li>
+              <li className={this.state.isAdmin === true ? "" : "hidden"}><Link to="gateways/channelconfigurations">Channel configurations</Link></li>
               <li className={"dropdown " + (typeof(this.state.user.username) === "undefined" ? "hidden" : "") + (this.state.userDropdownOpen ? "open" : "")}>
                 <Link onClick={this.userToggleDropdown} className="dropdown-toggle">{this.state.user.username} <span className="caret" /></Link>
                 <ul className="dropdown-menu" onClick={this.userToggleDropdown}>

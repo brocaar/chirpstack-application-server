@@ -7,6 +7,75 @@ import "google/api/annotations.proto";
 
 // Gateway is the service managing the gateways.
 service Gateway {
+	// CreateChannelConfiguration creates the given channel-configuration.
+	rpc CreateChannelConfiguration(CreateChannelConfigurationRequest) returns (CreateChannelConfigurationResponse) {
+		option (google.api.http) = {
+			post: "/api/gateways/channelconfigurations"
+			body: "*"
+		};
+	}
+
+	// GetChannelConfiguration returns the channel-configuration for the given ID.
+	rpc GetChannelConfiguration(GetChannelConfigurationRequest) returns (GetChannelConfigurationResponse) {
+		option (google.api.http) = {
+			get: "/api/gateways/channelconfigurations/{id}"
+		};
+	}
+
+	// UpdateChannelConfiguration updates the given channel-configuration.
+	rpc UpdateChannelConfiguration(UpdateChannelConfigurationRequest) returns (UpdateChannelConfigurationResponse) {
+		option (google.api.http) = {
+			put: "/api/gateways/channelconfigurations/{id}"
+			body: "*"
+		};
+	}
+
+	// DeleteChannelConfiguration deletes the channel-configuration matching the
+	// given ID.
+	rpc DeleteChannelConfiguration(DeleteChannelConfigurationRequest) returns (DeleteChannelConfigurationResponse) {
+		option (google.api.http) = {
+			delete: "/api/gateways/channelconfigurations/{id}"
+		};
+	}
+
+	// ListChannelConfigurations returns all channel-configurations.
+	rpc ListChannelConfigurations(ListChannelConfigurationsRequest) returns (ListChannelConfigurationsResponse) {
+		option (google.api.http) = {
+			get: "/api/gateways/channelconfigurations"
+		};
+	}
+
+	// CreateExtraChannel creates the given extra channel.
+	rpc CreateExtraChannel(CreateExtraChannelRequest) returns (CreateExtraChannelResponse) {
+		option (google.api.http) = {
+			post: "/api/gateways/extrachannels"
+			body: "*"
+		};
+	}
+
+	// UpdateExtraChannel updates the given extra channel.
+	rpc UpdateExtraChannel(UpdateExtraChannelRequest) returns (UpdateExtraChannelResponse) {
+		option (google.api.http) = {
+			put: "/api/gateways/extrachannels/{id}"
+			body: "*"
+		};
+	}
+
+	// DeleteExtraChannel deletes the extra channel matching the given id.
+	rpc DeleteExtraChannel(DeleteExtraChannelRequest) returns (DeleteExtraChannelResponse) {
+		option (google.api.http) = {
+			delete: "/api/gateways/extrachannels/{id}"
+		};
+	}
+
+	// GetExtraChannelsForChannelConfigurationID returns the extra channels for
+	// the given channel-configuration id.
+	rpc GetExtraChannelsForChannelConfigurationID(GetExtraChannelsForChannelConfigurationIDRequest) returns (GetExtraChannelsForChannelConfigurationIDResponse) {
+		option (google.api.http) = {
+			get: "/api/gateways/channelconfigurations/{id}/extrachannels"
+		};
+	}
+
 	// Create creates the given gateway.
 	rpc Create(CreateGatewayRequest) returns (CreateGatewayResponse) {
 		option(google.api.http) = {
@@ -37,6 +106,14 @@ service Gateway {
 		};
 	}
 
+	// GenerateToken issues a JWT token which can be used by the gateway
+	// for authentication.
+	rpc GenerateToken(GenerateGatewayTokenRequest) returns (GenerateGatewayTokenResponse) {
+		option (google.api.http) = {
+			post: "/api/gateways/{mac}/token"
+		};
+	}
+
 	// List lists the gateways.
 	rpc List(ListGatewayRequest) returns (ListGatewayResponse) {
 		option (google.api.http) = {
@@ -51,7 +128,20 @@ service Gateway {
 		};
 	}
 
+	// GetLastPing returns the last emitted ping and gateways receiving this ping.
+	rpc GetLastPing(GetLastPingRequest) returns (GetLastPingResponse) {
+		option (google.api.http) = {
+			get: "/api/gateways/{mac}/pings/last"
+		};
+	}
+}
 
+enum Modulation {
+	// LoRa
+	LORA = 0;
+
+	// FSK
+	FSK = 1;
 }
 
 message CreateGatewayRequest {
@@ -75,6 +165,12 @@ message CreateGatewayRequest {
 
 	// ID of the organization to which this gateway belongs.
 	int64 organizationID = 7;
+
+	// ID of the channel-configuration.
+	int64 channelConfigurationID = 8;
+
+	// Gateway sends out a periodic ping.
+	bool ping = 9;
 }
 
 message CreateGatewayResponse {}
@@ -117,11 +213,27 @@ message GetGatewayResponse {
 
 	// ID of the organization to which this gateway belongs.
 	int64 organizationID = 11;
+
+	// ID of the channel-configuration.
+	int64 channelConfigurationID = 12;
+
+	// Gateway sends out a periodic ping.
+	bool ping = 13;
 };
 
 message DeleteGatewayRequest {
 	// Hex encoded mac address.
 	string mac = 1;
+}
+
+message GenerateGatewayTokenRequest {
+	// Hex encoded mac address.
+	string mac = 1;
+}
+
+message GenerateGatewayTokenResponse {
+	// Generated token.
+	string token = 1;
 }
 
 message DeleteGatewayResponse {}
@@ -188,6 +300,12 @@ message UpdateGatewayRequest {
 
 	// ID of the organization to which this gateway belongs.
 	int64 organizationID = 7;
+
+	// ID of the channel-configuration.
+	int64 channelConfigurationID = 8;
+
+	// Gateway sends out a periodic ping.
+	bool ping = 9;
 }
 
 message UpdateGatewayResponse {}
@@ -226,4 +344,204 @@ message GetGatewayStatsRequest {
 
 message GetGatewayStatsResponse {
 	repeated GatewayStats result = 1;
+}
+
+message CreateChannelConfigurationRequest {
+	// Name of the channel-configuration.
+	string name = 1;
+
+	// Channels active in this configuration. These channel indices must map
+	// to the channel numbers as specified in the LoRaWAN Regional Parameters.
+	repeated int32 channels = 2;
+}
+
+message CreateChannelConfigurationResponse {
+	// ID of the channel-configuration.
+	int64 id = 1;
+}
+
+message GetChannelConfigurationRequest {
+	// ID of the channel-configuration.
+	int64 id = 1;
+}
+
+message GetChannelConfigurationResponse {
+	// ID of the channel-configuration.
+	int64 id = 1;
+
+	// Name of the channel-configuration.
+	string name = 2;
+
+	// Channels active in this configuration. These channel indices must map
+	// to the channel numbers as specified in the LoRaWAN Regional Parameters.
+	repeated int32 channels = 3;
+
+	// The timestamp when the channel-configuration was created.
+	string createdAt = 4;
+
+	// The timestamp when the channel-configuration was last updated.
+	string updatedAt = 5;
+}
+
+message UpdateChannelConfigurationRequest {
+	// ID of the channel-configuration.
+	int64 id = 1;
+
+	// Name of the channel-configuration.
+	string name = 2;
+
+	// Channels active in this configuration. These channel indices must map
+	// to the channel numbers as specified in the LoRaWAN Regional Parameters.
+	repeated int32 channels = 3;
+}
+
+message UpdateChannelConfigurationResponse {}
+
+message DeleteChannelConfigurationRequest {
+	// ID of the channel-configuration.
+	int64 id = 1;
+}
+
+message DeleteChannelConfigurationResponse {}
+
+message ListChannelConfigurationsRequest {}
+
+message ListChannelConfigurationsResponse {
+	// Result-set.
+	repeated GetChannelConfigurationResponse result = 1;
+}
+
+message CreateExtraChannelRequest {
+	// ID of the channel-configuration.
+	int64 channelConfigurationID = 1;
+
+	// Modulation.
+	Modulation modulation = 2;
+
+	// Frequency.
+	int32 frequency = 3;
+
+	// Bandwidth.
+	int32 bandWidth = 4;
+
+	// Bit rate (in case of FSK modulation).
+	int32 bitRate = 5;
+
+	// Spread-factors (in case of LoRa modulation).
+	repeated int32 spreadFactors = 6;
+}
+
+message CreateExtraChannelResponse {
+	// ID of the extra channel.
+	int64 id = 1;
+}
+
+message UpdateExtraChannelRequest {
+	// ID of the extra channel.
+	int64 id = 1;
+
+	// ID of the channel-configuration.
+	int64 channelConfigurationID = 2;
+
+	// Modulation.
+	Modulation modulation = 3;
+
+	// Frequency.
+	int32 frequency = 4;
+
+	// Bandwidth.
+	int32 bandWidth = 5;
+
+	// Bit rate (in case of FSK modulation).
+	int32 bitRate = 6;
+
+	// Spread-factors (in case of LoRa modulation).
+	repeated int32 spreadFactors = 7;
+}
+
+message UpdateExtraChannelResponse {}
+
+message DeleteExtraChannelRequest {
+	// ID of the extra channel.
+	int64 id = 1;
+}
+
+message DeleteExtraChannelResponse {}
+
+message GetExtraChannelResponse {
+	// ID of the extra channel.
+	int64 id = 1;
+
+	// ID of the channel-configuration.
+	int64 channelConfigurationID = 2;
+
+	// Created-at timestamp.
+	string createdAt = 3;
+
+	// Updated-at timestamp.
+	string updatedAt = 4;
+
+	// Modulation.
+	Modulation modulation = 5;
+
+	// Frequency.
+	int32 frequency = 6;
+
+	// Bandwidth.
+	int32 bandwidth = 7;
+
+	// Bit rate (in case of FSK modulation).
+	int32 bitRate = 8;
+
+	// Spread-factors (in case of LoRa modulation).
+	repeated int32 spreadFactors = 9;
+}
+
+message GetExtraChannelsForChannelConfigurationIDRequest {
+	// ID of the channel-configuration.
+	int64 id = 1;
+}
+
+message GetExtraChannelsForChannelConfigurationIDResponse {
+	// Result-set.
+	repeated GetExtraChannelResponse result = 1;
+}
+
+message PingRX {
+	// Hex encoded mac address.
+	string mac = 1;
+
+	// RSSI.
+	int32 rssi = 2;
+
+	// LoRa SNR.
+	double loraSNR = 3;
+
+	// Latitude of the gateway -90.0 to 90.0.
+	double latitude = 4;
+	
+	// Longitude of the gateway -180.0 to 180.0.
+	double longitude = 5;
+	
+	// Altitude of the gateway in meters.
+	double altitude = 6;
+}
+
+message GetLastPingRequest {
+	// Hex encoded mac address.
+	string mac = 1;
+}
+
+message GetLastPingResponse {
+	// Created at.
+	string createdAt = 1;
+
+	// Frequency.
+	uint32 frequency = 2;
+
+	// Data-rate.
+	uint32 dr = 3;
+
+	// Gateways and meta-data of reception.
+	repeated PingRX pingRX = 4;
 }

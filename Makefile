@@ -7,7 +7,7 @@ GOARCH ?= amd64
 build: ui/build internal/statics internal/migrations
 	@echo "Compiling source for $(GOOS) $(GOARCH)"
 	@mkdir -p build
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) go build -ldflags "-X main.version=$(VERSION)" -o build/lora-app-server$(BINEXT) cmd/lora-app-server/main.go
+	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -a -installsuffix cgo -ldflags "-X main.version=$(VERSION)" -o build/lora-app-server$(BINEXT) cmd/lora-app-server/main.go
 
 clean:
 	@echo "Cleaning up workspace"
@@ -69,6 +69,9 @@ requirements:
 	@go get -u github.com/golang/protobuf/protoc-gen-go
 	@go get -u github.com/elazarl/go-bindata-assetfs/...
 	@go get -u github.com/jteeuwen/go-bindata/...
+	@go get -u github.com/kisielk/errcheck
+	@go get -u github.com/smartystreets/goconvey
+	@go get -u golang.org/x/tools/cmd/stringer
 
 ui-requirements:
 	@echo "Installing UI requirements"

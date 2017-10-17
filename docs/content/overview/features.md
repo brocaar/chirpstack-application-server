@@ -61,3 +61,15 @@ events over MQTT. An event can be a node joining, a payload acknowledged by
 a node or an error (e.g. a downlink payload that exceeded the maximum payload
 size). See also [send / receive data]({{< ref "integrate/data.md" >}}) for more
 information.
+
+### Gateway discovery
+
+For networks containing multiple gateways, LoRa App Server provides a feature
+to test the gateway network coverage. By sending out periodical "pings" through
+each gateway, LoRa App Server is able to discover how well these are received by
+other gateways in the same network.
+
+To enable this feature, LoRa App Server needs to be configured to send gateway
+pings (see [configuration]({{<ref "install/config.md">}})) and sending pings
+must be enabled in the gateway configuration (which can be done using the UI
+or through the API).

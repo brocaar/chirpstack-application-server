@@ -22,23 +22,25 @@ func TestNodeAPI(t *testing.T) {
 	Convey("Given a clean database with an organization, application and api instance", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
-		test.MustResetDB(db)
+		common.DB = db
+		test.MustResetDB(common.DB)
 
 		nsClient := test.NewNetworkServerClient()
+		common.NetworkServer = nsClient
+
 		ctx := context.Background()
-		lsCtx := common.Context{DB: db, NetworkServer: nsClient}
 		validator := &TestValidator{}
-		api := NewNodeAPI(lsCtx, validator)
+		api := NewNodeAPI(validator)
 
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(db, &org), ShouldBeNil)
+		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
 		app := storage.Application{
 			OrganizationID: org.ID,
 			Name:           "test-app",
 		}
-		So(storage.CreateApplication(db, &app), ShouldBeNil)
+		So(storage.CreateApplication(common.DB, &app), ShouldBeNil)
 
 		Convey("When creating a node without a name set", func() {
 			_, err := api.Create(ctx, &pb.CreateNodeRequest{
@@ -117,6 +119,7 @@ func TestNodeAPI(t *testing.T) {
 				nodes, err := api.ListByApplicationID(ctx, &pb.ListNodeByApplicationIDRequest{
 					ApplicationID: app.ID,
 					Limit:         10,
+					Search:        "test",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -252,7 +255,7 @@ func TestNodeAPI(t *testing.T) {
 				})
 
 				Convey("Then the node was updated", func() {
-					node, err := storage.GetNode(db, [8]byte{8, 7, 6, 5, 4, 3, 2, 1})
+					node, err := storage.GetNode(common.DB, [8]byte{8, 7, 6, 5, 4, 3, 2, 1})
 					So(err, ShouldBeNil)
 					So(node.AppSKey, ShouldEqual, lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8})
 					So(node.NwkSKey, ShouldEqual, lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1})

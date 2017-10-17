@@ -42,13 +42,14 @@ func TestGateway(t *testing.T) {
 				Name:           "test-gw",
 				Description:    "test gateway",
 				OrganizationID: org.ID,
+				Ping:           true,
 			}
 			So(CreateGateway(db, &gw), ShouldBeNil)
 			gw.CreatedAt = gw.CreatedAt.Truncate(time.Millisecond).UTC()
 			gw.UpdatedAt = gw.UpdatedAt.Truncate(time.Millisecond).UTC()
 
 			Convey("Then it can be get by its MAC", func() {
-				gw2, err := GetGateway(db, gw.MAC)
+				gw2, err := GetGateway(db, gw.MAC, false)
 				So(err, ShouldBeNil)
 				gw2.CreatedAt = gw2.CreatedAt.Truncate(time.Millisecond).UTC()
 				gw2.UpdatedAt = gw2.UpdatedAt.Truncate(time.Millisecond).UTC()
@@ -58,11 +59,12 @@ func TestGateway(t *testing.T) {
 			Convey("Then it can be updated", func() {
 				gw.Name = "test-gw2"
 				gw.Description = "updated test gateway"
+				gw.Ping = false
 				So(UpdateGateway(db, &gw), ShouldBeNil)
 				gw.CreatedAt = gw.CreatedAt.Truncate(time.Millisecond).UTC()
 				gw.UpdatedAt = gw.UpdatedAt.Truncate(time.Millisecond).UTC()
 
-				gw2, err := GetGateway(db, gw.MAC)
+				gw2, err := GetGateway(db, gw.MAC, false)
 				So(err, ShouldBeNil)
 				gw2.CreatedAt = gw2.CreatedAt.Truncate(time.Millisecond).UTC()
 				gw2.UpdatedAt = gw2.UpdatedAt.Truncate(time.Millisecond).UTC()
@@ -71,7 +73,7 @@ func TestGateway(t *testing.T) {
 
 			Convey("Then it can be deleted", func() {
 				So(DeleteGateway(db, gw.MAC), ShouldBeNil)
-				_, err := GetGateway(db, gw.MAC)
+				_, err := GetGateway(db, gw.MAC, false)
 				So(errors.Cause(err), ShouldResemble, ErrDoesNotExist)
 			})
 
@@ -135,6 +137,70 @@ func TestGateway(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(gws, ShouldHaveLength, 1)
 						So(gws[0].MAC, ShouldEqual, gw.MAC)
+					})
+				})
+			})
+
+			Convey("When creating a gateway ping", func() {
+				gwPing := GatewayPing{
+					GatewayMAC: gw.MAC,
+					Frequency:  868100000,
+					DR:         5,
+				}
+				So(CreateGatewayPing(db, &gwPing), ShouldBeNil)
+				gwPing.CreatedAt = gwPing.CreatedAt.UTC().Truncate(time.Millisecond)
+
+				Convey("Then the ping can be retrieved by its ID", func() {
+					gwPingGet, err := GetGatewayPing(db, gwPing.ID)
+					So(err, ShouldBeNil)
+					gwPingGet.CreatedAt = gwPingGet.CreatedAt.UTC().Truncate(time.Millisecond)
+
+					So(gwPingGet, ShouldResemble, gwPing)
+				})
+
+				Convey("Then a gateway ping rx can be created", func() {
+					now := time.Now().Truncate(time.Millisecond)
+
+					gwPingRX := GatewayPingRX{
+						PingID:     gwPing.ID,
+						GatewayMAC: gw.MAC,
+						ReceivedAt: &now,
+						RSSI:       -10,
+						LoRaSNR:    5.5,
+						Location: GPSPoint{
+							Latitude:  1.12345,
+							Longitude: 1.23456,
+						},
+						Altitude: 10,
+					}
+					So(CreateGatewayPingRX(db, &gwPingRX), ShouldBeNil)
+					gwPingRX.CreatedAt = gwPingRX.CreatedAt.UTC().Truncate(time.Millisecond)
+
+					Convey("Then the ping rx can be retrieved by its ping ID", func() {
+						gw.LastPingID = &gwPing.ID
+						gw.LastPingSentAt = &gwPing.CreatedAt
+						So(UpdateGateway(db, &gw), ShouldBeNil)
+
+						rx, err := GetGatewayPingRXForPingID(db, gwPing.ID)
+						So(err, ShouldBeNil)
+						So(rx, ShouldHaveLength, 1)
+						So(rx[0].GatewayMAC, ShouldEqual, gw.MAC)
+						So(rx[0].ReceivedAt.Equal(now), ShouldBeTrue)
+						So(rx[0].RSSI, ShouldEqual, -10)
+						So(rx[0].LoRaSNR, ShouldEqual, 5.5)
+						So(rx[0].Location, ShouldResemble, GPSPoint{
+							Latitude:  1.12345,
+							Longitude: 1.23456,
+						})
+						So(rx[0].Altitude, ShouldEqual, 10)
+
+						Convey("Then the same ping is returned by GetLastGatewayPingAndRX", func() {
+							gwPing2, gwPingRX2, err := GetLastGatewayPingAndRX(db, gwPing.GatewayMAC)
+							So(err, ShouldBeNil)
+							So(gwPing2.ID, ShouldEqual, gwPing.ID)
+							So(gwPingRX2, ShouldHaveLength, 1)
+							So(gwPingRX2[0].ID, ShouldEqual, rx[0].ID)
+						})
 					})
 				})
 			})

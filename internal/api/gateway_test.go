@@ -24,22 +24,24 @@ func TestGatewayAPI(t *testing.T) {
 	Convey("Given clean database with an organization and a mocked network-server api", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
-		test.MustResetDB(db)
+		common.DB = db
+		test.MustResetDB(common.DB)
 
 		nsClient := test.NewNetworkServerClient()
+		common.NetworkServer = nsClient
+
 		ctx := context.Background()
-		lsCtx := common.Context{NetworkServer: nsClient, DB: db}
 		validator := &TestValidator{}
-		api := NewGatewayAPI(lsCtx, validator)
+		api := NewGatewayAPI(validator)
 
 		org := storage.Organization{
 			Name: "test-organization",
 		}
-		So(storage.CreateOrganization(db, &org), ShouldBeNil)
+		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
 		org2 := storage.Organization{
 			Name: "test-organization-2",
 		}
-		So(storage.CreateOrganization(db, &org2), ShouldBeNil)
+		So(storage.CreateOrganization(common.DB, &org2), ShouldBeNil)
 
 		now := time.Now().UTC()
 		getGatewayResponseNS := ns.GetGatewayResponse{
@@ -65,6 +67,7 @@ func TestGatewayAPI(t *testing.T) {
 			FirstSeenAt:    now.UTC().Add(2 * time.Second).Format(time.RFC3339Nano),
 			LastSeenAt:     now.UTC().Add(3 * time.Second).Format(time.RFC3339Nano),
 			OrganizationID: org.ID,
+			Ping:           true,
 		}
 
 		Convey("When calling create", func() {
@@ -76,6 +79,7 @@ func TestGatewayAPI(t *testing.T) {
 				Longitude:      1.1235,
 				Altitude:       5.5,
 				OrganizationID: org.ID,
+				Ping:           true,
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
@@ -93,8 +97,8 @@ func TestGatewayAPI(t *testing.T) {
 				})
 			})
 
-			Convey("Then the gateway was created in the db", func() {
-				_, err := storage.GetGateway(db, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8})
+			Convey("Then the gateway was created in the common.DB", func() {
+				_, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}, false)
 				So(err, ShouldBeNil)
 			})
 
@@ -127,13 +131,13 @@ func TestGatewayAPI(t *testing.T) {
 				org2 := storage.Organization{
 					Name: "test-org-2",
 				}
-				So(storage.CreateOrganization(db, &org2), ShouldBeNil)
+				So(storage.CreateOrganization(common.DB, &org2), ShouldBeNil)
 				gw2 := storage.Gateway{
 					Name:           "test-gw-2",
 					MAC:            lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
 					OrganizationID: org2.ID,
 				}
-				So(storage.CreateGateway(db, &gw2), ShouldBeNil)
+				So(storage.CreateGateway(common.DB, &gw2), ShouldBeNil)
 
 				Convey("When listing all gateways", func() {
 					Convey("Then all gateways are visible to an admin user", func() {
@@ -149,7 +153,7 @@ func TestGatewayAPI(t *testing.T) {
 
 					Convey("Then gateways are only visible to users assigned to an organization", func() {
 						user := storage.User{Username: "testuser"}
-						_, err := storage.CreateUser(db, &user, "password123")
+						_, err := storage.CreateUser(common.DB, &user, "password123")
 						So(err, ShouldBeNil)
 						validator.returnIsAdmin = false
 						validator.returnUsername = user.Username
@@ -162,7 +166,7 @@ func TestGatewayAPI(t *testing.T) {
 						So(gws.TotalCount, ShouldEqual, 0)
 						So(gws.Result, ShouldHaveLength, 0)
 
-						So(storage.CreateOrganizationUser(db, org.ID, user.ID, false), ShouldBeNil)
+						So(storage.CreateOrganizationUser(common.DB, org.ID, user.ID, false), ShouldBeNil)
 						gws, err = api.List(ctx, &pb.ListGatewayRequest{
 							Limit:  10,
 							Offset: 0,
@@ -200,17 +204,19 @@ func TestGatewayAPI(t *testing.T) {
 					Longitude:      1.1236,
 					Altitude:       5.7,
 					OrganizationID: org2.ID,
+					Ping:           false,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the gateway has been updated and the OrganizationID has been ignored", func() {
-					gw, err := storage.GetGateway(db, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8})
+					gw, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}, false)
 					So(err, ShouldBeNil)
 					So(gw.Name, ShouldEqual, "test-gateway-updated")
 					So(gw.Description, ShouldEqual, "updated test gateway")
 					So(gw.OrganizationID, ShouldEqual, org.ID)
+					So(gw.Ping, ShouldBeFalse)
 				})
 
 				Convey("Then the expected request was sent to the network-server", func() {
@@ -242,7 +248,7 @@ func TestGatewayAPI(t *testing.T) {
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the gateway has been updated", func() {
-					gw, err := storage.GetGateway(db, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8})
+					gw, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}, false)
 					So(err, ShouldBeNil)
 					So(gw.Name, ShouldEqual, "test-gateway-updated")
 					So(gw.Description, ShouldEqual, "updated test gateway")
@@ -281,6 +287,30 @@ func TestGatewayAPI(t *testing.T) {
 				Convey("Then the expected request was sent to the network-server", func() {
 					So(nsClient.DeleteGatewayChan, ShouldHaveLength, 1)
 					So(<-nsClient.DeleteGatewayChan, ShouldResemble, ns.DeleteGatewayRequest{
+						Mac: []byte{1, 2, 3, 4, 5, 6, 7, 8},
+					})
+				})
+			})
+
+			Convey("When calling GenerateToken", func() {
+				nsClient.GenerateGatewayTokenResponse = ns.GenerateGatewayTokenResponse{
+					Token: "secrettoken",
+				}
+
+				tokenResp, err := api.GenerateToken(ctx, &pb.GenerateGatewayTokenRequest{
+					Mac: "0102030405060708",
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the exepcted token was returned", func() {
+					So(tokenResp.Token, ShouldEqual, "secrettoken")
+				})
+
+				Convey("Then the expected request wat sent to the network-server", func() {
+					So(nsClient.GenerateGatewayTokenChan, ShouldHaveLength, 1)
+					So(<-nsClient.GenerateGatewayTokenChan, ShouldResemble, ns.GenerateGatewayTokenRequest{
 						Mac: []byte{1, 2, 3, 4, 5, 6, 7, 8},
 					})
 				})
@@ -330,6 +360,364 @@ func TestGatewayAPI(t *testing.T) {
 								TxPacketsEmitted:    7,
 							},
 						},
+					})
+				})
+			})
+
+			Convey("Given gateway ping data", func() {
+				gw, err := storage.GetGateway(common.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}, false)
+				So(err, ShouldBeNil)
+
+				gw2 := storage.Gateway{
+					OrganizationID: org.ID,
+					MAC:            lorawan.EUI64{2, 2, 3, 4, 5, 6, 7, 8},
+					Name:           "test-gw-2",
+					Description:    "test gw 2",
+				}
+				So(storage.CreateGateway(common.DB, &gw2), ShouldBeNil)
+
+				gw3 := storage.Gateway{
+					OrganizationID: org.ID,
+					MAC:            lorawan.EUI64{3, 2, 3, 4, 5, 6, 7, 8},
+					Name:           "test-gw-3",
+					Description:    "test gw 3",
+				}
+				So(storage.CreateGateway(common.DB, &gw3), ShouldBeNil)
+
+				ping := storage.GatewayPing{
+					GatewayMAC: lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+					Frequency:  868100000,
+					DR:         5,
+				}
+				So(storage.CreateGatewayPing(common.DB, &ping), ShouldBeNil)
+				ping.CreatedAt = ping.CreatedAt.Truncate(time.Millisecond)
+
+				gw.LastPingID = &ping.ID
+				So(storage.UpdateGateway(common.DB, &gw), ShouldBeNil)
+
+				pingRX := []storage.GatewayPingRX{
+					{
+						PingID:     ping.ID,
+						GatewayMAC: gw2.MAC,
+						RSSI:       12,
+						LoRaSNR:    5.5,
+						Location: storage.GPSPoint{
+							Latitude:  1.12345,
+							Longitude: 2.12345,
+						},
+						Altitude: 10,
+					},
+					{
+						PingID:     ping.ID,
+						GatewayMAC: gw3.MAC,
+						RSSI:       15,
+						LoRaSNR:    7.5,
+						Location: storage.GPSPoint{
+							Latitude:  2.12345,
+							Longitude: 3.12345,
+						},
+						Altitude: 11,
+					},
+				}
+				for i := range pingRX {
+					So(storage.CreateGatewayPingRX(common.DB, &pingRX[i]), ShouldBeNil)
+				}
+
+				Convey("When calling GetLastPing", func() {
+					resp, err := api.GetLastPing(ctx, &pb.GetLastPingRequest{
+						Mac: "0102030405060708",
+					})
+					So(err, ShouldBeNil)
+
+					Convey("Then the expected result is returned", func() {
+						createdAt, err := time.Parse(time.RFC3339Nano, resp.CreatedAt)
+						So(err, ShouldBeNil)
+						So(createdAt.Truncate(time.Millisecond).Equal(ping.CreatedAt), ShouldBeTrue)
+						So(resp.Frequency, ShouldEqual, 868100000)
+						So(resp.Dr, ShouldEqual, 5)
+						So(resp.PingRX, ShouldResemble, []*pb.PingRX{
+							{
+								Mac:       "0202030405060708",
+								Rssi:      12,
+								LoraSNR:   5.5,
+								Latitude:  1.12345,
+								Longitude: 2.12345,
+								Altitude:  10,
+							},
+							{
+								Mac:       "0302030405060708",
+								Rssi:      15,
+								LoraSNR:   7.5,
+								Latitude:  2.12345,
+								Longitude: 3.12345,
+								Altitude:  11,
+							},
+						})
+					})
+				})
+			})
+
+			Convey("When calling CreateChannelConfiguration", func() {
+				nsClient.CreateChannelConfigurationResponse = ns.CreateChannelConfigurationResponse{
+					Id: 123,
+				}
+
+				resp, err := api.CreateChannelConfiguration(ctx, &pb.CreateChannelConfigurationRequest{
+					Name:     "test-config",
+					Channels: []int32{0, 1, 2},
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the exepcted request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.CreateChannelConfigurationResponse{
+						Id: 123,
+					})
+					So(nsClient.CreateChannelConfigurationChan, ShouldHaveLength, 1)
+					So(<-nsClient.CreateChannelConfigurationChan, ShouldResemble, ns.CreateChannelConfigurationRequest{
+						Name:     "test-config",
+						Channels: []int32{0, 1, 2},
+					})
+				})
+			})
+
+			Convey("When calling GetChannelConfiguration", func() {
+				now := time.Now()
+				nowStr := now.Format(time.RFC3339Nano)
+
+				nsClient.GetChannelConfigurationResponse = ns.GetChannelConfigurationResponse{
+					Id:        123,
+					Name:      "test-config",
+					Channels:  []int32{0, 1, 2},
+					CreatedAt: nowStr,
+					UpdatedAt: nowStr,
+				}
+
+				resp, err := api.GetChannelConfiguration(ctx, &pb.GetChannelConfigurationRequest{
+					Id: 123,
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.GetChannelConfigurationResponse{
+						Id:        123,
+						Name:      "test-config",
+						Channels:  []int32{0, 1, 2},
+						CreatedAt: nowStr,
+						UpdatedAt: nowStr,
+					})
+					So(nsClient.GetChannelConfigurationChan, ShouldHaveLength, 1)
+					So(<-nsClient.GetChannelConfigurationChan, ShouldResemble, ns.GetChannelConfigurationRequest{
+						Id: 123,
+					})
+				})
+			})
+
+			Convey("When calling UpdateChannelConfiguration", func() {
+				resp, err := api.UpdateChannelConfiguration(ctx, &pb.UpdateChannelConfigurationRequest{
+					Id:       123,
+					Name:     "updated-config",
+					Channels: []int32{0, 1},
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.UpdateChannelConfigurationResponse{})
+					So(nsClient.UpdateChannelConfigurationChan, ShouldHaveLength, 1)
+					So(<-nsClient.UpdateChannelConfigurationChan, ShouldResemble, ns.UpdateChannelConfigurationRequest{
+						Id:       123,
+						Name:     "updated-config",
+						Channels: []int32{0, 1},
+					})
+				})
+			})
+
+			Convey("When calling DeleteChannelConfiguration", func() {
+				resp, err := api.DeleteChannelConfiguration(ctx, &pb.DeleteChannelConfigurationRequest{
+					Id: 123,
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.DeleteChannelConfigurationResponse{})
+					So(nsClient.DeleteChannelConfigurationChan, ShouldHaveLength, 1)
+					So(<-nsClient.DeleteChannelConfigurationChan, ShouldResemble, ns.DeleteChannelConfigurationRequest{
+						Id: 123,
+					})
+
+				})
+			})
+
+			Convey("When calling ListChannelConfigurations", func() {
+				now := time.Now()
+				nowStr := now.Format(time.RFC3339Nano)
+
+				nsClient.ListChannelConfigurationsResponse = ns.ListChannelConfigurationsResponse{
+					Result: []*ns.GetChannelConfigurationResponse{
+						{
+							Id:        123,
+							Name:      "test-config",
+							Channels:  []int32{0, 1, 2},
+							CreatedAt: nowStr,
+							UpdatedAt: nowStr,
+						},
+					},
+				}
+
+				resp, err := api.ListChannelConfigurations(ctx, &pb.ListChannelConfigurationsRequest{})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.ListChannelConfigurationsResponse{
+						Result: []*pb.GetChannelConfigurationResponse{
+							{
+								Id:        123,
+								Name:      "test-config",
+								Channels:  []int32{0, 1, 2},
+								CreatedAt: nowStr,
+								UpdatedAt: nowStr,
+							},
+						},
+					})
+					So(nsClient.ListChannelConfigurationsChan, ShouldHaveLength, 1)
+					So(<-nsClient.ListChannelConfigurationsChan, ShouldResemble, ns.ListChannelConfigurationsRequest{})
+				})
+			})
+
+			Convey("When calling CreateExtraChannel", func() {
+				nsClient.CreateExtraChannelResponse = ns.CreateExtraChannelResponse{
+					Id: 321,
+				}
+
+				resp, err := api.CreateExtraChannel(ctx, &pb.CreateExtraChannelRequest{
+					ChannelConfigurationID: 123,
+					Modulation:             pb.Modulation_LORA,
+					Frequency:              867100000,
+					BandWidth:              125,
+					BitRate:                50000,
+					SpreadFactors:          []int32{5},
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.CreateExtraChannelResponse{
+						Id: 321,
+					})
+					So(nsClient.CreateExtraChannelChan, ShouldHaveLength, 1)
+					So(<-nsClient.CreateExtraChannelChan, ShouldResemble, ns.CreateExtraChannelRequest{
+						ChannelConfigurationID: 123,
+						Modulation:             ns.Modulation_LORA,
+						Frequency:              867100000,
+						BandWidth:              125,
+						BitRate:                50000,
+						SpreadFactors:          []int32{5},
+					})
+				})
+			})
+
+			Convey("When calling UpdateExtraChannel", func() {
+				resp, err := api.UpdateExtraChannel(ctx, &pb.UpdateExtraChannelRequest{
+					Id: 321,
+					ChannelConfigurationID: 123,
+					Modulation:             pb.Modulation_LORA,
+					Frequency:              867100000,
+					BandWidth:              125,
+					BitRate:                50000,
+					SpreadFactors:          []int32{5},
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.UpdateExtraChannelResponse{})
+					So(nsClient.UpdateExtraChannelChan, ShouldHaveLength, 1)
+					So(<-nsClient.UpdateExtraChannelChan, ShouldResemble, ns.UpdateExtraChannelRequest{
+						Id: 321,
+						ChannelConfigurationID: 123,
+						Modulation:             ns.Modulation_LORA,
+						Frequency:              867100000,
+						BandWidth:              125,
+						BitRate:                50000,
+						SpreadFactors:          []int32{5},
+					})
+				})
+			})
+
+			Convey("When calling DeleteExtraChannel", func() {
+				resp, err := api.DeleteExtraChannel(ctx, &pb.DeleteExtraChannelRequest{
+					Id: 321,
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.DeleteExtraChannelResponse{})
+					So(nsClient.DeleteExtraChannelChan, ShouldHaveLength, 1)
+					So(<-nsClient.DeleteExtraChannelChan, ShouldResemble, ns.DeleteExtraChannelRequest{
+						Id: 321,
+					})
+				})
+			})
+
+			Convey("When calling GetExtraChannelsForChannelConfigurationID", func() {
+				now := time.Now()
+				nowStr := now.Format(time.RFC3339Nano)
+
+				nsClient.GetExtraChannelsForChannelConfigurationIDResponse = ns.GetExtraChannelsForChannelConfigurationIDResponse{
+					Result: []*ns.GetExtraChannelResponse{
+						{
+							Id: 321,
+							ChannelConfigurationID: 123,
+							CreatedAt:              nowStr,
+							UpdatedAt:              nowStr,
+							Modulation:             ns.Modulation_LORA,
+							Frequency:              867100000,
+							Bandwidth:              125,
+							BitRate:                50000,
+							SpreadFactors:          []int32{5},
+						},
+					},
+				}
+
+				resp, err := api.GetExtraChannelsForChannelConfigurationID(ctx, &pb.GetExtraChannelsForChannelConfigurationIDRequest{
+					Id: 123,
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request was made to the network-server", func() {
+					So(resp, ShouldResemble, &pb.GetExtraChannelsForChannelConfigurationIDResponse{
+						Result: []*pb.GetExtraChannelResponse{
+							{
+								Id: 321,
+								ChannelConfigurationID: 123,
+								CreatedAt:              nowStr,
+								UpdatedAt:              nowStr,
+								Modulation:             pb.Modulation_LORA,
+								Frequency:              867100000,
+								Bandwidth:              125,
+								BitRate:                50000,
+								SpreadFactors:          []int32{5},
+							},
+						},
+					})
+					So(nsClient.GetExtraChannelsForChannelConfigurationIDChan, ShouldHaveLength, 1)
+					So(<-nsClient.GetExtraChannelsForChannelConfigurationIDChan, ShouldResemble, ns.GetExtraChannelsForChannelConfigurationIDRequest{
+						Id: 123,
 					})
 				})
 			})

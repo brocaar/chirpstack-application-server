@@ -7,6 +7,7 @@ import Select from "react-select";
 import SessionStore from "../stores/SessionStore";
 import OrganizationStore from "../stores/OrganizationStore";
 import LocationStore from "../stores/LocationStore";
+import GatewayStore from "../stores/GatewayStore";
 
 
 class GatewayForm extends Component {
@@ -23,6 +24,7 @@ class GatewayForm extends Component {
       mapZoom: 15,
       initialOrganizationOptions: [],
       macDisabled: false,
+      channelConfigurations: [],
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -32,6 +34,7 @@ class GatewayForm extends Component {
     this.handleSetToCurrentPosition = this.handleSetToCurrentPosition.bind(this);
     this.onOrganizationAutocomplete = this.onOrganizationAutocomplete.bind(this);
     this.onOrganizationSelect = this.onOrganizationSelect.bind(this);
+    this.onChannelConfigurationChange = this.onChannelConfigurationChange.bind(this);
     this.setSelectedOrganization = this.setSelectedOrganization.bind(this);
     this.setInitialOrganizations = this.setInitialOrganizations.bind(this);
   }
@@ -41,6 +44,8 @@ class GatewayForm extends Component {
 
     if (e.target.type === "number") {
       gateway[field] = parseFloat(e.target.value);
+    } else if (e.target.type === "checkbox") {
+      gateway[field] = e.target.checked;
     } else {
       gateway[field] = e.target.value;
     }
@@ -77,6 +82,12 @@ class GatewayForm extends Component {
     if (!this.props.update) { 
       this.setToCurrentPosition(false);
     }
+
+    GatewayStore.getAllChannelConfigurations((configurations) => {
+      this.setState({
+        channelConfigurations: configurations,
+      });
+    });
 
     SessionStore.on("change", () => {
       this.setState({
@@ -142,6 +153,18 @@ class GatewayForm extends Component {
     });
   }
 
+  onChannelConfigurationChange(val) {
+    let gateway = this.state.gateway;
+    if (val != null) {
+      gateway.channelConfigurationID = val.value;
+    } else {
+      gateway.channelConfigurationID = null;
+    }
+    this.setState({
+      gateway: gateway,
+    });
+  }
+
   setSelectedOrganization() {
     if (typeof(this.state.gateway.organizationID) === "undefined") {
       return;
@@ -184,6 +207,12 @@ class GatewayForm extends Component {
       position = [0,0];
     }
 
+    const channelConfigurations = this.state.channelConfigurations.map((c, i) => {
+      return {
+        value: c.id,
+        label: c.name,
+      };
+    });
 
     return(
       <div>
@@ -202,6 +231,9 @@ class GatewayForm extends Component {
           <div className="form-group">
             <label className="control-label" htmlFor="mac">MAC address</label>
             <input className="form-control" id="mac" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required disabled={this.state.macDisabled} value={this.state.gateway.mac || ''} onChange={this.onChange.bind(this, 'mac')} /> 
+            <p className="help-block">
+              Enter the gateway MAC address as configured in the packet-forwarder configuration on the gateway.
+            </p>
           </div>
           <div className={"form-group " + (this.state.isGlobalAdmin && this.props.update ? '' : 'hidden')}>
             <label className="control-label" htmlFor="organization">Organization</label>
@@ -219,7 +251,23 @@ class GatewayForm extends Component {
             <p className="help-block">Note that moving a gateway to a different organization can only be done by global admin users.</p>
           </div>
           <div className="form-group">
-            <label className="control-label" htmlFor="altitude">Gateway altitude</label>
+            <label className="control-label" htmlFor="channelConfigurationID">Channel-configuration</label>
+            <Select
+              name="channelConfigurationID"
+              options={channelConfigurations}
+              value={this.state.gateway.channelConfigurationID}
+              onChange={this.onChannelConfigurationChange}
+            />
+            <p className="help-block">An optional channel-configuration can be assigned to a gateway. This configuration can be used to automatically re-configure the gateway (in the future).</p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="ping">
+              <input type="checkbox" name="ping" id="ping" checked={this.state.gateway.ping} onChange={this.onChange.bind(this, 'ping')} /> Discovery enabled
+            </label>
+            <p className="help-block">When enabled (and LoRa App Server is configured with the gateway discover feature enabled), the gateway will send out periodical pings to test its coverage by other gateways in the same network.</p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="altitude">Gateway altitude (meters)</label>
             <input className="form-control" id="altitude" type="number" value={this.state.gateway.altitude || 0} onChange={this.onChange.bind(this, 'altitude')} />
             <p className="help-block">When the gateway has an on-board GPS, this value will be set automatically when the network received statistics from the gateway.</p>
           </div>

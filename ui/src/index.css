@@ -94,6 +94,24 @@ input[type=number] {
 	padding-top: 7.5px;
 }
 
+/* map legend */
+.map-legend {
+  /* background: rgba(0,0,0, 0.5); */
+  background: rgba(255,255,255,0.7);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.map-legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  opacity: 1;
+}
+
+.map-legend ul li {
+  font-weight: bold;
+}
 /* Navbar branding */
 .navbar-brand-logo {
     display: inline;

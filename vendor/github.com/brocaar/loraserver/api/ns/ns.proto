@@ -27,6 +27,9 @@ service NetworkServer {
 	// PushDataDown pushes the given downlink payload to the node (only works for Class-C nodes).
 	rpc PushDataDown(PushDataDownRequest) returns (PushDataDownResponse) {}
 
+	// SendProprietaryPayload send a payload using the 'Proprietary' LoRaWAN message-type.
+	rpc SendProprietaryPayload(SendProprietaryPayloadRequest) returns (SendProprietaryPayloadResponse) {}
+
 	// CreateGateway creates the given gateway.
 	rpc CreateGateway(CreateGatewayRequest) returns (CreateGatewayResponse) {}
 
@@ -42,11 +45,44 @@ service NetworkServer {
 	// DeleteGateway deletes a gateway.
 	rpc DeleteGateway(DeleteGatewayRequest) returns (DeleteGatewayResponse) {}
 
+	// GenerateGatewayToken issues a JWT token which can be used by the gateway
+	// for authentication.
+	rpc GenerateGatewayToken(GenerateGatewayTokenRequest) returns (GenerateGatewayTokenResponse) {}
+
 	// GetGatewayStats returns stats of an existing gateway.
 	rpc GetGatewayStats(GetGatewayStatsRequest) returns (GetGatewayStatsResponse) {}
 
 	// GetFrameLogsForDevEUI returns the uplink / downlink frame logs for the given DevEUI.
 	rpc GetFrameLogsForDevEUI(GetFrameLogsForDevEUIRequest) returns (GetFrameLogsResponse) {}
+
+	// CreateChannelConfiguration creates the given channel-configuration.
+	rpc CreateChannelConfiguration(CreateChannelConfigurationRequest) returns (CreateChannelConfigurationResponse) {}
+
+	// GetChannelConfiguration returns the channel-configuration for the given ID.
+	rpc GetChannelConfiguration(GetChannelConfigurationRequest) returns (GetChannelConfigurationResponse) {}
+
+	// UpdateChannelConfiguration updates the given channel-configuration.
+	rpc UpdateChannelConfiguration(UpdateChannelConfigurationRequest) returns (UpdateChannelConfigurationResponse) {}
+
+	// DeleteChannelConfiguration deletes the channel-configuration matching the
+	// given ID.
+	rpc DeleteChannelConfiguration(DeleteChannelConfigurationRequest) returns (DeleteChannelConfigurationResponse) {}
+
+	// ListChannelConfigurations returns all channel-configurations.
+	rpc ListChannelConfigurations(ListChannelConfigurationsRequest) returns (ListChannelConfigurationsResponse) {}
+
+	// CreateExtraChannel creates the given extra channel.
+	rpc CreateExtraChannel(CreateExtraChannelRequest) returns (CreateExtraChannelResponse) {}
+
+	// UpdateExtraChannel updates the given extra channel.
+	rpc UpdateExtraChannel(UpdateExtraChannelRequest) returns (UpdateExtraChannelResponse) {}
+
+	// DeleteExtraChannel deletes the extra channel matching the given id.
+	rpc DeleteExtraChannel(DeleteExtraChannelRequest) returns (DeleteExtraChannelResponse) {}
+
+	// GetExtraChannelsForChannelConfigurationID returns the extra channels for
+	// the given channel-configuration id.
+	rpc GetExtraChannelsForChannelConfigurationID(GetExtraChannelsForChannelConfigurationIDRequest) returns (GetExtraChannelsForChannelConfigurationIDResponse) {}
 }
 
 enum RXWindow {
@@ -55,6 +91,14 @@ enum RXWindow {
 
 	// Receive window 2
 	RX2 = 1;
+}
+
+enum Modulation {
+	// LoRa
+	LORA = 0;
+
+	// FSK
+	FSK = 1;
 }
 
 message CreateNodeSessionRequest {
@@ -152,8 +196,8 @@ message GetNodeSessionResponse {
 	// This is controlled by the ADR engine.
 	uint32 nbTrans = 15;
 
-	// The TX power of the node. This is controlled by the ADR engine.
-	uint32 txPower = 16;
+	// The TX power index of the node. This is controlled by the ADR engine.
+	uint32 txPowerIndex = 16;
 
 }
 
@@ -215,9 +259,18 @@ message GetRandomDevAddrResponse {
 }
 
 message EnqueueDataDownMACCommandRequest {
+	// DevEUI of the node.
 	bytes devEUI = 1;
+
+	// Send the mac-command as FRMPayload (encrypted).
 	bool frmPayload = 2;
-	bytes data = 3;
+
+	// Command identifier (specified by the LoRaWAN specs).
+	uint32 cid = 4;
+
+	// MAC-command(s). In case multiple payloads are defined, then they
+	// are always sent within a single frame.
+	repeated bytes commands = 5;
 }
 
 message EnqueueDataDownMACCommandResponse {}
@@ -242,6 +295,29 @@ message PushDataDownRequest {
 
 message PushDataDownResponse {}
 
+message SendProprietaryPayloadRequest {
+	// MACPayload of the proprietary LoRaWAN frame.
+	bytes macPayload = 1;
+
+	// MIC of the proprietary LoRaWAN frame (must be 4 bytes).
+	bytes mic = 2;
+
+	// Gateway MAC address(es) to use for transmitting the LoRaWAN frame.
+	repeated bytes gatewayMACs = 3;
+
+	// Set to true for sending as a gateway, or false for sending as a node.
+	// In the latter case the frame will be received by other gateways.
+	bool iPol = 4;
+
+	// Frequency (Hz) to use for the transmission.
+	uint32 frequency = 5;
+
+	// Data-rate to use for the transmission.
+	uint32 dr = 6;
+}
+
+message SendProprietaryPayloadResponse {}
+
 message CreateGatewayRequest {
 	// MAC address of the gateway.
 	bytes mac = 1;
@@ -260,6 +336,9 @@ message CreateGatewayRequest {
 
 	// Altitude of the gateway.
 	double altitude = 6;
+
+	// ID of the channel-configuration (optional).
+	int64 channelConfigurationID = 7;
 }
 
 message CreateGatewayResponse {}
@@ -299,6 +378,9 @@ message GetGatewayResponse {
 
 	// The timestamp when the gateway was last seen.
 	string lastSeenAt = 10;
+
+	// ID of the channel-configuration (optional).
+	int64 channelConfigurationID = 11;
 }
 
 message UpdateGatewayRequest {
@@ -319,6 +401,9 @@ message UpdateGatewayRequest {
 
 	// Altitude of the gateway.
 	double altitude = 6;
+
+	// ID of the channel-configuration (optional).
+	int64 channelConfigurationID = 7;
 }
 
 message UpdateGatewayResponse {}
@@ -342,6 +427,16 @@ message ListGatewayResponse {
 message DeleteGatewayRequest {
 	// MAC address of the gateway.
 	bytes mac = 1;
+}
+
+message GenerateGatewayTokenRequest {
+	// MAC address of the gateway.
+	bytes mac = 1;
+}
+
+message GenerateGatewayTokenResponse {
+	// Generated token.
+	string token = 1;
 }
 
 message DeleteGatewayResponse {}
@@ -482,4 +577,165 @@ message TXInfo {
 
 	// Data-rate.
 	DataRate dataRate = 7;
+}
+
+message CreateChannelConfigurationRequest {
+	// Name of the channel-configuration.
+	string name = 1;
+
+	// Channels active in this configuration. These channel indices must map
+	// to the channel numbers as specified in the LoRaWAN Regional Parameters.
+	repeated int32 channels = 2;
+}
+
+message CreateChannelConfigurationResponse {
+	// ID of the channel-configuration.
+	int64 id = 1;
+}
+
+message GetChannelConfigurationRequest {
+	// ID of the channel-configuration.
+	int64 id = 1;
+}
+
+message GetChannelConfigurationResponse {
+	// ID of the channel-configuration.
+	int64 id = 1;
+
+	// Name of the channel-configuration.
+	string name = 2;
+
+	// Channels active in this configuration. These channel indices must map
+	// to the channel numbers as specified in the LoRaWAN Regional Parameters.
+	repeated int32 channels = 3;
+
+	// The timestamp when the channel-configuration was created.
+	string createdAt = 4;
+
+	// The timestamp when the channel-configuration was last updated.
+	string updatedAt = 5;
+}
+
+message UpdateChannelConfigurationRequest {
+	// ID of the channel-configuration.
+	int64 id = 1;
+
+	// Name of the channel-configuration.
+	string name = 2;
+
+	// Channels active in this configuration. These channel indices must map
+	// to the channel numbers as specified in the LoRaWAN Regional Parameters.
+	repeated int32 channels = 3;
+}
+
+message UpdateChannelConfigurationResponse {}
+
+message DeleteChannelConfigurationRequest {
+	// ID of the channel-configuration.
+	int64 id = 1;
+}
+
+message DeleteChannelConfigurationResponse {}
+
+message ListChannelConfigurationsRequest {}
+
+message ListChannelConfigurationsResponse {
+	// Result-set.
+	repeated GetChannelConfigurationResponse result = 1;
+}
+
+message CreateExtraChannelRequest {
+	// ID of the channel-configuration.
+	int64 channelConfigurationID = 1;
+
+	// Modulation.
+	Modulation modulation = 2;
+
+	// Frequency.
+	int32 frequency = 3;
+
+	// Bandwidth.
+	int32 bandWidth = 4;
+
+	// Bit rate (in case of FSK modulation).
+	int32 bitRate = 5;
+
+	// Spread-factors (in case of LoRa modulation).
+	repeated int32 spreadFactors = 6;
+}
+
+message CreateExtraChannelResponse {
+	// ID of the extra channel.
+	int64 id = 1;
+}
+
+message UpdateExtraChannelRequest {
+	// ID of the extra channel.
+	int64 id = 1;
+
+	// ID of the channel-configuration.
+	int64 channelConfigurationID = 2;
+
+	// Modulation.
+	Modulation modulation = 3;
+
+	// Frequency.
+	int32 frequency = 4;
+
+	// Bandwidth.
+	int32 bandWidth = 5;
+
+	// Bit rate (in case of FSK modulation).
+	int32 bitRate = 6;
+
+	// Spread-factors (in case of LoRa modulation).
+	repeated int32 spreadFactors = 7;
+}
+
+message UpdateExtraChannelResponse {}
+
+message DeleteExtraChannelRequest {
+	// ID of the extra channel.
+	int64 id = 1;
+}
+
+message DeleteExtraChannelResponse {}
+
+message GetExtraChannelResponse {
+	// ID of the extra channel.
+	int64 id = 1;
+
+	// ID of the channel-configuration.
+	int64 channelConfigurationID = 2;
+
+	// Created-at timestamp.
+	string createdAt = 3;
+
+	// Updated-at timestamp.
+	string updatedAt = 4;
+
+	// Modulation.
+	Modulation modulation = 5;
+
+	// Frequency.
+	int32 frequency = 6;
+
+	// Bandwidth.
+	int32 bandwidth = 7;
+
+	// Bit rate (in case of FSK modulation).
+	int32 bitRate = 8;
+
+	// Spread-factors (in case of LoRa modulation).
+	repeated int32 spreadFactors = 9;
+}
+
+message GetExtraChannelsForChannelConfigurationIDRequest {
+	// ID of the channel-configuration.
+	int64 id = 1;
+}
+
+message GetExtraChannelsForChannelConfigurationIDResponse {
+	// Result-set.
+	repeated GetExtraChannelResponse result = 1;
 }

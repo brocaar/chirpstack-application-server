@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import Errors from "./components/Errors";
 import dispatcher from "./dispatcher";
 
@@ -20,6 +21,7 @@ class Layout extends Component {
             {this.props.children}
           </div>
         </div>
+        <Footer />
       </div>
     );
   }

@@ -15,6 +15,23 @@
     "application/json"
   ],
   "paths": {
+    "/api/internal/branding": {
+      "get": {
+        "summary": "Get the branding for the UI",
+        "operationId": "Branding",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiBrandingResponse"
+            }
+          }
+        },
+        "tags": [
+          "Internal"
+        ]
+      }
+    },
     "/api/internal/login": {
       "post": {
         "summary": "Log in a user",
@@ -348,6 +365,21 @@
         }
       },
       "description": "Defines the applications that the user is associated with."
+    },
+    "apiBrandingResponse": {
+      "type": "object",
+      "properties": {
+        "logo": {
+          "type": "string"
+        },
+        "registration": {
+          "type": "string"
+        },
+        "footer": {
+          "type": "string"
+        }
+      },
+      "description": "The branding data."
     },
     "apiGetUserResponse": {
       "type": "object",

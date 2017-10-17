@@ -250,7 +250,7 @@ func startClientAPI(ctx context.Context) func(*cli.Context) error {
 		pb.RegisterDownlinkQueueServer(clientAPIHandler, api.NewDownlinkQueueAPI(validator))
 		pb.RegisterNodeServer(clientAPIHandler, api.NewNodeAPI(validator))
 		pb.RegisterUserServer(clientAPIHandler, api.NewUserAPI(validator))
-		pb.RegisterInternalServer(clientAPIHandler, api.NewInternalUserAPI(validator))
+		pb.RegisterInternalServer(clientAPIHandler, api.NewInternalUserAPI(validator, c))
 		pb.RegisterGatewayServer(clientAPIHandler, api.NewGatewayAPI(validator))
 		pb.RegisterOrganizationServer(clientAPIHandler, api.NewOrganizationAPI(validator))
 
@@ -554,7 +554,7 @@ func main() {
 			Usage:  "debug=5, info=4, warning=3, error=2, fatal=1, panic=0",
 			EnvVar: "LOG_LEVEL",
 		},
-		cli.BoolFlag{
+        cli.BoolFlag{
 			Name:   "disable-assign-existing-users",
 			Usage:  "when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)",
 			EnvVar: "DISABLE_ASSIGN_EXISTING_USERS",
@@ -579,6 +579,21 @@ func main() {
 			Name:   "gw-ping-dr",
 			Usage:  "the data-rate to use for transmitting the gateway ping",
 			EnvVar: "GW_PING_DR",
+        },
+        cli.StringFlag{
+			Name:   "branding-header",
+			Usage:  "when set, this html is inserted into the header of the ui, before \"LoRa Server\"",
+			EnvVar: "BRANDING_HEADER",
+		},
+        cli.StringFlag{
+			Name:   "branding-footer",
+			Usage:  "when set, this html is inserted as a footer of the ui pages",
+			EnvVar: "BRANDING_FOOTER",
+		},
+        cli.StringFlag{
+			Name:   "branding-registration",
+			Usage:  "when set, this html is inserted onto the login page, under the login area",
+			EnvVar: "BRANDING_REGISTRATION",
 		},
 	}
 	app.Run(os.Args)

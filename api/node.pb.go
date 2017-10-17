@@ -88,6 +88,8 @@ It has these top-level messages:
 	ListUserResponse
 	UserEmptyResponse
 	UpdateUserPasswordRequest
+	BrandingRequest
+	BrandingResponse
 	CreateGatewayRequest
 	CreateGatewayResponse
 	GetGatewayRequest

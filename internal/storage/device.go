@@ -36,6 +36,7 @@ type DeviceKeys struct {
 	UpdatedAt time.Time         `db:"updated_at"`
 	DevEUI    lorawan.EUI64     `db:"dev_eui"`
 	AppKey    lorawan.AES128Key `db:"app_key"`
+	JoinNonce int               `db:"join_nonce"`
 }
 
 // DeviceActivation defines the device-activation for a LoRaWAN device.
@@ -270,12 +271,14 @@ func CreateDeviceKeys(db sqlx.Execer, dc *DeviceKeys) error {
             created_at,
             updated_at,
             dev_eui,
-            app_key
-        ) values ($1, $2, $3, $4)`,
+			app_key,
+			join_nonce
+        ) values ($1, $2, $3, $4, $5)`,
 		dc.CreatedAt,
 		dc.UpdatedAt,
 		dc.DevEUI[:],
 		dc.AppKey[:],
+		dc.JoinNonce,
 	)
 	if err != nil {
 		return handlePSQLError(err, "insert error")
@@ -308,12 +311,14 @@ func UpdateDeviceKeys(db sqlx.Execer, dc *DeviceKeys) error {
         update device_keys
         set
             updated_at = $2,
-            app_key = $3
+			app_key = $3,
+			join_nonce = $4
         where
             dev_eui = $1`,
 		dc.DevEUI[:],
 		dc.UpdatedAt,
 		dc.AppKey[:],
+		dc.JoinNonce,
 	)
 	if err != nil {
 		return handlePSQLError(err, "update error")

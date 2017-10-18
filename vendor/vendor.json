@@ -15,16 +15,16 @@
 			"revisionTime": "2017-10-26T08:29:03Z"
 		},
 		{
-			"checksumSHA1": "u52BzfoKG0x7CgBgg/PB1AEVSag=",
+			"checksumSHA1": "AOerlHBjBP/Q0Kq25lmPe4E9Rag=",
 			"path": "github.com/brocaar/lorawan",
-			"revision": "909df3392c6ae1acc73b075640d7dce3cdf4305d",
-			"revisionTime": "2017-05-24T09:31:27Z"
+			"revision": "64e99ae404aaf6a5aebb4f0fdd336f7b427bcce3",
+			"revisionTime": "2017-10-17T13:59:15Z"
 		},
 		{
-			"checksumSHA1": "XfgENnc24v4hkH4fveDJSI07zOQ=",
+			"checksumSHA1": "MrTA3fAFJTMeE1z6NE0x5YSVR0E=",
 			"path": "github.com/brocaar/lorawan/backend",
-			"revision": "7dd606faf87874f48913503604d0f5836ba253db",
-			"revisionTime": "2017-09-05T08:15:54Z"
+			"revision": "bb4dfe18debfd22143fa13e05853d6a1fb024c9e",
+			"revisionTime": "2017-10-18T08:21:36Z"
 		},
 		{
 			"checksumSHA1": "GXOurDGgsLmJs0wounpdWZZRSGw=",

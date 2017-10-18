@@ -59,7 +59,8 @@ create table device_keys (
     dev_eui bytea primary key references device on delete cascade,
     created_at timestamp with time zone not null,
     updated_at timestamp with time zone not null,
-    app_key bytea not null
+    app_key bytea not null,
+    join_nonce integer not null
 );
 
 create index idx_device_keys_created_at on device_keys(created_at);

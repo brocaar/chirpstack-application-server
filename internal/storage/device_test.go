@@ -184,8 +184,9 @@ func TestDevice(t *testing.T) {
 
 				Convey("Then CreateDeviceKeys creates the device-keys", func() {
 					dc := DeviceKeys{
-						DevEUI: d.DevEUI,
-						AppKey: lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
+						DevEUI:    d.DevEUI,
+						AppKey:    lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
+						JoinNonce: 1234,
 					}
 					So(CreateDeviceKeys(common.DB, &dc), ShouldBeNil)
 					dc.CreatedAt = dc.CreatedAt.UTC().Truncate(time.Millisecond)
@@ -201,6 +202,7 @@ func TestDevice(t *testing.T) {
 
 					Convey("Then UpdateDeviceKeys updates the device-keys", func() {
 						dc.AppKey = lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
+						dc.JoinNonce = 1235
 						So(UpdateDeviceKeys(common.DB, &dc), ShouldBeNil)
 						dc.UpdatedAt = dc.UpdatedAt.UTC().Truncate(time.Millisecond)
 

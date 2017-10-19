@@ -192,8 +192,8 @@ type KeyEnvelope struct {
 
 // VSExtension defines vendor specific data.
 type VSExtension struct {
-	VendorID HEXBytes        `json:"VendorID"` // OUI of the vendor
-	Object   json.RawMessage `json:"Object"`   // The nature of the object is not defined
+	VendorID HEXBytes        `json:"VendorID,omitempty"` // OUI of the vendor
+	Object   json.RawMessage `json:"Object,omitempty"`   // The nature of the object is not defined
 }
 
 // GWInfoElement defines the gateway info element.

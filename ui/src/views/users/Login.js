@@ -11,13 +11,23 @@ class Login extends Component {
 
     this.state = {
       login: {},
+      registration: null,
     };
 
     this.onSubmit = this.onSubmit.bind(this);
   }
 
-  componentWillMount() {
+  componentDidMount() {
     SessionStore.logout(() => {});
+    this.setState({
+      registration: SessionStore.getRegistration(),
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        registration: SessionStore.getRegistration(),
+      });
+    })
   }
 
   onChange(field, e) {
@@ -56,6 +66,7 @@ class Login extends Component {
               <hr />
               <button type="submit" className="btn btn-primary pull-right">Login</button>
             </form>
+            <div dangerouslySetInnerHTML={{ __html: (typeof(this.state.registration) === "undefined" ? "" : this.state.registration) }}/>
           </div>
         </div>
       </div>

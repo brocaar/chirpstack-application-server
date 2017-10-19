@@ -613,6 +613,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Gateway sends out a periodic ping."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the network-server to which the gateway is connected."
         }
       }
     },
@@ -818,6 +823,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Gateway sends out a periodic ping."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the network-server to which the gateway is connected."
         }
       }
     },
@@ -897,6 +907,11 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the organization to which this gateway belongs."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the network-server to which the gateway is connected."
         }
       }
     },

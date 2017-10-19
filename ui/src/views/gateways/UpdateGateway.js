@@ -37,7 +37,7 @@ class UpdateGateway extends Component {
     return(
       <div className="panel panel-default">
         <div className="panel-body">
-          <GatewayForm gateway={this.state.gateway} onSubmit={this.onSubmit} update={true} />
+          <GatewayForm organizationID={this.props.params.organizationID} gateway={this.state.gateway} onSubmit={this.onSubmit} update={true} />
         </div>
       </div>
     );

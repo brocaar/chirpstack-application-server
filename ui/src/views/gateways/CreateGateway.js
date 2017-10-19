@@ -37,7 +37,7 @@ class CreateGateway extends Component {
           <h3 className="panel-title">Create gateway</h3>
         </div>
         <div className="panel-body">
-          <GatewayForm gateway={this.state.gateway} onSubmit={this.onSubmit} />
+          <GatewayForm organizationID={this.props.params.organizationID} gateway={this.state.gateway} onSubmit={this.onSubmit} />
         </div>
       </div>
     );

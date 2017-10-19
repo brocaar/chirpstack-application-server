@@ -171,6 +171,9 @@ message CreateGatewayRequest {
 
 	// Gateway sends out a periodic ping.
 	bool ping = 9;
+
+	// ID of the network-server to which the gateway is connected.
+	int64 networkServerID = 10;
 }
 
 message CreateGatewayResponse {}
@@ -219,6 +222,9 @@ message GetGatewayResponse {
 
 	// Gateway sends out a periodic ping.
 	bool ping = 13;
+
+	// ID of the network-server to which the gateway is connected.
+	int64 networkServerID = 14;
 };
 
 message DeleteGatewayRequest {
@@ -268,6 +274,9 @@ message ListGatewayItem {
 
 	// ID of the organization to which this gateway belongs.
 	int64 organizationID = 6;
+
+	// ID of the network-server to which the gateway is connected.
+	int64 networkServerID = 7;
 }
 
 message ListGatewayResponse {

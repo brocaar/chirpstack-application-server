@@ -91,10 +91,11 @@ func TestApplicationServerAPI(t *testing.T) {
 		So(storage.CreateDeviceKeys(common.DB, &dc), ShouldBeNil)
 
 		gw := storage.Gateway{
-			MAC:            lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
-			Name:           "test-gw",
-			Description:    "test gateway",
-			OrganizationID: org.ID,
+			MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+			Name:            "test-gw",
+			Description:     "test gateway",
+			OrganizationID:  org.ID,
+			NetworkServerID: n.ID,
 		}
 		So(storage.CreateGateway(common.DB, &gw), ShouldBeNil)
 

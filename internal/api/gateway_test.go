@@ -34,10 +34,17 @@ func TestGatewayAPI(t *testing.T) {
 		validator := &TestValidator{}
 		api := NewGatewayAPI(validator)
 
+		n := storage.NetworkServer{
+			Name:   "test-ns",
+			Server: "test-ns:1234",
+		}
+		So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+
 		org := storage.Organization{
 			Name: "test-organization",
 		}
 		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
+
 		org2 := storage.Organization{
 			Name: "test-organization-2",
 		}
@@ -58,28 +65,30 @@ func TestGatewayAPI(t *testing.T) {
 		}
 
 		getGatewayResponseAS := pb.GetGatewayResponse{
-			Mac:            "0102030405060708",
-			Name:           "test-gateway",
-			Description:    "test gateway",
-			Latitude:       1.1234,
-			Longitude:      1.1235,
-			Altitude:       5.5,
-			FirstSeenAt:    now.UTC().Add(2 * time.Second).Format(time.RFC3339Nano),
-			LastSeenAt:     now.UTC().Add(3 * time.Second).Format(time.RFC3339Nano),
-			OrganizationID: org.ID,
-			Ping:           true,
+			Mac:             "0102030405060708",
+			Name:            "test-gateway",
+			Description:     "test gateway",
+			Latitude:        1.1234,
+			Longitude:       1.1235,
+			Altitude:        5.5,
+			FirstSeenAt:     now.UTC().Add(2 * time.Second).Format(time.RFC3339Nano),
+			LastSeenAt:      now.UTC().Add(3 * time.Second).Format(time.RFC3339Nano),
+			OrganizationID:  org.ID,
+			Ping:            true,
+			NetworkServerID: n.ID,
 		}
 
 		Convey("When calling create", func() {
 			_, err := api.Create(ctx, &pb.CreateGatewayRequest{
-				Mac:            "0102030405060708",
-				Name:           "test-gateway",
-				Description:    "test gateway",
-				Latitude:       1.1234,
-				Longitude:      1.1235,
-				Altitude:       5.5,
-				OrganizationID: org.ID,
-				Ping:           true,
+				Mac:             "0102030405060708",
+				Name:            "test-gateway",
+				Description:     "test gateway",
+				Latitude:        1.1234,
+				Longitude:       1.1235,
+				Altitude:        5.5,
+				OrganizationID:  org.ID,
+				Ping:            true,
+				NetworkServerID: n.ID,
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
@@ -133,9 +142,10 @@ func TestGatewayAPI(t *testing.T) {
 				}
 				So(storage.CreateOrganization(common.DB, &org2), ShouldBeNil)
 				gw2 := storage.Gateway{
-					Name:           "test-gw-2",
-					MAC:            lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
-					OrganizationID: org2.ID,
+					Name:            "test-gw-2",
+					MAC:             lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
+					OrganizationID:  org2.ID,
+					NetworkServerID: n.ID,
 				}
 				So(storage.CreateGateway(common.DB, &gw2), ShouldBeNil)
 
@@ -369,18 +379,20 @@ func TestGatewayAPI(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				gw2 := storage.Gateway{
-					OrganizationID: org.ID,
-					MAC:            lorawan.EUI64{2, 2, 3, 4, 5, 6, 7, 8},
-					Name:           "test-gw-2",
-					Description:    "test gw 2",
+					OrganizationID:  org.ID,
+					MAC:             lorawan.EUI64{2, 2, 3, 4, 5, 6, 7, 8},
+					Name:            "test-gw-2",
+					Description:     "test gw 2",
+					NetworkServerID: n.ID,
 				}
 				So(storage.CreateGateway(common.DB, &gw2), ShouldBeNil)
 
 				gw3 := storage.Gateway{
-					OrganizationID: org.ID,
-					MAC:            lorawan.EUI64{3, 2, 3, 4, 5, 6, 7, 8},
-					Name:           "test-gw-3",
-					Description:    "test gw 3",
+					OrganizationID:  org.ID,
+					MAC:             lorawan.EUI64{3, 2, 3, 4, 5, 6, 7, 8},
+					Name:            "test-gw-3",
+					Description:     "test gw 3",
+					NetworkServerID: n.ID,
 				}
 				So(storage.CreateGateway(common.DB, &gw3), ShouldBeNil)
 

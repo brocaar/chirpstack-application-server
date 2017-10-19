@@ -10,7 +10,6 @@ import (
 
 	"github.com/brocaar/lorawan"
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -19,15 +18,16 @@ var gatewayNameRegexp = regexp.MustCompile(`^[\w-]+$`)
 
 // Gateway represents a gateway.
 type Gateway struct {
-	MAC            lorawan.EUI64 `db:"mac"`
-	CreatedAt      time.Time     `db:"created_at"`
-	UpdatedAt      time.Time     `db:"updated_at"`
-	Name           string        `db:"name"`
-	Description    string        `db:"description"`
-	OrganizationID int64         `db:"organization_id"`
-	Ping           bool          `db:"ping"`
-	LastPingID     *int64        `db:"last_ping_id"`
-	LastPingSentAt *time.Time    `db:"last_ping_sent_at"`
+	MAC             lorawan.EUI64 `db:"mac"`
+	CreatedAt       time.Time     `db:"created_at"`
+	UpdatedAt       time.Time     `db:"updated_at"`
+	Name            string        `db:"name"`
+	Description     string        `db:"description"`
+	OrganizationID  int64         `db:"organization_id"`
+	Ping            bool          `db:"ping"`
+	LastPingID      *int64        `db:"last_ping_id"`
+	LastPingSentAt  *time.Time    `db:"last_ping_sent_at"`
+	NetworkServerID int64         `db:"network_server_id"`
 }
 
 // GatewayPing represents a gateway ping.
@@ -89,6 +89,8 @@ func CreateGateway(db sqlx.Execer, gw *Gateway) error {
 	}
 
 	now := time.Now()
+	gw.CreatedAt = now
+	gw.UpdatedAt = now
 
 	_, err := db.Exec(`
 		insert into gateway (
@@ -100,36 +102,23 @@ func CreateGateway(db sqlx.Execer, gw *Gateway) error {
 			organization_id,
 			ping,
 			last_ping_id,
-			last_ping_sent_at
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+			last_ping_sent_at,
+			network_server_id
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
 		gw.MAC[:],
-		now,
-		now,
+		gw.CreatedAt,
+		gw.UpdatedAt,
 		gw.Name,
 		gw.Description,
 		gw.OrganizationID,
 		gw.Ping,
 		gw.LastPingID,
 		gw.LastPingSentAt,
+		gw.NetworkServerID,
 	)
 	if err != nil {
-		switch err := err.(type) {
-		case *pq.Error:
-			switch err.Code.Name() {
-			case "unique_violation":
-				return ErrAlreadyExists
-			case "foreign_key_violation":
-				return ErrDoesNotExist
-			default:
-				return errors.Wrap(err, "insert error")
-			}
-		default:
-			return errors.Wrap(err, "insert error")
-		}
+		return handlePSQLError(err, "insert error")
 	}
-
-	gw.CreatedAt = now
-	gw.UpdatedAt = now
 
 	log.WithFields(log.Fields{
 		"mac":  gw.MAC,
@@ -154,7 +143,8 @@ func UpdateGateway(db sqlx.Execer, gw *Gateway) error {
 			organization_id = $5,
 			ping = $6,
 			last_ping_id = $7,
-			last_ping_sent_at = $8
+			last_ping_sent_at = $8,
+			network_server_id = $9
 		where
 			mac = $1`,
 		gw.MAC[:],
@@ -165,21 +155,10 @@ func UpdateGateway(db sqlx.Execer, gw *Gateway) error {
 		gw.Ping,
 		gw.LastPingID,
 		gw.LastPingSentAt,
+		gw.NetworkServerID,
 	)
 	if err != nil {
-		switch err := err.(type) {
-		case *pq.Error:
-			switch err.Code.Name() {
-			case "unique_violation":
-				return ErrAlreadyExists
-			case "foreign_key_violation":
-				return ErrDoesNotExist
-			default:
-				return errors.Wrap(err, "insert error")
-			}
-		default:
-			return errors.Wrap(err, "insert error")
-		}
+		return handlePSQLError(err, "update error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {

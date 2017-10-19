@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan"
 	"github.com/pkg/errors"
@@ -13,10 +14,19 @@ import (
 func TestGateway(t *testing.T) {
 	conf := test.GetConfig()
 
-	Convey("Given a clean database woth an organization", t, func() {
+	Convey("Given a clean database woth a network-server and organization", t, func() {
 		db, err := OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
 		test.MustResetDB(db)
+
+		nsClient := test.NewNetworkServerClient()
+		common.NetworkServer = nsClient
+
+		n := NetworkServer{
+			Name:   "test-ns",
+			Server: "test-ns:1234",
+		}
+		So(CreateNetworkServer(db, &n), ShouldBeNil)
 
 		org := Organization{
 			Name: "test-org",
@@ -38,11 +48,12 @@ func TestGateway(t *testing.T) {
 
 		Convey("When creating a gateway", func() {
 			gw := Gateway{
-				MAC:            lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
-				Name:           "test-gw",
-				Description:    "test gateway",
-				OrganizationID: org.ID,
-				Ping:           true,
+				MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+				Name:            "test-gw",
+				Description:     "test gateway",
+				OrganizationID:  org.ID,
+				Ping:            true,
+				NetworkServerID: n.ID,
 			}
 			So(CreateGateway(db, &gw), ShouldBeNil)
 			gw.CreatedAt = gw.CreatedAt.Truncate(time.Millisecond).UTC()

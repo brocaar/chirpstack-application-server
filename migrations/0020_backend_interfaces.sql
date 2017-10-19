@@ -108,7 +108,16 @@ alter table application
 
 create index idx_application_service_profile_id on application(service_profile_id);
 
+alter table gateway
+    add column network_server_id bigint references network_server;
+
+create index idx_gateway_network_server_id on gateway(network_server_id);
+
 -- +migrate Down
+drop index idx_gateway_network_server_id;
+alter table gateway
+    drop column network_server_id;
+
 drop index idx_application_service_profile_id;
 alter table application
     drop column service_profile_id,

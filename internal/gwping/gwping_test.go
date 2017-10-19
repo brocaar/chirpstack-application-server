@@ -35,12 +35,19 @@ func TestGatewayPing(t *testing.T) {
 		}
 		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
 
+		n := storage.NetworkServer{
+			Name:   "test-ns",
+			Server: "test-ns:1234",
+		}
+		So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+
 		gw := storage.Gateway{
-			MAC:            lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
-			Name:           "test-gw",
-			Description:    "test gateway",
-			OrganizationID: org.ID,
-			Ping:           true,
+			MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+			Name:            "test-gw",
+			Description:     "test gateway",
+			OrganizationID:  org.ID,
+			Ping:            true,
+			NetworkServerID: n.ID,
 		}
 		So(storage.CreateGateway(common.DB, &gw), ShouldBeNil)
 
@@ -81,10 +88,11 @@ func TestGatewayPing(t *testing.T) {
 
 					Convey("When calling HandleReceivedPing", func() {
 						gw2 := storage.Gateway{
-							MAC:            lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
-							Name:           "test-gw-2",
-							Description:    "test gateway 2",
-							OrganizationID: org.ID,
+							MAC:             lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
+							Name:            "test-gw-2",
+							Description:     "test gateway 2",
+							OrganizationID:  org.ID,
+							NetworkServerID: n.ID,
 						}
 						So(storage.CreateGateway(common.DB, &gw2), ShouldBeNil)
 

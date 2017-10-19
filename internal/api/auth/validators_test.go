@@ -57,12 +57,14 @@ func TestValidators(t *testing.T) {
 	   0101010101010101: organization 1 gw
 	   0202020202020202: organization 2 gw
 	*/
-	n := storage.NetworkServer{
-		Name:   "test-ns",
-		Server: "test-ns:1234",
+	networkServers := []storage.NetworkServer{
+		{Name: "test-ns", Server: "test-ns:1234"},
+		{Name: "test-ns-2", Server: "test-ns-2:1234"},
 	}
-	if err := storage.CreateNetworkServer(db, &n); err != nil {
-		t.Fatal(err)
+	for i := range networkServers {
+		if err := storage.CreateNetworkServer(db, &networkServers[i]); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	organizations := []storage.Organization{
@@ -70,8 +72,8 @@ func TestValidators(t *testing.T) {
 		{Name: "organization-2", CanHaveGateways: false},
 	}
 	serviceProfiles := []storage.ServiceProfile{
-		{Name: "test-sp-1", NetworkServerID: n.ID},
-		{Name: "test-sp-2", NetworkServerID: n.ID},
+		{Name: "test-sp-1", NetworkServerID: networkServers[0].ID},
+		{Name: "test-sp-2", NetworkServerID: networkServers[0].ID},
 	}
 	for i := range organizations {
 		if err := storage.CreateOrganization(db, &organizations[i]); err != nil {
@@ -85,8 +87,8 @@ func TestValidators(t *testing.T) {
 	}
 
 	deviceProfiles := []storage.DeviceProfile{
-		{Name: "test-dp-1", OrganizationID: organizations[0].ID, NetworkServerID: n.ID},
-		{Name: "test-dp-2", OrganizationID: organizations[1].ID, NetworkServerID: n.ID},
+		{Name: "test-dp-1", OrganizationID: organizations[0].ID, NetworkServerID: networkServers[0].ID},
+		{Name: "test-dp-2", OrganizationID: organizations[1].ID, NetworkServerID: networkServers[0].ID},
 	}
 	for i := range deviceProfiles {
 		if err := storage.CreateDeviceProfile(db, &deviceProfiles[i]); err != nil {
@@ -158,8 +160,8 @@ func TestValidators(t *testing.T) {
 	}
 
 	gateways := []storage.Gateway{
-		{MAC: lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1}, Name: "gateway1", OrganizationID: organizations[0].ID},
-		{MAC: lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2}, Name: "gateway2", OrganizationID: organizations[1].ID},
+		{MAC: lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1}, Name: "gateway1", OrganizationID: organizations[0].ID, NetworkServerID: networkServers[0].ID},
+		{MAC: lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2}, Name: "gateway2", OrganizationID: organizations[1].ID, NetworkServerID: networkServers[0].ID},
 	}
 	for i := range gateways {
 		if err := storage.CreateGateway(db, &gateways[i]); err != nil {
@@ -812,13 +814,13 @@ func TestValidators(t *testing.T) {
 			tests := []validatorTest{
 				{
 					Name:       "global admin users can read, update and delete",
-					Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, n.ID), ValidateNetworkServerAccess(Update, n.ID), ValidateNetworkServerAccess(Delete, n.ID)},
+					Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, networkServers[0].ID), ValidateNetworkServerAccess(Update, networkServers[0].ID), ValidateNetworkServerAccess(Delete, networkServers[0].ID)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "regular users can not read, update and delete",
-					Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, n.ID), ValidateNetworkServerAccess(Update, n.ID), ValidateNetworkServerAccess(Delete, n.ID)},
+					Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, networkServers[0].ID), ValidateNetworkServerAccess(Update, networkServers[0].ID), ValidateNetworkServerAccess(Delete, networkServers[0].ID)},
 					Claims:     Claims{Username: "user4"},
 					ExpectedOK: false,
 				},
@@ -827,7 +829,38 @@ func TestValidators(t *testing.T) {
 			runTests(tests, db)
 		})
 
-		Convey("Then testing ValidateServiceProfilesAccess", func() {
+		Convey("When testing ValidateOrganizationNetworkServerAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can read",
+					Validators: []ValidatorFunc{ValidateOrganizationNetworkServerAccess(Read, organizations[0].ID, networkServers[0].ID)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can read",
+					Validators: []ValidatorFunc{ValidateOrganizationNetworkServerAccess(Read, organizations[0].ID, networkServers[0].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can not read when the network-server is not linked to the organization",
+					Validators: []ValidatorFunc{ValidateOrganizationNetworkServerAccess(Read, organizations[0].ID, networkServers[1].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "non-organization users can not read",
+					Validators: []ValidatorFunc{ValidateOrganizationNetworkServerAccess(Read, organizations[0].ID, networkServers[0].ID)},
+					Claims:     Claims{Username: "user12"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateServiceProfilesAccess", func() {
 			tests := []validatorTest{
 				{
 					Name:       "global admin users can create and list",

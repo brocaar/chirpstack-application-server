@@ -5,9 +5,9 @@ import { Map, Marker, TileLayer } from 'react-leaflet';
 import Select from "react-select";
 
 import SessionStore from "../stores/SessionStore";
-import OrganizationStore from "../stores/OrganizationStore";
 import LocationStore from "../stores/LocationStore";
 import GatewayStore from "../stores/GatewayStore";
+import NetworkServerStore from "../stores/NetworkServerStore";
 
 
 class GatewayForm extends Component {
@@ -19,12 +19,11 @@ class GatewayForm extends Component {
     super();
 
     this.state = {
-      isGlobalAdmin: false,
       gateway: {},
       mapZoom: 15,
-      initialOrganizationOptions: [],
-      macDisabled: false,
+      update: false,
       channelConfigurations: [],
+      networkServers: [],
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -32,11 +31,19 @@ class GatewayForm extends Component {
     this.updateZoom = this.updateZoom.bind(this);
     this.setToCurrentPosition = this.setToCurrentPosition.bind(this);
     this.handleSetToCurrentPosition = this.handleSetToCurrentPosition.bind(this);
-    this.onOrganizationAutocomplete = this.onOrganizationAutocomplete.bind(this);
-    this.onOrganizationSelect = this.onOrganizationSelect.bind(this);
-    this.onChannelConfigurationChange = this.onChannelConfigurationChange.bind(this);
-    this.setSelectedOrganization = this.setSelectedOrganization.bind(this);
-    this.setInitialOrganizations = this.setInitialOrganizations.bind(this);
+  }
+
+  onSelectChange(field, val) {
+    let gateway = this.state.gateway;
+    if (val != null) {
+      gateway[field] = val.value;
+    } else {
+      gateway[field] = null;
+    }
+
+    this.setState({
+      gateway: gateway,
+    });
   }
 
   onChange(field, e) {
@@ -83,15 +90,15 @@ class GatewayForm extends Component {
       this.setToCurrentPosition(false);
     }
 
-    GatewayStore.getAllChannelConfigurations((configurations) => {
+    NetworkServerStore.getAllForOrganizationID(this.props.organizationID, 9999, 0, (totalCount, networkServers) => {
       this.setState({
-        channelConfigurations: configurations,
+        networkServers: networkServers,
       });
     });
 
-    SessionStore.on("change", () => {
+    GatewayStore.getAllChannelConfigurations((configurations) => {
       this.setState({
-        isGlobalAdmin: SessionStore.isAdmin(),
+        channelConfigurations: configurations,
       });
     });
   }
@@ -112,9 +119,7 @@ class GatewayForm extends Component {
   componentWillReceiveProps(nextProps) {
     this.setState({
       gateway: nextProps.gateway, 
-      macDisabled: typeof nextProps.gateway.mac !== "undefined",
-    }, () => {
-      this.setSelectedOrganization();
+      update: typeof nextProps.gateway.mac !== "undefined",
     });
   }
 
@@ -126,72 +131,6 @@ class GatewayForm extends Component {
   handleSetToCurrentPosition(e) {
     e.preventDefault();
     this.setToCurrentPosition(true);
-  }
-
-  onOrganizationAutocomplete(input, callbackFunc) {
-    OrganizationStore.getAll(input, 10, 0, (totalCount, orgs) => {
-      const options = orgs.map((org, i) => {
-        return {
-          value: org.id,
-          label: org.displayName,
-        };
-      });
-
-      callbackFunc(null, {
-        options: options,
-        complete: true,
-      });
-    });
-  }
-
-  onOrganizationSelect(val) {
-    let gateway = this.state.gateway;
-    gateway.organizationID = val.value;
-    this.setState({
-      gateway: gateway,
-      initialOrganizationOptions: [val],
-    });
-  }
-
-  onChannelConfigurationChange(val) {
-    let gateway = this.state.gateway;
-    if (val != null) {
-      gateway.channelConfigurationID = val.value;
-    } else {
-      gateway.channelConfigurationID = null;
-    }
-    this.setState({
-      gateway: gateway,
-    });
-  }
-
-  setSelectedOrganization() {
-    if (typeof(this.state.gateway.organizationID) === "undefined") {
-      return;
-    }
-    OrganizationStore.getOrganization(this.state.gateway.organizationID, (org) => {
-      this.setState({
-        initialOrganizationOptions: [{
-          value: org.id,
-          label: org.displayName,
-        }],
-      });
-    });
-  }
-
-  setInitialOrganizations() {
-    OrganizationStore.getAll("", 10, 0, (totalCount, orgs) => {
-      const options = orgs.map((org, i) => {
-        return {
-          value: org.id,
-          label: org.displayName,
-        };
-      });
-
-      this.setState({
-        initialOrganizationOptions: options,
-      });
-    });
   }
 
   render() {
@@ -214,6 +153,13 @@ class GatewayForm extends Component {
       };
     });
 
+    const networkServerOptions = this.state.networkServers.map((n, i) => {
+      return {
+        value: n.id,
+        label: n.name,
+      };
+    });
+
     return(
       <div>
         <form onSubmit={this.handleSubmit}>
@@ -230,25 +176,23 @@ class GatewayForm extends Component {
           </div>
           <div className="form-group">
             <label className="control-label" htmlFor="mac">MAC address</label>
-            <input className="form-control" id="mac" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required disabled={this.state.macDisabled} value={this.state.gateway.mac || ''} onChange={this.onChange.bind(this, 'mac')} /> 
+            <input className="form-control" id="mac" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required disabled={this.state.update} value={this.state.gateway.mac || ''} onChange={this.onChange.bind(this, 'mac')} /> 
             <p className="help-block">
               Enter the gateway MAC address as configured in the packet-forwarder configuration on the gateway.
             </p>
           </div>
-          <div className={"form-group " + (this.state.isGlobalAdmin && this.props.update ? '' : 'hidden')}>
-            <label className="control-label" htmlFor="organization">Organization</label>
-            <Select.Async
-              name="organization"
-              required
-              options={this.state.initialOrganizationOptions}
-              loadOptions={this.onOrganizationAutocomplete}
-              value={this.state.gateway.organizationID}
-              onChange={this.onOrganizationSelect}
-              clearable={false}
-              autoload={false}
-              onOpen={this.setInitialOrganizations}
-            /> 
-            <p className="help-block">Note that moving a gateway to a different organization can only be done by global admin users.</p>
+          <div className="form-group">
+            <label className="control-label" htmlFor="networkServerID">Network-server</label>
+            <Select
+              name="networkServerID"
+              options={networkServerOptions}
+              value={this.state.gateway.networkServerID}
+              onChange={this.onSelectChange.bind(this, "networkServerID")}
+              disabled={this.state.update}
+            />
+            <p className="help-block">
+              Select the network-server to which the gateway will connect. When no network-servers are available in the dropdown, make sure a service-profile exists for this organization. 
+            </p>
           </div>
           <div className="form-group">
             <label className="control-label" htmlFor="channelConfigurationID">Channel-configuration</label>
@@ -256,7 +200,7 @@ class GatewayForm extends Component {
               name="channelConfigurationID"
               options={channelConfigurations}
               value={this.state.gateway.channelConfigurationID}
-              onChange={this.onChannelConfigurationChange}
+              onChange={this.onSelectChange.bind(this, "channelConfigurationID")}
             />
             <p className="help-block">An optional channel-configuration can be assigned to a gateway. This configuration can be used to automatically re-configure the gateway (in the future).</p>
           </div>

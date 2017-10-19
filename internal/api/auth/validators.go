@@ -42,6 +42,8 @@ const userQuery = `
 		on sp.organization_id = o.id
 	left join device_profile dp
 		on dp.organization_id = o.id
+	left join network_server ns
+		on ns.id = sp.network_server_id or ns.id = dp.network_server_id
 	left join device d
 		on a.id = d.application_id`
 
@@ -638,6 +640,28 @@ func ValidateNetworkServerAccess(flag Flag, id int64) ValidatorFunc {
 
 	return func(db *sqlx.DB, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username)
+	}
+}
+
+// ValidateOrganizationNetworkServerAccess validates if the given client has
+// access to the given organization id / network server id combination.
+func ValidateOrganizationNetworkServerAccess(flag Flag, organizationID, networkServerID int64) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Read:
+		// global admin
+		// organization user
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2", "ns.id = $3"},
+		}
+	default:
+		panic("unsupported flag")
+	}
+
+	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, organizationID, networkServerID)
 	}
 }
 

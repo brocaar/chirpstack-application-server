@@ -86,7 +86,17 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 		return errors.Wrap(err, "get application error")
 	}
 
-	_, err = common.NetworkServer.CreateDevice(context.Background(), &ns.CreateDeviceRequest{
+	n, err := GetNetworkServerForDevEUI(db, d.DevEUI)
+	if err != nil {
+		return errors.Wrap(err, "get network-server error")
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
+	_, err = nsClient.CreateDevice(context.Background(), &ns.CreateDeviceRequest{
 		Device: &ns.Device{
 			DevEUI:           d.DevEUI[:],
 			DeviceProfileID:  d.DeviceProfileID,
@@ -211,7 +221,17 @@ func UpdateDevice(db sqlx.Ext, d *Device) error {
 		return errors.Wrap(err, "get application error")
 	}
 
-	_, err = common.NetworkServer.UpdateDevice(context.Background(), &ns.UpdateDeviceRequest{
+	n, err := GetNetworkServerForDevEUI(db, d.DevEUI)
+	if err != nil {
+		return errors.Wrap(err, "get network-server error")
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
+	_, err = nsClient.UpdateDevice(context.Background(), &ns.UpdateDeviceRequest{
 		Device: &ns.Device{
 			DevEUI:           d.DevEUI[:],
 			DeviceProfileID:  d.DeviceProfileID,
@@ -232,7 +252,12 @@ func UpdateDevice(db sqlx.Ext, d *Device) error {
 }
 
 // DeleteDevice deletes the device matching the given DevEUI.
-func DeleteDevice(db sqlx.Execer, devEUI lorawan.EUI64) error {
+func DeleteDevice(db sqlx.Ext, devEUI lorawan.EUI64) error {
+	n, err := GetNetworkServerForDevEUI(db, devEUI)
+	if err != nil {
+		return errors.Wrap(err, "get network-server error")
+	}
+
 	res, err := db.Exec("delete from device where dev_eui = $1", devEUI[:])
 	if err != nil {
 		return handlePSQLError(err, "delete error")
@@ -245,7 +270,12 @@ func DeleteDevice(db sqlx.Execer, devEUI lorawan.EUI64) error {
 		return ErrDoesNotExist
 	}
 
-	_, err = common.NetworkServer.DeleteDevice(context.Background(), &ns.DeleteDeviceRequest{
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
+	_, err = nsClient.DeleteDevice(context.Background(), &ns.DeleteDeviceRequest{
 		DevEUI: devEUI[:],
 	})
 	if err != nil {

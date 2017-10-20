@@ -8,7 +8,7 @@ class ChannelConfigurationRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`/gateways/channelconfigurations/${this.props.configuration.id}/edit`}>{this.props.configuration.name}</Link></td>
+        <td><Link to={`network-servers/${this.props.configuration.networkServerID}/channel-configurations/${this.props.configuration.id}/edit`}>{this.props.configuration.name}</Link></td>
       </tr>
     );
   }
@@ -24,7 +24,7 @@ class ListChannelConfigurations extends Component {
   }
 
   componentDidMount() {
-    GatewayStore.getAllChannelConfigurations((channelConfigurations) => {
+    GatewayStore.getAllChannelConfigurations(this.props.params.networkServerID, (channelConfigurations) => {
       this.setState({
         channelConfigurations: channelConfigurations,
       });
@@ -36,14 +36,10 @@ class ListChannelConfigurations extends Component {
 
     return(
       <div>
-        <ol className="breadcrumb">
-          <li className="active">Channel-configurations</li>
-        </ol>
-        <hr />
         <div className="panel panel-default">
           <div className="panel-heading clearfix">
             <div className="btn-group pull-right">
-              <Link to="gateways/channelconfigurations/create"><button type="button" className="btn btn-default btn-sm">Create channel-configuration</button></Link>
+              <Link to={`network-servers/${this.props.params.networkServerID}/channel-configurations/create`}><button type="button" className="btn btn-default btn-sm">Create channel-configuration</button></Link>
             </div>
           </div>
           <div className="panel-body">

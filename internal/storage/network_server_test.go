@@ -23,7 +23,7 @@ func TestNetworkServer(t *testing.T) {
 		test.MustResetDB(db)
 
 		nsClient := test.NewNetworkServerClient()
-		common.NetworkServer = nsClient
+		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 		org := Organization{
 			Name: "test-org",

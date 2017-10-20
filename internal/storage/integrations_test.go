@@ -24,7 +24,7 @@ func TestIntegration(t *testing.T) {
 	}
 	common.DB = db
 	nsClient := test.NewNetworkServerClient()
-	common.NetworkServer = nsClient
+	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database with an organization, network-server, service-profile, and application", t, func() {
 		test.MustResetDB(common.DB)

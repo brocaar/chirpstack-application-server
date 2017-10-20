@@ -19,7 +19,7 @@ func TestDeviceQueue(t *testing.T) {
 	}
 	common.DB = db
 	nsClient := test.NewNetworkServerClient()
-	common.NetworkServer = nsClient
+	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database with an organization, network-server, service-profile, device-profile, application and device", t, func() {
 		test.MustResetDB(db)

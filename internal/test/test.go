@@ -12,6 +12,7 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/migrations"
+	"github.com/brocaar/lora-app-server/internal/nsclient"
 	"github.com/brocaar/loraserver/api/ns"
 )
 
@@ -83,6 +84,26 @@ func MustFlushRedis(p *redis.Pool) {
 	defer c.Close()
 	if _, err := c.Do("FLUSHALL"); err != nil {
 		log.Fatal(err)
+	}
+}
+
+// NetworkServerPool is a network-server pool for testing.
+type NetworkServerPool struct {
+	Client      ns.NetworkServerClient
+	GetHostname string
+}
+
+// Get returns the Client.
+func (p *NetworkServerPool) Get(hostname string) (ns.NetworkServerClient, error) {
+	p.GetHostname = hostname
+	return p.Client, nil
+}
+
+// NewNetworkServerPool creates a network-server client pool which always
+// returns the given client on Get.
+func NewNetworkServerPool(client *NetworkServerClient) nsclient.Pool {
+	return &NetworkServerPool{
+		Client: client,
 	}
 }
 

@@ -25,7 +25,7 @@ func TestJoin(t *testing.T) {
 		test.MustResetDB(common.DB)
 
 		nsClient := test.NewNetworkServerClient()
-		common.NetworkServer = nsClient
+		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 		org := storage.Organization{
 			Name: "test-org",

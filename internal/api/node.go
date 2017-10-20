@@ -332,7 +332,17 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest) (
 	// TODO: refactor once https://github.com/brocaar/loraserver/pull/124 is in place?
 	// so that we can call something like SaveNodeSession which will either
 	// create or update an existing node-session
-	_, _ = common.NetworkServer.DeactivateDevice(context.Background(), &ns.DeactivateDeviceRequest{
+	n, err := storage.GetNetworkServerForDevEUI(common.DB, devEUI)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	_, _ = nsClient.DeactivateDevice(context.Background(), &ns.DeactivateDeviceRequest{
 		DevEUI: d.DevEUI[:],
 	})
 
@@ -345,7 +355,7 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest) (
 		// SkipFCntCheck: d.RelaxFCnt,
 	}
 
-	_, err = common.NetworkServer.ActivateDevice(context.Background(), &actReq)
+	_, err = nsClient.ActivateDevice(context.Background(), &actReq)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -393,7 +403,17 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivation
 		return nil, errToRPCError(err)
 	}
 
-	devAct, err := common.NetworkServer.GetDeviceActivation(context.Background(), &ns.GetDeviceActivationRequest{
+	n, err := storage.GetNetworkServerForDevEUI(common.DB, devEUI)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	devAct, err := nsClient.GetDeviceActivation(context.Background(), &ns.GetDeviceActivationRequest{
 		DevEUI: d.DevEUI[:],
 	})
 	if err != nil {
@@ -425,7 +445,17 @@ func (a *NodeAPI) GetFrameLogs(ctx context.Context, req *pb.GetFrameLogsRequest)
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	resp, err := common.NetworkServer.GetFrameLogsForDevEUI(ctx, &ns.GetFrameLogsForDevEUIRequest{
+	n, err := storage.GetNetworkServerForDevEUI(common.DB, devEUI)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	resp, err := nsClient.GetFrameLogsForDevEUI(ctx, &ns.GetFrameLogsForDevEUIRequest{
 		DevEUI: devEUI[:],
 		Limit:  int32(req.Limit),
 		Offset: int32(req.Offset),
@@ -498,7 +528,23 @@ func (a *NodeAPI) GetFrameLogs(ctx context.Context, req *pb.GetFrameLogsRequest)
 
 // GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
 func (a *NodeAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAddrRequest) (*pb.GetRandomDevAddrResponse, error) {
-	resp, err := common.NetworkServer.GetRandomDevAddr(context.Background(), &ns.GetRandomDevAddrRequest{})
+	var devEUI lorawan.EUI64
+
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
+	}
+
+	n, err := storage.GetNetworkServerForDevEUI(common.DB, devEUI)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	resp, err := nsClient.GetRandomDevAddr(context.Background(), &ns.GetRandomDevAddrRequest{})
 	if err != nil {
 		return nil, err
 	}

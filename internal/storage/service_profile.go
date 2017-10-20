@@ -40,7 +40,7 @@ func (sp ServiceProfile) Validate() error {
 }
 
 // CreateServiceProfile creates the given service-profile.
-func CreateServiceProfile(db sqlx.Execer, sp *ServiceProfile) error {
+func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 	if err := sp.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
@@ -107,7 +107,17 @@ func CreateServiceProfile(db sqlx.Execer, sp *ServiceProfile) error {
 		req.ServiceProfile.DlRatePolicy = ns.RatePolicy_MARK
 	}
 
-	_, err = common.NetworkServer.CreateServiceProfile(context.Background(), &req)
+	n, err := GetNetworkServer(db, sp.NetworkServerID)
+	if err != nil {
+		return errors.Wrap(err, "get network-server error")
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
+	_, err = nsClient.CreateServiceProfile(context.Background(), &req)
 	if err != nil {
 		return handleGrpcError(err, "create service-profile error")
 	}
@@ -141,7 +151,17 @@ func GetServiceProfile(db sqlx.Queryer, id string) (ServiceProfile, error) {
 		return sp, handlePSQLError(err, "scan error")
 	}
 
-	resp, err := common.NetworkServer.GetServiceProfile(context.Background(), &ns.GetServiceProfileRequest{
+	n, err := GetNetworkServer(db, sp.NetworkServerID)
+	if err != nil {
+		return sp, errors.Wrap(err, "get network-server errror")
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return sp, errors.Wrap(err, "get network-server client error")
+	}
+
+	resp, err := nsClient.GetServiceProfile(context.Background(), &ns.GetServiceProfileRequest{
 		ServiceProfileID: id,
 	})
 	if err != nil {
@@ -187,7 +207,7 @@ func GetServiceProfile(db sqlx.Queryer, id string) (ServiceProfile, error) {
 }
 
 // UpdateServiceProfile updates the given service-profile.
-func UpdateServiceProfile(db sqlx.Execer, sp *ServiceProfile) error {
+func UpdateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 	if err := sp.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
@@ -251,7 +271,17 @@ func UpdateServiceProfile(db sqlx.Execer, sp *ServiceProfile) error {
 		req.ServiceProfile.DlRatePolicy = ns.RatePolicy_MARK
 	}
 
-	_, err = common.NetworkServer.UpdateServiceProfile(context.Background(), &req)
+	n, err := GetNetworkServer(db, sp.NetworkServerID)
+	if err != nil {
+		return errors.Wrap(err, "get network-server error")
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
+	_, err = nsClient.UpdateServiceProfile(context.Background(), &req)
 	if err != nil {
 		return handleGrpcError(err, "update service-profile error")
 	}
@@ -262,7 +292,17 @@ func UpdateServiceProfile(db sqlx.Execer, sp *ServiceProfile) error {
 }
 
 // DeleteServiceProfile deletes the service-profile matching the given id.
-func DeleteServiceProfile(db sqlx.Execer, id string) error {
+func DeleteServiceProfile(db sqlx.Ext, id string) error {
+	n, err := GetNetworkServerForServiceProfileID(db, id)
+	if err != nil {
+		return errors.Wrap(err, "get network-server error")
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
 	res, err := db.Exec("delete from service_profile where service_profile_id = $1", id)
 	if err != nil {
 		return handlePSQLError(err, "delete error")
@@ -275,7 +315,7 @@ func DeleteServiceProfile(db sqlx.Execer, id string) error {
 		return ErrDoesNotExist
 	}
 
-	_, err = common.NetworkServer.DeleteServiceProfile(context.Background(), &ns.DeleteServiceProfileRequest{
+	_, err = nsClient.DeleteServiceProfile(context.Background(), &ns.DeleteServiceProfileRequest{
 		ServiceProfileID: id,
 	})
 	if err != nil {

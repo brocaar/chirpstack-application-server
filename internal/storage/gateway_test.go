@@ -20,7 +20,7 @@ func TestGateway(t *testing.T) {
 		test.MustResetDB(db)
 
 		nsClient := test.NewNetworkServerClient()
-		common.NetworkServer = nsClient
+		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 		n := NetworkServer{
 			Name:   "test-ns",

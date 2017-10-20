@@ -18,7 +18,7 @@ func TestOrganization(t *testing.T) {
 	}
 	common.DB = db
 	nsClient := test.NewNetworkServerClient()
-	common.NetworkServer = nsClient
+	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database", t, func() {
 		test.MustResetDB(db)

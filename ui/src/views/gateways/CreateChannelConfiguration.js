@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
 
 import GatewayStore from "../../stores/GatewayStore";
 import ChannelConfigurationForm from "../../components/ChannelConfigurationForm";
@@ -20,21 +19,27 @@ class CreateChannelConfiguration extends Component {
     this.onSubmit = this.onSubmit.bind(this);
   }
 
+  componentDidMount() {
+    this.setState({
+      configuration: {
+        networkServerID: this.props.params.networkServerID,
+      },
+    });
+  }
+
   onSubmit(configuration) {
     GatewayStore.createChannelConfiguration(configuration, (responseData) => {
-      this.context.router.push("/gateways/channelconfigurations");  
+      this.context.router.push(`network-servers/${this.props.params.networkServerID}/channel-configurations`);  
     });
   }
 
   render() {
     return(
       <div>
-        <ol className="breadcrumb">
-          <li><Link to="/gateways/channelconfigurations">Channel-configurations</Link></li>
-          <li className="active">Create</li>
-        </ol>
-        <hr />
         <div className="panel panel-default">
+          <div className="panel-heading">
+            Create channel-configuration
+          </div>
           <div className="panel-body">
             <ChannelConfigurationForm configuration={this.state.configuration} onSubmit={this.onSubmit} />
           </div>

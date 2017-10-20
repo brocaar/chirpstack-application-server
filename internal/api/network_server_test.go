@@ -27,7 +27,7 @@ func TestNetworkServerAPI(t *testing.T) {
 		test.MustResetDB(common.DB)
 
 		nsClient := test.NewNetworkServerClient()
-		common.NetworkServer = nsClient
+		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 		ctx := context.Background()
 		validator := &TestValidator{}

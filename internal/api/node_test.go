@@ -36,7 +36,7 @@ func TestNodeAPI(t *testing.T) {
 		nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
 			DeviceProfile: &ns.DeviceProfile{},
 		}
-		common.NetworkServer = nsClient
+		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 		ctx := context.Background()
 		validator := &TestValidator{}
@@ -284,40 +284,54 @@ func TestNodeAPI(t *testing.T) {
 					So(da.DevAddr, ShouldEqual, lorawan.DevAddr{1, 2, 3, 4})
 				})
 			})
-		})
 
-		Convey("Given a mock GetFrameLogs response from the network-server", func() {
-			now := time.Now()
-			phy := lorawan.PHYPayload{
-				MHDR: lorawan.MHDR{
-					MType: lorawan.JoinRequest,
-					Major: lorawan.LoRaWANR1,
-				},
-				MACPayload: &lorawan.JoinRequestPayload{
-					AppEUI:   lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
-					DevEUI:   lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
-					DevNonce: lorawan.DevNonce{1, 2},
-				},
-			}
+			Convey("Given a mock GetFrameLogs response from the network-server", func() {
+				now := time.Now()
+				phy := lorawan.PHYPayload{
+					MHDR: lorawan.MHDR{
+						MType: lorawan.JoinRequest,
+						Major: lorawan.LoRaWANR1,
+					},
+					MACPayload: &lorawan.JoinRequestPayload{
+						AppEUI:   lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+						DevEUI:   lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
+						DevNonce: lorawan.DevNonce{1, 2},
+					},
+				}
 
-			phyB, err := phy.MarshalBinary()
-			So(err, ShouldBeNil)
+				phyB, err := phy.MarshalBinary()
+				So(err, ShouldBeNil)
 
-			getFrameLogsResponse := ns.GetFrameLogsResponse{
-				TotalCount: 1,
-				Result: []*ns.FrameLog{
-					{
-						CreatedAt: now.Format(time.RFC3339Nano),
-						RxInfoSet: []*ns.RXInfo{
-							{
-								Channel:   1,
-								CodeRate:  "4/5",
-								Frequency: 868100000,
-								LoRaSNR:   5.5,
-								Rssi:      110,
-								Time:      now.Format(time.RFC3339Nano),
-								Timestamp: 1234,
-								Mac:       []byte{1, 2, 3, 4, 5, 6, 7, 8},
+				getFrameLogsResponse := ns.GetFrameLogsResponse{
+					TotalCount: 1,
+					Result: []*ns.FrameLog{
+						{
+							CreatedAt: now.Format(time.RFC3339Nano),
+							RxInfoSet: []*ns.RXInfo{
+								{
+									Channel:   1,
+									CodeRate:  "4/5",
+									Frequency: 868100000,
+									LoRaSNR:   5.5,
+									Rssi:      110,
+									Time:      now.Format(time.RFC3339Nano),
+									Timestamp: 1234,
+									Mac:       []byte{1, 2, 3, 4, 5, 6, 7, 8},
+									DataRate: &ns.DataRate{
+										Modulation:   "LORA",
+										BandWidth:    125,
+										SpreadFactor: 7,
+										Bitrate:      50000,
+									},
+								},
+							},
+							TxInfo: &ns.TXInfo{
+								CodeRate:    "4/5",
+								Frequency:   868100000,
+								Mac:         []byte{1, 2, 3, 4, 5, 6, 7, 8},
+								Immediately: true,
+								Power:       14,
+								Timestamp:   1234,
 								DataRate: &ns.DataRate{
 									Modulation:   "LORA",
 									BandWidth:    125,
@@ -325,56 +339,56 @@ func TestNodeAPI(t *testing.T) {
 									Bitrate:      50000,
 								},
 							},
+							PhyPayload: phyB,
 						},
-						TxInfo: &ns.TXInfo{
-							CodeRate:    "4/5",
-							Frequency:   868100000,
-							Mac:         []byte{1, 2, 3, 4, 5, 6, 7, 8},
-							Immediately: true,
-							Power:       14,
-							Timestamp:   1234,
-							DataRate: &ns.DataRate{
-								Modulation:   "LORA",
-								BandWidth:    125,
-								SpreadFactor: 7,
-								Bitrate:      50000,
-							},
-						},
-						PhyPayload: phyB,
 					},
-				},
-			}
+				}
 
-			nsClient.GetFrameLogsForDevEUIResponse = getFrameLogsResponse
+				nsClient.GetFrameLogsForDevEUIResponse = getFrameLogsResponse
 
-			Convey("When calling GetFrameLogs", func() {
-				devEUI := lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}
-				resp, err := api.GetFrameLogs(ctx, &pb.GetFrameLogsRequest{
-					DevEUI: devEUI.String(),
-					Limit:  10,
-					Offset: 20,
-				})
-				So(err, ShouldBeNil)
-
-				Convey("Then the expected response is returned", func() {
-					phyJSON, err := json.Marshal(phy)
+				Convey("When calling GetFrameLogs", func() {
+					devEUI := lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}
+					resp, err := api.GetFrameLogs(ctx, &pb.GetFrameLogsRequest{
+						DevEUI: devEUI.String(),
+						Limit:  10,
+						Offset: 20,
+					})
 					So(err, ShouldBeNil)
 
-					So(resp, ShouldResemble, &pb.GetFrameLogsResponse{
-						TotalCount: 1,
-						Result: []*pb.FrameLog{
-							{
-								CreatedAt: now.Format(time.RFC3339Nano),
-								RxInfoSet: []*pb.RXInfo{
-									{
-										Channel:   1,
-										CodeRate:  "4/5",
-										Frequency: 868100000,
-										LoRaSNR:   5.5,
-										Rssi:      110,
-										Time:      now.Format(time.RFC3339Nano),
-										Timestamp: 1234,
-										Mac:       "0102030405060708",
+					Convey("Then the expected response is returned", func() {
+						phyJSON, err := json.Marshal(phy)
+						So(err, ShouldBeNil)
+
+						So(resp, ShouldResemble, &pb.GetFrameLogsResponse{
+							TotalCount: 1,
+							Result: []*pb.FrameLog{
+								{
+									CreatedAt: now.Format(time.RFC3339Nano),
+									RxInfoSet: []*pb.RXInfo{
+										{
+											Channel:   1,
+											CodeRate:  "4/5",
+											Frequency: 868100000,
+											LoRaSNR:   5.5,
+											Rssi:      110,
+											Time:      now.Format(time.RFC3339Nano),
+											Timestamp: 1234,
+											Mac:       "0102030405060708",
+											DataRate: &pb.DataRate{
+												Modulation:   "LORA",
+												BandWidth:    125,
+												SpreadFactor: 7,
+												Bitrate:      50000,
+											},
+										},
+									},
+									TxInfo: &pb.TXInfo{
+										CodeRate:    "4/5",
+										Frequency:   868100000,
+										Mac:         "0102030405060708",
+										Immediately: true,
+										Power:       14,
+										Timestamp:   1234,
 										DataRate: &pb.DataRate{
 											Modulation:   "LORA",
 											BandWidth:    125,
@@ -382,24 +396,10 @@ func TestNodeAPI(t *testing.T) {
 											Bitrate:      50000,
 										},
 									},
+									PhyPayloadJSON: string(phyJSON),
 								},
-								TxInfo: &pb.TXInfo{
-									CodeRate:    "4/5",
-									Frequency:   868100000,
-									Mac:         "0102030405060708",
-									Immediately: true,
-									Power:       14,
-									Timestamp:   1234,
-									DataRate: &pb.DataRate{
-										Modulation:   "LORA",
-										BandWidth:    125,
-										SpreadFactor: 7,
-										Bitrate:      50000,
-									},
-								},
-								PhyPayloadJSON: string(phyJSON),
 							},
-						},
+						})
 					})
 				})
 			})

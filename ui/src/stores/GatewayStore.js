@@ -107,8 +107,8 @@ class GatewayStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  getChannelConfiguration(id, callbackFunc) {
-    fetch("/api/gateways/channelconfigurations/"+id, {headers: sessionStore.getHeader()})
+  getChannelConfiguration(networkServerID, channelConfigurationID, callbackFunc) {
+    fetch("/api/gateways/channelconfigurations/"+channelConfigurationID+"?networkServerID="+networkServerID, {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -117,8 +117,8 @@ class GatewayStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  updateChannelConfiguration(id, conf, callbackFunc) {
-    fetch("/api/gateways/channelconfigurations/"+id, {method: "PUT", body: JSON.stringify(conf), headers: sessionStore.getHeader()})
+  updateChannelConfiguration(channelConfigurationID, conf, callbackFunc) {
+    fetch("/api/gateways/channelconfigurations/"+channelConfigurationID, {method: "PUT", body: JSON.stringify(conf), headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -127,8 +127,8 @@ class GatewayStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  deleteChannelConfiguration(id, callbackFunc) {
-    fetch("/api/gateways/channelconfigurations/"+id, {method: "DELETE", headers: sessionStore.getHeader()})
+  deleteChannelConfiguration(networkServerID, channelConfigurationID, callbackFunc) {
+    fetch("/api/gateways/channelconfigurations/"+channelConfigurationID+"?networkServerID="+networkServerID, {method: "DELETE", headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -137,8 +137,8 @@ class GatewayStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  getAllChannelConfigurations(callbackFunc) {
-    fetch("/api/gateways/channelconfigurations", {headers: sessionStore.getHeader()})
+  getAllChannelConfigurations(networkServerID, callbackFunc) {
+    fetch("/api/gateways/channelconfigurations?networkServerID="+networkServerID, {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -171,8 +171,8 @@ class GatewayStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  deleteExtraChannel(id, callbackFunc) {
-    fetch("/api/gateways/extrachannels/"+id, {method: "DELETE", headers: sessionStore.getHeader()})
+  deleteExtraChannel(networkServerID, id, callbackFunc) {
+    fetch("/api/gateways/extrachannels/"+id+"?networkServerID="+networkServerID, {method: "DELETE", headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -181,8 +181,8 @@ class GatewayStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  getExtraChannelsForChannelConfigurationID(id, callbackFunc) {
-    fetch("/api/gateways/channelconfigurations/"+id+"/extrachannels", {headers: sessionStore.getHeader()}) 
+  getExtraChannelsForChannelConfigurationID(networkServerID, channelConfigurationID, callbackFunc) {
+    fetch("/api/gateways/channelconfigurations/"+channelConfigurationID+"/extrachannels?networkServerID="+networkServerID, {headers: sessionStore.getHeader()}) 
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

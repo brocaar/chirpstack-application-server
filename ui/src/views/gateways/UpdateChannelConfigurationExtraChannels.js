@@ -13,7 +13,7 @@ class ExtraChannel extends Component {
 
   onDelete() {
     if (confirm("Are you sure you would like to delete this channel?")) {
-      GatewayStore.deleteExtraChannel(this.props.channel.id, (responseData) => {
+      GatewayStore.deleteExtraChannel(this.props.networkServerID, this.props.channel.id, (responseData) => {
         this.props.onChange();
       });
     }
@@ -50,7 +50,7 @@ class UpdateChannelConfigurationExtraChannels extends Component {
   }
 
   onChange() {
-    GatewayStore.getExtraChannelsForChannelConfigurationID(this.props.params.id, (channels) => {
+    GatewayStore.getExtraChannelsForChannelConfigurationID(this.props.params.networkServerID, this.props.params.channelConfigurationID, (channels) => {
       this.setState({
         extraChannels: channels,
       });
@@ -58,7 +58,7 @@ class UpdateChannelConfigurationExtraChannels extends Component {
   }
 
   render() {
-    const ExtraChannels = this.state.extraChannels.map((chan, i) => <ExtraChannel key={chan.id} channel={chan} onChange={this.onChange} />);
+    const ExtraChannels = this.state.extraChannels.map((chan, i) => <ExtraChannel key={chan.id} channel={chan} networkServerID={this.props.params.networkServerID} onChange={this.onChange} />);
 
     return(
       <div>
@@ -86,7 +86,7 @@ class UpdateChannelConfigurationExtraChannels extends Component {
             Add extra channel
           </div>
           <div className="panel-body">
-            <ExtraChannelForm onSubmit={this.onChange} channelConfigurationID={this.props.params.id} />
+            <ExtraChannelForm onSubmit={this.onChange} channelConfigurationID={this.props.params.channelConfigurationID} networkServerID={this.props.params.networkServerID} />
           </div>
         </div>
       </div>
@@ -139,7 +139,7 @@ class ExtraChannelForm extends Component {
 
     let channel = this.state.channel;
     channel.channelConfigurationID = this.props.channelConfigurationID;
-    console.log(channel);
+    channel.networkServerID = this.props.networkServerID;
 
     GatewayStore.createExtraChannel(channel, (responseData) => {
       this.setState({

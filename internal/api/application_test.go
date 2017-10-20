@@ -26,7 +26,7 @@ func TestApplicationAPI(t *testing.T) {
 	nsClient := test.NewNetworkServerClient()
 
 	common.DB = db
-	common.NetworkServer = nsClient
+	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database with an organization and an api instance", t, func() {
 		test.MustResetDB(common.DB)

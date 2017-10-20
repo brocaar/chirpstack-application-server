@@ -68,6 +68,7 @@ import CreateDeviceProfile from "./views/deviceprofiles/CreateDeviceProfile";
 import UpdateDeviceProfile from "./views/deviceprofiles/UpdateDeviceProfile";
 
 // network-servers
+import NetworkServerLayout from "./views/networkservers/NetworkServerLayout";
 import ListNetworkServers from "./views/networkservers/ListNetworkServers";
 import CreateNetworkServer from "./views/networkservers/CreateNetworkServer";
 import UpdateNetworkServer from "./views/networkservers/UpdateNetworkServer";
@@ -97,8 +98,21 @@ ReactDOM.render(
       <Route path="organizations/create" component={CreateOrganization}></Route>
   
       <Route path="network-servers" component={ListNetworkServers}></Route>
+      <Route path="network-servers" component={ListNetworkServers}></Route>
       <Route path="network-servers/create" component={CreateNetworkServer}></Route>
-      <Route path="network-servers/:networkServerID" component={UpdateNetworkServer}></Route>
+
+      <Route path="network-servers/:networkServerID" component={NetworkServerLayout}>
+        <IndexRoute component={UpdateNetworkServer}></IndexRoute>
+        <Route path="channel-configurations" component={ListChannelConfigurations}></Route>
+        <Route path="channel-configurations/create" component={CreateChannelConfiguration}></Route>
+      </Route>
+
+      <Route path="network-servers/:networkServerID/channel-configurations/:channelConfigurationID" component={ChannelConfigurationLayout}>
+        <Route path="edit" component={UpdateChannelConfiguration}></Route>
+        <Route path="extra-channels" component={UpdateChannelConfigurationExtraChannels}></Route>
+      </Route>
+
+
 
       <Route path="organizations/:organizationID" component={OrganizationLayout}>
         <IndexRoute component={ListApplications}></IndexRoute>
@@ -142,7 +156,7 @@ ReactDOM.render(
         <Route path="activation" component={NodeActivation}></Route>
       </Route>
 
-      <Route path="gateways/channelconfigurations">
+      {/* <Route path="gateways/channelconfigurations">
         <IndexRoute component={ListChannelConfigurations}></IndexRoute>
         <Route path="create" component={CreateChannelConfiguration}></Route>
 
@@ -150,7 +164,7 @@ ReactDOM.render(
           <Route path="edit" component={UpdateChannelConfiguration}></Route>
           <Route path="edit/extrachannels" component={UpdateChannelConfigurationExtraChannels}></Route>
         </Route>
-      </Route>
+      </Route> */}
 
     </Route>
   </Router>,

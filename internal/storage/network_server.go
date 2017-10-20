@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/brocaar/lorawan"
+
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/loraserver/api/ns"
 
@@ -53,7 +55,12 @@ func CreateNetworkServer(db sqlx.Queryer, n *NetworkServer) error {
 		return handlePSQLError(err, "insert error")
 	}
 
-	_, err = common.NetworkServer.CreateRoutingProfile(context.Background(), &ns.CreateRoutingProfileRequest{
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
+	_, err = nsClient.CreateRoutingProfile(context.Background(), &ns.CreateRoutingProfileRequest{
 		RoutingProfile: &ns.RoutingProfile{
 			RoutingProfileID: common.ApplicationServerID,
 			AsID:             common.ApplicationServerServer,
@@ -115,7 +122,12 @@ func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
 		return ErrDoesNotExist
 	}
 
-	_, err = common.NetworkServer.UpdateRoutingProfile(context.Background(), &ns.UpdateRoutingProfileRequest{
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
+	_, err = nsClient.UpdateRoutingProfile(context.Background(), &ns.UpdateRoutingProfileRequest{
 		RoutingProfile: &ns.RoutingProfile{
 			RoutingProfileID: common.ApplicationServerID,
 			AsID:             common.ApplicationServerServer,
@@ -135,7 +147,12 @@ func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
 }
 
 // DeleteNetworkServer deletes the network-server matching the given id.
-func DeleteNetworkServer(db sqlx.Execer, id int64) error {
+func DeleteNetworkServer(db sqlx.Ext, id int64) error {
+	n, err := GetNetworkServer(db, id)
+	if err != nil {
+		return errors.Wrap(err, "get network-server error")
+	}
+
 	res, err := db.Exec("delete from network_server where id = $1", id)
 	if err != nil {
 		return handlePSQLError(err, "delete error")
@@ -148,7 +165,12 @@ func DeleteNetworkServer(db sqlx.Execer, id int64) error {
 		return ErrDoesNotExist
 	}
 
-	_, err = common.NetworkServer.DeleteRoutingProfile(context.Background(), &ns.DeleteRoutingProfileRequest{
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
+	_, err = nsClient.DeleteRoutingProfile(context.Background(), &ns.DeleteRoutingProfileRequest{
 		RoutingProfileID: common.ApplicationServerID,
 	})
 	if err != nil {
@@ -238,4 +260,68 @@ func GetNetworkServersForOrganizationID(db sqlx.Queryer, organizationID int64, l
 	}
 
 	return nss, nil
+}
+
+// GetNetworkServerForDevEUI returns the network-server for the given DevEUI.
+func GetNetworkServerForDevEUI(db sqlx.Queryer, devEUI lorawan.EUI64) (NetworkServer, error) {
+	var n NetworkServer
+	err := sqlx.Get(db, &n, `
+		select
+			ns.*
+		from
+			network_server ns
+		inner join device_profile dp
+			on dp.network_server_id = ns.id
+		inner join device d
+			on d.device_profile_id = dp.device_profile_id
+		where
+			d.dev_eui = $1`,
+		devEUI,
+	)
+	if err != nil {
+		return n, handlePSQLError(err, "select error")
+	}
+	return n, nil
+}
+
+// GetNetworkServerForDeviceProfileID returns the network-server for the given
+// device-profile id.
+func GetNetworkServerForDeviceProfileID(db sqlx.Queryer, id string) (NetworkServer, error) {
+	var n NetworkServer
+	err := sqlx.Get(db, &n, `
+		select
+			ns.*
+		from
+			network_server ns
+		inner join device_profile dp
+			on dp.network_server_id = ns.id
+		where
+			dp.device_profile_id = $1`,
+		id,
+	)
+	if err != nil {
+		return n, handlePSQLError(err, "select error")
+	}
+	return n, nil
+}
+
+// GetNetworkServerForServiceProfileID returns the network-server for the given
+// service-profile id.
+func GetNetworkServerForServiceProfileID(db sqlx.Queryer, id string) (NetworkServer, error) {
+	var n NetworkServer
+	err := sqlx.Get(db, &n, `
+		select
+			ns.*
+		from
+			network_server ns
+		inner join service_profile sp
+			on sp.network_server_id = ns.id
+		where
+			sp.service_profile_id = $1`,
+		id,
+	)
+	if err != nil {
+		return n, handlePSQLError(err, "select error")
+	}
+	return n, nil
 }

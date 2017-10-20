@@ -99,7 +99,17 @@ func pushDataDown(d storage.Device, qi *storage.DeviceQueueItem) error {
 		return errors.Wrap(err, "get device-activation error")
 	}
 
-	actRes, err := common.NetworkServer.GetDeviceActivation(context.Background(), &ns.GetDeviceActivationRequest{
+	n, err := storage.GetNetworkServerForDevEUI(common.DB, qi.DevEUI)
+	if err != nil {
+		return errors.Wrap(err, "get network-server error")
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
+	actRes, err := nsClient.GetDeviceActivation(context.Background(), &ns.GetDeviceActivationRequest{
 		DevEUI: d.DevEUI[:],
 	})
 	if err != nil {
@@ -111,7 +121,7 @@ func pushDataDown(d storage.Device, qi *storage.DeviceQueueItem) error {
 		return fmt.Errorf("encrypt frmpayload error: %s", err)
 	}
 
-	_, err = common.NetworkServer.SendDownlinkData(context.Background(), &ns.SendDownlinkDataRequest{
+	_, err = nsClient.SendDownlinkData(context.Background(), &ns.SendDownlinkDataRequest{
 		DevEUI:    qi.DevEUI[:],
 		Data:      b,
 		Confirmed: qi.Confirmed,

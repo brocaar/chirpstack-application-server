@@ -29,7 +29,7 @@ func TestValidators(t *testing.T) {
 	test.MustResetDB(db)
 
 	nsClient := test.NewNetworkServerClient()
-	common.NetworkServer = nsClient
+	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 	/*
 	   Users:

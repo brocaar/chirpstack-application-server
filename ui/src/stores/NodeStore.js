@@ -119,8 +119,8 @@ class NodeStore extends EventEmitter {
       .catch(errorHandlerIgnoreNotFound);
   }
 
-  getRandomDevAddr(callbackFunc) {
-    fetch("/api/devices/getRandomDevAddr", {method: "POST", headers: sessionStore.getHeader()}) 
+  getRandomDevAddr(devEUI, callbackFunc) {
+    fetch("/api/devices/"+devEUI+"/getRandomDevAddr", {method: "POST", headers: sessionStore.getHeader()}) 
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

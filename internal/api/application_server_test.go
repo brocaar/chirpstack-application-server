@@ -30,8 +30,8 @@ func TestApplicationServerAPI(t *testing.T) {
 	nsClient := test.NewNetworkServerClient()
 
 	common.DB = db
-	common.NetworkServer = nsClient
 	common.RedisPool = storage.NewRedisPool(conf.RedisURL)
+	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database with bootstrap data node and api instance", t, func() {
 		test.MustResetDB(common.DB)

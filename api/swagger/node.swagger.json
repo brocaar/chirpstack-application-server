@@ -91,23 +91,6 @@
         ]
       }
     },
-    "/api/devices/getRandomDevAddr": {
-      "post": {
-        "summary": "GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.",
-        "operationId": "GetRandomDevAddr",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiGetRandomDevAddrResponse"
-            }
-          }
-        },
-        "tags": [
-          "Device"
-        ]
-      }
-    },
     "/api/devices/{devEUI}": {
       "get": {
         "summary": "Get returns the device matching the given DevEUI.",
@@ -279,6 +262,31 @@
             "required": false,
             "type": "string",
             "format": "int64"
+          }
+        ],
+        "tags": [
+          "Device"
+        ]
+      }
+    },
+    "/api/devices/{devEUI}/getRandomDevAddr": {
+      "post": {
+        "summary": "GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.",
+        "operationId": "GetRandomDevAddr",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetRandomDevAddrResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [

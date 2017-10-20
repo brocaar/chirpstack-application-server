@@ -48,7 +48,7 @@ func TestHandler(t *testing.T) {
 		So(token.Error(), ShouldBeNil)
 
 		nsClient := test.NewNetworkServerClient()
-		common.NetworkServer = nsClient
+		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 		test.MustFlushRedis(common.RedisPool)
 		test.MustResetDB(common.DB)

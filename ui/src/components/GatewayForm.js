@@ -41,6 +41,14 @@ class GatewayForm extends Component {
       gateway[field] = null;
     }
 
+    if (field === "networkServerID" && gateway.networkServerID !== null) {
+      GatewayStore.getAllChannelConfigurations(gateway.networkServerID, (configurations) => {
+        this.setState({
+          channelConfigurations: configurations,
+        });
+      });
+    }
+
     this.setState({
       gateway: gateway,
     });
@@ -82,8 +90,6 @@ class GatewayForm extends Component {
     this.setState({
       gateway: this.props.gateway,
       isGlobalAdmin: SessionStore.isAdmin(),
-    }, () => {
-      this.setSelectedOrganization();
     });
 
     if (!this.props.update) { 
@@ -96,11 +102,13 @@ class GatewayForm extends Component {
       });
     });
 
-    GatewayStore.getAllChannelConfigurations((configurations) => {
-      this.setState({
-        channelConfigurations: configurations,
+    if (typeof(this.props.gateway.networkServerID) !== "undefined") {
+      GatewayStore.getAllChannelConfigurations(this.props.gateway.networkServerID, (configurations) => {
+        this.setState({
+          channelConfigurations: configurations,
+        });
       });
-    });
+    }
   }
 
   setToCurrentPosition(overwrite) {
@@ -120,6 +128,12 @@ class GatewayForm extends Component {
     this.setState({
       gateway: nextProps.gateway, 
       update: typeof nextProps.gateway.mac !== "undefined",
+    });
+
+    GatewayStore.getAllChannelConfigurations(nextProps.gateway.networkServerID, (configurations) => {
+      this.setState({
+        channelConfigurations: configurations,
+      });
     });
   }
 

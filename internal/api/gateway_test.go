@@ -28,7 +28,7 @@ func TestGatewayAPI(t *testing.T) {
 		test.MustResetDB(common.DB)
 
 		nsClient := test.NewNetworkServerClient()
-		common.NetworkServer = nsClient
+		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 		ctx := context.Background()
 		validator := &TestValidator{}
@@ -475,8 +475,9 @@ func TestGatewayAPI(t *testing.T) {
 				}
 
 				resp, err := api.CreateChannelConfiguration(ctx, &pb.CreateChannelConfigurationRequest{
-					Name:     "test-config",
-					Channels: []int32{0, 1, 2},
+					Name:            "test-config",
+					Channels:        []int32{0, 1, 2},
+					NetworkServerID: n.ID,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -507,7 +508,8 @@ func TestGatewayAPI(t *testing.T) {
 				}
 
 				resp, err := api.GetChannelConfiguration(ctx, &pb.GetChannelConfigurationRequest{
-					Id: 123,
+					Id:              123,
+					NetworkServerID: n.ID,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -515,11 +517,12 @@ func TestGatewayAPI(t *testing.T) {
 
 				Convey("Then the expected request was made to the network-server", func() {
 					So(resp, ShouldResemble, &pb.GetChannelConfigurationResponse{
-						Id:        123,
-						Name:      "test-config",
-						Channels:  []int32{0, 1, 2},
-						CreatedAt: nowStr,
-						UpdatedAt: nowStr,
+						Id:              123,
+						Name:            "test-config",
+						Channels:        []int32{0, 1, 2},
+						CreatedAt:       nowStr,
+						UpdatedAt:       nowStr,
+						NetworkServerID: n.ID,
 					})
 					So(nsClient.GetChannelConfigurationChan, ShouldHaveLength, 1)
 					So(<-nsClient.GetChannelConfigurationChan, ShouldResemble, ns.GetChannelConfigurationRequest{
@@ -530,9 +533,10 @@ func TestGatewayAPI(t *testing.T) {
 
 			Convey("When calling UpdateChannelConfiguration", func() {
 				resp, err := api.UpdateChannelConfiguration(ctx, &pb.UpdateChannelConfigurationRequest{
-					Id:       123,
-					Name:     "updated-config",
-					Channels: []int32{0, 1},
+					Id:              123,
+					Name:            "updated-config",
+					Channels:        []int32{0, 1},
+					NetworkServerID: n.ID,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -551,7 +555,8 @@ func TestGatewayAPI(t *testing.T) {
 
 			Convey("When calling DeleteChannelConfiguration", func() {
 				resp, err := api.DeleteChannelConfiguration(ctx, &pb.DeleteChannelConfigurationRequest{
-					Id: 123,
+					Id:              123,
+					NetworkServerID: n.ID,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -583,7 +588,9 @@ func TestGatewayAPI(t *testing.T) {
 					},
 				}
 
-				resp, err := api.ListChannelConfigurations(ctx, &pb.ListChannelConfigurationsRequest{})
+				resp, err := api.ListChannelConfigurations(ctx, &pb.ListChannelConfigurationsRequest{
+					NetworkServerID: n.ID,
+				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
@@ -592,11 +599,12 @@ func TestGatewayAPI(t *testing.T) {
 					So(resp, ShouldResemble, &pb.ListChannelConfigurationsResponse{
 						Result: []*pb.GetChannelConfigurationResponse{
 							{
-								Id:        123,
-								Name:      "test-config",
-								Channels:  []int32{0, 1, 2},
-								CreatedAt: nowStr,
-								UpdatedAt: nowStr,
+								Id:              123,
+								Name:            "test-config",
+								Channels:        []int32{0, 1, 2},
+								CreatedAt:       nowStr,
+								UpdatedAt:       nowStr,
+								NetworkServerID: n.ID,
 							},
 						},
 					})
@@ -617,6 +625,7 @@ func TestGatewayAPI(t *testing.T) {
 					BandWidth:              125,
 					BitRate:                50000,
 					SpreadFactors:          []int32{5},
+					NetworkServerID:        n.ID,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -647,6 +656,7 @@ func TestGatewayAPI(t *testing.T) {
 					BandWidth:              125,
 					BitRate:                50000,
 					SpreadFactors:          []int32{5},
+					NetworkServerID:        n.ID,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -669,7 +679,8 @@ func TestGatewayAPI(t *testing.T) {
 
 			Convey("When calling DeleteExtraChannel", func() {
 				resp, err := api.DeleteExtraChannel(ctx, &pb.DeleteExtraChannelRequest{
-					Id: 321,
+					Id:              321,
+					NetworkServerID: n.ID,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -705,7 +716,8 @@ func TestGatewayAPI(t *testing.T) {
 				}
 
 				resp, err := api.GetExtraChannelsForChannelConfigurationID(ctx, &pb.GetExtraChannelsForChannelConfigurationIDRequest{
-					Id: 123,
+					Id:              123,
+					NetworkServerID: n.ID,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)

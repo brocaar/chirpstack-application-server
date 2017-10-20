@@ -20,7 +20,7 @@ class UpdateChannelConfiguration extends Component {
   }
 
   componentDidMount() {
-    GatewayStore.getChannelConfiguration(this.props.params.id, (configuration) => {
+    GatewayStore.getChannelConfiguration(this.props.params.networkServerID, this.props.params.channelConfigurationID, (configuration) => {
       this.setState({
         configuration: configuration,
       });
@@ -28,8 +28,8 @@ class UpdateChannelConfiguration extends Component {
   }
 
   onSubmit(configuration) {
-    GatewayStore.updateChannelConfiguration(this.props.params.id, configuration, (responseData) => {
-      this.context.router.push("/gateways/channelconfigurations");
+    GatewayStore.updateChannelConfiguration(this.props.params.channelConfigurationID, configuration, (responseData) => {
+      this.context.router.push(`network-servers/${this.props.params.networkServerID}/channel-configurations`);
     });
   }
 

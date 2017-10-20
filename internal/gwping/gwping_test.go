@@ -26,9 +26,10 @@ func TestGatewayPing(t *testing.T) {
 	common.GatewayPingFrequency = 868100000
 
 	Convey("Given a clean database and a gateway", t, func() {
+		nsClient := test.NewNetworkServerClient()
 		test.MustResetDB(db)
 		test.MustFlushRedis(common.RedisPool)
-		common.NetworkServer = test.NewNetworkServerClient()
+		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 		org := storage.Organization{
 			Name: "test-org",
@@ -69,8 +70,8 @@ func TestGatewayPing(t *testing.T) {
 				})
 
 				Convey("Then the expected ping has been sent to the network-server", func() {
-					So(common.NetworkServer.(*test.NetworkServerClient).SendProprietaryPayloadChan, ShouldHaveLength, 1)
-					req := <-common.NetworkServer.(*test.NetworkServerClient).SendProprietaryPayloadChan
+					So(nsClient.SendProprietaryPayloadChan, ShouldHaveLength, 1)
+					req := <-nsClient.SendProprietaryPayloadChan
 					So(req.Dr, ShouldEqual, uint32(common.GatewayPingDR))
 					So(req.Frequency, ShouldEqual, uint32(common.GatewayPingFrequency))
 					So(req.GatewayMACs, ShouldResemble, [][]byte{{1, 2, 3, 4, 5, 6, 7, 8}})

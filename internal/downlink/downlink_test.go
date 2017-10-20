@@ -31,7 +31,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 		nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
 			DeviceProfile: &ns.DeviceProfile{},
 		}
-		common.NetworkServer = nsClient
+		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 		org := storage.Organization{
 			Name: "test-org",

@@ -41,6 +41,10 @@ func request_Gateway_CreateChannelConfiguration_0(ctx context.Context, marshaler
 
 }
 
+var (
+	filter_Gateway_GetChannelConfiguration_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+)
+
 func request_Gateway_GetChannelConfiguration_0(ctx context.Context, marshaler runtime.Marshaler, client GatewayClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetChannelConfigurationRequest
 	var metadata runtime.ServerMetadata
@@ -61,6 +65,10 @@ func request_Gateway_GetChannelConfiguration_0(ctx context.Context, marshaler ru
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Gateway_GetChannelConfiguration_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetChannelConfiguration(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -99,6 +107,10 @@ func request_Gateway_UpdateChannelConfiguration_0(ctx context.Context, marshaler
 
 }
 
+var (
+	filter_Gateway_DeleteChannelConfiguration_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+)
+
 func request_Gateway_DeleteChannelConfiguration_0(ctx context.Context, marshaler runtime.Marshaler, client GatewayClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq DeleteChannelConfigurationRequest
 	var metadata runtime.ServerMetadata
@@ -121,14 +133,26 @@ func request_Gateway_DeleteChannelConfiguration_0(ctx context.Context, marshaler
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Gateway_DeleteChannelConfiguration_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
 	msg, err := client.DeleteChannelConfiguration(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
+var (
+	filter_Gateway_ListChannelConfigurations_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Gateway_ListChannelConfigurations_0(ctx context.Context, marshaler runtime.Marshaler, client GatewayClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListChannelConfigurationsRequest
 	var metadata runtime.ServerMetadata
+
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Gateway_ListChannelConfigurations_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := client.ListChannelConfigurations(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -179,6 +203,10 @@ func request_Gateway_UpdateExtraChannel_0(ctx context.Context, marshaler runtime
 
 }
 
+var (
+	filter_Gateway_DeleteExtraChannel_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+)
+
 func request_Gateway_DeleteExtraChannel_0(ctx context.Context, marshaler runtime.Marshaler, client GatewayClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq DeleteExtraChannelRequest
 	var metadata runtime.ServerMetadata
@@ -201,10 +229,18 @@ func request_Gateway_DeleteExtraChannel_0(ctx context.Context, marshaler runtime
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Gateway_DeleteExtraChannel_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
 	msg, err := client.DeleteExtraChannel(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
+
+var (
+	filter_Gateway_GetExtraChannelsForChannelConfigurationID_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+)
 
 func request_Gateway_GetExtraChannelsForChannelConfigurationID_0(ctx context.Context, marshaler runtime.Marshaler, client GatewayClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetExtraChannelsForChannelConfigurationIDRequest
@@ -226,6 +262,10 @@ func request_Gateway_GetExtraChannelsForChannelConfigurationID_0(ctx context.Con
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Gateway_GetExtraChannelsForChannelConfigurationID_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetExtraChannelsForChannelConfigurationID(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))

@@ -43,7 +43,7 @@ func (dp DeviceProfile) Validate() error {
 // CreateDeviceProfile creates the given device-profile.
 // This will create the device-profile at the network-server side and will
 // create a local reference record.
-func CreateDeviceProfile(db sqlx.Execer, dp *DeviceProfile) error {
+func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 	if err := dp.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
@@ -79,7 +79,17 @@ func CreateDeviceProfile(db sqlx.Execer, dp *DeviceProfile) error {
 		factoryPresetFreqs = append(factoryPresetFreqs, uint32(f))
 	}
 
-	_, err = common.NetworkServer.CreateDeviceProfile(context.Background(), &ns.CreateDeviceProfileRequest{
+	n, err := GetNetworkServer(db, dp.NetworkServerID)
+	if err != nil {
+		return errors.Wrap(err, "get network-server error")
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
+	_, err = nsClient.CreateDeviceProfile(context.Background(), &ns.CreateDeviceProfileRequest{
 		DeviceProfile: &ns.DeviceProfile{
 			DeviceProfileID:    dp.DeviceProfile.DeviceProfileID,
 			SupportsClassB:     dp.DeviceProfile.SupportsClassB,
@@ -139,7 +149,17 @@ func GetDeviceProfile(db sqlx.Queryer, id string) (DeviceProfile, error) {
 		return dp, handlePSQLError(err, "scan error")
 	}
 
-	resp, err := common.NetworkServer.GetDeviceProfile(context.Background(), &ns.GetDeviceProfileRequest{
+	n, err := GetNetworkServer(db, dp.NetworkServerID)
+	if err != nil {
+		return dp, errors.Wrap(err, "get network-server error")
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return dp, errors.Wrap(err, "get network-server client error")
+	}
+
+	resp, err := nsClient.GetDeviceProfile(context.Background(), &ns.GetDeviceProfileRequest{
 		DeviceProfileID: id,
 	})
 	if err != nil {
@@ -181,7 +201,7 @@ func GetDeviceProfile(db sqlx.Queryer, id string) (DeviceProfile, error) {
 }
 
 // UpdateDeviceProfile updates the given device-profile.
-func UpdateDeviceProfile(db sqlx.Execer, dp *DeviceProfile) error {
+func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 	if err := dp.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
@@ -191,7 +211,17 @@ func UpdateDeviceProfile(db sqlx.Execer, dp *DeviceProfile) error {
 		factoryPresetFreqs = append(factoryPresetFreqs, uint32(f))
 	}
 
-	_, err := common.NetworkServer.UpdateDeviceProfile(context.Background(), &ns.UpdateDeviceProfileRequest{
+	n, err := GetNetworkServer(db, dp.NetworkServerID)
+	if err != nil {
+		return errors.Wrap(err, "get network-server error")
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
+	_, err = nsClient.UpdateDeviceProfile(context.Background(), &ns.UpdateDeviceProfileRequest{
 		DeviceProfile: &ns.DeviceProfile{
 			DeviceProfileID:    dp.DeviceProfile.DeviceProfileID,
 			SupportsClassB:     dp.DeviceProfile.SupportsClassB,
@@ -250,7 +280,17 @@ func UpdateDeviceProfile(db sqlx.Execer, dp *DeviceProfile) error {
 }
 
 // DeleteDeviceProfile deletes the device-profile matching the given id.
-func DeleteDeviceProfile(db sqlx.Execer, id string) error {
+func DeleteDeviceProfile(db sqlx.Ext, id string) error {
+	n, err := GetNetworkServerForDeviceProfileID(db, id)
+	if err != nil {
+		return errors.Wrap(err, "get network-server error")
+	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
 	res, err := db.Exec("delete from device_profile where device_profile_id = $1", id)
 	if err != nil {
 		return handlePSQLError(err, "delete error")
@@ -263,7 +303,7 @@ func DeleteDeviceProfile(db sqlx.Execer, id string) error {
 		return ErrDoesNotExist
 	}
 
-	_, err = common.NetworkServer.DeleteDeviceProfile(context.Background(), &ns.DeleteDeviceProfileRequest{
+	_, err = nsClient.DeleteDeviceProfile(context.Background(), &ns.DeleteDeviceProfileRequest{
 		DeviceProfileID: id,
 	})
 	if err != nil {

@@ -39,7 +39,7 @@ class NodeActivationForm extends Component {
   getRandomDevAddr(e) {
     e.preventDefault();
 
-    NodeStore.getRandomDevAddr((responseData) => {
+    NodeStore.getRandomDevAddr(this.props.devEUI, (responseData) => {
       let activation = this.state.activation;
       activation["devAddr"] = responseData.devAddr;
       this.setState({
@@ -133,7 +133,7 @@ class ActivateNode extends Component {
       <div>
         <div className="panel panel-default">
           <div className="panel-body">
-            <NodeActivationForm onSubmit={this.onSubmit} />
+            <NodeActivationForm devEUI={this.props.params.devEUI} onSubmit={this.onSubmit} />
           </div>
         </div>
       </div>

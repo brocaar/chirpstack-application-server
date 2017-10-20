@@ -92,7 +92,7 @@ service Device {
     // GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
     rpc GetRandomDevAddr(GetRandomDevAddrRequest) returns (GetRandomDevAddrResponse) {
         option (google.api.http) = {
-            post: "/api/devices/getRandomDevAddr"
+            post: "/api/devices/{devEUI}/getRandomDevAddr"
         };
     }
 
@@ -277,7 +277,10 @@ message GetDeviceActivationResponse {
     uint32 fCntDown = 5;
 }
 
-message GetRandomDevAddrRequest {}
+message GetRandomDevAddrRequest {
+    // Hex encoded DevEUI of the device to activate.
+    string devEUI = 1;
+}
 
 message GetRandomDevAddrResponse {
     // Hex encoded DevAddr.

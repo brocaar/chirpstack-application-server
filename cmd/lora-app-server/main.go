@@ -17,6 +17,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/brocaar/lora-app-server/internal/nsclient"
+
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -39,9 +41,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/migrations"
 	"github.com/brocaar/lora-app-server/internal/static"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lora-app-server/internal/storage/gwmigrate"
 	"github.com/brocaar/loraserver/api/as"
-	"github.com/brocaar/loraserver/api/ns"
 )
 
 func init() {
@@ -136,26 +136,11 @@ func setHandler(c *cli.Context) error {
 }
 
 func setNetworkServerClient(c *cli.Context) error {
-	log.WithFields(log.Fields{
-		"server":   c.String("ns-server"),
-		"ca-cert":  c.String("ns-ca-cert"),
-		"tls-cert": c.String("ns-tls-cert"),
-		"tls-key":  c.String("ns-tls-key"),
-	}).Info("connecting to network-server api")
-	var nsOpts []grpc.DialOption
-	if c.String("ns-tls-cert") != "" && c.String("ns-tls-key") != "" {
-		nsOpts = append(nsOpts, grpc.WithTransportCredentials(
-			mustGetTransportCredentials(c.String("ns-tls-cert"), c.String("ns-tls-key"), c.String("ns-ca-cert"), false),
-		))
-	} else {
-		nsOpts = append(nsOpts, grpc.WithInsecure())
-	}
-
-	nsConn, err := grpc.Dial(c.String("ns-server"), nsOpts...)
-	if err != nil {
-		return errors.Wrap(err, "network-server dial error")
-	}
-	common.NetworkServer = ns.NewNetworkServerClient(nsConn)
+	common.NetworkServerPool = nsclient.NewPool(
+		c.String("ns-ca-cert"),
+		c.String("ns-tls-cert"),
+		c.String("ns-tls-key"),
+	)
 
 	return nil
 }
@@ -173,10 +158,6 @@ func runDatabaseMigrations(c *cli.Context) error {
 			return errors.Wrap(err, "applying migrations error")
 		}
 		log.WithField("count", n).Info("migrations applied")
-	}
-
-	if err := gwmigrate.MigrateGateways(); err != nil {
-		log.Fatalf("migrate gateway data error: %s", err)
 	}
 
 	return nil

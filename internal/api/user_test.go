@@ -32,7 +32,7 @@ func TestUserAPI(t *testing.T) {
 			DeviceProfile: &ns.DeviceProfile{},
 		}
 
-		common.NetworkServer = nsClient
+		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 		ctx := context.Background()
 		validator := &TestValidator{}

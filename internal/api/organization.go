@@ -182,13 +182,23 @@ func (a *OrganizationAPI) Delete(ctx context.Context, req *pb.OrganizationReques
 		}
 
 		for _, gw := range gws {
+			n, err := storage.GetNetworkServer(common.DB, gw.NetworkServerID)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+
+			nsClient, err := common.NetworkServerPool.Get(n.Server)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+
 			err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
 				err = storage.DeleteGateway(tx, gw.MAC)
 				if err != nil {
 					return errToRPCError(err)
 				}
 
-				_, err = common.NetworkServer.DeleteGateway(ctx, &ns.DeleteGatewayRequest{
+				_, err = nsClient.DeleteGateway(ctx, &ns.DeleteGatewayRequest{
 					Mac: gw.MAC[:],
 				})
 				if err != nil && grpc.Code(err) != codes.NotFound {

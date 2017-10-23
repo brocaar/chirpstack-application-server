@@ -112,3 +112,25 @@ input[type=number] {
 .map-legend ul li {
   font-weight: bold;
 }
+/* Navbar branding */
+.navbar-brand-logo {
+    display: inline;
+    max-height: 30px;
+    margin-right: 12px;
+}
+
+/* Page footer */
+.footer {
+    font-size: 16px;
+    font-family: sans-serif;
+}
+
+.footer .footerRegistration {
+    text-align: center;
+    width: 100%;
+}
+
+.footer .footerRight {
+    float: right;
+    margin-right: 32px;
+}

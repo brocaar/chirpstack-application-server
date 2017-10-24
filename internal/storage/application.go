@@ -228,7 +228,12 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 }
 
 // DeleteApplication deletes the Application matching the given ID.
-func DeleteApplication(db *sqlx.DB, id int64) error {
+func DeleteApplication(db sqlx.Ext, id int64) error {
+	err := DeleteAllDevicesForApplicationID(db, id)
+	if err != nil {
+		return errors.Wrap(err, "delete all nodes error")
+	}
+
 	res, err := db.Exec("delete from application where id = $1", id)
 	if err != nil {
 		return handlePSQLError(Delete, err, "delete error")
@@ -244,6 +249,25 @@ func DeleteApplication(db *sqlx.DB, id int64) error {
 	log.WithFields(log.Fields{
 		"id": id,
 	}).Info("application deleted")
+
+	return nil
+}
+
+// DeleteAllApplicationsForOrganizationID deletes all applications
+// given an organization id.
+func DeleteAllApplicationsForOrganizationID(db sqlx.Ext, organizationID int64) error {
+	var apps []Application
+	err := sqlx.Select(db, &apps, "select * from application where organization_id = $1", organizationID)
+	if err != nil {
+		return handlePSQLError(Select, err, "select error")
+	}
+
+	for _, app := range apps {
+		err = DeleteApplication(db, app.ID)
+		if err != nil {
+			return errors.Wrap(err, "delete application error")
+		}
+	}
 
 	return nil
 }

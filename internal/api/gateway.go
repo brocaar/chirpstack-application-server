@@ -300,31 +300,9 @@ func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (
 	}
 
 	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
-		gw, err := storage.GetGateway(common.DB, mac, false)
-		if err != nil {
-			return errToRPCError(err)
-		}
-
 		err = storage.DeleteGateway(tx, mac)
 		if err != nil {
 			return errToRPCError(err)
-		}
-
-		n, err := storage.GetNetworkServer(tx, gw.NetworkServerID)
-		if err != nil {
-			return errToRPCError(err)
-		}
-
-		nsClient, err := common.NetworkServerPool.Get(n.Server)
-		if err != nil {
-			return errToRPCError(err)
-		}
-
-		_, err = nsClient.DeleteGateway(ctx, &ns.DeleteGatewayRequest{
-			Mac: mac[:],
-		})
-		if err != nil && grpc.Code(err) != codes.NotFound {
-			return err
 		}
 
 		return nil

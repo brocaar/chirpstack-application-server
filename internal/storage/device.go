@@ -4,6 +4,9 @@ import (
 	"context"
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+
 	"github.com/brocaar/loraserver/api/ns"
 
 	"github.com/jmoiron/sqlx"
@@ -278,7 +281,7 @@ func DeleteDevice(db sqlx.Ext, devEUI lorawan.EUI64) error {
 	_, err = nsClient.DeleteDevice(context.Background(), &ns.DeleteDeviceRequest{
 		DevEUI: devEUI[:],
 	})
-	if err != nil {
+	if err != nil && grpc.Code(err) != codes.NotFound {
 		log.WithError(err).Error("network-server delete device api error")
 		return handleGrpcError(err, "delete device error")
 	}
@@ -437,4 +440,22 @@ func GetLastDeviceActivationForDevEUI(db sqlx.Queryer, devEUI lorawan.EUI64) (De
 	}
 
 	return da, nil
+}
+
+// DeleteAllDevicesForApplicationID deletes all devices given an application id.
+func DeleteAllDevicesForApplicationID(db sqlx.Ext, applicationID int64) error {
+	var devs []Device
+	err := sqlx.Select(db, &devs, "select * from device where application_id = $1", applicationID)
+	if err != nil {
+		return handlePSQLError(Select, err, "select error")
+	}
+
+	for _, dev := range devs {
+		err = DeleteDevice(db, dev.DevEUI)
+		if err != nil {
+			return errors.Wrap(err, "delete device error")
+		}
+	}
+
+	return nil
 }

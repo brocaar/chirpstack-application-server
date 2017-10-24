@@ -4,6 +4,9 @@ import (
 	"context"
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+
 	"github.com/satori/go.uuid"
 
 	"github.com/jmoiron/sqlx"
@@ -306,7 +309,7 @@ func DeleteDeviceProfile(db sqlx.Ext, id string) error {
 	_, err = nsClient.DeleteDeviceProfile(context.Background(), &ns.DeleteDeviceProfileRequest{
 		DeviceProfileID: id,
 	})
-	if err != nil {
+	if err != nil && grpc.Code(err) != codes.NotFound {
 		return handleGrpcError(err, "delete device-profile error")
 	}
 
@@ -479,4 +482,23 @@ func GetDeviceProfilesForApplicationID(db sqlx.Queryer, applicationID int64, lim
 		return nil, handlePSQLError(Select, err, "select error")
 	}
 	return dps, nil
+}
+
+// DeleteAllDeviceProfilesForOrganizationID deletes all device-profiles
+// given an organization id.
+func DeleteAllDeviceProfilesForOrganizationID(db sqlx.Ext, organizationID int64) error {
+	var dps []DeviceProfileMeta
+	err := sqlx.Select(db, &dps, "select * from device_profile where organization_id = $1", organizationID)
+	if err != nil {
+		return handlePSQLError(Select, err, "select error")
+	}
+
+	for _, dp := range dps {
+		err = DeleteDeviceProfile(db, dp.DeviceProfileID)
+		if err != nil {
+			return errors.Wrap(err, "delete device-profile error")
+		}
+	}
+
+	return nil
 }

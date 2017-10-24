@@ -11,7 +11,6 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/loraserver/api/ns"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -168,54 +167,21 @@ func (a *OrganizationAPI) Delete(ctx context.Context, req *pb.OrganizationReques
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	// deleting the organization will remove all gateways in the
-	// LoRa App Server database, however we need to delete these gateways
-	// also from the LoRa Server database.
-	for {
-		gws, err := storage.GetGatewaysForOrganizationID(common.DB, req.Id, 100, 0)
-		if err != nil {
-			return nil, errToRPCError(err)
+	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+		if err := storage.DeleteAllGatewaysForOrganizationID(tx, req.Id); err != nil {
+			return errToRPCError(err)
 		}
 
-		if len(gws) == 0 {
-			break
+		if err := storage.DeleteOrganization(tx, req.Id); err != nil {
+			return errToRPCError(err)
 		}
 
-		for _, gw := range gws {
-			n, err := storage.GetNetworkServer(common.DB, gw.NetworkServerID)
-			if err != nil {
-				return nil, errToRPCError(err)
-			}
-
-			nsClient, err := common.NetworkServerPool.Get(n.Server)
-			if err != nil {
-				return nil, errToRPCError(err)
-			}
-
-			err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
-				err = storage.DeleteGateway(tx, gw.MAC)
-				if err != nil {
-					return errToRPCError(err)
-				}
-
-				_, err = nsClient.DeleteGateway(ctx, &ns.DeleteGatewayRequest{
-					Mac: gw.MAC[:],
-				})
-				if err != nil && grpc.Code(err) != codes.NotFound {
-					return err
-				}
-				return nil
-			})
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	err := storage.DeleteOrganization(common.DB, req.Id)
+		return nil
+	})
 	if err != nil {
-		return nil, errToRPCError(err)
+		return nil, err
 	}
+
 	return &pb.OrganizationEmptyResponse{}, nil
 }
 

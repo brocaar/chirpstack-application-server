@@ -13,6 +13,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/handler/httphandler"
 	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/jmoiron/sqlx"
 )
 
 // ApplicationAPI exports the Application related functions.
@@ -108,10 +109,17 @@ func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteApplication(common.DB, req.Id)
+	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+		err := storage.DeleteApplication(tx, req.Id)
+		if err != nil {
+			return errToRPCError(err)
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, errToRPCError(err)
+		return nil, err
 	}
+
 	return &pb.DeleteApplicationResponse{}, nil
 }
 

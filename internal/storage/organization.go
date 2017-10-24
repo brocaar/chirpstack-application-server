@@ -237,7 +237,22 @@ func UpdateOrganization(db *sqlx.DB, org *Organization) error {
 }
 
 // DeleteOrganization deletes the organization matching the given id.
-func DeleteOrganization(db *sqlx.DB, id int64) error {
+func DeleteOrganization(db sqlx.Ext, id int64) error {
+	err := DeleteAllApplicationsForOrganizationID(db, id)
+	if err != nil {
+		return errors.Wrap(err, "delete all applications error")
+	}
+
+	err = DeleteAllServiceProfilesForOrganizationID(db, id)
+	if err != nil {
+		return errors.Wrap(err, "delete all service-profiles error")
+	}
+
+	err = DeleteAllDeviceProfilesForOrganizationID(db, id)
+	if err != nil {
+		return errors.Wrap(err, "delete all device-profiles error")
+	}
+
 	res, err := db.Exec("delete from organization where id = $1", id)
 	if err != nil {
 		return handlePSQLError(Delete, err, "delete error")

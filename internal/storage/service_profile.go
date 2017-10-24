@@ -4,6 +4,9 @@ import (
 	"context"
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
@@ -318,7 +321,7 @@ func DeleteServiceProfile(db sqlx.Ext, id string) error {
 	_, err = nsClient.DeleteServiceProfile(context.Background(), &ns.DeleteServiceProfileRequest{
 		ServiceProfileID: id,
 	})
-	if err != nil {
+	if err != nil && grpc.Code(err) != codes.NotFound {
 		return handleGrpcError(err, "delete service-profile error")
 	}
 
@@ -439,4 +442,23 @@ func GetServiceProfilesForUser(db sqlx.Queryer, username string, limit, offset i
 	}
 
 	return sps, nil
+}
+
+// DeleteAllServiceProfilesForOrganizationID deletes all service-profiles
+// given an organization id.
+func DeleteAllServiceProfilesForOrganizationID(db sqlx.Ext, organizationID int64) error {
+	var sps []ServiceProfileMeta
+	err := sqlx.Select(db, &sps, "select * from service_profile where organization_id = $1", organizationID)
+	if err != nil {
+		return handlePSQLError(Select, err, "select error")
+	}
+
+	for _, sp := range sps {
+		err = DeleteServiceProfile(db, sp.ServiceProfileID)
+		if err != nil {
+			return errors.Wrap(err, "delete service-profile error")
+		}
+	}
+
+	return nil
 }

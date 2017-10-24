@@ -16,6 +16,11 @@ import (
 // backend interfaces specification.
 type JoinServerAPI struct{}
 
+// NewJoinServerAPI create a new JoinServerAPI.
+func NewJoinServerAPI() http.Handler {
+	return &JoinServerAPI{}
+}
+
 // ServeHTTP implements the http.Handler interface.
 func (a *JoinServerAPI) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var basePL backend.BasePayload

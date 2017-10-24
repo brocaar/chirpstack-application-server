@@ -69,6 +69,7 @@ func run(c *cli.Context) error {
 		handleDataDownPayloads,
 		startApplicationServerAPI,
 		startGatewayPing,
+		startJoinServerAPI,
 		startClientAPI(ctx),
 	}
 
@@ -213,6 +214,52 @@ func startGatewayPing(c *cli.Context) error {
 	}
 
 	go gwping.SendPingLoop()
+
+	return nil
+}
+
+func startJoinServerAPI(c *cli.Context) error {
+	log.WithFields(log.Fields{
+		"bind":     c.String("js-bind"),
+		"ca_cert":  c.String("js-ca-cert"),
+		"tls_cert": c.String("js-tls-cert"),
+		"tls_key":  c.String("js-tls-key"),
+	}).Info("starting join-server api")
+
+	server := http.Server{
+		Handler: api.NewJoinServerAPI(),
+		Addr:    c.String("js-bind"),
+	}
+
+	if c.String("js-ca-cert") != "" {
+		caCert, err := ioutil.ReadFile(c.String("js-ca-cert"))
+		if err != nil {
+			return errors.Wrap(err, "read ca certificate error")
+		}
+
+		caCertPool := x509.NewCertPool()
+		if !caCertPool.AppendCertsFromPEM(caCert) {
+			return errors.New("append ca certificate error")
+		}
+
+		server.TLSConfig = &tls.Config{
+			ClientCAs:  caCertPool,
+			ClientAuth: tls.RequireAndVerifyClientCert,
+		}
+	}
+
+	if c.String("js-tls-cert") == "" && c.String("js-tls-key") == "" {
+		go func() {
+			err := server.ListenAndServe()
+			log.WithError(err).Error("join-server api error")
+		}()
+	} else {
+		go func() {
+			err := server.ListenAndServeTLS(c.String("js-tls-cert"), c.String("js-tls-key"))
+			log.WithError(err).Error("join-server api error")
+		}()
+	}
+
 	return nil
 }
 
@@ -590,6 +637,27 @@ func main() {
 			Usage:  "when set, this html is inserted onto the login page, under the login area",
 			EnvVar: "BRANDING_REGISTRATION",
 			Hidden: true,
+		},
+		cli.StringFlag{
+			Name:   "js-bind",
+			Usage:  "ip:port to bind the join-server api interface to",
+			Value:  "0.0.0.0:8003",
+			EnvVar: "JS_BIND",
+		},
+		cli.StringFlag{
+			Name:   "js-ca-cert",
+			Usage:  "ca certificate used by the join-server api server (optional)",
+			EnvVar: "JS_CA_CERT",
+		},
+		cli.StringFlag{
+			Name:   "js-tls-cert",
+			Usage:  "tls certificate used by the join-server api server (optional)",
+			EnvVar: "JS_TLS_CERT",
+		},
+		cli.StringFlag{
+			Name:   "js-tls-key",
+			Usage:  "tls key used by the join-server api server (optional)",
+			EnvVar: "JS_TLS_KEY",
 		},
 	}
 	app.Run(os.Args)

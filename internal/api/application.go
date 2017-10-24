@@ -90,7 +90,6 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	// update the fields
 	app.Name = req.Name
 	app.Description = req.Description
-	app.OrganizationID = req.OrganizationID
 	app.ServiceProfileID = req.ServiceProfileID
 
 	err = storage.UpdateApplication(common.DB, app)

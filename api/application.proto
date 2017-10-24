@@ -134,9 +134,6 @@ message UpdateApplicationRequest {
 	// Description of the application.
 	string description = 3;
 
-	// ID of the organization to which the application belongs.
-	int64 organizationID = 14;
-
 	// ID of the service profile.
 	string serviceProfileID = 15;
 }

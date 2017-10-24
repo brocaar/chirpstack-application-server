@@ -470,11 +470,6 @@
           "type": "string",
           "description": "Description of the application."
         },
-        "organizationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the organization to which the application belongs."
-        },
         "serviceProfileID": {
           "type": "string",
           "description": "ID of the service profile."

@@ -143,7 +143,6 @@ func TestApplicationAPI(t *testing.T) {
 
 			Convey("When updating the application", func() {
 				_, err := api.Update(ctx, &pb.UpdateApplicationRequest{
-					OrganizationID:   org.ID,
 					Id:               createResp.Id,
 					Name:             "test-app-updated",
 					Description:      "An updated test description",

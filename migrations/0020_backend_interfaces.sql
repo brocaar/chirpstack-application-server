@@ -12,8 +12,8 @@ create index idx_network_server_updated_at on network_server(updated_at);
 
 create table service_profile (
     service_profile_id uuid primary key,
-    organization_id bigint not null references organization on delete cascade,
-    network_server_id bigint not null references network_server on delete cascade,
+    organization_id bigint not null references organization,
+    network_server_id bigint not null references network_server,
     created_at timestamp with time zone not null,
     updated_at timestamp with time zone not null,
     name varchar(100) not null
@@ -26,8 +26,8 @@ create index idx_service_profile_updated_at on service_profile(updated_at);
 
 create table device_profile (
     device_profile_id uuid primary key,
-    network_server_id bigint not null references network_server on delete cascade,
-    organization_id bigint not null references organization on delete cascade,
+    network_server_id bigint not null references network_server,
+    organization_id bigint not null references organization,
     created_at timestamp with time zone not null,
     updated_at timestamp with time zone not null,
     name varchar(100) not null
@@ -42,7 +42,7 @@ create table device (
     dev_eui bytea primary key,
     created_at timestamp with time zone not null,
     updated_at timestamp with time zone not null,
-    application_id bigint not null references application on delete cascade,
+    application_id bigint not null references application,
     device_profile_id uuid not null references device_profile,
     name varchar(100) not null,
     description text not null

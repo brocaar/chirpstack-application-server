@@ -1,12 +1,10 @@
 package storage
 
 import (
-	"database/sql"
 	"regexp"
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -63,17 +61,7 @@ func CreateOrganization(db *sqlx.DB, org *Organization) error {
 		org.CanHaveGateways,
 	)
 	if err != nil {
-		switch err := err.(type) {
-		case *pq.Error:
-			switch err.Code.Name() {
-			case "unique_violation":
-				return ErrAlreadyExists
-			default:
-				return errors.Wrap(err, "insert error")
-			}
-		default:
-			return errors.Wrap(err, "insert error")
-		}
+		return handlePSQLError(Insert, err, "insert error")
 	}
 	org.CreatedAt = now
 	org.UpdatedAt = now
@@ -89,10 +77,7 @@ func GetOrganization(db *sqlx.DB, id int64) (Organization, error) {
 	var org Organization
 	err := db.Get(&org, "select * from organization where id = $1", id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return org, ErrDoesNotExist
-		}
-		return org, errors.Wrap(err, "select error")
+		return org, handlePSQLError(Select, err, "select error")
 	}
 	return org, nil
 }
@@ -114,7 +99,7 @@ func GetOrganizationCount(db *sqlx.DB, search string) (int, error) {
 		search,
 	)
 	if err != nil {
-		return 0, errors.Wrap(err, "select error")
+		return count, handlePSQLError(Select, err, "select error")
 	}
 	return count, nil
 }
@@ -146,7 +131,7 @@ func GetOrganizationCountForUser(db *sqlx.DB, username string, search string) (i
 		search,
 	)
 	if err != nil {
-		return 0, errors.Wrap(err, "select error")
+		return count, handlePSQLError(Select, err, "select error")
 	}
 	return count, nil
 }
@@ -169,7 +154,7 @@ func GetOrganizations(db *sqlx.DB, limit, offset int, search string) ([]Organiza
 		order by display_name
 		limit $1 offset $2`, limit, offset, search)
 	if err != nil {
-		return nil, errors.Wrap(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 	return orgs, nil
 }
@@ -205,7 +190,7 @@ func GetOrganizationsForUser(db *sqlx.DB, username string, limit, offset int, se
 		search,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 	return orgs, nil
 }
@@ -233,17 +218,7 @@ func UpdateOrganization(db *sqlx.DB, org *Organization) error {
 	)
 
 	if err != nil {
-		switch err := err.(type) {
-		case *pq.Error:
-			switch err.Code.Name() {
-			case "unique_violation":
-				return ErrAlreadyExists
-			default:
-				return errors.Wrap(err, "update error")
-			}
-		default:
-			return errors.Wrap(err, "update error")
-		}
+		return handlePSQLError(Update, err, "update error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -265,7 +240,7 @@ func UpdateOrganization(db *sqlx.DB, org *Organization) error {
 func DeleteOrganization(db *sqlx.DB, id int64) error {
 	res, err := db.Exec("delete from organization where id = $1", id)
 	if err != nil {
-		return errors.Wrap(err, "delete error")
+		return handlePSQLError(Delete, err, "delete error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -294,19 +269,7 @@ func CreateOrganizationUser(db sqlx.Execer, organizationID, userID int64, isAdmi
 		isAdmin,
 	)
 	if err != nil {
-		switch err := err.(type) {
-		case *pq.Error:
-			switch err.Code.Name() {
-			case "unique_violation":
-				return ErrAlreadyExists
-			case "foreign_key_violation":
-				return ErrDoesNotExist
-			default:
-				return errors.Wrap(err, "insert error")
-			}
-		default:
-			return errors.Wrap(err, "insert error")
-		}
+		return handlePSQLError(Insert, err, "insert error")
 	}
 
 	log.WithFields(log.Fields{
@@ -328,7 +291,7 @@ func UpdateOrganizationUser(db *sqlx.DB, organizationID, userID int64, isAdmin b
 			and user_id = $2
 	`, organizationID, userID, isAdmin)
 	if err != nil {
-		return errors.Wrap(err, "update error")
+		return handlePSQLError(Update, err, "update error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -349,6 +312,9 @@ func UpdateOrganizationUser(db *sqlx.DB, organizationID, userID int64, isAdmin b
 // DeleteOrganizationUser deletes the given organization user.
 func DeleteOrganizationUser(db *sqlx.DB, organizationID, userID int64) error {
 	res, err := db.Exec(`delete from organization_user where organization_id = $1 and user_id = $2`, organizationID, userID)
+	if err != nil {
+		return handlePSQLError(Delete, err, "delete error")
+	}
 	ra, err := res.RowsAffected()
 	if err != nil {
 		return errors.Wrap(err, "get rows affected error")
@@ -384,10 +350,7 @@ func GetOrganizationUser(db *sqlx.DB, organizationID, userID int64) (Organizatio
 		userID,
 	)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return u, ErrDoesNotExist
-		}
-		return u, errors.Wrap(err, "select error")
+		return u, handlePSQLError(Select, err, "select error")
 	}
 	return u, nil
 }
@@ -403,7 +366,7 @@ func GetOrganizationUserCount(db *sqlx.DB, organizationID int64) (int, error) {
 		organizationID,
 	)
 	if err != nil {
-		return 0, errors.Wrap(err, "select error")
+		return count, handlePSQLError(Select, err, "select error")
 	}
 	return count, nil
 }
@@ -430,7 +393,7 @@ func GetOrganizationUsers(db *sqlx.DB, organizationID int64, limit, offset int) 
 		offset,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 	return users, nil
 }

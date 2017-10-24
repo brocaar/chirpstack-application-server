@@ -67,7 +67,7 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		sp.Name,
 	)
 	if err != nil {
-		return handlePSQLError(err, "insert error")
+		return handlePSQLError(Insert, err, "insert error")
 	}
 
 	req := ns.CreateServiceProfileRequest{
@@ -143,12 +143,12 @@ func GetServiceProfile(db sqlx.Queryer, id string) (ServiceProfile, error) {
 		id,
 	)
 	if err := row.Err(); err != nil {
-		return sp, handlePSQLError(err, "select error")
+		return sp, handlePSQLError(Select, err, "select error")
 	}
 
 	err := row.Scan(&sp.ServiceProfile.ServiceProfileID, &sp.NetworkServerID, &sp.OrganizationID, &sp.CreatedAt, &sp.UpdatedAt, &sp.Name)
 	if err != nil {
-		return sp, handlePSQLError(err, "scan error")
+		return sp, handlePSQLError(Scan, err, "scan error")
 	}
 
 	n, err := GetNetworkServer(db, sp.NetworkServerID)
@@ -224,7 +224,7 @@ func UpdateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		sp.Name,
 	)
 	if err != nil {
-		return handlePSQLError(err, "update error")
+		return handlePSQLError(Update, err, "update error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -305,7 +305,7 @@ func DeleteServiceProfile(db sqlx.Ext, id string) error {
 
 	res, err := db.Exec("delete from service_profile where service_profile_id = $1", id)
 	if err != nil {
-		return handlePSQLError(err, "delete error")
+		return handlePSQLError(Delete, err, "delete error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -332,7 +332,7 @@ func GetServiceProfileCount(db sqlx.Queryer) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, "select count(*) from service_profile")
 	if err != nil {
-		return 0, handlePSQLError(err, "select error")
+		return 0, handlePSQLError(Select, err, "select error")
 	}
 	return count, nil
 }
@@ -343,7 +343,7 @@ func GetServiceProfileCountForOrganizationID(db sqlx.Queryer, organizationID int
 	var count int
 	err := sqlx.Get(db, &count, "select count(*) from service_profile where organization_id = $1", organizationID)
 	if err != nil {
-		return 0, handlePSQLError(err, "select error")
+		return 0, handlePSQLError(Select, err, "select error")
 	}
 	return count, nil
 }
@@ -367,7 +367,7 @@ func GetServiceProfileCountForUser(db sqlx.Queryer, username string) (int, error
 		username,
 	)
 	if err != nil {
-		return 0, handlePSQLError(err, "select error")
+		return 0, handlePSQLError(Select, err, "select error")
 	}
 	return count, nil
 }
@@ -384,7 +384,7 @@ func GetServiceProfiles(db sqlx.Queryer, limit, offset int) ([]ServiceProfileMet
 		offset,
 	)
 	if err != nil {
-		return nil, handlePSQLError(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 
 	return sps, nil
@@ -406,7 +406,7 @@ func GetServiceProfilesForOrganizationID(db sqlx.Queryer, organizationID int64, 
 		offset,
 	)
 	if err != nil {
-		return nil, handlePSQLError(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 
 	return sps, nil
@@ -435,7 +435,7 @@ func GetServiceProfilesForUser(db sqlx.Queryer, username string, limit, offset i
 		offset,
 	)
 	if err != nil {
-		return nil, handlePSQLError(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 
 	return sps, nil

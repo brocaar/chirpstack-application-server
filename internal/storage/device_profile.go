@@ -71,7 +71,7 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 	)
 	if err != nil {
 		log.WithField("device_profile_id", dp.DeviceProfile.DeviceProfileID).Errorf("create device-profile error: %s", err)
-		return handlePSQLError(err, "insert error")
+		return handlePSQLError(Insert, err, "insert error")
 	}
 
 	var factoryPresetFreqs []uint32
@@ -141,12 +141,12 @@ func GetDeviceProfile(db sqlx.Queryer, id string) (DeviceProfile, error) {
 		id,
 	)
 	if err := row.Err(); err != nil {
-		return dp, handlePSQLError(err, "select error")
+		return dp, handlePSQLError(Select, err, "select error")
 	}
 
 	err := row.Scan(&dp.DeviceProfile.DeviceProfileID, &dp.NetworkServerID, &dp.OrganizationID, &dp.CreatedAt, &dp.UpdatedAt, &dp.Name)
 	if err != nil {
-		return dp, handlePSQLError(err, "scan error")
+		return dp, handlePSQLError(Scan, err, "scan error")
 	}
 
 	n, err := GetNetworkServer(db, dp.NetworkServerID)
@@ -262,7 +262,7 @@ func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		dp.Name,
 	)
 	if err != nil {
-		return handlePSQLError(err, "update error")
+		return handlePSQLError(Update, err, "update error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -293,7 +293,7 @@ func DeleteDeviceProfile(db sqlx.Ext, id string) error {
 
 	res, err := db.Exec("delete from device_profile where device_profile_id = $1", id)
 	if err != nil {
-		return handlePSQLError(err, "delete error")
+		return handlePSQLError(Delete, err, "delete error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -320,7 +320,7 @@ func GetDeviceProfileCount(db sqlx.Queryer) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, "select count(*) from device_profile")
 	if err != nil {
-		return 0, handlePSQLError(err, "select error")
+		return 0, handlePSQLError(Select, err, "select error")
 	}
 
 	return count, nil
@@ -332,7 +332,7 @@ func GetDeviceProfileCountForOrganizationID(db sqlx.Queryer, organizationID int6
 	var count int
 	err := sqlx.Get(db, &count, "select count(*) from device_profile where organization_id = $1", organizationID)
 	if err != nil {
-		return 0, handlePSQLError(err, "select error")
+		return 0, handlePSQLError(Select, err, "select error")
 	}
 	return count, nil
 }
@@ -356,7 +356,7 @@ func GetDeviceProfileCountForUser(db sqlx.Queryer, username string) (int, error)
 		username,
 	)
 	if err != nil {
-		return 0, handlePSQLError(err, "select error")
+		return 0, handlePSQLError(Select, err, "select error")
 	}
 	return count, nil
 }
@@ -381,7 +381,7 @@ func GetDeviceProfileCountForApplicationID(db sqlx.Queryer, applicationID int64)
 		applicationID,
 	)
 	if err != nil {
-		return 0, handlePSQLError(err, "select error")
+		return 0, handlePSQLError(Select, err, "select error")
 	}
 	return count, nil
 }
@@ -398,7 +398,7 @@ func GetDeviceProfiles(db sqlx.Queryer, limit, offset int) ([]DeviceProfileMeta,
 		offset,
 	)
 	if err != nil {
-		return nil, handlePSQLError(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 	return dps, nil
 }
@@ -419,7 +419,7 @@ func GetDeviceProfilesForOrganizationID(db sqlx.Queryer, organizationID int64, l
 		offset,
 	)
 	if err != nil {
-		return nil, handlePSQLError(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 	return dps, nil
 }
@@ -446,7 +446,7 @@ func GetDeviceProfilesForUser(db sqlx.Queryer, username string, limit, offset in
 		offset,
 	)
 	if err != nil {
-		return nil, handlePSQLError(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 
 	return dps, nil
@@ -476,7 +476,7 @@ func GetDeviceProfilesForApplicationID(db sqlx.Queryer, applicationID int64, lim
 		offset,
 	)
 	if err != nil {
-		return nil, handlePSQLError(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 	return dps, nil
 }

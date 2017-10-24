@@ -51,7 +51,7 @@ func CreateDeviceQueueItem(db *sqlx.DB, item *DeviceQueueItem) error {
 		item.Data,
 	)
 	if err != nil {
-		return handlePSQLError(err, "insert error")
+		return handlePSQLError(Insert, err, "insert error")
 	}
 
 	log.WithFields(log.Fields{
@@ -67,7 +67,7 @@ func GetDeviceQueueItem(db *sqlx.DB, id int64) (DeviceQueueItem, error) {
 	var qi DeviceQueueItem
 	err := db.Get(&qi, "select * from device_queue where id = $1", id)
 	if err != nil {
-		return qi, handlePSQLError(err, "select error")
+		return qi, handlePSQLError(Select, err, "select error")
 	}
 	return qi, nil
 }
@@ -77,7 +77,7 @@ func GetDeviceQueueItemCount(db *sqlx.DB, devEUI lorawan.EUI64) (int, error) {
 	var count int
 	err := db.Get(&count, "select count(*) from device_queue where dev_eui = $1", devEUI[:])
 	if err != nil {
-		return count, handlePSQLError(err, "select error")
+		return count, handlePSQLError(Select, err, "select error")
 	}
 	return count, nil
 }
@@ -88,7 +88,7 @@ func GetPendingDeviceQueueItem(db *sqlx.DB, devEUI lorawan.EUI64) (DeviceQueueIt
 	var qi DeviceQueueItem
 	err := db.Get(&qi, "select * from device_queue where dev_eui = $1 and pending = $2", devEUI[:], true)
 	if err != nil {
-		return qi, handlePSQLError(err, "select error")
+		return qi, handlePSQLError(Select, err, "select error")
 	}
 	return qi, nil
 }
@@ -118,7 +118,7 @@ func UpdateDeviceQueueItem(db *sqlx.DB, item *DeviceQueueItem) error {
 		item.Data,
 	)
 	if err != nil {
-		return handlePSQLError(err, "update error")
+		return handlePSQLError(Update, err, "update error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -137,7 +137,7 @@ func UpdateDeviceQueueItem(db *sqlx.DB, item *DeviceQueueItem) error {
 func DeleteDeviceQueueItem(db *sqlx.DB, id int64) error {
 	res, err := db.Exec("delete from device_queue where id = $1", id)
 	if err != nil {
-		return handlePSQLError(err, "delete error")
+		return handlePSQLError(Delete, err, "delete error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -157,7 +157,7 @@ func GetDeviceQueueItems(db *sqlx.DB, devEUI lorawan.EUI64) ([]DeviceQueueItem, 
 	var items []DeviceQueueItem
 	err := db.Select(&items, "select * from device_queue where dev_eui = $1 order by id", devEUI[:])
 	if err != nil {
-		return nil, handlePSQLError(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 	return items, nil
 }
@@ -167,7 +167,7 @@ func GetDeviceQueueItems(db *sqlx.DB, devEUI lorawan.EUI64) ([]DeviceQueueItem, 
 func DeleteDeviceQueueItemsForDevEUI(db *sqlx.DB, devEUI lorawan.EUI64) error {
 	_, err := db.Exec("delete from device_queue where dev_eui = $1", devEUI[:])
 	if err != nil {
-		return handlePSQLError(err, "delete error")
+		return handlePSQLError(Delete, err, "delete error")
 	}
 	return nil
 }
@@ -184,7 +184,7 @@ func GetNextDeviceQueueItem(db *sqlx.DB, devEUI lorawan.EUI64, maxPayloadSize in
 			if err == sql.ErrNoRows {
 				return nil, nil
 			}
-			return nil, handlePSQLError(err, "select error")
+			return nil, handlePSQLError(Select, err, "select error")
 		}
 
 		if len(qi.Data) > maxPayloadSize {

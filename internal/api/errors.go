@@ -11,6 +11,7 @@ import (
 var errToCode = map[error]codes.Code{
 	storage.ErrAlreadyExists:             codes.AlreadyExists,
 	storage.ErrDoesNotExist:              codes.NotFound,
+	storage.ErrUsedByOtherObjects:        codes.FailedPrecondition,
 	storage.ErrApplicationInvalidName:    codes.InvalidArgument,
 	storage.ErrNodeInvalidName:           codes.InvalidArgument,
 	storage.ErrNodeMaxRXDelay:            codes.InvalidArgument,

@@ -52,7 +52,7 @@ func CreateNetworkServer(db sqlx.Queryer, n *NetworkServer) error {
 		n.Server,
 	)
 	if err != nil {
-		return handlePSQLError(err, "insert error")
+		return handlePSQLError(Insert, err, "insert error")
 	}
 
 	nsClient, err := common.NetworkServerPool.Get(n.Server)
@@ -84,7 +84,7 @@ func GetNetworkServer(db sqlx.Queryer, id int64) (NetworkServer, error) {
 	var ns NetworkServer
 	err := sqlx.Get(db, &ns, "select * from network_server where id = $1", id)
 	if err != nil {
-		return ns, handlePSQLError(err, "select error")
+		return ns, handlePSQLError(Select, err, "select error")
 	}
 
 	return ns, nil
@@ -111,7 +111,7 @@ func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
 		n.Server,
 	)
 	if err != nil {
-		return handlePSQLError(err, "update error")
+		return handlePSQLError(Update, err, "update error")
 	}
 
 	ra, err := res.RowsAffected()
@@ -155,7 +155,7 @@ func DeleteNetworkServer(db sqlx.Ext, id int64) error {
 
 	res, err := db.Exec("delete from network_server where id = $1", id)
 	if err != nil {
-		return handlePSQLError(err, "delete error")
+		return handlePSQLError(Delete, err, "delete error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -187,7 +187,7 @@ func GetNetworkServerCount(db sqlx.Queryer) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, "select count(*) from network_server")
 	if err != nil {
-		return 0, handlePSQLError(err, "select error")
+		return 0, handlePSQLError(Select, err, "select error")
 	}
 
 	return count, nil
@@ -211,7 +211,7 @@ func GetNetworkServerCountForOrganizationID(db sqlx.Queryer, organizationID int6
 		organizationID,
 	)
 	if err != nil {
-		return 0, handlePSQLError(err, "select error")
+		return 0, handlePSQLError(Select, err, "select error")
 	}
 	return count, nil
 }
@@ -228,7 +228,7 @@ func GetNetworkServers(db sqlx.Queryer, limit, offset int) ([]NetworkServer, err
 		offset,
 	)
 	if err != nil {
-		return nil, handlePSQLError(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 
 	return nss, nil
@@ -256,7 +256,7 @@ func GetNetworkServersForOrganizationID(db sqlx.Queryer, organizationID int64, l
 		offset,
 	)
 	if err != nil {
-		return nil, handlePSQLError(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 
 	return nss, nil
@@ -279,7 +279,7 @@ func GetNetworkServerForDevEUI(db sqlx.Queryer, devEUI lorawan.EUI64) (NetworkSe
 		devEUI,
 	)
 	if err != nil {
-		return n, handlePSQLError(err, "select error")
+		return n, handlePSQLError(Select, err, "select error")
 	}
 	return n, nil
 }
@@ -300,7 +300,7 @@ func GetNetworkServerForDeviceProfileID(db sqlx.Queryer, id string) (NetworkServ
 		id,
 	)
 	if err != nil {
-		return n, handlePSQLError(err, "select error")
+		return n, handlePSQLError(Select, err, "select error")
 	}
 	return n, nil
 }
@@ -321,7 +321,7 @@ func GetNetworkServerForServiceProfileID(db sqlx.Queryer, id string) (NetworkSer
 		id,
 	)
 	if err != nil {
-		return n, handlePSQLError(err, "select error")
+		return n, handlePSQLError(Select, err, "select error")
 	}
 	return n, nil
 }

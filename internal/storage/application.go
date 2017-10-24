@@ -48,7 +48,7 @@ func CreateApplication(db *sqlx.DB, item *Application) error {
 		item.ServiceProfileID,
 	)
 	if err != nil {
-		return handlePSQLError(err, "insert error")
+		return handlePSQLError(Insert, err, "insert error")
 	}
 
 	log.WithFields(log.Fields{
@@ -64,7 +64,7 @@ func GetApplication(db sqlx.Queryer, id int64) (Application, error) {
 	var app Application
 	err := sqlx.Get(db, &app, "select * from application where id = $1", id)
 	if err != nil {
-		return app, handlePSQLError(err, "select error")
+		return app, handlePSQLError(Select, err, "select error")
 	}
 
 	return app, nil
@@ -209,7 +209,7 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 		item.ServiceProfileID,
 	)
 	if err != nil {
-		return handlePSQLError(err, "update error")
+		return handlePSQLError(Update, err, "update error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -231,7 +231,7 @@ func UpdateApplication(db *sqlx.DB, item Application) error {
 func DeleteApplication(db *sqlx.DB, id int64) error {
 	res, err := db.Exec("delete from application where id = $1", id)
 	if err != nil {
-		return handlePSQLError(err, "delete error")
+		return handlePSQLError(Delete, err, "delete error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {

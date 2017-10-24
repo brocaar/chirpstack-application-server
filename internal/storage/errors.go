@@ -7,10 +7,23 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Action defines the action type.
+type Action int
+
+// Possible actions
+const (
+	Select Action = iota
+	Insert
+	Update
+	Delete
+	Scan
+)
+
 // errors
 var (
 	ErrAlreadyExists             = errors.New("object already exists")
 	ErrDoesNotExist              = errors.New("object does not exist")
+	ErrUsedByOtherObjects        = errors.New("this object is used by other objects, remove them first")
 	ErrApplicationInvalidName    = errors.New("invalid application name")
 	ErrNodeInvalidName           = errors.New("invalid node name")
 	ErrNodeMaxRXDelay            = errors.New("max value of RXDelay is 15")
@@ -22,7 +35,7 @@ var (
 	ErrGatewayInvalidName        = errors.New("invalid gateway name")
 )
 
-func handlePSQLError(err error, description string) error {
+func handlePSQLError(action Action, err error, description string) error {
 	if err == sql.ErrNoRows {
 		return ErrDoesNotExist
 	}
@@ -33,7 +46,12 @@ func handlePSQLError(err error, description string) error {
 		case "unique_violation":
 			return ErrAlreadyExists
 		case "foreign_key_violation":
-			return ErrDoesNotExist
+			switch action {
+			case Delete:
+				return ErrUsedByOtherObjects
+			default:
+				return ErrDoesNotExist
+			}
 		}
 	}
 

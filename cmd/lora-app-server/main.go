@@ -66,6 +66,7 @@ func run(c *cli.Context) error {
 		setJWTSecret,
 		setHashIterations,
 		setDisableAssignExistingUsers,
+		setAdvertiseSettings,
 		handleDataDownPayloads,
 		startApplicationServerAPI,
 		startGatewayPing,
@@ -176,6 +177,13 @@ func setHashIterations(c *cli.Context) error {
 
 func setDisableAssignExistingUsers(c *cli.Context) error {
 	auth.DisableAssignExistingUsers = c.Bool("disable-assign-existing-users")
+	return nil
+}
+
+func setAdvertiseSettings(c *cli.Context) error {
+	// TODO: get from client-side certificate in the future?
+	common.ApplicationServerID = "6d5db27e-4ce2-4b2b-b5d7-91f069397978"
+	common.ApplicationServerServer = c.String("as-advertise-server")
 	return nil
 }
 
@@ -520,6 +528,18 @@ func main() {
 			EnvVar: "MQTT_CA_CERT",
 		},
 		cli.StringFlag{
+			Name:   "as-advertise-server",
+			Usage:  "ip:port of the application-server api (used by LoRa Server to connect back to LoRa App Server)",
+			Value:  "localhost:8001",
+			EnvVar: "AS_ADVERTISE_SERVER",
+		},
+		cli.StringFlag{
+			Name:   "bind",
+			Usage:  "ip:port to bind the api server",
+			Value:  "0.0.0.0:8001",
+			EnvVar: "BIND",
+		},
+		cli.StringFlag{
 			Name:   "ca-cert",
 			Usage:  "ca certificate used by the api server (optional)",
 			EnvVar: "CA_CERT",
@@ -533,12 +553,6 @@ func main() {
 			Name:   "tls-key",
 			Usage:  "tls key used by the api server (optional)",
 			EnvVar: "TLS_KEY",
-		},
-		cli.StringFlag{
-			Name:   "bind",
-			Usage:  "ip:port to bind the api server",
-			Value:  "0.0.0.0:8001",
-			EnvVar: "BIND",
 		},
 		cli.StringFlag{
 			Name:   "http-bind",
@@ -560,12 +574,6 @@ func main() {
 			Name:   "jwt-secret",
 			Usage:  "JWT secret used for api authentication / authorization",
 			EnvVar: "JWT_SECRET",
-		},
-		cli.StringFlag{
-			Name:   "ns-server",
-			Usage:  "hostname:port of the network-server api server",
-			Value:  "127.0.0.1:8000",
-			EnvVar: "NS_SERVER",
 		},
 		cli.StringFlag{
 			Name:   "ns-ca-cert",
@@ -658,6 +666,13 @@ func main() {
 			Name:   "js-tls-key",
 			Usage:  "tls key used by the join-server api server (optional)",
 			EnvVar: "JS_TLS_KEY",
+		},
+		cli.StringFlag{
+			Name:   "ns-server",
+			Usage:  "hostname:port of the network-server api server",
+			Value:  "127.0.0.1:8000",
+			EnvVar: "NS_SERVER",
+			Hidden: true,
 		},
 	}
 	app.Run(os.Args)

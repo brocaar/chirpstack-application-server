@@ -20,6 +20,12 @@ type Application struct {
 	ServiceProfileID string `db:"service_profile_id"`
 }
 
+// ApplicationListItem devices the application as a list item.
+type ApplicationListItem struct {
+	Application
+	ServiceProfileName string `db:"service_profile_name"`
+}
+
 // Validate validates the data of the Application.
 func (a Application) Validate() error {
 	if !applicationNameRegexp.MatchString(a.Name) {
@@ -127,9 +133,22 @@ func GetApplicationCountForOrganizationID(db *sqlx.DB, organizationID int64) (in
 
 // GetApplications returns a slice of applications, sorted by name and
 // respecting the given limit and offset.
-func GetApplications(db *sqlx.DB, limit, offset int) ([]Application, error) {
-	var apps []Application
-	err := db.Select(&apps, "select * from application order by name limit $1 offset $2", limit, offset)
+func GetApplications(db *sqlx.DB, limit, offset int) ([]ApplicationListItem, error) {
+	var apps []ApplicationListItem
+	err := db.Select(&apps, `
+		select
+			a.*,
+			sp.name as service_profile_name
+		from application a
+		inner join service_profile sp
+			on sp.service_profile_id = a.service_profile_id
+		order by
+			name
+		limit $1
+		offset $2`,
+		limit,
+		offset,
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
 	}
@@ -138,11 +157,15 @@ func GetApplications(db *sqlx.DB, limit, offset int) ([]Application, error) {
 
 // GetApplicationsForUser returns a slice of application of which the given
 // user is a member of.
-func GetApplicationsForUser(db *sqlx.DB, username string, organizationID int64, limit, offset int) ([]Application, error) {
-	var apps []Application
+func GetApplicationsForUser(db *sqlx.DB, username string, organizationID int64, limit, offset int) ([]ApplicationListItem, error) {
+	var apps []ApplicationListItem
 	err := db.Select(&apps, `
-		select a.*
+		select
+			a.*,
+			sp.name as service_profile_name
 		from application a
+		inner join service_profile sp
+			on sp.service_profile_id = a.service_profile_id
 		inner join organization_user ou
 			on a.organization_id = ou.organization_id
 		inner join "user" u
@@ -166,14 +189,18 @@ func GetApplicationsForUser(db *sqlx.DB, username string, organizationID int64, 
 
 // GetApplicationsForOrganizationID returns a slice of applications for the given
 // organization.
-func GetApplicationsForOrganizationID(db *sqlx.DB, organizationID int64, limit, offset int) ([]Application, error) {
-	var apps []Application
+func GetApplicationsForOrganizationID(db *sqlx.DB, organizationID int64, limit, offset int) ([]ApplicationListItem, error) {
+	var apps []ApplicationListItem
 	err := db.Select(&apps, `
-		select *
-		from application
+		select
+			a.*,
+			sp.name as service_profile_name
+		from application a
+		inner join service_profile sp
+			on sp.service_profile_id = a.service_profile_id
 		where
-			organization_id = $1
-		order by name
+			a.organization_id = $1
+		order by a.name
 		limit $2 offset $3`,
 		organizationID,
 		limit,

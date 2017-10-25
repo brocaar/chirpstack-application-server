@@ -142,7 +142,7 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 	}
 
 	var count int
-	var apps []storage.Application
+	var apps []storage.ApplicationListItem
 
 	if req.OrganizationID == 0 {
 		if isAdmin {
@@ -190,12 +190,13 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 		TotalCount: int64(count),
 	}
 	for _, app := range apps {
-		item := pb.GetApplicationResponse{
-			Id:               app.ID,
-			Name:             app.Name,
-			Description:      app.Description,
-			OrganizationID:   app.OrganizationID,
-			ServiceProfileID: app.ServiceProfileID,
+		item := pb.ApplicationListItem{
+			Id:                 app.ID,
+			Name:               app.Name,
+			Description:        app.Description,
+			OrganizationID:     app.OrganizationID,
+			ServiceProfileID:   app.ServiceProfileID,
+			ServiceProfileName: app.ServiceProfileName,
 		}
 
 		resp.Result = append(resp.Result, &item)

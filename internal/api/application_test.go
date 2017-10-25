@@ -113,12 +113,13 @@ func TestApplicationAPI(t *testing.T) {
 						So(validator.validatorFuncs, ShouldHaveLength, 1)
 						So(apps.TotalCount, ShouldEqual, 2)
 						So(apps.Result, ShouldHaveLength, 2)
-						So(apps.Result[0], ShouldResemble, &pb.GetApplicationResponse{
-							OrganizationID:   org.ID,
-							Id:               createResp.Id,
-							Name:             "test-app",
-							Description:      "A test application",
-							ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+						So(apps.Result[0], ShouldResemble, &pb.ApplicationListItem{
+							OrganizationID:     org.ID,
+							Id:                 createResp.Id,
+							Name:               "test-app",
+							Description:        "A test application",
+							ServiceProfileID:   sp.ServiceProfile.ServiceProfileID,
+							ServiceProfileName: sp.Name,
 						})
 					})
 				})

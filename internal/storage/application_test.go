@@ -74,7 +74,9 @@ func TestApplication(t *testing.T) {
 				apps, err := GetApplications(db, 10, 0)
 				So(err, ShouldBeNil)
 				So(apps, ShouldHaveLength, 1)
-				So(apps[0], ShouldResemble, app)
+				So(apps[0].ID, ShouldEqual, app.ID)
+				So(apps[0].ServiceProfileName, ShouldEqual, sp.Name)
+
 			})
 
 			Convey("Then get application count returns 1", func() {
@@ -93,7 +95,8 @@ func TestApplication(t *testing.T) {
 				apps, err := GetApplicationsForOrganizationID(db, org.ID, 10, 0)
 				So(err, ShouldBeNil)
 				So(apps, ShouldHaveLength, 1)
-				So(apps[0], ShouldResemble, app)
+				So(apps[0].ID, ShouldEqual, app.ID)
+				So(apps[0].ServiceProfileName, ShouldEqual, sp.Name)
 			})
 
 			Convey("When updating the application", func() {

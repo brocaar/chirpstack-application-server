@@ -158,12 +158,32 @@ message ListApplicationRequest {
 	int64 organizationID = 3;
 }
 
+message ApplicationListItem {
+	// ID of the application.
+	int64 id = 1;
+
+	// Name of the application.
+	string name = 2;
+
+	// Description of the application.
+	string description = 3;
+
+	// ID of the organization to which the application belongs.
+	int64 organizationID = 14;
+
+	// ID of the service profile.
+	string serviceProfileID = 15;
+
+	// Service-profile name.
+	string serviceProfileName = 16;
+}
+
 message ListApplicationResponse {
 	// Total number of applications available within the result-set.
 	int64 totalCount = 1;
 	
 	// Applications within this result-set.
-	repeated GetApplicationResponse result = 2;
+	repeated ApplicationListItem result = 2;
 }
 
 message EmptyResponse {}

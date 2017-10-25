@@ -307,6 +307,37 @@
     }
   },
   "definitions": {
+    "apiApplicationListItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the application."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the application."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the application."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the organization to which the application belongs."
+        },
+        "serviceProfileID": {
+          "type": "string",
+          "description": "ID of the service profile."
+        },
+        "serviceProfileName": {
+          "type": "string",
+          "description": "Service-profile name."
+        }
+      }
+    },
     "apiCreateApplicationRequest": {
       "type": "object",
       "properties": {
@@ -436,7 +467,7 @@
         "result": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiGetApplicationResponse"
+            "$ref": "#/definitions/apiApplicationListItem"
           },
           "description": "Applications within this result-set."
         }

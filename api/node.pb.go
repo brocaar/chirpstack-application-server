@@ -59,6 +59,7 @@ It has these top-level messages:
 	DeleteApplicationRequest
 	DeleteApplicationResponse
 	ListApplicationRequest
+	ApplicationListItem
 	ListApplicationResponse
 	EmptyResponse
 	HTTPIntegrationHeader

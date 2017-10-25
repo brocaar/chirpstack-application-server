@@ -11,7 +11,8 @@ class ApplicationRow extends Component {
     return(
       <tr>
         <td>{this.props.application.id}</td>
-        <td><Link to={`/organizations/${this.props.application.organizationID}/applications/${this.props.application.id}`}>{this.props.application.name}</Link></td>
+        <td><Link to={`organizations/${this.props.application.organizationID}/applications/${this.props.application.id}`}>{this.props.application.name}</Link></td>
+        <td><Link to={`organizations/${this.props.application.organizationID}/service-profiles/${this.props.application.serviceProfileID}`}>{this.props.application.serviceProfileName}</Link></td>
         <td>{this.props.application.description}</td>
       </tr>
     );
@@ -87,7 +88,8 @@ class ListApplications extends Component {
             <thead>
               <tr>
                 <th className="col-md-1">ID</th>
-                <th className="col-md-4">Name</th>
+                <th className="col-md-3">Name</th>
+                <th className="col-md-3">Service-profile</th>
                 <th>Description</th>
               </tr>
             </thead>

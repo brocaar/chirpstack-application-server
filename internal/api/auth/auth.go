@@ -13,7 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var validAuthorizationRegexp string = regexp.MustCompile(`(?i)^bearer (.*)$`)
+var validAuthorizationRegexp = regexp.MustCompile(`(?i)^bearer (.*)$`)
 
 // Claims defines the struct containing the token claims.
 type Claims struct {
@@ -158,4 +158,3 @@ func getTokenFromContext(ctx context.Context) (string, error) {
 
 	return match[1], nil
 }
-

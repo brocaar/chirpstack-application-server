@@ -1,6 +1,7 @@
 package nsclient
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"io/ioutil"
@@ -65,7 +66,6 @@ func (p *pool) Get(hostname string) (ns.NetworkServerClient, error) {
 
 func (p *pool) createClient(hostname string) (ns.NetworkServerClient, error) {
 	nsOpts := []grpc.DialOption{
-		grpc.FailOnNonTempDialError(true),
 		grpc.WithBlock(),
 	}
 
@@ -93,7 +93,10 @@ func (p *pool) createClient(hostname string) (ns.NetworkServerClient, error) {
 		})))
 	}
 
-	nsClient, err := grpc.Dial(hostname, nsOpts...)
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancel()
+
+	nsClient, err := grpc.DialContext(ctx, hostname, nsOpts...)
 	if err != nil {
 		return nil, errors.Wrap(err, "dial network-server api error")
 	}

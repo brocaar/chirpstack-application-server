@@ -524,6 +524,36 @@
         }
       }
     },
+    "apiDeviceListItem": {
+      "type": "object",
+      "properties": {
+        "devEUI": {
+          "type": "string",
+          "description": "Hex encoded DevEUI."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the device (if left blank, it will be set to the DevEUI)."
+        },
+        "applicationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "ID of the application to which the device must be added."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the device."
+        },
+        "deviceProfileID": {
+          "type": "string",
+          "description": "DeviceProfileID attached to the device."
+        },
+        "deviceProfileName": {
+          "type": "string",
+          "description": "Device-profile name."
+        }
+      }
+    },
     "apiFrameLog": {
       "type": "object",
       "properties": {
@@ -651,7 +681,7 @@
         "result": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiGetDeviceResponse"
+            "$ref": "#/definitions/apiDeviceListItem"
           },
           "description": "Devices within this result-set."
         }

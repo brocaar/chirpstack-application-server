@@ -171,12 +171,32 @@ message ListDeviceByApplicationIDRequest {
 	string search = 4;
 }
 
+message DeviceListItem {
+    // Hex encoded DevEUI.
+    string devEUI = 1; 
+    
+    // Name of the device (if left blank, it will be set to the DevEUI).
+    string name = 9;
+
+    // ID of the application to which the device must be added.
+    int64 applicationID = 13;
+
+    // Description of the device.
+    string description = 14;
+
+    // DeviceProfileID attached to the device.
+    string deviceProfileID = 18;
+
+    // Device-profile name.
+    string deviceProfileName = 19;
+}
+
 message ListDeviceResponse {
     // Total number of devices available within the result-set.
     int64 totalCount = 1;
 
     // Devices within this result-set.
-    repeated GetDeviceResponse result = 2;
+    repeated DeviceListItem result = 2;
 }
 
 

@@ -135,12 +135,13 @@ func TestNodeAPI(t *testing.T) {
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 				So(devices.Result, ShouldHaveLength, 1)
 				So(devices.TotalCount, ShouldEqual, 1)
-				So(devices.Result[0], ShouldResemble, &pb.GetDeviceResponse{
-					Name:            "test-node",
-					Description:     "test node description",
-					DevEUI:          "0807060504030201",
-					ApplicationID:   app.ID,
-					DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+				So(devices.Result[0], ShouldResemble, &pb.DeviceListItem{
+					Name:              "test-node",
+					Description:       "test node description",
+					DevEUI:            "0807060504030201",
+					ApplicationID:     app.ID,
+					DeviceProfileID:   dp.DeviceProfile.DeviceProfileID,
+					DeviceProfileName: dp.Name,
 				})
 			})
 

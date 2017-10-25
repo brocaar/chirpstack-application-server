@@ -257,6 +257,7 @@ func TestDevice(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(devices, ShouldHaveLength, 1)
 				So(devices[0].DevEUI, ShouldEqual, d.DevEUI)
+				So(devices[0].DeviceProfileName, ShouldEqual, dp.Name)
 			})
 
 			Convey("Then GetDeviceCountForApplicationID returns 1", func() {

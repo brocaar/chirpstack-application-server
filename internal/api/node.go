@@ -558,17 +558,18 @@ func (a *NodeAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAddr
 	}, nil
 }
 
-func (a *NodeAPI) returnList(count int, devices []storage.Device) (*pb.ListDeviceResponse, error) {
+func (a *NodeAPI) returnList(count int, devices []storage.DeviceListItem) (*pb.ListDeviceResponse, error) {
 	resp := pb.ListDeviceResponse{
 		TotalCount: int64(count),
 	}
 	for _, device := range devices {
-		item := pb.GetDeviceResponse{
-			DevEUI:          device.DevEUI.String(),
-			Name:            device.Name,
-			Description:     device.Description,
-			ApplicationID:   device.ApplicationID,
-			DeviceProfileID: device.DeviceProfileID,
+		item := pb.DeviceListItem{
+			DevEUI:            device.DevEUI.String(),
+			Name:              device.Name,
+			Description:       device.Description,
+			ApplicationID:     device.ApplicationID,
+			DeviceProfileID:   device.DeviceProfileID,
+			DeviceProfileName: device.DeviceProfileName,
 		}
 
 		resp.Result = append(resp.Result, &item)

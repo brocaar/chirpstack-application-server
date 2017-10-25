@@ -123,12 +123,16 @@ class DeviceProfileForm extends Component {
     const regParamsOptions = [
       {value: "A", label: "A"},
       {value: "B", label: "B"},
-      {value: "C", label: "C"},
     ];
 
     const rfRegionOptions = [
       {value: "EU868", label: "EU868"},
-      {value: "US920", label: "US920"},
+      {value: "US902", label: "US902"},
+      {value: "China779", label: "China779"},
+      {value: "EU433", label: "EU433"},
+      {value: "Australia915", label: "Australia915"},
+      {value: "China470", label: "China470"},
+      {value: "AS923", label: "AS923"},
     ];
 
     return(

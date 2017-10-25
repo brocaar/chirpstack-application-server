@@ -50,7 +50,7 @@
       function addApiKeyAuthorization(){
         var key = encodeURIComponent($('#input_apiKey')[0].value);
         if(key && key.trim() != "") {
-            window.swaggerUi.api.clientAuthorizations.add("key", new SwaggerClient.ApiKeyAuthorization("Grpc-Metadata-Authorization", key, "header"));
+            window.swaggerUi.api.clientAuthorizations.add("key", new SwaggerClient.ApiKeyAuthorization("Grpc-Metadata-Authorization", 'Bearer ' + key, "header"));
             console.log("added key " + key);
         }
       }

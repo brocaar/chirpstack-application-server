@@ -251,6 +251,9 @@ message ActivateDeviceRequest {
 
     // Downlink frame-counter.
     uint32 fCntDown = 6;
+
+    // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
+    bool skipFCntCheck = 7;
 }
 
 message ActivateDeviceResponse {}
@@ -275,6 +278,9 @@ message GetDeviceActivationResponse {
 
     // Downlink frame-counter.
     uint32 fCntDown = 5;
+
+    // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
+    bool skipFCntCheck = 6;
 }
 
 message GetRandomDevAddrRequest {

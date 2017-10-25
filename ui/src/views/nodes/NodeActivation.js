@@ -57,6 +57,18 @@ class NodeActivation extends Component {
                   <label className="control-label" htmlFor="rx2DR">Downlink frame-counter</label>
                   <input className="form-control" id="fCntDown" type="number" required value={this.state.activation.fCntDown || 0} />
                 </div>
+                <div className="form-group">
+                  <label className="control-label" htmlFor="skipFCntCheck">Disable frame-counter validation</label>
+                  <div className="checkbox">
+                    <label>
+                      <input type="checkbox" name="skipFCntCheck" id="skipFCntCheck" checked={this.state.activation.skipFCntCheck} /> Disable frame-counter validation
+                    </label>
+                  </div>
+                  <p className="help-block">
+                    Note that disabling the frame-counter validation will compromise security as it enables people to perform replay-attacks.
+                    This setting can only be set for ABP devices.
+                  </p>
+                </div>
               </fieldset>
             </form>
           </div>

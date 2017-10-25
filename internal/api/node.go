@@ -347,12 +347,12 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest) (
 	})
 
 	actReq := ns.ActivateDeviceRequest{
-		DevEUI:   d.DevEUI[:],
-		DevAddr:  devAddr[:],
-		NwkSKey:  nwkSKey[:],
-		FCntUp:   req.FCntUp,
-		FCntDown: req.FCntDown,
-		// SkipFCntCheck: d.RelaxFCnt,
+		DevEUI:        d.DevEUI[:],
+		DevAddr:       devAddr[:],
+		NwkSKey:       nwkSKey[:],
+		FCntUp:        req.FCntUp,
+		FCntDown:      req.FCntDown,
+		SkipFCntCheck: req.SkipFCntCheck,
 	}
 
 	_, err = nsClient.ActivateDevice(context.Background(), &actReq)
@@ -424,11 +424,12 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivation
 	copy(nwkSKey[:], devAct.NwkSKey)
 
 	return &pb.GetDeviceActivationResponse{
-		DevAddr:  devAddr.String(),
-		AppSKey:  da.AppSKey.String(),
-		NwkSKey:  nwkSKey.String(),
-		FCntUp:   devAct.FCntUp,
-		FCntDown: devAct.FCntDown,
+		DevAddr:       devAddr.String(),
+		AppSKey:       da.AppSKey.String(),
+		NwkSKey:       nwkSKey.String(),
+		FCntUp:        devAct.FCntUp,
+		FCntDown:      devAct.FCntDown,
+		SkipFCntCheck: devAct.SkipFCntCheck,
 	}, nil
 }
 

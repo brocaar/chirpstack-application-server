@@ -145,35 +145,6 @@ class ServiceProfileForm extends Component {
             </p>
           </div>
           <div className="form-group">
-            <label className="control-label" htmlFor="devStatusReqFreq">Device-status request frequency</label>
-            <input className="form-control" id="devStatusReqFreq" type="number" required value={this.state.serviceProfile.serviceProfile.devStatusReqFreq || 0} onChange={this.onChange.bind(this, 'serviceProfile.devStatusReqFreq')} />
-            <p className="help-block">
-              Frequency to initiate an End-Device status request (request/day).
-            </p>
-          </div>
-          <div className="form-group">
-            <label className="control-label" htmlFor="reportDevStatusBattery">Report device battery level</label>
-            <div className="checkbox">
-              <label>
-                <input type="checkbox" name="reportDevStatusBattery" id="reportDevStatusBattery" checked={this.state.serviceProfile.serviceProfile.reportDevStatusBattery} onChange={this.onChange.bind(this, 'serviceProfile.reportDevStatusBattery')} /> Report device battery level
-              </label>
-            </div>
-            <p className="help-block">
-              Report End-Device battery level to the application-server.
-            </p>
-          </div>
-          <div className="form-group">
-            <label className="control-label" htmlFor="reportDevStatusMargin">Report device margin</label>
-            <div className="checkbox">
-              <label>
-                <input type="checkbox" name="reportDevStatusMargin" id="reportDevStatusMargin" checked={this.state.serviceProfile.serviceProfile.reportDevStatusMargin} onChange={this.onChange.bind(this, 'serviceProfile.reportDevStatusMargin')} /> Report device margin
-              </label>
-            </div>
-            <p className="help-block">
-              Report End-Device margin to the application-server.
-            </p>
-          </div>
-          <div className="form-group">
             <label className="control-label" htmlFor="drMin">Minimum allowed data-rate</label>
             <input className="form-control" id="drMin" type="number" required value={this.state.serviceProfile.serviceProfile.drMin || 0} onChange={this.onChange.bind(this, 'serviceProfile.drMin')} />
             <p className="help-block">

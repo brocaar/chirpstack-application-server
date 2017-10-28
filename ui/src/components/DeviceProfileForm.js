@@ -125,16 +125,6 @@ class DeviceProfileForm extends Component {
       {value: "B", label: "B"},
     ];
 
-    const rfRegionOptions = [
-      {value: "EU868", label: "EU868"},
-      {value: "US902", label: "US902"},
-      {value: "China779", label: "China779"},
-      {value: "EU433", label: "EU433"},
-      {value: "Australia915", label: "Australia915"},
-      {value: "China470", label: "China470"},
-      {value: "AS923", label: "AS923"},
-    ];
-
     return(
       <div>
         <ul className="nav nav-tabs">
@@ -197,18 +187,6 @@ class DeviceProfileForm extends Component {
                   Maximum EIRP supported by the End-Device.
                 </p>
               </div>
-              <div className="form-group">
-                <label className="control-label" htmlFor="rfRegion">RF Region</label>
-                <Select
-                  name="rfRegion"
-                  options={rfRegionOptions}
-                  value={this.state.deviceProfile.deviceProfile.rfRegion}
-                  onChange={this.onSelectChange.bind(this, 'deviceProfile.rfRegion')}
-                />
-                <p className="help-block">
-                  RF region name.
-                </p>
-              </div>
             </div>
             <div className={(this.state.activeTab === "join" ? "" : "hidden")}>
               <div className="form-group">
@@ -268,13 +246,6 @@ class DeviceProfileForm extends Component {
                 </div>
                 <p className="help-block">
                   End-Device supports Class C.
-                </p>
-              </div>
-              <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsClassC === true ? "" : "hidden")}>
-                <label className="control-label" htmlFor="classCTimeout">Class-C timeout</label>
-                <input className="form-control" name="classCTimeout" id="classCTimeout" type="number" value={this.state.deviceProfile.deviceProfile.classCTimeout || 0} onChange={this.onChange.bind(this, 'deviceProfile.classCTimeout')} />
-                <p className="help-block">
-                  Maximum delay for the End-Device to answer a MAC request or a confirmed downlink frame.
                 </p>
               </div>
             </div>

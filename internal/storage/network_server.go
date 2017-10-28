@@ -201,7 +201,7 @@ func GetNetworkServerCountForOrganizationID(db sqlx.Queryer, organizationID int6
 	var count int
 	err := sqlx.Get(db, &count, `
 		select
-			count (ns.*)
+			count (distinct ns.id)
 		from
 			network_server ns
 		inner join service_profile sp
@@ -249,6 +249,7 @@ func GetNetworkServersForOrganizationID(db sqlx.Queryer, organizationID int64, l
 			on sp.network_server_id = ns.id
 		where
 			sp.organization_id = $1
+		group by ns.id
 		order by name
 		limit $2 offset $3`,
 		organizationID,

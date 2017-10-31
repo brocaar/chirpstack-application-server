@@ -112,6 +112,7 @@ func TestOrganizationAPI(t *testing.T) {
 						Password:   "pass^^ord",
 						IsActive:   true,
 						SessionTTL: 180,
+						Email:      "foo@bar.com",
 					}
 					userResp, err := userAPI.Create(ctx, userReq)
 					So(err, ShouldBeNil)

@@ -162,7 +162,10 @@ func TestGatewayAPI(t *testing.T) {
 					})
 
 					Convey("Then gateways are only visible to users assigned to an organization", func() {
-						user := storage.User{Username: "testuser"}
+						user := storage.User{
+							Username: "testuser",
+							Email:    "foo@bar.com",
+						}
 						_, err := storage.CreateUser(common.DB, &user, "password123")
 						So(err, ShouldBeNil)
 						validator.returnIsAdmin = false

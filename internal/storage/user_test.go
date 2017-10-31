@@ -25,6 +25,7 @@ func TestUser(t *testing.T) {
 		Convey("When creating a user with an invalid username", func() {
 			user := User{
 				Username: "bad characters %",
+				Email:    "foo@bar.com",
 			}
 			_, err := CreateUser(db, &user, "somepassword")
 
@@ -39,6 +40,7 @@ func TestUser(t *testing.T) {
 				Username:   "okcharacters",
 				IsAdmin:    false,
 				SessionTTL: 40,
+				Email:      "foo@bar.com",
 			}
 			_, err := CreateUser(db, &user, "bad")
 
@@ -48,19 +50,35 @@ func TestUser(t *testing.T) {
 			})
 		})
 
+		Convey("When creating a user with an invalid e-mail", func() {
+			user := User{
+				Username:   "okcharacters",
+				IsAdmin:    false,
+				SessionTTL: 40,
+				Email:      "foobar.com",
+			}
+			_, err := CreateUser(db, &user, "somepassword")
+
+			Convey("Then an error is returned", func() {
+				So(err, ShouldNotBeNil)
+				So(errors.Cause(err), ShouldResemble, ErrInvalidEmail)
+			})
+		})
+
 		Convey("When creating a user", func() {
 			user := User{
 				Username:   "goodusername111",
 				IsAdmin:    false,
 				SessionTTL: 20,
+				Email:      "foo@bar.com",
 			}
 			password := "somepassword"
 
-			userId, err := CreateUser(db, &user, password)
+			userID, err := CreateUser(db, &user, password)
 			So(err, ShouldBeNil)
 
 			Convey("It can be get by id", func() {
-				user2, err := GetUser(db, userId)
+				user2, err := GetUser(db, userID)
 				So(err, ShouldBeNil)
 				So(user2.Username, ShouldResemble, user.Username)
 				So(user2.IsAdmin, ShouldResemble, user.IsAdmin)
@@ -138,6 +156,7 @@ func TestUser(t *testing.T) {
 					Username:   "newusername",
 					IsAdmin:    true,
 					SessionTTL: 30,
+					Email:      "bar@foo.com",
 				}
 				So(UpdateUser(db, userUpdate), ShouldBeNil)
 

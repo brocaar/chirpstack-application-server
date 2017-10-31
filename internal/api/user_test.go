@@ -51,6 +51,7 @@ func TestUserAPI(t *testing.T) {
 				Organizations: []*pb.AddUserOrganization{
 					{OrganizationID: org.ID, IsAdmin: true},
 				},
+				Email: "foo@bar.com",
 			}
 			createResp, err := api.Create(ctx, &createReq)
 			So(err, ShouldBeNil)
@@ -70,6 +71,7 @@ func TestUserAPI(t *testing.T) {
 				Password:   "pass^^ord",
 				IsAdmin:    true,
 				SessionTTL: 180,
+				Email:      "foo@bar.com",
 			}
 			createResp, err := api.Create(ctx, createReq)
 			So(err, ShouldBeNil)
@@ -85,6 +87,8 @@ func TestUserAPI(t *testing.T) {
 				So(user.Username, ShouldResemble, createReq.Username)
 				So(user.SessionTTL, ShouldResemble, createReq.SessionTTL)
 				So(user.IsAdmin, ShouldResemble, createReq.IsAdmin)
+				So(user.Email, ShouldEqual, createReq.Email)
+				So(user.Note, ShouldEqual, createReq.Note)
 
 				Convey("Then get all users returns 2 items (admin user already there)", func() {
 					users, err := api.List(ctx, &pb.ListUserRequest{
@@ -112,6 +116,7 @@ func TestUserAPI(t *testing.T) {
 						Username:   "anotheruser",
 						SessionTTL: 300,
 						IsAdmin:    false,
+						Email:      "bar@foo.com",
 					}
 					_, err := api.Update(ctx, updateUser)
 					So(err, ShouldBeNil)

@@ -212,6 +212,7 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 				userID, err := storage.CreateUser(common.DB, &storage.User{
 					Username: "testuser",
 					IsActive: true,
+					Email:    "foo@bar.com",
 				}, "testpassword")
 				So(err, ShouldBeNil)
 				So(storage.CreateOrganizationUser(common.DB, org.ID, userID, false), ShouldBeNil)

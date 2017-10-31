@@ -19,6 +19,7 @@ var errToCode = map[error]codes.Code{
 	storage.ErrUserInvalidUsername:       codes.InvalidArgument,
 	storage.ErrUserPasswordLength:        codes.InvalidArgument,
 	storage.ErrInvalidUsernameOrPassword: codes.Unauthenticated,
+	storage.ErrInvalidEmail:              codes.InvalidArgument,
 	httphandler.ErrInvalidHeaderName:     codes.InvalidArgument,
 }
 

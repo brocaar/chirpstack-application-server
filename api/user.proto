@@ -195,6 +195,12 @@ message GetUserResponse {
 
 	// When the user was last updated (excludes changes in application access).
 	string updatedAt = 7;
+
+	// E-mail of the user.
+	string email = 8;
+
+	// Optional note to store with the user.
+	string note = 9;
 }
 
 // Add a new user. Not quite the UserSettings data as it includes a password
@@ -217,6 +223,12 @@ message AddUserRequest {
 
 	// Add the user to the following organizations.
 	repeated AddUserOrganization organizations = 6;
+
+	// E-mail of the user.
+	string email = 7;
+
+	// Optional note to store with the user.
+	string note = 8;
 }
 
 message AddUserOrganization {
@@ -243,6 +255,12 @@ message UpdateUserRequest {
 
 	// If the user is active.
 	bool isActive = 5;
+
+	// E-mail of the user.
+	string email = 6;
+
+	// Optional note to store with the user.
+	string note = 7;
 }
 
 message ListUserResponse {

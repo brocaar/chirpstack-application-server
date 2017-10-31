@@ -144,6 +144,7 @@ func TestOrganization(t *testing.T) {
 				user := User{
 					Username: "testuser",
 					IsActive: true,
+					Email:    "foo@bar.com",
 				}
 				_, err := CreateUser(db, &user, "password123")
 				So(err, ShouldBeNil)

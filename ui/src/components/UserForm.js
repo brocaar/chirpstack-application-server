@@ -54,6 +54,17 @@ class UserForm extends Component {
           <label className="control-label" htmlFor="username">Username</label>
           <input className="form-control" id="username" type="text" placeholder="username" required value={this.state.user.username || ''} onChange={this.onChange.bind(this, 'username')} />
         </div>
+        <div className="form-group">
+          <label className="control-label" htmlFor="email">E-mail address</label>
+          <input className="form-control" id="email" type="email" placeholder="e-mail address" required value={this.state.user.email || ''} onChange={this.onChange.bind(this, 'email')} />
+        </div>
+        <div className="form-group">
+          <label className="control-label" htmlFor="note">Optional note</label>
+          <input className="form-control" id="note" type="text" placeholder="optional note (e.g. phone, address, ...)" value={this.state.user.note || ''} onChange={this.onChange.bind(this, 'note')} />
+          <p className="help-block">
+            Optional note, e.g. a phone number, address, comment...
+          </p>
+        </div>
         <div className={"form-group " + (this.state.showPasswordField ? '' : 'hidden')}>
           <label className="control-label" htmlFor="password">Password</label>
           <input className="form-control" id="password" type="password" placeholder="password" value={this.state.user.password || ''} onChange={this.onChange.bind(this, 'password')} />

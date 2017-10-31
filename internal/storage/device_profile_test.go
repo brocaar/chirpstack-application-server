@@ -34,6 +34,7 @@ func TestDeviceProfile(t *testing.T) {
 			Username: "testuser",
 			IsAdmin:  false,
 			IsActive: true,
+			Email:    "foo@bar.com",
 		}
 		uID, err := CreateUser(common.DB, &u, "testpassword")
 		So(err, ShouldBeNil)

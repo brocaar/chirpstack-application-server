@@ -6,7 +6,6 @@ import (
 	"crypto/sha512"
 	"database/sql"
 	"encoding/base64"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,7 +13,6 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/pbkdf2"
@@ -35,6 +33,9 @@ var usernameValidator = regexp.MustCompile(`^[[:alnum:]]+$`)
 // Any printable characters, at least 6 characters.
 var passwordValidator = regexp.MustCompile(`^.{6,}$`)
 
+// Must contain @ (this is far from perfect)
+var emailValidator = regexp.MustCompile(`.+@.+`)
+
 // User represents a user to external code.
 type User struct {
 	ID           int64     `db:"id"`
@@ -45,9 +46,11 @@ type User struct {
 	CreatedAt    time.Time `db:"created_at"`
 	UpdatedAt    time.Time `db:"updated_at"`
 	PasswordHash string    `db:"password_hash"`
+	Email        string    `db:"email"`
+	Note         string    `db:"note"`
 }
 
-const externalUserFields = "id, username, is_admin, is_active, session_ttl, created_at, updated_at"
+const externalUserFields = "id, username, is_admin, is_active, session_ttl, created_at, updated_at, email, note"
 const internalUserFields = "*"
 
 // UserUpdate represents the user fields that can be "updated" in the simple
@@ -58,6 +61,8 @@ type UserUpdate struct {
 	IsAdmin    bool   `db:"is_admin"`
 	IsActive   bool   `db:"is_active"`
 	SessionTTL int32  `db:"session_ttl"`
+	Email      string `db:"email"`
+	Note       string `db:"note"`
 }
 
 // UserProfile contains the profile of the user.
@@ -107,15 +112,18 @@ type userInternal struct {
 	SessionTTL   int32     `db:"session_ttl"`
 	CreatedAt    time.Time `db:"created_at"`
 	UpdatedAt    time.Time `db:"updated_at"`
+	Email        string    `db:"email"`
+	Note         string    `db:"note"`
 }
 
 var jwtsecret []byte
 
+//SetUserSecret sets the JWT secret.
 func SetUserSecret(s string) {
 	jwtsecret = []byte(s)
 }
 
-// Validate validates the data of the Application.
+// ValidateUsername validates the given username.
 func ValidateUsername(username string) error {
 	if !usernameValidator.MatchString(username) {
 		return ErrUserInvalidUsername
@@ -123,6 +131,7 @@ func ValidateUsername(username string) error {
 	return nil
 }
 
+// ValidatePassword validates the given password.
 func ValidatePassword(password string) error {
 	if !passwordValidator.MatchString(password) {
 		return ErrUserPasswordLength
@@ -130,13 +139,25 @@ func ValidatePassword(password string) error {
 	return nil
 }
 
-// CreateApplication creates the given Application.
+// ValidateEmail validates the given e-mail.
+func ValidateEmail(email string) error {
+	if !emailValidator.MatchString(email) {
+		return ErrInvalidEmail
+	}
+	return nil
+}
+
+// CreateUser creates the given user.
 func CreateUser(db sqlx.Queryer, user *User, password string) (int64, error) {
 	if err := ValidateUsername(user.Username); err != nil {
 		return 0, errors.Wrap(err, "validation error")
 	}
 
 	if err := ValidatePassword(password); err != nil {
+		return 0, errors.Wrap(err, "validation error")
+	}
+
+	if err := ValidateEmail(user.Email); err != nil {
 		return 0, errors.Wrap(err, "validation error")
 	}
 
@@ -157,9 +178,12 @@ func CreateUser(db sqlx.Queryer, user *User, password string) (int64, error) {
 			is_active,
 			session_ttl,
 			created_at,
-			updated_at)
+			updated_at,
+			email,
+			note
+		)
 		values (
-			$1, $2, $3, $4, $5, $6, $7) returning id`,
+			$1, $2, $3, $4, $5, $6, $7, $8, $9) returning id`,
 		user.Username,
 		pwHash,
 		user.IsAdmin,
@@ -167,19 +191,11 @@ func CreateUser(db sqlx.Queryer, user *User, password string) (int64, error) {
 		user.SessionTTL,
 		user.CreatedAt,
 		user.UpdatedAt,
+		user.Email,
+		user.Note,
 	)
 	if err != nil {
-		switch err := err.(type) {
-		case *pq.Error:
-			switch err.Code.Name() {
-			case "unique_violation":
-				return 0, ErrAlreadyExists
-			default:
-				return 0, errors.Wrap(err, "insert error")
-			}
-		default:
-			return 0, errors.Wrap(err, "insert error")
-		}
+		return 0, handlePSQLError(Insert, err, "insert error")
 	}
 
 	log.WithFields(log.Fields{
@@ -257,7 +273,7 @@ func GetUser(db *sqlx.DB, id int64) (User, error) {
 	return user, nil
 }
 
-// GetUSerByUsername returns the User for the given username.
+// GetUserByUsername returns the User for the given username.
 func GetUserByUsername(db *sqlx.DB, username string) (User, error) {
 	var user User
 	err := db.Get(&user, "select "+externalUserFields+" from \"user\" where username = $1", username)
@@ -307,7 +323,11 @@ func GetUsers(db *sqlx.DB, limit, offset int32, search string) ([]User, error) {
 // UpdateUser updates the given User.
 func UpdateUser(db *sqlx.DB, item UserUpdate) error {
 	if err := ValidateUsername(item.Username); err != nil {
-		return fmt.Errorf("validate username error: %s", err)
+		return errors.Wrap(err, "validation error")
+	}
+
+	if err := ValidateEmail(item.Email); err != nil {
+		return errors.Wrap(err, "validation error")
 	}
 
 	res, err := db.Exec(`
@@ -317,26 +337,20 @@ func UpdateUser(db *sqlx.DB, item UserUpdate) error {
 			is_admin = $3,
 			is_active = $4,
 			session_ttl = $5,
-			updated_at = now()
+			updated_at = now(),
+			email = $6,
+			note = $7
 		where id = $1`,
 		item.ID,
 		item.Username,
 		item.IsAdmin,
 		item.IsActive,
 		item.SessionTTL,
+		item.Email,
+		item.Note,
 	)
 	if err != nil {
-		switch err := err.(type) {
-		case *pq.Error:
-			switch err.Code.Name() {
-			case "unique_violation":
-				return ErrAlreadyExists
-			default:
-				return errors.Wrap(err, "update error")
-			}
-		default:
-			return errors.Wrap(err, "update error")
-		}
+		return handlePSQLError(Update, err, "update error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -356,7 +370,7 @@ func UpdateUser(db *sqlx.DB, item UserUpdate) error {
 	return nil
 }
 
-// DeleteUSer deletes the User record matching the given ID.
+// DeleteUser deletes the User record matching the given ID.
 func DeleteUser(db *sqlx.DB, id int64) error {
 	res, err := db.Exec("delete from \"user\" where id = $1", id)
 	if err != nil {
@@ -376,7 +390,8 @@ func DeleteUser(db *sqlx.DB, id int64) error {
 	return nil
 }
 
-// Login the user.
+// LoginUser returns a JWT token for the user matching the given username
+// and password.
 func LoginUser(db *sqlx.DB, username string, password string) (string, error) {
 	// Find the user by username
 	var user userInternal
@@ -418,7 +433,7 @@ func LoginUser(db *sqlx.DB, username string, password string) (string, error) {
 	return jwt, err
 }
 
-// Update password.
+// UpdatePassword updates the user with the new password.
 func UpdatePassword(db *sqlx.DB, id int64, newpassword string) error {
 	if err := ValidatePassword(newpassword); err != nil {
 		return errors.Wrap(err, "validation error")

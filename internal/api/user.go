@@ -54,6 +54,8 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 		SessionTTL: req.SessionTTL,
 		IsAdmin:    req.IsAdmin,
 		IsActive:   req.IsActive,
+		Email:      req.Email,
+		Note:       req.Note,
 	}
 
 	isAdmin, err := a.validator.GetIsAdmin(ctx)
@@ -111,6 +113,8 @@ func (a *UserAPI) Get(ctx context.Context, req *pb.UserRequest) (*pb.GetUserResp
 		IsActive:   user.IsActive,
 		CreatedAt:  user.CreatedAt.String(),
 		UpdatedAt:  user.UpdatedAt.String(),
+		Email:      user.Email,
+		Note:       user.Note,
 	}, nil
 }
 
@@ -163,6 +167,8 @@ func (a *UserAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.Us
 		IsAdmin:    req.IsAdmin,
 		IsActive:   req.IsActive,
 		SessionTTL: req.SessionTTL,
+		Email:      req.Email,
+		Note:       req.Note,
 	}
 
 	err := storage.UpdateUser(common.DB, userUpdate)

@@ -146,6 +146,17 @@ class CreateUserForm extends Component {
           <input className="form-control" id="username" type="text" placeholder="username" required value={this.state.user.username || ''} onChange={this.onChange.bind(this, 'username')} />
         </div>
         <div className="form-group">
+          <label className="control-label" htmlFor="email">E-mail address</label>
+          <input className="form-control" id="email" type="email" placeholder="e-mail address" required value={this.state.user.email || ''} onChange={this.onChange.bind(this, 'email')} />
+        </div>
+        <div className="form-group">
+          <label className="control-label" htmlFor="note">Optional note</label>
+          <input className="form-control" id="note" type="text" placeholder="optional note (e.g. phone, address, ...)" value={this.state.user.note || ''} onChange={this.onChange.bind(this, 'note')} />
+          <p className="help-block">
+            Optional note, e.g. a phone number, address, comment...
+          </p>
+        </div>
+        <div className="form-group">
           <label className="control-label" htmlFor="password">Password</label>
           <input className="form-control" id="password" type="password" placeholder="password" value={this.state.user.password || ''} onChange={this.onChange.bind(this, 'password')} />
         </div>
@@ -217,7 +228,7 @@ class CreateOrganizationUser extends Component {
   }
 
   handleCreateAndAssign(user) {
-    UserStore.createUser({username: user.username, password: user.password, isActive: true, organizations: [{organizationID: this.props.params.organizationID, isAdmin: user.isAdmin}]}, (resp) => {
+    UserStore.createUser({username: user.username, email: user.email, note: user.note, password: user.password, isActive: true, organizations: [{organizationID: this.props.params.organizationID, isAdmin: user.isAdmin}]}, (resp) => {
       this.context.router.push("/organizations/"+this.props.params.organizationID+"/users");
     });
   }

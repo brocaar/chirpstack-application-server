@@ -515,3 +515,8 @@ func (n *NetworkServerClient) GetExtraChannelsForChannelConfigurationID(ctx cont
 	n.GetExtraChannelsForChannelConfigurationIDChan <- *in
 	return &n.GetExtraChannelsForChannelConfigurationIDResponse, nil
 }
+
+// MigrateNodeToDeviceSession is not implemented.
+func (n *NetworkServerClient) MigrateNodeToDeviceSession(ctx context.Context, in *ns.MigrateNodeToDeviceSessionRequest, opts ...grpc.CallOption) (*ns.MigrateNodeToDeviceSessionResponse, error) {
+	panic("not implemented")
+}

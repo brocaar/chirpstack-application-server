@@ -214,9 +214,7 @@ func GetApplicationsForOrganizationID(db *sqlx.DB, organizationID int64, limit, 
 }
 
 // UpdateApplication updates the given Application.
-// When the application contains nodes with UseApplicationSettings=true, this
-// will also update these nodes.
-func UpdateApplication(db *sqlx.DB, item Application) error {
+func UpdateApplication(db sqlx.Execer, item Application) error {
 	if err := item.Validate(); err != nil {
 		return fmt.Errorf("validate application error: %s", err)
 	}

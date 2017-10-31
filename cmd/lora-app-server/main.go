@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/brocaar/lora-app-server/internal/nsclient"
+	"github.com/brocaar/lora-app-server/internal/profilesmigrate"
 
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
@@ -160,6 +161,15 @@ func runDatabaseMigrations(c *cli.Context) error {
 			return errors.Wrap(err, "applying migrations error")
 		}
 		log.WithField("count", n).Info("migrations applied")
+
+		for {
+			if err := profilesmigrate.StartProfilesMigration(c.String("ns-server")); err != nil {
+				log.WithError(err).Error("profiles migration failed")
+				time.Sleep(time.Second * 2)
+				continue
+			}
+			break
+		}
 	}
 
 	return nil

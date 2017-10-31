@@ -204,6 +204,7 @@ func createJoinAnsPayload(ctx *context) error {
 			NetID:      ctx.netID,
 			DevAddr:    ctx.joinReqPayload.DevAddr,
 			DLSettings: ctx.joinReqPayload.DLSettings,
+			RXDelay:    uint8(ctx.joinReqPayload.RxDelay),
 			CFList:     ctx.joinReqPayload.CFList,
 		},
 	}

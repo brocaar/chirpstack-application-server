@@ -112,7 +112,8 @@ func TestJoinServerAPI(t *testing.T) {
 							RX2DataRate: 5,
 							RX1DROffset: 1,
 						},
-						CFList: &lorawan.CFList{868700000, 868900000},
+						RXDelay: 1,
+						CFList:  &lorawan.CFList{868700000, 868900000},
 					},
 				}
 				So(jaPHY.SetMIC(dk.AppKey), ShouldBeNil)

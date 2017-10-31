@@ -8,6 +8,13 @@ menu:
 
 ## Changelog
 
+### 0.13.2
+
+**Features:**
+
+* The list of nodes can now be filtered on DevEUI or name prefix
+  (thanks [@iegomez](https://github.com/iegomez)).
+
 ### 0.13.1
 
 **Improvements:**

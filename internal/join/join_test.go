@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/brocaar/lora-app-server/internal/test/testhandler"
+
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
@@ -26,6 +28,9 @@ func TestJoin(t *testing.T) {
 
 		nsClient := test.NewNetworkServerClient()
 		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+
+		h := testhandler.NewTestHandler()
+		common.Handler = h
 
 		org := storage.Organization{
 			Name: "test-org",

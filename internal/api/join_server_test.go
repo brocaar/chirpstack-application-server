@@ -7,6 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/test/testhandler"
+
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
@@ -21,7 +24,6 @@ func TestJoinServerAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	common.DB = db
 
 	Convey("Given a clean database with a device", t, func() {
@@ -29,6 +31,9 @@ func TestJoinServerAPI(t *testing.T) {
 
 		nsClient := test.NewNetworkServerClient()
 		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+
+		h := testhandler.NewTestHandler()
+		common.Handler = h
 
 		org := storage.Organization{
 			Name: "test-org",
@@ -168,6 +173,17 @@ func TestJoinServerAPI(t *testing.T) {
 						NwkSKey: &backend.KeyEnvelope{
 							AESKey: lorawan.AES128Key{223, 83, 195, 95, 48, 52, 204, 206, 208, 255, 53, 76, 112, 222, 4, 223},
 						},
+					})
+				})
+
+				Convey("Then a join notification was sent", func() {
+					So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
+					So(<-h.SendJoinNotificationChan, ShouldResemble, handler.JoinNotification{
+						ApplicationID:   app.ID,
+						ApplicationName: app.Name,
+						NodeName:        d.Name,
+						DevEUI:          d.DevEUI,
+						DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
 					})
 				})
 			})

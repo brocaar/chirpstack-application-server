@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/brocaar/lora-app-server/internal/handler"
+
 	"github.com/pkg/errors"
 
 	"github.com/brocaar/lora-app-server/internal/common"
@@ -18,6 +20,7 @@ type context struct {
 	joinAnsPayload backend.JoinAnsPayload
 	phyPayload     lorawan.PHYPayload
 	device         storage.Device
+	application    storage.Application
 	deviceKeys     storage.DeviceKeys
 	appNonce       lorawan.AppNonce
 	nwkSKey        lorawan.AES128Key
@@ -49,12 +52,14 @@ var joinFlow = &flow{
 	joinRequestTasks: []task{
 		setPHYPayload,
 		getDevice,
+		getApplication,
 		getDeviceKeys,
 		validateMIC,
 		setAppNonce,
 		setNetID,
 		setSessionKeys,
 		createDeviceActivationRecord,
+		sendJoinNotification,
 		createJoinAnsPayload,
 	},
 }
@@ -110,6 +115,16 @@ func getDevice(ctx *context) error {
 	}
 
 	ctx.device = d
+	return nil
+}
+
+func getApplication(ctx *context) error {
+	a, err := storage.GetApplication(common.DB, ctx.device.ApplicationID)
+	if err != nil {
+		return errors.Wrap(err, "get application error")
+	}
+
+	ctx.application = a
 	return nil
 }
 
@@ -190,6 +205,20 @@ func createDeviceActivationRecord(ctx *context) error {
 		return errors.Wrap(err, "create device-activation error")
 	}
 
+	return nil
+}
+
+func sendJoinNotification(ctx *context) error {
+	err := common.Handler.SendJoinNotification(handler.JoinNotification{
+		ApplicationID:   ctx.device.ApplicationID,
+		ApplicationName: ctx.application.Name,
+		NodeName:        ctx.device.Name,
+		DevEUI:          ctx.device.DevEUI,
+		DevAddr:         ctx.joinReqPayload.DevAddr,
+	})
+	if err != nil {
+		return errors.Wrap(err, "send join notification error")
+	}
 	return nil
 }
 

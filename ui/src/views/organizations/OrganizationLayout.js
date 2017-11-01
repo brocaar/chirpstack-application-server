@@ -24,7 +24,7 @@ class OrganizationLayout extends Component {
 
   componentDidMount() {
     this.setState({
-      isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID) || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+      isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID)),
       isGlobalAdmin: SessionStore.isAdmin(),
     });
 
@@ -36,7 +36,7 @@ class OrganizationLayout extends Component {
 
     SessionStore.on("change", () => {
       this.setState({
-        isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID) || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+        isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID)),
         isGlobalAdmin: SessionStore.isAdmin(),
       });
     });
@@ -46,6 +46,8 @@ class OrganizationLayout extends Component {
     OrganizationStore.getOrganization(props.params.organizationID, (org) => {
       this.setState({
         organization: org,
+        isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(props.params.organizationID)),
+        isGlobalAdmin: SessionStore.isAdmin(),
       });
     });
   }

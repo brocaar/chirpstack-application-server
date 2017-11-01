@@ -153,15 +153,6 @@ class SessionStore extends EventEmitter {
     return this.user.isAdmin;
   }
 
-  isApplicationAdmin(applicationID) {
-    for (let i = 0; i < this.applications.length; i++) {
-      if (Number(this.applications[i].applicationID) === Number(applicationID)) {
-        return this.applications[i].isAdmin;
-      }
-    }
-    return false;
-  }
-
   isOrganizationAdmin(organizationID) {
     for (let i = 0; i < this.organizations.length; i++) {
       if (Number(this.organizations[i].organizationID) === Number(organizationID)) {

@@ -43,12 +43,12 @@ class NodeLayout extends Component {
     });
 
     this.setState({
-      isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID) || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+      isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID)),
     });
 
     SessionStore.on("change", () => {
       this.setState({
-        isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID) || SessionStore.isApplicationAdmin(this.props.params.applicationID)),
+        isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID)),
       });
     });
   }
@@ -84,8 +84,8 @@ class NodeLayout extends Component {
         </div>
         <ul className="nav nav-tabs">
           <li role="presentation" className={activeTab === "edit" ? 'active' : ''}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/edit`}>Node configuration</Link></li>
-          <li role="presentation" className={(activeTab === "keys" ? 'active' : '') + (this.state.deviceProfile.deviceProfile.supportsJoin ? "" : "hidden")}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/keys`}>Node keys (OTAA)</Link></li>
-          <li role="presentation" className={(activeTab === "activate" ? 'active' : '') + (this.state.deviceProfile.deviceProfile.supportsJoin ? "hidden": "")}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/activate`}>Activate node (ABP)</Link></li>
+          <li role="presentation" className={(activeTab === "keys" ? 'active' : '') + (this.state.deviceProfile.deviceProfile.supportsJoin && this.state.isAdmin ? "" : "hidden")}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/keys`}>Node keys (OTAA)</Link></li>
+          <li role="presentation" className={(activeTab === "activate" ? 'active' : '') + (!this.state.deviceProfile.deviceProfile.supportsJoin && this.state.isAdmin ? "": "hidden")}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/activate`}>Activate node (ABP)</Link></li>
           <li role="presentation" className={activeTab === "activation" ? 'active' : ''}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/activation`}>Node activation</Link></li>
           <li role="presentation" className={activeTab === "frames" ? 'active' : ''}><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/frames`}>Raw frame logs</Link></li>
         </ul>

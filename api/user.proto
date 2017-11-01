@@ -71,6 +71,13 @@ service Internal {
 			get: "/api/internal/profile"
 		};
 	}
+
+	// Get the branding for the UI
+	rpc Branding(BrandingRequest) returns (BrandingResponse) {
+		option(google.api.http) = {
+			get: "/api/internal/branding"
+		};
+	} 
 }
 
 // Defines the applications that the user is associated with.
@@ -285,4 +292,15 @@ message UpdateUserPasswordRequest {
 
 	// The new password to set.
 	string password = 2;
+}
+
+// The request for branding
+message BrandingRequest {
+}
+
+// The branding data.
+message BrandingResponse {
+	string logo = 1;
+	string registration = 2;
+	string footer = 3;
 }

@@ -18,6 +18,9 @@ class SessionStore extends EventEmitter {
     this.applications = [];
     this.organizations = [];
     this.settings = {};
+    this.branding = {};
+
+    this.fetchBranding( () => {} );
 
     if (this.getToken() !== "") {
       this.fetchProfile(() => {});
@@ -47,6 +50,30 @@ class SessionStore extends EventEmitter {
       }
     } else {
       return {}
+    }
+  }
+
+  getLogo() {
+    if (this.branding) {
+        return this.branding.logo;
+      } else {
+        return null;
+    }
+  }
+
+  getFooter() {
+    if (this.branding) {
+        return this.branding.footer;
+      } else {
+        return null;
+    }
+  }
+
+  getRegistration() {
+    if (this.branding) {
+      return this.branding.registration;
+    } else {
+      return null;
     }
   }
 
@@ -86,6 +113,18 @@ class SessionStore extends EventEmitter {
           this.settings = {};
         }
 
+        this.emit("change");
+        callbackFunc();
+      })
+      .catch(errorHandler);
+  }
+
+  fetchBranding(callbackFunc) {
+    fetch("/api/internal/branding", {headers: this.getHeader()})
+      .then(checkStatus)
+      .then((response) => response.json())
+      .then((responseData) => {
+        this.branding = responseData;
         this.emit("change");
         callbackFunc();
       })

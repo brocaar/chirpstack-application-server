@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/urfave/cli"
 	"golang.org/x/net/context"
 
 	pb "github.com/brocaar/lora-app-server/api"
@@ -24,7 +25,7 @@ func TestUserAPI(t *testing.T) {
 		ctx := context.Background()
 		validator := &TestValidator{}
 		api := NewUserAPI(validator)
-		apiInternal := NewInternalUserAPI(validator)
+		apiInternal := NewInternalUserAPI(validator, &cli.Context{})
 
 		Convey("When creating an user assigned to an application", func() {
 			org := storage.Organization{

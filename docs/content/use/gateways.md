@@ -3,7 +3,7 @@ title: Gateways
 menu:
     main:
         parent: use
-        weight: 6
+        weight: 9
 ---
 
 ## Gateway management

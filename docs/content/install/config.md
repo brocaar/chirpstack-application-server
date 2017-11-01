@@ -20,15 +20,15 @@ GLOBAL OPTIONS:
    --mqtt-username value            mqtt server username (optional) [$MQTT_USERNAME]
    --mqtt-password value            mqtt server password (optional) [$MQTT_PASSWORD]
    --mqtt-ca-cert value             mqtt CA certificate file used by the gateway backend (optional) [$MQTT_CA_CERT]
+   --as-advertise-server value      ip:port of the application-server api (used by LoRa Server to connect back to LoRa App Server) (default: "localhost:8001") [$AS_ADVERTISE_SERVER]
+   --bind value                     ip:port to bind the api server (default: "0.0.0.0:8001") [$BIND]
    --ca-cert value                  ca certificate used by the api server (optional) [$CA_CERT]
    --tls-cert value                 tls certificate used by the api server (optional) [$TLS_CERT]
    --tls-key value                  tls key used by the api server (optional) [$TLS_KEY]
-   --bind value                     ip:port to bind the api server (default: "0.0.0.0:8001") [$BIND]
    --http-bind value                ip:port to bind the (user facing) http server to (web-interface and REST / gRPC api) (default: "0.0.0.0:8080") [$HTTP_BIND]
    --http-tls-cert value            http server TLS certificate [$HTTP_TLS_CERT]
    --http-tls-key value             http server TLS key [$HTTP_TLS_KEY]
    --jwt-secret value               JWT secret used for api authentication / authorization [$JWT_SECRET]
-   --ns-server value                hostname:port of the network-server api server (default: "127.0.0.1:8000") [$NS_SERVER]
    --ns-ca-cert value               ca certificate used by the network-server client (optional) [$NS_CA_CERT]
    --ns-tls-cert value              tls certificate used by the network-server client (optional) [$NS_TLS_CERT]
    --ns-tls-key value               tls key used by the network-server client (optional) [$NS_TLS_KEY]
@@ -39,6 +39,10 @@ GLOBAL OPTIONS:
    --gw-ping-interval value         the interval used for each gateway to send a ping (default: 24h0m0s) [$GW_PING_INTERVAL]
    --gw-ping-frequency value        the frequency used for transmitting the gateway ping (in Hz) (default: 0) [$GW_PING_FREQUENCY]
    --gw-ping-dr value               the data-rate to use for transmitting the gateway ping (default: 0) [$GW_PING_DR]
+   --js-bind value                  ip:port to bind the join-server api interface to (default: "0.0.0.0:8003") [$JS_BIND]
+   --js-ca-cert value               ca certificate used by the join-server api server (optional) [$JS_CA_CERT]
+   --js-tls-cert value              tls certificate used by the join-server api server (optional) [$JS_TLS_CERT]
+   --js-tls-key value               tls key used by the join-server api server (optional) [$JS_TLS_KEY]
    --help, -h                       show help
    --version, -v                    print the version
 ```
@@ -120,3 +124,10 @@ By configuring the `--gw-ping` / `GW_PING` settings LoRa App Server will
 emit periodical gateway pings to test the coverage of each gateway. Make sure
 that the `--gw-ping-frequency` / `GW_PING_FREQUENCY` setting is set to a
 frequency that is part of the channel-plan of the other receiving gateways.
+
+### Application Server advertise host
+
+When running LoRa App Server on a different host than LoRa Server, make sure
+to set the `--as-advertise-host` to the correct `hostname:port` on which LoRa
+Server can reach LoRa App Server. The port must be equal to the port as
+configured by the `--bind` / `BIND` configuration.

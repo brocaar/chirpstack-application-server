@@ -16,6 +16,12 @@ MQTT_USERNAME=
 # mqtt server password (optional)
 MQTT_PASSWORD=
 
+# ip:port of the application-server api (used by LoRa Server to connect back to LoRa App Server)
+AS_ADVERTISE_SERVER=localhost:8001
+
+# ip:port to bind the api server (default: "0.0.0.0:8001")
+BIND=0.0.0.0:8001
+
 # ca certificate used by the api server (optional)
 CA_CERT=
 
@@ -24,9 +30,6 @@ TLS_CERT=
 
 # tls key used by the api server (optional)
 TLS_KEY=
-
-# ip:port to bind the api server (default: "0.0.0.0:8001")
-BIND=0.0.0.0:8001
 
 # ip:port to bind the (user facing) http server to (web-interface and REST / gRPC api) (default: "0.0.0.0:8080")
 HTTP_BIND=0.0.0.0:8080
@@ -70,3 +73,15 @@ LOG_LEVEL=4
 
 # the data-rate to use for transmitting the gateway ping
 # GW_PING_DR=5
+
+# ip:port to bind the join-server api interface to
+JS_BIND=0.0.0.0:8003
+
+# ca certificate used by the join-server api server
+JS_CA_CERT=
+
+# tls certificate used by the join-server api server (optional)
+JS_TLS_CERT=
+
+# tls key used by the join-server api server (optional)
+JS_TLS_KEY=

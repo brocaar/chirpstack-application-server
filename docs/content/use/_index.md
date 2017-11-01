@@ -8,6 +8,6 @@ title: Use
 * [Users]({{< relref "users.md" >}})
 * [Organizations]({{< relref "organizations.md" >}})
 * [Applications]({{< relref "applications.md" >}})
-* [Nodes]({{< relref "nodes.md" >}})
+* [Devices]({{< relref "devices.md" >}})
 * [Gateways]({{< relref "gateways.md" >}})
 * [Send / receive data]({{< relref "data.md" >}})

@@ -8,6 +8,73 @@ menu:
 
 ## Changelog
 
+### 0.14.0
+
+**Note:** this release brings many changes! Make sure (as always) to make a
+backup of your PostgreSQL and Redis database before upgrading.
+
+**Changes:**
+
+* Data-model refactor to implement service-profile, device-profile and
+  routing-profile storage as defined in the
+  [LoRaWAN backend interfaces](https://www.lora-alliance.org/lorawan-for-developers).
+
+* Application users have been removed to avoid complexity in the API
+  authorization. Users can still be assigned to organizations.
+
+* LoRa App Server can now connect to multiple [LoRa Server](https://docs.loraserver.io/loraserver/)
+  instances.
+
+* LoRa App Server exposes a Join-Server API (as defined in the LoRaWAN backend
+  interfaces document), which LoRa Server uses as a default join-server.
+
+* E-mail and note field added for users.
+
+* Adaptive-datarate configuration has been moved to LoRa Server.
+
+* OTAA RX configuration has been moved to LoRa Server.
+
+**API changes:**
+
+* New API endpoints:
+  * `/api/device-profiles` (management of device-profiles)
+  * `/api/service-profiles` (management of service-profiles)
+  * `/api/network-servers` (management of network-servers)
+  * `/api/devices` (management of devices, used to be `/api/nodes`, settings
+    have been removed and device-profile field has been added)
+
+* Updated API endpoints:
+  * `/api/applications` (management of applications, most of the settings are now part of the device-profile)
+  * `/api/gateways` (management of gateways, network-server field has been added)
+
+* Removed API endpoints:
+  * `/api/applications/{id}/users` (management of application users)
+  * `/api/nodes` (management of nodes, has been refactored into `/api/devices`)
+
+**Note:** these changes also apply to the related gRPC API endpoints.
+
+#### How to upgrade
+
+**Note:** this release brings many changes! Make sure (as always) to make a
+backup of your PostgreSQL and Redis database before upgrading.
+
+**Note:** When LoRa App Server is running on a different server than LoRa Server,
+make sure to set the `--as-advertise-server` / `AS_ADVERTISE_SERVER`
+(default `localhost:8001`).
+
+This release depends on the latest LoRa Server release (0.22).
+Start with updating LoRa Server first. See also the
+[LoRa Server changelog](https://docs.loraserver.io/loraserver/overview/changelog/).
+
+LoRa App Server will perform the data-migration when the `--db-automigrate` / 
+`DB_AUTOMIGRATE` config flag is set. It will:
+
+* Create a network-server record + routing-profile on LoRa Server (so that
+  LoRa Server knows how to connect back).
+* For each organization, it will create a service-profile
+* It will create device-profiles (either per device or per application when
+  the "use application settings" is checked)
+
 ### 0.13.2
 
 **Features:**

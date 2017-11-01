@@ -18,5 +18,5 @@ manage gateways, users, create organizations, applications and nodes.
 
 ### Regular users
 
-A regular users has no permissions by default. It gains access to an organization
-or a specific application by assignment.
+A regular users has no permissions by default. However, it can be assigned to
+one or multiple organizations.

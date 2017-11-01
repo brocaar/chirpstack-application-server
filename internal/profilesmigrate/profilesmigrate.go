@@ -282,13 +282,20 @@ func migrateDevicesForApplication(tx *sqlx.Tx, n storage.NetworkServer, app stor
 			return errors.Wrap(err, "get network-server error")
 		}
 
+		var nonces [][]byte
+		for i := range node.UsedDevNonces {
+			nonces = append(nonces, node.UsedDevNonces[i][:])
+		}
+
 		nsClient, err := common.NetworkServerPool.Get(n.Server)
 		if err != nil {
 			return errors.Wrap(err, "get network-server client error")
 		}
 
 		_, err = nsClient.MigrateNodeToDeviceSession(context.Background(), &ns.MigrateNodeToDeviceSessionRequest{
-			DevEUI: d.DevEUI[:],
+			DevEUI:    d.DevEUI[:],
+			JoinEUI:   node.AppEUI[:],
+			DevNonces: nonces,
 		})
 		if err != nil {
 			return errors.Wrap(err, "migrate node-session to device-session error")

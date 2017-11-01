@@ -43,7 +43,7 @@ class SessionStore extends EventEmitter {
   getHeader() {
     if (this.getToken() !== "") {
       return {
-        "Grpc-Metadata-Authorization": this.getToken(),
+        "Grpc-Metadata-Authorization": "Bearer " + this.getToken(),
       }
     } else {
       return {}

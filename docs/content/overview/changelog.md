@@ -59,7 +59,7 @@ backup of your PostgreSQL and Redis database before upgrading.
 backup of your PostgreSQL and Redis database before upgrading.
 
 **Note:** When LoRa App Server is running on a different server than LoRa Server,
-make sure to set the `--as-advertise-server` / `AS_ADVERTISE_SERVER`
+make sure to set the `--as-public-server` / `AS_PUBLIC_SERVER`
 (default `localhost:8001`).
 
 This release depends on the latest LoRa Server release (0.22).

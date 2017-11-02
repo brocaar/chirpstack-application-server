@@ -67,7 +67,7 @@ func run(c *cli.Context) error {
 		setJWTSecret,
 		setHashIterations,
 		setDisableAssignExistingUsers,
-		setAdvertiseSettings,
+		setPublicASSettings,
 		handleDataDownPayloads,
 		startApplicationServerAPI,
 		startGatewayPing,
@@ -190,10 +190,10 @@ func setDisableAssignExistingUsers(c *cli.Context) error {
 	return nil
 }
 
-func setAdvertiseSettings(c *cli.Context) error {
+func setPublicASSettings(c *cli.Context) error {
 	// TODO: get from client-side certificate in the future?
-	common.ApplicationServerID = "6d5db27e-4ce2-4b2b-b5d7-91f069397978"
-	common.ApplicationServerServer = c.String("as-advertise-server")
+	common.ApplicationServerID = c.String("as-public-id")
+	common.ApplicationServerServer = c.String("as-public-server")
 	return nil
 }
 
@@ -538,10 +538,16 @@ func main() {
 			EnvVar: "MQTT_CA_CERT",
 		},
 		cli.StringFlag{
-			Name:   "as-advertise-server",
+			Name:   "as-public-server",
 			Usage:  "ip:port of the application-server api (used by LoRa Server to connect back to LoRa App Server)",
 			Value:  "localhost:8001",
-			EnvVar: "AS_ADVERTISE_SERVER",
+			EnvVar: "AS_PUBLIC_SERVER",
+		},
+		cli.StringFlag{
+			Name:   "as-public-id",
+			Usage:  "random uuid defining the id of the application-server installation (used by LoRa Server as routing-profile id)",
+			Value:  "6d5db27e-4ce2-4b2b-b5d7-91f069397978",
+			EnvVar: "AS_PUBLIC_ID",
 		},
 		cli.StringFlag{
 			Name:   "bind",

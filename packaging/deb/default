@@ -16,8 +16,11 @@ MQTT_USERNAME=
 # mqtt server password (optional)
 MQTT_PASSWORD=
 
-# ip:port of the application-server api (used by LoRa Server to connect back to LoRa App Server)
-AS_ADVERTISE_SERVER=localhost:8001
+# public ip:port of the application-server api (used by LoRa Server to connect back to LoRa App Server)
+AS_PUBLIC_SERVER=localhost:8001
+
+# random uuid defining the id of the application-server installation (used by LoRa Server as routing-profile id)
+AS_PUBLIC_ID=6d5db27e-4ce2-4b2b-b5d7-91f069397978
 
 # ip:port to bind the api server (default: "0.0.0.0:8001")
 BIND=0.0.0.0:8001

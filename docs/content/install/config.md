@@ -12,7 +12,6 @@ To list all configuration options, start `lora-app-server` with the `--help`
 flag. This will display:
 
 ```text
-GLOBAL OPTIONS:
    --postgres-dsn value             postgresql dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable) (default: "postgres://localhost/loraserver?sslmode=disable") [$POSTGRES_DSN]
    --db-automigrate                 automatically apply database migrations [$DB_AUTOMIGRATE]
    --redis-url value                redis url (e.g. redis://user:password@hostname/0) (default: "redis://localhost:6379") [$REDIS_URL]
@@ -20,7 +19,8 @@ GLOBAL OPTIONS:
    --mqtt-username value            mqtt server username (optional) [$MQTT_USERNAME]
    --mqtt-password value            mqtt server password (optional) [$MQTT_PASSWORD]
    --mqtt-ca-cert value             mqtt CA certificate file used by the gateway backend (optional) [$MQTT_CA_CERT]
-   --as-advertise-server value      ip:port of the application-server api (used by LoRa Server to connect back to LoRa App Server) (default: "localhost:8001") [$AS_ADVERTISE_SERVER]
+   --as-public-server value         ip:port of the application-server api (used by LoRa Server to connect back to LoRa App Server) (default: "localhost:8001") [$AS_PUBLIC_SERVER]
+   --as-public-id value             random uuid defining the id of the application-server installation (used by LoRa Server as routing-profile id) (default: "6d5db27e-4ce2-4b2b-b5d7-91f069397978") [$AS_PUBLIC_ID]
    --bind value                     ip:port to bind the api server (default: "0.0.0.0:8001") [$BIND]
    --ca-cert value                  ca certificate used by the api server (optional) [$CA_CERT]
    --tls-cert value                 tls certificate used by the api server (optional) [$TLS_CERT]
@@ -125,9 +125,9 @@ emit periodical gateway pings to test the coverage of each gateway. Make sure
 that the `--gw-ping-frequency` / `GW_PING_FREQUENCY` setting is set to a
 frequency that is part of the channel-plan of the other receiving gateways.
 
-### Application Server advertise host
+### Application Server public host
 
 When running LoRa App Server on a different host than LoRa Server, make sure
-to set the `--as-advertise-host` to the correct `hostname:port` on which LoRa
+to set the `--as-public-host` to the correct `hostname:port` on which LoRa
 Server can reach LoRa App Server. The port must be equal to the port as
 configured by the `--bind` / `BIND` configuration.

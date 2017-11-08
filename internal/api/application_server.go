@@ -198,10 +198,6 @@ func (a *ApplicationServerAPI) JoinRequest(ctx context.Context, req *as.JoinRequ
 
 // HandleDataUp handles incoming (uplink) data.
 func (a *ApplicationServerAPI) HandleDataUp(ctx context.Context, req *as.HandleDataUpRequest) (*as.HandleDataUpResponse, error) {
-	if len(req.RxInfo) == 0 {
-		return nil, grpc.Errorf(codes.InvalidArgument, "RxInfo must have length > 0")
-	}
-
 	var appEUI, devEUI lorawan.EUI64
 	copy(appEUI[:], req.AppEUI)
 	copy(devEUI[:], req.DevEUI)

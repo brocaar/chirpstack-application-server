@@ -8,6 +8,14 @@ menu:
 
 ## Changelog
 
+### 0.14.1
+
+**Bugfixes:**
+
+* Remove `RxInfo` length validation as this slice is empty when
+  *Add gateway meta-data* is disabled in the service-profile
+  (thanks [@pni-jmattison](https://forum.loraserver.io/u/pni-jmattison/summary)).
+
 ### 0.14.0
 
 **Note:** this release brings many changes! Make sure (as always) to make a

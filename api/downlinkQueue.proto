@@ -11,7 +11,7 @@ service DownlinkQueue {
 	// Class-C mode, the data will be pushed directly to the network-server.
 	rpc Enqueue(EnqueueDownlinkQueueItemRequest) returns (EnqueueDownlinkQueueItemResponse) {
 		option(google.api.http) = {
-			post: "/api/nodes/{devEUI}/queue"
+			post: "/api/devices/{devEUI}/queue"
 			body: "*"
 		};
 	}
@@ -19,14 +19,14 @@ service DownlinkQueue {
 	// Delete deletes an item from the queue.
 	rpc Delete(DeleteDownlinkQeueueItemRequest) returns (DeleteDownlinkQueueItemResponse) {
 		option(google.api.http) = {
-			delete: "/api/nodes/{devEUI}/queue/{id}"
+			delete: "/api/devices/{devEUI}/queue/{id}"
 		};
 	}
 
 	// List lists the items in the queue for the given node.
 	rpc List(ListDownlinkQueueItemsRequest) returns (ListDownlinkQueueItemsResponse) {
 		option(google.api.http) = {
-			get: "/api/nodes/{devEUI}/queue"
+			get: "/api/devices/{devEUI}/queue"
 		};
 	}
 }

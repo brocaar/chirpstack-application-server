@@ -15,6 +15,8 @@ menu:
 * Remove `RxInfo` length validation as this slice is empty when
   *Add gateway meta-data* is disabled in the service-profile
   (thanks [@pni-jmattison](https://forum.loraserver.io/u/pni-jmattison/summary)).
+* Rename `/api/node/...` prefix of downlink queue into `/api/device/...`
+  (thanks [@iegomez](https://github.com/iegomez))
 
 ### 0.14.0
 

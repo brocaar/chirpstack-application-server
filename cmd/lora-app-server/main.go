@@ -294,7 +294,7 @@ func startClientAPI(ctx context.Context) func(*cli.Context) error {
 		clientAPIHandler := grpc.NewServer()
 		pb.RegisterApplicationServer(clientAPIHandler, api.NewApplicationAPI(validator))
 		pb.RegisterDownlinkQueueServer(clientAPIHandler, api.NewDownlinkQueueAPI(validator))
-		pb.RegisterDeviceServer(clientAPIHandler, api.NewNodeAPI(validator))
+		pb.RegisterDeviceServer(clientAPIHandler, api.NewDeviceAPI(validator))
 		pb.RegisterUserServer(clientAPIHandler, api.NewUserAPI(validator))
 		pb.RegisterInternalServer(clientAPIHandler, api.NewInternalUserAPI(validator, c))
 		pb.RegisterGatewayServer(clientAPIHandler, api.NewGatewayAPI(validator))

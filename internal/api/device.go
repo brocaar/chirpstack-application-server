@@ -19,20 +19,20 @@ import (
 	"github.com/brocaar/lorawan"
 )
 
-// NodeAPI exports the Node related functions.
-type NodeAPI struct {
+// DeviceAPI exports the Node related functions.
+type DeviceAPI struct {
 	validator auth.Validator
 }
 
-// NewNodeAPI creates a new NodeAPI.
-func NewNodeAPI(validator auth.Validator) *NodeAPI {
-	return &NodeAPI{
+// NewDeviceAPI creates a new NodeAPI.
+func NewDeviceAPI(validator auth.Validator) *DeviceAPI {
+	return &DeviceAPI{
 		validator: validator,
 	}
 }
 
 // Create creates the given device.
-func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*pb.CreateDeviceResponse, error) {
+func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*pb.CreateDeviceResponse, error) {
 	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
@@ -69,7 +69,7 @@ func (a *NodeAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*pb.
 }
 
 // Get returns the device matching the given DevEUI.
-func (a *NodeAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetDeviceResponse, error) {
+func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetDeviceResponse, error) {
 	var eui lorawan.EUI64
 	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
@@ -97,7 +97,7 @@ func (a *NodeAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetDev
 }
 
 // ListByApplicationID lists the devices by the given application ID, sorted by the name of the device.
-func (a *NodeAPI) ListByApplicationID(ctx context.Context, req *pb.ListDeviceByApplicationIDRequest) (*pb.ListDeviceResponse, error) {
+func (a *DeviceAPI) ListByApplicationID(ctx context.Context, req *pb.ListDeviceByApplicationIDRequest) (*pb.ListDeviceResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateNodesAccess(req.ApplicationID, auth.List)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
@@ -115,7 +115,7 @@ func (a *NodeAPI) ListByApplicationID(ctx context.Context, req *pb.ListDeviceByA
 }
 
 // Update updates the device matching the given DevEUI.
-func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*pb.UpdateDeviceResponse, error) {
+func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*pb.UpdateDeviceResponse, error) {
 	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
@@ -148,7 +148,7 @@ func (a *NodeAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*pb.
 }
 
 // Delete deletes the node matching the given name.
-func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*pb.DeleteDeviceResponse, error) {
+func (a *DeviceAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*pb.DeleteDeviceResponse, error) {
 	var eui lorawan.EUI64
 	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
@@ -177,7 +177,7 @@ func (a *NodeAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*pb.
 }
 
 // CreateKeys creates the given device-keys.
-func (a *NodeAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequest) (*pb.CreateDeviceKeysResponse, error) {
+func (a *DeviceAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequest) (*pb.CreateDeviceKeysResponse, error) {
 	if req.DeviceKeys == nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devicesKeys expected")
 	}
@@ -210,7 +210,7 @@ func (a *NodeAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysReques
 }
 
 // GetKeys returns the device-keys for the given DevEUI.
-func (a *NodeAPI) GetKeys(ctx context.Context, req *pb.GetDeviceKeysRequest) (*pb.GetDeviceKeysResponse, error) {
+func (a *DeviceAPI) GetKeys(ctx context.Context, req *pb.GetDeviceKeysRequest) (*pb.GetDeviceKeysResponse, error) {
 	var eui lorawan.EUI64
 	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
@@ -235,7 +235,7 @@ func (a *NodeAPI) GetKeys(ctx context.Context, req *pb.GetDeviceKeysRequest) (*p
 }
 
 // UpdateKeys updates the device-keys.
-func (a *NodeAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequest) (*pb.UpdateDeviceKeysResponse, error) {
+func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequest) (*pb.UpdateDeviceKeysResponse, error) {
 	if req.DeviceKeys == nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devicesKeys expected")
 	}
@@ -271,7 +271,7 @@ func (a *NodeAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysReques
 }
 
 // DeleteKeys deletes the device-keys for the given DevEUI.
-func (a *NodeAPI) DeleteKeys(ctx context.Context, req *pb.DeleteDeviceKeysRequest) (*pb.DeleteDeviceKeysResponse, error) {
+func (a *DeviceAPI) DeleteKeys(ctx context.Context, req *pb.DeleteDeviceKeysRequest) (*pb.DeleteDeviceKeysResponse, error) {
 	var eui lorawan.EUI64
 	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
@@ -291,7 +291,7 @@ func (a *NodeAPI) DeleteKeys(ctx context.Context, req *pb.DeleteDeviceKeysReques
 }
 
 // Activate activates the node (ABP only).
-func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest) (*pb.ActivateDeviceResponse, error) {
+func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest) (*pb.ActivateDeviceResponse, error) {
 	var devAddr lorawan.DevAddr
 	var devEUI lorawan.EUI64
 	var appSKey, nwkSKey lorawan.AES128Key
@@ -379,7 +379,7 @@ func (a *NodeAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest) (
 }
 
 // GetActivation returns the device activation for the given DevEUI.
-func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivationRequest) (*pb.GetDeviceActivationResponse, error) {
+func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivationRequest) (*pb.GetDeviceActivationResponse, error) {
 	var devAddr lorawan.DevAddr
 	var devEUI lorawan.EUI64
 	var nwkSKey lorawan.AES128Key
@@ -434,7 +434,7 @@ func (a *NodeAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivation
 }
 
 // GetFrameLogs returns the uplink / downlink frame log for the given DevEUI.
-func (a *NodeAPI) GetFrameLogs(ctx context.Context, req *pb.GetFrameLogsRequest) (*pb.GetFrameLogsResponse, error) {
+func (a *DeviceAPI) GetFrameLogs(ctx context.Context, req *pb.GetFrameLogsRequest) (*pb.GetFrameLogsResponse, error) {
 	var devEUI lorawan.EUI64
 
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
@@ -528,7 +528,7 @@ func (a *NodeAPI) GetFrameLogs(ctx context.Context, req *pb.GetFrameLogsRequest)
 }
 
 // GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
-func (a *NodeAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAddrRequest) (*pb.GetRandomDevAddrResponse, error) {
+func (a *DeviceAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAddrRequest) (*pb.GetRandomDevAddrResponse, error) {
 	var devEUI lorawan.EUI64
 
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
@@ -558,7 +558,7 @@ func (a *NodeAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAddr
 	}, nil
 }
 
-func (a *NodeAPI) returnList(count int, devices []storage.DeviceListItem) (*pb.ListDeviceResponse, error) {
+func (a *DeviceAPI) returnList(count int, devices []storage.DeviceListItem) (*pb.ListDeviceResponse, error) {
 	resp := pb.ListDeviceResponse{
 		TotalCount: int64(count),
 	}

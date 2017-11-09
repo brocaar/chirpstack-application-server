@@ -40,7 +40,7 @@ func TestNodeAPI(t *testing.T) {
 
 		ctx := context.Background()
 		validator := &TestValidator{}
-		api := NewNodeAPI(validator)
+		api := NewDeviceAPI(validator)
 
 		org := storage.Organization{
 			Name: "test-org",

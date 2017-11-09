@@ -13,28 +13,28 @@ import (
 	"github.com/brocaar/lorawan"
 )
 
-// DownlinkQueueAPI exposes the downlink queue methods.
-type DownlinkQueueAPI struct {
+// DeviceQueueAPI exposes the downlink queue methods.
+type DeviceQueueAPI struct {
 	validator auth.Validator
 }
 
-// NewDownlinkQueueAPI creates a new DownlinkQueueAPI.
-func NewDownlinkQueueAPI(validator auth.Validator) *DownlinkQueueAPI {
-	return &DownlinkQueueAPI{
+// NewDeviceQueueAPI creates a new DeviceQueueAPI.
+func NewDeviceQueueAPI(validator auth.Validator) *DeviceQueueAPI {
+	return &DeviceQueueAPI{
 		validator: validator,
 	}
 }
 
 // Enqueue adds the given item to the queue. When the node operates in
 // Class-C mode, the data will be pushed directly to the network-server.
-func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQueueItemRequest) (*pb.EnqueueDownlinkQueueItemResponse, error) {
+func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueueItemRequest) (*pb.EnqueueDeviceQueueItemResponse, error) {
 	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
 	if err := d.validator.Validate(ctx,
-		auth.ValidateNodeQueueAccess(devEUI, auth.Create)); err != nil {
+		auth.ValidateDeviceQueueAccess(devEUI, auth.Create)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
@@ -55,18 +55,18 @@ func (d *DownlinkQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDownlinkQ
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.EnqueueDownlinkQueueItemResponse{}, nil
+	return &pb.EnqueueDeviceQueueItemResponse{}, nil
 }
 
 // Delete deletes an item from the queue.
-func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeueueItemRequest) (*pb.DeleteDownlinkQueueItemResponse, error) {
+func (d *DeviceQueueAPI) Delete(ctx context.Context, req *pb.DeleteDeviceQueueItemRequest) (*pb.DeleteDeviceQueueItemResponse, error) {
 	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
 	if err := d.validator.Validate(ctx,
-		auth.ValidateNodeQueueAccess(devEUI, auth.Delete)); err != nil {
+		auth.ValidateDeviceQueueAccess(devEUI, auth.Delete)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
@@ -87,18 +87,18 @@ func (d *DownlinkQueueAPI) Delete(ctx context.Context, req *pb.DeleteDownlinkQeu
 		return nil, grpc.Errorf(codes.Unknown, err.Error())
 	}
 
-	return &pb.DeleteDownlinkQueueItemResponse{}, nil
+	return &pb.DeleteDeviceQueueItemResponse{}, nil
 }
 
 // List lists the items in the queue for the given node.
-func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueItemsRequest) (*pb.ListDownlinkQueueItemsResponse, error) {
+func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsRequest) (*pb.ListDeviceQueueItemsResponse, error) {
 	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
 	if err := d.validator.Validate(ctx,
-		auth.ValidateNodeQueueAccess(devEUI, auth.List)); err != nil {
+		auth.ValidateDeviceQueueAccess(devEUI, auth.List)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
@@ -112,9 +112,9 @@ func (d *DownlinkQueueAPI) List(ctx context.Context, req *pb.ListDownlinkQueueIt
 		return nil, errToRPCError(err)
 	}
 
-	var resp pb.ListDownlinkQueueItemsResponse
+	var resp pb.ListDeviceQueueItemsResponse
 	for _, item := range items {
-		qi := pb.DownlinkQueueItem{
+		qi := pb.DeviceQueueItem{
 			Id:        item.ID,
 			Reference: item.Reference,
 			DevEUI:    device.DevEUI.String(),

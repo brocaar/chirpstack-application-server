@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "downlinkQueue.proto",
+    "title": "deviceQueue.proto",
     "version": "version not set"
   },
   "schemes": [
@@ -23,7 +23,7 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiListDownlinkQueueItemsResponse"
+              "$ref": "#/definitions/apiListDeviceQueueItemsResponse"
             }
           }
         },
@@ -36,7 +36,7 @@
           }
         ],
         "tags": [
-          "DownlinkQueue"
+          "DeviceQueue"
         ]
       },
       "post": {
@@ -46,7 +46,7 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiEnqueueDownlinkQueueItemResponse"
+              "$ref": "#/definitions/apiEnqueueDeviceQueueItemResponse"
             }
           }
         },
@@ -62,12 +62,12 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiEnqueueDownlinkQueueItemRequest"
+              "$ref": "#/definitions/apiEnqueueDeviceQueueItemRequest"
             }
           }
         ],
         "tags": [
-          "DownlinkQueue"
+          "DeviceQueue"
         ]
       }
     },
@@ -79,7 +79,7 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiDeleteDownlinkQueueItemResponse"
+              "$ref": "#/definitions/apiDeleteDeviceQueueItemResponse"
             }
           }
         },
@@ -99,16 +99,16 @@
           }
         ],
         "tags": [
-          "DownlinkQueue"
+          "DeviceQueue"
         ]
       }
     }
   },
   "definitions": {
-    "apiDeleteDownlinkQueueItemResponse": {
+    "apiDeleteDeviceQueueItemResponse": {
       "type": "object"
     },
-    "apiDownlinkQueueItem": {
+    "apiDeviceQueueItem": {
       "type": "object",
       "properties": {
         "id": {
@@ -146,7 +146,7 @@
         }
       }
     },
-    "apiEnqueueDownlinkQueueItemRequest": {
+    "apiEnqueueDeviceQueueItemRequest": {
       "type": "object",
       "properties": {
         "devEUI": {
@@ -174,16 +174,16 @@
         }
       }
     },
-    "apiEnqueueDownlinkQueueItemResponse": {
+    "apiEnqueueDeviceQueueItemResponse": {
       "type": "object"
     },
-    "apiListDownlinkQueueItemsResponse": {
+    "apiListDeviceQueueItemsResponse": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiDownlinkQueueItem"
+            "$ref": "#/definitions/apiDeviceQueueItem"
           }
         }
       }

@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package api;
+
+// for grpc-gateway
+import "google/api/annotations.proto";
+
+// DeviceQueue is the service managing the downlink data queue.
+service DeviceQueue {
+    // Enqueue adds the given item to the queue. When the node operates in
+    // Class-C mode, the data will be pushed directly to the network-server.
+    rpc Enqueue(EnqueueDeviceQueueItemRequest) returns (EnqueueDeviceQueueItemResponse) {
+        option(google.api.http) = {
+            post: "/api/devices/{devEUI}/queue"
+            body: "*"
+        };
+    }
+
+    // Delete deletes an item from the queue.
+    rpc Delete(DeleteDeviceQueueItemRequest) returns (DeleteDeviceQueueItemResponse) {
+        option(google.api.http) = {
+            delete: "/api/devices/{devEUI}/queue/{id}"
+        };
+    }
+
+    // List lists the items in the queue for the given node.
+    rpc List(ListDeviceQueueItemsRequest) returns (ListDeviceQueueItemsResponse) {
+        option(google.api.http) = {
+            get: "/api/devices/{devEUI}/queue"
+        };
+    }
+}
+
+message EnqueueDeviceQueueItemRequest {
+    // Hex encoded DevEUI of the node.
+    string devEUI = 1;
+
+    // Random reference (used on ack notification).
+    string reference = 2;
+
+    // Is an ACK required from the node.
+    bool confirmed = 3;
+
+    // FPort used (must be >0)
+    uint32 fPort = 4;
+
+    // Base64 encoded data.
+    bytes data = 5;
+}
+
+message EnqueueDeviceQueueItemResponse {}
+
+message DeleteDeviceQueueItemRequest {
+    // Hex encoded DevEUI of the node.
+    string devEUI = 2;
+
+    // ID of the queue item to delete.
+    int64 id = 1;
+}
+
+message DeleteDeviceQueueItemResponse {}
+
+message DeviceQueueItem {
+    // ID of the queue item.
+    int64 id = 1;
+
+    // Hex encoded DevEUI of the node.
+    string devEUI = 2;
+
+    // Random reference (used on ack notification).
+    string reference = 3;
+
+    // Is an ACK required from the node.
+    bool confirmed = 4;
+
+    // Transmission is pending (waiting for an ack).
+    bool pending = 5;
+
+    // FPort used (must be >0).
+    uint32 fPort = 6;
+
+    // Base64 encoded data.
+    bytes data = 7;   
+}
+
+message ListDeviceQueueItemsRequest {
+    // Hex encoded DevEUI of the node.
+    string devEUI = 1;
+}
+
+message ListDeviceQueueItemsResponse {
+    repeated DeviceQueueItem items = 1;
+}

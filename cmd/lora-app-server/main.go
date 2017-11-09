@@ -293,7 +293,7 @@ func startClientAPI(ctx context.Context) func(*cli.Context) error {
 
 		clientAPIHandler := grpc.NewServer()
 		pb.RegisterApplicationServer(clientAPIHandler, api.NewApplicationAPI(validator))
-		pb.RegisterDownlinkQueueServer(clientAPIHandler, api.NewDownlinkQueueAPI(validator))
+		pb.RegisterDeviceQueueServer(clientAPIHandler, api.NewDeviceQueueAPI(validator))
 		pb.RegisterDeviceServer(clientAPIHandler, api.NewDeviceAPI(validator))
 		pb.RegisterUserServer(clientAPIHandler, api.NewUserAPI(validator))
 		pb.RegisterInternalServer(clientAPIHandler, api.NewInternalUserAPI(validator, c))
@@ -426,7 +426,7 @@ func getJSONGateway(ctx context.Context, c *cli.Context) (http.Handler, error) {
 	if err := pb.RegisterApplicationHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register application handler error")
 	}
-	if err := pb.RegisterDownlinkQueueHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+	if err := pb.RegisterDeviceQueueHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register downlink queue handler error")
 	}
 	if err := pb.RegisterDeviceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {

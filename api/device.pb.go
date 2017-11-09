@@ -7,7 +7,7 @@ Package api is a generated protocol buffer package.
 It is generated from these files:
 	device.proto
 	application.proto
-	downlinkQueue.proto
+	deviceQueue.proto
 	common.proto
 	user.proto
 	gateway.proto
@@ -68,13 +68,13 @@ It has these top-level messages:
 	DeleteIntegrationRequest
 	ListIntegrationRequest
 	ListIntegrationResponse
-	EnqueueDownlinkQueueItemRequest
-	EnqueueDownlinkQueueItemResponse
-	DeleteDownlinkQeueueItemRequest
-	DeleteDownlinkQueueItemResponse
-	DownlinkQueueItem
-	ListDownlinkQueueItemsRequest
-	ListDownlinkQueueItemsResponse
+	EnqueueDeviceQueueItemRequest
+	EnqueueDeviceQueueItemResponse
+	DeleteDeviceQueueItemRequest
+	DeleteDeviceQueueItemResponse
+	DeviceQueueItem
+	ListDeviceQueueItemsRequest
+	ListDeviceQueueItemsResponse
 	OrganizationLink
 	ProfileRequest
 	ProfileResponse

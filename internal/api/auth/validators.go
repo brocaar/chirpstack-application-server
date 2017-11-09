@@ -348,9 +348,9 @@ func ValidateNodeAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 	}
 }
 
-// ValidateNodeQueueAccess validates if the client has access to the queue
+// ValidateDeviceQueueAccess validates if the client has access to the queue
 // of the given node.
-func ValidateNodeQueueAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
+func ValidateDeviceQueueAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 	var where = [][]string{}
 
 	switch flag {

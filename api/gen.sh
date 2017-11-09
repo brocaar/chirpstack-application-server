@@ -19,7 +19,7 @@ IFS=$OIFS
 protoc  -I/usr/local/include -I. ${GOPATHLIST} --go_out=plugins=grpc:. \
     device.proto \
     application.proto \
-    downlinkQueue.proto \
+    deviceQueue.proto \
     common.proto \
     user.proto \
     gateway.proto \
@@ -33,7 +33,7 @@ protoc  -I/usr/local/include -I. ${GOPATHLIST} --go_out=plugins=grpc:. \
 protoc -I/usr/local/include -I. ${GOPATHLIST} --grpc-gateway_out=logtostderr=true:. \
     device.proto \
     application.proto \
-    downlinkQueue.proto \
+    deviceQueue.proto \
     common.proto \
     user.proto \
     gateway.proto \
@@ -47,7 +47,7 @@ protoc -I/usr/local/include -I. ${GOPATHLIST} --grpc-gateway_out=logtostderr=tru
 protoc -I/usr/local/include -I. ${GOPATHLIST} --swagger_out=logtostderr=true:./swagger \
     device.proto \
     application.proto \
-    downlinkQueue.proto \
+    deviceQueue.proto \
     common.proto \
     user.proto \
     gateway.proto \

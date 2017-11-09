@@ -17,7 +17,7 @@ IFS=$OIFS
 
 # generate the gRPC code
 protoc  -I/usr/local/include -I. ${GOPATHLIST} --go_out=plugins=grpc:. \
-    node.proto \
+    device.proto \
     application.proto \
     downlinkQueue.proto \
     common.proto \
@@ -31,7 +31,7 @@ protoc  -I/usr/local/include -I. ${GOPATHLIST} --go_out=plugins=grpc:. \
 
 # generate the JSON interface code
 protoc -I/usr/local/include -I. ${GOPATHLIST} --grpc-gateway_out=logtostderr=true:. \
-    node.proto \
+    device.proto \
     application.proto \
     downlinkQueue.proto \
     common.proto \
@@ -45,7 +45,7 @@ protoc -I/usr/local/include -I. ${GOPATHLIST} --grpc-gateway_out=logtostderr=tru
 
 # generate the swagger definitions
 protoc -I/usr/local/include -I. ${GOPATHLIST} --swagger_out=logtostderr=true:./swagger \
-    node.proto \
+    device.proto \
     application.proto \
     downlinkQueue.proto \
     common.proto \

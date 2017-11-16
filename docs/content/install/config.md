@@ -20,6 +20,8 @@ GLOBAL OPTIONS:
    --mqtt-username value            mqtt server username (optional) [$MQTT_USERNAME]
    --mqtt-password value            mqtt server password (optional) [$MQTT_PASSWORD]
    --mqtt-ca-cert value             mqtt CA certificate file used by the gateway backend (optional) [$MQTT_CA_CERT]
+   --mqtt-cert value                mqtt certificate file used by the gateway backend (optional) [$MQTT_CERT]
+   --mqtt-cert-key value            mqtt key file of certificate used by the gateway backend (optional) [$MQTT_CERT_KEY]
    --as-public-server value         ip:port of the application-server api (used by LoRa Server to connect back to LoRa App Server) (default: "localhost:8001") [$AS_PUBLIC_SERVER]
    --as-public-id value             random uuid defining the id of the application-server installation (used by LoRa Server as routing-profile id) (default: "6d5db27e-4ce2-4b2b-b5d7-91f069397978") [$AS_PUBLIC_ID]
    --bind value                     ip:port to bind the api server (default: "0.0.0.0:8001") [$BIND]

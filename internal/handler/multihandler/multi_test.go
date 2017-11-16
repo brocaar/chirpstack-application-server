@@ -66,7 +66,7 @@ func TestHandler(t *testing.T) {
 		token.Wait()
 		So(token.Error(), ShouldBeNil)
 
-		mqttHandler, err := mqtthandler.NewHandler(conf.MQTTServer, conf.MQTTUsername, conf.MQTTPassword, "")
+		mqttHandler, err := mqtthandler.NewHandler(conf.MQTTServer, conf.MQTTUsername, conf.MQTTPassword, "", "", "")
 		So(err, ShouldBeNil)
 
 		Convey("Given an organization, application with http integration and node", func() {

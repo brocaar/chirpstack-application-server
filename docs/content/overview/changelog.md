@@ -8,6 +8,12 @@ menu:
 
 ## Changelog
 
+### 0.14.2
+
+**Bugfixes:**
+
+* Fix unclosed response body (HTTP integrations).
+
 ### 0.14.1
 
 **Bugfixes:**

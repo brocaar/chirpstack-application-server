@@ -68,6 +68,7 @@ func (h *Handler) send(url string, payload interface{}) error {
 	if err != nil {
 		return errors.Wrap(err, "http request error")
 	}
+	defer resp.Body.Close()
 
 	// check that response is in 200 range
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {

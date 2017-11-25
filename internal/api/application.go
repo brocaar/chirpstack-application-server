@@ -37,10 +37,13 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 	}
 
 	app := storage.Application{
-		Name:             req.Name,
-		Description:      req.Description,
-		OrganizationID:   req.OrganizationID,
-		ServiceProfileID: req.ServiceProfileID,
+		Name:                 req.Name,
+		Description:          req.Description,
+		OrganizationID:       req.OrganizationID,
+		ServiceProfileID:     req.ServiceProfileID,
+		PayloadCodec:         req.PayloadCodec,
+		PayloadEncoderScript: req.PayloadEncoderScript,
+		PayloadDecoderScript: req.PayloadDecoderScript,
 	}
 
 	if err := storage.CreateApplication(common.DB, &app); err != nil {
@@ -65,11 +68,14 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 		return nil, errToRPCError(err)
 	}
 	resp := pb.GetApplicationResponse{
-		Id:               app.ID,
-		Name:             app.Name,
-		Description:      app.Description,
-		OrganizationID:   app.OrganizationID,
-		ServiceProfileID: app.ServiceProfileID,
+		Id:                   app.ID,
+		Name:                 app.Name,
+		Description:          app.Description,
+		OrganizationID:       app.OrganizationID,
+		ServiceProfileID:     app.ServiceProfileID,
+		PayloadCodec:         app.PayloadCodec,
+		PayloadEncoderScript: app.PayloadEncoderScript,
+		PayloadDecoderScript: app.PayloadDecoderScript,
 	}
 
 	return &resp, nil
@@ -92,6 +98,9 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	app.Name = req.Name
 	app.Description = req.Description
 	app.ServiceProfileID = req.ServiceProfileID
+	app.PayloadCodec = req.PayloadCodec
+	app.PayloadEncoderScript = req.PayloadEncoderScript
+	app.PayloadDecoderScript = req.PayloadDecoderScript
 
 	err = storage.UpdateApplication(common.DB, app)
 	if err != nil {

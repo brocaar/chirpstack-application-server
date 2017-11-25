@@ -304,6 +304,74 @@
           "Application"
         ]
       }
+    },
+    "/api/applications/{id}/test-payload-decoder": {
+      "post": {
+        "summary": "TestPayloadDecoder tests the payload decoder for the given application.",
+        "operationId": "TestPayloadDecoder",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiTestPayloadDecoderResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiTestPayloadDecoderRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      }
+    },
+    "/api/applications/{id}/test-payload-encoder": {
+      "post": {
+        "summary": "TestPayloadEncoder tests the payload encoder for the given application.",
+        "operationId": "TestPayloadEncoder",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiTestPayloadEncoderResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiTestPayloadEncoderRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      }
     }
   },
   "definitions": {
@@ -357,6 +425,18 @@
         "serviceProfileID": {
           "type": "string",
           "description": "ID of the service profile."
+        },
+        "payloadCodec": {
+          "type": "string",
+          "description": "Payload codec."
+        },
+        "payloadEncoderScript": {
+          "type": "string",
+          "description": "Payload encoder script."
+        },
+        "payloadDecoderScript": {
+          "type": "string",
+          "description": "Payload decoder script."
         }
       }
     },
@@ -400,6 +480,18 @@
         "serviceProfileID": {
           "type": "string",
           "description": "ID of the service profile."
+        },
+        "payloadCodec": {
+          "type": "string",
+          "description": "Payload codec."
+        },
+        "payloadEncoderScript": {
+          "type": "string",
+          "description": "Payload encoder script."
+        },
+        "payloadDecoderScript": {
+          "type": "string",
+          "description": "Payload decoder script."
         }
       }
     },
@@ -485,6 +577,52 @@
         }
       }
     },
+    "apiTestPayloadDecoderRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "The id of the application."
+        },
+        "data": {
+          "type": "string",
+          "description": "HEX encoded bytes."
+        }
+      }
+    },
+    "apiTestPayloadDecoderResponse": {
+      "type": "object",
+      "properties": {
+        "json": {
+          "type": "string",
+          "description": "JSON string representation of the decoded data."
+        }
+      }
+    },
+    "apiTestPayloadEncoderRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "The id of the application."
+        },
+        "json": {
+          "type": "string",
+          "description": "JSON string representation of the data to encode."
+        }
+      }
+    },
+    "apiTestPayloadEncoderResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "string",
+          "description": "HEX encoded bytes."
+        }
+      }
+    },
     "apiUpdateApplicationRequest": {
       "type": "object",
       "properties": {
@@ -504,6 +642,18 @@
         "serviceProfileID": {
           "type": "string",
           "description": "ID of the service profile."
+        },
+        "payloadCodec": {
+          "type": "string",
+          "description": "Payload codec."
+        },
+        "payloadEncoderScript": {
+          "type": "string",
+          "description": "Payload encoder script."
+        },
+        "payloadDecoderScript": {
+          "type": "string",
+          "description": "Payload decoder script."
         }
       }
     },

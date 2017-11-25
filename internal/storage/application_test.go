@@ -57,10 +57,13 @@ func TestApplication(t *testing.T) {
 
 		Convey("When creating an application", func() {
 			app := Application{
-				OrganizationID:   org.ID,
-				ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
-				Name:             "test-application",
-				Description:      "A test application",
+				OrganizationID:       org.ID,
+				ServiceProfileID:     sp.ServiceProfile.ServiceProfileID,
+				Name:                 "test-application",
+				Description:          "A test application",
+				PayloadCodec:         "CUSTOM_JS",
+				PayloadEncoderScript: "Encode() {}",
+				PayloadDecoderScript: "Decode() {}",
 			}
 			So(CreateApplication(db, &app), ShouldBeNil)
 

@@ -55,10 +55,13 @@ func TestApplicationAPI(t *testing.T) {
 
 		Convey("When creating an application", func() {
 			createResp, err := api.Create(ctx, &pb.CreateApplicationRequest{
-				OrganizationID:   org.ID,
-				Name:             "test-app",
-				Description:      "A test application",
-				ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+				OrganizationID:       org.ID,
+				Name:                 "test-app",
+				Description:          "A test application",
+				ServiceProfileID:     sp.ServiceProfile.ServiceProfileID,
+				PayloadCodec:         "CUSTOM_JS",
+				PayloadEncoderScript: "Encode() {}",
+				PayloadDecoderScript: "Decode() {}",
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
@@ -73,11 +76,14 @@ func TestApplicationAPI(t *testing.T) {
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 				So(app, ShouldResemble, &pb.GetApplicationResponse{
-					OrganizationID:   org.ID,
-					Id:               createResp.Id,
-					Name:             "test-app",
-					Description:      "A test application",
-					ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+					OrganizationID:       org.ID,
+					Id:                   createResp.Id,
+					Name:                 "test-app",
+					Description:          "A test application",
+					ServiceProfileID:     sp.ServiceProfile.ServiceProfileID,
+					PayloadCodec:         "CUSTOM_JS",
+					PayloadEncoderScript: "Encode() {}",
+					PayloadDecoderScript: "Decode() {}",
 				})
 			})
 
@@ -144,10 +150,13 @@ func TestApplicationAPI(t *testing.T) {
 
 			Convey("When updating the application", func() {
 				_, err := api.Update(ctx, &pb.UpdateApplicationRequest{
-					Id:               createResp.Id,
-					Name:             "test-app-updated",
-					Description:      "An updated test description",
-					ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+					Id:                   createResp.Id,
+					Name:                 "test-app-updated",
+					Description:          "An updated test description",
+					ServiceProfileID:     sp.ServiceProfile.ServiceProfileID,
+					PayloadCodec:         "CUSTOM_JS",
+					PayloadEncoderScript: "Encode2() {}",
+					PayloadDecoderScript: "Decode2() {}",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -159,11 +168,14 @@ func TestApplicationAPI(t *testing.T) {
 					})
 					So(err, ShouldBeNil)
 					So(app, ShouldResemble, &pb.GetApplicationResponse{
-						OrganizationID:   org.ID,
-						Id:               createResp.Id,
-						Name:             "test-app-updated",
-						Description:      "An updated test description",
-						ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+						OrganizationID:       org.ID,
+						Id:                   createResp.Id,
+						Name:                 "test-app-updated",
+						Description:          "An updated test description",
+						ServiceProfileID:     sp.ServiceProfile.ServiceProfileID,
+						PayloadCodec:         "CUSTOM_JS",
+						PayloadEncoderScript: "Encode2() {}",
+						PayloadDecoderScript: "Decode2() {}",
 					})
 				})
 			})

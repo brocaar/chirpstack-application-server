@@ -13,11 +13,14 @@ var applicationNameRegexp = regexp.MustCompile(`^[\w-]+$`)
 
 // Application represents an application.
 type Application struct {
-	ID               int64  `db:"id"`
-	Name             string `db:"name"`
-	Description      string `db:"description"`
-	OrganizationID   int64  `db:"organization_id"`
-	ServiceProfileID string `db:"service_profile_id"`
+	ID                   int64  `db:"id"`
+	Name                 string `db:"name"`
+	Description          string `db:"description"`
+	OrganizationID       int64  `db:"organization_id"`
+	ServiceProfileID     string `db:"service_profile_id"`
+	PayloadCodec         string `db:"payload_codec"`
+	PayloadEncoderScript string `db:"payload_encoder_script"`
+	PayloadDecoderScript string `db:"payload_decoder_script"`
 }
 
 // ApplicationListItem devices the application as a list item.
@@ -46,12 +49,18 @@ func CreateApplication(db *sqlx.DB, item *Application) error {
 			name,
 			description,
 			organization_id,
-			service_profile_id
-		) values ($1, $2, $3, $4) returning id`,
+			service_profile_id,
+			payload_codec,
+			payload_encoder_script,
+			payload_decoder_script
+		) values ($1, $2, $3, $4, $5, $6, $7) returning id`,
 		item.Name,
 		item.Description,
 		item.OrganizationID,
 		item.ServiceProfileID,
+		item.PayloadCodec,
+		item.PayloadEncoderScript,
+		item.PayloadDecoderScript,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -225,13 +234,19 @@ func UpdateApplication(db sqlx.Execer, item Application) error {
 			name = $2,
 			description = $3,
 			organization_id = $4,
-			service_profile_id = $5
+			service_profile_id = $5,
+			payload_codec = $6,
+			payload_encoder_script = $7,
+			payload_decoder_script = $8
 		where id = $1`,
 		item.ID,
 		item.Name,
 		item.Description,
 		item.OrganizationID,
 		item.ServiceProfileID,
+		item.PayloadCodec,
+		item.PayloadEncoderScript,
+		item.PayloadDecoderScript,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

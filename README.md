@@ -1,7 +1,6 @@
 # LoRa App Server
 
 [![Build Status](https://travis-ci.org/brocaar/lora-app-server.svg?branch=master)](https://travis-ci.org/brocaar/lora-app-server)
-[![Gitter chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/loraserver/lora-app-server)
 
 LoRa App Server is an open-source LoRaWAN application-server, part of the
 [LoRa Server](https://docs.loraserver.io/) project. It is responsible
@@ -31,7 +30,6 @@ and payloads can be enqueued by using MQTT or the API.
 * [Contributing](https://docs.loraserver.io/lora-app-server/community/contribute/)
 * Support
   * [Support forum](https://forum.loraserver.io)
-  * [Support chat](https://gitter.im/loraserver/lora-app-server)
   * [Bug or feature requests](https://github.com/brocaar/lora-app-server/issues)
 
 ## Sponsors

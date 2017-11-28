@@ -248,6 +248,13 @@ class DeviceProfileForm extends Component {
                   End-Device supports Class C.
                 </p>
               </div>
+              <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsClassC === true ? "" : "hidden")}>
+                <label className="control-label" htmlFor="classCTimeout">Class-C confirmed downlink timeout</label>
+                <input className="form-control" name="classCTimeout" id="classCTimeout" type="number" value={this.state.deviceProfile.deviceProfile.classCTimeout || 0} onChange={this.onChange.bind(this, 'deviceProfile.classCTimeout')} />
+                <p className="help-block">
+                  Class-C timeout (in seconds) for confirmed downlink transmissions.
+                </p>
+              </div>
             </div>
           </fieldset>
           <hr />

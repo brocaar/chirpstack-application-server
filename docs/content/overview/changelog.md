@@ -8,6 +8,12 @@ menu:
 
 ## Changelog
 
+### 0.13.3
+
+**Bugfixes:**
+
+* Fix organization pagination (thanks [@jcampanell-cablelabs](https://github.com/jcampanell-cablelabs))
+
 ### 0.13.2
 
 **Features:**

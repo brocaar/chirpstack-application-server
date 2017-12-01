@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/brocaar/lora-app-server/internal/storage"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -9,7 +10,10 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
+	log "github.com/sirupsen/logrus"
 )
+
+var validAuthorizationRegexp = regexp.MustCompile(`(?i)^bearer (.*)$`)
 
 // Claims defines the struct containing the token claims.
 type Claims struct {
@@ -144,5 +148,13 @@ func getTokenFromContext(ctx context.Context) (string, error) {
 		return "", ErrNoAuthorizationInMetadata
 	}
 
-	return token[0], nil
+	match := validAuthorizationRegexp.FindStringSubmatch(token[0])
+
+	// authorization header should respect RFC1945
+	if len(match) == 0 {
+		log.Warning("Deprecated Authorization header : RFC1945 format expected : Authorization: <type> <credentials>")
+		return token[0], nil
+	}
+
+	return match[1], nil
 }

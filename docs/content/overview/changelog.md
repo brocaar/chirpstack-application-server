@@ -8,6 +8,16 @@ menu:
 
 ## Changelog
 
+### 0.14.3 (development)
+
+**Bugfixes:**
+
+* Fix organization pagination (thanks [@jcampanell-cablelabs](https://github.com/jcampanell-cablelabs))
+
+**Improvements:**
+
+* Use RFC1945 Authorization header format (thanks [@fifthaxe](https://github.com/fifthaxe))
+
 ### 0.14.2
 
 **Bugfixes:**

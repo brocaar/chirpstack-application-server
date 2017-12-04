@@ -55,8 +55,6 @@ It has these top-level messages:
 	GetRandomDevAddrResponse
 	EnqueueDownlinkMACCommandRequest
 	EnqueueDownlinkMACCommandResponse
-	SendDownlinkDataRequest
-	SendDownlinkDataResponse
 	SendProprietaryPayloadRequest
 	SendProprietaryPayloadResponse
 	CreateGatewayRequest
@@ -101,6 +99,15 @@ It has these top-level messages:
 	GetExtraChannelsForChannelConfigurationIDResponse
 	MigrateNodeToDeviceSessionRequest
 	MigrateNodeToDeviceSessionResponse
+	DeviceQueueItem
+	CreateDeviceQueueItemRequest
+	CreateDeviceQueueItemResponse
+	FlushDeviceQueueForDevEUIRequest
+	FlushDeviceQueueForDevEUIResponse
+	GetDeviceQueueItemsForDevEUIRequest
+	GetDeviceQueueItemsForDevEUIResponse
+	GetNextDownlinkFCntForDevEUIRequest
+	GetNextDownlinkFCntForDevEUIResponse
 */
 package ns
 

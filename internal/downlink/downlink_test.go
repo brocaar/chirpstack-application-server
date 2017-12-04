@@ -1,7 +1,11 @@
 package downlink
 
 import (
+	"fmt"
 	"testing"
+
+	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/pkg/errors"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -25,11 +29,8 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 		test.MustResetDB(common.DB)
 
 		nsClient := test.NewNetworkServerClient()
-		nsClient.GetDeviceActivationResponse = ns.GetDeviceActivationResponse{
-			FCntDown: 12,
-		}
-		nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
-			DeviceProfile: &ns.DeviceProfile{},
+		nsClient.GetNextDownlinkFCntForDevEUIResponse = ns.GetNextDownlinkFCntForDevEUIResponse{
+			FCnt: 12,
 		}
 		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
@@ -82,87 +83,99 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 		}
 		So(storage.CreateDeviceActivation(common.DB, &da), ShouldBeNil)
 
-		qi := storage.DeviceQueueItem{
-			Reference: "test",
-			DevEUI:    device.DevEUI,
-			Confirmed: false,
-			FPort:     10,
-			Data:      []byte{1, 2, 3, 4},
-		}
-
 		b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 12, []byte{1, 2, 3, 4})
 		So(err, ShouldBeNil)
 
-		Convey("When calling HandleDownlinkQueueItem for a non class-c device", func() {
-			So(HandleDownlinkQueueItem(device, &qi), ShouldBeNil)
+		Convey("Given a set of tests", func() {
+			tests := []struct {
+				Name    string
+				Payload handler.DataDownPayload
 
-			Convey("Then the item was added to the queue", func() {
-				items, err := storage.GetDeviceQueueItems(common.DB, device.DevEUI)
-				So(err, ShouldBeNil)
-				So(items, ShouldHaveLength, 1)
+				ExpectedDeviceQueueMapping           bool
+				ExpectedError                        error
+				ExpectedCreateDeviceQueueItemRequest ns.CreateDeviceQueueItemRequest
+			}{
+				{
+					Name: "unconfirmed payload",
+					Payload: handler.DataDownPayload{
+						ApplicationID: app.ID,
+						DevEUI:        device.DevEUI,
+						Reference:     "test-123",
+						Confirmed:     false,
+						FPort:         2,
+						Data:          []byte{1, 2, 3, 4},
+					},
 
-				qi.CreatedAt = items[0].CreatedAt
-				qi.UpdatedAt = items[0].UpdatedAt
-				So(items[0], ShouldResemble, qi)
-			})
+					ExpectedCreateDeviceQueueItemRequest: ns.CreateDeviceQueueItemRequest{
+						Item: &ns.DeviceQueueItem{
+							DevEUI:     device.DevEUI[:],
+							FrmPayload: b,
+							FCnt:       12,
+							FPort:      2,
+							Confirmed:  false,
+						},
+					},
+				},
+				{
+					Name: "confirmed payload",
+					Payload: handler.DataDownPayload{
+						ApplicationID: app.ID,
+						DevEUI:        device.DevEUI,
+						Reference:     "test-123",
+						Confirmed:     true,
+						FPort:         2,
+						Data:          []byte{1, 2, 3, 4},
+					},
 
-			Convey("Then nothing was sent to the network-server", func() {
-				So(nsClient.SendDownlinkDataChan, ShouldHaveLength, 0)
-			})
-		})
-
-		Convey("When calling HandleDownlinkQueueItem for a class-c device", func() {
-			nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
-				DeviceProfile: &ns.DeviceProfile{
-					SupportsClassC: true,
+					ExpectedCreateDeviceQueueItemRequest: ns.CreateDeviceQueueItemRequest{
+						Item: &ns.DeviceQueueItem{
+							DevEUI:     device.DevEUI[:],
+							FrmPayload: b,
+							FCnt:       12,
+							FPort:      2,
+							Confirmed:  true,
+						},
+					},
+					ExpectedDeviceQueueMapping: true,
+				},
+				{
+					Name: "invalid application id",
+					Payload: handler.DataDownPayload{
+						ApplicationID: app.ID + 1,
+						DevEUI:        device.DevEUI,
+						Reference:     "test-123",
+						Confirmed:     true,
+						FPort:         2,
+						Data:          []byte{1, 2, 3, 4},
+					},
+					ExpectedError: errors.New("enqueue downlink payload: device does not exist for given application"),
 				},
 			}
 
-			Convey("When the queue item is confirmed", func() {
-				qi.Confirmed = true
+			for i, test := range tests {
+				Convey(fmt.Sprintf("Testint: %s [%d]", test.Name, i), func() {
+					err := handleDataDownPayload(test.Payload)
+					if test.ExpectedError != nil {
+						So(err, ShouldNotBeNil)
+						So(err.Error(), ShouldEqual, test.ExpectedError.Error())
+						return
+					}
 
-				So(HandleDownlinkQueueItem(device, &qi), ShouldBeNil)
+					So(err, ShouldEqual, nil)
+					So(nsClient.GetNextDownlinkFCntForDevEUIChan, ShouldHaveLength, 1)
+					So(nsClient.CreateDeviceQueueItemChan, ShouldHaveLength, 1)
+					So(<-nsClient.CreateDeviceQueueItemChan, ShouldResemble, test.ExpectedCreateDeviceQueueItemRequest)
 
-				Convey("Then the payload was sent to the network-server", func() {
-					So(nsClient.SendDownlinkDataChan, ShouldHaveLength, 1)
-					So(<-nsClient.SendDownlinkDataChan, ShouldResemble, ns.SendDownlinkDataRequest{
-						DevEUI:    device.DevEUI[:],
-						Data:      b,
-						Confirmed: true,
-						FPort:     10,
-						FCnt:      12,
-					})
+					if test.ExpectedDeviceQueueMapping {
+						dqm, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, device.DevEUI, 12)
+						So(err, ShouldBeNil)
+						So(dqm.Reference, ShouldEqual, test.Payload.Reference)
+					} else {
+						_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, device.DevEUI, 12)
+						So(err, ShouldEqual, storage.ErrDoesNotExist)
+					}
 				})
-
-				Convey("Then the item was added as pending to the queue", func() {
-					items, err := storage.GetDeviceQueueItems(common.DB, device.DevEUI)
-					So(err, ShouldBeNil)
-					So(items, ShouldHaveLength, 1)
-					So(items[0].Pending, ShouldBeTrue)
-				})
-			})
-
-			Convey("When the queue item is unconfirmed", func() {
-				So(HandleDownlinkQueueItem(device, &qi), ShouldBeNil)
-
-				Convey("Then the payload was sent to the network-server", func() {
-					So(nsClient.SendDownlinkDataChan, ShouldHaveLength, 1)
-					So(<-nsClient.SendDownlinkDataChan, ShouldResemble, ns.SendDownlinkDataRequest{
-						DevEUI:    device.DevEUI[:],
-						Data:      b,
-						Confirmed: false,
-						FPort:     10,
-						FCnt:      12,
-					})
-				})
-
-				Convey("Then the queue is empty", func() {
-					items, err := storage.GetDeviceQueueItems(common.DB, device.DevEUI)
-					So(err, ShouldBeNil)
-					So(items, ShouldHaveLength, 0)
-				})
-			})
+			}
 		})
-
 	})
 }

@@ -99,7 +99,7 @@ func TestGatewayPing(t *testing.T) {
 
 						now := time.Now().UTC().Truncate(time.Millisecond)
 
-						pong := as.HandleProprietaryUpRequest{
+						pong := as.HandleProprietaryUplinkRequest{
 							Mic: mic[:],
 							RxInfo: []*as.RXInfo{
 								{

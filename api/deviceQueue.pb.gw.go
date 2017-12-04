@@ -59,8 +59,8 @@ func request_DeviceQueue_Enqueue_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
-func request_DeviceQueue_Delete_0(ctx context.Context, marshaler runtime.Marshaler, client DeviceQueueClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq DeleteDeviceQueueItemRequest
+func request_DeviceQueue_Flush_0(ctx context.Context, marshaler runtime.Marshaler, client DeviceQueueClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq FlushDeviceQueueRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -81,18 +81,7 @@ func request_DeviceQueue_Delete_0(ctx context.Context, marshaler runtime.Marshal
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "devEUI", err)
 	}
 
-	val, ok = pathParams["id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
-	}
-
-	protoReq.Id, err = runtime.Int64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
-	}
-
-	msg, err := client.Delete(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.Flush(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
@@ -183,7 +172,7 @@ func RegisterDeviceQueueHandler(ctx context.Context, mux *runtime.ServeMux, conn
 
 	})
 
-	mux.Handle("DELETE", pattern_DeviceQueue_Delete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_DeviceQueue_Flush_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
@@ -201,14 +190,14 @@ func RegisterDeviceQueueHandler(ctx context.Context, mux *runtime.ServeMux, conn
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_DeviceQueue_Delete_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_DeviceQueue_Flush_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DeviceQueue_Delete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DeviceQueue_Flush_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -247,7 +236,7 @@ func RegisterDeviceQueueHandler(ctx context.Context, mux *runtime.ServeMux, conn
 var (
 	pattern_DeviceQueue_Enqueue_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "devices", "devEUI", "queue"}, ""))
 
-	pattern_DeviceQueue_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "devices", "devEUI", "queue", "id"}, ""))
+	pattern_DeviceQueue_Flush_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "devices", "devEUI", "queue"}, ""))
 
 	pattern_DeviceQueue_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "devices", "devEUI", "queue"}, ""))
 )
@@ -255,7 +244,7 @@ var (
 var (
 	forward_DeviceQueue_Enqueue_0 = runtime.ForwardResponseMessage
 
-	forward_DeviceQueue_Delete_0 = runtime.ForwardResponseMessage
+	forward_DeviceQueue_Flush_0 = runtime.ForwardResponseMessage
 
 	forward_DeviceQueue_List_0 = runtime.ForwardResponseMessage
 )

@@ -3,6 +3,8 @@ package downlink
 import (
 	"fmt"
 
+	"github.com/jmoiron/sqlx"
+
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -41,95 +43,83 @@ func handleDataDownPayload(pl handler.DataDownPayload) error {
 	// where it is unknown if the given ApplicationID matches the given
 	// DevEUI.
 	if d.ApplicationID != pl.ApplicationID {
-		return errors.New("enqueue data-down payload: device does not exist for given application")
+		return errors.New("enqueue downlink payload: device does not exist for given application")
 	}
 
-	qi := storage.DeviceQueueItem{
-		Reference: pl.Reference,
-		DevEUI:    pl.DevEUI,
-		Confirmed: pl.Confirmed,
-		FPort:     pl.FPort,
-		Data:      pl.Data,
-	}
-
-	return HandleDownlinkQueueItem(d, &qi)
+	return storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+		if err := EnqueueDownlinkPayload(tx, pl.DevEUI, pl.Reference, pl.Confirmed, pl.FPort, pl.Data); err != nil {
+			return errors.Wrap(err, "enqueue downlink device-queue item error")
+		}
+		return nil
+	})
 }
 
-// HandleDownlinkQueueItem handles a DownlinkQueueItem to be emitted to the device.
-// In case of class-c, it will send the payload directly to the network-server.
-// In any other case, it will be enqueued.
-func HandleDownlinkQueueItem(d storage.Device, qi *storage.DeviceQueueItem) error {
-	dp, err := storage.GetDeviceProfile(common.DB, d.DeviceProfileID)
-	if err != nil {
-		return errors.Wrap(err, "get device-profile error")
-	}
-
-	if dp.DeviceProfile.SupportsClassC && qi.Confirmed {
-		qi.Pending = true
-	}
-
-	// In case of a class-c device, we directly push the payload to the
-	// network-server.
-	// Before pushing, we purge the queue to make sure we have always a single
-	// item in the queue in case of confirmed data.
-	if dp.DeviceProfile.SupportsClassC {
-		if err := storage.DeleteDeviceQueueItemsForDevEUI(common.DB, d.DevEUI); err != nil {
-			return err
-		}
-
-		if err := pushDataDown(d, qi); err != nil {
-			return err
-		}
-	}
-
-	// save the queue-item in every case, except when the node is a class-c
-	// device and the data is unconfirmed.
-	if !(dp.DeviceProfile.SupportsClassC && !qi.Confirmed) {
-		if err := storage.CreateDeviceQueueItem(common.DB, qi); err != nil {
-			return fmt.Errorf("create downlink queue item error: %s", err)
-		}
-	}
-
-	return nil
-}
-
-func pushDataDown(d storage.Device, qi *storage.DeviceQueueItem) error {
-	da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, d.DevEUI)
-	if err != nil {
-		return errors.Wrap(err, "get device-activation error")
-	}
-
-	n, err := storage.GetNetworkServerForDevEUI(common.DB, qi.DevEUI)
+// EnqueueDownlinkPayload adds the downlink payload to the network-server
+// device-queue.
+func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, reference string, confirmed bool, fPort uint8, data []byte) error {
+	// get network-server and network-server api client
+	n, err := storage.GetNetworkServerForDevEUI(db, devEUI)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
 	}
-
 	nsClient, err := common.NetworkServerPool.Get(n.Server)
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
-	actRes, err := nsClient.GetDeviceActivation(context.Background(), &ns.GetDeviceActivationRequest{
-		DevEUI: d.DevEUI[:],
+	// get fCnt to use for encrypting and enqueueing
+	resp, err := nsClient.GetNextDownlinkFCntForDevEUI(context.Background(), &ns.GetNextDownlinkFCntForDevEUIRequest{
+		DevEUI: devEUI[:],
 	})
 	if err != nil {
-		return fmt.Errorf("get device activation error: %s", err)
+		return errors.Wrap(err, "get next downlink fcnt for deveui error")
 	}
 
-	b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, actRes.FCntDown, qi.Data)
+	// get current device-activation for AppSKey
+	da, err := storage.GetLastDeviceActivationForDevEUI(db, devEUI)
 	if err != nil {
-		return fmt.Errorf("encrypt frmpayload error: %s", err)
+		return errors.Wrap(err, "get last device-activation error")
 	}
 
-	_, err = nsClient.SendDownlinkData(context.Background(), &ns.SendDownlinkDataRequest{
-		DevEUI:    qi.DevEUI[:],
-		Data:      b,
-		Confirmed: qi.Confirmed,
-		FPort:     uint32(qi.FPort),
-		FCnt:      actRes.FCntDown,
+	// encrypt payload
+	b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, resp.FCnt, data)
+	if err != nil {
+		return errors.Wrap(err, "encrypt frmpayload error")
+	}
+
+	// create device-queue mapping (for mapping a device-queue item to an
+	// user-given reference)
+	if confirmed == true {
+		err = storage.CreateDeviceQueueMapping(db, &storage.DeviceQueueMapping{
+			Reference: reference,
+			DevEUI:    devEUI,
+			FCnt:      resp.FCnt,
+		})
+		if err != nil {
+			return errors.Wrap(err, "create device-queue mapping error")
+		}
+	}
+
+	// enqueue device-queue item
+	_, err = nsClient.CreateDeviceQueueItem(context.Background(), &ns.CreateDeviceQueueItemRequest{
+		Item: &ns.DeviceQueueItem{
+			DevEUI:     devEUI[:],
+			FrmPayload: b,
+			FCnt:       resp.FCnt,
+			FPort:      uint32(fPort),
+			Confirmed:  confirmed,
+		},
 	})
 	if err != nil {
-		return fmt.Errorf("push data-down error: %s", err)
+		return errors.Wrap(err, "create device-queue item error")
 	}
+
+	log.WithFields(log.Fields{
+		"f_cnt":     resp.FCnt,
+		"dev_eui":   devEUI,
+		"reference": reference,
+		"confirmed": confirmed,
+	}).Info("downlink device-queue item handled")
+
 	return nil
 }

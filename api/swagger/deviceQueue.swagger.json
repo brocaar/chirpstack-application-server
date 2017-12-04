@@ -17,7 +17,7 @@
   "paths": {
     "/api/devices/{devEUI}/queue": {
       "get": {
-        "summary": "List lists the items in the queue for the given node.",
+        "summary": "List lists the items in the device-queue.",
         "operationId": "List",
         "responses": {
           "200": {
@@ -39,8 +39,31 @@
           "DeviceQueue"
         ]
       },
+      "delete": {
+        "summary": "Flush flushes the downlink device-queue.",
+        "operationId": "Flush",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiFlushDeviceQueueResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "DeviceQueue"
+        ]
+      },
       "post": {
-        "summary": "Enqueue adds the given item to the queue. When the node operates in\nClass-C mode, the data will be pushed directly to the network-server.",
+        "summary": "Enqueue adds the given item to the device-queue.",
         "operationId": "Enqueue",
         "responses": {
           "200": {
@@ -70,55 +93,15 @@
           "DeviceQueue"
         ]
       }
-    },
-    "/api/devices/{devEUI}/queue/{id}": {
-      "delete": {
-        "summary": "Delete deletes an item from the queue.",
-        "operationId": "Delete",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiDeleteDeviceQueueItemResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "devEUI",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          }
-        ],
-        "tags": [
-          "DeviceQueue"
-        ]
-      }
     }
   },
   "definitions": {
-    "apiDeleteDeviceQueueItemResponse": {
-      "type": "object"
-    },
     "apiDeviceQueueItem": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the queue item."
-        },
         "devEUI": {
           "type": "string",
-          "description": "Hex encoded DevEUI of the node."
+          "description": "Hex encoded DevEUI of the device."
         },
         "reference": {
           "type": "string",
@@ -127,12 +110,7 @@
         "confirmed": {
           "type": "boolean",
           "format": "boolean",
-          "description": "Is an ACK required from the node."
-        },
-        "pending": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Transmission is pending (waiting for an ack)."
+          "description": "Is an ACK required from the device."
         },
         "fPort": {
           "type": "integer",
@@ -143,6 +121,11 @@
           "type": "string",
           "format": "byte",
           "description": "Base64 encoded data."
+        },
+        "fCnt": {
+          "type": "integer",
+          "format": "int64",
+          "description": "FCnt of the queue item."
         }
       }
     },
@@ -175,6 +158,9 @@
       }
     },
     "apiEnqueueDeviceQueueItemResponse": {
+      "type": "object"
+    },
+    "apiFlushDeviceQueueResponse": {
       "type": "object"
     },
     "apiListDeviceQueueItemsResponse": {

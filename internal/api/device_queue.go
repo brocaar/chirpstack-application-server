@@ -10,7 +10,10 @@ import (
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/downlink"
 	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
+	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 )
 
 // DeviceQueueAPI exposes the downlink queue methods.
@@ -25,8 +28,7 @@ func NewDeviceQueueAPI(validator auth.Validator) *DeviceQueueAPI {
 	}
 }
 
-// Enqueue adds the given item to the queue. When the node operates in
-// Class-C mode, the data will be pushed directly to the network-server.
+// Enqueue adds the given item to the device-queue.
 func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueueItemRequest) (*pb.EnqueueDeviceQueueItemResponse, error) {
 	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
@@ -38,28 +40,21 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	device, err := storage.GetDevice(common.DB, devEUI)
+	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+		if err := downlink.EnqueueDownlinkPayload(tx, devEUI, req.Reference, req.Confirmed, uint8(req.FPort), req.Data); err != nil {
+			return errors.Wrap(err, "enqueue downlink payload error")
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, errToRPCError(err)
-	}
-
-	qi := storage.DeviceQueueItem{
-		DevEUI:    device.DevEUI,
-		Reference: req.Reference,
-		Confirmed: req.Confirmed,
-		FPort:     uint8(req.FPort),
-		Data:      req.Data,
-	}
-
-	if err := downlink.HandleDownlinkQueueItem(device, &qi); err != nil {
 		return nil, errToRPCError(err)
 	}
 
 	return &pb.EnqueueDeviceQueueItemResponse{}, nil
 }
 
-// Delete deletes an item from the queue.
-func (d *DeviceQueueAPI) Delete(ctx context.Context, req *pb.DeleteDeviceQueueItemRequest) (*pb.DeleteDeviceQueueItemResponse, error) {
+// Flush flushes the downlink device-queue.
+func (d *DeviceQueueAPI) Flush(ctx context.Context, req *pb.FlushDeviceQueueRequest) (*pb.FlushDeviceQueueResponse, error) {
 	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
@@ -70,27 +65,34 @@ func (d *DeviceQueueAPI) Delete(ctx context.Context, req *pb.DeleteDeviceQueueIt
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	device, err := storage.GetDevice(common.DB, devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	qi, err := storage.GetDeviceQueueItem(common.DB, req.Id)
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	if qi.DevEUI != device.DevEUI {
-		return nil, grpc.Errorf(codes.NotFound, "queue-item does not exist for the given node")
+
+	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+		if err := storage.FlushDeviceQueueMappingForDevEUI(tx, devEUI); err != nil {
+			return errToRPCError(err)
+		}
+
+		_, err := nsClient.FlushDeviceQueueForDevEUI(ctx, &ns.FlushDeviceQueueForDevEUIRequest{
+			DevEUI: devEUI[:],
+		})
+		return err
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	if err := storage.DeleteDeviceQueueItem(common.DB, req.Id); err != nil {
-		return nil, grpc.Errorf(codes.Unknown, err.Error())
-	}
-
-	return &pb.DeleteDeviceQueueItemResponse{}, nil
+	return &pb.FlushDeviceQueueResponse{}, nil
 }
 
-// List lists the items in the queue for the given node.
+// List lists the items in the device-queue.
 func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsRequest) (*pb.ListDeviceQueueItemsResponse, error) {
 	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
@@ -102,28 +104,39 @@ func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsR
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	device, err := storage.GetDevice(common.DB, devEUI)
+	da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	items, err := storage.GetDeviceQueueItems(common.DB, device.DevEUI)
+	n, err := storage.GetNetworkServerForDevEUI(common.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
+
+	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	queueItemsResp, err := nsClient.GetDeviceQueueItemsForDevEUI(ctx, &ns.GetDeviceQueueItemsForDevEUIRequest{
+		DevEUI: devEUI[:],
+	})
 
 	var resp pb.ListDeviceQueueItemsResponse
-	for _, item := range items {
-		qi := pb.DeviceQueueItem{
-			Id:        item.ID,
-			Reference: item.Reference,
-			DevEUI:    device.DevEUI.String(),
-			Confirmed: item.Confirmed,
-			Pending:   item.Pending,
-			FPort:     uint32(item.FPort),
-			Data:      item.Data,
+	for _, qi := range queueItemsResp.Items {
+		b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, qi.FCnt, qi.FrmPayload)
+		if err != nil {
+			return nil, errToRPCError(err)
 		}
-		resp.Items = append(resp.Items, &qi)
+
+		resp.Items = append(resp.Items, &pb.DeviceQueueItem{
+			DevEUI:    devEUI.String(),
+			Confirmed: qi.Confirmed,
+			FPort:     qi.FPort,
+			Data:      b,
+			FCnt:      qi.FCnt,
+		})
 	}
 
 	return &resp, nil

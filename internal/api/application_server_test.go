@@ -106,7 +106,6 @@ func TestApplicationServerAPI(t *testing.T) {
 		Convey("When calling HandleError", func() {
 			_, err := api.HandleError(ctx, &as.HandleErrorRequest{
 				DevEUI: []byte{1, 2, 3, 4, 5, 6, 7, 8},
-				AppEUI: []byte{8, 7, 6, 5, 4, 3, 2, 1},
 				Type:   as.ErrorType_DATA_UP_FCNT,
 				Error:  "BOOM!",
 			})
@@ -134,11 +133,11 @@ func TestApplicationServerAPI(t *testing.T) {
 			}
 			So(storage.CreateDeviceActivation(common.DB, &da), ShouldBeNil)
 
-			Convey("When calling HandleDataUp", func() {
+			Convey("When calling HandleUplinkData", func() {
 				now := time.Now().UTC()
 				mac := lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}
 
-				req := as.HandleDataUpRequest{
+				req := as.HandleUplinkDataRequest{
 					DevEUI: d.DevEUI[:],
 					FCnt:   10,
 					FPort:  3,
@@ -167,7 +166,7 @@ func TestApplicationServerAPI(t *testing.T) {
 						CodeRate: "4/6",
 					},
 				}
-				_, err := api.HandleDataUp(ctx, &req)
+				_, err := api.HandleUplinkData(ctx, &req)
 				So(err, ShouldBeNil)
 
 				Convey("Then the expected payload was sent to the handler", func() {
@@ -207,121 +206,65 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 			})
 
-			Convey("Given a pending downlink queue item for this node", func() {
-				qi := storage.DeviceQueueItem{
+			Convey("Given a device-queue mapping", func() {
+				dqm := storage.DeviceQueueMapping{
+					Reference: "test-1234",
 					DevEUI:    d.DevEUI,
-					Reference: "abcd1234",
-					Confirmed: true,
-					Pending:   true,
-					FPort:     10,
-					Data:      []byte{1, 2, 3, 4},
+					FCnt:      10,
 				}
-				So(storage.CreateDeviceQueueItem(common.DB, &qi), ShouldBeNil)
+				So(storage.CreateDeviceQueueMapping(common.DB, &dqm), ShouldBeNil)
 
-				Convey("Then it is removed when calling HandleDataDownACK", func() {
-					_, err := api.HandleDataDownACK(ctx, &as.HandleDataDownACKRequest{
-						DevEUI: d.DevEUI[:],
+				Convey("On HandleDownlinkACK (ack: true)", func() {
+					_, err := api.HandleDownlinkACK(ctx, &as.HandleDownlinkACKRequest{
+						DevEUI:       d.DevEUI[:],
+						FCnt:         10,
+						Acknowledged: true,
 					})
 					So(err, ShouldBeNil)
 
-					_, err = storage.GetDeviceQueueItem(common.DB, qi.ID)
-					So(err, ShouldNotBeNil)
+					Convey("Then the device-queue mapping has been removed", func() {
+						_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, d.DevEUI, 10)
+						So(err, ShouldEqual, storage.ErrDoesNotExist)
+					})
 
-					Convey("Then an ack notification was sent to the handler", func() {
+					Convey("Then an ack (true) notification was sent to the handler", func() {
 						So(h.SendACKNotificationChan, ShouldHaveLength, 1)
 						So(<-h.SendACKNotificationChan, ShouldResemble, handler.ACKNotification{
 							ApplicationID:   app.ID,
-							ApplicationName: "test-app",
-							NodeName:        "test-node",
-							DevEUI:          qi.DevEUI,
-							Reference:       qi.Reference,
+							ApplicationName: app.Name,
+							NodeName:        d.Name,
+							DevEUI:          d.DevEUI,
+							Reference:       dqm.Reference,
+							Acknowledged:    true,
+							FCnt:            10,
 						})
 					})
 				})
-			})
 
-			Convey("Given a downlink queue item in the queue (confirmed=false)", func() {
-				qi := storage.DeviceQueueItem{
-					DevEUI:    d.DevEUI,
-					Reference: "abcd1234",
-					Confirmed: false,
-					FPort:     1,
-					Data:      []byte{1, 2, 3, 4},
-				}
-				So(storage.CreateDeviceQueueItem(common.DB, &qi), ShouldBeNil)
-
-				Convey("When calling GetDataDown", func() {
-					resp, err := api.GetDataDown(ctx, &as.GetDataDownRequest{
-						DevEUI:         d.DevEUI[:],
-						MaxPayloadSize: 100,
-						FCnt:           10,
+				Convey("On HandleDownlinkACK (ack: false)", func() {
+					_, err := api.HandleDownlinkACK(ctx, &as.HandleDownlinkACKRequest{
+						DevEUI:       d.DevEUI[:],
+						FCnt:         10,
+						Acknowledged: false,
 					})
 					So(err, ShouldBeNil)
 
-					Convey("Then the expected response is returned", func() {
-						da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, d.DevEUI)
-						So(err, ShouldBeNil)
+					Convey("Then the device-queue mapping has been removed", func() {
+						_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, d.DevEUI, 10)
+						So(err, ShouldEqual, storage.ErrDoesNotExist)
+					})
 
-						b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 10, resp.Data)
-						So(err, ShouldBeNil)
-
-						resp.Data = b
-
-						So(resp, ShouldResemble, &as.GetDataDownResponse{
-							Data:      qi.Data,
-							Confirmed: false,
-							FPort:     1,
-							MoreData:  false,
+					Convey("Then an ack (true) notification was sent to the handler", func() {
+						So(h.SendACKNotificationChan, ShouldHaveLength, 1)
+						So(<-h.SendACKNotificationChan, ShouldResemble, handler.ACKNotification{
+							ApplicationID:   app.ID,
+							ApplicationName: app.Name,
+							NodeName:        d.Name,
+							DevEUI:          d.DevEUI,
+							Reference:       dqm.Reference,
+							Acknowledged:    false,
+							FCnt:            10,
 						})
-					})
-
-					Convey("Then the item was removed from the queue", func() {
-						size, err := storage.GetDeviceQueueItemCount(common.DB, d.DevEUI)
-						So(err, ShouldBeNil)
-						So(size, ShouldEqual, 0)
-					})
-				})
-			})
-
-			Convey("Given a downlink queue item in the queue (confirmed=true)", func() {
-				qi := storage.DeviceQueueItem{
-					DevEUI:    d.DevEUI,
-					Reference: "abcd1234",
-					Confirmed: true,
-					FPort:     1,
-					Data:      []byte{1, 2, 3, 4},
-				}
-				So(storage.CreateDeviceQueueItem(common.DB, &qi), ShouldBeNil)
-
-				Convey("When calling GetDataDown", func() {
-					resp, err := api.GetDataDown(ctx, &as.GetDataDownRequest{
-						DevEUI:         d.DevEUI[:],
-						MaxPayloadSize: 100,
-						FCnt:           10,
-					})
-					So(err, ShouldBeNil)
-
-					Convey("Then the expected response is returned", func() {
-						da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, d.DevEUI)
-						So(err, ShouldBeNil)
-
-						b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 10, resp.Data)
-						So(err, ShouldBeNil)
-
-						resp.Data = b
-
-						So(resp, ShouldResemble, &as.GetDataDownResponse{
-							Data:      qi.Data,
-							Confirmed: true,
-							FPort:     1,
-							MoreData:  false,
-						})
-					})
-
-					Convey("Then the item was set to pending", func() {
-						qi2, err := storage.GetDeviceQueueItem(common.DB, qi.ID)
-						So(err, ShouldBeNil)
-						So(qi2.Pending, ShouldBeTrue)
 					})
 				})
 			})

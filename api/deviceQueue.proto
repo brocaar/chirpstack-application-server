@@ -7,8 +7,7 @@ import "google/api/annotations.proto";
 
 // DeviceQueue is the service managing the downlink data queue.
 service DeviceQueue {
-    // Enqueue adds the given item to the queue. When the node operates in
-    // Class-C mode, the data will be pushed directly to the network-server.
+    // Enqueue adds the given item to the device-queue.
     rpc Enqueue(EnqueueDeviceQueueItemRequest) returns (EnqueueDeviceQueueItemResponse) {
         option(google.api.http) = {
             post: "/api/devices/{devEUI}/queue"
@@ -16,14 +15,14 @@ service DeviceQueue {
         };
     }
 
-    // Delete deletes an item from the queue.
-    rpc Delete(DeleteDeviceQueueItemRequest) returns (DeleteDeviceQueueItemResponse) {
+    // Flush flushes the downlink device-queue.
+    rpc Flush(FlushDeviceQueueRequest) returns (FlushDeviceQueueResponse) {
         option(google.api.http) = {
-            delete: "/api/devices/{devEUI}/queue/{id}"
+            delete: "/api/devices/{devEUI}/queue"
         };
     }
 
-    // List lists the items in the queue for the given node.
+    // List lists the items in the device-queue.
     rpc List(ListDeviceQueueItemsRequest) returns (ListDeviceQueueItemsResponse) {
         option(google.api.http) = {
             get: "/api/devices/{devEUI}/queue"
@@ -50,37 +49,31 @@ message EnqueueDeviceQueueItemRequest {
 
 message EnqueueDeviceQueueItemResponse {}
 
-message DeleteDeviceQueueItemRequest {
+message FlushDeviceQueueRequest {
     // Hex encoded DevEUI of the node.
-    string devEUI = 2;
-
-    // ID of the queue item to delete.
-    int64 id = 1;
+    string devEUI = 1;
 }
 
-message DeleteDeviceQueueItemResponse {}
+message FlushDeviceQueueResponse {}
 
 message DeviceQueueItem {
-    // ID of the queue item.
-    int64 id = 1;
-
-    // Hex encoded DevEUI of the node.
+    // Hex encoded DevEUI of the device.
     string devEUI = 2;
 
     // Random reference (used on ack notification).
     string reference = 3;
 
-    // Is an ACK required from the node.
+    // Is an ACK required from the device.
     bool confirmed = 4;
-
-    // Transmission is pending (waiting for an ack).
-    bool pending = 5;
 
     // FPort used (must be >0).
     uint32 fPort = 6;
 
     // Base64 encoded data.
     bytes data = 7;   
+
+    // FCnt of the queue item.
+    uint32 fCnt = 8;
 }
 
 message ListDeviceQueueItemsRequest {

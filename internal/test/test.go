@@ -172,9 +172,6 @@ type NetworkServerClient struct {
 	EnqueueDownlinkMACCommandChan     chan ns.EnqueueDownlinkMACCommandRequest
 	EnqueueDownlinkMACCommandResponse ns.EnqueueDownlinkMACCommandResponse
 
-	SendDownlinkDataChan     chan ns.SendDownlinkDataRequest
-	SendDownlinkDataResponse ns.SendDownlinkDataResponse
-
 	SendProprietaryPayloadChan     chan ns.SendProprietaryPayloadRequest
 	SendProprietaryPayloadResponse ns.SendProprietaryPayloadResponse
 
@@ -228,6 +225,18 @@ type NetworkServerClient struct {
 
 	GetExtraChannelsForChannelConfigurationIDChan     chan ns.GetExtraChannelsForChannelConfigurationIDRequest
 	GetExtraChannelsForChannelConfigurationIDResponse ns.GetExtraChannelsForChannelConfigurationIDResponse
+
+	CreateDeviceQueueItemChan     chan ns.CreateDeviceQueueItemRequest
+	CreateDeviceQueueItemResponse ns.CreateDeviceQueueItemResponse
+
+	FlushDeviceQueueForDevEUIChan     chan ns.FlushDeviceQueueForDevEUIRequest
+	FlushDeviceQueueForDevEUIResponse ns.FlushDeviceQueueForDevEUIResponse
+
+	GetDeviceQueueItemsForDevEUIChan     chan ns.GetDeviceQueueItemsForDevEUIRequest
+	GetDeviceQueueItemsForDevEUIResponse ns.GetDeviceQueueItemsForDevEUIResponse
+
+	GetNextDownlinkFCntForDevEUIChan     chan ns.GetNextDownlinkFCntForDevEUIRequest
+	GetNextDownlinkFCntForDevEUIResponse ns.GetNextDownlinkFCntForDevEUIResponse
 }
 
 // NewNetworkServerClient creates a new NetworkServerClient.
@@ -254,7 +263,6 @@ func NewNetworkServerClient() *NetworkServerClient {
 		GetDeviceActivationChan:                       make(chan ns.GetDeviceActivationRequest, 100),
 		GetRandomDevAddrChan:                          make(chan ns.GetRandomDevAddrRequest, 100),
 		EnqueueDownlinkMACCommandChan:                 make(chan ns.EnqueueDownlinkMACCommandRequest, 100),
-		SendDownlinkDataChan:                          make(chan ns.SendDownlinkDataRequest, 100),
 		SendProprietaryPayloadChan:                    make(chan ns.SendProprietaryPayloadRequest, 100),
 		CreateGatewayChan:                             make(chan ns.CreateGatewayRequest, 100),
 		GetGatewayChan:                                make(chan ns.GetGatewayRequest, 100),
@@ -273,6 +281,10 @@ func NewNetworkServerClient() *NetworkServerClient {
 		UpdateExtraChannelChan:                        make(chan ns.UpdateExtraChannelRequest, 100),
 		DeleteExtraChannelChan:                        make(chan ns.DeleteExtraChannelRequest, 100),
 		GetExtraChannelsForChannelConfigurationIDChan: make(chan ns.GetExtraChannelsForChannelConfigurationIDRequest, 100),
+		GetNextDownlinkFCntForDevEUIChan:              make(chan ns.GetNextDownlinkFCntForDevEUIRequest, 100),
+		CreateDeviceQueueItemChan:                     make(chan ns.CreateDeviceQueueItemRequest, 100),
+		FlushDeviceQueueForDevEUIChan:                 make(chan ns.FlushDeviceQueueForDevEUIRequest, 100),
+		GetDeviceQueueItemsForDevEUIChan:              make(chan ns.GetDeviceQueueItemsForDevEUIRequest, 100),
 	}
 }
 
@@ -444,12 +456,6 @@ func (n *NetworkServerClient) EnqueueDownlinkMACCommand(ctx context.Context, in 
 	return &n.EnqueueDownlinkMACCommandResponse, nil
 }
 
-// SendDownlinkData method.
-func (n *NetworkServerClient) SendDownlinkData(ctx context.Context, in *ns.SendDownlinkDataRequest, opts ...grpc.CallOption) (*ns.SendDownlinkDataResponse, error) {
-	n.SendDownlinkDataChan <- *in
-	return &n.SendDownlinkDataResponse, nil
-}
-
 // SendProprietaryPayload method.
 func (n *NetworkServerClient) SendProprietaryPayload(ctx context.Context, in *ns.SendProprietaryPayloadRequest, opts ...grpc.CallOption) (*ns.SendProprietaryPayloadResponse, error) {
 	n.SendProprietaryPayloadChan <- *in
@@ -519,4 +525,28 @@ func (n *NetworkServerClient) GetExtraChannelsForChannelConfigurationID(ctx cont
 // MigrateNodeToDeviceSession is not implemented.
 func (n *NetworkServerClient) MigrateNodeToDeviceSession(ctx context.Context, in *ns.MigrateNodeToDeviceSessionRequest, opts ...grpc.CallOption) (*ns.MigrateNodeToDeviceSessionResponse, error) {
 	panic("not implemented")
+}
+
+// CreateDeviceQueueItem method.
+func (n NetworkServerClient) CreateDeviceQueueItem(ctx context.Context, in *ns.CreateDeviceQueueItemRequest, opts ...grpc.CallOption) (*ns.CreateDeviceQueueItemResponse, error) {
+	n.CreateDeviceQueueItemChan <- *in
+	return &n.CreateDeviceQueueItemResponse, nil
+}
+
+// FlushDeviceQueueForDevEUI method.
+func (n NetworkServerClient) FlushDeviceQueueForDevEUI(ctx context.Context, in *ns.FlushDeviceQueueForDevEUIRequest, opts ...grpc.CallOption) (*ns.FlushDeviceQueueForDevEUIResponse, error) {
+	n.FlushDeviceQueueForDevEUIChan <- *in
+	return &n.FlushDeviceQueueForDevEUIResponse, nil
+}
+
+// GetDeviceQueueItemsForDevEUI method.
+func (n NetworkServerClient) GetDeviceQueueItemsForDevEUI(ctx context.Context, in *ns.GetDeviceQueueItemsForDevEUIRequest, opts ...grpc.CallOption) (*ns.GetDeviceQueueItemsForDevEUIResponse, error) {
+	n.GetDeviceQueueItemsForDevEUIChan <- *in
+	return &n.GetDeviceQueueItemsForDevEUIResponse, nil
+}
+
+// GetNextDownlinkFCntForDevEUI method.
+func (n NetworkServerClient) GetNextDownlinkFCntForDevEUI(ctx context.Context, in *ns.GetNextDownlinkFCntForDevEUIRequest, opts ...grpc.CallOption) (*ns.GetNextDownlinkFCntForDevEUIResponse, error) {
+	n.GetNextDownlinkFCntForDevEUIChan <- *in
+	return &n.GetNextDownlinkFCntForDevEUIResponse, nil
 }

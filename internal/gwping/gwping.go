@@ -35,7 +35,7 @@ func SendPingLoop() {
 }
 
 // HandleReceivedPing handles a ping received by one or multiple gateways.
-func HandleReceivedPing(req *as.HandleProprietaryUpRequest) error {
+func HandleReceivedPing(req *as.HandleProprietaryUplinkRequest) error {
 	var mic lorawan.MIC
 	copy(mic[:], req.Mic)
 

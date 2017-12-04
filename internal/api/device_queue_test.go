@@ -27,10 +27,9 @@ func TestDownlinkQueueAPI(t *testing.T) {
 		test.MustResetDB(common.DB)
 
 		nsClient := test.NewNetworkServerClient()
-		nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
-			DeviceProfile: &ns.DeviceProfile{},
+		nsClient.GetNextDownlinkFCntForDevEUIResponse = ns.GetNextDownlinkFCntForDevEUIResponse{
+			FCnt: 12,
 		}
-
 		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
 
 		ctx := context.Background()
@@ -87,132 +86,85 @@ func TestDownlinkQueueAPI(t *testing.T) {
 		}
 		So(storage.CreateDeviceActivation(common.DB, &da), ShouldBeNil)
 
-		Convey("Given the node is a class-c device", func() {
-			nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
-				DeviceProfile: &ns.DeviceProfile{
-					SupportsClassC: true,
-				},
-			}
-
-			nsClient.GetDeviceActivationResponse = ns.GetDeviceActivationResponse{
-				FCntDown: 12,
-			}
-
-			Convey("When enqueueing a unconfirmed queue item", func() {
-				_, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{
-					DevEUI:    d.DevEUI.String(),
-					Confirmed: false,
-					FPort:     10,
-					Data:      []byte{1, 2, 3, 4},
-				})
-				So(err, ShouldBeNil)
-				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
-
-				Convey("Then the payload was directly sent to the network-server", func() {
-					b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 12, []byte{1, 2, 3, 4})
-					So(err, ShouldBeNil)
-
-					So(nsClient.SendDownlinkDataChan, ShouldHaveLength, 1)
-					So(<-nsClient.SendDownlinkDataChan, ShouldResemble, ns.SendDownlinkDataRequest{
-						DevEUI:    d.DevEUI[:],
-						Data:      b,
-						Confirmed: false,
-						FPort:     10,
-						FCnt:      12,
-					})
-				})
-
-				Convey("Then the item was not added to the queue", func() {
-					items, err := storage.GetDeviceQueueItems(common.DB, d.DevEUI)
-					So(err, ShouldBeNil)
-					So(items, ShouldHaveLength, 0)
-				})
-			})
-
-			Convey("When enqueueing a confirmed queue item", func() {
-				_, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{
-					DevEUI:    d.DevEUI.String(),
-					Confirmed: true,
-					FPort:     10,
-					Data:      []byte{1, 2, 3, 4},
-				})
-				So(err, ShouldBeNil)
-				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
-
-				Convey("Then the payload was directly sent to the network-server", func() {
-					b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 12, []byte{1, 2, 3, 4})
-					So(err, ShouldBeNil)
-
-					So(nsClient.SendDownlinkDataChan, ShouldHaveLength, 1)
-					So(<-nsClient.SendDownlinkDataChan, ShouldResemble, ns.SendDownlinkDataRequest{
-						DevEUI:    d.DevEUI[:],
-						Data:      b,
-						Confirmed: true,
-						FPort:     10,
-						FCnt:      12,
-					})
-				})
-
-				Convey("Then the item was added as pending item to the queue", func() {
-					items, err := storage.GetDeviceQueueItems(common.DB, d.DevEUI)
-					So(err, ShouldBeNil)
-					So(items, ShouldHaveLength, 1)
-					So(items[0].Pending, ShouldBeTrue)
-				})
-			})
-		})
+		b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 12, []byte{1, 2, 3, 4})
+		So(err, ShouldBeNil)
 
 		Convey("When enqueueing a downlink queue item", func() {
 			_, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{
-				DevEUI:    d.DevEUI.String(),
-				Confirmed: true,
-				FPort:     10,
-				Data:      []byte{1, 2, 3, 4},
+				DevEUI: d.DevEUI.String(),
+				FPort:  10,
+				Data:   []byte{1, 2, 3, 4},
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
 			So(validator.validatorFuncs, ShouldHaveLength, 1)
 
-			Convey("Then the queue contains a single item", func() {
+			Convey("Then the expected request has been made to the network-server", func() {
+				So(nsClient.CreateDeviceQueueItemChan, ShouldHaveLength, 1)
+				So(<-nsClient.CreateDeviceQueueItemChan, ShouldResemble, ns.CreateDeviceQueueItemRequest{
+					Item: &ns.DeviceQueueItem{
+						DevEUI:     d.DevEUI[:],
+						FrmPayload: b,
+						FCnt:       12,
+						FPort:      10,
+					},
+				})
+			})
+		})
+
+		Convey("Given a mocked device-queue item", func() {
+			nsClient.GetDeviceQueueItemsForDevEUIResponse = ns.GetDeviceQueueItemsForDevEUIResponse{
+				Items: []*ns.DeviceQueueItem{
+					{
+						DevEUI:     d.DevEUI[:],
+						FrmPayload: b,
+						FCnt:       12,
+						FPort:      10,
+						Confirmed:  true,
+					},
+				},
+			}
+
+			Convey("Then list returns the expected item", func() {
 				resp, err := api.List(ctx, &pb.ListDeviceQueueItemsRequest{
 					DevEUI: d.DevEUI.String(),
 				})
 				So(err, ShouldBeNil)
-				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
-
 				So(resp.Items, ShouldHaveLength, 1)
 				So(resp.Items[0], ShouldResemble, &pb.DeviceQueueItem{
-					Id:        1,
 					DevEUI:    d.DevEUI.String(),
 					Confirmed: true,
-					Pending:   false,
 					FPort:     10,
+					FCnt:      12,
 					Data:      []byte{1, 2, 3, 4},
 				})
 			})
+		})
 
-			Convey("Then nothing was sent to the network-server", func() {
-				So(nsClient.SendDownlinkDataChan, ShouldHaveLength, 0)
-			})
+		Convey("Given a device-queue mapping", func() {
+			dqm := storage.DeviceQueueMapping{
+				DevEUI:    d.DevEUI,
+				Reference: "test-123",
+				FCnt:      12,
+			}
+			So(storage.CreateDeviceQueueMapping(common.DB, &dqm), ShouldBeNil)
 
-			Convey("When removing the queue item", func() {
-				_, err := api.Delete(ctx, &pb.DeleteDeviceQueueItemRequest{
+			Convey("When calling Flush", func() {
+				_, err := api.Flush(ctx, &pb.FlushDeviceQueueRequest{
 					DevEUI: d.DevEUI.String(),
-					Id:     1,
 				})
 				So(err, ShouldBeNil)
-				So(validator.ctx, ShouldResemble, ctx)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
-				Convey("Then the downlink queue item has been deleted", func() {
-					resp, err := api.List(ctx, &pb.ListDeviceQueueItemsRequest{
-						DevEUI: d.DevEUI.String(),
+				Convey("Then the expected request has been made to the network-server", func() {
+					So(nsClient.FlushDeviceQueueForDevEUIChan, ShouldHaveLength, 1)
+					So(<-nsClient.FlushDeviceQueueForDevEUIChan, ShouldResemble, ns.FlushDeviceQueueForDevEUIRequest{
+						DevEUI: d.DevEUI[:],
 					})
-					So(err, ShouldBeNil)
-					So(resp.Items, ShouldHaveLength, 0)
+				})
+
+				Convey("Then the device-queue mapping has been removed", func() {
+					_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, d.DevEUI, 12)
+					So(err, ShouldEqual, storage.ErrDoesNotExist)
 				})
 			})
 		})

@@ -36,36 +36,36 @@ Topic for payloads received from your nodes. Example payload:
 
 ```json
 {
-	"applicationID": "123",
-	"applicationName": "temperature-sensor",
-	"nodeName": "garden-sensor",
-	"devEUI": "0202020202020202",
-	"rxInfo": [
-		{
-			"mac": "0303030303030303",                 // MAC of the receiving gateway
-			"name": "rooftop-gateway",                 // name of the receiving gateway
-			"latitude": 52.3740364,                    // latitude of the receiving gateway
-			"longitude": 4.9144401,                    // longitude of the receiving gateway
-			"altitude": 10.5,                          // altitude of the receiving gateway
-			"time": "2016-11-25T16:24:37.295915988Z",  // time when the package was received (GPS time of gateway, only set when available)
-			"rssi": -57,                               // signal strength (dBm)
-			"loRaSNR": 10                              // signal to noise ratio
-		}
-	],
-	"txInfo": {
-		"frequency": 868100000,    // frequency used for transmission
-		"dataRate": {
-			"modulation": "LORA",  // modulation (LORA or FSK)
-			"bandwidth": 250,      // used bandwidth
-			"spreadFactor": 5      // used SF (LORA)
-			// "bitrate": 50000    // used bitrate (FSK)
-		},
-		"adr": false,
-		"codeRate": "4/6"
-	},
-	"fCnt": 10,                    // frame-counter
-	"fPort": 5,                    // FPort
-	"data": "..."                  // base64 encoded payload (decrypted)
+    "applicationID": "123",
+    "applicationName": "temperature-sensor",
+    "nodeName": "garden-sensor",
+    "devEUI": "0202020202020202",
+    "rxInfo": [
+        {
+            "mac": "0303030303030303",                 // MAC of the receiving gateway
+            "name": "rooftop-gateway",                 // name of the receiving gateway
+            "latitude": 52.3740364,                    // latitude of the receiving gateway
+            "longitude": 4.9144401,                    // longitude of the receiving gateway
+            "altitude": 10.5,                          // altitude of the receiving gateway
+            "time": "2016-11-25T16:24:37.295915988Z",  // time when the package was received (GPS time of gateway, only set when available)
+            "rssi": -57,                               // signal strength (dBm)
+            "loRaSNR": 10                              // signal to noise ratio
+        }
+    ],
+    "txInfo": {
+        "frequency": 868100000,    // frequency used for transmission
+        "dataRate": {
+            "modulation": "LORA",  // modulation (LORA or FSK)
+            "bandwidth": 250,      // used bandwidth
+            "spreadFactor": 5      // used SF (LORA)
+            // "bitrate": 50000    // used bitrate (FSK)
+        },
+        "adr": false,
+        "codeRate": "4/6"
+    },
+    "fCnt": 10,                    // frame-counter
+    "fPort": 5,                    // FPort
+    "data": "..."                  // base64 encoded payload (decrypted)
 }
 ```
 
@@ -75,11 +75,11 @@ Topic for join notifications. Example payload:
 
 ```json
 {
-	"applicationID": "123",
-	"applicationName": "temperature-sensor",
-	"nodeName": "garden-sensor",
-	"devAddr": "06682ea2",                    // assigned device address
-	"DevEUI": "0202020202020202"              // device EUI
+    "applicationID": "123",
+    "applicationName": "temperature-sensor",
+    "nodeName": "garden-sensor",
+    "devAddr": "06682ea2",                    // assigned device address
+    "DevEUI": "0202020202020202"              // device EUI
 }
 ```
 
@@ -89,11 +89,13 @@ Topic for ACK notifications. Example payload:
 
 ```json
 {
-	"applicationID": "123",
-	"applicationName": "temperature-sensor",
-	"nodeName": "garden-sensor",
-	"reference": "abcd1234",                  // the reference given when sending the downlink payload
-	"devEUI": "0202020202020202"              // device EUI
+    "applicationID": "123",
+    "applicationName": "temperature-sensor",
+    "nodeName": "garden-sensor",
+    "reference": "abcd1234",                  // the reference given when sending the downlink payload
+    "devEUI": "0202020202020202",             // device EUI
+    "acknowledged": true,                     // whether the frame was acknowledged or not (e.g. timeout)
+    "fCnt": 12                                // downlink frame-counter
 }
 ```
 
@@ -105,11 +107,11 @@ payload size exceeded to max allowed payload size, in case of a MIC error,
 
 ```json
 {
-	"applicationID": "123",
-	"applicationName": "temperature-sensor",
-	"nodeName": "garden-sensor",
-	"type": "DATA_UP_FCNT",
-	"error": "..."
+    "applicationID": "123",
+    "applicationName": "temperature-sensor",
+    "nodeName": "garden-sensor",
+    "type": "DATA_UP_FCNT",
+    "error": "..."
 }
 ```
 
@@ -123,10 +125,10 @@ Example payload:
 
 ```json
 {
-	"reference": "abcd1234",                  // reference which will be used on ack or error (this can be a random string)
-	"confirmed": true,                        // whether the payload must be sent as confirmed data down or not
-	"fPort": 10,                              // FPort to use (must be > 0)
-	"data": "...."                            // base64 encoded data (plaintext, will be encrypted by LoRa Server)
+    "reference": "abcd1234",                  // reference which will be used on ack or error (this can be a random string)
+    "confirmed": true,                        // whether the payload must be sent as confirmed data down or not
+    "fPort": 10,                              // FPort to use (must be > 0)
+    "data": "...."                            // base64 encoded data (plaintext, will be encrypted by LoRa Server)
 }
 
 ```

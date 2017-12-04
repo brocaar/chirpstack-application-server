@@ -354,7 +354,7 @@ func ValidateDeviceQueueAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 	var where = [][]string{}
 
 	switch flag {
-	case Create, Read, List, Update, Delete:
+	case Create, List, Delete:
 		// global admin
 		// organization user
 		where = [][]string{

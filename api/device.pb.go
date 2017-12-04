@@ -70,8 +70,8 @@ It has these top-level messages:
 	ListIntegrationResponse
 	EnqueueDeviceQueueItemRequest
 	EnqueueDeviceQueueItemResponse
-	DeleteDeviceQueueItemRequest
-	DeleteDeviceQueueItemResponse
+	FlushDeviceQueueRequest
+	FlushDeviceQueueResponse
 	DeviceQueueItem
 	ListDeviceQueueItemsRequest
 	ListDeviceQueueItemsResponse

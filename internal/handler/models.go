@@ -75,6 +75,8 @@ type ACKNotification struct {
 	NodeName        string        `json:"deviceName"`
 	DevEUI          lorawan.EUI64 `json:"devEUI"`
 	Reference       string        `json:"reference"`
+	Acknowledged    bool          `json:"acknowledged"`
+	FCnt            uint32        `json:"fCnt"`
 }
 
 // ErrorNotification defines the payload sent to the application

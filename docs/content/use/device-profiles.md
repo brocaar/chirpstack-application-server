@@ -29,7 +29,7 @@ Fields marked with an **X** are implemented by LoRa (App) Server.
 - [ ] **PingSlotDR** Mandatory if class B mode supported
 - [ ] **PingSlotFreq** Mandatory if class B mode supported
 - [X] **SupportsClassC** End-Device supports Class C
-- [ ] **ClassCTimeout** Maximum delay for the End-Device to answer a MAC request or a confirmed DL frame (mandatory if class C mode supported)
+- [X] **ClassCTimeout** Maximum delay for the End-Device to answer a MAC request or a confirmed DL frame (mandatory if class C mode supported)
 - [X] **MACVersion** Version of the LoRaWAN supported by the End-Device
 - [X] **RegParamsRevision** Revision of the Regional Parameters document supported by the End-Device
 - [X] **SupportsJoin** End-Device supports Join (OTAA) or not (ABP)

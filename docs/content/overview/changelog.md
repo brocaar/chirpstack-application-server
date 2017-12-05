@@ -8,7 +8,29 @@ menu:
 
 ## Changelog
 
-### 0.14.3 (development)
+### 0.15.0
+
+**Changes:**
+
+* Downlink device-queue
+
+  * Downlink device-queue has been moved from the LoRa App Server database to
+    the LoRa Server database.
+  * LoRa App Server sends nACK when no confirmation has been received on
+    confirmed downlink transmission. See [ACK notifications](https://docs.loraserver.io/lora-app-server/integrate/data/).
+  * LoRa App Server will not re-try transmitting a confirmed downlink anymore.
+  * ACK and error notifications now contain the `fCnt` to which the notification is related.
+  * The downlink-queue is now flushed on a (re)activation.
+
+* Downlink device-queue API (`/api/devices/{devEUI}/queue`)
+  * Removed `DELETE /api/devices/{devEUI}/queue/{id}` endpoint (as removing
+    individual device-queue items will give `fCnt` gaps).
+  * Added `DELETE /api/devices/{devEUI}/queue` to flush the whole device-queue.
+
+* Class-C
+  * Class-C timeout (see [device-profiles](https://docs.loraserver.io/lora-app-server/use/device-profiles/))
+    has been implemented for confirmed downlink transmissions. **Make sure to
+    update this value for existing Class-C device-profiles to a sane value**.
 
 **Bugfixes:**
 
@@ -17,6 +39,12 @@ menu:
 **Improvements:**
 
 * Use RFC1945 Authorization header format (thanks [@fifthaxe](https://github.com/fifthaxe))
+
+#### Upgrading
+
+This release depends on LoRa Server 0.23.0. Upgrade LoRa Server first.
+After upgrading LoRa App Server, it will migrate the remaining
+device-queue items to the LoRa Server database.
 
 ### 0.14.2
 

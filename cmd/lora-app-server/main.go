@@ -293,7 +293,7 @@ func startClientAPI(ctx context.Context) func(*cli.Context) error {
 
 		// switch between gRPC and "plain" http handler
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
+			if c.String("grpc-bind") == "" && r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
 				clientAPIHandler.ServeHTTP(w, r)
 			} else {
 				if clientHTTPHandler == nil {
@@ -304,17 +304,43 @@ func startClientAPI(ctx context.Context) func(*cli.Context) error {
 			}
 		})
 
+		// If gRPC API is to share port with the normal http service,
+		// ie use ServeHTTP, it is currently necessary to use TLS.
+		// See https://github.com/grpc/grpc-go/issues/555 for more info.
+		if c.String("grpc-bind") == "" && (c.String("http-tls-cert") == "" || c.String("http-tls-key") == "") {
+			log.Fatal("--http-tls-cert (HTTP_TLS_CERT) and --http-tls-key (HTTP_TLS_KEY) must be set")
+		}
+
+		// If grpc-bind is set we should serve gRPC separate from the normal http handler
+		if c.String("grpc-bind") != "" {
+			ln, err := net.Listen("tcp", c.String("grpc-bind"))
+			if err != nil {
+				log.Fatalf("start grpc-server api listener error: %s", err)
+			}
+
+			log.WithFields(log.Fields{
+				"bind":     c.String("grpc-bind"),
+				"tls-cert": c.String("grpc-tls-cert"),
+				"tls-key":  c.String("grpc-tls-key"),
+			}).Info("starting client grpc api server")
+
+			go clientAPIHandler.Serve(ln)
+		}
+
 		// start the API server
 		go func() {
-			if c.String("http-tls-cert") == "" || c.String("http-tls-key") == "" {
-				log.Fatal("--http-tls-cert (HTTP_TLS_CERT) and --http-tls-key (HTTP_TLS_KEY) must be set")
-			}
 			log.WithFields(log.Fields{
 				"bind":     c.String("http-bind"),
 				"tls-cert": c.String("http-tls-cert"),
 				"tls-key":  c.String("http-tls-key"),
 			}).Info("starting client api server")
-			log.Fatal(http.ListenAndServeTLS(c.String("http-bind"), c.String("http-tls-cert"), c.String("http-tls-key"), handler))
+
+			if c.String("http-tls-cert") == "" && c.String("http-tls-key") == "" {
+				log.Fatal(http.ListenAndServe(c.String("http-bind"), handler))
+			} else {
+				log.Fatal(http.ListenAndServeTLS(c.String("http-bind"), c.String("http-tls-cert"),
+					c.String("http-tls-key"), handler))
+			}
 		}()
 
 		// give the http server some time to start
@@ -339,7 +365,14 @@ func getGRPCClientAPI(c *cli.Context) *grpc.Server {
 		log.Fatal("--jwt-secret must be set")
 	}
 
-	gs := grpc.NewServer()
+	// Only use grpc-tls-cert and grpc-tls-key if we do not share port with http service
+	var opts []grpc.ServerOption
+	if c.String("grpc-bind") != "" && c.String("grpc-tls-cert") != "" && c.String("grpc-tls-key") != "" {
+		creds := mustGetTransportCredentials(c.String("grpc-tls-cert"), c.String("grpc-tls-key"), "", false)
+		opts = append(opts, grpc.Creds(creds))
+	}
+
+	gs := grpc.NewServer(opts...)
 	pb.RegisterApplicationServer(gs, api.NewApplicationAPI(validator))
 	pb.RegisterDeviceQueueServer(gs, api.NewDeviceQueueAPI(validator))
 	pb.RegisterDeviceServer(gs, api.NewDeviceAPI(validator))
@@ -399,23 +432,41 @@ func getHTTPHandler(ctx context.Context, c *cli.Context) (http.Handler, error) {
 }
 
 func getJSONGateway(ctx context.Context, c *cli.Context) (http.Handler, error) {
-	// dial options for the grpc-gateway
-	b, err := ioutil.ReadFile(c.String("http-tls-cert"))
-	if err != nil {
-		return nil, errors.Wrap(err, "read http-tls-cert cert error")
-	}
-	cp := x509.NewCertPool()
-	if !cp.AppendCertsFromPEM(b) {
-		return nil, errors.Wrap(err, "failed to append certificate")
-	}
-	grpcDialOpts := []grpc.DialOption{grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
-		// given the grpc-gateway is always connecting to localhost, does
-		// InsecureSkipVerify=true cause any security issues?
-		InsecureSkipVerify: true,
-		RootCAs:            cp,
-	}))}
+	var bind, cert string
 
-	bindParts := strings.SplitN(c.String("http-bind"), ":", 2)
+	if c.String("grpc-bind") != "" {
+		bind = "grpc-bind"
+		if c.String("grpc-tls-cert") != "" {
+			cert = "grpc-tls-cert"
+		}
+	} else {
+		bind = "http-bind"
+		cert = "http-tls-cert"
+	}
+
+	var grpcDialOpts []grpc.DialOption
+
+	// setup grpc-gateway dial options
+	if cert != "" {
+		b, err := ioutil.ReadFile(c.String(cert))
+		if err != nil {
+			return nil, errors.Wrapf(err, "read %s cert error", cert)
+		}
+		cp := x509.NewCertPool()
+		if !cp.AppendCertsFromPEM(b) {
+			return nil, errors.Wrap(err, "failed to append certificate")
+		}
+		grpcDialOpts = append(grpcDialOpts, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
+			// given the grpc-gateway is always connecting to localhost, does
+			// InsecureSkipVerify=true cause any security issues?
+			InsecureSkipVerify: true,
+			RootCAs:            cp,
+		})))
+	} else {
+		grpcDialOpts = append(grpcDialOpts, grpc.WithInsecure())
+	}
+
+	bindParts := strings.SplitN(c.String(bind), ":", 2)
 	if len(bindParts) != 2 {
 		log.Fatal("get port from bind failed")
 	}
@@ -695,6 +746,21 @@ func main() {
 			Value:  "127.0.0.1:8000",
 			EnvVar: "NS_SERVER",
 			Hidden: true,
+		},
+		cli.StringFlag{
+			Name:   "grpc-bind",
+			Usage:  "hostname:port to bind gRPC client API to, will use http-bind if unset (optional)",
+			EnvVar: "GRPC_BIND",
+		},
+		cli.StringFlag{
+			Name:   "grpc-tls-cert",
+			Usage:  "tls certificate used by gRPC client API, only used if grpc-bind is set (optional)",
+			EnvVar: "GRPC_TLS_CERT",
+		},
+		cli.StringFlag{
+			Name:   "grpc-tls-key",
+			Usage:  "tls key used by gRPC client API, only used if grpc-bind is set (optional)",
+			EnvVar: "GRPC_TLS_KEY",
 		},
 	}
 	app.Run(os.Args)

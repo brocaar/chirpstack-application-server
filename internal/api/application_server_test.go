@@ -117,7 +117,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				So(<-h.SendErrorNotificationChan, ShouldResemble, handler.ErrorNotification{
 					ApplicationID:   app.ID,
 					ApplicationName: "test-app",
-					NodeName:        "test-node",
+					DeviceName:      "test-node",
 					DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 					Type:            "DATA_UP_FCNT",
 					Error:           "BOOM!",
@@ -176,7 +176,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					So(<-h.SendDataUpChan, ShouldResemble, handler.DataUpPayload{
 						ApplicationID:   app.ID,
 						ApplicationName: "test-app",
-						NodeName:        "test-node",
+						DeviceName:      "test-node",
 						DevEUI:          d.DevEUI,
 						RXInfo: []handler.RXInfo{
 							{
@@ -234,7 +234,7 @@ func TestApplicationServerAPI(t *testing.T) {
 						So(<-h.SendACKNotificationChan, ShouldResemble, handler.ACKNotification{
 							ApplicationID:   app.ID,
 							ApplicationName: app.Name,
-							NodeName:        d.Name,
+							DeviceName:      d.Name,
 							DevEUI:          d.DevEUI,
 							Reference:       dqm.Reference,
 							Acknowledged:    true,
@@ -261,7 +261,7 @@ func TestApplicationServerAPI(t *testing.T) {
 						So(<-h.SendACKNotificationChan, ShouldResemble, handler.ACKNotification{
 							ApplicationID:   app.ID,
 							ApplicationName: app.Name,
-							NodeName:        d.Name,
+							DeviceName:      d.Name,
 							DevEUI:          d.DevEUI,
 							Reference:       dqm.Reference,
 							Acknowledged:    false,

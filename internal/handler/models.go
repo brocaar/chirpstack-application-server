@@ -38,7 +38,7 @@ type TXInfo struct {
 type DataUpPayload struct {
 	ApplicationID   int64         `json:"applicationID,string"`
 	ApplicationName string        `json:"applicationName"`
-	NodeName        string        `json:"deviceName"`
+	DeviceName      string        `json:"deviceName"`
 	DevEUI          lorawan.EUI64 `json:"devEUI"`
 	RXInfo          []RXInfo      `json:"rxInfo"`
 	TXInfo          TXInfo        `json:"txInfo"`
@@ -62,7 +62,7 @@ type DataDownPayload struct {
 type JoinNotification struct {
 	ApplicationID   int64           `json:"applicationID,string"`
 	ApplicationName string          `json:"applicationName"`
-	NodeName        string          `json:"deviceName"`
+	DeviceName      string          `json:"deviceName"`
 	DevEUI          lorawan.EUI64   `json:"devEUI"`
 	DevAddr         lorawan.DevAddr `json:"devAddr"`
 }
@@ -72,7 +72,7 @@ type JoinNotification struct {
 type ACKNotification struct {
 	ApplicationID   int64         `json:"applicationID,string"`
 	ApplicationName string        `json:"applicationName"`
-	NodeName        string        `json:"deviceName"`
+	DeviceName      string        `json:"deviceName"`
 	DevEUI          lorawan.EUI64 `json:"devEUI"`
 	Reference       string        `json:"reference"`
 	Acknowledged    bool          `json:"acknowledged"`
@@ -84,7 +84,7 @@ type ACKNotification struct {
 type ErrorNotification struct {
 	ApplicationID   int64         `json:"applicationID,string"`
 	ApplicationName string        `json:"applicationName"`
-	NodeName        string        `json:"deviceName"`
+	DeviceName      string        `json:"deviceName"`
 	DevEUI          lorawan.EUI64 `json:"devEUI"`
 	Type            string        `json:"type"`
 	Error           string        `json:"error"`

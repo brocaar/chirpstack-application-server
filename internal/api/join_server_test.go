@@ -181,7 +181,7 @@ func TestJoinServerAPI(t *testing.T) {
 					So(<-h.SendJoinNotificationChan, ShouldResemble, handler.JoinNotification{
 						ApplicationID:   app.ID,
 						ApplicationName: app.Name,
-						NodeName:        d.Name,
+						DeviceName:      d.Name,
 						DevEUI:          d.DevEUI,
 						DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
 					})

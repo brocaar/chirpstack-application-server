@@ -220,7 +220,7 @@ func sendJoinNotification(ctx *context) error {
 	err := common.Handler.SendJoinNotification(handler.JoinNotification{
 		ApplicationID:   ctx.device.ApplicationID,
 		ApplicationName: ctx.application.Name,
-		NodeName:        ctx.device.Name,
+		DeviceName:      ctx.device.Name,
 		DevEUI:          ctx.device.DevEUI,
 		DevAddr:         ctx.joinReqPayload.DevAddr,
 	})

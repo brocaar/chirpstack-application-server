@@ -68,7 +68,7 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 	pl := handler.DataUpPayload{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
-		NodeName:        d.Name,
+		DeviceName:      d.Name,
 		DevEUI:          devEUI,
 		RXInfo:          []handler.RXInfo{},
 		TXInfo: handler.TXInfo{
@@ -159,7 +159,7 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 	err = common.Handler.SendACKNotification(handler.ACKNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
-		NodeName:        d.Name,
+		DeviceName:      d.Name,
 		DevEUI:          devEUI,
 		Reference:       dqm.Reference,
 		Acknowledged:    req.Acknowledged,
@@ -198,7 +198,7 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 	err = common.Handler.SendErrorNotification(handler.ErrorNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
-		NodeName:        d.Name,
+		DeviceName:      d.Name,
 		DevEUI:          devEUI,
 		Type:            req.Type.String(),
 		Error:           req.Error,

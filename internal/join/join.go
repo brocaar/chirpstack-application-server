@@ -59,6 +59,7 @@ var joinFlow = &flow{
 		setNetID,
 		setSessionKeys,
 		createDeviceActivationRecord,
+		flushDeviceQueueMapping,
 		sendJoinNotification,
 		createJoinAnsPayload,
 	},
@@ -205,6 +206,13 @@ func createDeviceActivationRecord(ctx *context) error {
 		return errors.Wrap(err, "create device-activation error")
 	}
 
+	return nil
+}
+
+func flushDeviceQueueMapping(ctx *context) error {
+	if err := storage.FlushDeviceQueueMappingForDevEUI(common.DB, ctx.device.DevEUI); err != nil {
+		return errors.Wrap(err, "flush device-queue mapping error")
+	}
 	return nil
 }
 

@@ -370,6 +370,10 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, errToRPCError(err)
 	}
 
+	if err = storage.FlushDeviceQueueMappingForDevEUI(common.DB, d.DevEUI); err != nil {
+		return nil, errToRPCError(err)
+	}
+
 	log.WithFields(log.Fields{
 		"dev_addr": devAddr,
 		"dev_eui":  d.DevEUI,

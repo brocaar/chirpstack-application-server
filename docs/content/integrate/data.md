@@ -111,7 +111,8 @@ payload size exceeded to max allowed payload size, in case of a MIC error,
     "applicationName": "temperature-sensor",
     "nodeName": "garden-sensor",
     "type": "DATA_UP_FCNT",
-    "error": "..."
+    "error": "...",
+    "fCnt": 123                               // fCnt related to the error (if applicable)
 }
 ```
 

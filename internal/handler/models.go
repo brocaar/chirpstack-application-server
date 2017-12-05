@@ -88,4 +88,5 @@ type ErrorNotification struct {
 	DevEUI          lorawan.EUI64 `json:"devEUI"`
 	Type            string        `json:"type"`
 	Error           string        `json:"error"`
+	FCnt            uint32        `json:"fCnt"`
 }

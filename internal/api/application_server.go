@@ -202,6 +202,7 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		DevEUI:          devEUI,
 		Type:            req.Type.String(),
 		Error:           req.Error,
+		FCnt:            req.FCnt,
 	})
 	if err != nil {
 		errStr := fmt.Sprintf("send error notification to handler error: %s", err)

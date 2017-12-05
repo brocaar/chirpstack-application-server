@@ -108,6 +108,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				DevEUI: []byte{1, 2, 3, 4, 5, 6, 7, 8},
 				Type:   as.ErrorType_DATA_UP_FCNT,
 				Error:  "BOOM!",
+				FCnt:   123,
 			})
 			So(err, ShouldBeNil)
 
@@ -120,6 +121,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 					Type:            "DATA_UP_FCNT",
 					Error:           "BOOM!",
+					FCnt:            123,
 				})
 			})
 		})

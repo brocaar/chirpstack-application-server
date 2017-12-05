@@ -283,25 +283,8 @@ func startJoinServerAPI(c *cli.Context) error {
 
 func startClientAPI(ctx context.Context) func(*cli.Context) error {
 	return func(c *cli.Context) error {
-		// setup the client API interface
-		var validator auth.Validator
-		if c.String("jwt-secret") != "" {
-			validator = auth.NewJWTValidator(common.DB, "HS256", c.String("jwt-secret"))
-		} else {
-			log.Fatal("--jwt-secret must be set")
-		}
-
-		clientAPIHandler := grpc.NewServer()
-		pb.RegisterApplicationServer(clientAPIHandler, api.NewApplicationAPI(validator))
-		pb.RegisterDeviceQueueServer(clientAPIHandler, api.NewDeviceQueueAPI(validator))
-		pb.RegisterDeviceServer(clientAPIHandler, api.NewDeviceAPI(validator))
-		pb.RegisterUserServer(clientAPIHandler, api.NewUserAPI(validator))
-		pb.RegisterInternalServer(clientAPIHandler, api.NewInternalUserAPI(validator, c))
-		pb.RegisterGatewayServer(clientAPIHandler, api.NewGatewayAPI(validator))
-		pb.RegisterOrganizationServer(clientAPIHandler, api.NewOrganizationAPI(validator))
-		pb.RegisterNetworkServerServer(clientAPIHandler, api.NewNetworkServerAPI(validator))
-		pb.RegisterServiceProfileServiceServer(clientAPIHandler, api.NewServiceProfileServiceAPI(validator))
-		pb.RegisterDeviceProfileServiceServer(clientAPIHandler, api.NewDeviceProfileServiceAPI(validator))
+		// Get client gRPC API
+		clientAPIHandler := getGRPCClientAPI(c)
 
 		// setup the client http interface variable
 		// we need to start the gRPC service first, as it is used by the
@@ -346,6 +329,29 @@ func startClientAPI(ctx context.Context) func(*cli.Context) error {
 
 		return nil
 	}
+}
+
+func getGRPCClientAPI(c *cli.Context) *grpc.Server {
+	var validator auth.Validator
+	if c.String("jwt-secret") != "" {
+		validator = auth.NewJWTValidator(common.DB, "HS256", c.String("jwt-secret"))
+	} else {
+		log.Fatal("--jwt-secret must be set")
+	}
+
+	gs := grpc.NewServer()
+	pb.RegisterApplicationServer(gs, api.NewApplicationAPI(validator))
+	pb.RegisterDeviceQueueServer(gs, api.NewDeviceQueueAPI(validator))
+	pb.RegisterDeviceServer(gs, api.NewDeviceAPI(validator))
+	pb.RegisterUserServer(gs, api.NewUserAPI(validator))
+	pb.RegisterInternalServer(gs, api.NewInternalUserAPI(validator, c))
+	pb.RegisterGatewayServer(gs, api.NewGatewayAPI(validator))
+	pb.RegisterOrganizationServer(gs, api.NewOrganizationAPI(validator))
+	pb.RegisterNetworkServerServer(gs, api.NewNetworkServerAPI(validator))
+	pb.RegisterServiceProfileServiceServer(gs, api.NewServiceProfileServiceAPI(validator))
+	pb.RegisterDeviceProfileServiceServer(gs, api.NewDeviceProfileServiceAPI(validator))
+
+	return gs
 }
 
 func mustGetAPIServer(c *cli.Context) *grpc.Server {

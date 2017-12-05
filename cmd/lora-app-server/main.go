@@ -19,6 +19,7 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/nsclient"
 	"github.com/brocaar/lora-app-server/internal/profilesmigrate"
+	"github.com/brocaar/lora-app-server/internal/queuemigrate"
 
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
@@ -165,6 +166,15 @@ func runDatabaseMigrations(c *cli.Context) error {
 		for {
 			if err := profilesmigrate.StartProfilesMigration(c.String("ns-server")); err != nil {
 				log.WithError(err).Error("profiles migration failed")
+				time.Sleep(time.Second * 2)
+				continue
+			}
+			break
+		}
+
+		for {
+			if err := queuemigrate.StartDeviceQueueMigration(); err != nil {
+				log.WithError(err).Error("device-queue migration failed")
 				time.Sleep(time.Second * 2)
 				continue
 			}

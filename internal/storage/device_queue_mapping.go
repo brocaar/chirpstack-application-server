@@ -93,9 +93,8 @@ func GetDeviceQueueMappingForDevEUIAndFCnt(db sqlx.Ext, devEUI lorawan.EUI64, fC
 			return dqm, nil
 		}
 
-		// Avoid that we are discarding FCnt+1 mappings where mapping FCnt
-		// is after FCnt (keep in mind 4294967295 + 1 = 0 with uint32).
-		if dqm.FCnt-fCnt <= 16384 {
+		// Avoid that we are discarding FCnt+1 mappings.
+		if fCnt < dqm.FCnt {
 			return DeviceQueueMapping{}, ErrDoesNotExist
 		}
 

@@ -68,10 +68,6 @@ It has these top-level messages:
 	DeleteIntegrationRequest
 	ListIntegrationRequest
 	ListIntegrationResponse
-	TestPayloadDecoderRequest
-	TestPayloadDecoderResponse
-	TestPayloadEncoderRequest
-	TestPayloadEncoderResponse
 	EnqueueDeviceQueueItemRequest
 	EnqueueDeviceQueueItemResponse
 	FlushDeviceQueueRequest

@@ -7,9 +7,11 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/robertkrimen/otto"
-
-	"github.com/brocaar/lora-app-server/internal/common"
 )
+
+// CodecMaxExecTime holds the max. time the (custom) codec is allowed to
+// run.
+var CodecMaxExecTime = 10 * time.Millisecond
 
 // CustomJS is a scriptable JS codec.
 type CustomJS struct {
@@ -55,7 +57,7 @@ func (c *CustomJS) UnmarshalBinary(data []byte) (err error) {
 	vm.Set("fPort", c.fPort)
 
 	go func() {
-		time.Sleep(common.CodecMaxExecTime)
+		time.Sleep(CodecMaxExecTime)
 		vm.Interrupt <- func() {
 			panic(errors.New("execution timeout"))
 		}
@@ -96,7 +98,7 @@ func (c CustomJS) MarshalBinary() (b []byte, err error) {
 	vm.Set("fPort", c.fPort)
 
 	go func() {
-		time.Sleep(common.CodecMaxExecTime)
+		time.Sleep(CodecMaxExecTime)
 		vm.Interrupt <- func() {
 			panic(errors.New("execution timeout"))
 		}
@@ -117,11 +119,28 @@ func (c CustomJS) MarshalBinary() (b []byte, err error) {
 		return nil, errors.Wrap(err, "export error")
 	}
 
-	items, ok := out.([]interface{})
-	if !ok {
-		return nil, errors.New("function must return a slice")
+	switch v := out.(type) {
+	case []interface{}:
+		b, err = interfaceSliceToBytes(v)
+	case []float64:
+		b, err = floatSliceToBytes(v)
+	default:
+		return nil, fmt.Errorf("function must return type slice, got: %T", v)
 	}
 
+	return b, err
+}
+
+func floatSliceToBytes(items []float64) ([]byte, error) {
+	var b []byte
+	for _, v := range items {
+		b = append(b, byte(v))
+	}
+	return b, nil
+}
+
+func interfaceSliceToBytes(items []interface{}) ([]byte, error) {
+	var b []byte
 	for _, item := range items {
 		switch v := item.(type) {
 		case uint8:
@@ -134,6 +153,5 @@ func (c CustomJS) MarshalBinary() (b []byte, err error) {
 			return nil, fmt.Errorf("invalid slice value, %T", v)
 		}
 	}
-
 	return b, nil
 }

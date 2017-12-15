@@ -1,14 +1,15 @@
 package downlink
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
-
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 
+	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -44,6 +45,34 @@ func handleDataDownPayload(pl handler.DataDownPayload) error {
 	// DevEUI.
 	if d.ApplicationID != pl.ApplicationID {
 		return errors.New("enqueue downlink payload: device does not exist for given application")
+	}
+
+	// if Object is set, try to encode it to bytes using the application codec
+	if pl.Object != nil {
+		app, err := storage.GetApplication(common.DB, d.ApplicationID)
+		if err != nil {
+			return errors.Wrap(err, "get application error")
+		}
+
+		// get the codec payload configured for the application
+		codecPL := codec.NewPayload(app.PayloadCodec, pl.FPort, app.PayloadEncoderScript, app.PayloadDecoderScript)
+		if codecPL == nil {
+			log.WithFields(log.Fields{
+				"application_id": app.ID,
+				"codec_type":     app.PayloadCodec,
+			}).Error("no or invalid codec configured for application")
+			return errors.New("no or invalid codec configured for application")
+		}
+
+		err = json.Unmarshal(pl.Object, &codecPL)
+		if err != nil {
+			return errors.Wrap(err, "unmarshal to codec payload error")
+		}
+
+		pl.Data, err = codecPL.MarshalBinary()
+		if err != nil {
+			return errors.Wrap(err, "marshal codec payload to binary error")
+		}
 	}
 
 	return storage.Transaction(common.DB, func(tx *sqlx.Tx) error {

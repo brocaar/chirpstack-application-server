@@ -2,11 +2,13 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -135,39 +137,65 @@ func TestApplicationServerAPI(t *testing.T) {
 			}
 			So(storage.CreateDeviceActivation(common.DB, &da), ShouldBeNil)
 
-			Convey("When calling HandleUplinkData", func() {
-				now := time.Now().UTC()
-				mac := lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}
+			now := time.Now().UTC()
+			mac := lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}
 
-				req := as.HandleUplinkDataRequest{
-					DevEUI: d.DevEUI[:],
-					FCnt:   10,
-					FPort:  3,
-					Data:   []byte{1, 2, 3, 4},
-					RxInfo: []*as.RXInfo{
-						{
-							Mac:       []byte{1, 2, 3, 4, 5, 6, 7, 8},
-							Name:      "test-gateway",
-							Latitude:  52.3740364,
-							Longitude: 4.9144401,
-							Altitude:  10,
-							Time:      now.Format(time.RFC3339Nano),
-							Rssi:      -60,
-							LoRaSNR:   5,
-						},
+			req := as.HandleUplinkDataRequest{
+				DevEUI: d.DevEUI[:],
+				FCnt:   10,
+				FPort:  3,
+				Data:   []byte{1, 2, 3, 4},
+				RxInfo: []*as.RXInfo{
+					{
+						Mac:       []byte{1, 2, 3, 4, 5, 6, 7, 8},
+						Name:      "test-gateway",
+						Latitude:  52.3740364,
+						Longitude: 4.9144401,
+						Altitude:  10,
+						Time:      now.Format(time.RFC3339Nano),
+						Rssi:      -60,
+						LoRaSNR:   5,
 					},
-					TxInfo: &as.TXInfo{
-						Frequency: 868100000,
-						DataRate: &as.DataRate{
-							Modulation:   "LORA",
-							BandWidth:    250,
-							SpreadFactor: 5,
-							Bitrate:      50000,
-						},
-						Adr:      true,
-						CodeRate: "4/6",
+				},
+				TxInfo: &as.TXInfo{
+					Frequency: 868100000,
+					DataRate: &as.DataRate{
+						Modulation:   "LORA",
+						BandWidth:    250,
+						SpreadFactor: 5,
+						Bitrate:      50000,
 					},
-				}
+					Adr:      true,
+					CodeRate: "4/6",
+				},
+			}
+
+			Convey("When calling HandleUplinkData (Custom JS codec configured)", func() {
+				app.PayloadCodec = codec.CustomJSType
+				app.PayloadDecoderScript = `
+					function Decode(fPort, bytes) {
+						return {
+							"fPort": fPort,
+							"firstByte": bytes[0]
+						}
+					}
+				`
+				So(storage.UpdateApplication(common.DB, app), ShouldBeNil)
+
+				_, err := api.HandleUplinkData(ctx, &req)
+				So(err, ShouldBeNil)
+
+				Convey("Then the object fields has been set in the payload", func() {
+					So(h.SendDataUpChan, ShouldHaveLength, 1)
+					pl := <-h.SendDataUpChan
+					So(pl.Object, ShouldNotBeNil)
+					b, err := json.Marshal(pl.Object)
+					So(err, ShouldBeNil)
+					So(string(b), ShouldEqual, `{"fPort":3,"firstByte":67}`)
+				})
+			})
+
+			Convey("When calling HandleUplinkData (no codec configured)", func() {
 				_, err := api.HandleUplinkData(ctx, &req)
 				So(err, ShouldBeNil)
 

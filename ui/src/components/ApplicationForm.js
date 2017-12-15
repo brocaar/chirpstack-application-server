@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 
 import Select from "react-select";
+import {Controlled as CodeMirror} from "react-codemirror2";
 
 import ServiceProfileStore from "../stores/ServiceProfileStore";
+import "codemirror/mode/javascript/javascript";
 
 
 class ApplicationForm extends Component {
@@ -64,6 +66,14 @@ class ApplicationForm extends Component {
     });
   }
 
+  onCodeChange(field, editor, data, newCode) {
+    let application = this.state.application;
+    application[field] = newCode;
+    this.setState({
+      application: application,
+    });
+  }
+
   handleSubmit(e) {
     e.preventDefault();
     this.props.onSubmit(this.state.application);
@@ -76,6 +86,41 @@ class ApplicationForm extends Component {
         label: serviceProfile.name,
       };
     });
+
+    const payloadCodecOptions = [
+      {value: "", label: "None"},
+      {value: "CAYENNE_LPP", label: "Cayenne LPP"},
+      {value: "CUSTOM_JS", label: "Custom JavaScript codec functions"},
+    ];
+
+    const codeMirrorOptions = {
+      lineNumbers: true,
+      mode: "javascript",
+      theme: 'base16-light',
+    };
+    
+    let payloadEncoderScript = this.state.application.payloadEncoderScript;
+    let payloadDecoderScript = this.state.application.payloadDecoderScript;
+
+    if (payloadEncoderScript === "" || payloadEncoderScript === undefined) {
+      payloadEncoderScript = `// Encode encodes the given object into an array of bytes.
+//  - fPort contains the LoRaWAN fPort number
+//  - obj is an object, e.g. {"temperature": 22.5}
+// The function must return an array of bytes, e.g. [225, 230, 255, 0]
+function Encode(fPort, obj) {
+  return [];
+}`;
+    }
+
+    if (payloadDecoderScript === "" || payloadDecoderScript === undefined) {
+      payloadDecoderScript = `// Decode decodes an array of bytes into an object.
+//  - fPort contains the LoRaWAN fPort number
+//  - bytes is an array of bytes, e.g. [225, 230, 255, 0]
+// The function must return an object, e.g. {"temperature": 22.5}
+function Decode(fPort, bytes) {
+  return {};
+}`;
+    }
 
     return (
       <form onSubmit={this.handleSubmit}>
@@ -102,6 +147,42 @@ class ApplicationForm extends Component {
           />
           <p className="help-block">
             The service-profile to which this application will be attached. Note that you can't change this value after the application has been created.
+          </p>
+        </div>
+        <div className="form-group">
+          <label className="control-label" htmlFor="payloadCodec">Payload codec</label>
+          <Select
+            name="payloadCodec"
+            options={payloadCodecOptions}
+            value={this.state.application.payloadCodec}
+            onChange={this.onSelectChange.bind(this, 'payloadCodec')}
+          />
+          <p className="help-block">
+            By defining a payload codec, LoRa App Server can encode and decode the binary device payload for you.
+          </p>
+        </div>
+        <div className={"form-group " + (this.state.application.payloadCodec === "CUSTOM_JS" ? "" : "hidden")}>
+          <label className="control-label" htmlFor="payloadDecoderScript">Payload decoder function</label>
+          <CodeMirror
+            value={payloadDecoderScript}
+            options={codeMirrorOptions}
+            onBeforeChange={this.onCodeChange.bind(this, 'payloadDecoderScript')}
+          />
+          <p className="help-block">
+            The function must have the signature <strong>function Decode(fPort, bytes)</strong> and must return an object.
+            LoRa App Server will convert this object to JSON.
+          </p>
+        </div>
+        <div className={"form-group " + (this.state.application.payloadCodec === "CUSTOM_JS" ? "" : "hidden")}>
+          <label className="control-label" htmlFor="payloadEncoderScript">Payload encoder function</label>
+          <CodeMirror
+            value={payloadEncoderScript}
+            options={codeMirrorOptions}
+            onBeforeChange={this.onCodeChange.bind(this, 'payloadEncoderScript')}
+          />
+          <p className="help-block">
+            The function must have the signature <strong>function Encode(fPort, obj)</strong> and must return an array
+            of bytes.
           </p>
         </div>
         <hr />

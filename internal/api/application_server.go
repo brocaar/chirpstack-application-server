@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/gwping"
 
 	log "github.com/sirupsen/logrus"
@@ -65,6 +66,19 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		return nil, grpc.Errorf(codes.Internal, "decrypt payload error: %s", err)
 	}
 
+	codecPL := codec.NewPayload(app.PayloadCodec, uint8(req.FPort), app.PayloadEncoderScript, app.PayloadDecoderScript)
+	if codecPL != nil {
+		if err := codecPL.UnmarshalBinary(b); err != nil {
+			log.WithFields(log.Fields{
+				"codec":          app.PayloadCodec,
+				"application_id": app.ID,
+				"f_port":         req.FPort,
+				"f_cnt":          req.FCnt,
+				"dev_eui":        d.DevEUI,
+			}).WithError(err).Error("decode payload error")
+		}
+	}
+
 	pl := handler.DataUpPayload{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
@@ -82,9 +96,10 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 			ADR:      req.TxInfo.Adr,
 			CodeRate: req.TxInfo.CodeRate,
 		},
-		FCnt:  req.FCnt,
-		FPort: uint8(req.FPort),
-		Data:  b,
+		FCnt:   req.FCnt,
+		FPort:  uint8(req.FPort),
+		Data:   b,
+		Object: codecPL,
 	}
 
 	for _, rxInfo := range req.RxInfo {

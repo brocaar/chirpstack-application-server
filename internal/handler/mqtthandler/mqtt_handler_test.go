@@ -34,7 +34,7 @@ func TestMQTTHandler(t *testing.T) {
 			time.Sleep(time.Millisecond * 100) // give the backend some time to connect
 
 			Convey("Given the MQTT client is subscribed to application/123/node/0102030405060708/rx", func() {
-				dataUpChan := make(chan handler.DataUpPayload)
+				dataUpChan := make(chan handler.DataUpPayload, 1)
 				token := c.Subscribe("application/123/node/0102030405060708/rx", 0, func(c mqtt.Client, msg mqtt.Message) {
 					var pl handler.DataUpPayload
 					if err := json.Unmarshal(msg.Payload(), &pl); err != nil {
@@ -164,6 +164,7 @@ func TestMQTTHandler(t *testing.T) {
 							Confirmed:     false,
 							FPort:         1,
 							Data:          []byte("hello"),
+							Object:        json.RawMessage("null"),
 						})
 					})
 				})

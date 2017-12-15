@@ -1,9 +1,11 @@
 package downlink
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
+	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/pkg/errors"
 
@@ -88,8 +90,10 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 
 		Convey("Given a set of tests", func() {
 			tests := []struct {
-				Name    string
-				Payload handler.DataDownPayload
+				Name                 string
+				Payload              handler.DataDownPayload
+				PayloadCodec         codec.Type
+				PayloadEncoderScript string
 
 				ExpectedDeviceQueueMapping           bool
 				ExpectedError                        error
@@ -150,10 +154,45 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 					},
 					ExpectedError: errors.New("enqueue downlink payload: device does not exist for given application"),
 				},
+				{
+					Name:         "custom payload encoder",
+					PayloadCodec: codec.CustomJSType,
+					PayloadEncoderScript: `
+						function Encode(fPort, obj) {
+							return [
+								obj.Bytes[3],
+								obj.Bytes[2],
+								obj.Bytes[1],
+								obj.Bytes[0]
+							];
+						}
+					`,
+					Payload: handler.DataDownPayload{
+						ApplicationID: app.ID,
+						DevEUI:        device.DevEUI,
+						FPort:         2,
+						Object:        json.RawMessage(`{"Bytes": [4, 3, 2, 1]}`),
+					},
+
+					ExpectedCreateDeviceQueueItemRequest: ns.CreateDeviceQueueItemRequest{
+						Item: &ns.DeviceQueueItem{
+							DevEUI:     device.DevEUI[:],
+							FrmPayload: b,
+							FCnt:       12,
+							FPort:      2,
+							Confirmed:  false,
+						},
+					},
+				},
 			}
 
 			for i, test := range tests {
 				Convey(fmt.Sprintf("Testint: %s [%d]", test.Name, i), func() {
+					// update application
+					app.PayloadCodec = test.PayloadCodec
+					app.PayloadEncoderScript = test.PayloadEncoderScript
+					So(storage.UpdateApplication(common.DB, app), ShouldBeNil)
+
 					err := handleDataDownPayload(test.Payload)
 					if test.ExpectedError != nil {
 						So(err, ShouldNotBeNil)

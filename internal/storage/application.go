@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -13,14 +14,14 @@ var applicationNameRegexp = regexp.MustCompile(`^[\w-]+$`)
 
 // Application represents an application.
 type Application struct {
-	ID                   int64  `db:"id"`
-	Name                 string `db:"name"`
-	Description          string `db:"description"`
-	OrganizationID       int64  `db:"organization_id"`
-	ServiceProfileID     string `db:"service_profile_id"`
-	PayloadCodec         string `db:"payload_codec"`
-	PayloadEncoderScript string `db:"payload_encoder_script"`
-	PayloadDecoderScript string `db:"payload_decoder_script"`
+	ID                   int64      `db:"id"`
+	Name                 string     `db:"name"`
+	Description          string     `db:"description"`
+	OrganizationID       int64      `db:"organization_id"`
+	ServiceProfileID     string     `db:"service_profile_id"`
+	PayloadCodec         codec.Type `db:"payload_codec"`
+	PayloadEncoderScript string     `db:"payload_encoder_script"`
+	PayloadDecoderScript string     `db:"payload_decoder_script"`
 }
 
 // ApplicationListItem devices the application as a list item.

@@ -131,3 +131,8 @@ body {
   /* Set the fixed height of the footer here */
   height: 50px;
 }
+
+/* Fix react-select z-index for codemirror widget */
+.is-open {
+  z-index: 100 !important;
+}

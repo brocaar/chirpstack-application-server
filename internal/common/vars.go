@@ -35,7 +35,3 @@ var ApplicationServerID = "6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
 // ApplicationServerServer holds the hostname:IP of the application-server.
 var ApplicationServerServer = "localhost:8001"
-
-// CodecMaxExecTime holds the max. time the (custom) codec is allowed to
-// run.
-var CodecMaxExecTime = 10 * time.Millisecond

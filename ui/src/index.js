@@ -82,6 +82,8 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'bootswatch/paper/bootstrap.css';
 import 'react-select/dist/react-select.css';
 import 'leaflet/dist/leaflet.css';
+import 'codemirror/lib/codemirror.css';
+import 'codemirror/theme/base16-light.css';
 import './index.css';
 
 

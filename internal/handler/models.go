@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"encoding/json"
 	"time"
 
+	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lorawan"
 )
 
@@ -45,16 +47,18 @@ type DataUpPayload struct {
 	FCnt            uint32        `json:"fCnt"`
 	FPort           uint8         `json:"fPort"`
 	Data            []byte        `json:"data"`
+	Object          codec.Payload `json:"object,omitempty"`
 }
 
 // DataDownPayload represents a data-down payload.
 type DataDownPayload struct {
-	ApplicationID int64         `json:"applicationID,string"`
-	DevEUI        lorawan.EUI64 `json:"devEUI"`
-	Reference     string        `json:"reference"`
-	Confirmed     bool          `json:"confirmed"`
-	FPort         uint8         `json:"fPort"`
-	Data          []byte        `json:"data"`
+	ApplicationID int64           `json:"applicationID,string"`
+	DevEUI        lorawan.EUI64   `json:"devEUI"`
+	Reference     string          `json:"reference"`
+	Confirmed     bool            `json:"confirmed"`
+	FPort         uint8           `json:"fPort"`
+	Data          []byte          `json:"data"`
+	Object        json.RawMessage `json:"object"`
 }
 
 // JoinNotification defines the payload sent to the application on

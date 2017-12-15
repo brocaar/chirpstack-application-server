@@ -9,6 +9,7 @@ import (
 
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
+	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/handler/httphandler"
@@ -41,7 +42,7 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 		Description:          req.Description,
 		OrganizationID:       req.OrganizationID,
 		ServiceProfileID:     req.ServiceProfileID,
-		PayloadCodec:         req.PayloadCodec,
+		PayloadCodec:         codec.Type(req.PayloadCodec),
 		PayloadEncoderScript: req.PayloadEncoderScript,
 		PayloadDecoderScript: req.PayloadDecoderScript,
 	}
@@ -73,7 +74,7 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 		Description:          app.Description,
 		OrganizationID:       app.OrganizationID,
 		ServiceProfileID:     app.ServiceProfileID,
-		PayloadCodec:         app.PayloadCodec,
+		PayloadCodec:         string(app.PayloadCodec),
 		PayloadEncoderScript: app.PayloadEncoderScript,
 		PayloadDecoderScript: app.PayloadDecoderScript,
 	}
@@ -98,7 +99,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	app.Name = req.Name
 	app.Description = req.Description
 	app.ServiceProfileID = req.ServiceProfileID
-	app.PayloadCodec = req.PayloadCodec
+	app.PayloadCodec = codec.Type(req.PayloadCodec)
 	app.PayloadEncoderScript = req.PayloadEncoderScript
 	app.PayloadDecoderScript = req.PayloadDecoderScript
 

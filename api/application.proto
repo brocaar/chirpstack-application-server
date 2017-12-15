@@ -80,22 +80,6 @@ service Application {
 			get: "/api/applications/{id}/integrations"
 		};
 	}
-	
-	// TestPayloadDecoder tests the payload decoder for the given application.
-	rpc TestPayloadDecoder(TestPayloadDecoderRequest) returns (TestPayloadDecoderResponse) {
-		option(google.api.http) = {
-			post: "/api/applications/{id}/test-payload-decoder"
-			body: "*"
-		};
-	}
-
-	// TestPayloadEncoder tests the payload encoder for the given application.
-	rpc TestPayloadEncoder(TestPayloadEncoderRequest) returns (TestPayloadEncoderResponse) {
-		option(google.api.http) = {
-			post: "/api/applications/{id}/test-payload-encoder"
-			body: "*"
-		};
-	}
 }
 
 message CreateApplicationRequest {
@@ -280,30 +264,4 @@ message ListIntegrationRequest {
 message ListIntegrationResponse {
 	// The integration kinds associated with the application.
 	repeated IntegrationKind kinds = 1;
-}
-
-message TestPayloadDecoderRequest {
-	// The id of the application.
-	int64 id = 1;
-
-	// HEX encoded bytes.
-	string data = 2;
-}
-
-message TestPayloadDecoderResponse {
-	// JSON string representation of the decoded data.
-	string json = 1;
-}
-
-message TestPayloadEncoderRequest {
-	// The id of the application.
-	int64 id = 1;
-
-	// JSON string representation of the data to encode.
-	string json = 2;
-}
-
-message TestPayloadEncoderResponse {
-	// HEX encoded bytes.
-	string data = 1;
 }

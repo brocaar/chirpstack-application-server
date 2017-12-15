@@ -43,8 +43,11 @@ message EnqueueDeviceQueueItemRequest {
     // FPort used (must be >0)
     uint32 fPort = 4;
 
-    // Base64 encoded data.
+    // Base64 encoded data (or use the jsonObject when an application codec has been configured).
     bytes data = 5;
+
+    // String containing a JSON object (to be enqueued by the application codec).
+    string jsonObject = 6;
 }
 
 message EnqueueDeviceQueueItemResponse {}

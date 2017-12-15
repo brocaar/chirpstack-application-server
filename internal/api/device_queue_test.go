@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	pb "github.com/brocaar/lora-app-server/api"
+	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
@@ -88,6 +89,44 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 		b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 12, []byte{1, 2, 3, 4})
 		So(err, ShouldBeNil)
+
+		Convey("Given a custom JS application codec", func() {
+			app.PayloadCodec = codec.CustomJSType
+			app.PayloadEncoderScript = `
+				function Encode(fPort, obj) {
+					return [
+						obj.Bytes[3],
+						obj.Bytes[2],
+						obj.Bytes[1],
+						obj.Bytes[0]
+					];
+				}
+			`
+			So(storage.UpdateApplication(common.DB, app), ShouldBeNil)
+
+			Convey("When enqueueing a downlink queue item with raw JSON object", func() {
+				_, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{
+					DevEUI:     d.DevEUI.String(),
+					FPort:      10,
+					JsonObject: `{"Bytes": [4,3,2,1]}`,
+				})
+				So(err, ShouldBeNil)
+				So(validator.ctx, ShouldResemble, ctx)
+				So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+				Convey("Then the expected request has been made to the network-server", func() {
+					So(nsClient.CreateDeviceQueueItemChan, ShouldHaveLength, 1)
+					So(<-nsClient.CreateDeviceQueueItemChan, ShouldResemble, ns.CreateDeviceQueueItemRequest{
+						Item: &ns.DeviceQueueItem{
+							DevEUI:     d.DevEUI[:],
+							FrmPayload: b,
+							FCnt:       12,
+							FPort:      10,
+						},
+					})
+				})
+			})
+		})
 
 		Convey("When enqueueing a downlink queue item", func() {
 			_, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{

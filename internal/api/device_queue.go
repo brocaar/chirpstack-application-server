@@ -1,12 +1,15 @@
 package api
 
 import (
+	"encoding/json"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
+	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/downlink"
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -38,6 +41,35 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 	if err := d.validator.Validate(ctx,
 		auth.ValidateDeviceQueueAccess(devEUI, auth.Create)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	// if JSON object is set, try to encode it to bytes
+	if req.JsonObject != "" {
+		dev, err := storage.GetDevice(common.DB, devEUI)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		app, err := storage.GetApplication(common.DB, dev.ApplicationID)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		// get codec payload configured for the application
+		codecPL := codec.NewPayload(app.PayloadCodec, uint8(req.FPort), app.PayloadEncoderScript, app.PayloadDecoderScript)
+		if codecPL == nil {
+			return nil, grpc.Errorf(codes.FailedPrecondition, "no or invalid codec configured for application")
+		}
+
+		err = json.Unmarshal([]byte(req.JsonObject), &codecPL)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		req.Data, err = codecPL.MarshalBinary()
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
 	}
 
 	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {

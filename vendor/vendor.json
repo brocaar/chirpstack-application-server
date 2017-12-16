@@ -165,6 +165,48 @@
 			"revisionTime": "2017-02-27T22:00:37Z"
 		},
 		{
+			"checksumSHA1": "/75oK5RVdiy+bYLaLKcysy/NRLc=",
+			"path": "github.com/robertkrimen/otto",
+			"revision": "3b44b4dcb6c00477273595c312908e2412d07da6",
+			"revisionTime": "2017-11-30T10:32:05Z"
+		},
+		{
+			"checksumSHA1": "q1HKpLIWi3tTT5W5LqMlwPcGmyQ=",
+			"path": "github.com/robertkrimen/otto/ast",
+			"revision": "3b44b4dcb6c00477273595c312908e2412d07da6",
+			"revisionTime": "2017-11-30T10:32:05Z"
+		},
+		{
+			"checksumSHA1": "L0KsB2EzTlPgv0iae3q3SukNW7U=",
+			"path": "github.com/robertkrimen/otto/dbg",
+			"revision": "3b44b4dcb6c00477273595c312908e2412d07da6",
+			"revisionTime": "2017-11-30T10:32:05Z"
+		},
+		{
+			"checksumSHA1": "euDLJKhw4doeTSxjEoezjxYXLzs=",
+			"path": "github.com/robertkrimen/otto/file",
+			"revision": "3b44b4dcb6c00477273595c312908e2412d07da6",
+			"revisionTime": "2017-11-30T10:32:05Z"
+		},
+		{
+			"checksumSHA1": "nnv83GyG4Sglv6TW4NtFrdZm3kE=",
+			"path": "github.com/robertkrimen/otto/parser",
+			"revision": "3b44b4dcb6c00477273595c312908e2412d07da6",
+			"revisionTime": "2017-11-30T10:32:05Z"
+		},
+		{
+			"checksumSHA1": "7J/7NaYRqKhBvZ+dTIutsEoEgFw=",
+			"path": "github.com/robertkrimen/otto/registry",
+			"revision": "3b44b4dcb6c00477273595c312908e2412d07da6",
+			"revisionTime": "2017-11-30T10:32:05Z"
+		},
+		{
+			"checksumSHA1": "/jMXYuXycBpTqWhRyJ2xsqvHvQI=",
+			"path": "github.com/robertkrimen/otto/token",
+			"revision": "3b44b4dcb6c00477273595c312908e2412d07da6",
+			"revisionTime": "2017-11-30T10:32:05Z"
+		},
+		{
 			"checksumSHA1": "WBP1VKArZe5WSi3V69E6XWhyDCY=",
 			"path": "github.com/rubenv/sql-migrate",
 			"revision": "f64b6080c334adaf843209164107439e92bb170b",
@@ -291,6 +333,12 @@
 			"revisionTime": "2017-06-16T05:16:31Z"
 		},
 		{
+			"checksumSHA1": "iKgeC4jGetV1a+cyKz9EI8Ldlyo=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "d5840adf789d732bc8b00f37b26ca956a7cc8e79",
+			"revisionTime": "2017-12-14T14:09:03Z"
+		},
+		{
 			"checksumSHA1": "faFDXp++cLjLBlvsr+izZ+go1WU=",
 			"path": "golang.org/x/text/secure/bidirule",
 			"revision": "9e2f80a6ba7ed4ba13e0cd4b1f094bf916875735",
@@ -415,6 +463,18 @@
 			"path": "gopkg.in/gorp.v1",
 			"revision": "c87af80f3cc5036b55b83d77171e156791085e2e",
 			"revisionTime": "2015-02-04T08:55:30Z"
+		},
+		{
+			"checksumSHA1": "4BwmmgQUhWtizsR2soXND0nqZ1I=",
+			"path": "gopkg.in/sourcemap.v1",
+			"revision": "6e83acea0053641eff084973fee085f0c193c61a",
+			"revisionTime": "2017-02-13T14:20:43Z"
+		},
+		{
+			"checksumSHA1": "GDXPA04g0Dfwu2w++JiOKkYuZEc=",
+			"path": "gopkg.in/sourcemap.v1/base64vlq",
+			"revision": "6e83acea0053641eff084973fee085f0c193c61a",
+			"revisionTime": "2017-02-13T14:20:43Z"
 		}
 	],
 	"rootPath": "github.com/brocaar/lora-app-server"

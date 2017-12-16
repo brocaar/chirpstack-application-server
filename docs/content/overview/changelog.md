@@ -8,6 +8,22 @@ menu:
 
 ## Changelog
 
+### 0.16.0
+
+**Features:**
+
+* LoRa App Server is now able to decode (uplink) and encode (downlink)
+  payloads using the following per application configurable codecs:
+
+  * None (only the raw `base64` encoded data will be exposed)
+  * Cayenne LPP (data will be encoded / decoded using the
+    [Cayenne LPP](https://mydevices.com/cayenne/docs/lora/) encoding)
+  * Custom JavaScript codec functions (you can provide your own encoding /
+    decoding functions in JavaScript)
+
+See [Applications](https://docs.loraserver.io/lora-app-server/use/applications/)
+documentation for instructions how to configure this option.
+
 ### 0.15.0
 
 **Changes:**

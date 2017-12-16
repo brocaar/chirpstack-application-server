@@ -65,7 +65,11 @@ Topic for payloads received from your nodes. Example payload:
     },
     "fCnt": 10,                    // frame-counter
     "fPort": 5,                    // FPort
-    "data": "..."                  // base64 encoded payload (decrypted)
+    "data": "...",                 // base64 encoded payload (decrypted)
+    "object": {                    // decoded object (when application coded has been configured)
+        "temperatureSensor": {"1": 25},
+        "humiditySensor": {"1": 32}
+    }
 }
 ```
 
@@ -130,6 +134,10 @@ Example payload:
     "confirmed": true,                        // whether the payload must be sent as confirmed data down or not
     "fPort": 10,                              // FPort to use (must be > 0)
     "data": "...."                            // base64 encoded data (plaintext, will be encrypted by LoRa Server)
+    "object": {                               // decoded object (when application coded has been configured)
+        "temperatureSensor": {"1": 25},       // when providing the 'object', you can omit 'data'
+        "humiditySensor": {"1": 32}
+    }
 }
 
 ```

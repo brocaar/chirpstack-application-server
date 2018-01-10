@@ -128,6 +128,6 @@ frequency that is part of the channel-plan of the other receiving gateways.
 ### Application Server public host
 
 When running LoRa App Server on a different host than LoRa Server, make sure
-to set the `--as-public-host` to the correct `hostname:port` on which LoRa
+to set the `--as-public-server` to the correct `hostname:port` on which LoRa
 Server can reach LoRa App Server. The port must be equal to the port as
 configured by the `--bind` / `BIND` configuration.

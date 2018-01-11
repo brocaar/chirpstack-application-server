@@ -201,7 +201,7 @@ func DeleteGateway(db sqlx.Ext, mac lorawan.EUI64) error {
 		return ErrDoesNotExist
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}

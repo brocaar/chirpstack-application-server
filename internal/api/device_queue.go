@@ -102,7 +102,7 @@ func (d *DeviceQueueAPI) Flush(ctx context.Context, req *pb.FlushDeviceQueueRequ
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -146,7 +146,7 @@ func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsR
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

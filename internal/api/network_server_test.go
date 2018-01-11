@@ -40,8 +40,11 @@ func TestNetworkServerAPI(t *testing.T) {
 
 		Convey("Then Create creates a network-server", func() {
 			resp, err := api.Create(ctx, &pb.CreateNetworkServerRequest{
-				Name:   "test ns",
-				Server: "test-ns:1234",
+				Name:    "test ns",
+				Server:  "test-ns:1234",
+				CaCert:  "CACERT",
+				TlsCert: "TLSCERT",
+				TlsKey:  "TLSKEY",
 			})
 			So(err, ShouldBeNil)
 			So(resp.Id, ShouldBeGreaterThan, 0)
@@ -55,11 +58,22 @@ func TestNetworkServerAPI(t *testing.T) {
 				So(getResp.Server, ShouldEqual, "test-ns:1234")
 			})
 
+			Convey("Then the CA and TLS fields are populated", func() {
+				n, err := storage.GetNetworkServer(common.DB, resp.Id)
+				So(err, ShouldBeNil)
+				So(n.CACert, ShouldEqual, "CACERT")
+				So(n.TLSCert, ShouldEqual, "TLSCERT")
+				So(n.TLSKey, ShouldEqual, "TLSKEY")
+			})
+
 			Convey("Then Update updates the network-server", func() {
 				_, err := api.Update(ctx, &pb.UpdateNetworkServerRequest{
-					Id:     resp.Id,
-					Name:   "updated-test-ns",
-					Server: "updated-test-ns:1234",
+					Id:      resp.Id,
+					Name:    "updated-test-ns",
+					Server:  "updated-test-ns:1234",
+					CaCert:  "CACERT2",
+					TlsCert: "TLSCERT2",
+					TlsKey:  "TLSKEY2",
 				})
 				So(err, ShouldBeNil)
 
@@ -69,6 +83,14 @@ func TestNetworkServerAPI(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(getResp.Name, ShouldEqual, "updated-test-ns")
 				So(getResp.Server, ShouldEqual, "updated-test-ns:1234")
+
+				Convey("Then the CA and TLS fields are updated", func() {
+					n, err := storage.GetNetworkServer(common.DB, resp.Id)
+					So(err, ShouldBeNil)
+					So(n.CACert, ShouldEqual, "CACERT2")
+					So(n.TLSCert, ShouldEqual, "TLSCERT2")
+					So(n.TLSKey, ShouldEqual, "TLSKEY2")
+				})
 			})
 
 			Convey("Then Delete deletes the network-server", func() {

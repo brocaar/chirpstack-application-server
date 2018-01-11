@@ -52,6 +52,32 @@ class NetworkServerForm extends Component {
             The hostname:IP of the network-server.
           </p>
         </div>
+        <fieldset>
+          <legend>Certificates for LoRa App Server to LoRa Server connection</legend>
+          <div className="form-group">
+            <label className="control-label" htmlFor="caCert">CA certificate</label>
+            <textarea className="form-control" rows="4" id="caCert" value={this.state.networkServer.caCert} onChange={this.onChange.bind(this, 'caCert')} />
+            <p className="help-block">
+              Paste the content of the CA certificate (PEM) file in the above textbox. Leave blank to disable TLS.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="tlsCert">TLS certificate</label>
+            <textarea className="form-control" rows="4" id="tlsCert" value={this.state.networkServer.tlsCert} onChange={this.onChange.bind(this, 'tlsCert')} />
+            <p className="help-block">
+              Paste the content of the TLS certificate (PEM) file in the above textbox. Leave blank to disable TLS.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="tlsKey">TLS key</label>
+            <textarea className="form-control" rows="4" id="tlsKey" value={this.state.networkServer.tlsKey} onChange={this.onChange.bind(this, 'tlsKey')} />
+            <p className="help-block">
+              Paste the content of the TLS key (PEM) file in the above textbox. Leave blank to disable TLS.
+              Note: for security reasons, the TLS key can't be retrieved after being submitted (the field is left blank).
+              When re-submitting the form with an empty TLS key field (but populated TLS certificate field), the key won't be overwritten.
+            </p>
+          </div>
+        </fieldset>
         <hr />
         <div className="btn-toolbar pull-right">
           <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>

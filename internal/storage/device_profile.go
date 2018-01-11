@@ -87,7 +87,7 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -157,7 +157,7 @@ func GetDeviceProfile(db sqlx.Queryer, id string) (DeviceProfile, error) {
 		return dp, errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return dp, errors.Wrap(err, "get network-server client error")
 	}
@@ -219,7 +219,7 @@ func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -289,7 +289,7 @@ func DeleteDeviceProfile(db sqlx.Ext, id string) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}

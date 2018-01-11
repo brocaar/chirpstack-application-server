@@ -34,8 +34,11 @@ func (a *NetworkServerAPI) Create(ctx context.Context, req *pb.CreateNetworkServ
 	}
 
 	ns := storage.NetworkServer{
-		Name:   req.Name,
-		Server: req.Server,
+		Name:    req.Name,
+		Server:  req.Server,
+		CACert:  req.CaCert,
+		TLSCert: req.TlsCert,
+		TLSKey:  req.TlsKey,
 	}
 
 	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
@@ -69,6 +72,8 @@ func (a *NetworkServerAPI) Get(ctx context.Context, req *pb.GetNetworkServerRequ
 		UpdatedAt: ns.UpdatedAt.Format(time.RFC3339Nano),
 		Name:      ns.Name,
 		Server:    ns.Server,
+		CaCert:    ns.CACert,
+		TlsCert:   ns.TLSCert,
 	}, nil
 }
 
@@ -87,6 +92,16 @@ func (a *NetworkServerAPI) Update(ctx context.Context, req *pb.UpdateNetworkServ
 
 	ns.Name = req.Name
 	ns.Server = req.Server
+	ns.CACert = req.CaCert
+	ns.TLSCert = req.TlsCert
+
+	if req.TlsKey != "" {
+		ns.TLSKey = req.TlsKey
+	}
+
+	if ns.TLSCert == "" {
+		ns.TLSKey = ""
+	}
 
 	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
 		return storage.UpdateNetworkServer(tx, &ns)

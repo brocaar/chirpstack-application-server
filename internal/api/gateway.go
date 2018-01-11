@@ -75,7 +75,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			return errToRPCError(err)
 		}
 
-		nsClient, err := common.NetworkServerPool.Get(n.Server)
+		nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 		if err != nil {
 			return errToRPCError(err)
 		}
@@ -116,7 +116,7 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -269,7 +269,7 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 			return errToRPCError(err)
 		}
 
-		nsClient, err := common.NetworkServerPool.Get(n.Server)
+		nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 		if err != nil {
 			return errToRPCError(err)
 		}
@@ -337,7 +337,7 @@ func (a *GatewayAPI) GenerateToken(ctx context.Context, req *pb.GenerateGatewayT
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -376,7 +376,7 @@ func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsReques
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -462,7 +462,7 @@ func (a *GatewayAPI) CreateChannelConfiguration(ctx context.Context, req *pb.Cre
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -492,7 +492,7 @@ func (a *GatewayAPI) GetChannelConfiguration(ctx context.Context, req *pb.GetCha
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -526,7 +526,7 @@ func (a *GatewayAPI) UpdateChannelConfiguration(ctx context.Context, req *pb.Upd
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -556,7 +556,7 @@ func (a *GatewayAPI) DeleteChannelConfiguration(ctx context.Context, req *pb.Del
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -583,7 +583,7 @@ func (a *GatewayAPI) ListChannelConfigurations(ctx context.Context, req *pb.List
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -620,7 +620,7 @@ func (a *GatewayAPI) CreateExtraChannel(ctx context.Context, req *pb.CreateExtra
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -654,7 +654,7 @@ func (a *GatewayAPI) UpdateExtraChannel(ctx context.Context, req *pb.UpdateExtra
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -687,7 +687,7 @@ func (a *GatewayAPI) DeleteExtraChannel(ctx context.Context, req *pb.DeleteExtra
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -715,7 +715,7 @@ func (a *GatewayAPI) GetExtraChannelsForChannelConfigurationID(ctx context.Conte
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

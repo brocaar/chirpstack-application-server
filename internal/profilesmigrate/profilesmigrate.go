@@ -287,7 +287,7 @@ func migrateDevicesForApplication(tx *sqlx.Tx, n storage.NetworkServer, app stor
 			nonces = append(nonces, node.UsedDevNonces[i][:])
 		}
 
-		nsClient, err := common.NetworkServerPool.Get(n.Server)
+		nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 		if err != nil {
 			return errors.Wrap(err, "get network-server client error")
 		}

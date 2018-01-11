@@ -21,6 +21,9 @@ type NetworkServer struct {
 	UpdatedAt time.Time `db:"updated_at"`
 	Name      string    `db:"name"`
 	Server    string    `db:"server"`
+	CACert    string    `db:"ca_cert"`
+	TLSCert   string    `db:"tls_cert"`
+	TLSKey    string    `db:"tls_key"`
 }
 
 // Validate validates the network-server data.
@@ -43,19 +46,25 @@ func CreateNetworkServer(db sqlx.Queryer, n *NetworkServer) error {
 			created_at,
 			updated_at,
 			name,
-			server
-		) values ($1, $2, $3, $4)
+			server,
+			ca_cert,
+			tls_cert,
+			tls_key
+		) values ($1, $2, $3, $4, $5, $6, $7)
 		returning id`,
 		n.CreatedAt,
 		n.UpdatedAt,
 		n.Name,
 		n.Server,
+		n.CACert,
+		n.TLSCert,
+		n.TLSKey,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSKey), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -103,12 +112,18 @@ func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
 		set
 			updated_at = $2,
 			name = $3,
-			server = $4
+			server = $4,
+			ca_cert = $5,
+			tls_cert = $6,
+			tls_key = $7
 		where id = $1`,
 		n.ID,
 		n.UpdatedAt,
 		n.Name,
 		n.Server,
+		n.CACert,
+		n.TLSCert,
+		n.TLSKey,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")
@@ -122,7 +137,7 @@ func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
 		return ErrDoesNotExist
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -165,7 +180,7 @@ func DeleteNetworkServer(db sqlx.Ext, id int64) error {
 		return ErrDoesNotExist
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}

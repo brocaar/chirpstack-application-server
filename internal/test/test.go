@@ -94,7 +94,7 @@ type NetworkServerPool struct {
 }
 
 // Get returns the Client.
-func (p *NetworkServerPool) Get(hostname string) (ns.NetworkServerClient, error) {
+func (p *NetworkServerPool) Get(hostname string, caCert, tlsCert, tlsKey []byte) (ns.NetworkServerClient, error) {
 	p.GetHostname = hostname
 	return p.Client, nil
 }

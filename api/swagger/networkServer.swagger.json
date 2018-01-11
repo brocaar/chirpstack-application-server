@@ -177,6 +177,18 @@
         "server": {
           "type": "string",
           "description": "hostname:ip of the network-server."
+        },
+        "caCert": {
+          "type": "string",
+          "title": "ca certificate for connecting to the network-server"
+        },
+        "tlsCert": {
+          "type": "string",
+          "title": "tls (client) certificate for connecting to the network-server"
+        },
+        "tlsKey": {
+          "type": "string",
+          "title": "tls (client) key for connecting to the network-server"
         }
       }
     },
@@ -216,6 +228,14 @@
         "server": {
           "type": "string",
           "description": "hostname:ip of the network-server."
+        },
+        "caCert": {
+          "type": "string",
+          "title": "ca certificate for connecting to the network-server"
+        },
+        "tlsCert": {
+          "type": "string",
+          "title": "tls (client) certificate for connecting to the network-server"
         }
       }
     },
@@ -251,6 +271,18 @@
         "server": {
           "type": "string",
           "description": "hostname:ip of the network-server."
+        },
+        "caCert": {
+          "type": "string",
+          "title": "ca certificate for connecting to the network-server"
+        },
+        "tlsCert": {
+          "type": "string",
+          "title": "tls (client) certificate for connecting to the network-server"
+        },
+        "tlsKey": {
+          "type": "string",
+          "title": "tls (client) key for connecting to the network-server"
         }
       }
     },

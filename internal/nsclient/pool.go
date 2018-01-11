@@ -4,20 +4,20 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"io/ioutil"
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
 	"github.com/brocaar/loraserver/api/ns"
-	"github.com/pkg/errors"
 )
 
 // Pool defines the network-server client pool.
 type Pool interface {
-	Get(hostname string) (ns.NetworkServerClient, error)
+	Get(hostname string, caCert, tlsCert, tlsKey []byte) (ns.NetworkServerClient, error)
 }
 
 type client struct {
@@ -27,30 +27,24 @@ type client struct {
 
 type pool struct {
 	sync.RWMutex
-	caCert  string
-	tlsCert string
-	tlsKey  string
 	clients map[string]client
 }
 
 // NewPool creates a Pool.
-func NewPool(caCert, tlsCert, tlsKey string) Pool {
+func NewPool() Pool {
 	return &pool{
-		caCert:  caCert,
-		tlsCert: tlsCert,
-		tlsKey:  tlsKey,
 		clients: make(map[string]client),
 	}
 }
 
 // Get returns a NetworkServerClient for the given server (hostname:ip).
-func (p *pool) Get(hostname string) (ns.NetworkServerClient, error) {
+func (p *pool) Get(hostname string, caCert, tlsCert, tlsKey []byte) (ns.NetworkServerClient, error) {
 	defer p.Unlock()
 	p.Lock()
 
 	c, ok := p.clients[hostname]
 	if !ok {
-		nsClient, err := p.createClient(hostname)
+		nsClient, err := p.createClient(hostname, caCert, tlsCert, tlsKey)
 		if err != nil {
 			return nil, errors.Wrap(err, "create network-server api client error")
 		}
@@ -64,26 +58,23 @@ func (p *pool) Get(hostname string) (ns.NetworkServerClient, error) {
 	return c.client, nil
 }
 
-func (p *pool) createClient(hostname string) (ns.NetworkServerClient, error) {
+func (p *pool) createClient(hostname string, caCert, tlsCert, tlsKey []byte) (ns.NetworkServerClient, error) {
 	nsOpts := []grpc.DialOption{
 		grpc.WithBlock(),
 	}
 
-	if p.tlsCert == "" && p.tlsKey == "" && p.caCert == "" {
+	if len(caCert) == 0 && len(tlsCert) == 0 && len(tlsKey) == 0 {
 		nsOpts = append(nsOpts, grpc.WithInsecure())
+		log.WithField("server", hostname).Warning("creating insecure network-server client")
 	} else {
-		cert, err := tls.LoadX509KeyPair(p.tlsCert, p.tlsKey)
+		log.WithField("server", hostname).Info("creating network-server client")
+		cert, err := tls.X509KeyPair(tlsCert, tlsKey)
 		if err != nil {
 			return nil, errors.Wrap(err, "load x509 keypair error")
 		}
 
-		rawCACert, err := ioutil.ReadFile(p.caCert)
-		if err != nil {
-			return nil, errors.Wrap(err, "load ca cert error")
-		}
-
 		caCertPool := x509.NewCertPool()
-		if !caCertPool.AppendCertsFromPEM(rawCACert) {
+		if !caCertPool.AppendCertsFromPEM(caCert) {
 			return nil, errors.Wrap(err, "append ca cert to pool error")
 		}
 

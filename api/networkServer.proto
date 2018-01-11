@@ -51,6 +51,15 @@ message CreateNetworkServerRequest {
 
     // hostname:ip of the network-server.
     string server = 2;
+
+    // ca certificate for connecting to the network-server
+    string caCert = 3;
+
+    // tls (client) certificate for connecting to the network-server
+    string tlsCert = 4;
+
+    // tls (client) key for connecting to the network-server
+    string tlsKey = 5;
 }
 
 message CreateNetworkServerResponse {
@@ -78,6 +87,12 @@ message GetNetworkServerResponse {
 
     // hostname:ip of the network-server.
     string server = 5;
+
+    // ca certificate for connecting to the network-server
+    string caCert = 6;
+
+    // tls (client) certificate for connecting to the network-server
+    string tlsCert = 7;
 }
 
 message UpdateNetworkServerRequest {
@@ -89,6 +104,15 @@ message UpdateNetworkServerRequest {
 
     // hostname:ip of the network-server.
     string server = 3;
+
+    // ca certificate for connecting to the network-server
+    string caCert = 4;
+
+    // tls (client) certificate for connecting to the network-server
+    string tlsCert = 5;
+
+    // tls (client) key for connecting to the network-server
+    string tlsKey = 6;
 }
 
 message UpdateNetworkServerResponse {}

@@ -115,7 +115,7 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -159,7 +159,7 @@ func GetServiceProfile(db sqlx.Queryer, id string) (ServiceProfile, error) {
 		return sp, errors.Wrap(err, "get network-server errror")
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return sp, errors.Wrap(err, "get network-server client error")
 	}
@@ -279,7 +279,7 @@ func UpdateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -301,7 +301,7 @@ func DeleteServiceProfile(db sqlx.Ext, id string) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server)
+	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}

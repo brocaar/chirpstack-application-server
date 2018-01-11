@@ -140,11 +140,7 @@ func setHandler(c *cli.Context) error {
 }
 
 func setNetworkServerClient(c *cli.Context) error {
-	common.NetworkServerPool = nsclient.NewPool(
-		c.String("ns-ca-cert"),
-		c.String("ns-tls-cert"),
-		c.String("ns-tls-key"),
-	)
+	common.NetworkServerPool = nsclient.NewPool()
 
 	return nil
 }
@@ -600,21 +596,6 @@ func main() {
 			Name:   "jwt-secret",
 			Usage:  "JWT secret used for api authentication / authorization",
 			EnvVar: "JWT_SECRET",
-		},
-		cli.StringFlag{
-			Name:   "ns-ca-cert",
-			Usage:  "ca certificate used by the network-server client (optional)",
-			EnvVar: "NS_CA_CERT",
-		},
-		cli.StringFlag{
-			Name:   "ns-tls-cert",
-			Usage:  "tls certificate used by the network-server client (optional)",
-			EnvVar: "NS_TLS_CERT",
-		},
-		cli.StringFlag{
-			Name:   "ns-tls-key",
-			Usage:  "tls key used by the network-server client (optional)",
-			EnvVar: "NS_TLS_KEY",
 		},
 		cli.IntFlag{
 			Name:   "pw-hash-iterations",

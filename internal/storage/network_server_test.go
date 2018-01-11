@@ -32,8 +32,11 @@ func TestNetworkServer(t *testing.T) {
 
 		Convey("Then CreateNetworkServer creates a network-server", func() {
 			n := NetworkServer{
-				Name:   "test-ns",
-				Server: "test-ns:123",
+				Name:    "test-ns",
+				Server:  "test-ns:123",
+				CACert:  "CACERT",
+				TLSCert: "TLSCERT",
+				TLSKey:  "TLSKey",
 			}
 			So(CreateNetworkServer(db, &n), ShouldBeNil)
 			n.CreatedAt = n.CreatedAt.UTC().Truncate(time.Millisecond)
@@ -105,6 +108,9 @@ func TestNetworkServer(t *testing.T) {
 			Convey("Then UpdateNetworkServer updates the network-server", func() {
 				n.Name = "new-nw-server"
 				n.Server = "new-nw-server:123"
+				n.CACert = "CACERT2"
+				n.TLSCert = "TLSCERT2"
+				n.TLSKey = "TLSKey2"
 				So(UpdateNetworkServer(db, &n), ShouldBeNil)
 				So(nsClient.UpdateRoutingProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.UpdateRoutingProfileChan, ShouldResemble, ns.UpdateRoutingProfileRequest{

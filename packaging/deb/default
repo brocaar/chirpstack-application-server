@@ -47,18 +47,6 @@ HTTP_TLS_KEY=/etc/lora-app-server/certs/http-key.pem
 # You could generate this by executing 'openssl rand -base64 32' for example
 JWT_SECRET=
 
-# hostname:port of the network-server api server (default: "127.0.0.1:8000")
-NS_SERVER=127.0.0.1:8000
-
-# ca certificate used by the network-server client (optional)
-NS_CA_CERT=
-
-# tls certificate used by the network-server client (optional)
-NS_TLS_CERT=
-
-# tls key used by the network-server client (optional)
-NS_TLS_KEY=
-
 # the number of iterations used to generate the password hash
 PW_HASH_ITERATIONS=100000
 

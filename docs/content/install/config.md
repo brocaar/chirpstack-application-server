@@ -12,6 +12,7 @@ To list all configuration options, start `lora-app-server` with the `--help`
 flag. This will display:
 
 ```text
+GLOBAL OPTIONS:
    --postgres-dsn value             postgresql dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable) (default: "postgres://localhost/loraserver?sslmode=disable") [$POSTGRES_DSN]
    --db-automigrate                 automatically apply database migrations [$DB_AUTOMIGRATE]
    --redis-url value                redis url (e.g. redis://user:password@hostname/0) (default: "redis://localhost:6379") [$REDIS_URL]
@@ -29,9 +30,6 @@ flag. This will display:
    --http-tls-cert value            http server TLS certificate [$HTTP_TLS_CERT]
    --http-tls-key value             http server TLS key [$HTTP_TLS_KEY]
    --jwt-secret value               JWT secret used for api authentication / authorization [$JWT_SECRET]
-   --ns-ca-cert value               ca certificate used by the network-server client (optional) [$NS_CA_CERT]
-   --ns-tls-cert value              tls certificate used by the network-server client (optional) [$NS_TLS_CERT]
-   --ns-tls-key value               tls key used by the network-server client (optional) [$NS_TLS_KEY]
    --pw-hash-iterations value       the number of iterations used to generate the password hash (default: 100000) [$PW_HASH_ITERATIONS]
    --log-level value                debug=5, info=4, warning=3, error=2, fatal=1, panic=0 (default: 4) [$LOG_LEVEL]
    --disable-assign-existing-users  when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin) [$DISABLE_ASSIGN_EXISTING_USERS]
@@ -90,15 +88,24 @@ or let LoRa App Server migrate to the latest state automatically, by using
 the `--db-automigrate` flag. Make sure that you always make a backup when
 upgrading Lora App Server and / or applying migrations.
 
+### Securing the application-server API
+
+In order to protect the application-server API (listening on `--bind`) against
+unauthorized access and to encrypt all communication, it is advised to use TLS
+certificates. Once the `--ca-cert`, `--tls-cert` and `--tls-key` are set, the
+API will enforce client certificate validation on all incoming connections.
+This means that when configuring a network-server instance in LoRa App Server,
+you must provide the CA and TLS client certificate in order to let the
+network-server to connect to LoRa App Server. See also
+[network-server management]({{< ref "use/network-servers.md" >}}).
+
+See [https://github.com/brocaar/loraserver-certificates](https://github.com/brocaar/loraserver-certificates)
+for a set of script to generate such certificates.
+
 ### Web-interface and client API
 
-The web-interface must be protected by a TLS certificate, as this allows to
+The web-interface must be secured by a TLS certificate, as this allows to
 run the gRPC and RESTful JSON api together on one port (`--http-tls-*` flags).
-
-### Security / TLS
-
-The http server for serving the web-interface and API (both gRPC as the
-RESTful JSON api) must be secured by using a TLS certificate.
 
 #### Self-signed certificate
 

@@ -17,6 +17,24 @@ menu:
   and IDs on the same network-server as the service-profile associated with the
   given application.
 
+**Features:**
+
+* Implement client certificate validation for incoming application-server API connections.
+* Implement client certificate for API connections to LoRa Server.
+
+This removes the following CLI options:
+
+* `--ns-ca-cert`
+* `--ns-tls-cert`
+* `--ns-tls-key`
+
+See for more information:
+
+* [LoRa Server configuration](https://docs.loraserver.io/loraserver/install/config/)
+* [LoRa App Server configuration](https://docs.loraserver.io/lora-app-server/install/config/)
+* [LoRa App Server network-server management](https://docs.loraserver.io/lora-app-server/use/network-servers/)
+* [https://github.com/brocaar/loraserver-certificates](https://github.com/brocaar/loraserver-certificates)
+
 ### 0.16.0
 
 **Features:**

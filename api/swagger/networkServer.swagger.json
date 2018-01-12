@@ -189,6 +189,18 @@
         "tlsKey": {
           "type": "string",
           "title": "tls (client) key for connecting to the network-server"
+        },
+        "routingProfileCACert": {
+          "type": "string",
+          "title": "routing-profile ca certificate (used by the network-server to connect\nback to the application-server)"
+        },
+        "routingProfileTLSCert": {
+          "type": "string",
+          "title": "routing-profile tls certificate (used by the network-server to connect\nback to the application-server)"
+        },
+        "routingProfileTLSKey": {
+          "type": "string",
+          "title": "routing-profile tls key (used by the network-server to connect\nback to the application-server)"
         }
       }
     },
@@ -236,6 +248,14 @@
         "tlsCert": {
           "type": "string",
           "title": "tls (client) certificate for connecting to the network-server"
+        },
+        "routingProfileCACert": {
+          "type": "string",
+          "title": "routing-profile ca certificate (used by the network-server to connect\nback to the application-server)"
+        },
+        "routingProfileTLSCert": {
+          "type": "string",
+          "title": "routing-profile tls certificate (used by the network-server to connect\nback to the application-server)"
         }
       }
     },
@@ -283,6 +303,18 @@
         "tlsKey": {
           "type": "string",
           "title": "tls (client) key for connecting to the network-server"
+        },
+        "routingProfileCACert": {
+          "type": "string",
+          "title": "routing-profile ca certificate (used by the network-server to connect\nback to the application-server)"
+        },
+        "routingProfileTLSCert": {
+          "type": "string",
+          "title": "routing-profile tls certificate (used by the network-server to connect\nback to the application-server)"
+        },
+        "routingProfileTLSKey": {
+          "type": "string",
+          "title": "routing-profile tls key (used by the network-server to connect\nback to the application-server)"
         }
       }
     },

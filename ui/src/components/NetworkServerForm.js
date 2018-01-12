@@ -78,6 +78,32 @@ class NetworkServerForm extends Component {
             </p>
           </div>
         </fieldset>
+        <fieldset>
+          <legend>Certificates for LoRa Server to LoRa App Server connection</legend>
+          <div className="form-group">
+            <label className="control-label" htmlFor="routingProfileCACert">CA certificate</label>
+            <textarea className="form-control" rows="4" id="routingProfileCACert" value={this.state.networkServer.routingProfileCACert} onChange={this.onChange.bind(this, 'routingProfileCACert')} />
+            <p className="help-block">
+              Paste the content of the CA certificate (PEM) file in the above textbox. Leave blank to disable TLS.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="routingProfileTLSCert">TLS certificate</label>
+            <textarea className="form-control" rows="4" id="routingProfileTLSCert" value={this.state.networkServer.routingProfileTLSCert} onChange={this.onChange.bind(this, 'routingProfileTLSCert')} />
+            <p className="help-block">
+              Paste the content of the TLS certificate (PEM) file in the above textbox. Leave blank to disable TLS.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="routingProfileTLSKey">TLS key</label>
+            <textarea className="form-control" rows="4" id="routingProfileTLSKey" value={this.state.networkServer.routingProfileTLSKey} onChange={this.onChange.bind(this, 'routingProfileTLSKey')} />
+            <p className="help-block">
+              Paste the content of the TLS key (PEM) file in the above textbox. Leave blank to disable TLS.
+              Note: for security reasons, the TLS key can't be retrieved after being submitted (the field is left blank).
+              When re-submitting the form with an empty TLS key field (but populated TLS certificate field), the key won't be overwritten.
+            </p>
+          </div>
+        </fieldset>
         <hr />
         <div className="btn-toolbar pull-right">
           <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>

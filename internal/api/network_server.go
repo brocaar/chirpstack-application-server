@@ -34,11 +34,14 @@ func (a *NetworkServerAPI) Create(ctx context.Context, req *pb.CreateNetworkServ
 	}
 
 	ns := storage.NetworkServer{
-		Name:    req.Name,
-		Server:  req.Server,
-		CACert:  req.CaCert,
-		TLSCert: req.TlsCert,
-		TLSKey:  req.TlsKey,
+		Name:                  req.Name,
+		Server:                req.Server,
+		CACert:                req.CaCert,
+		TLSCert:               req.TlsCert,
+		TLSKey:                req.TlsKey,
+		RoutingProfileCACert:  req.RoutingProfileCACert,
+		RoutingProfileTLSCert: req.RoutingProfileTLSCert,
+		RoutingProfileTLSKey:  req.RoutingProfileTLSKey,
 	}
 
 	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
@@ -67,13 +70,15 @@ func (a *NetworkServerAPI) Get(ctx context.Context, req *pb.GetNetworkServerRequ
 	}
 
 	return &pb.GetNetworkServerResponse{
-		Id:        ns.ID,
-		CreatedAt: ns.CreatedAt.Format(time.RFC3339Nano),
-		UpdatedAt: ns.UpdatedAt.Format(time.RFC3339Nano),
-		Name:      ns.Name,
-		Server:    ns.Server,
-		CaCert:    ns.CACert,
-		TlsCert:   ns.TLSCert,
+		Id:                    ns.ID,
+		CreatedAt:             ns.CreatedAt.Format(time.RFC3339Nano),
+		UpdatedAt:             ns.UpdatedAt.Format(time.RFC3339Nano),
+		Name:                  ns.Name,
+		Server:                ns.Server,
+		CaCert:                ns.CACert,
+		TlsCert:               ns.TLSCert,
+		RoutingProfileCACert:  ns.RoutingProfileCACert,
+		RoutingProfileTLSCert: ns.RoutingProfileTLSCert,
 	}, nil
 }
 
@@ -94,13 +99,21 @@ func (a *NetworkServerAPI) Update(ctx context.Context, req *pb.UpdateNetworkServ
 	ns.Server = req.Server
 	ns.CACert = req.CaCert
 	ns.TLSCert = req.TlsCert
+	ns.RoutingProfileCACert = req.RoutingProfileCACert
+	ns.RoutingProfileTLSCert = req.RoutingProfileTLSCert
 
 	if req.TlsKey != "" {
 		ns.TLSKey = req.TlsKey
 	}
-
 	if ns.TLSCert == "" {
 		ns.TLSKey = ""
+	}
+
+	if req.RoutingProfileTLSKey != "" {
+		ns.RoutingProfileTLSKey = req.RoutingProfileTLSKey
+	}
+	if ns.RoutingProfileTLSCert == "" {
+		ns.RoutingProfileTLSKey = ""
 	}
 
 	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {

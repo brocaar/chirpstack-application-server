@@ -357,7 +357,7 @@ func startClientAPI(ctx context.Context) func(*cli.Context) error {
 func mustGetAPIServer(c *cli.Context) *grpc.Server {
 	var opts []grpc.ServerOption
 	if c.String("tls-cert") != "" && c.String("tls-key") != "" {
-		creds := mustGetTransportCredentials(c.String("tls-cert"), c.String("tls-key"), c.String("ca-cert"), false)
+		creds := mustGetTransportCredentials(c.String("tls-cert"), c.String("tls-key"), c.String("ca-cert"), true)
 		opts = append(opts, grpc.Creds(creds))
 	}
 	gs := grpc.NewServer(opts...)
@@ -486,7 +486,7 @@ func mustGetTransportCredentials(tlsCert, tlsKey, caCert string, verifyClientCer
 	if verifyClientCert {
 		return credentials.NewTLS(&tls.Config{
 			Certificates: []tls.Certificate{cert},
-			RootCAs:      caCertPool,
+			ClientCAs:    caCertPool,
 			ClientAuth:   tls.RequireAndVerifyClientCert,
 		})
 	}

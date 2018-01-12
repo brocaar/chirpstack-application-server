@@ -1,6 +1,7 @@
 package nsclient
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -21,8 +22,11 @@ type Pool interface {
 }
 
 type client struct {
-	lastUsed time.Time
-	client   ns.NetworkServerClient
+	client     ns.NetworkServerClient
+	clientConn *grpc.ClientConn
+	caCert     []byte
+	tlsCert    []byte
+	tlsKey     []byte
 }
 
 type pool struct {
@@ -42,15 +46,31 @@ func (p *pool) Get(hostname string, caCert, tlsCert, tlsKey []byte) (ns.NetworkS
 	defer p.Unlock()
 	p.Lock()
 
+	var connect bool
 	c, ok := p.clients[hostname]
 	if !ok {
-		nsClient, err := p.createClient(hostname, caCert, tlsCert, tlsKey)
+		connect = true
+	}
+
+	// if the connection exists in the map, but when the certificates changed
+	// try to cloe the connection and re-connect
+	if ok && (!bytes.Equal(c.caCert, caCert) || !bytes.Equal(c.tlsCert, tlsCert) || !bytes.Equal(c.tlsKey, tlsKey)) {
+		c.clientConn.Close()
+		delete(p.clients, hostname)
+		connect = true
+	}
+
+	if connect {
+		clientConn, nsClient, err := p.createClient(hostname, caCert, tlsCert, tlsKey)
 		if err != nil {
 			return nil, errors.Wrap(err, "create network-server api client error")
 		}
 		c = client{
-			lastUsed: time.Now(),
-			client:   nsClient,
+			client:     nsClient,
+			clientConn: clientConn,
+			caCert:     caCert,
+			tlsCert:    tlsCert,
+			tlsKey:     tlsKey,
 		}
 		p.clients[hostname] = c
 	}
@@ -58,7 +78,7 @@ func (p *pool) Get(hostname string, caCert, tlsCert, tlsKey []byte) (ns.NetworkS
 	return c.client, nil
 }
 
-func (p *pool) createClient(hostname string, caCert, tlsCert, tlsKey []byte) (ns.NetworkServerClient, error) {
+func (p *pool) createClient(hostname string, caCert, tlsCert, tlsKey []byte) (*grpc.ClientConn, ns.NetworkServerClient, error) {
 	nsOpts := []grpc.DialOption{
 		grpc.WithBlock(),
 	}
@@ -70,12 +90,12 @@ func (p *pool) createClient(hostname string, caCert, tlsCert, tlsKey []byte) (ns
 		log.WithField("server", hostname).Info("creating network-server client")
 		cert, err := tls.X509KeyPair(tlsCert, tlsKey)
 		if err != nil {
-			return nil, errors.Wrap(err, "load x509 keypair error")
+			return nil, nil, errors.Wrap(err, "load x509 keypair error")
 		}
 
 		caCertPool := x509.NewCertPool()
 		if !caCertPool.AppendCertsFromPEM(caCert) {
-			return nil, errors.Wrap(err, "append ca cert to pool error")
+			return nil, nil, errors.Wrap(err, "append ca cert to pool error")
 		}
 
 		nsOpts = append(nsOpts, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
@@ -89,8 +109,8 @@ func (p *pool) createClient(hostname string, caCert, tlsCert, tlsKey []byte) (ns
 
 	nsClient, err := grpc.DialContext(ctx, hostname, nsOpts...)
 	if err != nil {
-		return nil, errors.Wrap(err, "dial network-server api error")
+		return nil, nil, errors.Wrap(err, "dial network-server api error")
 	}
 
-	return ns.NewNetworkServerClient(nsClient), nil
+	return nsClient, ns.NewNetworkServerClient(nsClient), nil
 }

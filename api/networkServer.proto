@@ -60,6 +60,18 @@ message CreateNetworkServerRequest {
 
     // tls (client) key for connecting to the network-server
     string tlsKey = 5;
+
+    // routing-profile ca certificate (used by the network-server to connect
+    // back to the application-server)
+    string routingProfileCACert = 6;
+
+    // routing-profile tls certificate (used by the network-server to connect
+    // back to the application-server)
+    string routingProfileTLSCert = 7;
+
+    // routing-profile tls key (used by the network-server to connect
+    // back to the application-server)
+    string routingProfileTLSKey = 8;
 }
 
 message CreateNetworkServerResponse {
@@ -93,6 +105,14 @@ message GetNetworkServerResponse {
 
     // tls (client) certificate for connecting to the network-server
     string tlsCert = 7;
+
+    // routing-profile ca certificate (used by the network-server to connect
+    // back to the application-server)
+    string routingProfileCACert = 8;
+
+    // routing-profile tls certificate (used by the network-server to connect
+    // back to the application-server)
+    string routingProfileTLSCert = 9;
 }
 
 message UpdateNetworkServerRequest {
@@ -113,6 +133,18 @@ message UpdateNetworkServerRequest {
 
     // tls (client) key for connecting to the network-server
     string tlsKey = 6;
+
+    // routing-profile ca certificate (used by the network-server to connect
+    // back to the application-server)
+    string routingProfileCACert = 7;
+
+    // routing-profile tls certificate (used by the network-server to connect
+    // back to the application-server)
+    string routingProfileTLSCert = 8;
+
+    // routing-profile tls key (used by the network-server to connect
+    // back to the application-server)
+    string routingProfileTLSKey = 9;
 }
 
 message UpdateNetworkServerResponse {}

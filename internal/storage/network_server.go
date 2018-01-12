@@ -16,14 +16,17 @@ import (
 
 // NetworkServer defines the information to connect to a network-server.
 type NetworkServer struct {
-	ID        int64     `db:"id"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
-	Name      string    `db:"name"`
-	Server    string    `db:"server"`
-	CACert    string    `db:"ca_cert"`
-	TLSCert   string    `db:"tls_cert"`
-	TLSKey    string    `db:"tls_key"`
+	ID                    int64     `db:"id"`
+	CreatedAt             time.Time `db:"created_at"`
+	UpdatedAt             time.Time `db:"updated_at"`
+	Name                  string    `db:"name"`
+	Server                string    `db:"server"`
+	CACert                string    `db:"ca_cert"`
+	TLSCert               string    `db:"tls_cert"`
+	TLSKey                string    `db:"tls_key"`
+	RoutingProfileCACert  string    `db:"routing_profile_ca_cert"`
+	RoutingProfileTLSCert string    `db:"routing_profile_tls_cert"`
+	RoutingProfileTLSKey  string    `db:"routing_profile_tls_key"`
 }
 
 // Validate validates the network-server data.
@@ -49,8 +52,11 @@ func CreateNetworkServer(db sqlx.Queryer, n *NetworkServer) error {
 			server,
 			ca_cert,
 			tls_cert,
-			tls_key
-		) values ($1, $2, $3, $4, $5, $6, $7)
+			tls_key,
+			routing_profile_ca_cert,
+			routing_profile_tls_cert,
+			routing_profile_tls_key
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		returning id`,
 		n.CreatedAt,
 		n.UpdatedAt,
@@ -59,6 +65,9 @@ func CreateNetworkServer(db sqlx.Queryer, n *NetworkServer) error {
 		n.CACert,
 		n.TLSCert,
 		n.TLSKey,
+		n.RoutingProfileCACert,
+		n.RoutingProfileTLSCert,
+		n.RoutingProfileTLSKey,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -74,6 +83,9 @@ func CreateNetworkServer(db sqlx.Queryer, n *NetworkServer) error {
 			RoutingProfileID: common.ApplicationServerID,
 			AsID:             common.ApplicationServerServer,
 		},
+		CaCert:  n.RoutingProfileCACert,
+		TlsCert: n.RoutingProfileTLSCert,
+		TlsKey:  n.RoutingProfileTLSKey,
 	})
 	if err != nil {
 		log.WithError(err).Error("network-server create routing-profile api error")
@@ -115,7 +127,10 @@ func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
 			server = $4,
 			ca_cert = $5,
 			tls_cert = $6,
-			tls_key = $7
+			tls_key = $7,
+			routing_profile_ca_cert = $8,
+			routing_profile_tls_cert = $9,
+			routing_profile_tls_key = $10
 		where id = $1`,
 		n.ID,
 		n.UpdatedAt,
@@ -124,6 +139,9 @@ func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
 		n.CACert,
 		n.TLSCert,
 		n.TLSKey,
+		n.RoutingProfileCACert,
+		n.RoutingProfileTLSCert,
+		n.RoutingProfileTLSKey,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")
@@ -147,6 +165,9 @@ func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
 			RoutingProfileID: common.ApplicationServerID,
 			AsID:             common.ApplicationServerServer,
 		},
+		CaCert:  n.RoutingProfileCACert,
+		TlsCert: n.RoutingProfileTLSCert,
+		TlsKey:  n.RoutingProfileTLSKey,
 	})
 	if err != nil {
 		log.WithError(err).Error("network-server update routing-profile api error")

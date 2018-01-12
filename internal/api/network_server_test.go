@@ -40,11 +40,14 @@ func TestNetworkServerAPI(t *testing.T) {
 
 		Convey("Then Create creates a network-server", func() {
 			resp, err := api.Create(ctx, &pb.CreateNetworkServerRequest{
-				Name:    "test ns",
-				Server:  "test-ns:1234",
-				CaCert:  "CACERT",
-				TlsCert: "TLSCERT",
-				TlsKey:  "TLSKEY",
+				Name:                  "test ns",
+				Server:                "test-ns:1234",
+				CaCert:                "CACERT",
+				TlsCert:               "TLSCERT",
+				TlsKey:                "TLSKEY",
+				RoutingProfileCACert:  "RPCACERT",
+				RoutingProfileTLSCert: "RPTLSCERT",
+				RoutingProfileTLSKey:  "RPTLSKEY",
 			})
 			So(err, ShouldBeNil)
 			So(resp.Id, ShouldBeGreaterThan, 0)
@@ -64,16 +67,22 @@ func TestNetworkServerAPI(t *testing.T) {
 				So(n.CACert, ShouldEqual, "CACERT")
 				So(n.TLSCert, ShouldEqual, "TLSCERT")
 				So(n.TLSKey, ShouldEqual, "TLSKEY")
+				So(n.RoutingProfileCACert, ShouldEqual, "RPCACERT")
+				So(n.RoutingProfileTLSCert, ShouldEqual, "RPTLSCERT")
+				So(n.RoutingProfileTLSKey, ShouldEqual, "RPTLSKEY")
 			})
 
 			Convey("Then Update updates the network-server", func() {
 				_, err := api.Update(ctx, &pb.UpdateNetworkServerRequest{
-					Id:      resp.Id,
-					Name:    "updated-test-ns",
-					Server:  "updated-test-ns:1234",
-					CaCert:  "CACERT2",
-					TlsCert: "TLSCERT2",
-					TlsKey:  "TLSKEY2",
+					Id:                    resp.Id,
+					Name:                  "updated-test-ns",
+					Server:                "updated-test-ns:1234",
+					CaCert:                "CACERT2",
+					TlsCert:               "TLSCERT2",
+					TlsKey:                "TLSKEY2",
+					RoutingProfileCACert:  "RPCACERT2",
+					RoutingProfileTLSCert: "RPTLSCERT2",
+					RoutingProfileTLSKey:  "RPTLSKEY2",
 				})
 				So(err, ShouldBeNil)
 
@@ -90,6 +99,9 @@ func TestNetworkServerAPI(t *testing.T) {
 					So(n.CACert, ShouldEqual, "CACERT2")
 					So(n.TLSCert, ShouldEqual, "TLSCERT2")
 					So(n.TLSKey, ShouldEqual, "TLSKEY2")
+					So(n.RoutingProfileCACert, ShouldEqual, "RPCACERT2")
+					So(n.RoutingProfileTLSCert, ShouldEqual, "RPTLSCERT2")
+					So(n.RoutingProfileTLSKey, ShouldEqual, "RPTLSKEY2")
 				})
 			})
 

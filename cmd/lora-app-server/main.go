@@ -356,7 +356,7 @@ func startClientAPI(ctx context.Context) func(*cli.Context) error {
 
 func mustGetAPIServer(c *cli.Context) *grpc.Server {
 	var opts []grpc.ServerOption
-	if c.String("tls-cert") != "" && c.String("tls-key") != "" {
+	if c.String("ca-cert") != "" && c.String("tls-cert") != "" && c.String("tls-key") != "" {
 		creds := mustGetTransportCredentials(c.String("tls-cert"), c.String("tls-key"), c.String("ca-cert"), true)
 		opts = append(opts, grpc.Creds(creds))
 	}
@@ -464,7 +464,6 @@ func getJSONGateway(ctx context.Context, c *cli.Context) (http.Handler, error) {
 }
 
 func mustGetTransportCredentials(tlsCert, tlsKey, caCert string, verifyClientCert bool) credentials.TransportCredentials {
-	var caCertPool *x509.CertPool
 	cert, err := tls.LoadX509KeyPair(tlsCert, tlsKey)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -473,15 +472,13 @@ func mustGetTransportCredentials(tlsCert, tlsKey, caCert string, verifyClientCer
 		}).Fatalf("load key-pair error: %s", err)
 	}
 
-	if caCert != "" {
-		rawCaCert, err := ioutil.ReadFile(caCert)
-		if err != nil {
-			log.WithField("ca", caCert).Fatalf("load ca cert error: %s", err)
-		}
-
-		caCertPool = x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(rawCaCert)
+	rawCaCert, err := ioutil.ReadFile(caCert)
+	if err != nil {
+		log.WithField("ca", caCert).Fatalf("load ca cert error: %s", err)
 	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(rawCaCert)
 
 	if verifyClientCert {
 		return credentials.NewTLS(&tls.Config{

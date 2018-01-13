@@ -13,6 +13,9 @@ menu:
 **Bugfixes:**
 
 * Fix device-profile permissions in UI for organization admins.
+* Fix device-profile list per `applicationID` showing all device-profile names
+  and IDs on the same network-server as the service-profile associated with the
+  given application.
 
 ### 0.16.0
 

@@ -380,7 +380,8 @@ func GetDeviceProfileCountForApplicationID(db sqlx.Queryer, applicationID int64)
 		inner join application a
 			on a.service_profile_id = sp.service_profile_id
 		where
-			a.id = $1`,
+			a.id = $1
+			and dp.organization_id = a.organization_id`,
 		applicationID,
 	)
 	if err != nil {
@@ -472,6 +473,7 @@ func GetDeviceProfilesForApplicationID(db sqlx.Queryer, applicationID int64, lim
 			on a.service_profile_id = sp.service_profile_id
 		where
 			a.id = $1
+			and dp.organization_id = a.organization_id
 		order by dp.name
 		limit $2 offset $3`,
 		applicationID,

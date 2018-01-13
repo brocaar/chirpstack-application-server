@@ -33,7 +33,7 @@ class DeviceProfileForm extends Component {
       this.setState({
         deviceProfile: this.props.deviceProfile,
         networkServers: networkServers,
-        isAdmin: SessionStore.isAdmin(),
+        isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.organizationID),
       });
     });
   }

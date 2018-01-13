@@ -8,6 +8,12 @@ menu:
 
 ## Changelog
 
+### 0.16.1
+
+**Bugfixes:**
+
+* Fix device-profile permissions in UI for organization admins.
+
 ### 0.16.0
 
 **Features:**

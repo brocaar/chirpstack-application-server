@@ -255,34 +255,33 @@ func startJoinServerAPI(c *cli.Context) error {
 		Addr:    c.String("js-bind"),
 	}
 
-	if c.String("js-ca-cert") != "" {
-		caCert, err := ioutil.ReadFile(c.String("js-ca-cert"))
-		if err != nil {
-			return errors.Wrap(err, "read ca certificate error")
-		}
-
-		caCertPool := x509.NewCertPool()
-		if !caCertPool.AppendCertsFromPEM(caCert) {
-			return errors.New("append ca certificate error")
-		}
-
-		server.TLSConfig = &tls.Config{
-			ClientCAs:  caCertPool,
-			ClientAuth: tls.RequireAndVerifyClientCert,
-		}
-	}
-
-	if c.String("js-tls-cert") == "" && c.String("js-tls-key") == "" {
+	if c.String("js-ca-cert") == "" || c.String("js-tls-cert") == "" || c.String("js-tls-key") == "" {
 		go func() {
 			err := server.ListenAndServe()
 			log.WithError(err).Error("join-server api error")
 		}()
-	} else {
-		go func() {
-			err := server.ListenAndServeTLS(c.String("js-tls-cert"), c.String("js-tls-key"))
-			log.WithError(err).Error("join-server api error")
-		}()
+		return nil
 	}
+
+	caCert, err := ioutil.ReadFile(c.String("js-ca-cert"))
+	if err != nil {
+		return errors.Wrap(err, "read ca certificate error")
+	}
+
+	caCertPool := x509.NewCertPool()
+	if !caCertPool.AppendCertsFromPEM(caCert) {
+		return errors.New("append ca certificate error")
+	}
+
+	server.TLSConfig = &tls.Config{
+		ClientCAs:  caCertPool,
+		ClientAuth: tls.RequireAndVerifyClientCert,
+	}
+
+	go func() {
+		err := server.ListenAndServeTLS(c.String("js-tls-cert"), c.String("js-tls-key"))
+		log.WithError(err).Error("join-server api error")
+	}()
 
 	return nil
 }

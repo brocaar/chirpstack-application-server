@@ -102,6 +102,17 @@ network-server to connect to LoRa App Server. See also
 See [https://github.com/brocaar/loraserver-certificates](https://github.com/brocaar/loraserver-certificates)
 for a set of script to generate such certificates.
 
+### Securing the join-server API
+
+In order to protect the join-server API (listening on `--js-bind`) against
+unauthorized access and to encrypt all communication, it is advised to use TLS
+certificates. Once the `--js-ca-cert`, `--js-tls-cert` and `--js-tls-key` are
+set, the API will enforce client certificate validation on all incoming connections.
+
+Please note that you also need to configure LoRa Server so that it uses a
+client certificate for its join-server API client. See
+[LoRa Server configuration](https://docs.loraserver.io/loraserver/install/config/).
+
 ### Web-interface and client API
 
 The web-interface must be secured by a TLS certificate, as this allows to

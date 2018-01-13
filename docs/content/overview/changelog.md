@@ -20,6 +20,7 @@ menu:
 **Features:**
 
 * Implement client certificate validation for incoming application-server API connections.
+* Implement client certificate validation for incoming join-server API connections.
 * Implement client certificate for API connections to LoRa Server.
 
 This removes the following CLI options:

@@ -10,12 +10,6 @@ menu:
 
 ### 0.16.1
 
-**Bugfixes:**
-
-* Fix device-profile permissions in UI for organization admins.
-* Fix device-profile list per `applicationID` showing all device-profile names
-  and IDs on the same network-server as the service-profile associated with the
-  given application.
 
 **Features:**
 
@@ -35,6 +29,17 @@ See for more information:
 * [LoRa App Server configuration](https://docs.loraserver.io/lora-app-server/install/config/)
 * [LoRa App Server network-server management](https://docs.loraserver.io/lora-app-server/use/network-servers/)
 * [https://github.com/brocaar/loraserver-certificates](https://github.com/brocaar/loraserver-certificates)
+
+**Improvements:**
+
+* Optional note field (users) has been changed to textarea.
+
+**Bugfixes:**
+
+* Fix device-profile permissions in UI for organization admins.
+* Fix device-profile list per `applicationID` showing all device-profile names
+  and IDs on the same network-server as the service-profile associated with the
+  given application.
 
 ### 0.16.0
 

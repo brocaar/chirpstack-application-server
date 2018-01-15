@@ -60,7 +60,7 @@ class UserForm extends Component {
         </div>
         <div className="form-group">
           <label className="control-label" htmlFor="note">Optional note</label>
-          <input className="form-control" id="note" type="text" placeholder="optional note (e.g. phone, address, ...)" value={this.state.user.note || ''} onChange={this.onChange.bind(this, 'note')} />
+          <textarea className="form-control" id="note" rows="4" placeholder="optional note (e.g. phone, address, ...)" value={this.state.user.note || ''} onChange={this.onChange.bind(this, 'note')} />
           <p className="help-block">
             Optional note, e.g. a phone number, address, comment...
           </p>

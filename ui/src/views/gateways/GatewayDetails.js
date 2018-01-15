@@ -201,10 +201,6 @@ class GatewayDetails extends Component {
                     <td>{this.state.gateway.mac}</td>
                   </tr>
                   <tr>
-                    <td className="col-md-4"><strong>Description</strong></td>
-                    <td>{this.state.gateway.description}</td>
-                  </tr>
-                  <tr>
                     <td className="col-md-4"><strong>Altitude</strong></td>
                     <td>{this.state.gateway.altitude} meters</td>
                   </tr>

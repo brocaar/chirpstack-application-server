@@ -33,6 +33,7 @@ See for more information:
 **Improvements:**
 
 * Optional note field (users) has been changed to textarea.
+* Description field of the gateway has been changed to textarea.
 
 **Bugfixes:**
 

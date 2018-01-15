@@ -186,7 +186,7 @@ class GatewayForm extends Component {
           </div>
           <div className="form-group">
             <label className="control-label" htmlFor="name">Gateway description</label>
-            <input className="form-control" id="description" type="text" placeholder="a short description of your gateway" required value={this.state.gateway.description || ''} onChange={this.onChange.bind(this, 'description')} />
+            <textarea className="form-control" id="description" rows="4" placeholder="an optional note about the gateway" value={this.state.gateway.description || ''} onChange={this.onChange.bind(this, 'description')} />
           </div>
           <div className="form-group">
             <label className="control-label" htmlFor="mac">MAC address</label>

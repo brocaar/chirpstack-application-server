@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -79,8 +80,19 @@ func (p *pool) Get(hostname string, caCert, tlsCert, tlsKey []byte) (ns.NetworkS
 }
 
 func (p *pool) createClient(hostname string, caCert, tlsCert, tlsKey []byte) (*grpc.ClientConn, ns.NetworkServerClient, error) {
+	logrusEntry := log.NewEntry(log.StandardLogger())
+	logrusOpts := []grpc_logrus.Option{
+		grpc_logrus.WithLevels(grpc_logrus.DefaultCodeToLevel),
+	}
+
 	nsOpts := []grpc.DialOption{
 		grpc.WithBlock(),
+		grpc.WithUnaryInterceptor(
+			grpc_logrus.UnaryClientInterceptor(logrusEntry, logrusOpts...),
+		),
+		grpc.WithStreamInterceptor(
+			grpc_logrus.StreamClientInterceptor(logrusEntry, logrusOpts...),
+		),
 	}
 
 	if len(caCert) == 0 && len(tlsCert) == 0 && len(tlsKey) == 0 {

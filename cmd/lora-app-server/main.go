@@ -17,12 +17,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/nsclient"
-	"github.com/brocaar/lora-app-server/internal/profilesmigrate"
-	"github.com/brocaar/lora-app-server/internal/queuemigrate"
-
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
+	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
 	migrate "github.com/rubenv/sql-migrate"
@@ -41,6 +40,9 @@ import (
 	"github.com/brocaar/lora-app-server/internal/handler/mqtthandler"
 	"github.com/brocaar/lora-app-server/internal/handler/multihandler"
 	"github.com/brocaar/lora-app-server/internal/migrations"
+	"github.com/brocaar/lora-app-server/internal/nsclient"
+	"github.com/brocaar/lora-app-server/internal/profilesmigrate"
+	"github.com/brocaar/lora-app-server/internal/queuemigrate"
 	"github.com/brocaar/lora-app-server/internal/static"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
@@ -296,7 +298,7 @@ func startClientAPI(ctx context.Context) func(*cli.Context) error {
 			log.Fatal("--jwt-secret must be set")
 		}
 
-		clientAPIHandler := grpc.NewServer()
+		clientAPIHandler := grpc.NewServer(gRPCLoggingServerOptions()...)
 		pb.RegisterApplicationServer(clientAPIHandler, api.NewApplicationAPI(validator))
 		pb.RegisterDeviceQueueServer(clientAPIHandler, api.NewDeviceQueueAPI(validator))
 		pb.RegisterDeviceServer(clientAPIHandler, api.NewDeviceAPI(validator))
@@ -353,8 +355,26 @@ func startClientAPI(ctx context.Context) func(*cli.Context) error {
 	}
 }
 
+func gRPCLoggingServerOptions() []grpc.ServerOption {
+	logrusEntry := log.NewEntry(log.StandardLogger())
+	logrusOpts := []grpc_logrus.Option{
+		grpc_logrus.WithLevels(grpc_logrus.DefaultCodeToLevel),
+	}
+
+	return []grpc.ServerOption{
+		grpc_middleware.WithUnaryServerChain(
+			grpc_ctxtags.UnaryServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor)),
+			grpc_logrus.UnaryServerInterceptor(logrusEntry, logrusOpts...),
+		),
+		grpc_middleware.WithStreamServerChain(
+			grpc_ctxtags.StreamServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor)),
+			grpc_logrus.StreamServerInterceptor(logrusEntry, logrusOpts...),
+		),
+	}
+}
+
 func mustGetAPIServer(c *cli.Context) *grpc.Server {
-	var opts []grpc.ServerOption
+	opts := gRPCLoggingServerOptions()
 	if c.String("ca-cert") != "" && c.String("tls-cert") != "" && c.String("tls-key") != "" {
 		creds := mustGetTransportCredentials(c.String("tls-cert"), c.String("tls-key"), c.String("ca-cert"), true)
 		opts = append(opts, grpc.Creds(creds))

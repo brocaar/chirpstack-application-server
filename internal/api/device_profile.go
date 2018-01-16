@@ -70,7 +70,7 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 
 	// as this also performs a remote call to create the device-profile
 	// on the network-server, wrap it in a transaction
-	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		return storage.CreateDeviceProfile(tx, &dp)
 	})
 	if err != nil {
@@ -177,7 +177,7 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 
 	// as this also performs a remote call to update the device-profile
 	// on the network-server, wrap it in a transaction
-	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		return storage.UpdateDeviceProfile(tx, &dp)
 	})
 	if err != nil {
@@ -197,7 +197,7 @@ func (a *DeviceProfileServiceAPI) Delete(ctx context.Context, req *pb.DeleteDevi
 
 	// as this also performs a remote call to delete the device-profile
 	// on the network-server, wrap it in a transaction
-	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		return storage.DeleteDeviceProfile(tx, req.DeviceProfileID)
 	})
 	if err != nil {

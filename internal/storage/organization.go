@@ -39,14 +39,14 @@ type OrganizationUser struct {
 }
 
 // CreateOrganization creates the given Organization.
-func CreateOrganization(db *sqlx.DB, org *Organization) error {
+func CreateOrganization(db sqlx.Queryer, org *Organization) error {
 	if err := org.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
 
 	now := time.Now()
 
-	err := db.Get(&org.ID, `
+	err := sqlx.Get(db, &org.ID, `
 		insert into organization (
 			created_at,
 			updated_at,
@@ -73,9 +73,9 @@ func CreateOrganization(db *sqlx.DB, org *Organization) error {
 }
 
 // GetOrganization returns the Organization for the given id.
-func GetOrganization(db *sqlx.DB, id int64) (Organization, error) {
+func GetOrganization(db sqlx.Queryer, id int64) (Organization, error) {
 	var org Organization
-	err := db.Get(&org, "select * from organization where id = $1", id)
+	err := sqlx.Get(db, &org, "select * from organization where id = $1", id)
 	if err != nil {
 		return org, handlePSQLError(Select, err, "select error")
 	}
@@ -83,14 +83,14 @@ func GetOrganization(db *sqlx.DB, id int64) (Organization, error) {
 }
 
 // GetOrganizationCount returns the total number of organizations.
-func GetOrganizationCount(db *sqlx.DB, search string) (int, error) {
+func GetOrganizationCount(db sqlx.Queryer, search string) (int, error) {
 	var count int
 
 	if search != "" {
 		search = "%" + search + "%"
 	}
 
-	err := db.Get(&count, `
+	err := sqlx.Get(db, &count, `
 		select count(*)
 		from organization
 		where
@@ -106,14 +106,14 @@ func GetOrganizationCount(db *sqlx.DB, search string) (int, error) {
 
 // GetOrganizationCountForUser returns the number of organizations to which
 // the given user is member of.
-func GetOrganizationCountForUser(db *sqlx.DB, username string, search string) (int, error) {
+func GetOrganizationCountForUser(db sqlx.Queryer, username string, search string) (int, error) {
 	var count int
 
 	if search != "" {
 		search = "%" + search + "%"
 	}
 
-	err := db.Get(&count, `
+	err := sqlx.Get(db, &count, `
 		select
 			count(o.*)
 		from organization o
@@ -138,14 +138,14 @@ func GetOrganizationCountForUser(db *sqlx.DB, username string, search string) (i
 
 // GetOrganizations returns a slice of organizations, sorted by name and
 // respecting the given limit and offset.
-func GetOrganizations(db *sqlx.DB, limit, offset int, search string) ([]Organization, error) {
+func GetOrganizations(db sqlx.Queryer, limit, offset int, search string) ([]Organization, error) {
 	var orgs []Organization
 
 	if search != "" {
 		search = "%" + search + "%"
 	}
 
-	err := db.Select(&orgs, `
+	err := sqlx.Select(db, &orgs, `
 		select *
 		from organization
 		where
@@ -161,14 +161,14 @@ func GetOrganizations(db *sqlx.DB, limit, offset int, search string) ([]Organiza
 
 // GetOrganizationsForUser returns a slice of organizations to which the given
 // user is member of.
-func GetOrganizationsForUser(db *sqlx.DB, username string, limit, offset int, search string) ([]Organization, error) {
+func GetOrganizationsForUser(db sqlx.Queryer, username string, limit, offset int, search string) ([]Organization, error) {
 	var orgs []Organization
 
 	if search != "" {
 		search = "%" + search + "%"
 	}
 
-	err := db.Select(&orgs, `
+	err := sqlx.Select(db, &orgs, `
 		select
 			o.*
 		from organization o
@@ -196,7 +196,7 @@ func GetOrganizationsForUser(db *sqlx.DB, username string, limit, offset int, se
 }
 
 // UpdateOrganization updates the given organization.
-func UpdateOrganization(db *sqlx.DB, org *Organization) error {
+func UpdateOrganization(db sqlx.Execer, org *Organization) error {
 	if err := org.Validate(); err != nil {
 		return errors.Wrap(err, "validation error")
 	}
@@ -296,7 +296,7 @@ func CreateOrganizationUser(db sqlx.Execer, organizationID, userID int64, isAdmi
 }
 
 // UpdateOrganizationUser updates the given user of the organization.
-func UpdateOrganizationUser(db *sqlx.DB, organizationID, userID int64, isAdmin bool) error {
+func UpdateOrganizationUser(db sqlx.Execer, organizationID, userID int64, isAdmin bool) error {
 	res, err := db.Exec(`
 		update organization_user
 		set
@@ -325,7 +325,7 @@ func UpdateOrganizationUser(db *sqlx.DB, organizationID, userID int64, isAdmin b
 }
 
 // DeleteOrganizationUser deletes the given organization user.
-func DeleteOrganizationUser(db *sqlx.DB, organizationID, userID int64) error {
+func DeleteOrganizationUser(db sqlx.Execer, organizationID, userID int64) error {
 	res, err := db.Exec(`delete from organization_user where organization_id = $1 and user_id = $2`, organizationID, userID)
 	if err != nil {
 		return handlePSQLError(Delete, err, "delete error")
@@ -346,9 +346,9 @@ func DeleteOrganizationUser(db *sqlx.DB, organizationID, userID int64) error {
 }
 
 // GetOrganizationUser gets the information of the given organization user.
-func GetOrganizationUser(db *sqlx.DB, organizationID, userID int64) (OrganizationUser, error) {
+func GetOrganizationUser(db sqlx.Queryer, organizationID, userID int64) (OrganizationUser, error) {
 	var u OrganizationUser
-	err := db.Get(&u, `
+	err := sqlx.Get(db, &u, `
 		select
 			u.id as user_id,
 			u.username as username,
@@ -371,9 +371,9 @@ func GetOrganizationUser(db *sqlx.DB, organizationID, userID int64) (Organizatio
 }
 
 // GetOrganizationUserCount returns the number of users for the given organization.
-func GetOrganizationUserCount(db *sqlx.DB, organizationID int64) (int, error) {
+func GetOrganizationUserCount(db sqlx.Queryer, organizationID int64) (int, error) {
 	var count int
-	err := db.Get(&count, `
+	err := sqlx.Get(db, &count, `
 		select count(*)
 		from organization_user
 		where
@@ -387,9 +387,9 @@ func GetOrganizationUserCount(db *sqlx.DB, organizationID int64) (int, error) {
 }
 
 // GetOrganizationUsers returns the users for the given organization.
-func GetOrganizationUsers(db *sqlx.DB, organizationID int64, limit, offset int) ([]OrganizationUser, error) {
+func GetOrganizationUsers(db sqlx.Queryer, organizationID int64, limit, offset int) ([]OrganizationUser, error) {
 	var users []OrganizationUser
-	err := db.Select(&users, `
+	err := sqlx.Select(db, &users, `
 		select
 			u.id as user_id,
 			u.username as username,

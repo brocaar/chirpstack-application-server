@@ -57,7 +57,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 		ChannelConfigurationID: req.ChannelConfigurationID,
 	}
 
-	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		err = storage.CreateGateway(tx, &storage.Gateway{
 			MAC:             mac,
 			Name:            req.Name,
@@ -236,7 +236,7 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		return nil, errToRPCError(err)
 	}
 
-	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		gw, err := storage.GetGateway(tx, mac, true)
 		if err != nil {
 			return errToRPCError(err)
@@ -299,7 +299,7 @@ func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		err = storage.DeleteGateway(tx, mac)
 		if err != nil {
 			return errToRPCError(err)

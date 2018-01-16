@@ -72,7 +72,7 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 
 	var userID int64
 
-	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		userID, err = storage.CreateUser(tx, &user, req.Password)
 		if err != nil {
 			return err

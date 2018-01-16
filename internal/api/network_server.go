@@ -44,7 +44,7 @@ func (a *NetworkServerAPI) Create(ctx context.Context, req *pb.CreateNetworkServ
 		RoutingProfileTLSKey:  req.RoutingProfileTLSKey,
 	}
 
-	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		return storage.CreateNetworkServer(tx, &ns)
 	})
 	if err != nil {
@@ -116,7 +116,7 @@ func (a *NetworkServerAPI) Update(ctx context.Context, req *pb.UpdateNetworkServ
 		ns.RoutingProfileTLSKey = ""
 	}
 
-	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		return storage.UpdateNetworkServer(tx, &ns)
 	})
 	if err != nil {
@@ -134,7 +134,7 @@ func (a *NetworkServerAPI) Delete(ctx context.Context, req *pb.DeleteNetworkServ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		return storage.DeleteNetworkServer(tx, req.Id)
 	})
 	if err != nil {

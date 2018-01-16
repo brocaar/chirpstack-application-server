@@ -120,7 +120,7 @@ func StartProfilesMigration(nsServer string) error {
 		Server: nsServer,
 	}
 
-	return storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	return storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		err = storage.CreateNetworkServer(tx, &n)
 		if err != nil {
 			return errors.Wrap(err, "create network-server error")
@@ -140,7 +140,7 @@ func StartProfilesMigration(nsServer string) error {
 	})
 }
 
-func assignNSToGateways(tx *sqlx.Tx, n storage.NetworkServer) error {
+func assignNSToGateways(tx sqlx.Execer, n storage.NetworkServer) error {
 	_, err := tx.Exec("update gateway set network_server_id = $1", n.ID)
 	if err != nil {
 		return errors.Wrap(err, "update gateways error")
@@ -148,7 +148,7 @@ func assignNSToGateways(tx *sqlx.Tx, n storage.NetworkServer) error {
 	return nil
 }
 
-func createServiceProfiles(tx *sqlx.Tx, n storage.NetworkServer) error {
+func createServiceProfiles(tx sqlx.Ext, n storage.NetworkServer) error {
 	var orgs []storage.Organization
 	err := sqlx.Select(tx, &orgs, "select * from organization")
 	if err != nil {
@@ -178,7 +178,7 @@ func createServiceProfiles(tx *sqlx.Tx, n storage.NetworkServer) error {
 	return nil
 }
 
-func updateApplicationsForOrganization(tx *sqlx.Tx, n storage.NetworkServer, org storage.Organization, sp storage.ServiceProfile) error {
+func updateApplicationsForOrganization(tx sqlx.Ext, n storage.NetworkServer, org storage.Organization, sp storage.ServiceProfile) error {
 	var apps []storage.Application
 	err := sqlx.Select(tx, &apps, `
 		select
@@ -210,7 +210,7 @@ func updateApplicationsForOrganization(tx *sqlx.Tx, n storage.NetworkServer, org
 	return nil
 }
 
-func migrateDevicesForApplication(tx *sqlx.Tx, n storage.NetworkServer, app storage.Application) error {
+func migrateDevicesForApplication(tx sqlx.Ext, n storage.NetworkServer, app storage.Application) error {
 	var nodes []Node
 	var appDeviceProfile *storage.DeviceProfile
 

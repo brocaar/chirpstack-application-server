@@ -6,11 +6,10 @@ import (
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/nsclient"
 	"github.com/garyburd/redigo/redis"
-	"github.com/jmoiron/sqlx"
 )
 
 // DB holds the database connection pool.
-var DB *sqlx.DB
+var DB *DBLogger
 
 // RedisPool holds the Redis connection pool.
 var RedisPool *redis.Pool

@@ -167,7 +167,7 @@ func (a *OrganizationAPI) Delete(ctx context.Context, req *pb.OrganizationReques
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		if err := storage.DeleteAllGatewaysForOrganizationID(tx, req.Id); err != nil {
 			return errToRPCError(err)
 		}

@@ -260,9 +260,9 @@ func hashCompare(password string, passwordHash string) bool {
 }
 
 // GetUser returns the User for the given id.
-func GetUser(db *sqlx.DB, id int64) (User, error) {
+func GetUser(db sqlx.Queryer, id int64) (User, error) {
 	var user User
-	err := db.Get(&user, "select "+externalUserFields+" from \"user\" where id = $1", id)
+	err := sqlx.Get(db, &user, "select "+externalUserFields+" from \"user\" where id = $1", id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return user, ErrDoesNotExist
@@ -274,9 +274,9 @@ func GetUser(db *sqlx.DB, id int64) (User, error) {
 }
 
 // GetUserByUsername returns the User for the given username.
-func GetUserByUsername(db *sqlx.DB, username string) (User, error) {
+func GetUserByUsername(db sqlx.Queryer, username string) (User, error) {
 	var user User
-	err := db.Get(&user, "select "+externalUserFields+" from \"user\" where username = $1", username)
+	err := sqlx.Get(db, &user, "select "+externalUserFields+" from \"user\" where username = $1", username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return user, ErrDoesNotExist
@@ -288,12 +288,12 @@ func GetUserByUsername(db *sqlx.DB, username string) (User, error) {
 }
 
 // GetUserCount returns the total number of users.
-func GetUserCount(db *sqlx.DB, search string) (int32, error) {
+func GetUserCount(db sqlx.Queryer, search string) (int32, error) {
 	var count int32
 	if search != "" {
 		search = search + "%"
 	}
-	err := db.Get(&count, `
+	err := sqlx.Get(db, &count, `
 		select
 			count(*)
 		from "user"
@@ -308,12 +308,12 @@ func GetUserCount(db *sqlx.DB, search string) (int32, error) {
 }
 
 // GetUsers returns a slice of users, respecting the given limit and offset.
-func GetUsers(db *sqlx.DB, limit, offset int32, search string) ([]User, error) {
+func GetUsers(db sqlx.Queryer, limit, offset int32, search string) ([]User, error) {
 	var users []User
 	if search != "" {
 		search = search + "%"
 	}
-	err := db.Select(&users, "select "+externalUserFields+` from "user" where ($3 != '' and username like $3) or ($3 = '') order by username limit $1 offset $2`, limit, offset, search)
+	err := sqlx.Select(db, &users, "select "+externalUserFields+` from "user" where ($3 != '' and username like $3) or ($3 = '') order by username limit $1 offset $2`, limit, offset, search)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
 	}
@@ -321,7 +321,7 @@ func GetUsers(db *sqlx.DB, limit, offset int32, search string) ([]User, error) {
 }
 
 // UpdateUser updates the given User.
-func UpdateUser(db *sqlx.DB, item UserUpdate) error {
+func UpdateUser(db sqlx.Execer, item UserUpdate) error {
 	if err := ValidateUsername(item.Username); err != nil {
 		return errors.Wrap(err, "validation error")
 	}
@@ -371,7 +371,7 @@ func UpdateUser(db *sqlx.DB, item UserUpdate) error {
 }
 
 // DeleteUser deletes the User record matching the given ID.
-func DeleteUser(db *sqlx.DB, id int64) error {
+func DeleteUser(db sqlx.Execer, id int64) error {
 	res, err := db.Exec("delete from \"user\" where id = $1", id)
 	if err != nil {
 		return errors.Wrap(err, "delete error")
@@ -392,10 +392,10 @@ func DeleteUser(db *sqlx.DB, id int64) error {
 
 // LoginUser returns a JWT token for the user matching the given username
 // and password.
-func LoginUser(db *sqlx.DB, username string, password string) (string, error) {
+func LoginUser(db sqlx.Queryer, username string, password string) (string, error) {
 	// Find the user by username
 	var user userInternal
-	err := db.Get(&user, "select "+internalUserFields+" from \"user\" where username = $1", username)
+	err := sqlx.Get(db, &user, "select "+internalUserFields+" from \"user\" where username = $1", username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", ErrInvalidUsernameOrPassword
@@ -434,7 +434,7 @@ func LoginUser(db *sqlx.DB, username string, password string) (string, error) {
 }
 
 // UpdatePassword updates the user with the new password.
-func UpdatePassword(db *sqlx.DB, id int64, newpassword string) error {
+func UpdatePassword(db sqlx.Execer, id int64, newpassword string) error {
 	if err := ValidatePassword(newpassword); err != nil {
 		return errors.Wrap(err, "validation error")
 	}
@@ -460,7 +460,7 @@ func UpdatePassword(db *sqlx.DB, id int64, newpassword string) error {
 
 // GetProfile returns the user profile (user, applications and organizations
 // to which the user is linked).
-func GetProfile(db *sqlx.DB, id int64) (UserProfile, error) {
+func GetProfile(db sqlx.Queryer, id int64) (UserProfile, error) {
 	var prof UserProfile
 
 	user, err := GetUser(db, id)
@@ -477,7 +477,7 @@ func GetProfile(db *sqlx.DB, id int64) (UserProfile, error) {
 		UpdatedAt:  user.UpdatedAt,
 	}
 
-	err = db.Select(&prof.Organizations, `
+	err = sqlx.Select(db, &prof.Organizations, `
 		select
 			ou.organization_id as organization_id,
 			o.name as organization_name,

@@ -119,7 +119,7 @@ func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		err := storage.DeleteApplication(tx, req.Id)
 		if err != nil {
 			return errToRPCError(err)

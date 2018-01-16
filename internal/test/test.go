@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/garyburd/redigo/redis"
-	"github.com/jmoiron/sqlx"
 	migrate "github.com/rubenv/sql-migrate"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -64,16 +63,16 @@ func GetConfig() *Config {
 }
 
 // MustResetDB re-applies all database migrations.
-func MustResetDB(db *sqlx.DB) {
+func MustResetDB(db *common.DBLogger) {
 	m := &migrate.AssetMigrationSource{
 		Asset:    migrations.Asset,
 		AssetDir: migrations.AssetDir,
 		Dir:      "",
 	}
-	if _, err := migrate.Exec(db.DB, "postgres", m, migrate.Down); err != nil {
+	if _, err := migrate.Exec(db.DB.DB, "postgres", m, migrate.Down); err != nil {
 		log.Fatal(err)
 	}
-	if _, err := migrate.Exec(db.DB, "postgres", m, migrate.Up); err != nil {
+	if _, err := migrate.Exec(db.DB.DB, "postgres", m, migrate.Up); err != nil {
 		log.Fatal(err)
 	}
 }

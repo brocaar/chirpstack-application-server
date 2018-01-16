@@ -40,12 +40,12 @@ func (a Application) Validate() error {
 }
 
 // CreateApplication creates the given Application.
-func CreateApplication(db *sqlx.DB, item *Application) error {
+func CreateApplication(db sqlx.Queryer, item *Application) error {
 	if err := item.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
 
-	err := db.Get(&item.ID, `
+	err := sqlx.Get(db, &item.ID, `
 		insert into application (
 			name,
 			description,
@@ -87,9 +87,9 @@ func GetApplication(db sqlx.Queryer, id int64) (Application, error) {
 }
 
 // GetApplicationCount returns the total number of applications.
-func GetApplicationCount(db *sqlx.DB) (int, error) {
+func GetApplicationCount(db sqlx.Queryer) (int, error) {
 	var count int
-	err := db.Get(&count, "select count(*) from application")
+	err := sqlx.Get(db, &count, "select count(*) from application")
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")
 	}
@@ -100,9 +100,9 @@ func GetApplicationCount(db *sqlx.DB) (int, error) {
 // available for the given user.
 // When an organizationID is given, the results will be filtered by this
 //
-func GetApplicationCountForUser(db *sqlx.DB, username string, organizationID int64) (int, error) {
+func GetApplicationCountForUser(db sqlx.Queryer, username string, organizationID int64) (int, error) {
 	var count int
-	err := db.Get(&count, `
+	err := sqlx.Get(db, &count, `
 		select
 			count(a.*)
 		from application a
@@ -126,9 +126,9 @@ func GetApplicationCountForUser(db *sqlx.DB, username string, organizationID int
 
 // GetApplicationCountForOrganizationID returns the total number of
 // applications for the given organization.
-func GetApplicationCountForOrganizationID(db *sqlx.DB, organizationID int64) (int, error) {
+func GetApplicationCountForOrganizationID(db sqlx.Queryer, organizationID int64) (int, error) {
 	var count int
-	err := db.Get(&count, `
+	err := sqlx.Get(db, &count, `
 		select count(*)
 		from application
 		where
@@ -143,9 +143,9 @@ func GetApplicationCountForOrganizationID(db *sqlx.DB, organizationID int64) (in
 
 // GetApplications returns a slice of applications, sorted by name and
 // respecting the given limit and offset.
-func GetApplications(db *sqlx.DB, limit, offset int) ([]ApplicationListItem, error) {
+func GetApplications(db sqlx.Queryer, limit, offset int) ([]ApplicationListItem, error) {
 	var apps []ApplicationListItem
-	err := db.Select(&apps, `
+	err := sqlx.Select(db, &apps, `
 		select
 			a.*,
 			sp.name as service_profile_name
@@ -167,9 +167,9 @@ func GetApplications(db *sqlx.DB, limit, offset int) ([]ApplicationListItem, err
 
 // GetApplicationsForUser returns a slice of application of which the given
 // user is a member of.
-func GetApplicationsForUser(db *sqlx.DB, username string, organizationID int64, limit, offset int) ([]ApplicationListItem, error) {
+func GetApplicationsForUser(db sqlx.Queryer, username string, organizationID int64, limit, offset int) ([]ApplicationListItem, error) {
 	var apps []ApplicationListItem
-	err := db.Select(&apps, `
+	err := sqlx.Select(db, &apps, `
 		select
 			a.*,
 			sp.name as service_profile_name
@@ -199,9 +199,9 @@ func GetApplicationsForUser(db *sqlx.DB, username string, organizationID int64, 
 
 // GetApplicationsForOrganizationID returns a slice of applications for the given
 // organization.
-func GetApplicationsForOrganizationID(db *sqlx.DB, organizationID int64, limit, offset int) ([]ApplicationListItem, error) {
+func GetApplicationsForOrganizationID(db sqlx.Queryer, organizationID int64, limit, offset int) ([]ApplicationListItem, error) {
 	var apps []ApplicationListItem
-	err := db.Select(&apps, `
+	err := sqlx.Select(db, &apps, `
 		select
 			a.*,
 			sp.name as service_profile_name

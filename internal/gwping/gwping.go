@@ -53,7 +53,7 @@ func HandleReceivedPing(req *as.HandleProprietaryUplinkRequest) error {
 		return errors.Wrap(err, "get gateway ping error")
 	}
 
-	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		for _, rx := range req.RxInfo {
 			var receivedAt *time.Time
 			var mac lorawan.EUI64
@@ -100,7 +100,7 @@ func HandleReceivedPing(req *as.HandleProprietaryUplinkRequest) error {
 // sendGatewayPing selects the next gateway to ping, creates the "ping"
 // frame and sends this frame to the network-server for transmission.
 func sendGatewayPing() error {
-	return storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	return storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		gw, err := getGatewayForPing(tx)
 		if err != nil {
 			return errors.Wrap(err, "get gateway for ping error")
@@ -148,7 +148,7 @@ func sendGatewayPing() error {
 
 // getGatewayForPing returns the next gateway for sending a ping. If no gateway
 // matches the filter criteria, nil is returned.
-func getGatewayForPing(tx *sqlx.Tx) (*storage.Gateway, error) {
+func getGatewayForPing(tx sqlx.Ext) (*storage.Gateway, error) {
 	var gw storage.Gateway
 
 	err := sqlx.Get(tx, &gw, `

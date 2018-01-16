@@ -58,7 +58,7 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*p
 
 	// as this also performs a remote call to create the node on the
 	// network-server, wrap it in a transaction
-	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		return storage.CreateDevice(tx, &d)
 	})
 	if err != nil {
@@ -137,7 +137,7 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*p
 
 	// as this also performs a remote call to update the node on the
 	// network-server, wrap it in a transaction
-	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		return storage.UpdateDevice(tx, &d)
 	})
 	if err != nil {
@@ -166,7 +166,7 @@ func (a *DeviceAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*p
 
 	// as this also performs a remote call to delete the node from the
 	// network-server, wrap it in a transaction
-	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		return storage.DeleteDevice(tx, d.DevEUI)
 	})
 	if err != nil {

@@ -15,7 +15,7 @@ import (
 )
 
 func testValidator(pass bool, err error) ValidatorFunc {
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return pass, err
 	}
 }

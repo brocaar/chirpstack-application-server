@@ -1048,7 +1048,7 @@ func TestValidators(t *testing.T) {
 	})
 }
 
-func runTests(tests []validatorTest, db *sqlx.DB) {
+func runTests(tests []validatorTest, db sqlx.Ext) {
 	for i, test := range tests {
 		Convey(fmt.Sprintf("testing: %s [%d]", test.Name, i), func() {
 			for _, v := range test.Validators {

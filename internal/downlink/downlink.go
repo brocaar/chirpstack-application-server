@@ -75,7 +75,7 @@ func handleDataDownPayload(pl handler.DataDownPayload) error {
 		}
 	}
 
-	return storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	return storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		if err := EnqueueDownlinkPayload(tx, pl.DevEUI, pl.Reference, pl.Confirmed, pl.FPort, pl.Data); err != nil {
 			return errors.Wrap(err, "enqueue downlink device-queue item error")
 		}

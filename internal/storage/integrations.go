@@ -22,9 +22,9 @@ type Integration struct {
 }
 
 // CreateIntegration creates the given Integration.
-func CreateIntegration(db *sqlx.DB, i *Integration) error {
+func CreateIntegration(db sqlx.Queryer, i *Integration) error {
 	now := time.Now()
-	err := db.Get(&i.ID, `
+	err := sqlx.Get(db, &i.ID, `
 		insert into integration (
 			created_at,
 			updated_at,
@@ -63,9 +63,9 @@ func CreateIntegration(db *sqlx.DB, i *Integration) error {
 }
 
 // GetIntegration returns the Integration for the given id.
-func GetIntegration(db *sqlx.DB, id int64) (Integration, error) {
+func GetIntegration(db sqlx.Queryer, id int64) (Integration, error) {
 	var i Integration
-	err := db.Get(&i, "select * from integration where id = $1", id)
+	err := sqlx.Get(db, &i, "select * from integration where id = $1", id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return i, ErrDoesNotExist
@@ -77,9 +77,9 @@ func GetIntegration(db *sqlx.DB, id int64) (Integration, error) {
 
 // GetIntegrationByApplicationID returns the Integration for the given
 // application id and kind.
-func GetIntegrationByApplicationID(db *sqlx.DB, applicationID int64, kind string) (Integration, error) {
+func GetIntegrationByApplicationID(db sqlx.Queryer, applicationID int64, kind string) (Integration, error) {
 	var i Integration
-	err := db.Get(&i, "select * from integration where application_id = $1 and kind = $2", applicationID, kind)
+	err := sqlx.Get(db, &i, "select * from integration where application_id = $1 and kind = $2", applicationID, kind)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return i, ErrDoesNotExist
@@ -91,9 +91,9 @@ func GetIntegrationByApplicationID(db *sqlx.DB, applicationID int64, kind string
 
 // GetIntegrationsForApplicationID returns the integrations for the given
 // application id.
-func GetIntegrationsForApplicationID(db *sqlx.DB, applicationID int64) ([]Integration, error) {
+func GetIntegrationsForApplicationID(db sqlx.Queryer, applicationID int64) ([]Integration, error) {
 	var is []Integration
-	err := db.Select(&is, `
+	err := sqlx.Select(db, &is, `
 		select *
 		from integration
 		where application_id = $1
@@ -107,7 +107,7 @@ func GetIntegrationsForApplicationID(db *sqlx.DB, applicationID int64) ([]Integr
 }
 
 // UpdateIntegration updates the given Integration.
-func UpdateIntegration(db *sqlx.DB, i *Integration) error {
+func UpdateIntegration(db sqlx.Execer, i *Integration) error {
 	now := time.Now()
 	res, err := db.Exec(`
 		update integration
@@ -157,7 +157,7 @@ func UpdateIntegration(db *sqlx.DB, i *Integration) error {
 }
 
 // DeleteIntegration deletes the integration matching the given id.
-func DeleteIntegration(db *sqlx.DB, id int64) error {
+func DeleteIntegration(db sqlx.Execer, id int64) error {
 	res, err := db.Exec("delete from integration where id = $1", id)
 	if err != nil {
 		return errors.Wrap(err, "delete error")

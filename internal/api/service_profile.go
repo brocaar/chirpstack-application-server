@@ -80,7 +80,7 @@ func (a *ServiceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateSer
 
 	// as this also performs a remote call to create the service-profile
 	// on the network-server, wrap it in a transaction
-	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		return storage.CreateServiceProfile(tx, &sp)
 	})
 	if err != nil {
@@ -205,7 +205,7 @@ func (a *ServiceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateSer
 
 	// as this also performs a remote call to create the service-profile
 	// on the network-server, wrap it in a transaction
-	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		return storage.UpdateServiceProfile(tx, &sp)
 	})
 	if err != nil {
@@ -223,7 +223,7 @@ func (a *ServiceProfileServiceAPI) Delete(ctx context.Context, req *pb.DeleteSer
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		return storage.DeleteServiceProfile(tx, req.ServiceProfileID)
 	})
 	if err != nil {

@@ -47,7 +47,7 @@ func StartDeviceQueueMigration() error {
 }
 
 func migrateQueueItem(qi DeviceQueueItem) error {
-	return storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	return storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		if err := deleteQueueItem(tx, qi.ID); err != nil {
 			return errors.Wrap(err, "delete device-queue item error")
 		}

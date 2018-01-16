@@ -235,9 +235,9 @@ func GetGateway(db sqlx.Queryer, mac lorawan.EUI64, forUpdate bool) (Gateway, er
 }
 
 // GetGatewayCount returns the total number of gateways.
-func GetGatewayCount(db *sqlx.DB) (int, error) {
+func GetGatewayCount(db sqlx.Queryer) (int, error) {
 	var count int
-	err := db.Get(&count, "select count(*) from gateway")
+	err := sqlx.Get(db, &count, "select count(*) from gateway")
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")
 	}
@@ -245,9 +245,9 @@ func GetGatewayCount(db *sqlx.DB) (int, error) {
 }
 
 // GetGateways returns a slice of gateways sorted by name.
-func GetGateways(db *sqlx.DB, limit, offset int) ([]Gateway, error) {
+func GetGateways(db sqlx.Queryer, limit, offset int) ([]Gateway, error) {
 	var gws []Gateway
-	err := db.Select(&gws, `
+	err := sqlx.Select(db, &gws, `
 		select *
 		from gateway
 		order by name
@@ -263,9 +263,9 @@ func GetGateways(db *sqlx.DB, limit, offset int) ([]Gateway, error) {
 
 // GetGatewayCountForOrganizationID returns the total number of gateways
 // given an organization ID.
-func GetGatewayCountForOrganizationID(db *sqlx.DB, organizationID int64) (int, error) {
+func GetGatewayCountForOrganizationID(db sqlx.Queryer, organizationID int64) (int, error) {
 	var count int
-	err := db.Get(&count, `
+	err := sqlx.Get(db, &count, `
 		select count(*)
 		from gateway
 		where
@@ -280,9 +280,9 @@ func GetGatewayCountForOrganizationID(db *sqlx.DB, organizationID int64) (int, e
 
 // GetGatewaysForOrganizationID returns a slice of gateways sorted by name
 // for the given organization ID.
-func GetGatewaysForOrganizationID(db *sqlx.DB, organizationID int64, limit, offset int) ([]Gateway, error) {
+func GetGatewaysForOrganizationID(db sqlx.Queryer, organizationID int64, limit, offset int) ([]Gateway, error) {
 	var gws []Gateway
-	err := db.Select(&gws, `
+	err := sqlx.Select(db, &gws, `
 		select *
 		from gateway
 		where
@@ -301,9 +301,9 @@ func GetGatewaysForOrganizationID(db *sqlx.DB, organizationID int64, limit, offs
 
 // GetGatewayCountForUser returns the total number of gateways to which the
 // given user has access.
-func GetGatewayCountForUser(db *sqlx.DB, username string) (int, error) {
+func GetGatewayCountForUser(db sqlx.Queryer, username string) (int, error) {
 	var count int
-	err := db.Get(&count, `
+	err := sqlx.Get(db, &count, `
 		select count(g.*)
 		from gateway g
 		inner join organization o
@@ -324,9 +324,9 @@ func GetGatewayCountForUser(db *sqlx.DB, username string) (int, error) {
 
 // GetGatewaysForUser returns a slice of gateways sorted by name to which the
 // given user has access.
-func GetGatewaysForUser(db *sqlx.DB, username string, limit, offset int) ([]Gateway, error) {
+func GetGatewaysForUser(db sqlx.Queryer, username string, limit, offset int) ([]Gateway, error) {
 	var gws []Gateway
-	err := db.Select(&gws, `
+	err := sqlx.Select(db, &gws, `
 		select g.*
 		from gateway g
 		inner join organization o

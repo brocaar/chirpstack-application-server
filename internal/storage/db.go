@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/garyburd/redigo/redis"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	// register postgresql driver
 	_ "github.com/lib/pq"
 )
@@ -41,7 +42,7 @@ func NewRedisPool(redisURL string) *redis.Pool {
 
 // OpenDatabase opens the database and performs a ping to make sure the
 // database is up.
-func OpenDatabase(dsn string) (*sqlx.DB, error) {
+func OpenDatabase(dsn string) (*common.DBLogger, error) {
 	db, err := sqlx.Open("postgres", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("database connection error: %s", err)
@@ -54,12 +55,12 @@ func OpenDatabase(dsn string) (*sqlx.DB, error) {
 			break
 		}
 	}
-	return db, nil
+	return &common.DBLogger{DB: db}, nil
 }
 
 // Transaction wraps the given function in a transaction. In case the given
 // functions returns an error, the transaction will be rolled back.
-func Transaction(db *sqlx.DB, f func(tx *sqlx.Tx) error) error {
+func Transaction(db *common.DBLogger, f func(tx sqlx.Ext) error) error {
 	tx, err := db.Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin transaction error")

@@ -8,9 +8,9 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
-	log "github.com/sirupsen/logrus"
 )
 
 var validAuthorizationRegexp = regexp.MustCompile(`(?i)^bearer (.*)$`)
@@ -44,17 +44,17 @@ type Validator interface {
 // ValidatorFunc defines the signature of a claim validator function.
 // It returns a bool indicating if the validation passed or failed and an
 // error in case an error occured (e.g. db connectivity).
-type ValidatorFunc func(*sqlx.DB, *Claims) (bool, error)
+type ValidatorFunc func(sqlx.Queryer, *Claims) (bool, error)
 
 // JWTValidator validates JWT tokens.
 type JWTValidator struct {
-	db        *sqlx.DB
+	db        sqlx.Ext
 	secret    string
 	algorithm string
 }
 
 // NewJWTValidator creates a new JWTValidator.
-func NewJWTValidator(db *sqlx.DB, algorithm, secret string) *JWTValidator {
+func NewJWTValidator(db sqlx.Ext, algorithm, secret string) *JWTValidator {
 	return &JWTValidator{
 		db:        db,
 		secret:    secret,

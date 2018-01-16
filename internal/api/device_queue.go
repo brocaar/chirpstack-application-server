@@ -72,7 +72,7 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 		}
 	}
 
-	err := storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		if err := downlink.EnqueueDownlinkPayload(tx, devEUI, req.Reference, req.Confirmed, uint8(req.FPort), req.Data); err != nil {
 			return errors.Wrap(err, "enqueue downlink payload error")
 		}
@@ -107,7 +107,7 @@ func (d *DeviceQueueAPI) Flush(ctx context.Context, req *pb.FlushDeviceQueueRequ
 		return nil, errToRPCError(err)
 	}
 
-	err = storage.Transaction(common.DB, func(tx *sqlx.Tx) error {
+	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
 		if err := storage.FlushDeviceQueueMappingForDevEUI(tx, devEUI); err != nil {
 			return errToRPCError(err)
 		}

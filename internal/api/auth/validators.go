@@ -53,7 +53,7 @@ func ValidateActiveUser() ValidatorFunc {
 		{"u.username = $1", "u.is_active = true"},
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username)
 	}
 }
@@ -89,7 +89,7 @@ func ValidateUsersAccess(flag Flag) ValidatorFunc {
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username)
 	}
 }
@@ -123,7 +123,7 @@ func ValidateUserAccess(userID int64, flag Flag) ValidatorFunc {
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, userID)
 	}
 }
@@ -138,7 +138,7 @@ func ValidateIsApplicationAdmin(applicationID int64) ValidatorFunc {
 		{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, applicationID)
 	}
 }
@@ -169,7 +169,7 @@ func ValidateApplicationsAccess(flag Flag, organizationID int64) ValidatorFunc {
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, organizationID)
 	}
 }
@@ -205,7 +205,7 @@ func ValidateApplicationAccess(applicationID int64, flag Flag) ValidatorFunc {
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, applicationID)
 	}
 }
@@ -241,7 +241,7 @@ func ValidateApplicationUsersAccess(applicationID int64, flag Flag) ValidatorFun
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, applicationID)
 	}
 }
@@ -279,7 +279,7 @@ func ValidateApplicationUserAccess(applicationID, userID int64, flag Flag) Valid
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, applicationID, userID)
 	}
 }
@@ -308,7 +308,7 @@ func ValidateNodesAccess(applicationID int64, flag Flag) ValidatorFunc {
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, applicationID)
 	}
 }
@@ -343,7 +343,7 @@ func ValidateNodeAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, devEUI[:])
 	}
 }
@@ -365,7 +365,7 @@ func ValidateDeviceQueueAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, devEUI[:])
 	}
 }
@@ -395,7 +395,7 @@ func ValidateGatewaysAccess(flag Flag, organizationID int64) ValidatorFunc {
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, organizationID)
 	}
 }
@@ -423,7 +423,7 @@ func ValidateGatewayAccess(flag Flag, mac lorawan.EUI64) ValidatorFunc {
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, mac[:])
 	}
 }
@@ -438,7 +438,7 @@ func ValidateIsOrganizationAdmin(organizationID int64) ValidatorFunc {
 		{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "o.id = $2"},
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, organizationID)
 	}
 }
@@ -463,7 +463,7 @@ func ValidateOrganizationsAccess(flag Flag) ValidatorFunc {
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username)
 	}
 }
@@ -498,7 +498,7 @@ func ValidateOrganizationAccess(flag Flag, id int64) ValidatorFunc {
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, id)
 	}
 }
@@ -534,7 +534,7 @@ func ValidateOrganizationUsersAccess(flag Flag, id int64) ValidatorFunc {
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, id)
 	}
 }
@@ -572,7 +572,7 @@ func ValidateOrganizationUserAccess(flag Flag, organizationID, userID int64) Val
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, organizationID, userID)
 	}
 }
@@ -595,7 +595,7 @@ func ValidateChannelConfigurationAccess(flag Flag) ValidatorFunc {
 		}
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username)
 	}
 }
@@ -620,7 +620,7 @@ func ValidateNetworkServersAccess(flag Flag, organizationID int64) ValidatorFunc
 		}
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, organizationID)
 	}
 }
@@ -638,7 +638,7 @@ func ValidateNetworkServerAccess(flag Flag, id int64) ValidatorFunc {
 		}
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username)
 	}
 }
@@ -660,7 +660,7 @@ func ValidateOrganizationNetworkServerAccess(flag Flag, organizationID, networkS
 		panic("unsupported flag")
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, organizationID, networkServerID)
 	}
 }
@@ -687,7 +687,7 @@ func ValidateServiceProfilesAccess(flag Flag, organizationID int64) ValidatorFun
 		}
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, organizationID)
 	}
 }
@@ -712,7 +712,7 @@ func ValidateServiceProfileAccess(flag Flag, id string) ValidatorFunc {
 		}
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, id)
 	}
 }
@@ -743,7 +743,7 @@ func ValidateDeviceProfilesAccess(flag Flag, organizationID, applicationID int64
 		}
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, organizationID, applicationID)
 	}
 }
@@ -770,12 +770,12 @@ func ValidateDeviceProfileAccess(flag Flag, id string) ValidatorFunc {
 		}
 	}
 
-	return func(db *sqlx.DB, claims *Claims) (bool, error) {
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, id)
 	}
 }
 
-func executeQuery(db *sqlx.DB, query string, where [][]string, args ...interface{}) (bool, error) {
+func executeQuery(db sqlx.Queryer, query string, where [][]string, args ...interface{}) (bool, error) {
 	var ors []string
 	for _, ands := range where {
 		ors = append(ors, "(("+strings.Join(ands, ") and (")+"))")
@@ -784,7 +784,7 @@ func executeQuery(db *sqlx.DB, query string, where [][]string, args ...interface
 	query = query + " where " + whereStr
 
 	var count int64
-	if err := db.Get(&count, query, args...); err != nil {
+	if err := sqlx.Get(db, &count, query, args...); err != nil {
 		return false, errors.Wrap(err, "select error")
 	}
 	return count > 0, nil

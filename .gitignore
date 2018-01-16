@@ -16,6 +16,9 @@
 /ui/build
 /docs/public
 
+# dependencies
+/vendor
+
 # certificates
 /certs
 

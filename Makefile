@@ -72,6 +72,8 @@ requirements:
 	@go get -u github.com/kisielk/errcheck
 	@go get -u github.com/smartystreets/goconvey
 	@go get -u golang.org/x/tools/cmd/stringer
+	@go get -u github.com/golang/dep/cmd/dep
+	@dep ensure
 
 ui-requirements:
 	@echo "Installing UI requirements"

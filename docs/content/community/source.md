@@ -31,7 +31,7 @@ pre-compiled packages available):
 
 ##### Go
 
-Make sure you have [Go](https://golang.org/) installed (1.7+) and that the LoRa
+Make sure you have [Go](https://golang.org/) installed (1.8+) and that the LoRa
 App Server repository has been cloned to 
 `$GOPATH/src/github.com/brocaar/lora-app-server`.
 
@@ -44,21 +44,6 @@ to compile the front-end code.
 
 Install the C++ implementation of protocol buffers and Go support by following
 the GO support for Protocol Buffers [installation instructions](https://github.com/golang/protobuf).
-
-##### Development utilities
-
-Finally, install some utilities used for development by executing the
-following commands:
-
-```bash
-go get github.com/golang/lint/golint
-go get github.com/kisielk/errcheck
-go get github.com/smartystreets/goconvey
-go get golang.org/x/tools/cmd/stringer
-go get github.com/jteeuwen/go-bindata/...
-go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
-go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-```
 
 #### Example commands
 

@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router';
 
 import Select from "react-select";
 
+import Loaded from "./Loaded.js";
 import NetworkServerStore from "../stores/NetworkServerStore";
 import SessionStore from "../stores/SessionStore";
 
@@ -21,6 +23,9 @@ class ServiceProfileForm extends Component {
       networkServers: [],
       update: false,
       isAdmin: false,
+      loaded: {
+        networkServers: false,
+      },
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -34,6 +39,9 @@ class ServiceProfileForm extends Component {
           serviceProfile: this.props.serviceProfile,
           networkServers: networkServers,
           isAdmin: true,
+          loaded: {
+            networkServers: true,
+          },
         });
       });
     } else {
@@ -42,6 +50,9 @@ class ServiceProfileForm extends Component {
           serviceProfile: this.props.serviceProfile,
           networkServers: networkServers,
           isAdmin: false,
+          loaded: {
+            networkServers: true,
+          },
         });
       });
     }
@@ -111,60 +122,65 @@ class ServiceProfileForm extends Component {
     });
 
     return(
-      <form onSubmit={this.handleSubmit}>
-        <fieldset disabled={!this.state.isAdmin}>
-          <div className="form-group">
-            <label className="control-label" htmlFor="name">Service-profile name</label>
-            <input className="form-control" id="name" type="text" placeholder="e.g. my service-profile" required value={this.state.serviceProfile.name || ''} onChange={this.onChange.bind(this, 'name')} />
-            <p className="help-block">
-              A memorable name for the service-profile.
-            </p>
+      <Loaded loaded={this.state.loaded}>
+        <form onSubmit={this.handleSubmit}>
+          <div className={"alert alert-warning " + (this.state.networkServers.length > 0 ? 'hidden' : '')}>
+            No network-servers are available, a <Link to="network-servers">network-server</Link> needs to be added first to this installation.
           </div>
-          <div className="form-group">
-            <label className="control-label" htmlFor="networkServerID">Network-server</label>
-            <Select
-              name="networkServerID"
-              options={networkServerOptions}
-              value={this.state.serviceProfile.networkServerID}
-              onChange={this.onNetworkServerChange}
-              disabled={this.state.update}
-            />
-            <p className="help-block">
-              The network-server on which this service-profile will be provisioned. After creating the service-profile, this value can't be changed.
-            </p>
-          </div>
-          <div className="form-group">
-            <label className="control-label" htmlFor="addGWMetadata">Add gateway meta-data</label>
-            <div className="checkbox">
-              <label>
-                <input type="checkbox" name="addGWMetadata" id="addGWMetadata" checked={this.state.serviceProfile.serviceProfile.addGWMetadata} onChange={this.onChange.bind(this, 'serviceProfile.addGWMetadata')} /> Add gateway meta-data
-              </label>
+          <fieldset disabled={!this.state.isAdmin}>
+            <div className="form-group">
+              <label className="control-label" htmlFor="name">Service-profile name</label>
+              <input className="form-control" id="name" type="text" placeholder="e.g. my service-profile" required value={this.state.serviceProfile.name || ''} onChange={this.onChange.bind(this, 'name')} />
+              <p className="help-block">
+                A memorable name for the service-profile.
+              </p>
             </div>
-            <p className="help-block">
-              GW metadata (RSSI, SNR, GW geoloc., etc.) are added to the packet sent to the application-server.
-            </p>
+            <div className="form-group">
+              <label className="control-label" htmlFor="networkServerID">Network-server</label>
+              <Select
+                name="networkServerID"
+                options={networkServerOptions}
+                value={this.state.serviceProfile.networkServerID}
+                onChange={this.onNetworkServerChange}
+                disabled={this.state.update}
+              />
+              <p className="help-block">
+                The network-server on which this service-profile will be provisioned. After creating the service-profile, this value can't be changed.
+              </p>
+            </div>
+            <div className="form-group">
+              <label className="control-label" htmlFor="addGWMetadata">Add gateway meta-data</label>
+              <div className="checkbox">
+                <label>
+                  <input type="checkbox" name="addGWMetadata" id="addGWMetadata" checked={this.state.serviceProfile.serviceProfile.addGWMetadata} onChange={this.onChange.bind(this, 'serviceProfile.addGWMetadata')} /> Add gateway meta-data
+                </label>
+              </div>
+              <p className="help-block">
+                GW metadata (RSSI, SNR, GW geoloc., etc.) are added to the packet sent to the application-server.
+              </p>
+            </div>
+            <div className="form-group">
+              <label className="control-label" htmlFor="drMin">Minimum allowed data-rate</label>
+              <input className="form-control" id="drMin" type="number" required value={this.state.serviceProfile.serviceProfile.drMin || 0} onChange={this.onChange.bind(this, 'serviceProfile.drMin')} />
+              <p className="help-block">
+                Minimum allowed data rate. Used for ADR.
+              </p>
+            </div>
+            <div className="form-group">
+              <label className="control-label" htmlFor="drMax">Maximum allowed data-rate</label>
+              <input className="form-control" id="drMax" type="number" required value={this.state.serviceProfile.serviceProfile.drMax || 0} onChange={this.onChange.bind(this, 'serviceProfile.drMax')} />
+              <p className="help-block">
+                Maximum allowed data rate. Used for ADR.
+              </p>
+            </div>
+          </fieldset>
+          <hr />
+          <div className={"btn-toolbar pull-right " + (this.state.isAdmin ? "" : "hidden")}>
+            <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+            <button type="submit" className="btn btn-primary">Submit</button>
           </div>
-          <div className="form-group">
-            <label className="control-label" htmlFor="drMin">Minimum allowed data-rate</label>
-            <input className="form-control" id="drMin" type="number" required value={this.state.serviceProfile.serviceProfile.drMin || 0} onChange={this.onChange.bind(this, 'serviceProfile.drMin')} />
-            <p className="help-block">
-              Minimum allowed data rate. Used for ADR.
-            </p>
-          </div>
-          <div className="form-group">
-            <label className="control-label" htmlFor="drMax">Maximum allowed data-rate</label>
-            <input className="form-control" id="drMax" type="number" required value={this.state.serviceProfile.serviceProfile.drMax || 0} onChange={this.onChange.bind(this, 'serviceProfile.drMax')} />
-            <p className="help-block">
-              Maximum allowed data rate. Used for ADR.
-            </p>
-          </div>
-        </fieldset>
-        <hr />
-        <div className={"btn-toolbar pull-right " + (this.state.isAdmin ? "" : "hidden")}>
-          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
-          <button type="submit" className="btn btn-primary">Submit</button>
-        </div>
-      </form>
+        </form>
+      </Loaded>
     );
   }
 }

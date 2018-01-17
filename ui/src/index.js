@@ -157,17 +157,6 @@ ReactDOM.render(
         <Route path="keys" component={NodeKeys}></Route>
         <Route path="activation" component={NodeActivation}></Route>
       </Route>
-
-      {/* <Route path="gateways/channelconfigurations">
-        <IndexRoute component={ListChannelConfigurations}></IndexRoute>
-        <Route path="create" component={CreateChannelConfiguration}></Route>
-
-        <Route path=":id" component={ChannelConfigurationLayout}>
-          <Route path="edit" component={UpdateChannelConfiguration}></Route>
-          <Route path="edit/extrachannels" component={UpdateChannelConfigurationExtraChannels}></Route>
-        </Route>
-      </Route> */}
-
     </Route>
   </Router>,
   document.getElementById('root')

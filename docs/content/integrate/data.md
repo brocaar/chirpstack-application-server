@@ -38,7 +38,7 @@ Topic for payloads received from your nodes. Example payload:
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
-    "nodeName": "garden-sensor",
+    "deviceName": "garden-sensor",
     "devEUI": "0202020202020202",
     "rxInfo": [
         {
@@ -81,7 +81,7 @@ Topic for join notifications. Example payload:
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
-    "nodeName": "garden-sensor",
+    "deviceName": "garden-sensor",
     "devAddr": "06682ea2",                    // assigned device address
     "DevEUI": "0202020202020202"              // device EUI
 }
@@ -95,7 +95,7 @@ Topic for ACK notifications. Example payload:
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
-    "nodeName": "garden-sensor",
+    "deviceName": "garden-sensor",
     "reference": "abcd1234",                  // the reference given when sending the downlink payload
     "devEUI": "0202020202020202",             // device EUI
     "acknowledged": true,                     // whether the frame was acknowledged or not (e.g. timeout)
@@ -113,7 +113,7 @@ payload size exceeded to max allowed payload size, in case of a MIC error,
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
-    "nodeName": "garden-sensor",
+    "deviceName": "garden-sensor",
     "type": "DATA_UP_FCNT",
     "error": "...",
     "fCnt": 123                               // fCnt related to the error (if applicable)

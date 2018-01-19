@@ -1,5 +1,6 @@
 import dispatcher from "../dispatcher";
-import { hashHistory } from "react-router";
+import history from '../history';
+
 
 export function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
@@ -12,7 +13,7 @@ export function checkStatus(response) {
 export function errorHandler(error) {
   error.then((data) => {
     if (data.code === 16) {
-      hashHistory.push("/login");
+      history.push("/login");
     } else {
       dispatcher.dispatch({
         type: "CREATE_ERROR",
@@ -25,7 +26,7 @@ export function errorHandler(error) {
 export function errorHandlerIgnoreNotFound(error) {
   error.then((data) => {
     if (data.code === 16) {
-      hashHistory.push("/login");
+      history.push("/login");
     } else if (data.code !== 5) {
       dispatcher.dispatch({
         type: "CREATE_ERROR",

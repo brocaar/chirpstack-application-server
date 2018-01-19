@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { withRouter } from "react-router-dom";
 import ErrorStore from "../stores/ErrorStore";
 import dispatcher from "../dispatcher";
 
@@ -35,6 +36,12 @@ class Errors extends Component {
     };
   }
 
+  componentWillReceiveProps(nextProps) {
+      if (this.props.location !== nextProps.location) {
+        ErrorStore.clear();
+      }
+  }
+
   componentWillMount() {
     ErrorStore.on("change", () => {
       this.setState({
@@ -54,4 +61,4 @@ class Errors extends Component {
   }
 }
 
-export default Errors;
+export default withRouter(Errors);

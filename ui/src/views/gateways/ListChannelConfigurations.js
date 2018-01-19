@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import GatewayStore from "../../stores/GatewayStore";
 
@@ -8,7 +8,7 @@ class ChannelConfigurationRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`network-servers/${this.props.configuration.networkServerID}/channel-configurations/${this.props.configuration.id}/edit`}>{this.props.configuration.name}</Link></td>
+        <td><Link to={`/network-servers/${this.props.configuration.networkServerID}/channel-configurations/${this.props.configuration.id}/edit`}>{this.props.configuration.name}</Link></td>
       </tr>
     );
   }
@@ -24,7 +24,7 @@ class ListChannelConfigurations extends Component {
   }
 
   componentDidMount() {
-    GatewayStore.getAllChannelConfigurations(this.props.params.networkServerID, (channelConfigurations) => {
+    GatewayStore.getAllChannelConfigurations(this.props.match.params.networkServerID, (channelConfigurations) => {
       this.setState({
         channelConfigurations: channelConfigurations,
       });
@@ -39,7 +39,7 @@ class ListChannelConfigurations extends Component {
         <div className="panel panel-default">
           <div className="panel-heading clearfix">
             <div className="btn-group pull-right">
-              <Link to={`network-servers/${this.props.params.networkServerID}/channel-configurations/create`}><button type="button" className="btn btn-default btn-sm">Create channel-configuration</button></Link>
+              <Link to={`/network-servers/${this.props.match.params.networkServerID}/channel-configurations/create`}><button type="button" className="btn btn-default btn-sm">Create channel-configuration</button></Link>
             </div>
           </div>
           <div className="panel-body">

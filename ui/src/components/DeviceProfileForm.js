@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link, withRouter } from 'react-router-dom';
 
 import Select from "react-select";
 
@@ -9,10 +9,6 @@ import SessionStore from "../stores/SessionStore";
 
 
 class DeviceProfileForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -205,7 +201,7 @@ class DeviceProfileForm extends Component {
                   <label className="control-label" htmlFor="supportsJoin">Supports join (OTAA)</label>
                   <div className="checkbox">
                     <label>
-                      <input type="checkbox" name="supportsJoin" id="supportsJoin" checked={this.state.deviceProfile.deviceProfile.supportsJoin} onChange={this.onChange.bind(this, 'deviceProfile.supportsJoin')} /> Supports join
+                      <input type="checkbox" name="supportsJoin" id="supportsJoin" checked={!!this.state.deviceProfile.deviceProfile.supportsJoin} onChange={this.onChange.bind(this, 'deviceProfile.supportsJoin')} /> Supports join
                     </label>
                   </div>
                   <p className="help-block">
@@ -253,7 +249,7 @@ class DeviceProfileForm extends Component {
                   <label className="control-label" htmlFor="supportsClassC">Supports Class-C</label>
                   <div className="checkbox">
                     <label>
-                      <input type="checkbox" name="supportsClassC" id="supportsClassC" checked={this.state.deviceProfile.deviceProfile.supportsClassC} onChange={this.onChange.bind(this, 'deviceProfile.supportsClassC')} /> Supports Class-C
+                      <input type="checkbox" name="supportsClassC" id="supportsClassC" checked={!!this.state.deviceProfile.deviceProfile.supportsClassC} onChange={this.onChange.bind(this, 'deviceProfile.supportsClassC')} /> Supports Class-C
                     </label>
                   </div>
                   <p className="help-block">
@@ -281,4 +277,4 @@ class DeviceProfileForm extends Component {
   }
 }
 
-export default DeviceProfileForm;
+export default withRouter(DeviceProfileForm);

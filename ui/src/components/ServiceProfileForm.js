@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link, withRouter } from 'react-router-dom';
 
 import Select from "react-select";
 
@@ -9,10 +9,6 @@ import SessionStore from "../stores/SessionStore";
 
 
 class ServiceProfileForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -152,7 +148,7 @@ class ServiceProfileForm extends Component {
               <label className="control-label" htmlFor="addGWMetadata">Add gateway meta-data</label>
               <div className="checkbox">
                 <label>
-                  <input type="checkbox" name="addGWMetadata" id="addGWMetadata" checked={this.state.serviceProfile.serviceProfile.addGWMetadata} onChange={this.onChange.bind(this, 'serviceProfile.addGWMetadata')} /> Add gateway meta-data
+                  <input type="checkbox" name="addGWMetadata" id="addGWMetadata" checked={!!this.state.serviceProfile.serviceProfile.addGWMetadata} onChange={this.onChange.bind(this, 'serviceProfile.addGWMetadata')} /> Add gateway meta-data
                 </label>
               </div>
               <p className="help-block">
@@ -185,4 +181,4 @@ class ServiceProfileForm extends Component {
   }
 }
 
-export default ServiceProfileForm;
+export default withRouter(ServiceProfileForm);

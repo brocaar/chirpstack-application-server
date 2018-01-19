@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 class PaginationPage extends Component {
   render() {
     return(
-      <li className={this.props.pageNumber === parseInt(this.props.currentPage, 10) ? 'active' : ''}><Link to={{pathname: this.props.pathname, query: {page: this.props.pageNumber}}}>{this.props.pageNumber}</Link></li>
+      <li className={this.props.pageNumber === parseInt(this.props.currentPage, 10) ? 'active' : ''}><Link to={{pathname: this.props.pathname, search: `?page=${this.props.pageNumber}`}}>{this.props.pageNumber}</Link></li>
     );
   }
 }
@@ -12,7 +12,7 @@ class PaginationPage extends Component {
 class SkipPagination extends Component {
   render() {
     return(
-      <li className=""><Link to={{pathname: this.props.pathname, query: {page: this.props.pageNumber}}}>...</Link></li>
+      <li className=""><Link to={{pathname: this.props.pathname, search: `?page=${this.props.pageNumber}`}}>...</Link></li>
     );
   }
 }

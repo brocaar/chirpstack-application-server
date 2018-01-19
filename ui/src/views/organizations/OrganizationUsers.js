@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import OrganizationStore from "../../stores/OrganizationStore";
 import Pagination from "../../components/Pagination";
@@ -11,7 +11,7 @@ class OrganizationUserRow extends Component {
       <tr>
         <td>{this.props.user.id}</td>
         <td>
-          <Link to={`organizations/${this.props.organizationID}/users/${this.props.user.id}/edit`}>{this.props.user.username}</Link>
+          <Link to={`/organizations/${this.props.organizationID}/users/${this.props.user.id}/edit`}>{this.props.user.username}</Link>
         </td>
         <td>
           <span className={"glyphicon glyphicon-" + (this.props.user.isAdmin ? 'ok' : 'remove')} aria-hidden="true"></span>
@@ -46,9 +46,10 @@ class OrganizationUsers extends Component {
   }
 
   updatePage(props) {
-    const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+    const query = new URLSearchParams(props.location.search);
+    const page = (query.get('page') === null) ? 1 : query.get('page');
 
-    OrganizationStore.getUsers(this.props.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, users) => {
+    OrganizationStore.getUsers(this.props.match.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, users) => {
       this.setState({
         users: users,
         pages: Math.ceil(totalCount / this.state.pageSize),
@@ -58,13 +59,13 @@ class OrganizationUsers extends Component {
   }
 
   render() {
-    const UserRows = this.state.users.map((user, i) => <OrganizationUserRow key={user.id} organizationID={this.props.params.organizationID} user={user} />);
+    const UserRows = this.state.users.map((user, i) => <OrganizationUserRow key={user.id} organizationID={this.props.match.params.organizationID} user={user} />);
 
     return(
       <div className="panel panel-default">
         <div className="panel-heading clearfix">
           <div className="btn-group pull-right">
-           <Link to={`/organizations/${this.props.params.organizationID}/users/create`}><button type="button" className="btn btn-default btn-sm">Add user</button></Link>
+           <Link to={`/organizations/${this.props.match.params.organizationID}/users/create`}><button type="button" className="btn btn-default btn-sm">Add user</button></Link>
           </div>
         </div>
         <div className="panel-body">
@@ -81,7 +82,7 @@ class OrganizationUsers extends Component {
             </tbody>
           </table>
         </div>
-        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/users`} />
+        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.match.params.organizationID}/users`} />
       </div>
     );
   }

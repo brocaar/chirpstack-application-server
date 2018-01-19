@@ -1,15 +1,13 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 import NodeStore from "../../stores/NodeStore";
 import SessionStore from "../../stores/SessionStore";
 import NodeForm from "../../components/NodeForm";
 import ApplicationStore from "../../stores/ApplicationStore";
 
-class UpdateNode extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
 
+class UpdateNode extends Component {
   constructor() {
     super();
 
@@ -23,28 +21,28 @@ class UpdateNode extends Component {
   }
 
   componentWillMount() {
-    NodeStore.getNode(this.props.params.applicationID, this.props.params.devEUI, (node) => {
+    NodeStore.getNode(this.props.match.params.applicationID, this.props.match.params.devEUI, (node) => {
       this.setState({node: node});
     });
-    ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
+    ApplicationStore.getApplication(this.props.match.params.applicationID, (application) => {
       this.setState({application: application});
     });
 
     this.setState({
-      isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID)),
+      isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID)),
     });
 
     SessionStore.on("change", () => {
       this.setState({
-        isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID)),
+        isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID)),
       });
     });
   }
 
   onSubmit(node) {
-    node.applicationID = this.props.params.applicationID;
-    NodeStore.updateNode(this.props.params.applicationID, this.props.params.devEUI, node, (responseData) => {
-      this.context.router.push('/organizations/'+this.props.params.organizationID+'/applications/'+this.props.params.applicationID);
+    node.applicationID = this.props.match.params.applicationID;
+    NodeStore.updateNode(this.props.match.params.applicationID, this.props.match.params.devEUI, node, (responseData) => {
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
     });
   }
 
@@ -53,7 +51,7 @@ class UpdateNode extends Component {
       <div>
         <div className="panel panel-default">
           <div className="panel-body">
-            <NodeForm applicationID={this.props.params.applicationID} node={this.state.node} onSubmit={this.onSubmit} disabled={!this.state.isAdmin} application={this.state.application} />
+            <NodeForm applicationID={this.props.match.params.applicationID} node={this.state.node} onSubmit={this.onSubmit} disabled={!this.state.isAdmin} application={this.state.application} />
           </div>
         </div>
       </div>
@@ -61,4 +59,4 @@ class UpdateNode extends Component {
   }
 }
 
-export default UpdateNode;
+export default withRouter(UpdateNode);

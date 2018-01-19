@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import Pagination from "../../components/Pagination";
 import OrganizationStore from "../../stores/OrganizationStore";
 import SessionStore from "../../stores/SessionStore";
+
 
 class OrganizationRow extends Component {
   render() {
@@ -42,7 +43,8 @@ class ListOrganizations extends Component {
   }
 
   updatePage(props) {
-    const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+    const query = new URLSearchParams(props.location.search);
+    const page = (query.get('page') === null) ? 1 : query.get('page');
 
     OrganizationStore.getAll("", this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, organizations) => {
       this.setState({
@@ -98,7 +100,7 @@ class ListOrganizations extends Component {
               </tbody>
             </table>
           </div>
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname="organizations" />
+          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname="/organizations" />
         </div>
       </div>
     );

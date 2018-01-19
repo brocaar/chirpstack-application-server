@@ -1,13 +1,11 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 import ApplicationStore from "../../stores/ApplicationStore";
 import ApplicationForm from "../../components/ApplicationForm";
 
-class UpdateApplication extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
 
+class UpdateApplication extends Component {
   constructor() {
     super();
     this.state = {
@@ -18,14 +16,14 @@ class UpdateApplication extends Component {
   }
 
   componentDidMount() {
-    ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
+    ApplicationStore.getApplication(this.props.match.params.applicationID, (application) => {
       this.setState({application: application});
     });
   }
 
   onSubmit(application) {
-    ApplicationStore.updateApplication(this.props.params.applicationID, this.state.application, (responseData) => {
-      this.context.router.push('/organizations/'+application.organizationID+'/applications/'+application.id);
+    ApplicationStore.updateApplication(this.props.match.params.applicationID, this.state.application, (responseData) => {
+      this.props.history.push(`/organizations/${application.organizationID}/applications/${application.id}`);
     });
   }
 
@@ -33,11 +31,11 @@ class UpdateApplication extends Component {
     return(
       <div className="panel panel-default">
         <div className="panel-body">
-          <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} update={true} organizationID={this.props.params.organizationID} />
+          <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} update={true} organizationID={this.props.match.params.organizationID} />
         </div>
       </div>
     );
   }
 }
 
-export default UpdateApplication;
+export default withRouter(UpdateApplication);

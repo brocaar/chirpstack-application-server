@@ -1,13 +1,10 @@
 import React, { Component } from "react";
+import { withRouter } from 'react-router-dom';
 
 import ApplicationStore from "../../stores/ApplicationStore";
 import ApplicationForm from "../../components/ApplicationForm";
 
 class CreateApplication extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
     this.state = {
@@ -18,13 +15,13 @@ class CreateApplication extends Component {
 
   onSubmit(application) {
     ApplicationStore.createApplication(application, (responseData) => {
-      this.context.router.push('/organizations/'+this.props.params.organizationID+'/applications/'+responseData.id);
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${responseData.id}`);
     });
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this.setState({
-      application: {organizationID: this.props.params.organizationID},
+      application: {organizationID: this.props.match.params.organizationID},
     });
   } 
 
@@ -35,11 +32,11 @@ class CreateApplication extends Component {
           <h3 className="panel-title panel-title-buttons">Create application</h3>
         </div>
         <div className="panel-body">
-          <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} organizationID={this.props.params.organizationID} />
+          <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} organizationID={this.props.match.params.organizationID} />
         </div>
       </div>
     );
   }
 }
 
-export default CreateApplication;
+export default withRouter(CreateApplication);

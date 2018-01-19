@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link, withRouter } from 'react-router-dom';
 
 import Pagination from "../../components/Pagination";
 import UserStore from "../../stores/UserStore";
@@ -17,10 +17,6 @@ class UserRow extends Component {
 }
 
 class ListUsers extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -43,7 +39,8 @@ class ListUsers extends Component {
   }
 
   updatePage(props) {
-    const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+    const query = new URLSearchParams(props.location.search);
+    const page = (query.get('page') === null) ? 1 : query.get('page');
 
     UserStore.getAll("", this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, users) => {
       this.setState({
@@ -91,4 +88,4 @@ class ListUsers extends Component {
   }
 }
 
-export default ListUsers;
+export default withRouter(ListUsers);

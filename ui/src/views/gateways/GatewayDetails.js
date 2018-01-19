@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-
 import moment from "moment";
 import { Map, Marker, TileLayer } from 'react-leaflet';
 import { Bar } from "react-chartjs";
@@ -146,10 +145,6 @@ class GatewayStats extends Component {
 }
 
 class GatewayDetails extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -159,7 +154,7 @@ class GatewayDetails extends Component {
   }
 
   componentWillMount() {
-    GatewayStore.getGateway(this.props.params.mac, (gateway) => {
+    GatewayStore.getGateway(this.props.match.params.mac, (gateway) => {
       this.setState({
         gateway: gateway,
       });
@@ -226,7 +221,7 @@ class GatewayDetails extends Component {
             </div>
           </div>
           <hr />
-          <GatewayStats mac={this.props.params.mac} />
+          <GatewayStats mac={this.props.match.params.mac} />
         </div>
       </div>
     );

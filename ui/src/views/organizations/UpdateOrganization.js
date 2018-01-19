@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 import OrganizationStore from "../../stores/OrganizationStore";
 import OrganizationForm from "../../components/OrganizationForm";
 
 
 class UpdateOrganization extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -20,7 +17,7 @@ class UpdateOrganization extends Component {
   }
 
   componentDidMount() {
-    OrganizationStore.getOrganization(this.props.params.organizationID, (organization) => {
+    OrganizationStore.getOrganization(this.props.match.params.organizationID, (organization) => {
       this.setState({
         organization: organization,
       });
@@ -28,8 +25,8 @@ class UpdateOrganization extends Component {
   }
 
   onSubmit(organization) {
-    OrganizationStore.updateOrganization(this.props.params.organizationID, organization, (responseData) => {
-      this.context.router.push('organizations');
+    OrganizationStore.updateOrganization(this.props.match.params.organizationID, organization, (responseData) => {
+      this.props.history.push('/organizations');
     });
   }
 
@@ -44,4 +41,4 @@ class UpdateOrganization extends Component {
   }
 }
 
-export default UpdateOrganization;
+export default withRouter(UpdateOrganization);

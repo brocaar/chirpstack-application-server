@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 import ApplicationStore from "../../stores/ApplicationStore";
 import ApplicationIntegrationForm from "../../components/ApplicationIntegrationForm";
 
 
 class CreateApplicationIntegration extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -20,8 +17,8 @@ class CreateApplicationIntegration extends Component {
   }
 
   onSubmit(integration) {
-    ApplicationStore.createHTTPIntegration(this.props.params.applicationID, integration, (responseData) => {
-      this.context.router.push('/organizations/'+this.props.params.organizationID+'/applications/'+this.props.params.applicationID+'/integrations');
+    ApplicationStore.createHTTPIntegration(this.props.match.params.applicationID, integration, (responseData) => {
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
     });
   }
 
@@ -39,4 +36,4 @@ class CreateApplicationIntegration extends Component {
   }
 }
 
-export default CreateApplicationIntegration;
+export default withRouter(CreateApplicationIntegration);

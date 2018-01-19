@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 import NetworkServerStore from "../../stores/NetworkServerStore";
 import NetworkServerForm from "../../components/NetworkServerForm";
 
 
 class UpdateNetworkServer extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -20,7 +17,7 @@ class UpdateNetworkServer extends Component {
   }
 
   componentDidMount() {
-    NetworkServerStore.getNetworkServer(this.props.params.networkServerID, (networkServer) => {
+    NetworkServerStore.getNetworkServer(this.props.match.params.networkServerID, (networkServer) => {
       this.setState({
         networkServer: networkServer,
       });
@@ -28,8 +25,8 @@ class UpdateNetworkServer extends Component {
   }
 
   onSubmit(networkServer) {
-    NetworkServerStore.updateNetworkServer(this.props.params.networkServerID, networkServer, (responseData) => {
-      this.context.router.push("network-servers");
+    NetworkServerStore.updateNetworkServer(this.props.match.params.networkServerID, networkServer, (responseData) => {
+      this.props.history.push("/network-servers");
     });
   }
 
@@ -46,4 +43,4 @@ class UpdateNetworkServer extends Component {
   }
 }
 
-export default UpdateNetworkServer;
+export default withRouter(UpdateNetworkServer);

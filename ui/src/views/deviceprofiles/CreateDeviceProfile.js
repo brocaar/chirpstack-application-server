@@ -1,14 +1,11 @@
 import React, { Component } from "react";
+import { withRouter } from 'react-router-dom';
 
 import DeviceProfileStore from "../../stores/DeviceProfileStore";
 import DeviceProfileForm from "../../components/DeviceProfileForm";
 
 
 class CreateDeviceProfile extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -23,14 +20,14 @@ class CreateDeviceProfile extends Component {
 
   onSubmit(deviceProfile) {
     DeviceProfileStore.createDeviceProfile(deviceProfile, (responseData) => {
-      this.context.router.push("organizations/"+this.props.params.organizationID+"/device-profiles");
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/device-profiles`);
     });
   }
 
   componentDidMount() {
     this.setState({
       deviceProfile: {
-        organizationID: this.props.params.organizationID,
+        organizationID: this.props.match.params.organizationID,
         deviceProfile: {},
       },
     });
@@ -43,11 +40,11 @@ class CreateDeviceProfile extends Component {
           <h3 className="panel-title panel-title-buttons">Create device-profile</h3>
         </div>
         <div className="panel-body">
-          <DeviceProfileForm organizationID={this.props.params.organizationID} deviceProfile={this.state.deviceProfile} onSubmit={this.onSubmit} />
+          <DeviceProfileForm organizationID={this.props.match.params.organizationID} deviceProfile={this.state.deviceProfile} onSubmit={this.onSubmit} />
         </div>
       </div>
     );
   }
 }
 
-export default CreateDeviceProfile;
+export default withRouter(CreateDeviceProfile);

@@ -12,7 +12,7 @@ class ExtraChannel extends Component {
   }
 
   onDelete() {
-    if (confirm("Are you sure you would like to delete this channel?")) {
+    if (window.confirm("Are you sure you would like to delete this channel?")) {
       GatewayStore.deleteExtraChannel(this.props.networkServerID, this.props.channel.id, (responseData) => {
         this.props.onChange();
       });
@@ -27,7 +27,7 @@ class ExtraChannel extends Component {
         <td>{this.props.channel.bandwidth}</td>
         <td>{this.props.channel.spreadFactors.join(", ")}</td>
         <td>{this.props.channel.bitRate > 0 ? this.props.channel.bitRate : ""}</td>
-        <td><a className="btn btn-danger btn-xs pull-right" onClick={this.onDelete}><span className="glyphicon glyphicon-remove" aria-hidden="true"></span></a></td>
+        <td><a className="btn btn-danger btn-xs pull-right" onClick={this.onDelete} href="#delete"><span className="glyphicon glyphicon-remove" aria-hidden="true"></span></a></td>
       </tr>
     );
   }
@@ -50,7 +50,7 @@ class UpdateChannelConfigurationExtraChannels extends Component {
   }
 
   onChange() {
-    GatewayStore.getExtraChannelsForChannelConfigurationID(this.props.params.networkServerID, this.props.params.channelConfigurationID, (channels) => {
+    GatewayStore.getExtraChannelsForChannelConfigurationID(this.props.match.params.networkServerID, this.props.match.params.channelConfigurationID, (channels) => {
       this.setState({
         extraChannels: channels,
       });
@@ -58,7 +58,7 @@ class UpdateChannelConfigurationExtraChannels extends Component {
   }
 
   render() {
-    const ExtraChannels = this.state.extraChannels.map((chan, i) => <ExtraChannel key={chan.id} channel={chan} networkServerID={this.props.params.networkServerID} onChange={this.onChange} />);
+    const ExtraChannels = this.state.extraChannels.map((chan, i) => <ExtraChannel key={chan.id} channel={chan} networkServerID={this.props.match.params.networkServerID} onChange={this.onChange} />);
 
     return(
       <div>
@@ -86,7 +86,7 @@ class UpdateChannelConfigurationExtraChannels extends Component {
             Add extra channel
           </div>
           <div className="panel-body">
-            <ExtraChannelForm onSubmit={this.onChange} channelConfigurationID={this.props.params.channelConfigurationID} networkServerID={this.props.params.networkServerID} />
+            <ExtraChannelForm onSubmit={this.onChange} channelConfigurationID={this.props.match.params.channelConfigurationID} networkServerID={this.props.match.params.networkServerID} />
           </div>
         </div>
       </div>

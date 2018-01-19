@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 import Select from "react-select";
 
@@ -6,10 +7,6 @@ import DeviceProfileStore from "../stores/DeviceProfileStore";
 
 
 class NodeForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -109,7 +106,7 @@ class NodeForm extends Component {
         </div>
         <hr />
         <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
           <button type="submit" className={"btn btn-primary " + (this.state.disabled ? 'hidden' : '')}>Submit</button>
         </div>
       </form>
@@ -117,4 +114,4 @@ class NodeForm extends Component {
   }
 }
 
-export default NodeForm;
+export default withRouter(NodeForm);

@@ -1,13 +1,10 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 import NodeStore from "../../stores/NodeStore";
 
 
 class DeviceKeysForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -65,7 +62,7 @@ class DeviceKeysForm extends Component {
         </div>
         <hr />
         <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
           <button type="submit" className={"btn btn-primary " + (this.state.disabled ? 'hidden' : '')}>Submit</button>
         </div>
       </form>
@@ -74,10 +71,6 @@ class DeviceKeysForm extends Component {
 }
 
 class NodeKeys extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -92,7 +85,7 @@ class NodeKeys extends Component {
   }
 
   componentDidMount() {
-    NodeStore.getNodeKeys(this.props.params.devEUI, (deviceKeys) => {
+    NodeStore.getNodeKeys(this.props.match.params.devEUI, (deviceKeys) => {
       this.setState({
         update: true,
         deviceKeys: deviceKeys,
@@ -102,12 +95,12 @@ class NodeKeys extends Component {
 
   onSubmit(deviceKeys) {
     if (this.state.update) {
-      NodeStore.updateNodeKeys(this.props.params.devEUI, deviceKeys, (responseData) => {
-        this.context.router.push("organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID);
+      NodeStore.updateNodeKeys(this.props.match.params.devEUI, deviceKeys, (responseData) => {
+        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
       });
     } else {
-      NodeStore.createNodeKeys(this.props.params.devEUI, deviceKeys, (responseData) => {
-        this.context.router.push("organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID);
+      NodeStore.createNodeKeys(this.props.match.params.devEUI, deviceKeys, (responseData) => {
+        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
       });
     }
   }
@@ -117,7 +110,7 @@ class NodeKeys extends Component {
       <div>
         <div className="panel panel-default">
           <div className="panel-body">
-            <DeviceKeysForm deviceKeys={this.state.deviceKeys} onSubmit={this.onSubmit} />
+            <DeviceKeysForm history={this.props.history} deviceKeys={this.state.deviceKeys} onSubmit={this.onSubmit} />
           </div>
         </div>
       </div>
@@ -125,4 +118,4 @@ class NodeKeys extends Component {
   }
 }
 
-export default NodeKeys;
+export default withRouter(NodeKeys);

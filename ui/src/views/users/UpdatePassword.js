@@ -1,14 +1,10 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link, withRouter } from 'react-router-dom';
 
 import UserStore from "../../stores/UserStore";
 import PasswordForm from "../../components/PasswordForm";
 
 class UpdatePassword extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -19,8 +15,8 @@ class UpdatePassword extends Component {
     this.onSubmit = this.onSubmit.bind(this);
   }
 
-  componentWillMount() {
-    UserStore.getUser(this.props.params.userID, (user) => {
+  componentDidMount() {
+    UserStore.getUser(this.props.match.params.userID, (user) => {
       this.setState({
         user: user,
       });
@@ -28,12 +24,12 @@ class UpdatePassword extends Component {
   }
 
   onSubmit(password) {
-    UserStore.updatePassword(this.props.params.userID, password, (responseData) => {
+    UserStore.updatePassword(this.props.match.params.userID, password, (responseData) => {
       if (this.state.user.isAdmin) {
-        this.context.router.push('/users/' + this.props.params.userID + "/edit");
+        this.props.history.push('/users/' + this.props.match.params.userID + "/edit");
       } else {
         // non-admin users don't have access to /users view
-        this.context.router.push("/");
+        this.props.history.push("/");
       }
     });    
   }
@@ -43,7 +39,7 @@ class UpdatePassword extends Component {
       <div>
         <ol className={"breadcrumb " + (!this.state.user.isAdmin ? 'hidden' : '')}>
           <li><Link to="/users">Users</Link></li>
-          <li><Link to={`/users/${this.props.params.userID}/edit`}>{this.state.user.username}</Link></li>
+          <li><Link to={`/users/${this.props.match.params.userID}/edit`}>{this.state.user.username}</Link></li>
           <li className="active">Update password</li>
         </ol>
         <ol className={"breadcrumb " + (this.state.user.isAdmin ? 'hidden' : '')}>
@@ -62,4 +58,4 @@ class UpdatePassword extends Component {
   }
 }
 
-export default UpdatePassword;
+export default withRouter(UpdatePassword);

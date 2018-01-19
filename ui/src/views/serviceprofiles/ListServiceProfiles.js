@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import Pagination from "../../components/Pagination";
 import ServiceProfileStore from "../../stores/ServiceProfileStore";
@@ -10,7 +10,7 @@ class ServiceProfileRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`organizations/${this.props.organizationID}/service-profiles/${this.props.serviceProfile.serviceProfileID}`}>{this.props.serviceProfile.name}</Link></td>
+        <td><Link to={`/organizations/${this.props.organizationID}/service-profiles/${this.props.serviceProfile.serviceProfileID}`}>{this.props.serviceProfile.name}</Link></td>
       </tr>
     );
   }
@@ -46,9 +46,10 @@ class ListServiceProfiles extends Component {
       isAdmin: SessionStore.isAdmin(),
     });
 
-    const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+    const query = new URLSearchParams(props.location.search);
+    const page = (query.get('page') === null) ? 1 : query.get('page');
 
-    ServiceProfileStore.getAllForOrganizationID(props.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, serviceProfiles) => {
+    ServiceProfileStore.getAllForOrganizationID(props.match.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, serviceProfiles) => {
       this.setState({
         serviceProfiles: serviceProfiles,
         pageNumber: page,
@@ -59,13 +60,13 @@ class ListServiceProfiles extends Component {
   }
 
   render() {
-    const ServiceProfileRows = this.state.serviceProfiles.map((serviceProfile, i) => <ServiceProfileRow key={serviceProfile.serviceProfileID} serviceProfile={serviceProfile} organizationID={this.props.params.organizationID} />);
+    const ServiceProfileRows = this.state.serviceProfiles.map((serviceProfile, i) => <ServiceProfileRow key={serviceProfile.serviceProfileID} serviceProfile={serviceProfile} organizationID={this.props.match.params.organizationID} />);
 
     return(
       <div className="panel panel-default">
         <div className={`panel-heading clearfix ${this.state.isAdmin ? '' : 'hidden'}`}>
           <div className="btn-group pull-right">
-            <Link to={`organizations/${this.props.params.organizationID}/service-profiles/create`}><button type="button" className="btn btn-default btn-sm">Create service-profile</button></Link>
+            <Link to={`/organizations/${this.props.match.params.organizationID}/service-profiles/create`}><button type="button" className="btn btn-default btn-sm">Create service-profile</button></Link>
           </div>
         </div>
         <div className="panel-body">
@@ -80,7 +81,7 @@ class ListServiceProfiles extends Component {
             </tbody>
           </table>
         </div>
-        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`organizations/${this.props.params.organizationID}/service-profiles`} />
+        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.match.params.organizationID}/service-profiles`} />
       </div>
     );
   }

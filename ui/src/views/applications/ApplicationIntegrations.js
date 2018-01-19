@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import ApplicationStore from "../../stores/ApplicationStore";
 
@@ -31,7 +31,7 @@ class ApplicationIntegrations extends Component {
   }
 
   componentDidMount() {
-    ApplicationStore.listIntegrations(this.props.params.applicationID, (integrations) => {
+    ApplicationStore.listIntegrations(this.props.match.params.applicationID, (integrations) => {
       this.setState({
         integrations: integrations.kinds,
       });
@@ -39,13 +39,13 @@ class ApplicationIntegrations extends Component {
   }
 
   render() {
-    const IntegrationRows = this.state.integrations.map((integration, i) => <IntegrationRow key={integration} kind={integration} params={this.props.params} />);
+    const IntegrationRows = this.state.integrations.map((integration, i) => <IntegrationRow key={integration} kind={integration} params={this.props.match.params} />);
 
     return(
       <div className="panel panel-default">
         <div className="panel-heading clearfix">
           <div className="btn-group pull-right">
-           <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/integrations/create`}><button type="button" className="btn btn-default btn-sm">Add integration</button></Link>
+           <Link to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations/create`}><button type="button" className="btn btn-default btn-sm">Add integration</button></Link>
           </div>
         </div>
         <div className="panel-body">

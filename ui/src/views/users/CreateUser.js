@@ -1,14 +1,10 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link, withRouter } from 'react-router-dom';
 
 import UserStore from "../../stores/UserStore";
 import UserForm from "../../components/UserForm";
 
 class CreateUser extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -23,7 +19,7 @@ class CreateUser extends Component {
 
   onSubmit(user) {
     UserStore.createUser(user, (responseData) => {
-      this.context.router.push('/users');
+      this.props.history.push('/users');
     });
   }
 
@@ -45,4 +41,4 @@ class CreateUser extends Component {
   }
 }
 
-export default CreateUser;
+export default withRouter(CreateUser);

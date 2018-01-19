@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link, withRouter } from 'react-router-dom';
 
 import Select from "react-select";
 
@@ -8,10 +8,6 @@ import SessionStore from "../stores/SessionStore";
 
 
 class OrganizationSelect extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -81,7 +77,7 @@ class OrganizationSelect extends Component {
 
   onSelect(val) {
     SessionStore.setOrganizationID(val.value);
-    this.context.router.push('/organizations/'+val.value);
+    this.props.history.push('/organizations/'+val.value);
   }
 
   onAutocomplete(input, callbackFunc) {
@@ -124,4 +120,4 @@ class OrganizationSelect extends Component {
   }
 }
 
-export default OrganizationSelect;
+export default withRouter(OrganizationSelect);

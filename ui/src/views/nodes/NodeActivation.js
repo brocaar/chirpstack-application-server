@@ -13,7 +13,7 @@ class NodeActivation extends Component {
   }
 
   componentDidMount() {
-    NodeStore.getActivation(this.props.params.devEUI, (nodeActivation) => {
+    NodeStore.getActivation(this.props.match.params.devEUI, (nodeActivation) => {
       this.setState({
         activation: nodeActivation,
       });
@@ -61,7 +61,7 @@ class NodeActivation extends Component {
                   <label className="control-label" htmlFor="skipFCntCheck">Disable frame-counter validation</label>
                   <div className="checkbox">
                     <label>
-                      <input type="checkbox" name="skipFCntCheck" id="skipFCntCheck" checked={this.state.activation.skipFCntCheck} /> Disable frame-counter validation
+                      <input type="checkbox" name="skipFCntCheck" id="skipFCntCheck" checked={!!this.state.activation.skipFCntCheck} /> Disable frame-counter validation
                     </label>
                   </div>
                   <p className="help-block">

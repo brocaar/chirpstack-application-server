@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 import GatewayStore from "../../stores/GatewayStore";
 import ChannelConfigurationForm from "../../components/ChannelConfigurationForm";
 
 
 class CreateChannelConfiguration extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -22,14 +19,14 @@ class CreateChannelConfiguration extends Component {
   componentDidMount() {
     this.setState({
       configuration: {
-        networkServerID: this.props.params.networkServerID,
+        networkServerID: this.props.match.params.networkServerID,
       },
     });
   }
 
   onSubmit(configuration) {
     GatewayStore.createChannelConfiguration(configuration, (responseData) => {
-      this.context.router.push(`network-servers/${this.props.params.networkServerID}/channel-configurations`);  
+      this.props.history.push(`/network-servers/${this.props.match.params.networkServerID}/channel-configurations`);
     });
   }
 
@@ -49,4 +46,4 @@ class CreateChannelConfiguration extends Component {
   }
 }
 
-export default CreateChannelConfiguration;
+export default withRouter(CreateChannelConfiguration);

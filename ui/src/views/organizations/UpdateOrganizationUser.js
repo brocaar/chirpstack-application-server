@@ -1,14 +1,10 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { withRouter } from 'react-router-dom';
 
 import OrganizationStore from "../../stores/OrganizationStore";
 
 
 class UpdateOrganizationUserForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -54,7 +50,7 @@ class UpdateOrganizationUserForm extends Component {
           <label className="control-label">Admin</label>
           <div className="checkbox">
             <label>
-              <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is organization admin
+              <input type="checkbox" name="isAdmin" id="isAdmin" checked={!!this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is organization admin
             </label>
           </div>
           <p className="help-block">
@@ -63,7 +59,7 @@ class UpdateOrganizationUserForm extends Component {
         </div>
         <hr />
         <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
           <button type="submit" className="btn btn-primary">Submit</button>
         </div>
       </form>
@@ -73,10 +69,6 @@ class UpdateOrganizationUserForm extends Component {
 
 
 class UpdateOrganizationUser extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -89,7 +81,7 @@ class UpdateOrganizationUser extends Component {
   }
 
   componentWillMount() {
-    OrganizationStore.getUser(this.props.params.organizationID, this.props.params.userID, (user) => {
+    OrganizationStore.getUser(this.props.match.params.organizationID, this.props.match.params.userID, (user) => {
       this.setState({
         user: user,
       });
@@ -97,15 +89,15 @@ class UpdateOrganizationUser extends Component {
   }
 
   onSubmit(user) {
-    OrganizationStore.updateUser(this.props.params.organizationID, this.props.params.userID, user, (responseData) => {
-      this.context.router.push("/organizations/"+this.props.params.organizationID+"/users");
+    OrganizationStore.updateUser(this.props.match.params.organizationID, this.props.match.params.userID, user, (responseData) => {
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/users`);
     });
   }
 
   onDelete() {
-    if (confirm("Are you sure you want to delete this organization user (this does not remove the user itself)?")) {
-      OrganizationStore.removeUser(this.props.params.organizationID, this.props.params.userID, (responseData) => {
-        this.context.router.push("/organizations/"+this.props.params.organizationID+"/users");
+    if (window.confirm("Are you sure you want to delete this organization user (this does not remove the user itself)?")) {
+      OrganizationStore.removeUser(this.props.match.params.organizationID, this.props.match.params.userID, (responseData) => {
+        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/users`);
       }); 
     }
   }
@@ -116,15 +108,15 @@ class UpdateOrganizationUser extends Component {
         <div className="panel-heading clearfix">
           <h3 className="panel-title panel-title-buttons pull-left">Update user</h3>
           <div className="btn-group pull-right">
-            <Link><button type="button" className="btn btn-danger btn-sm" onClick={this.onDelete}>Remove user</button></Link>
+            <a><button type="button" className="btn btn-danger btn-sm" onClick={this.onDelete}>Remove user</button></a>
           </div>
         </div>
         <div className="panel-body">
-          <UpdateOrganizationUserForm user={this.state.user} onSubmit={this.onSubmit}  />
+          <UpdateOrganizationUserForm history={this.props.history} user={this.state.user} onSubmit={this.onSubmit}  />
         </div>
       </div>
     );
   }
 }
 
-export default UpdateOrganizationUser;
+export default withRouter(UpdateOrganizationUser);

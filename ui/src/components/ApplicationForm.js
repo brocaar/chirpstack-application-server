@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-
+import { withRouter } from 'react-router-dom';
 import Select from "react-select";
 import {Controlled as CodeMirror} from "react-codemirror2";
 
@@ -8,10 +8,6 @@ import "codemirror/mode/javascript/javascript";
 
 
 class ApplicationForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
     this.state = {
@@ -187,7 +183,7 @@ function Decode(fPort, bytes) {
         </div>
         <hr />
         <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
           <button type="submit" className="btn btn-primary">Submit</button>
         </div>
       </form>
@@ -195,4 +191,4 @@ function Decode(fPort, bytes) {
   }
 }
 
-export default ApplicationForm;
+export default withRouter(ApplicationForm);

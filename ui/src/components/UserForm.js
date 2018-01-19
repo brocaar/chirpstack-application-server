@@ -1,10 +1,7 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 class UserForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -71,15 +68,15 @@ class UserForm extends Component {
         </div>
         <div className="form-group">
           <label className="checkbox-inline">
-            <input type="checkbox" name="isActive" id="isActive" checked={this.state.user.isActive} onChange={this.onChange.bind(this, 'isActive')} /> Is active &nbsp;
+            <input type="checkbox" name="isActive" id="isActive" checked={!!this.state.user.isActive} onChange={this.onChange.bind(this, 'isActive')} /> Is active &nbsp;
           </label>
           <label className="checkbox-inline">
-            <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is global admin &nbsp;
+            <input type="checkbox" name="isAdmin" id="isAdmin" checked={!!this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is global admin &nbsp;
           </label>
         </div>
         <hr />
         <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
           <button type="submit" className="btn btn-primary">Submit</button>
         </div>
       </form>
@@ -87,4 +84,4 @@ class UserForm extends Component {
   }
 }
 
-export default UserForm;
+export default withRouter(UserForm);

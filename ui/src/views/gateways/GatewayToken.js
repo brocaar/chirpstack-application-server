@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
 
 import GatewayStore from "../../stores/GatewayStore";
 
@@ -16,7 +15,7 @@ class GatewayToken extends Component {
   }
 
   generateToken() {
-    GatewayStore.generateGatewayToken(this.props.params.mac, (responseData) => {
+    GatewayStore.generateGatewayToken(this.props.match.params.mac, (responseData) => {
       this.setState({
         token: responseData.token,
       });
@@ -28,8 +27,8 @@ class GatewayToken extends Component {
       <div className="panel panel-default">
         <div className="panel-body">
           <p>
-            In order to grant <Link href="https://docs.loraserver.io/lora-channel-manager/overview/">LoRa Channel Manager</Link> access
-            to the gateway API provided by <Link href="https://docs.loraserver.io/loraserver/">LoRa Server</Link>, a token must be generated.
+            In order to grant <a href="https://docs.loraserver.io/lora-channel-manager/overview/">LoRa Channel Manager</a> access
+            to the gateway API provided by <a href="https://docs.loraserver.io/loraserver/">LoRa Server</a>, a token must be generated.
             Note that this token is specific to this gateway. Generating a new token does not invalidate a previous
             generated token.
           </p>

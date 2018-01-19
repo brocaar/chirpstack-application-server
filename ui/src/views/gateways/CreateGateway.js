@@ -1,13 +1,10 @@
 import React, { Component } from "react";
+import { withRouter } from 'react-router-dom';
 
 import GatewayStore from "../../stores/GatewayStore";
 import GatewayForm from "../../components/GatewayForm";
 
 class CreateGateway extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -20,13 +17,13 @@ class CreateGateway extends Component {
 
   componentWillMount() {
     this.setState({
-      gateway: {organizationID: this.props.params.organizationID},
+      gateway: {organizationID: this.props.match.params.organizationID},
     });
   }
 
   onSubmit(gateway) {
     GatewayStore.createGateway(gateway, (responseData) => {
-      this.context.router.push("/organizations/"+this.props.params.organizationID+"/gateways");
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/gateways`);
     });
   }
 
@@ -37,11 +34,11 @@ class CreateGateway extends Component {
           <h3 className="panel-title">Create gateway</h3>
         </div>
         <div className="panel-body">
-          <GatewayForm organizationID={this.props.params.organizationID} gateway={this.state.gateway} onSubmit={this.onSubmit} />
+          <GatewayForm organizationID={this.props.match.params.organizationID} gateway={this.state.gateway} onSubmit={this.onSubmit} />
         </div>
       </div>
     );
   }
 }
 
-export default CreateGateway;
+export default withRouter(CreateGateway);

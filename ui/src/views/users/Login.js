@@ -1,11 +1,8 @@
 import React, { Component } from 'react';
+import { withRouter } from "react-router-dom";
 import SessionStore from "../../stores/SessionStore";
 
 class Login extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -41,7 +38,7 @@ class Login extends Component {
   onSubmit(e) {
     e.preventDefault(); 
     SessionStore.login(this.state.login, (token) => {
-      this.context.router.push("/");
+      this.props.history.push("/");
     });
   }
 
@@ -74,4 +71,4 @@ class Login extends Component {
   }
 }
 
-export default Login;
+export default withRouter(Login);

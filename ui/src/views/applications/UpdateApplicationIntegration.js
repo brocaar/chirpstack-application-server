@@ -1,15 +1,11 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { withRouter } from 'react-router-dom';
 
 import ApplicationStore from "../../stores/ApplicationStore";
 import ApplicationIntegrationForm from "../../components/ApplicationIntegrationForm";
 
 
 class UpdateApplicationIntegration extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -22,7 +18,7 @@ class UpdateApplicationIntegration extends Component {
   }
 
   componentDidMount() {
-    ApplicationStore.getHTTPIntegration(this.props.params.applicationID, (integration) => {
+    ApplicationStore.getHTTPIntegration(this.props.match.params.applicationID, (integration) => {
       integration.kind = "http";
       this.setState({
         integration: integration,
@@ -31,15 +27,15 @@ class UpdateApplicationIntegration extends Component {
   }
 
   onSubmit(integration) {
-    ApplicationStore.updateHTTPIntegration(this.props.params.applicationID, integration, (responseData) => {
-      this.context.router.push('/organizations/'+this.props.params.organizationID+'/applications/'+this.props.params.applicationID+'/integrations');
+    ApplicationStore.updateHTTPIntegration(this.props.match.params.applicationID, integration, (responseData) => {
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
     });
   }
 
   onDelete() {
-    if (confirm("Are you sure you want to delete this integration?")) {
-      ApplicationStore.deleteHTTPIntegration(this.props.params.applicationID, (responseData) => {
-        this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID+"/integrations");
+    if (window.confirm("Are you sure you want to delete this integration?")) {
+      ApplicationStore.deleteHTTPIntegration(this.props.match.params.applicationID, (responseData) => {
+        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
       });
     }
   }
@@ -50,7 +46,7 @@ class UpdateApplicationIntegration extends Component {
         <div className="panel-heading clearfix">
           <h3 className="panel-title panel-title-buttons pull-left">Update integration</h3>
           <div className="btn-group pull-right">
-            <Link><button type="button" className="btn btn-danger btn-sm" onClick={this.onDelete}>Remove integration</button></Link>
+            <a><button type="button" className="btn btn-danger btn-sm" onClick={this.onDelete}>Remove integration</button></a>
           </div>
         </div>
         <div className="panel-body">
@@ -61,4 +57,4 @@ class UpdateApplicationIntegration extends Component {
   }
 }
 
-export default UpdateApplicationIntegration;
+export default withRouter(UpdateApplicationIntegration);

@@ -1,14 +1,11 @@
 import React, { Component } from "react";
-import { Link } from "react-router";
+import { Link, withRouter } from "react-router-dom";
 
 import OrganizationStore from "../../stores/OrganizationStore";
 import OrganizationForm from "../../components/OrganizationForm";
 
-class CreateOrganization extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
 
+class CreateOrganization extends Component {
   constructor() {
     super();
 
@@ -21,7 +18,7 @@ class CreateOrganization extends Component {
 
   onSubmit(organization) {
 	  OrganizationStore.createOrganization(organization, (responseData) => {
-      this.context.router.push("/organizations");
+      this.props.history.push("/organizations");
     });
   }
 
@@ -29,7 +26,7 @@ class CreateOrganization extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="organizations">Organizations</Link></li>
+          <li><Link to="/organizations">Organizations</Link></li>
           <li className="active">Create organization</li>
         </ol>
         <hr />
@@ -43,4 +40,4 @@ class CreateOrganization extends Component {
   }
 }
 
-export default CreateOrganization;
+export default withRouter(CreateOrganization);

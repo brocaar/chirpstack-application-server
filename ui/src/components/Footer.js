@@ -3,10 +3,6 @@ import React, { Component } from 'react';
 import SessionStore from "../stores/SessionStore";
 
 class Footer extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
     this.state = {

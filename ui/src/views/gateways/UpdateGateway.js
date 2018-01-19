@@ -1,13 +1,11 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 import GatewayStore from "../../stores/GatewayStore";
 import GatewayForm from "../../components/GatewayForm";
 
-class UpdateGateway extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
 
+class UpdateGateway extends Component {
   constructor() {
     super();
 
@@ -19,7 +17,7 @@ class UpdateGateway extends Component {
   }
 
   componentWillMount() {
-    GatewayStore.getGateway(this.props.params.mac, (gateway) => {
+    GatewayStore.getGateway(this.props.match.params.mac, (gateway) => {
       this.setState({
         gateway: gateway,
       });
@@ -27,8 +25,8 @@ class UpdateGateway extends Component {
   }
 
   onSubmit(gateway) {
-    GatewayStore.updateGateway(this.props.params.mac, gateway, (responseData) => {
-      this.context.router.push('/organizations/'+gateway.organizationID+'/gateways/'+gateway.mac);
+    GatewayStore.updateGateway(this.props.match.params.mac, gateway, (responseData) => {
+      this.props.history.push(`/organizations/${gateway.organizationID}/gateways/${gateway.mac}`);
       window.scrollTo(0, 0);
     });
   }
@@ -37,11 +35,11 @@ class UpdateGateway extends Component {
     return(
       <div className="panel panel-default">
         <div className="panel-body">
-          <GatewayForm organizationID={this.props.params.organizationID} gateway={this.state.gateway} onSubmit={this.onSubmit} update={true} />
+          <GatewayForm organizationID={this.props.match.params.organizationID} gateway={this.state.gateway} onSubmit={this.onSubmit} update={true} />
         </div>
       </div>
     );
   }
 }
 
-export default UpdateGateway;
+export default withRouter(UpdateGateway);

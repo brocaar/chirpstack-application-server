@@ -1,15 +1,11 @@
 import React, { Component } from "react";
-import { Link } from "react-router";
+import { Link, withRouter } from "react-router-dom";
 
 import NetworkServerStore from "../../stores/NetworkServerStore";
 import NetworkServerForm from "../../components/NetworkServerForm";
 
 
 class CreateNetworkServer extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -22,7 +18,7 @@ class CreateNetworkServer extends Component {
 
   onSubmit(networkServer) {
     NetworkServerStore.createNetworkServer(networkServer, (responseData) => {
-      this.context.router.push("network-servers");
+      this.props.history.push("/network-servers");
     });
   }
 
@@ -30,7 +26,7 @@ class CreateNetworkServer extends Component {
     return(
       <div>
         <ol className="breadcrumb">
-          <li><Link to="network-servers">Network servers</Link></li>
+          <li><Link to="/network-servers">Network servers</Link></li>
           <li className="active">Add network-server</li>
         </ol>
         <hr />
@@ -44,4 +40,4 @@ class CreateNetworkServer extends Component {
   }
 }
 
-export default CreateNetworkServer;
+export default withRouter(CreateNetworkServer);

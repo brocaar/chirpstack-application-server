@@ -1,14 +1,10 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link, withRouter } from 'react-router-dom';
 
 import UserStore from "../../stores/UserStore";
 import UserForm from "../../components/UserForm";
 
 class UpdateUser extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -21,7 +17,7 @@ class UpdateUser extends Component {
   }
 
   componentWillMount() {
-    UserStore.getUser(this.props.params.userID, (user) => {
+    UserStore.getUser(this.props.match.params.userID, (user) => {
       this.setState({
         user: user,
       });
@@ -29,15 +25,15 @@ class UpdateUser extends Component {
   }
 
   onSubmit(user) {
-    UserStore.updateUser(this.props.params.userID, this.state.user, (responseData) => {
-      this.context.router.push('/users');
+    UserStore.updateUser(this.props.match.params.userID, this.state.user, (responseData) => {
+      this.props.history.push('/users');
     });
   }
 
   onDelete() {
-    if (confirm("Are you sure you want to delete this user?")) {
-      UserStore.deleteUser(this.props.params.userID, (responseData) => {
-        this.context.router.push('/users/');
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      UserStore.deleteUser(this.props.match.params.userID, (responseData) => {
+        this.props.history.push('/users/');
       });
     } 
   }
@@ -51,8 +47,8 @@ class UpdateUser extends Component {
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to={`/users/${this.props.params.userID}/password`}><button type="button" className="btn btn-default">Change password</button></Link> &nbsp;
-            <Link><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete user</button></Link>
+            <Link to={`/users/${this.props.match.params.userID}/password`}><button type="button" className="btn btn-default">Change password</button></Link> &nbsp;
+            <a><button type="button" className="btn btn-danger" onClick={this.onDelete}>Delete user</button></a>
           </div>
         </div>
         <hr />
@@ -66,4 +62,4 @@ class UpdateUser extends Component {
   }
 }
 
-export default UpdateUser;
+export default withRouter(UpdateUser);

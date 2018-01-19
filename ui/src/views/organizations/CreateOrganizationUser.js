@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 import Select from "react-select";
 
@@ -8,10 +9,6 @@ import SessionStore from "../../stores/SessionStore";
 
 
 class AssignUserForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -90,7 +87,7 @@ class AssignUserForm extends Component {
           <label className="control-label">Admin</label>
           <div className="checkbox">
             <label>
-              <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is organization admin
+              <input type="checkbox" name="isAdmin" id="isAdmin" checked={!!this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is organization admin
             </label>
           </div>
           <p className="help-block">
@@ -99,7 +96,7 @@ class AssignUserForm extends Component {
         </div>
         <hr />
         <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
           <button type="submit" className="btn btn-primary">Submit</button>
         </div>
       </form>
@@ -109,10 +106,6 @@ class AssignUserForm extends Component {
 
 
 class CreateUserForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -164,7 +157,7 @@ class CreateUserForm extends Component {
           <label className="control-label">Admin</label>
           <div className="checkbox">
             <label>
-              <input type="checkbox" name="isAdmin" id="isAdmin" checked={this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is organization admin
+              <input type="checkbox" name="isAdmin" id="isAdmin" checked={!!this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is organization admin
             </label>
           </div>
           <p className="help-block">
@@ -173,7 +166,7 @@ class CreateUserForm extends Component {
         </div>
         <hr />
         <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
           <button type="submit" className="btn btn-primary">Submit</button>
         </div>
       </form>
@@ -183,10 +176,6 @@ class CreateUserForm extends Component {
 
 
 class CreateOrganizationUser extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -222,14 +211,14 @@ class CreateOrganizationUser extends Component {
   }
 
   handleAssign(user) {
-    OrganizationStore.addUser(this.props.params.organizationID, user, (responseData) => {
-      this.context.router.push("/organizations/"+this.props.params.organizationID+"/users");
+    OrganizationStore.addUser(this.props.match.params.organizationID, user, (responseData) => {
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/users`);
     }); 
   }
 
   handleCreateAndAssign(user) {
-    UserStore.createUser({username: user.username, email: user.email, note: user.note, password: user.password, isActive: true, organizations: [{organizationID: this.props.params.organizationID, isAdmin: user.isAdmin}]}, (resp) => {
-      this.context.router.push("/organizations/"+this.props.params.organizationID+"/users");
+    UserStore.createUser({username: user.username, email: user.email, note: user.note, password: user.password, isActive: true, organizations: [{organizationID: this.props.match.params.organizationID, isAdmin: user.isAdmin}]}, (resp) => {
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/users`);
     });
   }
 
@@ -243,10 +232,10 @@ class CreateOrganizationUser extends Component {
           </ul>
           <hr />
           <div className={(this.state.activeTab === "assign" ? '' : 'hidden')}>
-            <AssignUserForm onSubmit={this.handleAssign} />
+            <AssignUserForm history={this.props.history} onSubmit={this.handleAssign} />
           </div>
           <div className={(this.state.activeTab === "create" ? '' : 'hidden')}>
-            <CreateUserForm onSubmit={this.handleCreateAndAssign} />
+            <CreateUserForm history={this.props.history} onSubmit={this.handleCreateAndAssign} />
           </div>
         </div>
       </div>
@@ -254,4 +243,4 @@ class CreateOrganizationUser extends Component {
   }
 }
 
-export default CreateOrganizationUser;
+export default withRouter(CreateOrganizationUser);

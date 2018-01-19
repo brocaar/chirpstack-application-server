@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 import Select from "react-select";
 
@@ -126,10 +127,6 @@ class ApplicationHTTPIntegrationForm extends Component {
 }
 
 class ApplicationIntegrationForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -221,7 +218,7 @@ class ApplicationIntegrationForm extends Component {
         </div>
         {form}
         <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
           <button type="submit" className="btn btn-primary">Submit</button>
         </div>
       </form>
@@ -229,4 +226,4 @@ class ApplicationIntegrationForm extends Component {
   }
 }
 
-export default ApplicationIntegrationForm;
+export default withRouter(ApplicationIntegrationForm);

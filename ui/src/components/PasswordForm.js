@@ -1,10 +1,7 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 class PasswordForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -37,7 +34,7 @@ class PasswordForm extends Component {
         </div>
         <hr />
         <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
           <button type="submit" className="btn btn-primary">Submit</button>
         </div>
       </form>
@@ -45,4 +42,4 @@ class PasswordForm extends Component {
   }
 }
 
-export default PasswordForm;
+export default withRouter(PasswordForm);

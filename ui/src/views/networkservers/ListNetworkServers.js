@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import Pagination from "../../components/Pagination";
 import NetworkServerStore from "../../stores/NetworkServerStore";
@@ -9,7 +9,7 @@ class NetworkServerRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`network-servers/${this.props.networkServer.id}`}>{this.props.networkServer.name}</Link></td>
+        <td><Link to={`/network-servers/${this.props.networkServer.id}`}>{this.props.networkServer.name}</Link></td>
         <td>{this.props.networkServer.server}</td>
       </tr>
     );
@@ -39,7 +39,8 @@ class ListNetworkServers extends Component {
     }
 
     updatePage(props) {
-      const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+      const query = new URLSearchParams(props.location.search);
+      const page = (query.get('page') === null) ? 1 : query.get('page');
 
       NetworkServerStore.getAll(this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, networkServers) => {
         this.setState({
@@ -63,7 +64,7 @@ class ListNetworkServers extends Component {
           <div className="panel panel-default">
             <div className="panel-heading clearfix">
               <div className="btn-group pull-right">
-                <Link to="network-servers/create"><button type="button" className="btn btn-default btn-sm">Add network-server</button></Link>
+                <Link to="/network-servers/create"><button type="button" className="btn btn-default btn-sm">Add network-server</button></Link>
               </div>
             </div>
             <div className="panel-body">
@@ -79,7 +80,7 @@ class ListNetworkServers extends Component {
                 </tbody>
               </table>
             </div>
-            <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname="network-servers" />
+            <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname="/network-servers" />
           </div>
         </div>
       );

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import Pagination from "../../components/Pagination";
 import DeviceProfileStore from "../../stores/DeviceProfileStore";
@@ -10,7 +10,7 @@ class DeviceProfileRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`organizations/${this.props.organizationID}/device-profiles/${this.props.deviceProfile.deviceProfileID}`}>{this.props.deviceProfile.name}</Link></td>
+        <td><Link to={`/organizations/${this.props.organizationID}/device-profiles/${this.props.deviceProfile.deviceProfileID}`}>{this.props.deviceProfile.name}</Link></td>
       </tr>
     );
   }
@@ -37,19 +37,20 @@ class ListDeviceProfiles extends Component {
 
     SessionStore.on("change", () => {
       this.setState({
-        isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID),
+        isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID),
       });
     });
   }
 
   updatePage(props) {
     this.setState({
-      isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID),
+      isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID),
     });
 
-    const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+    const query = new URLSearchParams(props.location.search);
+    const page = (query.get('page') === null) ? 1 : query.get('page');
 
-    DeviceProfileStore.getAllForOrganizationID(props.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, deviceProfiles) => {
+    DeviceProfileStore.getAllForOrganizationID(props.match.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, deviceProfiles) => {
       this.setState({
         deviceProfiles: deviceProfiles,
         pageNumber: page,
@@ -60,13 +61,13 @@ class ListDeviceProfiles extends Component {
   }
 
   render() {
-    const DeviceProfileRows = this.state.deviceProfiles.map((deviceProfile, i) => <DeviceProfileRow key={deviceProfile.deviceProfileID} deviceProfile={deviceProfile} organizationID={this.props.params.organizationID} />);
+    const DeviceProfileRows = this.state.deviceProfiles.map((deviceProfile, i) => <DeviceProfileRow key={deviceProfile.deviceProfileID} deviceProfile={deviceProfile} organizationID={this.props.match.params.organizationID} />);
 
     return(
       <div className="panel panel-default">
         <div className={`panel-heading clearfix ${this.state.isAdmin ? '' : 'hidden'}`}>
           <div className="btn-group pull-right">
-            <Link to={`organizations/${this.props.params.organizationID}/device-profiles/create`}><button type="button" className="btn btn-default btn-sm">Create device-profile</button></Link>
+            <Link to={`/organizations/${this.props.match.params.organizationID}/device-profiles/create`}><button type="button" className="btn btn-default btn-sm">Create device-profile</button></Link>
           </div>
         </div>
         <div className="panel-body">
@@ -81,7 +82,7 @@ class ListDeviceProfiles extends Component {
             </tbody>
           </table>
         </div>
-        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`organizations/${this.props.params.organizationID}/device-profiles`} />
+        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.match.params.organizationID}/device-profiles`} />
       </div>
     );
   }

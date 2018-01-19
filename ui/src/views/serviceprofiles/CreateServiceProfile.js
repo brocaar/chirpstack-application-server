@@ -1,14 +1,11 @@
 import React, { Component } from "react";
+import { withRouter } from 'react-router-dom';
 
 import ServiceProfileStore from "../../stores/ServiceProfileStore";
 import ServiceProfileForm from "../../components/ServiceProfileForm";
 
 
 class CreateServiceProfile extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -23,14 +20,14 @@ class CreateServiceProfile extends Component {
 
   onSubmit(serviceProfile) {
     ServiceProfileStore.createServiceProfile(serviceProfile, (responseData) => {
-      this.context.router.push("organizations/"+this.props.params.organizationID+"/service-profiles");
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/service-profiles`);
     });
   }
 
   componentDidMount() {
     this.setState({
       serviceProfile: {
-        organizationID: this.props.params.organizationID,
+        organizationID: this.props.match.params.organizationID,
         serviceProfile: {},
       },
     });
@@ -43,11 +40,11 @@ class CreateServiceProfile extends Component {
           <h3 className="panel-title panel-title-buttons">Create service-profile</h3>
         </div>
         <div className="panel-body">
-          <ServiceProfileForm organizationID={this.props.params.organizationID} serviceProfile={this.state.serviceProfile} onSubmit={this.onSubmit} />
+          <ServiceProfileForm organizationID={this.props.match.params.organizationID} serviceProfile={this.state.serviceProfile} onSubmit={this.onSubmit} />
         </div>
       </div>
     );
   }
 }
 
-export default CreateServiceProfile;
+export default withRouter(CreateServiceProfile);

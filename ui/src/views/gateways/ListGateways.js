@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link  } from 'react-router-dom';
 
 import moment from "moment";
 import { Bar } from "react-chartjs";
@@ -51,7 +51,7 @@ class GatewayRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`organizations/${this.props.gateway.organizationID}/gateways/${this.props.gateway.mac}`}>{this.props.gateway.name}</Link></td>
+        <td><Link to={`/organizations/${this.props.gateway.organizationID}/gateways/${this.props.gateway.mac}`}>{this.props.gateway.name}</Link></td>
         <td>{this.props.gateway.mac}</td>
         <td>
           <Bar width="380" height="23" data={this.state.stats} options={this.state.options} />
@@ -62,10 +62,6 @@ class GatewayRow extends Component {
 }
 
 class ListGateways extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -86,7 +82,7 @@ class ListGateways extends Component {
 
     SessionStore.on("change", () => {
       this.setState({
-        isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID), 
+        isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID), 
       });
     });
   }
@@ -97,12 +93,13 @@ class ListGateways extends Component {
 
   updatePage(props) {
     this.setState({
-      isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(props.params.organizationID),
+      isAdmin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(props.match.params.organizationID),
     });
 
-    const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+    const query = new URLSearchParams(props.location.search);
+    const page = (query.get('page') === null) ? 1 : query.get('page');
 
-    GatewayStore.getAllForOrganization(this.props.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, gateways) => {
+    GatewayStore.getAllForOrganization(props.match.params.organizationID, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, gateways) => {
       this.setState({
         gateways: gateways,
         pageNumber: page,
@@ -120,7 +117,7 @@ class ListGateways extends Component {
       <div className="panel panel-default">
         <div className={`panel-heading clearfix ${this.state.isAdmin ? '' : 'hidden'}`}>
           <div className="btn-group pull-right">
-            <Link to={`/organizations/${this.props.params.organizationID}/gateways/create`}><button type="button" className="btn btn-default btn-sm">Create gateway</button></Link>
+            <Link to={`/organizations/${this.props.match.params.organizationID}/gateways/create`}><button type="button" className="btn btn-default btn-sm">Create gateway</button></Link>
           </div>
         </div>
         <div className="panel-body">
@@ -137,7 +134,7 @@ class ListGateways extends Component {
             </tbody>
           </table>
         </div>
-        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/gateways`} />
+        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.match.params.organizationID}/gateways`} />
       </div>
     );
   }

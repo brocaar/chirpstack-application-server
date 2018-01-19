@@ -1,18 +1,19 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import Pagination from "../../components/Pagination";
 import NodeStore from "../../stores/NodeStore";
 import SessionStore from "../../stores/SessionStore";
 import ApplicationStore from "../../stores/ApplicationStore";
 
+
 class NodeRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`organizations/${this.props.application.organizationID}/applications/${this.props.application.id}/nodes/${this.props.node.devEUI}/edit`}>{this.props.node.name}</Link></td>
+        <td><Link to={`/organizations/${this.props.application.organizationID}/applications/${this.props.application.id}/nodes/${this.props.node.devEUI}/edit`}>{this.props.node.name}</Link></td>
         <td>{this.props.node.devEUI}</td>
-        <td><Link to={`organizations/${this.props.application.organizationID}/device-profiles/${this.props.node.deviceProfileID}`}>{this.props.node.deviceProfileName}</Link></td>
+        <td><Link to={`/organizations/${this.props.application.organizationID}/device-profiles/${this.props.node.deviceProfileID}`}>{this.props.node.deviceProfileName}</Link></td>
         <td>{this.props.node.description}</td>
       </tr>
     );
@@ -39,17 +40,17 @@ class ListNodes extends Component {
 
   componentDidMount() {
     this.updatePage(this.props);
-    ApplicationStore.getApplication(this.props.params.applicationID, (application) => {
+    ApplicationStore.getApplication(this.props.match.params.applicationID, (application) => {
       this.setState({application: application});
     });
 
     this.setState({
-      isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID)),
+      isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID)),
     });
 
     SessionStore.on("change", () => {
       this.setState({
-        isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.params.organizationID)),
+        isAdmin: (SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID)),
       });
     });
   }
@@ -60,9 +61,10 @@ class ListNodes extends Component {
 
 
   updatePage(props) {
-    const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+    const query = new URLSearchParams(props.location.search);
+    const page = (query.get('page') === null) ? 1 : query.get('page');
 
-    NodeStore.getAll(this.props.params.applicationID, this.state.pageSize, (page-1) * this.state.pageSize, this.state.search, (totalCount, nodes) => {
+    NodeStore.getAll(this.props.match.params.applicationID, this.state.pageSize, (page-1) * this.state.pageSize, this.state.search, (totalCount, nodes) => {
       this.setState({
         nodes: nodes,
         pageNumber: page,
@@ -105,7 +107,7 @@ class ListNodes extends Component {
             </div>
           </form>
           <div className={`btn-group pull-right ${this.state.isAdmin ? "" : "hidden"}`}>
-            <Link to={`/organizations/${this.props.params.organizationID}/applications/${this.state.application.id}/nodes/create`}><button type="button" className="btn btn-default btn-sm">Create device</button></Link>
+            <Link to={`/organizations/${this.props.match.params.organizationID}/applications/${this.state.application.id}/nodes/create`}><button type="button" className="btn btn-default btn-sm">Create device</button></Link>
           </div>
         </div>
         <div className="panel-body">
@@ -123,7 +125,7 @@ class ListNodes extends Component {
             </tbody>
           </table>
         </div>
-        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}`} />
+        <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`} />
       </div>
     );
   }

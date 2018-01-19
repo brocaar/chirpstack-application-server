@@ -1,13 +1,10 @@
 import React, { Component } from "react";
+import { withRouter } from 'react-router-dom';
 
 import NodeStore from "../../stores/NodeStore";
 
 
 class NodeActivationForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -103,7 +100,7 @@ class NodeActivationForm extends Component {
           <label className="control-label" htmlFor="skipFCntCheck">Disable frame-counter validation</label>
           <div className="checkbox">
             <label>
-              <input type="checkbox" name="skipFCntCheck" id="skipFCntCheck" checked={this.state.activation.skipFCntCheck} onChange={this.onChange.bind(this, 'skipFCntCheck')} /> Disable frame-counter validation
+              <input type="checkbox" name="skipFCntCheck" id="skipFCntCheck" checked={!!this.state.activation.skipFCntCheck} onChange={this.onChange.bind(this, 'skipFCntCheck')} /> Disable frame-counter validation
             </label>
           </div>
           <p className="help-block">
@@ -112,7 +109,7 @@ class NodeActivationForm extends Component {
         </div>
         <hr />
         <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
           <button type="submit" className="btn btn-primary">Submit</button>
         </div>
       </form>
@@ -121,10 +118,6 @@ class NodeActivationForm extends Component {
 }
 
 class ActivateNode extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
     this.state = {
@@ -136,8 +129,8 @@ class ActivateNode extends Component {
   }
 
   onSubmit(activation) {
-    NodeStore.activateNode(this.props.params.devEUI, activation, (responseData) => {
-      this.context.router.push("/organizations/"+this.props.params.organizationID+"/applications/"+this.props.params.applicationID);
+    NodeStore.activateNode(this.props.match.params.devEUI, activation, (responseData) => {
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
     });
   }
 
@@ -146,7 +139,7 @@ class ActivateNode extends Component {
       <div>
         <div className="panel panel-default">
           <div className="panel-body">
-            <NodeActivationForm devEUI={this.props.params.devEUI} onSubmit={this.onSubmit} />
+            <NodeActivationForm history={this.props.history} devEUI={this.props.match.params.devEUI} onSubmit={this.onSubmit} />
           </div>
         </div>
       </div>
@@ -154,4 +147,4 @@ class ActivateNode extends Component {
   }
 }
 
-export default ActivateNode;
+export default withRouter(ActivateNode);

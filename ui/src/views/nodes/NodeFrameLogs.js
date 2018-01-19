@@ -5,6 +5,7 @@ import moment from "moment";
 import NodeStore from "../../stores/NodeStore";
 import Pagination from "../../components/Pagination";
 
+
 class FrameRow extends Component {
   render() {
     const theme = {
@@ -89,9 +90,10 @@ class NodeFrameLogs extends Component {
   }
 
   updatePage(props) {
-    const page = (props.location.query.page === undefined) ? 1 : props.location.query.page;
+    const query = new URLSearchParams(props.location.search);
+    const page = (query.get('page') === null) ? 1 : query.get('page');
 
-    NodeStore.getFrameLogs(this.props.params.devEUI, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, frames) => {
+    NodeStore.getFrameLogs(this.props.match.params.devEUI, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, frames) => {
       this.setState({
         frames: frames,
         pageNumber: page,
@@ -127,7 +129,7 @@ class NodeFrameLogs extends Component {
                 </tbody>
               </table>
             </div>
-            <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/nodes/${this.props.params.devEUI}/frames`} />
+            <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/nodes/${this.props.match.params.devEUI}/frames`} />
           </div>
         </div>
       );

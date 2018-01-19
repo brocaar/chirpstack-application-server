@@ -16,13 +16,13 @@ class GatewayPing extends Component {
   }
 
   componentDidMount() {
-    GatewayStore.getGateway(this.props.params.mac, (gateway) => {
+    GatewayStore.getGateway(this.props.match.params.mac, (gateway) => {
       this.setState({
         gateway: gateway,
       })
     });
 
-    GatewayStore.getLastPing(this.props.params.mac, (ping) => {
+    GatewayStore.getLastPing(this.props.match.params.mac, (ping) => {
       this.setState({
         ping: ping,
       });

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router';
+import { withRouter } from 'react-router-dom';
 
 import { Map, Marker, TileLayer } from 'react-leaflet';
 import Select from "react-select";
@@ -11,10 +11,6 @@ import NetworkServerStore from "../stores/NetworkServerStore";
 
 
 class GatewayForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
-
   constructor() {
     super();
 
@@ -102,7 +98,7 @@ class GatewayForm extends Component {
       });
     });
 
-    if (typeof(this.props.gateway.networkServerID) !== "undefined") {
+    if (this.props.gateway.networkServerID !== undefined) {
       GatewayStore.getAllChannelConfigurations(this.props.gateway.networkServerID, (configurations) => {
         this.setState({
           channelConfigurations: configurations,
@@ -130,11 +126,13 @@ class GatewayForm extends Component {
       update: typeof nextProps.gateway.mac !== "undefined",
     });
 
-    GatewayStore.getAllChannelConfigurations(nextProps.gateway.networkServerID, (configurations) => {
-      this.setState({
-        channelConfigurations: configurations,
+    if (this.props.gateway.networkServerID !== undefined) {
+      GatewayStore.getAllChannelConfigurations(nextProps.gateway.networkServerID, (configurations) => {
+        this.setState({
+          channelConfigurations: configurations,
+        });
       });
-    });
+    }
   }
 
   handleSubmit(e) {
@@ -220,7 +218,7 @@ class GatewayForm extends Component {
           </div>
           <div className="form-group">
             <label className="control-label" htmlFor="ping">
-              <input type="checkbox" name="ping" id="ping" checked={this.state.gateway.ping} onChange={this.onChange.bind(this, 'ping')} /> Discovery enabled
+              <input type="checkbox" name="ping" id="ping" checked={!!this.state.gateway.ping} onChange={this.onChange.bind(this, 'ping')} /> Discovery enabled
             </label>
             <p className="help-block">When enabled (and LoRa App Server is configured with the gateway discover feature enabled), the gateway will send out periodical pings to test its coverage by other gateways in the same network.</p>
           </div>
@@ -230,7 +228,7 @@ class GatewayForm extends Component {
             <p className="help-block">When the gateway has an on-board GPS, this value will be set automatically when the network received statistics from the gateway.</p>
           </div>
           <div className="form-group">
-            <label className="control-label">Gateway location (<Link onClick={this.handleSetToCurrentPosition} href="#">set to current location</Link>)</label>
+            <label className="control-label">Gateway location (<a onClick={this.handleSetToCurrentPosition} href="#getLocation">set to current location</a>)</label>
             <Map
               zoom={this.state.mapZoom}
               center={position}
@@ -249,7 +247,7 @@ class GatewayForm extends Component {
           </div>
           <hr />
           <div className="btn-toolbar pull-right">
-            <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+            <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
             <button type="submit" className="btn btn-primary">Submit</button>
           </div>
         </form>
@@ -258,4 +256,4 @@ class GatewayForm extends Component {
   }
 }
 
-export default GatewayForm;
+export default withRouter(GatewayForm);

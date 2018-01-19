@@ -1,12 +1,10 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
 import SessionStore from "../stores/SessionStore";
 
-class OrganizationForm extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
 
+class OrganizationForm extends Component {
   constructor() {
     super();
 
@@ -59,7 +57,7 @@ class OrganizationForm extends Component {
           <label className="control-label">Can have gateways</label>
           <div className="checkbox">
             <label>
-              <input type="checkbox" name="canHaveGateways" id="canHaveGateways" checked={this.state.organization.canHaveGateways} onChange={this.onChange.bind(this, 'canHaveGateways')} /> Can have gateways 
+              <input type="checkbox" name="canHaveGateways" id="canHaveGateways" checked={!!this.state.organization.canHaveGateways} onChange={this.onChange.bind(this, 'canHaveGateways')} /> Can have gateways 
             </label>
           </div>
           <p className="help-block">
@@ -69,7 +67,7 @@ class OrganizationForm extends Component {
         </div>
         <hr />
         <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
           <button type="submit" className="btn btn-primary">Submit</button>
         </div>
       </form>
@@ -77,4 +75,4 @@ class OrganizationForm extends Component {
   }
 }
 
-export default OrganizationForm;
+export default withRouter(OrganizationForm)

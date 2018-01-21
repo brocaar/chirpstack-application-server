@@ -267,7 +267,7 @@ class DeviceProfileForm extends Component {
             </fieldset>
             <hr />
             <div className={"btn-toolbar pull-right " + (this.state.isAdmin ? "" : "hidden")}>
-              <a className="btn btn-default" onClick={this.context.router.goBack}>Go back</a>
+              <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
               <button type="submit" className="btn btn-primary">Submit</button>
             </div>
           </form>

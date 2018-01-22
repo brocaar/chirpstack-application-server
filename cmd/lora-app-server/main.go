@@ -276,8 +276,8 @@ func startGatewayPing(c *cli.Context) error {
 	common.GatewayPingDR = c.Int("gw-ping-dr")
 	common.GatewayPingInterval = c.Duration("gw-ping-interval")
 
-	if common.GatewayPingFrequency == 0 || common.GatewayPingDR == 0 {
-		log.Fatalf("--gw-ping-frequency and --gw-ping-dr settings must be set")
+	if common.GatewayPingFrequency == 0 {
+		log.Fatalf("--gw-ping-frequency setting must be set")
 	}
 
 	go gwping.SendPingLoop()

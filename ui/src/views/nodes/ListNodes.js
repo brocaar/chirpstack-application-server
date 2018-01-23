@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import moment from "moment";
 import { Link } from 'react-router-dom';
 
 import Pagination from "../../components/Pagination";
@@ -9,12 +10,35 @@ import ApplicationStore from "../../stores/ApplicationStore";
 
 class NodeRow extends Component {
   render() {
+    let lastseen = "";
+    let margin = "n/a";
+    let battery = "n/a";
+    if (this.props.node.lastSeenAt !== undefined) {
+      lastseen = moment(this.props.node.lastSeenAt).fromNow();
+    }
+
+    if (this.props.node.deviceStatusMargin !== undefined && this.props.node.deviceStatusMargin !== 256) {
+      margin = `${this.props.node.deviceStatusMargin} dB`;
+    }
+
+    if (this.props.node.deviceStatusBattery !== undefined && this.props.node.deviceStatusBattery !== 256) {
+      if (this.props.node.deviceStatusBattery === 255) {
+        battery = "n/a";
+      } else if (this.props.node.deviceStatusBattery === 0) {
+        battery = "external";
+      } else {
+        battery = Math.round(100/255*this.props.node.deviceStatusBattery) + " %";
+      }
+    }
+
     return(
       <tr>
+        <td>{lastseen}</td>
         <td><Link to={`/organizations/${this.props.application.organizationID}/applications/${this.props.application.id}/nodes/${this.props.node.devEUI}/edit`}>{this.props.node.name}</Link></td>
         <td>{this.props.node.devEUI}</td>
         <td><Link to={`/organizations/${this.props.application.organizationID}/device-profiles/${this.props.node.deviceProfileID}`}>{this.props.node.deviceProfileName}</Link></td>
-        <td>{this.props.node.description}</td>
+        <td>{margin}</td>
+        <td>{battery}</td>
       </tr>
     );
   }
@@ -114,10 +138,12 @@ class ListNodes extends Component {
           <table className="table table-hover">
             <thead>
               <tr>
+                <th className="col-md-2">Last seen</th>
                 <th className="col-md-3">Device name</th>
                 <th className="col-md-2">Device EUI</th>
                 <th className="col-md-3">Device-profile</th>
-                <th>Device description</th>
+                <th className="col-md-1">Link margin</th>
+                <th className="col-md-1">Battery</th>
               </tr>
             </thead>
             <tbody>

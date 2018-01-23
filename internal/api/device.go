@@ -580,12 +580,24 @@ func (a *DeviceAPI) returnList(count int, devices []storage.DeviceListItem) (*pb
 	}
 	for _, device := range devices {
 		item := pb.DeviceListItem{
-			DevEUI:            device.DevEUI.String(),
-			Name:              device.Name,
-			Description:       device.Description,
-			ApplicationID:     device.ApplicationID,
-			DeviceProfileID:   device.DeviceProfileID,
-			DeviceProfileName: device.DeviceProfileName,
+			DevEUI:              device.DevEUI.String(),
+			Name:                device.Name,
+			Description:         device.Description,
+			ApplicationID:       device.ApplicationID,
+			DeviceProfileID:     device.DeviceProfileID,
+			DeviceProfileName:   device.DeviceProfileName,
+			DeviceStatusBattery: 256,
+			DeviceStatusMargin:  256,
+		}
+
+		if device.DeviceStatusBattery != nil {
+			item.DeviceStatusBattery = uint32(*device.DeviceStatusBattery)
+		}
+		if device.DeviceStatusMargin != nil {
+			item.DeviceStatusMargin = int32(*device.DeviceStatusMargin)
+		}
+		if device.LastSeenAt != nil {
+			item.LastSeenAt = device.LastSeenAt.Format(time.RFC3339Nano)
 		}
 
 		resp.Result = append(resp.Result, &item)

@@ -175,12 +175,14 @@ func TestNodeAPI(t *testing.T) {
 				So(devices.Result, ShouldHaveLength, 1)
 				So(devices.TotalCount, ShouldEqual, 1)
 				So(devices.Result[0], ShouldResemble, &pb.DeviceListItem{
-					Name:              "test-device",
-					Description:       "test device description",
-					DevEUI:            "0807060504030201",
-					ApplicationID:     app.ID,
-					DeviceProfileID:   dp.DeviceProfile.DeviceProfileID,
-					DeviceProfileName: dp.Name,
+					Name:                "test-device",
+					Description:         "test device description",
+					DevEUI:              "0807060504030201",
+					ApplicationID:       app.ID,
+					DeviceProfileID:     dp.DeviceProfile.DeviceProfileID,
+					DeviceProfileName:   dp.Name,
+					DeviceStatusBattery: 256,
+					DeviceStatusMargin:  256,
 				})
 			})
 

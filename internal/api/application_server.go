@@ -99,11 +99,13 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 	}
 
 	pl := handler.DataUpPayload{
-		ApplicationID:   app.ID,
-		ApplicationName: app.Name,
-		DeviceName:      d.Name,
-		DevEUI:          devEUI,
-		RXInfo:          []handler.RXInfo{},
+		ApplicationID:       app.ID,
+		ApplicationName:     app.Name,
+		DeviceName:          d.Name,
+		DevEUI:              devEUI,
+		DeviceStatusBattery: d.DeviceStatusBattery,
+		DeviceStatusMargin:  d.DeviceStatusMargin,
+		RXInfo:              []handler.RXInfo{},
 		TXInfo: handler.TXInfo{
 			Frequency: int(req.TxInfo.Frequency),
 			DataRate: handler.DataRate{

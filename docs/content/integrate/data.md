@@ -40,6 +40,8 @@ Topic for payloads received from your nodes. Example payload:
     "applicationName": "temperature-sensor",
     "deviceName": "garden-sensor",
     "devEUI": "0202020202020202",
+    "deviceStatusBattery": 200,  // set when available
+    "deviceStatusMargin": 6,     // set when available
     "rxInfo": [
         {
             "mac": "0303030303030303",                 // MAC of the receiving gateway
@@ -72,6 +74,21 @@ Topic for payloads received from your nodes. Example payload:
     }
 }
 ```
+
+##### Device-status
+
+When configured by the [service-profile]({{<ref "use/service-profiles.md">}})
+and when published by the device, the uplink payload contains the device status.
+
+`deviceStatusBattery`
+
+* `0` - The end-device is connected to an external power source
+* `1..254` - The battery level, 1 being at minimum and 254 being at maximum
+* `255` - The end-device was not able to measure the battery level
+
+`deviceStatusMargin` is the demodulation signal-to-noise ratio in dB rounded
+to the nearest integer valuefor the last successfully received device-status
+request by the network-server.
 
 #### application/[applicationID]/node/[devEUI]/join
 

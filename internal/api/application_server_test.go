@@ -181,7 +181,44 @@ func TestApplicationServerAPI(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Then a payload was sent to the handler", func() {
+					ten := 10
+					eleven := 11
+
 					So(h.SendDataUpChan, ShouldHaveLength, 1)
+					So(<-h.SendDataUpChan, ShouldResemble, handler.DataUpPayload{
+						ApplicationID:       app.ID,
+						ApplicationName:     "test-app",
+						DeviceName:          "test-node",
+						DevEUI:              d.DevEUI,
+						DeviceStatusBattery: &ten,
+						DeviceStatusMargin:  &eleven,
+						RXInfo: []handler.RXInfo{
+							{
+								MAC:       mac,
+								Name:      "test-gateway",
+								Latitude:  52.3740364,
+								Longitude: 4.9144401,
+								Altitude:  10,
+								Time:      &now,
+								RSSI:      -60,
+								LoRaSNR:   5,
+							},
+						},
+						TXInfo: handler.TXInfo{
+							Frequency: 868100000,
+							DataRate: handler.DataRate{
+								Modulation:   "LORA",
+								Bandwidth:    250,
+								SpreadFactor: 5,
+								Bitrate:      50000,
+							},
+							ADR:      true,
+							CodeRate: "4/6",
+						},
+						FCnt:  10,
+						FPort: 3,
+						Data:  []byte{67, 216, 236, 205},
+					})
 				})
 
 				Convey("Then the device was updated", func() {

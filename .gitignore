@@ -13,6 +13,7 @@
 /static/swagger/api.swagger.json
 /static/index.html
 /static/asset-manifest.json
+/static/service-worker.js
 /ui/build
 /docs/public
 

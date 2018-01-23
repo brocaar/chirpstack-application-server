@@ -29,9 +29,9 @@ Fields marked with an **X** are implemented by LoRa (App) Server.
 - [ ] **DLBucketSize** Token bucket burst size
 - [ ] **DLRatePolicy** Drop or mark when exceeding DLRate
 - [X] **AddGWMetadata** GW metadata (RSSI, SNR, GW geoloc., etc.) are added to the packet sent to AS
-- [ ] **DevStatusReqFreq** Frequency to initiate an End-Device status request (request/day)
-- [ ] **ReportDevStatusBattery** Report End-Device battery level to AS
-- [ ] **ReportDevStatusmargin** Report End-Device margin to AS
+- [X] **DevStatusReqFreq** Frequency to initiate an End-Device status request (request/day)
+- [X] **ReportDevStatusBattery** Report End-Device battery level to AS
+- [X] **ReportDevStatusmargin** Report End-Device margin to AS
 - [X] **DRMin** Minimum allowed data rate. Used for ADR.
 - [X] **DRmax** Maximum allowed data rate. Used for ADR.
 - [ ] **ChannelMask** Channel mask. sNS does not have to obey (i.e., informative).

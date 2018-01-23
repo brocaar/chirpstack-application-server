@@ -208,11 +208,23 @@ func TestMQTTHandler(t *testing.T) {
 				cafile      string
 				certFile    string
 				certKeyFile string
-				//tlsConfigAssertion func(actual interface{}, expected ...interface{}) string
-				//expectedRootCAs      *x509.CertPool
-				//expectedCertificates []tls.Certificate
 			}{
 				{"", "", ""},
+			}
+
+			for _, p := range params {
+				tlsConfig, err := newTLSConfig(p.cafile, p.certFile, p.certKeyFile)
+				So(err, ShouldBeNil)
+				So(tlsConfig, ShouldBeNil)
+			}
+		})
+
+		Convey("When invalid parameters given, should raise error and result should be nil", func() {
+			var params = []struct {
+				cafile      string
+				certFile    string
+				certKeyFile string
+			}{
 				{"", testCertPemFile, ""},
 				{"", "", testCertKeyPemFile},
 				{testCAPemFile, testCertPemFile, ""},
@@ -221,7 +233,7 @@ func TestMQTTHandler(t *testing.T) {
 
 			for _, p := range params {
 				tlsConfig, err := newTLSConfig(p.cafile, p.certFile, p.certKeyFile)
-				So(err, ShouldBeNil)
+				So(err, ShouldNotBeNil)
 				So(tlsConfig, ShouldBeNil)
 			}
 		})

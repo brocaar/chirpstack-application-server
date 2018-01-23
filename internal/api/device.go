@@ -3,9 +3,9 @@ package api
 import (
 	"encoding/hex"
 	"encoding/json"
+	"time"
 
 	"github.com/jmoiron/sqlx"
-
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -86,11 +86,23 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 	}
 
 	resp := pb.GetDeviceResponse{
-		DevEUI:          d.DevEUI.String(),
-		Name:            d.Name,
-		ApplicationID:   d.ApplicationID,
-		Description:     d.Description,
-		DeviceProfileID: d.DeviceProfileID,
+		DevEUI:              d.DevEUI.String(),
+		Name:                d.Name,
+		ApplicationID:       d.ApplicationID,
+		Description:         d.Description,
+		DeviceProfileID:     d.DeviceProfileID,
+		DeviceStatusBattery: 256,
+		DeviceStatusMargin:  256,
+	}
+
+	if d.DeviceStatusBattery != nil {
+		resp.DeviceStatusBattery = uint32(*d.DeviceStatusBattery)
+	}
+	if d.DeviceStatusMargin != nil {
+		resp.DeviceStatusMargin = int32(*d.DeviceStatusMargin)
+	}
+	if d.LastSeenAt != nil {
+		resp.LastSeenAt = d.LastSeenAt.Format(time.RFC3339Nano)
 	}
 
 	return &resp, nil

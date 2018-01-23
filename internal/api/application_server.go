@@ -57,6 +57,25 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
+	now := time.Now()
+	d.LastSeenAt = &now
+	d.DeviceStatusBattery = nil
+	if req.DeviceStatusBattery != 256 {
+		batt := int(req.DeviceStatusBattery)
+		d.DeviceStatusBattery = &batt
+	}
+	d.DeviceStatusMargin = nil
+	if req.DeviceStatusMargin != 256 {
+		marg := int(req.DeviceStatusMargin)
+		d.DeviceStatusMargin = &marg
+	}
+	err = storage.UpdateDevice(common.DB, &d)
+	if err != nil {
+		errStr := fmt.Sprintf("update device error: %s", err)
+		log.WithField("dev_eui", devEUI).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
 	b, err := lorawan.EncryptFRMPayload(da.AppSKey, true, da.DevAddr, req.FCnt, req.Data)
 	if err != nil {
 		log.WithFields(log.Fields{

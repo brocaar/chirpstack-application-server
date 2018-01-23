@@ -76,10 +76,10 @@ func TestNodeAPI(t *testing.T) {
 		}
 		So(storage.CreateDeviceProfile(common.DB, &dp), ShouldBeNil)
 
-		Convey("When creating a node without a name set", func() {
+		Convey("When creating a device without a name set", func() {
 			_, err := api.Create(ctx, &pb.CreateDeviceRequest{
 				ApplicationID:   app.ID,
-				Description:     "test node description",
+				Description:     "test device description",
 				DevEUI:          "0807060504030201",
 				DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
 			})
@@ -96,11 +96,11 @@ func TestNodeAPI(t *testing.T) {
 			})
 		})
 
-		Convey("When creating a node", func() {
+		Convey("When creating a device", func() {
 			_, err := api.Create(ctx, &pb.CreateDeviceRequest{
 				ApplicationID:   app.ID,
-				Name:            "test-node",
-				Description:     "test node description",
+				Name:            "test-device",
+				Description:     "test device description",
 				DevEUI:          "0807060504030201",
 				DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
 			})
@@ -108,7 +108,7 @@ func TestNodeAPI(t *testing.T) {
 			So(validator.ctx, ShouldResemble, ctx)
 			So(validator.validatorFuncs, ShouldHaveLength, 1)
 
-			Convey("The node has been created", func() {
+			Convey("The device has been created", func() {
 				d, err := api.Get(ctx, &pb.GetDeviceRequest{
 					DevEUI: "0807060504030201",
 				})
@@ -116,15 +116,54 @@ func TestNodeAPI(t *testing.T) {
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 				So(d, ShouldResemble, &pb.GetDeviceResponse{
-					Name:            "test-node",
-					Description:     "test node description",
-					DevEUI:          "0807060504030201",
-					ApplicationID:   app.ID,
-					DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+					Name:                "test-device",
+					Description:         "test device description",
+					DevEUI:              "0807060504030201",
+					ApplicationID:       app.ID,
+					DeviceProfileID:     dp.DeviceProfile.DeviceProfileID,
+					DeviceStatusMargin:  256,
+					DeviceStatusBattery: 256,
+				})
+
+				Convey("When setting the device-status battery and margin", func() {
+					ten := 10
+					eleven := 11
+
+					d, err := storage.GetDevice(common.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
+					So(err, ShouldBeNil)
+					d.DeviceStatusBattery = &ten
+					d.DeviceStatusMargin = &eleven
+					So(storage.UpdateDevice(common.DB, &d), ShouldBeNil)
+
+					Convey("Then Get returns the battery and margin status", func() {
+						d, err := api.Get(ctx, &pb.GetDeviceRequest{
+							DevEUI: "0807060504030201",
+						})
+						So(err, ShouldBeNil)
+						So(d.DeviceStatusBattery, ShouldEqual, 10)
+						So(d.DeviceStatusMargin, ShouldEqual, 11)
+					})
+				})
+
+				Convey("When setting the LastSeenAt timestamp", func() {
+					now := time.Now().Truncate(time.Millisecond)
+
+					d, err := storage.GetDevice(common.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
+					So(err, ShouldBeNil)
+					d.LastSeenAt = &now
+					So(storage.UpdateDevice(common.DB, &d), ShouldBeNil)
+
+					Convey("Then Get returns the last-seen timestamp", func() {
+						d, err := api.Get(ctx, &pb.GetDeviceRequest{
+							DevEUI: "0807060504030201",
+						})
+						So(err, ShouldBeNil)
+						So(d.LastSeenAt, ShouldEqual, now.Format(time.RFC3339Nano))
+					})
 				})
 			})
 
-			Convey("Then listing the nodes for the application returns a single items", func() {
+			Convey("Then listing the devices for the application returns a single items", func() {
 				devices, err := api.ListByApplicationID(ctx, &pb.ListDeviceByApplicationIDRequest{
 					ApplicationID: app.ID,
 					Limit:         10,
@@ -136,8 +175,8 @@ func TestNodeAPI(t *testing.T) {
 				So(devices.Result, ShouldHaveLength, 1)
 				So(devices.TotalCount, ShouldEqual, 1)
 				So(devices.Result[0], ShouldResemble, &pb.DeviceListItem{
-					Name:              "test-node",
-					Description:       "test node description",
+					Name:              "test-device",
+					Description:       "test device description",
 					DevEUI:            "0807060504030201",
 					ApplicationID:     app.ID,
 					DeviceProfileID:   dp.DeviceProfile.DeviceProfileID,
@@ -145,34 +184,36 @@ func TestNodeAPI(t *testing.T) {
 				})
 			})
 
-			Convey("When updating the node", func() {
+			Convey("When updating the device", func() {
 				_, err := api.Update(ctx, &pb.UpdateDeviceRequest{
 					ApplicationID:   app.ID,
 					DevEUI:          "0807060504030201",
-					Name:            "test-node-updated",
-					Description:     "test node description updated",
+					Name:            "test-device-updated",
+					Description:     "test device description updated",
 					DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
-				Convey("Then the node has been updated", func() {
+				Convey("Then the device has been updated", func() {
 					d, err := api.Get(ctx, &pb.GetDeviceRequest{
 						DevEUI: "0807060504030201",
 					})
 					So(err, ShouldBeNil)
 					So(d, ShouldResemble, &pb.GetDeviceResponse{
-						Name:            "test-node-updated",
-						Description:     "test node description updated",
-						DevEUI:          "0807060504030201",
-						ApplicationID:   app.ID,
-						DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+						Name:                "test-device-updated",
+						Description:         "test device description updated",
+						DevEUI:              "0807060504030201",
+						ApplicationID:       app.ID,
+						DeviceProfileID:     dp.DeviceProfile.DeviceProfileID,
+						DeviceStatusBattery: 256,
+						DeviceStatusMargin:  256,
 					})
 				})
 			})
 
-			Convey("After deleting the node", func() {
+			Convey("After deleting the device", func() {
 				_, err := api.Delete(ctx, &pb.DeleteDeviceRequest{
 					DevEUI: "0807060504030201",
 				})
@@ -180,7 +221,7 @@ func TestNodeAPI(t *testing.T) {
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
-				Convey("Then listing the nodes returns zero nodes", func() {
+				Convey("Then listing the devices returns zero devices", func() {
 					devices, err := api.ListByApplicationID(ctx, &pb.ListDeviceByApplicationIDRequest{
 						ApplicationID: app.ID,
 						Limit:         10,
@@ -246,7 +287,7 @@ func TestNodeAPI(t *testing.T) {
 				})
 			})
 
-			Convey("When activating the node (ABP)", func() {
+			Convey("When activating the device (ABP)", func() {
 				_, err := api.Activate(ctx, &pb.ActivateDeviceRequest{
 					DevEUI:   "0807060504030201",
 					DevAddr:  "01020304",
@@ -259,14 +300,14 @@ func TestNodeAPI(t *testing.T) {
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
-				Convey("Then an attempt was made to deactivate the node-session", func() {
+				Convey("Then an attempt was made to deactivate the device-session", func() {
 					So(nsClient.DeactivateDeviceChan, ShouldHaveLength, 1)
 					So(<-nsClient.DeactivateDeviceChan, ShouldResemble, ns.DeactivateDeviceRequest{
 						DevEUI: []byte{8, 7, 6, 5, 4, 3, 2, 1},
 					})
 				})
 
-				Convey("Then a node-session was created", func() {
+				Convey("Then a device-session was created", func() {
 					So(nsClient.ActivateDeviceChan, ShouldHaveLength, 1)
 					So(<-nsClient.ActivateDeviceChan, ShouldResemble, ns.ActivateDeviceRequest{
 						DevAddr:  []uint8{1, 2, 3, 4},

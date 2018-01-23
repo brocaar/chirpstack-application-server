@@ -19,13 +19,16 @@ import (
 
 // Device defines a LoRaWAN device.
 type Device struct {
-	DevEUI          lorawan.EUI64 `db:"dev_eui"`
-	CreatedAt       time.Time     `db:"created_at"`
-	UpdatedAt       time.Time     `db:"updated_at"`
-	ApplicationID   int64         `db:"application_id"`
-	DeviceProfileID string        `db:"device_profile_id"`
-	Name            string        `db:"name"`
-	Description     string        `db:"description"`
+	DevEUI              lorawan.EUI64 `db:"dev_eui"`
+	CreatedAt           time.Time     `db:"created_at"`
+	UpdatedAt           time.Time     `db:"updated_at"`
+	LastSeenAt          *time.Time    `db:"last_seen_at"`
+	ApplicationID       int64         `db:"application_id"`
+	DeviceProfileID     string        `db:"device_profile_id"`
+	Name                string        `db:"name"`
+	Description         string        `db:"description"`
+	DeviceStatusBattery *int          `db:"device_status_battery"`
+	DeviceStatusMargin  *int          `db:"device_status_margin"`
 }
 
 // DeviceListItem defines the Device as list item.
@@ -76,8 +79,11 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
             application_id,
             device_profile_id,
             name,
-            description
-        ) values ($1, $2, $3, $4, $5, $6, $7)`,
+			description,
+			device_status_battery,
+			device_status_margin,
+			last_seen_at
+        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
 		d.DevEUI[:],
 		d.CreatedAt,
 		d.UpdatedAt,
@@ -85,6 +91,9 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 		d.DeviceProfileID,
 		d.Name,
 		d.Description,
+		d.DeviceStatusBattery,
+		d.DeviceStatusMargin,
+		d.LastSeenAt,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -207,7 +216,10 @@ func UpdateDevice(db sqlx.Ext, d *Device) error {
             application_id = $3,
             device_profile_id = $4,
             name = $5,
-            description = $6
+			description = $6,
+			device_status_battery = $7,
+			device_status_margin = $8,
+			last_seen_at = $9
         where
             dev_eui = $1`,
 		d.DevEUI[:],
@@ -216,6 +228,9 @@ func UpdateDevice(db sqlx.Ext, d *Device) error {
 		d.DeviceProfileID,
 		d.Name,
 		d.Description,
+		d.DeviceStatusBattery,
+		d.DeviceStatusMargin,
+		d.LastSeenAt,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

@@ -102,12 +102,17 @@ func TestDevice(t *testing.T) {
 		So(CreateApplication(common.DB, &app), ShouldBeNil)
 
 		Convey("Then CreateDevice creates the device", func() {
+			ten := 10
+			eleven := 11
+
 			d := Device{
-				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
-				ApplicationID:   app.ID,
-				DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
-				Name:            "test-device",
-				Description:     "test device",
+				DevEUI:              lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+				ApplicationID:       app.ID,
+				DeviceProfileID:     dp.DeviceProfile.DeviceProfileID,
+				Name:                "test-device",
+				Description:         "test device",
+				DeviceStatusBattery: &ten,
+				DeviceStatusMargin:  &eleven,
 			}
 			So(CreateDevice(common.DB, &d), ShouldBeNil)
 			d.CreatedAt = d.CreatedAt.UTC().Truncate(time.Millisecond)

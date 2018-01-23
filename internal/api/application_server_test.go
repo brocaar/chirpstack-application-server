@@ -168,7 +168,47 @@ func TestApplicationServerAPI(t *testing.T) {
 					Adr:      true,
 					CodeRate: "4/6",
 				},
+				DeviceStatusBattery: 256,
+				DeviceStatusMargin:  256,
 			}
+
+			reqWithDeviceStatus := req
+			reqWithDeviceStatus.DeviceStatusBattery = 10
+			reqWithDeviceStatus.DeviceStatusMargin = 11
+
+			Convey("When calling HandleUplinkData with device-status data", func() {
+				_, err := api.HandleUplinkData(ctx, &reqWithDeviceStatus)
+				So(err, ShouldBeNil)
+
+				Convey("Then a payload was sent to the handler", func() {
+					So(h.SendDataUpChan, ShouldHaveLength, 1)
+				})
+
+				Convey("Then the device was updated", func() {
+					d, err := storage.GetDevice(common.DB, d.DevEUI)
+					So(err, ShouldBeNil)
+					So(*d.DeviceStatusBattery, ShouldEqual, 10)
+					So(*d.DeviceStatusMargin, ShouldEqual, 11)
+					So(time.Now().Sub(*d.LastSeenAt), ShouldBeLessThan, time.Second)
+				})
+			})
+
+			Convey("When calling HandleUplinkData without device-status data", func() {
+				_, err := api.HandleUplinkData(ctx, &req)
+				So(err, ShouldBeNil)
+
+				Convey("Then a payload was sent to the handler", func() {
+					So(h.SendDataUpChan, ShouldHaveLength, 1)
+				})
+
+				Convey("Then the device was updated", func() {
+					d, err := storage.GetDevice(common.DB, d.DevEUI)
+					So(err, ShouldBeNil)
+					So(d.DeviceStatusBattery, ShouldBeNil)
+					So(d.DeviceStatusMargin, ShouldBeNil)
+					So(time.Now().Sub(*d.LastSeenAt), ShouldBeLessThan, time.Second)
+				})
+			})
 
 			Convey("When calling HandleUplinkData (Custom JS codec configured)", func() {
 				app.PayloadCodec = codec.CustomJSType

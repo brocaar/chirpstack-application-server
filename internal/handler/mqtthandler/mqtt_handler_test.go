@@ -1,8 +1,9 @@
 package mqtthandler
 
 import (
-	"encoding/json"
 	"testing"
+
+	"encoding/json"
 	"time"
 
 	"github.com/brocaar/lora-app-server/internal/common"
@@ -191,6 +192,59 @@ func TestMQTTHandler(t *testing.T) {
 					So(h.DataDownChan(), ShouldHaveLength, 0)
 				})
 			})
+		})
+	})
+
+	// XXX:
+	// This test is interested in private method.
+	// This is not desirable, but this for the sake of simplicity of testing and implementation.
+	Convey("Given TLS configuration", t, func() {
+		testCAPemFile := "test_ca.pem"
+		testCertPemFile := "test_cert.pem"
+		testCertKeyPemFile := "test_key.pem"
+
+		Convey("When parameters that expects nil result, result should be nil", func() {
+			var params = []struct {
+				cafile      string
+				certFile    string
+				certKeyFile string
+				//tlsConfigAssertion func(actual interface{}, expected ...interface{}) string
+				//expectedRootCAs      *x509.CertPool
+				//expectedCertificates []tls.Certificate
+			}{
+				{"", "", ""},
+				{"", testCertPemFile, ""},
+				{"", "", testCertKeyPemFile},
+				{testCAPemFile, testCertPemFile, ""},
+				{testCAPemFile, "", testCertKeyPemFile},
+			}
+
+			for _, p := range params {
+				tlsConfig, err := newTLSConfig(p.cafile, p.certFile, p.certKeyFile)
+				So(err, ShouldBeNil)
+				So(tlsConfig, ShouldBeNil)
+			}
+		})
+
+		Convey("When parameters that expects meaningful result", func() {
+			var params = []struct {
+				cafile                string
+				certFile              string
+				certKeyFile           string
+				rootCAsAssertion      func(actual interface{}, expected ...interface{}) string
+				certificatesAssertion func(actual interface{}, expected ...interface{}) string
+			}{
+				{testCAPemFile, "", "", ShouldNotBeNil, ShouldBeNil},
+				{testCAPemFile, testCertPemFile, testCertKeyPemFile, ShouldNotBeNil, ShouldNotBeNil},
+				{"", testCertPemFile, testCertKeyPemFile, ShouldBeNil, ShouldNotBeNil},
+			}
+
+			for _, p := range params {
+				tlsConfig, err := newTLSConfig(p.cafile, p.certFile, p.certKeyFile)
+				So(err, ShouldBeNil)
+				So(tlsConfig.RootCAs, p.rootCAsAssertion)
+				So(tlsConfig.Certificates, p.certificatesAssertion)
+			}
 		})
 	})
 }

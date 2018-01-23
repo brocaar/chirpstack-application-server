@@ -74,8 +74,23 @@ func NewHandler(server, username, password, cafile, certFile, certKeyFile string
 }
 
 func newTLSConfig(cafile, certFile, certKeyFile string) (*tls.Config, error) {
-	if cafile == "" && (certFile == "" || certKeyFile == "") {
-		log.Info("handler/mqtt: TLS config is empty")
+	// Here are three valid options:
+	//   - Only CA
+	//   - TLS cert + key
+	//   - CA, TLS cert + key
+	// Ref: https://github.com/brocaar/lora-app-server/pull/201#discussion_r162909271
+
+	if (certFile == "" || certKeyFile == "") && (cafile == "" || certFile != certKeyFile) {
+		//                                                       ~~~~~~~~~~~~~~~~~~~~~~~ means XOR
+		log.WithFields(log.Fields{
+			"cafile":      cafile,
+			"certFile":    certFile,
+			"certKeyFile": certKeyFile,
+		}).Info(`handler/mqtt: TLS config is empty or invalid. MQTT TLS configuration allows three patterns:
+1. Only CA
+2. TLS cert + key
+3. CA, TLS cert + key
+`)
 		return nil, nil
 	}
 

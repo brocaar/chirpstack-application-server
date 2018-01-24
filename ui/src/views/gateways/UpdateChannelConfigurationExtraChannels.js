@@ -11,7 +11,8 @@ class ExtraChannel extends Component {
     this.onDelete = this.onDelete.bind(this);
   }
 
-  onDelete() {
+  onDelete(e) {
+    e.preventDefault();
     if (window.confirm("Are you sure you would like to delete this channel?")) {
       GatewayStore.deleteExtraChannel(this.props.networkServerID, this.props.channel.id, (responseData) => {
         this.props.onChange();
@@ -27,7 +28,7 @@ class ExtraChannel extends Component {
         <td>{this.props.channel.bandwidth}</td>
         <td>{this.props.channel.spreadFactors.join(", ")}</td>
         <td>{this.props.channel.bitRate > 0 ? this.props.channel.bitRate : ""}</td>
-        <td><a className="btn btn-danger btn-xs pull-right" onClick={this.onDelete} href="#delete"><span className="glyphicon glyphicon-remove" aria-hidden="true"></span></a></td>
+        <td><a className="btn btn-danger btn-xs pull-right" onClick={this.onDelete} href="#delete"><span className="glyphicon glyphicon-remove" aria-hidden="true"></span> remove</a></td>
       </tr>
     );
   }

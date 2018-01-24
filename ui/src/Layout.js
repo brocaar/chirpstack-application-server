@@ -59,7 +59,8 @@ class Layout extends Component {
 
               <Route exact path="/network-servers" component={ListNetworkServers} />
               <Route exact path="/network-servers/create" component={CreateNetworkServer} />
-              <Route path="/network-servers/:networkServerID/channel-configurations/:channelConfigurationID" component={ChannelConfigurationLayout} />
+              {/* \d+ regexp to make sure we don't match channel-configurations/create */}
+              <Route path="/network-servers/:networkServerID/channel-configurations/:channelConfigurationID(\d+)" component={ChannelConfigurationLayout} />
               <Route path="/network-servers/:networkServerID" component={NetworkServerLayout} />
 
               <Route exact path="/organizations" component={ListOrganizations} />

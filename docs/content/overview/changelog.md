@@ -8,6 +8,43 @@ menu:
 
 ## Changelog
 
+### 0.17.0
+
+**Features:**
+
+* Device *last seen* timestamp is now stored and displayed in device list
+* In the service-profile, it is now possible to set the
+  * Device-status request frequency
+  * Report battery level
+  * Report margin
+
+  When the interval is set to > 0 and reporting of this status is enabled,
+  then this information is displayed in the device list and exposed over MQTT
+  and the configured integrations.
+
+* Extra logging has been added:
+  * gRPC API calls (to the gRPC server and by the gRPC clients) are logged
+    as `info`
+  * Executed SQL queries are logged as `debug`
+* A warning is displayed in the web-interface when creating a service-profile
+  when no network-server is connected.
+* A warning is displayed in the web-interface when creating a device-profile
+  when the organization is not associated with a network-server.
+
+**Internal changes:**
+
+* The project moved to using [dep](https://github.com/golang/dep) as vendoring
+  tool. In case you run into compiling issues, remove the `vendor` folder
+  (which is not part of the repository anymore) and run `make requirements`.
+
+* The front-end code has been updated to use React 16.2.0 and all dependencies
+  have been updated.
+
+**Bugfixes:**
+
+* `--gw-ping-dr 0` is now handled correctly ([#204](https://github.com/brocaar/lora-app-server/pull/204))
+
+
 ### 0.16.1
 
 

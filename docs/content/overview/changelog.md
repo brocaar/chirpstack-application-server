@@ -13,6 +13,7 @@ menu:
 **Bugfixes:**
 
 * Fix missing `/` prefix in two UI links causing a redirect to the login page.
+* Fix typo in TLS certificate loading causing error *failed to find certificate PEM data in certificate input* (thanks [@Francisco_Rivas](https://forum.loraserver.io/u/Francisco_Rivas/summary))
 
 ### 0.17.0
 

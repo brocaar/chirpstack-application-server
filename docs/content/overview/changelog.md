@@ -8,6 +8,12 @@ menu:
 
 ## Changelog
 
+### 0.17.1
+
+**Bugfixes:**
+
+* Fix missing `/` prefix in two UI links causing a redirect to the login page.
+
 ### 0.17.0
 
 **Features:**

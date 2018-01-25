@@ -121,7 +121,7 @@ class ServiceProfileForm extends Component {
       <Loaded loaded={this.state.loaded}>
         <form onSubmit={this.handleSubmit}>
           <div className={"alert alert-warning " + (this.state.networkServers.length > 0 ? 'hidden' : '')}>
-            No network-servers are available, a <Link to="network-servers">network-server</Link> needs to be added first to this installation.
+            No network-servers are available, a <Link to="/network-servers">network-server</Link> needs to be added first to this installation.
           </div>
           <fieldset disabled={!this.state.isAdmin}>
             <div className="form-group">

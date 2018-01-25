@@ -140,7 +140,7 @@ class DeviceProfileForm extends Component {
           <hr />
           <form onSubmit={this.handleSubmit}>
             <div className={"alert alert-warning " + (this.state.networkServers.length > 0 ? 'hidden' : '')}>
-              No network-servers are associated with this organization, a <Link to={`organizations/${this.props.organizationID}/service-profiles`}>service-profile</Link> needs to be created first for this organization.
+              No network-servers are associated with this organization, a <Link to={`/organizations/${this.props.organizationID}/service-profiles`}>service-profile</Link> needs to be created first for this organization.
             </div>
             <fieldset disabled={!this.state.isAdmin}>
               <div className={(this.state.activeTab === "general" ? "" : "hidden")}>

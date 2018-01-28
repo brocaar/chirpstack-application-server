@@ -7,7 +7,7 @@ GOARCH ?= amd64
 build: ui/build internal/statics internal/migrations
 	@echo "Compiling source for $(GOOS) $(GOARCH)"
 	@mkdir -p build
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -a -installsuffix cgo -ldflags "-X main.version=$(VERSION)" -o build/lora-app-server$(BINEXT) cmd/lora-app-server/main.go
+	@GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(GO_EXTRA_BUILD_ARGS) -ldflags "-X main.version=$(VERSION)" -o build/lora-app-server$(BINEXT) cmd/lora-app-server/main.go
 
 clean:
 	@echo "Cleaning up workspace"
@@ -73,7 +73,7 @@ requirements:
 	@go get -u github.com/smartystreets/goconvey
 	@go get -u golang.org/x/tools/cmd/stringer
 	@go get -u github.com/golang/dep/cmd/dep
-	@dep ensure
+	@dep ensure -v
 
 ui-requirements:
 	@echo "Installing UI requirements"

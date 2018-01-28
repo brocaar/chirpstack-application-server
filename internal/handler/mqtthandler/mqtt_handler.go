@@ -15,8 +15,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"errors"
-
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -80,20 +78,6 @@ func newTLSConfig(cafile, certFile, certKeyFile string) (*tls.Config, error) {
 	//   - Only CA
 	//   - TLS cert + key
 	//   - CA, TLS cert + key
-	// Ref: https://github.com/brocaar/lora-app-server/pull/201#discussion_r162909271
-
-	if (certFile == "" || certKeyFile == "") && (certFile != certKeyFile) { // check exclusive empty string (like XOR)
-		log.WithFields(log.Fields{
-			"cafile":      cafile,
-			"certFile":    certFile,
-			"certKeyFile": certKeyFile,
-		}).Error(`handler/mqtt: TLS config is invalid. Both certFile and certKeyFile must be specified. MQTT TLS configuration allows three patterns:
-1. Only CA
-2. TLS cert + key
-3. CA, TLS cert + key
-`)
-		return nil, errors.New("handler/mqtt: TLS config is invalid. Both certFile and certKeyFile must be specified")
-	}
 
 	if cafile == "" && certFile == "" && certKeyFile == "" {
 		log.Info("handler/mqtt: TLS config is empty")
@@ -116,8 +100,8 @@ func newTLSConfig(cafile, certFile, certKeyFile string) (*tls.Config, error) {
 	}
 
 	// Import certificate and the key
-	if certFile != "" && certKeyFile != "" {
-		kp, err := tls.LoadX509KeyPair(certFile, certKeyFile)
+	if certFile != "" || certKeyFile != "" {
+		kp, err := tls.LoadX509KeyPair(certFile, certKeyFile) // here raises error when the pair of cert and key are invalid (e.g. either one is empty)
 		if err != nil {
 			log.Errorf("handler/mqtt: couldn't load MQTT TLS key pair: %s", err)
 			return nil, err

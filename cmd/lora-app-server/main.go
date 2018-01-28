@@ -174,7 +174,7 @@ func setRedisPool(c *cli.Context) error {
 }
 
 func setHandler(c *cli.Context) error {
-	h, err := mqtthandler.NewHandler(c.String("mqtt-server"), c.String("mqtt-username"), c.String("mqtt-password"), c.String("mqtt-ca-cert"), c.String("mqtt-cert"), c.String("mqtt-cert-key"))
+	h, err := mqtthandler.NewHandler(c.String("mqtt-server"), c.String("mqtt-username"), c.String("mqtt-password"), c.String("mqtt-ca-cert"), c.String("mqtt-tls-cert"), c.String("mqtt-tls-key"))
 	if err != nil {
 		return errors.Wrap(err, "setup mqtt handler error")
 	}

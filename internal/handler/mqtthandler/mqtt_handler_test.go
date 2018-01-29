@@ -1,8 +1,9 @@
 package mqtthandler
 
 import (
-	"encoding/json"
 	"testing"
+
+	"encoding/json"
 	"time"
 
 	"github.com/brocaar/lora-app-server/internal/common"
@@ -28,7 +29,7 @@ func TestMQTTHandler(t *testing.T) {
 		test.MustFlushRedis(common.RedisPool)
 
 		Convey("Given a new MQTTHandler", func() {
-			h, err := NewHandler(conf.MQTTServer, conf.MQTTUsername, conf.MQTTPassword, "")
+			h, err := NewHandler(conf.MQTTServer, conf.MQTTUsername, conf.MQTTPassword, "", "", "")
 			So(err, ShouldBeNil)
 			defer h.Close()
 			time.Sleep(time.Millisecond * 100) // give the backend some time to connect

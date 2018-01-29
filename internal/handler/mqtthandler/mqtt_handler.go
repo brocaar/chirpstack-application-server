@@ -36,7 +36,7 @@ type MQTTHandler struct {
 }
 
 // NewHandler creates a new MQTTHandler.
-func NewHandler(server, username, password, cafile string) (handler.Handler, error) {
+func NewHandler(server, username, password, cafile, certFile, certKeyFile string) (handler.Handler, error) {
 	h := MQTTHandler{
 		dataDownChan: make(chan handler.DataDownPayload),
 	}
@@ -48,13 +48,16 @@ func NewHandler(server, username, password, cafile string) (handler.Handler, err
 	opts.SetOnConnectHandler(h.onConnected)
 	opts.SetConnectionLostHandler(h.onConnectionLost)
 
-	if cafile != "" {
-		tlsconfig, err := newTLSConfig(cafile)
-		if err != nil {
-			log.Fatalf("Error with the mqtt CA certificate: %s", err)
-		} else {
-			opts.SetTLSConfig(tlsconfig)
-		}
+	tlsconfig, err := newTLSConfig(cafile, certFile, certKeyFile)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"ca_cert":  cafile,
+			"tls_cert": certFile,
+			"tls_key":  certKeyFile,
+		}).Fatalf("error loading mqtt certificate files")
+	}
+	if tlsconfig != nil {
+		opts.SetTLSConfig(tlsconfig)
 	}
 
 	log.WithField("server", server).Info("handler/mqtt: connecting to mqtt broker")
@@ -70,23 +73,43 @@ func NewHandler(server, username, password, cafile string) (handler.Handler, err
 	return &h, nil
 }
 
-func newTLSConfig(cafile string) (*tls.Config, error) {
-	// Import trusted certificates from CAfile.pem.
+func newTLSConfig(cafile, certFile, certKeyFile string) (*tls.Config, error) {
+	// Here are three valid options:
+	//   - Only CA
+	//   - TLS cert + key
+	//   - CA, TLS cert + key
 
-	cert, err := ioutil.ReadFile(cafile)
-	if err != nil {
-		log.Errorf("backend: couldn't load cafile: %s", err)
-		return nil, err
+	if cafile == "" && certFile == "" && certKeyFile == "" {
+		log.Info("handler/mqtt: TLS config is empty")
+		return nil, nil
 	}
 
-	certpool := x509.NewCertPool()
-	certpool.AppendCertsFromPEM(cert)
+	tlsConfig := &tls.Config{}
 
-	// Create tls.Config with desired tls properties
-	return &tls.Config{
-		// RootCAs = certs used to verify server cert.
-		RootCAs: certpool,
-	}, nil
+	// Import trusted certificates from CAfile.pem.
+	if cafile != "" {
+		cacert, err := ioutil.ReadFile(cafile)
+		if err != nil {
+			log.Errorf("handler/mqtt: couldn't load cafile: %s", err)
+			return nil, err
+		}
+		certpool := x509.NewCertPool()
+		certpool.AppendCertsFromPEM(cacert)
+
+		tlsConfig.RootCAs = certpool // RootCAs = certs used to verify server cert.
+	}
+
+	// Import certificate and the key
+	if certFile != "" || certKeyFile != "" {
+		kp, err := tls.LoadX509KeyPair(certFile, certKeyFile) // here raises error when the pair of cert and key are invalid (e.g. either one is empty)
+		if err != nil {
+			log.Errorf("handler/mqtt: couldn't load MQTT TLS key pair: %s", err)
+			return nil, err
+		}
+		tlsConfig.Certificates = []tls.Certificate{kp}
+	}
+
+	return tlsConfig, nil
 }
 
 // Close stops the handler.

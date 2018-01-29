@@ -174,7 +174,7 @@ func setRedisPool(c *cli.Context) error {
 }
 
 func setHandler(c *cli.Context) error {
-	h, err := mqtthandler.NewHandler(c.String("mqtt-server"), c.String("mqtt-username"), c.String("mqtt-password"), c.String("mqtt-ca-cert"))
+	h, err := mqtthandler.NewHandler(c.String("mqtt-server"), c.String("mqtt-username"), c.String("mqtt-password"), c.String("mqtt-ca-cert"), c.String("mqtt-tls-cert"), c.String("mqtt-tls-key"))
 	if err != nil {
 		return errors.Wrap(err, "setup mqtt handler error")
 	}
@@ -599,6 +599,16 @@ func main() {
 			Name:   "mqtt-ca-cert",
 			Usage:  "mqtt CA certificate file used by the gateway backend (optional)",
 			EnvVar: "MQTT_CA_CERT",
+		},
+		cli.StringFlag{
+			Name:   "mqtt-tls-cert",
+			Usage:  "mqtt certificate file used by the gateway backend (optional)",
+			EnvVar: "MQTT_CERT",
+		},
+		cli.StringFlag{
+			Name:   "mqtt-tls-key",
+			Usage:  "mqtt key file of certificate used by the gateway backend (optional)",
+			EnvVar: "MQTT_CERT_KEY",
 		},
 		cli.StringFlag{
 			Name:   "as-public-server",

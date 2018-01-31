@@ -603,12 +603,12 @@ func main() {
 		cli.StringFlag{
 			Name:   "mqtt-tls-cert",
 			Usage:  "mqtt certificate file used by the gateway backend (optional)",
-			EnvVar: "MQTT_CERT",
+			EnvVar: "MQTT_TLS_CERT",
 		},
 		cli.StringFlag{
 			Name:   "mqtt-tls-key",
 			Usage:  "mqtt key file of certificate used by the gateway backend (optional)",
-			EnvVar: "MQTT_CERT_KEY",
+			EnvVar: "MQTT_TLS_KEY",
 		},
 		cli.StringFlag{
 			Name:   "as-public-server",

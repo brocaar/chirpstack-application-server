@@ -9,7 +9,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
 )
 
@@ -19,9 +19,9 @@ func TestDeviceQueueMapping(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 	nsClient := test.NewNetworkServerClient()
-	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database and a device", t, func() {
 		test.MustResetDB(db)
@@ -29,34 +29,34 @@ func TestDeviceQueueMapping(t *testing.T) {
 		org := Organization{
 			Name: "test-org",
 		}
-		So(CreateOrganization(common.DB, &org), ShouldBeNil)
+		So(CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		n := NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		sp := ServiceProfile{
 			NetworkServerID: n.ID,
 			OrganizationID:  org.ID,
 			Name:            "test-sp",
 		}
-		So(CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+		So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
 		dp := DeviceProfile{
 			NetworkServerID: n.ID,
 			OrganizationID:  org.ID,
 			Name:            "test-dp",
 		}
-		So(CreateDeviceProfile(common.DB, &dp), ShouldBeNil)
+		So(CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
 
 		app := Application{
 			OrganizationID:   org.ID,
 			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 			Name:             "test-app",
 		}
-		So(CreateApplication(common.DB, &app), ShouldBeNil)
+		So(CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
 
 		d := Device{
 			Name:            "test-device",
@@ -64,7 +64,7 @@ func TestDeviceQueueMapping(t *testing.T) {
 			ApplicationID:   app.ID,
 			DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
 		}
-		So(CreateDevice(common.DB, &d), ShouldBeNil)
+		So(CreateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 
 		Convey("When creating a device-queue mapping", func() {
 			dqm := DeviceQueueMapping{
@@ -72,25 +72,25 @@ func TestDeviceQueueMapping(t *testing.T) {
 				DevEUI:    d.DevEUI,
 				FCnt:      10,
 			}
-			So(CreateDeviceQueueMapping(common.DB, &dqm), ShouldBeNil)
+			So(CreateDeviceQueueMapping(config.C.PostgreSQL.DB, &dqm), ShouldBeNil)
 			dqm.CreatedAt = dqm.CreatedAt.UTC().Truncate(time.Millisecond)
 
 			Convey("Then GetDeviceQueueMappingForDevEUIAndFCnt with the same FCnt returns it", func() {
-				dqmGet, err := GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, d.DevEUI, 10)
+				dqmGet, err := GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, d.DevEUI, 10)
 				So(err, ShouldBeNil)
 				dqmGet.CreatedAt = dqmGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				So(dqmGet, ShouldResemble, dqm)
 			})
 
 			Convey("Then DeleteDeviceQueueMapping deletes the mapping", func() {
-				So(DeleteDeviceQueueMapping(common.DB, dqm.ID), ShouldBeNil)
-				_, err := GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, d.DevEUI, 10)
+				So(DeleteDeviceQueueMapping(config.C.PostgreSQL.DB, dqm.ID), ShouldBeNil)
+				_, err := GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, d.DevEUI, 10)
 				So(err, ShouldEqual, ErrDoesNotExist)
 			})
 
 			Convey("Then FlushDeviceQueueMappingForDevEUI flushes all mappings", func() {
-				So(FlushDeviceQueueMappingForDevEUI(common.DB, d.DevEUI), ShouldBeNil)
-				_, err := GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, d.DevEUI, 10)
+				So(FlushDeviceQueueMappingForDevEUI(config.C.PostgreSQL.DB, d.DevEUI), ShouldBeNil)
+				_, err := GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, d.DevEUI, 10)
 				So(err, ShouldEqual, ErrDoesNotExist)
 			})
 
@@ -136,10 +136,10 @@ func TestDeviceQueueMapping(t *testing.T) {
 				Convey(fmt.Sprintf("Testing: %s [%d]", test.Name, i), func() {
 					// create mappings
 					for i := range test.Mappings {
-						So(CreateDeviceQueueMapping(common.DB, &test.Mappings[i]), ShouldBeNil)
+						So(CreateDeviceQueueMapping(config.C.PostgreSQL.DB, &test.Mappings[i]), ShouldBeNil)
 					}
 
-					dqm, err := GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, d.DevEUI, test.FCnt)
+					dqm, err := GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, d.DevEUI, test.FCnt)
 					if test.ExpectedError != nil {
 						So(err, ShouldResemble, test.ExpectedError)
 						return

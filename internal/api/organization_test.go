@@ -7,7 +7,7 @@ import (
 	"golang.org/x/net/context"
 
 	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 )
@@ -18,8 +18,8 @@ func TestOrganizationAPI(t *testing.T) {
 	Convey("Given a clean database and api instance", t, func() {
 		db, err := storage.OpenDatabase(conf.PostgresDSN)
 		So(err, ShouldBeNil)
-		common.DB = db
-		test.MustResetDB(common.DB)
+		config.C.PostgreSQL.DB = db
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		ctx := context.Background()
 		validator := &TestValidator{}

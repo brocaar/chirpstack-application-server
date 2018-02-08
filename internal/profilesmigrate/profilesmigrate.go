@@ -5,14 +5,14 @@ import (
 	"database/sql/driver"
 	"fmt"
 
-	"github.com/brocaar/loraserver/api/ns"
-
-	"github.com/brocaar/lora-app-server/internal/common"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lorawan"
-	"github.com/brocaar/lorawan/backend"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+
+	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/loraserver/api/ns"
+	"github.com/brocaar/lorawan"
+	"github.com/brocaar/lorawan/backend"
 )
 
 // DevNonceList represents a list of dev nonces
@@ -99,12 +99,12 @@ type Node struct {
 
 // StartProfilesMigration starts the profiles migration.
 func StartProfilesMigration(nsServer string) error {
-	nsCount, err := storage.GetNetworkServerCount(common.DB)
+	nsCount, err := storage.GetNetworkServerCount(config.C.PostgreSQL.DB)
 	if err != nil {
 		return errors.Wrap(err, "get network-server count error")
 	}
 
-	appCount, err := storage.GetApplicationCount(common.DB)
+	appCount, err := storage.GetApplicationCount(config.C.PostgreSQL.DB)
 	if err != nil {
 		return errors.Wrap(err, "get applications count error")
 	}
@@ -120,7 +120,7 @@ func StartProfilesMigration(nsServer string) error {
 		Server: nsServer,
 	}
 
-	return storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	return storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		err = storage.CreateNetworkServer(tx, &n)
 		if err != nil {
 			return errors.Wrap(err, "create network-server error")
@@ -287,7 +287,7 @@ func migrateDevicesForApplication(tx sqlx.Ext, n storage.NetworkServer, app stor
 			nonces = append(nonces, node.UsedDevNonces[i][:])
 		}
 
-		nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+		nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 		if err != nil {
 			return errors.Wrap(err, "get network-server client error")
 		}

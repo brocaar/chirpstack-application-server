@@ -3,6 +3,8 @@ package api
 import (
 	"encoding/json"
 
+	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -10,13 +12,11 @@ import (
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/downlink"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
-	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
 )
 
 // DeviceQueueAPI exposes the downlink queue methods.
@@ -45,12 +45,12 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 
 	// if JSON object is set, try to encode it to bytes
 	if req.JsonObject != "" {
-		dev, err := storage.GetDevice(common.DB, devEUI)
+		dev, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 
-		app, err := storage.GetApplication(common.DB, dev.ApplicationID)
+		app, err := storage.GetApplication(config.C.PostgreSQL.DB, dev.ApplicationID)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
@@ -72,7 +72,7 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 		}
 	}
 
-	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		if err := downlink.EnqueueDownlinkPayload(tx, devEUI, req.Reference, req.Confirmed, uint8(req.FPort), req.Data); err != nil {
 			return errors.Wrap(err, "enqueue downlink payload error")
 		}
@@ -97,17 +97,17 @@ func (d *DeviceQueueAPI) Flush(ctx context.Context, req *pb.FlushDeviceQueueRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServerForDevEUI(common.DB, devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		if err := storage.FlushDeviceQueueMappingForDevEUI(tx, devEUI); err != nil {
 			return errToRPCError(err)
 		}
@@ -136,17 +136,17 @@ func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsR
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, devEUI)
+	da, err := storage.GetLastDeviceActivationForDevEUI(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	n, err := storage.GetNetworkServerForDevEUI(common.DB, devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

@@ -10,7 +10,7 @@ import (
 
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lorawan/backend"
 )
@@ -80,7 +80,7 @@ func (a *ServiceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateSer
 
 	// as this also performs a remote call to create the service-profile
 	// on the network-server, wrap it in a transaction
-	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		return storage.CreateServiceProfile(tx, &sp)
 	})
 	if err != nil {
@@ -100,7 +100,7 @@ func (a *ServiceProfileServiceAPI) Get(ctx context.Context, req *pb.GetServicePr
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	sp, err := storage.GetServiceProfile(common.DB, req.ServiceProfileID)
+	sp, err := storage.GetServiceProfile(config.C.PostgreSQL.DB, req.ServiceProfileID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -162,7 +162,7 @@ func (a *ServiceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateSer
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	sp, err := storage.GetServiceProfile(common.DB, req.ServiceProfile.ServiceProfileID)
+	sp, err := storage.GetServiceProfile(config.C.PostgreSQL.DB, req.ServiceProfile.ServiceProfileID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -205,7 +205,7 @@ func (a *ServiceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateSer
 
 	// as this also performs a remote call to create the service-profile
 	// on the network-server, wrap it in a transaction
-	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		return storage.UpdateServiceProfile(tx, &sp)
 	})
 	if err != nil {
@@ -223,7 +223,7 @@ func (a *ServiceProfileServiceAPI) Delete(ctx context.Context, req *pb.DeleteSer
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		return storage.DeleteServiceProfile(tx, req.ServiceProfileID)
 	})
 	if err != nil {
@@ -256,33 +256,33 @@ func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListService
 
 	if req.OrganizationID == 0 {
 		if isAdmin {
-			sps, err = storage.GetServiceProfiles(common.DB, int(req.Limit), int(req.Offset))
+			sps, err = storage.GetServiceProfiles(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 
-			count, err = storage.GetServiceProfileCount(common.DB)
+			count, err = storage.GetServiceProfileCount(config.C.PostgreSQL.DB)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		} else {
-			sps, err = storage.GetServiceProfilesForUser(common.DB, username, int(req.Limit), int(req.Offset))
+			sps, err = storage.GetServiceProfilesForUser(config.C.PostgreSQL.DB, username, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 
-			count, err = storage.GetServiceProfileCountForUser(common.DB, username)
+			count, err = storage.GetServiceProfileCountForUser(config.C.PostgreSQL.DB, username)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		}
 	} else {
-		sps, err = storage.GetServiceProfilesForOrganizationID(common.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+		sps, err = storage.GetServiceProfilesForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 
-		count, err = storage.GetServiceProfileCountForOrganizationID(common.DB, req.OrganizationID)
+		count, err = storage.GetServiceProfileCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}

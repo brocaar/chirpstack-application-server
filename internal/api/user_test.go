@@ -6,11 +6,10 @@ import (
 	"github.com/brocaar/loraserver/api/ns"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/urfave/cli"
 	"golang.org/x/net/context"
 
 	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 )
@@ -22,28 +21,28 @@ func TestUserAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 
 	Convey("Given a clean database and api instance", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		nsClient := test.NewNetworkServerClient()
 		nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
 			DeviceProfile: &ns.DeviceProfile{},
 		}
 
-		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 		ctx := context.Background()
 		validator := &TestValidator{}
 		api := NewUserAPI(validator)
-		apiInternal := NewInternalUserAPI(validator, &cli.Context{})
+		apiInternal := NewInternalUserAPI(validator)
 
 		Convey("When creating an user assigned to an organization", func() {
 			org := storage.Organization{
 				Name: "test-org",
 			}
-			So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
+			So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 			createReq := pb.AddUserRequest{
 				Username: "testuser",
@@ -57,7 +56,7 @@ func TestUserAPI(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(createResp.Id, ShouldBeGreaterThan, 0)
 
-			users, err := storage.GetOrganizationUsers(common.DB, org.ID, 10, 0)
+			users, err := storage.GetOrganizationUsers(config.C.PostgreSQL.DB, org.ID, 10, 0)
 			So(err, ShouldBeNil)
 			So(users, ShouldHaveLength, 1)
 			So(users[0].UserID, ShouldEqual, createResp.Id)

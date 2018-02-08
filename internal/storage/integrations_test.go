@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan/backend"
 	. "github.com/smartystreets/goconvey/convey"
@@ -22,12 +22,12 @@ func TestIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 	nsClient := test.NewNetworkServerClient()
-	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database with an organization, network-server, service-profile, and application", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		org := Organization{
 			Name: "test-org",
@@ -38,7 +38,7 @@ func TestIntegration(t *testing.T) {
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		sp := ServiceProfile{
 			OrganizationID:  org.ID,
@@ -46,7 +46,7 @@ func TestIntegration(t *testing.T) {
 			Name:            "test-sp",
 			ServiceProfile:  backend.ServiceProfile{},
 		}
-		So(CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+		So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
 		app := Application{
 			OrganizationID:   org.ID,

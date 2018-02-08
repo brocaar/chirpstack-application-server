@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
 	"github.com/brocaar/loraserver/api/ns"
@@ -48,12 +48,12 @@ func HandleReceivedPing(req *as.HandleProprietaryUplinkRequest) error {
 		log.Errorf("delete ping lookup error: %s", err)
 	}
 
-	ping, err := storage.GetGatewayPing(common.DB, id)
+	ping, err := storage.GetGatewayPing(config.C.PostgreSQL.DB, id)
 	if err != nil {
 		return errors.Wrap(err, "get gateway ping error")
 	}
 
-	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		for _, rx := range req.RxInfo {
 			var receivedAt *time.Time
 			var mac lorawan.EUI64
@@ -100,7 +100,7 @@ func HandleReceivedPing(req *as.HandleProprietaryUplinkRequest) error {
 // sendGatewayPing selects the next gateway to ping, creates the "ping"
 // frame and sends this frame to the network-server for transmission.
 func sendGatewayPing() error {
-	return storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	return storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		gw, err := getGatewayForPing(tx)
 		if err != nil {
 			return errors.Wrap(err, "get gateway for ping error")
@@ -111,8 +111,8 @@ func sendGatewayPing() error {
 
 		ping := storage.GatewayPing{
 			GatewayMAC: gw.MAC,
-			Frequency:  common.GatewayPingFrequency,
-			DR:         common.GatewayPingDR,
+			Frequency:  config.C.ApplicationServer.GatewayDiscovery.Frequency,
+			DR:         config.C.ApplicationServer.GatewayDiscovery.DR,
 		}
 		err = storage.CreateGatewayPing(tx, &ping)
 		if err != nil {
@@ -160,7 +160,7 @@ func getGatewayForPing(tx sqlx.Ext) (*storage.Gateway, error) {
 		order by last_ping_sent_at
 		limit 1
 		for update`,
-		time.Now().Add(-common.GatewayPingInterval),
+		time.Now().Add(-config.C.ApplicationServer.GatewayDiscovery.Interval),
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -173,17 +173,17 @@ func getGatewayForPing(tx sqlx.Ext) (*storage.Gateway, error) {
 }
 
 func sendPing(mic lorawan.MIC, ping storage.GatewayPing) error {
-	gw, err := storage.GetGateway(common.DB, ping.GatewayMAC, false)
+	gw, err := storage.GetGateway(config.C.PostgreSQL.DB, ping.GatewayMAC, false)
 	if err != nil {
 		return errors.Wrap(err, "get gateway error")
 	}
 
-	n, err := storage.GetNetworkServer(common.DB, gw.NetworkServerID)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, gw.NetworkServerID)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -209,7 +209,7 @@ func sendPing(mic lorawan.MIC, ping storage.GatewayPing) error {
 
 // CreatePingLookup creates an automatically expiring MIC to ping id lookup.
 func CreatePingLookup(mic lorawan.MIC, id int64) error {
-	c := common.RedisPool.Get()
+	c := config.C.Redis.Pool.Get()
 	defer c.Close()
 
 	_, err := redis.String(c.Do("PSETEX", fmt.Sprintf(micLookupTempl, mic), int64(micLookupExpire)/int64(time.Millisecond), id))
@@ -220,7 +220,7 @@ func CreatePingLookup(mic lorawan.MIC, id int64) error {
 }
 
 func getPingLookup(mic lorawan.MIC) (int64, error) {
-	c := common.RedisPool.Get()
+	c := config.C.Redis.Pool.Get()
 	defer c.Close()
 
 	id, err := redis.Int64(c.Do("GET", fmt.Sprintf(micLookupTempl, mic)))
@@ -232,7 +232,7 @@ func getPingLookup(mic lorawan.MIC) (int64, error) {
 }
 
 func deletePingLookup(mic lorawan.MIC) error {
-	c := common.RedisPool.Get()
+	c := config.C.Redis.Pool.Get()
 	defer c.Close()
 
 	_, err := redis.Int(c.Do("DEL", fmt.Sprintf(micLookupTempl, mic)))

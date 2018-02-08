@@ -6,12 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/handler/httphandler"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 // Handler kinds
@@ -101,7 +102,7 @@ func (w Handler) getHandlersForApplicationID(id int64) ([]handler.IntegrationHan
 	handlers := []handler.IntegrationHandler{w.defaultHandler}
 
 	// read integrations
-	integrations, err := storage.GetIntegrationsForApplicationID(common.DB, id)
+	integrations, err := storage.GetIntegrationsForApplicationID(config.C.PostgreSQL.DB, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "get integrtions for application id error")
 	}

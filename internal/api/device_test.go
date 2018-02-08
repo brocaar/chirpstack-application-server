@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
@@ -27,16 +27,16 @@ func TestNodeAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 
 	Convey("Given a clean database with an organization, application and api instance", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		nsClient := test.NewNetworkServerClient()
 		nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
 			DeviceProfile: &ns.DeviceProfile{},
 		}
-		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 		ctx := context.Background()
 		validator := &TestValidator{}
@@ -45,13 +45,13 @@ func TestNodeAPI(t *testing.T) {
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
+		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		n := storage.NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		sp := storage.ServiceProfile{
 			Name:            "test-sp",
@@ -59,14 +59,14 @@ func TestNodeAPI(t *testing.T) {
 			NetworkServerID: n.ID,
 			ServiceProfile:  backend.ServiceProfile{},
 		}
-		So(storage.CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+		So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
 		app := storage.Application{
 			OrganizationID:   org.ID,
 			Name:             "test-app",
 			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 		}
-		So(storage.CreateApplication(common.DB, &app), ShouldBeNil)
+		So(storage.CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
 
 		dp := storage.DeviceProfile{
 			Name:            "test-dp",
@@ -74,7 +74,7 @@ func TestNodeAPI(t *testing.T) {
 			NetworkServerID: n.ID,
 			DeviceProfile:   backend.DeviceProfile{},
 		}
-		So(storage.CreateDeviceProfile(common.DB, &dp), ShouldBeNil)
+		So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
 
 		Convey("When creating a device without a name set", func() {
 			_, err := api.Create(ctx, &pb.CreateDeviceRequest{
@@ -129,11 +129,11 @@ func TestNodeAPI(t *testing.T) {
 					ten := 10
 					eleven := 11
 
-					d, err := storage.GetDevice(common.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
+					d, err := storage.GetDevice(config.C.PostgreSQL.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
 					So(err, ShouldBeNil)
 					d.DeviceStatusBattery = &ten
 					d.DeviceStatusMargin = &eleven
-					So(storage.UpdateDevice(common.DB, &d), ShouldBeNil)
+					So(storage.UpdateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 
 					Convey("Then Get returns the battery and margin status", func() {
 						d, err := api.Get(ctx, &pb.GetDeviceRequest{
@@ -148,10 +148,10 @@ func TestNodeAPI(t *testing.T) {
 				Convey("When setting the LastSeenAt timestamp", func() {
 					now := time.Now().Truncate(time.Millisecond)
 
-					d, err := storage.GetDevice(common.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
+					d, err := storage.GetDevice(config.C.PostgreSQL.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
 					So(err, ShouldBeNil)
 					d.LastSeenAt = &now
-					So(storage.UpdateDevice(common.DB, &d), ShouldBeNil)
+					So(storage.UpdateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 
 					Convey("Then Get returns the last-seen timestamp", func() {
 						d, err := api.Get(ctx, &pb.GetDeviceRequest{
@@ -321,7 +321,7 @@ func TestNodeAPI(t *testing.T) {
 				})
 
 				Convey("Then the activation was stored", func() {
-					da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, [8]byte{8, 7, 6, 5, 4, 3, 2, 1})
+					da, err := storage.GetLastDeviceActivationForDevEUI(config.C.PostgreSQL.DB, [8]byte{8, 7, 6, 5, 4, 3, 2, 1})
 					So(err, ShouldBeNil)
 					So(da.AppSKey, ShouldEqual, lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8})
 					So(da.NwkSKey, ShouldEqual, lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1})

@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan/backend"
@@ -21,13 +21,13 @@ func TestNetworkServerAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 
 	Convey("Given a clean database and api instance", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		nsClient := test.NewNetworkServerClient()
-		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 		ctx := context.Background()
 		validator := &TestValidator{}
@@ -36,7 +36,7 @@ func TestNetworkServerAPI(t *testing.T) {
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
+		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		Convey("Then Create creates a network-server", func() {
 			resp, err := api.Create(ctx, &pb.CreateNetworkServerRequest{
@@ -62,7 +62,7 @@ func TestNetworkServerAPI(t *testing.T) {
 			})
 
 			Convey("Then the CA and TLS fields are populated", func() {
-				n, err := storage.GetNetworkServer(common.DB, resp.Id)
+				n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, resp.Id)
 				So(err, ShouldBeNil)
 				So(n.CACert, ShouldEqual, "CACERT")
 				So(n.TLSCert, ShouldEqual, "TLSCERT")
@@ -94,7 +94,7 @@ func TestNetworkServerAPI(t *testing.T) {
 				So(getResp.Server, ShouldEqual, "updated-test-ns:1234")
 
 				Convey("Then the CA and TLS fields are updated", func() {
-					n, err := storage.GetNetworkServer(common.DB, resp.Id)
+					n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, resp.Id)
 					So(err, ShouldBeNil)
 					So(n.CACert, ShouldEqual, "CACERT2")
 					So(n.TLSCert, ShouldEqual, "TLSCERT2")
@@ -144,7 +144,7 @@ func TestNetworkServerAPI(t *testing.T) {
 				org2 := storage.Organization{
 					Name: "test-org-2",
 				}
-				So(storage.CreateOrganization(common.DB, &org2), ShouldBeNil)
+				So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org2), ShouldBeNil)
 
 				sp := storage.ServiceProfile{
 					NetworkServerID: resp.Id,
@@ -152,7 +152,7 @@ func TestNetworkServerAPI(t *testing.T) {
 					Name:            "test-sp",
 					ServiceProfile:  backend.ServiceProfile{},
 				}
-				So(storage.CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+				So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
 				Convey("Then List with organization id lists the network-servers for the given organization id", func() {
 					listResp, err := api.List(ctx, &pb.ListNetworkServerRequest{

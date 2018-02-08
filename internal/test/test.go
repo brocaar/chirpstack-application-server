@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/migrations"
 	"github.com/brocaar/lora-app-server/internal/nsclient"
 	"github.com/brocaar/loraserver/api/ns"
@@ -25,8 +26,8 @@ type Config struct {
 }
 
 func init() {
-	common.ApplicationServerID = "6d5db27e-4ce2-4b2b-b5d7-91f069397978"
-	common.ApplicationServerServer = "localhost:8001"
+	config.C.ApplicationServer.ID = "6d5db27e-4ce2-4b2b-b5d7-91f069397978"
+	config.C.ApplicationServer.API.PublicHost = "localhost:8001"
 }
 
 // GetConfig returns the test configuration.

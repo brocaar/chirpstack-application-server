@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/loraserver/api/ns"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lorawan"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -201,7 +201,7 @@ func DeleteGateway(db sqlx.Ext, mac lorawan.EUI64) error {
 		return ErrDoesNotExist
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}

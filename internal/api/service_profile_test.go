@@ -12,7 +12,7 @@ import (
 	"golang.org/x/net/context"
 
 	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 )
@@ -24,13 +24,13 @@ func TestServiceProfileServiceAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 
 	Convey("Given a clean database and api instance", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		nsClient := test.NewNetworkServerClient()
-		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 		ctx := context.Background()
 		validator := &TestValidator{}
@@ -40,12 +40,12 @@ func TestServiceProfileServiceAPI(t *testing.T) {
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
+		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		Convey("Then Create creates a service-profile", func() {
 			createReq := pb.CreateServiceProfileRequest{
@@ -206,13 +206,13 @@ func TestServiceProfileServiceAPI(t *testing.T) {
 			})
 
 			Convey("GIven an organization user", func() {
-				userID, err := storage.CreateUser(common.DB, &storage.User{
+				userID, err := storage.CreateUser(config.C.PostgreSQL.DB, &storage.User{
 					Username: "testuser",
 					IsActive: true,
 					Email:    "foo@bar.com",
 				}, "testpassword")
 				So(err, ShouldBeNil)
-				So(storage.CreateOrganizationUser(common.DB, org.ID, userID, false), ShouldBeNil)
+				So(storage.CreateOrganizationUser(config.C.PostgreSQL.DB, org.ID, userID, false), ShouldBeNil)
 
 				Convey("Then List without organization id returns all service-profiles related to the user", func() {
 					validator.returnUsername = "testuser"

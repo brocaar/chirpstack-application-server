@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/ns"
@@ -20,7 +20,7 @@ import (
 // HandleDataDownPayloads handles received downlink payloads to be emitted to the
 // devices.
 func HandleDataDownPayloads() {
-	for pl := range common.Handler.DataDownChan() {
+	for pl := range config.C.ApplicationServer.Integration.Handler.DataDownChan() {
 		go func(pl handler.DataDownPayload) {
 			if err := handleDataDownPayload(pl); err != nil {
 				log.WithFields(log.Fields{
@@ -34,7 +34,7 @@ func HandleDataDownPayloads() {
 }
 
 func handleDataDownPayload(pl handler.DataDownPayload) error {
-	d, err := storage.GetDevice(common.DB, pl.DevEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, pl.DevEUI)
 	if err != nil {
 		return fmt.Errorf("get device error: %s", err)
 	}
@@ -49,7 +49,7 @@ func handleDataDownPayload(pl handler.DataDownPayload) error {
 
 	// if Object is set, try to encode it to bytes using the application codec
 	if pl.Object != nil {
-		app, err := storage.GetApplication(common.DB, d.ApplicationID)
+		app, err := storage.GetApplication(config.C.PostgreSQL.DB, d.ApplicationID)
 		if err != nil {
 			return errors.Wrap(err, "get application error")
 		}
@@ -75,7 +75,7 @@ func handleDataDownPayload(pl handler.DataDownPayload) error {
 		}
 	}
 
-	return storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	return storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		if err := EnqueueDownlinkPayload(tx, pl.DevEUI, pl.Reference, pl.Confirmed, pl.FPort, pl.Data); err != nil {
 			return errors.Wrap(err, "enqueue downlink device-queue item error")
 		}
@@ -91,7 +91,7 @@ func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, reference string,
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
 	}
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}

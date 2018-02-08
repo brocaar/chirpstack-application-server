@@ -6,7 +6,7 @@ import (
 
 	"github.com/brocaar/lorawan"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/loraserver/api/ns"
 
 	"github.com/jmoiron/sqlx"
@@ -73,15 +73,15 @@ func CreateNetworkServer(db sqlx.Queryer, n *NetworkServer) error {
 		return handlePSQLError(Insert, err, "insert error")
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
 	_, err = nsClient.CreateRoutingProfile(context.Background(), &ns.CreateRoutingProfileRequest{
 		RoutingProfile: &ns.RoutingProfile{
-			RoutingProfileID: common.ApplicationServerID,
-			AsID:             common.ApplicationServerServer,
+			RoutingProfileID: config.C.ApplicationServer.ID,
+			AsID:             config.C.ApplicationServer.API.PublicHost,
 		},
 		CaCert:  n.RoutingProfileCACert,
 		TlsCert: n.RoutingProfileTLSCert,
@@ -155,15 +155,15 @@ func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
 		return ErrDoesNotExist
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
 	_, err = nsClient.UpdateRoutingProfile(context.Background(), &ns.UpdateRoutingProfileRequest{
 		RoutingProfile: &ns.RoutingProfile{
-			RoutingProfileID: common.ApplicationServerID,
-			AsID:             common.ApplicationServerServer,
+			RoutingProfileID: config.C.ApplicationServer.ID,
+			AsID:             config.C.ApplicationServer.API.PublicHost,
 		},
 		CaCert:  n.RoutingProfileCACert,
 		TlsCert: n.RoutingProfileTLSCert,
@@ -201,13 +201,13 @@ func DeleteNetworkServer(db sqlx.Ext, id int64) error {
 		return ErrDoesNotExist
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
 	_, err = nsClient.DeleteRoutingProfile(context.Background(), &ns.DeleteRoutingProfileRequest{
-		RoutingProfileID: common.ApplicationServerID,
+		RoutingProfileID: config.C.ApplicationServer.ID,
 	})
 	if err != nil {
 		log.WithError(err).Error("network-server delete routing-profile api error")

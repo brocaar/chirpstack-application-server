@@ -5,11 +5,10 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/brocaar/lora-app-server/internal/handler"
-
 	"github.com/pkg/errors"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/backend"
@@ -110,7 +109,7 @@ func setPHYPayload(ctx *context) error {
 }
 
 func getDevice(ctx *context) error {
-	d, err := storage.GetDevice(common.DB, ctx.joinReqPayload.DevEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, ctx.joinReqPayload.DevEUI)
 	if err != nil {
 		return errors.Wrap(err, "get device error")
 	}
@@ -120,7 +119,7 @@ func getDevice(ctx *context) error {
 }
 
 func getApplication(ctx *context) error {
-	a, err := storage.GetApplication(common.DB, ctx.device.ApplicationID)
+	a, err := storage.GetApplication(config.C.PostgreSQL.DB, ctx.device.ApplicationID)
 	if err != nil {
 		return errors.Wrap(err, "get application error")
 	}
@@ -130,7 +129,7 @@ func getApplication(ctx *context) error {
 }
 
 func getDeviceKeys(ctx *context) error {
-	dk, err := storage.GetDeviceKeys(common.DB, ctx.device.DevEUI)
+	dk, err := storage.GetDeviceKeys(config.C.PostgreSQL.DB, ctx.device.DevEUI)
 	if err != nil {
 		return errors.Wrap(err, "get device-keys error")
 	}
@@ -155,7 +154,7 @@ func setAppNonce(ctx *context) error {
 		return errors.New("join-nonce overflow")
 	}
 
-	if err := storage.UpdateDeviceKeys(common.DB, &ctx.deviceKeys); err != nil {
+	if err := storage.UpdateDeviceKeys(config.C.PostgreSQL.DB, &ctx.deviceKeys); err != nil {
 		return errors.Wrap(err, "update device-keys error")
 	}
 
@@ -202,7 +201,7 @@ func createDeviceActivationRecord(ctx *context) error {
 		NwkSKey: ctx.nwkSKey,
 	}
 
-	if err := storage.CreateDeviceActivation(common.DB, &da); err != nil {
+	if err := storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &da); err != nil {
 		return errors.Wrap(err, "create device-activation error")
 	}
 
@@ -210,14 +209,14 @@ func createDeviceActivationRecord(ctx *context) error {
 }
 
 func flushDeviceQueueMapping(ctx *context) error {
-	if err := storage.FlushDeviceQueueMappingForDevEUI(common.DB, ctx.device.DevEUI); err != nil {
+	if err := storage.FlushDeviceQueueMappingForDevEUI(config.C.PostgreSQL.DB, ctx.device.DevEUI); err != nil {
 		return errors.Wrap(err, "flush device-queue mapping error")
 	}
 	return nil
 }
 
 func sendJoinNotification(ctx *context) error {
-	err := common.Handler.SendJoinNotification(handler.JoinNotification{
+	err := config.C.ApplicationServer.Integration.Handler.SendJoinNotification(handler.JoinNotification{
 		ApplicationID:   ctx.device.ApplicationID,
 		ApplicationName: ctx.application.Name,
 		DeviceName:      ctx.device.Name,

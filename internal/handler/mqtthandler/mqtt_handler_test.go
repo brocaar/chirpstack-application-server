@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
@@ -25,8 +25,8 @@ func TestMQTTHandler(t *testing.T) {
 		token.Wait()
 		So(token.Error(), ShouldBeNil)
 
-		common.RedisPool = storage.NewRedisPool(conf.RedisURL)
-		test.MustFlushRedis(common.RedisPool)
+		config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL)
+		test.MustFlushRedis(config.C.Redis.Pool)
 
 		Convey("Given a new MQTTHandler", func() {
 			h, err := NewHandler(conf.MQTTServer, conf.MQTTUsername, conf.MQTTPassword, "", "", "")

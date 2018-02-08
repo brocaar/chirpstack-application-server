@@ -6,7 +6,7 @@ import (
 
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
@@ -22,16 +22,16 @@ func TestDownlinkQueueAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 
 	Convey("Given a clean database, an organization, application + node and api instance", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		nsClient := test.NewNetworkServerClient()
 		nsClient.GetNextDownlinkFCntForDevEUIResponse = ns.GetNextDownlinkFCntForDevEUIResponse{
 			FCnt: 12,
 		}
-		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 		ctx := context.Background()
 		validator := &TestValidator{}
@@ -40,13 +40,13 @@ func TestDownlinkQueueAPI(t *testing.T) {
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
+		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		n := storage.NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		sp := storage.ServiceProfile{
 			Name:            "test-sp",
@@ -54,7 +54,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 			OrganizationID:  org.ID,
 			ServiceProfile:  backend.ServiceProfile{},
 		}
-		So(storage.CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+		So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
 		dp := storage.DeviceProfile{
 			Name:            "test-dp",
@@ -62,14 +62,14 @@ func TestDownlinkQueueAPI(t *testing.T) {
 			OrganizationID:  org.ID,
 			DeviceProfile:   backend.DeviceProfile{},
 		}
-		So(storage.CreateDeviceProfile(common.DB, &dp), ShouldBeNil)
+		So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
 
 		app := storage.Application{
 			OrganizationID:   org.ID,
 			Name:             "test-app",
 			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 		}
-		So(storage.CreateApplication(common.DB, &app), ShouldBeNil)
+		So(storage.CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
 
 		d := storage.Device{
 			ApplicationID:   app.ID,
@@ -77,7 +77,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 			Name:            "test-node",
 			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		}
-		So(storage.CreateDevice(common.DB, &d), ShouldBeNil)
+		So(storage.CreateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 
 		da := storage.DeviceActivation{
 			DevEUI:  d.DevEUI,
@@ -85,7 +85,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 			AppSKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 			NwkSKey: lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
 		}
-		So(storage.CreateDeviceActivation(common.DB, &da), ShouldBeNil)
+		So(storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &da), ShouldBeNil)
 
 		b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 12, []byte{1, 2, 3, 4})
 		So(err, ShouldBeNil)
@@ -102,7 +102,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 					];
 				}
 			`
-			So(storage.UpdateApplication(common.DB, app), ShouldBeNil)
+			So(storage.UpdateApplication(config.C.PostgreSQL.DB, app), ShouldBeNil)
 
 			Convey("When enqueueing a downlink queue item with raw JSON object", func() {
 				_, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{
@@ -186,7 +186,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 				Reference: "test-123",
 				FCnt:      12,
 			}
-			So(storage.CreateDeviceQueueMapping(common.DB, &dqm), ShouldBeNil)
+			So(storage.CreateDeviceQueueMapping(config.C.PostgreSQL.DB, &dqm), ShouldBeNil)
 
 			Convey("When calling Flush", func() {
 				_, err := api.Flush(ctx, &pb.FlushDeviceQueueRequest{
@@ -202,7 +202,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 				})
 
 				Convey("Then the device-queue mapping has been removed", func() {
-					_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, d.DevEUI, 12)
+					_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, d.DevEUI, 12)
 					So(err, ShouldEqual, storage.ErrDoesNotExist)
 				})
 			})

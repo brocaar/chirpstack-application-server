@@ -10,7 +10,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan/backend"
 )
@@ -21,23 +21,23 @@ func TestDevice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 	nsClient := test.NewNetworkServerClient()
-	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database with organization, network-server, service-profile, device-profile and application", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		org := Organization{
 			Name: "test-org",
 		}
-		So(CreateOrganization(common.DB, &org), ShouldBeNil)
+		So(CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		n := NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		sp := ServiceProfile{
 			OrganizationID:  org.ID,
@@ -64,7 +64,7 @@ func TestDevice(t *testing.T) {
 				MinGWDiversity: 3,
 			},
 		}
-		So(CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+		So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
 		dp := DeviceProfile{
 			NetworkServerID: n.ID,
@@ -92,14 +92,14 @@ func TestDevice(t *testing.T) {
 				Supports32bitFCnt:  true,
 			},
 		}
-		So(CreateDeviceProfile(common.DB, &dp), ShouldBeNil)
+		So(CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
 
 		app := Application{
 			OrganizationID:   org.ID,
 			Name:             "test-app",
 			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 		}
-		So(CreateApplication(common.DB, &app), ShouldBeNil)
+		So(CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
 
 		Convey("Then CreateDevice creates the device", func() {
 			ten := 10
@@ -114,7 +114,7 @@ func TestDevice(t *testing.T) {
 				DeviceStatusBattery: &ten,
 				DeviceStatusMargin:  &eleven,
 			}
-			So(CreateDevice(common.DB, &d), ShouldBeNil)
+			So(CreateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 			d.CreatedAt = d.CreatedAt.UTC().Truncate(time.Millisecond)
 			d.UpdatedAt = d.UpdatedAt.UTC().Truncate(time.Millisecond)
 
@@ -124,7 +124,7 @@ func TestDevice(t *testing.T) {
 					DevEUI:           []byte{1, 2, 3, 4, 5, 6, 7, 8},
 					DeviceProfileID:  dp.DeviceProfile.DeviceProfileID,
 					ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
-					RoutingProfileID: common.ApplicationServerID,
+					RoutingProfileID: config.C.ApplicationServer.ID,
 				},
 			})
 
@@ -134,11 +134,11 @@ func TestDevice(t *testing.T) {
 						DevEUI:           []byte{1, 2, 3, 4, 5, 6, 7, 8},
 						DeviceProfileID:  dp.DeviceProfile.DeviceProfileID,
 						ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
-						RoutingProfileID: common.ApplicationServerID,
+						RoutingProfileID: config.C.ApplicationServer.ID,
 					},
 				}
 
-				dGet, err := GetDevice(common.DB, d.DevEUI)
+				dGet, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI)
 				So(err, ShouldBeNil)
 				dGet.CreatedAt = dGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				dGet.UpdatedAt = dGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -152,11 +152,11 @@ func TestDevice(t *testing.T) {
 						Name:            "device-profile-2",
 						DeviceProfile:   backend.DeviceProfile{},
 					}
-					So(CreateDeviceProfile(common.DB, &dp2), ShouldBeNil)
+					So(CreateDeviceProfile(config.C.PostgreSQL.DB, &dp2), ShouldBeNil)
 
 					d.Name = "updated-test-device"
 					d.DeviceProfileID = dp2.DeviceProfile.DeviceProfileID
-					So(UpdateDevice(common.DB, &d), ShouldBeNil)
+					So(UpdateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 					d.UpdatedAt = d.UpdatedAt.UTC().Truncate(time.Millisecond)
 
 					So(nsClient.UpdateDeviceChan, ShouldHaveLength, 1)
@@ -165,11 +165,11 @@ func TestDevice(t *testing.T) {
 							DevEUI:           []byte{1, 2, 3, 4, 5, 6, 7, 8},
 							DeviceProfileID:  dp2.DeviceProfile.DeviceProfileID,
 							ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
-							RoutingProfileID: common.ApplicationServerID,
+							RoutingProfileID: config.C.ApplicationServer.ID,
 						},
 					})
 
-					dGet, err := GetDevice(common.DB, d.DevEUI)
+					dGet, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI)
 					So(err, ShouldBeNil)
 					dGet.CreatedAt = dGet.CreatedAt.UTC().Truncate(time.Millisecond)
 					dGet.UpdatedAt = dGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -177,13 +177,13 @@ func TestDevice(t *testing.T) {
 				})
 
 				Convey("Then DeleteDevice deletes the device", func() {
-					So(DeleteDevice(common.DB, d.DevEUI), ShouldBeNil)
+					So(DeleteDevice(config.C.PostgreSQL.DB, d.DevEUI), ShouldBeNil)
 					So(nsClient.DeleteDeviceChan, ShouldHaveLength, 1)
 					So(<-nsClient.DeleteDeviceChan, ShouldResemble, ns.DeleteDeviceRequest{
 						DevEUI: []byte{1, 2, 3, 4, 5, 6, 7, 8},
 					})
 
-					_, err := GetDevice(common.DB, d.DevEUI)
+					_, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI)
 					So(err, ShouldEqual, ErrDoesNotExist)
 				})
 
@@ -193,12 +193,12 @@ func TestDevice(t *testing.T) {
 						AppKey:    lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
 						JoinNonce: 1234,
 					}
-					So(CreateDeviceKeys(common.DB, &dc), ShouldBeNil)
+					So(CreateDeviceKeys(config.C.PostgreSQL.DB, &dc), ShouldBeNil)
 					dc.CreatedAt = dc.CreatedAt.UTC().Truncate(time.Millisecond)
 					dc.UpdatedAt = dc.UpdatedAt.UTC().Truncate(time.Millisecond)
 
 					Convey("Then GetDeviceKeys returns the device-keys", func() {
-						dcGet, err := GetDeviceKeys(common.DB, dc.DevEUI)
+						dcGet, err := GetDeviceKeys(config.C.PostgreSQL.DB, dc.DevEUI)
 						So(err, ShouldBeNil)
 						dcGet.CreatedAt = dc.CreatedAt.UTC().Truncate(time.Millisecond)
 						dcGet.UpdatedAt = dc.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -208,10 +208,10 @@ func TestDevice(t *testing.T) {
 					Convey("Then UpdateDeviceKeys updates the device-keys", func() {
 						dc.AppKey = lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
 						dc.JoinNonce = 1235
-						So(UpdateDeviceKeys(common.DB, &dc), ShouldBeNil)
+						So(UpdateDeviceKeys(config.C.PostgreSQL.DB, &dc), ShouldBeNil)
 						dc.UpdatedAt = dc.UpdatedAt.UTC().Truncate(time.Millisecond)
 
-						dcGet, err := GetDeviceKeys(common.DB, dc.DevEUI)
+						dcGet, err := GetDeviceKeys(config.C.PostgreSQL.DB, dc.DevEUI)
 						So(err, ShouldBeNil)
 						dcGet.CreatedAt = dc.CreatedAt.UTC().Truncate(time.Millisecond)
 						dcGet.UpdatedAt = dc.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -219,8 +219,8 @@ func TestDevice(t *testing.T) {
 					})
 
 					Convey("Then DeleteDeviceKeys deletes the device-keys", func() {
-						So(DeleteDeviceKeys(common.DB, dc.DevEUI), ShouldBeNil)
-						_, err := GetDeviceKeys(common.DB, dc.DevEUI)
+						So(DeleteDeviceKeys(config.C.PostgreSQL.DB, dc.DevEUI), ShouldBeNil)
+						_, err := GetDeviceKeys(config.C.PostgreSQL.DB, dc.DevEUI)
 						So(err, ShouldEqual, ErrDoesNotExist)
 					})
 				})
@@ -231,10 +231,10 @@ func TestDevice(t *testing.T) {
 						DevAddr: lorawan.DevAddr{1, 2, 3, 4},
 						AppSKey: lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
 					}
-					So(CreateDeviceActivation(common.DB, &da), ShouldBeNil)
+					So(CreateDeviceActivation(config.C.PostgreSQL.DB, &da), ShouldBeNil)
 					da.CreatedAt = da.CreatedAt.UTC().Truncate(time.Millisecond)
 
-					daGet, err := GetLastDeviceActivationForDevEUI(common.DB, d.DevEUI)
+					daGet, err := GetLastDeviceActivationForDevEUI(config.C.PostgreSQL.DB, d.DevEUI)
 					So(err, ShouldBeNil)
 					daGet.CreatedAt = daGet.CreatedAt.UTC().Truncate(time.Millisecond)
 					So(daGet, ShouldResemble, da)
@@ -246,10 +246,10 @@ func TestDevice(t *testing.T) {
 							NwkSKey: lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
 							AppSKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 						}
-						So(CreateDeviceActivation(common.DB, &da2), ShouldBeNil)
+						So(CreateDeviceActivation(config.C.PostgreSQL.DB, &da2), ShouldBeNil)
 						da2.CreatedAt = da2.CreatedAt.UTC().Truncate(time.Millisecond)
 
-						daGet, err := GetLastDeviceActivationForDevEUI(common.DB, d.DevEUI)
+						daGet, err := GetLastDeviceActivationForDevEUI(config.C.PostgreSQL.DB, d.DevEUI)
 						So(err, ShouldBeNil)
 						daGet.CreatedAt = daGet.CreatedAt.UTC().Truncate(time.Millisecond)
 						So(daGet, ShouldResemble, da2)
@@ -258,7 +258,7 @@ func TestDevice(t *testing.T) {
 			})
 
 			Convey("Then GetDevicesForApplicationID returns the device", func() {
-				devices, err := GetDevicesForApplicationID(common.DB, app.ID, 10, 0, "")
+				devices, err := GetDevicesForApplicationID(config.C.PostgreSQL.DB, app.ID, 10, 0, "")
 				So(err, ShouldBeNil)
 				So(devices, ShouldHaveLength, 1)
 				So(devices[0].DevEUI, ShouldEqual, d.DevEUI)
@@ -266,7 +266,7 @@ func TestDevice(t *testing.T) {
 			})
 
 			Convey("Then GetDeviceCountForApplicationID returns 1", func() {
-				count, err := GetDeviceCountForApplicationID(common.DB, app.ID, "")
+				count, err := GetDeviceCountForApplicationID(config.C.PostgreSQL.DB, app.ID, "")
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 			})

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
@@ -16,9 +16,9 @@ func TestOrganization(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 	nsClient := test.NewNetworkServerClient()
-	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database", t, func() {
 		test.MustResetDB(db)

@@ -6,15 +6,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/gwping"
-
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/codec"
+	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/gwping"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
@@ -36,21 +35,21 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 	copy(appEUI[:], req.AppEUI)
 	copy(devEUI[:], req.DevEUI)
 
-	d, err := storage.GetDevice(common.DB, devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		errStr := fmt.Sprintf("get device error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
-	app, err := storage.GetApplication(common.DB, d.ApplicationID)
+	app, err := storage.GetApplication(config.C.PostgreSQL.DB, d.ApplicationID)
 	if err != nil {
 		errStr := fmt.Sprintf("get application error: %s", err)
 		log.WithField("id", d.ApplicationID).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
-	da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, d.DevEUI)
+	da, err := storage.GetLastDeviceActivationForDevEUI(config.C.PostgreSQL.DB, d.DevEUI)
 	if err != nil {
 		errStr := fmt.Sprintf("get device-activation error: %s", err)
 		log.WithField("dev_eui", d.DevEUI).Error(errStr)
@@ -69,7 +68,7 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		marg := int(req.DeviceStatusMargin)
 		d.DeviceStatusMargin = &marg
 	}
-	err = storage.UpdateDevice(common.DB, &d)
+	err = storage.UpdateDevice(config.C.PostgreSQL.DB, &d)
 	if err != nil {
 		errStr := fmt.Sprintf("update device error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
@@ -151,7 +150,7 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		})
 	}
 
-	err = common.Handler.SendDataUp(pl)
+	err = config.C.ApplicationServer.Integration.Handler.SendDataUp(pl)
 	if err != nil {
 		errStr := fmt.Sprintf("send data up to handler error: %s", err)
 		log.Error(errStr)
@@ -166,25 +165,25 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEUI)
 
-	d, err := storage.GetDevice(common.DB, devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		errStr := fmt.Sprintf("get device error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
-	app, err := storage.GetApplication(common.DB, d.ApplicationID)
+	app, err := storage.GetApplication(config.C.PostgreSQL.DB, d.ApplicationID)
 	if err != nil {
 		errStr := fmt.Sprintf("get application error: %s", err)
 		log.WithField("id", d.ApplicationID).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
-	dqm, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, devEUI, req.FCnt)
+	dqm, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, devEUI, req.FCnt)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	if err := storage.DeleteDeviceQueueMapping(common.DB, dqm.ID); err != nil {
+	if err := storage.DeleteDeviceQueueMapping(config.C.PostgreSQL.DB, dqm.ID); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -192,7 +191,7 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		"dev_eui": devEUI,
 	}).Info("downlink device-queue item acknowledged")
 
-	err = common.Handler.SendACKNotification(handler.ACKNotification{
+	err = config.C.ApplicationServer.Integration.Handler.SendACKNotification(handler.ACKNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,
@@ -213,13 +212,13 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEUI)
 
-	d, err := storage.GetDevice(common.DB, devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		errStr := fmt.Sprintf("get device error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
-	app, err := storage.GetApplication(common.DB, d.ApplicationID)
+	app, err := storage.GetApplication(config.C.PostgreSQL.DB, d.ApplicationID)
 	if err != nil {
 		errStr := fmt.Sprintf("get application error: %s", err)
 		log.WithField("id", d.ApplicationID).Error(errStr)
@@ -231,7 +230,7 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		"dev_eui": devEUI,
 	}).Error(req.Error)
 
-	err = common.Handler.SendErrorNotification(handler.ErrorNotification{
+	err = config.C.ApplicationServer.Integration.Handler.SendErrorNotification(handler.ErrorNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,

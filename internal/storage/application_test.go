@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
 )
 
@@ -16,12 +16,12 @@ func TestApplication(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 	nsClient := test.NewNetworkServerClient()
-	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database with an organization, network-server and service-profile", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		org := Organization{
 			Name: "test-org",
@@ -32,14 +32,14 @@ func TestApplication(t *testing.T) {
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		sp := ServiceProfile{
 			Name:            "test-service-profile",
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 		}
-		So(CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+		So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
 		Convey("When creating an application with an invalid name", func() {
 			app := Application{

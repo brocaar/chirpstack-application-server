@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan/backend"
@@ -17,13 +17,13 @@ func TestNetworkServer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 
 	Convey("Given a clean database with an organization", t, func() {
 		test.MustResetDB(db)
 
 		nsClient := test.NewNetworkServerClient()
-		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 		org := Organization{
 			Name: "test-org",
@@ -47,8 +47,8 @@ func TestNetworkServer(t *testing.T) {
 			So(nsClient.CreateRoutingProfileChan, ShouldHaveLength, 1)
 			So(<-nsClient.CreateRoutingProfileChan, ShouldResemble, ns.CreateRoutingProfileRequest{
 				RoutingProfile: &ns.RoutingProfile{
-					RoutingProfileID: common.ApplicationServerID,
-					AsID:             common.ApplicationServerServer,
+					RoutingProfileID: config.C.ApplicationServer.ID,
+					AsID:             config.C.ApplicationServer.API.PublicHost,
 				},
 				CaCert:  "RPCACERT",
 				TlsCert: "RPTLSCERT",
@@ -80,7 +80,7 @@ func TestNetworkServer(t *testing.T) {
 				org2 := Organization{
 					Name: "test-org-2",
 				}
-				So(CreateOrganization(common.DB, &org2), ShouldBeNil)
+				So(CreateOrganization(config.C.PostgreSQL.DB, &org2), ShouldBeNil)
 
 				sp := ServiceProfile{
 					NetworkServerID: n.ID,
@@ -88,24 +88,24 @@ func TestNetworkServer(t *testing.T) {
 					Name:            "test-service-profile",
 					ServiceProfile:  backend.ServiceProfile{},
 				}
-				So(CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+				So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
 				Convey("Then GetNetworkServerCountForOrganizationID returns the number of network-servers for the given organization", func() {
-					count, err := GetNetworkServerCountForOrganizationID(common.DB, org.ID)
+					count, err := GetNetworkServerCountForOrganizationID(config.C.PostgreSQL.DB, org.ID)
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 1)
 
-					count, err = GetNetworkServerCountForOrganizationID(common.DB, org2.ID)
+					count, err = GetNetworkServerCountForOrganizationID(config.C.PostgreSQL.DB, org2.ID)
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 0)
 				})
 
 				Convey("Then GetNetworkServersForOrganizationID returns the network-servers for the given organization", func() {
-					items, err := GetNetworkServersForOrganizationID(common.DB, org.ID, 10, 0)
+					items, err := GetNetworkServersForOrganizationID(config.C.PostgreSQL.DB, org.ID, 10, 0)
 					So(err, ShouldBeNil)
 					So(items, ShouldHaveLength, 1)
 
-					items, err = GetNetworkServersForOrganizationID(common.DB, org2.ID, 10, 0)
+					items, err = GetNetworkServersForOrganizationID(config.C.PostgreSQL.DB, org2.ID, 10, 0)
 					So(err, ShouldBeNil)
 					So(items, ShouldHaveLength, 0)
 				})
@@ -124,8 +124,8 @@ func TestNetworkServer(t *testing.T) {
 				So(nsClient.UpdateRoutingProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.UpdateRoutingProfileChan, ShouldResemble, ns.UpdateRoutingProfileRequest{
 					RoutingProfile: &ns.RoutingProfile{
-						RoutingProfileID: common.ApplicationServerID,
-						AsID:             common.ApplicationServerServer,
+						RoutingProfileID: config.C.ApplicationServer.ID,
+						AsID:             config.C.ApplicationServer.API.PublicHost,
 					},
 					CaCert:  "RPCACERT2",
 					TlsCert: "RPTLSCERT2",
@@ -146,7 +146,7 @@ func TestNetworkServer(t *testing.T) {
 				So(DeleteNetworkServer(db, n.ID), ShouldBeNil)
 				So(nsClient.DeleteRoutingProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.DeleteRoutingProfileChan, ShouldResemble, ns.DeleteRoutingProfileRequest{
-					RoutingProfileID: common.ApplicationServerID,
+					RoutingProfileID: config.C.ApplicationServer.ID,
 				})
 
 				_, err := GetNetworkServer(db, n.ID)

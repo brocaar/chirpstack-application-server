@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/handler/httphandler"
 	"github.com/brocaar/lora-app-server/internal/handler/mqtthandler"
@@ -37,8 +37,8 @@ func TestHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	common.DB = db
-	common.RedisPool = storage.NewRedisPool(conf.RedisURL)
+	config.C.PostgreSQL.DB = db
+	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL)
 
 	Convey("Given an MQTT client and handler, Redis and PostgreSQL databases and test http handler", t, func() {
 		opts := mqtt.NewClientOptions().AddBroker(conf.MQTTServer).SetUsername(conf.MQTTUsername).SetPassword(conf.MQTTPassword)
@@ -48,10 +48,10 @@ func TestHandler(t *testing.T) {
 		So(token.Error(), ShouldBeNil)
 
 		nsClient := test.NewNetworkServerClient()
-		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
-		test.MustFlushRedis(common.RedisPool)
-		test.MustResetDB(common.DB)
+		test.MustFlushRedis(config.C.Redis.Pool)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		h := testHTTPHandler{
 			requests: make(chan *http.Request, 100),
@@ -79,7 +79,7 @@ func TestHandler(t *testing.T) {
 				Name:   "test-ns",
 				Server: "test-ns:1234",
 			}
-			So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+			So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 			sp := storage.ServiceProfile{
 				Name:            "test-sp",
@@ -87,7 +87,7 @@ func TestHandler(t *testing.T) {
 				NetworkServerID: n.ID,
 				ServiceProfile:  backend.ServiceProfile{},
 			}
-			So(storage.CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+			So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
 			app := storage.Application{
 				OrganizationID:   org.ID,
@@ -96,13 +96,13 @@ func TestHandler(t *testing.T) {
 			}
 			So(storage.CreateApplication(db, &app), ShouldBeNil)
 
-			config := httphandler.HandlerConfig{
+			handlerConfig := httphandler.HandlerConfig{
 				DataUpURL:            server.URL + "/rx",
 				JoinNotificationURL:  server.URL + "/join",
 				ACKNotificationURL:   server.URL + "/ack",
 				ErrorNotificationURL: server.URL + "/error",
 			}
-			configJSON, err := json.Marshal(config)
+			configJSON, err := json.Marshal(handlerConfig)
 			So(err, ShouldBeNil)
 
 			So(storage.CreateIntegration(db, &storage.Integration{
@@ -117,7 +117,7 @@ func TestHandler(t *testing.T) {
 				NetworkServerID: n.ID,
 				DeviceProfile:   backend.DeviceProfile{},
 			}
-			So(storage.CreateDeviceProfile(common.DB, &dp), ShouldBeNil)
+			So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
 
 			device := storage.Device{
 				ApplicationID:   app.ID,

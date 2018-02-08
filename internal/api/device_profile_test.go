@@ -12,7 +12,7 @@ import (
 	"golang.org/x/net/context"
 
 	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 )
@@ -23,13 +23,13 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 
 	Convey("Given a clean database and api instance", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		nsClient := test.NewNetworkServerClient()
-		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 		ctx := context.Background()
 		validator := &TestValidator{}
@@ -39,12 +39,12 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
+		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		Convey("Then Create creates a device-profile", func() {
 			createReq := pb.CreateDeviceProfileRequest{
@@ -209,13 +209,13 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 			})
 
 			Convey("Given an organization user", func() {
-				userID, err := storage.CreateUser(common.DB, &storage.User{
+				userID, err := storage.CreateUser(config.C.PostgreSQL.DB, &storage.User{
 					Username: "testuser",
 					IsActive: true,
 					Email:    "foo@bar.com",
 				}, "testpassword")
 				So(err, ShouldBeNil)
-				So(storage.CreateOrganizationUser(common.DB, org.ID, userID, false), ShouldBeNil)
+				So(storage.CreateOrganizationUser(config.C.PostgreSQL.DB, org.ID, userID, false), ShouldBeNil)
 
 				Convey("Then List without organization id returns all device-profiles related to the user", func() {
 					validator.returnUsername = "testuser"
@@ -261,21 +261,21 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 					Name:   "ns-server-2",
 					Server: "ns-server-2:1234",
 				}
-				So(storage.CreateNetworkServer(common.DB, &n2), ShouldBeNil)
+				So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n2), ShouldBeNil)
 
 				sp1 := storage.ServiceProfile{
 					Name:            "test-sp",
 					NetworkServerID: n.ID,
 					OrganizationID:  org.ID,
 				}
-				So(storage.CreateServiceProfile(common.DB, &sp1), ShouldBeNil)
+				So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp1), ShouldBeNil)
 
 				sp2 := storage.ServiceProfile{
 					Name:            "test-sp-2",
 					NetworkServerID: n2.ID,
 					OrganizationID:  org.ID,
 				}
-				So(storage.CreateServiceProfile(common.DB, &sp2), ShouldBeNil)
+				So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp2), ShouldBeNil)
 
 				app1 := storage.Application{
 					Name:             "test-app",
@@ -283,7 +283,7 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 					OrganizationID:   org.ID,
 					ServiceProfileID: sp1.ServiceProfile.ServiceProfileID,
 				}
-				So(storage.CreateApplication(common.DB, &app1), ShouldBeNil)
+				So(storage.CreateApplication(config.C.PostgreSQL.DB, &app1), ShouldBeNil)
 
 				app2 := storage.Application{
 					Name:             "test-app-2",
@@ -291,7 +291,7 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 					OrganizationID:   org.ID,
 					ServiceProfileID: sp2.ServiceProfile.ServiceProfileID,
 				}
-				So(storage.CreateApplication(common.DB, &app2), ShouldBeNil)
+				So(storage.CreateApplication(config.C.PostgreSQL.DB, &app2), ShouldBeNil)
 
 				Convey("Then List filtered on application id returns the device-profiles accessible by the given application id", func() {
 					listResp, err := api.List(ctx, &pb.ListDeviceProfileRequest{

@@ -6,7 +6,7 @@ import (
 
 	"github.com/brocaar/loraserver/api/ns"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan/backend"
 	. "github.com/smartystreets/goconvey/convey"
@@ -18,17 +18,17 @@ func TestDeviceProfile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 	nsClient := test.NewNetworkServerClient()
-	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database with organization and network-server", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		org := Organization{
 			Name: "test-org",
 		}
-		So(CreateOrganization(common.DB, &org), ShouldBeNil)
+		So(CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		u := User{
 			Username: "testuser",
@@ -36,15 +36,15 @@ func TestDeviceProfile(t *testing.T) {
 			IsActive: true,
 			Email:    "foo@bar.com",
 		}
-		uID, err := CreateUser(common.DB, &u, "testpassword")
+		uID, err := CreateUser(config.C.PostgreSQL.DB, &u, "testpassword")
 		So(err, ShouldBeNil)
-		So(CreateOrganizationUser(common.DB, org.ID, uID, false), ShouldBeNil)
+		So(CreateOrganizationUser(config.C.PostgreSQL.DB, org.ID, uID, false), ShouldBeNil)
 
 		n := NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		Convey("Then CreateDeviceProfile creates the device-profile", func() {
 			dp := DeviceProfile{
@@ -73,7 +73,7 @@ func TestDeviceProfile(t *testing.T) {
 					Supports32bitFCnt:  true,
 				},
 			}
-			So(CreateDeviceProfile(common.DB, &dp), ShouldBeNil)
+			So(CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
 			dp.CreatedAt = dp.CreatedAt.UTC().Truncate(time.Millisecond)
 			dp.UpdatedAt = dp.UpdatedAt.UTC().Truncate(time.Millisecond)
 
@@ -129,7 +129,7 @@ func TestDeviceProfile(t *testing.T) {
 					},
 				}
 
-				dpGet, err := GetDeviceProfile(common.DB, dp.DeviceProfile.DeviceProfileID)
+				dpGet, err := GetDeviceProfile(config.C.PostgreSQL.DB, dp.DeviceProfile.DeviceProfileID)
 				So(err, ShouldBeNil)
 				dpGet.CreatedAt = dpGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				dpGet.UpdatedAt = dpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -161,7 +161,7 @@ func TestDeviceProfile(t *testing.T) {
 					RFRegion:           backend.EU868,
 					Supports32bitFCnt:  true,
 				}
-				So(UpdateDeviceProfile(common.DB, &dp), ShouldBeNil)
+				So(UpdateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
 				dp.UpdatedAt = dp.UpdatedAt.UTC().Truncate(time.Millisecond)
 				So(nsClient.UpdateDeviceProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.UpdateDeviceProfileChan, ShouldResemble, ns.UpdateDeviceProfileRequest{
@@ -189,7 +189,7 @@ func TestDeviceProfile(t *testing.T) {
 					},
 				})
 
-				dpGet, err := GetDeviceProfile(common.DB, dp.DeviceProfile.DeviceProfileID)
+				dpGet, err := GetDeviceProfile(config.C.PostgreSQL.DB, dp.DeviceProfile.DeviceProfileID)
 				So(err, ShouldBeNil)
 				dpGet.UpdatedAt = dpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
 				So(dpGet.Name, ShouldEqual, "updated-device-profile")
@@ -197,44 +197,44 @@ func TestDeviceProfile(t *testing.T) {
 			})
 
 			Convey("Then DeleteDeviceProfile deletes the device-profile", func() {
-				So(DeleteDeviceProfile(common.DB, dp.DeviceProfile.DeviceProfileID), ShouldBeNil)
+				So(DeleteDeviceProfile(config.C.PostgreSQL.DB, dp.DeviceProfile.DeviceProfileID), ShouldBeNil)
 				So(nsClient.DeleteDeviceProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.DeleteDeviceProfileChan, ShouldResemble, ns.DeleteDeviceProfileRequest{
 					DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
 				})
 
-				_, err := GetDeviceProfile(common.DB, dp.DeviceProfile.DeviceProfileID)
+				_, err := GetDeviceProfile(config.C.PostgreSQL.DB, dp.DeviceProfile.DeviceProfileID)
 				So(err, ShouldEqual, ErrDoesNotExist)
 			})
 
 			Convey("Then GetDeviceProfileCount returns 1", func() {
-				count, err := GetDeviceProfileCount(common.DB)
+				count, err := GetDeviceProfileCount(config.C.PostgreSQL.DB)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 			})
 
 			Convey("Then GetDeviceProfileCountForOrganizationID returns the number of device-profiles for the given organization", func() {
-				count, err := GetDeviceProfileCountForOrganizationID(common.DB, org.ID)
+				count, err := GetDeviceProfileCountForOrganizationID(config.C.PostgreSQL.DB, org.ID)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 
-				count, err = GetDeviceProfileCountForOrganizationID(common.DB, org.ID+1)
+				count, err = GetDeviceProfileCountForOrganizationID(config.C.PostgreSQL.DB, org.ID+1)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 0)
 			})
 
 			Convey("Then GetDeviceProfileCountForUser returns the device-profile accessible by a given user", func() {
-				count, err := GetDeviceProfileCountForUser(common.DB, u.Username)
+				count, err := GetDeviceProfileCountForUser(config.C.PostgreSQL.DB, u.Username)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 
-				count, err = GetDeviceProfileCountForUser(common.DB, "fakeuser")
+				count, err = GetDeviceProfileCountForUser(config.C.PostgreSQL.DB, "fakeuser")
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 0)
 			})
 
 			Convey("Then GetDeviceProfiles includes the device-profile", func() {
-				dps, err := GetDeviceProfiles(common.DB, 10, 0)
+				dps, err := GetDeviceProfiles(config.C.PostgreSQL.DB, 10, 0)
 				So(err, ShouldBeNil)
 				So(dps, ShouldHaveLength, 1)
 				So(dps[0].Name, ShouldEqual, dp.Name)
@@ -244,21 +244,21 @@ func TestDeviceProfile(t *testing.T) {
 			})
 
 			Convey("Then GetDeviceProfilesForOrganizationID returns the device-profiles for the given organization", func() {
-				dps, err := GetDeviceProfilesForOrganizationID(common.DB, org.ID, 10, 0)
+				dps, err := GetDeviceProfilesForOrganizationID(config.C.PostgreSQL.DB, org.ID, 10, 0)
 				So(err, ShouldBeNil)
 				So(dps, ShouldHaveLength, 1)
 
-				dps, err = GetDeviceProfilesForOrganizationID(common.DB, org.ID+1, 10, 0)
+				dps, err = GetDeviceProfilesForOrganizationID(config.C.PostgreSQL.DB, org.ID+1, 10, 0)
 				So(err, ShouldBeNil)
 				So(dps, ShouldHaveLength, 0)
 			})
 
 			Convey("Then GetDeviceProfilesForUser returns the device-profiles accessible by a given user", func() {
-				dps, err := GetDeviceProfilesForUser(common.DB, u.Username, 10, 0)
+				dps, err := GetDeviceProfilesForUser(config.C.PostgreSQL.DB, u.Username, 10, 0)
 				So(err, ShouldBeNil)
 				So(dps, ShouldHaveLength, 1)
 
-				dps, err = GetDeviceProfilesForUser(common.DB, "fakeuser", 10, 0)
+				dps, err = GetDeviceProfilesForUser(config.C.PostgreSQL.DB, "fakeuser", 10, 0)
 				So(err, ShouldBeNil)
 				So(dps, ShouldHaveLength, 0)
 			})
@@ -268,21 +268,21 @@ func TestDeviceProfile(t *testing.T) {
 					Name:   "ns-server-2",
 					Server: "ns-server-2:1234",
 				}
-				So(CreateNetworkServer(common.DB, &n2), ShouldBeNil)
+				So(CreateNetworkServer(config.C.PostgreSQL.DB, &n2), ShouldBeNil)
 
 				sp1 := ServiceProfile{
 					Name:            "test-sp",
 					NetworkServerID: n.ID,
 					OrganizationID:  org.ID,
 				}
-				So(CreateServiceProfile(common.DB, &sp1), ShouldBeNil)
+				So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp1), ShouldBeNil)
 
 				sp2 := ServiceProfile{
 					Name:            "test-sp-2",
 					NetworkServerID: n2.ID,
 					OrganizationID:  org.ID,
 				}
-				So(CreateServiceProfile(common.DB, &sp2), ShouldBeNil)
+				So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp2), ShouldBeNil)
 
 				app1 := Application{
 					Name:             "test-app",
@@ -290,7 +290,7 @@ func TestDeviceProfile(t *testing.T) {
 					OrganizationID:   org.ID,
 					ServiceProfileID: sp1.ServiceProfile.ServiceProfileID,
 				}
-				So(CreateApplication(common.DB, &app1), ShouldBeNil)
+				So(CreateApplication(config.C.PostgreSQL.DB, &app1), ShouldBeNil)
 
 				app2 := Application{
 					Name:             "test-app-2",
@@ -298,25 +298,25 @@ func TestDeviceProfile(t *testing.T) {
 					OrganizationID:   org.ID,
 					ServiceProfileID: sp2.ServiceProfile.ServiceProfileID,
 				}
-				So(CreateApplication(common.DB, &app2), ShouldBeNil)
+				So(CreateApplication(config.C.PostgreSQL.DB, &app2), ShouldBeNil)
 
 				Convey("Then GetDeviceProfileCountForApplicationID returns the devices-profiles for the given application", func() {
-					count, err := GetDeviceProfileCountForApplicationID(common.DB, app1.ID)
+					count, err := GetDeviceProfileCountForApplicationID(config.C.PostgreSQL.DB, app1.ID)
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 1)
 
-					count, err = GetDeviceProfileCountForApplicationID(common.DB, app2.ID)
+					count, err = GetDeviceProfileCountForApplicationID(config.C.PostgreSQL.DB, app2.ID)
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 0)
 				})
 
 				Convey("Then GetDeviceProfilesForApplicationID returns the device-profile available for the given application id", func() {
-					dps, err := GetDeviceProfilesForApplicationID(common.DB, app1.ID, 10, 0)
+					dps, err := GetDeviceProfilesForApplicationID(config.C.PostgreSQL.DB, app1.ID, 10, 0)
 					So(err, ShouldBeNil)
 					So(dps, ShouldHaveLength, 1)
 					So(dps[0].DeviceProfileID, ShouldEqual, dp.DeviceProfile.DeviceProfileID)
 
-					dps, err = GetDeviceProfilesForApplicationID(common.DB, app2.ID, 10, 0)
+					dps, err = GetDeviceProfilesForApplicationID(config.C.PostgreSQL.DB, app2.ID, 10, 0)
 					So(err, ShouldBeNil)
 					So(dps, ShouldHaveLength, 0)
 				})

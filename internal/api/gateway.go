@@ -4,17 +4,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
-	"github.com/jmoiron/sqlx"
 )
 
 // GatewayAPI exports the Gateway related functions.
@@ -57,7 +57,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 		ChannelConfigurationID: req.ChannelConfigurationID,
 	}
 
-	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		err = storage.CreateGateway(tx, &storage.Gateway{
 			MAC:             mac,
 			Name:            req.Name,
@@ -75,7 +75,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			return errToRPCError(err)
 		}
 
-		nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+		nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 		if err != nil {
 			return errToRPCError(err)
 		}
@@ -106,17 +106,17 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	gw, err := storage.GetGateway(common.DB, mac, false)
+	gw, err := storage.GetGateway(config.C.PostgreSQL.DB, mac, false)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	n, err := storage.GetNetworkServer(common.DB, gw.NetworkServerID)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, gw.NetworkServerID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -165,12 +165,12 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 
 		if isAdmin {
 			// in case of admin user list all gateways
-			count, err = storage.GetGatewayCount(common.DB)
+			count, err = storage.GetGatewayCount(config.C.PostgreSQL.DB)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 
-			gws, err = storage.GetGateways(common.DB, int(req.Limit), int(req.Offset))
+			gws, err = storage.GetGateways(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
@@ -180,21 +180,21 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetGatewayCountForUser(common.DB, username)
+			count, err = storage.GetGatewayCountForUser(config.C.PostgreSQL.DB, username)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			gws, err = storage.GetGatewaysForUser(common.DB, username, int(req.Limit), int(req.Offset))
+			gws, err = storage.GetGatewaysForUser(config.C.PostgreSQL.DB, username, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		}
 	} else {
-		count, err = storage.GetGatewayCountForOrganizationID(common.DB, req.OrganizationID)
+		count, err = storage.GetGatewayCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
-		gws, err = storage.GetGatewaysForOrganizationID(common.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+		gws, err = storage.GetGatewaysForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
@@ -236,7 +236,7 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		return nil, errToRPCError(err)
 	}
 
-	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		gw, err := storage.GetGateway(tx, mac, true)
 		if err != nil {
 			return errToRPCError(err)
@@ -269,7 +269,7 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 			return errToRPCError(err)
 		}
 
-		nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+		nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 		if err != nil {
 			return errToRPCError(err)
 		}
@@ -299,7 +299,7 @@ func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		err = storage.DeleteGateway(tx, mac)
 		if err != nil {
 			return errToRPCError(err)
@@ -327,17 +327,17 @@ func (a *GatewayAPI) GenerateToken(ctx context.Context, req *pb.GenerateGatewayT
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	gw, err := storage.GetGateway(common.DB, mac, false)
+	gw, err := storage.GetGateway(config.C.PostgreSQL.DB, mac, false)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	n, err := storage.GetNetworkServer(common.DB, gw.NetworkServerID)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, gw.NetworkServerID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -366,17 +366,17 @@ func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsReques
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	gw, err := storage.GetGateway(common.DB, mac, false)
+	gw, err := storage.GetGateway(config.C.PostgreSQL.DB, mac, false)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	n, err := storage.GetNetworkServer(common.DB, gw.NetworkServerID)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, gw.NetworkServerID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -425,7 +425,7 @@ func (a *GatewayAPI) GetLastPing(ctx context.Context, req *pb.GetLastPingRequest
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	ping, pingRX, err := storage.GetLastGatewayPingAndRX(common.DB, mac)
+	ping, pingRX, err := storage.GetLastGatewayPingAndRX(config.C.PostgreSQL.DB, mac)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -457,12 +457,12 @@ func (a *GatewayAPI) CreateChannelConfiguration(ctx context.Context, req *pb.Cre
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServer(common.DB, req.NetworkServerID)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.NetworkServerID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -487,12 +487,12 @@ func (a *GatewayAPI) GetChannelConfiguration(ctx context.Context, req *pb.GetCha
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServer(common.DB, req.NetworkServerID)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.NetworkServerID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -521,12 +521,12 @@ func (a *GatewayAPI) UpdateChannelConfiguration(ctx context.Context, req *pb.Upd
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServer(common.DB, req.NetworkServerID)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.NetworkServerID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -551,12 +551,12 @@ func (a *GatewayAPI) DeleteChannelConfiguration(ctx context.Context, req *pb.Del
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServer(common.DB, req.NetworkServerID)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.NetworkServerID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -578,12 +578,12 @@ func (a *GatewayAPI) ListChannelConfigurations(ctx context.Context, req *pb.List
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServer(common.DB, req.NetworkServerID)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.NetworkServerID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -615,12 +615,12 @@ func (a *GatewayAPI) CreateExtraChannel(ctx context.Context, req *pb.CreateExtra
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServer(common.DB, req.NetworkServerID)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.NetworkServerID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -649,12 +649,12 @@ func (a *GatewayAPI) UpdateExtraChannel(ctx context.Context, req *pb.UpdateExtra
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServer(common.DB, req.NetworkServerID)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.NetworkServerID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -682,12 +682,12 @@ func (a *GatewayAPI) DeleteExtraChannel(ctx context.Context, req *pb.DeleteExtra
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServer(common.DB, req.NetworkServerID)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.NetworkServerID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -710,12 +710,12 @@ func (a *GatewayAPI) GetExtraChannelsForChannelConfigurationID(ctx context.Conte
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServer(common.DB, req.NetworkServerID)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.NetworkServerID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lorawan"
 )
 
@@ -109,7 +109,7 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -119,7 +119,7 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 			DevEUI:           d.DevEUI[:],
 			DeviceProfileID:  d.DeviceProfileID,
 			ServiceProfileID: app.ServiceProfileID,
-			RoutingProfileID: common.ApplicationServerID,
+			RoutingProfileID: config.C.ApplicationServer.ID,
 		},
 	})
 	if err != nil {
@@ -253,7 +253,7 @@ func UpdateDevice(db sqlx.Ext, d *Device) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -263,7 +263,7 @@ func UpdateDevice(db sqlx.Ext, d *Device) error {
 			DevEUI:           d.DevEUI[:],
 			DeviceProfileID:  d.DeviceProfileID,
 			ServiceProfileID: app.ServiceProfileID,
-			RoutingProfileID: common.ApplicationServerID,
+			RoutingProfileID: config.C.ApplicationServer.ID,
 		},
 	})
 	if err != nil {
@@ -297,7 +297,7 @@ func DeleteDevice(db sqlx.Ext, devEUI lorawan.EUI64) error {
 		return ErrDoesNotExist
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}

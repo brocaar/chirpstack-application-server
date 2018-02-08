@@ -39,14 +39,39 @@ fi
 mkdir -p "$LOG_DIR"
 chown $DAEMON_USER:$DAEMON_GROUP "$LOG_DIR"
 
-# add defaults file, if it doesn't exist
-if [[ ! -f /etc/default/$NAME ]]; then
-	cp $SCRIPT_DIR/default /etc/default/$NAME
-	chown $DAEMON_USER:$DAEMON_GROUP /etc/default/$NAME
-	chmod 640 /etc/default/$NAME
+# create configuration directory
+if [[ ! -d /etc/$NAME ]]; then
+	mkdir /etc/$NAME
+	chown $DAEMON_USER:$DAEMON_GROUP /etc/$NAME
+	chmod 750 /etc/$NAME
+fi
+
+# migrate old environment variable based configuration to new format and
+# path.
+if [[ -f /etc/default/$NAME && ! -f /etc/$NAME/$NAME.toml ]]; then
+	set -a
+	source /etc/default/$NAME
+	lora-app-server configfile > /etc/$NAME/$NAME.toml
+	chown $DAEMON_USER:$DAEMON_GROUP /etc/$NAME/$NAME.toml
+	chmod 640 /etc/$NAME/$NAME.toml
+	mv /etc/default/$NAME /etc/default/$NAME.backup
+
+	echo -e "\n\n\n"
+	echo "-----------------------------------------------------------------------------------------"
+	echo "Your configuration file has been migrated to a new location and format!"
+	echo "Path: /etc/$NAME/$NAME.toml"
+	echo "-----------------------------------------------------------------------------------------"
+	echo -e "\n\n\n"
+fi
+
+# create example configuration file
+if [[ ! -f /etc/$NAME/$NAME.toml ]]; then
+	HTTP_TLS_CERT=/etc/$NAME/certs/http.pem HTTP_TLS_KEY=/etc/$NAME/certs/http-key.pem lora-app-server configfile > /etc/$NAME/$NAME.toml
+	chown $DAEMON_USER:$DAEMON_GROUP /etc/$NAME/$NAME.toml
+	chmod 640 /etc/$NAME/$NAME.toml
 	echo -e "\n\n\n"
 	echo "-------------------------------------------------------------------------------------"
-	echo "A sample configuration file has been copied to: /etc/default/$NAME"
+	echo "A sample configuration file has been copied to: /etc/$NAME/$NAME.toml"
 	echo "After setting the correct values, run the following command to start LoRa App Server:"
 	echo ""
 	which systemctl &>/dev/null

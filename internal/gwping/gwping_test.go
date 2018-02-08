@@ -8,7 +8,7 @@ import (
 
 	"github.com/brocaar/lorawan"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	. "github.com/smartystreets/goconvey/convey"
@@ -20,27 +20,27 @@ func TestGatewayPing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	common.DB = db
-	common.RedisPool = storage.NewRedisPool(conf.RedisURL)
-	common.GatewayPingDR = 5
-	common.GatewayPingFrequency = 868100000
+	config.C.PostgreSQL.DB = db
+	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL)
+	config.C.ApplicationServer.GatewayDiscovery.DR = 5
+	config.C.ApplicationServer.GatewayDiscovery.Frequency = 868100000
 
 	Convey("Given a clean database and a gateway", t, func() {
 		nsClient := test.NewNetworkServerClient()
 		test.MustResetDB(db)
-		test.MustFlushRedis(common.RedisPool)
-		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+		test.MustFlushRedis(config.C.Redis.Pool)
+		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
+		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		n := storage.NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		gw := storage.Gateway{
 			MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
@@ -50,30 +50,30 @@ func TestGatewayPing(t *testing.T) {
 			Ping:            true,
 			NetworkServerID: n.ID,
 		}
-		So(storage.CreateGateway(common.DB, &gw), ShouldBeNil)
+		So(storage.CreateGateway(config.C.PostgreSQL.DB, &gw), ShouldBeNil)
 
 		Convey("When calling sendGatewayPing", func() {
 			So(sendGatewayPing(), ShouldBeNil)
 
 			Convey("Then the gateway ping fields have been set", func() {
-				gwGet, err := storage.GetGateway(common.DB, gw.MAC, false)
+				gwGet, err := storage.GetGateway(config.C.PostgreSQL.DB, gw.MAC, false)
 				So(err, ShouldBeNil)
 				So(gwGet.LastPingID, ShouldNotBeNil)
 				So(gwGet.LastPingSentAt, ShouldNotBeNil)
 
 				Convey("Then a gateway ping records has been created", func() {
-					gwPing, err := storage.GetGatewayPing(common.DB, *gwGet.LastPingID)
+					gwPing, err := storage.GetGatewayPing(config.C.PostgreSQL.DB, *gwGet.LastPingID)
 					So(err, ShouldBeNil)
 					So(gwPing.GatewayMAC, ShouldEqual, gwGet.MAC)
-					So(gwPing.DR, ShouldEqual, common.GatewayPingDR)
-					So(gwPing.Frequency, ShouldEqual, common.GatewayPingFrequency)
+					So(gwPing.DR, ShouldEqual, config.C.ApplicationServer.GatewayDiscovery.DR)
+					So(gwPing.Frequency, ShouldEqual, config.C.ApplicationServer.GatewayDiscovery.Frequency)
 				})
 
 				Convey("Then the expected ping has been sent to the network-server", func() {
 					So(nsClient.SendProprietaryPayloadChan, ShouldHaveLength, 1)
 					req := <-nsClient.SendProprietaryPayloadChan
-					So(req.Dr, ShouldEqual, uint32(common.GatewayPingDR))
-					So(req.Frequency, ShouldEqual, uint32(common.GatewayPingFrequency))
+					So(req.Dr, ShouldEqual, uint32(config.C.ApplicationServer.GatewayDiscovery.DR))
+					So(req.Frequency, ShouldEqual, uint32(config.C.ApplicationServer.GatewayDiscovery.Frequency))
 					So(req.GatewayMACs, ShouldResemble, [][]byte{{1, 2, 3, 4, 5, 6, 7, 8}})
 					So(req.IPol, ShouldBeFalse)
 
@@ -95,7 +95,7 @@ func TestGatewayPing(t *testing.T) {
 							OrganizationID:  org.ID,
 							NetworkServerID: n.ID,
 						}
-						So(storage.CreateGateway(common.DB, &gw2), ShouldBeNil)
+						So(storage.CreateGateway(config.C.PostgreSQL.DB, &gw2), ShouldBeNil)
 
 						now := time.Now().UTC().Truncate(time.Millisecond)
 
@@ -122,7 +122,7 @@ func TestGatewayPing(t *testing.T) {
 						})
 
 						Convey("Then the received ping has been stored to the database", func() {
-							ping, rx, err := storage.GetLastGatewayPingAndRX(common.DB, gw.MAC)
+							ping, rx, err := storage.GetLastGatewayPingAndRX(config.C.PostgreSQL.DB, gw.MAC)
 							So(err, ShouldBeNil)
 
 							So(ping.ID, ShouldEqual, *gwGet.LastPingID)

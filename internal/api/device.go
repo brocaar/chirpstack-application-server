@@ -13,7 +13,7 @@ import (
 
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
@@ -58,7 +58,7 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*p
 
 	// as this also performs a remote call to create the node on the
 	// network-server, wrap it in a transaction
-	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		return storage.CreateDevice(tx, &d)
 	})
 	if err != nil {
@@ -80,7 +80,7 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(common.DB, eui)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, eui)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -115,11 +115,11 @@ func (a *DeviceAPI) ListByApplicationID(ctx context.Context, req *pb.ListDeviceB
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	devices, err := storage.GetDevicesForApplicationID(common.DB, req.ApplicationID, int(req.Limit), int(req.Offset), req.Search)
+	devices, err := storage.GetDevicesForApplicationID(config.C.PostgreSQL.DB, req.ApplicationID, int(req.Limit), int(req.Offset), req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	count, err := storage.GetDeviceCountForApplicationID(common.DB, req.ApplicationID, req.Search)
+	count, err := storage.GetDeviceCountForApplicationID(config.C.PostgreSQL.DB, req.ApplicationID, req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -138,7 +138,7 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*p
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(common.DB, devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -149,7 +149,7 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*p
 
 	// as this also performs a remote call to update the node on the
 	// network-server, wrap it in a transaction
-	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		return storage.UpdateDevice(tx, &d)
 	})
 	if err != nil {
@@ -171,14 +171,14 @@ func (a *DeviceAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*p
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(common.DB, eui)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, eui)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
 	// as this also performs a remote call to delete the node from the
 	// network-server, wrap it in a transaction
-	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		return storage.DeleteDevice(tx, d.DevEUI)
 	})
 	if err != nil {
@@ -210,7 +210,7 @@ func (a *DeviceAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.CreateDeviceKeys(common.DB, &storage.DeviceKeys{
+	err := storage.CreateDeviceKeys(config.C.PostgreSQL.DB, &storage.DeviceKeys{
 		DevEUI: eui,
 		AppKey: key,
 	})
@@ -234,7 +234,7 @@ func (a *DeviceAPI) GetKeys(ctx context.Context, req *pb.GetDeviceKeysRequest) (
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	dk, err := storage.GetDeviceKeys(common.DB, eui)
+	dk, err := storage.GetDeviceKeys(config.C.PostgreSQL.DB, eui)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -268,13 +268,13 @@ func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	dk, err := storage.GetDeviceKeys(common.DB, eui)
+	dk, err := storage.GetDeviceKeys(config.C.PostgreSQL.DB, eui)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 	dk.AppKey = key
 
-	err = storage.UpdateDeviceKeys(common.DB, &dk)
+	err = storage.UpdateDeviceKeys(config.C.PostgreSQL.DB, &dk)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -295,7 +295,7 @@ func (a *DeviceAPI) DeleteKeys(ctx context.Context, req *pb.DeleteDeviceKeysRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	if err := storage.DeleteDeviceKeys(common.DB, eui); err != nil {
+	if err := storage.DeleteDeviceKeys(config.C.PostgreSQL.DB, eui); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -326,12 +326,12 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(common.DB, devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	dp, err := storage.GetDeviceProfile(common.DB, d.DeviceProfileID)
+	dp, err := storage.GetDeviceProfile(config.C.PostgreSQL.DB, d.DeviceProfileID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -344,12 +344,12 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 	// TODO: refactor once https://github.com/brocaar/loraserver/pull/124 is in place?
 	// so that we can call something like SaveNodeSession which will either
 	// create or update an existing node-session
-	n, err := storage.GetNetworkServerForDevEUI(common.DB, devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -372,7 +372,7 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, errToRPCError(err)
 	}
 
-	err = storage.CreateDeviceActivation(common.DB, &storage.DeviceActivation{
+	err = storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &storage.DeviceActivation{
 		DevEUI:  d.DevEUI,
 		DevAddr: devAddr,
 		AppSKey: appSKey,
@@ -382,7 +382,7 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, errToRPCError(err)
 	}
 
-	if err = storage.FlushDeviceQueueMappingForDevEUI(common.DB, d.DevEUI); err != nil {
+	if err = storage.FlushDeviceQueueMappingForDevEUI(config.C.PostgreSQL.DB, d.DevEUI); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -409,22 +409,22 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(common.DB, devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	da, err := storage.GetLastDeviceActivationForDevEUI(common.DB, devEUI)
+	da, err := storage.GetLastDeviceActivationForDevEUI(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	n, err := storage.GetNetworkServerForDevEUI(common.DB, devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -462,12 +462,12 @@ func (a *DeviceAPI) GetFrameLogs(ctx context.Context, req *pb.GetFrameLogsReques
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServerForDevEUI(common.DB, devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -551,12 +551,12 @@ func (a *DeviceAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAd
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
-	n, err := storage.GetNetworkServerForDevEUI(common.DB, devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	nsClient, err := common.NetworkServerPool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

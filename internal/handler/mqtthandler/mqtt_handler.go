@@ -15,7 +15,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/garyburd/redigo/redis"
@@ -240,7 +240,7 @@ func (h *MQTTHandler) txPayloadHandler(c mqtt.Client, msg mqtt.Message) {
 	// so that other instances can ignore the message.
 	// As an unique id, the Reference field is used.
 	key := fmt.Sprintf("lora:as:downlink:lock:%d:%s:%s", pl.ApplicationID, pl.DevEUI, pl.Reference)
-	redisConn := common.RedisPool.Get()
+	redisConn := config.C.Redis.Pool.Get()
 	defer redisConn.Close()
 
 	_, err = redis.String(redisConn.Do("SET", key, "lock", "PX", int64(downlinkLockTTL/time.Millisecond), "NX"))

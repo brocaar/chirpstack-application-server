@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/brocaar/lora-app-server/internal/codec"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/pkg/errors"
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
@@ -25,27 +25,27 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 
 	Convey("Given a clean database an organization, application + node", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		nsClient := test.NewNetworkServerClient()
 		nsClient.GetNextDownlinkFCntForDevEUIResponse = ns.GetNextDownlinkFCntForDevEUIResponse{
 			FCnt: 12,
 		}
-		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
+		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		n := storage.NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		sp := storage.ServiceProfile{
 			Name:            "test-sp",
@@ -53,7 +53,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			NetworkServerID: n.ID,
 			ServiceProfile:  backend.ServiceProfile{},
 		}
-		So(storage.CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+		So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
 		dp := storage.DeviceProfile{
 			Name:            "test-dp",
@@ -61,14 +61,14 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			NetworkServerID: n.ID,
 			DeviceProfile:   backend.DeviceProfile{},
 		}
-		So(storage.CreateDeviceProfile(common.DB, &dp), ShouldBeNil)
+		So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
 
 		app := storage.Application{
 			OrganizationID:   org.ID,
 			Name:             "test-app",
 			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 		}
-		So(storage.CreateApplication(common.DB, &app), ShouldBeNil)
+		So(storage.CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
 
 		device := storage.Device{
 			ApplicationID:   app.ID,
@@ -76,14 +76,14 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			Name:            "test-node",
 			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		}
-		So(storage.CreateDevice(common.DB, &device), ShouldBeNil)
+		So(storage.CreateDevice(config.C.PostgreSQL.DB, &device), ShouldBeNil)
 
 		da := storage.DeviceActivation{
 			DevEUI:  [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 			DevAddr: [4]byte{1, 2, 3, 4},
 			AppSKey: [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
 		}
-		So(storage.CreateDeviceActivation(common.DB, &da), ShouldBeNil)
+		So(storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &da), ShouldBeNil)
 
 		b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 12, []byte{1, 2, 3, 4})
 		So(err, ShouldBeNil)
@@ -191,7 +191,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 					// update application
 					app.PayloadCodec = test.PayloadCodec
 					app.PayloadEncoderScript = test.PayloadEncoderScript
-					So(storage.UpdateApplication(common.DB, app), ShouldBeNil)
+					So(storage.UpdateApplication(config.C.PostgreSQL.DB, app), ShouldBeNil)
 
 					err := handleDataDownPayload(test.Payload)
 					if test.ExpectedError != nil {
@@ -206,11 +206,11 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 					So(<-nsClient.CreateDeviceQueueItemChan, ShouldResemble, test.ExpectedCreateDeviceQueueItemRequest)
 
 					if test.ExpectedDeviceQueueMapping {
-						dqm, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, device.DevEUI, 12)
+						dqm, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, device.DevEUI, 12)
 						So(err, ShouldBeNil)
 						So(dqm.Reference, ShouldEqual, test.Payload.Reference)
 					} else {
-						_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, device.DevEUI, 12)
+						_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, device.DevEUI, 12)
 						So(err, ShouldEqual, storage.ErrDoesNotExist)
 					}
 				})

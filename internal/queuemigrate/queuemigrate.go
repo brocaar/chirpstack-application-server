@@ -6,13 +6,13 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/brocaar/lora-app-server/internal/downlink"
-
-	"github.com/brocaar/lora-app-server/internal/common"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lorawan"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+
+	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/downlink"
+	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/lorawan"
 )
 
 // DeviceQueueItem represents an item in the device queue (downlink).
@@ -31,7 +31,7 @@ type DeviceQueueItem struct {
 // StartDeviceQueueMigration starts the migration of all device-queues.
 func StartDeviceQueueMigration() error {
 	var items []DeviceQueueItem
-	err := sqlx.Select(common.DB, &items, "select * from device_queue where pending = false order by id")
+	err := sqlx.Select(config.C.PostgreSQL.DB, &items, "select * from device_queue where pending = false order by id")
 	if err != nil {
 		return errors.Wrap(err, "select error")
 	}
@@ -47,7 +47,7 @@ func StartDeviceQueueMigration() error {
 }
 
 func migrateQueueItem(qi DeviceQueueItem) error {
-	return storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	return storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		if err := deleteQueueItem(tx, qi.ID); err != nil {
 			return errors.Wrap(err, "delete device-queue item error")
 		}

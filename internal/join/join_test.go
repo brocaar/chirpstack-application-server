@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test/testhandler"
 
-	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan"
@@ -21,27 +21,27 @@ func TestJoin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 
 	Convey("Given a clean database with node", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		nsClient := test.NewNetworkServerClient()
-		common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 		h := testhandler.NewTestHandler()
-		common.Handler = h
+		config.C.ApplicationServer.Integration.Handler = h
 
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
+		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		n := storage.NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		sp := storage.ServiceProfile{
 			OrganizationID:  org.ID,
@@ -49,7 +49,7 @@ func TestJoin(t *testing.T) {
 			Name:            "test-sp",
 			ServiceProfile:  backend.ServiceProfile{},
 		}
-		So(storage.CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+		So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
 		dp := storage.DeviceProfile{
 			OrganizationID:  org.ID,
@@ -57,14 +57,14 @@ func TestJoin(t *testing.T) {
 			Name:            "test-dp",
 			DeviceProfile:   backend.DeviceProfile{},
 		}
-		So(storage.CreateDeviceProfile(common.DB, &dp), ShouldBeNil)
+		So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
 
 		app := storage.Application{
 			OrganizationID:   org.ID,
 			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 			Name:             "test-app",
 		}
-		So(storage.CreateApplication(common.DB, &app), ShouldBeNil)
+		So(storage.CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
 
 		d := storage.Device{
 			ApplicationID:   app.ID,
@@ -72,13 +72,13 @@ func TestJoin(t *testing.T) {
 			DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 			DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
 		}
-		So(storage.CreateDevice(common.DB, &d), ShouldBeNil)
+		So(storage.CreateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 
 		dk := storage.DeviceKeys{
 			DevEUI: d.DevEUI,
 			AppKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 		}
-		So(storage.CreateDeviceKeys(common.DB, &dk), ShouldBeNil)
+		So(storage.CreateDeviceKeys(config.C.PostgreSQL.DB, &dk), ShouldBeNil)
 
 		Convey("Given a set of tests", func() {
 			validJRPHY := lorawan.PHYPayload{
@@ -250,7 +250,7 @@ func TestJoin(t *testing.T) {
 				{
 					Name: "join-request for device without keys",
 					PreRun: func() error {
-						return storage.DeleteDeviceKeys(common.DB, d.DevEUI)
+						return storage.DeleteDeviceKeys(config.C.PostgreSQL.DB, d.DevEUI)
 					},
 					RequestPayload: backend.JoinReqPayload{
 						BasePayload: backend.BasePayload{
@@ -297,7 +297,7 @@ func TestJoin(t *testing.T) {
 					So(ans, ShouldResemble, test.ExpectedPayload)
 
 					if ans.Result.ResultCode == backend.Success {
-						_, err := storage.GetLastDeviceActivationForDevEUI(common.DB, d.DevEUI)
+						_, err := storage.GetLastDeviceActivationForDevEUI(config.C.PostgreSQL.DB, d.DevEUI)
 						So(err, ShouldBeNil)
 					}
 				})

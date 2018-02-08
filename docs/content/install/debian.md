@@ -67,15 +67,13 @@ sudo apt-get install lora-app-server
 ```
 
 After installation, modify the configuration file which is located at
-`/etc/default/lora-app-server`. Given you used the password `dbpassword` when
+`/etc/lora-app-server/lora-app-server.toml`. Given you used the password `dbpassword` when
 creating the PostgreSQL database, you want to change the config variable
-`POSTGRES_DSN` into:
+`postgresql.dsn` into:
 
-```
-POSTGRES_DSN=postgres://loraserver_as:dbpassword@localhost/loraserver_as?sslmode=disable
-```
+`postgres://loraserver_as:dbpassword@localhost/loraserver_as?sslmode=disable`
 
-An other required setting you must change is `JWT_SECRET`.
+An other required setting you must change is `application_server.external_api.jwt_secret`.
 
 #### Starting LoRa App Server
 

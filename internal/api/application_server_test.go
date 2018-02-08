@@ -9,7 +9,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
@@ -29,12 +29,12 @@ func TestApplicationServerAPI(t *testing.T) {
 
 	nsClient := test.NewNetworkServerClient()
 
-	common.DB = db
-	common.RedisPool = storage.NewRedisPool(conf.RedisURL)
-	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+	config.C.PostgreSQL.DB = db
+	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL)
+	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database with bootstrap data node and api instance", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
 			DeviceProfile: &ns.DeviceProfile{
@@ -45,13 +45,13 @@ func TestApplicationServerAPI(t *testing.T) {
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(common.DB, &org), ShouldBeNil)
+		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		n := storage.NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(storage.CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		sp := storage.ServiceProfile{
 			OrganizationID:  org.ID,
@@ -59,7 +59,7 @@ func TestApplicationServerAPI(t *testing.T) {
 			Name:            "test-sp",
 			ServiceProfile:  backend.ServiceProfile{},
 		}
-		So(storage.CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+		So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
 		dp := storage.DeviceProfile{
 			OrganizationID:  org.ID,
@@ -67,14 +67,14 @@ func TestApplicationServerAPI(t *testing.T) {
 			Name:            "test-dp",
 			DeviceProfile:   backend.DeviceProfile{},
 		}
-		So(storage.CreateDeviceProfile(common.DB, &dp), ShouldBeNil)
+		So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
 
 		app := storage.Application{
 			OrganizationID:   org.ID,
 			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 			Name:             "test-app",
 		}
-		So(storage.CreateApplication(common.DB, &app), ShouldBeNil)
+		So(storage.CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
 
 		d := storage.Device{
 			ApplicationID:   app.ID,
@@ -82,13 +82,13 @@ func TestApplicationServerAPI(t *testing.T) {
 			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 			DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
 		}
-		So(storage.CreateDevice(common.DB, &d), ShouldBeNil)
+		So(storage.CreateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 
 		dc := storage.DeviceKeys{
 			DevEUI: d.DevEUI,
 			AppKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 		}
-		So(storage.CreateDeviceKeys(common.DB, &dc), ShouldBeNil)
+		So(storage.CreateDeviceKeys(config.C.PostgreSQL.DB, &dc), ShouldBeNil)
 
 		gw := storage.Gateway{
 			MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
@@ -97,10 +97,10 @@ func TestApplicationServerAPI(t *testing.T) {
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 		}
-		So(storage.CreateGateway(common.DB, &gw), ShouldBeNil)
+		So(storage.CreateGateway(config.C.PostgreSQL.DB, &gw), ShouldBeNil)
 
 		h := testhandler.NewTestHandler()
-		common.Handler = h
+		config.C.ApplicationServer.Integration.Handler = h
 
 		ctx := context.Background()
 		api := NewApplicationServerAPI()
@@ -135,7 +135,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				AppSKey: lorawan.AES128Key{},
 				NwkSKey: lorawan.AES128Key{},
 			}
-			So(storage.CreateDeviceActivation(common.DB, &da), ShouldBeNil)
+			So(storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &da), ShouldBeNil)
 
 			now := time.Now().UTC()
 			mac := lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}
@@ -222,7 +222,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 
 				Convey("Then the device was updated", func() {
-					d, err := storage.GetDevice(common.DB, d.DevEUI)
+					d, err := storage.GetDevice(config.C.PostgreSQL.DB, d.DevEUI)
 					So(err, ShouldBeNil)
 					So(*d.DeviceStatusBattery, ShouldEqual, 10)
 					So(*d.DeviceStatusMargin, ShouldEqual, 11)
@@ -239,7 +239,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 
 				Convey("Then the device was updated", func() {
-					d, err := storage.GetDevice(common.DB, d.DevEUI)
+					d, err := storage.GetDevice(config.C.PostgreSQL.DB, d.DevEUI)
 					So(err, ShouldBeNil)
 					So(d.DeviceStatusBattery, ShouldBeNil)
 					So(d.DeviceStatusMargin, ShouldBeNil)
@@ -257,7 +257,7 @@ func TestApplicationServerAPI(t *testing.T) {
 						}
 					}
 				`
-				So(storage.UpdateApplication(common.DB, app), ShouldBeNil)
+				So(storage.UpdateApplication(config.C.PostgreSQL.DB, app), ShouldBeNil)
 
 				_, err := api.HandleUplinkData(ctx, &req)
 				So(err, ShouldBeNil)
@@ -319,7 +319,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					DevEUI:    d.DevEUI,
 					FCnt:      10,
 				}
-				So(storage.CreateDeviceQueueMapping(common.DB, &dqm), ShouldBeNil)
+				So(storage.CreateDeviceQueueMapping(config.C.PostgreSQL.DB, &dqm), ShouldBeNil)
 
 				Convey("On HandleDownlinkACK (ack: true)", func() {
 					_, err := api.HandleDownlinkACK(ctx, &as.HandleDownlinkACKRequest{
@@ -330,7 +330,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					Convey("Then the device-queue mapping has been removed", func() {
-						_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, d.DevEUI, 10)
+						_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, d.DevEUI, 10)
 						So(err, ShouldEqual, storage.ErrDoesNotExist)
 					})
 
@@ -357,7 +357,7 @@ func TestApplicationServerAPI(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					Convey("Then the device-queue mapping has been removed", func() {
-						_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(common.DB, d.DevEUI, 10)
+						_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, d.DevEUI, 10)
 						So(err, ShouldEqual, storage.ErrDoesNotExist)
 					})
 

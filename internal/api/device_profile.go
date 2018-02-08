@@ -3,15 +3,16 @@ package api
 import (
 	"time"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/api/auth"
-	"github.com/brocaar/lora-app-server/internal/common"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lorawan/backend"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+
+	pb "github.com/brocaar/lora-app-server/api"
+	"github.com/brocaar/lora-app-server/internal/api/auth"
+	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/lorawan/backend"
 )
 
 // DeviceProfileServiceAPI exports the ServiceProfile related functions.
@@ -70,7 +71,7 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 
 	// as this also performs a remote call to create the device-profile
 	// on the network-server, wrap it in a transaction
-	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		return storage.CreateDeviceProfile(tx, &dp)
 	})
 	if err != nil {
@@ -90,7 +91,7 @@ func (a *DeviceProfileServiceAPI) Get(ctx context.Context, req *pb.GetDeviceProf
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	dp, err := storage.GetDeviceProfile(common.DB, req.DeviceProfileID)
+	dp, err := storage.GetDeviceProfile(config.C.PostgreSQL.DB, req.DeviceProfileID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -143,7 +144,7 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	dp, err := storage.GetDeviceProfile(common.DB, req.DeviceProfile.DeviceProfileID)
+	dp, err := storage.GetDeviceProfile(config.C.PostgreSQL.DB, req.DeviceProfile.DeviceProfileID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -177,7 +178,7 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 
 	// as this also performs a remote call to update the device-profile
 	// on the network-server, wrap it in a transaction
-	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		return storage.UpdateDeviceProfile(tx, &dp)
 	})
 	if err != nil {
@@ -197,7 +198,7 @@ func (a *DeviceProfileServiceAPI) Delete(ctx context.Context, req *pb.DeleteDevi
 
 	// as this also performs a remote call to delete the device-profile
 	// on the network-server, wrap it in a transaction
-	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		return storage.DeleteDeviceProfile(tx, req.DeviceProfileID)
 	})
 	if err != nil {
@@ -237,43 +238,43 @@ func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDevicePr
 	var dps []storage.DeviceProfileMeta
 
 	if req.ApplicationID != 0 {
-		dps, err = storage.GetDeviceProfilesForApplicationID(common.DB, req.ApplicationID, int(req.Limit), int(req.Offset))
+		dps, err = storage.GetDeviceProfilesForApplicationID(config.C.PostgreSQL.DB, req.ApplicationID, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 
-		count, err = storage.GetDeviceProfileCountForApplicationID(common.DB, req.ApplicationID)
+		count, err = storage.GetDeviceProfileCountForApplicationID(config.C.PostgreSQL.DB, req.ApplicationID)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 	} else if req.OrganizationID != 0 {
-		dps, err = storage.GetDeviceProfilesForOrganizationID(common.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+		dps, err = storage.GetDeviceProfilesForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 
-		count, err = storage.GetDeviceProfileCountForOrganizationID(common.DB, req.OrganizationID)
+		count, err = storage.GetDeviceProfileCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 	} else {
 		if isAdmin {
-			dps, err = storage.GetDeviceProfiles(common.DB, int(req.Limit), int(req.Offset))
+			dps, err = storage.GetDeviceProfiles(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 
-			count, err = storage.GetDeviceProfileCount(common.DB)
+			count, err = storage.GetDeviceProfileCount(config.C.PostgreSQL.DB)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		} else {
-			dps, err = storage.GetDeviceProfilesForUser(common.DB, username, int(req.Limit), int(req.Offset))
+			dps, err = storage.GetDeviceProfilesForUser(config.C.PostgreSQL.DB, username, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 
-			count, err = storage.GetDeviceProfileCountForUser(common.DB, username)
+			count, err = storage.GetDeviceProfileCountForUser(config.C.PostgreSQL.DB, username)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}

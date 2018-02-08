@@ -3,16 +3,15 @@ package api
 import (
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/jmoiron/sqlx"
-	"github.com/urfave/cli"
 )
 
 // UserAPI exports the User related functions.
@@ -23,7 +22,6 @@ type UserAPI struct {
 // InternalUserAPI exports the internal User related functions.
 type InternalUserAPI struct {
 	validator auth.Validator
-	input     *cli.Context
 }
 
 // NewUserAPI creates a new UserAPI.
@@ -72,7 +70,7 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 
 	var userID int64
 
-	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		userID, err = storage.CreateUser(tx, &user, req.Password)
 		if err != nil {
 			return err
@@ -100,7 +98,7 @@ func (a *UserAPI) Get(ctx context.Context, req *pb.UserRequest) (*pb.GetUserResp
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	user, err := storage.GetUser(common.DB, req.Id)
+	user, err := storage.GetUser(config.C.PostgreSQL.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -125,12 +123,12 @@ func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	users, err := storage.GetUsers(common.DB, req.Limit, req.Offset, req.Search)
+	users, err := storage.GetUsers(config.C.PostgreSQL.DB, req.Limit, req.Offset, req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	totalUserCount, err := storage.GetUserCount(common.DB, req.Search)
+	totalUserCount, err := storage.GetUserCount(config.C.PostgreSQL.DB, req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -171,7 +169,7 @@ func (a *UserAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.Us
 		Note:       req.Note,
 	}
 
-	err := storage.UpdateUser(common.DB, userUpdate)
+	err := storage.UpdateUser(config.C.PostgreSQL.DB, userUpdate)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -186,7 +184,7 @@ func (a *UserAPI) Delete(ctx context.Context, req *pb.UserRequest) (*pb.UserEmpt
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteUser(common.DB, req.Id)
+	err := storage.DeleteUser(config.C.PostgreSQL.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -200,7 +198,7 @@ func (a *UserAPI) UpdatePassword(ctx context.Context, req *pb.UpdateUserPassword
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.UpdatePassword(common.DB, req.Id, req.Password)
+	err := storage.UpdatePassword(config.C.PostgreSQL.DB, req.Id, req.Password)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -208,16 +206,15 @@ func (a *UserAPI) UpdatePassword(ctx context.Context, req *pb.UpdateUserPassword
 }
 
 // NewInternalUserAPI creates a new InternalUserAPI.
-func NewInternalUserAPI(validator auth.Validator, c *cli.Context) *InternalUserAPI {
+func NewInternalUserAPI(validator auth.Validator) *InternalUserAPI {
 	return &InternalUserAPI{
 		validator: validator,
-		input:     c,
 	}
 }
 
 // Login validates the login request and returns a JWT token.
 func (a *InternalUserAPI) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	jwt, err := storage.LoginUser(common.DB, req.Username, req.Password)
+	jwt, err := storage.LoginUser(config.C.PostgreSQL.DB, req.Username, req.Password)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
@@ -229,6 +226,7 @@ type claims struct {
 	Username string `json:"username"`
 }
 
+// Profile returns the user profile.
 func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (*pb.ProfileResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateActiveUser()); err != nil {
@@ -241,12 +239,12 @@ func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (
 	}
 
 	// Get the user id based on the username.
-	user, err := storage.GetUserByUsername(common.DB, username)
+	user, err := storage.GetUserByUsername(config.C.PostgreSQL.DB, username)
 	if nil != err {
 		return nil, errToRPCError(err)
 	}
 
-	prof, err := storage.GetProfile(common.DB, user.ID)
+	prof, err := storage.GetProfile(config.C.PostgreSQL.DB, user.ID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -283,9 +281,9 @@ func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (
 // Branding returns UI branding.
 func (a *InternalUserAPI) Branding(ctx context.Context, req *pb.BrandingRequest) (*pb.BrandingResponse, error) {
 	resp := pb.BrandingResponse{
-		Logo:         a.input.String("branding-header"),
-		Registration: a.input.String("branding-registration"),
-		Footer:       a.input.String("branding-footer"),
+		Logo:         config.C.ApplicationServer.Branding.Header,
+		Registration: config.C.ApplicationServer.Branding.Registration,
+		Footer:       config.C.ApplicationServer.Branding.Footer,
 	}
 
 	return &resp, nil

@@ -1,75 +1,24 @@
----
-title: Configuration
-menu:
-    main:
-        parent: install
-        weight: 4
----
+package cmd
 
-## Configuration
+import (
+	"html/template"
+	"os"
 
-The `lora-app-server` binary has the following command-line flags:
+	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+)
 
-```text
-LoRa App Server is an open-source application-server, part of the LoRa Server project
-        > documentation & support: https://docs.loraserver.io/lora-app-server
-        > source & copyright information: https://github.com/brocaar/lora-app-server
-
-Usage:
-  lora-app-server [flags]
-  lora-app-server [command]
-
-Available Commands:
-  configfile  Print the LoRa Application Server configuration file
-  help        Help about any command
-  version     Print the LoRa Gateway Bridge version
-
-Flags:
-  -c, --config string   path to configuration file (optional)
-  -h, --help            help for lora-app-server
-      --log-level int   debug=5, info=4, error=2, fatal=1, panic=0 (default 4)
-
-Use "lora-app-server [command] --help" for more information about a command.
-```
-
-### Configuration file
-
-By default `lora-app-server` will look in the following order for a
-configuration file at the following paths when `--config` is not set:
-
-* `lora-app-server.toml` (current working directory)
-* `$HOME/.config/lora-app-server/lora-app-server.toml`
-* `/etc/lora-app-server/lora-app-server.toml`
-
-To load configuration from a different location, use the `--config` flag.
-
-To generate a new configuration file `lora-app-server.toml`, execute the following command:
-
-```bash
-lora-app-server configfile > lora-app-server.toml
-```
-
-Note that this configuration file will be pre-filled with the current configuration
-(either loaded from the paths mentioned above, or by using the `--config` flag).
-This makes it possible when new fields get added to upgrade your configuration file
-while preserving your old configuration. Example:
-
-```bash
-lora-app-server configfile --config lora-app-server-old.toml > lora-app-server-new.toml
-```
-
-Example configuration file:
-
-```toml
-[general]
+// when updating this template, don't forget to update config.md!
+const configTemplate = `[general]
 # Log level
 #
 # debug=5, info=4, warning=3, error=2, fatal=1, panic=0
-log_level=4
+log_level={{ .General.LogLevel }}
 
 # The number of times passwords must be hashed. A higher number is safer as
 # an attack takes more time to perform.
-password_hash_iterations=100000
+password_hash_iterations={{ .General.PasswordHashIterations }}
 
 
 # PostgreSQL settings.
@@ -102,7 +51,7 @@ password_hash_iterations=100000
 # * require - Always SSL (skip verification)
 # * verify-ca - Always SSL (verify that the certificate presented by the server was signed by a trusted CA)
 # * verify-full - Always SSL (verify that the certification presented by the server was signed by a trusted CA and the server host name matches the one in the certificate)
-dsn="postgres://localhost/loraserver_as?sslmode=disable"
+dsn="{{ .PostgreSQL.DSN }}"
 
 # Automatically apply database migrations.
 #
@@ -111,7 +60,7 @@ dsn="postgres://localhost/loraserver_as?sslmode=disable"
 # or let LoRa App Server migrate to the latest state automatically, by using
 # this setting. Make sure that you always make a backup when upgrading Lora
 # App Server and / or applying migrations.
-automigrate=true
+automigrate={{ .PostgreSQL.Automigrate }}
 
 
 # Redis settings
@@ -122,7 +71,7 @@ automigrate=true
 #
 # For more information about the Redis URL format, see:
 # https://www.iana.org/assignments/uri-schemes/prov/redis
-url="redis://localhost:6379"
+url="{{ .Redis.URL }}"
 
 
 # Application-server settings.
@@ -132,7 +81,7 @@ url="redis://localhost:6379"
 # Random UUID defining the id of the application-server installation (used by
 # LoRa Server as routing-profile id).
 # For now it is recommended to not change this id.
-id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
+id="{{ .ApplicationServer.ID }}"
 
 
   # MQTT integration configuration used for publishing (data) events
@@ -141,26 +90,26 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # configure additional per-application integrations.
   [application_server.integration.mqtt]
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
-  server="tcp://localhost:1883"
+  server="{{ .ApplicationServer.Integration.MQTT.Server }}"
 
   # Connect with the given username (optional)
-  username=""
+  username="{{ .ApplicationServer.Integration.MQTT.Username }}"
 
   # Connect with the given password (optional)
-  password=""
+  password="{{ .ApplicationServer.Integration.MQTT.Password }}"
 
   # CA certificate file (optional)
   #
   # Use this when setting up a secure connection (when server uses ssl://...)
   # but the certificate used by the server is not trusted by any CA certificate
   # on the server (e.g. when self generated).
-  ca_cert=""
+  ca_cert="{{ .ApplicationServer.Integration.MQTT.CACert }}"
 
   # TLS certificate file (optional)
-  tls_cert=""
+  tls_cert="{{ .ApplicationServer.Integration.MQTT.TLSCert }}"
 
   # TLS key file (optional)
-  tls_key=""
+  tls_key="{{ .ApplicationServer.Integration.MQTT.TLSKey }}"
 
 
   # Settings for the "internal api"
@@ -169,16 +118,16 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # and should not be exposed to the end-user.
   [application_server.api]
   # ip:port to bind the api server
-  bind="0.0.0.0:8001"
+  bind="{{ .ApplicationServer.API.Bind }}"
 
   # ca certificate used by the api server (optional)
-  ca_cert=""
+  ca_cert="{{ .ApplicationServer.API.CACert }}"
 
   # tls certificate used by the api server (optional)
-  tls_cert=""
+  tls_cert="{{ .ApplicationServer.API.TLSCert }}"
 
   # tls key used by the api server (optional)
-  tls_key=""
+  tls_key="{{ .ApplicationServer.API.TLSKey }}"
 
   # Public ip:port of the application-server API.
   #
@@ -187,7 +136,7 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # this to the host:ip on which LoRa Server can reach LoRa App Server.
   # The port must be equal to the port configured by the 'bind' flag
   # above.
-  public_host="localhost:8001"
+  public_host="{{ .ApplicationServer.API.PublicHost }}"
 
 
   # Settings for the "external api"
@@ -195,22 +144,34 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # This is the API and web-interface exposed to the end-user.
   [application_server.external_api]
   # ip:port to bind the (user facing) http server to (web-interface and REST / gRPC api)
-  bind="0.0.0.0:8080"
+  bind="{{ .ApplicationServer.ExternalAPI.Bind }}"
 
   # http server TLS certificate
-  tls_cert=""
+  tls_cert="{{ .ApplicationServer.ExternalAPI.TLSCert }}"
 
   # http server TLS key
-  tls_key=""
+  tls_key="{{ .ApplicationServer.ExternalAPI.TLSKey }}"
 
   # JWT secret used for api authentication / authorization
   # You could generate this by executing 'openssl rand -base64 32' for example
-  jwt_secret=""
+  jwt_secret="{{ .ApplicationServer.ExternalAPI.JWTSecret }}"
 
   # when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)"
-  disable_assign_existing_users=false
+  disable_assign_existing_users={{ .ApplicationServer.ExternalAPI.DisableAssignExistingUsers }}
 
+{{ if ne .ApplicationServer.Branding.Header  "" }}
+  # Branding configuration.
+  [application_server.branding]
+  # Header
+  header="{{ .ApplicationServer.Branding.Header }}"
 
+  # Footer
+  footer="{{ .ApplicationServer.Branding.Footer }}"
+
+  # Registration.
+  registration="{{ .ApplicationServer.Branding.Registration }}"
+
+{{ end }}
   # Gateway discovery configuration.
   #
   # When enabled, each gateway will periodically broadcast a discovery "ping"
@@ -218,16 +179,16 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # presented in the web-interface as a map.
   [application_server.gateway_discovery]
   # Enable the gateway discovery feature.
-  enabled=false
+  enabled={{ .ApplicationServer.GatewayDiscovery.Enabled }}
 
   # the interval used for each gateway to send a ping
-  interval="24h0m0s"
+  interval="{{ .ApplicationServer.GatewayDiscovery.Interval }}"
 
   # the frequency used for transmitting the gateway ping (in Hz)
-  frequency=868100000
+  frequency={{ .ApplicationServer.GatewayDiscovery.Frequency }}
 
   # the data-rate to use for transmitting the gateway ping
-  dr=5
+  dr={{ .ApplicationServer.GatewayDiscovery.DR }}
 
 
 # Join-server configuration.
@@ -237,97 +198,34 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 # to handle join-requests.
 [join_server]
 # ip:port to bind the join-server api interface to
-bind="0.0.0.0:8003"
+bind="{{ .JoinServer.Bind }}"
 
 # ca certificate used by the join-server api server
-ca_cert=""
+ca_cert="{{ .JoinServer.CACert }}"
 
 # tls certificate used by the join-server api server (optional)
-tls_cert=""
+tls_cert="{{ .JoinServer.TLSCert }}"
 
 # tls key used by the join-server api server (optional)
-tls_key=""
+tls_key="{{ .JoinServer.TLSKey }}"
 
 
 # Network-server configuration.
 #
 # This configuration is only used to migrate from older LoRa App Server.
 [network_server]
-server="127.0.0.1:8000"
-```
+server="{{ .NetworkServer.Server }}"
+`
 
-### Securing the application-server internal API
-
-In order to protect the application-server internal API (`[application_server.internal_api]`) against
-unauthorized access and to encrypt all communication, it is advised to use TLS
-certificates. Once the `ca_cert`, `tls_cert` and `tls_key` are set, the
-API will enforce client certificate validation on all incoming connections.
-This means that when configuring a network-server instance in LoRa App Server,
-you must provide the CA and TLS client certificate in order to let the
-network-server to connect to LoRa App Server. See also
-[network-server management]({{< ref "use/network-servers.md" >}}).
-
-See [https://github.com/brocaar/loraserver-certificates](https://github.com/brocaar/loraserver-certificates)
-for a set of script to generate such certificates.
-
-### Securing the join-server API
-
-In order to protect the join-server API (`[join_server]`) against
-unauthorized access and to encrypt all communication, it is advised to use TLS
-certificates. Once the `ca_cert`, `tls_cert` and `tls_key` are
-set, the API will enforce client certificate validation on all incoming connections.
-
-Please note that you also need to configure LoRa Server so that it uses a
-client certificate for its join-server API client. See
-[LoRa Server configuration](https://docs.loraserver.io/loraserver/install/config/).
-
-### Web-interface and public API
-
-The web-interface and public api (`[application_server.public_api]`) must be
-secured by a TLS certificate and key, as this allows to run the gRPC and RESTful
-JSON api together on one port.
-
-#### Self-signed certificate
-
-A self-signed certificate can be generated with the following command:
-
-```bash
-openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 90 -nodes
-```
-
-#### Let's Encrypt
-
-For generating a certificate with [Let's Encrypt](https://letsencrypt.org/),
-first follow the [getting started](https://letsencrypt.org/getting-started/)
-instructions. When the `letsencrypt` cli tool has been installed, execute:
-
-```bash
-letsencrypt certonly --standalone -d DOMAINNAME.HERE 
-```
-
-### Warning: deprecation warning! update your configuration
-
-When you see this warning, you need to update your configuration!
-Before LoRa App Server 0.18.0 environment variables were used for setting
-configuration flags. Since LoRa App Server 0.18.0 the configuration format
-has changed.
-
-The `.deb` installer will automatically migrate your configuration. For non
-`.deb` installations, you can migrate your configuration in the following way:
-
-```bash
-# Export your environment variables, in this case from a file, but anything
-# that sets your environment variables will work.
-set -a
-source /etc/default/lora-app-server
-
-# Create the configuration directory.
-mkdir /etc/lora-app-server
-
-# Generate new configuration file, pre-filled with the configuration set
-# through the environment variables.
-lora-app-server configfile > /etc/lora-app-server/lora-app-server.toml
-
-# "Remove" the old configuration (in you were using a file).
-mv /etc/default/lora-app-server /etc/default/lora-app-server.old
-```
+var configCmd = &cobra.Command{
+	Use:   "configfile",
+	Short: "Print the LoRa Application Server configuration file",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t := template.Must(template.New("config").Parse(configTemplate))
+		err := t.Execute(os.Stdout, config.C)
+		if err != nil {
+			return errors.Wrap(err, "execute config template error")
+		}
+		return nil
+	},
+}

@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 
+	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -10,11 +11,10 @@ import (
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/handler/httphandler"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/jmoiron/sqlx"
 )
 
 // ApplicationAPI exports the Application related functions.
@@ -47,7 +47,7 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 		PayloadDecoderScript: req.PayloadDecoderScript,
 	}
 
-	if err := storage.CreateApplication(common.DB, &app); err != nil {
+	if err := storage.CreateApplication(config.C.PostgreSQL.DB, &app); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -64,7 +64,7 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplication(common.DB, req.Id)
+	app, err := storage.GetApplication(config.C.PostgreSQL.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -90,7 +90,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplication(common.DB, req.Id)
+	app, err := storage.GetApplication(config.C.PostgreSQL.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -103,7 +103,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	app.PayloadEncoderScript = req.PayloadEncoderScript
 	app.PayloadDecoderScript = req.PayloadDecoderScript
 
-	err = storage.UpdateApplication(common.DB, app)
+	err = storage.UpdateApplication(config.C.PostgreSQL.DB, app)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -119,7 +119,7 @@ func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		err := storage.DeleteApplication(tx, req.Id)
 		if err != nil {
 			return errToRPCError(err)
@@ -156,40 +156,40 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 
 	if req.OrganizationID == 0 {
 		if isAdmin {
-			apps, err = storage.GetApplications(common.DB, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplications(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCount(common.DB)
+			count, err = storage.GetApplicationCount(config.C.PostgreSQL.DB)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		} else {
-			apps, err = storage.GetApplicationsForUser(common.DB, username, 0, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplicationsForUser(config.C.PostgreSQL.DB, username, 0, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForUser(common.DB, username, 0)
+			count, err = storage.GetApplicationCountForUser(config.C.PostgreSQL.DB, username, 0)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		}
 	} else {
 		if isAdmin {
-			apps, err = storage.GetApplicationsForOrganizationID(common.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplicationsForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForOrganizationID(common.DB, req.OrganizationID)
+			count, err = storage.GetApplicationCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		} else {
-			apps, err = storage.GetApplicationsForUser(common.DB, username, req.OrganizationID, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplicationsForUser(config.C.PostgreSQL.DB, username, req.OrganizationID, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForUser(common.DB, username, req.OrganizationID)
+			count, err = storage.GetApplicationCountForUser(config.C.PostgreSQL.DB, username, req.OrganizationID)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
@@ -249,7 +249,7 @@ func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 		Kind:          handler.HTTPHandlerKind,
 		Settings:      confJSON,
 	}
-	if err = storage.CreateIntegration(common.DB, &integration); err != nil {
+	if err = storage.CreateIntegration(config.C.PostgreSQL.DB, &integration); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -264,7 +264,7 @@ func (a *ApplicationAPI) GetHTTPIntegration(ctx context.Context, in *pb.GetHTTPI
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(common.DB, in.Id, handler.HTTPHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.Id, handler.HTTPHandlerKind)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -301,7 +301,7 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(common.DB, in.Id, handler.HTTPHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.Id, handler.HTTPHandlerKind)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -328,7 +328,7 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 	}
 	integration.Settings = confJSON
 
-	if err = storage.UpdateIntegration(common.DB, &integration); err != nil {
+	if err = storage.UpdateIntegration(config.C.PostgreSQL.DB, &integration); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -343,12 +343,12 @@ func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.Delet
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(common.DB, in.Id, handler.HTTPHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.Id, handler.HTTPHandlerKind)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	if err = storage.DeleteIntegration(common.DB, integration.ID); err != nil {
+	if err = storage.DeleteIntegration(config.C.PostgreSQL.DB, integration.ID); err != nil {
 		return nil, errToRPCError(err)
 	}
 
@@ -363,7 +363,7 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integrations, err := storage.GetIntegrationsForApplicationID(common.DB, in.Id)
+	integrations, err := storage.GetIntegrationsForApplicationID(config.C.PostgreSQL.DB, in.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan/backend"
@@ -17,17 +17,17 @@ func TestServiceProfile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	common.DB = db
+	config.C.PostgreSQL.DB = db
 	nsClient := test.NewNetworkServerClient()
-	common.NetworkServerPool = test.NewNetworkServerPool(nsClient)
+	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database with organization and network-server", t, func() {
-		test.MustResetDB(common.DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		org := Organization{
 			Name: "test-org",
 		}
-		So(CreateOrganization(common.DB, &org), ShouldBeNil)
+		So(CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		u := User{
 			Username: "testuser",
@@ -35,15 +35,15 @@ func TestServiceProfile(t *testing.T) {
 			IsActive: true,
 			Email:    "foo@bar.com",
 		}
-		uID, err := CreateUser(common.DB, &u, "testpassword")
+		uID, err := CreateUser(config.C.PostgreSQL.DB, &u, "testpassword")
 		So(err, ShouldBeNil)
-		So(CreateOrganizationUser(common.DB, org.ID, uID, false), ShouldBeNil)
+		So(CreateOrganizationUser(config.C.PostgreSQL.DB, org.ID, uID, false), ShouldBeNil)
 
 		n := NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(CreateNetworkServer(common.DB, &n), ShouldBeNil)
+		So(CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		Convey("Then CreateServiceProfile creates the service-profile", func() {
 			sp := ServiceProfile{
@@ -71,7 +71,7 @@ func TestServiceProfile(t *testing.T) {
 					MinGWDiversity: 3,
 				},
 			}
-			So(CreateServiceProfile(common.DB, &sp), ShouldBeNil)
+			So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 			So(nsClient.CreateServiceProfileChan, ShouldHaveLength, 1)
 			So(<-nsClient.CreateServiceProfileChan, ShouldResemble, ns.CreateServiceProfileRequest{
 				ServiceProfile: &ns.ServiceProfile{
@@ -124,7 +124,7 @@ func TestServiceProfile(t *testing.T) {
 					},
 				}
 
-				spGet, err := GetServiceProfile(common.DB, sp.ServiceProfile.ServiceProfileID)
+				spGet, err := GetServiceProfile(config.C.PostgreSQL.DB, sp.ServiceProfile.ServiceProfileID)
 				So(err, ShouldBeNil)
 				spGet.CreatedAt = spGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				spGet.UpdatedAt = spGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -155,7 +155,7 @@ func TestServiceProfile(t *testing.T) {
 					TargetPER:      11,
 					MinGWDiversity: 4,
 				}
-				So(UpdateServiceProfile(common.DB, &sp), ShouldBeNil)
+				So(UpdateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 				sp.UpdatedAt = sp.UpdatedAt.UTC().Truncate(time.Millisecond)
 				So(nsClient.UpdateServiceProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.UpdateServiceProfileChan, ShouldResemble, ns.UpdateServiceProfileRequest{
@@ -182,7 +182,7 @@ func TestServiceProfile(t *testing.T) {
 					},
 				})
 
-				spGet, err := GetServiceProfile(common.DB, sp.ServiceProfile.ServiceProfileID)
+				spGet, err := GetServiceProfile(config.C.PostgreSQL.DB, sp.ServiceProfile.ServiceProfileID)
 				So(err, ShouldBeNil)
 				spGet.UpdatedAt = spGet.UpdatedAt.UTC().Truncate(time.Millisecond)
 				So(spGet.Name, ShouldEqual, "updated-service-profile")
@@ -190,65 +190,65 @@ func TestServiceProfile(t *testing.T) {
 			})
 
 			Convey("Then DeleteServiceProfile deletes the service-profile", func() {
-				So(DeleteServiceProfile(common.DB, sp.ServiceProfile.ServiceProfileID), ShouldBeNil)
+				So(DeleteServiceProfile(config.C.PostgreSQL.DB, sp.ServiceProfile.ServiceProfileID), ShouldBeNil)
 				So(nsClient.DeleteServiceProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.DeleteServiceProfileChan, ShouldResemble, ns.DeleteServiceProfileRequest{
 					ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 				})
 
-				_, err := GetServiceProfile(common.DB, sp.ServiceProfile.ServiceProfileID)
+				_, err := GetServiceProfile(config.C.PostgreSQL.DB, sp.ServiceProfile.ServiceProfileID)
 				So(err, ShouldEqual, ErrDoesNotExist)
 			})
 
 			Convey("Then GetServiceProfileCount returns 1", func() {
-				count, err := GetServiceProfileCount(common.DB)
+				count, err := GetServiceProfileCount(config.C.PostgreSQL.DB)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 			})
 
 			Convey("Then GetServiceProfileCountForOrganizationID returns the number of service-profiles for the given organization", func() {
-				count, err := GetServiceProfileCountForOrganizationID(common.DB, org.ID)
+				count, err := GetServiceProfileCountForOrganizationID(config.C.PostgreSQL.DB, org.ID)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 
-				count, err = GetServiceProfileCountForOrganizationID(common.DB, org.ID+1)
+				count, err = GetServiceProfileCountForOrganizationID(config.C.PostgreSQL.DB, org.ID+1)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 0)
 			})
 
 			Convey("Then GetServiceProfileCountForUser returns the service-profile count accessible by the given user", func() {
-				count, err := GetServiceProfileCountForUser(common.DB, u.Username)
+				count, err := GetServiceProfileCountForUser(config.C.PostgreSQL.DB, u.Username)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 
-				count, err = GetServiceProfileCountForUser(common.DB, "fakeuser")
+				count, err = GetServiceProfileCountForUser(config.C.PostgreSQL.DB, "fakeuser")
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 0)
 			})
 
 			Convey("Then GetServiceProfiles includes the created service-profile", func() {
-				profiles, err := GetServiceProfiles(common.DB, 10, 0)
+				profiles, err := GetServiceProfiles(config.C.PostgreSQL.DB, 10, 0)
 				So(err, ShouldBeNil)
 				So(profiles, ShouldHaveLength, 1)
 				So(profiles[0].Name, ShouldEqual, sp.Name)
 			})
 
 			Convey("Then GetServiceProfilesForOrganizationID returns the service-profiles for the given organization", func() {
-				sps, err := GetServiceProfilesForOrganizationID(common.DB, org.ID, 10, 0)
+				sps, err := GetServiceProfilesForOrganizationID(config.C.PostgreSQL.DB, org.ID, 10, 0)
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 1)
 
-				sps, err = GetServiceProfilesForOrganizationID(common.DB, org.ID+1, 10, 0)
+				sps, err = GetServiceProfilesForOrganizationID(config.C.PostgreSQL.DB, org.ID+1, 10, 0)
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 0)
 			})
 
 			Convey("Then GetServiceProfilesForUser returns the service-profiles accessible by a given user", func() {
-				sps, err := GetServiceProfilesForUser(common.DB, u.Username, 10, 0)
+				sps, err := GetServiceProfilesForUser(config.C.PostgreSQL.DB, u.Username, 10, 0)
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 1)
 
-				sps, err = GetServiceProfilesForUser(common.DB, "fakeuser", 10, 0)
+				sps, err = GetServiceProfilesForUser(config.C.PostgreSQL.DB, "fakeuser", 10, 0)
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 0)
 			})

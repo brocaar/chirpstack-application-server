@@ -8,16 +8,12 @@
 # Short-Description: LoRa App Server is an open-source application-server for LoRa Server
 ### END INIT INFO
 
-# set variables for exporting (needed for DEFAULT_FILE)
-set -a
-
 NAME=lora-app-server
 DESC="LoRa App Server"
 DAEMON_USER=appserver
 DAEMON_GROUP=appserver
 DAEMON=/usr/bin/$NAME
 PID_FILE=/var/run/$NAME.pid
-DEFAULT_FILE=/etc/default/$NAME
 
 # check root
 if [ "$UID" != "0" ]; then
@@ -36,10 +32,6 @@ fi
 
 if [ -r /etc/default/rcS ]; then
 	. /etc/default/rcS
-fi
-
-if [ -f "$DEFAULT_FILE" ]; then
-	. "$DEFAULT_FILE"
 fi
 
 function do_start {

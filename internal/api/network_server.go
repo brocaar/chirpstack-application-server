@@ -3,14 +3,15 @@ package api
 import (
 	"time"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/api/auth"
-	"github.com/brocaar/lora-app-server/internal/common"
-	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+
+	pb "github.com/brocaar/lora-app-server/api"
+	"github.com/brocaar/lora-app-server/internal/api/auth"
+	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/storage"
 )
 
 // NetworkServerAPI exports the NetworkServer related functions.
@@ -44,7 +45,7 @@ func (a *NetworkServerAPI) Create(ctx context.Context, req *pb.CreateNetworkServ
 		RoutingProfileTLSKey:  req.RoutingProfileTLSKey,
 	}
 
-	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		return storage.CreateNetworkServer(tx, &ns)
 	})
 	if err != nil {
@@ -64,7 +65,7 @@ func (a *NetworkServerAPI) Get(ctx context.Context, req *pb.GetNetworkServerRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	ns, err := storage.GetNetworkServer(common.DB, req.Id)
+	ns, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -90,7 +91,7 @@ func (a *NetworkServerAPI) Update(ctx context.Context, req *pb.UpdateNetworkServ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	ns, err := storage.GetNetworkServer(common.DB, req.Id)
+	ns, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -116,7 +117,7 @@ func (a *NetworkServerAPI) Update(ctx context.Context, req *pb.UpdateNetworkServ
 		ns.RoutingProfileTLSKey = ""
 	}
 
-	err = storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		return storage.UpdateNetworkServer(tx, &ns)
 	})
 	if err != nil {
@@ -134,7 +135,7 @@ func (a *NetworkServerAPI) Delete(ctx context.Context, req *pb.DeleteNetworkServ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.Transaction(common.DB, func(tx sqlx.Ext) error {
+	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		return storage.DeleteNetworkServer(tx, req.Id)
 	})
 	if err != nil {
@@ -162,21 +163,21 @@ func (a *NetworkServerAPI) List(ctx context.Context, req *pb.ListNetworkServerRe
 
 	if req.OrganizationID == 0 {
 		if isAdmin {
-			count, err = storage.GetNetworkServerCount(common.DB)
+			count, err = storage.GetNetworkServerCount(config.C.PostgreSQL.DB)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			nss, err = storage.GetNetworkServers(common.DB, int(req.Limit), int(req.Offset))
+			nss, err = storage.GetNetworkServers(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		}
 	} else {
-		count, err = storage.GetNetworkServerCountForOrganizationID(common.DB, req.OrganizationID)
+		count, err = storage.GetNetworkServerCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
-		nss, err = storage.GetNetworkServersForOrganizationID(common.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+		nss, err = storage.GetNetworkServersForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, errToRPCError(err)
 		}

@@ -4,6 +4,9 @@
 # logs
 *.log
 
+# config files
+*.toml
+
 # builds
 /dist
 /build

@@ -4,6 +4,7 @@ package api;
 
 // for grpc-gateway
 import "google/api/annotations.proto";
+import "common.proto";
 
 // Gateway is the service managing the gateways.
 service Gateway {
@@ -134,6 +135,14 @@ service Gateway {
 			get: "/api/gateways/{mac}/pings/last"
 		};
 	}
+
+    // StreamFrameLogs streams the uplink and downlink frame-logs for the given mac.
+    // Note: these are the raw LoRaWAN frames and this endpoint is intended for debugging.
+    rpc StreamFrameLogs(StreamGatewayFrameLogsRequest) returns (stream StreamGatewayFrameLogsResponse) {
+        option (google.api.http) = {
+            get: "/api/gateways/{mac}/frames"
+        };
+    }
 }
 
 enum Modulation {
@@ -583,4 +592,17 @@ message GetLastPingResponse {
 
 	// Gateways and meta-data of reception.
 	repeated PingRX pingRX = 4;
+}
+
+message StreamGatewayFrameLogsRequest {
+    // Hex encoded mac.
+    string mac = 1;
+}
+
+message StreamGatewayFrameLogsResponse {
+    // Contains zero or one uplink frame.
+    repeated UplinkFrameLog uplinkFrames = 1;
+
+    // Contains zero or one downlink frame.
+    repeated DownlinkFrameLog downlinkFrames = 2;
 }

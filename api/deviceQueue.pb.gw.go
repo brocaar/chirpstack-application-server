@@ -32,8 +32,10 @@ func request_DeviceQueue_Enqueue_0(ctx context.Context, marshaler runtime.Marsha
 	var protoReq EnqueueDeviceQueueItemRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -141,10 +143,18 @@ func RegisterDeviceQueueHandlerFromEndpoint(ctx context.Context, mux *runtime.Se
 // RegisterDeviceQueueHandler registers the http handlers for service DeviceQueue to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
 func RegisterDeviceQueueHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	client := NewDeviceQueueClient(conn)
+	return RegisterDeviceQueueHandlerClient(ctx, mux, NewDeviceQueueClient(conn))
+}
+
+// RegisterDeviceQueueHandler registers the http handlers for service DeviceQueue to "mux".
+// The handlers forward requests to the grpc endpoint over the given implementation of "DeviceQueueClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "DeviceQueueClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "DeviceQueueClient" to call the correct interceptors.
+func RegisterDeviceQueueHandlerClient(ctx context.Context, mux *runtime.ServeMux, client DeviceQueueClient) error {
 
 	mux.Handle("POST", pattern_DeviceQueue_Enqueue_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -173,7 +183,7 @@ func RegisterDeviceQueueHandler(ctx context.Context, mux *runtime.ServeMux, conn
 	})
 
 	mux.Handle("DELETE", pattern_DeviceQueue_Flush_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -202,7 +212,7 @@ func RegisterDeviceQueueHandler(ctx context.Context, mux *runtime.ServeMux, conn
 	})
 
 	mux.Handle("GET", pattern_DeviceQueue_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {

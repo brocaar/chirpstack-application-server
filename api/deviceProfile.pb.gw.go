@@ -32,8 +32,10 @@ func request_DeviceProfileService_Create_0(ctx context.Context, marshaler runtim
 	var protoReq CreateDeviceProfileRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	msg, err := client.Create(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -72,8 +74,10 @@ func request_DeviceProfileService_Update_0(ctx context.Context, marshaler runtim
 	var protoReq UpdateDeviceProfileRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -171,10 +175,18 @@ func RegisterDeviceProfileServiceHandlerFromEndpoint(ctx context.Context, mux *r
 // RegisterDeviceProfileServiceHandler registers the http handlers for service DeviceProfileService to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
 func RegisterDeviceProfileServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	client := NewDeviceProfileServiceClient(conn)
+	return RegisterDeviceProfileServiceHandlerClient(ctx, mux, NewDeviceProfileServiceClient(conn))
+}
+
+// RegisterDeviceProfileServiceHandler registers the http handlers for service DeviceProfileService to "mux".
+// The handlers forward requests to the grpc endpoint over the given implementation of "DeviceProfileServiceClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "DeviceProfileServiceClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "DeviceProfileServiceClient" to call the correct interceptors.
+func RegisterDeviceProfileServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client DeviceProfileServiceClient) error {
 
 	mux.Handle("POST", pattern_DeviceProfileService_Create_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -203,7 +215,7 @@ func RegisterDeviceProfileServiceHandler(ctx context.Context, mux *runtime.Serve
 	})
 
 	mux.Handle("GET", pattern_DeviceProfileService_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -232,7 +244,7 @@ func RegisterDeviceProfileServiceHandler(ctx context.Context, mux *runtime.Serve
 	})
 
 	mux.Handle("PUT", pattern_DeviceProfileService_Update_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -261,7 +273,7 @@ func RegisterDeviceProfileServiceHandler(ctx context.Context, mux *runtime.Serve
 	})
 
 	mux.Handle("DELETE", pattern_DeviceProfileService_Delete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -290,7 +302,7 @@ func RegisterDeviceProfileServiceHandler(ctx context.Context, mux *runtime.Serve
 	})
 
 	mux.Handle("GET", pattern_DeviceProfileService_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {

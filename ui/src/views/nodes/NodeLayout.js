@@ -86,7 +86,7 @@ class NodeLayout extends Component {
           <li role="presentation" className={(activeTab === "/keys" ? 'active' : '') + (this.state.deviceProfile.deviceProfile.supportsJoin && this.state.isAdmin ? "" : "hidden")}><Link to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/nodes/${this.props.match.params.devEUI}/keys`}>Device keys (OTAA)</Link></li>
           <li role="presentation" className={(activeTab === "/activate" ? 'active' : '') + (!this.state.deviceProfile.deviceProfile.supportsJoin && this.state.isAdmin ? "": "hidden")}><Link to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/nodes/${this.props.match.params.devEUI}/activate`}>Activate device (ABP)</Link></li>
           <li role="presentation" className={activeTab === "/activation" ? 'active' : ''}><Link to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/nodes/${this.props.match.params.devEUI}/activation`}>Device activation</Link></li>
-          <li role="presentation" className={activeTab === "/frames" ? 'active' : ''}><Link to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/nodes/${this.props.match.params.devEUI}/frames`}>Raw frame logs</Link></li>
+          <li role="presentation" className={activeTab === "/frames" ? 'active' : ''}><Link to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/nodes/${this.props.match.params.devEUI}/frames`}>Live frame logs</Link></li>
         </ul>
         <hr />
         <Switch>

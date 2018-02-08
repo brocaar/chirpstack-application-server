@@ -196,9 +196,6 @@ type NetworkServerClient struct {
 	GetGatewayStatsChan     chan ns.GetGatewayStatsRequest
 	GetGatewayStatsResponse ns.GetGatewayStatsResponse
 
-	GetFrameLogsForDevEUIChan     chan ns.GetFrameLogsForDevEUIRequest
-	GetFrameLogsForDevEUIResponse ns.GetFrameLogsResponse
-
 	CreateChannelConfigurationChan     chan ns.CreateChannelConfigurationRequest
 	CreateChannelConfigurationResponse ns.CreateChannelConfigurationResponse
 
@@ -271,7 +268,6 @@ func NewNetworkServerClient() *NetworkServerClient {
 		DeleteGatewayChan:                             make(chan ns.DeleteGatewayRequest, 100),
 		GenerateGatewayTokenChan:                      make(chan ns.GenerateGatewayTokenRequest, 100),
 		GetGatewayStatsChan:                           make(chan ns.GetGatewayStatsRequest, 100),
-		GetFrameLogsForDevEUIChan:                     make(chan ns.GetFrameLogsForDevEUIRequest, 100),
 		CreateChannelConfigurationChan:                make(chan ns.CreateChannelConfigurationRequest, 100),
 		GetChannelConfigurationChan:                   make(chan ns.GetChannelConfigurationRequest, 100),
 		UpdateChannelConfigurationChan:                make(chan ns.UpdateChannelConfigurationRequest, 100),
@@ -462,12 +458,6 @@ func (n *NetworkServerClient) SendProprietaryPayload(ctx context.Context, in *ns
 	return &n.SendProprietaryPayloadResponse, nil
 }
 
-// GetFrameLogsForDevEUI method.
-func (n *NetworkServerClient) GetFrameLogsForDevEUI(ctx context.Context, in *ns.GetFrameLogsForDevEUIRequest, opts ...grpc.CallOption) (*ns.GetFrameLogsResponse, error) {
-	n.GetFrameLogsForDevEUIChan <- *in
-	return &n.GetFrameLogsForDevEUIResponse, nil
-}
-
 // CreateChannelConfiguration method.
 func (n *NetworkServerClient) CreateChannelConfiguration(ctx context.Context, in *ns.CreateChannelConfigurationRequest, opts ...grpc.CallOption) (*ns.CreateChannelConfigurationResponse, error) {
 	n.CreateChannelConfigurationChan <- *in
@@ -549,4 +539,14 @@ func (n NetworkServerClient) GetDeviceQueueItemsForDevEUI(ctx context.Context, i
 func (n NetworkServerClient) GetNextDownlinkFCntForDevEUI(ctx context.Context, in *ns.GetNextDownlinkFCntForDevEUIRequest, opts ...grpc.CallOption) (*ns.GetNextDownlinkFCntForDevEUIResponse, error) {
 	n.GetNextDownlinkFCntForDevEUIChan <- *in
 	return &n.GetNextDownlinkFCntForDevEUIResponse, nil
+}
+
+// StreamFrameLogsForGateway method.
+func (n NetworkServerClient) StreamFrameLogsForGateway(ctx context.Context, in *ns.StreamFrameLogsForGatewayRequest, opts ...grpc.CallOption) (ns.NetworkServer_StreamFrameLogsForGatewayClient, error) {
+	panic("not implemented")
+}
+
+// StreamFrameLogsForDevice method.
+func (n NetworkServerClient) StreamFrameLogsForDevice(ctx context.Context, in *ns.StreamFrameLogsForDeviceRequest, opts ...grpc.CallOption) (ns.NetworkServer_StreamFrameLogsForDeviceClient, error) {
+	panic("not implemented")
 }

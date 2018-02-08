@@ -744,3 +744,55 @@ func (a *GatewayAPI) GetExtraChannelsForChannelConfigurationID(ctx context.Conte
 
 	return &out, nil
 }
+
+// StreamFrameLogs streams the uplink and downlink frame-logs for the given mac.
+// Note: these are the raw LoRaWAN frames and this endpoint is intended for debugging.
+func (a *GatewayAPI) StreamFrameLogs(req *pb.StreamGatewayFrameLogsRequest, srv pb.Gateway_StreamFrameLogsServer) error {
+	var mac lorawan.EUI64
+
+	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+		return grpc.Errorf(codes.InvalidArgument, "mac: %s", err)
+	}
+
+	err := a.validator.Validate(srv.Context(), auth.ValidateGatewayAccess(auth.Read, mac))
+	if err != nil {
+		return grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	n, err := storage.GetNetworkServerForGatewayMAC(config.C.PostgreSQL.DB, mac)
+	if err != nil {
+		return errToRPCError(err)
+	}
+
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	if err != nil {
+		return errToRPCError(err)
+	}
+
+	streamClient, err := nsClient.StreamFrameLogsForGateway(srv.Context(), &ns.StreamFrameLogsForGatewayRequest{
+		Mac: mac[:],
+	})
+	if err != nil {
+		return err
+	}
+
+	for {
+		resp, err := streamClient.Recv()
+		if err != nil {
+			return err
+		}
+
+		up, down, err := convertUplinkAndDownlinkFrames(resp.UplinkFrames, resp.DownlinkFrames)
+		if err != nil {
+			return errToRPCError(err)
+		}
+
+		err = srv.Send(&pb.StreamGatewayFrameLogsResponse{
+			UplinkFrames:   up,
+			DownlinkFrames: down,
+		})
+		if err != nil {
+			return err
+		}
+	}
+}

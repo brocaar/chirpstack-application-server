@@ -8,7 +8,7 @@
     "api/as",
     "api/ns"
   ]
-  revision = "7c9711bb39b9c812dd7a2db136e3122033e90bad"
+  revision = "8dd4fbb65110646191293b06cd3c0a98ea30ae8c"
 
 [[projects]]
   branch = "master"
@@ -87,6 +87,12 @@
   packages = ["."]
   revision = "53c1911da2b537f792e7cafcb446b05ffe33b996"
   version = "v1.6.1"
+
+[[projects]]
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
+  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
@@ -286,6 +292,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/tmc/grpc-websocket-proxy"
+  packages = ["wsproxy"]
+  revision = "830351dc03c6f07d625727d5f993a463babb20e1"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/crypto"
   packages = [
     "pbkdf2",
@@ -401,6 +413,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6735e1216808b5f2b495db7bcc256e2db9d21797049b17f5bcbbba3f50c1fc01"
+  inputs-digest = "a80e755d08c5154ba581c34f54d0ce88d6c7b3eeb97ea551d8125b83b72b47a3"
   solver-name = "gps-cdcl"
   solver-version = 1

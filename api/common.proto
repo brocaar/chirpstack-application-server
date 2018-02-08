@@ -6,3 +6,109 @@ enum RXWindow {
 	RX1 = 0;
 	RX2 = 1;
 }
+
+message DataRate {
+    // The used modulation (LORA or FSK).
+    string modulation = 1;
+
+    // Bandwidth (in kHz).
+    uint32 bandwidth = 2;
+
+    // Used spread-factor.
+    uint32 spreadFactor = 3;
+
+    // Bitrate (used for FSK modulation).
+    uint32 bitrate = 4;
+}
+
+
+message UplinkTXInfo {
+    // TX frequency (in Hz).
+    uint32 frequency = 1;
+
+    // Data-rate.
+    DataRate dataRate = 2;
+
+    // Code rate.
+    string codeRate = 3;
+}
+
+message UplinkRXInfo {
+    // Gateway MAC.
+    string mac = 1;
+
+    // Time when the frame was received (if available).
+    string time = 2;
+
+    // Time when the frame was received as time since GPS epoch (if available).
+    string timeSinceGPSEpoch = 3;
+
+    // Gateway internal timestamp.
+    uint32 timestamp = 4;
+
+    // RSSI.
+    int32 rssi = 5;
+
+    // LoRa SNR.
+    float loRaSNR = 6;
+
+    // The board identifier that received the uplink frame.
+    uint32 board = 7;
+
+    // THe antenna identifier that received the uplink frame.
+    uint32 antenna = 8;
+}
+
+message UplinkFrameLog {
+    // TX information of the uplink.
+    UplinkTXInfo txInfo = 1;
+
+    // RX information of the uplink.
+    repeated UplinkRXInfo rxInfo = 2;
+
+    // LoRaWAN PHYPayload.
+    string phyPayloadJSON = 3;
+}
+
+message DownlinkTXInfo {
+    // Gateway MAC.
+    string mac = 1;
+
+    // Frame must be sent immediately.
+    bool immediately = 2;
+
+    // Transmit frame at the given time since GPS epoch.
+    string timeSinceGPSEpoch = 3;
+
+    // Transmit the frame at the given gateway internal timestamp.
+    uint32 timestamp = 4;
+
+    // TX frequency (in Hz).
+    uint32 frequency = 5;
+
+    // TX power (in dBm).
+    int32 power = 6;
+
+    // Data-rate.
+    DataRate dataRate = 7;
+
+    // Code rate.
+    string codeRate = 8;
+
+    // Lora modulation polarization inversion.
+    bool iPol = 9;
+
+    // The board identifier that received the uplink frame.
+    uint32 board = 10;
+
+    // THe antenna identifier that received the uplink frame.
+    uint32 antenna = 11;
+}
+
+message DownlinkFrameLog {
+    // TX information of the downlink.
+    DownlinkTXInfo txInfo = 1;
+
+    // LoRaWAN PHYPayload.
+    string phyPayloadJSON = 2;
+}

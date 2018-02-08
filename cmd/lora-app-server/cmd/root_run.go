@@ -24,6 +24,7 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/tmc/grpc-websocket-proxy/wsproxy"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
@@ -398,7 +399,7 @@ func getHTTPHandler(ctx context.Context) (http.Handler, error) {
 		Prefix:    "",
 	}))
 
-	return r, nil
+	return wsproxy.WebsocketProxy(r), nil
 }
 
 func getJSONGateway(ctx context.Context) (http.Handler, error) {

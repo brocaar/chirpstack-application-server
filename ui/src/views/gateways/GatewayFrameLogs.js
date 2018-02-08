@@ -3,7 +3,7 @@ import JSONTree from "react-json-tree";
 import moment from "moment";
 import fileDownload from "js-file-download";
 
-import NodeStore from "../../stores/NodeStore";
+import GatewayStore from "../../stores/GatewayStore";
 
 
 class FrameRow extends Component {
@@ -46,7 +46,7 @@ class FrameRow extends Component {
       rxtx["downlink"] = this.props.frame.downlinkMetaData;
     }
 
-    const receivedAt = moment(this.props.frame.receivedAt).format("LTS");
+    const receivedAt = moment(this.props.frame.receivedAt).format('LTS');
     const treeStyle = {
       paddingTop: '0',
       paddingBottom: '0',
@@ -69,8 +69,7 @@ class FrameRow extends Component {
   }
 }
 
-
-class NodeFrameLogs extends Component {
+class GatewayFrameLogs extends Component {
   constructor() {
     super();
     this.state = {
@@ -108,7 +107,7 @@ class NodeFrameLogs extends Component {
       }
     });
 
-    fileDownload(JSON.stringify(dl, null, 4), `device-${this.props.match.params.devEUI}.json`);
+    fileDownload(JSON.stringify(dl, null, 4), `gateway-${this.props.match.params.mac}.json`);
   }
 
   onConnected() {
@@ -162,7 +161,7 @@ class NodeFrameLogs extends Component {
   }
 
   componentDidMount() {
-    const conn = NodeStore.getFrameLogsConnection(this.props.match.params.devEUI, this.onConnected, this.onDisconnected, this.onFrame);
+    const conn = GatewayStore.getFrameLogsConnection(this.props.match.params.mac, this.onConnected, this.onDisconnected, this.onFrame);
     this.setState({
       wsConn: conn,
     });
@@ -223,4 +222,4 @@ class NodeFrameLogs extends Component {
   }
 }
 
-export default NodeFrameLogs;
+export default GatewayFrameLogs;

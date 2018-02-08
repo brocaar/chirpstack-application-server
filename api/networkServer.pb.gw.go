@@ -32,8 +32,10 @@ func request_NetworkServer_Create_0(ctx context.Context, marshaler runtime.Marsh
 	var protoReq CreateNetworkServerRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	msg, err := client.Create(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -72,8 +74,10 @@ func request_NetworkServer_Update_0(ctx context.Context, marshaler runtime.Marsh
 	var protoReq UpdateNetworkServerRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -171,10 +175,18 @@ func RegisterNetworkServerHandlerFromEndpoint(ctx context.Context, mux *runtime.
 // RegisterNetworkServerHandler registers the http handlers for service NetworkServer to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
 func RegisterNetworkServerHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	client := NewNetworkServerClient(conn)
+	return RegisterNetworkServerHandlerClient(ctx, mux, NewNetworkServerClient(conn))
+}
+
+// RegisterNetworkServerHandler registers the http handlers for service NetworkServer to "mux".
+// The handlers forward requests to the grpc endpoint over the given implementation of "NetworkServerClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "NetworkServerClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "NetworkServerClient" to call the correct interceptors.
+func RegisterNetworkServerHandlerClient(ctx context.Context, mux *runtime.ServeMux, client NetworkServerClient) error {
 
 	mux.Handle("POST", pattern_NetworkServer_Create_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -203,7 +215,7 @@ func RegisterNetworkServerHandler(ctx context.Context, mux *runtime.ServeMux, co
 	})
 
 	mux.Handle("GET", pattern_NetworkServer_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -232,7 +244,7 @@ func RegisterNetworkServerHandler(ctx context.Context, mux *runtime.ServeMux, co
 	})
 
 	mux.Handle("PUT", pattern_NetworkServer_Update_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -261,7 +273,7 @@ func RegisterNetworkServerHandler(ctx context.Context, mux *runtime.ServeMux, co
 	})
 
 	mux.Handle("DELETE", pattern_NetworkServer_Delete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -290,7 +302,7 @@ func RegisterNetworkServerHandler(ctx context.Context, mux *runtime.ServeMux, co
 	})
 
 	mux.Handle("GET", pattern_NetworkServer_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {

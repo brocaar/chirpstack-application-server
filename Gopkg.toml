@@ -98,6 +98,10 @@
   branch = "master"
   name = "github.com/spf13/viper"
 
+[[constraint]]
+  branch = "master"
+  name = "github.com/tmc/grpc-websocket-proxy"
+
 [prune]
   non-go = true
   go-tests = true

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -449,98 +450,56 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 	}, nil
 }
 
-// GetFrameLogs returns the uplink / downlink frame log for the given DevEUI.
-func (a *DeviceAPI) GetFrameLogs(ctx context.Context, req *pb.GetFrameLogsRequest) (*pb.GetFrameLogsResponse, error) {
+// StreamFrameLogs streams the uplink and downlink frame-logs for the given DevEUI.
+// Note: these are the raw LoRaWAN frames and this endpoint is intended for debugging.
+func (a *DeviceAPI) StreamFrameLogs(req *pb.StreamDeviceFrameLogsRequest, srv pb.Device_StreamFrameLogsServer) error {
 	var devEUI lorawan.EUI64
 
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
+		return grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
-	if err := a.validator.Validate(ctx,
+	if err := a.validator.Validate(srv.Context(),
 		auth.ValidateNodeAccess(devEUI, auth.Read)); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+		return grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	n, err := storage.GetNetworkServerForDevEUI(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
-		return nil, errToRPCError(err)
+		return errToRPCError(err)
 	}
 
 	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
-		return nil, errToRPCError(err)
+		return errToRPCError(err)
 	}
 
-	resp, err := nsClient.GetFrameLogsForDevEUI(ctx, &ns.GetFrameLogsForDevEUIRequest{
+	streamClient, err := nsClient.StreamFrameLogsForDevice(srv.Context(), &ns.StreamFrameLogsForDeviceRequest{
 		DevEUI: devEUI[:],
-		Limit:  int32(req.Limit),
-		Offset: int32(req.Offset),
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	out := pb.GetFrameLogsResponse{
-		TotalCount: resp.TotalCount,
-	}
-
-	for i := range resp.Result {
-		log := pb.FrameLog{
-			CreatedAt: resp.Result[i].CreatedAt,
-		}
-
-		if txInfo := resp.Result[i].TxInfo; txInfo != nil {
-			log.TxInfo = &pb.TXInfo{
-				CodeRate:    txInfo.CodeRate,
-				Frequency:   txInfo.Frequency,
-				Immediately: txInfo.Immediately,
-				Mac:         hex.EncodeToString(txInfo.Mac),
-				Power:       txInfo.Power,
-				Timestamp:   txInfo.Timestamp,
-				DataRate: &pb.DataRate{
-					Modulation:   txInfo.DataRate.Modulation,
-					BandWidth:    txInfo.DataRate.BandWidth,
-					SpreadFactor: txInfo.DataRate.SpreadFactor,
-					Bitrate:      txInfo.DataRate.Bitrate,
-				},
-			}
-		}
-
-		for _, rxInfo := range resp.Result[i].RxInfoSet {
-			log.RxInfoSet = append(log.RxInfoSet, &pb.RXInfo{
-				Channel:   rxInfo.Channel,
-				CodeRate:  rxInfo.CodeRate,
-				Frequency: rxInfo.Frequency,
-				LoRaSNR:   rxInfo.LoRaSNR,
-				Rssi:      rxInfo.Rssi,
-				Time:      rxInfo.Time,
-				Timestamp: rxInfo.Timestamp,
-				Mac:       hex.EncodeToString(rxInfo.Mac),
-				DataRate: &pb.DataRate{
-					Modulation:   rxInfo.DataRate.Modulation,
-					BandWidth:    rxInfo.DataRate.BandWidth,
-					SpreadFactor: rxInfo.DataRate.SpreadFactor,
-					Bitrate:      rxInfo.DataRate.Bitrate,
-				},
-			})
-		}
-
-		var phy lorawan.PHYPayload
-		if err = phy.UnmarshalBinary(resp.Result[i].PhyPayload); err != nil {
-			return nil, errToRPCError(err)
-		}
-
-		phyB, err := json.Marshal(phy)
+	for {
+		resp, err := streamClient.Recv()
 		if err != nil {
-			return nil, errToRPCError(err)
+			return err
 		}
-		log.PhyPayloadJSON = string(phyB)
 
-		out.Result = append(out.Result, &log)
+		up, down, err := convertUplinkAndDownlinkFrames(resp.UplinkFrames, resp.DownlinkFrames)
+		if err != nil {
+			return errToRPCError(err)
+		}
+
+		err = srv.Send(&pb.StreamDeviceFrameLogsResponse{
+			UplinkFrames:   up,
+			DownlinkFrames: down,
+		})
+		if err != nil {
+			return err
+		}
 	}
-
-	return &out, nil
 }
 
 // GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
@@ -603,4 +562,87 @@ func (a *DeviceAPI) returnList(count int, devices []storage.DeviceListItem) (*pb
 		resp.Result = append(resp.Result, &item)
 	}
 	return &resp, nil
+}
+
+func convertUplinkAndDownlinkFrames(up []*ns.UplinkFrameLog, down []*ns.DownlinkFrameLog) ([]*pb.UplinkFrameLog, []*pb.DownlinkFrameLog, error) {
+	var outUp []*pb.UplinkFrameLog
+	var outDown []*pb.DownlinkFrameLog
+
+	for _, upFL := range up {
+		var rxInfo []*pb.UplinkRXInfo
+		var phy lorawan.PHYPayload
+
+		if err := phy.UnmarshalBinary(upFL.PhyPayload); err != nil {
+			return nil, nil, errors.Wrap(err, "unmarshal phypayload error")
+		}
+
+		phyB, err := json.Marshal(phy)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "marshal phypayload error")
+		}
+
+		for _, upRXInfo := range upFL.RxInfo {
+			rxInfo = append(rxInfo, &pb.UplinkRXInfo{
+				Mac:               hex.EncodeToString(upRXInfo.Mac),
+				Time:              upRXInfo.Time,
+				TimeSinceGPSEpoch: upRXInfo.TimeSinceGPSEpoch,
+				Timestamp:         upRXInfo.Timestamp,
+				Rssi:              upRXInfo.Rssi,
+				LoRaSNR:           upRXInfo.LoRaSNR,
+				Board:             upRXInfo.Board,
+				Antenna:           upRXInfo.Antenna,
+			})
+		}
+
+		outUp = append(outUp, &pb.UplinkFrameLog{
+			TxInfo: &pb.UplinkTXInfo{
+				Frequency: upFL.TxInfo.Frequency,
+				DataRate: &pb.DataRate{
+					Modulation:   upFL.TxInfo.DataRate.Modulation,
+					Bandwidth:    upFL.TxInfo.DataRate.Bandwidth,
+					SpreadFactor: upFL.TxInfo.DataRate.SpreadFactor,
+					Bitrate:      upFL.TxInfo.DataRate.Bitrate,
+				},
+				CodeRate: upFL.TxInfo.CodeRate,
+			},
+			RxInfo:         rxInfo,
+			PhyPayloadJSON: string(phyB),
+		})
+	}
+
+	for _, downFL := range down {
+		var phy lorawan.PHYPayload
+		if err := phy.UnmarshalBinary(downFL.PhyPayload); err != nil {
+			return nil, nil, errors.Wrap(err, "unmarshal phypayload error")
+		}
+
+		phyB, err := json.Marshal(phy)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "marshal phypayload error")
+		}
+
+		outDown = append(outDown, &pb.DownlinkFrameLog{
+			TxInfo: &pb.DownlinkTXInfo{
+				Mac:               hex.EncodeToString(downFL.TxInfo.Mac),
+				Immediately:       downFL.TxInfo.Immediately,
+				TimeSinceGPSEpoch: downFL.TxInfo.TimeSinceGPSEpoch,
+				Timestamp:         downFL.TxInfo.Timestamp,
+				Frequency:         downFL.TxInfo.Frequency,
+				Power:             downFL.TxInfo.Power,
+				DataRate: &pb.DataRate{
+					Modulation:   downFL.TxInfo.DataRate.Modulation,
+					Bandwidth:    downFL.TxInfo.DataRate.Bandwidth,
+					SpreadFactor: downFL.TxInfo.DataRate.SpreadFactor,
+					Bitrate:      downFL.TxInfo.DataRate.Bitrate,
+				},
+				CodeRate: downFL.TxInfo.CodeRate,
+				IPol:     downFL.TxInfo.IPol,
+				Board:    downFL.TxInfo.Board,
+				Antenna:  downFL.TxInfo.Antenna,
+			},
+			PhyPayloadJSON: string(phyB),
+		})
+	}
+
+	return outUp, outDown, nil
 }

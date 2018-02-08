@@ -4,6 +4,8 @@ package api;
 
 // for grpc-gateway
 import "google/api/annotations.proto";
+import "common.proto";
+
 
 // Device is the service managing the devices.
 service Device {
@@ -96,8 +98,9 @@ service Device {
         };
     }
 
-    // GetFrameLogs returns the uplink / downlink frame log for the given DevEUI.
-    rpc GetFrameLogs(GetFrameLogsRequest) returns (GetFrameLogsResponse) {
+    // StreamFrameLogs streams the uplink and downlink frame-logs for the given DevEUI.
+    // Note: these are the raw LoRaWAN frames and this endpoint is intended for debugging.
+    rpc StreamFrameLogs(StreamDeviceFrameLogsRequest) returns (stream StreamDeviceFrameLogsResponse) {
         option (google.api.http) = {
             get: "/api/devices/{devEUI}/frames"
         };
@@ -345,94 +348,15 @@ message GetRandomDevAddrResponse {
     string devAddr = 1;
 }
 
-message GetFrameLogsRequest {
+message StreamDeviceFrameLogsRequest {
     // Hex encoded DevEUI.
     string devEUI = 1;
-
-    // Max number of frames to return in the result-set.
-    int64 limit = 2;
-
-    // Offset of the result-set (for pagination).
-    int64 offset = 3;
 }
 
-message GetFrameLogsResponse {
-    // Total number of logs.
-    int32 totalCount = 1;
+message StreamDeviceFrameLogsResponse {
+    // Contains zero or one uplink frame.
+    repeated UplinkFrameLog uplinkFrames = 1;
 
-    // The result-set.
-    repeated FrameLog result = 2;
-}
-
-message FrameLog {
-    // Timestamp of when the frame was logged.
-    string createdAt = 1;
-
-    // RX-info set (in case of an uplink).
-    repeated RXInfo rxInfoSet = 2;
-
-    // TX-info (in case of a downlink).
-    TXInfo txInfo = 3;
-
-    // LoRaWAN PHYPayload as a JSON string.
-    string phyPayloadJSON = 4;
-}
-
-message DataRate {
-    string modulation = 1;
-    uint32 bandWidth = 2;
-    uint32 spreadFactor = 3;
-    uint32 bitrate = 4;
-}
-
-message RXInfo {
-    // Channel number on which the frame was received.
-    int32 channel = 1;
-
-    // Code-rate.
-    string codeRate = 2;
-
-    // frequency.
-    int64 frequency = 3;
-
-    // LoRa SNR.
-    double loRaSNR = 4;
-
-    // RSSI / signal strength.
-    int32 rssi = 5;
-
-    // Time (when the gateway has a GPS).
-    string time = 6;
-    
-    // Gateway internal timestamp.
-    uint32 timestamp = 7;
-
-    // Data-rate.
-    DataRate dataRate = 8;
-
-    // HEX encoded gateway MAC.
-    string mac = 9;
-} 
-
-message TXInfo {
-    // Code-rate.
-    string codeRate = 1;
-
-    // Frequency.
-    int64 frequency = 2;
-
-    // Immediately.
-    bool immediately = 3;
-
-    // HEX encoded gateway MAC.
-    string mac = 4;
-
-    // TX power.
-    int32 power = 5;
-
-    // Gateway internal timestamp.
-    uint32 timestamp = 6;
-
-    // Data-rate.
-    DataRate dataRate = 7;
+    // Contains zero or one downlink frame.
+    repeated DownlinkFrameLog downlinkFrames = 2;
 }

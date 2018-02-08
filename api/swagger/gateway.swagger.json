@@ -423,6 +423,31 @@
         ]
       }
     },
+    "/api/gateways/{mac}/frames": {
+      "get": {
+        "summary": "StreamFrameLogs streams the uplink and downlink frame-logs for the given mac.\nNote: these are the raw LoRaWAN frames and this endpoint is intended for debugging.",
+        "operationId": "StreamFrameLogs",
+        "responses": {
+          "200": {
+            "description": "(streaming responses)",
+            "schema": {
+              "$ref": "#/definitions/apiStreamGatewayFrameLogsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "mac",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Gateway"
+        ]
+      }
+    },
     "/api/gateways/{mac}/pings/last": {
       "get": {
         "summary": "GetLastPing returns the last emitted ping and gateways receiving this ping.",
@@ -660,6 +685,30 @@
     "apiCreateGatewayResponse": {
       "type": "object"
     },
+    "apiDataRate": {
+      "type": "object",
+      "properties": {
+        "modulation": {
+          "type": "string",
+          "description": "The used modulation (LORA or FSK)."
+        },
+        "bandwidth": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Bandwidth (in kHz)."
+        },
+        "spreadFactor": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Used spread-factor."
+        },
+        "bitrate": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Bitrate (used for FSK modulation)."
+        }
+      }
+    },
     "apiDeleteChannelConfigurationResponse": {
       "type": "object"
     },
@@ -668,6 +717,75 @@
     },
     "apiDeleteGatewayResponse": {
       "type": "object"
+    },
+    "apiDownlinkFrameLog": {
+      "type": "object",
+      "properties": {
+        "txInfo": {
+          "$ref": "#/definitions/apiDownlinkTXInfo",
+          "description": "TX information of the downlink."
+        },
+        "phyPayloadJSON": {
+          "type": "string",
+          "description": "LoRaWAN PHYPayload."
+        }
+      }
+    },
+    "apiDownlinkTXInfo": {
+      "type": "object",
+      "properties": {
+        "mac": {
+          "type": "string",
+          "description": "Gateway MAC."
+        },
+        "immediately": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Frame must be sent immediately."
+        },
+        "timeSinceGPSEpoch": {
+          "type": "string",
+          "description": "Transmit frame at the given time since GPS epoch."
+        },
+        "timestamp": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Transmit the frame at the given gateway internal timestamp."
+        },
+        "frequency": {
+          "type": "integer",
+          "format": "int64",
+          "description": "TX frequency (in Hz)."
+        },
+        "power": {
+          "type": "integer",
+          "format": "int32",
+          "description": "TX power (in dBm)."
+        },
+        "dataRate": {
+          "$ref": "#/definitions/apiDataRate",
+          "description": "Data-rate."
+        },
+        "codeRate": {
+          "type": "string",
+          "description": "Code rate."
+        },
+        "iPol": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Lora modulation polarization inversion."
+        },
+        "board": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The board identifier that received the uplink frame."
+        },
+        "antenna": {
+          "type": "integer",
+          "format": "int64",
+          "description": "THe antenna identifier that received the uplink frame."
+        }
+      }
     },
     "apiGatewayStats": {
       "type": "object",
@@ -1016,6 +1134,25 @@
         }
       }
     },
+    "apiStreamGatewayFrameLogsResponse": {
+      "type": "object",
+      "properties": {
+        "uplinkFrames": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiUplinkFrameLog"
+          },
+          "description": "Contains zero or one uplink frame."
+        },
+        "downlinkFrames": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiDownlinkFrameLog"
+          },
+          "description": "Contains zero or one downlink frame."
+        }
+      }
+    },
     "apiUpdateChannelConfigurationRequest": {
       "type": "object",
       "properties": {
@@ -1145,6 +1282,86 @@
     },
     "apiUpdateGatewayResponse": {
       "type": "object"
+    },
+    "apiUplinkFrameLog": {
+      "type": "object",
+      "properties": {
+        "txInfo": {
+          "$ref": "#/definitions/apiUplinkTXInfo",
+          "description": "TX information of the uplink."
+        },
+        "rxInfo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiUplinkRXInfo"
+          },
+          "description": "RX information of the uplink."
+        },
+        "phyPayloadJSON": {
+          "type": "string",
+          "description": "LoRaWAN PHYPayload."
+        }
+      }
+    },
+    "apiUplinkRXInfo": {
+      "type": "object",
+      "properties": {
+        "mac": {
+          "type": "string",
+          "description": "Gateway MAC."
+        },
+        "time": {
+          "type": "string",
+          "description": "Time when the frame was received (if available)."
+        },
+        "timeSinceGPSEpoch": {
+          "type": "string",
+          "description": "Time when the frame was received as time since GPS epoch (if available)."
+        },
+        "timestamp": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Gateway internal timestamp."
+        },
+        "rssi": {
+          "type": "integer",
+          "format": "int32",
+          "description": "RSSI."
+        },
+        "loRaSNR": {
+          "type": "number",
+          "format": "float",
+          "description": "LoRa SNR."
+        },
+        "board": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The board identifier that received the uplink frame."
+        },
+        "antenna": {
+          "type": "integer",
+          "format": "int64",
+          "description": "THe antenna identifier that received the uplink frame."
+        }
+      }
+    },
+    "apiUplinkTXInfo": {
+      "type": "object",
+      "properties": {
+        "frequency": {
+          "type": "integer",
+          "format": "int64",
+          "description": "TX frequency (in Hz)."
+        },
+        "dataRate": {
+          "$ref": "#/definitions/apiDataRate",
+          "description": "Data-rate."
+        },
+        "codeRate": {
+          "type": "string",
+          "description": "Code rate."
+        }
+      }
     }
   }
 }

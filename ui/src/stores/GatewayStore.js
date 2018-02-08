@@ -2,6 +2,8 @@ import { EventEmitter } from "events";
 
 import sessionStore from "./SessionStore";
 import { checkStatus, errorHandler } from "./helpers";
+import dispatcher from "../dispatcher";
+
 
 class GatewayStore extends EventEmitter {
   getAll(pageSize, offset, callbackFunc) {
@@ -203,6 +205,51 @@ class GatewayStore extends EventEmitter {
         callbackFunc(responseData);
       })
       .catch(errorHandler);
+  }
+
+  getFrameLogsConnection(mac, onOpen, onClose, onData) {
+    const loc = window.location;
+    var wsURL;
+
+    if (loc.host === "localhost:3000") {
+      wsURL = `wss://localhost:8080/api/gateways/${mac}/frames`;
+    } else {
+      if (loc.protocol === "https:") {
+        wsURL = "wss:";
+      } else {
+        wsURL = "ws:";
+      }
+
+      wsURL += `//${loc.host}/api/gateways/${mac}/frames`;
+    }
+
+    let conn = new WebSocket(wsURL, ["Bearer", sessionStore.getToken()]);
+    conn.onopen = () => {
+      console.log('connected to', wsURL);
+      onOpen();
+    };
+
+    conn.onclose = () => {
+      console.log('closing', wsURL);
+      onClose();
+    }
+
+    conn.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      if (msg.error !== undefined) {
+        dispatcher.dispatch({
+          type: "CREATE_ERROR",
+          error: {
+            code: msg.error.grpcCode,
+            error: msg.error.message,
+          },
+        });
+      } else if (msg.result !== undefined) {
+        onData(msg.result);
+      }
+    };
+
+    return conn;
   }
 }
 

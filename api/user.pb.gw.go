@@ -76,8 +76,10 @@ func request_User_Create_0(ctx context.Context, marshaler runtime.Marshaler, cli
 	var protoReq AddUserRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	msg, err := client.Create(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -89,8 +91,10 @@ func request_User_Update_0(ctx context.Context, marshaler runtime.Marshaler, cli
 	var protoReq UpdateUserRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -147,8 +151,10 @@ func request_User_UpdatePassword_0(ctx context.Context, marshaler runtime.Marsha
 	var protoReq UpdateUserPasswordRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -178,8 +184,10 @@ func request_Internal_Login_0(ctx context.Context, marshaler runtime.Marshaler, 
 	var protoReq LoginRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	msg, err := client.Login(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -233,10 +241,18 @@ func RegisterUserHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux,
 // RegisterUserHandler registers the http handlers for service User to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
 func RegisterUserHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	client := NewUserClient(conn)
+	return RegisterUserHandlerClient(ctx, mux, NewUserClient(conn))
+}
+
+// RegisterUserHandler registers the http handlers for service User to "mux".
+// The handlers forward requests to the grpc endpoint over the given implementation of "UserClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "UserClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "UserClient" to call the correct interceptors.
+func RegisterUserHandlerClient(ctx context.Context, mux *runtime.ServeMux, client UserClient) error {
 
 	mux.Handle("GET", pattern_User_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -265,7 +281,7 @@ func RegisterUserHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.
 	})
 
 	mux.Handle("GET", pattern_User_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -294,7 +310,7 @@ func RegisterUserHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.
 	})
 
 	mux.Handle("POST", pattern_User_Create_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -323,7 +339,7 @@ func RegisterUserHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.
 	})
 
 	mux.Handle("PUT", pattern_User_Update_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -352,7 +368,7 @@ func RegisterUserHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.
 	})
 
 	mux.Handle("DELETE", pattern_User_Delete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -381,7 +397,7 @@ func RegisterUserHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.
 	})
 
 	mux.Handle("PUT", pattern_User_UpdatePassword_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -468,10 +484,18 @@ func RegisterInternalHandlerFromEndpoint(ctx context.Context, mux *runtime.Serve
 // RegisterInternalHandler registers the http handlers for service Internal to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
 func RegisterInternalHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	client := NewInternalClient(conn)
+	return RegisterInternalHandlerClient(ctx, mux, NewInternalClient(conn))
+}
+
+// RegisterInternalHandler registers the http handlers for service Internal to "mux".
+// The handlers forward requests to the grpc endpoint over the given implementation of "InternalClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "InternalClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "InternalClient" to call the correct interceptors.
+func RegisterInternalHandlerClient(ctx context.Context, mux *runtime.ServeMux, client InternalClient) error {
 
 	mux.Handle("POST", pattern_Internal_Login_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -500,7 +524,7 @@ func RegisterInternalHandler(ctx context.Context, mux *runtime.ServeMux, conn *g
 	})
 
 	mux.Handle("GET", pattern_Internal_Profile_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -529,7 +553,7 @@ func RegisterInternalHandler(ctx context.Context, mux *runtime.ServeMux, conn *g
 	})
 
 	mux.Handle("GET", pattern_Internal_Branding_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {

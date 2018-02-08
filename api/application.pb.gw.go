@@ -32,8 +32,10 @@ func request_Application_Create_0(ctx context.Context, marshaler runtime.Marshal
 	var protoReq CreateApplicationRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	msg, err := client.Create(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -72,8 +74,10 @@ func request_Application_Update_0(ctx context.Context, marshaler runtime.Marshal
 	var protoReq UpdateApplicationRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -147,8 +151,10 @@ func request_Application_CreateHTTPIntegration_0(ctx context.Context, marshaler 
 	var protoReq HTTPIntegration
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -205,8 +211,10 @@ func request_Application_UpdateHTTPIntegration_0(ctx context.Context, marshaler 
 	var protoReq HTTPIntegration
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -314,10 +322,18 @@ func RegisterApplicationHandlerFromEndpoint(ctx context.Context, mux *runtime.Se
 // RegisterApplicationHandler registers the http handlers for service Application to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
 func RegisterApplicationHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	client := NewApplicationClient(conn)
+	return RegisterApplicationHandlerClient(ctx, mux, NewApplicationClient(conn))
+}
+
+// RegisterApplicationHandler registers the http handlers for service Application to "mux".
+// The handlers forward requests to the grpc endpoint over the given implementation of "ApplicationClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "ApplicationClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "ApplicationClient" to call the correct interceptors.
+func RegisterApplicationHandlerClient(ctx context.Context, mux *runtime.ServeMux, client ApplicationClient) error {
 
 	mux.Handle("POST", pattern_Application_Create_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -346,7 +362,7 @@ func RegisterApplicationHandler(ctx context.Context, mux *runtime.ServeMux, conn
 	})
 
 	mux.Handle("GET", pattern_Application_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -375,7 +391,7 @@ func RegisterApplicationHandler(ctx context.Context, mux *runtime.ServeMux, conn
 	})
 
 	mux.Handle("PUT", pattern_Application_Update_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -404,7 +420,7 @@ func RegisterApplicationHandler(ctx context.Context, mux *runtime.ServeMux, conn
 	})
 
 	mux.Handle("DELETE", pattern_Application_Delete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -433,7 +449,7 @@ func RegisterApplicationHandler(ctx context.Context, mux *runtime.ServeMux, conn
 	})
 
 	mux.Handle("GET", pattern_Application_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -462,7 +478,7 @@ func RegisterApplicationHandler(ctx context.Context, mux *runtime.ServeMux, conn
 	})
 
 	mux.Handle("POST", pattern_Application_CreateHTTPIntegration_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -491,7 +507,7 @@ func RegisterApplicationHandler(ctx context.Context, mux *runtime.ServeMux, conn
 	})
 
 	mux.Handle("GET", pattern_Application_GetHTTPIntegration_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -520,7 +536,7 @@ func RegisterApplicationHandler(ctx context.Context, mux *runtime.ServeMux, conn
 	})
 
 	mux.Handle("PUT", pattern_Application_UpdateHTTPIntegration_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -549,7 +565,7 @@ func RegisterApplicationHandler(ctx context.Context, mux *runtime.ServeMux, conn
 	})
 
 	mux.Handle("DELETE", pattern_Application_DeleteHTTPIntegration_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -578,7 +594,7 @@ func RegisterApplicationHandler(ctx context.Context, mux *runtime.ServeMux, conn
 	})
 
 	mux.Handle("GET", pattern_Application_ListIntegrations_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {

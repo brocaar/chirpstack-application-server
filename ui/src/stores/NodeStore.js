@@ -1,5 +1,6 @@
 import { EventEmitter } from "events";
 import "whatwg-fetch";
+import dispatcher from "../dispatcher";
 import sessionStore from "./SessionStore";
 import { checkStatus, errorHandler, errorHandlerIgnoreNotFound } from "./helpers";
 
@@ -129,23 +130,49 @@ class NodeStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  getFrameLogs(devEUI, pageSize, offset, callbackFunc) {
-    fetch("/api/devices/"+devEUI+"/frames?limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if(typeof(responseData.result) === "undefined") {
-          callbackFunc(0, []);
-        } else {
-          callbackFunc(responseData.totalCount, responseData.result.map((row, i) => { return {
-            createdAt: row.createdAt,
-            rxInfoSet: row.rxInfoSet,
-            txInfo: row.txInfo,
-            phyPayload: JSON.parse(row.phyPayloadJSON),
-          }}));
-        }
-      })
-      .catch(errorHandler);
+  getFrameLogsConnection(devEUI, onOpen, onClose, onData) {
+    const loc = window.location;
+    var wsURL;
+
+    if (loc.host === "localhost:3000") {
+      wsURL = `wss://localhost:8080/api/devices/${devEUI}/frames`;
+    } else {
+      if (loc.protocol === "https:") {
+        wsURL = "wss:";
+      } else {
+        wsURL = "ws:";
+      }
+
+      wsURL += `//${loc.host}/api/devices/${devEUI}/frames`;
+    }
+
+    let conn = new WebSocket(wsURL, ["Bearer", sessionStore.getToken()]);
+    conn.onopen = () => {
+      console.log('connected to', wsURL);
+      onOpen();
+    };
+
+    conn.onclose = () => {
+      console.log('closing', wsURL);
+      onClose();
+    }
+
+    conn.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      if (msg.error !== undefined) {
+        dispatcher.dispatch({
+          type: "CREATE_ERROR",
+          error: {
+            code: msg.error.grpcCode,
+            error: msg.error.message,
+          },
+        });
+      } else if (msg.result !== undefined) {
+        onData(msg.result);
+      }
+    };
+
+    return conn;
   }
 }
 

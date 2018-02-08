@@ -32,8 +32,10 @@ func request_Device_Create_0(ctx context.Context, marshaler runtime.Marshaler, c
 	var protoReq CreateDeviceRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	msg, err := client.Create(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -134,8 +136,10 @@ func request_Device_Update_0(ctx context.Context, marshaler runtime.Marshaler, c
 	var protoReq UpdateDeviceRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -165,8 +169,10 @@ func request_Device_CreateKeys_0(ctx context.Context, marshaler runtime.Marshale
 	var protoReq CreateDeviceKeysRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -223,8 +229,10 @@ func request_Device_UpdateKeys_0(ctx context.Context, marshaler runtime.Marshale
 	var protoReq UpdateDeviceKeysRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -281,8 +289,10 @@ func request_Device_Activate_0(ctx context.Context, marshaler runtime.Marshaler,
 	var protoReq ActivateDeviceRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -362,12 +372,8 @@ func request_Device_GetRandomDevAddr_0(ctx context.Context, marshaler runtime.Ma
 
 }
 
-var (
-	filter_Device_GetFrameLogs_0 = &utilities.DoubleArray{Encoding: map[string]int{"devEUI": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
-)
-
-func request_Device_GetFrameLogs_0(ctx context.Context, marshaler runtime.Marshaler, client DeviceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetFrameLogsRequest
+func request_Device_StreamFrameLogs_0(ctx context.Context, marshaler runtime.Marshaler, client DeviceClient, req *http.Request, pathParams map[string]string) (Device_StreamFrameLogsClient, runtime.ServerMetadata, error) {
+	var protoReq StreamDeviceFrameLogsRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -388,12 +394,16 @@ func request_Device_GetFrameLogs_0(ctx context.Context, marshaler runtime.Marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "devEUI", err)
 	}
 
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Device_GetFrameLogs_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	stream, err := client.StreamFrameLogs(ctx, &protoReq)
+	if err != nil {
+		return nil, metadata, err
 	}
-
-	msg, err := client.GetFrameLogs(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
+	header, err := stream.Header()
+	if err != nil {
+		return nil, metadata, err
+	}
+	metadata.HeaderMD = header
+	return stream, metadata, nil
 
 }
 
@@ -425,10 +435,18 @@ func RegisterDeviceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMu
 // RegisterDeviceHandler registers the http handlers for service Device to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
 func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	client := NewDeviceClient(conn)
+	return RegisterDeviceHandlerClient(ctx, mux, NewDeviceClient(conn))
+}
+
+// RegisterDeviceHandler registers the http handlers for service Device to "mux".
+// The handlers forward requests to the grpc endpoint over the given implementation of "DeviceClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "DeviceClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "DeviceClient" to call the correct interceptors.
+func RegisterDeviceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client DeviceClient) error {
 
 	mux.Handle("POST", pattern_Device_Create_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -457,7 +475,7 @@ func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grp
 	})
 
 	mux.Handle("GET", pattern_Device_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -486,7 +504,7 @@ func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grp
 	})
 
 	mux.Handle("DELETE", pattern_Device_Delete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -515,7 +533,7 @@ func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grp
 	})
 
 	mux.Handle("GET", pattern_Device_ListByApplicationID_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -544,7 +562,7 @@ func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grp
 	})
 
 	mux.Handle("PUT", pattern_Device_Update_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -573,7 +591,7 @@ func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grp
 	})
 
 	mux.Handle("POST", pattern_Device_CreateKeys_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -602,7 +620,7 @@ func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grp
 	})
 
 	mux.Handle("GET", pattern_Device_GetKeys_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -631,7 +649,7 @@ func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grp
 	})
 
 	mux.Handle("PUT", pattern_Device_UpdateKeys_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -660,7 +678,7 @@ func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grp
 	})
 
 	mux.Handle("DELETE", pattern_Device_DeleteKeys_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -689,7 +707,7 @@ func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grp
 	})
 
 	mux.Handle("POST", pattern_Device_Activate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -718,7 +736,7 @@ func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grp
 	})
 
 	mux.Handle("GET", pattern_Device_GetActivation_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -747,7 +765,7 @@ func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grp
 	})
 
 	mux.Handle("POST", pattern_Device_GetRandomDevAddr_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -775,8 +793,8 @@ func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grp
 
 	})
 
-	mux.Handle("GET", pattern_Device_GetFrameLogs_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+	mux.Handle("GET", pattern_Device_StreamFrameLogs_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -793,14 +811,14 @@ func RegisterDeviceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grp
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Device_GetFrameLogs_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Device_StreamFrameLogs_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Device_GetFrameLogs_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Device_StreamFrameLogs_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -832,7 +850,7 @@ var (
 
 	pattern_Device_GetRandomDevAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "devices", "devEUI", "getRandomDevAddr"}, ""))
 
-	pattern_Device_GetFrameLogs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "devices", "devEUI", "frames"}, ""))
+	pattern_Device_StreamFrameLogs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "devices", "devEUI", "frames"}, ""))
 )
 
 var (
@@ -860,5 +878,5 @@ var (
 
 	forward_Device_GetRandomDevAddr_0 = runtime.ForwardResponseMessage
 
-	forward_Device_GetFrameLogs_0 = runtime.ForwardResponseMessage
+	forward_Device_StreamFrameLogs_0 = runtime.ForwardResponseStream
 )

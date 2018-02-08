@@ -76,8 +76,10 @@ func request_Organization_Create_0(ctx context.Context, marshaler runtime.Marsha
 	var protoReq CreateOrganizationRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	msg, err := client.Create(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -89,8 +91,10 @@ func request_Organization_Update_0(ctx context.Context, marshaler runtime.Marsha
 	var protoReq UpdateOrganizationRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -220,8 +224,10 @@ func request_Organization_AddUser_0(ctx context.Context, marshaler runtime.Marsh
 	var protoReq OrganizationUserRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -251,8 +257,10 @@ func request_Organization_UpdateUser_0(ctx context.Context, marshaler runtime.Ma
 	var protoReq OrganizationUserRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	if req.ContentLength > 0 {
+		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		}
 	}
 
 	var (
@@ -355,10 +363,18 @@ func RegisterOrganizationHandlerFromEndpoint(ctx context.Context, mux *runtime.S
 // RegisterOrganizationHandler registers the http handlers for service Organization to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
 func RegisterOrganizationHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	client := NewOrganizationClient(conn)
+	return RegisterOrganizationHandlerClient(ctx, mux, NewOrganizationClient(conn))
+}
+
+// RegisterOrganizationHandler registers the http handlers for service Organization to "mux".
+// The handlers forward requests to the grpc endpoint over the given implementation of "OrganizationClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "OrganizationClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "OrganizationClient" to call the correct interceptors.
+func RegisterOrganizationHandlerClient(ctx context.Context, mux *runtime.ServeMux, client OrganizationClient) error {
 
 	mux.Handle("GET", pattern_Organization_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -387,7 +403,7 @@ func RegisterOrganizationHandler(ctx context.Context, mux *runtime.ServeMux, con
 	})
 
 	mux.Handle("GET", pattern_Organization_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -416,7 +432,7 @@ func RegisterOrganizationHandler(ctx context.Context, mux *runtime.ServeMux, con
 	})
 
 	mux.Handle("POST", pattern_Organization_Create_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -445,7 +461,7 @@ func RegisterOrganizationHandler(ctx context.Context, mux *runtime.ServeMux, con
 	})
 
 	mux.Handle("PUT", pattern_Organization_Update_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -474,7 +490,7 @@ func RegisterOrganizationHandler(ctx context.Context, mux *runtime.ServeMux, con
 	})
 
 	mux.Handle("DELETE", pattern_Organization_Delete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -503,7 +519,7 @@ func RegisterOrganizationHandler(ctx context.Context, mux *runtime.ServeMux, con
 	})
 
 	mux.Handle("GET", pattern_Organization_ListUsers_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -532,7 +548,7 @@ func RegisterOrganizationHandler(ctx context.Context, mux *runtime.ServeMux, con
 	})
 
 	mux.Handle("GET", pattern_Organization_GetUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -561,7 +577,7 @@ func RegisterOrganizationHandler(ctx context.Context, mux *runtime.ServeMux, con
 	})
 
 	mux.Handle("POST", pattern_Organization_AddUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -590,7 +606,7 @@ func RegisterOrganizationHandler(ctx context.Context, mux *runtime.ServeMux, con
 	})
 
 	mux.Handle("PUT", pattern_Organization_UpdateUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {
@@ -619,7 +635,7 @@ func RegisterOrganizationHandler(ctx context.Context, mux *runtime.ServeMux, con
 	})
 
 	mux.Handle("DELETE", pattern_Organization_DeleteUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
 			go func(done <-chan struct{}, closed <-chan bool) {

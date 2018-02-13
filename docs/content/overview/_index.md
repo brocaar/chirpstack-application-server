@@ -10,11 +10,19 @@ menu:
 
 LoRa App Server is an open-source LoRaWAN application-server, part of the
 [LoRa Server](https://docs.loraserver.io/) project. It is responsible
-for the node "inventory" part of a LoRaWAN infrastructure, handling of received
-application payloads and the downlink application payload queue. It comes
-with a web-interface and API (RESTful JSON and gRPC) and supports authorization
-by using JWT tokens (optional). Received payloads are published over MQTT
-and payloads can be enqueued by using MQTT or the API.
+for the device "inventory" part of a LoRaWAN infrastructure, handling of
+join-request and the handling and encryption of application payloads.
+
+It offers a [web-interface]({{<ref "use/login.md">}}) where users,
+organizations, applications and devices can be managed. For integration with
+external services, it offers a [RESTful]({{<ref "integrate/rest.md">}}) 
+and [gRPC]({{<ref "integrate/grpc.md">}}) API.
+
+By default application payloads and device events are [published over MQTT]({{<ref "integrate/data.md">}}),
+but it is also possible through [additional integrations]({{<ref "integrate/integrations.md">}}) to publish payloads
+and events to HTTP endpoints.
+
+See also the complete list of [LoRa App Server features]({{<relref "features.md">}}).
 
 ### Screenshots
 

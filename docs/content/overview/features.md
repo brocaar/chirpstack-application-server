@@ -8,68 +8,69 @@ menu:
 
 ## Features
 
+LoRa App Server is an application-server, part of the LoRa Server project.
+For features related to the network-server component, see the
+[LoRa Server documentation](/loraserver/).
+
+### Payload encryption / decryption
+
+LoRa App Server handles the encryption and decryption of the application
+payloads. It also holds the application-key of each device and handles the
+join-accept in case of OTAA activation. This means that payloads will be
+sent decrypted to the integrations, but also that before payloads are sent
+to [LoRa Server](/loraserver/) meaning the network-server does not have access
+to these payloads.
+
+### Web-interface
+
+LoRa App Server offers a web-interface (built on top of the provided
+[RESTful]({{<ref "integrate/rest.md">}}) api). This web-interface can be used
+to manage users, organizations, applications and devices.
+
+### User authorization
+
+Using LoRa App Server, it is possible to grant users global admin permissions,
+make them admin of an organization or assign them view-only permissions within
+an organization. This makes it possible to run LoRa App Server in a multi-tenant
+environment where each organization or team has access to only their own applications
+and devices.
+
 ### API
 
-LoRa App Server provides both a [gRPC](http://www.grpc.io) and RESTful API for
-easy integration with your own applications. Both interfaces are secured
-using [JWT](http://jwt.io/) to limit users to certain resources. See
-the [API]({{< ref "integrate/api.md" >}}) documentation for more details.
+For intgration with external services, LoRa App server provides a [RESTFul]({{<ref "integrate/rest.md">}})
+and [gRPC]({{<ref "integrate/grpc.md">}}) API which exposes the same
+functionality as the web-interface. [Authentication and authorization]({{<ref "integrate/auth.md">}})
+is implemented using JWT tokens.
 
-### Web interface
+### Payloads and device events
 
-On top of the provided API, LoRa App Server provides a web-interface for the
-management of users, applications and nodes.
+By default, LoRa App Server offers a MQTT integration for all configured
+devices. The provided MQTT topics can be for receiving data from your devices,
+sending downlink data or to get notified about events like joins, acks and
+errors. See [Sending and receiving data]({{<ref "integrate/data.md">}}) for
+more information.
 
-### Users
+Additional to the MQTT integration, it is possible to configure HTTP endpoints
+for receiving device payloads and events. See
+[Data integrations]({{<ref "integrate/integrations.md">}}) for more information.
 
-Users can be granted (admin) access to certain applications.
-
-### Uplink data
-
-Uplink data is published to a MQTT broker so that it is easy to subscribe
-to received data. Received data will be decrypted by LoRa App Server before
-being published. See also [send / receive data]({{< ref "integrate/data.md" >}})
-for more information.
-
-### Downlink data
-
-LoRa App Server keeps an internal queue of payloads to be emitted to the nodes.
-Items can be scheduled using the [API]({{< ref "integrate/api.md" >}}) or
-[MQTT topics]({{< ref "integrate/data.md" >}}). Both confirmed as unconfirmed payloads are
-supported. In case of a confirmed payload, an ACK will be sent over MQTT
-(see [send / receive data]({{< ref "integrate/data.md" >}})). Payloads will be encrypted by LoRa App
-Server before they are sent to [LoRa Server](/loraserver/).
-
-### Class-A
-
-Received downlink queue items will be added to the queue, awaiting the next
-downlink receive window (the node initiate this by sending an uplink). In
-case there are multiple queue items, it will indicate the node that there
-is more data, so that the node can initiate a new receive window.
-
-### Class-C
-
-In case of Class-C, no internal queue will be kept. Received downlink queue
-items are directly emitted to the node. In case of a confirmed payload, it will
-be kept in the queue (with pending state) until an acknowledgement has been
-received from the node.
-
-### Event notification
-
-Besides uplink and downlink payload handling, LoRa App Server will publish also
-events over MQTT. An event can be a node joining, a payload acknowledged by
-a node or an error (e.g. a downlink payload that exceeded the maximum payload
-size). See also [send / receive data]({{< ref "integrate/data.md" >}}) for more
-information.
+**Note:** downlink payloads can also be scheduled through the API.
 
 ### Gateway discovery
 
 For networks containing multiple gateways, LoRa App Server provides a feature
 to test the gateway network coverage. By sending out periodical "pings" through
 each gateway, LoRa App Server is able to discover how well these are received by
-other gateways in the same network.
+other gateways in the same network. The collected data is displayed as a map
+in the web-interface.
 
-To enable this feature, LoRa App Server needs to be configured to send gateway
-pings (see [configuration]({{<ref "install/config.md">}})) and sending pings
-must be enabled in the gateway configuration (which can be done using the UI
-or through the API).
+To enable this feature, please refer to the gateway discovery section in the
+LoRa App Server [configuration]({{<ref "install/config.md">}}).
+
+### Live frame-logging
+
+With LoRa App Server you are able to inspect all raw and encrypted LoRaWAN
+frames per gateway or device. When opening the *Live frame logs* tab on the
+gateway or device detail page, you will see all frames passing in realtime.
+This will also allow you to inspect the (encrypted) content of each LoRaWAN
+frame. See [frame-logging]({{<ref "use/frame-logging.md">}}) for more information.

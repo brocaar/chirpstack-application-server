@@ -43,8 +43,14 @@ class DeviceProfileForm extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    let dp = nextProps.deviceProfile;
+    if (dp.deviceProfile !== undefined && dp.deviceProfile.factoryPresetFreqs !== undefined && dp.deviceProfile.factoryPresetFreqs.length > 0) {
+      console.log(dp.deviceProfile.factoryPresetFreqs);
+      dp.deviceProfile.factoryPresetFreqsStr = dp.deviceProfile.factoryPresetFreqs.join(', ');
+    }
+
     this.setState({
-      deviceProfile: nextProps.deviceProfile,
+      deviceProfile: dp,
       update: nextProps.deviceProfile.deviceProfile.deviceProfileID !== undefined,
     });
   }
@@ -67,9 +73,14 @@ class DeviceProfileForm extends Component {
     }
 
     if (fieldName === "factoryPresetFreqsStr") {
-      let freqsStr = e.target.value.split(",");
       obj[fieldName] = e.target.value;
-      obj["factoryPresetFreqs"] = freqsStr.map((c, i) => parseInt(c, 10));
+
+      if (e.target.value === "") {
+        obj["factoryPresetFreqs"] = [];
+      } else {
+        let freqsStr = e.target.value.split(",");
+        obj["factoryPresetFreqs"] = freqsStr.map((c, i) => parseInt(c, 10));
+      }
     } else if (e.target.type === "number") {
       obj[fieldName] = parseInt(e.target.value, 10);
     } else if (e.target.type === "checkbox") {

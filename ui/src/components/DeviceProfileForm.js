@@ -45,7 +45,6 @@ class DeviceProfileForm extends Component {
   componentWillReceiveProps(nextProps) {
     let dp = nextProps.deviceProfile;
     if (dp.deviceProfile !== undefined && dp.deviceProfile.factoryPresetFreqs !== undefined && dp.deviceProfile.factoryPresetFreqs.length > 0) {
-      console.log(dp.deviceProfile.factoryPresetFreqs);
       dp.deviceProfile.factoryPresetFreqsStr = dp.deviceProfile.factoryPresetFreqs.join(', ');
     }
 

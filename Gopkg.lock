@@ -17,7 +17,7 @@
     ".",
     "backend"
   ]
-  revision = "752b28f32af50ba9310f09ef10a83d4969caf269"
+  revision = "33b2e190da53e7b9b86eaad3ba9916c4e866f042"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -35,10 +35,10 @@
   revision = "750c97f293745e8220737ef933da2ec829d2fddd"
 
 [[projects]]
+  branch = "master"
   name = "github.com/elazarl/go-bindata-assetfs"
   packages = ["."]
-  revision = "30f82fa23fd844bd5bb1e5f216db87fd77b5eb43"
-  version = "v1.0.0"
+  revision = "38087fe4dafb822e541b3f7955075cc1c30bd294"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"

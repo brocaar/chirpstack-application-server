@@ -8,6 +8,17 @@ menu:
 
 ## Changelog
 
+### 0.18.1
+
+**Features:**
+
+* Expose Class-B fields in device-profile web-interface form.
+  * **Note:** Class-B support is implemented since [LoRa Server](https://docs.loraserver.io/loraserver/) 0.25.0.
+
+**Bugfixes:**
+
+* Fix factory preset frequency field in device-profile form.
+
 ### 0.18.0
 
 **Features:**

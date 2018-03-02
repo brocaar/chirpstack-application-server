@@ -139,12 +139,24 @@ class DeviceProfileForm extends Component {
       {value: "B", label: "B"},
     ];
 
+    const pingSlotPeriodOptions = [
+      {value: 32 * 1, label: "every second"},
+      {value: 32 * 2, label: "every 2 seconds"},
+      {value: 32 * 4, label: "every 4 seconds"},
+      {value: 32 * 8, label: "every 8 seconds"},
+      {value: 32 * 16, label: "every 16 seconds"},
+      {value: 32 * 32, label: "every 32 seconds"},
+      {value: 32 * 64, label: "every 64 seconds"},
+      {value: 32 * 128, label: "every 128 seconds"},
+    ];
+
     return(
       <Loaded loaded={this.state.loaded}>
         <div>
           <ul className="nav nav-tabs">
             <li role="presentation" className={(this.state.activeTab === "general" ? "active" : "")}><a onClick={this.changeTab} href="#general" aria-controls="general">General</a></li>
             <li role="presentation" className={(this.state.activeTab === "join" ? "active" : "")}><a onClick={this.changeTab} href="#join" aria-controls="join">Join (OTAA / ABP)</a></li>
+          <li role="presentation" className={(this.state.activeTab === "classB" ? "active" : "")}><a onClick={this.changeTab} href="#classB" aria-controls="classB">Class-B</a></li>
             <li role="presentation" className={(this.state.activeTab === "classC" ? "active" : "")}><a onClick={this.changeTab} href="#classC" aria-controls="classC">Class-C</a></li>
           </ul>
           <hr />
@@ -252,6 +264,62 @@ class DeviceProfileForm extends Component {
                   <p className="help-block">
                     List of factory-preset frequencies (mandatory for ABP).
                   </p>
+                </div>
+              </div>
+              <div className={(this.state.activeTab === "classB" ? "" : "hidden")}>
+                <div className="form-group">
+                  <label className="control-label" htmlFor="supportsClassB">Supports Class-B</label>
+                  <div className="checkbox">
+                    <label>
+                      <input type="checkbox" name="supportsClassB" id="supportsClassB" checked={this.state.deviceProfile.deviceProfile.supportsClassB} onChange={this.onChange.bind(this, 'deviceProfile.supportsClassB')} /> Supports Class-B
+                    </label>
+                  </div>
+                  <p className="help-block">
+                    End-Device supports Class B.
+                  </p>
+                </div>
+                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsClassB === true ? "" : "hidden")}>
+                  <label className="control-label" htmlFor="classBTimeout">Class-B confirmed downlink timeout</label>
+                  <input className="form-control" name="classBTimeout" id="classBTimeout" type="number" value={this.state.deviceProfile.deviceProfile.classBTimeout || 0} onChange={this.onChange.bind(this, 'deviceProfile.classBTimeout')} />
+                  <p className="help-block">
+                    Class-B timeout (in seconds) for confirmed downlink transmissions.
+                  </p>
+                </div>
+                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsClassB === true ? "" : "hidden")}>
+                  <label className="control-label" htmlFor="pingSlotPeriod">Class-B ping-slot periodicity</label>
+                  <Select
+                    name="pingSlotPeriod"
+                    options={pingSlotPeriodOptions}
+                    value={this.state.deviceProfile.deviceProfile.pingSlotPeriod}
+                    onChange={this.onSelectChange.bind(this, 'deviceProfile.pingSlotPeriod')}
+                  />
+                  <p className="help-block">
+                    Class-B ping-slot periodicity.
+                  </p>
+                </div>
+                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsClassB === true ? "" : "hidden")}>
+                  <label className="control-label" htmlFor="pingSlotDR">Class-B ping-slot data-rate</label>
+                  <input className="form-control" name="pingSlotDR" id="pingSlotDR" type="number" value={this.state.deviceProfile.deviceProfile.pingSlotDR || 0} onChange={this.onChange.bind(this, 'deviceProfile.pingSlotDR')} />
+                  <p className="help-block">
+                    Class-B data-rate.
+                  </p>
+                </div>
+                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsClassB === true ? "" : "hidden")}>
+                  <label className="control-label" htmlFor="pingSlotFreq">Class-B ping-slot frequency (Hz)</label>
+                  <input className="form-control" name="pingSlotFreq" id="pingSlotFreq" type="number" value={this.state.deviceProfile.deviceProfile.pingSlotFreq || 0} onChange={this.onChange.bind(this, 'deviceProfile.pingSlotFreq')} />
+                  <p className="help-block">
+                    Class-B frequency (in Hz).
+                  </p>
+                </div>
+              </div>
+              <div className={(this.state.activeTab === "classC" ? "" : "hidden")}>
+                <div className="form-group">
+                  <label className="control-label" htmlFor="supportsClassC">Supports Class-C</label>
+                  <div className="checkbox">
+                    <label>
+                      <input type="checkbox" name="supportsClassC" id="supportsClassC" checked={this.state.deviceProfile.deviceProfile.supportsClassC} onChange={this.onChange.bind(this, 'deviceProfile.supportsClassC')} /> Supports Class-C
+                    </label>
+                  </div>
                 </div>
               </div>
               <div className={(this.state.activeTab === "classC" ? "" : "hidden")}>

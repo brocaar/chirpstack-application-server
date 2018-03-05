@@ -4,7 +4,7 @@ VERSION := $(shell git describe --always)
 GOOS ?= linux
 GOARCH ?= amd64
 
-build: ui/build internal/statics internal/migrations
+build: internal/statics internal/migrations
 	@echo "Compiling source for $(GOOS) $(GOARCH)"
 	@mkdir -p build
 	@GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(GO_EXTRA_BUILD_ARGS) -ldflags "-s -w -X main.version=$(VERSION)" -o build/lora-app-server$(BINEXT) cmd/lora-app-server/main.go
@@ -73,6 +73,10 @@ requirements:
 	@go get -u github.com/smartystreets/goconvey
 	@go get -u golang.org/x/tools/cmd/stringer
 	@go get -u github.com/golang/dep/cmd/dep
+	@go get -u github.com/tmc/grpc-websocket-proxy/wsproxy
+	@go get -u github.com/spf13/viper
+	@go get -u github.com/spf13/cobra
+	@go get -u github.com/gorilla/mux
 	@dep ensure -v
 
 ui-requirements:

@@ -156,6 +156,7 @@ func init() {
 	viper.SetDefault("application_server.integration.mqtt.join_topic_template", "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/join")
 	viper.SetDefault("application_server.integration.mqtt.ack_topic_template", "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/ack")
 	viper.SetDefault("application_server.integration.mqtt.error_topic_template", "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/error")
+	viper.SetDefault("application_server.integration.mqtt.clean_session", true)
 
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(configCmd)

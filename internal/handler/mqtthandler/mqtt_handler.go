@@ -30,6 +30,9 @@ type Config struct {
 	Server                string
 	Username              string
 	Password              string
+	QOS                   uint8  `mapstructure:"qos"`
+	CleanSession          bool   `mapstructure:"clean_session"`
+	ClientID              string `mapstructure:"client_id"`
 	CACert                string `mapstructure:"ca_cert"`
 	TLSCert               string `mapstructure:"tls_cert"`
 	TLSKey                string `mapstructure:"tls_key"`
@@ -116,6 +119,8 @@ func NewHandler(p *redis.Pool, c Config) (handler.Handler, error) {
 	opts.AddBroker(h.config.Server)
 	opts.SetUsername(h.config.Username)
 	opts.SetPassword(h.config.Password)
+	opts.SetCleanSession(h.config.CleanSession)
+	opts.SetClientID(h.config.ClientID)
 	opts.SetOnConnectHandler(h.onConnected)
 	opts.SetConnectionLostHandler(h.onConnectionLost)
 
@@ -233,8 +238,9 @@ func (h *MQTTHandler) publish(applicationID int64, devEUI lorawan.EUI64, topicTe
 
 	log.WithFields(log.Fields{
 		"topic": topic.String(),
+		"qos":   h.config.QOS,
 	}).Info("handler/mqtt: publishing message")
-	if token := h.conn.Publish(topic.String(), 0, false, jsonB); token.Wait() && token.Error() != nil {
+	if token := h.conn.Publish(topic.String(), h.config.QOS, false, jsonB); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 
@@ -337,8 +343,11 @@ func (h *MQTTHandler) txPayloadHandler(c mqtt.Client, msg mqtt.Message) {
 func (h *MQTTHandler) onConnected(c mqtt.Client) {
 	log.Info("handler/mqtt: connected to mqtt broker")
 	for {
-		log.WithField("topic", h.downlinkTopic).Info("handler/mqtt: subscribing to tx topic")
-		if token := h.conn.Subscribe(h.downlinkTopic, 2, h.txPayloadHandler); token.Wait() && token.Error() != nil {
+		log.WithFields(log.Fields{
+			"topic": h.downlinkTopic,
+			"qos":   h.config.QOS,
+		}).Info("handler/mqtt: subscribing to tx topic")
+		if token := h.conn.Subscribe(h.downlinkTopic, h.config.QOS, h.txPayloadHandler); token.Wait() && token.Error() != nil {
 			log.WithField("topic", h.downlinkTopic).Errorf("handler/mqtt: subscribe error: %s", token.Error())
 			time.Sleep(time.Second)
 			continue

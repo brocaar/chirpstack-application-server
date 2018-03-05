@@ -32,6 +32,7 @@ func TestMQTTHandler(t *testing.T) {
 					Server:                conf.MQTTServer,
 					Username:              conf.MQTTUsername,
 					Password:              conf.MQTTPassword,
+					CleanSession:          true,
 					UplinkTopicTemplate:   "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/rx",
 					DownlinkTopicTemplate: "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/tx",
 					JoinTopicTemplate:     "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/join",

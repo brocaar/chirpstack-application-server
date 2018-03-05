@@ -6,8 +6,8 @@ import (
 
 	"github.com/brocaar/loraserver/api/ns"
 
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/gusseleet/lora-app-server/internal/config"
+	"github.com/gusseleet/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan/backend"
 	. "github.com/smartystreets/goconvey/convey"
 )

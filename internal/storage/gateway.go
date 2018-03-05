@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/gusseleet/lora-app-server/internal/config"
 	"github.com/brocaar/loraserver/api/ns"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

@@ -11,11 +11,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/gwping"
-	"github.com/brocaar/lora-app-server/internal/handler"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/gusseleet/lora-app-server/internal/codec"
+	"github.com/gusseleet/lora-app-server/internal/config"
+	"github.com/gusseleet/lora-app-server/internal/gwping"
+	"github.com/gusseleet/lora-app-server/internal/handler"
+	"github.com/gusseleet/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
 	"github.com/brocaar/lorawan"
 )

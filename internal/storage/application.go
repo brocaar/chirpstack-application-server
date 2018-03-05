@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/brocaar/lora-app-server/internal/codec"
+	"github.com/gusseleet/lora-app-server/internal/codec"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

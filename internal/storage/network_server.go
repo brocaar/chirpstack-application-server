@@ -6,7 +6,7 @@ import (
 
 	"github.com/brocaar/lorawan"
 
-	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/gusseleet/lora-app-server/internal/config"
 	"github.com/brocaar/loraserver/api/ns"
 
 	"github.com/jmoiron/sqlx"

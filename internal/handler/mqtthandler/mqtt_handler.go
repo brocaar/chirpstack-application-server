@@ -15,8 +15,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/gusseleet/lora-app-server/internal/config"
+	"github.com/gusseleet/lora-app-server/internal/handler"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/garyburd/redigo/redis"
 )

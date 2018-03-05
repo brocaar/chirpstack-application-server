@@ -11,7 +11,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/gusseleet/lora-app-server/internal/handler"
 	"github.com/brocaar/lorawan"
 )
 

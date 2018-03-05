@@ -1,6 +1,6 @@
 package testhandler
 
-import "github.com/brocaar/lora-app-server/internal/handler"
+import "github.com/gusseleet/lora-app-server/internal/handler"
 
 // TestHandler implements a Handler for testing.
 type TestHandler struct {

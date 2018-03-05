@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/gusseleet/lora-app-server/internal/config"
 	"github.com/spf13/viper"
 
 	log "github.com/sirupsen/logrus"

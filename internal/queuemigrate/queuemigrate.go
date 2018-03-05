@@ -9,9 +9,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/downlink"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/gusseleet/lora-app-server/internal/config"
+	"github.com/gusseleet/lora-app-server/internal/downlink"
+	"github.com/gusseleet/lora-app-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 

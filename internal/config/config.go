@@ -5,9 +5,9 @@ import (
 
 	"github.com/garyburd/redigo/redis"
 
-	"github.com/brocaar/lora-app-server/internal/common"
-	"github.com/brocaar/lora-app-server/internal/handler"
-	"github.com/brocaar/lora-app-server/internal/nsclient"
+	"github.com/gusseleet/lora-app-server/internal/common"
+	"github.com/gusseleet/lora-app-server/internal/handler"
+	"github.com/gusseleet/lora-app-server/internal/nsclient"
 )
 
 // Config defines the configuration structure.

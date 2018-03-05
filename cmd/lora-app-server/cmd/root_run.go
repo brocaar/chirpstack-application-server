@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	assetfs "github.com/elazarl/go-bindata-assetfs"
+	//assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
@@ -392,12 +392,16 @@ func getHTTPHandler(ctx context.Context) (http.Handler, error) {
 	r.PathPrefix("/api").Handler(jsonHandler)
 
 	// setup static file server
+
+	/*
 	r.PathPrefix("/").Handler(http.FileServer(&assetfs.AssetFS{
 		Asset:     static.Asset,
 		AssetDir:  static.AssetDir,
 		AssetInfo: static.AssetInfo,
 		Prefix:    "",
 	}))
+
+	*/
 
 	return wsproxy.WebsocketProxy(r), nil
 }

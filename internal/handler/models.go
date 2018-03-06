@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/codec"
+	"github.com/gusseleet/lora-app-server/internal/codec"
 	"github.com/brocaar/lorawan"
 )
 

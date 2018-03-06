@@ -9,10 +9,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 
-	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/handler"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/gusseleet/lora-app-server/internal/codec"
+	"github.com/gusseleet/lora-app-server/internal/config"
+	"github.com/gusseleet/lora-app-server/internal/handler"
+	"github.com/gusseleet/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 )

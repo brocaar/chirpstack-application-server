@@ -8,7 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/join"
+	"github.com/gusseleet/lora-app-server/internal/join"
 	"github.com/brocaar/lorawan/backend"
 )
 

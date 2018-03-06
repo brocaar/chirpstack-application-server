@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/gusseleet/lora-app-server/internal/handler"
 )
 
 var headerNameValidator = regexp.MustCompile(`^[A-Za-z0-9-]+$`)

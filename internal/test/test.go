@@ -9,10 +9,10 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	"github.com/brocaar/lora-app-server/internal/common"
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/migrations"
-	"github.com/brocaar/lora-app-server/internal/nsclient"
+	"github.com/gusseleet/lora-app-server/internal/common"
+	"github.com/gusseleet/lora-app-server/internal/config"
+	"github.com/gusseleet/lora-app-server/internal/migrations"
+	"github.com/gusseleet/lora-app-server/internal/nsclient"
 	"github.com/brocaar/loraserver/api/ns"
 )
 

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/gusseleet/lora-app-server/internal/config"
+	"github.com/gusseleet/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"

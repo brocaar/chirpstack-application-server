@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile-devel
     command: make serve
     volumes:
-      - ./:/go/src/github.com/brocaar/lora-app-server
+      - ./:/go/src/github.com/gusseleet/lora-app-server
     links:
       - postgres
       - redis
@@ -19,6 +19,12 @@ services:
       - TEST_POSTGRES_DSN=postgres://loraserver:loraserver@postgres/loraserver?sslmode=disable
       - TEST_REDIS_URL=redis://redis:6379
       - TEST_MQTT_SERVER=tcp://mosquitto:1883
+      - JWT_SECRET=verysecret
+      - HTTP_TLS_CERT=/etc/lora-app-server/certs/http.pem
+      - HTTP_TLS_KEY=/etc/lora-app-server/certs/http-key.pem
+      - AS_PUBLIC_SERVER=appserver:8001
+    ports:
+      - 8080:8080
 
   postgres:
     image: postgres:9.5

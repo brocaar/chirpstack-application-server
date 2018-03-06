@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"os"
 
-	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/gusseleet/lora-app-server/internal/config"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

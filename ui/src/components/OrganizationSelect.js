@@ -76,8 +76,10 @@ class OrganizationSelect extends Component {
   }
 
   onSelect(val) {
-    SessionStore.setOrganizationID(val.value);
-    this.props.history.push('/organizations/'+val.value);
+    if (val !== null) {
+      SessionStore.setOrganizationID(val.value);
+      this.props.history.push('/organizations/'+val.value);
+    }
   }
 
   onAutocomplete(input, callbackFunc) {
@@ -100,7 +102,7 @@ class OrganizationSelect extends Component {
     let org;
 
     if (this.state.showDropdown) {
-      org = <div className="org-select"><Select
+      org = <div className="org-select"><Select.Async
         name="organization"
         options={this.state.initialOptions}
         value={this.props.organizationID}

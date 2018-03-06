@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"html/template"
 	"os"
+	"text/template"
 
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/pkg/errors"
@@ -89,6 +89,23 @@ id="{{ .ApplicationServer.ID }}"
   # Next to this integration which is always available, the user is able to
   # configure additional per-application integrations.
   [application_server.integration.mqtt]
+  # MQTT topic templates for the different MQTT topics.
+  #
+  # The meaning of these topics are documented at:
+  # https://docs.loraserver.io/lora-app-server/integrate/data/
+  #
+  # The following substitutions can be used:
+  # * "{{ "{{ .ApplicationID }}" }}" for the application id.
+  # * "{{ "{{ .DevEUI }}" }}" for the DevEUI of the device.
+  #
+  # Note: the downlink_topic_template must contain both the application id and
+  # DevEUI substitution!
+  uplink_topic_template="{{ .ApplicationServer.Integration.MQTT.UplinkTopicTemplate }}"
+  downlink_topic_template="{{ .ApplicationServer.Integration.MQTT.DownlinkTopicTemplate }}"
+  join_topic_template="{{ .ApplicationServer.Integration.MQTT.JoinTopicTemplate }}"
+  ack_topic_template="{{ .ApplicationServer.Integration.MQTT.AckTopicTemplate }}"
+  error_topic_template="{{ .ApplicationServer.Integration.MQTT.ErrorTopicTemplate }}"
+
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="{{ .ApplicationServer.Integration.MQTT.Server }}"
 

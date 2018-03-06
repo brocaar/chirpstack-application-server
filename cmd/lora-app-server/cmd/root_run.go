@@ -124,12 +124,8 @@ func setRedisPool() error {
 
 func setHandler() error {
 	h, err := mqtthandler.NewHandler(
-		config.C.ApplicationServer.Integration.MQTT.Server,
-		config.C.ApplicationServer.Integration.MQTT.Username,
-		config.C.ApplicationServer.Integration.MQTT.Password,
-		config.C.ApplicationServer.Integration.MQTT.CACert,
-		config.C.ApplicationServer.Integration.MQTT.TLSCert,
-		config.C.ApplicationServer.Integration.MQTT.TLSKey,
+		config.C.Redis.Pool,
+		config.C.ApplicationServer.Integration.MQTT,
 	)
 	if err != nil {
 		return errors.Wrap(err, "setup mqtt handler error")

@@ -66,7 +66,16 @@ func TestHandler(t *testing.T) {
 		token.Wait()
 		So(token.Error(), ShouldBeNil)
 
-		mqttHandler, err := mqtthandler.NewHandler(conf.MQTTServer, conf.MQTTUsername, conf.MQTTPassword, "", "", "")
+		mqttHandler, err := mqtthandler.NewHandler(config.C.Redis.Pool, mqtthandler.Config{
+			Server:                conf.MQTTServer,
+			Username:              conf.MQTTUsername,
+			Password:              conf.MQTTPassword,
+			UplinkTopicTemplate:   "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/rx",
+			DownlinkTopicTemplate: "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/tx",
+			JoinTopicTemplate:     "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/join",
+			AckTopicTemplate:      "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/ack",
+			ErrorTopicTemplate:    "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/error",
+		})
 		So(err, ShouldBeNil)
 
 		Convey("Given an organization, application with http integration and node", func() {

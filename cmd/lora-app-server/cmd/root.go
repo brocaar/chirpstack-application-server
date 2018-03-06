@@ -150,6 +150,13 @@ func init() {
 	viper.BindPFlag("join_server.tls_key", rootCmd.PersistentFlags().Lookup("js-tls-key"))
 	viper.BindPFlag("network_server.server", rootCmd.PersistentFlags().Lookup("ns-server"))
 
+	// defaults
+	viper.SetDefault("application_server.integration.mqtt.uplink_topic_template", "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/rx")
+	viper.SetDefault("application_server.integration.mqtt.downlink_topic_template", "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/tx")
+	viper.SetDefault("application_server.integration.mqtt.join_topic_template", "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/join")
+	viper.SetDefault("application_server.integration.mqtt.ack_topic_template", "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/ack")
+	viper.SetDefault("application_server.integration.mqtt.error_topic_template", "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/error")
+
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(configCmd)
 }

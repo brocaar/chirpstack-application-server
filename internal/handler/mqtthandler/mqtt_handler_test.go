@@ -6,17 +6,14 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestMQTTHandler(t *testing.T) {
-	conf := test.GetConfig()
+	conf := GetConfig()
 
 	Convey("Given a MQTT client and Redis database", t, func() {
 		opts := mqtt.NewClientOptions().AddBroker(conf.MQTTServer).SetUsername(conf.MQTTUsername).SetPassword(conf.MQTTPassword)
@@ -25,11 +22,23 @@ func TestMQTTHandler(t *testing.T) {
 		token.Wait()
 		So(token.Error(), ShouldBeNil)
 
-		config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL)
-		test.MustFlushRedis(config.C.Redis.Pool)
+		p := NewRedisPool(conf.RedisURL)
+		MustFlushRedis(p)
 
 		Convey("Given a new MQTTHandler", func() {
-			h, err := NewHandler(conf.MQTTServer, conf.MQTTUsername, conf.MQTTPassword, "", "", "")
+			h, err := NewHandler(
+				p,
+				Config{
+					Server:                conf.MQTTServer,
+					Username:              conf.MQTTUsername,
+					Password:              conf.MQTTPassword,
+					UplinkTopicTemplate:   "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/rx",
+					DownlinkTopicTemplate: "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/tx",
+					JoinTopicTemplate:     "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/join",
+					AckTopicTemplate:      "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/ack",
+					ErrorTopicTemplate:    "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/error",
+				},
+			)
 			So(err, ShouldBeNil)
 			defer h.Close()
 			time.Sleep(time.Millisecond * 100) // give the backend some time to connect

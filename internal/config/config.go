@@ -7,6 +7,7 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/handler/mqtthandler"
 	"github.com/brocaar/lora-app-server/internal/nsclient"
 )
 
@@ -33,15 +34,7 @@ type Config struct {
 
 		Integration struct {
 			Handler handler.Handler
-
-			MQTT struct {
-				Server   string
-				Username string
-				Password string
-				CACert   string `mapstructure:"ca_cert"`
-				TLSCert  string `mapstructure:"tls_cert"`
-				TLSKey   string `mapstructure:"tls_key"`
-			} `mapstructure:"mqtt"`
+			MQTT    mqtthandler.Config `mapstructure:"mqtt"`
 		}
 
 		API struct {

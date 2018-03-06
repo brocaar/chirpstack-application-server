@@ -140,6 +140,23 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # Next to this integration which is always available, the user is able to
   # configure additional per-application integrations.
   [application_server.integration.mqtt]
+  # MQTT topic templates for the different MQTT topics.
+  #
+  # The meaning of these topics are documented at:
+  # https://docs.loraserver.io/lora-app-server/integrate/data/
+  #
+  # The following substitutions can be used:
+  # * "{{ .ApplicationID }}" for the application id.
+  # * "{{ .DevEUI }}" for the DevEUI of the device.
+  #
+  # Note: the downlink_topic_template must contain both the application id and
+  # DevEUI substitution!
+  uplink_topic_template="application/{{ .ApplicationID }}/node/{{ .DevEUI }}/rx"
+  downlink_topic_template="application/{{ .ApplicationID }}/node/{{ .DevEUI }}/tx"
+  join_topic_template="application/{{ .ApplicationID }}/node/{{ .DevEUI }}/join"
+  ack_topic_template="application/{{ .ApplicationID }}/node/{{ .DevEUI }}/ack"
+  error_topic_template="application/{{ .ApplicationID }}/node/{{ .DevEUI }}/error"
+
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="tcp://localhost:1883"
 

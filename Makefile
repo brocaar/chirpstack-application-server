@@ -4,7 +4,7 @@ VERSION := $(shell git describe --always)
 GOOS ?= linux
 GOARCH ?= amd64
 
-build: internal/statics internal/migrations
+build: ui/build internal/statics internal/migrations
 	@echo "Compiling source for $(GOOS) $(GOARCH)"
 	@mkdir -p build
 	@GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(GO_EXTRA_BUILD_ARGS) -ldflags "-s -w -X main.version=$(VERSION)" -o build/lora-app-server$(BINEXT) cmd/lora-app-server/main.go

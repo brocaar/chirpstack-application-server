@@ -10,10 +10,10 @@ import ApplicationStore from "../../stores/ApplicationStore";
 
 class NodeRow extends Component {
   render() {
-    let lastseen = "";
+    let lastseen = "n/a";
     let margin = "n/a";
     let battery = "n/a";
-    if (this.props.node.lastSeenAt !== undefined) {
+    if (this.props.node.lastSeenAt !== undefined && this.props.node.lastSeenAt != "") {
       lastseen = moment(this.props.node.lastSeenAt).fromNow();
     }
 

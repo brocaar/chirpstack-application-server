@@ -131,21 +131,16 @@ class NodeStore extends EventEmitter {
 
   getFrameLogsConnection(devEUI, onOpen, onClose, onData) {
     const loc = window.location;
-    var wsURL;
-
-    if (loc.host === "localhost:3000") {
-      wsURL = `wss://localhost:8080/api/devices/${devEUI}/frames`;
-    } else {
-      if (loc.protocol === "https:") {
-        wsURL = "wss:";
-      } else {
-        wsURL = "ws:";
+    const wsURL = (() => {
+      if (loc.host === "localhost:3000") {
+        return `wss://localhost:8080/api/devices/${devEUI}/frames`;
       }
 
-      wsURL += `//${loc.host}/api/devices/${devEUI}/frames`;
-    }
+      const wsProtocol = loc.protocol === "https:" ? "wss:" : "ws:";
+      return `${wsProtocol}//${loc.host}/api/devices/${devEUI}/frames`;
+    });
 
-    let conn = new ReconnectingWebSocket(wsURL, ["Bearer", sessionStore.getToken()]);
+    const conn = new ReconnectingWebSocket(wsURL, ["Bearer", sessionStore.getToken()]);
     conn.onopen = () => {
       console.log('connected to', wsURL);
       onOpen();
@@ -154,7 +149,7 @@ class NodeStore extends EventEmitter {
     conn.onclose = () => {
       console.log('closing', wsURL);
       onClose();
-    }
+    };
 
     conn.onmessage = (e) => {
       const msg = JSON.parse(e.data);

@@ -210,21 +210,16 @@ class GatewayStore extends EventEmitter {
 
   getFrameLogsConnection(mac, onOpen, onClose, onData) {
     const loc = window.location;
-    var wsURL;
-
-    if (loc.host === "localhost:3000") {
-      wsURL = `wss://localhost:8080/api/gateways/${mac}/frames`;
-    } else {
-      if (loc.protocol === "https:") {
-        wsURL = "wss:";
-      } else {
-        wsURL = "ws:";
+    const wsURL = (() => {
+      if (loc.host === "localhost:3000") {
+        return `wss://localhost:8080/api/gateways/${mac}/frames`;
       }
 
-      wsURL += `//${loc.host}/api/gateways/${mac}/frames`;
-    }
+      const wsProtocol = loc.protocol === "https:" ? "wss:" : "ws:";
+      return `${wsProtocol}//${loc.host}/api/gateways/${mac}/frames`;
+    })();
 
-    let conn = new ReconnectingWebSocket(wsURL, ["Bearer", sessionStore.getToken()]);
+    const conn = new ReconnectingWebSocket(wsURL, ["Bearer", sessionStore.getToken()]);
     conn.onopen = () => {
       console.log('connected to', wsURL);
       onOpen();
@@ -233,7 +228,7 @@ class GatewayStore extends EventEmitter {
     conn.onclose = () => {
       console.log('closing', wsURL);
       onClose();
-    }
+    };
 
     conn.onmessage = (e) => {
       const msg = JSON.parse(e.data);

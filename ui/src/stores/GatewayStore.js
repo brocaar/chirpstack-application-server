@@ -1,4 +1,5 @@
 import { EventEmitter } from "events";
+import ReconnectingWebSocket from 'reconnecting-websocket';
 
 import sessionStore from "./SessionStore";
 import { checkStatus, errorHandler } from "./helpers";
@@ -223,7 +224,7 @@ class GatewayStore extends EventEmitter {
       wsURL += `//${loc.host}/api/gateways/${mac}/frames`;
     }
 
-    let conn = new WebSocket(wsURL, ["Bearer", sessionStore.getToken()]);
+    let conn = new ReconnectingWebSocket(wsURL, ["Bearer", sessionStore.getToken()]);
     conn.onopen = () => {
       console.log('connected to', wsURL);
       onOpen();

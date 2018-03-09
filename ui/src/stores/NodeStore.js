@@ -1,9 +1,9 @@
 import { EventEmitter } from "events";
 import "whatwg-fetch";
+import ReconnectingWebSocket from 'reconnecting-websocket';
 import dispatcher from "../dispatcher";
 import sessionStore from "./SessionStore";
 import { checkStatus, errorHandler, errorHandlerIgnoreNotFound } from "./helpers";
-
 
 class NodeStore extends EventEmitter {
   getAll(applicationID, pageSize, offset, search, callbackFunc) {
@@ -79,7 +79,6 @@ class NodeStore extends EventEmitter {
       })
       .catch(errorHandlerIgnoreNotFound);
   }
-
   updateNodeKeys(devEUI, nodeKeys, callbackFunc) {
     fetch("/api/devices/"+devEUI+"/keys", {method: "PUT", body: JSON.stringify(nodeKeys), headers: sessionStore.getHeader()})
       .then(checkStatus)
@@ -121,7 +120,7 @@ class NodeStore extends EventEmitter {
   }
 
   getRandomDevAddr(devEUI, callbackFunc) {
-    fetch("/api/devices/"+devEUI+"/getRandomDevAddr", {method: "POST", headers: sessionStore.getHeader()}) 
+    fetch("/api/devices/"+devEUI+"/getRandomDevAddr", {method: "POST", headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -146,7 +145,7 @@ class NodeStore extends EventEmitter {
       wsURL += `//${loc.host}/api/devices/${devEUI}/frames`;
     }
 
-    let conn = new WebSocket(wsURL, ["Bearer", sessionStore.getToken()]);
+    let conn = new ReconnectingWebSocket(wsURL, ["Bearer", sessionStore.getToken()]);
     conn.onopen = () => {
       console.log('connected to', wsURL);
       onOpen();

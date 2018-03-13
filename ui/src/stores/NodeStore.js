@@ -1,9 +1,9 @@
 import { EventEmitter } from "events";
 import "whatwg-fetch";
+import ReconnectingWebSocket from 'reconnecting-websocket';
 import dispatcher from "../dispatcher";
 import sessionStore from "./SessionStore";
 import { checkStatus, errorHandler, errorHandlerIgnoreNotFound } from "./helpers";
-
 
 class NodeStore extends EventEmitter {
   getAll(applicationID, pageSize, offset, search, callbackFunc) {
@@ -79,7 +79,6 @@ class NodeStore extends EventEmitter {
       })
       .catch(errorHandlerIgnoreNotFound);
   }
-
   updateNodeKeys(devEUI, nodeKeys, callbackFunc) {
     fetch("/api/devices/"+devEUI+"/keys", {method: "PUT", body: JSON.stringify(nodeKeys), headers: sessionStore.getHeader()})
       .then(checkStatus)
@@ -121,7 +120,7 @@ class NodeStore extends EventEmitter {
   }
 
   getRandomDevAddr(devEUI, callbackFunc) {
-    fetch("/api/devices/"+devEUI+"/getRandomDevAddr", {method: "POST", headers: sessionStore.getHeader()}) 
+    fetch("/api/devices/"+devEUI+"/getRandomDevAddr", {method: "POST", headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -132,21 +131,16 @@ class NodeStore extends EventEmitter {
 
   getFrameLogsConnection(devEUI, onOpen, onClose, onData) {
     const loc = window.location;
-    var wsURL;
-
-    if (loc.host === "localhost:3000") {
-      wsURL = `wss://localhost:8080/api/devices/${devEUI}/frames`;
-    } else {
-      if (loc.protocol === "https:") {
-        wsURL = "wss:";
-      } else {
-        wsURL = "ws:";
+    const wsURL = (() => {
+      if (loc.host === "localhost:3000") {
+        return `wss://localhost:8080/api/devices/${devEUI}/frames`;
       }
 
-      wsURL += `//${loc.host}/api/devices/${devEUI}/frames`;
-    }
+      const wsProtocol = loc.protocol === "https:" ? "wss:" : "ws:";
+      return `${wsProtocol}//${loc.host}/api/devices/${devEUI}/frames`;
+    });
 
-    let conn = new WebSocket(wsURL, ["Bearer", sessionStore.getToken()]);
+    const conn = new ReconnectingWebSocket(wsURL, ["Bearer", sessionStore.getToken()]);
     conn.onopen = () => {
       console.log('connected to', wsURL);
       onOpen();
@@ -155,7 +149,7 @@ class NodeStore extends EventEmitter {
     conn.onclose = () => {
       console.log('closing', wsURL);
       onClose();
-    }
+    };
 
     conn.onmessage = (e) => {
       const msg = JSON.parse(e.data);

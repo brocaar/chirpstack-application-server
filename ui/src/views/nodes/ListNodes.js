@@ -13,7 +13,7 @@ class NodeRow extends Component {
     let lastseen = "n/a";
     let margin = "n/a";
     let battery = "n/a";
-    if (this.props.node.lastSeenAt !== undefined && this.props.node.lastSeenAt != "") {
+    if (this.props.node.lastSeenAt !== undefined && this.props.node.lastSeenAt !== "") {
       lastseen = moment(this.props.node.lastSeenAt).fromNow();
     }
 

@@ -3,7 +3,7 @@
 
 
 [[constraint]]
-  branch = "0_25_dev"
+  branch = "master"
   name = "github.com/brocaar/loraserver"
 
 [[constraint]]

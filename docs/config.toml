@@ -1,4 +1,4 @@
-baseURL = "https://docs.loraserver.io/lora-app-server/"
+baseURL = "https://www.loraserver.io/lora-app-server/"
 languageCode = "en-us"
 title = "LoRa App Server documentation"
 googleAnalytics = "UA-3512995-9"
@@ -39,4 +39,4 @@ googleAnalytics = "UA-3512995-9"
     weight = 5
 
 [params]
-    version = "0.18.1"
+    version = "0.18.2"

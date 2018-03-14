@@ -8,6 +8,27 @@ menu:
 
 # Changelog
 
+## 0.18.2
+
+**Improvements:**
+
+* Gateway discovery configuration has been moved to network-server configuration.
+  * **Important:** when you have the gateway discover feature configured,
+    you need to re-add this configuration under network-servers (web-interface).
+* Expose the following MQTT options for the MQTT gateway backend:
+  * Configurable MQTT topics (uplink, downlink, join, ack, error)
+  * QoS (quality of service)
+  * Client ID
+  * Clean session on connect
+* Expose LoRa Server version and configured region through the network-server
+  API endpoint.
+* Websocket client automatically re-connects on connection error ([#221](https://github.com/brocaar/lora-app-server/pull/221))
+
+**Bugfixes:**
+
+* The Class-C enabled checkbox was displayed twice in the web-interface.
+* Organization dropdown was not autocompleting correctly.
+
 ## 0.18.1
 
 **Features:**

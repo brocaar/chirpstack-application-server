@@ -211,7 +211,6 @@ id="{{ .ApplicationServer.ID }}"
 
   # Registration.
   registration="{{ .ApplicationServer.Branding.Registration }}"
-
 {{ end }}
 
 # Join-server configuration.

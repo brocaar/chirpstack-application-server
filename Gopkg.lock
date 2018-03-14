@@ -2,13 +2,13 @@
 
 
 [[projects]]
-  branch = "master"
+  branch = "0_25_dev"
   name = "github.com/brocaar/loraserver"
   packages = [
     "api/as",
     "api/ns"
   ]
-  revision = "8dd4fbb65110646191293b06cd3c0a98ea30ae8c"
+  revision = "7bb53272a2dcf8a1ee294e1635c36a7e58399795"
 
 [[projects]]
   branch = "master"
@@ -413,6 +413,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a80e755d08c5154ba581c34f54d0ce88d6c7b3eeb97ea551d8125b83b72b47a3"
+  inputs-digest = "145514c85298e51d7b11dec9be1cff5b9e2de24f89f82edb55f011b49c9e903e"
   solver-name = "gps-cdcl"
   solver-version = 1

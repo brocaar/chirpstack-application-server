@@ -141,6 +141,12 @@ message GetNetworkServerResponse {
 
     // The data-rate of the gateway discovery 'ping'.
     uint32 gatewayDiscoveryDR = 13;
+
+    // The LoRa Server version.
+    string version = 14;
+
+    // The LoRa Server region configured.
+    string region = 15;
 }
 
 message UpdateNetworkServerRequest {

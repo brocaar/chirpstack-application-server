@@ -169,8 +169,8 @@ type NetworkServerClient struct {
 	GetRandomDevAddrChan     chan ns.GetRandomDevAddrRequest
 	GetRandomDevAddrResponse ns.GetRandomDevAddrResponse
 
-	EnqueueDownlinkMACCommandChan     chan ns.EnqueueDownlinkMACCommandRequest
-	EnqueueDownlinkMACCommandResponse ns.EnqueueDownlinkMACCommandResponse
+	CreateMACCommandQueueItemChan     chan ns.CreateMACCommandQueueItemRequest
+	CreateMACCommandQueueItemResponse ns.CreateMACCommandQueueItemResponse
 
 	SendProprietaryPayloadChan     chan ns.SendProprietaryPayloadRequest
 	SendProprietaryPayloadResponse ns.SendProprietaryPayloadResponse
@@ -234,6 +234,8 @@ type NetworkServerClient struct {
 
 	GetNextDownlinkFCntForDevEUIChan     chan ns.GetNextDownlinkFCntForDevEUIRequest
 	GetNextDownlinkFCntForDevEUIResponse ns.GetNextDownlinkFCntForDevEUIResponse
+
+	GetVersionResponse ns.GetVersionResponse
 }
 
 // NewNetworkServerClient creates a new NetworkServerClient.
@@ -259,7 +261,7 @@ func NewNetworkServerClient() *NetworkServerClient {
 		DeactivateDeviceChan:                          make(chan ns.DeactivateDeviceRequest, 100),
 		GetDeviceActivationChan:                       make(chan ns.GetDeviceActivationRequest, 100),
 		GetRandomDevAddrChan:                          make(chan ns.GetRandomDevAddrRequest, 100),
-		EnqueueDownlinkMACCommandChan:                 make(chan ns.EnqueueDownlinkMACCommandRequest, 100),
+		CreateMACCommandQueueItemChan:                 make(chan ns.CreateMACCommandQueueItemRequest, 100),
 		SendProprietaryPayloadChan:                    make(chan ns.SendProprietaryPayloadRequest, 100),
 		CreateGatewayChan:                             make(chan ns.CreateGatewayRequest, 100),
 		GetGatewayChan:                                make(chan ns.GetGatewayRequest, 100),
@@ -446,10 +448,10 @@ func (n *NetworkServerClient) GetRandomDevAddr(ctx context.Context, in *ns.GetRa
 	return &n.GetRandomDevAddrResponse, nil
 }
 
-// EnqueueDownlinkMACCommand method.
-func (n *NetworkServerClient) EnqueueDownlinkMACCommand(ctx context.Context, in *ns.EnqueueDownlinkMACCommandRequest, opts ...grpc.CallOption) (*ns.EnqueueDownlinkMACCommandResponse, error) {
-	n.EnqueueDownlinkMACCommandChan <- *in
-	return &n.EnqueueDownlinkMACCommandResponse, nil
+// CreateMACCommandQueueItem method.
+func (n *NetworkServerClient) CreateMACCommandQueueItem(ctx context.Context, in *ns.CreateMACCommandQueueItemRequest, opts ...grpc.CallOption) (*ns.CreateMACCommandQueueItemResponse, error) {
+	n.CreateMACCommandQueueItemChan <- *in
+	return &n.CreateMACCommandQueueItemResponse, nil
 }
 
 // SendProprietaryPayload method.
@@ -539,6 +541,11 @@ func (n NetworkServerClient) GetDeviceQueueItemsForDevEUI(ctx context.Context, i
 func (n NetworkServerClient) GetNextDownlinkFCntForDevEUI(ctx context.Context, in *ns.GetNextDownlinkFCntForDevEUIRequest, opts ...grpc.CallOption) (*ns.GetNextDownlinkFCntForDevEUIResponse, error) {
 	n.GetNextDownlinkFCntForDevEUIChan <- *in
 	return &n.GetNextDownlinkFCntForDevEUIResponse, nil
+}
+
+// GetVersion method.
+func (n NetworkServerClient) GetVersion(ctx context.Context, in *ns.GetVersionRequest, opts ...grpc.CallOption) (*ns.GetVersionResponse, error) {
+	return &n.GetVersionResponse, nil
 }
 
 // StreamFrameLogsForGateway method.

@@ -252,25 +252,6 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   disable_assign_existing_users=false
 
 
-  # Gateway discovery configuration.
-  #
-  # When enabled, each gateway will periodically broadcast a discovery "ping"
-  # which other gateways in the network are able to receive and which is
-  # presented in the web-interface as a map.
-  [application_server.gateway_discovery]
-  # Enable the gateway discovery feature.
-  enabled=false
-
-  # the interval used for each gateway to send a ping
-  interval="24h0m0s"
-
-  # the frequency used for transmitting the gateway ping (in Hz)
-  frequency=868100000
-
-  # the data-rate to use for transmitting the gateway ping
-  dr=5
-
-
 # Join-server configuration.
 #
 # LoRa App Server implements a (subset) of the join-api specified by the

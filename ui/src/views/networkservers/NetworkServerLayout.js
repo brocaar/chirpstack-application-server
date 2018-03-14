@@ -45,7 +45,7 @@ class NetworkServerLayout extends Component {
       <div>
         <ol className="breadcrumb">
           <li><Link to="/network-servers">Network servers</Link></li>
-          <li className="active">{this.state.networkServer.name}</li>
+          <li className="active">{this.state.networkServer.name} ({this.state.networkServer.region} @ {this.state.networkServer.version})</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">

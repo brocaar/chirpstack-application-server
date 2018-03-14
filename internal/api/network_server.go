@@ -12,6 +12,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/loraserver/api/ns"
 )
 
 // NetworkServerAPI exports the NetworkServer related functions.
@@ -69,25 +70,39 @@ func (a *NetworkServerAPI) Get(ctx context.Context, req *pb.GetNetworkServerRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	ns, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.Id)
+	n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.Id)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
+	var region string
+	var version string
+
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	if err == nil {
+		resp, err := nsClient.GetVersion(context.Background(), &ns.GetVersionRequest{})
+		if err == nil {
+			region = resp.Region.String()
+			version = resp.Version
+		}
+	}
+
 	return &pb.GetNetworkServerResponse{
-		Id:                          ns.ID,
-		CreatedAt:                   ns.CreatedAt.Format(time.RFC3339Nano),
-		UpdatedAt:                   ns.UpdatedAt.Format(time.RFC3339Nano),
-		Name:                        ns.Name,
-		Server:                      ns.Server,
-		CaCert:                      ns.CACert,
-		TlsCert:                     ns.TLSCert,
-		RoutingProfileCACert:        ns.RoutingProfileCACert,
-		RoutingProfileTLSCert:       ns.RoutingProfileTLSCert,
-		GatewayDiscoveryEnabled:     ns.GatewayDiscoveryEnabled,
-		GatewayDiscoveryInterval:    uint32(ns.GatewayDiscoveryInterval),
-		GatewayDiscoveryTXFrequency: uint32(ns.GatewayDiscoveryTXFrequency),
-		GatewayDiscoveryDR:          uint32(ns.GatewayDiscoveryDR),
+		Id:                          n.ID,
+		CreatedAt:                   n.CreatedAt.Format(time.RFC3339Nano),
+		UpdatedAt:                   n.UpdatedAt.Format(time.RFC3339Nano),
+		Name:                        n.Name,
+		Server:                      n.Server,
+		CaCert:                      n.CACert,
+		TlsCert:                     n.TLSCert,
+		RoutingProfileCACert:        n.RoutingProfileCACert,
+		RoutingProfileTLSCert:       n.RoutingProfileTLSCert,
+		GatewayDiscoveryEnabled:     n.GatewayDiscoveryEnabled,
+		GatewayDiscoveryInterval:    uint32(n.GatewayDiscoveryInterval),
+		GatewayDiscoveryTXFrequency: uint32(n.GatewayDiscoveryTXFrequency),
+		GatewayDiscoveryDR:          uint32(n.GatewayDiscoveryDR),
+		Region:                      region,
+		Version:                     version,
 	}, nil
 }
 

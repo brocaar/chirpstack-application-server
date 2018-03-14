@@ -296,6 +296,14 @@
           "type": "integer",
           "format": "int64",
           "description": "The data-rate of the gateway discovery 'ping'."
+        },
+        "version": {
+          "type": "string",
+          "description": "The LoRa Server version."
+        },
+        "region": {
+          "type": "string",
+          "description": "The LoRa Server region configured."
         }
       }
     },

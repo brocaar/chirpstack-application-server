@@ -156,7 +156,7 @@ class DeviceProfileForm extends Component {
           <ul className="nav nav-tabs">
             <li role="presentation" className={(this.state.activeTab === "general" ? "active" : "")}><a onClick={this.changeTab} href="#general" aria-controls="general">General</a></li>
             <li role="presentation" className={(this.state.activeTab === "join" ? "active" : "")}><a onClick={this.changeTab} href="#join" aria-controls="join">Join (OTAA / ABP)</a></li>
-          <li role="presentation" className={(this.state.activeTab === "classB" ? "active" : "")}><a onClick={this.changeTab} href="#classB" aria-controls="classB">Class-B</a></li>
+            <li role="presentation" className={(this.state.activeTab === "classB" ? "active" : "")}><a onClick={this.changeTab} href="#classB" aria-controls="classB">Class-B</a></li>
             <li role="presentation" className={(this.state.activeTab === "classC" ? "active" : "")}><a onClick={this.changeTab} href="#classC" aria-controls="classC">Class-C</a></li>
           </ul>
           <hr />
@@ -310,16 +310,6 @@ class DeviceProfileForm extends Component {
                   <p className="help-block">
                     Class-B frequency (in Hz).
                   </p>
-                </div>
-              </div>
-              <div className={(this.state.activeTab === "classC" ? "" : "hidden")}>
-                <div className="form-group">
-                  <label className="control-label" htmlFor="supportsClassC">Supports Class-C</label>
-                  <div className="checkbox">
-                    <label>
-                      <input type="checkbox" name="supportsClassC" id="supportsClassC" checked={this.state.deviceProfile.deviceProfile.supportsClassC} onChange={this.onChange.bind(this, 'deviceProfile.supportsClassC')} /> Supports Class-C
-                    </label>
-                  </div>
                 </div>
               </div>
               <div className={(this.state.activeTab === "classC" ? "" : "hidden")}>

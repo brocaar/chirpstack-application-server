@@ -213,24 +213,6 @@ id="{{ .ApplicationServer.ID }}"
   registration="{{ .ApplicationServer.Branding.Registration }}"
 
 {{ end }}
-  # Gateway discovery configuration.
-  #
-  # When enabled, each gateway will periodically broadcast a discovery "ping"
-  # which other gateways in the network are able to receive and which is
-  # presented in the web-interface as a map.
-  [application_server.gateway_discovery]
-  # Enable the gateway discovery feature.
-  enabled={{ .ApplicationServer.GatewayDiscovery.Enabled }}
-
-  # the interval used for each gateway to send a ping
-  interval="{{ .ApplicationServer.GatewayDiscovery.Interval }}"
-
-  # the frequency used for transmitting the gateway ping (in Hz)
-  frequency={{ .ApplicationServer.GatewayDiscovery.Frequency }}
-
-  # the data-rate to use for transmitting the gateway ping
-  dr={{ .ApplicationServer.GatewayDiscovery.DR }}
-
 
 # Join-server configuration.
 #

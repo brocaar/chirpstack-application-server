@@ -40,14 +40,18 @@ func TestNetworkServerAPI(t *testing.T) {
 
 		Convey("Then Create creates a network-server", func() {
 			resp, err := api.Create(ctx, &pb.CreateNetworkServerRequest{
-				Name:                  "test ns",
-				Server:                "test-ns:1234",
-				CaCert:                "CACERT",
-				TlsCert:               "TLSCERT",
-				TlsKey:                "TLSKEY",
-				RoutingProfileCACert:  "RPCACERT",
-				RoutingProfileTLSCert: "RPTLSCERT",
-				RoutingProfileTLSKey:  "RPTLSKEY",
+				Name:                        "test ns",
+				Server:                      "test-ns:1234",
+				CaCert:                      "CACERT",
+				TlsCert:                     "TLSCERT",
+				TlsKey:                      "TLSKEY",
+				RoutingProfileCACert:        "RPCACERT",
+				RoutingProfileTLSCert:       "RPTLSCERT",
+				RoutingProfileTLSKey:        "RPTLSKEY",
+				GatewayDiscoveryEnabled:     true,
+				GatewayDiscoveryInterval:    5,
+				GatewayDiscoveryTXFrequency: 868100000,
+				GatewayDiscoveryDR:          5,
 			})
 			So(err, ShouldBeNil)
 			So(resp.Id, ShouldBeGreaterThan, 0)
@@ -74,15 +78,19 @@ func TestNetworkServerAPI(t *testing.T) {
 
 			Convey("Then Update updates the network-server", func() {
 				_, err := api.Update(ctx, &pb.UpdateNetworkServerRequest{
-					Id:                    resp.Id,
-					Name:                  "updated-test-ns",
-					Server:                "updated-test-ns:1234",
-					CaCert:                "CACERT2",
-					TlsCert:               "TLSCERT2",
-					TlsKey:                "TLSKEY2",
-					RoutingProfileCACert:  "RPCACERT2",
-					RoutingProfileTLSCert: "RPTLSCERT2",
-					RoutingProfileTLSKey:  "RPTLSKEY2",
+					Id:                          resp.Id,
+					Name:                        "updated-test-ns",
+					Server:                      "updated-test-ns:1234",
+					CaCert:                      "CACERT2",
+					TlsCert:                     "TLSCERT2",
+					TlsKey:                      "TLSKEY2",
+					RoutingProfileCACert:        "RPCACERT2",
+					RoutingProfileTLSCert:       "RPTLSCERT2",
+					RoutingProfileTLSKey:        "RPTLSKEY2",
+					GatewayDiscoveryEnabled:     false,
+					GatewayDiscoveryInterval:    1,
+					GatewayDiscoveryTXFrequency: 868300000,
+					GatewayDiscoveryDR:          4,
 				})
 				So(err, ShouldBeNil)
 
@@ -93,7 +101,7 @@ func TestNetworkServerAPI(t *testing.T) {
 				So(getResp.Name, ShouldEqual, "updated-test-ns")
 				So(getResp.Server, ShouldEqual, "updated-test-ns:1234")
 
-				Convey("Then the CA and TLS fields are updated", func() {
+				Convey("Then the network-server is updated", func() {
 					n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, resp.Id)
 					So(err, ShouldBeNil)
 					So(n.CACert, ShouldEqual, "CACERT2")
@@ -102,6 +110,10 @@ func TestNetworkServerAPI(t *testing.T) {
 					So(n.RoutingProfileCACert, ShouldEqual, "RPCACERT2")
 					So(n.RoutingProfileTLSCert, ShouldEqual, "RPTLSCERT2")
 					So(n.RoutingProfileTLSKey, ShouldEqual, "RPTLSKEY2")
+					So(n.GatewayDiscoveryEnabled, ShouldBeFalse)
+					So(n.GatewayDiscoveryInterval, ShouldEqual, 1)
+					So(n.GatewayDiscoveryTXFrequency, ShouldEqual, 868300000)
+					So(n.GatewayDiscoveryDR, ShouldEqual, 4)
 				})
 			})
 

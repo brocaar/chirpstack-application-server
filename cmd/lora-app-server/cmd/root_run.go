@@ -212,14 +212,6 @@ func startApplicationServerAPI() error {
 }
 
 func startGatewayPing() error {
-	if !config.C.ApplicationServer.GatewayDiscovery.Enabled {
-		return nil
-	}
-
-	if config.C.ApplicationServer.GatewayDiscovery.Frequency == 0 {
-		log.Fatalf("gateway discovery frequency must be set")
-	}
-
 	go gwping.SendPingLoop()
 
 	return nil

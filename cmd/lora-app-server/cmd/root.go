@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"io/ioutil"
-	"time"
 
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/spf13/viper"
@@ -52,10 +51,6 @@ func init() {
 	rootCmd.PersistentFlags().String("jwt-secret", "", "")
 	rootCmd.PersistentFlags().Int("pw-hash-iterations", 100000, "")
 	rootCmd.PersistentFlags().Bool("disable-assign-existing-users", false, "")
-	rootCmd.PersistentFlags().Bool("gw-ping", false, "")
-	rootCmd.PersistentFlags().Duration("gw-ping-interval", time.Hour*24, "")
-	rootCmd.PersistentFlags().Int("gw-ping-frequency", 868100000, "")
-	rootCmd.PersistentFlags().Int("gw-ping-dr", 5, "")
 	rootCmd.PersistentFlags().String("branding-header", "", "")
 	rootCmd.PersistentFlags().String("branding-footer", "", "")
 	rootCmd.PersistentFlags().String("branding-registration", "", "")
@@ -69,7 +64,7 @@ func init() {
 		"postgres-dsn", "db-automigrate", "redis-url", "mqtt-server", "mqtt-username", "mqtt-password",
 		"mqtt-ca-cert", "mqtt-tls-cert", "mqtt-tls-key", "as-public-server", "as-public-id", "bind", "ca-cert", "tls-cert", "tls-key",
 		"http-bind", "http-tls-cert", "http-tls-key", "jwt-secret", "pw-hash-iterations", "disable-assign-existing-users",
-		"gw-ping", "gw-ping-interval", "gw-ping-frequency", "gw-ping-dr", "branding-header", "branding-footer", "branding-registration",
+		"branding-header", "branding-footer", "branding-registration",
 		"js-bind", "js-ca-cert", "js-tls-cert", "js-tls-key", "ns-server",
 	}
 	for _, key := range hidden {
@@ -103,10 +98,6 @@ func init() {
 	viper.BindEnv("application_server.branding.header", "BRANDING_HEADER")
 	viper.BindEnv("application_server.branding.footer", "BRANDING_FOOTER")
 	viper.BindEnv("application_server.branding.registration", "BRANDING_REGISTRATION")
-	viper.BindEnv("application_server.gateway_discovery.enabled", "GW_PING")
-	viper.BindEnv("application_server.gateway_discovery.interval", "GW_PING_INTERVAL")
-	viper.BindEnv("application_server.gateway_discovery.frequency", "GW_PING_FREQUENCY")
-	viper.BindEnv("application_server.gateway_discovery.dr", "GW_PING_DR")
 	viper.BindEnv("join_server.bind", "JS_BIND")
 	viper.BindEnv("join_server.ca_cert", "JS_CA_CERT")
 	viper.BindEnv("join_server.tls_cert", "JS_TLS_CERT")
@@ -140,10 +131,6 @@ func init() {
 	viper.BindPFlag("application_server.branding.header", rootCmd.PersistentFlags().Lookup("branding-header"))
 	viper.BindPFlag("application_server.branding.footer", rootCmd.PersistentFlags().Lookup("branding-footer"))
 	viper.BindPFlag("application_server.branding.registration", rootCmd.PersistentFlags().Lookup("branding-registration"))
-	viper.BindPFlag("application_server.gateway_discovery.enabled", rootCmd.PersistentFlags().Lookup("gw-ping"))
-	viper.BindPFlag("application_server.gateway_discovery.interval", rootCmd.PersistentFlags().Lookup("gw-ping-interval"))
-	viper.BindPFlag("application_server.gateway_discovery.frequency", rootCmd.PersistentFlags().Lookup("gw-ping-frequency"))
-	viper.BindPFlag("application_server.gateway_discovery.dr", rootCmd.PersistentFlags().Lookup("gw-ping-dr"))
 	viper.BindPFlag("join_server.bind", rootCmd.PersistentFlags().Lookup("js-bind"))
 	viper.BindPFlag("join_server.ca_cert", rootCmd.PersistentFlags().Lookup("js-ca-cert"))
 	viper.BindPFlag("join_server.tls_cert", rootCmd.PersistentFlags().Lookup("js-tls-cert"))

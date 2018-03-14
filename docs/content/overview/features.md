@@ -64,8 +64,7 @@ each gateway, LoRa App Server is able to discover how well these are received by
 other gateways in the same network. The collected data is displayed as a map
 in the web-interface.
 
-To enable this feature, please refer to the gateway discovery section in the
-LoRa App Server [configuration]({{<ref "install/config.md">}}).
+This feature can be enabled and configured per [network-server]({{<ref "use/network-servers.md">}}).
 
 ## Live frame-logging
 

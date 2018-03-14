@@ -201,6 +201,26 @@
         "routingProfileTLSKey": {
           "type": "string",
           "title": "routing-profile tls key (used by the network-server to connect\nback to the application-server)"
+        },
+        "gatewayDiscoveryEnabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "The gateway discovery feature is enabled for gateways provisioned\non this network-server."
+        },
+        "gatewayDiscoveryInterval": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The number of times per day the gateway discovery 'ping' must be\nbroadcasted per gateway."
+        },
+        "gatewayDiscoveryTXFrequency": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The frequency (Hz) of the gateway discovery 'ping'."
+        },
+        "gatewayDiscoveryDR": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The data-rate of the gateway discovery 'ping'."
         }
       }
     },
@@ -256,6 +276,26 @@
         "routingProfileTLSCert": {
           "type": "string",
           "title": "routing-profile tls certificate (used by the network-server to connect\nback to the application-server)"
+        },
+        "gatewayDiscoveryEnabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "The gateway discovery feature is enabled for gateways provisioned\non this network-server."
+        },
+        "gatewayDiscoveryInterval": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The number of times per day the gateway discovery 'ping' must be\nbroadcasted per gateway."
+        },
+        "gatewayDiscoveryTXFrequency": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The frequency (Hz) of the gateway discovery 'ping'."
+        },
+        "gatewayDiscoveryDR": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The data-rate of the gateway discovery 'ping'."
         }
       }
     },
@@ -315,6 +355,26 @@
         "routingProfileTLSKey": {
           "type": "string",
           "title": "routing-profile tls key (used by the network-server to connect\nback to the application-server)"
+        },
+        "gatewayDiscoveryEnabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "The gateway discovery feature is enabled for gateways provisioned\non this network-server."
+        },
+        "gatewayDiscoveryInterval": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The interval in which the gateway discovery 'pings' are broadcasted.\n(requests / day)."
+        },
+        "gatewayDiscoveryTXFrequency": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The frequency (Hz) of the gateway discovery 'ping'."
+        },
+        "gatewayDiscoveryDR": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The data-rate of the gateway discovery 'ping'."
         }
       }
     },

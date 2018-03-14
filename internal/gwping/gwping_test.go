@@ -22,8 +22,6 @@ func TestGatewayPing(t *testing.T) {
 	}
 	config.C.PostgreSQL.DB = db
 	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL)
-	config.C.ApplicationServer.GatewayDiscovery.DR = 5
-	config.C.ApplicationServer.GatewayDiscovery.Frequency = 868100000
 
 	Convey("Given a clean database and a gateway", t, func() {
 		nsClient := test.NewNetworkServerClient()
@@ -37,8 +35,12 @@ func TestGatewayPing(t *testing.T) {
 		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		n := storage.NetworkServer{
-			Name:   "test-ns",
-			Server: "test-ns:1234",
+			Name:                        "test-ns",
+			Server:                      "test-ns:1234",
+			GatewayDiscoveryEnabled:     true,
+			GatewayDiscoveryDR:          5,
+			GatewayDiscoveryTXFrequency: 868100000,
+			GatewayDiscoveryInterval:    1,
 		}
 		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
@@ -51,6 +53,22 @@ func TestGatewayPing(t *testing.T) {
 			NetworkServerID: n.ID,
 		}
 		So(storage.CreateGateway(config.C.PostgreSQL.DB, &gw), ShouldBeNil)
+
+		Convey("When gateway discovery is disabled on the network-server", func() {
+			n.GatewayDiscoveryEnabled = false
+			So(storage.UpdateNetworkServer(db, &n), ShouldBeNil)
+
+			Convey("When calling sendGatewayPing", func() {
+				So(sendGatewayPing(), ShouldBeNil)
+			})
+
+			Convey("Then no ping was sent", func() {
+				gwGet, err := storage.GetGateway(db, gw.MAC, false)
+				So(err, ShouldBeNil)
+				So(gwGet.LastPingID, ShouldBeNil)
+				So(gwGet.LastPingSentAt, ShouldBeNil)
+			})
+		})
 
 		Convey("When calling sendGatewayPing", func() {
 			So(sendGatewayPing(), ShouldBeNil)
@@ -65,15 +83,15 @@ func TestGatewayPing(t *testing.T) {
 					gwPing, err := storage.GetGatewayPing(config.C.PostgreSQL.DB, *gwGet.LastPingID)
 					So(err, ShouldBeNil)
 					So(gwPing.GatewayMAC, ShouldEqual, gwGet.MAC)
-					So(gwPing.DR, ShouldEqual, config.C.ApplicationServer.GatewayDiscovery.DR)
-					So(gwPing.Frequency, ShouldEqual, config.C.ApplicationServer.GatewayDiscovery.Frequency)
+					So(gwPing.DR, ShouldEqual, n.GatewayDiscoveryDR)
+					So(gwPing.Frequency, ShouldEqual, n.GatewayDiscoveryTXFrequency)
 				})
 
 				Convey("Then the expected ping has been sent to the network-server", func() {
 					So(nsClient.SendProprietaryPayloadChan, ShouldHaveLength, 1)
 					req := <-nsClient.SendProprietaryPayloadChan
-					So(req.Dr, ShouldEqual, uint32(config.C.ApplicationServer.GatewayDiscovery.DR))
-					So(req.Frequency, ShouldEqual, uint32(config.C.ApplicationServer.GatewayDiscovery.Frequency))
+					So(req.Dr, ShouldEqual, uint32(n.GatewayDiscoveryDR))
+					So(req.Frequency, ShouldEqual, uint32(n.GatewayDiscoveryTXFrequency))
 					So(req.GatewayMACs, ShouldResemble, [][]byte{{1, 2, 3, 4, 5, 6, 7, 8}})
 					So(req.IPol, ShouldBeFalse)
 

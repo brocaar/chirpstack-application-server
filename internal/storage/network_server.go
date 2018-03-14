@@ -16,17 +16,21 @@ import (
 
 // NetworkServer defines the information to connect to a network-server.
 type NetworkServer struct {
-	ID                    int64     `db:"id"`
-	CreatedAt             time.Time `db:"created_at"`
-	UpdatedAt             time.Time `db:"updated_at"`
-	Name                  string    `db:"name"`
-	Server                string    `db:"server"`
-	CACert                string    `db:"ca_cert"`
-	TLSCert               string    `db:"tls_cert"`
-	TLSKey                string    `db:"tls_key"`
-	RoutingProfileCACert  string    `db:"routing_profile_ca_cert"`
-	RoutingProfileTLSCert string    `db:"routing_profile_tls_cert"`
-	RoutingProfileTLSKey  string    `db:"routing_profile_tls_key"`
+	ID                          int64     `db:"id"`
+	CreatedAt                   time.Time `db:"created_at"`
+	UpdatedAt                   time.Time `db:"updated_at"`
+	Name                        string    `db:"name"`
+	Server                      string    `db:"server"`
+	CACert                      string    `db:"ca_cert"`
+	TLSCert                     string    `db:"tls_cert"`
+	TLSKey                      string    `db:"tls_key"`
+	RoutingProfileCACert        string    `db:"routing_profile_ca_cert"`
+	RoutingProfileTLSCert       string    `db:"routing_profile_tls_cert"`
+	RoutingProfileTLSKey        string    `db:"routing_profile_tls_key"`
+	GatewayDiscoveryEnabled     bool      `db:"gateway_discovery_enabled"`
+	GatewayDiscoveryInterval    int       `db:"gateway_discovery_interval"`
+	GatewayDiscoveryTXFrequency int       `db:"gateway_discovery_tx_frequency"`
+	GatewayDiscoveryDR          int       `db:"gateway_discovery_dr"`
 }
 
 // Validate validates the network-server data.
@@ -55,8 +59,12 @@ func CreateNetworkServer(db sqlx.Queryer, n *NetworkServer) error {
 			tls_key,
 			routing_profile_ca_cert,
 			routing_profile_tls_cert,
-			routing_profile_tls_key
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			routing_profile_tls_key,
+			gateway_discovery_enabled,
+			gateway_discovery_interval,
+			gateway_discovery_tx_frequency,
+			gateway_discovery_dr
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 		returning id`,
 		n.CreatedAt,
 		n.UpdatedAt,
@@ -68,6 +76,10 @@ func CreateNetworkServer(db sqlx.Queryer, n *NetworkServer) error {
 		n.RoutingProfileCACert,
 		n.RoutingProfileTLSCert,
 		n.RoutingProfileTLSKey,
+		n.GatewayDiscoveryEnabled,
+		n.GatewayDiscoveryInterval,
+		n.GatewayDiscoveryTXFrequency,
+		n.GatewayDiscoveryDR,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -130,7 +142,11 @@ func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
 			tls_key = $7,
 			routing_profile_ca_cert = $8,
 			routing_profile_tls_cert = $9,
-			routing_profile_tls_key = $10
+			routing_profile_tls_key = $10,
+			gateway_discovery_enabled = $11,
+			gateway_discovery_interval = $12,
+			gateway_discovery_tx_frequency = $13,
+			gateway_discovery_dr = $14
 		where id = $1`,
 		n.ID,
 		n.UpdatedAt,
@@ -142,6 +158,10 @@ func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
 		n.RoutingProfileCACert,
 		n.RoutingProfileTLSCert,
 		n.RoutingProfileTLSKey,
+		n.GatewayDiscoveryEnabled,
+		n.GatewayDiscoveryInterval,
+		n.GatewayDiscoveryTXFrequency,
+		n.GatewayDiscoveryDR,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

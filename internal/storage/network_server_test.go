@@ -32,14 +32,18 @@ func TestNetworkServer(t *testing.T) {
 
 		Convey("Then CreateNetworkServer creates a network-server", func() {
 			n := NetworkServer{
-				Name:                  "test-ns",
-				Server:                "test-ns:123",
-				CACert:                "CACERT",
-				TLSCert:               "TLSCERT",
-				TLSKey:                "TLSKey",
-				RoutingProfileCACert:  "RPCACERT",
-				RoutingProfileTLSCert: "RPTLSCERT",
-				RoutingProfileTLSKey:  "RPTLSKEY",
+				Name:                        "test-ns",
+				Server:                      "test-ns:123",
+				CACert:                      "CACERT",
+				TLSCert:                     "TLSCERT",
+				TLSKey:                      "TLSKey",
+				RoutingProfileCACert:        "RPCACERT",
+				RoutingProfileTLSCert:       "RPTLSCERT",
+				RoutingProfileTLSKey:        "RPTLSKEY",
+				GatewayDiscoveryEnabled:     true,
+				GatewayDiscoveryInterval:    5,
+				GatewayDiscoveryTXFrequency: 868100000,
+				GatewayDiscoveryDR:          5,
 			}
 			So(CreateNetworkServer(db, &n), ShouldBeNil)
 			n.CreatedAt = n.CreatedAt.UTC().Truncate(time.Millisecond)
@@ -120,6 +124,10 @@ func TestNetworkServer(t *testing.T) {
 				n.RoutingProfileCACert = "RPCACERT2"
 				n.RoutingProfileTLSCert = "RPTLSCERT2"
 				n.RoutingProfileTLSKey = "RPTLSKEY2"
+				n.GatewayDiscoveryEnabled = false
+				n.GatewayDiscoveryInterval = 1
+				n.GatewayDiscoveryTXFrequency = 868300000
+				n.GatewayDiscoveryDR = 4
 				So(UpdateNetworkServer(db, &n), ShouldBeNil)
 				So(nsClient.UpdateRoutingProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.UpdateRoutingProfileChan, ShouldResemble, ns.UpdateRoutingProfileRequest{

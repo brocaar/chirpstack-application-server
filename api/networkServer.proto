@@ -72,6 +72,20 @@ message CreateNetworkServerRequest {
     // routing-profile tls key (used by the network-server to connect
     // back to the application-server)
     string routingProfileTLSKey = 8;
+
+    // The gateway discovery feature is enabled for gateways provisioned
+    // on this network-server.
+    bool gatewayDiscoveryEnabled = 9;
+
+    // The number of times per day the gateway discovery 'ping' must be
+    // broadcasted per gateway.
+    uint32 gatewayDiscoveryInterval = 10;
+
+    // The frequency (Hz) of the gateway discovery 'ping'.
+    uint32 gatewayDiscoveryTXFrequency = 11;
+
+    // The data-rate of the gateway discovery 'ping'.
+    uint32 gatewayDiscoveryDR = 12;
 }
 
 message CreateNetworkServerResponse {
@@ -113,6 +127,20 @@ message GetNetworkServerResponse {
     // routing-profile tls certificate (used by the network-server to connect
     // back to the application-server)
     string routingProfileTLSCert = 9;
+
+    // The gateway discovery feature is enabled for gateways provisioned
+    // on this network-server.
+    bool gatewayDiscoveryEnabled = 10;
+
+    // The number of times per day the gateway discovery 'ping' must be
+    // broadcasted per gateway.
+    uint32 gatewayDiscoveryInterval = 11;
+
+    // The frequency (Hz) of the gateway discovery 'ping'.
+    uint32 gatewayDiscoveryTXFrequency = 12;
+
+    // The data-rate of the gateway discovery 'ping'.
+    uint32 gatewayDiscoveryDR = 13;
 }
 
 message UpdateNetworkServerRequest {
@@ -145,6 +173,20 @@ message UpdateNetworkServerRequest {
     // routing-profile tls key (used by the network-server to connect
     // back to the application-server)
     string routingProfileTLSKey = 9;
+
+    // The gateway discovery feature is enabled for gateways provisioned
+    // on this network-server.
+    bool gatewayDiscoveryEnabled = 10;
+
+    // The interval in which the gateway discovery 'pings' are broadcasted.
+    // (requests / day).
+    uint32 gatewayDiscoveryInterval = 11;
+
+    // The frequency (Hz) of the gateway discovery 'ping'.
+    uint32 gatewayDiscoveryTXFrequency = 12;
+
+    // The data-rate of the gateway discovery 'ping'.
+    uint32 gatewayDiscoveryDR = 13;
 }
 
 message UpdateNetworkServerResponse {}

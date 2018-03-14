@@ -1,8 +1,6 @@
 package config
 
 import (
-	"time"
-
 	"github.com/garyburd/redigo/redis"
 
 	"github.com/brocaar/lora-app-server/internal/common"
@@ -58,13 +56,6 @@ type Config struct {
 			Footer       string
 			Registration string
 		}
-
-		GatewayDiscovery struct {
-			Enabled   bool
-			Interval  time.Duration
-			Frequency int
-			DR        int `mapstructure:"dr"`
-		} `mapstructure:"gateway_discovery"`
 	} `mapstructure:"application_server"`
 
 	JoinServer struct {

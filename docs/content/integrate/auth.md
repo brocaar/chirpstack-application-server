@@ -6,7 +6,7 @@ menu:
         weight: 4
 ---
 
-## Authentication / authorization
+# Authentication / authorization
 
 Both the gRPC and the JSON REST interface are protected by an authentication
 and authorization meganism. For this [JSON web-tokens](https://jwt.io) are
@@ -32,16 +32,16 @@ Example claim:
 }
 ```
 
-### Setting the authentication token
+## Setting the authentication token
 
-#### gRPC
+### gRPC
 
 When using [gRPC](http://grpc.io/), the JWT token needs to be stored in the
 `authorization` key of the request metadata. For example in Go, this can be
 done by the [grpc.WithPerRPCCredentials](https://godoc.org/google.golang.org/grpc#WithPerRPCCredentials)
 method.
 
-#### REST API
+### REST API
 
 For requests to the RESTful JSON interface, you need to set the JWT token
 using the `Grpc-Metadata-Authorization` header field. The token needs to

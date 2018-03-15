@@ -6,7 +6,7 @@ menu:
         weight: 10
 ---
 
-## Frame logging
+# Frame logging
 
 LoRa App Server makes it possible to log frames sent and received by a gateway
 or device in realtime. To use this feature, you first need to go to the gateway
@@ -21,19 +21,19 @@ As soon as you open this page, LoRa App Server will subscribe to the frames
 sent / received by the selected gateway or device. Once a frame is sent or
 received, it will be displayed without the need to refresh the page.
 
-#### Gateway frame logs
+### Gateway frame logs
 
 The frame logs view on the gateway detail page will display all frames sent
 and received by the selected gateway.
 
-#### Device frame logs
+### Device frame logs
 
 The frame logs view on the device detail page will display only the frames
 that could be related to a device. This means that in case you want to debug
 MIC issues, this view might not show this information and it is better to use
 the gateway view.
 
-### Exposed information
+## Exposed information
 
 Note that all the displayed data can be expanded by clicking on each key.
 E.g. **> phyPayload: {} 3 keys** means you can expand this **phyPayload**
@@ -44,7 +44,7 @@ item as it has three sub-items. This makes it possible to inspect
 * RX related-meta-data (RSSI, SNR, timestamps, ...)
 * LoRaWAN PHYPayload frames and mac-commands (unless encrypted)
 
-### Storing frames
+## Storing frames
 
 Frames displayed are not stored in a database. As soon as you refresh the page,
 all data is gone.
@@ -52,7 +52,7 @@ If you need to store these frames, you can use the **download** button which
 will generate a JSON formatted file containing all the frames that are
 logged since opening the **Live frame logs** tab.
 
-#### Example JSON output
+### Example JSON output
 
 ```json
 [

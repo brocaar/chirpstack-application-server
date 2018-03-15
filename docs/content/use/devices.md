@@ -6,14 +6,14 @@ menu:
         weight: 8
 ---
 
-## Device management
+# Device management
 
 A device is the end-device connecting to, and communicating over the LoRaWAN network.
 LoRa App Server supports both OTAA (over the air activation) and ABP
 (activation by personalization) type devices (configured by the selected
 [device-profile]({{<relref "device-profiles.md">}})).
 
-### Create / update
+## Create / update
 
 When creating or updating a device, you need to select the
 [device-profile]({{<relref "device-profiles.md">}}) matching the device
@@ -25,15 +25,15 @@ are provisioned on the same [network-server]({{<relref "network-servers.md">}})
 as the [service-profile]({{<relref "service-profiles.md">}}) which is assigned
 to the [application]({{<relref "applications.md">}}) above the device.
 
-### Activation
+## Activation
 
-#### OTAA devices
+### OTAA devices
 
 After creating a device, you can manage the application-key under
 the *Device keys (OTAA)* tab. Under the *Device activation* you will see the
 current device activation (if activated).
 
-#### ABP devices
+### ABP devices
 
 After creating a device, you can ABP activate this device under the
 *Activate device (ABP)* tab. You can either enter the *device address*,
@@ -42,7 +42,7 @@ After creating a device, you can ABP activate this device under the
 After the ABP device has been activated, the current activation can be seen
 under the *Device activation* tab.
 
-### Device provisioning
+## Device provisioning
 
 After setting up a device in LoRa App Server, you need to
 provision your device with the chosen AppEUI, DevEUI and AppKey.
@@ -56,7 +56,7 @@ AppEUI: 0807060504030201
 AppKey: 01020304050607080910111213141516
 ```
 
-#### RN2483 / RN2903
+### RN2483 / RN2903
 
 Through a serial terminal, use the following commands (terminated by `CR + LF`):
 
@@ -78,13 +78,13 @@ application EUI (`mac set appeui`), or the device EUI (`mac set deveui`) are
 changed in order to persist these changes. 
 
 
-#### iM880A-L / iM880B-L
+### iM880A-L / iM880B-L
 
 Make sure your device is running a recent firmware! These steps were tested
 with a device running v1.14. Use [WiMOD LoRaWAN EndDevice Studio](http://www.wireless-solutions.de/products/radiomodules/im880b-l)
 for the following actions:
 
-##### To set the DevEUI
+#### To set the DevEUI
 
 1. Go to **Extras** -> **Factory Settings**
 2. Click **Set Customer Mode**
@@ -94,7 +94,7 @@ for the following actions:
 4. Click **Set Device EUI**
 5. Click **Set Application Mode**
 
-##### To set the AppEUI and AppKey
+#### To set the AppEUI and AppKey
 
 1. Go back to **LoRaWAN Device**
 2. Enter the **Application EUI** as ``0102030405060708``. **Note**: this field
@@ -106,7 +106,7 @@ for the following actions:
 4. Click **Set Join Parameter**
 5. Click **Join Network**
 
-#### MultiConnect® mDot™
+### MultiConnect® mDot™
 
 Through a serial terminal, use the following commands:
 
@@ -129,7 +129,7 @@ following command to obtain it:
 AT+DI?
 ```
 
-#### Your device not here?
+### Your device not here?
 
 Please help making this guide complete! Fork the [github.com/brocaar/lora-app-server](https://github.com/brocaar/lora-app-server)
 repository, update this page with the actions needed to setup your device

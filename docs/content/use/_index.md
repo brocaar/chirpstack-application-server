@@ -2,7 +2,7 @@
 title: Use
 ---
 
-## Using LoRa App Server
+# Using LoRa App Server
 
 * [Login]({{< relref "login.md" >}})
 * [Users]({{< relref "users.md" >}})

@@ -6,7 +6,7 @@ menu:
         weight: 1
 ---
 
-## LoRa App Server
+# LoRa App Server
 
 LoRa App Server is an open-source LoRaWAN application-server, part of the
 [LoRa Server](https://docs.loraserver.io/) project. It is responsible
@@ -24,7 +24,7 @@ and events to HTTP endpoints.
 
 See also the complete list of [LoRa App Server features]({{<relref "features.md">}}).
 
-### Screenshots
+## Screenshots
 
 ![applications](/lora-app-server/img/web_applications.png)
 ![nodes](/lora-app-server/img/web_nodes.png)

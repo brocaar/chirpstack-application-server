@@ -6,7 +6,7 @@ menu:
         weight: 5
 ---
 
-## Service-profile management
+# Service-profile management
 
 The service-profile can be seen as the "contract" between an user and the
 network. It describes the features that are enabled for the user(s) of the
@@ -16,7 +16,7 @@ When creating a service-profile, LoRa App Server will create the actual
 profile on the selected network-server, and will keep a reference record
 so it knows to which organization it belongs.
 
-### Fields / options
+## Fields / options
 
 The following fields are described by the
 [LoRaWAN Backend Interfaces specification](https://www.lora-alliance.org/lorawan-for-developers).

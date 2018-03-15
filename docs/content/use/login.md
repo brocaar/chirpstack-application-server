@@ -6,7 +6,7 @@ menu:
         weight: 1
 ---
 
-## Web-interface login
+# Web-interface login
 
 By default, the web-interface is accessible on port `8080` using https.
 When running LoRa App Server locally, this means you should navigate to

@@ -6,7 +6,7 @@ menu:
         weight: 3
 ---
 
-## LoRa App Server source
+# LoRa App Server source
 
 Source-code can be found at [https://github.com/brocaar/lora-app-server](https://github.com/brocaar/lora-app-server).
 
@@ -23,29 +23,29 @@ the root of this project:
 docker-compose run --rm appserver bash
 ```
 
-#### Without Docker
+### Without Docker
 
 It is possible to build LoRa App Server without Docker. However this requires
 to install a couple of dependencies (depending your platform, there might be
 pre-compiled packages available):
 
-##### Go
+#### Go
 
 Make sure you have [Go](https://golang.org/) installed (1.8+) and that the LoRa
 App Server repository has been cloned to 
 `$GOPATH/src/github.com/brocaar/lora-app-server`.
 
-##### Node.js
+#### Node.js
 
 Make sure you have a recent version of Node.js installed, as Node.js is used
 to compile the front-end code.
 
-##### Go protocol buffer support
+#### Go protocol buffer support
 
 Install the C++ implementation of protocol buffers and Go support by following
 the GO support for Protocol Buffers [installation instructions](https://github.com/golang/protobuf).
 
-#### Example commands
+### Example commands
 
 A few example commands that you can run:
 

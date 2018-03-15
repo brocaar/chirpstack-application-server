@@ -6,9 +6,9 @@ menu:
         weight: 4
 ---
 
-## Changelog
+# Changelog
 
-### 0.18.1
+## 0.18.1
 
 **Features:**
 
@@ -19,7 +19,7 @@ menu:
 
 * Fix factory preset frequency field in device-profile form.
 
-### 0.18.0
+## 0.18.0
 
 **Features:**
 
@@ -39,14 +39,14 @@ When upgrading using the `.deb` package / using `apt` or `apt-get`, your
 configuration will be automatically migrated for you. In any other case,
 please see [configuration](https://docs.loraserver.io/lora-app-server/install/config/).
 
-### 0.17.1
+## 0.17.1
 
 **Bugfixes:**
 
 * Fix missing `/` prefix in two UI links causing a redirect to the login page.
 * Fix typo in TLS certificate loading causing error *failed to find certificate PEM data in certificate input* (thanks [@Francisco_Rivas](https://forum.loraserver.io/u/Francisco_Rivas/summary))
 
-### 0.17.0
+## 0.17.0
 
 **Features:**
 
@@ -83,7 +83,7 @@ please see [configuration](https://docs.loraserver.io/lora-app-server/install/co
 * `--gw-ping-dr 0` is now handled correctly ([#204](https://github.com/brocaar/lora-app-server/pull/204))
 
 
-### 0.16.1
+## 0.16.1
 
 
 **Features:**
@@ -117,7 +117,7 @@ See for more information:
   and IDs on the same network-server as the service-profile associated with the
   given application.
 
-### 0.16.0
+## 0.16.0
 
 **Features:**
 
@@ -133,7 +133,7 @@ See for more information:
 See [Applications](https://docs.loraserver.io/lora-app-server/use/applications/)
 documentation for instructions how to configure this option.
 
-### 0.15.0
+## 0.15.0
 
 **Changes:**
 
@@ -165,19 +165,19 @@ documentation for instructions how to configure this option.
 
 * Use RFC1945 Authorization header format (thanks [@fifthaxe](https://github.com/fifthaxe))
 
-#### Upgrading
+### Upgrading
 
 This release depends on LoRa Server 0.23.0. Upgrade LoRa Server first.
 After upgrading LoRa App Server, it will migrate the remaining
 device-queue items to the LoRa Server database.
 
-### 0.14.2
+## 0.14.2
 
 **Bugfixes:**
 
 * Fix unclosed response body (HTTP integrations).
 
-### 0.14.1
+## 0.14.1
 
 **Bugfixes:**
 
@@ -188,7 +188,7 @@ device-queue items to the LoRa Server database.
   (thanks [@iegomez](https://github.com/iegomez)).
 * Rename `DownlinkQueue...` gRPC methods and structs into `DeviceQueue...`.
 
-### 0.14.0
+## 0.14.0
 
 **Note:** this release brings many changes! Make sure (as always) to make a
 backup of your PostgreSQL and Redis database before upgrading.
@@ -233,7 +233,7 @@ backup of your PostgreSQL and Redis database before upgrading.
 
 **Note:** these changes also apply to the related gRPC API endpoints.
 
-#### How to upgrade
+### How to upgrade
 
 **Note:** this release brings many changes! Make sure (as always) to make a
 backup of your PostgreSQL and Redis database before upgrading.
@@ -255,21 +255,21 @@ LoRa App Server will perform the data-migration when the `--db-automigrate` /
 * It will create device-profiles (either per device or per application when
   the "use application settings" is checked)
 
-### 0.13.2
+## 0.13.2
 
 **Features:**
 
 * The list of nodes can now be filtered on DevEUI or name prefix
   (thanks [@iegomez](https://github.com/iegomez)).
 
-### 0.13.1
+## 0.13.1
 
 **Improvements:**
 
 * Rename Gateway ping to Gateway discovery.
 * Rename Frame logs to Raw frame logs and add note that these frames are encrypted.
 
-### 0.13.0
+## 0.13.0
 
 **Features:**
 
@@ -285,7 +285,7 @@ depends on the 'Proprietary' LoRaWAN message-type.
 
 * Content-Type header was missing for HTTP integrations.
 
-### 0.12.0
+## 0.12.0
 
 **Features:**
 
@@ -303,7 +303,7 @@ depends on the 'Proprietary' LoRaWAN message-type.
 * Fixed duplicated resultset-items when requesting all applications within
   an organization.
 
-### 0.11.0
+## 0.11.0
 
 **Features:**
 
@@ -314,7 +314,7 @@ depends on the 'Proprietary' LoRaWAN message-type.
 **Note:** This feature is dependent on [LoRa Server](https://docs.loraserver.io/loraserver/)
 version 0.20.0+.
 
-### 0.10.1
+## 0.10.1
 
 **Improvements:**
 
@@ -328,7 +328,7 @@ version 0.20.0+.
   re-connect the protocol version would be downgraded
   ([paho.mqtt.golang#116](https://github.com/eclipse/paho.mqtt.golang/issues/116)).
 
-### 0.10.0
+## 0.10.0
 
 **Features & changes:**
 
@@ -337,14 +337,14 @@ version 0.20.0+.
   [LoRa Server](https://docs.loraserver.io/loraserver/) 0.18.0.
 * Updated organization, application and node navigation in UI.
 
-### 0.9.1
+## 0.9.1
 
 **Bugfixes:**
 
 * Fix ABP sesstings not editable by organization admin
   ([#85](https://github.com/brocaar/lora-app-server/issues/85))
 
-### 0.9.0
+## 0.9.0
 
 **Features & Changes:**
 
@@ -360,7 +360,7 @@ version 0.20.0+.
 **Note:** when upgrading to this version with `--db-automigrate` /
 `DB_AUTOMIGRATE` set, channel-list data will be removed.
 
-### 0.8.0
+## 0.8.0
 
 **Features & changes:**
 
@@ -381,20 +381,20 @@ version 0.20.0+.
 Many thanks again to [@jcampanell-cablelabs](https://github.com/jcampanell-cablelabs)
 for collaborating on this feature.
 
-### 0.7.2
+## 0.7.2
 
 **Bugfixes:**
 
 * Fix race-condition between fetching the gateway details and getting the
   current location if the gateway location is not yet set (UI).
 
-### 0.7.1
+## 0.7.1
 
 **Features & changes:**
 
 * Add 'set to current location' (create / update gateway in UI)
 
-### 0.7.0
+## 0.7.0
 
 **Features & changes:**
 
@@ -408,7 +408,7 @@ for collaborating on this feature.
 Many thanks again to [@jcampanell-cablelabs](https://github.com/jcampanell-cablelabs)
 for collaborating on this feature.
 
-### 0.6.0
+## 0.6.0
 
 **This release contains changes that are not backwards compatible!**
 
@@ -429,7 +429,7 @@ for collaborating on this feature.
 Many thanks to [@jcampanell-cablelabs](https://github.com/jcampanell-cablelabs)
 for collaborating on this feature.
 
-### 0.5.0
+## 0.5.0
 
 **Features:**
 
@@ -438,7 +438,7 @@ for collaborating on this feature.
   be overridden per node.
 * Applications and nodes are now paginated per 20 rows.
 
-### 0.4.0
+## 0.4.0
 
 **Features & changes:**
 
@@ -450,7 +450,7 @@ for collaborating on this feature.
 
 **Note:** For Class-C functionality, upgrade LoRa Server to 0.14.0 or above.
 
-### 0.3.0
+## 0.3.0
 
 **This release contains changes that are not backwards compatible!**
 
@@ -486,7 +486,7 @@ and [@VirTERM](https://twitter.com/VirTERM) for their input on the API changes.
 * More descriptive error on missing `--http-tls-cert` and `--http-tls-key`
   configuration.
 
-### 0.2.0
+## 0.2.0
 
 **Features:**
 
@@ -502,23 +502,23 @@ and [@VirTERM](https://twitter.com/VirTERM) for their input on the API changes.
   payloads. See [MQTT topics]({{< ref "integrate/data.md" >}}) for more information.
 
 
-### 0.1.4
+## 0.1.4
 
 * Update exposed data which is published to the
   `application/[AppEUI]/node/[DevEUI]/rx` topic. SNR, RSSI and GPS time (if
   available) are now included of all receiving gateways.
 * Change `GW_MQTT_SERVER` environment variable to `MQTT_SERVER` (thanks @siscia).
 
-### 0.1.3
+## 0.1.3
 
 * Make the relax frame-counter option visible in the ui (the static files
   were not generated and included in 0.1.2).
 
-### 0.1.2
+## 0.1.2
 
 * Add relax frame-counter option (this requires LoRa Server >= 0.12.3)
 
-### 0.1.1
+## 0.1.1
 
 * Better labels + help text for ui components
 * Redirect to JWT token form on authorization error
@@ -526,11 +526,11 @@ and [@VirTERM](https://twitter.com/VirTERM) for their input on the API changes.
   around internal connection errors)
 * Store all used DevNonce values instead of max. 10.
 
-### 0.1.0
+## 0.1.0
 
 Initial release. LoRa App Server requires LoRa Server 0.12.0+.
 
-#### Migrating data from LoRa Server
+### Migrating data from LoRa Server
 
 The database migrations of LoRa App Server are compatible with the database
 schema of LoRa Server 0.11.0. Running `lora-app-server` with `--db-automigrate`

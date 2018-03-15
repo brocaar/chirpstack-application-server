@@ -6,13 +6,13 @@ menu:
         weight: 2
 ---
 
-## Features
+# Features
 
 LoRa App Server is an application-server, part of the LoRa Server project.
 For features related to the network-server component, see the
 [LoRa Server documentation](/loraserver/).
 
-### Payload encryption / decryption
+## Payload encryption / decryption
 
 LoRa App Server handles the encryption and decryption of the application
 payloads. It also holds the application-key of each device and handles the
@@ -21,13 +21,13 @@ sent decrypted to the integrations, but also that before payloads are sent
 to [LoRa Server](/loraserver/) meaning the network-server does not have access
 to these payloads.
 
-### Web-interface
+## Web-interface
 
 LoRa App Server offers a web-interface (built on top of the provided
 [RESTful]({{<ref "integrate/rest.md">}}) api). This web-interface can be used
 to manage users, organizations, applications and devices.
 
-### User authorization
+## User authorization
 
 Using LoRa App Server, it is possible to grant users global admin permissions,
 make them admin of an organization or assign them view-only permissions within
@@ -35,14 +35,14 @@ an organization. This makes it possible to run LoRa App Server in a multi-tenant
 environment where each organization or team has access to only their own applications
 and devices.
 
-### API
+## API
 
 For intgration with external services, LoRa App server provides a [RESTFul]({{<ref "integrate/rest.md">}})
 and [gRPC]({{<ref "integrate/grpc.md">}}) API which exposes the same
 functionality as the web-interface. [Authentication and authorization]({{<ref "integrate/auth.md">}})
 is implemented using JWT tokens.
 
-### Payloads and device events
+## Payloads and device events
 
 By default, LoRa App Server offers a MQTT integration for all configured
 devices. The provided MQTT topics can be for receiving data from your devices,
@@ -56,7 +56,7 @@ for receiving device payloads and events. See
 
 **Note:** downlink payloads can also be scheduled through the API.
 
-### Gateway discovery
+## Gateway discovery
 
 For networks containing multiple gateways, LoRa App Server provides a feature
 to test the gateway network coverage. By sending out periodical "pings" through
@@ -67,7 +67,7 @@ in the web-interface.
 To enable this feature, please refer to the gateway discovery section in the
 LoRa App Server [configuration]({{<ref "install/config.md">}}).
 
-### Live frame-logging
+## Live frame-logging
 
 With LoRa App Server you are able to inspect all raw and encrypted LoRaWAN
 frames per gateway or device. When opening the *Live frame logs* tab on the

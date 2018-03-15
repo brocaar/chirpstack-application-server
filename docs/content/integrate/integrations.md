@@ -6,9 +6,9 @@ menu:
         weight: 2
 ---
 
-## Data integrations
+# Data integrations
 
-### HTTP
+## HTTP
 
 LoRa App Server provides the possibility to configure HTTP integrations
 per application. When in the application screen, click on the *Integrations*

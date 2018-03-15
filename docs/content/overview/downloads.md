@@ -6,9 +6,9 @@ menu:
         weight: 3
 ---
 
-## Downloads
+# Downloads
 
-### Precompiled binaries
+## Precompiled binaries
 
 | File name                                                                                                                                 | OS      | Arch  |
 | ----------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----- |
@@ -19,7 +19,7 @@ menu:
 | [lora-app-server_{{< version >}}_windows_386.tar.gz](https://dl.loraserver.io/tar/lora-app-server_{{< version >}}_windows_386.tar.gz)     | Windows | 386   |
 | [lora-app-server_{{< version >}}_windows_amd64.tar.gz](https://dl.loraserver.io/tar/lora-app-server_{{< version >}}_windows_amd64.tar.gz) | Windows | amd64 |
 
-### Debian / Ubuntu packages
+## Debian / Ubuntu packages
 
 | File name                                                                                                           | OS      | Arch  |
 | --------------------------------------------------------------------------------------------------------------------| ------- | ----- |
@@ -28,7 +28,7 @@ menu:
 | [lora-app-server_{{< version >}}_armhf.deb](https://dl.loraserver.io/deb/lora-app-server_{{< version >}}_armhf.deb) | Linux   | arm   |
 | [lora-app-server_{{< version >}}_arm64.deb](https://dl.loraserver.io/deb/lora-app-server_{{< version >}}_arm64.deb) | Linux   | arm64 |
 
-### Debian Ubuntu repository
+## Debian Ubuntu repository
 
 ```bash
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1CE2AFD36DBCCA00

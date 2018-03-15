@@ -6,7 +6,7 @@ menu:
         weight: 3
 ---
 
-## Debian / Ubuntu installation
+# Debian / Ubuntu installation
 
 These steps have been tested with:
 
@@ -43,7 +43,7 @@ to it:
 psql -h localhost -U loraserver_as -W loraserver_as
 ```
 
-### LoRa Server Debian repository
+## LoRa Server Debian repository
 
 The LoRa Server project provides pre-compiled binaries packaged as Debian (.deb)
 packages. In order to activate this repository, execute the following
@@ -58,7 +58,7 @@ sudo echo "deb https://repos.loraserver.io/${DISTRIB_ID,,} ${DISTRIB_CODENAME} t
 sudo apt-get update
 ```
 
-### Install LoRa App Server
+## Install LoRa App Server
 
 In order to install LoRa App Server, execute the follwing command:
 
@@ -75,24 +75,24 @@ creating the PostgreSQL database, you want to change the config variable
 
 An other required setting you must change is `application_server.external_api.jwt_secret`.
 
-#### Starting LoRa App Server
+### Starting LoRa App Server
 
 How you need to (re)start and stop LoRa App Server depends on if your
 distribution uses init.d or systemd.
 
-##### init.d
+#### init.d
 
 ```bash
 sudo /etc/init.d/lora-app-server [start|stop|restart|status]
 ```
 
-##### systemd
+#### systemd
 
 ```bash
 sudo systemctl [start|stop|restart|status] lora-app-server
 ```
 
-#### LoRa App Server log output
+### LoRa App Server log output
 
 Now you've setup LoRa App Server, it is a good time to verify that LoRa App
 Server is actually up-and-running. This can be done by looking at the LoRa
@@ -101,7 +101,7 @@ App Server log output.
 Like the previous step, the command you need to use for viewing the
 log output depends on if your distribution uses init.d or systemd.
 
-##### init.d
+#### init.d
 
 All logs are written to `/var/log/lora-app-server/lora-app-server.log`.
 To view and follow this logfile:
@@ -110,7 +110,7 @@ To view and follow this logfile:
 tail -f /var/log/lora-app-server/lora-app-server.log
 ```
 
-##### systemd
+#### systemd
 
 ```bash
 journalctl -u lora-app-server -f -n 50
@@ -145,7 +145,7 @@ INFO[0002] grpc: addrConn.resetTransport failed to create client transport: conn
 INFO[0005] grpc: addrConn.resetTransport failed to create client transport: connection error: desc = "transport: dial tcp 127.0.0.1:8000: getsockopt: connection refused"; Reconnecting to {"127.0.0.1:8000" <nil>}
 ```
 
-#### Accessing LoRa App Server
+### Accessing LoRa App Server
 
 To access the web-interface, point your browser to
 [https://localhost:8080](https://localhost:8080). Note that it is normal that
@@ -155,7 +155,7 @@ To login, use *admin* / *admin* (don't forget to reset this password!).
 To access the REST API endpoint, point your browser to
 [https://localhost:8080/api](https://localhost:8080/api).
 
-### Configuration
+## Configuration
 
 In the example above, we've just touched a few configuration variables.
 Run `lora-app-server --help` for an overview of all available variables. Note
@@ -164,7 +164,7 @@ variables (which we did in the above example).
 
 See [Configuration]({{< relref "config.md" >}}) for details on each config option.
 
-### Install other components
+## Install other components
 
 A complete LoRa Server setup, requires the setup of the following components:
 

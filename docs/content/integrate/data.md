@@ -6,7 +6,7 @@ menu:
         weight: 1
 ---
 
-## Sending and receiving data
+# Sending and receiving data
 
 LoRa App Server publishes all the data it receices from the nodes
 as JSON over MQTT. To receive data from your node, you therefore 
@@ -28,9 +28,9 @@ mosquitto_sub -t "application/123/node/+/rx" -v  # display only the RX payloads 
 * The `ApplicationID` can be retrieved using the API or from the web-interface,
   this is not the `AppEUI`!
 
-### Receiving
+## Receiving
 
-#### application/[applicationID]/node/[devEUI]/rx
+### application/[applicationID]/node/[devEUI]/rx
 
 Topic for payloads received from your nodes. Example payload:
 
@@ -75,7 +75,7 @@ Topic for payloads received from your nodes. Example payload:
 }
 ```
 
-##### Device-status
+#### Device-status
 
 When configured by the [service-profile]({{<ref "use/service-profiles.md">}})
 and when published by the device, the uplink payload contains the device status.
@@ -90,7 +90,7 @@ and when published by the device, the uplink payload contains the device status.
 to the nearest integer valuefor the last successfully received device-status
 request by the network-server.
 
-#### application/[applicationID]/node/[devEUI]/join
+### application/[applicationID]/node/[devEUI]/join
 
 Topic for join notifications. Example payload:
 
@@ -104,7 +104,7 @@ Topic for join notifications. Example payload:
 }
 ```
 
-#### application/[applicationID]/node/[devEUI]/ack
+### application/[applicationID]/node/[devEUI]/ack
 
 Topic for ACK notifications. Example payload:
 
@@ -120,7 +120,7 @@ Topic for ACK notifications. Example payload:
 }
 ```
 
-#### application/[applicationID]/node/[devEUI]/error
+### application/[applicationID]/node/[devEUI]/error
 
 Topic for error notifications. An error might be raised when the downlink
 payload size exceeded to max allowed payload size, in case of a MIC error,
@@ -137,9 +137,9 @@ payload size exceeded to max allowed payload size, in case of a MIC error,
 }
 ```
 
-### Sending
+## Sending
 
-#### application/[applicationID]/node/[devEUI]/tx
+### application/[applicationID]/node/[devEUI]/tx
 
 **Note:** the application ID and DevEUI of the node will be taken from the topic.
 

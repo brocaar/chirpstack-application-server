@@ -6,7 +6,7 @@ menu:
         weight: 6
 ---
 
-## Device-profile management
+# Device-profile management
 
 A device-profile defines the device capabilities and boot parameters
 that are needed by the network-server for setting the LoRaWAN radio
@@ -17,7 +17,7 @@ When creating a device-profile, LoRa App Server will create the actual
 profile on the selected network-server, and will keep a reference record
 so it knows to which organization it belongs.
 
-### Fields / options
+## Fields / options
 
 The following fields are described by the
 [LoRaWAN Backend Interfaces specification](https://www.lora-alliance.org/lorawan-for-developers).

@@ -6,7 +6,7 @@ menu:
         weight: 5
 ---
 
-## gRPC API
+# gRPC API
 
 LoRa App Server provices a [gRPC](http://www.grpc.io/) API for easy integration
 with your own projects. gRPC is a RPC framework on top of [protocol-buffers](https://developers.google.com/protocol-buffers/).
@@ -31,15 +31,15 @@ languages (officially suported by gRPC):
 * C#
 * Objective-C
 
-### Links
+## Links
 
 * [gRPC documentation](http://www.grpc.io/)
 * [LoRa App Server .proto files](https://github.com/brocaar/lora-app-server/tree/master/api)
 * [LoRa App Server Go client](https://godoc.org/github.com/brocaar/lora-app-server/api)
 
-### Code examples
+## Code examples
 
-#### Go
+### Go
 
 ```go
 package main

@@ -6,7 +6,7 @@ menu:
         weight: 4
 ---
 
-## Configuration
+# Configuration
 
 The `lora-app-server` binary has the following command-line flags:
 
@@ -32,7 +32,7 @@ Flags:
 Use "lora-app-server [command] --help" for more information about a command.
 ```
 
-### Configuration file
+## Configuration file
 
 By default `lora-app-server` will look in the following order for a
 configuration file at the following paths when `--config` is not set:
@@ -297,7 +297,7 @@ tls_key=""
 server="127.0.0.1:8000"
 ```
 
-### Securing the application-server internal API
+## Securing the application-server internal API
 
 In order to protect the application-server internal API (`[application_server.internal_api]`) against
 unauthorized access and to encrypt all communication, it is advised to use TLS
@@ -311,7 +311,7 @@ network-server to connect to LoRa App Server. See also
 See [https://github.com/brocaar/loraserver-certificates](https://github.com/brocaar/loraserver-certificates)
 for a set of script to generate such certificates.
 
-### Securing the join-server API
+## Securing the join-server API
 
 In order to protect the join-server API (`[join_server]`) against
 unauthorized access and to encrypt all communication, it is advised to use TLS
@@ -322,13 +322,13 @@ Please note that you also need to configure LoRa Server so that it uses a
 client certificate for its join-server API client. See
 [LoRa Server configuration](https://docs.loraserver.io/loraserver/install/config/).
 
-### Web-interface and public API
+## Web-interface and public API
 
 The web-interface and public api (`[application_server.public_api]`) must be
 secured by a TLS certificate and key, as this allows to run the gRPC and RESTful
 JSON api together on one port.
 
-#### Self-signed certificate
+### Self-signed certificate
 
 A self-signed certificate can be generated with the following command:
 
@@ -336,7 +336,7 @@ A self-signed certificate can be generated with the following command:
 openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 90 -nodes
 ```
 
-#### Let's Encrypt
+### Let's Encrypt
 
 For generating a certificate with [Let's Encrypt](https://letsencrypt.org/),
 first follow the [getting started](https://letsencrypt.org/getting-started/)
@@ -346,7 +346,7 @@ instructions. When the `letsencrypt` cli tool has been installed, execute:
 letsencrypt certonly --standalone -d DOMAINNAME.HERE 
 ```
 
-### Warning: deprecation warning! update your configuration
+## Warning: deprecation warning! update your configuration
 
 When you see this warning, you need to update your configuration!
 Before LoRa App Server 0.18.0 environment variables were used for setting

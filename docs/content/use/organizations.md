@@ -6,7 +6,7 @@ menu:
         weight: 4
 ---
 
-## Organization management
+# Organization management
 
 An organization can be used to let organizations or teams manage their
 own applications and optionally their own gateways.
@@ -19,20 +19,20 @@ An organization can have:
 * Applications
 * Users
 
-### Service-profiles
+## Service-profiles
 
 Global admin users are able to manage
 [service-profiles]({{<relref "service-profiles.md">}}) for a given
 organizations. These service-profiles can then be used by (organization)
 admin users when creating applications.
 
-### Device-profiles
+## Device-profiles
 
 [Device-profiles]({{<relref "device-profiles.md">}}) can be created by
 (organization) admin users and can be assigned when creating a
 [device]({{<relref "devices.md">}}).
 
-### Gateways
+## Gateways
 
 An organization can manage its own set of gateways. Note that when an organization
 is created by a global administrator, it can decide that an organization can not
@@ -43,24 +43,24 @@ That an organization is able to manage its own set of gateways does not mean
 that the coverage is limited to this set of gateways. Gateways connectivity
 will be shared across the whole network.
 
-### Applications
+## Applications
 
 [Applications]({{<relref "applications.md">}}) can be created by (organization)
 admin users and define a group of devices with the same purpose.
 
-### Users
+## Users
 
 Users can be assigned to an organization to grant them access to the
 organization. Within the context of that assigment, an user can be an
 organization administrator or a regular user.
 
-#### Organization administrator
+### Organization administrator
 
 An organization administrator is authorized to manage the users assigned
 with the organization and manage the gateways, applications and nodes of the
 gateway.
 
-#### Regular user
+### Regular user
 
 Regular users are able to see all data, but are not able to make any
 modifications.

@@ -15,6 +15,7 @@ import (
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/eventlog"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
@@ -500,6 +501,50 @@ func (a *DeviceAPI) StreamFrameLogs(req *pb.StreamDeviceFrameLogsRequest, srv pb
 			return err
 		}
 	}
+}
+
+// StreamEventLogs stream the device events (uplink payloads, ACKs, joins, errors).
+// Note: this endpoint is intended for debugging and should not be used for building
+// integrations.
+func (a *DeviceAPI) StreamEventLogs(req *pb.StreamDeviceEventLogsRequest, srv pb.Device_StreamEventLogsServer) error {
+	var devEUI lorawan.EUI64
+
+	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+		return grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
+	}
+
+	if err := a.validator.Validate(srv.Context(),
+		auth.ValidateNodeAccess(devEUI, auth.Read)); err != nil {
+		return grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	eventLogChan := make(chan eventlog.EventLog)
+	go func() {
+		err := eventlog.GetEventLogForDevice(srv.Context(), devEUI, eventLogChan)
+		if err != nil {
+			log.WithError(err).Error("get event-log for device error")
+		}
+		close(eventLogChan)
+	}()
+
+	for el := range eventLogChan {
+		b, err := json.Marshal(el.Payload)
+		if err != nil {
+			return grpc.Errorf(codes.Internal, "marshal json error: %s", err)
+		}
+
+		resp := pb.StreamDeviceEventLogsResponse{
+			Type:        el.Type,
+			PayloadJSON: string(b),
+		}
+
+		err = srv.Send(&resp)
+		if err != nil {
+			log.WithError(err).Error("error sending event-log response")
+		}
+	}
+
+	return nil
 }
 
 // GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.

@@ -13,6 +13,7 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/eventlog"
 	"github.com/brocaar/lora-app-server/internal/gwping"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -150,6 +151,11 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		})
 	}
 
+	err = eventlog.LogEventForDevice(devEUI, pl)
+	if err != nil {
+		log.WithError(err).Error("log event for device error")
+	}
+
 	err = config.C.ApplicationServer.Integration.Handler.SendDataUp(pl)
 	if err != nil {
 		errStr := fmt.Sprintf("send data up to handler error: %s", err)
@@ -191,7 +197,7 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		"dev_eui": devEUI,
 	}).Info("downlink device-queue item acknowledged")
 
-	err = config.C.ApplicationServer.Integration.Handler.SendACKNotification(handler.ACKNotification{
+	pl := handler.ACKNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,
@@ -199,7 +205,14 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		Reference:       dqm.Reference,
 		Acknowledged:    req.Acknowledged,
 		FCnt:            req.FCnt,
-	})
+	}
+
+	err = eventlog.LogEventForDevice(devEUI, pl)
+	if err != nil {
+		log.WithError(err).Error("log event for device error")
+	}
+
+	err = config.C.ApplicationServer.Integration.Handler.SendACKNotification(pl)
 	if err != nil {
 		log.Errorf("send ack notification to handler error: %s", err)
 	}
@@ -230,7 +243,7 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		"dev_eui": devEUI,
 	}).Error(req.Error)
 
-	err = config.C.ApplicationServer.Integration.Handler.SendErrorNotification(handler.ErrorNotification{
+	pl := handler.ErrorNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,
@@ -238,7 +251,14 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		Type:            req.Type.String(),
 		Error:           req.Error,
 		FCnt:            req.FCnt,
-	})
+	}
+
+	err = eventlog.LogEventForDevice(devEUI, pl)
+	if err != nil {
+		log.WithError(err).Error("log event for device error")
+	}
+
+	err = config.C.ApplicationServer.Integration.Handler.SendErrorNotification(pl)
 	if err != nil {
 		errStr := fmt.Sprintf("send error notification to handler error: %s", err)
 		log.Error(errStr)

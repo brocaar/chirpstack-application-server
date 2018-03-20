@@ -6,8 +6,10 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/eventlog"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lorawan"
@@ -216,13 +218,20 @@ func flushDeviceQueueMapping(ctx *context) error {
 }
 
 func sendJoinNotification(ctx *context) error {
-	err := config.C.ApplicationServer.Integration.Handler.SendJoinNotification(handler.JoinNotification{
+	pl := handler.JoinNotification{
 		ApplicationID:   ctx.device.ApplicationID,
 		ApplicationName: ctx.application.Name,
 		DeviceName:      ctx.device.Name,
 		DevEUI:          ctx.device.DevEUI,
 		DevAddr:         ctx.joinReqPayload.DevAddr,
-	})
+	}
+
+	err := eventlog.LogEventForDevice(ctx.device.DevEUI, pl)
+	if err != nil {
+		log.WithError(err).Error("log event for device error")
+	}
+
+	err = config.C.ApplicationServer.Integration.Handler.SendJoinNotification(pl)
 	if err != nil {
 		return errors.Wrap(err, "send join notification error")
 	}

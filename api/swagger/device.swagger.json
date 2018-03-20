@@ -228,6 +228,31 @@
         ]
       }
     },
+    "/api/devices/{devEUI}/events": {
+      "get": {
+        "summary": "StreamEventLogs stream the device events (uplink payloads, ACKs, joins, errors).\nNote: this endpoint is intended for debugging and should not be used for building\nintegrations.",
+        "operationId": "StreamEventLogs",
+        "responses": {
+          "200": {
+            "description": "(streaming responses)",
+            "schema": {
+              "$ref": "#/definitions/apiStreamDeviceEventLogsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "devEUI",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Device"
+        ]
+      }
+    },
     "/api/devices/{devEUI}/frames": {
       "get": {
         "summary": "StreamFrameLogs streams the uplink and downlink frame-logs for the given DevEUI.\nNote: these are the raw LoRaWAN frames and this endpoint is intended for debugging.",
@@ -728,6 +753,19 @@
             "$ref": "#/definitions/apiDeviceListItem"
           },
           "description": "Devices within this result-set."
+        }
+      }
+    },
+    "apiStreamDeviceEventLogsResponse": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The event type."
+        },
+        "payloadJSON": {
+          "type": "string",
+          "description": "The event payload in JSON encoding."
         }
       }
     },

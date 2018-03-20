@@ -105,6 +105,15 @@ service Device {
             get: "/api/devices/{devEUI}/frames"
         };
     }
+
+    // StreamEventLogs stream the device events (uplink payloads, ACKs, joins, errors).
+    // Note: this endpoint is intended for debugging and should not be used for building
+    // integrations.
+    rpc StreamEventLogs(StreamDeviceEventLogsRequest) returns (stream StreamDeviceEventLogsResponse) {
+        option (google.api.http) = {
+            get: "/api/devices/{devEUI}/events"
+        };
+    }
 }
 
 message DeviceKeys {
@@ -359,4 +368,17 @@ message StreamDeviceFrameLogsResponse {
 
     // Contains zero or one downlink frame.
     repeated DownlinkFrameLog downlinkFrames = 2;
+}
+
+message StreamDeviceEventLogsRequest {
+    // Hex encoded DevEUI.
+    string devEUI = 1;
+}
+
+message StreamDeviceEventLogsResponse {
+    // The event type.
+    string type = 1;
+
+    // The event payload in JSON encoding.
+    string payloadJSON = 2;
 }

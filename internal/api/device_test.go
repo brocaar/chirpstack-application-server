@@ -1,22 +1,23 @@
 package api
 
 import (
+	"net"
 	"testing"
 	"time"
 
+	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"golang.org/x/net/context"
-
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/eventlog"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/backend"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestNodeAPI(t *testing.T) {
@@ -26,10 +27,14 @@ func TestNodeAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	p := storage.NewRedisPool(conf.RedisURL)
+
 	config.C.PostgreSQL.DB = db
+	config.C.Redis.Pool = p
 
 	Convey("Given a clean database with an organization, application and api instance", t, func() {
 		test.MustResetDB(config.C.PostgreSQL.DB)
+		test.MustFlushRedis(p)
 
 		nsClient := test.NewNetworkServerClient()
 		nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
@@ -39,7 +44,24 @@ func TestNodeAPI(t *testing.T) {
 
 		ctx := context.Background()
 		validator := &TestValidator{}
-		api := NewDeviceAPI(validator)
+
+		grpcServer := grpc.NewServer()
+		apiServer := NewDeviceAPI(validator)
+		pb.RegisterDeviceServer(grpcServer, apiServer)
+
+		ln, err := net.Listen("tcp", "localhost:0")
+		So(err, ShouldBeNil)
+		go grpcServer.Serve(ln)
+		defer func() {
+			grpcServer.Stop()
+			ln.Close()
+		}()
+
+		apiClient, err := grpc.Dial(ln.Addr().String(), grpc.WithInsecure(), grpc.WithBlock())
+		So(err, ShouldBeNil)
+		defer apiClient.Close()
+
+		api := pb.NewDeviceClient(apiClient)
 
 		org := storage.Organization{
 			Name: "test-org",
@@ -83,7 +105,6 @@ func TestNodeAPI(t *testing.T) {
 				DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
 			})
 			So(err, ShouldBeNil)
-			So(validator.ctx, ShouldResemble, ctx)
 			So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 			Convey("Then the DevEUI is used as name", func() {
@@ -104,7 +125,6 @@ func TestNodeAPI(t *testing.T) {
 				DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
 			})
 			So(err, ShouldBeNil)
-			So(validator.ctx, ShouldResemble, ctx)
 			So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 			Convey("The device has been created", func() {
@@ -112,7 +132,6 @@ func TestNodeAPI(t *testing.T) {
 					DevEUI: "0807060504030201",
 				})
 				So(err, ShouldBeNil)
-				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 				So(d, ShouldResemble, &pb.GetDeviceResponse{
 					Name:                "test-device",
@@ -169,7 +188,6 @@ func TestNodeAPI(t *testing.T) {
 					Search:        "test",
 				})
 				So(err, ShouldBeNil)
-				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 				So(devices.Result, ShouldHaveLength, 1)
 				So(devices.TotalCount, ShouldEqual, 1)
@@ -194,7 +212,6 @@ func TestNodeAPI(t *testing.T) {
 					DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
 				})
 				So(err, ShouldBeNil)
-				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the device has been updated", func() {
@@ -219,7 +236,6 @@ func TestNodeAPI(t *testing.T) {
 					DevEUI: "0807060504030201",
 				})
 				So(err, ShouldBeNil)
-				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then listing the devices returns zero devices", func() {
@@ -298,7 +314,6 @@ func TestNodeAPI(t *testing.T) {
 					FCntDown: 11,
 				})
 				So(err, ShouldBeNil)
-				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then an attempt was made to deactivate the device-session", func() {
@@ -325,6 +340,39 @@ func TestNodeAPI(t *testing.T) {
 					So(da.AppSKey, ShouldEqual, lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8})
 					So(da.NwkSKey, ShouldEqual, lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1})
 					So(da.DevAddr, ShouldEqual, lorawan.DevAddr{1, 2, 3, 4})
+				})
+			})
+
+			Convey("When calling StreamEventLogs", func() {
+				respChan := make(chan *pb.StreamDeviceEventLogsResponse)
+
+				client, err := api.StreamEventLogs(ctx, &pb.StreamDeviceEventLogsRequest{
+					DevEUI: "0807060504030201",
+				})
+				So(err, ShouldBeNil)
+
+				// some time for subscribing
+				time.Sleep(100 * time.Millisecond)
+
+				go func() {
+					for {
+						resp, err := client.Recv()
+						if err != nil {
+							break
+						}
+						respChan <- resp
+					}
+				}()
+
+				Convey("When logging an event", func() {
+					So(eventlog.LogEventForDevice(lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, eventlog.EventLog{
+						Type: eventlog.Join,
+					}), ShouldBeNil)
+
+					Convey("Then the event was received by the client", func() {
+						resp := <-respChan
+						So(resp.Type, ShouldEqual, eventlog.Join)
+					})
 				})
 			})
 		})

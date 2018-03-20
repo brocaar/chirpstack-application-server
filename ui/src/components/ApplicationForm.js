@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import Select from "react-select";
 import {Controlled as CodeMirror} from "react-codemirror2";
 
+import Loaded from "./Loaded.js";
 import ServiceProfileStore from "../stores/ServiceProfileStore";
 import "codemirror/mode/javascript/javascript";
 
@@ -14,6 +15,9 @@ class ApplicationForm extends Component {
       application: {},
       serviceProfiles: [],
       update: false,
+      loaded: {
+        serviceProfiles: false,
+      },
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -27,6 +31,9 @@ class ApplicationForm extends Component {
     ServiceProfileStore.getAllForOrganizationID(this.props.organizationID, 9999, 0, (totalCount, serviceProfiles) => {
       this.setState({
         serviceProfiles: serviceProfiles,
+        loaded: {
+          serviceProfiles: true,
+        },
       });
     });
   }
@@ -119,74 +126,79 @@ function Decode(fPort, bytes) {
     }
 
     return (
-      <form onSubmit={this.handleSubmit}>
-        <div className="form-group">
-          <label className="control-label" htmlFor="name">Application name</label>
-          <input className="form-control" id="name" type="text" placeholder="e.g. 'temperature-sensor'" pattern="[\w-]+" required value={this.state.application.name || ''} onChange={this.onChange.bind(this, 'name')} />
-          <p className="help-block">
-            The name may only contain words, numbers and dashes. 
-          </p>
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="name">Application description</label>
-          <input className="form-control" id="description" type="text" placeholder="a short description of your application" required value={this.state.application.description || ''} onChange={this.onChange.bind(this, 'description')} />
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="serviceProfileID">Service-profile</label>
-          <Select
-            name="serviceProfileID"
-            options={serviceProfileOptions}
-            value={this.state.application.serviceProfileID}
-            onChange={this.onSelectChange.bind(this, 'serviceProfileID')}
-            disabled={this.state.update}
-            required={true}
-          />
-          <p className="help-block">
-            The service-profile to which this application will be attached. Note that you can't change this value after the application has been created.
-          </p>
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="payloadCodec">Payload codec</label>
-          <Select
-            name="payloadCodec"
-            options={payloadCodecOptions}
-            value={this.state.application.payloadCodec}
-            onChange={this.onSelectChange.bind(this, 'payloadCodec')}
-          />
-          <p className="help-block">
-            By defining a payload codec, LoRa App Server can encode and decode the binary device payload for you.
-          </p>
-        </div>
-        <div className={"form-group " + (this.state.application.payloadCodec === "CUSTOM_JS" ? "" : "hidden")}>
-          <label className="control-label" htmlFor="payloadDecoderScript">Payload decoder function</label>
-          <CodeMirror
-            value={payloadDecoderScript}
-            options={codeMirrorOptions}
-            onBeforeChange={this.onCodeChange.bind(this, 'payloadDecoderScript')}
-          />
-          <p className="help-block">
-            The function must have the signature <strong>function Decode(fPort, bytes)</strong> and must return an object.
-            LoRa App Server will convert this object to JSON.
-          </p>
-        </div>
-        <div className={"form-group " + (this.state.application.payloadCodec === "CUSTOM_JS" ? "" : "hidden")}>
-          <label className="control-label" htmlFor="payloadEncoderScript">Payload encoder function</label>
-          <CodeMirror
-            value={payloadEncoderScript}
-            options={codeMirrorOptions}
-            onBeforeChange={this.onCodeChange.bind(this, 'payloadEncoderScript')}
-          />
-          <p className="help-block">
-            The function must have the signature <strong>function Encode(fPort, obj)</strong> and must return an array
-            of bytes.
-          </p>
-        </div>
-        <hr />
-        <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
-          <button type="submit" className="btn btn-primary">Submit</button>
-        </div>
-      </form>
+      <Loaded loaded={this.state.loaded}>
+        <form onSubmit={this.handleSubmit}>
+          <div className={"alert alert-warning " + (this.state.serviceProfiles.length > 0 ? 'hidden' : '')}>
+            No service-profiles are associated with this organization, a <Link to={`/organizations/${this.props.organizationID}/service-profiles`}>service-profile</Link> needs to be created first for this organization.
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="name">Application name</label>
+            <input className="form-control" id="name" type="text" placeholder="e.g. 'temperature-sensor'" pattern="[\w-]+" required value={this.state.application.name || ''} onChange={this.onChange.bind(this, 'name')} />
+            <p className="help-block">
+              The name may only contain words, numbers and dashes. 
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="name">Application description</label>
+            <input className="form-control" id="description" type="text" placeholder="a short description of your application" required value={this.state.application.description || ''} onChange={this.onChange.bind(this, 'description')} />
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="serviceProfileID">Service-profile</label>
+            <Select
+              name="serviceProfileID"
+              options={serviceProfileOptions}
+              value={this.state.application.serviceProfileID}
+              onChange={this.onSelectChange.bind(this, 'serviceProfileID')}
+              disabled={this.state.update}
+              required={true}
+            />
+            <p className="help-block">
+              The service-profile to which this application will be attached. Note that you can't change this value after the application has been created.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="payloadCodec">Payload codec</label>
+            <Select
+              name="payloadCodec"
+              options={payloadCodecOptions}
+              value={this.state.application.payloadCodec}
+              onChange={this.onSelectChange.bind(this, 'payloadCodec')}
+            />
+            <p className="help-block">
+              By defining a payload codec, LoRa App Server can encode and decode the binary device payload for you.
+            </p>
+          </div>
+          <div className={"form-group " + (this.state.application.payloadCodec === "CUSTOM_JS" ? "" : "hidden")}>
+            <label className="control-label" htmlFor="payloadDecoderScript">Payload decoder function</label>
+            <CodeMirror
+              value={payloadDecoderScript}
+              options={codeMirrorOptions}
+              onBeforeChange={this.onCodeChange.bind(this, 'payloadDecoderScript')}
+            />
+            <p className="help-block">
+              The function must have the signature <strong>function Decode(fPort, bytes)</strong> and must return an object.
+              LoRa App Server will convert this object to JSON.
+            </p>
+          </div>
+          <div className={"form-group " + (this.state.application.payloadCodec === "CUSTOM_JS" ? "" : "hidden")}>
+            <label className="control-label" htmlFor="payloadEncoderScript">Payload encoder function</label>
+            <CodeMirror
+              value={payloadEncoderScript}
+              options={codeMirrorOptions}
+              onBeforeChange={this.onCodeChange.bind(this, 'payloadEncoderScript')}
+            />
+            <p className="help-block">
+              The function must have the signature <strong>function Encode(fPort, obj)</strong> and must return an array
+              of bytes.
+            </p>
+          </div>
+          <hr />
+          <div className="btn-toolbar pull-right">
+            <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
+            <button type="submit" className="btn btn-primary">Submit</button>
+          </div>
+        </form>
+      </Loaded>
     );
   }
 }

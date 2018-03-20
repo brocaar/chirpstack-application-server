@@ -51,7 +51,7 @@ class UpdateNode extends Component {
       <div>
         <div className="panel panel-default">
           <div className="panel-body">
-            <NodeForm applicationID={this.props.match.params.applicationID} node={this.state.node} onSubmit={this.onSubmit} disabled={!this.state.isAdmin} application={this.state.application} />
+            <NodeForm organizationID={this.props.match.params.organizationID} applicationID={this.props.match.params.applicationID} node={this.state.node} onSubmit={this.onSubmit} disabled={!this.state.isAdmin} application={this.state.application} />
           </div>
         </div>
       </div>

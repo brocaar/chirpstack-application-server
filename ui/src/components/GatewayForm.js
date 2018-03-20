@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 
 import { Map, Marker, TileLayer } from 'react-leaflet';
 import Select from "react-select";
 
+import Loaded from "./Loaded.js";
 import SessionStore from "../stores/SessionStore";
 import LocationStore from "../stores/LocationStore";
 import GatewayStore from "../stores/GatewayStore";
@@ -20,6 +21,9 @@ class GatewayForm extends Component {
       update: false,
       channelConfigurations: [],
       networkServers: [],
+      loaded: {
+        networkServers: false,
+      },
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -95,6 +99,9 @@ class GatewayForm extends Component {
     NetworkServerStore.getAllForOrganizationID(this.props.organizationID, 9999, 0, (totalCount, networkServers) => {
       this.setState({
         networkServers: networkServers,
+        loaded: {
+          networkServers: true,
+        },
       });
     });
 
@@ -173,8 +180,11 @@ class GatewayForm extends Component {
     });
 
     return(
-      <div>
+      <Loaded loaded={this.state.loaded}>
         <form onSubmit={this.handleSubmit}>
+          <div className={"alert alert-warning " + (this.state.networkServers.length > 0 ? 'hidden' : '')}>
+            No network-servers are associated with this organization, a <Link to={`/organizations/${this.props.organizationID}/service-profiles`}>service-profile</Link> needs to be created first for this organization.
+          </div>
           <div className="form-group">
             <label className="control-label" htmlFor="name">Gateway name</label>
             <input className="form-control" id="name" type="text" placeholder="e.g. 'rooftop-gateway'" required value={this.state.gateway.name || ''} pattern="[\w-]+" onChange={this.onChange.bind(this, 'name')} />
@@ -251,7 +261,7 @@ class GatewayForm extends Component {
             <button type="submit" className="btn btn-primary">Submit</button>
           </div>
         </form>
-      </div>
+      </Loaded>
     );
   }
 }

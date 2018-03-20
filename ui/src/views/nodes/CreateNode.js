@@ -43,7 +43,7 @@ class CreateNode extends Component {
           <h3 className="panel-title">Create device</h3>
         </div>
         <div className="panel-body">
-          <NodeForm node={this.state.node} applicationID={this.props.match.params.applicationID} onSubmit={this.onSubmit} />
+          <NodeForm node={this.state.node} organizationID={this.props.match.params.organizationID} applicationID={this.props.match.params.applicationID} onSubmit={this.onSubmit} />
         </div>
       </div>
     );

@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 
 import Select from "react-select";
 
+import Loaded from "./Loaded.js";
 import DeviceProfileStore from "../stores/DeviceProfileStore";
 
 
@@ -15,6 +16,9 @@ class NodeForm extends Component {
       devEUIDisabled: false,
       disabled: false,
       deviceProfiles: [],
+      loaded: {
+        deviceProfiles: false,
+      },
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -28,6 +32,9 @@ class NodeForm extends Component {
     DeviceProfileStore.getAllForApplicationID(this.props.applicationID, 9999, 0, (totalCount, deviceProfiles) => {
       this.setState({
         deviceProfiles: deviceProfiles,
+        loaded: {
+          deviceProfiles: true,
+        },
       });
     });
   }
@@ -78,38 +85,43 @@ class NodeForm extends Component {
     });
 
     return (
-      <form onSubmit={this.handleSubmit}>
-        <div className="form-group">
-          <label className="control-label" htmlFor="name">Device name</label>
-          <input className="form-control" id="name" type="text" placeholder="e.g. 'garden-sensor'" required value={this.state.node.name || ''} pattern="[\w-]+" onChange={this.onChange.bind(this, 'name')} />
-          <p className="help-block">
-            The name may only contain words, numbers and dashes.
-          </p>
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="name">Device description</label>
-          <input className="form-control" id="description" type="text" placeholder="a short description of your node" required value={this.state.node.description || ''} onChange={this.onChange.bind(this, 'description')} />
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="devEUI">Device EUI</label>
-          <input className="form-control" id="devEUI" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required disabled={this.state.devEUIDisabled} value={this.state.node.devEUI || ''} onChange={this.onChange.bind(this, 'devEUI')} /> 
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="deviceProfileID">Device-profile</label>
-          <Select
-            name="deviceProfileID"
-            options={deviceProfileOptions}
-            value={this.state.node.deviceProfileID}
-            onChange={this.onSelectChange.bind(this, 'deviceProfileID')}
-            required={true}
-          />
-        </div>
-        <hr />
-        <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
-          <button type="submit" className={"btn btn-primary " + (this.state.disabled ? 'hidden' : '')}>Submit</button>
-        </div>
-      </form>
+      <Loaded loaded={this.state.loaded}>
+        <form onSubmit={this.handleSubmit}>
+          <div className={"alert alert-warning " + (this.state.deviceProfiles.length > 0 ? 'hidden' : '')}>
+            No device-profiles are available, a <Link to={`/organizations/${this.props.organizationID}/device-profiles`}>device-profile</Link> needs to be created first for this organization.
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="name">Device name</label>
+            <input className="form-control" id="name" type="text" placeholder="e.g. 'garden-sensor'" required value={this.state.node.name || ''} pattern="[\w-]+" onChange={this.onChange.bind(this, 'name')} />
+            <p className="help-block">
+              The name may only contain words, numbers and dashes.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="name">Device description</label>
+            <input className="form-control" id="description" type="text" placeholder="a short description of your node" required value={this.state.node.description || ''} onChange={this.onChange.bind(this, 'description')} />
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="devEUI">Device EUI</label>
+            <input className="form-control" id="devEUI" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required disabled={this.state.devEUIDisabled} value={this.state.node.devEUI || ''} onChange={this.onChange.bind(this, 'devEUI')} /> 
+          </div>
+          <div className="form-group">
+            <label className="control-label" htmlFor="deviceProfileID">Device-profile</label>
+            <Select
+              name="deviceProfileID"
+              options={deviceProfileOptions}
+              value={this.state.node.deviceProfileID}
+              onChange={this.onSelectChange.bind(this, 'deviceProfileID')}
+              required={true}
+            />
+          </div>
+          <hr />
+          <div className="btn-toolbar pull-right">
+            <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
+            <button type="submit" className={"btn btn-primary " + (this.state.disabled ? 'hidden' : '')}>Submit</button>
+          </div>
+        </form>
+      </Loaded>
     );
   }
 }

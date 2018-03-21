@@ -87,7 +87,7 @@ func GetOrganizationCount(db sqlx.Queryer, search string) (int, error) {
 	var count int
 
 	if search != "" {
-		search = "%" + search + "%"
+		search = search + "%"
 	}
 
 	err := sqlx.Get(db, &count, `
@@ -110,7 +110,7 @@ func GetOrganizationCountForUser(db sqlx.Queryer, username string, search string
 	var count int
 
 	if search != "" {
-		search = "%" + search + "%"
+		search = search + "%"
 	}
 
 	err := sqlx.Get(db, &count, `
@@ -142,7 +142,7 @@ func GetOrganizations(db sqlx.Queryer, limit, offset int, search string) ([]Orga
 	var orgs []Organization
 
 	if search != "" {
-		search = "%" + search + "%"
+		search = search + "%"
 	}
 
 	err := sqlx.Select(db, &orgs, `
@@ -165,7 +165,7 @@ func GetOrganizationsForUser(db sqlx.Queryer, username string, limit, offset int
 	var orgs []Organization
 
 	if search != "" {
-		search = "%" + search + "%"
+		search = search + "%"
 	}
 
 	err := sqlx.Select(db, &orgs, `

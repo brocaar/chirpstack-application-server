@@ -226,7 +226,10 @@ func sendJoinNotification(ctx *context) error {
 		DevAddr:         ctx.joinReqPayload.DevAddr,
 	}
 
-	err := eventlog.LogEventForDevice(ctx.device.DevEUI, pl)
+	err := eventlog.LogEventForDevice(ctx.device.DevEUI, eventlog.EventLog{
+		Type:    eventlog.Join,
+		Payload: pl,
+	})
 	if err != nil {
 		log.WithError(err).Error("log event for device error")
 	}

@@ -1,12 +1,20 @@
 package handler
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"time"
 
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lorawan"
 )
+
+func init() {
+	gob.Register(DataUpPayload{})
+	gob.Register(JoinNotification{})
+	gob.Register(ACKNotification{})
+	gob.Register(ErrorNotification{})
+}
 
 // DataRate contains the data-rate related fields.
 type DataRate struct {

@@ -151,7 +151,10 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		})
 	}
 
-	err = eventlog.LogEventForDevice(devEUI, pl)
+	err = eventlog.LogEventForDevice(devEUI, eventlog.EventLog{
+		Type:    eventlog.Uplink,
+		Payload: pl,
+	})
 	if err != nil {
 		log.WithError(err).Error("log event for device error")
 	}
@@ -207,7 +210,10 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		FCnt:            req.FCnt,
 	}
 
-	err = eventlog.LogEventForDevice(devEUI, pl)
+	err = eventlog.LogEventForDevice(devEUI, eventlog.EventLog{
+		Type:    eventlog.ACK,
+		Payload: pl,
+	})
 	if err != nil {
 		log.WithError(err).Error("log event for device error")
 	}
@@ -253,7 +259,10 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		FCnt:            req.FCnt,
 	}
 
-	err = eventlog.LogEventForDevice(devEUI, pl)
+	err = eventlog.LogEventForDevice(devEUI, eventlog.EventLog{
+		Type:    eventlog.Error,
+		Payload: pl,
+	})
 	if err != nil {
 		log.WithError(err).Error("log event for device error")
 	}

@@ -10,7 +10,7 @@ menu:
 
 LoRa App Server makes it possible to log frames sent and received by a gateway
 or device in realtime. To use this feature, you first need to go to the gateway
-or device detail page. Once you are on this page, open the **Live frame logs**
+or device detail page. Once you are on this page, open the **Live LoRaWAN frame logs**
 tab.
 
 **Note:** This is a feature for debugging the communication between the

@@ -19,10 +19,10 @@ const (
 
 // Event types.
 const (
-	Downlink = "downlink"
-	ACK      = "ack"
-	Join     = "join"
-	Error    = "error"
+	Uplink = "uplink"
+	ACK    = "ack"
+	Join   = "join"
+	Error  = "error"
 )
 
 // EventLog contains an event log.
@@ -32,13 +32,13 @@ type EventLog struct {
 }
 
 // LogEventForDevice logs an event for the given device.
-func LogEventForDevice(devEUI lorawan.EUI64, payload interface{}) error {
+func LogEventForDevice(devEUI lorawan.EUI64, el EventLog) error {
 	c := config.C.Redis.Pool.Get()
 	defer c.Close()
 
 	key := fmt.Sprintf(deviceEventUplinkPubSubKeyTempl, devEUI)
 	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(payload); err != nil {
+	if err := gob.NewEncoder(&buf).Encode(el); err != nil {
 		return errors.Wrap(err, "gob encode error")
 	}
 

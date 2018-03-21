@@ -21,10 +21,14 @@ func TestJoin(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	p := storage.NewRedisPool(conf.RedisURL)
+
 	config.C.PostgreSQL.DB = db
+	config.C.Redis.Pool = p
 
 	Convey("Given a clean database with node", t, func() {
 		test.MustResetDB(config.C.PostgreSQL.DB)
+		test.MustFlushRedis(p)
 
 		nsClient := test.NewNetworkServerClient()
 		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)

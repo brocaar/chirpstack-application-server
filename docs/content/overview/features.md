@@ -69,7 +69,15 @@ This feature can be enabled and configured per [network-server]({{<ref "use/netw
 ## Live frame-logging
 
 With LoRa App Server you are able to inspect all raw and encrypted LoRaWAN
-frames per gateway or device. When opening the *Live frame logs* tab on the
+frames per gateway or device. When opening the *Live LoRaWAN frame logs* tab on the
 gateway or device detail page, you will see all frames passing in realtime.
 This will also allow you to inspect the (encrypted) content of each LoRaWAN
 frame. See [frame-logging]({{<ref "use/frame-logging.md">}}) for more information.
+
+## Live event-logging
+
+With LoRa App Server you are able to inspect all events from the web-interface,
+without the need to use a MQTT client or build an integration. When opening
+the *Live event logs* tab on the device detail pace, you will see all
+uplink, ack, join and error events in realtime. See [event-logging]({{<ref "use/event-logging.md">}})
+for more information.

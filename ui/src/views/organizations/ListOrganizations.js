@@ -29,9 +29,12 @@ class ListOrganizations extends Component {
       isAdmin: false,
       pageNumber: 1,
       pages: 1,
+      search: "",
     };
 
     this.updatePage = this.updatePage.bind(this);
+    this.onChange = this.onChange.bind(this);
+    this.searchOrganizations = this.searchOrganizations.bind(this);
   }
 
   componentDidMount() {
@@ -46,7 +49,7 @@ class ListOrganizations extends Component {
     const query = new URLSearchParams(props.location.search);
     const page = (query.get('page') === null) ? 1 : query.get('page');
 
-    OrganizationStore.getAll("", this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, organizations) => {
+    OrganizationStore.getAll(this.state.search, this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, organizations) => {
       this.setState({
     	organizations: organizations,
         pageNumber: page,
@@ -54,6 +57,17 @@ class ListOrganizations extends Component {
       });
       window.scrollTo(0, 0);
     });
+  }
+
+  onChange(e) {
+    this.setState({
+      search: e.target.value,
+    });
+  }
+
+  searchOrganizations(e) {
+    e.preventDefault();
+    this.updatePage(this.props);
   }
 
   componentWillMount() {
@@ -71,20 +85,32 @@ class ListOrganizations extends Component {
   render () {
     const OrganizationRows = this.state.organizations.map((organization, i) => <OrganizationRow key={organization.id} organization={organization} />);
 
+    const searchStyle = {
+      width: "200px",
+    };
+
     return(
       <div>
         <ol className="breadcrumb">
           <li className="active">Organizations</li>
         </ol>
-        <div className={(this.state.isAdmin ? '' : 'hidden')}>
-          <div className="clearfix">
-            <div className="btn-group pull-right" role="group" aria-label="...">
-              <Link to="/organizations/create"><button type="button" className="btn btn-default">Create organization</button></Link>
-            </div>
-          </div>
-        </div>
         <hr />
         <div className="panel panel-default">
+          <div className="panel-heading clearfix">
+            <form className="form-inline pull-left" onSubmit={this.searchOrganizations}>
+              <div className="form-group">
+                <div className="input-group">
+                  <div className="input-group-addon">
+                    <span className="glyphicon glyphicon-search" aria-hidden="true"></span>
+                  </div>
+                  <input type="text" className="form-control" style={searchStyle} placeholder="Organization display name" onChange={this.onChange} value={this.state.search || ''} />
+                </div>
+              </div>
+            </form>
+            <div className={`btn-group pull-right ${this.state.isAdmin ? "" : "hidden"}`}>
+              <Link to="/organizations/create"><button type="button" className="btn btn-default btn-sm">Create organization</button></Link>
+            </div>
+          </div>
           <div className="panel-body">
             <table className="table table-hover">
               <thead>

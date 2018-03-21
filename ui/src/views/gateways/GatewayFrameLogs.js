@@ -202,6 +202,10 @@ class GatewayFrameLogs extends Component {
             </div>
           </div>
           <div className="panel-body">
+            <div className="alert alert-warning">
+              The frames below are the raw (and encrypted) LoRaWAN PHYPayload frames as seen by the gateway.
+              This data is inteded for debugging only.
+            </div>
             <table className="table">
               <thead>
                 <tr>

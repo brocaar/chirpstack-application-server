@@ -79,7 +79,7 @@ class GatewayLayout extends Component {
           <li role="presentation" className={(activeTab === "/edit" ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.mac}/edit`}>Gateway configuration</Link></li>
           <li role="presentation" className={(activeTab === "/token" ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.mac}/token`}>Gateway token</Link></li>
           <li role="presentation" className={(activeTab === "/ping" ? 'active' : '') + (this.state.gateway.ping ? '' : 'hidden')}><Link to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.mac}/ping`}>Gateway discovery</Link></li>
-          <li role="presentation" className={(activeTab === "/frames" ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.mac}/frames`}>Live frame logs</Link></li>
+          <li role="presentation" className={(activeTab === "/frames" ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.mac}/frames`}>Live LoRaWAN frame logs</Link></li>
         </ul>
         <hr />
         <Switch>

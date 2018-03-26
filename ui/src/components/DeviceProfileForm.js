@@ -260,7 +260,7 @@ class DeviceProfileForm extends Component {
                 </div>
                 <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsJoin === true ? "hidden" : "")}>
                   <label className="control-label" htmlFor="factoryPresetFreqsStr">Factory-present frequencies</label>
-                  <input className="form-control" id="factoryPresetFreqsStr" type="text" placeholder="e.g. 860100000, 868300000, 868500000" value={this.state.deviceProfile.deviceProfile.factoryPresetFreqsStr || ''} onChange={this.onChange.bind(this, 'deviceProfile.factoryPresetFreqsStr')} />
+                  <input className="form-control" id="factoryPresetFreqsStr" type="text" placeholder="e.g. 868100000, 868300000, 868500000" value={this.state.deviceProfile.deviceProfile.factoryPresetFreqsStr || ''} onChange={this.onChange.bind(this, 'deviceProfile.factoryPresetFreqsStr')} />
                   <p className="help-block">
                     List of factory-preset frequencies (mandatory for ABP).
                   </p>

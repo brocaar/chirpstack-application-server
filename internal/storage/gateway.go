@@ -238,7 +238,7 @@ func GetGateway(db sqlx.Queryer, mac lorawan.EUI64, forUpdate bool) (Gateway, er
 func GetGatewayCount(db sqlx.Queryer, search string) (int, error) {
 	var count int
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 
 	err := sqlx.Get(db, &count, `
@@ -267,7 +267,7 @@ func GetGatewayCount(db sqlx.Queryer, search string) (int, error) {
 func GetGateways(db sqlx.Queryer, limit, offset int, search string) ([]Gateway, error) {
 	var gws []Gateway
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 
 	err := sqlx.Select(db, &gws, `
@@ -301,7 +301,7 @@ func GetGateways(db sqlx.Queryer, limit, offset int, search string) ([]Gateway, 
 func GetGatewayCountForOrganizationID(db sqlx.Queryer, organizationID int64, search string) (int, error) {
 	var count int
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 
 	err := sqlx.Get(db, &count, `
@@ -334,7 +334,7 @@ func GetGatewayCountForOrganizationID(db sqlx.Queryer, organizationID int64, sea
 func GetGatewaysForOrganizationID(db sqlx.Queryer, organizationID int64, limit, offset int, search string) ([]Gateway, error) {
 	var gws []Gateway
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 
 	err := sqlx.Select(db, &gws, `
@@ -372,7 +372,7 @@ func GetGatewaysForOrganizationID(db sqlx.Queryer, organizationID int64, limit, 
 func GetGatewayCountForUser(db sqlx.Queryer, username string, search string) (int, error) {
 	var count int
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 
 	err := sqlx.Get(db, &count, `
@@ -411,7 +411,7 @@ func GetGatewayCountForUser(db sqlx.Queryer, username string, search string) (in
 func GetGatewaysForUser(db sqlx.Queryer, username string, limit, offset int, search string) ([]Gateway, error) {
 	var gws []Gateway
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 
 	err := sqlx.Select(db, &gws, `

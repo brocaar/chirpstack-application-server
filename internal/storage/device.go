@@ -150,7 +150,7 @@ func GetDevice(db sqlx.Queryer, devEUI lorawan.EUI64) (Device, error) {
 func GetDevicesForApplicationID(db sqlx.Queryer, applicationID int64, limit, offset int, search string) ([]DeviceListItem, error) {
 	var devices []DeviceListItem
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 	err := sqlx.Select(db, &devices, `
 		select
@@ -182,7 +182,7 @@ func GetDevicesForApplicationID(db sqlx.Queryer, applicationID int64, limit, off
 func GetDeviceCountForApplicationID(db sqlx.Queryer, applicationID int64, search string) (int, error) {
 	var count int
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 	err := sqlx.Get(db, &count, `
 		select

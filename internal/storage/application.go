@@ -90,7 +90,7 @@ func GetApplication(db sqlx.Queryer, id int64) (Application, error) {
 func GetApplicationCount(db sqlx.Queryer, search string) (int, error) {
 	var count int
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 
 	err := sqlx.Get(db, &count, `
@@ -115,7 +115,7 @@ func GetApplicationCount(db sqlx.Queryer, search string) (int, error) {
 func GetApplicationCountForUser(db sqlx.Queryer, username string, organizationID int64, search string) (int, error) {
 	var count int
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 
 	err := sqlx.Get(db, &count, `
@@ -149,7 +149,7 @@ func GetApplicationCountForUser(db sqlx.Queryer, username string, organizationID
 func GetApplicationCountForOrganizationID(db sqlx.Queryer, organizationID int64, search string) (int, error) {
 	var count int
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 
 	err := sqlx.Get(db, &count, `
@@ -176,7 +176,7 @@ func GetApplicationCountForOrganizationID(db sqlx.Queryer, organizationID int64,
 func GetApplications(db sqlx.Queryer, limit, offset int, search string) ([]ApplicationListItem, error) {
 	var apps []ApplicationListItem
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 
 	err := sqlx.Select(db, &apps, `
@@ -208,7 +208,7 @@ func GetApplications(db sqlx.Queryer, limit, offset int, search string) ([]Appli
 func GetApplicationsForUser(db sqlx.Queryer, username string, organizationID int64, limit, offset int, search string) ([]ApplicationListItem, error) {
 	var apps []ApplicationListItem
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 
 	err := sqlx.Select(db, &apps, `
@@ -248,7 +248,7 @@ func GetApplicationsForUser(db sqlx.Queryer, username string, organizationID int
 func GetApplicationsForOrganizationID(db sqlx.Queryer, organizationID int64, limit, offset int, search string) ([]ApplicationListItem, error) {
 	var apps []ApplicationListItem
 	if search != "" {
-		search = search + "%"
+		search = "%" + search + "%"
 	}
 
 	err := sqlx.Select(db, &apps, `

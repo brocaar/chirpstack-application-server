@@ -89,26 +89,26 @@ func TestGateway(t *testing.T) {
 			})
 
 			Convey("Then getting the total gateway count returns 1", func() {
-				c, err := GetGatewayCount(db)
+				c, err := GetGatewayCount(db, "")
 				So(err, ShouldBeNil)
 				So(c, ShouldEqual, 1)
 			})
 
 			Convey("Then getting all gateways returns the expected gateway", func() {
-				gws, err := GetGateways(db, 10, 0)
+				gws, err := GetGateways(db, 10, 0, "")
 				So(err, ShouldBeNil)
 				So(gws, ShouldHaveLength, 1)
 				So(gws[0].MAC, ShouldEqual, gw.MAC)
 			})
 
 			Convey("Then getting the total gateway count for the organization returns 1", func() {
-				c, err := GetGatewayCountForOrganizationID(db, org.ID)
+				c, err := GetGatewayCountForOrganizationID(db, org.ID, "")
 				So(err, ShouldBeNil)
 				So(c, ShouldEqual, 1)
 			})
 
 			Convey("Then getting all gateways for the organization returns the exepected gateway", func() {
-				gws, err := GetGatewaysForOrganizationID(db, org.ID, 10, 0)
+				gws, err := GetGatewaysForOrganizationID(db, org.ID, 10, 0, "")
 				So(err, ShouldBeNil)
 				So(gws, ShouldHaveLength, 1)
 				So(gws[0].MAC, ShouldEqual, gw.MAC)
@@ -124,13 +124,13 @@ func TestGateway(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Getting the gateway count for this user returns 0", func() {
-					c, err := GetGatewayCountForUser(db, user.Username)
+					c, err := GetGatewayCountForUser(db, user.Username, "")
 					So(err, ShouldBeNil)
 					So(c, ShouldEqual, 0)
 				})
 
 				Convey("Then getting the gateways for this user returns 0 items", func() {
-					gws, err := GetGatewaysForUser(db, user.Username, 10, 0)
+					gws, err := GetGatewaysForUser(db, user.Username, 10, 0, "")
 					So(err, ShouldBeNil)
 					So(gws, ShouldHaveLength, 0)
 				})
@@ -139,13 +139,13 @@ func TestGateway(t *testing.T) {
 					So(CreateOrganizationUser(db, org.ID, user.ID, false), ShouldBeNil)
 
 					Convey("Getting the gateway count for this user returns 1", func() {
-						c, err := GetGatewayCountForUser(db, user.Username)
+						c, err := GetGatewayCountForUser(db, user.Username, "")
 						So(err, ShouldBeNil)
 						So(c, ShouldEqual, 1)
 					})
 
 					Convey("Then getting the gateways for this user returns 1 item", func() {
-						gws, err := GetGatewaysForUser(db, user.Username, 10, 0)
+						gws, err := GetGatewaysForUser(db, user.Username, 10, 0, "")
 						So(err, ShouldBeNil)
 						So(gws, ShouldHaveLength, 1)
 						So(gws[0].MAC, ShouldEqual, gw.MAC)

@@ -104,7 +104,7 @@ func StartProfilesMigration(nsServer string) error {
 		return errors.Wrap(err, "get network-server count error")
 	}
 
-	appCount, err := storage.GetApplicationCount(config.C.PostgreSQL.DB)
+	appCount, err := storage.GetApplicationCount(config.C.PostgreSQL.DB, "")
 	if err != nil {
 		return errors.Wrap(err, "get applications count error")
 	}

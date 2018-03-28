@@ -98,6 +98,9 @@ It has these top-level messages:
 	UpdateUserPasswordRequest
 	BrandingRequest
 	BrandingResponse
+	GlobalSearchRequest
+	GlobalSearchResponse
+	GlobalSearchResult
 	CreateGatewayRequest
 	CreateGatewayResponse
 	GetGatewayRequest

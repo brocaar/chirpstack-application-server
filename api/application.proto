@@ -182,6 +182,9 @@ message ListApplicationRequest {
 
 	// ID of the organization to filter on.
 	int64 organizationID = 3;
+
+	// Search on name (optional).
+	string search = 4;
 }
 
 message ApplicationListItem {

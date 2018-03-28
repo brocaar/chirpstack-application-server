@@ -156,40 +156,40 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 
 	if req.OrganizationID == 0 {
 		if isAdmin {
-			apps, err = storage.GetApplications(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplications(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCount(config.C.PostgreSQL.DB)
+			count, err = storage.GetApplicationCount(config.C.PostgreSQL.DB, req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		} else {
-			apps, err = storage.GetApplicationsForUser(config.C.PostgreSQL.DB, username, 0, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplicationsForUser(config.C.PostgreSQL.DB, username, 0, int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForUser(config.C.PostgreSQL.DB, username, 0)
+			count, err = storage.GetApplicationCountForUser(config.C.PostgreSQL.DB, username, 0, req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		}
 	} else {
 		if isAdmin {
-			apps, err = storage.GetApplicationsForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplicationsForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID)
+			count, err = storage.GetApplicationCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		} else {
-			apps, err = storage.GetApplicationsForUser(config.C.PostgreSQL.DB, username, req.OrganizationID, int(req.Limit), int(req.Offset))
+			apps, err = storage.GetApplicationsForUser(config.C.PostgreSQL.DB, username, req.OrganizationID, int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForUser(config.C.PostgreSQL.DB, username, req.OrganizationID)
+			count, err = storage.GetApplicationCountForUser(config.C.PostgreSQL.DB, username, req.OrganizationID, req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}

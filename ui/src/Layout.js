@@ -34,6 +34,9 @@ import ApplicationLayout from './views/applications/ApplicationLayout';
 // devices
 import NodeLayout from './views/nodes/NodeLayout';
 
+// search
+import Search from "./views/Search";
+
 
 class Layout extends Component {
   onClick() {
@@ -72,6 +75,8 @@ class Layout extends Component {
               {/* \d+ regexp to make sure we don't match 'applications/create' */}
               <Route path="/organizations/:organizationID/applications/:applicationID(\d+)" component={ApplicationLayout} />
               <Route path="/organizations/:organizationID" component={OrganizationLayout} />
+
+              <Route path="/search" component={Search} />
             </Switch>
           </div>
         </div>

@@ -288,3 +288,67 @@ func (a *InternalUserAPI) Branding(ctx context.Context, req *pb.BrandingRequest)
 
 	return &resp, nil
 }
+
+// GlobalSearch performs a global search.
+func (a *InternalUserAPI) GlobalSearch(ctx context.Context, req *pb.GlobalSearchRequest) (*pb.GlobalSearchResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateActiveUser()); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	username, err := a.validator.GetUsername(ctx)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	results, err := storage.GlobalSearch(config.C.PostgreSQL.DB, username, isAdmin, req.Search, int(req.Limit), int(req.Offset))
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	var out pb.GlobalSearchResponse
+
+	for _, r := range results {
+		res := pb.GlobalSearchResult{
+			Kind:  r.Kind,
+			Score: float32(r.Score),
+		}
+
+		if r.OrganizationID != nil {
+			res.OrganizationID = *r.OrganizationID
+		}
+		if r.OrganizationName != nil {
+			res.OrganizationName = *r.OrganizationName
+		}
+
+		if r.ApplicationID != nil {
+			res.ApplicationID = *r.ApplicationID
+		}
+		if r.ApplicationName != nil {
+			res.ApplicationName = *r.ApplicationName
+		}
+
+		if r.DeviceDevEUI != nil {
+			res.DeviceDevEUI = r.DeviceDevEUI.String()
+		}
+		if r.DeviceName != nil {
+			res.DeviceName = *r.DeviceName
+		}
+
+		if r.GatewayMAC != nil {
+			res.GatewayMAC = r.GatewayMAC.String()
+		}
+		if r.GatewayName != nil {
+			res.GatewayName = *r.GatewayName
+		}
+
+		out.Result = append(out.Result, &res)
+	}
+
+	return &out, nil
+}

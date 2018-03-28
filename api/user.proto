@@ -77,7 +77,14 @@ service Internal {
 		option(google.api.http) = {
 			get: "/api/internal/branding"
 		};
-	} 
+	}
+
+	// Perform a global search.
+	rpc GlobalSearch(GlobalSearchRequest) returns (GlobalSearchResponse) {
+		option(google.api.http) = {
+			get: "/api/internal/search"
+		};
+	}
 }
 
 // Defines the organizations that the user is associated with.
@@ -289,4 +296,51 @@ message BrandingResponse {
 	string logo = 1;
 	string registration = 2;
 	string footer = 3;
+}
+
+message GlobalSearchRequest {
+	// Search query.
+	string search = 1;
+
+	// Max number of results to return.
+	int64 limit = 2;
+
+	// Offset offset of the result-set (for pagination).
+	int64 offset = 3;
+}
+
+message GlobalSearchResponse {
+	repeated GlobalSearchResult result = 1;
+}
+
+message GlobalSearchResult {
+	// Record kind.
+	string kind = 1;
+
+	// Search score.
+	float score = 2;
+
+	// Organization id.
+	int64 organizationID = 3;
+
+	// Organization name.
+	string organizationName = 4;
+
+	// Application id.
+	int64 applicationID = 5;
+
+	// Application name.
+	string applicationName = 6;
+
+	// Device DevEUI (hex encoded).
+	string deviceDevEUI = 7;
+
+	// Device name.
+	string deviceName = 8;
+
+	// Gateway MAC (hex encoded).
+	string gatewayMAC = 9;
+
+	// Gateway name.
+	string gatewayName = 10;
 }

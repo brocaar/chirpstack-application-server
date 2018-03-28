@@ -2,6 +2,25 @@ body {
   padding-top: 87px;
 }
 
+.navbar-form {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.navbar-form .form-group, .navbar-form .input-group {
+  width: 100%; 
+}
+
+.navbar-form .input-group-addon {
+  text-align: right;
+  padding-right: 0;
+}
+
+.navbar-form .input-group-addon a {
+  color: #b2dbfb;
+}
+
+
 /* width fix, see https://github.com/JedWatson/react-select/issues/323 */
 .org-select .Select-input {
   position: absolute !important;

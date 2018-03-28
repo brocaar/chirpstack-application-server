@@ -74,7 +74,7 @@ func TestApplication(t *testing.T) {
 			})
 
 			Convey("Then get applications returns a single application", func() {
-				apps, err := GetApplications(db, 10, 0)
+				apps, err := GetApplications(db, 10, 0, "")
 				So(err, ShouldBeNil)
 				So(apps, ShouldHaveLength, 1)
 				So(apps[0].ID, ShouldEqual, app.ID)
@@ -83,19 +83,19 @@ func TestApplication(t *testing.T) {
 			})
 
 			Convey("Then get application count returns 1", func() {
-				count, err := GetApplicationCount(db)
+				count, err := GetApplicationCount(db, "")
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 			})
 
 			Convey("Then the application count for the organization returns 1", func() {
-				count, err := GetApplicationCountForOrganizationID(db, org.ID)
+				count, err := GetApplicationCountForOrganizationID(db, org.ID, "")
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 			})
 
 			Convey("Then listing the applications for the organization returns the expected application", func() {
-				apps, err := GetApplicationsForOrganizationID(db, org.ID, 10, 0)
+				apps, err := GetApplicationsForOrganizationID(db, org.ID, 10, 0, "")
 				So(err, ShouldBeNil)
 				So(apps, ShouldHaveLength, 1)
 				So(apps[0].ID, ShouldEqual, app.ID)
@@ -117,7 +117,7 @@ func TestApplication(t *testing.T) {
 				So(DeleteApplication(db, app.ID), ShouldBeNil)
 
 				Convey("Then the application count returns 0", func() {
-					count, err := GetApplicationCount(db)
+					count, err := GetApplicationCount(db, "")
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 0)
 				})

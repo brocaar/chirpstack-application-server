@@ -87,9 +87,21 @@ func GetApplication(db sqlx.Queryer, id int64) (Application, error) {
 }
 
 // GetApplicationCount returns the total number of applications.
-func GetApplicationCount(db sqlx.Queryer) (int, error) {
+func GetApplicationCount(db sqlx.Queryer, search string) (int, error) {
 	var count int
-	err := sqlx.Get(db, &count, "select count(*) from application")
+	if search != "" {
+		search = search + "%"
+	}
+
+	err := sqlx.Get(db, &count, `
+		select
+			count(*)
+		from application
+		where
+			$1 = ''
+			or ($1 != '' and name ilike $1)`,
+		search,
+	)
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")
 	}
@@ -99,9 +111,13 @@ func GetApplicationCount(db sqlx.Queryer) (int, error) {
 // GetApplicationCountForUser returns the total number of applications
 // available for the given user.
 // When an organizationID is given, the results will be filtered by this
-//
-func GetApplicationCountForUser(db sqlx.Queryer, username string, organizationID int64) (int, error) {
+// organization ID.
+func GetApplicationCountForUser(db sqlx.Queryer, username string, organizationID int64, search string) (int, error) {
 	var count int
+	if search != "" {
+		search = search + "%"
+	}
+
 	err := sqlx.Get(db, &count, `
 		select
 			count(a.*)
@@ -117,7 +133,11 @@ func GetApplicationCountForUser(db sqlx.Queryer, username string, organizationID
 				$2 = 0
 				or a.organization_id = $2
 			)
-	`, username, organizationID)
+			and (
+				$3 = ''
+				or ($3 != '' and a.name ilike $3)
+			)
+	`, username, organizationID, search)
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")
 	}
@@ -126,14 +146,24 @@ func GetApplicationCountForUser(db sqlx.Queryer, username string, organizationID
 
 // GetApplicationCountForOrganizationID returns the total number of
 // applications for the given organization.
-func GetApplicationCountForOrganizationID(db sqlx.Queryer, organizationID int64) (int, error) {
+func GetApplicationCountForOrganizationID(db sqlx.Queryer, organizationID int64, search string) (int, error) {
 	var count int
+	if search != "" {
+		search = search + "%"
+	}
+
 	err := sqlx.Get(db, &count, `
-		select count(*)
+		select
+			count(*)
 		from application
 		where
-			organization_id = $1`,
+			organization_id = $1
+			and (
+				$2 = ''
+				or ($2 != '' and name ilike $2)
+			)`,
 		organizationID,
+		search,
 	)
 	if err != nil {
 		return 0, errors.Wrap(err, "select error")
@@ -143,8 +173,12 @@ func GetApplicationCountForOrganizationID(db sqlx.Queryer, organizationID int64)
 
 // GetApplications returns a slice of applications, sorted by name and
 // respecting the given limit and offset.
-func GetApplications(db sqlx.Queryer, limit, offset int) ([]ApplicationListItem, error) {
+func GetApplications(db sqlx.Queryer, limit, offset int, search string) ([]ApplicationListItem, error) {
 	var apps []ApplicationListItem
+	if search != "" {
+		search = search + "%"
+	}
+
 	err := sqlx.Select(db, &apps, `
 		select
 			a.*,
@@ -152,12 +186,16 @@ func GetApplications(db sqlx.Queryer, limit, offset int) ([]ApplicationListItem,
 		from application a
 		inner join service_profile sp
 			on sp.service_profile_id = a.service_profile_id
+		where
+			$3 = ''
+			or ($3 != '' and a.name ilike $3)
 		order by
 			name
 		limit $1
 		offset $2`,
 		limit,
 		offset,
+		search,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
@@ -167,8 +205,12 @@ func GetApplications(db sqlx.Queryer, limit, offset int) ([]ApplicationListItem,
 
 // GetApplicationsForUser returns a slice of application of which the given
 // user is a member of.
-func GetApplicationsForUser(db sqlx.Queryer, username string, organizationID int64, limit, offset int) ([]ApplicationListItem, error) {
+func GetApplicationsForUser(db sqlx.Queryer, username string, organizationID int64, limit, offset int, search string) ([]ApplicationListItem, error) {
 	var apps []ApplicationListItem
+	if search != "" {
+		search = search + "%"
+	}
+
 	err := sqlx.Select(db, &apps, `
 		select
 			a.*,
@@ -187,9 +229,13 @@ func GetApplicationsForUser(db sqlx.Queryer, username string, organizationID int
 				$2 = 0
 				or a.organization_id = $2
 			)
+			and (
+				$5 = ''
+				or ($5 != '' and a.name ilike $5)
+			)
 		order by a.name
 		limit $3 offset $4
-	`, username, organizationID, limit, offset)
+	`, username, organizationID, limit, offset, search)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")
 	}
@@ -199,8 +245,12 @@ func GetApplicationsForUser(db sqlx.Queryer, username string, organizationID int
 
 // GetApplicationsForOrganizationID returns a slice of applications for the given
 // organization.
-func GetApplicationsForOrganizationID(db sqlx.Queryer, organizationID int64, limit, offset int) ([]ApplicationListItem, error) {
+func GetApplicationsForOrganizationID(db sqlx.Queryer, organizationID int64, limit, offset int, search string) ([]ApplicationListItem, error) {
 	var apps []ApplicationListItem
+	if search != "" {
+		search = search + "%"
+	}
+
 	err := sqlx.Select(db, &apps, `
 		select
 			a.*,
@@ -210,11 +260,16 @@ func GetApplicationsForOrganizationID(db sqlx.Queryer, organizationID int64, lim
 			on sp.service_profile_id = a.service_profile_id
 		where
 			a.organization_id = $1
+			and (
+				$4 = ''
+				or ($4 != '' and a.name ilike $4)
+			)
 		order by a.name
 		limit $2 offset $3`,
 		organizationID,
 		limit,
 		offset,
+		search,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "select error")

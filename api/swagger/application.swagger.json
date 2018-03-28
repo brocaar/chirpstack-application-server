@@ -51,6 +51,13 @@
             "required": false,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "search",
+            "description": "Search on name (optional).",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [

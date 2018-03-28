@@ -76,6 +76,48 @@
         ]
       }
     },
+    "/api/internal/search": {
+      "get": {
+        "summary": "Perform a global search.",
+        "operationId": "GlobalSearch",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGlobalSearchResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "search",
+            "description": "Search query.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "description": "Max number of results to return.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset",
+            "description": "Offset offset of the result-set (for pagination).",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Internal"
+        ]
+      }
+    },
     "/api/users": {
       "get": {
         "summary": "Get user list.",
@@ -386,6 +428,65 @@
         "note": {
           "type": "string",
           "description": "Optional note to store with the user."
+        }
+      }
+    },
+    "apiGlobalSearchResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGlobalSearchResult"
+          }
+        }
+      }
+    },
+    "apiGlobalSearchResult": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "description": "Record kind."
+        },
+        "score": {
+          "type": "number",
+          "format": "float",
+          "description": "Search score."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Organization id."
+        },
+        "organizationName": {
+          "type": "string",
+          "description": "Organization name."
+        },
+        "applicationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Application id."
+        },
+        "applicationName": {
+          "type": "string",
+          "description": "Application name."
+        },
+        "deviceDevEUI": {
+          "type": "string",
+          "description": "Device DevEUI (hex encoded)."
+        },
+        "deviceName": {
+          "type": "string",
+          "description": "Device name."
+        },
+        "gatewayMAC": {
+          "type": "string",
+          "description": "Gateway MAC (hex encoded)."
+        },
+        "gatewayName": {
+          "type": "string",
+          "description": "Gateway name."
         }
       }
     },

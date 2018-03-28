@@ -263,6 +263,9 @@ message ListGatewayRequest {
 	// ID of the organization for which to filter on, when left blank the
 	// response will return all gateways to which the user has access to.
 	int64 organizationID = 3;
+
+	// Search on name or gateway MAC (optional).
+	string search = 4;
 }
 
 message ListGatewayItem {

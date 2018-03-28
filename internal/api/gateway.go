@@ -165,12 +165,12 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 
 		if isAdmin {
 			// in case of admin user list all gateways
-			count, err = storage.GetGatewayCount(config.C.PostgreSQL.DB)
+			count, err = storage.GetGatewayCount(config.C.PostgreSQL.DB, req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 
-			gws, err = storage.GetGateways(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset))
+			gws, err = storage.GetGateways(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
@@ -180,21 +180,21 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetGatewayCountForUser(config.C.PostgreSQL.DB, username)
+			count, err = storage.GetGatewayCountForUser(config.C.PostgreSQL.DB, username, req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			gws, err = storage.GetGatewaysForUser(config.C.PostgreSQL.DB, username, int(req.Limit), int(req.Offset))
+			gws, err = storage.GetGatewaysForUser(config.C.PostgreSQL.DB, username, int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		}
 	} else {
-		count, err = storage.GetGatewayCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID)
+		count, err = storage.GetGatewayCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, req.Search)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
-		gws, err = storage.GetGatewaysForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+		gws, err = storage.GetGatewaysForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset), req.Search)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}

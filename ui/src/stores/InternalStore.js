@@ -1,8 +1,7 @@
 import { EventEmitter } from "events";
 import "whatwg-fetch";
-import dispatcher from "../dispatcher";
 import sessionStore from "./SessionStore";
-import { checkStatus, errorHandler, errorHandlerIgnoreNotFound } from "./helpers";
+import { checkStatus, errorHandler } from "./helpers";
 
 
 class InternalStore extends EventEmitter {

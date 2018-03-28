@@ -82,7 +82,7 @@ class Navbar extends Component {
                 <div className="input-group">
                   <input className="form-control" type="text" placeholder="Search organization, application, gateway or device" value={this.state.search} onChange={this.onSearchChange.bind(this, 'search')} />
                   <span className="input-group-addon">
-                    <a href="#search" onClick={this.toggleSearch}><span className="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
+                    <a href="#search" onClick={this.toggleSearch}><span className="glyphicon glyphicon-remove" aria-hidden="true"></span><span className="hidden">close search</span></a>
                   </span>
                 </div>
               </div>
@@ -108,7 +108,7 @@ class Navbar extends Component {
                   <li><Link to="/login">Logout</Link></li>
                 </ul>
               </li>
-              <li className={this.state.user.username === undefined ? "hidden": ""}><a href="#search" onClick={this.toggleSearch}><span className="glyphicon glyphicon-search" aria-hidden="true"></span></a></li>
+              <li className={this.state.user.username === undefined ? "hidden": ""}><a href="#search" onClick={this.toggleSearch}><span className="glyphicon glyphicon-search" aria-hidden="true"></span><span className="hidden">search</span></a></li>
             </ul>
           </div>
         </div>

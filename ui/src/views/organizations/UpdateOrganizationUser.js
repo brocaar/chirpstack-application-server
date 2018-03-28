@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 
 import OrganizationStore from "../../stores/OrganizationStore";
 
@@ -106,9 +106,10 @@ class UpdateOrganizationUser extends Component {
     return(
       <div className="panel panel-default">
         <div className="panel-heading clearfix">
-          <h3 className="panel-title panel-title-buttons pull-left">Update user</h3>
-          <div className="btn-group pull-right">
-            <a><button type="button" className="btn btn-danger btn-sm" onClick={this.onDelete}>Remove user</button></a>
+          <h3 className="panel-title panel-title-buttons pull-left">Update organization user</h3>
+          <div className="pull-right">
+            <Link to={`/users/${this.state.user.id}/edit`}><button className="btn btn-default btn-sm">Goto user</button></Link> &nbsp;
+            <button type="button" className="btn btn-danger btn-sm" onClick={this.onDelete}>Remove user</button>
           </div>
         </div>
         <div className="panel-body">

@@ -15,6 +15,7 @@ class AssignUserForm extends Component {
     this.state = {
       user: {},
       initialOptions: [],
+      selectedUser: {},
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -58,7 +59,10 @@ class AssignUserForm extends Component {
   onAutocompleteSelect(val) {
     let user = this.state.user;
     user.userID = val.value;
-    this.setState({user: user});
+    this.setState({
+      user: user,
+      selectedUser: val,
+    });
   }
 
   onAutocomplete(input, callbackFunc) {
@@ -81,7 +85,7 @@ class AssignUserForm extends Component {
       <form onSubmit={this.handleSubmit}>
         <div className="form-group">
           <label className="control-label" htmlFor="name">Username</label>
-          <Select.Async name="username" required onOpen={this.setInitialOptions} options={this.state.initialOptions} loadOptions={this.onAutocomplete} value={this.state.user.userID} onChange={this.onAutocompleteSelect} clearable={false} autoload={false} />
+          <Select.Async name="username" required onOpen={this.setInitialOptions} options={this.state.initialOptions} loadOptions={this.onAutocomplete} value={this.state.selectedUser} onChange={this.onAutocompleteSelect} clearable={false} autoload={false} />
         </div>
         <div className="form-group">
           <label className="control-label">Admin</label>

@@ -22,7 +22,7 @@ class OrganizationSelect extends Component {
     this.onSelect = this.onSelect.bind(this);
   }
 
-  componentWillMount() {
+  componentDidMount() {
     OrganizationStore.getOrganization(this.props.organizationID, (org) => {
       this.setState({
         organization: org,
@@ -102,10 +102,15 @@ class OrganizationSelect extends Component {
     let org;
 
     if (this.state.showDropdown) {
+      const value = {
+        label: this.state.organization.name,
+        value: this.state.organization.id,
+      };
+
       org = <div className="org-select"><Select.Async
         name="organization"
         options={this.state.initialOptions}
-        value={this.props.organizationID}
+        value={value}
         clearable={false}
         autosize={true}
         onOpen={this.setInitialOrganizations}

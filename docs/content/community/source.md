@@ -31,7 +31,7 @@ pre-compiled packages available):
 
 #### Go
 
-Make sure you have [Go](https://golang.org/) installed (1.8+) and that the LoRa
+Make sure you have [Go](https://golang.org/) installed (1.9+) and that the LoRa
 App Server repository has been cloned to 
 `$GOPATH/src/github.com/brocaar/lora-app-server`.
 

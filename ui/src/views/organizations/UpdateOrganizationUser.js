@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Link, withRouter } from 'react-router-dom';
 
 import OrganizationStore from "../../stores/OrganizationStore";
+import SessionStore from "../../stores/SessionStore";
 
 
 class UpdateOrganizationUserForm extends Component {
@@ -74,6 +75,7 @@ class UpdateOrganizationUser extends Component {
 
     this.state = {
       user: {},
+      isAdmin: SessionStore.isAdmin(),
     };
 
     this.onSubmit = this.onSubmit.bind(this);
@@ -85,7 +87,13 @@ class UpdateOrganizationUser extends Component {
       this.setState({
         user: user,
       });
-    });    
+    });
+
+    SessionStore.on("change", () => {
+      this.setState({
+        isAdmin: SessionStore.isAdmin(),
+      });
+    });
   }
 
   onSubmit(user) {
@@ -108,7 +116,7 @@ class UpdateOrganizationUser extends Component {
         <div className="panel-heading clearfix">
           <h3 className="panel-title panel-title-buttons pull-left">Update organization user</h3>
           <div className="pull-right">
-            <Link to={`/users/${this.state.user.id}/edit`}><button className="btn btn-default btn-sm">Goto user</button></Link> &nbsp;
+            <Link to={`/users/${this.state.user.id}/edit`} className={this.state.isAdmin ? "" : "hidden"}><button className="btn btn-default btn-sm">Goto user</button></Link> &nbsp;
             <button type="button" className="btn btn-danger btn-sm" onClick={this.onDelete}>Remove user</button>
           </div>
         </div>

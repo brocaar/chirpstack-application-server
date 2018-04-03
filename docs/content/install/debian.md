@@ -23,7 +23,7 @@ start the PostgreSQL prompt as the `postgres` user:
 sudo -u postgres psql
 ```
 
-Within the the PostgreSQL prompt, enter the following queries:
+Within the PostgreSQL prompt, enter the following queries:
 
 ```sql
 -- create the loraserver_as user
@@ -31,6 +31,10 @@ create role loraserver_as with login password 'dbpassword';
 
 -- create the loraserver_as database
 create database loraserver_as with owner loraserver_as;
+
+-- enable the trigram extension
+\c loraserver_as
+create extension pg_trgm;
 
 -- exit the prompt
 \q

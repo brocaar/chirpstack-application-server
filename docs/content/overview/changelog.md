@@ -8,6 +8,50 @@ menu:
 
 # Changelog
 
+## 0.19.0
+
+**Features:**
+
+* Global search on organizations, applications, devices and gateways.
+* Display live device events (the same data as publised over MQTT).
+  See also [Event logging](https://www.loraserver.io/lora-app-server/use/event-logging/).
+
+**Improvements:**
+
+* When creating an application, show a warning when no service-profile exists.
+* When creating a gateway, show a warning when no network-server has been associated.
+* When creating a device, show a warning when no device-profile exists.
+
+**Bugfixes:**
+
+* Fix organization selector (which would sometimes show an empty value on select).
+* Fix user selector when assigning an user to an organization (which would sometimes show an empty value on select).
+
+**Upgrade notes:**
+
+Before upgrading, the PostgreSQL `pg_trgm` extension needs to be enabled.
+Assuming the LoRa App Server database is configured as `loraserver_as` this
+extension could be enabled using the commands below.
+
+Start the PostgreSQL prompt as the `postgres` user:
+
+```bash
+sudo -u postgres psql
+```
+
+Within the PostgreSQL prompt, enter the following queries:
+
+```sql
+-- change to the LoRa App Server database
+\c loraserver_as
+
+-- enable the extension
+create extension pg_trgm;
+
+-- exit the prompt
+\q
+```
+
 ## 0.18.2
 
 **Improvements:**

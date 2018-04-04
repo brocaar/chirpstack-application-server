@@ -35,6 +35,9 @@ type NetworkServer struct {
 
 // Validate validates the network-server data.
 func (ns NetworkServer) Validate() error {
+	if ns.GatewayDiscoveryEnabled && ns.GatewayDiscoveryInterval <= 0 {
+		return ErrInvalidGatewayDiscoveryInterval
+	}
 	return nil
 }
 

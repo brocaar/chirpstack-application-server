@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -18,6 +19,34 @@ func TestNetworkServer(t *testing.T) {
 		t.Fatal(err)
 	}
 	config.C.PostgreSQL.DB = db
+
+	Convey("Testing the Validate function", t, func() {
+		testTable := []struct {
+			NetworkServer NetworkServer
+			ExpectedError error
+		}{
+			{
+				NetworkServer: NetworkServer{
+					GatewayDiscoveryEnabled:  false,
+					GatewayDiscoveryInterval: 0,
+				},
+				ExpectedError: nil,
+			},
+			{
+				NetworkServer: NetworkServer{
+					GatewayDiscoveryEnabled:  true,
+					GatewayDiscoveryInterval: 0,
+				},
+				ExpectedError: ErrInvalidGatewayDiscoveryInterval,
+			},
+		}
+
+		for i, test := range testTable {
+			Convey(fmt.Sprintf("Test %d", i), func() {
+				So(test.NetworkServer.Validate(), ShouldEqual, test.ExpectedError)
+			})
+		}
+	})
 
 	Convey("Given a clean database with an organization", t, func() {
 		test.MustResetDB(db)

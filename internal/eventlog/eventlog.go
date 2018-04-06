@@ -5,9 +5,11 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"time"
 
 	"github.com/garyburd/redigo/redis"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lorawan"
@@ -54,13 +56,6 @@ func LogEventForDevice(devEUI lorawan.EUI64, el EventLog) error {
 func GetEventLogForDevice(ctx context.Context, devEUI lorawan.EUI64, eventsChan chan EventLog) error {
 	c := config.C.Redis.Pool.Get()
 	defer c.Close()
-	var done bool
-
-	go func() {
-		<-ctx.Done()
-		done = true
-		c.Close()
-	}()
 
 	key := fmt.Sprintf(deviceEventUplinkPubSubKeyTempl, devEUI)
 	psc := redis.PubSubConn{Conn: c}
@@ -68,21 +63,54 @@ func GetEventLogForDevice(ctx context.Context, devEUI lorawan.EUI64, eventsChan 
 		return errors.Wrap(err, "subscribe error")
 	}
 
+	done := make(chan error, 1)
+
+	go func() {
+		for {
+			switch v := psc.Receive().(type) {
+			case redis.Message:
+				el, err := redisMessageToEventLog(v)
+				if err != nil {
+					log.WithError(err).Error("decode message errror")
+				} else {
+					eventsChan <- el
+				}
+			case redis.Subscription:
+				if v.Count == 0 {
+					done <- nil
+					return
+				}
+			case error:
+				done <- v
+				return
+			}
+		}
+	}()
+
+	// todo: make this a config value?
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+loop:
 	for {
-		switch v := psc.Receive().(type) {
-		case redis.Message:
-			el, err := redisMessageToEventLog(v)
-			if err != nil {
-				return errors.Wrap(err, "decode message error")
+		select {
+		case <-ticker.C:
+			if err := psc.Ping(""); err != nil {
+				log.WithError(err).Error("subscription ping error")
+				break loop
 			}
-			eventsChan <- el
-		case error:
-			if done {
-				return nil
-			}
-			return errors.Wrap(v, "receive error")
+		case <-ctx.Done():
+			break loop
+		case err := <-done:
+			return err
 		}
 	}
+
+	if err := psc.Unsubscribe(); err != nil {
+		return errors.Wrap(err, "unsubscribe error")
+	}
+
+	return <-done
 }
 
 func redisMessageToEventLog(msg redis.Message) (EventLog, error) {

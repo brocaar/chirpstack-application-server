@@ -24,16 +24,17 @@ var gatewayNameRegexp = regexp.MustCompile(`^[\w-]+$`)
 
 // Gateway represents a gateway.
 type Gateway struct {
-	MAC             lorawan.EUI64 `db:"mac"`
-	CreatedAt       time.Time     `db:"created_at"`
-	UpdatedAt       time.Time     `db:"updated_at"`
-	Name            string        `db:"name"`
-	Description     string        `db:"description"`
-	OrganizationID  int64         `db:"organization_id"`
-	Ping            bool          `db:"ping"`
-	LastPingID      *int64        `db:"last_ping_id"`
-	LastPingSentAt  *time.Time    `db:"last_ping_sent_at"`
-	NetworkServerID int64         `db:"network_server_id"`
+	MAC              lorawan.EUI64 `db:"mac"`
+	CreatedAt        time.Time     `db:"created_at"`
+	UpdatedAt        time.Time     `db:"updated_at"`
+	Name             string        `db:"name"`
+	Description      string        `db:"description"`
+	OrganizationID   int64         `db:"organization_id"`
+	Ping             bool          `db:"ping"`
+	LastPingID       *int64        `db:"last_ping_id"`
+	LastPingSentAt   *time.Time    `db:"last_ping_sent_at"`
+	NetworkServerID  int64         `db:"network_server_id"`
+	GatewayProfileID *string       `db:"gateway_profile_id"`
 }
 
 // GatewayPing represents a gateway ping.
@@ -109,8 +110,9 @@ func CreateGateway(db sqlx.Execer, gw *Gateway) error {
 			ping,
 			last_ping_id,
 			last_ping_sent_at,
-			network_server_id
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+			network_server_id,
+			gateway_profile_id
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
 		gw.MAC[:],
 		gw.CreatedAt,
 		gw.UpdatedAt,
@@ -121,6 +123,7 @@ func CreateGateway(db sqlx.Execer, gw *Gateway) error {
 		gw.LastPingID,
 		gw.LastPingSentAt,
 		gw.NetworkServerID,
+		gw.GatewayProfileID,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -150,7 +153,8 @@ func UpdateGateway(db sqlx.Execer, gw *Gateway) error {
 			ping = $6,
 			last_ping_id = $7,
 			last_ping_sent_at = $8,
-			network_server_id = $9
+			network_server_id = $9,
+			gateway_profile_id = $10
 		where
 			mac = $1`,
 		gw.MAC[:],
@@ -162,6 +166,7 @@ func UpdateGateway(db sqlx.Execer, gw *Gateway) error {
 		gw.LastPingID,
 		gw.LastPingSentAt,
 		gw.NetworkServerID,
+		gw.GatewayProfileID,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

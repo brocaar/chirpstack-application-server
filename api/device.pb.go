@@ -16,6 +16,7 @@ It is generated from these files:
 	networkServer.proto
 	serviceProfile.proto
 	deviceProfile.proto
+	gatewayProfile.proto
 
 It has these top-level messages:
 	DeviceKeys
@@ -106,8 +107,6 @@ It has these top-level messages:
 	GetGatewayRequest
 	GetGatewayResponse
 	DeleteGatewayRequest
-	GenerateGatewayTokenRequest
-	GenerateGatewayTokenResponse
 	DeleteGatewayResponse
 	ListGatewayRequest
 	ListGatewayItem
@@ -117,25 +116,6 @@ It has these top-level messages:
 	GatewayStats
 	GetGatewayStatsRequest
 	GetGatewayStatsResponse
-	CreateChannelConfigurationRequest
-	CreateChannelConfigurationResponse
-	GetChannelConfigurationRequest
-	GetChannelConfigurationResponse
-	UpdateChannelConfigurationRequest
-	UpdateChannelConfigurationResponse
-	DeleteChannelConfigurationRequest
-	DeleteChannelConfigurationResponse
-	ListChannelConfigurationsRequest
-	ListChannelConfigurationsResponse
-	CreateExtraChannelRequest
-	CreateExtraChannelResponse
-	UpdateExtraChannelRequest
-	UpdateExtraChannelResponse
-	DeleteExtraChannelRequest
-	DeleteExtraChannelResponse
-	GetExtraChannelResponse
-	GetExtraChannelsForChannelConfigurationIDRequest
-	GetExtraChannelsForChannelConfigurationIDResponse
 	PingRX
 	GetLastPingRequest
 	GetLastPingResponse
@@ -189,6 +169,19 @@ It has these top-level messages:
 	ListDeviceProfileRequest
 	DeviceProfileMeta
 	ListDeviceProfileResponse
+	GatewayProfile
+	GatewayProfileMeta
+	GatewayProfileExtraChannel
+	CreateGatewayProfileRequest
+	CreateGatewayProfileResponse
+	GetGatewayProfileRequest
+	GetGatewayProfileResponse
+	UpdateGatewayProfileRequest
+	UpdateGatewayProfileResponse
+	DeleteGatewayProfileRequest
+	DeleteGatewayProfileResponse
+	ListGatewayProfilesRequest
+	ListGatewayProfilesResponse
 */
 package api
 

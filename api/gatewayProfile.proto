@@ -1,0 +1,165 @@
+syntax = "proto3";
+
+package api;
+
+// for grpc-gateway
+import "google/api/annotations.proto";
+import "common.proto";
+
+
+// GatewayProfileService is the service managing the gateway-profiles.
+service GatewayProfileService {
+	// Create creates the given gateway-profile.
+	rpc Create(CreateGatewayProfileRequest) returns (CreateGatewayProfileResponse) {
+		option (google.api.http) = {
+			post: "/api/gateway-profiles"
+			body: "*"
+		};
+	}
+
+	// Get returns the gateway-profile matching the given id.
+	rpc Get(GetGatewayProfileRequest) returns (GetGatewayProfileResponse) {
+		option (google.api.http) = {
+			get: "/api/gateway-profiles/{gatewayProfileID}"
+		};
+	}
+
+	// Update updates the given gateway-profile.
+	rpc Update(UpdateGatewayProfileRequest) returns (UpdateGatewayProfileResponse) {
+		option (google.api.http) = {
+			put: "/api/gateway-profiles/{gatewayProfile.gatewayProfileID}"
+			body: "*"
+		};
+	}
+
+	// Delete deletes the gateway-profile matching the given id.
+	rpc Delete(DeleteGatewayProfileRequest) returns (DeleteGatewayProfileResponse) {
+		option (google.api.http) = {
+			delete: "/api/gateway-profiles/{gatewayProfileID}"
+		};
+	}
+
+	// List returns the existing gateway-profiles.
+	rpc List(ListGatewayProfilesRequest) returns (ListGatewayProfilesResponse) {
+		option (google.api.http) = {
+			get: "/api/gateway-profiles"
+		};
+	}
+}
+
+message GatewayProfile {
+    // ID of the gateway-profile.
+    string gatewayProfileID = 1;
+
+    // Default channels (channels specified by the LoRaWAN Regional Parameters
+    // specification) enabled for this configuration.
+    repeated uint32 channels = 2;
+
+    // Extra channels added to the channel-configuration (in case the LoRaWAN
+    // region supports adding custom channels).
+    repeated GatewayProfileExtraChannel extraChannels = 3;
+}
+
+message GatewayProfileMeta {
+    // ID of the gateway-profile.
+    string gatewayProfileID = 1;
+
+    // Name of the gateway-profile.
+    string name = 2;
+
+    // Network-server id of the gateway-profile.
+    int64 networkServerID = 3;
+
+    // Timestamp when the record was created.
+    string createdAt = 5;
+
+    // Timestamp when the record was last updated.
+    string updatedAt = 6;
+}
+
+message GatewayProfileExtraChannel {
+    // Modulation.
+    Modulation modulation = 1;
+
+    // Frequency.
+    uint32 frequency = 2;
+
+    // Bandwidth.
+    uint32 bandwidth = 3;
+
+    // Bitrate (in case of FSK modulation).
+    uint32 bitrate = 4;
+
+    // Spreading factors (in case of LoRa modulation).
+    repeated uint32 spreadingFactors = 5;
+}
+
+message CreateGatewayProfileRequest {
+    GatewayProfile gatewayProfile = 1;
+
+    // Name of the gateway-profile.
+    string name = 2;
+
+    // Network-server ID of the gateway-profile.
+    int64 networkServerID = 3;
+}
+
+message CreateGatewayProfileResponse {
+    // ID of the created gateway-profile.
+    string gatewayProfileID = 1;
+}
+
+message GetGatewayProfileRequest {
+    // The ID of the gateway-profile.
+    string gatewayProfileID = 1;
+}
+
+message GetGatewayProfileResponse {
+    GatewayProfile gatewayProfile = 1;
+
+    // Name of the gateway-profile.
+    string name = 2;
+
+    // Network-server ID of the gateway-profile.
+    int64 networkServerID = 3;
+
+    // Timestamp when the record was created.
+    string createdAt = 5;
+
+    // Timestamp when the record was last updated.
+    string updatedAt = 6;
+}
+
+message UpdateGatewayProfileRequest {
+    GatewayProfile gatewayProfile = 1;
+
+    // Name of the gateway-profile.
+    string name = 2;
+}
+
+message UpdateGatewayProfileResponse {}
+
+message DeleteGatewayProfileRequest {
+    // The ID of the gateway-profile.
+    string gatewayProfileID = 1;
+}
+
+message DeleteGatewayProfileResponse {}
+
+message ListGatewayProfilesRequest {
+    // Max number of items to return.
+    int64 limit = 1;
+
+    // Offset in the result-set (for pagination).
+    int64 offset = 2;
+
+    // Network-server ID to filter on (optional).
+    int64 networkServerID = 3;
+}
+
+message ListGatewayProfilesResponse {
+    // Total number of gateway-profiles.
+    int64 totalCount = 1;
+
+    repeated GatewayProfileMeta result = 2;
+}

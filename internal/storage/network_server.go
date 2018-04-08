@@ -405,3 +405,24 @@ func GetNetworkServerForGatewayMAC(db sqlx.Queryer, mac lorawan.EUI64) (NetworkS
 	}
 	return n, nil
 }
+
+// GetNetworkServerForGatewayProfileID returns the network-server for the given
+// gateway-profile id.
+func GetNetworkServerForGatewayProfileID(db sqlx.Queryer, id string) (NetworkServer, error) {
+	var n NetworkServer
+	err := sqlx.Get(db, &n, `
+		select
+			ns.*
+		from
+			network_server ns
+		inner join gateway_profile gp
+			on gp.network_server_id = ns.id
+		where
+			gp.gateway_profile_id = $1`,
+		id,
+	)
+	if err != nil {
+		return n, handlePSQLError(Select, err, "select errror")
+	}
+	return n, nil
+}

@@ -577,9 +577,9 @@ func ValidateOrganizationUserAccess(flag Flag, organizationID, userID int64) Val
 	}
 }
 
-// ValidateChannelConfigurationAccess validates if the client has access
-// to the channel-configuration.
-func ValidateChannelConfigurationAccess(flag Flag) ValidatorFunc {
+// ValidateGatewayProfileAccess validates if the client has access
+// to the gateway-profiles.
+func ValidateGatewayProfileAccess(flag Flag) ValidatorFunc {
 	var where = [][]string{}
 
 	switch flag {

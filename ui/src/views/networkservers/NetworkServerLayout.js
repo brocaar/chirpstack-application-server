@@ -6,9 +6,10 @@ import NetworkServerStore from "../../stores/NetworkServerStore";
 // network-servers
 import UpdateNetworkServer from "./UpdateNetworkServer";
 
-// gateways
-import ListChannelConfigurations from "../gateways/ListChannelConfigurations";
-import CreateChannelConfiguration from "../gateways/CreateChannelConfiguration";
+// gateway-profiles
+import CreateGatewayProfile from "../gatewayprofiles/CreateGatewayProfile";
+import UpdateGatewayProfile from "../gatewayprofiles/UpdateGatewayProfile";
+import ListGatewayProfiles from "../gatewayprofiles/ListGatewayProfiles";
 
 
 class NetworkServerLayout extends Component {
@@ -54,14 +55,15 @@ class NetworkServerLayout extends Component {
         </div>
         <div className="nav nav-tabs">
           <li role="presentation" className={(activeTab === "" ? "active" : "")}><Link to={`/network-servers/${this.props.match.params.networkServerID}`}>Network-server configuration</Link></li>
-          <li role="presentation" className={(activeTab.startsWith("/channel-configurations") ? "active": "")}><Link to={`/network-servers/${this.props.match.params.networkServerID}/channel-configurations`}>Channel configurations</Link></li>
+          <li role="presentation" className={(activeTab.startsWith("/gateway-profiles") ? "active": "")}><Link to={`/network-servers/${this.props.match.params.networkServerID}/gateway-profiles`}>Gateway-profiles</Link></li>
         </div>
         <hr />
 
         <Switch>
           <Route exact path={this.props.match.path} component={UpdateNetworkServer} />
-          <Route path={`${this.props.match.path}/channel-configurations/create`} component={CreateChannelConfiguration} />
-          <Route path={`${this.props.match.path}/channel-configurations`} component={ListChannelConfigurations} />
+          <Route path={`${this.props.match.path}/gateway-profiles/create`} component={CreateGatewayProfile} />
+          <Route path={`${this.props.match.path}/gateway-profiles/:gatewayProfileID`} component={UpdateGatewayProfile} />
+          <Route path={`${this.props.match.path}/gateway-profiles`} component={ListGatewayProfiles} />
         </Switch>
       </div>
     );

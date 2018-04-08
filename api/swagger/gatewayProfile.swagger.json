@@ -1,0 +1,346 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "gatewayProfile.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/gateway-profiles": {
+      "get": {
+        "summary": "List returns the existing gateway-profiles.",
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListGatewayProfilesResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "Max number of items to return.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset",
+            "description": "Offset in the result-set (for pagination).",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "networkServerID",
+            "description": "Network-server ID to filter on (optional).",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "GatewayProfileService"
+        ]
+      },
+      "post": {
+        "summary": "Create creates the given gateway-profile.",
+        "operationId": "Create",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiCreateGatewayProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateGatewayProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayProfileService"
+        ]
+      }
+    },
+    "/api/gateway-profiles/{gatewayProfile.gatewayProfileID}": {
+      "put": {
+        "summary": "Update updates the given gateway-profile.",
+        "operationId": "Update",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiUpdateGatewayProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "gatewayProfile.gatewayProfileID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateGatewayProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayProfileService"
+        ]
+      }
+    },
+    "/api/gateway-profiles/{gatewayProfileID}": {
+      "get": {
+        "summary": "Get returns the gateway-profile matching the given id.",
+        "operationId": "Get",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetGatewayProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "gatewayProfileID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayProfileService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete deletes the gateway-profile matching the given id.",
+        "operationId": "Delete",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiDeleteGatewayProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "gatewayProfileID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayProfileService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiCreateGatewayProfileRequest": {
+      "type": "object",
+      "properties": {
+        "gatewayProfile": {
+          "$ref": "#/definitions/apiGatewayProfile"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the gateway-profile."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Network-server ID of the gateway-profile."
+        }
+      }
+    },
+    "apiCreateGatewayProfileResponse": {
+      "type": "object",
+      "properties": {
+        "gatewayProfileID": {
+          "type": "string",
+          "description": "ID of the created gateway-profile."
+        }
+      }
+    },
+    "apiDeleteGatewayProfileResponse": {
+      "type": "object"
+    },
+    "apiGatewayProfile": {
+      "type": "object",
+      "properties": {
+        "gatewayProfileID": {
+          "type": "string",
+          "description": "ID of the gateway-profile."
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "description": "Default channels (channels specified by the LoRaWAN Regional Parameters\nspecification) enabled for this configuration."
+        },
+        "extraChannels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGatewayProfileExtraChannel"
+          },
+          "description": "Extra channels added to the channel-configuration (in case the LoRaWAN\nregion supports adding custom channels)."
+        }
+      }
+    },
+    "apiGatewayProfileExtraChannel": {
+      "type": "object",
+      "properties": {
+        "modulation": {
+          "$ref": "#/definitions/apiModulation",
+          "description": "Modulation."
+        },
+        "frequency": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Frequency."
+        },
+        "bandwidth": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Bandwidth."
+        },
+        "bitrate": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Bitrate (in case of FSK modulation)."
+        },
+        "spreadingFactors": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "description": "Spreading factors (in case of LoRa modulation)."
+        }
+      }
+    },
+    "apiGatewayProfileMeta": {
+      "type": "object",
+      "properties": {
+        "gatewayProfileID": {
+          "type": "string",
+          "description": "ID of the gateway-profile."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the gateway-profile."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Network-server id of the gateway-profile."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the record was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the record was last updated."
+        }
+      }
+    },
+    "apiGetGatewayProfileResponse": {
+      "type": "object",
+      "properties": {
+        "gatewayProfile": {
+          "$ref": "#/definitions/apiGatewayProfile"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the gateway-profile."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Network-server ID of the gateway-profile."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the record was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the record was last updated."
+        }
+      }
+    },
+    "apiListGatewayProfilesResponse": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "string",
+          "format": "int64",
+          "description": "Total number of gateway-profiles."
+        },
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGatewayProfileMeta"
+          }
+        }
+      }
+    },
+    "apiModulation": {
+      "type": "string",
+      "enum": [
+        "LORA",
+        "FSK"
+      ],
+      "default": "LORA",
+      "title": "- LORA: LoRa\n - FSK: FSK"
+    },
+    "apiUpdateGatewayProfileRequest": {
+      "type": "object",
+      "properties": {
+        "gatewayProfile": {
+          "$ref": "#/definitions/apiGatewayProfile"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the gateway-profile."
+        }
+      }
+    },
+    "apiUpdateGatewayProfileResponse": {
+      "type": "object"
+    }
+  }
+}

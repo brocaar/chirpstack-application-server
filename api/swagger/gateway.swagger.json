@@ -90,267 +90,6 @@
         ]
       }
     },
-    "/api/gateways/channelconfigurations": {
-      "get": {
-        "summary": "ListChannelConfigurations returns all channel-configurations.",
-        "operationId": "ListChannelConfigurations",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiListChannelConfigurationsResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "networkServerID",
-            "description": "Network-server id.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          }
-        ],
-        "tags": [
-          "Gateway"
-        ]
-      },
-      "post": {
-        "summary": "CreateChannelConfiguration creates the given channel-configuration.",
-        "operationId": "CreateChannelConfiguration",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiCreateChannelConfigurationResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiCreateChannelConfigurationRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Gateway"
-        ]
-      }
-    },
-    "/api/gateways/channelconfigurations/{id}": {
-      "get": {
-        "summary": "GetChannelConfiguration returns the channel-configuration for the given ID.",
-        "operationId": "GetChannelConfiguration",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiGetChannelConfigurationResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "networkServerID",
-            "description": "Network-server id.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          }
-        ],
-        "tags": [
-          "Gateway"
-        ]
-      },
-      "delete": {
-        "summary": "DeleteChannelConfiguration deletes the channel-configuration matching the\ngiven ID.",
-        "operationId": "DeleteChannelConfiguration",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiDeleteChannelConfigurationResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          }
-        ],
-        "tags": [
-          "Gateway"
-        ]
-      },
-      "put": {
-        "summary": "UpdateChannelConfiguration updates the given channel-configuration.",
-        "operationId": "UpdateChannelConfiguration",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiUpdateChannelConfigurationResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiUpdateChannelConfigurationRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Gateway"
-        ]
-      }
-    },
-    "/api/gateways/channelconfigurations/{id}/extrachannels": {
-      "get": {
-        "summary": "GetExtraChannelsForChannelConfigurationID returns the extra channels for\nthe given channel-configuration id.",
-        "operationId": "GetExtraChannelsForChannelConfigurationID",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiGetExtraChannelsForChannelConfigurationIDResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "networkServerID",
-            "description": "Network-server id.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          }
-        ],
-        "tags": [
-          "Gateway"
-        ]
-      }
-    },
-    "/api/gateways/extrachannels": {
-      "post": {
-        "summary": "CreateExtraChannel creates the given extra channel.",
-        "operationId": "CreateExtraChannel",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiCreateExtraChannelResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiCreateExtraChannelRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Gateway"
-        ]
-      }
-    },
-    "/api/gateways/extrachannels/{id}": {
-      "delete": {
-        "summary": "DeleteExtraChannel deletes the extra channel matching the given id.",
-        "operationId": "DeleteExtraChannel",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiDeleteExtraChannelResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          }
-        ],
-        "tags": [
-          "Gateway"
-        ]
-      },
-      "put": {
-        "summary": "UpdateExtraChannel updates the given extra channel.",
-        "operationId": "UpdateExtraChannel",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiUpdateExtraChannelResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiUpdateExtraChannelRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Gateway"
-        ]
-      }
-    },
     "/api/gateways/{mac}": {
       "get": {
         "summary": "Get returns the gateway for the requested mac address.",
@@ -525,118 +264,9 @@
           "Gateway"
         ]
       }
-    },
-    "/api/gateways/{mac}/token": {
-      "post": {
-        "summary": "GenerateToken issues a JWT token which can be used by the gateway\nfor authentication.",
-        "operationId": "GenerateToken",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiGenerateGatewayTokenResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "mac",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Gateway"
-        ]
-      }
     }
   },
   "definitions": {
-    "apiCreateChannelConfigurationRequest": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the channel-configuration."
-        },
-        "channels": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "description": "Channels active in this configuration. These channel indices must map\nto the channel numbers as specified in the LoRaWAN Regional Parameters."
-        },
-        "networkServerID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Network-server id."
-        }
-      }
-    },
-    "apiCreateChannelConfigurationResponse": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the channel-configuration."
-        }
-      }
-    },
-    "apiCreateExtraChannelRequest": {
-      "type": "object",
-      "properties": {
-        "channelConfigurationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the channel-configuration."
-        },
-        "modulation": {
-          "$ref": "#/definitions/apiModulation",
-          "description": "Modulation."
-        },
-        "frequency": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Frequency."
-        },
-        "bandWidth": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Bandwidth."
-        },
-        "bitRate": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Bit rate (in case of FSK modulation)."
-        },
-        "spreadFactors": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "description": "Spread-factors (in case of LoRa modulation)."
-        },
-        "networkServerID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Network-server id."
-        }
-      }
-    },
-    "apiCreateExtraChannelResponse": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the extra channel."
-        }
-      }
-    },
     "apiCreateGatewayRequest": {
       "type": "object",
       "properties": {
@@ -672,11 +302,6 @@
           "format": "int64",
           "description": "ID of the organization to which this gateway belongs."
         },
-        "channelConfigurationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the channel-configuration."
-        },
         "ping": {
           "type": "boolean",
           "format": "boolean",
@@ -686,6 +311,10 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the network-server to which the gateway is connected."
+        },
+        "gatewayProfileID": {
+          "type": "string",
+          "description": "ID of the gateway-profile (optional)."
         }
       }
     },
@@ -715,12 +344,6 @@
           "description": "Bitrate (used for FSK modulation)."
         }
       }
-    },
-    "apiDeleteChannelConfigurationResponse": {
-      "type": "object"
-    },
-    "apiDeleteExtraChannelResponse": {
-      "type": "object"
     },
     "apiDeleteGatewayResponse": {
       "type": "object"
@@ -823,112 +446,6 @@
         }
       }
     },
-    "apiGenerateGatewayTokenResponse": {
-      "type": "object",
-      "properties": {
-        "token": {
-          "type": "string",
-          "description": "Generated token."
-        }
-      }
-    },
-    "apiGetChannelConfigurationResponse": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the channel-configuration."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the channel-configuration."
-        },
-        "channels": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "description": "Channels active in this configuration. These channel indices must map\nto the channel numbers as specified in the LoRaWAN Regional Parameters."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The timestamp when the channel-configuration was created."
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "The timestamp when the channel-configuration was last updated."
-        },
-        "networkServerID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Network-server id."
-        }
-      }
-    },
-    "apiGetExtraChannelResponse": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the extra channel."
-        },
-        "channelConfigurationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the channel-configuration."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Created-at timestamp."
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Updated-at timestamp."
-        },
-        "modulation": {
-          "$ref": "#/definitions/apiModulation",
-          "description": "Modulation."
-        },
-        "frequency": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Frequency."
-        },
-        "bandwidth": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Bandwidth."
-        },
-        "bitRate": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Bit rate (in case of FSK modulation)."
-        },
-        "spreadFactors": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "description": "Spread-factors (in case of LoRa modulation)."
-        }
-      }
-    },
-    "apiGetExtraChannelsForChannelConfigurationIDResponse": {
-      "type": "object",
-      "properties": {
-        "result": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiGetExtraChannelResponse"
-          },
-          "description": "Result-set."
-        }
-      }
-    },
     "apiGetGatewayResponse": {
       "type": "object",
       "properties": {
@@ -980,11 +497,6 @@
           "format": "int64",
           "description": "ID of the organization to which this gateway belongs."
         },
-        "channelConfigurationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the channel-configuration."
-        },
         "ping": {
           "type": "boolean",
           "format": "boolean",
@@ -994,6 +506,10 @@
           "type": "string",
           "format": "int64",
           "description": "ID of the network-server to which the gateway is connected."
+        },
+        "gatewayProfileID": {
+          "type": "string",
+          "description": "ID of the gateway-profile (optional)."
         }
       }
     },
@@ -1031,18 +547,6 @@
             "$ref": "#/definitions/apiPingRX"
           },
           "description": "Gateways and meta-data of reception."
-        }
-      }
-    },
-    "apiListChannelConfigurationsResponse": {
-      "type": "object",
-      "properties": {
-        "result": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiGetChannelConfigurationResponse"
-          },
-          "description": "Result-set."
         }
       }
     },
@@ -1098,15 +602,6 @@
         }
       }
     },
-    "apiModulation": {
-      "type": "string",
-      "enum": [
-        "LORA",
-        "FSK"
-      ],
-      "default": "LORA",
-      "title": "- LORA: LoRa\n - FSK: FSK"
-    },
     "apiPingRX": {
       "type": "object",
       "properties": {
@@ -1160,86 +655,6 @@
         }
       }
     },
-    "apiUpdateChannelConfigurationRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the channel-configuration."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the channel-configuration."
-        },
-        "channels": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "description": "Channels active in this configuration. These channel indices must map\nto the channel numbers as specified in the LoRaWAN Regional Parameters."
-        },
-        "networkServerID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Network-server id."
-        }
-      }
-    },
-    "apiUpdateChannelConfigurationResponse": {
-      "type": "object"
-    },
-    "apiUpdateExtraChannelRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the extra channel."
-        },
-        "channelConfigurationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the channel-configuration."
-        },
-        "modulation": {
-          "$ref": "#/definitions/apiModulation",
-          "description": "Modulation."
-        },
-        "frequency": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Frequency."
-        },
-        "bandWidth": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Bandwidth."
-        },
-        "bitRate": {
-          "type": "integer",
-          "format": "int32",
-          "description": "Bit rate (in case of FSK modulation)."
-        },
-        "spreadFactors": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "description": "Spread-factors (in case of LoRa modulation)."
-        },
-        "networkServerID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Network-server id."
-        }
-      }
-    },
-    "apiUpdateExtraChannelResponse": {
-      "type": "object"
-    },
     "apiUpdateGatewayRequest": {
       "type": "object",
       "properties": {
@@ -1275,15 +690,14 @@
           "format": "int64",
           "description": "ID of the organization to which this gateway belongs."
         },
-        "channelConfigurationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the channel-configuration."
-        },
         "ping": {
           "type": "boolean",
           "format": "boolean",
           "description": "Gateway sends out a periodic ping."
+        },
+        "gatewayProfileID": {
+          "type": "string",
+          "description": "ID of the gateway-profile (optional)."
         }
       }
     },

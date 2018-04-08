@@ -7,6 +7,14 @@ enum RXWindow {
 	RX2 = 1;
 }
 
+enum Modulation {
+	// LoRa
+	LORA = 0;
+
+	// FSK
+	FSK = 1;
+}
+
 message DataRate {
     // The used modulation (LORA or FSK).
     string modulation = 1;

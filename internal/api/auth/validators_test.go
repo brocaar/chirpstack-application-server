@@ -754,23 +754,23 @@ func TestValidators(t *testing.T) {
 			runTests(tests, db)
 		})
 
-		Convey("WHen testing ValidateChannelConfigurationAccess", func() {
+		Convey("WHen testing ValidateGatewayProfileAccess", func() {
 			tests := []validatorTest{
 				{
 					Name:       "global admin users can create, update, delete read and list",
-					Validators: []ValidatorFunc{ValidateChannelConfigurationAccess(Create), ValidateChannelConfigurationAccess(Update), ValidateChannelConfigurationAccess(Delete), ValidateChannelConfigurationAccess(Read), ValidateChannelConfigurationAccess(List)},
+					Validators: []ValidatorFunc{ValidateGatewayProfileAccess(Create), ValidateGatewayProfileAccess(Update), ValidateGatewayProfileAccess(Delete), ValidateGatewayProfileAccess(Read), ValidateGatewayProfileAccess(List)},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "normal users can read and list",
-					Validators: []ValidatorFunc{ValidateChannelConfigurationAccess(Read), ValidateChannelConfigurationAccess(List)},
+					Validators: []ValidatorFunc{ValidateGatewayProfileAccess(Read), ValidateGatewayProfileAccess(List)},
 					Claims:     Claims{Username: "user4"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "normal users can not create, update and delete",
-					Validators: []ValidatorFunc{ValidateChannelConfigurationAccess(Create), ValidateChannelConfigurationAccess(Update), ValidateChannelConfigurationAccess(Delete)},
+					Validators: []ValidatorFunc{ValidateGatewayProfileAccess(Create), ValidateGatewayProfileAccess(Update), ValidateGatewayProfileAccess(Delete)},
 					Claims:     Claims{Username: "user4"},
 					ExpectedOK: false,
 				},

@@ -23,7 +23,6 @@ import OrganizationLayout from './views/organizations/OrganizationLayout';
 import ListNetworkServers from "./views/networkservers/ListNetworkServers";
 import CreateNetworkServer from "./views/networkservers/CreateNetworkServer";
 import NetworkServerLayout from "./views/networkservers/NetworkServerLayout";
-import ChannelConfigurationLayout from "./views/gateways/ChannelConfigurationLayout";
 
 // gateways
 import GatewayLayout from "./views/gateways/GatewayLayout";
@@ -62,8 +61,6 @@ class Layout extends Component {
 
               <Route exact path="/network-servers" component={ListNetworkServers} />
               <Route exact path="/network-servers/create" component={CreateNetworkServer} />
-              {/* \d+ regexp to make sure we don't match channel-configurations/create */}
-              <Route path="/network-servers/:networkServerID/channel-configurations/:channelConfigurationID(\d+)" component={ChannelConfigurationLayout} />
               <Route path="/network-servers/:networkServerID" component={NetworkServerLayout} />
 
               <Route exact path="/organizations" component={ListOrganizations} />

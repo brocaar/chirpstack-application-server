@@ -79,16 +79,6 @@ class GatewayStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  generateGatewayToken(mac, callbackFunc) {
-    fetch("/api/gateways/"+mac+"/token", {method: "POST", headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
-  }
-
   updateGateway(mac, gateway, callbackFunc) {
     fetch("/api/gateways/"+mac, {method: "PUT", body: JSON.stringify(gateway), headers: sessionStore.getHeader()})
       .then(checkStatus)
@@ -96,104 +86,6 @@ class GatewayStore extends EventEmitter {
       .then((responseData) => {
         this.emit("change");
         callbackFunc(responseData);
-      })
-      .catch(errorHandler);
-  }
-
-  createChannelConfiguration(conf, callbackFunc) {
-    fetch("/api/gateways/channelconfigurations", {method: "POST", body: JSON.stringify(conf), headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
-  }
-
-  getChannelConfiguration(networkServerID, channelConfigurationID, callbackFunc) {
-    fetch("/api/gateways/channelconfigurations/"+channelConfigurationID+"?networkServerID="+networkServerID, {headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
-  }
-
-  updateChannelConfiguration(channelConfigurationID, conf, callbackFunc) {
-    fetch("/api/gateways/channelconfigurations/"+channelConfigurationID, {method: "PUT", body: JSON.stringify(conf), headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
-  }
-
-  deleteChannelConfiguration(networkServerID, channelConfigurationID, callbackFunc) {
-    fetch("/api/gateways/channelconfigurations/"+channelConfigurationID+"?networkServerID="+networkServerID, {method: "DELETE", headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
-  }
-
-  getAllChannelConfigurations(networkServerID, callbackFunc) {
-    fetch("/api/gateways/channelconfigurations?networkServerID="+networkServerID, {headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if (typeof(responseData.result) === "undefined") {
-          callbackFunc([]);
-        } else {
-          callbackFunc(responseData.result);
-        }
-      })
-      .catch(errorHandler);
-  }
-
-  createExtraChannel(chan, callbackFunc) {
-    fetch("/api/gateways/extrachannels", {method: "POST", body: JSON.stringify(chan), headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
-  }
-
-  updateExtraChannel(id, chan, callbackFunc) {
-    fetch("/api/gateways/extrachannels/"+id, {method: "PUT", body: JSON.stringify(chan), headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
-  }
-
-  deleteExtraChannel(networkServerID, id, callbackFunc) {
-    fetch("/api/gateways/extrachannels/"+id+"?networkServerID="+networkServerID, {method: "DELETE", headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
-  }
-
-  getExtraChannelsForChannelConfigurationID(networkServerID, channelConfigurationID, callbackFunc) {
-    fetch("/api/gateways/channelconfigurations/"+channelConfigurationID+"/extrachannels?networkServerID="+networkServerID, {headers: sessionStore.getHeader()}) 
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if (typeof(responseData.result) === "undefined") {
-          callbackFunc([]);
-        } else {
-          callbackFunc(responseData.result);
-        }
       })
       .catch(errorHandler);
   }

@@ -4,9 +4,12 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -328,4 +331,82 @@ func getDeviceProfileForNode(node Node, n storage.NetworkServer, app storage.App
 			Supports32bitFCnt: true,
 		},
 	}
+}
+
+// StartGatewayProfileMigration starts the gateway-profile migration.
+func StartGatewayProfileMigration(db sqlx.Ext) error {
+	count, err := storage.GetGatewayProfileCount(db)
+	if err != nil {
+		return errors.Wrap(err, "get gateway-profile count error")
+	}
+
+	// nothing to do
+	if count != 0 {
+		return nil
+	}
+
+	nss, err := storage.GetNetworkServers(config.C.PostgreSQL.DB, 999, 0)
+	if err != nil {
+		return errors.Wrap(err, "get network-servers errror")
+	}
+
+	for _, n := range nss {
+		if err := migrateGatewayProfilesForNetworkServer(db, n); err != nil {
+			return errors.Wrap(err, "migrate gateway-profiles for network-server error")
+		}
+	}
+
+	return nil
+}
+
+func migrateGatewayProfilesForNetworkServer(db sqlx.Ext, n storage.NetworkServer) error {
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	if err != nil {
+		return errors.Wrap(err, "get network-server client error")
+	}
+
+	resp, err := nsClient.MigrateChannelConfigurationToGatewayProfile(context.Background(), &ns.MigrateChannelConfigurationToGatewayProfileRequest{})
+	if err != nil {
+		return errors.Wrap(err, "migrate channel-configuration to gateway-profile error")
+	}
+
+	for _, gp := range resp.Migrated {
+		now := time.Now()
+
+		_, err = db.Exec(`
+			insert into gateway_profile (
+				gateway_profile_id,
+				network_server_id,
+				created_at,
+				updated_at,
+				name
+			) values ($1, $2, $3, $4, $5)`,
+			gp.GatewayProfileID,
+			n.ID,
+			now,
+			now,
+			gp.Name,
+		)
+		if err != nil {
+			return errors.Wrap(err, "insert gateway-profile error")
+		}
+
+		_, err = db.Exec(`
+			update
+				gateway
+			set
+				gateway_profile_id = $2
+			where
+				mac = any($1)`,
+			pq.ByteaArray(gp.Macs),
+			gp.GatewayProfileID,
+		)
+
+		log.WithFields(log.Fields{
+			"network_server_id":  n.ID,
+			"gateway_profile_id": gp.GatewayProfileID,
+		}).Info("gateway-profile migrated")
+	}
+
+	return nil
 }

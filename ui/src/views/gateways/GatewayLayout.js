@@ -7,7 +7,6 @@ import SessionStore from "../../stores/SessionStore";
 
 import GatewayDetails from "./GatewayDetails";
 import UpdateGateway from "./UpdateGateway";
-import GatewayToken from "./GatewayToken";
 import GatewayPing from "./GatewayPing";
 import GatewayFrameLogs from "./GatewayFrameLogs";
 
@@ -77,7 +76,6 @@ class GatewayLayout extends Component {
         <ul className="nav nav-tabs">
           <li role="presentation" className={activeTab === "" ? 'active' : ''}><Link to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.mac}`}>Gateway details</Link></li>
           <li role="presentation" className={(activeTab === "/edit" ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.mac}/edit`}>Gateway configuration</Link></li>
-          <li role="presentation" className={(activeTab === "/token" ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.mac}/token`}>Gateway token</Link></li>
           <li role="presentation" className={(activeTab === "/ping" ? 'active' : '') + (this.state.gateway.ping ? '' : 'hidden')}><Link to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.mac}/ping`}>Gateway discovery</Link></li>
           <li role="presentation" className={(activeTab === "/frames" ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.mac}/frames`}>Live LoRaWAN frame logs</Link></li>
         </ul>
@@ -85,7 +83,6 @@ class GatewayLayout extends Component {
         <Switch>
           <Route exact path={this.props.match.path} component={GatewayDetails} />
           <Route exact path={`${this.props.match.path}/edit`} component={UpdateGateway} />
-          <Route exact path={`${this.props.match.path}/token`} component={GatewayToken} />
           <Route exact path={`${this.props.match.path}/ping`} component={GatewayPing} />
           <Route exact path={`${this.props.match.path}/frames`} component={GatewayFrameLogs} />
         </Switch>

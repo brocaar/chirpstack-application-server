@@ -7,7 +7,7 @@ import Select from "react-select";
 import Loaded from "./Loaded.js";
 import SessionStore from "../stores/SessionStore";
 import LocationStore from "../stores/LocationStore";
-import GatewayStore from "../stores/GatewayStore";
+import GatewayProfileStore from "../stores/GatewayProfileStore";
 import NetworkServerStore from "../stores/NetworkServerStore";
 
 
@@ -19,7 +19,7 @@ class GatewayForm extends Component {
       gateway: {},
       mapZoom: 15,
       update: false,
-      channelConfigurations: [],
+      gatewayProfiles: [],
       networkServers: [],
       loaded: {
         networkServers: false,
@@ -42,9 +42,9 @@ class GatewayForm extends Component {
     }
 
     if (field === "networkServerID" && gateway.networkServerID !== null) {
-      GatewayStore.getAllChannelConfigurations(gateway.networkServerID, (configurations) => {
+      GatewayProfileStore.getAllForNetworkServerID(gateway.networkServerID, 999, 0, (totalCount, gatewayProfiles) => {
         this.setState({
-          channelConfigurations: configurations,
+          gatewayProfiles: gatewayProfiles,
         });
       });
     }
@@ -106,9 +106,9 @@ class GatewayForm extends Component {
     });
 
     if (this.props.gateway.networkServerID !== undefined) {
-      GatewayStore.getAllChannelConfigurations(this.props.gateway.networkServerID, (configurations) => {
+      GatewayProfileStore.getAllForNetworkServerID(this.props.gateway.networkServerID, 9999, 0, (totalCount, gatewayProfiles) => {
         this.setState({
-          channelConfigurations: configurations,
+          gatewayProfiles: gatewayProfiles,
         });
       });
     }
@@ -133,10 +133,10 @@ class GatewayForm extends Component {
       update: typeof nextProps.gateway.mac !== "undefined",
     });
 
-    if (this.props.gateway.networkServerID !== undefined) {
-      GatewayStore.getAllChannelConfigurations(nextProps.gateway.networkServerID, (configurations) => {
+    if (nextProps.gateway.networkServerID !== undefined) {
+      GatewayProfileStore.getAllForNetworkServerID(nextProps.gateway.networkServerID, 9999, 0, (totalCount, gatewayProfiles) => {
         this.setState({
-          channelConfigurations: configurations,
+          gatewayProfiles: gatewayProfiles,
         });
       });
     }
@@ -165,10 +165,10 @@ class GatewayForm extends Component {
       position = [0,0];
     }
 
-    const channelConfigurations = this.state.channelConfigurations.map((c, i) => {
+    const gatewayProfileOptions = this.state.gatewayProfiles.map((gp, i) => {
       return {
-        value: c.id,
-        label: c.name,
+        value: gp.gatewayProfileID,
+        label: gp.name,
       };
     });
 
@@ -217,14 +217,14 @@ class GatewayForm extends Component {
             </p>
           </div>
           <div className="form-group">
-            <label className="control-label" htmlFor="channelConfigurationID">Channel-configuration</label>
+            <label className="control-label" htmlFor="gatewayProfileID">Gateway-profile</label>
             <Select
-              name="channelConfigurationID"
-              options={channelConfigurations}
-              value={this.state.gateway.channelConfigurationID}
-              onChange={this.onSelectChange.bind(this, "channelConfigurationID")}
+              name="gatewayProfileID"
+              options={gatewayProfileOptions}
+              value={this.state.gateway.gatewayProfileID}
+              onChange={this.onSelectChange.bind(this, "gatewayProfileID")}
             />
-            <p className="help-block">An optional channel-configuration can be assigned to a gateway. This configuration can be used to automatically re-configure the gateway (in the future).</p>
+            <p className="help-block">An optional gateway-profile which can be assigned to a gateway. This configuration can be used to automatically re-configure the gateway when LoRa Gateway Bridge is configured so that it manages the packet-forwarder configuration.</p>
           </div>
           <div className="form-group">
             <label className="control-label" htmlFor="ping">

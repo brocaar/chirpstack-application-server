@@ -8,6 +8,28 @@ menu:
 
 # Changelog
 
+## 0.20.0
+
+**Features:**
+
+* (Gateway) channel-configuration has been refactored into gateway-profiles.
+  * This requires [LoRa Server](https://www.loraserver.io/loraserver/) 0.26.0 or up.
+  * This removes the channel-configuration related gateway API methods.
+  * This adds gateway-profile API methods.
+
+**Bugfixes:**
+
+* Fix leaking Redis connections on pubsub subscriber ([#313](https://github.com/brocaar/loraserver/issues/313).
+* Fix discovery interval validation ([#226](https://github.com/brocaar/lora-app-server/issues/226)).
+
+**Upgrade notes:**
+
+In order to automatically migrate the existing channel-configuration into the
+new gateway-profiles, first upgrade LoRa Server and restart it. After upgrading
+LoRa App Server and restarting it, all channel-configurations will be migrated
+and associated to the gateways. As always, it is advised to first make a backup
+of your (PostgreSQL) database.
+
 ## 0.19.0
 
 **Features:**

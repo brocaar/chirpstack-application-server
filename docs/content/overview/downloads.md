@@ -15,7 +15,10 @@ menu:
 | [lora-app-server_{{< version >}}_darwin_amd64.tar.gz](https://dl.loraserver.io/tar/lora-app-server_{{< version >}}_darwin_amd64.tar.gz)   | OS X    | amd64 |
 | [lora-app-server_{{< version >}}_linux_386.tar.gz](https://dl.loraserver.io/tar/lora-app-server_{{< version >}}_linux_386.tar.gz)         | Linux   | 386   |
 | [lora-app-server_{{< version >}}_linux_amd64.tar.gz](https://dl.loraserver.io/tar/lora-app-server_{{< version >}}_linux_amd64.tar.gz)     | Linux   | amd64 |
-| [lora-app-server_{{< version >}}_linux_arm.tar.gz](https://dl.loraserver.io/tar/lora-app-server_{{< version >}}_linux_arm.tar.gz)         | Linux   | arm   |
+| [lora-app-server_{{< version >}}_linux_armv5.tar.gz](https://dl.loraserver.io/tar/lora-app-server_{{< version >}}_linux_armv5.tar.gz)     | Linux   | armv5 |
+| [lora-app-server_{{< version >}}_linux_armv6.tar.gz](https://dl.loraserver.io/tar/lora-app-server_{{< version >}}_linux_armv6.tar.gz)     | Linux   | armv6 |
+| [lora-app-server_{{< version >}}_linux_armv7.tar.gz](https://dl.loraserver.io/tar/lora-app-server_{{< version >}}_linux_armv7.tar.gz)     | Linux   | armv7 |
+| [lora-app-server_{{< version >}}_linux_arm64.tar.gz](https://dl.loraserver.io/tar/lora-app-server_{{< version >}}_linux_arm64.tar.gz)     | Linux   | arm64 |
 | [lora-app-server_{{< version >}}_windows_386.tar.gz](https://dl.loraserver.io/tar/lora-app-server_{{< version >}}_windows_386.tar.gz)     | Windows | 386   |
 | [lora-app-server_{{< version >}}_windows_amd64.tar.gz](https://dl.loraserver.io/tar/lora-app-server_{{< version >}}_windows_amd64.tar.gz) | Windows | amd64 |
 

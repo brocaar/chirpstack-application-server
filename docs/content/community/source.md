@@ -31,7 +31,7 @@ pre-compiled packages available):
 
 #### Go
 
-Make sure you have [Go](https://golang.org/) installed (1.9+) and that the LoRa
+Make sure you have [Go](https://golang.org/) installed (1.10+) and that the LoRa
 App Server repository has been cloned to 
 `$GOPATH/src/github.com/brocaar/lora-app-server`.
 
@@ -65,18 +65,6 @@ make test
 # compile (this will also compile the ui and generate the static files)
 make build
 
-# cross-compile for Linux ARM
-GOOS=linux GOARCH=arm make build
-
-# cross-compile for Windows AMD64
-GOOS=windows BINEXT=.exe GOARCH=amd64 make build
-
-# build the .tar.gz file
-make package
-
-# build the .tar.gz file for Linux ARM
-GOOS=linux GOARCH=arm make package
-
-# build the .tar.gz file for Windows AMD64
-GOOS=windows BINEXT=.exe GOARCH=amd64 make package
+# compile snapshot builds for supported architectures (this will also compile the ui and generate the static files)
+make build-snapshot
 ```

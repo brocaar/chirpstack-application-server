@@ -123,9 +123,15 @@ func TestNodeAPI(t *testing.T) {
 				Description:     "test device description",
 				DevEUI:          "0807060504030201",
 				DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+				SkipFCntCheck:   true,
 			})
 			So(err, ShouldBeNil)
 			So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+			nsReq := <-nsClient.CreateDeviceChan
+			nsClient.GetDeviceResponse = ns.GetDeviceResponse{
+				Device: nsReq.Device,
+			}
 
 			Convey("The device has been created", func() {
 				d, err := api.Get(ctx, &pb.GetDeviceRequest{
@@ -141,6 +147,7 @@ func TestNodeAPI(t *testing.T) {
 					DeviceProfileID:     dp.DeviceProfile.DeviceProfileID,
 					DeviceStatusMargin:  256,
 					DeviceStatusBattery: 256,
+					SkipFCntCheck:       true,
 				})
 
 				Convey("When setting the device-status battery and margin", func() {
@@ -210,6 +217,7 @@ func TestNodeAPI(t *testing.T) {
 					Name:            "test-device-updated",
 					Description:     "test device description updated",
 					DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+					SkipFCntCheck:   true,
 				})
 				So(err, ShouldBeNil)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
@@ -227,6 +235,7 @@ func TestNodeAPI(t *testing.T) {
 						DeviceProfileID:     dp.DeviceProfile.DeviceProfileID,
 						DeviceStatusBattery: 256,
 						DeviceStatusMargin:  256,
+						SkipFCntCheck:       true,
 					})
 				})
 			})

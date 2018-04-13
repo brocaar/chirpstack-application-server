@@ -27,6 +27,7 @@ type Device struct {
 	DeviceProfileID     string        `db:"device_profile_id"`
 	Name                string        `db:"name"`
 	Description         string        `db:"description"`
+	SkipFCntCheck       bool          `db:"-"`
 	DeviceStatusBattery *int          `db:"device_status_battery"`
 	DeviceStatusMargin  *int          `db:"device_status_margin"`
 }
@@ -120,6 +121,7 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 			DeviceProfileID:  d.DeviceProfileID,
 			ServiceProfileID: app.ServiceProfileID,
 			RoutingProfileID: config.C.ApplicationServer.ID,
+			SkipFCntCheck:    d.SkipFCntCheck,
 		},
 	})
 	if err != nil {
@@ -140,6 +142,27 @@ func GetDevice(db sqlx.Queryer, devEUI lorawan.EUI64) (Device, error) {
 	err := sqlx.Get(db, &d, "select * from device where dev_eui = $1", devEUI[:])
 	if err != nil {
 		return d, handlePSQLError(Select, err, "select error")
+	}
+
+	n, err := GetNetworkServerForDevEUI(db, d.DevEUI)
+	if err != nil {
+		return d, errors.Wrap(err, "get network-server error")
+	}
+
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	if err != nil {
+		return d, errors.Wrap(err, "get network-server client error")
+	}
+
+	resp, err := nsClient.GetDevice(context.Background(), &ns.GetDeviceRequest{
+		DevEUI: d.DevEUI[:],
+	})
+	if err != nil {
+		return d, err
+	}
+
+	if resp.Device != nil {
+		d.SkipFCntCheck = resp.Device.SkipFCntCheck
 	}
 
 	return d, nil
@@ -264,6 +287,7 @@ func UpdateDevice(db sqlx.Ext, d *Device) error {
 			DeviceProfileID:  d.DeviceProfileID,
 			ServiceProfileID: app.ServiceProfileID,
 			RoutingProfileID: config.C.ApplicationServer.ID,
+			SkipFCntCheck:    d.SkipFCntCheck,
 		},
 	})
 	if err != nil {

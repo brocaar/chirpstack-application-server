@@ -113,6 +113,7 @@ func TestDevice(t *testing.T) {
 				Description:         "test device",
 				DeviceStatusBattery: &ten,
 				DeviceStatusMargin:  &eleven,
+				SkipFCntCheck:       true,
 			}
 			So(CreateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 			d.CreatedAt = d.CreatedAt.UTC().Truncate(time.Millisecond)
@@ -125,6 +126,7 @@ func TestDevice(t *testing.T) {
 					DeviceProfileID:  dp.DeviceProfile.DeviceProfileID,
 					ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 					RoutingProfileID: config.C.ApplicationServer.ID,
+					SkipFCntCheck:    true,
 				},
 			})
 
@@ -135,6 +137,7 @@ func TestDevice(t *testing.T) {
 						DeviceProfileID:  dp.DeviceProfile.DeviceProfileID,
 						ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 						RoutingProfileID: config.C.ApplicationServer.ID,
+						SkipFCntCheck:    true,
 					},
 				}
 
@@ -166,6 +169,7 @@ func TestDevice(t *testing.T) {
 							DeviceProfileID:  dp2.DeviceProfile.DeviceProfileID,
 							ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 							RoutingProfileID: config.C.ApplicationServer.ID,
+							SkipFCntCheck:    true,
 						},
 					})
 

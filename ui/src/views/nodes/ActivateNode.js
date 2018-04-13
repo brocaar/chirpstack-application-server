@@ -96,17 +96,6 @@ class NodeActivationForm extends Component {
           <label className="control-label" htmlFor="rx2DR">Downlink frame-counter</label>
           <input className="form-control" id="fCntDown" type="number" min="0" required value={this.state.activation.fCntDown || 0} onChange={this.onChange.bind(this, 'fCntDown')} />
         </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="skipFCntCheck">Disable frame-counter validation</label>
-          <div className="checkbox">
-            <label>
-              <input type="checkbox" name="skipFCntCheck" id="skipFCntCheck" checked={!!this.state.activation.skipFCntCheck} onChange={this.onChange.bind(this, 'skipFCntCheck')} /> Disable frame-counter validation
-            </label>
-          </div>
-          <p className="help-block">
-            Note that disabling the frame-counter validation will compromise security as it enables people to perform replay-attacks.
-          </p>
-        </div>
         <hr />
         <div className="btn-toolbar pull-right">
           <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>

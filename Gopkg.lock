@@ -2,13 +2,13 @@
 
 
 [[projects]]
+  branch = "master"
   name = "github.com/brocaar/loraserver"
   packages = [
     "api/as",
     "api/ns"
   ]
-  revision = "d8dc3b4e331ddaff1b533c52d200f33e335d87ac"
-  version = "0.26.0"
+  revision = "7c3183a8ef657e5e7ebb1c81f5dea7e323390103"
 
 [[projects]]
   branch = "master"

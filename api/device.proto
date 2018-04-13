@@ -136,6 +136,9 @@ message CreateDeviceRequest {
 
     // DeviceProfileID attached to the device.
     string deviceProfileID = 18;
+
+    // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
+    bool skipFCntCheck = 19;
 }
 
 message CreateDeviceResponse {}
@@ -176,6 +179,9 @@ message GetDeviceResponse {
     // The last time the application-server received any data from the device,
     // or an empty string when the device never sent any data.
     string lastSeenAt = 21;
+
+    // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
+    bool skipFCntCheck = 22;
 };
 
 message DeleteDeviceRequest {
@@ -259,6 +265,9 @@ message UpdateDeviceRequest {
 
     // DeviceProfileID attached to the device.
     string deviceProfileID = 18;
+
+    // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
+    bool skipFCntCheck = 19;
 }
 
 message UpdateDeviceResponse {}
@@ -317,6 +326,7 @@ message ActivateDeviceRequest {
     uint32 fCntDown = 6;
 
     // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
+    // Deprecated! Use the skipFCntCheck flag on the device object itself.
     bool skipFCntCheck = 7;
 }
 

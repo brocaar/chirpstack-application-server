@@ -447,7 +447,7 @@
         "skipFCntCheck": {
           "type": "boolean",
           "format": "boolean",
-          "description": "Skip frame-counter checks (this is insecure, but could be helpful for debugging)."
+          "description": "Skip frame-counter checks (this is insecure, but could be helpful for debugging).\nDeprecated! Use the skipFCntCheck flag on the device object itself."
         }
       }
     },
@@ -492,6 +492,11 @@
         "deviceProfileID": {
           "type": "string",
           "description": "DeviceProfileID attached to the device."
+        },
+        "skipFCntCheck": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Skip frame-counter checks (this is insecure, but could be helpful for debugging)."
         }
       }
     },
@@ -727,6 +732,11 @@
         "lastSeenAt": {
           "type": "string",
           "description": "The last time the application-server received any data from the device,\nor an empty string when the device never sent any data."
+        },
+        "skipFCntCheck": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Skip frame-counter checks (this is insecure, but could be helpful for debugging)."
         }
       }
     },
@@ -826,6 +836,11 @@
         "deviceProfileID": {
           "type": "string",
           "description": "DeviceProfileID attached to the device."
+        },
+        "skipFCntCheck": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Skip frame-counter checks (this is insecure, but could be helpful for debugging)."
         }
       }
     },

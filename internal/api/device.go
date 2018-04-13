@@ -56,6 +56,7 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*p
 		DeviceProfileID: req.DeviceProfileID,
 		Name:            req.Name,
 		Description:     req.Description,
+		SkipFCntCheck:   req.SkipFCntCheck,
 	}
 
 	// as this also performs a remote call to create the node on the
@@ -95,6 +96,7 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 		DeviceProfileID:     d.DeviceProfileID,
 		DeviceStatusBattery: 256,
 		DeviceStatusMargin:  256,
+		SkipFCntCheck:       d.SkipFCntCheck,
 	}
 
 	if d.DeviceStatusBattery != nil {
@@ -148,6 +150,7 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*p
 	d.DeviceProfileID = req.DeviceProfileID
 	d.Name = req.Name
 	d.Description = req.Description
+	d.SkipFCntCheck = req.SkipFCntCheck
 
 	// as this also performs a remote call to update the node on the
 	// network-server, wrap it in a transaction

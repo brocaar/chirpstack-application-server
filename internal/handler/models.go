@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lorawan"
 )
 
@@ -57,7 +56,7 @@ type DataUpPayload struct {
 	FCnt                uint32        `json:"fCnt"`
 	FPort               uint8         `json:"fPort"`
 	Data                []byte        `json:"data"`
-	Object              codec.Payload `json:"object,omitempty"`
+	Object              interface{}   `json:"object,omitempty"`
 }
 
 // DataDownPayload represents a data-down payload.

@@ -69,7 +69,7 @@ func handleDataDownPayload(pl handler.DataDownPayload) error {
 			return errors.Wrap(err, "unmarshal to codec payload error")
 		}
 
-		pl.Data, err = codecPL.MarshalBinary()
+		pl.Data, err = codecPL.EncodeToBytes()
 		if err != nil {
 			return errors.Wrap(err, "marshal codec payload to binary error")
 		}

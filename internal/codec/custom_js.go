@@ -1,6 +1,7 @@
 package codec
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -8,6 +9,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/robertkrimen/otto"
 )
+
+func init() {
+	gob.Register(CustomJS{})
+}
 
 // CodecMaxExecTime holds the max. time the (custom) codec is allowed to
 // run.
@@ -18,7 +23,7 @@ type CustomJS struct {
 	fPort        uint8
 	encodeScript string
 	decodeScript string
-	data         interface{}
+	Data         interface{}
 }
 
 // NewCustomJS creates a new custom JS codec.
@@ -32,16 +37,16 @@ func NewCustomJS(fPort uint8, encodeScript, decodeScript string) *CustomJS {
 
 // MarshalJSON implements json.Marshaler.
 func (c CustomJS) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.data)
+	return json.Marshal(c.Data)
 }
 
 // UnmarshalJSON implement json.Unmarshaler.
 func (c *CustomJS) UnmarshalJSON(text []byte) error {
-	return json.Unmarshal(text, &c.data)
+	return json.Unmarshal(text, &c.Data)
 }
 
-// UnmarshalBinary implements encoding.BinaryUnmarshaler.
-func (c *CustomJS) UnmarshalBinary(data []byte) (err error) {
+// DecodeBytes decodes the payload from a slice of bytes.
+func (c *CustomJS) DecodeBytes(data []byte) (err error) {
 	defer func() {
 		if caught := recover(); caught != nil {
 			err = fmt.Errorf("%s", caught)
@@ -73,7 +78,7 @@ func (c *CustomJS) UnmarshalBinary(data []byte) (err error) {
 		return errors.New("function must return object")
 	}
 
-	c.data, err = val.Export()
+	c.Data, err = val.Export()
 	if err != nil {
 		return errors.Wrap(err, "export error")
 	}
@@ -81,8 +86,8 @@ func (c *CustomJS) UnmarshalBinary(data []byte) (err error) {
 	return nil
 }
 
-// MarshalBinary implements encoding.BinaryMashaler.
-func (c CustomJS) MarshalBinary() (b []byte, err error) {
+// EncodeToBytes encodes the payload to a slice of bytes.
+func (c CustomJS) EncodeToBytes() (b []byte, err error) {
 	defer func() {
 		if caught := recover(); caught != nil {
 			err = fmt.Errorf("%s", caught)
@@ -94,7 +99,7 @@ func (c CustomJS) MarshalBinary() (b []byte, err error) {
 	vm := otto.New()
 	vm.Interrupt = make(chan func(), 1)
 	vm.SetStackDepthLimit(32)
-	vm.Set("obj", c.data)
+	vm.Set("obj", c.Data)
 	vm.Set("fPort", c.fPort)
 
 	go func() {

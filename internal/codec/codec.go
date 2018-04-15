@@ -1,7 +1,5 @@
 package codec
 
-import "encoding"
-
 // Type defines the codec type.
 type Type string
 
@@ -13,8 +11,8 @@ const (
 
 // Payload defines a codec payload.
 type Payload interface {
-	encoding.BinaryMarshaler
-	encoding.BinaryUnmarshaler
+	DecodeBytes(data []byte) error
+	EncodeToBytes() ([]byte, error)
 }
 
 // NewPayload returns a new codec payload. In case of an unknown Type, nil is

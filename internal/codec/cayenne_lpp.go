@@ -3,11 +3,16 @@ package codec
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/gob"
 	"fmt"
 	"io"
 
 	"github.com/pkg/errors"
 )
+
+func init() {
+	gob.Register(CayenneLPP{})
+}
 
 // CayenneLPP types.
 const (
@@ -62,8 +67,8 @@ type CayenneLPP struct {
 	GPSLocation       map[byte]GPSLocation   `json:"gpsLocation,omitempty"`
 }
 
-// UnmarshalBinary implements encoding.BinaryUnmarshaler.
-func (c *CayenneLPP) UnmarshalBinary(data []byte) error {
+// DecodeBytes decodes the payload from a slice of bytes.
+func (c *CayenneLPP) DecodeBytes(data []byte) error {
 	var err error
 	buf := make([]byte, 2)
 	r := bytes.NewReader(data)
@@ -114,8 +119,8 @@ func (c *CayenneLPP) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-// MarshalBinary implements encoding.BinaryMarshaler.
-func (c CayenneLPP) MarshalBinary() ([]byte, error) {
+// EncodeToBytes encodes the payload to a slice of bytes.
+func (c CayenneLPP) EncodeToBytes() ([]byte, error) {
 	w := bytes.NewBuffer([]byte{})
 
 	for k, v := range c.DigitalInput {

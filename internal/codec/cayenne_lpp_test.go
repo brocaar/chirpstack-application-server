@@ -139,15 +139,15 @@ func TestCayenneLPPDecode(t *testing.T) {
 			Convey(fmt.Sprintf("Testing: %s [%d]", test.Name, i), func() {
 				Convey("Decoding", func() {
 					lpp := CayenneLPP{}
-					So(lpp.UnmarshalBinary(test.Bytes), ShouldBeNil)
+					So(lpp.DecodeBytes(test.Bytes), ShouldBeNil)
 					So(lpp, ShouldResemble, test.Struct)
 				})
 				Convey("Encoding", func() {
-					b, err := test.Struct.MarshalBinary()
+					b, err := test.Struct.EncodeToBytes()
 					So(err, ShouldBeNil)
 
 					lpp := CayenneLPP{}
-					So(lpp.UnmarshalBinary(b), ShouldBeNil)
+					So(lpp.DecodeBytes(b), ShouldBeNil)
 					So(lpp, ShouldResemble, test.Struct)
 				})
 			})

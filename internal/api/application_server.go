@@ -87,7 +87,7 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 
 	codecPL := codec.NewPayload(app.PayloadCodec, uint8(req.FPort), app.PayloadEncoderScript, app.PayloadDecoderScript)
 	if codecPL != nil {
-		if err := codecPL.UnmarshalBinary(b); err != nil {
+		if err := codecPL.DecodeBytes(b); err != nil {
 			log.WithFields(log.Fields{
 				"codec":          app.PayloadCodec,
 				"application_id": app.ID,
@@ -95,6 +95,27 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 				"f_cnt":          req.FCnt,
 				"dev_eui":        d.DevEUI,
 			}).WithError(err).Error("decode payload error")
+
+			errNotification := handler.ErrorNotification{
+				ApplicationID:   d.ApplicationID,
+				ApplicationName: app.Name,
+				DeviceName:      d.Name,
+				DevEUI:          d.DevEUI,
+				Type:            "CODEC",
+				Error:           err.Error(),
+				FCnt:            req.FCnt,
+			}
+
+			if err := eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
+				Type:    eventlog.Error,
+				Payload: errNotification,
+			}); err != nil {
+				log.WithError(err).Error("log event for device error")
+			}
+
+			if err := config.C.ApplicationServer.Integration.Handler.SendErrorNotification(errNotification); err != nil {
+				log.WithError(err).Error("send error notification to handler error")
+			}
 		}
 	}
 
@@ -161,9 +182,8 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 
 	err = config.C.ApplicationServer.Integration.Handler.SendDataUp(pl)
 	if err != nil {
-		errStr := fmt.Sprintf("send data up to handler error: %s", err)
-		log.Error(errStr)
-		return nil, grpc.Errorf(codes.Internal, errStr)
+		log.WithError(err).Error("send uplink data to handler error")
+		return nil, grpc.Errorf(codes.Internal, err.Error())
 	}
 
 	return &as.HandleUplinkDataResponse{}, nil

@@ -60,7 +60,7 @@ func TestCustomJSDecode(t *testing.T) {
 		for i, test := range tests {
 			Convey(fmt.Sprintf("Testing: %s [%d]", test.Name, i), func() {
 				js := NewCustomJS(test.FPort, "", test.Script)
-				err := js.UnmarshalBinary(test.Payload)
+				err := js.DecodeBytes(test.Payload)
 				if test.ExpectedError != nil {
 					So(err, ShouldNotBeNil)
 					So(err.Error(), ShouldEqual, test.ExpectedError.Error())
@@ -69,7 +69,7 @@ func TestCustomJSDecode(t *testing.T) {
 
 				So(err, ShouldEqual, nil)
 				for k, v := range test.ExpectedObject {
-					So(js.data.(map[string]interface{})[k], ShouldEqual, v)
+					So(js.Data.(map[string]interface{})[k], ShouldEqual, v)
 				}
 
 				b, err := js.MarshalJSON()
@@ -129,7 +129,7 @@ func TestCustomEncodeJS(t *testing.T) {
 				js := NewCustomJS(test.FPort, test.Script, "")
 				So(js.UnmarshalJSON([]byte(test.JSON)), ShouldBeNil)
 
-				b, err := js.MarshalBinary()
+				b, err := js.EncodeToBytes()
 				if test.ExpectedError != nil {
 					So(err, ShouldNotBeNil)
 					So(err.Error(), ShouldEqual, test.ExpectedError.Error())

@@ -66,7 +66,7 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 			return nil, errToRPCError(err)
 		}
 
-		req.Data, err = codecPL.MarshalBinary()
+		req.Data, err = codecPL.EncodeToBytes()
 		if err != nil {
 			return nil, errToRPCError(err)
 		}

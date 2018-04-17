@@ -8,6 +8,13 @@ menu:
 
 # Changelog
 
+## 0.20.1
+
+**Improvements:**
+
+* Skip frame-counter check can now be set per device (so it can be used for OTAA devices).
+* Publish codec decode errors to the `application/[applicationID]/node/[devEUI]/error` MQTT topic.
+
 ## 0.20.0
 
 **Features:**

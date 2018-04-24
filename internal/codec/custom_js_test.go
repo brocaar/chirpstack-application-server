@@ -105,6 +105,17 @@ func TestCustomEncodeJS(t *testing.T) {
 				ExpectedBytes: []byte{20, 10},
 			},
 			{
+				Name: "return []int64",
+				Script: `
+					function Encode(fPort, obj) {
+						return [1,2,3];
+					}
+				`,
+				FPort:         10,
+				JSON:          `{"Temp": 20}`,
+				ExpectedBytes: []byte{1, 2, 3},
+			},
+			{
 				Name:          "invalid function",
 				Script:        ``,
 				FPort:         10,

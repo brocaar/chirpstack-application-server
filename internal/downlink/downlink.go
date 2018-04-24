@@ -11,6 +11,7 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/eventlog"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/ns"
@@ -57,20 +58,19 @@ func handleDataDownPayload(pl handler.DataDownPayload) error {
 		// get the codec payload configured for the application
 		codecPL := codec.NewPayload(app.PayloadCodec, pl.FPort, app.PayloadEncoderScript, app.PayloadDecoderScript)
 		if codecPL == nil {
-			log.WithFields(log.Fields{
-				"application_id": app.ID,
-				"codec_type":     app.PayloadCodec,
-			}).Error("no or invalid codec configured for application")
+			logCodecError(app, d, errors.New("no or invalid codec configured for application"))
 			return errors.New("no or invalid codec configured for application")
 		}
 
 		err = json.Unmarshal(pl.Object, &codecPL)
 		if err != nil {
+			logCodecError(app, d, err)
 			return errors.Wrap(err, "unmarshal to codec payload error")
 		}
 
 		pl.Data, err = codecPL.EncodeToBytes()
 		if err != nil {
+			logCodecError(app, d, err)
 			return errors.Wrap(err, "marshal codec payload to binary error")
 		}
 	}
@@ -151,4 +151,26 @@ func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, reference string,
 	}).Info("downlink device-queue item handled")
 
 	return nil
+}
+
+func logCodecError(a storage.Application, d storage.Device, err error) {
+	errNotification := handler.ErrorNotification{
+		ApplicationID:   a.ID,
+		ApplicationName: a.Name,
+		DeviceName:      d.Name,
+		DevEUI:          d.DevEUI,
+		Type:            "CODEC",
+		Error:           err.Error(),
+	}
+
+	if err := eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
+		Type:    eventlog.Error,
+		Payload: errNotification,
+	}); err != nil {
+		log.WithError(err).Error("log event for device error")
+	}
+
+	if err := config.C.ApplicationServer.Integration.Handler.SendErrorNotification(errNotification); err != nil {
+		log.WithError(err).Error("send error notification to handler error")
+	}
 }

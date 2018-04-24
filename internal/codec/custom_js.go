@@ -129,8 +129,10 @@ func (c CustomJS) EncodeToBytes() (b []byte, err error) {
 		b, err = interfaceSliceToBytes(v)
 	case []float64:
 		b, err = floatSliceToBytes(v)
+	case []int64:
+		b, err = int64SliceToBytes(v)
 	default:
-		return nil, fmt.Errorf("function must return type slice, got: %T", v)
+		return nil, fmt.Errorf("function must return type slice of ints or floats, got: %T", v)
 	}
 
 	return b, err
@@ -157,6 +159,14 @@ func interfaceSliceToBytes(items []interface{}) ([]byte, error) {
 		default:
 			return nil, fmt.Errorf("invalid slice value, %T", v)
 		}
+	}
+	return b, nil
+}
+
+func int64SliceToBytes(items []int64) ([]byte, error) {
+	var b []byte
+	for _, v := range items {
+		b = append(b, byte(v))
 	}
 	return b, nil
 }

@@ -1,9 +1,8 @@
 package eventlog
 
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -39,12 +38,12 @@ func LogEventForDevice(devEUI lorawan.EUI64, el EventLog) error {
 	defer c.Close()
 
 	key := fmt.Sprintf(deviceEventUplinkPubSubKeyTempl, devEUI)
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(el); err != nil {
+	b, err := json.Marshal(el)
+	if err != nil {
 		return errors.Wrap(err, "gob encode error")
 	}
 
-	if _, err := c.Do("PUBLISH", key, buf.Bytes()); err != nil {
+	if _, err := c.Do("PUBLISH", key, b); err != nil {
 		return errors.Wrap(err, "publish device event error")
 	}
 
@@ -115,7 +114,7 @@ loop:
 
 func redisMessageToEventLog(msg redis.Message) (EventLog, error) {
 	var el EventLog
-	if err := gob.NewDecoder(bytes.NewReader(msg.Data)).Decode(&el); err != nil {
+	if err := json.Unmarshal(msg.Data, &el); err != nil {
 		return el, errors.Wrap(err, "gob decode error")
 	}
 

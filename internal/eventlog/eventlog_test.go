@@ -41,6 +41,9 @@ func TestEventLog(t *testing.T) {
 			Convey("When calling LogEventForDevice", func() {
 				el := EventLog{
 					Type: Join,
+					Payload: map[string]interface{}{
+						"foo": "bar",
+					},
 				}
 
 				So(LogEventForDevice(devEUI, el), ShouldBeNil)
@@ -48,6 +51,9 @@ func TestEventLog(t *testing.T) {
 				Convey("Then the event has been logged", func() {
 					So(<-logChannel, ShouldResemble, EventLog{
 						Type: Join,
+						Payload: map[string]interface{}{
+							"foo": "bar",
+						},
 					})
 				})
 			})

@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/pkg/errors"
@@ -114,59 +115,80 @@ func (c CustomJS) EncodeToBytes() (b []byte, err error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "js vm error")
 	}
-
 	if !val.IsObject() {
-		return nil, errors.New("function must return a slice")
+		return nil, errors.New("function must return an array")
 	}
+
 	var out interface{}
 	out, err = val.Export()
 	if err != nil {
 		return nil, errors.Wrap(err, "export error")
 	}
 
-	switch v := out.(type) {
-	case []interface{}:
-		b, err = interfaceSliceToBytes(v)
-	case []float64:
-		b, err = floatSliceToBytes(v)
-	case []int64:
-		b, err = int64SliceToBytes(v)
-	default:
-		return nil, fmt.Errorf("function must return type slice of ints or floats, got: %T", v)
-	}
-
-	return b, err
+	return interfaceToByteSlice(out)
 }
 
-func floatSliceToBytes(items []float64) ([]byte, error) {
-	var b []byte
-	for _, v := range items {
-		b = append(b, byte(v))
+func interfaceToByteSlice(obj interface{}) ([]byte, error) {
+	if obj == nil {
+		return nil, errors.New("value must not be nil")
 	}
-	return b, nil
-}
 
-func interfaceSliceToBytes(items []interface{}) ([]byte, error) {
-	var b []byte
-	for _, item := range items {
-		switch v := item.(type) {
-		case uint8:
-			b = append(b, byte(v))
+	if reflect.TypeOf(obj).Kind() != reflect.Slice {
+		return nil, errors.New("value must be an array")
+	}
+
+	s := reflect.ValueOf(obj)
+	l := s.Len()
+
+	var out []byte
+	for i := 0; i < l; i++ {
+		var b int64
+
+		el := s.Index(i).Interface()
+		switch v := el.(type) {
 		case int:
-			b = append(b, byte(v))
+			b = int64(v)
+		case uint:
+			b = int64(v)
+		case uint8:
+			b = int64(v)
+		case int8:
+			b = int64(v)
+		case uint16:
+			b = int64(v)
+		case int16:
+			b = int64(v)
+		case uint32:
+			b = int64(v)
+		case int32:
+			b = int64(v)
+		case uint64:
+			b = int64(v)
+			if uint64(b) != v {
+				return nil, fmt.Errorf("array value must be in byte range (0 - 255), got: %d", v)
+			}
+		case int64:
+			b = int64(v)
+		case float32:
+			b = int64(v)
+			if float32(b) != v {
+				return nil, fmt.Errorf("array value must be in byte range (0 - 255), got: %f", v)
+			}
 		case float64:
-			b = append(b, byte(v))
+			b = int64(v)
+			if float64(b) != v {
+				return nil, fmt.Errorf("array value must be in byte range (0 - 255), got: %f", v)
+			}
 		default:
-			return nil, fmt.Errorf("invalid slice value, %T", v)
+			return nil, fmt.Errorf("array value must be an array of ints or floats, got: %T", el)
 		}
-	}
-	return b, nil
-}
 
-func int64SliceToBytes(items []int64) ([]byte, error) {
-	var b []byte
-	for _, v := range items {
-		b = append(b, byte(v))
+		if b < 0 || b > 255 {
+			return nil, fmt.Errorf("array value must be in byte range (0 - 255), got: %d", b)
+		}
+
+		out = append(out, byte(b))
 	}
-	return b, nil
+
+	return out, nil
 }

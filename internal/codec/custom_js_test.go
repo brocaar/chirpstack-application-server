@@ -116,6 +116,28 @@ func TestCustomEncodeJS(t *testing.T) {
 				ExpectedBytes: []byte{1, 2, 3},
 			},
 			{
+				Name: "return float array",
+				Script: `
+					function Encode(fPort, obj) {
+						return [1.123, 2.234];
+					}
+				`,
+				FPort:         10,
+				JSON:          `{"Temp": 20}`,
+				ExpectedError: errors.New("array value must be in byte range (0 - 255), got: 1.123000"),
+			},
+			{
+				Name: "return invalid bytes",
+				Script: `
+					function Encode(fPort, obj) {
+						return [256, 123];
+					}
+				`,
+				FPort:         10,
+				JSON:          `{"Temp": 20}`,
+				ExpectedError: errors.New("array value must be in byte range (0 - 255), got: 256"),
+			},
+			{
 				Name:          "invalid function",
 				Script:        ``,
 				FPort:         10,

@@ -18,6 +18,12 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 type CreateGatewayRequest struct {
 	// Hex encoded mac address.
 	Mac string `protobuf:"bytes,1,opt,name=mac" json:"mac,omitempty"`
@@ -38,13 +44,35 @@ type CreateGatewayRequest struct {
 	// ID of the network-server to which the gateway is connected.
 	NetworkServerID int64 `protobuf:"varint,10,opt,name=networkServerID" json:"networkServerID,omitempty"`
 	// ID of the gateway-profile (optional).
-	GatewayProfileID string `protobuf:"bytes,11,opt,name=gatewayProfileID" json:"gatewayProfileID,omitempty"`
+	GatewayProfileID     string   `protobuf:"bytes,11,opt,name=gatewayProfileID" json:"gatewayProfileID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateGatewayRequest) Reset()                    { *m = CreateGatewayRequest{} }
-func (m *CreateGatewayRequest) String() string            { return proto.CompactTextString(m) }
-func (*CreateGatewayRequest) ProtoMessage()               {}
-func (*CreateGatewayRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{0} }
+func (m *CreateGatewayRequest) Reset()         { *m = CreateGatewayRequest{} }
+func (m *CreateGatewayRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateGatewayRequest) ProtoMessage()    {}
+func (*CreateGatewayRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{0}
+}
+func (m *CreateGatewayRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateGatewayRequest.Unmarshal(m, b)
+}
+func (m *CreateGatewayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateGatewayRequest.Marshal(b, m, deterministic)
+}
+func (dst *CreateGatewayRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateGatewayRequest.Merge(dst, src)
+}
+func (m *CreateGatewayRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateGatewayRequest.Size(m)
+}
+func (m *CreateGatewayRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateGatewayRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateGatewayRequest proto.InternalMessageInfo
 
 func (m *CreateGatewayRequest) GetMac() string {
 	if m != nil {
@@ -117,22 +145,66 @@ func (m *CreateGatewayRequest) GetGatewayProfileID() string {
 }
 
 type CreateGatewayResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateGatewayResponse) Reset()                    { *m = CreateGatewayResponse{} }
-func (m *CreateGatewayResponse) String() string            { return proto.CompactTextString(m) }
-func (*CreateGatewayResponse) ProtoMessage()               {}
-func (*CreateGatewayResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{1} }
+func (m *CreateGatewayResponse) Reset()         { *m = CreateGatewayResponse{} }
+func (m *CreateGatewayResponse) String() string { return proto.CompactTextString(m) }
+func (*CreateGatewayResponse) ProtoMessage()    {}
+func (*CreateGatewayResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{1}
+}
+func (m *CreateGatewayResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateGatewayResponse.Unmarshal(m, b)
+}
+func (m *CreateGatewayResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateGatewayResponse.Marshal(b, m, deterministic)
+}
+func (dst *CreateGatewayResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateGatewayResponse.Merge(dst, src)
+}
+func (m *CreateGatewayResponse) XXX_Size() int {
+	return xxx_messageInfo_CreateGatewayResponse.Size(m)
+}
+func (m *CreateGatewayResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateGatewayResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateGatewayResponse proto.InternalMessageInfo
 
 type GetGatewayRequest struct {
 	// Hex encoded mac address of the node.
-	Mac string `protobuf:"bytes,1,opt,name=mac" json:"mac,omitempty"`
+	Mac                  string   `protobuf:"bytes,1,opt,name=mac" json:"mac,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetGatewayRequest) Reset()                    { *m = GetGatewayRequest{} }
-func (m *GetGatewayRequest) String() string            { return proto.CompactTextString(m) }
-func (*GetGatewayRequest) ProtoMessage()               {}
-func (*GetGatewayRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{2} }
+func (m *GetGatewayRequest) Reset()         { *m = GetGatewayRequest{} }
+func (m *GetGatewayRequest) String() string { return proto.CompactTextString(m) }
+func (*GetGatewayRequest) ProtoMessage()    {}
+func (*GetGatewayRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{2}
+}
+func (m *GetGatewayRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetGatewayRequest.Unmarshal(m, b)
+}
+func (m *GetGatewayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetGatewayRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetGatewayRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetGatewayRequest.Merge(dst, src)
+}
+func (m *GetGatewayRequest) XXX_Size() int {
+	return xxx_messageInfo_GetGatewayRequest.Size(m)
+}
+func (m *GetGatewayRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetGatewayRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetGatewayRequest proto.InternalMessageInfo
 
 func (m *GetGatewayRequest) GetMac() string {
 	if m != nil {
@@ -169,13 +241,35 @@ type GetGatewayResponse struct {
 	// ID of the network-server to which the gateway is connected.
 	NetworkServerID int64 `protobuf:"varint,14,opt,name=networkServerID" json:"networkServerID,omitempty"`
 	// ID of the gateway-profile (optional).
-	GatewayProfileID string `protobuf:"bytes,15,opt,name=gatewayProfileID" json:"gatewayProfileID,omitempty"`
+	GatewayProfileID     string   `protobuf:"bytes,15,opt,name=gatewayProfileID" json:"gatewayProfileID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetGatewayResponse) Reset()                    { *m = GetGatewayResponse{} }
-func (m *GetGatewayResponse) String() string            { return proto.CompactTextString(m) }
-func (*GetGatewayResponse) ProtoMessage()               {}
-func (*GetGatewayResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{3} }
+func (m *GetGatewayResponse) Reset()         { *m = GetGatewayResponse{} }
+func (m *GetGatewayResponse) String() string { return proto.CompactTextString(m) }
+func (*GetGatewayResponse) ProtoMessage()    {}
+func (*GetGatewayResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{3}
+}
+func (m *GetGatewayResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetGatewayResponse.Unmarshal(m, b)
+}
+func (m *GetGatewayResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetGatewayResponse.Marshal(b, m, deterministic)
+}
+func (dst *GetGatewayResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetGatewayResponse.Merge(dst, src)
+}
+func (m *GetGatewayResponse) XXX_Size() int {
+	return xxx_messageInfo_GetGatewayResponse.Size(m)
+}
+func (m *GetGatewayResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetGatewayResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetGatewayResponse proto.InternalMessageInfo
 
 func (m *GetGatewayResponse) GetMac() string {
 	if m != nil {
@@ -277,13 +371,35 @@ func (m *GetGatewayResponse) GetGatewayProfileID() string {
 
 type DeleteGatewayRequest struct {
 	// Hex encoded mac address.
-	Mac string `protobuf:"bytes,1,opt,name=mac" json:"mac,omitempty"`
+	Mac                  string   `protobuf:"bytes,1,opt,name=mac" json:"mac,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteGatewayRequest) Reset()                    { *m = DeleteGatewayRequest{} }
-func (m *DeleteGatewayRequest) String() string            { return proto.CompactTextString(m) }
-func (*DeleteGatewayRequest) ProtoMessage()               {}
-func (*DeleteGatewayRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{4} }
+func (m *DeleteGatewayRequest) Reset()         { *m = DeleteGatewayRequest{} }
+func (m *DeleteGatewayRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteGatewayRequest) ProtoMessage()    {}
+func (*DeleteGatewayRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{4}
+}
+func (m *DeleteGatewayRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteGatewayRequest.Unmarshal(m, b)
+}
+func (m *DeleteGatewayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteGatewayRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteGatewayRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteGatewayRequest.Merge(dst, src)
+}
+func (m *DeleteGatewayRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteGatewayRequest.Size(m)
+}
+func (m *DeleteGatewayRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteGatewayRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteGatewayRequest proto.InternalMessageInfo
 
 func (m *DeleteGatewayRequest) GetMac() string {
 	if m != nil {
@@ -293,12 +409,34 @@ func (m *DeleteGatewayRequest) GetMac() string {
 }
 
 type DeleteGatewayResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteGatewayResponse) Reset()                    { *m = DeleteGatewayResponse{} }
-func (m *DeleteGatewayResponse) String() string            { return proto.CompactTextString(m) }
-func (*DeleteGatewayResponse) ProtoMessage()               {}
-func (*DeleteGatewayResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{5} }
+func (m *DeleteGatewayResponse) Reset()         { *m = DeleteGatewayResponse{} }
+func (m *DeleteGatewayResponse) String() string { return proto.CompactTextString(m) }
+func (*DeleteGatewayResponse) ProtoMessage()    {}
+func (*DeleteGatewayResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{5}
+}
+func (m *DeleteGatewayResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteGatewayResponse.Unmarshal(m, b)
+}
+func (m *DeleteGatewayResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteGatewayResponse.Marshal(b, m, deterministic)
+}
+func (dst *DeleteGatewayResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteGatewayResponse.Merge(dst, src)
+}
+func (m *DeleteGatewayResponse) XXX_Size() int {
+	return xxx_messageInfo_DeleteGatewayResponse.Size(m)
+}
+func (m *DeleteGatewayResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteGatewayResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteGatewayResponse proto.InternalMessageInfo
 
 type ListGatewayRequest struct {
 	// Max number of nodes to return in the result-set.
@@ -309,13 +447,35 @@ type ListGatewayRequest struct {
 	// response will return all gateways to which the user has access to.
 	OrganizationID int64 `protobuf:"varint,3,opt,name=organizationID" json:"organizationID,omitempty"`
 	// Search on name or gateway MAC (optional).
-	Search string `protobuf:"bytes,4,opt,name=search" json:"search,omitempty"`
+	Search               string   `protobuf:"bytes,4,opt,name=search" json:"search,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListGatewayRequest) Reset()                    { *m = ListGatewayRequest{} }
-func (m *ListGatewayRequest) String() string            { return proto.CompactTextString(m) }
-func (*ListGatewayRequest) ProtoMessage()               {}
-func (*ListGatewayRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{6} }
+func (m *ListGatewayRequest) Reset()         { *m = ListGatewayRequest{} }
+func (m *ListGatewayRequest) String() string { return proto.CompactTextString(m) }
+func (*ListGatewayRequest) ProtoMessage()    {}
+func (*ListGatewayRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{6}
+}
+func (m *ListGatewayRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListGatewayRequest.Unmarshal(m, b)
+}
+func (m *ListGatewayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListGatewayRequest.Marshal(b, m, deterministic)
+}
+func (dst *ListGatewayRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListGatewayRequest.Merge(dst, src)
+}
+func (m *ListGatewayRequest) XXX_Size() int {
+	return xxx_messageInfo_ListGatewayRequest.Size(m)
+}
+func (m *ListGatewayRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListGatewayRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListGatewayRequest proto.InternalMessageInfo
 
 func (m *ListGatewayRequest) GetLimit() int32 {
 	if m != nil {
@@ -359,13 +519,35 @@ type ListGatewayItem struct {
 	// ID of the organization to which this gateway belongs.
 	OrganizationID int64 `protobuf:"varint,6,opt,name=organizationID" json:"organizationID,omitempty"`
 	// ID of the network-server to which the gateway is connected.
-	NetworkServerID int64 `protobuf:"varint,7,opt,name=networkServerID" json:"networkServerID,omitempty"`
+	NetworkServerID      int64    `protobuf:"varint,7,opt,name=networkServerID" json:"networkServerID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListGatewayItem) Reset()                    { *m = ListGatewayItem{} }
-func (m *ListGatewayItem) String() string            { return proto.CompactTextString(m) }
-func (*ListGatewayItem) ProtoMessage()               {}
-func (*ListGatewayItem) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{7} }
+func (m *ListGatewayItem) Reset()         { *m = ListGatewayItem{} }
+func (m *ListGatewayItem) String() string { return proto.CompactTextString(m) }
+func (*ListGatewayItem) ProtoMessage()    {}
+func (*ListGatewayItem) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{7}
+}
+func (m *ListGatewayItem) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListGatewayItem.Unmarshal(m, b)
+}
+func (m *ListGatewayItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListGatewayItem.Marshal(b, m, deterministic)
+}
+func (dst *ListGatewayItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListGatewayItem.Merge(dst, src)
+}
+func (m *ListGatewayItem) XXX_Size() int {
+	return xxx_messageInfo_ListGatewayItem.Size(m)
+}
+func (m *ListGatewayItem) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListGatewayItem.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListGatewayItem proto.InternalMessageInfo
 
 func (m *ListGatewayItem) GetMac() string {
 	if m != nil {
@@ -420,13 +602,35 @@ type ListGatewayResponse struct {
 	// Total number of nodes available within the result-set.
 	TotalCount int32 `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
 	// Nodes within this result-set.
-	Result []*ListGatewayItem `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	Result               []*ListGatewayItem `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
 }
 
-func (m *ListGatewayResponse) Reset()                    { *m = ListGatewayResponse{} }
-func (m *ListGatewayResponse) String() string            { return proto.CompactTextString(m) }
-func (*ListGatewayResponse) ProtoMessage()               {}
-func (*ListGatewayResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{8} }
+func (m *ListGatewayResponse) Reset()         { *m = ListGatewayResponse{} }
+func (m *ListGatewayResponse) String() string { return proto.CompactTextString(m) }
+func (*ListGatewayResponse) ProtoMessage()    {}
+func (*ListGatewayResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{8}
+}
+func (m *ListGatewayResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListGatewayResponse.Unmarshal(m, b)
+}
+func (m *ListGatewayResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListGatewayResponse.Marshal(b, m, deterministic)
+}
+func (dst *ListGatewayResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListGatewayResponse.Merge(dst, src)
+}
+func (m *ListGatewayResponse) XXX_Size() int {
+	return xxx_messageInfo_ListGatewayResponse.Size(m)
+}
+func (m *ListGatewayResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListGatewayResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListGatewayResponse proto.InternalMessageInfo
 
 func (m *ListGatewayResponse) GetTotalCount() int32 {
 	if m != nil {
@@ -460,13 +664,35 @@ type UpdateGatewayRequest struct {
 	// Gateway sends out a periodic ping.
 	Ping bool `protobuf:"varint,9,opt,name=ping" json:"ping,omitempty"`
 	// ID of the gateway-profile (optional).
-	GatewayProfileID string `protobuf:"bytes,10,opt,name=gatewayProfileID" json:"gatewayProfileID,omitempty"`
+	GatewayProfileID     string   `protobuf:"bytes,10,opt,name=gatewayProfileID" json:"gatewayProfileID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UpdateGatewayRequest) Reset()                    { *m = UpdateGatewayRequest{} }
-func (m *UpdateGatewayRequest) String() string            { return proto.CompactTextString(m) }
-func (*UpdateGatewayRequest) ProtoMessage()               {}
-func (*UpdateGatewayRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{9} }
+func (m *UpdateGatewayRequest) Reset()         { *m = UpdateGatewayRequest{} }
+func (m *UpdateGatewayRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateGatewayRequest) ProtoMessage()    {}
+func (*UpdateGatewayRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{9}
+}
+func (m *UpdateGatewayRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateGatewayRequest.Unmarshal(m, b)
+}
+func (m *UpdateGatewayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateGatewayRequest.Marshal(b, m, deterministic)
+}
+func (dst *UpdateGatewayRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateGatewayRequest.Merge(dst, src)
+}
+func (m *UpdateGatewayRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateGatewayRequest.Size(m)
+}
+func (m *UpdateGatewayRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateGatewayRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateGatewayRequest proto.InternalMessageInfo
 
 func (m *UpdateGatewayRequest) GetMac() string {
 	if m != nil {
@@ -532,12 +758,34 @@ func (m *UpdateGatewayRequest) GetGatewayProfileID() string {
 }
 
 type UpdateGatewayResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UpdateGatewayResponse) Reset()                    { *m = UpdateGatewayResponse{} }
-func (m *UpdateGatewayResponse) String() string            { return proto.CompactTextString(m) }
-func (*UpdateGatewayResponse) ProtoMessage()               {}
-func (*UpdateGatewayResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{10} }
+func (m *UpdateGatewayResponse) Reset()         { *m = UpdateGatewayResponse{} }
+func (m *UpdateGatewayResponse) String() string { return proto.CompactTextString(m) }
+func (*UpdateGatewayResponse) ProtoMessage()    {}
+func (*UpdateGatewayResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{10}
+}
+func (m *UpdateGatewayResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateGatewayResponse.Unmarshal(m, b)
+}
+func (m *UpdateGatewayResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateGatewayResponse.Marshal(b, m, deterministic)
+}
+func (dst *UpdateGatewayResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateGatewayResponse.Merge(dst, src)
+}
+func (m *UpdateGatewayResponse) XXX_Size() int {
+	return xxx_messageInfo_UpdateGatewayResponse.Size(m)
+}
+func (m *UpdateGatewayResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateGatewayResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateGatewayResponse proto.InternalMessageInfo
 
 type GatewayStats struct {
 	// Timestamp of the (aggregated) measurement.
@@ -549,13 +797,35 @@ type GatewayStats struct {
 	// Packets received by the gateway for transmission.
 	TxPacketsReceived int32 `protobuf:"varint,4,opt,name=txPacketsReceived" json:"txPacketsReceived,omitempty"`
 	// Packets transmitted by the gateway.
-	TxPacketsEmitted int32 `protobuf:"varint,5,opt,name=txPacketsEmitted" json:"txPacketsEmitted,omitempty"`
+	TxPacketsEmitted     int32    `protobuf:"varint,5,opt,name=txPacketsEmitted" json:"txPacketsEmitted,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GatewayStats) Reset()                    { *m = GatewayStats{} }
-func (m *GatewayStats) String() string            { return proto.CompactTextString(m) }
-func (*GatewayStats) ProtoMessage()               {}
-func (*GatewayStats) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{11} }
+func (m *GatewayStats) Reset()         { *m = GatewayStats{} }
+func (m *GatewayStats) String() string { return proto.CompactTextString(m) }
+func (*GatewayStats) ProtoMessage()    {}
+func (*GatewayStats) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{11}
+}
+func (m *GatewayStats) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GatewayStats.Unmarshal(m, b)
+}
+func (m *GatewayStats) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GatewayStats.Marshal(b, m, deterministic)
+}
+func (dst *GatewayStats) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GatewayStats.Merge(dst, src)
+}
+func (m *GatewayStats) XXX_Size() int {
+	return xxx_messageInfo_GatewayStats.Size(m)
+}
+func (m *GatewayStats) XXX_DiscardUnknown() {
+	xxx_messageInfo_GatewayStats.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GatewayStats proto.InternalMessageInfo
 
 func (m *GatewayStats) GetTimestamp() string {
 	if m != nil {
@@ -601,13 +871,35 @@ type GetGatewayStatsRequest struct {
 	// Timestamp to start from.
 	StartTimestamp string `protobuf:"bytes,3,opt,name=startTimestamp" json:"startTimestamp,omitempty"`
 	// Timestamp until to get from.
-	EndTimestamp string `protobuf:"bytes,4,opt,name=endTimestamp" json:"endTimestamp,omitempty"`
+	EndTimestamp         string   `protobuf:"bytes,4,opt,name=endTimestamp" json:"endTimestamp,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetGatewayStatsRequest) Reset()                    { *m = GetGatewayStatsRequest{} }
-func (m *GetGatewayStatsRequest) String() string            { return proto.CompactTextString(m) }
-func (*GetGatewayStatsRequest) ProtoMessage()               {}
-func (*GetGatewayStatsRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{12} }
+func (m *GetGatewayStatsRequest) Reset()         { *m = GetGatewayStatsRequest{} }
+func (m *GetGatewayStatsRequest) String() string { return proto.CompactTextString(m) }
+func (*GetGatewayStatsRequest) ProtoMessage()    {}
+func (*GetGatewayStatsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{12}
+}
+func (m *GetGatewayStatsRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetGatewayStatsRequest.Unmarshal(m, b)
+}
+func (m *GetGatewayStatsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetGatewayStatsRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetGatewayStatsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetGatewayStatsRequest.Merge(dst, src)
+}
+func (m *GetGatewayStatsRequest) XXX_Size() int {
+	return xxx_messageInfo_GetGatewayStatsRequest.Size(m)
+}
+func (m *GetGatewayStatsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetGatewayStatsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetGatewayStatsRequest proto.InternalMessageInfo
 
 func (m *GetGatewayStatsRequest) GetMac() string {
 	if m != nil {
@@ -638,13 +930,35 @@ func (m *GetGatewayStatsRequest) GetEndTimestamp() string {
 }
 
 type GetGatewayStatsResponse struct {
-	Result []*GatewayStats `protobuf:"bytes,1,rep,name=result" json:"result,omitempty"`
+	Result               []*GatewayStats `protobuf:"bytes,1,rep,name=result" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
 }
 
-func (m *GetGatewayStatsResponse) Reset()                    { *m = GetGatewayStatsResponse{} }
-func (m *GetGatewayStatsResponse) String() string            { return proto.CompactTextString(m) }
-func (*GetGatewayStatsResponse) ProtoMessage()               {}
-func (*GetGatewayStatsResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{13} }
+func (m *GetGatewayStatsResponse) Reset()         { *m = GetGatewayStatsResponse{} }
+func (m *GetGatewayStatsResponse) String() string { return proto.CompactTextString(m) }
+func (*GetGatewayStatsResponse) ProtoMessage()    {}
+func (*GetGatewayStatsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{13}
+}
+func (m *GetGatewayStatsResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetGatewayStatsResponse.Unmarshal(m, b)
+}
+func (m *GetGatewayStatsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetGatewayStatsResponse.Marshal(b, m, deterministic)
+}
+func (dst *GetGatewayStatsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetGatewayStatsResponse.Merge(dst, src)
+}
+func (m *GetGatewayStatsResponse) XXX_Size() int {
+	return xxx_messageInfo_GetGatewayStatsResponse.Size(m)
+}
+func (m *GetGatewayStatsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetGatewayStatsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetGatewayStatsResponse proto.InternalMessageInfo
 
 func (m *GetGatewayStatsResponse) GetResult() []*GatewayStats {
 	if m != nil {
@@ -665,13 +979,35 @@ type PingRX struct {
 	// Longitude of the gateway -180.0 to 180.0.
 	Longitude float64 `protobuf:"fixed64,5,opt,name=longitude" json:"longitude,omitempty"`
 	// Altitude of the gateway in meters.
-	Altitude float64 `protobuf:"fixed64,6,opt,name=altitude" json:"altitude,omitempty"`
+	Altitude             float64  `protobuf:"fixed64,6,opt,name=altitude" json:"altitude,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *PingRX) Reset()                    { *m = PingRX{} }
-func (m *PingRX) String() string            { return proto.CompactTextString(m) }
-func (*PingRX) ProtoMessage()               {}
-func (*PingRX) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{14} }
+func (m *PingRX) Reset()         { *m = PingRX{} }
+func (m *PingRX) String() string { return proto.CompactTextString(m) }
+func (*PingRX) ProtoMessage()    {}
+func (*PingRX) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{14}
+}
+func (m *PingRX) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PingRX.Unmarshal(m, b)
+}
+func (m *PingRX) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PingRX.Marshal(b, m, deterministic)
+}
+func (dst *PingRX) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PingRX.Merge(dst, src)
+}
+func (m *PingRX) XXX_Size() int {
+	return xxx_messageInfo_PingRX.Size(m)
+}
+func (m *PingRX) XXX_DiscardUnknown() {
+	xxx_messageInfo_PingRX.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PingRX proto.InternalMessageInfo
 
 func (m *PingRX) GetMac() string {
 	if m != nil {
@@ -717,13 +1053,35 @@ func (m *PingRX) GetAltitude() float64 {
 
 type GetLastPingRequest struct {
 	// Hex encoded mac address.
-	Mac string `protobuf:"bytes,1,opt,name=mac" json:"mac,omitempty"`
+	Mac                  string   `protobuf:"bytes,1,opt,name=mac" json:"mac,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetLastPingRequest) Reset()                    { *m = GetLastPingRequest{} }
-func (m *GetLastPingRequest) String() string            { return proto.CompactTextString(m) }
-func (*GetLastPingRequest) ProtoMessage()               {}
-func (*GetLastPingRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{15} }
+func (m *GetLastPingRequest) Reset()         { *m = GetLastPingRequest{} }
+func (m *GetLastPingRequest) String() string { return proto.CompactTextString(m) }
+func (*GetLastPingRequest) ProtoMessage()    {}
+func (*GetLastPingRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{15}
+}
+func (m *GetLastPingRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetLastPingRequest.Unmarshal(m, b)
+}
+func (m *GetLastPingRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetLastPingRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetLastPingRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetLastPingRequest.Merge(dst, src)
+}
+func (m *GetLastPingRequest) XXX_Size() int {
+	return xxx_messageInfo_GetLastPingRequest.Size(m)
+}
+func (m *GetLastPingRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetLastPingRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetLastPingRequest proto.InternalMessageInfo
 
 func (m *GetLastPingRequest) GetMac() string {
 	if m != nil {
@@ -740,13 +1098,35 @@ type GetLastPingResponse struct {
 	// Data-rate.
 	Dr uint32 `protobuf:"varint,3,opt,name=dr" json:"dr,omitempty"`
 	// Gateways and meta-data of reception.
-	PingRX []*PingRX `protobuf:"bytes,4,rep,name=pingRX" json:"pingRX,omitempty"`
+	PingRX               []*PingRX `protobuf:"bytes,4,rep,name=pingRX" json:"pingRX,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
+	XXX_unrecognized     []byte    `json:"-"`
+	XXX_sizecache        int32     `json:"-"`
 }
 
-func (m *GetLastPingResponse) Reset()                    { *m = GetLastPingResponse{} }
-func (m *GetLastPingResponse) String() string            { return proto.CompactTextString(m) }
-func (*GetLastPingResponse) ProtoMessage()               {}
-func (*GetLastPingResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{16} }
+func (m *GetLastPingResponse) Reset()         { *m = GetLastPingResponse{} }
+func (m *GetLastPingResponse) String() string { return proto.CompactTextString(m) }
+func (*GetLastPingResponse) ProtoMessage()    {}
+func (*GetLastPingResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{16}
+}
+func (m *GetLastPingResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetLastPingResponse.Unmarshal(m, b)
+}
+func (m *GetLastPingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetLastPingResponse.Marshal(b, m, deterministic)
+}
+func (dst *GetLastPingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetLastPingResponse.Merge(dst, src)
+}
+func (m *GetLastPingResponse) XXX_Size() int {
+	return xxx_messageInfo_GetLastPingResponse.Size(m)
+}
+func (m *GetLastPingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetLastPingResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetLastPingResponse proto.InternalMessageInfo
 
 func (m *GetLastPingResponse) GetCreatedAt() string {
 	if m != nil {
@@ -778,13 +1158,35 @@ func (m *GetLastPingResponse) GetPingRX() []*PingRX {
 
 type StreamGatewayFrameLogsRequest struct {
 	// Hex encoded mac.
-	Mac string `protobuf:"bytes,1,opt,name=mac" json:"mac,omitempty"`
+	Mac                  string   `protobuf:"bytes,1,opt,name=mac" json:"mac,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *StreamGatewayFrameLogsRequest) Reset()                    { *m = StreamGatewayFrameLogsRequest{} }
-func (m *StreamGatewayFrameLogsRequest) String() string            { return proto.CompactTextString(m) }
-func (*StreamGatewayFrameLogsRequest) ProtoMessage()               {}
-func (*StreamGatewayFrameLogsRequest) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{17} }
+func (m *StreamGatewayFrameLogsRequest) Reset()         { *m = StreamGatewayFrameLogsRequest{} }
+func (m *StreamGatewayFrameLogsRequest) String() string { return proto.CompactTextString(m) }
+func (*StreamGatewayFrameLogsRequest) ProtoMessage()    {}
+func (*StreamGatewayFrameLogsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{17}
+}
+func (m *StreamGatewayFrameLogsRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_StreamGatewayFrameLogsRequest.Unmarshal(m, b)
+}
+func (m *StreamGatewayFrameLogsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_StreamGatewayFrameLogsRequest.Marshal(b, m, deterministic)
+}
+func (dst *StreamGatewayFrameLogsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StreamGatewayFrameLogsRequest.Merge(dst, src)
+}
+func (m *StreamGatewayFrameLogsRequest) XXX_Size() int {
+	return xxx_messageInfo_StreamGatewayFrameLogsRequest.Size(m)
+}
+func (m *StreamGatewayFrameLogsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_StreamGatewayFrameLogsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_StreamGatewayFrameLogsRequest proto.InternalMessageInfo
 
 func (m *StreamGatewayFrameLogsRequest) GetMac() string {
 	if m != nil {
@@ -797,13 +1199,35 @@ type StreamGatewayFrameLogsResponse struct {
 	// Contains zero or one uplink frame.
 	UplinkFrames []*UplinkFrameLog `protobuf:"bytes,1,rep,name=uplinkFrames" json:"uplinkFrames,omitempty"`
 	// Contains zero or one downlink frame.
-	DownlinkFrames []*DownlinkFrameLog `protobuf:"bytes,2,rep,name=downlinkFrames" json:"downlinkFrames,omitempty"`
+	DownlinkFrames       []*DownlinkFrameLog `protobuf:"bytes,2,rep,name=downlinkFrames" json:"downlinkFrames,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
+	XXX_unrecognized     []byte              `json:"-"`
+	XXX_sizecache        int32               `json:"-"`
 }
 
-func (m *StreamGatewayFrameLogsResponse) Reset()                    { *m = StreamGatewayFrameLogsResponse{} }
-func (m *StreamGatewayFrameLogsResponse) String() string            { return proto.CompactTextString(m) }
-func (*StreamGatewayFrameLogsResponse) ProtoMessage()               {}
-func (*StreamGatewayFrameLogsResponse) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{18} }
+func (m *StreamGatewayFrameLogsResponse) Reset()         { *m = StreamGatewayFrameLogsResponse{} }
+func (m *StreamGatewayFrameLogsResponse) String() string { return proto.CompactTextString(m) }
+func (*StreamGatewayFrameLogsResponse) ProtoMessage()    {}
+func (*StreamGatewayFrameLogsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gateway_38213479b2462a35, []int{18}
+}
+func (m *StreamGatewayFrameLogsResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_StreamGatewayFrameLogsResponse.Unmarshal(m, b)
+}
+func (m *StreamGatewayFrameLogsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_StreamGatewayFrameLogsResponse.Marshal(b, m, deterministic)
+}
+func (dst *StreamGatewayFrameLogsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StreamGatewayFrameLogsResponse.Merge(dst, src)
+}
+func (m *StreamGatewayFrameLogsResponse) XXX_Size() int {
+	return xxx_messageInfo_StreamGatewayFrameLogsResponse.Size(m)
+}
+func (m *StreamGatewayFrameLogsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_StreamGatewayFrameLogsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_StreamGatewayFrameLogsResponse proto.InternalMessageInfo
 
 func (m *StreamGatewayFrameLogsResponse) GetUplinkFrames() []*UplinkFrameLog {
 	if m != nil {
@@ -1190,9 +1614,9 @@ var _Gateway_serviceDesc = grpc.ServiceDesc{
 	Metadata: "gateway.proto",
 }
 
-func init() { proto.RegisterFile("gateway.proto", fileDescriptor5) }
+func init() { proto.RegisterFile("gateway.proto", fileDescriptor_gateway_38213479b2462a35) }
 
-var fileDescriptor5 = []byte{
+var fileDescriptor_gateway_38213479b2462a35 = []byte{
 	// 1107 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x57, 0xdd, 0x6a, 0x24, 0xc5,
 	0x17, 0xa7, 0xe7, 0xa3, 0x93, 0x39, 0x93, 0x8f, 0x4d, 0xe5, 0xab, 0xb7, 0x93, 0x7f, 0x98, 0x7f,

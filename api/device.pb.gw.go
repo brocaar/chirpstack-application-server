@@ -32,10 +32,8 @@ func request_Device_Create_0(ctx context.Context, marshaler runtime.Marshaler, c
 	var protoReq CreateDeviceRequest
 	var metadata runtime.ServerMetadata
 
-	if req.ContentLength > 0 {
-		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-		}
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.Create(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -136,10 +134,8 @@ func request_Device_Update_0(ctx context.Context, marshaler runtime.Marshaler, c
 	var protoReq UpdateDeviceRequest
 	var metadata runtime.ServerMetadata
 
-	if req.ContentLength > 0 {
-		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-		}
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	var (
@@ -169,10 +165,8 @@ func request_Device_CreateKeys_0(ctx context.Context, marshaler runtime.Marshale
 	var protoReq CreateDeviceKeysRequest
 	var metadata runtime.ServerMetadata
 
-	if req.ContentLength > 0 {
-		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-		}
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	var (
@@ -229,10 +223,8 @@ func request_Device_UpdateKeys_0(ctx context.Context, marshaler runtime.Marshale
 	var protoReq UpdateDeviceKeysRequest
 	var metadata runtime.ServerMetadata
 
-	if req.ContentLength > 0 {
-		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-		}
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	var (
@@ -289,10 +281,8 @@ func request_Device_Activate_0(ctx context.Context, marshaler runtime.Marshaler,
 	var protoReq ActivateDeviceRequest
 	var metadata runtime.ServerMetadata
 
-	if req.ContentLength > 0 {
-		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-		}
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	var (

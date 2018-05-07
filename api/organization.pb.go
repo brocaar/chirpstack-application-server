@@ -18,6 +18,12 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 // Request the organizations defined in the system.
 type ListOrganizationRequest struct {
 	// Max number of organizations to return in the result-set.
@@ -26,13 +32,35 @@ type ListOrganizationRequest struct {
 	Offset int32 `protobuf:"varint,2,opt,name=offset" json:"offset,omitempty"`
 	// When provided, the given string will be used to search on
 	// displayName.
-	Search string `protobuf:"bytes,3,opt,name=search" json:"search,omitempty"`
+	Search               string   `protobuf:"bytes,3,opt,name=search" json:"search,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListOrganizationRequest) Reset()                    { *m = ListOrganizationRequest{} }
-func (m *ListOrganizationRequest) String() string            { return proto.CompactTextString(m) }
-func (*ListOrganizationRequest) ProtoMessage()               {}
-func (*ListOrganizationRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{0} }
+func (m *ListOrganizationRequest) Reset()         { *m = ListOrganizationRequest{} }
+func (m *ListOrganizationRequest) String() string { return proto.CompactTextString(m) }
+func (*ListOrganizationRequest) ProtoMessage()    {}
+func (*ListOrganizationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{0}
+}
+func (m *ListOrganizationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListOrganizationRequest.Unmarshal(m, b)
+}
+func (m *ListOrganizationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListOrganizationRequest.Marshal(b, m, deterministic)
+}
+func (dst *ListOrganizationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListOrganizationRequest.Merge(dst, src)
+}
+func (m *ListOrganizationRequest) XXX_Size() int {
+	return xxx_messageInfo_ListOrganizationRequest.Size(m)
+}
+func (m *ListOrganizationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListOrganizationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListOrganizationRequest proto.InternalMessageInfo
 
 func (m *ListOrganizationRequest) GetLimit() int32 {
 	if m != nil {
@@ -57,13 +85,35 @@ func (m *ListOrganizationRequest) GetSearch() string {
 
 // Request the user information.
 type OrganizationRequest struct {
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *OrganizationRequest) Reset()                    { *m = OrganizationRequest{} }
-func (m *OrganizationRequest) String() string            { return proto.CompactTextString(m) }
-func (*OrganizationRequest) ProtoMessage()               {}
-func (*OrganizationRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{1} }
+func (m *OrganizationRequest) Reset()         { *m = OrganizationRequest{} }
+func (m *OrganizationRequest) String() string { return proto.CompactTextString(m) }
+func (*OrganizationRequest) ProtoMessage()    {}
+func (*OrganizationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{1}
+}
+func (m *OrganizationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_OrganizationRequest.Unmarshal(m, b)
+}
+func (m *OrganizationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_OrganizationRequest.Marshal(b, m, deterministic)
+}
+func (dst *OrganizationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OrganizationRequest.Merge(dst, src)
+}
+func (m *OrganizationRequest) XXX_Size() int {
+	return xxx_messageInfo_OrganizationRequest.Size(m)
+}
+func (m *OrganizationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_OrganizationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_OrganizationRequest proto.InternalMessageInfo
 
 func (m *OrganizationRequest) GetId() int64 {
 	if m != nil {
@@ -84,13 +134,35 @@ type GetOrganizationResponse struct {
 	// When the user was created.
 	CreatedAt string `protobuf:"bytes,5,opt,name=createdAt" json:"createdAt,omitempty"`
 	// When the user was last updated (excludes changes in application access).
-	UpdatedAt string `protobuf:"bytes,6,opt,name=updatedAt" json:"updatedAt,omitempty"`
+	UpdatedAt            string   `protobuf:"bytes,6,opt,name=updatedAt" json:"updatedAt,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetOrganizationResponse) Reset()                    { *m = GetOrganizationResponse{} }
-func (m *GetOrganizationResponse) String() string            { return proto.CompactTextString(m) }
-func (*GetOrganizationResponse) ProtoMessage()               {}
-func (*GetOrganizationResponse) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{2} }
+func (m *GetOrganizationResponse) Reset()         { *m = GetOrganizationResponse{} }
+func (m *GetOrganizationResponse) String() string { return proto.CompactTextString(m) }
+func (*GetOrganizationResponse) ProtoMessage()    {}
+func (*GetOrganizationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{2}
+}
+func (m *GetOrganizationResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetOrganizationResponse.Unmarshal(m, b)
+}
+func (m *GetOrganizationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetOrganizationResponse.Marshal(b, m, deterministic)
+}
+func (dst *GetOrganizationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetOrganizationResponse.Merge(dst, src)
+}
+func (m *GetOrganizationResponse) XXX_Size() int {
+	return xxx_messageInfo_GetOrganizationResponse.Size(m)
+}
+func (m *GetOrganizationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetOrganizationResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetOrganizationResponse proto.InternalMessageInfo
 
 func (m *GetOrganizationResponse) GetId() int64 {
 	if m != nil {
@@ -141,13 +213,35 @@ type CreateOrganizationRequest struct {
 	// Organization display name.
 	DisplayName string `protobuf:"bytes,2,opt,name=displayName" json:"displayName,omitempty"`
 	// Can the organization create and "own" Gateways?
-	CanHaveGateways bool `protobuf:"varint,3,opt,name=canHaveGateways" json:"canHaveGateways,omitempty"`
+	CanHaveGateways      bool     `protobuf:"varint,3,opt,name=canHaveGateways" json:"canHaveGateways,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateOrganizationRequest) Reset()                    { *m = CreateOrganizationRequest{} }
-func (m *CreateOrganizationRequest) String() string            { return proto.CompactTextString(m) }
-func (*CreateOrganizationRequest) ProtoMessage()               {}
-func (*CreateOrganizationRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{3} }
+func (m *CreateOrganizationRequest) Reset()         { *m = CreateOrganizationRequest{} }
+func (m *CreateOrganizationRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateOrganizationRequest) ProtoMessage()    {}
+func (*CreateOrganizationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{3}
+}
+func (m *CreateOrganizationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateOrganizationRequest.Unmarshal(m, b)
+}
+func (m *CreateOrganizationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateOrganizationRequest.Marshal(b, m, deterministic)
+}
+func (dst *CreateOrganizationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateOrganizationRequest.Merge(dst, src)
+}
+func (m *CreateOrganizationRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateOrganizationRequest.Size(m)
+}
+func (m *CreateOrganizationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateOrganizationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateOrganizationRequest proto.InternalMessageInfo
 
 func (m *CreateOrganizationRequest) GetName() string {
 	if m != nil {
@@ -172,13 +266,35 @@ func (m *CreateOrganizationRequest) GetCanHaveGateways() bool {
 
 type CreateOrganizationResponse struct {
 	// ID of the organization.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateOrganizationResponse) Reset()                    { *m = CreateOrganizationResponse{} }
-func (m *CreateOrganizationResponse) String() string            { return proto.CompactTextString(m) }
-func (*CreateOrganizationResponse) ProtoMessage()               {}
-func (*CreateOrganizationResponse) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{4} }
+func (m *CreateOrganizationResponse) Reset()         { *m = CreateOrganizationResponse{} }
+func (m *CreateOrganizationResponse) String() string { return proto.CompactTextString(m) }
+func (*CreateOrganizationResponse) ProtoMessage()    {}
+func (*CreateOrganizationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{4}
+}
+func (m *CreateOrganizationResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateOrganizationResponse.Unmarshal(m, b)
+}
+func (m *CreateOrganizationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateOrganizationResponse.Marshal(b, m, deterministic)
+}
+func (dst *CreateOrganizationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateOrganizationResponse.Merge(dst, src)
+}
+func (m *CreateOrganizationResponse) XXX_Size() int {
+	return xxx_messageInfo_CreateOrganizationResponse.Size(m)
+}
+func (m *CreateOrganizationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateOrganizationResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateOrganizationResponse proto.InternalMessageInfo
 
 func (m *CreateOrganizationResponse) GetId() int64 {
 	if m != nil {
@@ -196,13 +312,35 @@ type UpdateOrganizationRequest struct {
 	// The new display name.
 	DisplayName string `protobuf:"bytes,3,opt,name=displayName" json:"displayName,omitempty"`
 	// Can the organization create and "own" Gateways?
-	CanHaveGateways bool `protobuf:"varint,4,opt,name=canHaveGateways" json:"canHaveGateways,omitempty"`
+	CanHaveGateways      bool     `protobuf:"varint,4,opt,name=canHaveGateways" json:"canHaveGateways,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UpdateOrganizationRequest) Reset()                    { *m = UpdateOrganizationRequest{} }
-func (m *UpdateOrganizationRequest) String() string            { return proto.CompactTextString(m) }
-func (*UpdateOrganizationRequest) ProtoMessage()               {}
-func (*UpdateOrganizationRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{5} }
+func (m *UpdateOrganizationRequest) Reset()         { *m = UpdateOrganizationRequest{} }
+func (m *UpdateOrganizationRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateOrganizationRequest) ProtoMessage()    {}
+func (*UpdateOrganizationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{5}
+}
+func (m *UpdateOrganizationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateOrganizationRequest.Unmarshal(m, b)
+}
+func (m *UpdateOrganizationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateOrganizationRequest.Marshal(b, m, deterministic)
+}
+func (dst *UpdateOrganizationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateOrganizationRequest.Merge(dst, src)
+}
+func (m *UpdateOrganizationRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateOrganizationRequest.Size(m)
+}
+func (m *UpdateOrganizationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateOrganizationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateOrganizationRequest proto.InternalMessageInfo
 
 func (m *UpdateOrganizationRequest) GetId() int64 {
 	if m != nil {
@@ -233,14 +371,36 @@ func (m *UpdateOrganizationRequest) GetCanHaveGateways() bool {
 }
 
 type ListOrganizationResponse struct {
-	TotalCount int32                      `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
-	Result     []*GetOrganizationResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	TotalCount           int32                      `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
+	Result               []*GetOrganizationResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
 }
 
-func (m *ListOrganizationResponse) Reset()                    { *m = ListOrganizationResponse{} }
-func (m *ListOrganizationResponse) String() string            { return proto.CompactTextString(m) }
-func (*ListOrganizationResponse) ProtoMessage()               {}
-func (*ListOrganizationResponse) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{6} }
+func (m *ListOrganizationResponse) Reset()         { *m = ListOrganizationResponse{} }
+func (m *ListOrganizationResponse) String() string { return proto.CompactTextString(m) }
+func (*ListOrganizationResponse) ProtoMessage()    {}
+func (*ListOrganizationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{6}
+}
+func (m *ListOrganizationResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListOrganizationResponse.Unmarshal(m, b)
+}
+func (m *ListOrganizationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListOrganizationResponse.Marshal(b, m, deterministic)
+}
+func (dst *ListOrganizationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListOrganizationResponse.Merge(dst, src)
+}
+func (m *ListOrganizationResponse) XXX_Size() int {
+	return xxx_messageInfo_ListOrganizationResponse.Size(m)
+}
+func (m *ListOrganizationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListOrganizationResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListOrganizationResponse proto.InternalMessageInfo
 
 func (m *ListOrganizationResponse) GetTotalCount() int32 {
 	if m != nil {
@@ -257,12 +417,34 @@ func (m *ListOrganizationResponse) GetResult() []*GetOrganizationResponse {
 }
 
 type OrganizationEmptyResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *OrganizationEmptyResponse) Reset()                    { *m = OrganizationEmptyResponse{} }
-func (m *OrganizationEmptyResponse) String() string            { return proto.CompactTextString(m) }
-func (*OrganizationEmptyResponse) ProtoMessage()               {}
-func (*OrganizationEmptyResponse) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{7} }
+func (m *OrganizationEmptyResponse) Reset()         { *m = OrganizationEmptyResponse{} }
+func (m *OrganizationEmptyResponse) String() string { return proto.CompactTextString(m) }
+func (*OrganizationEmptyResponse) ProtoMessage()    {}
+func (*OrganizationEmptyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{7}
+}
+func (m *OrganizationEmptyResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_OrganizationEmptyResponse.Unmarshal(m, b)
+}
+func (m *OrganizationEmptyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_OrganizationEmptyResponse.Marshal(b, m, deterministic)
+}
+func (dst *OrganizationEmptyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OrganizationEmptyResponse.Merge(dst, src)
+}
+func (m *OrganizationEmptyResponse) XXX_Size() int {
+	return xxx_messageInfo_OrganizationEmptyResponse.Size(m)
+}
+func (m *OrganizationEmptyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_OrganizationEmptyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_OrganizationEmptyResponse proto.InternalMessageInfo
 
 type OrganizationUserRequest struct {
 	// The organization id.
@@ -270,13 +452,35 @@ type OrganizationUserRequest struct {
 	// The user's id.
 	UserID int64 `protobuf:"varint,2,opt,name=userID" json:"userID,omitempty"`
 	// The user's admin status for the organization
-	IsAdmin bool `protobuf:"varint,3,opt,name=isAdmin" json:"isAdmin,omitempty"`
+	IsAdmin              bool     `protobuf:"varint,3,opt,name=isAdmin" json:"isAdmin,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *OrganizationUserRequest) Reset()                    { *m = OrganizationUserRequest{} }
-func (m *OrganizationUserRequest) String() string            { return proto.CompactTextString(m) }
-func (*OrganizationUserRequest) ProtoMessage()               {}
-func (*OrganizationUserRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{8} }
+func (m *OrganizationUserRequest) Reset()         { *m = OrganizationUserRequest{} }
+func (m *OrganizationUserRequest) String() string { return proto.CompactTextString(m) }
+func (*OrganizationUserRequest) ProtoMessage()    {}
+func (*OrganizationUserRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{8}
+}
+func (m *OrganizationUserRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_OrganizationUserRequest.Unmarshal(m, b)
+}
+func (m *OrganizationUserRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_OrganizationUserRequest.Marshal(b, m, deterministic)
+}
+func (dst *OrganizationUserRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OrganizationUserRequest.Merge(dst, src)
+}
+func (m *OrganizationUserRequest) XXX_Size() int {
+	return xxx_messageInfo_OrganizationUserRequest.Size(m)
+}
+func (m *OrganizationUserRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_OrganizationUserRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_OrganizationUserRequest proto.InternalMessageInfo
 
 func (m *OrganizationUserRequest) GetId() int64 {
 	if m != nil {
@@ -303,13 +507,35 @@ type DeleteOrganizationUserRequest struct {
 	// The organization id.
 	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
 	// The user's id.
-	UserID int64 `protobuf:"varint,2,opt,name=userID" json:"userID,omitempty"`
+	UserID               int64    `protobuf:"varint,2,opt,name=userID" json:"userID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteOrganizationUserRequest) Reset()                    { *m = DeleteOrganizationUserRequest{} }
-func (m *DeleteOrganizationUserRequest) String() string            { return proto.CompactTextString(m) }
-func (*DeleteOrganizationUserRequest) ProtoMessage()               {}
-func (*DeleteOrganizationUserRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{9} }
+func (m *DeleteOrganizationUserRequest) Reset()         { *m = DeleteOrganizationUserRequest{} }
+func (m *DeleteOrganizationUserRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteOrganizationUserRequest) ProtoMessage()    {}
+func (*DeleteOrganizationUserRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{9}
+}
+func (m *DeleteOrganizationUserRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteOrganizationUserRequest.Unmarshal(m, b)
+}
+func (m *DeleteOrganizationUserRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteOrganizationUserRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteOrganizationUserRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteOrganizationUserRequest.Merge(dst, src)
+}
+func (m *DeleteOrganizationUserRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteOrganizationUserRequest.Size(m)
+}
+func (m *DeleteOrganizationUserRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteOrganizationUserRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteOrganizationUserRequest proto.InternalMessageInfo
 
 func (m *DeleteOrganizationUserRequest) GetId() int64 {
 	if m != nil {
@@ -332,13 +558,35 @@ type ListOrganizationUsersRequest struct {
 	// Max number of users to return in the result-set.
 	Limit int32 `protobuf:"varint,2,opt,name=limit" json:"limit,omitempty"`
 	// Offset in the result-set (for pagination).
-	Offset int32 `protobuf:"varint,3,opt,name=offset" json:"offset,omitempty"`
+	Offset               int32    `protobuf:"varint,3,opt,name=offset" json:"offset,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListOrganizationUsersRequest) Reset()                    { *m = ListOrganizationUsersRequest{} }
-func (m *ListOrganizationUsersRequest) String() string            { return proto.CompactTextString(m) }
-func (*ListOrganizationUsersRequest) ProtoMessage()               {}
-func (*ListOrganizationUsersRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{10} }
+func (m *ListOrganizationUsersRequest) Reset()         { *m = ListOrganizationUsersRequest{} }
+func (m *ListOrganizationUsersRequest) String() string { return proto.CompactTextString(m) }
+func (*ListOrganizationUsersRequest) ProtoMessage()    {}
+func (*ListOrganizationUsersRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{10}
+}
+func (m *ListOrganizationUsersRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListOrganizationUsersRequest.Unmarshal(m, b)
+}
+func (m *ListOrganizationUsersRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListOrganizationUsersRequest.Marshal(b, m, deterministic)
+}
+func (dst *ListOrganizationUsersRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListOrganizationUsersRequest.Merge(dst, src)
+}
+func (m *ListOrganizationUsersRequest) XXX_Size() int {
+	return xxx_messageInfo_ListOrganizationUsersRequest.Size(m)
+}
+func (m *ListOrganizationUsersRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListOrganizationUsersRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListOrganizationUsersRequest proto.InternalMessageInfo
 
 func (m *ListOrganizationUsersRequest) GetId() int64 {
 	if m != nil {
@@ -365,13 +613,35 @@ type GetOrganizationUserRequest struct {
 	// ID of the organization.
 	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
 	// ID of the user.
-	UserID int64 `protobuf:"varint,2,opt,name=userID" json:"userID,omitempty"`
+	UserID               int64    `protobuf:"varint,2,opt,name=userID" json:"userID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetOrganizationUserRequest) Reset()                    { *m = GetOrganizationUserRequest{} }
-func (m *GetOrganizationUserRequest) String() string            { return proto.CompactTextString(m) }
-func (*GetOrganizationUserRequest) ProtoMessage()               {}
-func (*GetOrganizationUserRequest) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{11} }
+func (m *GetOrganizationUserRequest) Reset()         { *m = GetOrganizationUserRequest{} }
+func (m *GetOrganizationUserRequest) String() string { return proto.CompactTextString(m) }
+func (*GetOrganizationUserRequest) ProtoMessage()    {}
+func (*GetOrganizationUserRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{11}
+}
+func (m *GetOrganizationUserRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetOrganizationUserRequest.Unmarshal(m, b)
+}
+func (m *GetOrganizationUserRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetOrganizationUserRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetOrganizationUserRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetOrganizationUserRequest.Merge(dst, src)
+}
+func (m *GetOrganizationUserRequest) XXX_Size() int {
+	return xxx_messageInfo_GetOrganizationUserRequest.Size(m)
+}
+func (m *GetOrganizationUserRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetOrganizationUserRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetOrganizationUserRequest proto.InternalMessageInfo
 
 func (m *GetOrganizationUserRequest) GetId() int64 {
 	if m != nil {
@@ -398,13 +668,35 @@ type GetOrganizationUserResponse struct {
 	// When the user was created.
 	CreatedAt string `protobuf:"bytes,4,opt,name=createdAt" json:"createdAt,omitempty"`
 	// When the user was last updated (excludes changes in application access).
-	UpdatedAt string `protobuf:"bytes,5,opt,name=updatedAt" json:"updatedAt,omitempty"`
+	UpdatedAt            string   `protobuf:"bytes,5,opt,name=updatedAt" json:"updatedAt,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetOrganizationUserResponse) Reset()                    { *m = GetOrganizationUserResponse{} }
-func (m *GetOrganizationUserResponse) String() string            { return proto.CompactTextString(m) }
-func (*GetOrganizationUserResponse) ProtoMessage()               {}
-func (*GetOrganizationUserResponse) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{12} }
+func (m *GetOrganizationUserResponse) Reset()         { *m = GetOrganizationUserResponse{} }
+func (m *GetOrganizationUserResponse) String() string { return proto.CompactTextString(m) }
+func (*GetOrganizationUserResponse) ProtoMessage()    {}
+func (*GetOrganizationUserResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{12}
+}
+func (m *GetOrganizationUserResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetOrganizationUserResponse.Unmarshal(m, b)
+}
+func (m *GetOrganizationUserResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetOrganizationUserResponse.Marshal(b, m, deterministic)
+}
+func (dst *GetOrganizationUserResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetOrganizationUserResponse.Merge(dst, src)
+}
+func (m *GetOrganizationUserResponse) XXX_Size() int {
+	return xxx_messageInfo_GetOrganizationUserResponse.Size(m)
+}
+func (m *GetOrganizationUserResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetOrganizationUserResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetOrganizationUserResponse proto.InternalMessageInfo
 
 func (m *GetOrganizationUserResponse) GetId() int64 {
 	if m != nil {
@@ -446,13 +738,35 @@ type ListOrganizationUsersResponse struct {
 	// The total number of users in the organization.
 	TotalCount int32 `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
 	// The users in the requested limit, offset range.
-	Result []*GetOrganizationUserResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	Result               []*GetOrganizationUserResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                       `json:"-"`
+	XXX_unrecognized     []byte                         `json:"-"`
+	XXX_sizecache        int32                          `json:"-"`
 }
 
-func (m *ListOrganizationUsersResponse) Reset()                    { *m = ListOrganizationUsersResponse{} }
-func (m *ListOrganizationUsersResponse) String() string            { return proto.CompactTextString(m) }
-func (*ListOrganizationUsersResponse) ProtoMessage()               {}
-func (*ListOrganizationUsersResponse) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{13} }
+func (m *ListOrganizationUsersResponse) Reset()         { *m = ListOrganizationUsersResponse{} }
+func (m *ListOrganizationUsersResponse) String() string { return proto.CompactTextString(m) }
+func (*ListOrganizationUsersResponse) ProtoMessage()    {}
+func (*ListOrganizationUsersResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_d08647b84d11cd44, []int{13}
+}
+func (m *ListOrganizationUsersResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListOrganizationUsersResponse.Unmarshal(m, b)
+}
+func (m *ListOrganizationUsersResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListOrganizationUsersResponse.Marshal(b, m, deterministic)
+}
+func (dst *ListOrganizationUsersResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListOrganizationUsersResponse.Merge(dst, src)
+}
+func (m *ListOrganizationUsersResponse) XXX_Size() int {
+	return xxx_messageInfo_ListOrganizationUsersResponse.Size(m)
+}
+func (m *ListOrganizationUsersResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListOrganizationUsersResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListOrganizationUsersResponse proto.InternalMessageInfo
 
 func (m *ListOrganizationUsersResponse) GetTotalCount() int32 {
 	if m != nil {
@@ -874,9 +1188,9 @@ var _Organization_serviceDesc = grpc.ServiceDesc{
 	Metadata: "organization.proto",
 }
 
-func init() { proto.RegisterFile("organization.proto", fileDescriptor6) }
+func init() { proto.RegisterFile("organization.proto", fileDescriptor_organization_d08647b84d11cd44) }
 
-var fileDescriptor6 = []byte{
+var fileDescriptor_organization_d08647b84d11cd44 = []byte{
 	// 745 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xc1, 0x6e, 0xd3, 0x40,
 	0x10, 0x95, 0xe3, 0xc4, 0x6d, 0xa6, 0x08, 0xa4, 0xa5, 0x6a, 0x1c, 0x37, 0x69, 0xc2, 0x4a, 0x45,

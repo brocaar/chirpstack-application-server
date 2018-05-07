@@ -12,6 +12,12 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 type RatePolicy int32
 
 const (
@@ -33,7 +39,9 @@ var RatePolicy_value = map[string]int32{
 func (x RatePolicy) String() string {
 	return proto.EnumName(RatePolicy_name, int32(x))
 }
-func (RatePolicy) EnumDescriptor() ([]byte, []int) { return fileDescriptor7, []int{0} }
+func (RatePolicy) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_profiles_dccfb7ca0bc0b66b, []int{0}
+}
 
 type ServiceProfile struct {
 	ServiceProfileID       string     `protobuf:"bytes,1,opt,name=serviceProfileID" json:"serviceProfileID,omitempty"`
@@ -56,12 +64,34 @@ type ServiceProfile struct {
 	NwkGeoLoc              bool       `protobuf:"varint,18,opt,name=nwkGeoLoc" json:"nwkGeoLoc,omitempty"`
 	TargetPER              uint32     `protobuf:"varint,19,opt,name=targetPER" json:"targetPER,omitempty"`
 	MinGWDiversity         uint32     `protobuf:"varint,20,opt,name=minGWDiversity" json:"minGWDiversity,omitempty"`
+	XXX_NoUnkeyedLiteral   struct{}   `json:"-"`
+	XXX_unrecognized       []byte     `json:"-"`
+	XXX_sizecache          int32      `json:"-"`
 }
 
-func (m *ServiceProfile) Reset()                    { *m = ServiceProfile{} }
-func (m *ServiceProfile) String() string            { return proto.CompactTextString(m) }
-func (*ServiceProfile) ProtoMessage()               {}
-func (*ServiceProfile) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{0} }
+func (m *ServiceProfile) Reset()         { *m = ServiceProfile{} }
+func (m *ServiceProfile) String() string { return proto.CompactTextString(m) }
+func (*ServiceProfile) ProtoMessage()    {}
+func (*ServiceProfile) Descriptor() ([]byte, []int) {
+	return fileDescriptor_profiles_dccfb7ca0bc0b66b, []int{0}
+}
+func (m *ServiceProfile) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ServiceProfile.Unmarshal(m, b)
+}
+func (m *ServiceProfile) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ServiceProfile.Marshal(b, m, deterministic)
+}
+func (dst *ServiceProfile) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ServiceProfile.Merge(dst, src)
+}
+func (m *ServiceProfile) XXX_Size() int {
+	return xxx_messageInfo_ServiceProfile.Size(m)
+}
+func (m *ServiceProfile) XXX_DiscardUnknown() {
+	xxx_messageInfo_ServiceProfile.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ServiceProfile proto.InternalMessageInfo
 
 func (m *ServiceProfile) GetServiceProfileID() string {
 	if m != nil {
@@ -204,32 +234,54 @@ func (m *ServiceProfile) GetMinGWDiversity() uint32 {
 }
 
 type DeviceProfile struct {
-	DeviceProfileID    string   `protobuf:"bytes,1,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
-	SupportsClassB     bool     `protobuf:"varint,2,opt,name=supportsClassB" json:"supportsClassB,omitempty"`
-	ClassBTimeout      uint32   `protobuf:"varint,3,opt,name=classBTimeout" json:"classBTimeout,omitempty"`
-	PingSlotPeriod     uint32   `protobuf:"varint,4,opt,name=pingSlotPeriod" json:"pingSlotPeriod,omitempty"`
-	PingSlotDR         uint32   `protobuf:"varint,5,opt,name=pingSlotDR" json:"pingSlotDR,omitempty"`
-	PingSlotFreq       uint32   `protobuf:"varint,6,opt,name=pingSlotFreq" json:"pingSlotFreq,omitempty"`
-	SupportsClassC     bool     `protobuf:"varint,7,opt,name=supportsClassC" json:"supportsClassC,omitempty"`
-	ClassCTimeout      uint32   `protobuf:"varint,8,opt,name=classCTimeout" json:"classCTimeout,omitempty"`
-	MacVersion         string   `protobuf:"bytes,9,opt,name=macVersion" json:"macVersion,omitempty"`
-	RegParamsRevision  string   `protobuf:"bytes,10,opt,name=regParamsRevision" json:"regParamsRevision,omitempty"`
-	RxDelay1           uint32   `protobuf:"varint,11,opt,name=rxDelay1" json:"rxDelay1,omitempty"`
-	RxDROffset1        uint32   `protobuf:"varint,12,opt,name=rxDROffset1" json:"rxDROffset1,omitempty"`
-	RxDataRate2        uint32   `protobuf:"varint,13,opt,name=rxDataRate2" json:"rxDataRate2,omitempty"`
-	RxFreq2            uint32   `protobuf:"varint,14,opt,name=rxFreq2" json:"rxFreq2,omitempty"`
-	FactoryPresetFreqs []uint32 `protobuf:"varint,15,rep,packed,name=factoryPresetFreqs" json:"factoryPresetFreqs,omitempty"`
-	MaxEIRP            uint32   `protobuf:"varint,16,opt,name=maxEIRP" json:"maxEIRP,omitempty"`
-	MaxDutyCycle       uint32   `protobuf:"varint,17,opt,name=maxDutyCycle" json:"maxDutyCycle,omitempty"`
-	SupportsJoin       bool     `protobuf:"varint,18,opt,name=supportsJoin" json:"supportsJoin,omitempty"`
-	RfRegion           string   `protobuf:"bytes,19,opt,name=rfRegion" json:"rfRegion,omitempty"`
-	Supports32BitFCnt  bool     `protobuf:"varint,20,opt,name=supports32bitFCnt" json:"supports32bitFCnt,omitempty"`
+	DeviceProfileID      string   `protobuf:"bytes,1,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
+	SupportsClassB       bool     `protobuf:"varint,2,opt,name=supportsClassB" json:"supportsClassB,omitempty"`
+	ClassBTimeout        uint32   `protobuf:"varint,3,opt,name=classBTimeout" json:"classBTimeout,omitempty"`
+	PingSlotPeriod       uint32   `protobuf:"varint,4,opt,name=pingSlotPeriod" json:"pingSlotPeriod,omitempty"`
+	PingSlotDR           uint32   `protobuf:"varint,5,opt,name=pingSlotDR" json:"pingSlotDR,omitempty"`
+	PingSlotFreq         uint32   `protobuf:"varint,6,opt,name=pingSlotFreq" json:"pingSlotFreq,omitempty"`
+	SupportsClassC       bool     `protobuf:"varint,7,opt,name=supportsClassC" json:"supportsClassC,omitempty"`
+	ClassCTimeout        uint32   `protobuf:"varint,8,opt,name=classCTimeout" json:"classCTimeout,omitempty"`
+	MacVersion           string   `protobuf:"bytes,9,opt,name=macVersion" json:"macVersion,omitempty"`
+	RegParamsRevision    string   `protobuf:"bytes,10,opt,name=regParamsRevision" json:"regParamsRevision,omitempty"`
+	RxDelay1             uint32   `protobuf:"varint,11,opt,name=rxDelay1" json:"rxDelay1,omitempty"`
+	RxDROffset1          uint32   `protobuf:"varint,12,opt,name=rxDROffset1" json:"rxDROffset1,omitempty"`
+	RxDataRate2          uint32   `protobuf:"varint,13,opt,name=rxDataRate2" json:"rxDataRate2,omitempty"`
+	RxFreq2              uint32   `protobuf:"varint,14,opt,name=rxFreq2" json:"rxFreq2,omitempty"`
+	FactoryPresetFreqs   []uint32 `protobuf:"varint,15,rep,packed,name=factoryPresetFreqs" json:"factoryPresetFreqs,omitempty"`
+	MaxEIRP              uint32   `protobuf:"varint,16,opt,name=maxEIRP" json:"maxEIRP,omitempty"`
+	MaxDutyCycle         uint32   `protobuf:"varint,17,opt,name=maxDutyCycle" json:"maxDutyCycle,omitempty"`
+	SupportsJoin         bool     `protobuf:"varint,18,opt,name=supportsJoin" json:"supportsJoin,omitempty"`
+	RfRegion             string   `protobuf:"bytes,19,opt,name=rfRegion" json:"rfRegion,omitempty"`
+	Supports32BitFCnt    bool     `protobuf:"varint,20,opt,name=supports32bitFCnt" json:"supports32bitFCnt,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeviceProfile) Reset()                    { *m = DeviceProfile{} }
-func (m *DeviceProfile) String() string            { return proto.CompactTextString(m) }
-func (*DeviceProfile) ProtoMessage()               {}
-func (*DeviceProfile) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{1} }
+func (m *DeviceProfile) Reset()         { *m = DeviceProfile{} }
+func (m *DeviceProfile) String() string { return proto.CompactTextString(m) }
+func (*DeviceProfile) ProtoMessage()    {}
+func (*DeviceProfile) Descriptor() ([]byte, []int) {
+	return fileDescriptor_profiles_dccfb7ca0bc0b66b, []int{1}
+}
+func (m *DeviceProfile) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeviceProfile.Unmarshal(m, b)
+}
+func (m *DeviceProfile) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeviceProfile.Marshal(b, m, deterministic)
+}
+func (dst *DeviceProfile) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeviceProfile.Merge(dst, src)
+}
+func (m *DeviceProfile) XXX_Size() int {
+	return xxx_messageInfo_DeviceProfile.Size(m)
+}
+func (m *DeviceProfile) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeviceProfile.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeviceProfile proto.InternalMessageInfo
 
 func (m *DeviceProfile) GetDeviceProfileID() string {
 	if m != nil {
@@ -377,9 +429,9 @@ func init() {
 	proto.RegisterEnum("api.RatePolicy", RatePolicy_name, RatePolicy_value)
 }
 
-func init() { proto.RegisterFile("profiles.proto", fileDescriptor7) }
+func init() { proto.RegisterFile("profiles.proto", fileDescriptor_profiles_dccfb7ca0bc0b66b) }
 
-var fileDescriptor7 = []byte{
+var fileDescriptor_profiles_dccfb7ca0bc0b66b = []byte{
 	// 688 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x95, 0xdf, 0x4f, 0xdb, 0x30,
 	0x10, 0xc7, 0xd7, 0x41, 0xa1, 0x35, 0xa4, 0x2d, 0x86, 0x21, 0x6b, 0x9a, 0xa6, 0x08, 0x4d, 0x53,

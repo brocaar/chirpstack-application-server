@@ -32,10 +32,8 @@ func request_DeviceQueue_Enqueue_0(ctx context.Context, marshaler runtime.Marsha
 	var protoReq EnqueueDeviceQueueItemRequest
 	var metadata runtime.ServerMetadata
 
-	if req.ContentLength > 0 {
-		if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil {
-			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-		}
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	var (

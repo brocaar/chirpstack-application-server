@@ -18,6 +18,12 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 type IntegrationKind int32
 
 const (
@@ -34,7 +40,9 @@ var IntegrationKind_value = map[string]int32{
 func (x IntegrationKind) String() string {
 	return proto.EnumName(IntegrationKind_name, int32(x))
 }
-func (IntegrationKind) EnumDescriptor() ([]byte, []int) { return fileDescriptor1, []int{0} }
+func (IntegrationKind) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{0}
+}
 
 type CreateApplicationRequest struct {
 	// Name of the application (must be unique).
@@ -50,13 +58,35 @@ type CreateApplicationRequest struct {
 	// Payload encoder script.
 	PayloadEncoderScript string `protobuf:"bytes,17,opt,name=payloadEncoderScript" json:"payloadEncoderScript,omitempty"`
 	// Payload decoder script.
-	PayloadDecoderScript string `protobuf:"bytes,18,opt,name=payloadDecoderScript" json:"payloadDecoderScript,omitempty"`
+	PayloadDecoderScript string   `protobuf:"bytes,18,opt,name=payloadDecoderScript" json:"payloadDecoderScript,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateApplicationRequest) Reset()                    { *m = CreateApplicationRequest{} }
-func (m *CreateApplicationRequest) String() string            { return proto.CompactTextString(m) }
-func (*CreateApplicationRequest) ProtoMessage()               {}
-func (*CreateApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{0} }
+func (m *CreateApplicationRequest) Reset()         { *m = CreateApplicationRequest{} }
+func (m *CreateApplicationRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateApplicationRequest) ProtoMessage()    {}
+func (*CreateApplicationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{0}
+}
+func (m *CreateApplicationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateApplicationRequest.Unmarshal(m, b)
+}
+func (m *CreateApplicationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateApplicationRequest.Marshal(b, m, deterministic)
+}
+func (dst *CreateApplicationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateApplicationRequest.Merge(dst, src)
+}
+func (m *CreateApplicationRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateApplicationRequest.Size(m)
+}
+func (m *CreateApplicationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateApplicationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateApplicationRequest proto.InternalMessageInfo
 
 func (m *CreateApplicationRequest) GetName() string {
 	if m != nil {
@@ -109,13 +139,35 @@ func (m *CreateApplicationRequest) GetPayloadDecoderScript() string {
 
 type CreateApplicationResponse struct {
 	// ID of the application that was created.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateApplicationResponse) Reset()                    { *m = CreateApplicationResponse{} }
-func (m *CreateApplicationResponse) String() string            { return proto.CompactTextString(m) }
-func (*CreateApplicationResponse) ProtoMessage()               {}
-func (*CreateApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{1} }
+func (m *CreateApplicationResponse) Reset()         { *m = CreateApplicationResponse{} }
+func (m *CreateApplicationResponse) String() string { return proto.CompactTextString(m) }
+func (*CreateApplicationResponse) ProtoMessage()    {}
+func (*CreateApplicationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{1}
+}
+func (m *CreateApplicationResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateApplicationResponse.Unmarshal(m, b)
+}
+func (m *CreateApplicationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateApplicationResponse.Marshal(b, m, deterministic)
+}
+func (dst *CreateApplicationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateApplicationResponse.Merge(dst, src)
+}
+func (m *CreateApplicationResponse) XXX_Size() int {
+	return xxx_messageInfo_CreateApplicationResponse.Size(m)
+}
+func (m *CreateApplicationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateApplicationResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateApplicationResponse proto.InternalMessageInfo
 
 func (m *CreateApplicationResponse) GetId() int64 {
 	if m != nil {
@@ -126,13 +178,35 @@ func (m *CreateApplicationResponse) GetId() int64 {
 
 type GetApplicationRequest struct {
 	// Name of the application.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetApplicationRequest) Reset()                    { *m = GetApplicationRequest{} }
-func (m *GetApplicationRequest) String() string            { return proto.CompactTextString(m) }
-func (*GetApplicationRequest) ProtoMessage()               {}
-func (*GetApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{2} }
+func (m *GetApplicationRequest) Reset()         { *m = GetApplicationRequest{} }
+func (m *GetApplicationRequest) String() string { return proto.CompactTextString(m) }
+func (*GetApplicationRequest) ProtoMessage()    {}
+func (*GetApplicationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{2}
+}
+func (m *GetApplicationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetApplicationRequest.Unmarshal(m, b)
+}
+func (m *GetApplicationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetApplicationRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetApplicationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetApplicationRequest.Merge(dst, src)
+}
+func (m *GetApplicationRequest) XXX_Size() int {
+	return xxx_messageInfo_GetApplicationRequest.Size(m)
+}
+func (m *GetApplicationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetApplicationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetApplicationRequest proto.InternalMessageInfo
 
 func (m *GetApplicationRequest) GetId() int64 {
 	if m != nil {
@@ -157,13 +231,35 @@ type GetApplicationResponse struct {
 	// Payload encoder script.
 	PayloadEncoderScript string `protobuf:"bytes,17,opt,name=payloadEncoderScript" json:"payloadEncoderScript,omitempty"`
 	// Payload decoder script.
-	PayloadDecoderScript string `protobuf:"bytes,18,opt,name=payloadDecoderScript" json:"payloadDecoderScript,omitempty"`
+	PayloadDecoderScript string   `protobuf:"bytes,18,opt,name=payloadDecoderScript" json:"payloadDecoderScript,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetApplicationResponse) Reset()                    { *m = GetApplicationResponse{} }
-func (m *GetApplicationResponse) String() string            { return proto.CompactTextString(m) }
-func (*GetApplicationResponse) ProtoMessage()               {}
-func (*GetApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{3} }
+func (m *GetApplicationResponse) Reset()         { *m = GetApplicationResponse{} }
+func (m *GetApplicationResponse) String() string { return proto.CompactTextString(m) }
+func (*GetApplicationResponse) ProtoMessage()    {}
+func (*GetApplicationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{3}
+}
+func (m *GetApplicationResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetApplicationResponse.Unmarshal(m, b)
+}
+func (m *GetApplicationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetApplicationResponse.Marshal(b, m, deterministic)
+}
+func (dst *GetApplicationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetApplicationResponse.Merge(dst, src)
+}
+func (m *GetApplicationResponse) XXX_Size() int {
+	return xxx_messageInfo_GetApplicationResponse.Size(m)
+}
+func (m *GetApplicationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetApplicationResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetApplicationResponse proto.InternalMessageInfo
 
 func (m *GetApplicationResponse) GetId() int64 {
 	if m != nil {
@@ -235,13 +331,35 @@ type UpdateApplicationRequest struct {
 	// Payload encoder script.
 	PayloadEncoderScript string `protobuf:"bytes,17,opt,name=payloadEncoderScript" json:"payloadEncoderScript,omitempty"`
 	// Payload decoder script.
-	PayloadDecoderScript string `protobuf:"bytes,18,opt,name=payloadDecoderScript" json:"payloadDecoderScript,omitempty"`
+	PayloadDecoderScript string   `protobuf:"bytes,18,opt,name=payloadDecoderScript" json:"payloadDecoderScript,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UpdateApplicationRequest) Reset()                    { *m = UpdateApplicationRequest{} }
-func (m *UpdateApplicationRequest) String() string            { return proto.CompactTextString(m) }
-func (*UpdateApplicationRequest) ProtoMessage()               {}
-func (*UpdateApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{4} }
+func (m *UpdateApplicationRequest) Reset()         { *m = UpdateApplicationRequest{} }
+func (m *UpdateApplicationRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateApplicationRequest) ProtoMessage()    {}
+func (*UpdateApplicationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{4}
+}
+func (m *UpdateApplicationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateApplicationRequest.Unmarshal(m, b)
+}
+func (m *UpdateApplicationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateApplicationRequest.Marshal(b, m, deterministic)
+}
+func (dst *UpdateApplicationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateApplicationRequest.Merge(dst, src)
+}
+func (m *UpdateApplicationRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateApplicationRequest.Size(m)
+}
+func (m *UpdateApplicationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateApplicationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateApplicationRequest proto.InternalMessageInfo
 
 func (m *UpdateApplicationRequest) GetId() int64 {
 	if m != nil {
@@ -293,22 +411,66 @@ func (m *UpdateApplicationRequest) GetPayloadDecoderScript() string {
 }
 
 type UpdateApplicationResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UpdateApplicationResponse) Reset()                    { *m = UpdateApplicationResponse{} }
-func (m *UpdateApplicationResponse) String() string            { return proto.CompactTextString(m) }
-func (*UpdateApplicationResponse) ProtoMessage()               {}
-func (*UpdateApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{5} }
+func (m *UpdateApplicationResponse) Reset()         { *m = UpdateApplicationResponse{} }
+func (m *UpdateApplicationResponse) String() string { return proto.CompactTextString(m) }
+func (*UpdateApplicationResponse) ProtoMessage()    {}
+func (*UpdateApplicationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{5}
+}
+func (m *UpdateApplicationResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateApplicationResponse.Unmarshal(m, b)
+}
+func (m *UpdateApplicationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateApplicationResponse.Marshal(b, m, deterministic)
+}
+func (dst *UpdateApplicationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateApplicationResponse.Merge(dst, src)
+}
+func (m *UpdateApplicationResponse) XXX_Size() int {
+	return xxx_messageInfo_UpdateApplicationResponse.Size(m)
+}
+func (m *UpdateApplicationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateApplicationResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateApplicationResponse proto.InternalMessageInfo
 
 type DeleteApplicationRequest struct {
 	// ID of the application.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteApplicationRequest) Reset()                    { *m = DeleteApplicationRequest{} }
-func (m *DeleteApplicationRequest) String() string            { return proto.CompactTextString(m) }
-func (*DeleteApplicationRequest) ProtoMessage()               {}
-func (*DeleteApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{6} }
+func (m *DeleteApplicationRequest) Reset()         { *m = DeleteApplicationRequest{} }
+func (m *DeleteApplicationRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteApplicationRequest) ProtoMessage()    {}
+func (*DeleteApplicationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{6}
+}
+func (m *DeleteApplicationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteApplicationRequest.Unmarshal(m, b)
+}
+func (m *DeleteApplicationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteApplicationRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteApplicationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteApplicationRequest.Merge(dst, src)
+}
+func (m *DeleteApplicationRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteApplicationRequest.Size(m)
+}
+func (m *DeleteApplicationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteApplicationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteApplicationRequest proto.InternalMessageInfo
 
 func (m *DeleteApplicationRequest) GetId() int64 {
 	if m != nil {
@@ -318,12 +480,34 @@ func (m *DeleteApplicationRequest) GetId() int64 {
 }
 
 type DeleteApplicationResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteApplicationResponse) Reset()                    { *m = DeleteApplicationResponse{} }
-func (m *DeleteApplicationResponse) String() string            { return proto.CompactTextString(m) }
-func (*DeleteApplicationResponse) ProtoMessage()               {}
-func (*DeleteApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{7} }
+func (m *DeleteApplicationResponse) Reset()         { *m = DeleteApplicationResponse{} }
+func (m *DeleteApplicationResponse) String() string { return proto.CompactTextString(m) }
+func (*DeleteApplicationResponse) ProtoMessage()    {}
+func (*DeleteApplicationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{7}
+}
+func (m *DeleteApplicationResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteApplicationResponse.Unmarshal(m, b)
+}
+func (m *DeleteApplicationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteApplicationResponse.Marshal(b, m, deterministic)
+}
+func (dst *DeleteApplicationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteApplicationResponse.Merge(dst, src)
+}
+func (m *DeleteApplicationResponse) XXX_Size() int {
+	return xxx_messageInfo_DeleteApplicationResponse.Size(m)
+}
+func (m *DeleteApplicationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteApplicationResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteApplicationResponse proto.InternalMessageInfo
 
 type ListApplicationRequest struct {
 	// Max number of applications to return in the result-test.
@@ -333,13 +517,35 @@ type ListApplicationRequest struct {
 	// ID of the organization to filter on.
 	OrganizationID int64 `protobuf:"varint,3,opt,name=organizationID" json:"organizationID,omitempty"`
 	// Search on name (optional).
-	Search string `protobuf:"bytes,4,opt,name=search" json:"search,omitempty"`
+	Search               string   `protobuf:"bytes,4,opt,name=search" json:"search,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListApplicationRequest) Reset()                    { *m = ListApplicationRequest{} }
-func (m *ListApplicationRequest) String() string            { return proto.CompactTextString(m) }
-func (*ListApplicationRequest) ProtoMessage()               {}
-func (*ListApplicationRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{8} }
+func (m *ListApplicationRequest) Reset()         { *m = ListApplicationRequest{} }
+func (m *ListApplicationRequest) String() string { return proto.CompactTextString(m) }
+func (*ListApplicationRequest) ProtoMessage()    {}
+func (*ListApplicationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{8}
+}
+func (m *ListApplicationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListApplicationRequest.Unmarshal(m, b)
+}
+func (m *ListApplicationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListApplicationRequest.Marshal(b, m, deterministic)
+}
+func (dst *ListApplicationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListApplicationRequest.Merge(dst, src)
+}
+func (m *ListApplicationRequest) XXX_Size() int {
+	return xxx_messageInfo_ListApplicationRequest.Size(m)
+}
+func (m *ListApplicationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListApplicationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListApplicationRequest proto.InternalMessageInfo
 
 func (m *ListApplicationRequest) GetLimit() int64 {
 	if m != nil {
@@ -381,13 +587,35 @@ type ApplicationListItem struct {
 	// ID of the service profile.
 	ServiceProfileID string `protobuf:"bytes,15,opt,name=serviceProfileID" json:"serviceProfileID,omitempty"`
 	// Service-profile name.
-	ServiceProfileName string `protobuf:"bytes,16,opt,name=serviceProfileName" json:"serviceProfileName,omitempty"`
+	ServiceProfileName   string   `protobuf:"bytes,16,opt,name=serviceProfileName" json:"serviceProfileName,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ApplicationListItem) Reset()                    { *m = ApplicationListItem{} }
-func (m *ApplicationListItem) String() string            { return proto.CompactTextString(m) }
-func (*ApplicationListItem) ProtoMessage()               {}
-func (*ApplicationListItem) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{9} }
+func (m *ApplicationListItem) Reset()         { *m = ApplicationListItem{} }
+func (m *ApplicationListItem) String() string { return proto.CompactTextString(m) }
+func (*ApplicationListItem) ProtoMessage()    {}
+func (*ApplicationListItem) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{9}
+}
+func (m *ApplicationListItem) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ApplicationListItem.Unmarshal(m, b)
+}
+func (m *ApplicationListItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ApplicationListItem.Marshal(b, m, deterministic)
+}
+func (dst *ApplicationListItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApplicationListItem.Merge(dst, src)
+}
+func (m *ApplicationListItem) XXX_Size() int {
+	return xxx_messageInfo_ApplicationListItem.Size(m)
+}
+func (m *ApplicationListItem) XXX_DiscardUnknown() {
+	xxx_messageInfo_ApplicationListItem.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ApplicationListItem proto.InternalMessageInfo
 
 func (m *ApplicationListItem) GetId() int64 {
 	if m != nil {
@@ -435,13 +663,35 @@ type ListApplicationResponse struct {
 	// Total number of applications available within the result-set.
 	TotalCount int64 `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
 	// Applications within this result-set.
-	Result []*ApplicationListItem `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	Result               []*ApplicationListItem `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
 }
 
-func (m *ListApplicationResponse) Reset()                    { *m = ListApplicationResponse{} }
-func (m *ListApplicationResponse) String() string            { return proto.CompactTextString(m) }
-func (*ListApplicationResponse) ProtoMessage()               {}
-func (*ListApplicationResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{10} }
+func (m *ListApplicationResponse) Reset()         { *m = ListApplicationResponse{} }
+func (m *ListApplicationResponse) String() string { return proto.CompactTextString(m) }
+func (*ListApplicationResponse) ProtoMessage()    {}
+func (*ListApplicationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{10}
+}
+func (m *ListApplicationResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListApplicationResponse.Unmarshal(m, b)
+}
+func (m *ListApplicationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListApplicationResponse.Marshal(b, m, deterministic)
+}
+func (dst *ListApplicationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListApplicationResponse.Merge(dst, src)
+}
+func (m *ListApplicationResponse) XXX_Size() int {
+	return xxx_messageInfo_ListApplicationResponse.Size(m)
+}
+func (m *ListApplicationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListApplicationResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListApplicationResponse proto.InternalMessageInfo
 
 func (m *ListApplicationResponse) GetTotalCount() int64 {
 	if m != nil {
@@ -458,24 +708,68 @@ func (m *ListApplicationResponse) GetResult() []*ApplicationListItem {
 }
 
 type EmptyResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *EmptyResponse) Reset()                    { *m = EmptyResponse{} }
-func (m *EmptyResponse) String() string            { return proto.CompactTextString(m) }
-func (*EmptyResponse) ProtoMessage()               {}
-func (*EmptyResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{11} }
+func (m *EmptyResponse) Reset()         { *m = EmptyResponse{} }
+func (m *EmptyResponse) String() string { return proto.CompactTextString(m) }
+func (*EmptyResponse) ProtoMessage()    {}
+func (*EmptyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{11}
+}
+func (m *EmptyResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EmptyResponse.Unmarshal(m, b)
+}
+func (m *EmptyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EmptyResponse.Marshal(b, m, deterministic)
+}
+func (dst *EmptyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EmptyResponse.Merge(dst, src)
+}
+func (m *EmptyResponse) XXX_Size() int {
+	return xxx_messageInfo_EmptyResponse.Size(m)
+}
+func (m *EmptyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_EmptyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EmptyResponse proto.InternalMessageInfo
 
 type HTTPIntegrationHeader struct {
 	// Key
 	Key string `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
 	// Value
-	Value string `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
+	Value                string   `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *HTTPIntegrationHeader) Reset()                    { *m = HTTPIntegrationHeader{} }
-func (m *HTTPIntegrationHeader) String() string            { return proto.CompactTextString(m) }
-func (*HTTPIntegrationHeader) ProtoMessage()               {}
-func (*HTTPIntegrationHeader) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{12} }
+func (m *HTTPIntegrationHeader) Reset()         { *m = HTTPIntegrationHeader{} }
+func (m *HTTPIntegrationHeader) String() string { return proto.CompactTextString(m) }
+func (*HTTPIntegrationHeader) ProtoMessage()    {}
+func (*HTTPIntegrationHeader) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{12}
+}
+func (m *HTTPIntegrationHeader) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_HTTPIntegrationHeader.Unmarshal(m, b)
+}
+func (m *HTTPIntegrationHeader) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_HTTPIntegrationHeader.Marshal(b, m, deterministic)
+}
+func (dst *HTTPIntegrationHeader) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HTTPIntegrationHeader.Merge(dst, src)
+}
+func (m *HTTPIntegrationHeader) XXX_Size() int {
+	return xxx_messageInfo_HTTPIntegrationHeader.Size(m)
+}
+func (m *HTTPIntegrationHeader) XXX_DiscardUnknown() {
+	xxx_messageInfo_HTTPIntegrationHeader.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_HTTPIntegrationHeader proto.InternalMessageInfo
 
 func (m *HTTPIntegrationHeader) GetKey() string {
 	if m != nil {
@@ -503,13 +797,35 @@ type HTTPIntegration struct {
 	// The URL to call for ACK notifications (for confirmed downlink data).
 	AckNotificationURL string `protobuf:"bytes,5,opt,name=ackNotificationURL" json:"ackNotificationURL,omitempty"`
 	// The URL to call for error notifications.
-	ErrorNotificationURL string `protobuf:"bytes,6,opt,name=errorNotificationURL" json:"errorNotificationURL,omitempty"`
+	ErrorNotificationURL string   `protobuf:"bytes,6,opt,name=errorNotificationURL" json:"errorNotificationURL,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *HTTPIntegration) Reset()                    { *m = HTTPIntegration{} }
-func (m *HTTPIntegration) String() string            { return proto.CompactTextString(m) }
-func (*HTTPIntegration) ProtoMessage()               {}
-func (*HTTPIntegration) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{13} }
+func (m *HTTPIntegration) Reset()         { *m = HTTPIntegration{} }
+func (m *HTTPIntegration) String() string { return proto.CompactTextString(m) }
+func (*HTTPIntegration) ProtoMessage()    {}
+func (*HTTPIntegration) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{13}
+}
+func (m *HTTPIntegration) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_HTTPIntegration.Unmarshal(m, b)
+}
+func (m *HTTPIntegration) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_HTTPIntegration.Marshal(b, m, deterministic)
+}
+func (dst *HTTPIntegration) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HTTPIntegration.Merge(dst, src)
+}
+func (m *HTTPIntegration) XXX_Size() int {
+	return xxx_messageInfo_HTTPIntegration.Size(m)
+}
+func (m *HTTPIntegration) XXX_DiscardUnknown() {
+	xxx_messageInfo_HTTPIntegration.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_HTTPIntegration proto.InternalMessageInfo
 
 func (m *HTTPIntegration) GetId() int64 {
 	if m != nil {
@@ -555,13 +871,35 @@ func (m *HTTPIntegration) GetErrorNotificationURL() string {
 
 type GetHTTPIntegrationRequest struct {
 	// The id of the application.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetHTTPIntegrationRequest) Reset()                    { *m = GetHTTPIntegrationRequest{} }
-func (m *GetHTTPIntegrationRequest) String() string            { return proto.CompactTextString(m) }
-func (*GetHTTPIntegrationRequest) ProtoMessage()               {}
-func (*GetHTTPIntegrationRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{14} }
+func (m *GetHTTPIntegrationRequest) Reset()         { *m = GetHTTPIntegrationRequest{} }
+func (m *GetHTTPIntegrationRequest) String() string { return proto.CompactTextString(m) }
+func (*GetHTTPIntegrationRequest) ProtoMessage()    {}
+func (*GetHTTPIntegrationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{14}
+}
+func (m *GetHTTPIntegrationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetHTTPIntegrationRequest.Unmarshal(m, b)
+}
+func (m *GetHTTPIntegrationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetHTTPIntegrationRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetHTTPIntegrationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetHTTPIntegrationRequest.Merge(dst, src)
+}
+func (m *GetHTTPIntegrationRequest) XXX_Size() int {
+	return xxx_messageInfo_GetHTTPIntegrationRequest.Size(m)
+}
+func (m *GetHTTPIntegrationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetHTTPIntegrationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetHTTPIntegrationRequest proto.InternalMessageInfo
 
 func (m *GetHTTPIntegrationRequest) GetId() int64 {
 	if m != nil {
@@ -572,13 +910,35 @@ func (m *GetHTTPIntegrationRequest) GetId() int64 {
 
 type DeleteIntegrationRequest struct {
 	// The id of the application.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteIntegrationRequest) Reset()                    { *m = DeleteIntegrationRequest{} }
-func (m *DeleteIntegrationRequest) String() string            { return proto.CompactTextString(m) }
-func (*DeleteIntegrationRequest) ProtoMessage()               {}
-func (*DeleteIntegrationRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{15} }
+func (m *DeleteIntegrationRequest) Reset()         { *m = DeleteIntegrationRequest{} }
+func (m *DeleteIntegrationRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteIntegrationRequest) ProtoMessage()    {}
+func (*DeleteIntegrationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{15}
+}
+func (m *DeleteIntegrationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteIntegrationRequest.Unmarshal(m, b)
+}
+func (m *DeleteIntegrationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteIntegrationRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteIntegrationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteIntegrationRequest.Merge(dst, src)
+}
+func (m *DeleteIntegrationRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteIntegrationRequest.Size(m)
+}
+func (m *DeleteIntegrationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteIntegrationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteIntegrationRequest proto.InternalMessageInfo
 
 func (m *DeleteIntegrationRequest) GetId() int64 {
 	if m != nil {
@@ -589,13 +949,35 @@ func (m *DeleteIntegrationRequest) GetId() int64 {
 
 type ListIntegrationRequest struct {
 	// The id of the application.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListIntegrationRequest) Reset()                    { *m = ListIntegrationRequest{} }
-func (m *ListIntegrationRequest) String() string            { return proto.CompactTextString(m) }
-func (*ListIntegrationRequest) ProtoMessage()               {}
-func (*ListIntegrationRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{16} }
+func (m *ListIntegrationRequest) Reset()         { *m = ListIntegrationRequest{} }
+func (m *ListIntegrationRequest) String() string { return proto.CompactTextString(m) }
+func (*ListIntegrationRequest) ProtoMessage()    {}
+func (*ListIntegrationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{16}
+}
+func (m *ListIntegrationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListIntegrationRequest.Unmarshal(m, b)
+}
+func (m *ListIntegrationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListIntegrationRequest.Marshal(b, m, deterministic)
+}
+func (dst *ListIntegrationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListIntegrationRequest.Merge(dst, src)
+}
+func (m *ListIntegrationRequest) XXX_Size() int {
+	return xxx_messageInfo_ListIntegrationRequest.Size(m)
+}
+func (m *ListIntegrationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListIntegrationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListIntegrationRequest proto.InternalMessageInfo
 
 func (m *ListIntegrationRequest) GetId() int64 {
 	if m != nil {
@@ -606,13 +988,35 @@ func (m *ListIntegrationRequest) GetId() int64 {
 
 type ListIntegrationResponse struct {
 	// The integration kinds associated with the application.
-	Kinds []IntegrationKind `protobuf:"varint,1,rep,packed,name=kinds,enum=api.IntegrationKind" json:"kinds,omitempty"`
+	Kinds                []IntegrationKind `protobuf:"varint,1,rep,packed,name=kinds,enum=api.IntegrationKind" json:"kinds,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
-func (m *ListIntegrationResponse) Reset()                    { *m = ListIntegrationResponse{} }
-func (m *ListIntegrationResponse) String() string            { return proto.CompactTextString(m) }
-func (*ListIntegrationResponse) ProtoMessage()               {}
-func (*ListIntegrationResponse) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{17} }
+func (m *ListIntegrationResponse) Reset()         { *m = ListIntegrationResponse{} }
+func (m *ListIntegrationResponse) String() string { return proto.CompactTextString(m) }
+func (*ListIntegrationResponse) ProtoMessage()    {}
+func (*ListIntegrationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_4525865ef1590221, []int{17}
+}
+func (m *ListIntegrationResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListIntegrationResponse.Unmarshal(m, b)
+}
+func (m *ListIntegrationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListIntegrationResponse.Marshal(b, m, deterministic)
+}
+func (dst *ListIntegrationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListIntegrationResponse.Merge(dst, src)
+}
+func (m *ListIntegrationResponse) XXX_Size() int {
+	return xxx_messageInfo_ListIntegrationResponse.Size(m)
+}
+func (m *ListIntegrationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListIntegrationResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListIntegrationResponse proto.InternalMessageInfo
 
 func (m *ListIntegrationResponse) GetKinds() []IntegrationKind {
 	if m != nil {
@@ -1032,9 +1436,9 @@ var _Application_serviceDesc = grpc.ServiceDesc{
 	Metadata: "application.proto",
 }
 
-func init() { proto.RegisterFile("application.proto", fileDescriptor1) }
+func init() { proto.RegisterFile("application.proto", fileDescriptor_application_4525865ef1590221) }
 
-var fileDescriptor1 = []byte{
+var fileDescriptor_application_4525865ef1590221 = []byte{
 	// 898 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x57, 0xcf, 0x6e, 0xe3, 0x44,
 	0x18, 0x27, 0x76, 0x6b, 0x76, 0xbf, 0x42, 0x9b, 0x4e, 0xdb, 0xe0, 0x3a, 0x21, 0x0a, 0x46, 0x40,

@@ -18,6 +18,12 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 type CreateServiceProfileRequest struct {
 	ServiceProfile *ServiceProfile `protobuf:"bytes,1,opt,name=serviceProfile" json:"serviceProfile,omitempty"`
 	// Name of the service-profile.
@@ -25,13 +31,35 @@ type CreateServiceProfileRequest struct {
 	// Organization id of the service-profile.
 	OrganizationID int64 `protobuf:"varint,3,opt,name=organizationID" json:"organizationID,omitempty"`
 	// Network-server id of the service-profile.
-	NetworkServerID int64 `protobuf:"varint,4,opt,name=networkServerID" json:"networkServerID,omitempty"`
+	NetworkServerID      int64    `protobuf:"varint,4,opt,name=networkServerID" json:"networkServerID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateServiceProfileRequest) Reset()                    { *m = CreateServiceProfileRequest{} }
-func (m *CreateServiceProfileRequest) String() string            { return proto.CompactTextString(m) }
-func (*CreateServiceProfileRequest) ProtoMessage()               {}
-func (*CreateServiceProfileRequest) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{0} }
+func (m *CreateServiceProfileRequest) Reset()         { *m = CreateServiceProfileRequest{} }
+func (m *CreateServiceProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateServiceProfileRequest) ProtoMessage()    {}
+func (*CreateServiceProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_serviceProfile_644c3817c41ddd85, []int{0}
+}
+func (m *CreateServiceProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateServiceProfileRequest.Unmarshal(m, b)
+}
+func (m *CreateServiceProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateServiceProfileRequest.Marshal(b, m, deterministic)
+}
+func (dst *CreateServiceProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateServiceProfileRequest.Merge(dst, src)
+}
+func (m *CreateServiceProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateServiceProfileRequest.Size(m)
+}
+func (m *CreateServiceProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateServiceProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateServiceProfileRequest proto.InternalMessageInfo
 
 func (m *CreateServiceProfileRequest) GetServiceProfile() *ServiceProfile {
 	if m != nil {
@@ -63,13 +91,35 @@ func (m *CreateServiceProfileRequest) GetNetworkServerID() int64 {
 
 type CreateServiceProfileResponse struct {
 	// ID of the service-profile.
-	ServiceProfileID string `protobuf:"bytes,1,opt,name=serviceProfileID" json:"serviceProfileID,omitempty"`
+	ServiceProfileID     string   `protobuf:"bytes,1,opt,name=serviceProfileID" json:"serviceProfileID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateServiceProfileResponse) Reset()                    { *m = CreateServiceProfileResponse{} }
-func (m *CreateServiceProfileResponse) String() string            { return proto.CompactTextString(m) }
-func (*CreateServiceProfileResponse) ProtoMessage()               {}
-func (*CreateServiceProfileResponse) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{1} }
+func (m *CreateServiceProfileResponse) Reset()         { *m = CreateServiceProfileResponse{} }
+func (m *CreateServiceProfileResponse) String() string { return proto.CompactTextString(m) }
+func (*CreateServiceProfileResponse) ProtoMessage()    {}
+func (*CreateServiceProfileResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_serviceProfile_644c3817c41ddd85, []int{1}
+}
+func (m *CreateServiceProfileResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateServiceProfileResponse.Unmarshal(m, b)
+}
+func (m *CreateServiceProfileResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateServiceProfileResponse.Marshal(b, m, deterministic)
+}
+func (dst *CreateServiceProfileResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateServiceProfileResponse.Merge(dst, src)
+}
+func (m *CreateServiceProfileResponse) XXX_Size() int {
+	return xxx_messageInfo_CreateServiceProfileResponse.Size(m)
+}
+func (m *CreateServiceProfileResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateServiceProfileResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateServiceProfileResponse proto.InternalMessageInfo
 
 func (m *CreateServiceProfileResponse) GetServiceProfileID() string {
 	if m != nil {
@@ -80,13 +130,35 @@ func (m *CreateServiceProfileResponse) GetServiceProfileID() string {
 
 type GetServiceProfileRequest struct {
 	// ID of the service-profile.
-	ServiceProfileID string `protobuf:"bytes,1,opt,name=serviceProfileID" json:"serviceProfileID,omitempty"`
+	ServiceProfileID     string   `protobuf:"bytes,1,opt,name=serviceProfileID" json:"serviceProfileID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetServiceProfileRequest) Reset()                    { *m = GetServiceProfileRequest{} }
-func (m *GetServiceProfileRequest) String() string            { return proto.CompactTextString(m) }
-func (*GetServiceProfileRequest) ProtoMessage()               {}
-func (*GetServiceProfileRequest) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{2} }
+func (m *GetServiceProfileRequest) Reset()         { *m = GetServiceProfileRequest{} }
+func (m *GetServiceProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*GetServiceProfileRequest) ProtoMessage()    {}
+func (*GetServiceProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_serviceProfile_644c3817c41ddd85, []int{2}
+}
+func (m *GetServiceProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetServiceProfileRequest.Unmarshal(m, b)
+}
+func (m *GetServiceProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetServiceProfileRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetServiceProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetServiceProfileRequest.Merge(dst, src)
+}
+func (m *GetServiceProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_GetServiceProfileRequest.Size(m)
+}
+func (m *GetServiceProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetServiceProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetServiceProfileRequest proto.InternalMessageInfo
 
 func (m *GetServiceProfileRequest) GetServiceProfileID() string {
 	if m != nil {
@@ -106,13 +178,35 @@ type GetServiceProfileResponse struct {
 	// Timestamp when the record was created.
 	CreatedAt string `protobuf:"bytes,5,opt,name=createdAt" json:"createdAt,omitempty"`
 	// Timestamp when the record was last updated.
-	UpdatedAt string `protobuf:"bytes,6,opt,name=updatedAt" json:"updatedAt,omitempty"`
+	UpdatedAt            string   `protobuf:"bytes,6,opt,name=updatedAt" json:"updatedAt,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetServiceProfileResponse) Reset()                    { *m = GetServiceProfileResponse{} }
-func (m *GetServiceProfileResponse) String() string            { return proto.CompactTextString(m) }
-func (*GetServiceProfileResponse) ProtoMessage()               {}
-func (*GetServiceProfileResponse) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{3} }
+func (m *GetServiceProfileResponse) Reset()         { *m = GetServiceProfileResponse{} }
+func (m *GetServiceProfileResponse) String() string { return proto.CompactTextString(m) }
+func (*GetServiceProfileResponse) ProtoMessage()    {}
+func (*GetServiceProfileResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_serviceProfile_644c3817c41ddd85, []int{3}
+}
+func (m *GetServiceProfileResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetServiceProfileResponse.Unmarshal(m, b)
+}
+func (m *GetServiceProfileResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetServiceProfileResponse.Marshal(b, m, deterministic)
+}
+func (dst *GetServiceProfileResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetServiceProfileResponse.Merge(dst, src)
+}
+func (m *GetServiceProfileResponse) XXX_Size() int {
+	return xxx_messageInfo_GetServiceProfileResponse.Size(m)
+}
+func (m *GetServiceProfileResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetServiceProfileResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetServiceProfileResponse proto.InternalMessageInfo
 
 func (m *GetServiceProfileResponse) GetServiceProfile() *ServiceProfile {
 	if m != nil {
@@ -159,13 +253,35 @@ func (m *GetServiceProfileResponse) GetUpdatedAt() string {
 type UpdateServiceProfileRequest struct {
 	ServiceProfile *ServiceProfile `protobuf:"bytes,1,opt,name=serviceProfile" json:"serviceProfile,omitempty"`
 	// Name of the service-profile.
-	Name string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
+	Name                 string   `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UpdateServiceProfileRequest) Reset()                    { *m = UpdateServiceProfileRequest{} }
-func (m *UpdateServiceProfileRequest) String() string            { return proto.CompactTextString(m) }
-func (*UpdateServiceProfileRequest) ProtoMessage()               {}
-func (*UpdateServiceProfileRequest) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{4} }
+func (m *UpdateServiceProfileRequest) Reset()         { *m = UpdateServiceProfileRequest{} }
+func (m *UpdateServiceProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateServiceProfileRequest) ProtoMessage()    {}
+func (*UpdateServiceProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_serviceProfile_644c3817c41ddd85, []int{4}
+}
+func (m *UpdateServiceProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateServiceProfileRequest.Unmarshal(m, b)
+}
+func (m *UpdateServiceProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateServiceProfileRequest.Marshal(b, m, deterministic)
+}
+func (dst *UpdateServiceProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateServiceProfileRequest.Merge(dst, src)
+}
+func (m *UpdateServiceProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateServiceProfileRequest.Size(m)
+}
+func (m *UpdateServiceProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateServiceProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateServiceProfileRequest proto.InternalMessageInfo
 
 func (m *UpdateServiceProfileRequest) GetServiceProfile() *ServiceProfile {
 	if m != nil {
@@ -182,22 +298,66 @@ func (m *UpdateServiceProfileRequest) GetName() string {
 }
 
 type UpdateServiceProfileResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UpdateServiceProfileResponse) Reset()                    { *m = UpdateServiceProfileResponse{} }
-func (m *UpdateServiceProfileResponse) String() string            { return proto.CompactTextString(m) }
-func (*UpdateServiceProfileResponse) ProtoMessage()               {}
-func (*UpdateServiceProfileResponse) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{5} }
+func (m *UpdateServiceProfileResponse) Reset()         { *m = UpdateServiceProfileResponse{} }
+func (m *UpdateServiceProfileResponse) String() string { return proto.CompactTextString(m) }
+func (*UpdateServiceProfileResponse) ProtoMessage()    {}
+func (*UpdateServiceProfileResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_serviceProfile_644c3817c41ddd85, []int{5}
+}
+func (m *UpdateServiceProfileResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateServiceProfileResponse.Unmarshal(m, b)
+}
+func (m *UpdateServiceProfileResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateServiceProfileResponse.Marshal(b, m, deterministic)
+}
+func (dst *UpdateServiceProfileResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateServiceProfileResponse.Merge(dst, src)
+}
+func (m *UpdateServiceProfileResponse) XXX_Size() int {
+	return xxx_messageInfo_UpdateServiceProfileResponse.Size(m)
+}
+func (m *UpdateServiceProfileResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateServiceProfileResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateServiceProfileResponse proto.InternalMessageInfo
 
 type DeleteServiceProfileRequest struct {
 	// ID of the service-profile.
-	ServiceProfileID string `protobuf:"bytes,1,opt,name=serviceProfileID" json:"serviceProfileID,omitempty"`
+	ServiceProfileID     string   `protobuf:"bytes,1,opt,name=serviceProfileID" json:"serviceProfileID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteServiceProfileRequest) Reset()                    { *m = DeleteServiceProfileRequest{} }
-func (m *DeleteServiceProfileRequest) String() string            { return proto.CompactTextString(m) }
-func (*DeleteServiceProfileRequest) ProtoMessage()               {}
-func (*DeleteServiceProfileRequest) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{6} }
+func (m *DeleteServiceProfileRequest) Reset()         { *m = DeleteServiceProfileRequest{} }
+func (m *DeleteServiceProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteServiceProfileRequest) ProtoMessage()    {}
+func (*DeleteServiceProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_serviceProfile_644c3817c41ddd85, []int{6}
+}
+func (m *DeleteServiceProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteServiceProfileRequest.Unmarshal(m, b)
+}
+func (m *DeleteServiceProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteServiceProfileRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteServiceProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteServiceProfileRequest.Merge(dst, src)
+}
+func (m *DeleteServiceProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteServiceProfileRequest.Size(m)
+}
+func (m *DeleteServiceProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteServiceProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteServiceProfileRequest proto.InternalMessageInfo
 
 func (m *DeleteServiceProfileRequest) GetServiceProfileID() string {
 	if m != nil {
@@ -207,12 +367,34 @@ func (m *DeleteServiceProfileRequest) GetServiceProfileID() string {
 }
 
 type DeleteServiceProfileResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteServiceProfileResponse) Reset()                    { *m = DeleteServiceProfileResponse{} }
-func (m *DeleteServiceProfileResponse) String() string            { return proto.CompactTextString(m) }
-func (*DeleteServiceProfileResponse) ProtoMessage()               {}
-func (*DeleteServiceProfileResponse) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{7} }
+func (m *DeleteServiceProfileResponse) Reset()         { *m = DeleteServiceProfileResponse{} }
+func (m *DeleteServiceProfileResponse) String() string { return proto.CompactTextString(m) }
+func (*DeleteServiceProfileResponse) ProtoMessage()    {}
+func (*DeleteServiceProfileResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_serviceProfile_644c3817c41ddd85, []int{7}
+}
+func (m *DeleteServiceProfileResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteServiceProfileResponse.Unmarshal(m, b)
+}
+func (m *DeleteServiceProfileResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteServiceProfileResponse.Marshal(b, m, deterministic)
+}
+func (dst *DeleteServiceProfileResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteServiceProfileResponse.Merge(dst, src)
+}
+func (m *DeleteServiceProfileResponse) XXX_Size() int {
+	return xxx_messageInfo_DeleteServiceProfileResponse.Size(m)
+}
+func (m *DeleteServiceProfileResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteServiceProfileResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteServiceProfileResponse proto.InternalMessageInfo
 
 type ListServiceProfileRequest struct {
 	// Max number of items to return.
@@ -220,13 +402,35 @@ type ListServiceProfileRequest struct {
 	// Offset in the result-set (for pagination).
 	Offset int64 `protobuf:"varint,2,opt,name=offset" json:"offset,omitempty"`
 	// Organization id to filter on.
-	OrganizationID int64 `protobuf:"varint,3,opt,name=organizationID" json:"organizationID,omitempty"`
+	OrganizationID       int64    `protobuf:"varint,3,opt,name=organizationID" json:"organizationID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListServiceProfileRequest) Reset()                    { *m = ListServiceProfileRequest{} }
-func (m *ListServiceProfileRequest) String() string            { return proto.CompactTextString(m) }
-func (*ListServiceProfileRequest) ProtoMessage()               {}
-func (*ListServiceProfileRequest) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{8} }
+func (m *ListServiceProfileRequest) Reset()         { *m = ListServiceProfileRequest{} }
+func (m *ListServiceProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*ListServiceProfileRequest) ProtoMessage()    {}
+func (*ListServiceProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_serviceProfile_644c3817c41ddd85, []int{8}
+}
+func (m *ListServiceProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListServiceProfileRequest.Unmarshal(m, b)
+}
+func (m *ListServiceProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListServiceProfileRequest.Marshal(b, m, deterministic)
+}
+func (dst *ListServiceProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListServiceProfileRequest.Merge(dst, src)
+}
+func (m *ListServiceProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_ListServiceProfileRequest.Size(m)
+}
+func (m *ListServiceProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListServiceProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListServiceProfileRequest proto.InternalMessageInfo
 
 func (m *ListServiceProfileRequest) GetLimit() int64 {
 	if m != nil {
@@ -261,13 +465,35 @@ type ServiceProfileMeta struct {
 	// Timestamp when the record was created.
 	CreatedAt string `protobuf:"bytes,5,opt,name=createdAt" json:"createdAt,omitempty"`
 	// Timestamp when the record was last updated.
-	UpdatedAt string `protobuf:"bytes,6,opt,name=updatedAt" json:"updatedAt,omitempty"`
+	UpdatedAt            string   `protobuf:"bytes,6,opt,name=updatedAt" json:"updatedAt,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ServiceProfileMeta) Reset()                    { *m = ServiceProfileMeta{} }
-func (m *ServiceProfileMeta) String() string            { return proto.CompactTextString(m) }
-func (*ServiceProfileMeta) ProtoMessage()               {}
-func (*ServiceProfileMeta) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{9} }
+func (m *ServiceProfileMeta) Reset()         { *m = ServiceProfileMeta{} }
+func (m *ServiceProfileMeta) String() string { return proto.CompactTextString(m) }
+func (*ServiceProfileMeta) ProtoMessage()    {}
+func (*ServiceProfileMeta) Descriptor() ([]byte, []int) {
+	return fileDescriptor_serviceProfile_644c3817c41ddd85, []int{9}
+}
+func (m *ServiceProfileMeta) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ServiceProfileMeta.Unmarshal(m, b)
+}
+func (m *ServiceProfileMeta) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ServiceProfileMeta.Marshal(b, m, deterministic)
+}
+func (dst *ServiceProfileMeta) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ServiceProfileMeta.Merge(dst, src)
+}
+func (m *ServiceProfileMeta) XXX_Size() int {
+	return xxx_messageInfo_ServiceProfileMeta.Size(m)
+}
+func (m *ServiceProfileMeta) XXX_DiscardUnknown() {
+	xxx_messageInfo_ServiceProfileMeta.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ServiceProfileMeta proto.InternalMessageInfo
 
 func (m *ServiceProfileMeta) GetServiceProfileID() string {
 	if m != nil {
@@ -313,14 +539,36 @@ func (m *ServiceProfileMeta) GetUpdatedAt() string {
 
 type ListServiceProfileResponse struct {
 	// Total number of service-profiles.
-	TotalCount int64                 `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
-	Result     []*ServiceProfileMeta `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	TotalCount           int64                 `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
+	Result               []*ServiceProfileMeta `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
-func (m *ListServiceProfileResponse) Reset()                    { *m = ListServiceProfileResponse{} }
-func (m *ListServiceProfileResponse) String() string            { return proto.CompactTextString(m) }
-func (*ListServiceProfileResponse) ProtoMessage()               {}
-func (*ListServiceProfileResponse) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{10} }
+func (m *ListServiceProfileResponse) Reset()         { *m = ListServiceProfileResponse{} }
+func (m *ListServiceProfileResponse) String() string { return proto.CompactTextString(m) }
+func (*ListServiceProfileResponse) ProtoMessage()    {}
+func (*ListServiceProfileResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_serviceProfile_644c3817c41ddd85, []int{10}
+}
+func (m *ListServiceProfileResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListServiceProfileResponse.Unmarshal(m, b)
+}
+func (m *ListServiceProfileResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListServiceProfileResponse.Marshal(b, m, deterministic)
+}
+func (dst *ListServiceProfileResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListServiceProfileResponse.Merge(dst, src)
+}
+func (m *ListServiceProfileResponse) XXX_Size() int {
+	return xxx_messageInfo_ListServiceProfileResponse.Size(m)
+}
+func (m *ListServiceProfileResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListServiceProfileResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListServiceProfileResponse proto.InternalMessageInfo
 
 func (m *ListServiceProfileResponse) GetTotalCount() int64 {
 	if m != nil {
@@ -564,9 +812,11 @@ var _ServiceProfileService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "serviceProfile.proto",
 }
 
-func init() { proto.RegisterFile("serviceProfile.proto", fileDescriptor9) }
+func init() {
+	proto.RegisterFile("serviceProfile.proto", fileDescriptor_serviceProfile_644c3817c41ddd85)
+}
 
-var fileDescriptor9 = []byte{
+var fileDescriptor_serviceProfile_644c3817c41ddd85 = []byte{
 	// 560 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x55, 0xdd, 0x8a, 0xd3, 0x50,
 	0x10, 0x26, 0x9b, 0x6e, 0x60, 0x67, 0xa1, 0xca, 0xb8, 0xeb, 0x66, 0xd3, 0x6c, 0x8d, 0xb9, 0x90,

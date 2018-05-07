@@ -18,6 +18,12 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 type EnqueueDeviceQueueItemRequest struct {
 	// Hex encoded DevEUI of the node.
 	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
@@ -30,13 +36,35 @@ type EnqueueDeviceQueueItemRequest struct {
 	// Base64 encoded data (or use the jsonObject when an application codec has been configured).
 	Data []byte `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
 	// String containing a JSON object (to be enqueued by the application codec).
-	JsonObject string `protobuf:"bytes,6,opt,name=jsonObject" json:"jsonObject,omitempty"`
+	JsonObject           string   `protobuf:"bytes,6,opt,name=jsonObject" json:"jsonObject,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *EnqueueDeviceQueueItemRequest) Reset()                    { *m = EnqueueDeviceQueueItemRequest{} }
-func (m *EnqueueDeviceQueueItemRequest) String() string            { return proto.CompactTextString(m) }
-func (*EnqueueDeviceQueueItemRequest) ProtoMessage()               {}
-func (*EnqueueDeviceQueueItemRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{0} }
+func (m *EnqueueDeviceQueueItemRequest) Reset()         { *m = EnqueueDeviceQueueItemRequest{} }
+func (m *EnqueueDeviceQueueItemRequest) String() string { return proto.CompactTextString(m) }
+func (*EnqueueDeviceQueueItemRequest) ProtoMessage()    {}
+func (*EnqueueDeviceQueueItemRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceQueue_7a2ba650b6273f85, []int{0}
+}
+func (m *EnqueueDeviceQueueItemRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EnqueueDeviceQueueItemRequest.Unmarshal(m, b)
+}
+func (m *EnqueueDeviceQueueItemRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EnqueueDeviceQueueItemRequest.Marshal(b, m, deterministic)
+}
+func (dst *EnqueueDeviceQueueItemRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EnqueueDeviceQueueItemRequest.Merge(dst, src)
+}
+func (m *EnqueueDeviceQueueItemRequest) XXX_Size() int {
+	return xxx_messageInfo_EnqueueDeviceQueueItemRequest.Size(m)
+}
+func (m *EnqueueDeviceQueueItemRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_EnqueueDeviceQueueItemRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EnqueueDeviceQueueItemRequest proto.InternalMessageInfo
 
 func (m *EnqueueDeviceQueueItemRequest) GetDevEUI() string {
 	if m != nil {
@@ -81,22 +109,66 @@ func (m *EnqueueDeviceQueueItemRequest) GetJsonObject() string {
 }
 
 type EnqueueDeviceQueueItemResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *EnqueueDeviceQueueItemResponse) Reset()                    { *m = EnqueueDeviceQueueItemResponse{} }
-func (m *EnqueueDeviceQueueItemResponse) String() string            { return proto.CompactTextString(m) }
-func (*EnqueueDeviceQueueItemResponse) ProtoMessage()               {}
-func (*EnqueueDeviceQueueItemResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{1} }
+func (m *EnqueueDeviceQueueItemResponse) Reset()         { *m = EnqueueDeviceQueueItemResponse{} }
+func (m *EnqueueDeviceQueueItemResponse) String() string { return proto.CompactTextString(m) }
+func (*EnqueueDeviceQueueItemResponse) ProtoMessage()    {}
+func (*EnqueueDeviceQueueItemResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceQueue_7a2ba650b6273f85, []int{1}
+}
+func (m *EnqueueDeviceQueueItemResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EnqueueDeviceQueueItemResponse.Unmarshal(m, b)
+}
+func (m *EnqueueDeviceQueueItemResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EnqueueDeviceQueueItemResponse.Marshal(b, m, deterministic)
+}
+func (dst *EnqueueDeviceQueueItemResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EnqueueDeviceQueueItemResponse.Merge(dst, src)
+}
+func (m *EnqueueDeviceQueueItemResponse) XXX_Size() int {
+	return xxx_messageInfo_EnqueueDeviceQueueItemResponse.Size(m)
+}
+func (m *EnqueueDeviceQueueItemResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_EnqueueDeviceQueueItemResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EnqueueDeviceQueueItemResponse proto.InternalMessageInfo
 
 type FlushDeviceQueueRequest struct {
 	// Hex encoded DevEUI of the node.
-	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+	DevEUI               string   `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *FlushDeviceQueueRequest) Reset()                    { *m = FlushDeviceQueueRequest{} }
-func (m *FlushDeviceQueueRequest) String() string            { return proto.CompactTextString(m) }
-func (*FlushDeviceQueueRequest) ProtoMessage()               {}
-func (*FlushDeviceQueueRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{2} }
+func (m *FlushDeviceQueueRequest) Reset()         { *m = FlushDeviceQueueRequest{} }
+func (m *FlushDeviceQueueRequest) String() string { return proto.CompactTextString(m) }
+func (*FlushDeviceQueueRequest) ProtoMessage()    {}
+func (*FlushDeviceQueueRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceQueue_7a2ba650b6273f85, []int{2}
+}
+func (m *FlushDeviceQueueRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_FlushDeviceQueueRequest.Unmarshal(m, b)
+}
+func (m *FlushDeviceQueueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_FlushDeviceQueueRequest.Marshal(b, m, deterministic)
+}
+func (dst *FlushDeviceQueueRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FlushDeviceQueueRequest.Merge(dst, src)
+}
+func (m *FlushDeviceQueueRequest) XXX_Size() int {
+	return xxx_messageInfo_FlushDeviceQueueRequest.Size(m)
+}
+func (m *FlushDeviceQueueRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_FlushDeviceQueueRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_FlushDeviceQueueRequest proto.InternalMessageInfo
 
 func (m *FlushDeviceQueueRequest) GetDevEUI() string {
 	if m != nil {
@@ -106,12 +178,34 @@ func (m *FlushDeviceQueueRequest) GetDevEUI() string {
 }
 
 type FlushDeviceQueueResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *FlushDeviceQueueResponse) Reset()                    { *m = FlushDeviceQueueResponse{} }
-func (m *FlushDeviceQueueResponse) String() string            { return proto.CompactTextString(m) }
-func (*FlushDeviceQueueResponse) ProtoMessage()               {}
-func (*FlushDeviceQueueResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{3} }
+func (m *FlushDeviceQueueResponse) Reset()         { *m = FlushDeviceQueueResponse{} }
+func (m *FlushDeviceQueueResponse) String() string { return proto.CompactTextString(m) }
+func (*FlushDeviceQueueResponse) ProtoMessage()    {}
+func (*FlushDeviceQueueResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceQueue_7a2ba650b6273f85, []int{3}
+}
+func (m *FlushDeviceQueueResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_FlushDeviceQueueResponse.Unmarshal(m, b)
+}
+func (m *FlushDeviceQueueResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_FlushDeviceQueueResponse.Marshal(b, m, deterministic)
+}
+func (dst *FlushDeviceQueueResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FlushDeviceQueueResponse.Merge(dst, src)
+}
+func (m *FlushDeviceQueueResponse) XXX_Size() int {
+	return xxx_messageInfo_FlushDeviceQueueResponse.Size(m)
+}
+func (m *FlushDeviceQueueResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_FlushDeviceQueueResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_FlushDeviceQueueResponse proto.InternalMessageInfo
 
 type DeviceQueueItem struct {
 	// Hex encoded DevEUI of the device.
@@ -125,13 +219,35 @@ type DeviceQueueItem struct {
 	// Base64 encoded data.
 	Data []byte `protobuf:"bytes,7,opt,name=data,proto3" json:"data,omitempty"`
 	// FCnt of the queue item.
-	FCnt uint32 `protobuf:"varint,8,opt,name=fCnt" json:"fCnt,omitempty"`
+	FCnt                 uint32   `protobuf:"varint,8,opt,name=fCnt" json:"fCnt,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeviceQueueItem) Reset()                    { *m = DeviceQueueItem{} }
-func (m *DeviceQueueItem) String() string            { return proto.CompactTextString(m) }
-func (*DeviceQueueItem) ProtoMessage()               {}
-func (*DeviceQueueItem) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{4} }
+func (m *DeviceQueueItem) Reset()         { *m = DeviceQueueItem{} }
+func (m *DeviceQueueItem) String() string { return proto.CompactTextString(m) }
+func (*DeviceQueueItem) ProtoMessage()    {}
+func (*DeviceQueueItem) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceQueue_7a2ba650b6273f85, []int{4}
+}
+func (m *DeviceQueueItem) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeviceQueueItem.Unmarshal(m, b)
+}
+func (m *DeviceQueueItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeviceQueueItem.Marshal(b, m, deterministic)
+}
+func (dst *DeviceQueueItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeviceQueueItem.Merge(dst, src)
+}
+func (m *DeviceQueueItem) XXX_Size() int {
+	return xxx_messageInfo_DeviceQueueItem.Size(m)
+}
+func (m *DeviceQueueItem) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeviceQueueItem.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeviceQueueItem proto.InternalMessageInfo
 
 func (m *DeviceQueueItem) GetDevEUI() string {
 	if m != nil {
@@ -177,13 +293,35 @@ func (m *DeviceQueueItem) GetFCnt() uint32 {
 
 type ListDeviceQueueItemsRequest struct {
 	// Hex encoded DevEUI of the node.
-	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+	DevEUI               string   `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListDeviceQueueItemsRequest) Reset()                    { *m = ListDeviceQueueItemsRequest{} }
-func (m *ListDeviceQueueItemsRequest) String() string            { return proto.CompactTextString(m) }
-func (*ListDeviceQueueItemsRequest) ProtoMessage()               {}
-func (*ListDeviceQueueItemsRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{5} }
+func (m *ListDeviceQueueItemsRequest) Reset()         { *m = ListDeviceQueueItemsRequest{} }
+func (m *ListDeviceQueueItemsRequest) String() string { return proto.CompactTextString(m) }
+func (*ListDeviceQueueItemsRequest) ProtoMessage()    {}
+func (*ListDeviceQueueItemsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceQueue_7a2ba650b6273f85, []int{5}
+}
+func (m *ListDeviceQueueItemsRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListDeviceQueueItemsRequest.Unmarshal(m, b)
+}
+func (m *ListDeviceQueueItemsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListDeviceQueueItemsRequest.Marshal(b, m, deterministic)
+}
+func (dst *ListDeviceQueueItemsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListDeviceQueueItemsRequest.Merge(dst, src)
+}
+func (m *ListDeviceQueueItemsRequest) XXX_Size() int {
+	return xxx_messageInfo_ListDeviceQueueItemsRequest.Size(m)
+}
+func (m *ListDeviceQueueItemsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListDeviceQueueItemsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListDeviceQueueItemsRequest proto.InternalMessageInfo
 
 func (m *ListDeviceQueueItemsRequest) GetDevEUI() string {
 	if m != nil {
@@ -193,13 +331,35 @@ func (m *ListDeviceQueueItemsRequest) GetDevEUI() string {
 }
 
 type ListDeviceQueueItemsResponse struct {
-	Items []*DeviceQueueItem `protobuf:"bytes,1,rep,name=items" json:"items,omitempty"`
+	Items                []*DeviceQueueItem `protobuf:"bytes,1,rep,name=items" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
 }
 
-func (m *ListDeviceQueueItemsResponse) Reset()                    { *m = ListDeviceQueueItemsResponse{} }
-func (m *ListDeviceQueueItemsResponse) String() string            { return proto.CompactTextString(m) }
-func (*ListDeviceQueueItemsResponse) ProtoMessage()               {}
-func (*ListDeviceQueueItemsResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{6} }
+func (m *ListDeviceQueueItemsResponse) Reset()         { *m = ListDeviceQueueItemsResponse{} }
+func (m *ListDeviceQueueItemsResponse) String() string { return proto.CompactTextString(m) }
+func (*ListDeviceQueueItemsResponse) ProtoMessage()    {}
+func (*ListDeviceQueueItemsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceQueue_7a2ba650b6273f85, []int{6}
+}
+func (m *ListDeviceQueueItemsResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListDeviceQueueItemsResponse.Unmarshal(m, b)
+}
+func (m *ListDeviceQueueItemsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListDeviceQueueItemsResponse.Marshal(b, m, deterministic)
+}
+func (dst *ListDeviceQueueItemsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListDeviceQueueItemsResponse.Merge(dst, src)
+}
+func (m *ListDeviceQueueItemsResponse) XXX_Size() int {
+	return xxx_messageInfo_ListDeviceQueueItemsResponse.Size(m)
+}
+func (m *ListDeviceQueueItemsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListDeviceQueueItemsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListDeviceQueueItemsResponse proto.InternalMessageInfo
 
 func (m *ListDeviceQueueItemsResponse) GetItems() []*DeviceQueueItem {
 	if m != nil {
@@ -362,9 +522,9 @@ var _DeviceQueue_serviceDesc = grpc.ServiceDesc{
 	Metadata: "deviceQueue.proto",
 }
 
-func init() { proto.RegisterFile("deviceQueue.proto", fileDescriptor2) }
+func init() { proto.RegisterFile("deviceQueue.proto", fileDescriptor_deviceQueue_7a2ba650b6273f85) }
 
-var fileDescriptor2 = []byte{
+var fileDescriptor_deviceQueue_7a2ba650b6273f85 = []byte{
 	// 425 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x53, 0x51, 0x6e, 0xd4, 0x30,
 	0x10, 0x95, 0x77, 0xb3, 0xdb, 0x76, 0x0a, 0x42, 0x8c, 0x2a, 0xb0, 0xd2, 0x6c, 0x65, 0x52, 0x09,

@@ -18,6 +18,12 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 type CreateDeviceProfileRequest struct {
 	DeviceProfile *DeviceProfile `protobuf:"bytes,1,opt,name=deviceProfile" json:"deviceProfile,omitempty"`
 	// Name of the device-profile.
@@ -25,13 +31,35 @@ type CreateDeviceProfileRequest struct {
 	// Organization id of the device-profile.
 	OrganizationID int64 `protobuf:"varint,3,opt,name=organizationID" json:"organizationID,omitempty"`
 	// Network-server id of the device-profile.
-	NetworkServerID int64 `protobuf:"varint,4,opt,name=networkServerID" json:"networkServerID,omitempty"`
+	NetworkServerID      int64    `protobuf:"varint,4,opt,name=networkServerID" json:"networkServerID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateDeviceProfileRequest) Reset()                    { *m = CreateDeviceProfileRequest{} }
-func (m *CreateDeviceProfileRequest) String() string            { return proto.CompactTextString(m) }
-func (*CreateDeviceProfileRequest) ProtoMessage()               {}
-func (*CreateDeviceProfileRequest) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{0} }
+func (m *CreateDeviceProfileRequest) Reset()         { *m = CreateDeviceProfileRequest{} }
+func (m *CreateDeviceProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateDeviceProfileRequest) ProtoMessage()    {}
+func (*CreateDeviceProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceProfile_6e56822e3b74ff39, []int{0}
+}
+func (m *CreateDeviceProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateDeviceProfileRequest.Unmarshal(m, b)
+}
+func (m *CreateDeviceProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateDeviceProfileRequest.Marshal(b, m, deterministic)
+}
+func (dst *CreateDeviceProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateDeviceProfileRequest.Merge(dst, src)
+}
+func (m *CreateDeviceProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateDeviceProfileRequest.Size(m)
+}
+func (m *CreateDeviceProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateDeviceProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateDeviceProfileRequest proto.InternalMessageInfo
 
 func (m *CreateDeviceProfileRequest) GetDeviceProfile() *DeviceProfile {
 	if m != nil {
@@ -63,13 +91,35 @@ func (m *CreateDeviceProfileRequest) GetNetworkServerID() int64 {
 
 type CreateDeviceProfileResponse struct {
 	// ID of the device-profile.
-	DeviceProfileID string `protobuf:"bytes,1,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
+	DeviceProfileID      string   `protobuf:"bytes,1,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateDeviceProfileResponse) Reset()                    { *m = CreateDeviceProfileResponse{} }
-func (m *CreateDeviceProfileResponse) String() string            { return proto.CompactTextString(m) }
-func (*CreateDeviceProfileResponse) ProtoMessage()               {}
-func (*CreateDeviceProfileResponse) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{1} }
+func (m *CreateDeviceProfileResponse) Reset()         { *m = CreateDeviceProfileResponse{} }
+func (m *CreateDeviceProfileResponse) String() string { return proto.CompactTextString(m) }
+func (*CreateDeviceProfileResponse) ProtoMessage()    {}
+func (*CreateDeviceProfileResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceProfile_6e56822e3b74ff39, []int{1}
+}
+func (m *CreateDeviceProfileResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateDeviceProfileResponse.Unmarshal(m, b)
+}
+func (m *CreateDeviceProfileResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateDeviceProfileResponse.Marshal(b, m, deterministic)
+}
+func (dst *CreateDeviceProfileResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateDeviceProfileResponse.Merge(dst, src)
+}
+func (m *CreateDeviceProfileResponse) XXX_Size() int {
+	return xxx_messageInfo_CreateDeviceProfileResponse.Size(m)
+}
+func (m *CreateDeviceProfileResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateDeviceProfileResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateDeviceProfileResponse proto.InternalMessageInfo
 
 func (m *CreateDeviceProfileResponse) GetDeviceProfileID() string {
 	if m != nil {
@@ -80,13 +130,35 @@ func (m *CreateDeviceProfileResponse) GetDeviceProfileID() string {
 
 type GetDeviceProfileRequest struct {
 	// ID of the device-profile.
-	DeviceProfileID string `protobuf:"bytes,1,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
+	DeviceProfileID      string   `protobuf:"bytes,1,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetDeviceProfileRequest) Reset()                    { *m = GetDeviceProfileRequest{} }
-func (m *GetDeviceProfileRequest) String() string            { return proto.CompactTextString(m) }
-func (*GetDeviceProfileRequest) ProtoMessage()               {}
-func (*GetDeviceProfileRequest) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{2} }
+func (m *GetDeviceProfileRequest) Reset()         { *m = GetDeviceProfileRequest{} }
+func (m *GetDeviceProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*GetDeviceProfileRequest) ProtoMessage()    {}
+func (*GetDeviceProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceProfile_6e56822e3b74ff39, []int{2}
+}
+func (m *GetDeviceProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetDeviceProfileRequest.Unmarshal(m, b)
+}
+func (m *GetDeviceProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetDeviceProfileRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetDeviceProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetDeviceProfileRequest.Merge(dst, src)
+}
+func (m *GetDeviceProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_GetDeviceProfileRequest.Size(m)
+}
+func (m *GetDeviceProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetDeviceProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetDeviceProfileRequest proto.InternalMessageInfo
 
 func (m *GetDeviceProfileRequest) GetDeviceProfileID() string {
 	if m != nil {
@@ -106,13 +178,35 @@ type GetDeviceProfileResponse struct {
 	// Timestamp when the record was created.
 	CreatedAt string `protobuf:"bytes,5,opt,name=createdAt" json:"createdAt,omitempty"`
 	// Timestamp when the record was last updated.
-	UpdatedAt string `protobuf:"bytes,6,opt,name=updatedAt" json:"updatedAt,omitempty"`
+	UpdatedAt            string   `protobuf:"bytes,6,opt,name=updatedAt" json:"updatedAt,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetDeviceProfileResponse) Reset()                    { *m = GetDeviceProfileResponse{} }
-func (m *GetDeviceProfileResponse) String() string            { return proto.CompactTextString(m) }
-func (*GetDeviceProfileResponse) ProtoMessage()               {}
-func (*GetDeviceProfileResponse) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{3} }
+func (m *GetDeviceProfileResponse) Reset()         { *m = GetDeviceProfileResponse{} }
+func (m *GetDeviceProfileResponse) String() string { return proto.CompactTextString(m) }
+func (*GetDeviceProfileResponse) ProtoMessage()    {}
+func (*GetDeviceProfileResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceProfile_6e56822e3b74ff39, []int{3}
+}
+func (m *GetDeviceProfileResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetDeviceProfileResponse.Unmarshal(m, b)
+}
+func (m *GetDeviceProfileResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetDeviceProfileResponse.Marshal(b, m, deterministic)
+}
+func (dst *GetDeviceProfileResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetDeviceProfileResponse.Merge(dst, src)
+}
+func (m *GetDeviceProfileResponse) XXX_Size() int {
+	return xxx_messageInfo_GetDeviceProfileResponse.Size(m)
+}
+func (m *GetDeviceProfileResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetDeviceProfileResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetDeviceProfileResponse proto.InternalMessageInfo
 
 func (m *GetDeviceProfileResponse) GetDeviceProfile() *DeviceProfile {
 	if m != nil {
@@ -159,13 +253,35 @@ func (m *GetDeviceProfileResponse) GetUpdatedAt() string {
 type UpdateDeviceProfileRequest struct {
 	DeviceProfile *DeviceProfile `protobuf:"bytes,1,opt,name=deviceProfile" json:"deviceProfile,omitempty"`
 	// Name of the device-profile.
-	Name string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
+	Name                 string   `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UpdateDeviceProfileRequest) Reset()                    { *m = UpdateDeviceProfileRequest{} }
-func (m *UpdateDeviceProfileRequest) String() string            { return proto.CompactTextString(m) }
-func (*UpdateDeviceProfileRequest) ProtoMessage()               {}
-func (*UpdateDeviceProfileRequest) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{4} }
+func (m *UpdateDeviceProfileRequest) Reset()         { *m = UpdateDeviceProfileRequest{} }
+func (m *UpdateDeviceProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateDeviceProfileRequest) ProtoMessage()    {}
+func (*UpdateDeviceProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceProfile_6e56822e3b74ff39, []int{4}
+}
+func (m *UpdateDeviceProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateDeviceProfileRequest.Unmarshal(m, b)
+}
+func (m *UpdateDeviceProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateDeviceProfileRequest.Marshal(b, m, deterministic)
+}
+func (dst *UpdateDeviceProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateDeviceProfileRequest.Merge(dst, src)
+}
+func (m *UpdateDeviceProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateDeviceProfileRequest.Size(m)
+}
+func (m *UpdateDeviceProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateDeviceProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateDeviceProfileRequest proto.InternalMessageInfo
 
 func (m *UpdateDeviceProfileRequest) GetDeviceProfile() *DeviceProfile {
 	if m != nil {
@@ -182,22 +298,66 @@ func (m *UpdateDeviceProfileRequest) GetName() string {
 }
 
 type UpdateDeviceProfileResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UpdateDeviceProfileResponse) Reset()                    { *m = UpdateDeviceProfileResponse{} }
-func (m *UpdateDeviceProfileResponse) String() string            { return proto.CompactTextString(m) }
-func (*UpdateDeviceProfileResponse) ProtoMessage()               {}
-func (*UpdateDeviceProfileResponse) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{5} }
+func (m *UpdateDeviceProfileResponse) Reset()         { *m = UpdateDeviceProfileResponse{} }
+func (m *UpdateDeviceProfileResponse) String() string { return proto.CompactTextString(m) }
+func (*UpdateDeviceProfileResponse) ProtoMessage()    {}
+func (*UpdateDeviceProfileResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceProfile_6e56822e3b74ff39, []int{5}
+}
+func (m *UpdateDeviceProfileResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateDeviceProfileResponse.Unmarshal(m, b)
+}
+func (m *UpdateDeviceProfileResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateDeviceProfileResponse.Marshal(b, m, deterministic)
+}
+func (dst *UpdateDeviceProfileResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateDeviceProfileResponse.Merge(dst, src)
+}
+func (m *UpdateDeviceProfileResponse) XXX_Size() int {
+	return xxx_messageInfo_UpdateDeviceProfileResponse.Size(m)
+}
+func (m *UpdateDeviceProfileResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateDeviceProfileResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateDeviceProfileResponse proto.InternalMessageInfo
 
 type DeleteDeviceProfileRequest struct {
 	// ID of the device-profile.
-	DeviceProfileID string `protobuf:"bytes,1,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
+	DeviceProfileID      string   `protobuf:"bytes,1,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteDeviceProfileRequest) Reset()                    { *m = DeleteDeviceProfileRequest{} }
-func (m *DeleteDeviceProfileRequest) String() string            { return proto.CompactTextString(m) }
-func (*DeleteDeviceProfileRequest) ProtoMessage()               {}
-func (*DeleteDeviceProfileRequest) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{6} }
+func (m *DeleteDeviceProfileRequest) Reset()         { *m = DeleteDeviceProfileRequest{} }
+func (m *DeleteDeviceProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteDeviceProfileRequest) ProtoMessage()    {}
+func (*DeleteDeviceProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceProfile_6e56822e3b74ff39, []int{6}
+}
+func (m *DeleteDeviceProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteDeviceProfileRequest.Unmarshal(m, b)
+}
+func (m *DeleteDeviceProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteDeviceProfileRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteDeviceProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteDeviceProfileRequest.Merge(dst, src)
+}
+func (m *DeleteDeviceProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteDeviceProfileRequest.Size(m)
+}
+func (m *DeleteDeviceProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteDeviceProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteDeviceProfileRequest proto.InternalMessageInfo
 
 func (m *DeleteDeviceProfileRequest) GetDeviceProfileID() string {
 	if m != nil {
@@ -207,12 +367,34 @@ func (m *DeleteDeviceProfileRequest) GetDeviceProfileID() string {
 }
 
 type DeleteDeviceProfileResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteDeviceProfileResponse) Reset()                    { *m = DeleteDeviceProfileResponse{} }
-func (m *DeleteDeviceProfileResponse) String() string            { return proto.CompactTextString(m) }
-func (*DeleteDeviceProfileResponse) ProtoMessage()               {}
-func (*DeleteDeviceProfileResponse) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{7} }
+func (m *DeleteDeviceProfileResponse) Reset()         { *m = DeleteDeviceProfileResponse{} }
+func (m *DeleteDeviceProfileResponse) String() string { return proto.CompactTextString(m) }
+func (*DeleteDeviceProfileResponse) ProtoMessage()    {}
+func (*DeleteDeviceProfileResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceProfile_6e56822e3b74ff39, []int{7}
+}
+func (m *DeleteDeviceProfileResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteDeviceProfileResponse.Unmarshal(m, b)
+}
+func (m *DeleteDeviceProfileResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteDeviceProfileResponse.Marshal(b, m, deterministic)
+}
+func (dst *DeleteDeviceProfileResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteDeviceProfileResponse.Merge(dst, src)
+}
+func (m *DeleteDeviceProfileResponse) XXX_Size() int {
+	return xxx_messageInfo_DeleteDeviceProfileResponse.Size(m)
+}
+func (m *DeleteDeviceProfileResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteDeviceProfileResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteDeviceProfileResponse proto.InternalMessageInfo
 
 type ListDeviceProfileRequest struct {
 	// Max number of items to return.
@@ -222,13 +404,35 @@ type ListDeviceProfileRequest struct {
 	// Organization id to filter on.
 	OrganizationID int64 `protobuf:"varint,3,opt,name=organizationID" json:"organizationID,omitempty"`
 	// Application id to filter on.
-	ApplicationID int64 `protobuf:"varint,4,opt,name=applicationID" json:"applicationID,omitempty"`
+	ApplicationID        int64    `protobuf:"varint,4,opt,name=applicationID" json:"applicationID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListDeviceProfileRequest) Reset()                    { *m = ListDeviceProfileRequest{} }
-func (m *ListDeviceProfileRequest) String() string            { return proto.CompactTextString(m) }
-func (*ListDeviceProfileRequest) ProtoMessage()               {}
-func (*ListDeviceProfileRequest) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{8} }
+func (m *ListDeviceProfileRequest) Reset()         { *m = ListDeviceProfileRequest{} }
+func (m *ListDeviceProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*ListDeviceProfileRequest) ProtoMessage()    {}
+func (*ListDeviceProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceProfile_6e56822e3b74ff39, []int{8}
+}
+func (m *ListDeviceProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListDeviceProfileRequest.Unmarshal(m, b)
+}
+func (m *ListDeviceProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListDeviceProfileRequest.Marshal(b, m, deterministic)
+}
+func (dst *ListDeviceProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListDeviceProfileRequest.Merge(dst, src)
+}
+func (m *ListDeviceProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_ListDeviceProfileRequest.Size(m)
+}
+func (m *ListDeviceProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListDeviceProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListDeviceProfileRequest proto.InternalMessageInfo
 
 func (m *ListDeviceProfileRequest) GetLimit() int64 {
 	if m != nil {
@@ -270,13 +474,35 @@ type DeviceProfileMeta struct {
 	// Timestamp when the record was created.
 	CreatedAt string `protobuf:"bytes,5,opt,name=createdAt" json:"createdAt,omitempty"`
 	// Timestamp when the record was last updated.
-	UpdatedAt string `protobuf:"bytes,6,opt,name=updatedAt" json:"updatedAt,omitempty"`
+	UpdatedAt            string   `protobuf:"bytes,6,opt,name=updatedAt" json:"updatedAt,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeviceProfileMeta) Reset()                    { *m = DeviceProfileMeta{} }
-func (m *DeviceProfileMeta) String() string            { return proto.CompactTextString(m) }
-func (*DeviceProfileMeta) ProtoMessage()               {}
-func (*DeviceProfileMeta) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{9} }
+func (m *DeviceProfileMeta) Reset()         { *m = DeviceProfileMeta{} }
+func (m *DeviceProfileMeta) String() string { return proto.CompactTextString(m) }
+func (*DeviceProfileMeta) ProtoMessage()    {}
+func (*DeviceProfileMeta) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceProfile_6e56822e3b74ff39, []int{9}
+}
+func (m *DeviceProfileMeta) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeviceProfileMeta.Unmarshal(m, b)
+}
+func (m *DeviceProfileMeta) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeviceProfileMeta.Marshal(b, m, deterministic)
+}
+func (dst *DeviceProfileMeta) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeviceProfileMeta.Merge(dst, src)
+}
+func (m *DeviceProfileMeta) XXX_Size() int {
+	return xxx_messageInfo_DeviceProfileMeta.Size(m)
+}
+func (m *DeviceProfileMeta) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeviceProfileMeta.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeviceProfileMeta proto.InternalMessageInfo
 
 func (m *DeviceProfileMeta) GetDeviceProfileID() string {
 	if m != nil {
@@ -322,14 +548,36 @@ func (m *DeviceProfileMeta) GetUpdatedAt() string {
 
 type ListDeviceProfileResponse struct {
 	// Total number of device-profiles.
-	TotalCount int64                `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
-	Result     []*DeviceProfileMeta `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	TotalCount           int64                `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
+	Result               []*DeviceProfileMeta `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
 }
 
-func (m *ListDeviceProfileResponse) Reset()                    { *m = ListDeviceProfileResponse{} }
-func (m *ListDeviceProfileResponse) String() string            { return proto.CompactTextString(m) }
-func (*ListDeviceProfileResponse) ProtoMessage()               {}
-func (*ListDeviceProfileResponse) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{10} }
+func (m *ListDeviceProfileResponse) Reset()         { *m = ListDeviceProfileResponse{} }
+func (m *ListDeviceProfileResponse) String() string { return proto.CompactTextString(m) }
+func (*ListDeviceProfileResponse) ProtoMessage()    {}
+func (*ListDeviceProfileResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_deviceProfile_6e56822e3b74ff39, []int{10}
+}
+func (m *ListDeviceProfileResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListDeviceProfileResponse.Unmarshal(m, b)
+}
+func (m *ListDeviceProfileResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListDeviceProfileResponse.Marshal(b, m, deterministic)
+}
+func (dst *ListDeviceProfileResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListDeviceProfileResponse.Merge(dst, src)
+}
+func (m *ListDeviceProfileResponse) XXX_Size() int {
+	return xxx_messageInfo_ListDeviceProfileResponse.Size(m)
+}
+func (m *ListDeviceProfileResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListDeviceProfileResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListDeviceProfileResponse proto.InternalMessageInfo
 
 func (m *ListDeviceProfileResponse) GetTotalCount() int64 {
 	if m != nil {
@@ -573,9 +821,9 @@ var _DeviceProfileService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "deviceProfile.proto",
 }
 
-func init() { proto.RegisterFile("deviceProfile.proto", fileDescriptor10) }
+func init() { proto.RegisterFile("deviceProfile.proto", fileDescriptor_deviceProfile_6e56822e3b74ff39) }
 
-var fileDescriptor10 = []byte{
+var fileDescriptor_deviceProfile_6e56822e3b74ff39 = []byte{
 	// 577 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x55, 0x4f, 0x8b, 0xd3, 0x40,
 	0x14, 0x67, 0x36, 0xdd, 0x40, 0xdf, 0xb2, 0x2b, 0x8e, 0xa5, 0x66, 0xd3, 0x76, 0xb7, 0x04, 0x59,

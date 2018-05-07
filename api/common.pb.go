@@ -12,6 +12,12 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 type RXWindow int32
 
 const (
@@ -31,7 +37,9 @@ var RXWindow_value = map[string]int32{
 func (x RXWindow) String() string {
 	return proto.EnumName(RXWindow_name, int32(x))
 }
-func (RXWindow) EnumDescriptor() ([]byte, []int) { return fileDescriptor3, []int{0} }
+func (RXWindow) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_common_0ccb55e5f0c871f0, []int{0}
+}
 
 type Modulation int32
 
@@ -54,7 +62,9 @@ var Modulation_value = map[string]int32{
 func (x Modulation) String() string {
 	return proto.EnumName(Modulation_name, int32(x))
 }
-func (Modulation) EnumDescriptor() ([]byte, []int) { return fileDescriptor3, []int{1} }
+func (Modulation) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_common_0ccb55e5f0c871f0, []int{1}
+}
 
 type DataRate struct {
 	// The used modulation (LORA or FSK).
@@ -64,13 +74,35 @@ type DataRate struct {
 	// Used spread-factor.
 	SpreadFactor uint32 `protobuf:"varint,3,opt,name=spreadFactor" json:"spreadFactor,omitempty"`
 	// Bitrate (used for FSK modulation).
-	Bitrate uint32 `protobuf:"varint,4,opt,name=bitrate" json:"bitrate,omitempty"`
+	Bitrate              uint32   `protobuf:"varint,4,opt,name=bitrate" json:"bitrate,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DataRate) Reset()                    { *m = DataRate{} }
-func (m *DataRate) String() string            { return proto.CompactTextString(m) }
-func (*DataRate) ProtoMessage()               {}
-func (*DataRate) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{0} }
+func (m *DataRate) Reset()         { *m = DataRate{} }
+func (m *DataRate) String() string { return proto.CompactTextString(m) }
+func (*DataRate) ProtoMessage()    {}
+func (*DataRate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_common_0ccb55e5f0c871f0, []int{0}
+}
+func (m *DataRate) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DataRate.Unmarshal(m, b)
+}
+func (m *DataRate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DataRate.Marshal(b, m, deterministic)
+}
+func (dst *DataRate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DataRate.Merge(dst, src)
+}
+func (m *DataRate) XXX_Size() int {
+	return xxx_messageInfo_DataRate.Size(m)
+}
+func (m *DataRate) XXX_DiscardUnknown() {
+	xxx_messageInfo_DataRate.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DataRate proto.InternalMessageInfo
 
 func (m *DataRate) GetModulation() string {
 	if m != nil {
@@ -106,13 +138,35 @@ type UplinkTXInfo struct {
 	// Data-rate.
 	DataRate *DataRate `protobuf:"bytes,2,opt,name=dataRate" json:"dataRate,omitempty"`
 	// Code rate.
-	CodeRate string `protobuf:"bytes,3,opt,name=codeRate" json:"codeRate,omitempty"`
+	CodeRate             string   `protobuf:"bytes,3,opt,name=codeRate" json:"codeRate,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UplinkTXInfo) Reset()                    { *m = UplinkTXInfo{} }
-func (m *UplinkTXInfo) String() string            { return proto.CompactTextString(m) }
-func (*UplinkTXInfo) ProtoMessage()               {}
-func (*UplinkTXInfo) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{1} }
+func (m *UplinkTXInfo) Reset()         { *m = UplinkTXInfo{} }
+func (m *UplinkTXInfo) String() string { return proto.CompactTextString(m) }
+func (*UplinkTXInfo) ProtoMessage()    {}
+func (*UplinkTXInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_common_0ccb55e5f0c871f0, []int{1}
+}
+func (m *UplinkTXInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UplinkTXInfo.Unmarshal(m, b)
+}
+func (m *UplinkTXInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UplinkTXInfo.Marshal(b, m, deterministic)
+}
+func (dst *UplinkTXInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UplinkTXInfo.Merge(dst, src)
+}
+func (m *UplinkTXInfo) XXX_Size() int {
+	return xxx_messageInfo_UplinkTXInfo.Size(m)
+}
+func (m *UplinkTXInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_UplinkTXInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UplinkTXInfo proto.InternalMessageInfo
 
 func (m *UplinkTXInfo) GetFrequency() uint32 {
 	if m != nil {
@@ -151,13 +205,35 @@ type UplinkRXInfo struct {
 	// The board identifier that received the uplink frame.
 	Board uint32 `protobuf:"varint,7,opt,name=board" json:"board,omitempty"`
 	// THe antenna identifier that received the uplink frame.
-	Antenna uint32 `protobuf:"varint,8,opt,name=antenna" json:"antenna,omitempty"`
+	Antenna              uint32   `protobuf:"varint,8,opt,name=antenna" json:"antenna,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UplinkRXInfo) Reset()                    { *m = UplinkRXInfo{} }
-func (m *UplinkRXInfo) String() string            { return proto.CompactTextString(m) }
-func (*UplinkRXInfo) ProtoMessage()               {}
-func (*UplinkRXInfo) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{2} }
+func (m *UplinkRXInfo) Reset()         { *m = UplinkRXInfo{} }
+func (m *UplinkRXInfo) String() string { return proto.CompactTextString(m) }
+func (*UplinkRXInfo) ProtoMessage()    {}
+func (*UplinkRXInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_common_0ccb55e5f0c871f0, []int{2}
+}
+func (m *UplinkRXInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UplinkRXInfo.Unmarshal(m, b)
+}
+func (m *UplinkRXInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UplinkRXInfo.Marshal(b, m, deterministic)
+}
+func (dst *UplinkRXInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UplinkRXInfo.Merge(dst, src)
+}
+func (m *UplinkRXInfo) XXX_Size() int {
+	return xxx_messageInfo_UplinkRXInfo.Size(m)
+}
+func (m *UplinkRXInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_UplinkRXInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UplinkRXInfo proto.InternalMessageInfo
 
 func (m *UplinkRXInfo) GetMac() string {
 	if m != nil {
@@ -221,13 +297,35 @@ type UplinkFrameLog struct {
 	// RX information of the uplink.
 	RxInfo []*UplinkRXInfo `protobuf:"bytes,2,rep,name=rxInfo" json:"rxInfo,omitempty"`
 	// LoRaWAN PHYPayload.
-	PhyPayloadJSON string `protobuf:"bytes,3,opt,name=phyPayloadJSON" json:"phyPayloadJSON,omitempty"`
+	PhyPayloadJSON       string   `protobuf:"bytes,3,opt,name=phyPayloadJSON" json:"phyPayloadJSON,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UplinkFrameLog) Reset()                    { *m = UplinkFrameLog{} }
-func (m *UplinkFrameLog) String() string            { return proto.CompactTextString(m) }
-func (*UplinkFrameLog) ProtoMessage()               {}
-func (*UplinkFrameLog) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{3} }
+func (m *UplinkFrameLog) Reset()         { *m = UplinkFrameLog{} }
+func (m *UplinkFrameLog) String() string { return proto.CompactTextString(m) }
+func (*UplinkFrameLog) ProtoMessage()    {}
+func (*UplinkFrameLog) Descriptor() ([]byte, []int) {
+	return fileDescriptor_common_0ccb55e5f0c871f0, []int{3}
+}
+func (m *UplinkFrameLog) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UplinkFrameLog.Unmarshal(m, b)
+}
+func (m *UplinkFrameLog) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UplinkFrameLog.Marshal(b, m, deterministic)
+}
+func (dst *UplinkFrameLog) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UplinkFrameLog.Merge(dst, src)
+}
+func (m *UplinkFrameLog) XXX_Size() int {
+	return xxx_messageInfo_UplinkFrameLog.Size(m)
+}
+func (m *UplinkFrameLog) XXX_DiscardUnknown() {
+	xxx_messageInfo_UplinkFrameLog.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UplinkFrameLog proto.InternalMessageInfo
 
 func (m *UplinkFrameLog) GetTxInfo() *UplinkTXInfo {
 	if m != nil {
@@ -272,13 +370,35 @@ type DownlinkTXInfo struct {
 	// The board identifier that received the uplink frame.
 	Board uint32 `protobuf:"varint,10,opt,name=board" json:"board,omitempty"`
 	// THe antenna identifier that received the uplink frame.
-	Antenna uint32 `protobuf:"varint,11,opt,name=antenna" json:"antenna,omitempty"`
+	Antenna              uint32   `protobuf:"varint,11,opt,name=antenna" json:"antenna,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DownlinkTXInfo) Reset()                    { *m = DownlinkTXInfo{} }
-func (m *DownlinkTXInfo) String() string            { return proto.CompactTextString(m) }
-func (*DownlinkTXInfo) ProtoMessage()               {}
-func (*DownlinkTXInfo) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{4} }
+func (m *DownlinkTXInfo) Reset()         { *m = DownlinkTXInfo{} }
+func (m *DownlinkTXInfo) String() string { return proto.CompactTextString(m) }
+func (*DownlinkTXInfo) ProtoMessage()    {}
+func (*DownlinkTXInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_common_0ccb55e5f0c871f0, []int{4}
+}
+func (m *DownlinkTXInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DownlinkTXInfo.Unmarshal(m, b)
+}
+func (m *DownlinkTXInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DownlinkTXInfo.Marshal(b, m, deterministic)
+}
+func (dst *DownlinkTXInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DownlinkTXInfo.Merge(dst, src)
+}
+func (m *DownlinkTXInfo) XXX_Size() int {
+	return xxx_messageInfo_DownlinkTXInfo.Size(m)
+}
+func (m *DownlinkTXInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_DownlinkTXInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DownlinkTXInfo proto.InternalMessageInfo
 
 func (m *DownlinkTXInfo) GetMac() string {
 	if m != nil {
@@ -361,13 +481,35 @@ type DownlinkFrameLog struct {
 	// TX information of the downlink.
 	TxInfo *DownlinkTXInfo `protobuf:"bytes,1,opt,name=txInfo" json:"txInfo,omitempty"`
 	// LoRaWAN PHYPayload.
-	PhyPayloadJSON string `protobuf:"bytes,2,opt,name=phyPayloadJSON" json:"phyPayloadJSON,omitempty"`
+	PhyPayloadJSON       string   `protobuf:"bytes,2,opt,name=phyPayloadJSON" json:"phyPayloadJSON,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DownlinkFrameLog) Reset()                    { *m = DownlinkFrameLog{} }
-func (m *DownlinkFrameLog) String() string            { return proto.CompactTextString(m) }
-func (*DownlinkFrameLog) ProtoMessage()               {}
-func (*DownlinkFrameLog) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{5} }
+func (m *DownlinkFrameLog) Reset()         { *m = DownlinkFrameLog{} }
+func (m *DownlinkFrameLog) String() string { return proto.CompactTextString(m) }
+func (*DownlinkFrameLog) ProtoMessage()    {}
+func (*DownlinkFrameLog) Descriptor() ([]byte, []int) {
+	return fileDescriptor_common_0ccb55e5f0c871f0, []int{5}
+}
+func (m *DownlinkFrameLog) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DownlinkFrameLog.Unmarshal(m, b)
+}
+func (m *DownlinkFrameLog) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DownlinkFrameLog.Marshal(b, m, deterministic)
+}
+func (dst *DownlinkFrameLog) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DownlinkFrameLog.Merge(dst, src)
+}
+func (m *DownlinkFrameLog) XXX_Size() int {
+	return xxx_messageInfo_DownlinkFrameLog.Size(m)
+}
+func (m *DownlinkFrameLog) XXX_DiscardUnknown() {
+	xxx_messageInfo_DownlinkFrameLog.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DownlinkFrameLog proto.InternalMessageInfo
 
 func (m *DownlinkFrameLog) GetTxInfo() *DownlinkTXInfo {
 	if m != nil {
@@ -394,9 +536,9 @@ func init() {
 	proto.RegisterEnum("api.Modulation", Modulation_name, Modulation_value)
 }
 
-func init() { proto.RegisterFile("common.proto", fileDescriptor3) }
+func init() { proto.RegisterFile("common.proto", fileDescriptor_common_0ccb55e5f0c871f0) }
 
-var fileDescriptor3 = []byte{
+var fileDescriptor_common_0ccb55e5f0c871f0 = []byte{
 	// 535 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xcb, 0x8e, 0xd3, 0x30,
 	0x14, 0x25, 0x4d, 0xd3, 0xa6, 0xb7, 0x0f, 0x75, 0xcc, 0x2c, 0x22, 0x34, 0x82, 0x28, 0x0b, 0xd4,

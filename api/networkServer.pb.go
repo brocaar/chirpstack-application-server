@@ -18,6 +18,12 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 type CreateNetworkServerRequest struct {
 	// Name of the network-server.
 	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
@@ -47,13 +53,35 @@ type CreateNetworkServerRequest struct {
 	// The frequency (Hz) of the gateway discovery 'ping'.
 	GatewayDiscoveryTXFrequency uint32 `protobuf:"varint,11,opt,name=gatewayDiscoveryTXFrequency" json:"gatewayDiscoveryTXFrequency,omitempty"`
 	// The data-rate of the gateway discovery 'ping'.
-	GatewayDiscoveryDR uint32 `protobuf:"varint,12,opt,name=gatewayDiscoveryDR" json:"gatewayDiscoveryDR,omitempty"`
+	GatewayDiscoveryDR   uint32   `protobuf:"varint,12,opt,name=gatewayDiscoveryDR" json:"gatewayDiscoveryDR,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateNetworkServerRequest) Reset()                    { *m = CreateNetworkServerRequest{} }
-func (m *CreateNetworkServerRequest) String() string            { return proto.CompactTextString(m) }
-func (*CreateNetworkServerRequest) ProtoMessage()               {}
-func (*CreateNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{0} }
+func (m *CreateNetworkServerRequest) Reset()         { *m = CreateNetworkServerRequest{} }
+func (m *CreateNetworkServerRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateNetworkServerRequest) ProtoMessage()    {}
+func (*CreateNetworkServerRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{0}
+}
+func (m *CreateNetworkServerRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateNetworkServerRequest.Unmarshal(m, b)
+}
+func (m *CreateNetworkServerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateNetworkServerRequest.Marshal(b, m, deterministic)
+}
+func (dst *CreateNetworkServerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateNetworkServerRequest.Merge(dst, src)
+}
+func (m *CreateNetworkServerRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateNetworkServerRequest.Size(m)
+}
+func (m *CreateNetworkServerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateNetworkServerRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateNetworkServerRequest proto.InternalMessageInfo
 
 func (m *CreateNetworkServerRequest) GetName() string {
 	if m != nil {
@@ -141,13 +169,35 @@ func (m *CreateNetworkServerRequest) GetGatewayDiscoveryDR() uint32 {
 
 type CreateNetworkServerResponse struct {
 	// ID of the network-server.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateNetworkServerResponse) Reset()                    { *m = CreateNetworkServerResponse{} }
-func (m *CreateNetworkServerResponse) String() string            { return proto.CompactTextString(m) }
-func (*CreateNetworkServerResponse) ProtoMessage()               {}
-func (*CreateNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{1} }
+func (m *CreateNetworkServerResponse) Reset()         { *m = CreateNetworkServerResponse{} }
+func (m *CreateNetworkServerResponse) String() string { return proto.CompactTextString(m) }
+func (*CreateNetworkServerResponse) ProtoMessage()    {}
+func (*CreateNetworkServerResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{1}
+}
+func (m *CreateNetworkServerResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateNetworkServerResponse.Unmarshal(m, b)
+}
+func (m *CreateNetworkServerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateNetworkServerResponse.Marshal(b, m, deterministic)
+}
+func (dst *CreateNetworkServerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateNetworkServerResponse.Merge(dst, src)
+}
+func (m *CreateNetworkServerResponse) XXX_Size() int {
+	return xxx_messageInfo_CreateNetworkServerResponse.Size(m)
+}
+func (m *CreateNetworkServerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateNetworkServerResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateNetworkServerResponse proto.InternalMessageInfo
 
 func (m *CreateNetworkServerResponse) GetId() int64 {
 	if m != nil {
@@ -158,13 +208,35 @@ func (m *CreateNetworkServerResponse) GetId() int64 {
 
 type GetNetworkServerRequest struct {
 	// ID of the network-server.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetNetworkServerRequest) Reset()                    { *m = GetNetworkServerRequest{} }
-func (m *GetNetworkServerRequest) String() string            { return proto.CompactTextString(m) }
-func (*GetNetworkServerRequest) ProtoMessage()               {}
-func (*GetNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{2} }
+func (m *GetNetworkServerRequest) Reset()         { *m = GetNetworkServerRequest{} }
+func (m *GetNetworkServerRequest) String() string { return proto.CompactTextString(m) }
+func (*GetNetworkServerRequest) ProtoMessage()    {}
+func (*GetNetworkServerRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{2}
+}
+func (m *GetNetworkServerRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetNetworkServerRequest.Unmarshal(m, b)
+}
+func (m *GetNetworkServerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetNetworkServerRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetNetworkServerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetNetworkServerRequest.Merge(dst, src)
+}
+func (m *GetNetworkServerRequest) XXX_Size() int {
+	return xxx_messageInfo_GetNetworkServerRequest.Size(m)
+}
+func (m *GetNetworkServerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetNetworkServerRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetNetworkServerRequest proto.InternalMessageInfo
 
 func (m *GetNetworkServerRequest) GetId() int64 {
 	if m != nil {
@@ -207,13 +279,35 @@ type GetNetworkServerResponse struct {
 	// The LoRa Server version.
 	Version string `protobuf:"bytes,14,opt,name=version" json:"version,omitempty"`
 	// The LoRa Server region configured.
-	Region string `protobuf:"bytes,15,opt,name=region" json:"region,omitempty"`
+	Region               string   `protobuf:"bytes,15,opt,name=region" json:"region,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetNetworkServerResponse) Reset()                    { *m = GetNetworkServerResponse{} }
-func (m *GetNetworkServerResponse) String() string            { return proto.CompactTextString(m) }
-func (*GetNetworkServerResponse) ProtoMessage()               {}
-func (*GetNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{3} }
+func (m *GetNetworkServerResponse) Reset()         { *m = GetNetworkServerResponse{} }
+func (m *GetNetworkServerResponse) String() string { return proto.CompactTextString(m) }
+func (*GetNetworkServerResponse) ProtoMessage()    {}
+func (*GetNetworkServerResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{3}
+}
+func (m *GetNetworkServerResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetNetworkServerResponse.Unmarshal(m, b)
+}
+func (m *GetNetworkServerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetNetworkServerResponse.Marshal(b, m, deterministic)
+}
+func (dst *GetNetworkServerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetNetworkServerResponse.Merge(dst, src)
+}
+func (m *GetNetworkServerResponse) XXX_Size() int {
+	return xxx_messageInfo_GetNetworkServerResponse.Size(m)
+}
+func (m *GetNetworkServerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetNetworkServerResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetNetworkServerResponse proto.InternalMessageInfo
 
 func (m *GetNetworkServerResponse) GetId() int64 {
 	if m != nil {
@@ -351,13 +445,35 @@ type UpdateNetworkServerRequest struct {
 	// The frequency (Hz) of the gateway discovery 'ping'.
 	GatewayDiscoveryTXFrequency uint32 `protobuf:"varint,12,opt,name=gatewayDiscoveryTXFrequency" json:"gatewayDiscoveryTXFrequency,omitempty"`
 	// The data-rate of the gateway discovery 'ping'.
-	GatewayDiscoveryDR uint32 `protobuf:"varint,13,opt,name=gatewayDiscoveryDR" json:"gatewayDiscoveryDR,omitempty"`
+	GatewayDiscoveryDR   uint32   `protobuf:"varint,13,opt,name=gatewayDiscoveryDR" json:"gatewayDiscoveryDR,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UpdateNetworkServerRequest) Reset()                    { *m = UpdateNetworkServerRequest{} }
-func (m *UpdateNetworkServerRequest) String() string            { return proto.CompactTextString(m) }
-func (*UpdateNetworkServerRequest) ProtoMessage()               {}
-func (*UpdateNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{4} }
+func (m *UpdateNetworkServerRequest) Reset()         { *m = UpdateNetworkServerRequest{} }
+func (m *UpdateNetworkServerRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateNetworkServerRequest) ProtoMessage()    {}
+func (*UpdateNetworkServerRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{4}
+}
+func (m *UpdateNetworkServerRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateNetworkServerRequest.Unmarshal(m, b)
+}
+func (m *UpdateNetworkServerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateNetworkServerRequest.Marshal(b, m, deterministic)
+}
+func (dst *UpdateNetworkServerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateNetworkServerRequest.Merge(dst, src)
+}
+func (m *UpdateNetworkServerRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateNetworkServerRequest.Size(m)
+}
+func (m *UpdateNetworkServerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateNetworkServerRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateNetworkServerRequest proto.InternalMessageInfo
 
 func (m *UpdateNetworkServerRequest) GetId() int64 {
 	if m != nil {
@@ -451,22 +567,66 @@ func (m *UpdateNetworkServerRequest) GetGatewayDiscoveryDR() uint32 {
 }
 
 type UpdateNetworkServerResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UpdateNetworkServerResponse) Reset()                    { *m = UpdateNetworkServerResponse{} }
-func (m *UpdateNetworkServerResponse) String() string            { return proto.CompactTextString(m) }
-func (*UpdateNetworkServerResponse) ProtoMessage()               {}
-func (*UpdateNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{5} }
+func (m *UpdateNetworkServerResponse) Reset()         { *m = UpdateNetworkServerResponse{} }
+func (m *UpdateNetworkServerResponse) String() string { return proto.CompactTextString(m) }
+func (*UpdateNetworkServerResponse) ProtoMessage()    {}
+func (*UpdateNetworkServerResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{5}
+}
+func (m *UpdateNetworkServerResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateNetworkServerResponse.Unmarshal(m, b)
+}
+func (m *UpdateNetworkServerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateNetworkServerResponse.Marshal(b, m, deterministic)
+}
+func (dst *UpdateNetworkServerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateNetworkServerResponse.Merge(dst, src)
+}
+func (m *UpdateNetworkServerResponse) XXX_Size() int {
+	return xxx_messageInfo_UpdateNetworkServerResponse.Size(m)
+}
+func (m *UpdateNetworkServerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateNetworkServerResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateNetworkServerResponse proto.InternalMessageInfo
 
 type DeleteNetworkServerRequest struct {
 	// ID of the network-server.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteNetworkServerRequest) Reset()                    { *m = DeleteNetworkServerRequest{} }
-func (m *DeleteNetworkServerRequest) String() string            { return proto.CompactTextString(m) }
-func (*DeleteNetworkServerRequest) ProtoMessage()               {}
-func (*DeleteNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{6} }
+func (m *DeleteNetworkServerRequest) Reset()         { *m = DeleteNetworkServerRequest{} }
+func (m *DeleteNetworkServerRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteNetworkServerRequest) ProtoMessage()    {}
+func (*DeleteNetworkServerRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{6}
+}
+func (m *DeleteNetworkServerRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteNetworkServerRequest.Unmarshal(m, b)
+}
+func (m *DeleteNetworkServerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteNetworkServerRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteNetworkServerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteNetworkServerRequest.Merge(dst, src)
+}
+func (m *DeleteNetworkServerRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteNetworkServerRequest.Size(m)
+}
+func (m *DeleteNetworkServerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteNetworkServerRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteNetworkServerRequest proto.InternalMessageInfo
 
 func (m *DeleteNetworkServerRequest) GetId() int64 {
 	if m != nil {
@@ -476,12 +636,34 @@ func (m *DeleteNetworkServerRequest) GetId() int64 {
 }
 
 type DeleteNetworkServerResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteNetworkServerResponse) Reset()                    { *m = DeleteNetworkServerResponse{} }
-func (m *DeleteNetworkServerResponse) String() string            { return proto.CompactTextString(m) }
-func (*DeleteNetworkServerResponse) ProtoMessage()               {}
-func (*DeleteNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{7} }
+func (m *DeleteNetworkServerResponse) Reset()         { *m = DeleteNetworkServerResponse{} }
+func (m *DeleteNetworkServerResponse) String() string { return proto.CompactTextString(m) }
+func (*DeleteNetworkServerResponse) ProtoMessage()    {}
+func (*DeleteNetworkServerResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{7}
+}
+func (m *DeleteNetworkServerResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteNetworkServerResponse.Unmarshal(m, b)
+}
+func (m *DeleteNetworkServerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteNetworkServerResponse.Marshal(b, m, deterministic)
+}
+func (dst *DeleteNetworkServerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteNetworkServerResponse.Merge(dst, src)
+}
+func (m *DeleteNetworkServerResponse) XXX_Size() int {
+	return xxx_messageInfo_DeleteNetworkServerResponse.Size(m)
+}
+func (m *DeleteNetworkServerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteNetworkServerResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteNetworkServerResponse proto.InternalMessageInfo
 
 type ListNetworkServerRequest struct {
 	// Max number of items to return.
@@ -489,13 +671,35 @@ type ListNetworkServerRequest struct {
 	// Offset in the result-set (for pagination).
 	Offset int64 `protobuf:"varint,2,opt,name=offset" json:"offset,omitempty"`
 	// Organization id to filter on.
-	OrganizationID int64 `protobuf:"varint,3,opt,name=organizationID" json:"organizationID,omitempty"`
+	OrganizationID       int64    `protobuf:"varint,3,opt,name=organizationID" json:"organizationID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListNetworkServerRequest) Reset()                    { *m = ListNetworkServerRequest{} }
-func (m *ListNetworkServerRequest) String() string            { return proto.CompactTextString(m) }
-func (*ListNetworkServerRequest) ProtoMessage()               {}
-func (*ListNetworkServerRequest) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{8} }
+func (m *ListNetworkServerRequest) Reset()         { *m = ListNetworkServerRequest{} }
+func (m *ListNetworkServerRequest) String() string { return proto.CompactTextString(m) }
+func (*ListNetworkServerRequest) ProtoMessage()    {}
+func (*ListNetworkServerRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{8}
+}
+func (m *ListNetworkServerRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListNetworkServerRequest.Unmarshal(m, b)
+}
+func (m *ListNetworkServerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListNetworkServerRequest.Marshal(b, m, deterministic)
+}
+func (dst *ListNetworkServerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListNetworkServerRequest.Merge(dst, src)
+}
+func (m *ListNetworkServerRequest) XXX_Size() int {
+	return xxx_messageInfo_ListNetworkServerRequest.Size(m)
+}
+func (m *ListNetworkServerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListNetworkServerRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListNetworkServerRequest proto.InternalMessageInfo
 
 func (m *ListNetworkServerRequest) GetLimit() int64 {
 	if m != nil {
@@ -522,13 +726,35 @@ type ListNetworkServerResponse struct {
 	// Total number of network-servers.
 	TotalCount int64 `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
 	// Network-servers within the result-set.
-	Result []*GetNetworkServerResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	Result               []*GetNetworkServerResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
+	XXX_unrecognized     []byte                      `json:"-"`
+	XXX_sizecache        int32                       `json:"-"`
 }
 
-func (m *ListNetworkServerResponse) Reset()                    { *m = ListNetworkServerResponse{} }
-func (m *ListNetworkServerResponse) String() string            { return proto.CompactTextString(m) }
-func (*ListNetworkServerResponse) ProtoMessage()               {}
-func (*ListNetworkServerResponse) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{9} }
+func (m *ListNetworkServerResponse) Reset()         { *m = ListNetworkServerResponse{} }
+func (m *ListNetworkServerResponse) String() string { return proto.CompactTextString(m) }
+func (*ListNetworkServerResponse) ProtoMessage()    {}
+func (*ListNetworkServerResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{9}
+}
+func (m *ListNetworkServerResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListNetworkServerResponse.Unmarshal(m, b)
+}
+func (m *ListNetworkServerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListNetworkServerResponse.Marshal(b, m, deterministic)
+}
+func (dst *ListNetworkServerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListNetworkServerResponse.Merge(dst, src)
+}
+func (m *ListNetworkServerResponse) XXX_Size() int {
+	return xxx_messageInfo_ListNetworkServerResponse.Size(m)
+}
+func (m *ListNetworkServerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListNetworkServerResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListNetworkServerResponse proto.InternalMessageInfo
 
 func (m *ListNetworkServerResponse) GetTotalCount() int64 {
 	if m != nil {
@@ -771,9 +997,9 @@ var _NetworkServer_serviceDesc = grpc.ServiceDesc{
 	Metadata: "networkServer.proto",
 }
 
-func init() { proto.RegisterFile("networkServer.proto", fileDescriptor8) }
+func init() { proto.RegisterFile("networkServer.proto", fileDescriptor_networkServer_4c10e9cf61681e4d) }
 
-var fileDescriptor8 = []byte{
+var fileDescriptor_networkServer_4c10e9cf61681e4d = []byte{
 	// 746 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x96, 0xcd, 0x6e, 0x13, 0x3b,
 	0x14, 0xc7, 0x95, 0xcc, 0x64, 0x92, 0x9c, 0x7e, 0x5c, 0xc9, 0xb7, 0xb7, 0x9d, 0x26, 0x69, 0x9b,

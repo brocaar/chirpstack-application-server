@@ -8,6 +8,16 @@ menu:
 
 # Changelog
 
+## 0.20.2
+
+**Bugfixes:**
+
+* JS codec now handles all possible int and float types returned by the encoder function.
+* Fixed Gob decoding issues when decoding to `interface{}` by using JSON marshaler for logging events.
+
+**Improvements:**
+* JS codec downlink errors are now logged to `.../error` MQTT topic.
+
 ## 0.20.1
 
 **Improvements:**

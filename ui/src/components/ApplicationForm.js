@@ -125,6 +125,37 @@ function Decode(fPort, bytes) {
 }`;
     }
 
+    let customJSFields = [];
+
+    if (this.state.application.payloadCodec === "CUSTOM_JS") {
+      customJSFields = [
+        <div className="form-group" key="customJSDecoder">
+          <label className="control-label" htmlFor="payloadDecoderScript">Payload decoder function</label>
+          <CodeMirror
+            value={payloadDecoderScript}
+            options={codeMirrorOptions}
+            onBeforeChange={this.onCodeChange.bind(this, 'payloadDecoderScript')}
+          />
+          <p className="help-block">
+            The function must have the signature <strong>function Decode(fPort, bytes)</strong> and must return an object.
+            LoRa App Server will convert this object to JSON.
+          </p>
+        </div>,
+        <div className="form-group" key="customJSEncoder">
+          <label className="control-label" htmlFor="payloadEncoderScript">Payload encoder function</label>
+          <CodeMirror
+            value={payloadEncoderScript}
+            options={codeMirrorOptions}
+            onBeforeChange={this.onCodeChange.bind(this, 'payloadEncoderScript')}
+          />
+          <p className="help-block">
+            The function must have the signature <strong>function Encode(fPort, obj)</strong> and must return an array
+            of bytes.
+          </p>
+        </div>
+      ];
+    }
+
     return (
       <Loaded loaded={this.state.loaded}>
         <form onSubmit={this.handleSubmit}>
@@ -168,30 +199,7 @@ function Decode(fPort, bytes) {
               By defining a payload codec, LoRa App Server can encode and decode the binary device payload for you.
             </p>
           </div>
-          <div className={"form-group " + (this.state.application.payloadCodec === "CUSTOM_JS" ? "" : "hidden")}>
-            <label className="control-label" htmlFor="payloadDecoderScript">Payload decoder function</label>
-            <CodeMirror
-              value={payloadDecoderScript}
-              options={codeMirrorOptions}
-              onBeforeChange={this.onCodeChange.bind(this, 'payloadDecoderScript')}
-            />
-            <p className="help-block">
-              The function must have the signature <strong>function Decode(fPort, bytes)</strong> and must return an object.
-              LoRa App Server will convert this object to JSON.
-            </p>
-          </div>
-          <div className={"form-group " + (this.state.application.payloadCodec === "CUSTOM_JS" ? "" : "hidden")}>
-            <label className="control-label" htmlFor="payloadEncoderScript">Payload encoder function</label>
-            <CodeMirror
-              value={payloadEncoderScript}
-              options={codeMirrorOptions}
-              onBeforeChange={this.onCodeChange.bind(this, 'payloadEncoderScript')}
-            />
-            <p className="help-block">
-              The function must have the signature <strong>function Encode(fPort, obj)</strong> and must return an array
-              of bytes.
-            </p>
-          </div>
+          {customJSFields}
           <hr />
           <div className="btn-toolbar pull-right">
             <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>

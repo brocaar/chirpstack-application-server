@@ -8,6 +8,10 @@ const integrationMap = {
     name: 'HTTP integration',
     endpoint: 'http',
   },
+  INFLUXDB: {
+    name: "InfluxDB integration",
+    endpoint: "influxdb",
+  },
 };
 
 
@@ -15,7 +19,7 @@ class IntegrationRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/integrations/http`}>{integrationMap[this.props.kind].name}</Link></td>
+        <td><Link to={`/organizations/${this.props.params.organizationID}/applications/${this.props.params.applicationID}/integrations/${integrationMap[this.props.kind].endpoint}`}>{integrationMap[this.props.kind].name}</Link></td>
       </tr>
     );
   }

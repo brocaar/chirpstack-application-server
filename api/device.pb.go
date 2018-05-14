@@ -1589,8 +1589,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for Device service
-
+// DeviceClient is the client API for Device service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DeviceClient interface {
 	// Create creates the given device.
 	Create(ctx context.Context, in *CreateDeviceRequest, opts ...grpc.CallOption) (*CreateDeviceResponse, error)
@@ -1635,7 +1636,7 @@ func NewDeviceClient(cc *grpc.ClientConn) DeviceClient {
 
 func (c *deviceClient) Create(ctx context.Context, in *CreateDeviceRequest, opts ...grpc.CallOption) (*CreateDeviceResponse, error) {
 	out := new(CreateDeviceResponse)
-	err := grpc.Invoke(ctx, "/api.Device/Create", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Device/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1644,7 +1645,7 @@ func (c *deviceClient) Create(ctx context.Context, in *CreateDeviceRequest, opts
 
 func (c *deviceClient) Get(ctx context.Context, in *GetDeviceRequest, opts ...grpc.CallOption) (*GetDeviceResponse, error) {
 	out := new(GetDeviceResponse)
-	err := grpc.Invoke(ctx, "/api.Device/Get", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Device/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1653,7 +1654,7 @@ func (c *deviceClient) Get(ctx context.Context, in *GetDeviceRequest, opts ...gr
 
 func (c *deviceClient) Delete(ctx context.Context, in *DeleteDeviceRequest, opts ...grpc.CallOption) (*DeleteDeviceResponse, error) {
 	out := new(DeleteDeviceResponse)
-	err := grpc.Invoke(ctx, "/api.Device/Delete", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Device/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1662,7 +1663,7 @@ func (c *deviceClient) Delete(ctx context.Context, in *DeleteDeviceRequest, opts
 
 func (c *deviceClient) ListByApplicationID(ctx context.Context, in *ListDeviceByApplicationIDRequest, opts ...grpc.CallOption) (*ListDeviceResponse, error) {
 	out := new(ListDeviceResponse)
-	err := grpc.Invoke(ctx, "/api.Device/ListByApplicationID", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Device/ListByApplicationID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1671,7 +1672,7 @@ func (c *deviceClient) ListByApplicationID(ctx context.Context, in *ListDeviceBy
 
 func (c *deviceClient) Update(ctx context.Context, in *UpdateDeviceRequest, opts ...grpc.CallOption) (*UpdateDeviceResponse, error) {
 	out := new(UpdateDeviceResponse)
-	err := grpc.Invoke(ctx, "/api.Device/Update", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Device/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1680,7 +1681,7 @@ func (c *deviceClient) Update(ctx context.Context, in *UpdateDeviceRequest, opts
 
 func (c *deviceClient) CreateKeys(ctx context.Context, in *CreateDeviceKeysRequest, opts ...grpc.CallOption) (*CreateDeviceKeysResponse, error) {
 	out := new(CreateDeviceKeysResponse)
-	err := grpc.Invoke(ctx, "/api.Device/CreateKeys", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Device/CreateKeys", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1689,7 +1690,7 @@ func (c *deviceClient) CreateKeys(ctx context.Context, in *CreateDeviceKeysReque
 
 func (c *deviceClient) GetKeys(ctx context.Context, in *GetDeviceKeysRequest, opts ...grpc.CallOption) (*GetDeviceKeysResponse, error) {
 	out := new(GetDeviceKeysResponse)
-	err := grpc.Invoke(ctx, "/api.Device/GetKeys", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Device/GetKeys", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1698,7 +1699,7 @@ func (c *deviceClient) GetKeys(ctx context.Context, in *GetDeviceKeysRequest, op
 
 func (c *deviceClient) UpdateKeys(ctx context.Context, in *UpdateDeviceKeysRequest, opts ...grpc.CallOption) (*UpdateDeviceKeysResponse, error) {
 	out := new(UpdateDeviceKeysResponse)
-	err := grpc.Invoke(ctx, "/api.Device/UpdateKeys", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Device/UpdateKeys", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1707,7 +1708,7 @@ func (c *deviceClient) UpdateKeys(ctx context.Context, in *UpdateDeviceKeysReque
 
 func (c *deviceClient) DeleteKeys(ctx context.Context, in *DeleteDeviceKeysRequest, opts ...grpc.CallOption) (*DeleteDeviceKeysResponse, error) {
 	out := new(DeleteDeviceKeysResponse)
-	err := grpc.Invoke(ctx, "/api.Device/DeleteKeys", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Device/DeleteKeys", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1716,7 +1717,7 @@ func (c *deviceClient) DeleteKeys(ctx context.Context, in *DeleteDeviceKeysReque
 
 func (c *deviceClient) Activate(ctx context.Context, in *ActivateDeviceRequest, opts ...grpc.CallOption) (*ActivateDeviceResponse, error) {
 	out := new(ActivateDeviceResponse)
-	err := grpc.Invoke(ctx, "/api.Device/Activate", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Device/Activate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1725,7 +1726,7 @@ func (c *deviceClient) Activate(ctx context.Context, in *ActivateDeviceRequest, 
 
 func (c *deviceClient) GetActivation(ctx context.Context, in *GetDeviceActivationRequest, opts ...grpc.CallOption) (*GetDeviceActivationResponse, error) {
 	out := new(GetDeviceActivationResponse)
-	err := grpc.Invoke(ctx, "/api.Device/GetActivation", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Device/GetActivation", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1734,7 +1735,7 @@ func (c *deviceClient) GetActivation(ctx context.Context, in *GetDeviceActivatio
 
 func (c *deviceClient) GetRandomDevAddr(ctx context.Context, in *GetRandomDevAddrRequest, opts ...grpc.CallOption) (*GetRandomDevAddrResponse, error) {
 	out := new(GetRandomDevAddrResponse)
-	err := grpc.Invoke(ctx, "/api.Device/GetRandomDevAddr", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Device/GetRandomDevAddr", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1742,7 +1743,7 @@ func (c *deviceClient) GetRandomDevAddr(ctx context.Context, in *GetRandomDevAdd
 }
 
 func (c *deviceClient) StreamFrameLogs(ctx context.Context, in *StreamDeviceFrameLogsRequest, opts ...grpc.CallOption) (Device_StreamFrameLogsClient, error) {
-	stream, err := grpc.NewClientStream(ctx, &_Device_serviceDesc.Streams[0], c.cc, "/api.Device/StreamFrameLogs", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Device_serviceDesc.Streams[0], "/api.Device/StreamFrameLogs", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1774,7 +1775,7 @@ func (x *deviceStreamFrameLogsClient) Recv() (*StreamDeviceFrameLogsResponse, er
 }
 
 func (c *deviceClient) StreamEventLogs(ctx context.Context, in *StreamDeviceEventLogsRequest, opts ...grpc.CallOption) (Device_StreamEventLogsClient, error) {
-	stream, err := grpc.NewClientStream(ctx, &_Device_serviceDesc.Streams[1], c.cc, "/api.Device/StreamEventLogs", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Device_serviceDesc.Streams[1], "/api.Device/StreamEventLogs", opts...)
 	if err != nil {
 		return nil, err
 	}

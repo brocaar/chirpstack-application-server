@@ -715,8 +715,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for GatewayProfileService service
-
+// GatewayProfileServiceClient is the client API for GatewayProfileService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type GatewayProfileServiceClient interface {
 	// Create creates the given gateway-profile.
 	Create(ctx context.Context, in *CreateGatewayProfileRequest, opts ...grpc.CallOption) (*CreateGatewayProfileResponse, error)
@@ -740,7 +741,7 @@ func NewGatewayProfileServiceClient(cc *grpc.ClientConn) GatewayProfileServiceCl
 
 func (c *gatewayProfileServiceClient) Create(ctx context.Context, in *CreateGatewayProfileRequest, opts ...grpc.CallOption) (*CreateGatewayProfileResponse, error) {
 	out := new(CreateGatewayProfileResponse)
-	err := grpc.Invoke(ctx, "/api.GatewayProfileService/Create", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.GatewayProfileService/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -749,7 +750,7 @@ func (c *gatewayProfileServiceClient) Create(ctx context.Context, in *CreateGate
 
 func (c *gatewayProfileServiceClient) Get(ctx context.Context, in *GetGatewayProfileRequest, opts ...grpc.CallOption) (*GetGatewayProfileResponse, error) {
 	out := new(GetGatewayProfileResponse)
-	err := grpc.Invoke(ctx, "/api.GatewayProfileService/Get", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.GatewayProfileService/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -758,7 +759,7 @@ func (c *gatewayProfileServiceClient) Get(ctx context.Context, in *GetGatewayPro
 
 func (c *gatewayProfileServiceClient) Update(ctx context.Context, in *UpdateGatewayProfileRequest, opts ...grpc.CallOption) (*UpdateGatewayProfileResponse, error) {
 	out := new(UpdateGatewayProfileResponse)
-	err := grpc.Invoke(ctx, "/api.GatewayProfileService/Update", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.GatewayProfileService/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -767,7 +768,7 @@ func (c *gatewayProfileServiceClient) Update(ctx context.Context, in *UpdateGate
 
 func (c *gatewayProfileServiceClient) Delete(ctx context.Context, in *DeleteGatewayProfileRequest, opts ...grpc.CallOption) (*DeleteGatewayProfileResponse, error) {
 	out := new(DeleteGatewayProfileResponse)
-	err := grpc.Invoke(ctx, "/api.GatewayProfileService/Delete", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.GatewayProfileService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -776,7 +777,7 @@ func (c *gatewayProfileServiceClient) Delete(ctx context.Context, in *DeleteGate
 
 func (c *gatewayProfileServiceClient) List(ctx context.Context, in *ListGatewayProfilesRequest, opts ...grpc.CallOption) (*ListGatewayProfilesResponse, error) {
 	out := new(ListGatewayProfilesResponse)
-	err := grpc.Invoke(ctx, "/api.GatewayProfileService/List", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.GatewayProfileService/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}

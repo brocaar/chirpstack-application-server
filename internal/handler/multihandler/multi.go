@@ -12,12 +12,14 @@ import (
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/handler/httphandler"
+	"github.com/brocaar/lora-app-server/internal/handler/influxdbhandler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 )
 
 // Handler kinds
 const (
-	HTTPHandlerKind = "HTTP"
+	HTTPHandlerKind     = "HTTP"
+	InfluxDBHandlerKind = "INFLUXDB"
 )
 
 // Handler wraps multiple handlers inside a single handler so that
@@ -116,6 +118,16 @@ func (w Handler) getHandlersForApplicationID(id int64) ([]handler.IntegrationHan
 				return nil, errors.Wrap(err, "decode http handler config error")
 			}
 			h, err := httphandler.NewHandler(conf)
+			if err != nil {
+				return nil, err
+			}
+			handlers = append(handlers, h)
+		case InfluxDBHandlerKind:
+			var conf influxdbhandler.HandlerConfig
+			if err := json.NewDecoder(bytes.NewReader(intg.Settings)).Decode(&conf); err != nil {
+				return nil, errors.Wrap(err, "decode influxdb handler config error")
+			}
+			h, err := influxdbhandler.NewHandler(conf)
 			if err != nil {
 				return nil, err
 			}

@@ -185,6 +185,12 @@
   revision = "b4575eea38cca1123ec2dc90c26529b5c5acfcff"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/mmcloughlin/geohash"
+  packages = ["."]
+  revision = "e5eae5659af257f9cd8b7a51326734b9ad91fb8e"
+
+[[projects]]
   name = "github.com/pelletier/go-toml"
   packages = ["."]
   revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
@@ -413,6 +419,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "85546ba17ab766c1177cec76462e197387d2d113a28e907ad02c4bf34d02446c"
+  inputs-digest = "0064dd904aff3d8901ea4fdb4334c42f5d6037085b5989bfa31f2390502aa384"
   solver-name = "gps-cdcl"
   solver-version = 1

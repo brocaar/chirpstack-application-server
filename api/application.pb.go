@@ -27,21 +27,59 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 type IntegrationKind int32
 
 const (
-	IntegrationKind_HTTP IntegrationKind = 0
+	IntegrationKind_HTTP     IntegrationKind = 0
+	IntegrationKind_INFLUXDB IntegrationKind = 1
 )
 
 var IntegrationKind_name = map[int32]string{
 	0: "HTTP",
+	1: "INFLUXDB",
 }
 var IntegrationKind_value = map[string]int32{
-	"HTTP": 0,
+	"HTTP":     0,
+	"INFLUXDB": 1,
 }
 
 func (x IntegrationKind) String() string {
 	return proto.EnumName(IntegrationKind_name, int32(x))
 }
 func (IntegrationKind) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{0}
+	return fileDescriptor_application_20e211c2d4112780, []int{0}
+}
+
+type InfluxDBPrecision int32
+
+const (
+	InfluxDBPrecision_NS InfluxDBPrecision = 0
+	InfluxDBPrecision_U  InfluxDBPrecision = 1
+	InfluxDBPrecision_MS InfluxDBPrecision = 2
+	InfluxDBPrecision_S  InfluxDBPrecision = 3
+	InfluxDBPrecision_M  InfluxDBPrecision = 4
+	InfluxDBPrecision_H  InfluxDBPrecision = 5
+)
+
+var InfluxDBPrecision_name = map[int32]string{
+	0: "NS",
+	1: "U",
+	2: "MS",
+	3: "S",
+	4: "M",
+	5: "H",
+}
+var InfluxDBPrecision_value = map[string]int32{
+	"NS": 0,
+	"U":  1,
+	"MS": 2,
+	"S":  3,
+	"M":  4,
+	"H":  5,
+}
+
+func (x InfluxDBPrecision) String() string {
+	return proto.EnumName(InfluxDBPrecision_name, int32(x))
+}
+func (InfluxDBPrecision) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_application_20e211c2d4112780, []int{1}
 }
 
 type CreateApplicationRequest struct {
@@ -68,7 +106,7 @@ func (m *CreateApplicationRequest) Reset()         { *m = CreateApplicationReque
 func (m *CreateApplicationRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateApplicationRequest) ProtoMessage()    {}
 func (*CreateApplicationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{0}
+	return fileDescriptor_application_20e211c2d4112780, []int{0}
 }
 func (m *CreateApplicationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateApplicationRequest.Unmarshal(m, b)
@@ -149,7 +187,7 @@ func (m *CreateApplicationResponse) Reset()         { *m = CreateApplicationResp
 func (m *CreateApplicationResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateApplicationResponse) ProtoMessage()    {}
 func (*CreateApplicationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{1}
+	return fileDescriptor_application_20e211c2d4112780, []int{1}
 }
 func (m *CreateApplicationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateApplicationResponse.Unmarshal(m, b)
@@ -188,7 +226,7 @@ func (m *GetApplicationRequest) Reset()         { *m = GetApplicationRequest{} }
 func (m *GetApplicationRequest) String() string { return proto.CompactTextString(m) }
 func (*GetApplicationRequest) ProtoMessage()    {}
 func (*GetApplicationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{2}
+	return fileDescriptor_application_20e211c2d4112780, []int{2}
 }
 func (m *GetApplicationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetApplicationRequest.Unmarshal(m, b)
@@ -241,7 +279,7 @@ func (m *GetApplicationResponse) Reset()         { *m = GetApplicationResponse{}
 func (m *GetApplicationResponse) String() string { return proto.CompactTextString(m) }
 func (*GetApplicationResponse) ProtoMessage()    {}
 func (*GetApplicationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{3}
+	return fileDescriptor_application_20e211c2d4112780, []int{3}
 }
 func (m *GetApplicationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetApplicationResponse.Unmarshal(m, b)
@@ -341,7 +379,7 @@ func (m *UpdateApplicationRequest) Reset()         { *m = UpdateApplicationReque
 func (m *UpdateApplicationRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateApplicationRequest) ProtoMessage()    {}
 func (*UpdateApplicationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{4}
+	return fileDescriptor_application_20e211c2d4112780, []int{4}
 }
 func (m *UpdateApplicationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateApplicationRequest.Unmarshal(m, b)
@@ -420,7 +458,7 @@ func (m *UpdateApplicationResponse) Reset()         { *m = UpdateApplicationResp
 func (m *UpdateApplicationResponse) String() string { return proto.CompactTextString(m) }
 func (*UpdateApplicationResponse) ProtoMessage()    {}
 func (*UpdateApplicationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{5}
+	return fileDescriptor_application_20e211c2d4112780, []int{5}
 }
 func (m *UpdateApplicationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateApplicationResponse.Unmarshal(m, b)
@@ -452,7 +490,7 @@ func (m *DeleteApplicationRequest) Reset()         { *m = DeleteApplicationReque
 func (m *DeleteApplicationRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteApplicationRequest) ProtoMessage()    {}
 func (*DeleteApplicationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{6}
+	return fileDescriptor_application_20e211c2d4112780, []int{6}
 }
 func (m *DeleteApplicationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteApplicationRequest.Unmarshal(m, b)
@@ -489,7 +527,7 @@ func (m *DeleteApplicationResponse) Reset()         { *m = DeleteApplicationResp
 func (m *DeleteApplicationResponse) String() string { return proto.CompactTextString(m) }
 func (*DeleteApplicationResponse) ProtoMessage()    {}
 func (*DeleteApplicationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{7}
+	return fileDescriptor_application_20e211c2d4112780, []int{7}
 }
 func (m *DeleteApplicationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteApplicationResponse.Unmarshal(m, b)
@@ -527,7 +565,7 @@ func (m *ListApplicationRequest) Reset()         { *m = ListApplicationRequest{}
 func (m *ListApplicationRequest) String() string { return proto.CompactTextString(m) }
 func (*ListApplicationRequest) ProtoMessage()    {}
 func (*ListApplicationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{8}
+	return fileDescriptor_application_20e211c2d4112780, []int{8}
 }
 func (m *ListApplicationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListApplicationRequest.Unmarshal(m, b)
@@ -597,7 +635,7 @@ func (m *ApplicationListItem) Reset()         { *m = ApplicationListItem{} }
 func (m *ApplicationListItem) String() string { return proto.CompactTextString(m) }
 func (*ApplicationListItem) ProtoMessage()    {}
 func (*ApplicationListItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{9}
+	return fileDescriptor_application_20e211c2d4112780, []int{9}
 }
 func (m *ApplicationListItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApplicationListItem.Unmarshal(m, b)
@@ -673,7 +711,7 @@ func (m *ListApplicationResponse) Reset()         { *m = ListApplicationResponse
 func (m *ListApplicationResponse) String() string { return proto.CompactTextString(m) }
 func (*ListApplicationResponse) ProtoMessage()    {}
 func (*ListApplicationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{10}
+	return fileDescriptor_application_20e211c2d4112780, []int{10}
 }
 func (m *ListApplicationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListApplicationResponse.Unmarshal(m, b)
@@ -717,7 +755,7 @@ func (m *EmptyResponse) Reset()         { *m = EmptyResponse{} }
 func (m *EmptyResponse) String() string { return proto.CompactTextString(m) }
 func (*EmptyResponse) ProtoMessage()    {}
 func (*EmptyResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{11}
+	return fileDescriptor_application_20e211c2d4112780, []int{11}
 }
 func (m *EmptyResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EmptyResponse.Unmarshal(m, b)
@@ -751,7 +789,7 @@ func (m *HTTPIntegrationHeader) Reset()         { *m = HTTPIntegrationHeader{} }
 func (m *HTTPIntegrationHeader) String() string { return proto.CompactTextString(m) }
 func (*HTTPIntegrationHeader) ProtoMessage()    {}
 func (*HTTPIntegrationHeader) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{12}
+	return fileDescriptor_application_20e211c2d4112780, []int{12}
 }
 func (m *HTTPIntegrationHeader) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HTTPIntegrationHeader.Unmarshal(m, b)
@@ -807,7 +845,7 @@ func (m *HTTPIntegration) Reset()         { *m = HTTPIntegration{} }
 func (m *HTTPIntegration) String() string { return proto.CompactTextString(m) }
 func (*HTTPIntegration) ProtoMessage()    {}
 func (*HTTPIntegration) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{13}
+	return fileDescriptor_application_20e211c2d4112780, []int{13}
 }
 func (m *HTTPIntegration) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HTTPIntegration.Unmarshal(m, b)
@@ -881,7 +919,7 @@ func (m *GetHTTPIntegrationRequest) Reset()         { *m = GetHTTPIntegrationReq
 func (m *GetHTTPIntegrationRequest) String() string { return proto.CompactTextString(m) }
 func (*GetHTTPIntegrationRequest) ProtoMessage()    {}
 func (*GetHTTPIntegrationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{14}
+	return fileDescriptor_application_20e211c2d4112780, []int{14}
 }
 func (m *GetHTTPIntegrationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetHTTPIntegrationRequest.Unmarshal(m, b)
@@ -908,7 +946,7 @@ func (m *GetHTTPIntegrationRequest) GetId() int64 {
 	return 0
 }
 
-type DeleteIntegrationRequest struct {
+type DeleteHTTPIntegrationRequest struct {
 	// The id of the application.
 	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -916,31 +954,31 @@ type DeleteIntegrationRequest struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteIntegrationRequest) Reset()         { *m = DeleteIntegrationRequest{} }
-func (m *DeleteIntegrationRequest) String() string { return proto.CompactTextString(m) }
-func (*DeleteIntegrationRequest) ProtoMessage()    {}
-func (*DeleteIntegrationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{15}
+func (m *DeleteHTTPIntegrationRequest) Reset()         { *m = DeleteHTTPIntegrationRequest{} }
+func (m *DeleteHTTPIntegrationRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteHTTPIntegrationRequest) ProtoMessage()    {}
+func (*DeleteHTTPIntegrationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_20e211c2d4112780, []int{15}
 }
-func (m *DeleteIntegrationRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeleteIntegrationRequest.Unmarshal(m, b)
+func (m *DeleteHTTPIntegrationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteHTTPIntegrationRequest.Unmarshal(m, b)
 }
-func (m *DeleteIntegrationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeleteIntegrationRequest.Marshal(b, m, deterministic)
+func (m *DeleteHTTPIntegrationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteHTTPIntegrationRequest.Marshal(b, m, deterministic)
 }
-func (dst *DeleteIntegrationRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteIntegrationRequest.Merge(dst, src)
+func (dst *DeleteHTTPIntegrationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteHTTPIntegrationRequest.Merge(dst, src)
 }
-func (m *DeleteIntegrationRequest) XXX_Size() int {
-	return xxx_messageInfo_DeleteIntegrationRequest.Size(m)
+func (m *DeleteHTTPIntegrationRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteHTTPIntegrationRequest.Size(m)
 }
-func (m *DeleteIntegrationRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeleteIntegrationRequest.DiscardUnknown(m)
+func (m *DeleteHTTPIntegrationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteHTTPIntegrationRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DeleteIntegrationRequest proto.InternalMessageInfo
+var xxx_messageInfo_DeleteHTTPIntegrationRequest proto.InternalMessageInfo
 
-func (m *DeleteIntegrationRequest) GetId() int64 {
+func (m *DeleteHTTPIntegrationRequest) GetId() int64 {
 	if m != nil {
 		return m.Id
 	}
@@ -959,7 +997,7 @@ func (m *ListIntegrationRequest) Reset()         { *m = ListIntegrationRequest{}
 func (m *ListIntegrationRequest) String() string { return proto.CompactTextString(m) }
 func (*ListIntegrationRequest) ProtoMessage()    {}
 func (*ListIntegrationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{16}
+	return fileDescriptor_application_20e211c2d4112780, []int{16}
 }
 func (m *ListIntegrationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListIntegrationRequest.Unmarshal(m, b)
@@ -998,7 +1036,7 @@ func (m *ListIntegrationResponse) Reset()         { *m = ListIntegrationResponse
 func (m *ListIntegrationResponse) String() string { return proto.CompactTextString(m) }
 func (*ListIntegrationResponse) ProtoMessage()    {}
 func (*ListIntegrationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_application_4525865ef1590221, []int{17}
+	return fileDescriptor_application_20e211c2d4112780, []int{17}
 }
 func (m *ListIntegrationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListIntegrationResponse.Unmarshal(m, b)
@@ -1025,6 +1063,303 @@ func (m *ListIntegrationResponse) GetKinds() []IntegrationKind {
 	return nil
 }
 
+type InfluxDBIntegrationConfiguration struct {
+	// InfluxDB API write endpoint (e.g. http://localhost:8086/write).
+	Endpoint string `protobuf:"bytes,1,opt,name=endpoint" json:"endpoint,omitempty"`
+	// InfluxDB database name.
+	Db string `protobuf:"bytes,2,opt,name=db" json:"db,omitempty"`
+	// InfluxDB username.
+	Username string `protobuf:"bytes,3,opt,name=username" json:"username,omitempty"`
+	// InfluxDB password.
+	Password string `protobuf:"bytes,4,opt,name=password" json:"password,omitempty"`
+	// InfluxDB retention policy name.
+	RetentionPolicyName string `protobuf:"bytes,5,opt,name=retention_policy_name,json=retentionPolicyName" json:"retention_policy_name,omitempty"`
+	// InfluxDB timestamp precision.
+	Precision            InfluxDBPrecision `protobuf:"varint,6,opt,name=precision,enum=api.InfluxDBPrecision" json:"precision,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *InfluxDBIntegrationConfiguration) Reset()         { *m = InfluxDBIntegrationConfiguration{} }
+func (m *InfluxDBIntegrationConfiguration) String() string { return proto.CompactTextString(m) }
+func (*InfluxDBIntegrationConfiguration) ProtoMessage()    {}
+func (*InfluxDBIntegrationConfiguration) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_20e211c2d4112780, []int{18}
+}
+func (m *InfluxDBIntegrationConfiguration) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_InfluxDBIntegrationConfiguration.Unmarshal(m, b)
+}
+func (m *InfluxDBIntegrationConfiguration) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_InfluxDBIntegrationConfiguration.Marshal(b, m, deterministic)
+}
+func (dst *InfluxDBIntegrationConfiguration) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_InfluxDBIntegrationConfiguration.Merge(dst, src)
+}
+func (m *InfluxDBIntegrationConfiguration) XXX_Size() int {
+	return xxx_messageInfo_InfluxDBIntegrationConfiguration.Size(m)
+}
+func (m *InfluxDBIntegrationConfiguration) XXX_DiscardUnknown() {
+	xxx_messageInfo_InfluxDBIntegrationConfiguration.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_InfluxDBIntegrationConfiguration proto.InternalMessageInfo
+
+func (m *InfluxDBIntegrationConfiguration) GetEndpoint() string {
+	if m != nil {
+		return m.Endpoint
+	}
+	return ""
+}
+
+func (m *InfluxDBIntegrationConfiguration) GetDb() string {
+	if m != nil {
+		return m.Db
+	}
+	return ""
+}
+
+func (m *InfluxDBIntegrationConfiguration) GetUsername() string {
+	if m != nil {
+		return m.Username
+	}
+	return ""
+}
+
+func (m *InfluxDBIntegrationConfiguration) GetPassword() string {
+	if m != nil {
+		return m.Password
+	}
+	return ""
+}
+
+func (m *InfluxDBIntegrationConfiguration) GetRetentionPolicyName() string {
+	if m != nil {
+		return m.RetentionPolicyName
+	}
+	return ""
+}
+
+func (m *InfluxDBIntegrationConfiguration) GetPrecision() InfluxDBPrecision {
+	if m != nil {
+		return m.Precision
+	}
+	return InfluxDBPrecision_NS
+}
+
+type CreateInfluxDBIntegrationRequest struct {
+	// Application ID to create the integration for.
+	ApplicationId int64 `protobuf:"varint,1,opt,name=application_id,json=applicationId" json:"application_id,omitempty"`
+	// Integration configuration.
+	Configuration        *InfluxDBIntegrationConfiguration `protobuf:"bytes,2,opt,name=configuration" json:"configuration,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                          `json:"-"`
+	XXX_unrecognized     []byte                            `json:"-"`
+	XXX_sizecache        int32                             `json:"-"`
+}
+
+func (m *CreateInfluxDBIntegrationRequest) Reset()         { *m = CreateInfluxDBIntegrationRequest{} }
+func (m *CreateInfluxDBIntegrationRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateInfluxDBIntegrationRequest) ProtoMessage()    {}
+func (*CreateInfluxDBIntegrationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_20e211c2d4112780, []int{19}
+}
+func (m *CreateInfluxDBIntegrationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateInfluxDBIntegrationRequest.Unmarshal(m, b)
+}
+func (m *CreateInfluxDBIntegrationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateInfluxDBIntegrationRequest.Marshal(b, m, deterministic)
+}
+func (dst *CreateInfluxDBIntegrationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateInfluxDBIntegrationRequest.Merge(dst, src)
+}
+func (m *CreateInfluxDBIntegrationRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateInfluxDBIntegrationRequest.Size(m)
+}
+func (m *CreateInfluxDBIntegrationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateInfluxDBIntegrationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateInfluxDBIntegrationRequest proto.InternalMessageInfo
+
+func (m *CreateInfluxDBIntegrationRequest) GetApplicationId() int64 {
+	if m != nil {
+		return m.ApplicationId
+	}
+	return 0
+}
+
+func (m *CreateInfluxDBIntegrationRequest) GetConfiguration() *InfluxDBIntegrationConfiguration {
+	if m != nil {
+		return m.Configuration
+	}
+	return nil
+}
+
+type GetInfluxDBIntegrationRequest struct {
+	// Application ID to get the integration for.
+	ApplicationId        int64    `protobuf:"varint,2,opt,name=application_id,json=applicationId" json:"application_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetInfluxDBIntegrationRequest) Reset()         { *m = GetInfluxDBIntegrationRequest{} }
+func (m *GetInfluxDBIntegrationRequest) String() string { return proto.CompactTextString(m) }
+func (*GetInfluxDBIntegrationRequest) ProtoMessage()    {}
+func (*GetInfluxDBIntegrationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_20e211c2d4112780, []int{20}
+}
+func (m *GetInfluxDBIntegrationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetInfluxDBIntegrationRequest.Unmarshal(m, b)
+}
+func (m *GetInfluxDBIntegrationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetInfluxDBIntegrationRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetInfluxDBIntegrationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetInfluxDBIntegrationRequest.Merge(dst, src)
+}
+func (m *GetInfluxDBIntegrationRequest) XXX_Size() int {
+	return xxx_messageInfo_GetInfluxDBIntegrationRequest.Size(m)
+}
+func (m *GetInfluxDBIntegrationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetInfluxDBIntegrationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetInfluxDBIntegrationRequest proto.InternalMessageInfo
+
+func (m *GetInfluxDBIntegrationRequest) GetApplicationId() int64 {
+	if m != nil {
+		return m.ApplicationId
+	}
+	return 0
+}
+
+type GetInfluxDBIntegrationResponse struct {
+	// Integration configuration.
+	Configuration        *InfluxDBIntegrationConfiguration `protobuf:"bytes,1,opt,name=configuration" json:"configuration,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                          `json:"-"`
+	XXX_unrecognized     []byte                            `json:"-"`
+	XXX_sizecache        int32                             `json:"-"`
+}
+
+func (m *GetInfluxDBIntegrationResponse) Reset()         { *m = GetInfluxDBIntegrationResponse{} }
+func (m *GetInfluxDBIntegrationResponse) String() string { return proto.CompactTextString(m) }
+func (*GetInfluxDBIntegrationResponse) ProtoMessage()    {}
+func (*GetInfluxDBIntegrationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_20e211c2d4112780, []int{21}
+}
+func (m *GetInfluxDBIntegrationResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetInfluxDBIntegrationResponse.Unmarshal(m, b)
+}
+func (m *GetInfluxDBIntegrationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetInfluxDBIntegrationResponse.Marshal(b, m, deterministic)
+}
+func (dst *GetInfluxDBIntegrationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetInfluxDBIntegrationResponse.Merge(dst, src)
+}
+func (m *GetInfluxDBIntegrationResponse) XXX_Size() int {
+	return xxx_messageInfo_GetInfluxDBIntegrationResponse.Size(m)
+}
+func (m *GetInfluxDBIntegrationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetInfluxDBIntegrationResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetInfluxDBIntegrationResponse proto.InternalMessageInfo
+
+func (m *GetInfluxDBIntegrationResponse) GetConfiguration() *InfluxDBIntegrationConfiguration {
+	if m != nil {
+		return m.Configuration
+	}
+	return nil
+}
+
+type UpdateInfluxDBIntegrationRequest struct {
+	// Application ID to update the integration for.
+	ApplicationId int64 `protobuf:"varint,1,opt,name=application_id,json=applicationId" json:"application_id,omitempty"`
+	// Integration configuration.
+	Configuration        *InfluxDBIntegrationConfiguration `protobuf:"bytes,2,opt,name=configuration" json:"configuration,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                          `json:"-"`
+	XXX_unrecognized     []byte                            `json:"-"`
+	XXX_sizecache        int32                             `json:"-"`
+}
+
+func (m *UpdateInfluxDBIntegrationRequest) Reset()         { *m = UpdateInfluxDBIntegrationRequest{} }
+func (m *UpdateInfluxDBIntegrationRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateInfluxDBIntegrationRequest) ProtoMessage()    {}
+func (*UpdateInfluxDBIntegrationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_20e211c2d4112780, []int{22}
+}
+func (m *UpdateInfluxDBIntegrationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateInfluxDBIntegrationRequest.Unmarshal(m, b)
+}
+func (m *UpdateInfluxDBIntegrationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateInfluxDBIntegrationRequest.Marshal(b, m, deterministic)
+}
+func (dst *UpdateInfluxDBIntegrationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateInfluxDBIntegrationRequest.Merge(dst, src)
+}
+func (m *UpdateInfluxDBIntegrationRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateInfluxDBIntegrationRequest.Size(m)
+}
+func (m *UpdateInfluxDBIntegrationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateInfluxDBIntegrationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateInfluxDBIntegrationRequest proto.InternalMessageInfo
+
+func (m *UpdateInfluxDBIntegrationRequest) GetApplicationId() int64 {
+	if m != nil {
+		return m.ApplicationId
+	}
+	return 0
+}
+
+func (m *UpdateInfluxDBIntegrationRequest) GetConfiguration() *InfluxDBIntegrationConfiguration {
+	if m != nil {
+		return m.Configuration
+	}
+	return nil
+}
+
+type DeleteInfluxDBIntegrationRequest struct {
+	// Application ID to delete the integration for.
+	ApplicationId        int64    `protobuf:"varint,1,opt,name=application_id,json=applicationId" json:"application_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteInfluxDBIntegrationRequest) Reset()         { *m = DeleteInfluxDBIntegrationRequest{} }
+func (m *DeleteInfluxDBIntegrationRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteInfluxDBIntegrationRequest) ProtoMessage()    {}
+func (*DeleteInfluxDBIntegrationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_application_20e211c2d4112780, []int{23}
+}
+func (m *DeleteInfluxDBIntegrationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteInfluxDBIntegrationRequest.Unmarshal(m, b)
+}
+func (m *DeleteInfluxDBIntegrationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteInfluxDBIntegrationRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteInfluxDBIntegrationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteInfluxDBIntegrationRequest.Merge(dst, src)
+}
+func (m *DeleteInfluxDBIntegrationRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteInfluxDBIntegrationRequest.Size(m)
+}
+func (m *DeleteInfluxDBIntegrationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteInfluxDBIntegrationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteInfluxDBIntegrationRequest proto.InternalMessageInfo
+
+func (m *DeleteInfluxDBIntegrationRequest) GetApplicationId() int64 {
+	if m != nil {
+		return m.ApplicationId
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*CreateApplicationRequest)(nil), "api.CreateApplicationRequest")
 	proto.RegisterType((*CreateApplicationResponse)(nil), "api.CreateApplicationResponse")
@@ -1041,10 +1376,17 @@ func init() {
 	proto.RegisterType((*HTTPIntegrationHeader)(nil), "api.HTTPIntegrationHeader")
 	proto.RegisterType((*HTTPIntegration)(nil), "api.HTTPIntegration")
 	proto.RegisterType((*GetHTTPIntegrationRequest)(nil), "api.GetHTTPIntegrationRequest")
-	proto.RegisterType((*DeleteIntegrationRequest)(nil), "api.DeleteIntegrationRequest")
+	proto.RegisterType((*DeleteHTTPIntegrationRequest)(nil), "api.DeleteHTTPIntegrationRequest")
 	proto.RegisterType((*ListIntegrationRequest)(nil), "api.ListIntegrationRequest")
 	proto.RegisterType((*ListIntegrationResponse)(nil), "api.ListIntegrationResponse")
+	proto.RegisterType((*InfluxDBIntegrationConfiguration)(nil), "api.InfluxDBIntegrationConfiguration")
+	proto.RegisterType((*CreateInfluxDBIntegrationRequest)(nil), "api.CreateInfluxDBIntegrationRequest")
+	proto.RegisterType((*GetInfluxDBIntegrationRequest)(nil), "api.GetInfluxDBIntegrationRequest")
+	proto.RegisterType((*GetInfluxDBIntegrationResponse)(nil), "api.GetInfluxDBIntegrationResponse")
+	proto.RegisterType((*UpdateInfluxDBIntegrationRequest)(nil), "api.UpdateInfluxDBIntegrationRequest")
+	proto.RegisterType((*DeleteInfluxDBIntegrationRequest)(nil), "api.DeleteInfluxDBIntegrationRequest")
 	proto.RegisterEnum("api.IntegrationKind", IntegrationKind_name, IntegrationKind_value)
+	proto.RegisterEnum("api.InfluxDBPrecision", InfluxDBPrecision_name, InfluxDBPrecision_value)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1055,8 +1397,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for Application service
-
+// ApplicationClient is the client API for Application service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ApplicationClient interface {
 	// Create creates the given application.
 	Create(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*CreateApplicationResponse, error)
@@ -1068,14 +1411,22 @@ type ApplicationClient interface {
 	Delete(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*DeleteApplicationResponse, error)
 	// List lists the available applications.
 	List(ctx context.Context, in *ListApplicationRequest, opts ...grpc.CallOption) (*ListApplicationResponse, error)
-	// CreateHTTPIntegration creates an HTTP application-integration.
+	// CreateHTTPIntegration creates a HTTP application-integration.
 	CreateHTTPIntegration(ctx context.Context, in *HTTPIntegration, opts ...grpc.CallOption) (*EmptyResponse, error)
-	// GetHTTPIntegration returns the HTTP application-itegration.
+	// GetHTTPIntegration returns the HTTP application-integration.
 	GetHTTPIntegration(ctx context.Context, in *GetHTTPIntegrationRequest, opts ...grpc.CallOption) (*HTTPIntegration, error)
 	// UpdateHTTPIntegration updates the HTTP application-integration.
 	UpdateHTTPIntegration(ctx context.Context, in *HTTPIntegration, opts ...grpc.CallOption) (*EmptyResponse, error)
-	// DeleteIntegration deletes the application-integration of the given type.
-	DeleteHTTPIntegration(ctx context.Context, in *DeleteIntegrationRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	// DeleteIntegration deletes the HTTP application-integration.
+	DeleteHTTPIntegration(ctx context.Context, in *DeleteHTTPIntegrationRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	// CreateInfluxDBIntegration create an InfluxDB application-integration.
+	CreateInfluxDBIntegration(ctx context.Context, in *CreateInfluxDBIntegrationRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	// GetInfluxDBIntegration returns the InfluxDB application-integration.
+	GetInfluxDBIntegration(ctx context.Context, in *GetInfluxDBIntegrationRequest, opts ...grpc.CallOption) (*GetInfluxDBIntegrationResponse, error)
+	// UpdateInfluxDBIntegration updates the InfluxDB application-integration.
+	UpdateInfluxDBIntegration(ctx context.Context, in *UpdateInfluxDBIntegrationRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	// DeleteInfluxDBIntegration deletes the InfluxDB application-integration.
+	DeleteInfluxDBIntegration(ctx context.Context, in *DeleteInfluxDBIntegrationRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	// ListIntegrations lists all configured integrations.
 	ListIntegrations(ctx context.Context, in *ListIntegrationRequest, opts ...grpc.CallOption) (*ListIntegrationResponse, error)
 }
@@ -1090,7 +1441,7 @@ func NewApplicationClient(cc *grpc.ClientConn) ApplicationClient {
 
 func (c *applicationClient) Create(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*CreateApplicationResponse, error) {
 	out := new(CreateApplicationResponse)
-	err := grpc.Invoke(ctx, "/api.Application/Create", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Application/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1099,7 +1450,7 @@ func (c *applicationClient) Create(ctx context.Context, in *CreateApplicationReq
 
 func (c *applicationClient) Get(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*GetApplicationResponse, error) {
 	out := new(GetApplicationResponse)
-	err := grpc.Invoke(ctx, "/api.Application/Get", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Application/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1108,7 +1459,7 @@ func (c *applicationClient) Get(ctx context.Context, in *GetApplicationRequest, 
 
 func (c *applicationClient) Update(ctx context.Context, in *UpdateApplicationRequest, opts ...grpc.CallOption) (*UpdateApplicationResponse, error) {
 	out := new(UpdateApplicationResponse)
-	err := grpc.Invoke(ctx, "/api.Application/Update", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Application/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1117,7 +1468,7 @@ func (c *applicationClient) Update(ctx context.Context, in *UpdateApplicationReq
 
 func (c *applicationClient) Delete(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*DeleteApplicationResponse, error) {
 	out := new(DeleteApplicationResponse)
-	err := grpc.Invoke(ctx, "/api.Application/Delete", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Application/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1126,7 +1477,7 @@ func (c *applicationClient) Delete(ctx context.Context, in *DeleteApplicationReq
 
 func (c *applicationClient) List(ctx context.Context, in *ListApplicationRequest, opts ...grpc.CallOption) (*ListApplicationResponse, error) {
 	out := new(ListApplicationResponse)
-	err := grpc.Invoke(ctx, "/api.Application/List", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Application/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1135,7 +1486,7 @@ func (c *applicationClient) List(ctx context.Context, in *ListApplicationRequest
 
 func (c *applicationClient) CreateHTTPIntegration(ctx context.Context, in *HTTPIntegration, opts ...grpc.CallOption) (*EmptyResponse, error) {
 	out := new(EmptyResponse)
-	err := grpc.Invoke(ctx, "/api.Application/CreateHTTPIntegration", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Application/CreateHTTPIntegration", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1144,7 +1495,7 @@ func (c *applicationClient) CreateHTTPIntegration(ctx context.Context, in *HTTPI
 
 func (c *applicationClient) GetHTTPIntegration(ctx context.Context, in *GetHTTPIntegrationRequest, opts ...grpc.CallOption) (*HTTPIntegration, error) {
 	out := new(HTTPIntegration)
-	err := grpc.Invoke(ctx, "/api.Application/GetHTTPIntegration", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Application/GetHTTPIntegration", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1153,16 +1504,52 @@ func (c *applicationClient) GetHTTPIntegration(ctx context.Context, in *GetHTTPI
 
 func (c *applicationClient) UpdateHTTPIntegration(ctx context.Context, in *HTTPIntegration, opts ...grpc.CallOption) (*EmptyResponse, error) {
 	out := new(EmptyResponse)
-	err := grpc.Invoke(ctx, "/api.Application/UpdateHTTPIntegration", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Application/UpdateHTTPIntegration", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *applicationClient) DeleteHTTPIntegration(ctx context.Context, in *DeleteIntegrationRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+func (c *applicationClient) DeleteHTTPIntegration(ctx context.Context, in *DeleteHTTPIntegrationRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
 	out := new(EmptyResponse)
-	err := grpc.Invoke(ctx, "/api.Application/DeleteHTTPIntegration", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Application/DeleteHTTPIntegration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationClient) CreateInfluxDBIntegration(ctx context.Context, in *CreateInfluxDBIntegrationRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, "/api.Application/CreateInfluxDBIntegration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationClient) GetInfluxDBIntegration(ctx context.Context, in *GetInfluxDBIntegrationRequest, opts ...grpc.CallOption) (*GetInfluxDBIntegrationResponse, error) {
+	out := new(GetInfluxDBIntegrationResponse)
+	err := c.cc.Invoke(ctx, "/api.Application/GetInfluxDBIntegration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationClient) UpdateInfluxDBIntegration(ctx context.Context, in *UpdateInfluxDBIntegrationRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, "/api.Application/UpdateInfluxDBIntegration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationClient) DeleteInfluxDBIntegration(ctx context.Context, in *DeleteInfluxDBIntegrationRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, "/api.Application/DeleteInfluxDBIntegration", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1171,7 +1558,7 @@ func (c *applicationClient) DeleteHTTPIntegration(ctx context.Context, in *Delet
 
 func (c *applicationClient) ListIntegrations(ctx context.Context, in *ListIntegrationRequest, opts ...grpc.CallOption) (*ListIntegrationResponse, error) {
 	out := new(ListIntegrationResponse)
-	err := grpc.Invoke(ctx, "/api.Application/ListIntegrations", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Application/ListIntegrations", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1191,14 +1578,22 @@ type ApplicationServer interface {
 	Delete(context.Context, *DeleteApplicationRequest) (*DeleteApplicationResponse, error)
 	// List lists the available applications.
 	List(context.Context, *ListApplicationRequest) (*ListApplicationResponse, error)
-	// CreateHTTPIntegration creates an HTTP application-integration.
+	// CreateHTTPIntegration creates a HTTP application-integration.
 	CreateHTTPIntegration(context.Context, *HTTPIntegration) (*EmptyResponse, error)
-	// GetHTTPIntegration returns the HTTP application-itegration.
+	// GetHTTPIntegration returns the HTTP application-integration.
 	GetHTTPIntegration(context.Context, *GetHTTPIntegrationRequest) (*HTTPIntegration, error)
 	// UpdateHTTPIntegration updates the HTTP application-integration.
 	UpdateHTTPIntegration(context.Context, *HTTPIntegration) (*EmptyResponse, error)
-	// DeleteIntegration deletes the application-integration of the given type.
-	DeleteHTTPIntegration(context.Context, *DeleteIntegrationRequest) (*EmptyResponse, error)
+	// DeleteIntegration deletes the HTTP application-integration.
+	DeleteHTTPIntegration(context.Context, *DeleteHTTPIntegrationRequest) (*EmptyResponse, error)
+	// CreateInfluxDBIntegration create an InfluxDB application-integration.
+	CreateInfluxDBIntegration(context.Context, *CreateInfluxDBIntegrationRequest) (*EmptyResponse, error)
+	// GetInfluxDBIntegration returns the InfluxDB application-integration.
+	GetInfluxDBIntegration(context.Context, *GetInfluxDBIntegrationRequest) (*GetInfluxDBIntegrationResponse, error)
+	// UpdateInfluxDBIntegration updates the InfluxDB application-integration.
+	UpdateInfluxDBIntegration(context.Context, *UpdateInfluxDBIntegrationRequest) (*EmptyResponse, error)
+	// DeleteInfluxDBIntegration deletes the InfluxDB application-integration.
+	DeleteInfluxDBIntegration(context.Context, *DeleteInfluxDBIntegrationRequest) (*EmptyResponse, error)
 	// ListIntegrations lists all configured integrations.
 	ListIntegrations(context.Context, *ListIntegrationRequest) (*ListIntegrationResponse, error)
 }
@@ -1352,7 +1747,7 @@ func _Application_UpdateHTTPIntegration_Handler(srv interface{}, ctx context.Con
 }
 
 func _Application_DeleteHTTPIntegration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteIntegrationRequest)
+	in := new(DeleteHTTPIntegrationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1364,7 +1759,79 @@ func _Application_DeleteHTTPIntegration_Handler(srv interface{}, ctx context.Con
 		FullMethod: "/api.Application/DeleteHTTPIntegration",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationServer).DeleteHTTPIntegration(ctx, req.(*DeleteIntegrationRequest))
+		return srv.(ApplicationServer).DeleteHTTPIntegration(ctx, req.(*DeleteHTTPIntegrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Application_CreateInfluxDBIntegration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateInfluxDBIntegrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServer).CreateInfluxDBIntegration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Application/CreateInfluxDBIntegration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServer).CreateInfluxDBIntegration(ctx, req.(*CreateInfluxDBIntegrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Application_GetInfluxDBIntegration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInfluxDBIntegrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServer).GetInfluxDBIntegration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Application/GetInfluxDBIntegration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServer).GetInfluxDBIntegration(ctx, req.(*GetInfluxDBIntegrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Application_UpdateInfluxDBIntegration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateInfluxDBIntegrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServer).UpdateInfluxDBIntegration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Application/UpdateInfluxDBIntegration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServer).UpdateInfluxDBIntegration(ctx, req.(*UpdateInfluxDBIntegrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Application_DeleteInfluxDBIntegration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteInfluxDBIntegrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServer).DeleteInfluxDBIntegration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Application/DeleteInfluxDBIntegration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServer).DeleteInfluxDBIntegration(ctx, req.(*DeleteInfluxDBIntegrationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1428,6 +1895,22 @@ var _Application_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Application_DeleteHTTPIntegration_Handler,
 		},
 		{
+			MethodName: "CreateInfluxDBIntegration",
+			Handler:    _Application_CreateInfluxDBIntegration_Handler,
+		},
+		{
+			MethodName: "GetInfluxDBIntegration",
+			Handler:    _Application_GetInfluxDBIntegration_Handler,
+		},
+		{
+			MethodName: "UpdateInfluxDBIntegration",
+			Handler:    _Application_UpdateInfluxDBIntegration_Handler,
+		},
+		{
+			MethodName: "DeleteInfluxDBIntegration",
+			Handler:    _Application_DeleteInfluxDBIntegration_Handler,
+		},
+		{
 			MethodName: "ListIntegrations",
 			Handler:    _Application_ListIntegrations_Handler,
 		},
@@ -1436,65 +1919,87 @@ var _Application_serviceDesc = grpc.ServiceDesc{
 	Metadata: "application.proto",
 }
 
-func init() { proto.RegisterFile("application.proto", fileDescriptor_application_4525865ef1590221) }
+func init() { proto.RegisterFile("application.proto", fileDescriptor_application_20e211c2d4112780) }
 
-var fileDescriptor_application_4525865ef1590221 = []byte{
-	// 898 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x57, 0xcf, 0x6e, 0xe3, 0x44,
-	0x18, 0x27, 0x76, 0x6b, 0x76, 0xbf, 0x42, 0x9b, 0x4e, 0xdb, 0xe0, 0x3a, 0x21, 0x0a, 0x46, 0x40,
-	0xe4, 0x15, 0x49, 0x95, 0xe5, 0xc4, 0x05, 0xa1, 0xa6, 0xea, 0x46, 0xac, 0x56, 0x2b, 0xb3, 0xbd,
-	0x21, 0xa4, 0x21, 0x9e, 0xa4, 0xb3, 0x71, 0x3c, 0xc6, 0x9e, 0x54, 0x6a, 0x81, 0x0b, 0x07, 0x2e,
-	0x1c, 0xb9, 0xf0, 0x18, 0x3c, 0x01, 0x2f, 0xc1, 0x03, 0x70, 0xe1, 0xce, 0x2b, 0xa0, 0xf9, 0x93,
-	0xc6, 0x71, 0xc6, 0x52, 0x10, 0x1c, 0x40, 0x7b, 0xcb, 0xcc, 0xf7, 0xfb, 0xfe, 0xff, 0xbe, 0x6f,
-	0x1c, 0x38, 0xc4, 0x69, 0x1a, 0xd3, 0x31, 0xe6, 0x94, 0x25, 0xbd, 0x34, 0x63, 0x9c, 0x21, 0x1b,
-	0xa7, 0xd4, 0x6b, 0x4d, 0x19, 0x9b, 0xc6, 0xa4, 0x8f, 0x53, 0xda, 0xc7, 0x49, 0xc2, 0xb8, 0x44,
-	0xe4, 0x0a, 0xe2, 0xff, 0x62, 0x81, 0x7b, 0x9e, 0x11, 0xcc, 0xc9, 0xa7, 0x2b, 0xf5, 0x90, 0x7c,
-	0xbd, 0x20, 0x39, 0x47, 0x08, 0x76, 0x12, 0x3c, 0x27, 0x6e, 0xad, 0x53, 0xeb, 0x3e, 0x0c, 0xe5,
-	0x6f, 0xd4, 0x81, 0xbd, 0x88, 0xe4, 0xe3, 0x8c, 0xa6, 0x02, 0xe9, 0x5a, 0x52, 0x54, 0xbc, 0x42,
-	0xef, 0xc3, 0x3e, 0xcb, 0xa6, 0x38, 0xa1, 0x77, 0xd2, 0xd8, 0x68, 0xe8, 0xee, 0x77, 0x6a, 0x5d,
-	0x3b, 0x2c, 0xdd, 0xa2, 0x00, 0xea, 0x39, 0xc9, 0x6e, 0xe8, 0x98, 0x3c, 0xcf, 0xd8, 0x84, 0xc6,
-	0x64, 0x34, 0x74, 0x0f, 0xa4, 0xb9, 0x8d, 0x7b, 0xe4, 0xc3, 0x1b, 0x29, 0xbe, 0x8d, 0x19, 0x8e,
-	0xce, 0x59, 0x44, 0xc6, 0x6e, 0x5d, 0xe2, 0xd6, 0xee, 0xd0, 0x00, 0x8e, 0xf5, 0xf9, 0x22, 0x19,
-	0xb3, 0x88, 0x64, 0x9f, 0xcb, 0x90, 0xdc, 0x43, 0x89, 0x35, 0xca, 0x0a, 0x3a, 0x43, 0x52, 0xd4,
-	0x41, 0x6b, 0x3a, 0x6b, 0x32, 0xff, 0x11, 0x9c, 0x1a, 0x2a, 0x96, 0xa7, 0x2c, 0xc9, 0x09, 0xda,
-	0x07, 0x8b, 0x46, 0xb2, 0x60, 0x76, 0x68, 0xd1, 0xc8, 0xff, 0x00, 0x4e, 0x2e, 0x09, 0x37, 0xd4,
-	0xb6, 0x0c, 0xfc, 0xd5, 0x82, 0x46, 0x19, 0x69, 0xb6, 0x79, 0xdf, 0x16, 0xab, 0xba, 0x2d, 0xf6,
-	0xab, 0xd7, 0x96, 0x9f, 0x2d, 0x70, 0xaf, 0xd2, 0xc8, 0xcc, 0xe4, 0x7f, 0xa7, 0x84, 0xff, 0xd7,
-	0xd2, 0x34, 0xe1, 0xd4, 0x50, 0x19, 0xc5, 0x2e, 0x3f, 0x00, 0x77, 0x48, 0x62, 0xb2, 0x4d, 0xd9,
-	0x84, 0x21, 0x03, 0x56, 0x1b, 0xfa, 0xa1, 0x06, 0x8d, 0xa7, 0x34, 0x37, 0x91, 0xfd, 0x18, 0x76,
-	0x63, 0x3a, 0xa7, 0x5c, 0x9b, 0x52, 0x07, 0xd4, 0x00, 0x87, 0x4d, 0x26, 0x39, 0xe1, 0xb2, 0x0d,
-	0x76, 0xa8, 0x4f, 0x06, 0xa6, 0xda, 0x46, 0xa6, 0x36, 0xc0, 0xc9, 0x09, 0xce, 0xc6, 0xd7, 0xee,
-	0x8e, 0x4c, 0x5e, 0x9f, 0xfc, 0xdf, 0x6b, 0x70, 0x54, 0x08, 0x42, 0xc4, 0x34, 0xe2, 0x64, 0xfe,
-	0x1f, 0x9e, 0xa3, 0x1e, 0xa0, 0xf5, 0xbb, 0x67, 0x22, 0x2e, 0x45, 0x19, 0x83, 0xc4, 0x9f, 0xc1,
-	0x5b, 0x1b, 0x95, 0xd6, 0xcb, 0xa2, 0x0d, 0xc0, 0x19, 0xc7, 0xf1, 0x39, 0x5b, 0x24, 0xcb, 0x7a,
-	0x17, 0x6e, 0xd0, 0x19, 0x38, 0x19, 0xc9, 0x17, 0xb1, 0x28, 0xba, 0xdd, 0xdd, 0x1b, 0xb8, 0x3d,
-	0x9c, 0xd2, 0x9e, 0xa1, 0x5c, 0xa1, 0xc6, 0xf9, 0x07, 0xf0, 0xe6, 0xc5, 0x3c, 0xe5, 0xb7, 0xf7,
-	0x8d, 0xfe, 0x04, 0x4e, 0x9e, 0xbc, 0x78, 0xf1, 0x7c, 0x94, 0x70, 0x32, 0xcd, 0xa4, 0xce, 0x13,
-	0x82, 0x23, 0x92, 0xa1, 0x3a, 0xd8, 0x33, 0x72, 0xab, 0x9f, 0x0b, 0xf1, 0x53, 0x34, 0xfe, 0x06,
-	0xc7, 0x8b, 0x65, 0x8d, 0xd5, 0xc1, 0xff, 0xd1, 0x82, 0x83, 0x92, 0x85, 0x8d, 0xe6, 0x7c, 0x04,
-	0xaf, 0x5f, 0x4b, 0xab, 0xb9, 0x0e, 0xd4, 0x93, 0x81, 0x1a, 0x1d, 0x87, 0x4b, 0x28, 0x6a, 0xc1,
-	0xc3, 0x08, 0x73, 0x7c, 0x95, 0x5e, 0x85, 0x4f, 0x75, 0xf3, 0x56, 0x17, 0xe8, 0x0c, 0x8e, 0x5e,
-	0x32, 0x9a, 0x3c, 0x63, 0x9c, 0x4e, 0x74, 0xb6, 0x02, 0xa7, 0xd8, 0x63, 0x12, 0x89, 0xc6, 0xe0,
-	0xf1, 0xac, 0xac, 0xb0, 0xab, 0x1a, 0xb3, 0x29, 0x11, 0xd3, 0x49, 0xb2, 0x8c, 0x65, 0x65, 0x0d,
-	0x47, 0x4d, 0xa7, 0x49, 0x26, 0xde, 0x93, 0x4b, 0xc2, 0x4b, 0x89, 0x55, 0x4d, 0xe0, 0xfd, 0xb4,
-	0x6e, 0x81, 0xed, 0xaa, 0x79, 0xdc, 0x02, 0x79, 0xa1, 0xf8, 0xb4, 0x86, 0xd4, 0x7c, 0x0a, 0x60,
-	0x77, 0x46, 0x93, 0x28, 0x77, 0x6b, 0x1d, 0xbb, 0xbb, 0x3f, 0x38, 0x96, 0x5d, 0x28, 0x00, 0x3f,
-	0xa3, 0x49, 0x14, 0x2a, 0x48, 0xd0, 0x84, 0x83, 0x92, 0x04, 0x3d, 0x80, 0x1d, 0x91, 0x59, 0xfd,
-	0xb5, 0xc1, 0x9f, 0x0f, 0x60, 0xaf, 0x40, 0x33, 0x44, 0xc0, 0x51, 0xcf, 0x28, 0x7a, 0x5b, 0xda,
-	0xac, 0xfa, 0x0a, 0xf1, 0xda, 0x55, 0x62, 0x4d, 0xc7, 0xd6, 0xf7, 0xbf, 0xfd, 0xf1, 0x93, 0xd5,
-	0xf0, 0x0f, 0xd5, 0x27, 0xce, 0x0a, 0x91, 0x7f, 0x5c, 0x0b, 0xd0, 0x97, 0x60, 0x5f, 0x12, 0x8e,
-	0x14, 0x7b, 0x8c, 0x4f, 0xb1, 0xd7, 0x34, 0xca, 0xb4, 0xf5, 0xb6, 0xb4, 0xee, 0xa2, 0xc6, 0x86,
-	0xf5, 0xfe, 0x37, 0x34, 0xfa, 0x0e, 0xbd, 0x04, 0x47, 0xed, 0x56, 0x9d, 0x46, 0xd5, 0x13, 0xa4,
-	0xd3, 0xa8, 0xde, 0xc3, 0xef, 0x48, 0x47, 0x4d, 0xaf, 0xc2, 0x91, 0xc8, 0x65, 0x0a, 0x8e, 0x6a,
-	0xbe, 0xf6, 0x55, 0xb5, 0xb7, 0xb5, 0xaf, 0xea, 0x55, 0xad, 0x93, 0x0a, 0xaa, 0x92, 0xfa, 0x02,
-	0x76, 0x04, 0x1f, 0x90, 0xaa, 0x8c, 0x79, 0xa9, 0x7b, 0x2d, 0xb3, 0x50, 0xbb, 0x38, 0x95, 0x2e,
-	0x8e, 0xd0, 0x66, 0x57, 0xd0, 0x0d, 0x9c, 0xa8, 0x6e, 0x96, 0x77, 0xc0, 0xb1, 0x69, 0xc4, 0x3d,
-	0x24, 0x6f, 0xd7, 0x57, 0xd0, 0x63, 0x69, 0xfd, 0x43, 0xbf, 0x6b, 0x4e, 0xa0, 0x4f, 0x57, 0xfa,
-	0x79, 0xff, 0x9a, 0xf3, 0x54, 0x94, 0xef, 0x5b, 0x40, 0x9b, 0x83, 0x86, 0xda, 0xcb, 0xee, 0x9b,
-	0x27, 0xd0, 0x33, 0x06, 0xe5, 0x9f, 0xc9, 0x00, 0x02, 0xb4, 0x75, 0x00, 0x22, 0x6b, 0xd5, 0xfc,
-	0x7f, 0x9c, 0xb5, 0xf7, 0x37, 0xb3, 0x3e, 0x51, 0x44, 0x28, 0xfb, 0x2d, 0x72, 0xc8, 0x90, 0xb7,
-	0x29, 0x00, 0x9d, 0x75, 0xb0, 0x7d, 0xd6, 0x77, 0x50, 0x2f, 0x6d, 0x96, 0xbc, 0xc0, 0x2a, 0x83,
-	0xdb, 0x96, 0x59, 0xa8, 0x03, 0x78, 0x24, 0x03, 0x78, 0x0f, 0xbd, 0xbb, 0x45, 0x00, 0x5f, 0x39,
-	0xf2, 0x2f, 0xce, 0xe3, 0xbf, 0x02, 0x00, 0x00, 0xff, 0xff, 0xd1, 0x9d, 0x68, 0x11, 0x1a, 0x0d,
-	0x00, 0x00,
+var fileDescriptor_application_20e211c2d4112780 = []byte{
+	// 1261 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x58, 0x5f, 0x6f, 0x1b, 0x45,
+	0x10, 0xef, 0x9d, 0x13, 0xd3, 0x4c, 0x1a, 0xe7, 0xb2, 0x49, 0xcc, 0xf5, 0xea, 0x46, 0xee, 0x55,
+	0x01, 0xe3, 0x8a, 0x24, 0x72, 0xfb, 0x80, 0x2a, 0xa1, 0x42, 0xe3, 0x34, 0xb1, 0x9a, 0x46, 0xd1,
+	0xa5, 0x91, 0x78, 0x40, 0x44, 0x17, 0xdf, 0xda, 0xd9, 0xe6, 0x72, 0x7b, 0xdc, 0x9d, 0x03, 0x29,
+	0x20, 0x21, 0x1e, 0x78, 0xe1, 0x11, 0x09, 0x55, 0xe2, 0x91, 0x2f, 0xc0, 0x27, 0xe0, 0x4b, 0xf0,
+	0x01, 0x78, 0xe1, 0x03, 0xc0, 0x37, 0x40, 0xfb, 0xc7, 0xce, 0xf9, 0xbc, 0x97, 0xba, 0x0d, 0x0f,
+	0x45, 0x3c, 0xc5, 0xbb, 0x33, 0x3b, 0xfb, 0x9b, 0xdf, 0xcc, 0xec, 0xcc, 0x05, 0xe6, 0xdc, 0x30,
+	0xf4, 0x49, 0xdb, 0x4d, 0x08, 0x0d, 0x56, 0xc2, 0x88, 0x26, 0x14, 0x15, 0xdc, 0x90, 0x58, 0x95,
+	0x2e, 0xa5, 0x5d, 0x1f, 0xaf, 0xba, 0x21, 0x59, 0x75, 0x83, 0x80, 0x26, 0x5c, 0x23, 0x16, 0x2a,
+	0xf6, 0xaf, 0x3a, 0x98, 0xeb, 0x11, 0x76, 0x13, 0xfc, 0xf1, 0xf9, 0x71, 0x07, 0x7f, 0xde, 0xc3,
+	0x71, 0x82, 0x10, 0x4c, 0x04, 0xee, 0x09, 0x36, 0xb5, 0xaa, 0x56, 0x9b, 0x72, 0xf8, 0x6f, 0x54,
+	0x85, 0x69, 0x0f, 0xc7, 0xed, 0x88, 0x84, 0x4c, 0xd3, 0xd4, 0xb9, 0x28, 0xbd, 0x85, 0xde, 0x81,
+	0x12, 0x8d, 0xba, 0x6e, 0x40, 0x9e, 0x73, 0x63, 0xad, 0xa6, 0x59, 0xaa, 0x6a, 0xb5, 0x82, 0x93,
+	0xd9, 0x45, 0x75, 0x30, 0x62, 0x1c, 0x9d, 0x92, 0x36, 0xde, 0x8d, 0x68, 0x87, 0xf8, 0xb8, 0xd5,
+	0x34, 0x67, 0xb9, 0xb9, 0x91, 0x7d, 0x64, 0xc3, 0xb5, 0xd0, 0x3d, 0xf3, 0xa9, 0xeb, 0xad, 0x53,
+	0x0f, 0xb7, 0x4d, 0x83, 0xeb, 0x0d, 0xed, 0xa1, 0x06, 0x2c, 0xc8, 0xf5, 0x46, 0xd0, 0xa6, 0x1e,
+	0x8e, 0xf6, 0x38, 0x24, 0x73, 0x8e, 0xeb, 0x2a, 0x65, 0xa9, 0x33, 0x4d, 0x9c, 0x3e, 0x83, 0x86,
+	0xce, 0x0c, 0xc9, 0xec, 0x3b, 0x70, 0x5d, 0xc1, 0x58, 0x1c, 0xd2, 0x20, 0xc6, 0xa8, 0x04, 0x3a,
+	0xf1, 0x38, 0x61, 0x05, 0x47, 0x27, 0x9e, 0xfd, 0x2e, 0x2c, 0x6e, 0xe2, 0x44, 0xc1, 0x6d, 0x56,
+	0xf1, 0x37, 0x1d, 0xca, 0x59, 0x4d, 0xb5, 0xcd, 0x41, 0x58, 0xf4, 0xfc, 0xb0, 0x14, 0xfe, 0x7f,
+	0x61, 0x79, 0xa1, 0x83, 0xb9, 0x1f, 0x7a, 0xea, 0x4c, 0xfe, 0x77, 0x28, 0xfc, 0xaf, 0x52, 0x73,
+	0x03, 0xae, 0x2b, 0x98, 0x11, 0xd9, 0x65, 0xd7, 0xc1, 0x6c, 0x62, 0x1f, 0x8f, 0x43, 0x1b, 0x33,
+	0xa4, 0xd0, 0x95, 0x86, 0xbe, 0xd7, 0xa0, 0xbc, 0x4d, 0x62, 0x55, 0xb2, 0x2f, 0xc0, 0xa4, 0x4f,
+	0x4e, 0x48, 0x22, 0x4d, 0x89, 0x05, 0x2a, 0x43, 0x91, 0x76, 0x3a, 0x31, 0x4e, 0x78, 0x18, 0x0a,
+	0x8e, 0x5c, 0x29, 0x32, 0xb5, 0xa0, 0xcc, 0xd4, 0x32, 0x14, 0x63, 0xec, 0x46, 0xed, 0x23, 0x73,
+	0x82, 0x3b, 0x2f, 0x57, 0xf6, 0x1f, 0x1a, 0xcc, 0xa7, 0x40, 0x30, 0x4c, 0xad, 0x04, 0x9f, 0xbc,
+	0xc1, 0x75, 0xb4, 0x02, 0x68, 0x78, 0x6f, 0x87, 0xe1, 0x12, 0x29, 0xa3, 0x90, 0xd8, 0xc7, 0xf0,
+	0xf6, 0x08, 0xd3, 0xf2, 0xb1, 0x58, 0x02, 0x48, 0x68, 0xe2, 0xfa, 0xeb, 0xb4, 0x17, 0xf4, 0xf9,
+	0x4e, 0xed, 0xa0, 0x35, 0x28, 0x46, 0x38, 0xee, 0xf9, 0x8c, 0xf4, 0x42, 0x6d, 0xba, 0x61, 0xae,
+	0xb8, 0x21, 0x59, 0x51, 0xd0, 0xe5, 0x48, 0x3d, 0x7b, 0x16, 0x66, 0x36, 0x4e, 0xc2, 0xe4, 0x6c,
+	0x10, 0xe8, 0x07, 0xb0, 0xb8, 0xf5, 0xf4, 0xe9, 0x6e, 0x2b, 0x48, 0x70, 0x37, 0xe2, 0x67, 0xb6,
+	0xb0, 0xeb, 0xe1, 0x08, 0x19, 0x50, 0x38, 0xc6, 0x67, 0xb2, 0x5d, 0xb0, 0x9f, 0x2c, 0xf0, 0xa7,
+	0xae, 0xdf, 0xeb, 0x73, 0x2c, 0x16, 0xf6, 0x0f, 0x3a, 0xcc, 0x66, 0x2c, 0x8c, 0x04, 0xe7, 0x1e,
+	0xbc, 0x75, 0xc4, 0xad, 0xc6, 0x12, 0xa8, 0xc5, 0x81, 0x2a, 0x2f, 0x76, 0xfa, 0xaa, 0xa8, 0x02,
+	0x53, 0x9e, 0x9b, 0xb8, 0xfb, 0xe1, 0xbe, 0xb3, 0x2d, 0x83, 0x77, 0xbe, 0x81, 0xd6, 0x60, 0xfe,
+	0x19, 0x25, 0xc1, 0x0e, 0x4d, 0x48, 0x47, 0x7a, 0xcb, 0xf4, 0x44, 0xf6, 0xa8, 0x44, 0x2c, 0x30,
+	0x6e, 0xfb, 0x38, 0x7b, 0x60, 0x52, 0x04, 0x66, 0x54, 0xc2, 0xaa, 0x13, 0x47, 0x11, 0x8d, 0xb2,
+	0x27, 0x8a, 0xa2, 0x3a, 0x55, 0x32, 0xd6, 0x4f, 0x36, 0x71, 0x92, 0x71, 0x2c, 0xaf, 0x02, 0x57,
+	0xa0, 0x22, 0x2a, 0x70, 0x4c, 0xfd, 0x9a, 0xa8, 0xc9, 0x31, 0x34, 0x37, 0x44, 0x4e, 0x0d, 0x69,
+	0xca, 0x9c, 0xaa, 0xc3, 0xe4, 0x31, 0x09, 0xbc, 0xd8, 0xd4, 0xaa, 0x85, 0x5a, 0xa9, 0xb1, 0xc0,
+	0x23, 0x91, 0x52, 0x7c, 0x4c, 0x02, 0xcf, 0x11, 0x2a, 0xf6, 0x5f, 0x1a, 0x54, 0x5b, 0x41, 0xc7,
+	0xef, 0x7d, 0xd9, 0x7c, 0x98, 0x52, 0x59, 0xa7, 0x41, 0x87, 0x74, 0x7b, 0x32, 0xd8, 0x16, 0x5c,
+	0xc5, 0x81, 0x17, 0x52, 0x22, 0x53, 0x74, 0xca, 0x19, 0xac, 0x19, 0x2e, 0xef, 0x50, 0xe6, 0x8b,
+	0xee, 0x1d, 0x32, 0xdd, 0x5e, 0x8c, 0x23, 0x5e, 0xa9, 0x22, 0xa2, 0x83, 0x35, 0x93, 0x85, 0x6e,
+	0x1c, 0x7f, 0x41, 0x23, 0x4f, 0x46, 0x71, 0xb0, 0x46, 0x0d, 0x58, 0x8c, 0x70, 0x82, 0x03, 0x76,
+	0xe1, 0x41, 0x48, 0x7d, 0xd2, 0x3e, 0x3b, 0xe0, 0x46, 0x44, 0xf4, 0xe6, 0x07, 0xc2, 0x5d, 0x2e,
+	0x63, 0x75, 0x85, 0xee, 0xc1, 0x54, 0x18, 0xe1, 0x36, 0x89, 0x59, 0xed, 0xb3, 0x98, 0x95, 0x1a,
+	0x65, 0xe9, 0xac, 0xf0, 0x68, 0xb7, 0x2f, 0x75, 0xce, 0x15, 0xed, 0x9f, 0x34, 0xa8, 0x8a, 0x89,
+	0x40, 0xe1, 0x78, 0x9f, 0xee, 0x65, 0x28, 0xa5, 0x06, 0xb4, 0x83, 0x01, 0xf5, 0x33, 0xa9, 0xdd,
+	0x96, 0x87, 0x1e, 0xc3, 0x4c, 0x3b, 0x4d, 0x15, 0x27, 0x62, 0xba, 0xb1, 0x3c, 0x84, 0x22, 0x8f,
+	0x57, 0x67, 0xf8, 0xac, 0xfd, 0x08, 0x6e, 0x6e, 0xe2, 0xe4, 0x95, 0x40, 0xe9, 0x0a, 0x50, 0xf6,
+	0x09, 0x2c, 0xe5, 0xd9, 0x91, 0x19, 0x32, 0x02, 0x5b, 0xbb, 0x04, 0x6c, 0xc6, 0xa7, 0xe8, 0x57,
+	0x6f, 0x18, 0x9f, 0x2d, 0xa8, 0x8a, 0xe2, 0xbb, 0x34, 0xae, 0xfa, 0x7b, 0x30, 0x9b, 0x29, 0x20,
+	0x74, 0x15, 0x26, 0x58, 0x51, 0x1b, 0x57, 0xd0, 0x35, 0xb8, 0xda, 0xda, 0x79, 0xb4, 0xbd, 0xff,
+	0x49, 0xf3, 0xa1, 0xa1, 0xd5, 0x1f, 0xc0, 0xdc, 0x48, 0xfa, 0xa1, 0x22, 0xe8, 0x3b, 0x7b, 0xc6,
+	0x15, 0x34, 0x09, 0xda, 0xbe, 0xa1, 0xb1, 0xe5, 0x93, 0x3d, 0x43, 0x67, 0xcb, 0x3d, 0xa3, 0xc0,
+	0xfe, 0x3c, 0x31, 0x26, 0xd8, 0x9f, 0x2d, 0x63, 0xb2, 0xf1, 0xf7, 0x0c, 0x4c, 0xa7, 0x1e, 0x78,
+	0x84, 0xa1, 0x28, 0xd2, 0x15, 0xdd, 0xe4, 0x34, 0xe4, 0xcd, 0xff, 0xd6, 0x52, 0x9e, 0x58, 0x36,
+	0x82, 0xca, 0x77, 0xbf, 0xff, 0xf9, 0xa3, 0x5e, 0xb6, 0xe7, 0xc4, 0xc7, 0xc5, 0xb9, 0x46, 0x7c,
+	0x5f, 0xab, 0xa3, 0xcf, 0xa0, 0xb0, 0x89, 0x13, 0x24, 0xde, 0x6d, 0xe5, 0x10, 0x6c, 0xdd, 0x50,
+	0xca, 0xa4, 0xf5, 0x25, 0x6e, 0xdd, 0x44, 0xe5, 0x11, 0xeb, 0xab, 0x5f, 0x11, 0xef, 0x1b, 0xf4,
+	0x0c, 0x8a, 0x22, 0x4b, 0xa4, 0x1b, 0x79, 0xc3, 0x9f, 0x74, 0x23, 0x7f, 0x02, 0xba, 0xc5, 0x2f,
+	0xba, 0x61, 0xe5, 0x5c, 0xc4, 0x7c, 0xe9, 0x42, 0x51, 0x44, 0x5e, 0xde, 0x95, 0x37, 0x31, 0xc9,
+	0xbb, 0xf2, 0x87, 0x24, 0xe9, 0x54, 0x3d, 0xcf, 0xa9, 0x4f, 0x61, 0x82, 0xbd, 0xc2, 0x48, 0x30,
+	0xa3, 0x1e, 0xa7, 0xac, 0x8a, 0x5a, 0x28, 0xaf, 0xb8, 0xce, 0xaf, 0x98, 0x47, 0xa3, 0x51, 0x41,
+	0xa7, 0xb0, 0x28, 0xa2, 0x99, 0xed, 0xbe, 0x0b, 0xaa, 0xe6, 0x6a, 0x21, 0xbe, 0x3b, 0xdc, 0xfc,
+	0xef, 0x72, 0xeb, 0xef, 0xdb, 0x35, 0xb5, 0x03, 0xab, 0xe4, 0xfc, 0x7c, 0xbc, 0x7a, 0x94, 0x24,
+	0x21, 0xa3, 0xef, 0x6b, 0x40, 0xa3, 0x2d, 0x0e, 0x2d, 0xf5, 0xa3, 0xaf, 0xee, 0x65, 0x96, 0x12,
+	0x94, 0xbd, 0xc6, 0x01, 0xd4, 0xd1, 0xd8, 0x00, 0x98, 0xd7, 0x22, 0xf8, 0x97, 0xf6, 0xda, 0x7a,
+	0x25, 0xaf, 0xbf, 0xd5, 0x60, 0x51, 0xd9, 0xac, 0xd1, 0xad, 0x54, 0x96, 0xe4, 0x38, 0xaf, 0x42,
+	0x21, 0x5d, 0xaf, 0x8f, 0xef, 0xfa, 0xcf, 0x5a, 0xff, 0x63, 0x55, 0xf1, 0x64, 0xa1, 0xe5, 0x54,
+	0x7d, 0xe7, 0x3f, 0x69, 0x4a, 0x28, 0xeb, 0x1c, 0xca, 0x87, 0xf6, 0x07, 0x0a, 0x28, 0xc3, 0xef,
+	0x5f, 0x06, 0x16, 0xe1, 0xf7, 0x78, 0x87, 0x8c, 0xa0, 0x5f, 0x34, 0xfe, 0xcd, 0xab, 0x82, 0x66,
+	0xf7, 0x73, 0xe3, 0x02, 0x5c, 0xb7, 0x2f, 0xd4, 0x91, 0x40, 0x3f, 0xe2, 0x40, 0xef, 0xa3, 0xd7,
+	0x06, 0xca, 0x39, 0xcc, 0x6d, 0x47, 0x92, 0xc3, 0x97, 0xb5, 0xab, 0x8b, 0x38, 0xb4, 0x2e, 0xc5,
+	0xe1, 0x0b, 0xad, 0xff, 0x4d, 0x96, 0x8f, 0xee, 0x65, 0x4d, 0x4b, 0x89, 0x4e, 0x12, 0x57, 0x7f,
+	0x7d, 0xe2, 0x9e, 0x83, 0x91, 0x99, 0x28, 0xe3, 0xd4, 0xbb, 0xa6, 0x80, 0x51, 0x51, 0x0b, 0x25,
+	0xa0, 0x3b, 0x1c, 0xd0, 0x32, 0xba, 0x3d, 0x46, 0xf6, 0x1f, 0x16, 0xf9, 0xbf, 0xb7, 0xee, 0xfe,
+	0x13, 0x00, 0x00, 0xff, 0xff, 0x39, 0x82, 0xdd, 0xee, 0x16, 0x13, 0x00, 0x00,
 }

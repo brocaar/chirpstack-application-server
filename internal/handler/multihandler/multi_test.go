@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/brocaar/lora-app-server/internal/handler/influxdbhandler"
+
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/handler/httphandler"
@@ -106,21 +108,6 @@ func TestHandler(t *testing.T) {
 			}
 			So(storage.CreateApplication(db, &app), ShouldBeNil)
 
-			handlerConfig := httphandler.HandlerConfig{
-				DataUpURL:            server.URL + "/rx",
-				JoinNotificationURL:  server.URL + "/join",
-				ACKNotificationURL:   server.URL + "/ack",
-				ErrorNotificationURL: server.URL + "/error",
-			}
-			configJSON, err := json.Marshal(handlerConfig)
-			So(err, ShouldBeNil)
-
-			So(storage.CreateIntegration(db, &storage.Integration{
-				ApplicationID: app.ID,
-				Kind:          HTTPHandlerKind,
-				Settings:      configJSON,
-			}), ShouldBeNil)
-
 			dp := storage.DeviceProfile{
 				Name:            "test-dp",
 				OrganizationID:  org.ID,
@@ -137,67 +124,123 @@ func TestHandler(t *testing.T) {
 			}
 			So(storage.CreateDevice(db, &device), ShouldBeNil)
 
-			Convey("Getting the multi-handler for the created application", func() {
-				multiHandler := NewHandler(mqttHandler)
-				defer multiHandler.Close()
+			Convey("Given an InfluxDB integration", func() {
+				handlerConfig := influxdbhandler.HandlerConfig{
+					Endpoint: server.URL + "/write",
+					DB:       "loraserver",
+				}
+				configJSON, err := json.Marshal(handlerConfig)
+				So(err, ShouldBeNil)
 
-				Convey("Calling SendDataUp", func() {
-					So(multiHandler.SendDataUp(handler.DataUpPayload{
-						ApplicationID: app.ID,
-						DevEUI:        device.DevEUI,
-					}), ShouldBeNil)
+				So(storage.CreateIntegration(db, &storage.Integration{
+					ApplicationID: app.ID,
+					Kind:          InfluxDBHandlerKind,
+					Settings:      configJSON,
+				}), ShouldBeNil)
 
-					Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
+				Convey("Getting the multi-handler for the created application", func() {
+					multiHandler := NewHandler(mqttHandler)
+					defer multiHandler.Close()
+
+					Convey("Calling SendDataUp", func() {
+						So(multiHandler.SendDataUp(handler.DataUpPayload{
+							ApplicationID:   app.ID,
+							DevEUI:          device.DevEUI,
+							DeviceName:      "test-device",
+							ApplicationName: "test-app",
+							Object: map[string]interface{}{
+								"temp":     10,
+								"humidity": 20,
+							},
+						}), ShouldBeNil)
+
 						msg := <-mqttMessages
 						So(msg.Topic(), ShouldEqual, "application/1/node/0101010101010101/rx")
 
 						req := <-h.requests
-						So(req.URL.Path, ShouldEqual, "/rx")
+						So(req.URL.Path, ShouldEqual, "/write")
 					})
 				})
+			})
 
-				Convey("Calling SendJoinNotification", func() {
-					So(multiHandler.SendJoinNotification(handler.JoinNotification{
-						ApplicationID: app.ID,
-						DevEUI:        device.DevEUI,
-					}), ShouldBeNil)
+			Convey("Given a HTTP integration", func() {
+				handlerConfig := httphandler.HandlerConfig{
+					DataUpURL:            server.URL + "/rx",
+					JoinNotificationURL:  server.URL + "/join",
+					ACKNotificationURL:   server.URL + "/ack",
+					ErrorNotificationURL: server.URL + "/error",
+				}
+				configJSON, err := json.Marshal(handlerConfig)
+				So(err, ShouldBeNil)
 
-					Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
-						msg := <-mqttMessages
-						So(msg.Topic(), ShouldEqual, "application/1/node/0101010101010101/join")
+				So(storage.CreateIntegration(db, &storage.Integration{
+					ApplicationID: app.ID,
+					Kind:          HTTPHandlerKind,
+					Settings:      configJSON,
+				}), ShouldBeNil)
 
-						req := <-h.requests
-						So(req.URL.Path, ShouldEqual, "/join")
+				Convey("Getting the multi-handler for the created application", func() {
+					multiHandler := NewHandler(mqttHandler)
+					defer multiHandler.Close()
+
+					Convey("Calling SendDataUp", func() {
+						So(multiHandler.SendDataUp(handler.DataUpPayload{
+							ApplicationID: app.ID,
+							DevEUI:        device.DevEUI,
+						}), ShouldBeNil)
+
+						Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
+							msg := <-mqttMessages
+							So(msg.Topic(), ShouldEqual, "application/1/node/0101010101010101/rx")
+
+							req := <-h.requests
+							So(req.URL.Path, ShouldEqual, "/rx")
+						})
 					})
-				})
 
-				Convey("Calling SendACKNotification", func() {
-					So(multiHandler.SendACKNotification(handler.ACKNotification{
-						ApplicationID: app.ID,
-						DevEUI:        device.DevEUI,
-					}), ShouldBeNil)
+					Convey("Calling SendJoinNotification", func() {
+						So(multiHandler.SendJoinNotification(handler.JoinNotification{
+							ApplicationID: app.ID,
+							DevEUI:        device.DevEUI,
+						}), ShouldBeNil)
 
-					Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
-						msg := <-mqttMessages
-						So(msg.Topic(), ShouldEqual, "application/1/node/0101010101010101/ack")
+						Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
+							msg := <-mqttMessages
+							So(msg.Topic(), ShouldEqual, "application/1/node/0101010101010101/join")
 
-						req := <-h.requests
-						So(req.URL.Path, ShouldEqual, "/ack")
+							req := <-h.requests
+							So(req.URL.Path, ShouldEqual, "/join")
+						})
 					})
-				})
 
-				Convey("Calling SendErrorNotification", func() {
-					So(multiHandler.SendErrorNotification(handler.ErrorNotification{
-						ApplicationID: app.ID,
-						DevEUI:        device.DevEUI,
-					}), ShouldBeNil)
+					Convey("Calling SendACKNotification", func() {
+						So(multiHandler.SendACKNotification(handler.ACKNotification{
+							ApplicationID: app.ID,
+							DevEUI:        device.DevEUI,
+						}), ShouldBeNil)
 
-					Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
-						msg := <-mqttMessages
-						So(msg.Topic(), ShouldEqual, "application/1/node/0101010101010101/error")
+						Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
+							msg := <-mqttMessages
+							So(msg.Topic(), ShouldEqual, "application/1/node/0101010101010101/ack")
 
-						req := <-h.requests
-						So(req.URL.Path, ShouldEqual, "/error")
+							req := <-h.requests
+							So(req.URL.Path, ShouldEqual, "/ack")
+						})
+					})
+
+					Convey("Calling SendErrorNotification", func() {
+						So(multiHandler.SendErrorNotification(handler.ErrorNotification{
+							ApplicationID: app.ID,
+							DevEUI:        device.DevEUI,
+						}), ShouldBeNil)
+
+						Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
+							msg := <-mqttMessages
+							So(msg.Topic(), ShouldEqual, "application/1/node/0101010101010101/error")
+
+							req := <-h.requests
+							So(req.URL.Path, ShouldEqual, "/error")
+						})
 					})
 				})
 			})

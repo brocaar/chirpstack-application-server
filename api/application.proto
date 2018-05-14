@@ -44,7 +44,7 @@ service Application {
 		};
 	}
 
-	// CreateHTTPIntegration creates an HTTP application-integration.
+	// CreateHTTPIntegration creates a HTTP application-integration.
 	rpc CreateHTTPIntegration(HTTPIntegration) returns (EmptyResponse) {
 		option(google.api.http) = {
 			post: "/api/applications/{id}/integrations/http"
@@ -52,7 +52,7 @@ service Application {
 		};
 	}
 
-	// GetHTTPIntegration returns the HTTP application-itegration.
+	// GetHTTPIntegration returns the HTTP application-integration.
 	rpc GetHTTPIntegration(GetHTTPIntegrationRequest) returns (HTTPIntegration) {
 		option(google.api.http) = {
 			get: "/api/applications/{id}/integrations/http"
@@ -67,10 +67,40 @@ service Application {
 		};
 	}
 
-	// DeleteIntegration deletes the application-integration of the given type.
-	rpc DeleteHTTPIntegration(DeleteIntegrationRequest) returns (EmptyResponse) {
+	// DeleteIntegration deletes the HTTP application-integration.
+	rpc DeleteHTTPIntegration(DeleteHTTPIntegrationRequest) returns (EmptyResponse) {
 		option(google.api.http) = {
 			delete: "/api/applications/{id}/integrations/http"
+		};
+	}
+
+	// CreateInfluxDBIntegration create an InfluxDB application-integration.
+	rpc CreateInfluxDBIntegration(CreateInfluxDBIntegrationRequest) returns (EmptyResponse) {
+		option(google.api.http) = {
+			post: "/api/applications/{application_id}/integrations/influxdb"
+			body: "*"
+		};
+	}
+
+	// GetInfluxDBIntegration returns the InfluxDB application-integration.
+	rpc GetInfluxDBIntegration(GetInfluxDBIntegrationRequest) returns (GetInfluxDBIntegrationResponse) {
+		option(google.api.http) = {
+			get: "/api/applications/{application_id}/integrations/influxdb"
+		};
+	}
+
+	// UpdateInfluxDBIntegration updates the InfluxDB application-integration.
+	rpc UpdateInfluxDBIntegration(UpdateInfluxDBIntegrationRequest) returns (EmptyResponse) {
+		option(google.api.http) = {
+			put: "/api/applications/{application_id}/integrations/influxdb"
+			body: "*"
+		};
+	}
+
+	// DeleteInfluxDBIntegration deletes the InfluxDB application-integration.
+	rpc DeleteInfluxDBIntegration(DeleteInfluxDBIntegrationRequest) returns (EmptyResponse) {
+		option(google.api.http) = {
+			delete: "/api/applications/{application_id}/integrations/influxdb"
 		};
 	}
 
@@ -80,6 +110,11 @@ service Application {
 			get: "/api/applications/{id}/integrations"
 		};
 	}
+}
+
+enum IntegrationKind {
+	HTTP = 0;
+	INFLUXDB = 1;
 }
 
 message CreateApplicationRequest {
@@ -217,10 +252,6 @@ message ListApplicationResponse {
 
 message EmptyResponse {}
 
-enum IntegrationKind {
-	HTTP = 0;
-}
-
 message HTTPIntegrationHeader {
 	// Key
 	string key = 1;
@@ -254,7 +285,7 @@ message GetHTTPIntegrationRequest {
 	int64 id = 1;
 }
 
-message DeleteIntegrationRequest {
+message DeleteHTTPIntegrationRequest {
 	// The id of the application.
 	int64 id = 1;
 }
@@ -267,4 +298,64 @@ message ListIntegrationRequest {
 message ListIntegrationResponse {
 	// The integration kinds associated with the application.
 	repeated IntegrationKind kinds = 1;
+}
+
+enum InfluxDBPrecision {
+	NS = 0;
+	U = 1;
+	MS = 2;
+	S = 3;
+	M = 4;
+	H = 5;
+}
+
+message InfluxDBIntegrationConfiguration {
+	// InfluxDB API write endpoint (e.g. http://localhost:8086/write).
+	string endpoint = 1;
+
+	// InfluxDB database name.
+	string db = 2;
+
+	// InfluxDB username.
+	string username = 3;
+
+	// InfluxDB password.
+	string password = 4;
+
+	// InfluxDB retention policy name.
+	string retention_policy_name = 5;
+
+	// InfluxDB timestamp precision.
+	InfluxDBPrecision precision = 6;
+}
+
+message CreateInfluxDBIntegrationRequest {
+	// Application ID to create the integration for.
+	int64 application_id = 1;
+
+	// Integration configuration.
+	InfluxDBIntegrationConfiguration configuration = 2;
+}
+
+message GetInfluxDBIntegrationRequest {
+	// Application ID to get the integration for.
+	int64 application_id = 2;
+}
+
+message GetInfluxDBIntegrationResponse {
+	// Integration configuration.
+	InfluxDBIntegrationConfiguration configuration = 1;
+}
+
+message UpdateInfluxDBIntegrationRequest {
+	// Application ID to update the integration for.
+	int64 application_id = 1;
+
+	// Integration configuration.
+	InfluxDBIntegrationConfiguration configuration = 2;
+}
+
+message DeleteInfluxDBIntegrationRequest {
+	// Application ID to delete the integration for.
+	int64 application_id = 1;
 }

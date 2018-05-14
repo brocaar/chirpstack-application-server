@@ -90,6 +90,120 @@
         ]
       }
     },
+    "/api/applications/{application_id}/integrations/influxdb": {
+      "get": {
+        "summary": "GetInfluxDBIntegration returns the InfluxDB application-integration.",
+        "operationId": "GetInfluxDBIntegration",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetInfluxDBIntegrationResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteInfluxDBIntegration deletes the InfluxDB application-integration.",
+        "operationId": "DeleteInfluxDBIntegration",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiEmptyResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      },
+      "post": {
+        "summary": "CreateInfluxDBIntegration create an InfluxDB application-integration.",
+        "operationId": "CreateInfluxDBIntegration",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiEmptyResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateInfluxDBIntegrationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      },
+      "put": {
+        "summary": "UpdateInfluxDBIntegration updates the InfluxDB application-integration.",
+        "operationId": "UpdateInfluxDBIntegration",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiEmptyResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateInfluxDBIntegrationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Application"
+        ]
+      }
+    },
     "/api/applications/{id}": {
       "get": {
         "summary": "Get returns the requested application.",
@@ -200,7 +314,7 @@
     },
     "/api/applications/{id}/integrations/http": {
       "get": {
-        "summary": "GetHTTPIntegration returns the HTTP application-itegration.",
+        "summary": "GetHTTPIntegration returns the HTTP application-integration.",
         "operationId": "GetHTTPIntegration",
         "responses": {
           "200": {
@@ -224,7 +338,7 @@
         ]
       },
       "delete": {
-        "summary": "DeleteIntegration deletes the application-integration of the given type.",
+        "summary": "DeleteIntegration deletes the HTTP application-integration.",
         "operationId": "DeleteHTTPIntegration",
         "responses": {
           "200": {
@@ -248,7 +362,7 @@
         ]
       },
       "post": {
-        "summary": "CreateHTTPIntegration creates an HTTP application-integration.",
+        "summary": "CreateHTTPIntegration creates a HTTP application-integration.",
         "operationId": "CreateHTTPIntegration",
         "responses": {
           "200": {
@@ -389,6 +503,20 @@
         }
       }
     },
+    "apiCreateInfluxDBIntegrationRequest": {
+      "type": "object",
+      "properties": {
+        "application_id": {
+          "type": "string",
+          "format": "int64",
+          "description": "Application ID to create the integration for."
+        },
+        "configuration": {
+          "$ref": "#/definitions/apiInfluxDBIntegrationConfiguration",
+          "description": "Integration configuration."
+        }
+      }
+    },
     "apiDeleteApplicationResponse": {
       "type": "object"
     },
@@ -431,6 +559,15 @@
         "payloadDecoderScript": {
           "type": "string",
           "description": "Payload decoder script."
+        }
+      }
+    },
+    "apiGetInfluxDBIntegrationResponse": {
+      "type": "object",
+      "properties": {
+        "configuration": {
+          "$ref": "#/definitions/apiInfluxDBIntegrationConfiguration",
+          "description": "Integration configuration."
         }
       }
     },
@@ -480,10 +617,52 @@
         }
       }
     },
+    "apiInfluxDBIntegrationConfiguration": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "description": "InfluxDB API write endpoint (e.g. http://localhost:8086/write)."
+        },
+        "db": {
+          "type": "string",
+          "description": "InfluxDB database name."
+        },
+        "username": {
+          "type": "string",
+          "description": "InfluxDB username."
+        },
+        "password": {
+          "type": "string",
+          "description": "InfluxDB password."
+        },
+        "retention_policy_name": {
+          "type": "string",
+          "description": "InfluxDB retention policy name."
+        },
+        "precision": {
+          "$ref": "#/definitions/apiInfluxDBPrecision",
+          "description": "InfluxDB timestamp precision."
+        }
+      }
+    },
+    "apiInfluxDBPrecision": {
+      "type": "string",
+      "enum": [
+        "NS",
+        "U",
+        "MS",
+        "S",
+        "M",
+        "H"
+      ],
+      "default": "NS"
+    },
     "apiIntegrationKind": {
       "type": "string",
       "enum": [
-        "HTTP"
+        "HTTP",
+        "INFLUXDB"
       ],
       "default": "HTTP"
     },
@@ -552,6 +731,20 @@
     },
     "apiUpdateApplicationResponse": {
       "type": "object"
+    },
+    "apiUpdateInfluxDBIntegrationRequest": {
+      "type": "object",
+      "properties": {
+        "application_id": {
+          "type": "string",
+          "format": "int64",
+          "description": "Application ID to update the integration for."
+        },
+        "configuration": {
+          "$ref": "#/definitions/apiInfluxDBIntegrationConfiguration",
+          "description": "Integration configuration."
+        }
+      }
     }
   }
 }

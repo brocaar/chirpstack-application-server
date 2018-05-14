@@ -615,8 +615,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for DeviceProfileService service
-
+// DeviceProfileServiceClient is the client API for DeviceProfileService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DeviceProfileServiceClient interface {
 	// Create creates the given device-profile.
 	Create(ctx context.Context, in *CreateDeviceProfileRequest, opts ...grpc.CallOption) (*CreateDeviceProfileResponse, error)
@@ -640,7 +641,7 @@ func NewDeviceProfileServiceClient(cc *grpc.ClientConn) DeviceProfileServiceClie
 
 func (c *deviceProfileServiceClient) Create(ctx context.Context, in *CreateDeviceProfileRequest, opts ...grpc.CallOption) (*CreateDeviceProfileResponse, error) {
 	out := new(CreateDeviceProfileResponse)
-	err := grpc.Invoke(ctx, "/api.DeviceProfileService/Create", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.DeviceProfileService/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -649,7 +650,7 @@ func (c *deviceProfileServiceClient) Create(ctx context.Context, in *CreateDevic
 
 func (c *deviceProfileServiceClient) Get(ctx context.Context, in *GetDeviceProfileRequest, opts ...grpc.CallOption) (*GetDeviceProfileResponse, error) {
 	out := new(GetDeviceProfileResponse)
-	err := grpc.Invoke(ctx, "/api.DeviceProfileService/Get", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.DeviceProfileService/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -658,7 +659,7 @@ func (c *deviceProfileServiceClient) Get(ctx context.Context, in *GetDeviceProfi
 
 func (c *deviceProfileServiceClient) Update(ctx context.Context, in *UpdateDeviceProfileRequest, opts ...grpc.CallOption) (*UpdateDeviceProfileResponse, error) {
 	out := new(UpdateDeviceProfileResponse)
-	err := grpc.Invoke(ctx, "/api.DeviceProfileService/Update", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.DeviceProfileService/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -667,7 +668,7 @@ func (c *deviceProfileServiceClient) Update(ctx context.Context, in *UpdateDevic
 
 func (c *deviceProfileServiceClient) Delete(ctx context.Context, in *DeleteDeviceProfileRequest, opts ...grpc.CallOption) (*DeleteDeviceProfileResponse, error) {
 	out := new(DeleteDeviceProfileResponse)
-	err := grpc.Invoke(ctx, "/api.DeviceProfileService/Delete", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.DeviceProfileService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -676,7 +677,7 @@ func (c *deviceProfileServiceClient) Delete(ctx context.Context, in *DeleteDevic
 
 func (c *deviceProfileServiceClient) List(ctx context.Context, in *ListDeviceProfileRequest, opts ...grpc.CallOption) (*ListDeviceProfileResponse, error) {
 	out := new(ListDeviceProfileResponse)
-	err := grpc.Invoke(ctx, "/api.DeviceProfileService/List", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.DeviceProfileService/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}

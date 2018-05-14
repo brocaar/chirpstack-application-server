@@ -807,8 +807,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for Organization service
-
+// OrganizationClient is the client API for Organization service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type OrganizationClient interface {
 	// Get organization list.
 	List(ctx context.Context, in *ListOrganizationRequest, opts ...grpc.CallOption) (*ListOrganizationResponse, error)
@@ -842,7 +843,7 @@ func NewOrganizationClient(cc *grpc.ClientConn) OrganizationClient {
 
 func (c *organizationClient) List(ctx context.Context, in *ListOrganizationRequest, opts ...grpc.CallOption) (*ListOrganizationResponse, error) {
 	out := new(ListOrganizationResponse)
-	err := grpc.Invoke(ctx, "/api.Organization/List", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Organization/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -851,7 +852,7 @@ func (c *organizationClient) List(ctx context.Context, in *ListOrganizationReque
 
 func (c *organizationClient) Get(ctx context.Context, in *OrganizationRequest, opts ...grpc.CallOption) (*GetOrganizationResponse, error) {
 	out := new(GetOrganizationResponse)
-	err := grpc.Invoke(ctx, "/api.Organization/Get", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Organization/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -860,7 +861,7 @@ func (c *organizationClient) Get(ctx context.Context, in *OrganizationRequest, o
 
 func (c *organizationClient) Create(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error) {
 	out := new(CreateOrganizationResponse)
-	err := grpc.Invoke(ctx, "/api.Organization/Create", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Organization/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -869,7 +870,7 @@ func (c *organizationClient) Create(ctx context.Context, in *CreateOrganizationR
 
 func (c *organizationClient) Update(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error) {
 	out := new(OrganizationEmptyResponse)
-	err := grpc.Invoke(ctx, "/api.Organization/Update", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Organization/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -878,7 +879,7 @@ func (c *organizationClient) Update(ctx context.Context, in *UpdateOrganizationR
 
 func (c *organizationClient) Delete(ctx context.Context, in *OrganizationRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error) {
 	out := new(OrganizationEmptyResponse)
-	err := grpc.Invoke(ctx, "/api.Organization/Delete", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Organization/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -887,7 +888,7 @@ func (c *organizationClient) Delete(ctx context.Context, in *OrganizationRequest
 
 func (c *organizationClient) ListUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error) {
 	out := new(ListOrganizationUsersResponse)
-	err := grpc.Invoke(ctx, "/api.Organization/ListUsers", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Organization/ListUsers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -896,7 +897,7 @@ func (c *organizationClient) ListUsers(ctx context.Context, in *ListOrganization
 
 func (c *organizationClient) GetUser(ctx context.Context, in *GetOrganizationUserRequest, opts ...grpc.CallOption) (*GetOrganizationUserResponse, error) {
 	out := new(GetOrganizationUserResponse)
-	err := grpc.Invoke(ctx, "/api.Organization/GetUser", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Organization/GetUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -905,7 +906,7 @@ func (c *organizationClient) GetUser(ctx context.Context, in *GetOrganizationUse
 
 func (c *organizationClient) AddUser(ctx context.Context, in *OrganizationUserRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error) {
 	out := new(OrganizationEmptyResponse)
-	err := grpc.Invoke(ctx, "/api.Organization/AddUser", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Organization/AddUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -914,7 +915,7 @@ func (c *organizationClient) AddUser(ctx context.Context, in *OrganizationUserRe
 
 func (c *organizationClient) UpdateUser(ctx context.Context, in *OrganizationUserRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error) {
 	out := new(OrganizationEmptyResponse)
-	err := grpc.Invoke(ctx, "/api.Organization/UpdateUser", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Organization/UpdateUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -923,7 +924,7 @@ func (c *organizationClient) UpdateUser(ctx context.Context, in *OrganizationUse
 
 func (c *organizationClient) DeleteUser(ctx context.Context, in *DeleteOrganizationUserRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error) {
 	out := new(OrganizationEmptyResponse)
-	err := grpc.Invoke(ctx, "/api.Organization/DeleteUser", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Organization/DeleteUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}

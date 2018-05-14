@@ -1273,8 +1273,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for Gateway service
-
+// GatewayClient is the client API for Gateway service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type GatewayClient interface {
 	// Create creates the given gateway.
 	Create(ctx context.Context, in *CreateGatewayRequest, opts ...grpc.CallOption) (*CreateGatewayResponse, error)
@@ -1305,7 +1306,7 @@ func NewGatewayClient(cc *grpc.ClientConn) GatewayClient {
 
 func (c *gatewayClient) Create(ctx context.Context, in *CreateGatewayRequest, opts ...grpc.CallOption) (*CreateGatewayResponse, error) {
 	out := new(CreateGatewayResponse)
-	err := grpc.Invoke(ctx, "/api.Gateway/Create", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Gateway/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1314,7 +1315,7 @@ func (c *gatewayClient) Create(ctx context.Context, in *CreateGatewayRequest, op
 
 func (c *gatewayClient) Get(ctx context.Context, in *GetGatewayRequest, opts ...grpc.CallOption) (*GetGatewayResponse, error) {
 	out := new(GetGatewayResponse)
-	err := grpc.Invoke(ctx, "/api.Gateway/Get", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Gateway/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1323,7 +1324,7 @@ func (c *gatewayClient) Get(ctx context.Context, in *GetGatewayRequest, opts ...
 
 func (c *gatewayClient) Update(ctx context.Context, in *UpdateGatewayRequest, opts ...grpc.CallOption) (*UpdateGatewayResponse, error) {
 	out := new(UpdateGatewayResponse)
-	err := grpc.Invoke(ctx, "/api.Gateway/Update", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Gateway/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1332,7 +1333,7 @@ func (c *gatewayClient) Update(ctx context.Context, in *UpdateGatewayRequest, op
 
 func (c *gatewayClient) Delete(ctx context.Context, in *DeleteGatewayRequest, opts ...grpc.CallOption) (*DeleteGatewayResponse, error) {
 	out := new(DeleteGatewayResponse)
-	err := grpc.Invoke(ctx, "/api.Gateway/Delete", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Gateway/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1341,7 +1342,7 @@ func (c *gatewayClient) Delete(ctx context.Context, in *DeleteGatewayRequest, op
 
 func (c *gatewayClient) List(ctx context.Context, in *ListGatewayRequest, opts ...grpc.CallOption) (*ListGatewayResponse, error) {
 	out := new(ListGatewayResponse)
-	err := grpc.Invoke(ctx, "/api.Gateway/List", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Gateway/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1350,7 +1351,7 @@ func (c *gatewayClient) List(ctx context.Context, in *ListGatewayRequest, opts .
 
 func (c *gatewayClient) GetStats(ctx context.Context, in *GetGatewayStatsRequest, opts ...grpc.CallOption) (*GetGatewayStatsResponse, error) {
 	out := new(GetGatewayStatsResponse)
-	err := grpc.Invoke(ctx, "/api.Gateway/GetStats", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Gateway/GetStats", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1359,7 +1360,7 @@ func (c *gatewayClient) GetStats(ctx context.Context, in *GetGatewayStatsRequest
 
 func (c *gatewayClient) GetLastPing(ctx context.Context, in *GetLastPingRequest, opts ...grpc.CallOption) (*GetLastPingResponse, error) {
 	out := new(GetLastPingResponse)
-	err := grpc.Invoke(ctx, "/api.Gateway/GetLastPing", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Gateway/GetLastPing", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1367,7 +1368,7 @@ func (c *gatewayClient) GetLastPing(ctx context.Context, in *GetLastPingRequest,
 }
 
 func (c *gatewayClient) StreamFrameLogs(ctx context.Context, in *StreamGatewayFrameLogsRequest, opts ...grpc.CallOption) (Gateway_StreamFrameLogsClient, error) {
-	stream, err := grpc.NewClientStream(ctx, &_Gateway_serviceDesc.Streams[0], c.cc, "/api.Gateway/StreamFrameLogs", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Gateway_serviceDesc.Streams[0], "/api.Gateway/StreamFrameLogs", opts...)
 	if err != nil {
 		return nil, err
 	}

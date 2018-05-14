@@ -73,8 +73,8 @@ class ApplicationStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  createHTTPIntegration(applicationID, integration, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/integrations/http", {method: "POST", body: JSON.stringify(integration), headers: sessionStore.getHeader()})
+  createIntegration(applicationID, kind, integration, callbackFunc) {
+    fetch(`/api/applications/${applicationID}/integrations/${kind}`, {method: "POST", body: JSON.stringify(integration), headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -83,8 +83,8 @@ class ApplicationStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  getHTTPIntegration(applicationID, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/integrations/http", {headers: sessionStore.getHeader()})
+  getIntegration(applicationID, kind, callbackFunc) {
+    fetch(`/api/applications/${applicationID}/integrations/${kind}`, {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -93,8 +93,8 @@ class ApplicationStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  updateHTTPIntegration(applicationID, integration, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/integrations/http", {method: "PUT", body: JSON.stringify(integration), headers: sessionStore.getHeader()})
+  updateIntegration(applicationID, kind, integration, callbackFunc) {
+    fetch(`/api/applications/${applicationID}/integrations/${kind}`, {method: "PUT", body: JSON.stringify(integration), headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -103,8 +103,8 @@ class ApplicationStore extends EventEmitter {
       .catch(errorHandler);
   }
 
-  deleteHTTPIntegration(applicationID, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/integrations/http", {method: "DELETE", headers: sessionStore.getHeader()}) 
+  deleteIntegration(applicationID, kind, callbackFunc) {
+    fetch(`/api/applications/${applicationID}/integrations/${kind}`, {method: "DELETE", headers: sessionStore.getHeader()}) 
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {
@@ -114,7 +114,7 @@ class ApplicationStore extends EventEmitter {
   }
 
   listIntegrations(applicationID, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/integrations", {headers: sessionStore.getHeader()}) 
+    fetch(`/api/applications/${applicationID}/integrations`, {headers: sessionStore.getHeader()}) 
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

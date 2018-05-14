@@ -2,7 +2,8 @@ package handler
 
 // Handler kinds
 const (
-	HTTPHandlerKind = "HTTP"
+	HTTPHandlerKind     = "HTTP"
+	InfluxDBHandlerKind = "INFLUXDB"
 )
 
 // Handler defines the interface of a handler backend.

@@ -606,8 +606,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for ServiceProfileService service
-
+// ServiceProfileServiceClient is the client API for ServiceProfileService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ServiceProfileServiceClient interface {
 	// Create creates the given service-profile.
 	Create(ctx context.Context, in *CreateServiceProfileRequest, opts ...grpc.CallOption) (*CreateServiceProfileResponse, error)
@@ -631,7 +632,7 @@ func NewServiceProfileServiceClient(cc *grpc.ClientConn) ServiceProfileServiceCl
 
 func (c *serviceProfileServiceClient) Create(ctx context.Context, in *CreateServiceProfileRequest, opts ...grpc.CallOption) (*CreateServiceProfileResponse, error) {
 	out := new(CreateServiceProfileResponse)
-	err := grpc.Invoke(ctx, "/api.ServiceProfileService/Create", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.ServiceProfileService/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -640,7 +641,7 @@ func (c *serviceProfileServiceClient) Create(ctx context.Context, in *CreateServ
 
 func (c *serviceProfileServiceClient) Get(ctx context.Context, in *GetServiceProfileRequest, opts ...grpc.CallOption) (*GetServiceProfileResponse, error) {
 	out := new(GetServiceProfileResponse)
-	err := grpc.Invoke(ctx, "/api.ServiceProfileService/Get", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.ServiceProfileService/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -649,7 +650,7 @@ func (c *serviceProfileServiceClient) Get(ctx context.Context, in *GetServicePro
 
 func (c *serviceProfileServiceClient) Update(ctx context.Context, in *UpdateServiceProfileRequest, opts ...grpc.CallOption) (*UpdateServiceProfileResponse, error) {
 	out := new(UpdateServiceProfileResponse)
-	err := grpc.Invoke(ctx, "/api.ServiceProfileService/Update", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.ServiceProfileService/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -658,7 +659,7 @@ func (c *serviceProfileServiceClient) Update(ctx context.Context, in *UpdateServ
 
 func (c *serviceProfileServiceClient) Delete(ctx context.Context, in *DeleteServiceProfileRequest, opts ...grpc.CallOption) (*DeleteServiceProfileResponse, error) {
 	out := new(DeleteServiceProfileResponse)
-	err := grpc.Invoke(ctx, "/api.ServiceProfileService/Delete", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.ServiceProfileService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -667,7 +668,7 @@ func (c *serviceProfileServiceClient) Delete(ctx context.Context, in *DeleteServ
 
 func (c *serviceProfileServiceClient) List(ctx context.Context, in *ListServiceProfileRequest, opts ...grpc.CallOption) (*ListServiceProfileResponse, error) {
 	out := new(ListServiceProfileResponse)
-	err := grpc.Invoke(ctx, "/api.ServiceProfileService/List", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.ServiceProfileService/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
@@ -14,6 +15,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/handler/httphandler"
+	"github.com/brocaar/lora-app-server/internal/handler/influxdbhandler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 )
 
@@ -336,7 +338,7 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 }
 
 // DeleteHTTPIntegration deletes the application-integration of the given type.
-func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.DeleteIntegrationRequest) (*pb.EmptyResponse, error) {
+func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.DeleteHTTPIntegrationRequest) (*pb.EmptyResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateApplicationAccess(in.Id, auth.Update),
 	); err != nil {
@@ -344,6 +346,141 @@ func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.Delet
 	}
 
 	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.Id, handler.HTTPHandlerKind)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	if err = storage.DeleteIntegration(config.C.PostgreSQL.DB, integration.ID); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.EmptyResponse{}, nil
+}
+
+// CreateInfluxDBIntegration create an InfluxDB application-integration.
+func (a *ApplicationAPI) CreateInfluxDBIntegration(ctx context.Context, in *pb.CreateInfluxDBIntegrationRequest) (*pb.EmptyResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	if in.Configuration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "configuration must not be nil")
+	}
+
+	conf := influxdbhandler.HandlerConfig{
+		Endpoint:            in.Configuration.Endpoint,
+		DB:                  in.Configuration.Db,
+		Username:            in.Configuration.Username,
+		Password:            in.Configuration.Password,
+		RetentionPolicyName: in.Configuration.RetentionPolicyName,
+		Precision:           strings.ToLower(in.Configuration.Precision.String()),
+	}
+	if err := conf.Validate(); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	integration := storage.Integration{
+		ApplicationID: in.ApplicationId,
+		Kind:          handler.InfluxDBHandlerKind,
+		Settings:      confJSON,
+	}
+	if err := storage.CreateIntegration(config.C.PostgreSQL.DB, &integration); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.EmptyResponse{}, nil
+}
+
+// GetInfluxDBIntegration returns the InfluxDB application-integration.
+func (a *ApplicationAPI) GetInfluxDBIntegration(ctx context.Context, in *pb.GetInfluxDBIntegrationRequest) (*pb.GetInfluxDBIntegrationResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, handler.InfluxDBHandlerKind)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	var conf influxdbhandler.HandlerConfig
+	if err = json.Unmarshal(integration.Settings, &conf); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	prec, _ := pb.InfluxDBPrecision_value[strings.ToUpper(conf.Precision)]
+
+	return &pb.GetInfluxDBIntegrationResponse{
+		Configuration: &pb.InfluxDBIntegrationConfiguration{
+			Endpoint:            conf.Endpoint,
+			Db:                  conf.DB,
+			Username:            conf.Username,
+			Password:            conf.Password,
+			RetentionPolicyName: conf.RetentionPolicyName,
+			Precision:           pb.InfluxDBPrecision(prec),
+		},
+	}, nil
+}
+
+// UpdateInfluxDBIntegration updates the InfluxDB application-integration.
+func (a *ApplicationAPI) UpdateInfluxDBIntegration(ctx context.Context, in *pb.UpdateInfluxDBIntegrationRequest) (*pb.EmptyResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	if in.Configuration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "configuration must not be nil")
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, handler.InfluxDBHandlerKind)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	conf := influxdbhandler.HandlerConfig{
+		Endpoint:            in.Configuration.Endpoint,
+		DB:                  in.Configuration.Db,
+		Username:            in.Configuration.Username,
+		Password:            in.Configuration.Password,
+		RetentionPolicyName: in.Configuration.RetentionPolicyName,
+		Precision:           strings.ToLower(in.Configuration.Precision.String()),
+	}
+	if err := conf.Validate(); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	integration.Settings = confJSON
+	if err = storage.UpdateIntegration(config.C.PostgreSQL.DB, &integration); err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &pb.EmptyResponse{}, nil
+}
+
+// DeleteInfluxDBIntegration deletes the InfluxDB application-integration.
+func (a *ApplicationAPI) DeleteInfluxDBIntegration(ctx context.Context, in *pb.DeleteInfluxDBIntegrationRequest) (*pb.EmptyResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, handler.InfluxDBHandlerKind)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -373,6 +510,8 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 		switch integration.Kind {
 		case handler.HTTPHandlerKind:
 			out.Kinds = append(out.Kinds, pb.IntegrationKind_HTTP)
+		case handler.InfluxDBHandlerKind:
+			out.Kinds = append(out.Kinds, pb.IntegrationKind_INFLUXDB)
 		default:
 			return nil, grpc.Errorf(codes.Internal, "unknown integration kind: %s", integration.Kind)
 		}

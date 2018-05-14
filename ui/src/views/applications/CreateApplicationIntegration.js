@@ -10,14 +10,16 @@ class CreateApplicationIntegration extends Component {
     super();
 
     this.state = {
-      integration: {},
+      integration: {
+        configuration: {},
+      },
     };
 
     this.onSubmit = this.onSubmit.bind(this);
   }
 
   onSubmit(integration) {
-    ApplicationStore.createHTTPIntegration(this.props.match.params.applicationID, integration, (responseData) => {
+    ApplicationStore.createIntegration(this.props.match.params.applicationID, integration.kind, integration, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
     });
   }

@@ -73,7 +73,7 @@ class ApplicationLayout extends Component {
         <ul className="nav nav-tabs">
           <li role="presentation" className={(activeTab === "" || activeTab === "/nodes/create") ? 'active' : ''}><Link to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`}>Devices</Link></li>
           <li role="presentation" className={(activeTab === "/edit" ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/edit`}>Application configuration</Link></li>
-          <li role="presentation" className={((activeTab === "/integrations" || activeTab === "/integrations/create" || activeTab === "/integrations/http") ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`}>Integrations</Link></li>
+          <li role="presentation" className={(activeTab.startsWith("/integrations") ? 'active' : '') + (this.state.isAdmin ? '' : 'hidden')}><Link to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`}>Integrations</Link></li>
         </ul>
         <hr />
         <Switch>
@@ -82,7 +82,7 @@ class ApplicationLayout extends Component {
           <Route exact path={`${this.props.match.path}/nodes/create`} component={CreateNode} />
           <Route exact path={`${this.props.match.path}/integrations`} component={ApplicationIntegrations} />
           <Route exact path={`${this.props.match.path}/integrations/create`} component={CreateApplicationIntegration} />
-          <Route exact path={`${this.props.match.path}/integrations/http`} component={UpdateApplicationIntegration} />
+          <Route exact path={`${this.props.match.path}/integrations/:kind`} component={UpdateApplicationIntegration} />
         </Switch>
       </div>
     );

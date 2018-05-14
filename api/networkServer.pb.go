@@ -791,8 +791,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for NetworkServer service
-
+// NetworkServerClient is the client API for NetworkServer service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type NetworkServerClient interface {
 	// Create creates the given network-server.
 	Create(ctx context.Context, in *CreateNetworkServerRequest, opts ...grpc.CallOption) (*CreateNetworkServerResponse, error)
@@ -816,7 +817,7 @@ func NewNetworkServerClient(cc *grpc.ClientConn) NetworkServerClient {
 
 func (c *networkServerClient) Create(ctx context.Context, in *CreateNetworkServerRequest, opts ...grpc.CallOption) (*CreateNetworkServerResponse, error) {
 	out := new(CreateNetworkServerResponse)
-	err := grpc.Invoke(ctx, "/api.NetworkServer/Create", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.NetworkServer/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -825,7 +826,7 @@ func (c *networkServerClient) Create(ctx context.Context, in *CreateNetworkServe
 
 func (c *networkServerClient) Get(ctx context.Context, in *GetNetworkServerRequest, opts ...grpc.CallOption) (*GetNetworkServerResponse, error) {
 	out := new(GetNetworkServerResponse)
-	err := grpc.Invoke(ctx, "/api.NetworkServer/Get", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.NetworkServer/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -834,7 +835,7 @@ func (c *networkServerClient) Get(ctx context.Context, in *GetNetworkServerReque
 
 func (c *networkServerClient) Update(ctx context.Context, in *UpdateNetworkServerRequest, opts ...grpc.CallOption) (*UpdateNetworkServerResponse, error) {
 	out := new(UpdateNetworkServerResponse)
-	err := grpc.Invoke(ctx, "/api.NetworkServer/Update", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.NetworkServer/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -843,7 +844,7 @@ func (c *networkServerClient) Update(ctx context.Context, in *UpdateNetworkServe
 
 func (c *networkServerClient) Delete(ctx context.Context, in *DeleteNetworkServerRequest, opts ...grpc.CallOption) (*DeleteNetworkServerResponse, error) {
 	out := new(DeleteNetworkServerResponse)
-	err := grpc.Invoke(ctx, "/api.NetworkServer/Delete", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.NetworkServer/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -852,7 +853,7 @@ func (c *networkServerClient) Delete(ctx context.Context, in *DeleteNetworkServe
 
 func (c *networkServerClient) List(ctx context.Context, in *ListNetworkServerRequest, opts ...grpc.CallOption) (*ListNetworkServerResponse, error) {
 	out := new(ListNetworkServerResponse)
-	err := grpc.Invoke(ctx, "/api.NetworkServer/List", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.NetworkServer/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}

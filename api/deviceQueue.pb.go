@@ -386,8 +386,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for DeviceQueue service
-
+// DeviceQueueClient is the client API for DeviceQueue service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DeviceQueueClient interface {
 	// Enqueue adds the given item to the device-queue.
 	Enqueue(ctx context.Context, in *EnqueueDeviceQueueItemRequest, opts ...grpc.CallOption) (*EnqueueDeviceQueueItemResponse, error)
@@ -407,7 +408,7 @@ func NewDeviceQueueClient(cc *grpc.ClientConn) DeviceQueueClient {
 
 func (c *deviceQueueClient) Enqueue(ctx context.Context, in *EnqueueDeviceQueueItemRequest, opts ...grpc.CallOption) (*EnqueueDeviceQueueItemResponse, error) {
 	out := new(EnqueueDeviceQueueItemResponse)
-	err := grpc.Invoke(ctx, "/api.DeviceQueue/Enqueue", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.DeviceQueue/Enqueue", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -416,7 +417,7 @@ func (c *deviceQueueClient) Enqueue(ctx context.Context, in *EnqueueDeviceQueueI
 
 func (c *deviceQueueClient) Flush(ctx context.Context, in *FlushDeviceQueueRequest, opts ...grpc.CallOption) (*FlushDeviceQueueResponse, error) {
 	out := new(FlushDeviceQueueResponse)
-	err := grpc.Invoke(ctx, "/api.DeviceQueue/Flush", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.DeviceQueue/Flush", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -425,7 +426,7 @@ func (c *deviceQueueClient) Flush(ctx context.Context, in *FlushDeviceQueueReque
 
 func (c *deviceQueueClient) List(ctx context.Context, in *ListDeviceQueueItemsRequest, opts ...grpc.CallOption) (*ListDeviceQueueItemsResponse, error) {
 	out := new(ListDeviceQueueItemsResponse)
-	err := grpc.Invoke(ctx, "/api.DeviceQueue/List", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.DeviceQueue/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}

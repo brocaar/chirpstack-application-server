@@ -238,11 +238,73 @@ func TestApplicationAPI(t *testing.T) {
 				})
 
 				Convey("Then the integration can be deleted", func() {
-					_, err := api.DeleteHTTPIntegration(ctx, &pb.DeleteIntegrationRequest{Id: createResp.Id})
+					_, err := api.DeleteHTTPIntegration(ctx, &pb.DeleteHTTPIntegrationRequest{Id: createResp.Id})
 					So(err, ShouldBeNil)
 					So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 					_, err = api.GetHTTPIntegration(ctx, &pb.GetHTTPIntegrationRequest{Id: createResp.Id})
+					So(err, ShouldNotBeNil)
+					So(grpc.Code(err), ShouldEqual, codes.NotFound)
+				})
+			})
+
+			Convey("When creating an InfluxDB integration", func() {
+				createReq := pb.CreateInfluxDBIntegrationRequest{
+					ApplicationId: createResp.Id,
+					Configuration: &pb.InfluxDBIntegrationConfiguration{
+						Endpoint:            "http://localhost:8086/write",
+						Db:                  "loraserver",
+						Username:            "username",
+						Password:            "password",
+						RetentionPolicyName: "DEFAULT",
+						Precision:           pb.InfluxDBPrecision_MS,
+					},
+				}
+				_, err := api.CreateInfluxDBIntegration(ctx, &createReq)
+				So(err, ShouldBeNil)
+
+				Convey("Then the integration can be retrieved", func() {
+					i, err := api.GetInfluxDBIntegration(ctx, &pb.GetInfluxDBIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					So(err, ShouldBeNil)
+					So(i.Configuration, ShouldResemble, createReq.Configuration)
+				})
+
+				Convey("Then the integrations can be listed", func() {
+					resp, err := api.ListIntegrations(ctx, &pb.ListIntegrationRequest{Id: createResp.Id})
+					So(err, ShouldBeNil)
+					So(resp.Kinds, ShouldResemble, []pb.IntegrationKind{pb.IntegrationKind_INFLUXDB})
+				})
+
+				Convey("Then the integration can be updated", func() {
+					updateReq := pb.UpdateInfluxDBIntegrationRequest{
+						ApplicationId: createResp.Id,
+						Configuration: &pb.InfluxDBIntegrationConfiguration{
+							Endpoint:            "http://localhost:8086/write2",
+							Db:                  "loraserver2",
+							Username:            "username2",
+							Password:            "password2",
+							RetentionPolicyName: "CUSTOM",
+							Precision:           pb.InfluxDBPrecision_S,
+						},
+					}
+					_, err := api.UpdateInfluxDBIntegration(ctx, &updateReq)
+					So(err, ShouldBeNil)
+
+					i, err := api.GetInfluxDBIntegration(ctx, &pb.GetInfluxDBIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					So(err, ShouldBeNil)
+					So(i.Configuration, ShouldResemble, updateReq.Configuration)
+				})
+
+				Convey("Then the integration can be deleted", func() {
+					_, err := api.DeleteInfluxDBIntegration(ctx, &pb.DeleteInfluxDBIntegrationRequest{ApplicationId: createResp.Id})
+					So(err, ShouldBeNil)
+					So(validator.validatorFuncs, ShouldHaveLength, 1)
+
+					_, err = api.GetInfluxDBIntegration(ctx, &pb.GetInfluxDBIntegrationRequest{ApplicationId: createResp.Id})
 					So(err, ShouldNotBeNil)
 					So(grpc.Code(err), ShouldEqual, codes.NotFound)
 				})

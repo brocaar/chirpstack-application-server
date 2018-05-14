@@ -1361,8 +1361,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for User service
-
+// UserClient is the client API for User service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type UserClient interface {
 	// Get user list.
 	List(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (*ListUserResponse, error)
@@ -1388,7 +1389,7 @@ func NewUserClient(cc *grpc.ClientConn) UserClient {
 
 func (c *userClient) List(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (*ListUserResponse, error) {
 	out := new(ListUserResponse)
-	err := grpc.Invoke(ctx, "/api.User/List", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.User/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1397,7 +1398,7 @@ func (c *userClient) List(ctx context.Context, in *ListUserRequest, opts ...grpc
 
 func (c *userClient) Get(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*GetUserResponse, error) {
 	out := new(GetUserResponse)
-	err := grpc.Invoke(ctx, "/api.User/Get", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.User/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1406,7 +1407,7 @@ func (c *userClient) Get(ctx context.Context, in *UserRequest, opts ...grpc.Call
 
 func (c *userClient) Create(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*AddUserResponse, error) {
 	out := new(AddUserResponse)
-	err := grpc.Invoke(ctx, "/api.User/Create", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.User/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1415,7 +1416,7 @@ func (c *userClient) Create(ctx context.Context, in *AddUserRequest, opts ...grp
 
 func (c *userClient) Update(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UserEmptyResponse, error) {
 	out := new(UserEmptyResponse)
-	err := grpc.Invoke(ctx, "/api.User/Update", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.User/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1424,7 +1425,7 @@ func (c *userClient) Update(ctx context.Context, in *UpdateUserRequest, opts ...
 
 func (c *userClient) Delete(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*UserEmptyResponse, error) {
 	out := new(UserEmptyResponse)
-	err := grpc.Invoke(ctx, "/api.User/Delete", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.User/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1433,7 +1434,7 @@ func (c *userClient) Delete(ctx context.Context, in *UserRequest, opts ...grpc.C
 
 func (c *userClient) UpdatePassword(ctx context.Context, in *UpdateUserPasswordRequest, opts ...grpc.CallOption) (*UserEmptyResponse, error) {
 	out := new(UserEmptyResponse)
-	err := grpc.Invoke(ctx, "/api.User/UpdatePassword", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.User/UpdatePassword", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1602,8 +1603,9 @@ var _User_serviceDesc = grpc.ServiceDesc{
 	Metadata: "user.proto",
 }
 
-// Client API for Internal service
-
+// InternalClient is the client API for Internal service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type InternalClient interface {
 	// Log in a user
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
@@ -1625,7 +1627,7 @@ func NewInternalClient(cc *grpc.ClientConn) InternalClient {
 
 func (c *internalClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
 	out := new(LoginResponse)
-	err := grpc.Invoke(ctx, "/api.Internal/Login", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Internal/Login", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1634,7 +1636,7 @@ func (c *internalClient) Login(ctx context.Context, in *LoginRequest, opts ...gr
 
 func (c *internalClient) Profile(ctx context.Context, in *ProfileRequest, opts ...grpc.CallOption) (*ProfileResponse, error) {
 	out := new(ProfileResponse)
-	err := grpc.Invoke(ctx, "/api.Internal/Profile", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Internal/Profile", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1643,7 +1645,7 @@ func (c *internalClient) Profile(ctx context.Context, in *ProfileRequest, opts .
 
 func (c *internalClient) Branding(ctx context.Context, in *BrandingRequest, opts ...grpc.CallOption) (*BrandingResponse, error) {
 	out := new(BrandingResponse)
-	err := grpc.Invoke(ctx, "/api.Internal/Branding", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Internal/Branding", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1652,7 +1654,7 @@ func (c *internalClient) Branding(ctx context.Context, in *BrandingRequest, opts
 
 func (c *internalClient) GlobalSearch(ctx context.Context, in *GlobalSearchRequest, opts ...grpc.CallOption) (*GlobalSearchResponse, error) {
 	out := new(GlobalSearchResponse)
-	err := grpc.Invoke(ctx, "/api.Internal/GlobalSearch", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/api.Internal/GlobalSearch", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}

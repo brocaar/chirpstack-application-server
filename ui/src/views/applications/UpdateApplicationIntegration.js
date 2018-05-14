@@ -10,7 +10,9 @@ class UpdateApplicationIntegration extends Component {
     super();
 
     this.state = {
-      integration: {},
+      integration: {
+        configuration: {},
+      },
     };
 
     this.onSubmit = this.onSubmit.bind(this);
@@ -18,8 +20,8 @@ class UpdateApplicationIntegration extends Component {
   }
 
   componentDidMount() {
-    ApplicationStore.getHTTPIntegration(this.props.match.params.applicationID, (integration) => {
-      integration.kind = "http";
+    ApplicationStore.getIntegration(this.props.match.params.applicationID, this.props.match.params.kind, (integration) => {
+      integration.kind = this.props.match.params.kind;
       this.setState({
         integration: integration,
       }); 
@@ -27,14 +29,14 @@ class UpdateApplicationIntegration extends Component {
   }
 
   onSubmit(integration) {
-    ApplicationStore.updateHTTPIntegration(this.props.match.params.applicationID, integration, (responseData) => {
+    ApplicationStore.updateIntegration(this.props.match.params.applicationID, integration.kind, integration, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
     });
   }
 
   onDelete() {
     if (window.confirm("Are you sure you want to delete this integration?")) {
-      ApplicationStore.deleteHTTPIntegration(this.props.match.params.applicationID, (responseData) => {
+      ApplicationStore.deleteIntegration(this.props.match.params.applicationID, this.state.integration.kind, (responseData) => {
         this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
       });
     }

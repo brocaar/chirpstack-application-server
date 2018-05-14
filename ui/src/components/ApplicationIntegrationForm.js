@@ -126,6 +126,81 @@ class ApplicationHTTPIntegrationForm extends Component {
   }
 }
 
+class ApplicationInfluxDBIntegrationForm extends Component {
+  constructor() {
+    super();
+    this.onChange = this.onChange.bind(this);
+    this.onPrecisionSelect = this.onPrecisionSelect.bind(this);
+  }
+
+  onChange(field, e) {
+    let integration = this.props.integration;
+    integration.configuration[field] = e.target.value;
+
+    this.props.onFormChange(integration);
+  }
+
+  onPrecisionSelect(val) {
+    let integration = this.props.integration;
+    integration.configuration.precision = val.value;
+
+    this.props.onFormChange(integration);
+  }
+
+  render() {
+    const precisionOptions = [
+      {value: "NS", label: "Nanosecond"},
+      {value: "U", label: "Microsecond"},
+      {value: "MS", label: "Millisecond"},
+      {value: "S", label: "Second"},
+      {value: "M", label: "Minute"},
+      {value: "H", label: "Hour"},
+    ];
+
+    return(
+      <fieldset>
+        <legend>InfluxDB configuration</legend>
+        <div className="form-group">
+          <label className="control-label" htmlFor="endpoint">API endpoint (write)</label>
+          <input className="form-control" id="endpoint" name="endpoint" type="text" placeholder="http://localhost:8086/write" value={this.props.integration.configuration.endpoint || ''} onChange={this.onChange.bind(this, 'endpoint')} />
+        </div>
+        <div className="form-group">
+          <label className="control-label" htmlFor="username">Username</label>
+          <input className="form-control" id="username" name="username" type="text" placeholder="" value={this.props.integration.configuration.username || ''} onChange={this.onChange.bind(this, 'username')} />
+        </div>
+        <div className="form-group">
+          <label className="control-label" htmlFor="username">Password</label>
+          <input className="form-control" id="password" name="password" type="password" placeholder="" value={this.props.integration.configuration.password || ''} onChange={this.onChange.bind(this, 'password')} />
+        </div>
+        <div className="form-group">
+          <label className="control-label" htmlFor="db">Database name</label>
+          <input className="form-control" id="db" name="db" type="text" placeholder="device_measurements" value={this.props.integration.configuration.db || ''} onChange={this.onChange.bind(this, 'db')} />
+        </div>
+        <div className="form-group">
+          <label className="control-label" htmlFor="retentionPolicyName">Retention policy name</label>
+          <input className="form-control" id="retentionPolicyName" name="retentionPolicyName" type="text" placeholder="" value={this.props.integration.configuration.retentionPolicyName || ''} onChange={this.onChange.bind(this, 'retentionPolicyName')} />
+          <p className="help-block">
+            Sets the target retention policy for the write. InfluxDB writes to the DEFAULT retention policy if you do not specify a retention policy.
+          </p>
+        </div>
+        <div className="form-group">
+          <label className="control-label" htmlFor="precision">Timestamp precision</label>
+          <Select
+            name="precision"
+            value={this.props.integration.configuration.precision}
+            options={precisionOptions}
+            onChange={this.onPrecisionSelect}
+            clearable={false}
+          />
+          <p className="help-block">
+            It is recommented to use the least precise precision possible as this can result in significant improvements in compression.
+          </p>
+        </div>
+      </fieldset>
+    );
+  }
+}
+
 class ApplicationIntegrationForm extends Component {
   constructor() {
     super();
@@ -145,7 +220,7 @@ class ApplicationIntegrationForm extends Component {
       integration: this.props.integration,
     });
 
-    if (typeof(this.props.integration.kind) !== "undefined") {
+    if (this.props.integration.kind !== undefined) {
       this.setState({
         kindDisabled: true,
       });
@@ -157,7 +232,7 @@ class ApplicationIntegrationForm extends Component {
       integration: nextProps.integration,
     });
 
-    if (nextProps.integration.kind !== "") {
+    if (nextProps.integration.kind !== undefined) {
       this.setState({
         kindDisabled: true,
       });
@@ -195,12 +270,15 @@ class ApplicationIntegrationForm extends Component {
   render() {
     const kindOptions = [
       {value: "http", label: "HTTP integration"},
+      {value: "influxdb", label: "InfluxDB integration"},
     ];
 
     let form = <div></div>;
 
     if (this.state.integration.kind === "http") {
       form = <ApplicationHTTPIntegrationForm integration={this.state.integration} onFormChange={this.onFormChange} />;
+    } else if (this.state.integration.kind === 'influxdb') {
+      form = <ApplicationInfluxDBIntegrationForm integration={this.state.integration} onFormChange={this.onFormChange} />;
     }
 
     return(

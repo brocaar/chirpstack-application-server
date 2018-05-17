@@ -1,14 +1,13 @@
 ---
-title: Send / receive data
+title: MQTT
 menu:
     main:
-        parent: integrate
-        weight: 1
+        parent: sending-receiving
 ---
 
-# Sending and receiving data
+# MQTT integration
 
-LoRa App Server publishes all the data it receices from the nodes
+The MQTT integration publishes all the data it receices from the devices
 as JSON over MQTT. To receive data from your node, you therefore 
 need to subscribe to its MQTT topic. For debugging, you could use a 
 (command-line) tool like `mosquitto_sub` which is part of the 

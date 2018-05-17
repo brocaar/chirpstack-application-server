@@ -61,10 +61,8 @@ function Encode(fPort, obj) {
 
 ## Integrations
 
-By default all data is published to a MQTT broker, see also
-[Sending and receiving data]({{<ref "integrate/data.md">}}). However additional
-integrations can be setup. See [Integrations]({{<ref "integrate/integrations.md">}})
-for more information.
+For documentation on the available integrations, please refer to
+[sending and receiving](/lora-app-server/integrate/sending-receiving/).
 
 ## Devices
 

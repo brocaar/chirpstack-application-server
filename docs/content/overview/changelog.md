@@ -504,7 +504,7 @@ for collaborating on this feature.
 
 * Gateway management and stats
     * Gateway management UI and API (accessible by global admin users) was added.
-    * Gateway locations are now exposed in the [uplink MQTT topic]({{< ref "integrate/data.md" >}})
+    * Gateway locations are now exposed in the [uplink MQTT topic]({{< ref "integrate/sending-receiving/mqtt.md" >}})
     * Requires [LoRa Server](/loraserver/) 0.16.0+.
 * On MQTT and PostgreSQL connect error, LoRa App Server will retry instead
   of fail.
@@ -573,7 +573,7 @@ for collaborating on this feature.
 * The gRPC and REST apis have been updated to reflect the above application and
   node name changes.
 * The MQTT topics (and payloads) are now based on the application ID and node
-  `DevEUI` (see [mqtt topics]({{< ref "integrate/data.md" >}}) for more info).
+  `DevEUI` (see [mqtt topics]({{< ref "integrate/sending-receiving/mqtt.md" >}}) for more info).
 * An endpoint for activating nodes and for fetching the activation status has
   been added (before this was done by using the node-session endpoint).
 * The node activation mode can now be set (OTAA or ABP). Incoming join-requests
@@ -603,7 +603,7 @@ and [@VirTERM](https://twitter.com/VirTERM) for their input on the API changes.
     * This is an experimental feature
 
 * Besides RX information, TX information is exposed for received uplink
-  payloads. See [MQTT topics]({{< ref "integrate/data.md" >}}) for more information.
+  payloads. See [MQTT topics]({{< ref "integrate/sending-receiving/mqtt.md" >}}) for more information.
 
 
 ## 0.1.4

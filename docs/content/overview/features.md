@@ -44,15 +44,10 @@ is implemented using JWT tokens.
 
 ## Payloads and device events
 
-By default, LoRa App Server offers a MQTT integration for all configured
-devices. The provided MQTT topics can be for receiving data from your devices,
-sending downlink data or to get notified about events like joins, acks and
-errors. See [Sending and receiving data]({{<ref "integrate/data.md">}}) for
-more information.
-
-Additional to the MQTT integration, it is possible to configure HTTP endpoints
-for receiving device payloads and events. See
-[Data integrations]({{<ref "integrate/integrations.md">}}) for more information.
+LoRa App Server provides different ways of sending and receiving device
+payloads (e.g. MQTT, HTTP and writing directly into a InfluxDB database).
+Please refer to [Sending and receiving](/lora-app-server/integrate/sending-receiving/)
+for all available integrations.
 
 **Note:** downlink payloads can also be scheduled through the API.
 

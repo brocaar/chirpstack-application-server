@@ -10,4 +10,4 @@ title: Use
 * [Applications]({{< relref "applications.md" >}})
 * [Devices]({{< relref "devices.md" >}})
 * [Gateways]({{< relref "gateways.md" >}})
-* [Send / receive data]({{< relref "data.md" >}})
+* [Sending / receiving data](/lora-app-server/integrate/sending-receiving/)

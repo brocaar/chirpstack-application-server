@@ -204,8 +204,8 @@ device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=01020304
 							},
 						},
 					},
-					ExpectedBody: `device_frmpayload_data_gpslocation_10_altitude,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=3.123000
-device_frmpayload_data_gpslocation_10_location,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 geohash="s01w2k3vvqre",latitude=1.123000,longitude=2.123000
+					ExpectedBody: `device_frmpayload_data_gps_location_10_altitude,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=3.123000
+device_frmpayload_data_gps_location_10_location,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 geohash="s01w2k3vvqre",latitude=1.123000,longitude=2.123000
 device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=0102030405060708,device_name=test-dev,frequency=868100000,modulation=LORA,spreading_factor=10 value=1i`,
 				},
 			}

@@ -258,7 +258,7 @@ func objectToMeasurements(pl handler.DataUpPayload, prefix string, obj interface
 			out = append(out, mapToLocation(pl, prefix, v)...)
 
 			for _, k := range keys {
-				keyName := strings.ToLower(fmt.Sprintf("%v", k.Interface()))
+				keyName := fmt.Sprintf("%v", k.Interface())
 				if _, ignore := map[string]struct{}{
 					"latitude":  struct{}{},
 					"longitude": struct{}{},
@@ -276,7 +276,11 @@ func objectToMeasurements(pl handler.DataUpPayload, prefix string, obj interface
 			out = append(out, structToLocation(pl, prefix, v)...)
 
 			for i := 0; i < l; i++ {
-				fieldName := strings.ToLower(v.Type().Field(i).Name)
+				fieldName := v.Type().Field(i).Tag.Get("influxdb")
+				if fieldName == "" {
+					fieldName = strings.ToLower(v.Type().Field(i).Name)
+				}
+
 				if _, ignore := map[string]struct{}{
 					"latitude":  struct{}{},
 					"longitude": struct{}{},

@@ -28,7 +28,8 @@ the JSON object.
 
 ### Naming
 
-All measurements are lowercased and elements are split by an underscore (`_`).
+All measurements are using the field names from the `object` element,
+joined by an underscode (`_`) in case the object element is nested.
 Payload data is prefixed by `device_frmpayload_data`.
 
 Example:
@@ -36,14 +37,19 @@ Example:
 ```json
 {
     "object": {
-        "temperatureSensor": {
+        "temperature_sensor": {
             "1": 23.5
         }
     }
 }
 ```
 
-The above will translate to the measurement `device_frmpayload_data_temperaturesensor_1`.
+The above will translate to the measurement `device_frmpayload_data_temperature_sensor_1`.
+
+**Note:** When using the [CayenneLPP codec]({{<ref "use/applications.md">}})
+`camelCasing` is used when the data is presented as JSON. However, for the InfluxDB
+naming, `snake_casing` is used. Thus `temperatureSensor` in JSON translates to
+`temperature_sensor` as measurement name in InfluxDB.
 
 ### Location data
 

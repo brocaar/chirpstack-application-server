@@ -53,18 +53,18 @@ type GPSLocation struct {
 
 // CayenneLPP defines the Cayenne LPP data structure.
 type CayenneLPP struct {
-	DigitalInput      map[byte]uint8         `json:"digitalInput,omitempty"`
-	DigitalOutput     map[byte]uint8         `json:"digitalOutput,omitempty"`
-	AnalogInput       map[byte]float64       `json:"analogInput,omitempty"`
-	AnalogOutput      map[byte]float64       `json:"analogOutput,omitempty"`
-	IlluminanceSensor map[byte]uint16        `json:"illuminanceSensor,omitempty"`
-	PresenceSensor    map[byte]uint8         `json:"presenceSensor,omitempty"`
-	TemperatureSensor map[byte]float64       `json:"temperatureSensor,omitempty"`
-	HumiditySensor    map[byte]float64       `json:"humiditySensor,omitempty"`
-	Accelerometer     map[byte]Accelerometer `json:"accelerometer,omitempty"`
-	Barometer         map[byte]float64       `json:"barometer,omitempty"`
-	Gyrometer         map[byte]Gyrometer     `json:"gyrometer,omitempty"`
-	GPSLocation       map[byte]GPSLocation   `json:"gpsLocation,omitempty"`
+	DigitalInput      map[byte]uint8         `json:"digitalInput,omitempty" influxdb:"digital_input"`
+	DigitalOutput     map[byte]uint8         `json:"digitalOutput,omitempty" influxdb:"digital_output"`
+	AnalogInput       map[byte]float64       `json:"analogInput,omitempty" influxdb:"analog_input"`
+	AnalogOutput      map[byte]float64       `json:"analogOutput,omitempty" influxdb:"analog_output"`
+	IlluminanceSensor map[byte]uint16        `json:"illuminanceSensor,omitempty" influxdb:"illuminance_sensor"`
+	PresenceSensor    map[byte]uint8         `json:"presenceSensor,omitempty" influxdb:"presence_sensor"`
+	TemperatureSensor map[byte]float64       `json:"temperatureSensor,omitempty" influxdb:"temperature_sensor"`
+	HumiditySensor    map[byte]float64       `json:"humiditySensor,omitempty" influxdb:"humidity_sensor"`
+	Accelerometer     map[byte]Accelerometer `json:"accelerometer,omitempty" influxdb:"accelerometer"`
+	Barometer         map[byte]float64       `json:"barometer,omitempty" influxdb:"barometer"`
+	Gyrometer         map[byte]Gyrometer     `json:"gyrometer,omitempty" influxdb:"gyrometer"`
+	GPSLocation       map[byte]GPSLocation   `json:"gpsLocation,omitempty" influxdb:"gps_location"`
 }
 
 // DecodeBytes decodes the payload from a slice of bytes.

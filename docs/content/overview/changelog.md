@@ -8,6 +8,17 @@ menu:
 
 # Changelog
 
+## 0.21.0
+
+**Features:**
+
+* LoRa App Server can now export decoded payload data directly to InfluxDB.
+  See [Sending and receiving device data](https://www.loraserver.io/lora-app-server/integrate/sending-receiving/) for more information.
+
+**Bugfixes:**
+
+* In some cases the JavaScript editor (codec functions) would only render on click.
+
 ## 0.20.2
 
 **Bugfixes:**

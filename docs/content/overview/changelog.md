@@ -8,6 +8,14 @@ menu:
 
 # Changelog
 
+## 0.21.1
+
+**Bugfixes:**
+
+* Fix InfluxDB handler error for unexported fields (these are now skipped).
+* Fix `data_data` in InfluxDB measurement names when using a JS based codec.
+* Add missing `int64` and `uint64` value handling.
+
 ## 0.21.0
 
 **Features:**

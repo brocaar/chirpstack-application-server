@@ -235,7 +235,7 @@ func objectToMeasurements(pl handler.DataUpPayload, prefix string, obj interface
 	var out []measurement
 
 	switch o := obj.(type) {
-	case int, uint, float32, float64, uint8, int8, uint16, int16, uint32, int32, string, bool:
+	case int, uint, float32, float64, uint8, int8, uint16, int16, uint32, int32, uint64, int64, string, bool:
 		out = append(out, measurement{
 			Name: prefix,
 			Tags: map[string]string{
@@ -276,6 +276,10 @@ func objectToMeasurements(pl handler.DataUpPayload, prefix string, obj interface
 			out = append(out, structToLocation(pl, prefix, v)...)
 
 			for i := 0; i < l; i++ {
+				if !v.Field(i).CanInterface() {
+					continue
+				}
+
 				fieldName := v.Type().Field(i).Tag.Get("influxdb")
 				if fieldName == "" {
 					fieldName = strings.ToLower(v.Type().Field(i).Name)

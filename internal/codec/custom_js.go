@@ -36,6 +36,11 @@ func NewCustomJS(fPort uint8, encodeScript, decodeScript string) *CustomJS {
 	}
 }
 
+// Object returns the object data.
+func (c CustomJS) Object() interface{} {
+	return c.Data
+}
+
 // MarshalJSON implements json.Marshaler.
 func (c CustomJS) MarshalJSON() ([]byte, error) {
 	return json.Marshal(c.Data)

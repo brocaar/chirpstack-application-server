@@ -13,6 +13,7 @@ const (
 type Payload interface {
 	DecodeBytes(data []byte) error
 	EncodeToBytes() ([]byte, error)
+	Object() interface{}
 }
 
 // NewPayload returns a new codec payload. In case of an unknown Type, nil is

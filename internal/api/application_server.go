@@ -85,6 +85,7 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		return nil, grpc.Errorf(codes.Internal, "decrypt payload error: %s", err)
 	}
 
+	var object interface{}
 	codecPL := codec.NewPayload(app.PayloadCodec, uint8(req.FPort), app.PayloadEncoderScript, app.PayloadDecoderScript)
 	if codecPL != nil {
 		if err := codecPL.DecodeBytes(b); err != nil {
@@ -116,6 +117,8 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 			if err := config.C.ApplicationServer.Integration.Handler.SendErrorNotification(errNotification); err != nil {
 				log.WithError(err).Error("send error notification to handler error")
 			}
+		} else {
+			object = codecPL.Object()
 		}
 	}
 
@@ -141,7 +144,7 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		FCnt:   req.FCnt,
 		FPort:  uint8(req.FPort),
 		Data:   b,
-		Object: codecPL,
+		Object: object,
 	}
 
 	for _, rxInfo := range req.RxInfo {

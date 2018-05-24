@@ -67,6 +67,11 @@ type CayenneLPP struct {
 	GPSLocation       map[byte]GPSLocation   `json:"gpsLocation,omitempty" influxdb:"gps_location"`
 }
 
+// Object returns the CayenneLPP data object.
+func (c CayenneLPP) Object() interface{} {
+	return c
+}
+
 // DecodeBytes decodes the payload from a slice of bytes.
 func (c *CayenneLPP) DecodeBytes(data []byte) error {
 	var err error

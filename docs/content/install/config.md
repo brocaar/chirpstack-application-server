@@ -12,8 +12,8 @@ The `lora-app-server` binary has the following command-line flags:
 
 ```text
 LoRa App Server is an open-source application-server, part of the LoRa Server project
-        > documentation & support: https://docs.loraserver.io/lora-app-server
-        > source & copyright information: https://github.com/brocaar/lora-app-server
+	> documentation & support: https://www.loraserver.io/lora-app-server
+	> source & copyright information: https://github.com/brocaar/lora-app-server
 
 Usage:
   lora-app-server [flags]
@@ -22,7 +22,7 @@ Usage:
 Available Commands:
   configfile  Print the LoRa Application Server configuration file
   help        Help about any command
-  version     Print the LoRa Gateway Bridge version
+  version     Print the LoRa App Server version
 
 Flags:
   -c, --config string   path to configuration file (optional)
@@ -151,11 +151,11 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   #
   # Note: the downlink_topic_template must contain both the application id and
   # DevEUI substitution!
-  uplink_topic_template="application/{{ .ApplicationID }}/node/{{ .DevEUI }}/rx"
-  downlink_topic_template="application/{{ .ApplicationID }}/node/{{ .DevEUI }}/tx"
-  join_topic_template="application/{{ .ApplicationID }}/node/{{ .DevEUI }}/join"
-  ack_topic_template="application/{{ .ApplicationID }}/node/{{ .DevEUI }}/ack"
-  error_topic_template="application/{{ .ApplicationID }}/node/{{ .DevEUI }}/error"
+  uplink_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/rx"
+  downlink_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/tx"
+  join_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/join"
+  ack_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/ack"
+  error_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error"
 
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="tcp://localhost:1883"
@@ -269,13 +269,6 @@ tls_cert=""
 
 # tls key used by the join-server api server (optional)
 tls_key=""
-
-
-# Network-server configuration.
-#
-# This configuration is only used to migrate from older LoRa App Server.
-[network_server]
-server="127.0.0.1:8000"
 ```
 
 ## Securing the application-server internal API
@@ -325,31 +318,4 @@ instructions. When the `letsencrypt` cli tool has been installed, execute:
 
 ```bash
 letsencrypt certonly --standalone -d DOMAINNAME.HERE 
-```
-
-## Warning: deprecation warning! update your configuration
-
-When you see this warning, you need to update your configuration!
-Before LoRa App Server 0.18.0 environment variables were used for setting
-configuration flags. Since LoRa App Server 0.18.0 the configuration format
-has changed.
-
-The `.deb` installer will automatically migrate your configuration. For non
-`.deb` installations, you can migrate your configuration in the following way:
-
-```bash
-# Export your environment variables, in this case from a file, but anything
-# that sets your environment variables will work.
-set -a
-source /etc/default/lora-app-server
-
-# Create the configuration directory.
-mkdir /etc/lora-app-server
-
-# Generate new configuration file, pre-filled with the configuration set
-# through the environment variables.
-lora-app-server configfile > /etc/lora-app-server/lora-app-server.toml
-
-# "Remove" the old configuration (in you were using a file).
-mv /etc/default/lora-app-server /etc/default/lora-app-server.old
 ```

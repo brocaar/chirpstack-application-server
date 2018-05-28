@@ -211,8 +211,8 @@ id="{{ .ApplicationServer.ID }}"
 
   # Registration.
   registration="{{ .ApplicationServer.Branding.Registration }}"
-{{ end }}
 
+{{ end }}
 # Join-server configuration.
 #
 # LoRa App Server implements a (subset) of the join-api specified by the
@@ -230,13 +230,6 @@ tls_cert="{{ .JoinServer.TLSCert }}"
 
 # tls key used by the join-server api server (optional)
 tls_key="{{ .JoinServer.TLSKey }}"
-
-
-# Network-server configuration.
-#
-# This configuration is only used to migrate from older LoRa App Server.
-[network_server]
-server="{{ .NetworkServer.Server }}"
 `
 
 var configCmd = &cobra.Command{

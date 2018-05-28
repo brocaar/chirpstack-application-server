@@ -38,8 +38,6 @@ import (
 	"github.com/brocaar/lora-app-server/internal/handler/multihandler"
 	"github.com/brocaar/lora-app-server/internal/migrations"
 	"github.com/brocaar/lora-app-server/internal/nsclient"
-	"github.com/brocaar/lora-app-server/internal/profilesmigrate"
-	"github.com/brocaar/lora-app-server/internal/queuemigrate"
 	"github.com/brocaar/lora-app-server/internal/static"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
@@ -100,7 +98,7 @@ func setLogLevel() error {
 func printStartMessage() error {
 	log.WithFields(log.Fields{
 		"version": version,
-		"docs":    "https://docs.loraserver.io/",
+		"docs":    "https://www.loraserver.io/",
 	}).Info("starting LoRa App Server")
 	return nil
 }
@@ -152,33 +150,6 @@ func runDatabaseMigrations() error {
 			return errors.Wrap(err, "applying migrations error")
 		}
 		log.WithField("count", n).Info("migrations applied")
-
-		for {
-			if err := profilesmigrate.StartProfilesMigration(config.C.NetworkServer.Server); err != nil {
-				log.WithError(err).Error("profiles migration failed")
-				time.Sleep(time.Second * 2)
-				continue
-			}
-			break
-		}
-
-		for {
-			if err := queuemigrate.StartDeviceQueueMigration(); err != nil {
-				log.WithError(err).Error("device-queue migration failed")
-				time.Sleep(time.Second * 2)
-				continue
-			}
-			break
-		}
-
-		for {
-			if err := profilesmigrate.StartGatewayProfileMigration(config.C.PostgreSQL.DB); err != nil {
-				log.WithError(err).Error("gateway-profile migration failed")
-				time.Sleep(time.Second * 2)
-				continue
-			}
-			break
-		}
 	}
 
 	return nil

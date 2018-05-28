@@ -38,8 +38,8 @@ PREINSTALL_SCRIPT=$TARGET/pre-install.sh
 POSTUNINSTALL_SCRIPT=$TARGET/post-uninstall.sh
 
 LICENSE=MIT
-VERSION=`git describe --always`
-URL=https://docs.loraserver.io/$NAME/
+VERSION=`git describe --always | sed -e "s/^v//"`
+URL=https://www.loraserver.io/$NAME/
 MAINTAINER=info@brocaar.com
 VENDOR="LoRa Server project"
 DESCRIPTION="LoRa App Server is an open-source application-server for LoRa Server"

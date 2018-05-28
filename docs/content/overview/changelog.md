@@ -8,6 +8,35 @@ menu:
 
 # Changelog
 
+## v1.0.0
+
+This marks the first stable release! 
+
+### Upgrade notes
+
+* First make sure you have v0.21.1 installed and running (together with LoRa Server v0.26.3).
+* As some configuration defaults have been changed (in the MQTT topic `node`
+  has been replaced by `device`), make sure the old defaults are in you config
+  file. To re-generate a configuration file while keeping your modifications, run:
+  ```bash
+  lora-app-server -c lora-app-server-old.toml configfile > lora-app-server.toml
+  ```
+* You are now ready to upgrade to v1.0.0!
+
+See [Downloads](https://www.loraserver.io/lora-app-server/overview/downloads/)
+for pre-compiled binaries or instructions how to setup the Debian / Ubuntu
+repository for v1.x.
+
+### Changes
+
+* In the MQTT topic configuration defaults, `node` has been replaced by `device`.
+* Code to remain backwards compatible with environment-variable based
+  configuration has been removed.
+* Code to create device- and service-profiles on upgrade from v0.14.0 has been removed.
+* Code to migrate the device-queue on upgrade from v0.15.0 has been removed.
+* Code to create gateway-profiles on upgrade from v0.20.0 has been removed.
+* Old unused tables (kept for upgrade migration code) have been removed from db.
+
 ## 0.21.1
 
 **Bugfixes:**

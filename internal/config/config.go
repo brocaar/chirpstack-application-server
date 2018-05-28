@@ -66,8 +66,7 @@ type Config struct {
 	} `mapstructure:"join_server"`
 
 	NetworkServer struct {
-		Server string
-		Pool   nsclient.Pool
+		Pool nsclient.Pool
 	} `mapstructure:"network_server"`
 }
 

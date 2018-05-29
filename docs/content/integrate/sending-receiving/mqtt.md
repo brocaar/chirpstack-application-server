@@ -18,7 +18,7 @@ Examples:
 
 ```bash
 mosquitto_sub -t "application/123/#" -v          # display everything for the given application ID
-mosquitto_sub -t "application/123/node/+/rx" -v  # display only the RX payloads for the given application ID
+mosquitto_sub -t "application/123/device/+/rx" -v  # display only the RX payloads for the given application ID
 ```
 
 **Notes:**
@@ -29,7 +29,11 @@ mosquitto_sub -t "application/123/node/+/rx" -v  # display only the RX payloads 
 
 ## Receiving
 
-### application/[applicationID]/node/[devEUI]/rx
+### application/[applicationID]/device/[devEUI]/rx
+
+**Note:** for versions before v1.0.0 `.../device/..` was configured as
+`.../node/...`. Please refer to the `application_server.integration.mqtt`
+[configuration]({{<ref "install/config.md">}}) for the correct topic.
 
 Topic for payloads received from your nodes. Example payload:
 
@@ -89,7 +93,11 @@ and when published by the device, the uplink payload contains the device status.
 to the nearest integer valuefor the last successfully received device-status
 request by the network-server.
 
-### application/[applicationID]/node/[devEUI]/join
+### application/[applicationID]/device/[devEUI]/join
+
+**Note:** for versions before v1.0.0 `.../device/..` was configured as
+`.../node/...`. Please refer to the `application_server.integration.mqtt`
+[configuration]({{<ref "install/config.md">}}) for the correct topic.
 
 Topic for join notifications. Example payload:
 
@@ -103,7 +111,11 @@ Topic for join notifications. Example payload:
 }
 ```
 
-### application/[applicationID]/node/[devEUI]/ack
+### application/[applicationID]/device/[devEUI]/ack
+
+**Note:** for versions before v1.0.0 `.../device/..` was configured as
+`.../node/...`. Please refer to the `application_server.integration.mqtt`
+[configuration]({{<ref "install/config.md">}}) for the correct topic.
 
 Topic for ACK notifications. Example payload:
 
@@ -119,7 +131,11 @@ Topic for ACK notifications. Example payload:
 }
 ```
 
-### application/[applicationID]/node/[devEUI]/error
+### application/[applicationID]/device/[devEUI]/error
+
+**Note:** for versions before v1.0.0 `.../device/..` was configured as
+`.../node/...`. Please refer to the `application_server.integration.mqtt`
+[configuration]({{<ref "install/config.md">}}) for the correct topic.
 
 Topic for error notifications. An error might be raised when the downlink
 payload size exceeded to max allowed payload size, in case of a MIC error,
@@ -138,7 +154,11 @@ payload size exceeded to max allowed payload size, in case of a MIC error,
 
 ## Sending
 
-### application/[applicationID]/node/[devEUI]/tx
+### application/[applicationID]/device/[devEUI]/tx
+
+**Note:** for versions before v1.0.0 `.../device/..` was configured as
+`.../node/...`. Please refer to the `application_server.integration.mqtt`
+[configuration]({{<ref "install/config.md">}}) for the correct topic.
 
 **Note:** the application ID and DevEUI of the node will be taken from the topic.
 

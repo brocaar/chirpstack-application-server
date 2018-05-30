@@ -35,6 +35,7 @@ before_deploy:
       export BEFORE_DEPLOY_RUN=1;
 
       make ui-requirements;
+      git checkout -- ui/package-lock.json;
       make dist;
 
       rvm --default use system;

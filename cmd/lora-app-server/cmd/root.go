@@ -31,6 +31,10 @@ func init() {
 	// bind flag to config vars
 	viper.BindPFlag("general.log_level", rootCmd.PersistentFlags().Lookup("log-level"))
 
+	// for debian install script
+	viper.BindEnv("application_server.external_api.tls_cert", "HTTP_TLS_CERT")
+	viper.BindEnv("application_server.external_api.tls_key", "HTTP_TLS_KEY")
+
 	// defaults
 	viper.SetDefault("general.password_hash_iterations", 100000)
 	viper.SetDefault("postgresql.dsn", "postgres://localhost/loraserver_as?sslmode=disable")

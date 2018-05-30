@@ -8,6 +8,12 @@ menu:
 
 # Changelog
 
+## v1.0.1
+
+### Improvements
+
+* `tls_cert` and `tls_key` are set automatically (again) when installing from `.deb` file.
+
 ## v1.0.0
 
 This marks the first stable release! 

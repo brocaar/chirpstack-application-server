@@ -231,6 +231,13 @@ func (h *Handler) SendErrorNotification(pl handler.ErrorNotification) error {
 	return nil
 }
 
+func valueOrEmptyString(pInt *uint8) string {
+	if pInt != nil {
+		return strconv.FormatInt(int64(*pInt), 10)
+	}
+	return ""
+}
+
 func objectToMeasurements(pl handler.DataUpPayload, prefix string, obj interface{}) []measurement {
 	var out []measurement
 
@@ -242,7 +249,7 @@ func objectToMeasurements(pl handler.DataUpPayload, prefix string, obj interface
 				"application_name": pl.ApplicationName,
 				"device_name":      pl.DeviceName,
 				"dev_eui":          pl.DevEUI.String(),
-				"f_port":           strconv.FormatInt(int64(*pl.FPort), 10),
+				"f_port":           valueOrEmptyString(pl.FPort),
 			},
 			Values: map[string]interface{}{
 				"value": o,
@@ -343,7 +350,7 @@ func mapToLocation(pl handler.DataUpPayload, prefix string, obj reflect.Value) [
 				"application_name": pl.ApplicationName,
 				"device_name":      pl.DeviceName,
 				"dev_eui":          pl.DevEUI.String(),
-				"f_port":           strconv.FormatInt(int64(*pl.FPort), 10),
+				"f_port":           valueOrEmptyString(pl.FPort),
 			},
 			Values: map[string]interface{}{
 				"latitude":  latFloat,
@@ -390,7 +397,7 @@ func structToLocation(pl handler.DataUpPayload, prefix string, obj reflect.Value
 				"application_name": pl.ApplicationName,
 				"device_name":      pl.DeviceName,
 				"dev_eui":          pl.DevEUI.String(),
-				"f_port":           strconv.FormatInt(int64(*pl.FPort), 10),
+				"f_port":           valueOrEmptyString(pl.FPort),
 			},
 			Values: map[string]interface{}{
 				"latitude":  latFloat,

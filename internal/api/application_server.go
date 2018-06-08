@@ -142,9 +142,13 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 			CodeRate: req.TxInfo.CodeRate,
 		},
 		FCnt:   req.FCnt,
-		FPort:  uint8(req.FPort),
 		Data:   b,
 		Object: object,
+	}
+
+	if req.FPort != 0 {
+		pl.FPort = new(uint8)
+		*pl.FPort = uint8(req.FPort)
 	}
 
 	for _, rxInfo := range req.RxInfo {

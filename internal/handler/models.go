@@ -54,7 +54,7 @@ type DataUpPayload struct {
 	RXInfo              []RXInfo      `json:"rxInfo,omitempty"`
 	TXInfo              TXInfo        `json:"txInfo"`
 	FCnt                uint32        `json:"fCnt"`
-	FPort               uint8         `json:"fPort"`
+	FPort               *uint8        `json:"fPort"`
 	Data                []byte        `json:"data"`
 	Object              interface{}   `json:"object,omitempty"`
 }

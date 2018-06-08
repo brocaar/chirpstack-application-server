@@ -242,7 +242,7 @@ func objectToMeasurements(pl handler.DataUpPayload, prefix string, obj interface
 				"application_name": pl.ApplicationName,
 				"device_name":      pl.DeviceName,
 				"dev_eui":          pl.DevEUI.String(),
-				"f_port":           strconv.FormatInt(int64(pl.FPort), 10),
+				"f_port":           strconv.FormatInt(int64(*pl.FPort), 10),
 			},
 			Values: map[string]interface{}{
 				"value": o,
@@ -343,7 +343,7 @@ func mapToLocation(pl handler.DataUpPayload, prefix string, obj reflect.Value) [
 				"application_name": pl.ApplicationName,
 				"device_name":      pl.DeviceName,
 				"dev_eui":          pl.DevEUI.String(),
-				"f_port":           strconv.FormatInt(int64(pl.FPort), 10),
+				"f_port":           strconv.FormatInt(int64(*pl.FPort), 10),
 			},
 			Values: map[string]interface{}{
 				"latitude":  latFloat,
@@ -390,7 +390,7 @@ func structToLocation(pl handler.DataUpPayload, prefix string, obj reflect.Value
 				"application_name": pl.ApplicationName,
 				"device_name":      pl.DeviceName,
 				"dev_eui":          pl.DevEUI.String(),
-				"f_port":           strconv.FormatInt(int64(pl.FPort), 10),
+				"f_port":           strconv.FormatInt(int64(*pl.FPort), 10),
 			},
 			Values: map[string]interface{}{
 				"latitude":  latFloat,

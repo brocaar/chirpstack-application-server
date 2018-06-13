@@ -25,9 +25,11 @@ func TestJoinServerAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 	config.C.PostgreSQL.DB = db
+	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL)
 
 	Convey("Given a clean database with a device", t, func() {
 		test.MustResetDB(config.C.PostgreSQL.DB)
+		test.MustFlushRedis(config.C.Redis.Pool)
 
 		nsClient := test.NewNetworkServerClient()
 		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
@@ -125,6 +127,7 @@ func TestJoinServerAPI(t *testing.T) {
 				So(jaPHY.EncryptJoinAcceptPayload(dk.AppKey), ShouldBeNil)
 				jaPHYBytes, err := jaPHY.MarshalBinary()
 				So(err, ShouldBeNil)
+				So(jaPHYBytes, ShouldResemble, []byte{32, 38, 244, 178, 71, 240, 165, 215, 228, 106, 114, 14, 97, 200, 188, 203, 197, 23, 159, 69, 102, 225, 133, 237, 104, 137, 88, 155, 177, 169, 198, 140, 192})
 
 				joinReqPayload := backend.JoinReqPayload{
 					BasePayload: backend.BasePayload{

@@ -150,36 +150,6 @@ func (h *Handler) SendDataUp(pl handler.DataUpPayload) error {
 
 	var measurements []measurement
 
-	// add battery status measurement
-	if pl.DeviceStatusBattery != nil {
-		measurements = append(measurements, measurement{
-			Name: "device_status_battery",
-			Tags: map[string]string{
-				"application_name": pl.ApplicationName,
-				"device_name":      pl.DeviceName,
-				"dev_eui":          pl.DevEUI.String(),
-			},
-			Values: map[string]interface{}{
-				"value": *pl.DeviceStatusBattery,
-			},
-		})
-	}
-
-	// add margin status measurement
-	if pl.DeviceStatusMargin != nil {
-		measurements = append(measurements, measurement{
-			Name: "device_status_margin",
-			Tags: map[string]string{
-				"application_name": pl.ApplicationName,
-				"device_name":      pl.DeviceName,
-				"dev_eui":          pl.DevEUI.String(),
-			},
-			Values: map[string]interface{}{
-				"value": *pl.DeviceStatusMargin,
-			},
-		})
-	}
-
 	// add data-rate measurement
 	measurements = append(measurements, measurement{
 		Name: "device_uplink",
@@ -212,6 +182,45 @@ func (h *Handler) SendDataUp(pl handler.DataUpPayload) error {
 	log.WithFields(log.Fields{
 		"dev_eui": pl.DevEUI,
 	}).Info("handler/influxdb: uplink measurements written")
+
+	return nil
+}
+
+// SendStatusNotification writes the device-status.
+func (h *Handler) SendStatusNotification(pl handler.StatusNotification) error {
+	var measurements []measurement
+
+	measurements = append(measurements, measurement{
+		Name: "device_status_battery",
+		Tags: map[string]string{
+			"application_name": pl.ApplicationName,
+			"device_name":      pl.DeviceName,
+			"dev_eui":          pl.DevEUI.String(),
+		},
+		Values: map[string]interface{}{
+			"value": pl.Battery,
+		},
+	})
+
+	measurements = append(measurements, measurement{
+		Name: "device_status_margin",
+		Tags: map[string]string{
+			"application_name": pl.ApplicationName,
+			"device_name":      pl.DeviceName,
+			"dev_eui":          pl.DevEUI.String(),
+		},
+		Values: map[string]interface{}{
+			"value": pl.Margin,
+		},
+	})
+
+	if err := h.send(measurements); err != nil {
+		return errors.Wrap(err, "sending measurements error")
+	}
+
+	log.WithFields(log.Fields{
+		"dev_eui": pl.DevEUI,
+	}).Info("handler/influxdb: status measurements written")
 
 	return nil
 }

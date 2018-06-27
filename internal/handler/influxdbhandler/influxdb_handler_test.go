@@ -46,9 +46,52 @@ func TestHandler(t *testing.T) {
 		h, err := NewHandler(conf)
 		So(err, ShouldBeNil)
 
+		Convey("Status testcases", func() {
+			tests := []struct {
+				Name         string
+				Payload      handler.StatusNotification
+				ExpectedBody string
+			}{
+				{
+					Name: "margin and battery status",
+					Payload: handler.StatusNotification{
+						ApplicationName: "test-app",
+						DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+						DeviceName:      "test-device",
+						Battery:         123,
+						Margin:          10,
+					},
+					ExpectedBody: `device_status_battery,application_name=test-app,dev_eui=0102030405060708,device_name=test-device value=123i
+device_status_margin,application_name=test-app,dev_eui=0102030405060708,device_name=test-device value=10i`,
+				},
+			}
+
+			for i, test := range tests {
+				Convey(fmt.Sprintf("Testing: %s [%d]", test.Name, i), func() {
+					So(h.SendStatusNotification(test.Payload), ShouldBeNil)
+					req := <-httpHandler.requests
+					So(req.URL.Path, ShouldEqual, "/write")
+					So(req.URL.Query(), ShouldResemble, url.Values{
+						"db":        []string{"loraserver"},
+						"precision": []string{"s"},
+						"rp":        []string{"DEFAULT"},
+					})
+
+					b, err := ioutil.ReadAll(req.Body)
+					So(err, ShouldBeNil)
+					So(string(b), ShouldEqual, test.ExpectedBody)
+
+					user, pw, ok := req.BasicAuth()
+					So(user, ShouldEqual, conf.Username)
+					So(pw, ShouldEqual, conf.Password)
+					So(ok, ShouldBeTrue)
+
+					So(req.Header.Get("Content-Type"), ShouldEqual, "text/plain")
+				})
+			}
+		})
+
 		Convey("Uplink data testcases", func() {
-			ten := 10
-			eleven := 11
 
 			tests := []struct {
 				Name         string
@@ -120,13 +163,11 @@ device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=01020304
 				{
 					Name: "One level depth + device status fields",
 					Payload: handler.DataUpPayload{
-						ApplicationName:     "test-app",
-						DeviceName:          "test-dev",
-						DevEUI:              lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
-						FCnt:                10,
-						FPort:               20,
-						DeviceStatusBattery: &ten,
-						DeviceStatusMargin:  &eleven,
+						ApplicationName: "test-app",
+						DeviceName:      "test-dev",
+						DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+						FCnt:            10,
+						FPort:           20,
 						TXInfo: handler.TXInfo{
 							Frequency: 868100000,
 							DataRate: handler.DataRate{
@@ -146,8 +187,6 @@ device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=01020304
 device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=20i
 device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value="on"
 device_frmpayload_data_temperature,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=25.400000
-device_status_battery,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev value=10i
-device_status_margin,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev value=11i
 device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=0102030405060708,device_name=test-dev,frequency=868100000,modulation=LORA,spreading_factor=10 value=1i`,
 				},
 				{

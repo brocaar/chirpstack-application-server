@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -59,16 +60,6 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 
 	now := time.Now()
 	d.LastSeenAt = &now
-	d.DeviceStatusBattery = nil
-	if req.DeviceStatusBattery != 256 {
-		batt := int(req.DeviceStatusBattery)
-		d.DeviceStatusBattery = &batt
-	}
-	d.DeviceStatusMargin = nil
-	if req.DeviceStatusMargin != 256 {
-		marg := int(req.DeviceStatusMargin)
-		d.DeviceStatusMargin = &marg
-	}
 	err = storage.UpdateDevice(config.C.PostgreSQL.DB, &d)
 	if err != nil {
 		errStr := fmt.Sprintf("update device error: %s", err)
@@ -123,13 +114,11 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 	}
 
 	pl := handler.DataUpPayload{
-		ApplicationID:       app.ID,
-		ApplicationName:     app.Name,
-		DeviceName:          d.Name,
-		DevEUI:              devEUI,
-		DeviceStatusBattery: d.DeviceStatusBattery,
-		DeviceStatusMargin:  d.DeviceStatusMargin,
-		RXInfo:              []handler.RXInfo{},
+		ApplicationID:   app.ID,
+		ApplicationName: app.Name,
+		DeviceName:      d.Name,
+		DevEUI:          devEUI,
+		RXInfo:          []handler.RXInfo{},
 		TXInfo: handler.TXInfo{
 			Frequency: int(req.TxInfo.Frequency),
 			DataRate: handler.DataRate{
@@ -310,6 +299,55 @@ func (a *ApplicationServerAPI) HandleProprietaryUplink(ctx context.Context, req 
 	}
 
 	return &as.HandleProprietaryUplinkResponse{}, nil
+}
+
+// SetDeviceStatus updates the device-status for the given device.
+func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetDeviceStatusRequest) (*as.SetDeviceStatusResponse, error) {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], req.DevEui)
+
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
+	if err != nil {
+		return nil, errToRPCError(errors.Wrap(err, "get device error"))
+	}
+
+	batt := int(req.Battery)
+	marg := int(req.Margin)
+
+	d.DeviceStatusBattery = &batt
+	d.DeviceStatusMargin = &marg
+
+	if err := storage.UpdateDevice(config.C.PostgreSQL.DB, &d); err != nil {
+		return nil, errToRPCError(errors.Wrap(err, "update device error"))
+	}
+
+	app, err := storage.GetApplication(config.C.PostgreSQL.DB, d.ApplicationID)
+	if err != nil {
+		return nil, errToRPCError(errors.Wrap(err, "get application error"))
+	}
+
+	pl := handler.StatusNotification{
+		ApplicationID:   app.ID,
+		ApplicationName: app.Name,
+		DeviceName:      d.Name,
+		DevEUI:          d.DevEUI,
+		Battery:         batt,
+		Margin:          marg,
+	}
+	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
+		Type:    eventlog.Status,
+		Payload: pl,
+	})
+	if err != nil {
+		log.WithError(err).Error("log event for device error")
+	}
+
+	err = config.C.ApplicationServer.Integration.Handler.SendStatusNotification(pl)
+	if err != nil {
+		return nil, errToRPCError(errors.Wrap(err, "send status notitifaction to handler error"))
+	}
+
+	return &as.SetDeviceStatusResponse{}, nil
 }
 
 // getAppNonce returns a random application nonce (used for OTAA).

@@ -57,8 +57,18 @@ class DeviceKeysForm extends Component {
     return(
       <form onSubmit={this.handleSubmit}>
         <div className="form-group">
-          <label className="control-label" htmlFor="devEUI">Application key</label>
-          <input className="form-control" id="appKey" type="text" placeholder="00000000000000000000000000000000" pattern="[A-Fa-f0-9]{32}" required value={this.state.deviceKeys.deviceKeys.appKey || ''} onChange={this.onChange.bind(this, 'deviceKeys.appKey')} /> 
+          <label className="control-label" htmlFor="nwkKey">Network key</label>
+          <input className="form-control" id="nwkKey" type="text" placeholder="00000000000000000000000000000000" pattern="[A-Fa-f0-9]{32}" required value={this.state.deviceKeys.deviceKeys.nwkKey || ''} onChange={this.onChange.bind(this, 'deviceKeys.nwkKey')} /> 
+          <p className="help-block">
+            For LoRaWAN 1.0 devices, this is the only key you need to set (in LoRaWAN 1.0 this used to be the application-key).
+          </p>
+        </div>
+        <div className="form-group">
+          <label className="control-label" htmlFor="appKey">Application key</label>
+          <input className="form-control" id="appKey" type="text" placeholder="00000000000000000000000000000000" pattern="[A-Fa-f0-9]{32}" value={this.state.deviceKeys.deviceKeys.appKey || ''} onChange={this.onChange.bind(this, 'deviceKeys.appKey')} /> 
+          <p className="help-block">
+            Leave this blank for LoRaWAN 1.0 devices.
+          </p>
         </div>
         <hr />
         <div className="btn-toolbar pull-right">

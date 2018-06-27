@@ -262,7 +262,7 @@ func TestNodeAPI(t *testing.T) {
 				_, err := api.CreateKeys(ctx, &pb.CreateDeviceKeysRequest{
 					DevEUI: "0807060504030201",
 					DeviceKeys: &pb.DeviceKeys{
-						AppKey: "01020304050607080807060504030201",
+						NwkKey: "01020304050607080807060504030201",
 					},
 				})
 				So(err, ShouldBeNil)
@@ -274,7 +274,8 @@ func TestNodeAPI(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(dk, ShouldResemble, &pb.GetDeviceKeysResponse{
 						DeviceKeys: &pb.DeviceKeys{
-							AppKey: "01020304050607080807060504030201",
+							NwkKey: "01020304050607080807060504030201",
+							AppKey: "00000000000000000000000000000000",
 						},
 					})
 				})
@@ -283,7 +284,7 @@ func TestNodeAPI(t *testing.T) {
 					_, err := api.UpdateKeys(ctx, &pb.UpdateDeviceKeysRequest{
 						DevEUI: "0807060504030201",
 						DeviceKeys: &pb.DeviceKeys{
-							AppKey: "08070605040302010102030405060708",
+							NwkKey: "08070605040302010102030405060708",
 						},
 					})
 					So(err, ShouldBeNil)
@@ -294,7 +295,8 @@ func TestNodeAPI(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(dk, ShouldResemble, &pb.GetDeviceKeysResponse{
 						DeviceKeys: &pb.DeviceKeys{
-							AppKey: "08070605040302010102030405060708",
+							NwkKey: "08070605040302010102030405060708",
+							AppKey: "00000000000000000000000000000000",
 						},
 					})
 				})
@@ -315,12 +317,15 @@ func TestNodeAPI(t *testing.T) {
 
 			Convey("When activating the device (ABP)", func() {
 				_, err := api.Activate(ctx, &pb.ActivateDeviceRequest{
-					DevEUI:   "0807060504030201",
-					DevAddr:  "01020304",
-					AppSKey:  "01020304050607080102030405060708",
-					NwkSKey:  "08070605040302010807060504030201",
-					FCntUp:   10,
-					FCntDown: 11,
+					DevEUI:      "0807060504030201",
+					DevAddr:     "01020304",
+					AppSKey:     "01020304050607080102030405060708",
+					NwkSEncKey:  "08070605040302010807060504030201",
+					SNwkSIntKey: "08070605040302010807060504030202",
+					FNwkSIntKey: "08070605040302010807060504030203",
+					FCntUp:      10,
+					NFCntDown:   11,
+					AFCntDown:   12,
 				})
 				So(err, ShouldBeNil)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
@@ -335,11 +340,14 @@ func TestNodeAPI(t *testing.T) {
 				Convey("Then a device-session was created", func() {
 					So(nsClient.ActivateDeviceChan, ShouldHaveLength, 1)
 					So(<-nsClient.ActivateDeviceChan, ShouldResemble, ns.ActivateDeviceRequest{
-						DevAddr:  []uint8{1, 2, 3, 4},
-						DevEUI:   []uint8{8, 7, 6, 5, 4, 3, 2, 1},
-						NwkSKey:  []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
-						FCntUp:   10,
-						FCntDown: 11,
+						DevAddr:     []uint8{1, 2, 3, 4},
+						DevEUI:      []uint8{8, 7, 6, 5, 4, 3, 2, 1},
+						NwkSEncKey:  []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
+						SNwkSIntKey: []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 2},
+						FNwkSIntKey: []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 3},
+						FCntUp:      10,
+						NFCntDown:   11,
+						AFCntDown:   12,
 					})
 				})
 
@@ -347,7 +355,9 @@ func TestNodeAPI(t *testing.T) {
 					da, err := storage.GetLastDeviceActivationForDevEUI(config.C.PostgreSQL.DB, [8]byte{8, 7, 6, 5, 4, 3, 2, 1})
 					So(err, ShouldBeNil)
 					So(da.AppSKey, ShouldEqual, lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8})
-					So(da.NwkSKey, ShouldEqual, lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1})
+					So(da.NwkSEncKey, ShouldEqual, lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1})
+					So(da.SNwkSIntKey, ShouldEqual, lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 2})
+					So(da.FNwkSIntKey, ShouldEqual, lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 3})
 					So(da.DevAddr, ShouldEqual, lorawan.DevAddr{1, 2, 3, 4})
 				})
 			})

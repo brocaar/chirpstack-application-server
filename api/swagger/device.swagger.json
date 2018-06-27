@@ -428,21 +428,34 @@
         },
         "appSKey": {
           "type": "string",
-          "description": "Hex encoded AppSKey."
+          "description": "Hex encoded application session key."
         },
-        "nwkSKey": {
+        "nwkSEncKey": {
           "type": "string",
-          "description": "Hex encoded NwkSKey."
+          "description": "Hex encoded network session encryption key."
+        },
+        "sNwkSIntKey": {
+          "type": "string",
+          "description": "Hex encoded serving network session integrity key."
+        },
+        "fNwkSIntKey": {
+          "type": "string",
+          "description": "Hex encoded forwarding network session integrity key."
         },
         "fCntUp": {
           "type": "integer",
           "format": "int64",
           "description": "Uplink frame-counter."
         },
-        "fCntDown": {
+        "nFCntDown": {
           "type": "integer",
           "format": "int64",
-          "description": "Downlink frame-counter."
+          "description": "Downlink network frame-counter."
+        },
+        "aFCntDown": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Downlink application frame-counter."
         },
         "skipFCntCheck": {
           "type": "boolean",
@@ -536,9 +549,13 @@
     "apiDeviceKeys": {
       "type": "object",
       "properties": {
+        "nwkKey": {
+          "type": "string",
+          "title": "HEX encoded network key.\nNote: For LoRaWAN 1.0.x, use this field for the LoRaWAN 1.0.x 'AppKey`!"
+        },
         "appKey": {
           "type": "string",
-          "description": "HEX encoded application key."
+          "title": "HEX encoded application key.\nNote: This field only needs to be set for LoRaWAN 1.1.x devices!"
         }
       }
     },
@@ -664,21 +681,34 @@
         },
         "appSKey": {
           "type": "string",
-          "description": "Hex encoded AppSKey."
+          "description": "Hex encoded application session key."
         },
-        "nwkSKey": {
+        "nwkSEncKey": {
           "type": "string",
-          "description": "Hex encoded NwkSKey."
+          "description": "Hex encoded network session encryption key."
+        },
+        "sNwkSIntKey": {
+          "type": "string",
+          "description": "Hex encoded serving network session integrity key."
+        },
+        "fNwkSIntKey": {
+          "type": "string",
+          "description": "Hex encoded forwarding network session integrity key."
         },
         "fCntUp": {
           "type": "integer",
           "format": "int64",
           "description": "Uplink frame-counter."
         },
-        "fCntDown": {
+        "nFCntDown": {
           "type": "integer",
           "format": "int64",
-          "description": "Downlink frame-counter."
+          "description": "Downlink network frame-counter."
+        },
+        "aFCntDown": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Downlink application frame-counter."
         },
         "skipFCntCheck": {
           "type": "boolean",

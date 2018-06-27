@@ -4,20 +4,22 @@ import "github.com/brocaar/lora-app-server/internal/handler"
 
 // TestHandler implements a Handler for testing.
 type TestHandler struct {
-	SendDataUpChan            chan handler.DataUpPayload
-	SendJoinNotificationChan  chan handler.JoinNotification
-	SendACKNotificationChan   chan handler.ACKNotification
-	SendErrorNotificationChan chan handler.ErrorNotification
-	DataDownPayloadChan       chan handler.DataDownPayload
+	SendDataUpChan             chan handler.DataUpPayload
+	SendJoinNotificationChan   chan handler.JoinNotification
+	SendACKNotificationChan    chan handler.ACKNotification
+	SendErrorNotificationChan  chan handler.ErrorNotification
+	DataDownPayloadChan        chan handler.DataDownPayload
+	SendStatusNotificationChan chan handler.StatusNotification
 }
 
 func NewTestHandler() *TestHandler {
 	return &TestHandler{
-		SendDataUpChan:            make(chan handler.DataUpPayload, 100),
-		SendJoinNotificationChan:  make(chan handler.JoinNotification, 100),
-		SendACKNotificationChan:   make(chan handler.ACKNotification, 100),
-		SendErrorNotificationChan: make(chan handler.ErrorNotification, 100),
-		DataDownPayloadChan:       make(chan handler.DataDownPayload, 100),
+		SendDataUpChan:             make(chan handler.DataUpPayload, 100),
+		SendJoinNotificationChan:   make(chan handler.JoinNotification, 100),
+		SendACKNotificationChan:    make(chan handler.ACKNotification, 100),
+		SendErrorNotificationChan:  make(chan handler.ErrorNotification, 100),
+		DataDownPayloadChan:        make(chan handler.DataDownPayload, 100),
+		SendStatusNotificationChan: make(chan handler.StatusNotification, 100),
 	}
 }
 
@@ -47,4 +49,9 @@ func (t *TestHandler) SendErrorNotification(payload handler.ErrorNotification) e
 
 func (t *TestHandler) DataDownChan() chan handler.DataDownPayload {
 	return t.DataDownPayloadChan
+}
+
+func (t *TestHandler) SendStatusNotification(payload handler.StatusNotification) error {
+	t.SendStatusNotificationChan <- payload
+	return nil
 }

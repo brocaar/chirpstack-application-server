@@ -80,10 +80,10 @@ func TestDownlinkQueueAPI(t *testing.T) {
 		So(storage.CreateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 
 		da := storage.DeviceActivation{
-			DevEUI:  d.DevEUI,
-			DevAddr: lorawan.DevAddr{1, 2, 3, 4},
-			AppSKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
-			NwkSKey: lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
+			DevEUI:      d.DevEUI,
+			DevAddr:     lorawan.DevAddr{1, 2, 3, 4},
+			AppSKey:     lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+			FNwkSIntKey: lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
 		}
 		So(storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &da), ShouldBeNil)
 

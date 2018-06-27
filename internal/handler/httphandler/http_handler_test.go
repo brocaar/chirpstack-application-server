@@ -79,10 +79,11 @@ func TestHandler(t *testing.T) {
 			Headers: map[string]string{
 				"Foo": "Bar",
 			},
-			DataUpURL:            server.URL + "/dataup",
-			JoinNotificationURL:  server.URL + "/join",
-			ACKNotificationURL:   server.URL + "/ack",
-			ErrorNotificationURL: server.URL + "/error",
+			DataUpURL:             server.URL + "/dataup",
+			JoinNotificationURL:   server.URL + "/join",
+			ACKNotificationURL:    server.URL + "/ack",
+			ErrorNotificationURL:  server.URL + "/error",
+			StatusNotificationURL: server.URL + "/status",
 		}
 		h, err := NewHandler(conf)
 		So(err, ShouldBeNil)
@@ -145,6 +146,22 @@ func TestHandler(t *testing.T) {
 			So(req.URL.Path, ShouldEqual, "/error")
 
 			var pl handler.ErrorNotification
+			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
+			So(pl, ShouldResemble, reqPL)
+			So(req.Header.Get("Foo"), ShouldEqual, "Bar")
+			So(req.Header.Get("Content-Type"), ShouldEqual, "application/json")
+		})
+
+		Convey("Then SendStatusNotification sends the correct notification", func() {
+			reqPL := handler.StatusNotification{
+				Battery: 123,
+			}
+			So(h.SendStatusNotification(reqPL), ShouldBeNil)
+
+			req := <-httpHandler.requests
+			So(req.URL.Path, ShouldEqual, "/status")
+
+			var pl handler.StatusNotification
 			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
 			So(pl, ShouldResemble, reqPL)
 			So(req.Header.Get("Foo"), ShouldEqual, "Bar")

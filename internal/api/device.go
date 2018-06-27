@@ -199,8 +199,16 @@ func (a *DeviceAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequ
 		return nil, grpc.Errorf(codes.InvalidArgument, "devicesKeys expected")
 	}
 
-	var key lorawan.AES128Key
-	if err := key.UnmarshalText([]byte(req.DeviceKeys.AppKey)); err != nil {
+	// appKey is not used for LoRaWAN 1.0
+	var appKey lorawan.AES128Key
+	if req.DeviceKeys.AppKey != "" {
+		if err := appKey.UnmarshalText([]byte(req.DeviceKeys.AppKey)); err != nil {
+			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+		}
+	}
+
+	var nwkKey lorawan.AES128Key
+	if err := nwkKey.UnmarshalText([]byte(req.DeviceKeys.NwkKey)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
@@ -217,7 +225,8 @@ func (a *DeviceAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequ
 
 	err := storage.CreateDeviceKeys(config.C.PostgreSQL.DB, &storage.DeviceKeys{
 		DevEUI: eui,
-		AppKey: key,
+		NwkKey: nwkKey,
+		AppKey: appKey,
 	})
 	if err != nil {
 		return nil, errToRPCError(err)
@@ -247,6 +256,7 @@ func (a *DeviceAPI) GetKeys(ctx context.Context, req *pb.GetDeviceKeysRequest) (
 	return &pb.GetDeviceKeysResponse{
 		DeviceKeys: &pb.DeviceKeys{
 			AppKey: dk.AppKey.String(),
+			NwkKey: dk.NwkKey.String(),
 		},
 	}, nil
 }
@@ -257,8 +267,16 @@ func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequ
 		return nil, grpc.Errorf(codes.InvalidArgument, "devicesKeys expected")
 	}
 
-	var key lorawan.AES128Key
-	if err := key.UnmarshalText([]byte(req.DeviceKeys.AppKey)); err != nil {
+	var appKey lorawan.AES128Key
+	// appKey is not used for LoRaWAN 1.0
+	if req.DeviceKeys.AppKey != "" {
+		if err := appKey.UnmarshalText([]byte(req.DeviceKeys.AppKey)); err != nil {
+			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+		}
+	}
+
+	var nwkKey lorawan.AES128Key
+	if err := nwkKey.UnmarshalText([]byte(req.DeviceKeys.NwkKey)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
@@ -277,7 +295,8 @@ func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequ
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	dk.AppKey = key
+	dk.NwkKey = nwkKey
+	dk.AppKey = appKey
 
 	err = storage.UpdateDeviceKeys(config.C.PostgreSQL.DB, &dk)
 	if err != nil {
@@ -311,7 +330,10 @@ func (a *DeviceAPI) DeleteKeys(ctx context.Context, req *pb.DeleteDeviceKeysRequ
 func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest) (*pb.ActivateDeviceResponse, error) {
 	var devAddr lorawan.DevAddr
 	var devEUI lorawan.EUI64
-	var appSKey, nwkSKey lorawan.AES128Key
+	var appSKey lorawan.AES128Key
+	var nwkSEncKey lorawan.AES128Key
+	var sNwkSIntKey lorawan.AES128Key
+	var fNwkSIntKey lorawan.AES128Key
 
 	if err := devAddr.UnmarshalText([]byte(req.DevAddr)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devAddr: %s", err)
@@ -322,8 +344,14 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 	if err := appSKey.UnmarshalText([]byte(req.AppSKey)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "appSKey: %s", err)
 	}
-	if err := nwkSKey.UnmarshalText([]byte(req.NwkSKey)); err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "nwkSKey: %s", err)
+	if err := nwkSEncKey.UnmarshalText([]byte(req.NwkSEncKey)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "nwkSEncKey: %s", err)
+	}
+	if err := sNwkSIntKey.UnmarshalText([]byte(req.SNwkSIntKey)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "sNwkSIntKey: %s", err)
+	}
+	if err := fNwkSIntKey.UnmarshalText([]byte(req.FNwkSIntKey)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "fNwkSIntKey: %s", err)
 	}
 
 	if err := a.validator.Validate(ctx,
@@ -345,10 +373,6 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, grpc.Errorf(codes.FailedPrecondition, "node must be an ABP node")
 	}
 
-	// try to remove an existing node-session.
-	// TODO: refactor once https://github.com/brocaar/loraserver/pull/124 is in place?
-	// so that we can call something like SaveNodeSession which will either
-	// create or update an existing node-session
 	n, err := storage.GetNetworkServerForDevEUI(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
 		return nil, errToRPCError(err)
@@ -366,9 +390,12 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 	actReq := ns.ActivateDeviceRequest{
 		DevEUI:        d.DevEUI[:],
 		DevAddr:       devAddr[:],
-		NwkSKey:       nwkSKey[:],
+		NwkSEncKey:    nwkSEncKey[:],
+		SNwkSIntKey:   sNwkSIntKey[:],
+		FNwkSIntKey:   fNwkSIntKey[:],
 		FCntUp:        req.FCntUp,
-		FCntDown:      req.FCntDown,
+		NFCntDown:     req.NFCntDown,
+		AFCntDown:     req.AFCntDown,
 		SkipFCntCheck: req.SkipFCntCheck,
 	}
 
@@ -378,10 +405,12 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 	}
 
 	err = storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &storage.DeviceActivation{
-		DevEUI:  d.DevEUI,
-		DevAddr: devAddr,
-		AppSKey: appSKey,
-		NwkSKey: nwkSKey,
+		DevEUI:      d.DevEUI,
+		DevAddr:     devAddr,
+		AppSKey:     appSKey,
+		FNwkSIntKey: fNwkSIntKey,
+		SNwkSIntKey: sNwkSIntKey,
+		NwkSEncKey:  nwkSEncKey,
 	})
 	if err != nil {
 		return nil, errToRPCError(err)
@@ -403,7 +432,9 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivationRequest) (*pb.GetDeviceActivationResponse, error) {
 	var devAddr lorawan.DevAddr
 	var devEUI lorawan.EUI64
-	var nwkSKey lorawan.AES128Key
+	var sNwkSIntKey lorawan.AES128Key
+	var fNwkSIntKey lorawan.AES128Key
+	var nwkSEncKey lorawan.AES128Key
 
 	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
@@ -442,14 +473,19 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 	}
 
 	copy(devAddr[:], devAct.DevAddr)
-	copy(nwkSKey[:], devAct.NwkSKey)
+	copy(nwkSEncKey[:], devAct.NwkSEncKey)
+	copy(sNwkSIntKey[:], devAct.SNwkSIntKey)
+	copy(fNwkSIntKey[:], devAct.FNwkSIntKey)
 
 	return &pb.GetDeviceActivationResponse{
 		DevAddr:       devAddr.String(),
 		AppSKey:       da.AppSKey.String(),
-		NwkSKey:       nwkSKey.String(),
+		NwkSEncKey:    nwkSEncKey.String(),
+		SNwkSIntKey:   sNwkSIntKey.String(),
+		FNwkSIntKey:   fNwkSIntKey.String(),
 		FCntUp:        devAct.FCntUp,
-		FCntDown:      devAct.FCntDown,
+		NFCntDown:     devAct.NFCntDown,
+		AFCntDown:     devAct.AFCntDown,
 		SkipFCntCheck: devAct.SkipFCntCheck,
 	}, nil
 }
@@ -491,7 +527,7 @@ func (a *DeviceAPI) StreamFrameLogs(req *pb.StreamDeviceFrameLogsRequest, srv pb
 			return err
 		}
 
-		up, down, err := convertUplinkAndDownlinkFrames(resp.UplinkFrames, resp.DownlinkFrames)
+		up, down, err := convertUplinkAndDownlinkFrames(resp.UplinkFrames, resp.DownlinkFrames, true)
 		if err != nil {
 			return errToRPCError(err)
 		}
@@ -612,7 +648,7 @@ func (a *DeviceAPI) returnList(count int, devices []storage.DeviceListItem) (*pb
 	return &resp, nil
 }
 
-func convertUplinkAndDownlinkFrames(up []*ns.UplinkFrameLog, down []*ns.DownlinkFrameLog) ([]*pb.UplinkFrameLog, []*pb.DownlinkFrameLog, error) {
+func convertUplinkAndDownlinkFrames(up []*ns.UplinkFrameLog, down []*ns.DownlinkFrameLog, decodeMACCommands bool) ([]*pb.UplinkFrameLog, []*pb.DownlinkFrameLog, error) {
 	var outUp []*pb.UplinkFrameLog
 	var outDown []*pb.DownlinkFrameLog
 
@@ -622,6 +658,21 @@ func convertUplinkAndDownlinkFrames(up []*ns.UplinkFrameLog, down []*ns.Downlink
 
 		if err := phy.UnmarshalBinary(upFL.PhyPayload); err != nil {
 			return nil, nil, errors.Wrap(err, "unmarshal phypayload error")
+		}
+
+		if decodeMACCommands {
+			switch v := phy.MACPayload.(type) {
+			case *lorawan.MACPayload:
+				if err := phy.DecodeFOptsToMACCommands(); err != nil {
+					return nil, nil, errors.Wrap(err, "decode fopts to mac-commands error")
+				}
+
+				if v.FPort != nil && *v.FPort == 0 {
+					if err := phy.DecodeFRMPayloadToMACCommands(); err != nil {
+						return nil, nil, errors.Wrap(err, "decode frmpayload to mac-commands error")
+					}
+				}
+			}
 		}
 
 		phyB, err := json.Marshal(phy)
@@ -662,6 +713,21 @@ func convertUplinkAndDownlinkFrames(up []*ns.UplinkFrameLog, down []*ns.Downlink
 		var phy lorawan.PHYPayload
 		if err := phy.UnmarshalBinary(downFL.PhyPayload); err != nil {
 			return nil, nil, errors.Wrap(err, "unmarshal phypayload error")
+		}
+
+		if decodeMACCommands {
+			switch v := phy.MACPayload.(type) {
+			case *lorawan.MACPayload:
+				if err := phy.DecodeFOptsToMACCommands(); err != nil {
+					return nil, nil, errors.Wrap(err, "decode fopts to mac-commands error")
+				}
+
+				if v.FPort != nil && *v.FPort == 0 {
+					if err := phy.DecodeFRMPayloadToMACCommands(); err != nil {
+						return nil, nil, errors.Wrap(err, "decode frmpayload to mac-commands error")
+					}
+				}
+			}
 		}
 
 		phyB, err := json.Marshal(phy)

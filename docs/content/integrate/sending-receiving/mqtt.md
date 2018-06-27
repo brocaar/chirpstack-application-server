@@ -8,7 +8,7 @@ menu:
 # MQTT integration
 
 The MQTT integration publishes all the data it receices from the devices
-as JSON over MQTT. To receive data from your node, you therefore 
+as JSON over MQTT. To receive data from your device, you therefore 
 need to subscribe to its MQTT topic. For debugging, you could use a 
 (command-line) tool like `mosquitto_sub` which is part of the 
 [Mosquitto](http://mosquitto.org/) MQTT broker.
@@ -35,7 +35,7 @@ mosquitto_sub -t "application/123/device/+/rx" -v  # display only the RX payload
 `.../node/...`. Please refer to the `application_server.integration.mqtt`
 [configuration]({{<ref "install/config.md">}}) for the correct topic.
 
-Topic for payloads received from your nodes. Example payload:
+Topic for payloads received from your devices. Example payload:
 
 ```json
 {
@@ -43,8 +43,6 @@ Topic for payloads received from your nodes. Example payload:
     "applicationName": "temperature-sensor",
     "deviceName": "garden-sensor",
     "devEUI": "0202020202020202",
-    "deviceStatusBattery": 200,  // set when available
-    "deviceStatusMargin": 6,     // set when available
     "rxInfo": [
         {
             "mac": "0303030303030303",                 // MAC of the receiving gateway
@@ -78,18 +76,33 @@ Topic for payloads received from your nodes. Example payload:
 }
 ```
 
-#### Device-status
+### application/[applicationID]/device/[devEUI]/status
+
+Topic for battery and margin status received from devices. Example payload:
+
+```json
+{
+    "applicationID": "123",
+    "applicationName": "temperature-sensor",
+    "deviceName": "garden-sensor",
+    "devEUI": "0202020202020202",
+    "battery": 200,
+    "margin": 6
+}
+```
 
 When configured by the [service-profile]({{<ref "use/service-profiles.md">}})
-and when published by the device, the uplink payload contains the device status.
+and when published by the device, this payload contains the device status.
 
-`deviceStatusBattery`
+#### `battery`
 
 * `0` - The end-device is connected to an external power source
 * `1..254` - The battery level, 1 being at minimum and 254 being at maximum
 * `255` - The end-device was not able to measure the battery level
 
-`deviceStatusMargin` is the demodulation signal-to-noise ratio in dB rounded
+#### `margin`
+
+The demodulation signal-to-noise ratio in dB rounded
 to the nearest integer valuefor the last successfully received device-status
 request by the network-server.
 
@@ -160,7 +173,7 @@ payload size exceeded to max allowed payload size, in case of a MIC error,
 `.../node/...`. Please refer to the `application_server.integration.mqtt`
 [configuration]({{<ref "install/config.md">}}) for the correct topic.
 
-**Note:** the application ID and DevEUI of the node will be taken from the topic.
+**Note:** the application ID and DevEUI of the device will be taken from the topic.
 
 Example payload:
 

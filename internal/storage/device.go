@@ -48,18 +48,22 @@ type DeviceKeys struct {
 	CreatedAt time.Time         `db:"created_at"`
 	UpdatedAt time.Time         `db:"updated_at"`
 	DevEUI    lorawan.EUI64     `db:"dev_eui"`
+	NwkKey    lorawan.AES128Key `db:"nwk_key"`
 	AppKey    lorawan.AES128Key `db:"app_key"`
 	JoinNonce int               `db:"join_nonce"`
 }
 
 // DeviceActivation defines the device-activation for a LoRaWAN device.
 type DeviceActivation struct {
-	ID        int64             `db:"id"`
-	CreatedAt time.Time         `db:"created_at"`
-	DevEUI    lorawan.EUI64     `db:"dev_eui"`
-	DevAddr   lorawan.DevAddr   `db:"dev_addr"`
-	AppSKey   lorawan.AES128Key `db:"app_s_key"`
-	NwkSKey   lorawan.AES128Key `db:"nwk_s_key"`
+	ID          int64             `db:"id"`
+	CreatedAt   time.Time         `db:"created_at"`
+	DevEUI      lorawan.EUI64     `db:"dev_eui"`
+	DevAddr     lorawan.DevAddr   `db:"dev_addr"`
+	FNwkSIntKey lorawan.AES128Key `db:"f_nwk_s_int_key"`
+	AppSKey     lorawan.AES128Key `db:"app_s_key"`
+	SNwkSIntKey lorawan.AES128Key `db:"s_nwk_s_int_key"`
+	NwkSEncKey  lorawan.AES128Key `db:"nwk_s_enc_key"`
+	JoinReqType lorawan.JoinType  `db:"join_req_type"`
 }
 
 // CreateDevice creates the given device.
@@ -352,12 +356,14 @@ func CreateDeviceKeys(db sqlx.Execer, dc *DeviceKeys) error {
             created_at,
             updated_at,
             dev_eui,
+			nwk_key,
 			app_key,
 			join_nonce
-        ) values ($1, $2, $3, $4, $5)`,
+        ) values ($1, $2, $3, $4, $5, $6)`,
 		dc.CreatedAt,
 		dc.UpdatedAt,
 		dc.DevEUI[:],
+		dc.NwkKey[:],
 		dc.AppKey[:],
 		dc.JoinNonce,
 	)
@@ -392,12 +398,14 @@ func UpdateDeviceKeys(db sqlx.Execer, dc *DeviceKeys) error {
         update device_keys
         set
             updated_at = $2,
-			app_key = $3,
-			join_nonce = $4
+			nwk_key = $3,
+			app_key = $4,
+			join_nonce = $5
         where
             dev_eui = $1`,
 		dc.DevEUI[:],
 		dc.UpdatedAt,
+		dc.NwkKey[:],
 		dc.AppKey[:],
 		dc.JoinNonce,
 	)
@@ -447,15 +455,19 @@ func CreateDeviceActivation(db sqlx.Queryer, da *DeviceActivation) error {
             created_at,
             dev_eui,
             dev_addr,
-            app_s_key,
-            nwk_s_key
-        ) values ($1, $2, $3, $4, $5)
+            f_nwk_s_int_key,
+			app_s_key,
+			s_nwk_s_int_key,
+			nwk_s_enc_key
+        ) values ($1, $2, $3, $4, $5, $6, $7)
         returning id`,
 		da.CreatedAt,
 		da.DevEUI[:],
 		da.DevAddr[:],
+		da.FNwkSIntKey,
 		da.AppSKey[:],
-		da.NwkSKey[:],
+		da.SNwkSIntKey[:],
+		da.NwkSEncKey[:],
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")

@@ -194,7 +194,8 @@ func TestDevice(t *testing.T) {
 				Convey("Then CreateDeviceKeys creates the device-keys", func() {
 					dc := DeviceKeys{
 						DevEUI:    d.DevEUI,
-						AppKey:    lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
+						NwkKey:    lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
+						AppKey:    lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 						JoinNonce: 1234,
 					}
 					So(CreateDeviceKeys(config.C.PostgreSQL.DB, &dc), ShouldBeNil)
@@ -210,7 +211,8 @@ func TestDevice(t *testing.T) {
 					})
 
 					Convey("Then UpdateDeviceKeys updates the device-keys", func() {
-						dc.AppKey = lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
+						dc.NwkKey = lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
+						dc.AppKey = lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1}
 						dc.JoinNonce = 1235
 						So(UpdateDeviceKeys(config.C.PostgreSQL.DB, &dc), ShouldBeNil)
 						dc.UpdatedAt = dc.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -231,9 +233,12 @@ func TestDevice(t *testing.T) {
 
 				Convey("Then CreateDeviceActivation creates the device-activation", func() {
 					da := DeviceActivation{
-						DevEUI:  d.DevEUI,
-						DevAddr: lorawan.DevAddr{1, 2, 3, 4},
-						AppSKey: lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
+						DevEUI:      d.DevEUI,
+						DevAddr:     lorawan.DevAddr{1, 2, 3, 4},
+						FNwkSIntKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+						AppSKey:     lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+						SNwkSIntKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3},
+						NwkSEncKey:  lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
 					}
 					So(CreateDeviceActivation(config.C.PostgreSQL.DB, &da), ShouldBeNil)
 					da.CreatedAt = da.CreatedAt.UTC().Truncate(time.Millisecond)
@@ -245,10 +250,12 @@ func TestDevice(t *testing.T) {
 
 					Convey("Then GetLastDeviceActivationForDevEUI returns the last actication", func() {
 						da2 := DeviceActivation{
-							DevEUI:  d.DevEUI,
-							DevAddr: lorawan.DevAddr{4, 3, 2, 1},
-							NwkSKey: lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
-							AppSKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+							DevEUI:      d.DevEUI,
+							DevAddr:     lorawan.DevAddr{4, 3, 2, 1},
+							FNwkSIntKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+							AppSKey:     lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+							SNwkSIntKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3},
+							NwkSEncKey:  lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
 						}
 						So(CreateDeviceActivation(config.C.PostgreSQL.DB, &da2), ShouldBeNil)
 						da2.CreatedAt = da2.CreatedAt.UTC().Truncate(time.Millisecond)

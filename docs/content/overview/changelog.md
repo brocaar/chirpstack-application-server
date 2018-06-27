@@ -8,6 +8,25 @@ menu:
 
 # Changelog
 
+## v2.0.0
+
+### Upgrade notes
+
+Before upgrading to v2, first make sure you have the latest v1 installed and running
+(including LoRa App Server). As always, it is recommended to make a backup
+first :-)
+
+### Features
+
+* LoRaWAN 1.1 support!
+
+### Changes
+
+* The device-status has been removed from the uplink payload and is sent over
+  a separate MQTT topic (or HTTP integration). This to make sure that the
+  the device-status is only published when an update is available.
+  See also [Sending and receiving data](https://www.loraserver.io/lora-app-server/integrate/sending-receiving/).
+
 ## v1.0.1
 
 ### Improvements

@@ -86,7 +86,7 @@ func TestApplicationServerAPI(t *testing.T) {
 
 		dc := storage.DeviceKeys{
 			DevEUI: d.DevEUI,
-			AppKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+			NwkKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 		}
 		So(storage.CreateDeviceKeys(config.C.PostgreSQL.DB, &dc), ShouldBeNil)
 
@@ -130,10 +130,10 @@ func TestApplicationServerAPI(t *testing.T) {
 
 		Convey("Given the device is activated", func() {
 			da := storage.DeviceActivation{
-				DevEUI:  d.DevEUI,
-				DevAddr: lorawan.DevAddr{},
-				AppSKey: lorawan.AES128Key{},
-				NwkSKey: lorawan.AES128Key{},
+				DevEUI:      d.DevEUI,
+				DevAddr:     lorawan.DevAddr{},
+				AppSKey:     lorawan.AES128Key{},
+				FNwkSIntKey: lorawan.AES128Key{},
 			}
 			So(storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &da), ShouldBeNil)
 
@@ -168,69 +168,9 @@ func TestApplicationServerAPI(t *testing.T) {
 					Adr:      true,
 					CodeRate: "4/6",
 				},
-				DeviceStatusBattery: 256,
-				DeviceStatusMargin:  256,
 			}
 
-			reqWithDeviceStatus := req
-			reqWithDeviceStatus.DeviceStatusBattery = 10
-			reqWithDeviceStatus.DeviceStatusMargin = 11
-
-			Convey("When calling HandleUplinkData with device-status data", func() {
-				_, err := api.HandleUplinkData(ctx, &reqWithDeviceStatus)
-				So(err, ShouldBeNil)
-
-				Convey("Then a payload was sent to the handler", func() {
-					ten := 10
-					eleven := 11
-
-					So(h.SendDataUpChan, ShouldHaveLength, 1)
-					So(<-h.SendDataUpChan, ShouldResemble, handler.DataUpPayload{
-						ApplicationID:       app.ID,
-						ApplicationName:     "test-app",
-						DeviceName:          "test-node",
-						DevEUI:              d.DevEUI,
-						DeviceStatusBattery: &ten,
-						DeviceStatusMargin:  &eleven,
-						RXInfo: []handler.RXInfo{
-							{
-								MAC:       mac,
-								Name:      "test-gateway",
-								Latitude:  52.3740364,
-								Longitude: 4.9144401,
-								Altitude:  10,
-								Time:      &now,
-								RSSI:      -60,
-								LoRaSNR:   5,
-							},
-						},
-						TXInfo: handler.TXInfo{
-							Frequency: 868100000,
-							DataRate: handler.DataRate{
-								Modulation:   "LORA",
-								Bandwidth:    250,
-								SpreadFactor: 5,
-								Bitrate:      50000,
-							},
-							ADR:      true,
-							CodeRate: "4/6",
-						},
-						FCnt:  10,
-						FPort: 3,
-						Data:  []byte{67, 216, 236, 205},
-					})
-				})
-
-				Convey("Then the device was updated", func() {
-					d, err := storage.GetDevice(config.C.PostgreSQL.DB, d.DevEUI)
-					So(err, ShouldBeNil)
-					So(*d.DeviceStatusBattery, ShouldEqual, 10)
-					So(*d.DeviceStatusMargin, ShouldEqual, 11)
-					So(time.Now().Sub(*d.LastSeenAt), ShouldBeLessThan, time.Second)
-				})
-			})
-
-			Convey("When calling HandleUplinkData without device-status data", func() {
+			Convey("When calling HandleUplinkData", func() {
 				_, err := api.HandleUplinkData(ctx, &req)
 				So(err, ShouldBeNil)
 
@@ -310,6 +250,36 @@ func TestApplicationServerAPI(t *testing.T) {
 						FPort: 3,
 						Data:  []byte{67, 216, 236, 205},
 					})
+				})
+			})
+
+			Convey("When calling SetDeviceStatus", func() {
+				_, err := api.SetDeviceStatus(ctx, &as.SetDeviceStatusRequest{
+					DevEui:  d.DevEUI[:],
+					Margin:  10,
+					Battery: 123,
+				})
+				So(err, ShouldBeNil)
+
+				Convey("Then the expected payload was sent to the handler", func() {
+					So(h.SendStatusNotificationChan, ShouldHaveLength, 1)
+					So(<-h.SendStatusNotificationChan, ShouldResemble, handler.StatusNotification{
+						ApplicationID:   app.ID,
+						ApplicationName: app.Name,
+						DeviceName:      d.Name,
+						DevEUI:          d.DevEUI,
+						Margin:          10,
+						Battery:         123,
+					})
+				})
+
+				Convey("Then the device has been updated", func() {
+					d, err := storage.GetDevice(db, d.DevEUI)
+					So(err, ShouldBeNil)
+					So(d.DeviceStatusMargin, ShouldNotBeNil)
+					So(d.DeviceStatusBattery, ShouldNotBeNil)
+					So(*d.DeviceStatusMargin, ShouldEqual, 10)
+					So(*d.DeviceStatusBattery, ShouldEqual, 123)
 				})
 			})
 

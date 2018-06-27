@@ -80,8 +80,9 @@ func TestJoinServerAPI(t *testing.T) {
 		So(storage.CreateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 
 		dk := storage.DeviceKeys{
-			DevEUI: d.DevEUI,
-			AppKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+			DevEUI:    d.DevEUI,
+			NwkKey:    lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+			JoinNonce: 65535,
 		}
 		So(storage.CreateDeviceKeys(config.C.PostgreSQL.DB, &dk), ShouldBeNil)
 
@@ -89,6 +90,18 @@ func TestJoinServerAPI(t *testing.T) {
 			api := JoinServerAPI{}
 			server := httptest.NewServer(&api)
 			defer server.Close()
+
+			cFList := lorawan.CFList{
+				CFListType: lorawan.CFListChannel,
+				Payload: &lorawan.CFListChannelPayload{
+					Channels: [5]uint32{
+						868700000,
+						868900000,
+					},
+				},
+			}
+			cFListB, err := cFList.MarshalBinary()
+			So(err, ShouldBeNil)
 
 			Convey("When making a JoinReq call", func() {
 				jrPHY := lorawan.PHYPayload{
@@ -98,11 +111,11 @@ func TestJoinServerAPI(t *testing.T) {
 					},
 					MACPayload: &lorawan.JoinRequestPayload{
 						DevEUI:   d.DevEUI,
-						AppEUI:   lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
-						DevNonce: lorawan.DevNonce{1, 2},
+						JoinEUI:  lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
+						DevNonce: 258,
 					},
 				}
-				So(jrPHY.SetMIC(dk.AppKey), ShouldBeNil)
+				So(jrPHY.SetUplinkJoinMIC(dk.NwkKey), ShouldBeNil)
 				jrPHYBytes, err := jrPHY.MarshalBinary()
 				So(err, ShouldBeNil)
 
@@ -112,19 +125,27 @@ func TestJoinServerAPI(t *testing.T) {
 						Major: lorawan.LoRaWANR1,
 					},
 					MACPayload: &lorawan.JoinAcceptPayload{
-						AppNonce: lorawan.AppNonce{1, 0, 0},
-						NetID:    lorawan.NetID{1, 2, 3},
-						DevAddr:  lorawan.DevAddr{1, 2, 3, 4},
+						JoinNonce: 65536,
+						HomeNetID: lorawan.NetID{1, 2, 3},
+						DevAddr:   lorawan.DevAddr{1, 2, 3, 4},
 						DLSettings: lorawan.DLSettings{
 							RX2DataRate: 5,
 							RX1DROffset: 1,
 						},
 						RXDelay: 1,
-						CFList:  &lorawan.CFList{868700000, 868900000},
+						CFList: &lorawan.CFList{
+							CFListType: lorawan.CFListChannel,
+							Payload: &lorawan.CFListChannelPayload{
+								Channels: [5]uint32{
+									868700000,
+									868900000,
+								},
+							},
+						},
 					},
 				}
-				So(jaPHY.SetMIC(dk.AppKey), ShouldBeNil)
-				So(jaPHY.EncryptJoinAcceptPayload(dk.AppKey), ShouldBeNil)
+				So(jaPHY.SetDownlinkJoinMIC(lorawan.JoinRequestType, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, 513, dk.NwkKey), ShouldBeNil)
+				So(jaPHY.EncryptJoinAcceptPayload(dk.NwkKey), ShouldBeNil)
 				jaPHYBytes, err := jaPHY.MarshalBinary()
 				So(err, ShouldBeNil)
 				So(jaPHYBytes, ShouldResemble, []byte{32, 38, 244, 178, 71, 240, 165, 215, 228, 106, 114, 14, 97, 200, 188, 203, 197, 23, 159, 69, 102, 225, 133, 237, 104, 137, 88, 155, 177, 169, 198, 140, 192})
@@ -146,7 +167,7 @@ func TestJoinServerAPI(t *testing.T) {
 						RX1DROffset: 1,
 					},
 					RxDelay: 1,
-					CFList:  &lorawan.CFList{868700000, 868900000},
+					CFList:  backend.HEXBytes(cFListB),
 				}
 				joinReqPayloadJSON, err := json.Marshal(joinReqPayload)
 				So(err, ShouldBeNil)
@@ -187,6 +208,87 @@ func TestJoinServerAPI(t *testing.T) {
 						DeviceName:      d.Name,
 						DevEUI:          d.DevEUI,
 						DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
+					})
+				})
+
+				Convey("Then the expected keys are stored", func() {
+					dk, err := storage.GetDeviceKeys(db, d.DevEUI)
+					So(err, ShouldBeNil)
+
+					So(dk.JoinNonce, ShouldEqual, 65536)
+				})
+			})
+
+			Convey("When making a RejoinReq call", func() {
+				rjPHY := lorawan.PHYPayload{
+					MHDR: lorawan.MHDR{
+						MType: lorawan.RejoinRequest,
+						Major: lorawan.LoRaWANR1,
+					},
+					MACPayload: &lorawan.RejoinRequestType02Payload{
+						RejoinType: lorawan.RejoinRequestType2,
+						NetID:      lorawan.NetID{1, 2, 3},
+						DevEUI:     d.DevEUI,
+						RJCount0:   123,
+					},
+				}
+				// no need to set the mic as this is validated by the network-server
+				rjPHYBytes, err := rjPHY.MarshalBinary()
+				So(err, ShouldBeNil)
+
+				rejoinReqPayload := backend.RejoinReqPayload{
+					BasePayload: backend.BasePayload{
+						ProtocolVersion: backend.ProtocolVersion1_0,
+						SenderID:        "010203",
+						ReceiverID:      "0807060504030201",
+						TransactionID:   1234,
+						MessageType:     backend.RejoinReq,
+					},
+					MACVersion: "1.1.0",
+					PHYPayload: backend.HEXBytes(rjPHYBytes),
+					DevEUI:     d.DevEUI,
+					DevAddr:    lorawan.DevAddr{1, 2, 3, 4},
+					DLSettings: lorawan.DLSettings{
+						RX2DataRate: 5,
+						RX1DROffset: 1,
+					},
+					RxDelay: 1,
+					CFList:  backend.HEXBytes(cFListB),
+				}
+				rejoinReqPayloadJSON, err := json.Marshal(rejoinReqPayload)
+				So(err, ShouldBeNil)
+
+				req, err := http.NewRequest("POST", server.URL, bytes.NewReader(rejoinReqPayloadJSON))
+				So(err, ShouldBeNil)
+
+				resp, err := http.DefaultClient.Do(req)
+				So(err, ShouldBeNil)
+				So(resp.StatusCode, ShouldEqual, http.StatusOK)
+
+				Convey("Then the expected response is returned", func() {
+					var rejoinAnsPayload backend.RejoinAnsPayload
+					So(json.NewDecoder(resp.Body).Decode(&rejoinAnsPayload), ShouldBeNil)
+					So(rejoinAnsPayload, ShouldResemble, backend.RejoinAnsPayload{
+						BasePayload: backend.BasePayload{
+							ProtocolVersion: backend.ProtocolVersion1_0,
+							SenderID:        "0807060504030201",
+							ReceiverID:      "010203",
+							TransactionID:   1234,
+							MessageType:     backend.RejoinAns,
+						},
+						Result: backend.Result{
+							ResultCode: backend.Success,
+						},
+						SNwkSIntKey: &backend.KeyEnvelope{
+							AESKey: lorawan.AES128Key{84, 115, 118, 176, 7, 14, 169, 150, 78, 61, 226, 98, 252, 231, 85, 145},
+						},
+						FNwkSIntKey: &backend.KeyEnvelope{
+							AESKey: lorawan.AES128Key{15, 235, 84, 189, 47, 133, 75, 254, 195, 103, 254, 91, 27, 132, 16, 55},
+						},
+						NwkSEncKey: &backend.KeyEnvelope{
+							AESKey: lorawan.AES128Key{212, 9, 208, 87, 17, 14, 159, 221, 5, 199, 126, 12, 85, 63, 119, 244},
+						},
+						PHYPayload: backend.HEXBytes([]byte{32, 119, 168, 146, 89, 229, 41, 109, 112, 191, 64, 133, 175, 89, 101, 194, 76, 190, 109, 70, 29, 106, 9, 76, 214, 165, 255, 143, 250, 27, 248, 233, 75}),
 					})
 				})
 			})

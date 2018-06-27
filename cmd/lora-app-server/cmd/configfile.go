@@ -105,6 +105,7 @@ id="{{ .ApplicationServer.ID }}"
   join_topic_template="{{ .ApplicationServer.Integration.MQTT.JoinTopicTemplate }}"
   ack_topic_template="{{ .ApplicationServer.Integration.MQTT.AckTopicTemplate }}"
   error_topic_template="{{ .ApplicationServer.Integration.MQTT.ErrorTopicTemplate }}"
+  status_topic_template="{{ .ApplicationServer.Integration.MQTT.StatusTopicTemplate }}"
 
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="{{ .ApplicationServer.Integration.MQTT.Server }}"

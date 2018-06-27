@@ -47,6 +47,8 @@ func (a *JoinServerAPI) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch basePL.MessageType {
 	case backend.JoinReq:
 		a.handleJoinReq(w, b)
+	case backend.RejoinReq:
+		a.handleRejoinReq(w, b)
 	default:
 		a.returnError(w, http.StatusBadRequest, backend.Other, fmt.Sprintf("invalid MessageType: %s", basePL.MessageType))
 	}
@@ -93,6 +95,27 @@ func (a *JoinServerAPI) handleJoinReq(w http.ResponseWriter, b []byte) {
 	}
 
 	ans := join.HandleJoinRequest(joinReqPL)
+
+	log.WithFields(log.Fields{
+		"message_type":   ans.BasePayload.MessageType,
+		"sender_id":      ans.BasePayload.SenderID,
+		"receiver_id":    ans.BasePayload.ReceiverID,
+		"transaction_id": ans.BasePayload.TransactionID,
+		"result_code":    ans.Result.ResultCode,
+	}).Info("js: sending response")
+
+	a.returnPayload(w, http.StatusOK, ans)
+}
+
+func (a *JoinServerAPI) handleRejoinReq(w http.ResponseWriter, b []byte) {
+	var rejoinReqPL backend.RejoinReqPayload
+	err := json.Unmarshal(b, &rejoinReqPL)
+	if err != nil {
+		a.returnError(w, http.StatusBadRequest, backend.Other, err.Error())
+		return
+	}
+
+	ans := join.HandleRejoinRequest(rejoinReqPL)
 
 	log.WithFields(log.Fields{
 		"message_type":   ans.BasePayload.MessageType,

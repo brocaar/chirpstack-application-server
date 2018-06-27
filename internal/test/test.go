@@ -444,11 +444,6 @@ func (n *NetworkServerClient) DeleteGatewayProfile(ctx context.Context, in *ns.D
 	return &n.DeleteGatewayProfileResponse, nil
 }
 
-// MigrateNodeToDeviceSession is not implemented.
-func (n *NetworkServerClient) MigrateNodeToDeviceSession(ctx context.Context, in *ns.MigrateNodeToDeviceSessionRequest, opts ...grpc.CallOption) (*ns.MigrateNodeToDeviceSessionResponse, error) {
-	panic("not implemented")
-}
-
 // CreateDeviceQueueItem method.
 func (n NetworkServerClient) CreateDeviceQueueItem(ctx context.Context, in *ns.CreateDeviceQueueItemRequest, opts ...grpc.CallOption) (*ns.CreateDeviceQueueItemResponse, error) {
 	n.CreateDeviceQueueItemChan <- *in
@@ -486,9 +481,4 @@ func (n NetworkServerClient) StreamFrameLogsForGateway(ctx context.Context, in *
 // StreamFrameLogsForDevice method.
 func (n NetworkServerClient) StreamFrameLogsForDevice(ctx context.Context, in *ns.StreamFrameLogsForDeviceRequest, opts ...grpc.CallOption) (ns.NetworkServer_StreamFrameLogsForDeviceClient, error) {
 	panic("not implemented")
-}
-
-// MigrateChannelConfigurationToGatewayProfile method.
-func (n NetworkServerClient) MigrateChannelConfigurationToGatewayProfile(ctx context.Context, in *ns.MigrateChannelConfigurationToGatewayProfileRequest, opts ...grpc.CallOption) (*ns.MigrateChannelConfigurationToGatewayProfileResponse, error) {
-	panic("not implemeted")
 }

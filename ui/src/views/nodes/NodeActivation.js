@@ -42,8 +42,16 @@ class NodeActivation extends Component {
                   <input className="form-control" id="devAddr" type="text" value={this.state.activation.devAddr || ''} />
                 </div>
                 <div className="form-group">
-                  <label className="control-label" htmlFor="nwkSKey">Network session key</label>
-                  <input className="form-control" id="nwkSKey" type="text" value={this.state.activation.nwkSKey || ''} />
+                  <label className="control-label" htmlFor="nwkSEncKey">Network session encryption key</label>
+                  <input className="form-control" id="nwkSEncKey" type="text" value={this.state.activation.nwkSEncKey || ''} />
+                </div>
+                <div className="form-group">
+                  <label className="control-label" htmlFor="sNwkSIntKey">Serving network session integrity key</label>
+                  <input className="form-control" id="sNwkSIntKey" type="text" value={this.state.activation.sNwkSIntKey || ''} />
+                </div>
+                <div className="form-group">
+                  <label className="control-label" htmlFor="fNwkSIntKey">Forwarding network session integrity key</label>
+                  <input className="form-control" id="fNwkSIntKey" type="text" value={this.state.activation.fNwkSIntKey || ''} />
                 </div>
                 <div className="form-group">
                   <label className="control-label" htmlFor="appSKey">Application session key</label>

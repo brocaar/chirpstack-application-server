@@ -2,7 +2,6 @@ package join
 
 import (
 	"crypto/aes"
-	"encoding/binary"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -17,30 +16,59 @@ import (
 )
 
 type context struct {
-	joinReqPayload backend.JoinReqPayload
-	joinAnsPayload backend.JoinAnsPayload
-	phyPayload     lorawan.PHYPayload
-	device         storage.Device
-	application    storage.Application
-	deviceKeys     storage.DeviceKeys
-	appNonce       lorawan.AppNonce
-	nwkSKey        lorawan.AES128Key
-	appSKey        lorawan.AES128Key
-	netID          lorawan.NetID
+	joinReqPayload   backend.JoinReqPayload
+	joinAnsPayload   backend.JoinAnsPayload
+	rejoinReqPayload backend.RejoinReqPayload
+	rejoinAnsPaylaod backend.RejoinAnsPayload
+	joinType         lorawan.JoinType
+	phyPayload       lorawan.PHYPayload
+	device           storage.Device
+	application      storage.Application
+	deviceKeys       storage.DeviceKeys
+	devNonce         lorawan.DevNonce
+	joinNonce        lorawan.JoinNonce
+	netID            lorawan.NetID
+	devEUI           lorawan.EUI64
+	joinEUI          lorawan.EUI64
+	fNwkSIntKey      lorawan.AES128Key
+	appSKey          lorawan.AES128Key
+	sNwkSIntKey      lorawan.AES128Key
+	nwkSEncKey       lorawan.AES128Key
 }
 
-type task func(*context) error
-
-type flow struct {
-	joinRequestTasks []task
+var joinTasks = []func(*context) error{
+	setJoinContext,
+	getDevice,
+	getApplication,
+	getDeviceKeys,
+	validateMIC,
+	setJoinNonce,
+	setSessionKeys,
+	createDeviceActivationRecord,
+	flushDeviceQueueMapping,
+	sendJoinNotification,
+	createJoinAnsPayload,
 }
 
-func (f *flow) run(pl backend.JoinReqPayload) (backend.JoinAnsPayload, error) {
+var rejoinTasks = []func(*context) error{
+	setRejoinContext,
+	getDevice,
+	getApplication,
+	getDeviceKeys,
+	setJoinNonce,
+	setSessionKeys,
+	createDeviceActivationRecord,
+	flushDeviceQueueMapping,
+	sendJoinNotification,
+	createRejoinAnsPayload,
+}
+
+func handleJoinRequest(pl backend.JoinReqPayload) (backend.JoinAnsPayload, error) {
 	ctx := context{
 		joinReqPayload: pl,
 	}
 
-	for _, t := range f.joinRequestTasks {
+	for _, t := range joinTasks {
 		if err := t(&ctx); err != nil {
 			return ctx.joinAnsPayload, err
 		}
@@ -49,21 +77,18 @@ func (f *flow) run(pl backend.JoinReqPayload) (backend.JoinAnsPayload, error) {
 	return ctx.joinAnsPayload, nil
 }
 
-var joinFlow = &flow{
-	joinRequestTasks: []task{
-		setPHYPayload,
-		getDevice,
-		getApplication,
-		getDeviceKeys,
-		validateMIC,
-		setAppNonce,
-		setNetID,
-		setSessionKeys,
-		createDeviceActivationRecord,
-		flushDeviceQueueMapping,
-		sendJoinNotification,
-		createJoinAnsPayload,
-	},
+func handleRejoinRequest(pl backend.RejoinReqPayload) (backend.RejoinAnsPayload, error) {
+	ctx := context{
+		rejoinReqPayload: pl,
+	}
+
+	for _, t := range rejoinTasks {
+		if err := t(&ctx); err != nil {
+			return ctx.rejoinAnsPaylaod, err
+		}
+	}
+
+	return ctx.rejoinAnsPaylaod, nil
 }
 
 // HandleJoinRequest handles a given join-request and returns a join-answer
@@ -77,7 +102,7 @@ func HandleJoinRequest(pl backend.JoinReqPayload) backend.JoinAnsPayload {
 		MessageType:     backend.JoinAns,
 	}
 
-	jaPL, err := joinFlow.run(pl)
+	jaPL, err := handleJoinRequest(pl)
 	if err != nil {
 		var resCode backend.ResultCode
 
@@ -103,15 +128,100 @@ func HandleJoinRequest(pl backend.JoinReqPayload) backend.JoinAnsPayload {
 	return jaPL
 }
 
-func setPHYPayload(ctx *context) error {
+// HandleRejoinRequest handles a given rejoin-request and returns a
+// rejoin-answer payload.
+func HandleRejoinRequest(pl backend.RejoinReqPayload) backend.RejoinAnsPayload {
+	basePayload := backend.BasePayload{
+		ProtocolVersion: backend.ProtocolVersion1_0,
+		SenderID:        pl.ReceiverID,
+		ReceiverID:      pl.SenderID,
+		TransactionID:   pl.TransactionID,
+		MessageType:     backend.RejoinAns,
+	}
+
+	rjaPL, err := handleRejoinRequest(pl)
+	if err != nil {
+		var resCode backend.ResultCode
+
+		switch errors.Cause(err) {
+		case storage.ErrDoesNotExist:
+			resCode = backend.UnknownDevEUI
+		case ErrInvalidMIC:
+			resCode = backend.MICFailed
+		default:
+			resCode = backend.Other
+		}
+
+		rjaPL = backend.RejoinAnsPayload{
+			BasePayload: basePayload,
+			Result: backend.Result{
+				ResultCode:  resCode,
+				Description: err.Error(),
+			},
+		}
+	}
+
+	rjaPL.BasePayload = basePayload
+	return rjaPL
+}
+
+func setJoinContext(ctx *context) error {
 	if err := ctx.phyPayload.UnmarshalBinary(ctx.joinReqPayload.PHYPayload[:]); err != nil {
 		return errors.Wrap(err, "unmarshal phypayload error")
 	}
+
+	if err := ctx.netID.UnmarshalText([]byte(ctx.joinReqPayload.SenderID)); err != nil {
+		return errors.Wrap(err, "unmarshal netid error")
+	}
+
+	if err := ctx.joinEUI.UnmarshalText([]byte(ctx.joinReqPayload.ReceiverID)); err != nil {
+		return errors.Wrap(err, "unmarshal joineui error")
+	}
+
+	ctx.devEUI = ctx.joinReqPayload.DevEUI
+	ctx.joinType = lorawan.JoinRequestType
+
+	switch v := ctx.phyPayload.MACPayload.(type) {
+	case *lorawan.JoinRequestPayload:
+		ctx.devNonce = v.DevNonce
+	default:
+		return fmt.Errorf("expected *lorawan.JoinRequestPayload, got %T", ctx.phyPayload.MACPayload)
+	}
+
+	return nil
+}
+
+func setRejoinContext(ctx *context) error {
+	if err := ctx.phyPayload.UnmarshalBinary(ctx.rejoinReqPayload.PHYPayload[:]); err != nil {
+		return errors.Wrap(err, "unmarshal phypayload error")
+	}
+
+	if err := ctx.netID.UnmarshalText([]byte(ctx.rejoinReqPayload.SenderID)); err != nil {
+		return errors.Wrap(err, "unmarshal netid error")
+	}
+
+	if err := ctx.joinEUI.UnmarshalText([]byte(ctx.rejoinReqPayload.ReceiverID)); err != nil {
+		return errors.Wrap(err, "unmarshal joineui error")
+	}
+
+	switch v := ctx.phyPayload.MACPayload.(type) {
+	case *lorawan.RejoinRequestType02Payload:
+		ctx.joinType = v.RejoinType
+		ctx.devNonce = lorawan.DevNonce(v.RJCount0)
+	case *lorawan.RejoinRequestType1Payload:
+		ctx.joinType = v.RejoinType
+		ctx.devNonce = lorawan.DevNonce(v.RJCount1)
+	default:
+		return fmt.Errorf("expected rejoin payload, got %T", ctx.phyPayload.MACPayload)
+	}
+
+	ctx.devEUI = ctx.rejoinReqPayload.DevEUI
+
 	return nil
 }
 
 func getDevice(ctx *context) error {
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, ctx.joinReqPayload.DevEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, ctx.devEUI)
 	if err != nil {
 		return errors.Wrap(err, "get device error")
 	}
@@ -140,7 +250,7 @@ func getDeviceKeys(ctx *context) error {
 }
 
 func validateMIC(ctx *context) error {
-	ok, err := ctx.phyPayload.ValidateMIC(ctx.deviceKeys.AppKey)
+	ok, err := ctx.phyPayload.ValidateUplinkJoinMIC(ctx.deviceKeys.NwkKey)
 	if err != nil {
 		return errors.Wrap(err, "validate mic error")
 	}
@@ -150,46 +260,48 @@ func validateMIC(ctx *context) error {
 	return nil
 }
 
-func setAppNonce(ctx *context) error {
+func setJoinNonce(ctx *context) error {
 	ctx.deviceKeys.JoinNonce++
-	if ctx.deviceKeys.JoinNonce > (2<<23)-1 {
+	if ctx.deviceKeys.JoinNonce > (1<<24)-1 {
 		return errors.New("join-nonce overflow")
 	}
+	ctx.joinNonce = lorawan.JoinNonce(ctx.deviceKeys.JoinNonce)
 
 	if err := storage.UpdateDeviceKeys(config.C.PostgreSQL.DB, &ctx.deviceKeys); err != nil {
 		return errors.Wrap(err, "update device-keys error")
 	}
 
-	b := make([]byte, 4)
-	binary.LittleEndian.PutUint32(b, uint32(ctx.deviceKeys.JoinNonce))
-	copy(ctx.appNonce[:], b[0:3])
-
-	return nil
-}
-
-func setNetID(ctx *context) error {
-	if err := ctx.netID.UnmarshalText([]byte(ctx.joinReqPayload.SenderID)); err != nil {
-		return errors.Wrap(err, "unmarshal netid error")
-	}
 	return nil
 }
 
 func setSessionKeys(ctx *context) error {
 	var err error
 
-	jrPL, ok := ctx.phyPayload.MACPayload.(*lorawan.JoinRequestPayload)
-	if !ok {
-		return fmt.Errorf("expected *lorawan.JoinRequestPayload, got %T", ctx.phyPayload.MACPayload)
+	ctx.fNwkSIntKey, err = getFNwkSIntKey(ctx.joinReqPayload.DLSettings.OptNeg, ctx.deviceKeys.NwkKey, ctx.netID, ctx.joinEUI, ctx.joinNonce, ctx.devNonce)
+	if err != nil {
+		return errors.Wrap(err, "get FNwkSIntKey error")
 	}
 
-	ctx.nwkSKey, err = getNwkSKey(ctx.deviceKeys.AppKey, ctx.netID, ctx.appNonce, jrPL.DevNonce)
-	if err != nil {
-		return errors.Wrap(err, "get nwk_s_key error")
+	if ctx.joinReqPayload.DLSettings.OptNeg {
+		ctx.appSKey, err = getAppSKey(ctx.joinReqPayload.DLSettings.OptNeg, ctx.deviceKeys.AppKey, ctx.netID, ctx.joinEUI, ctx.joinNonce, ctx.devNonce)
+		if err != nil {
+			return errors.Wrap(err, "get AppSKey error")
+		}
+	} else {
+		ctx.appSKey, err = getAppSKey(ctx.joinReqPayload.DLSettings.OptNeg, ctx.deviceKeys.NwkKey, ctx.netID, ctx.joinEUI, ctx.joinNonce, ctx.devNonce)
+		if err != nil {
+			return errors.Wrap(err, "get AppSKey error")
+		}
 	}
 
-	ctx.appSKey, err = getAppSKey(ctx.deviceKeys.AppKey, ctx.netID, ctx.appNonce, jrPL.DevNonce)
+	ctx.sNwkSIntKey, err = getSNwkSIntKey(ctx.joinReqPayload.DLSettings.OptNeg, ctx.deviceKeys.NwkKey, ctx.netID, ctx.joinEUI, ctx.joinNonce, ctx.devNonce)
 	if err != nil {
-		return errors.Wrap(err, "get app_s_key error")
+		return errors.Wrap(err, "get SNwkSIntKey error")
+	}
+
+	ctx.nwkSEncKey, err = getNwkSEncKey(ctx.joinReqPayload.DLSettings.OptNeg, ctx.deviceKeys.NwkKey, ctx.netID, ctx.joinEUI, ctx.joinNonce, ctx.devNonce)
+	if err != nil {
+		return errors.Wrap(err, "get NwkSEncKey error")
 	}
 
 	return nil
@@ -197,10 +309,12 @@ func setSessionKeys(ctx *context) error {
 
 func createDeviceActivationRecord(ctx *context) error {
 	da := storage.DeviceActivation{
-		DevEUI:  ctx.device.DevEUI,
-		DevAddr: ctx.joinReqPayload.DevAddr,
-		AppSKey: ctx.appSKey,
-		NwkSKey: ctx.nwkSKey,
+		DevEUI:      ctx.device.DevEUI,
+		DevAddr:     ctx.joinReqPayload.DevAddr,
+		FNwkSIntKey: ctx.fNwkSIntKey,
+		AppSKey:     ctx.appSKey,
+		SNwkSIntKey: ctx.sNwkSIntKey,
+		NwkSEncKey:  ctx.nwkSEncKey,
 	}
 
 	if err := storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &da); err != nil {
@@ -242,26 +356,44 @@ func sendJoinNotification(ctx *context) error {
 }
 
 func createJoinAnsPayload(ctx *context) error {
+	var cFList *lorawan.CFList
+	if len(ctx.joinReqPayload.CFList[:]) != 0 {
+		cFList = new(lorawan.CFList)
+		if err := cFList.UnmarshalBinary(ctx.joinReqPayload.CFList[:]); err != nil {
+			return errors.Wrap(err, "unmarshal cflist error")
+		}
+	}
+
 	phy := lorawan.PHYPayload{
 		MHDR: lorawan.MHDR{
 			MType: lorawan.JoinAccept,
 			Major: lorawan.LoRaWANR1,
 		},
 		MACPayload: &lorawan.JoinAcceptPayload{
-			AppNonce:   ctx.appNonce,
-			NetID:      ctx.netID,
+			JoinNonce:  ctx.joinNonce,
+			HomeNetID:  ctx.netID,
 			DevAddr:    ctx.joinReqPayload.DevAddr,
 			DLSettings: ctx.joinReqPayload.DLSettings,
 			RXDelay:    uint8(ctx.joinReqPayload.RxDelay),
-			CFList:     ctx.joinReqPayload.CFList,
+			CFList:     cFList,
 		},
 	}
 
-	if err := phy.SetMIC(ctx.deviceKeys.AppKey); err != nil {
-		return err
+	if ctx.joinReqPayload.DLSettings.OptNeg {
+		jsIntKey, err := getJSIntKey(ctx.deviceKeys.NwkKey, ctx.device.DevEUI)
+		if err != nil {
+			return err
+		}
+		if err := phy.SetDownlinkJoinMIC(ctx.joinType, ctx.joinEUI, ctx.devNonce, jsIntKey); err != nil {
+			return err
+		}
+	} else {
+		if err := phy.SetDownlinkJoinMIC(ctx.joinType, ctx.joinEUI, ctx.devNonce, ctx.deviceKeys.NwkKey); err != nil {
+			return err
+		}
 	}
 
-	if err := phy.EncryptJoinAcceptPayload(ctx.deviceKeys.AppKey); err != nil {
+	if err := phy.EncryptJoinAcceptPayload(ctx.deviceKeys.NwkKey); err != nil {
 		return err
 	}
 
@@ -275,8 +407,92 @@ func createJoinAnsPayload(ctx *context) error {
 		Result: backend.Result{
 			ResultCode: backend.Success,
 		},
-		NwkSKey: &backend.KeyEnvelope{
-			AESKey: ctx.nwkSKey,
+		// TODO: add AppSKey and Lifetime
+	}
+
+	if ctx.joinReqPayload.DLSettings.OptNeg {
+		// LoRaWAN 1.1+
+		ctx.joinAnsPayload.FNwkSIntKey = &backend.KeyEnvelope{
+			AESKey: ctx.fNwkSIntKey,
+		}
+		ctx.joinAnsPayload.SNwkSIntKey = &backend.KeyEnvelope{
+			AESKey: ctx.sNwkSIntKey,
+		}
+		ctx.joinAnsPayload.NwkSEncKey = &backend.KeyEnvelope{
+			AESKey: ctx.nwkSEncKey,
+		}
+	} else {
+		// LoRaWAN 1.0.x
+		ctx.joinAnsPayload.NwkSKey = &backend.KeyEnvelope{
+			AESKey: ctx.fNwkSIntKey,
+		}
+	}
+
+	return nil
+}
+
+func createRejoinAnsPayload(ctx *context) error {
+	var cFList *lorawan.CFList
+	if len(ctx.rejoinReqPayload.CFList[:]) != 0 {
+		cFList = new(lorawan.CFList)
+		if err := cFList.UnmarshalBinary(ctx.rejoinReqPayload.CFList[:]); err != nil {
+			return errors.Wrap(err, "unmarshal cflist error")
+		}
+	}
+
+	phy := lorawan.PHYPayload{
+		MHDR: lorawan.MHDR{
+			MType: lorawan.JoinAccept,
+			Major: lorawan.LoRaWANR1,
+		},
+		MACPayload: &lorawan.JoinAcceptPayload{
+			JoinNonce:  ctx.joinNonce,
+			HomeNetID:  ctx.netID,
+			DevAddr:    ctx.rejoinReqPayload.DevAddr,
+			DLSettings: ctx.rejoinReqPayload.DLSettings,
+			RXDelay:    uint8(ctx.rejoinReqPayload.RxDelay),
+			CFList:     cFList,
+		},
+	}
+
+	jsIntKey, err := getJSIntKey(ctx.deviceKeys.NwkKey, ctx.device.DevEUI)
+	if err != nil {
+		return err
+	}
+
+	jsEncKey, err := getJSEncKey(ctx.deviceKeys.NwkKey, ctx.device.DevEUI)
+	if err != nil {
+		return err
+	}
+
+	if err := phy.SetDownlinkJoinMIC(ctx.joinType, ctx.joinEUI, ctx.devNonce, jsIntKey); err != nil {
+		return err
+	}
+
+	if err := phy.EncryptJoinAcceptPayload(jsEncKey); err != nil {
+		return err
+	}
+
+	b, err := phy.MarshalBinary()
+	if err != nil {
+		return err
+	}
+
+	// as the rejoin-request is only implemented for LoRaWAN1.1+ there is no
+	// need to check the OptNeg flag
+	ctx.rejoinAnsPaylaod = backend.RejoinAnsPayload{
+		Result: backend.Result{
+			ResultCode: backend.Success,
+		},
+		PHYPayload: backend.HEXBytes(b),
+		FNwkSIntKey: &backend.KeyEnvelope{
+			AESKey: ctx.fNwkSIntKey,
+		},
+		SNwkSIntKey: &backend.KeyEnvelope{
+			AESKey: ctx.sNwkSIntKey,
+		},
+		NwkSEncKey: &backend.KeyEnvelope{
+			AESKey: ctx.nwkSEncKey,
 		},
 		// TODO: add AppSKey and Lifetime
 	}
@@ -284,35 +500,97 @@ func createJoinAnsPayload(ctx *context) error {
 	return nil
 }
 
-// getNwkSKey returns the network session key.
-func getNwkSKey(appkey lorawan.AES128Key, netID lorawan.NetID, appNonce [3]byte, devNonce [2]byte) (lorawan.AES128Key, error) {
-	return getSKey(0x01, appkey, netID, appNonce, devNonce)
+// getFNwkSIntKey returns the FNwkSIntKey.
+// For LoRaWAN 1.0: SNwkSIntKey = NwkSEncKey = FNwkSIntKey = NwkSKey
+func getFNwkSIntKey(optNeg bool, nwkKey lorawan.AES128Key, netID lorawan.NetID, joinEUI lorawan.EUI64, joinNonce lorawan.JoinNonce, devNonce lorawan.DevNonce) (lorawan.AES128Key, error) {
+	return getSKey(optNeg, 0x01, nwkKey, netID, joinEUI, joinNonce, devNonce)
 }
 
-// getAppSKey returns the application session key.
-func getAppSKey(appkey lorawan.AES128Key, netID lorawan.NetID, appNonce [3]byte, devNonce [2]byte) (lorawan.AES128Key, error) {
-	return getSKey(0x02, appkey, netID, appNonce, devNonce)
+// getAppSKey returns appSKey.
+func getAppSKey(optNeg bool, nwkKey lorawan.AES128Key, netID lorawan.NetID, joinEUI lorawan.EUI64, joinNonce lorawan.JoinNonce, devNonce lorawan.DevNonce) (lorawan.AES128Key, error) {
+	return getSKey(optNeg, 0x02, nwkKey, netID, joinEUI, joinNonce, devNonce)
 }
 
-func getSKey(typ byte, appkey lorawan.AES128Key, netID lorawan.NetID, appNonce [3]byte, devNonce [2]byte) (lorawan.AES128Key, error) {
+// getSNwkSIntKey returns the NwkSIntKey.
+func getSNwkSIntKey(optNeg bool, nwkKey lorawan.AES128Key, netID lorawan.NetID, joinEUI lorawan.EUI64, joinNonce lorawan.JoinNonce, devNonce lorawan.DevNonce) (lorawan.AES128Key, error) {
+	return getSKey(optNeg, 0x03, nwkKey, netID, joinEUI, joinNonce, devNonce)
+}
+
+// getNwkSEncKey returns the NwkSEncKey.
+func getNwkSEncKey(optNeg bool, nwkKey lorawan.AES128Key, netID lorawan.NetID, joinEUI lorawan.EUI64, joinNonce lorawan.JoinNonce, devNonce lorawan.DevNonce) (lorawan.AES128Key, error) {
+	return getSKey(optNeg, 0x04, nwkKey, netID, joinEUI, joinNonce, devNonce)
+}
+
+// getJSIntKey returns the JSIntKey.
+func getJSIntKey(nwkKey lorawan.AES128Key, devEUI lorawan.EUI64) (lorawan.AES128Key, error) {
+	return getJSKey(0x06, devEUI, nwkKey)
+}
+
+// getJSEncKey returns the JSEncKey.
+func getJSEncKey(nwkKey lorawan.AES128Key, devEUI lorawan.EUI64) (lorawan.AES128Key, error) {
+	return getJSKey(0x05, devEUI, nwkKey)
+}
+
+func getSKey(optNeg bool, typ byte, nwkKey lorawan.AES128Key, netID lorawan.NetID, joinEUI lorawan.EUI64, joinNonce lorawan.JoinNonce, devNonce lorawan.DevNonce) (lorawan.AES128Key, error) {
 	var key lorawan.AES128Key
-	b := make([]byte, 0, 16)
-	b = append(b, typ)
+	b := make([]byte, 16)
+	b[0] = typ
 
-	// little endian
-	for i := len(appNonce) - 1; i >= 0; i-- {
-		b = append(b, appNonce[i])
+	netIDB, err := netID.MarshalBinary()
+	if err != nil {
+		return key, errors.Wrap(err, "marshal binary error")
 	}
-	for i := len(netID) - 1; i >= 0; i-- {
-		b = append(b, netID[i])
-	}
-	for i := len(devNonce) - 1; i >= 0; i-- {
-		b = append(b, devNonce[i])
-	}
-	pad := make([]byte, 7)
-	b = append(b, pad...)
 
-	block, err := aes.NewCipher(appkey[:])
+	joinEUIB, err := joinEUI.MarshalBinary()
+	if err != nil {
+		return key, errors.Wrap(err, "marshal binary error")
+	}
+
+	joinNonceB, err := joinNonce.MarshalBinary()
+	if err != nil {
+		return key, errors.Wrap(err, "marshal binary error")
+	}
+
+	devNonceB, err := devNonce.MarshalBinary()
+	if err != nil {
+		return key, errors.Wrap(err, "marshal binary error")
+	}
+
+	if optNeg {
+		copy(b[1:4], joinNonceB)
+		copy(b[4:12], joinEUIB)
+		copy(b[12:14], devNonceB)
+	} else {
+		copy(b[1:4], joinNonceB)
+		copy(b[4:7], netIDB)
+		copy(b[7:9], devNonceB)
+	}
+
+	block, err := aes.NewCipher(nwkKey[:])
+	if err != nil {
+		return key, err
+	}
+	if block.BlockSize() != len(b) {
+		return key, fmt.Errorf("block-size of %d bytes is expected", len(b))
+	}
+	block.Encrypt(key[:], b)
+
+	return key, nil
+}
+
+func getJSKey(typ byte, devEUI lorawan.EUI64, nwkKey lorawan.AES128Key) (lorawan.AES128Key, error) {
+	var key lorawan.AES128Key
+	b := make([]byte, 16)
+
+	b[0] = typ
+
+	devB, err := devEUI.MarshalBinary()
+	if err != nil {
+		return key, err
+	}
+	copy(b[1:9], devB[:])
+
+	block, err := aes.NewCipher(nwkKey[:])
 	if err != nil {
 		return key, err
 	}

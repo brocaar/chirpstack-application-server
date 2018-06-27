@@ -38,6 +38,7 @@ func TestMQTTHandler(t *testing.T) {
 					JoinTopicTemplate:     "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/join",
 					AckTopicTemplate:      "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/ack",
 					ErrorTopicTemplate:    "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/error",
+					StatusTopicTemplate:   "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/status",
 				},
 			)
 			So(err, ShouldBeNil)
@@ -150,6 +151,35 @@ func TestMQTTHandler(t *testing.T) {
 
 					Convey("Then the same notification is received by the MQTT client", func() {
 						So(<-errChan, ShouldResemble, pl)
+					})
+				})
+			})
+
+			Convey("Given the MQTT client is subscribed to application/123/node/0102030405060708/status", func() {
+				statusChan := make(chan handler.StatusNotification)
+				token := c.Subscribe("application/123/node/0102030405060708/status", 0, func(c mqtt.Client, msg mqtt.Message) {
+					var pl handler.StatusNotification
+					if err := json.Unmarshal(msg.Payload(), &pl); err != nil {
+						t.Fatal(err)
+					}
+					statusChan <- pl
+				})
+				token.Wait()
+				So(token.Error(), ShouldBeNil)
+
+				Convey("When sending a status notification (from the handler)", func() {
+					pl := handler.StatusNotification{
+						ApplicationID:   123,
+						ApplicationName: "test-app",
+						DeviceName:      "test-device",
+						DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+						Margin:          123,
+						Battery:         234,
+					}
+					So(h.SendStatusNotification(pl), ShouldBeNil)
+
+					Convey("Then the same notification was received by the MQTT client", func() {
+						So(<-statusChan, ShouldResemble, pl)
 					})
 				})
 			})

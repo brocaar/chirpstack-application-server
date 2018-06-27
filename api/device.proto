@@ -117,8 +117,13 @@ service Device {
 }
 
 message DeviceKeys {
+    // HEX encoded network key.
+    // Note: For LoRaWAN 1.0.x, use this field for the LoRaWAN 1.0.x 'AppKey`!
+    string nwkKey = 1;
+
     // HEX encoded application key.
-    string appKey = 1;
+    // Note: This field only needs to be set for LoRaWAN 1.1.x devices!
+    string appKey = 2;
 }
 
 message CreateDeviceRequest {
@@ -313,17 +318,26 @@ message ActivateDeviceRequest {
     // Hex encoded DevAddr.
     string devAddr = 2;
 
-    // Hex encoded AppSKey.
+    // Hex encoded application session key.
     string appSKey = 3;
 
-    // Hex encoded NwkSKey.
-    string nwkSKey = 4;
+    // Hex encoded network session encryption key.
+    string nwkSEncKey = 4;
+
+    // Hex encoded serving network session integrity key.
+    string sNwkSIntKey = 8;
+
+    // Hex encoded forwarding network session integrity key.
+    string fNwkSIntKey = 9;
 
     // Uplink frame-counter.
     uint32 fCntUp = 5;
 
-    // Downlink frame-counter.
-    uint32 fCntDown = 6;
+    // Downlink network frame-counter.
+    uint32 nFCntDown = 6;
+
+    // Downlink application frame-counter.
+    uint32 aFCntDown = 10;
 
     // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
     // Deprecated! Use the skipFCntCheck flag on the device object itself.
@@ -341,17 +355,26 @@ message GetDeviceActivationResponse {
     // Hex encoded DevAddr.
     string devAddr = 1;
 
-    // Hex encoded AppSKey.
+    // Hex encoded application session key.
     string appSKey = 2;
 
-    // Hex encoded NwkSKey.
-    string nwkSKey = 3;
+    // Hex encoded network session encryption key.
+    string nwkSEncKey = 3;
+
+    // Hex encoded serving network session integrity key.
+    string sNwkSIntKey = 7;
+
+    // Hex encoded forwarding network session integrity key.
+    string fNwkSIntKey = 8;
 
     // Uplink frame-counter.
     uint32 fCntUp = 4;
 
-    // Downlink frame-counter.
-    uint32 fCntDown = 5;
+    // Downlink network frame-counter.
+    uint32 nFCntDown = 5;
+
+    // Downlink application frame-counter.
+    uint32 aFCntDown = 9;
 
     // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
     bool skipFCntCheck = 6;

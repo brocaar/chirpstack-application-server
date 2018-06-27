@@ -41,6 +41,7 @@ type Config struct {
 	JoinTopicTemplate     string `mapstructure:"join_topic_template"`
 	AckTopicTemplate      string `mapstructure:"ack_topic_template"`
 	ErrorTopicTemplate    string `mapstructure:"error_topic_template"`
+	StatusTopicTemplate   string `mapstructure:"status_topic_template"`
 }
 
 // MQTTHandler implements a MQTT handler for sending and receiving data by
@@ -56,6 +57,7 @@ type MQTTHandler struct {
 	joinTemplate     *template.Template
 	ackTemplate      *template.Template
 	errorTemplate    *template.Template
+	statusTemplate   *template.Template
 	downlinkTopic    string
 	downlinkRegexp   *regexp.Regexp
 }
@@ -88,6 +90,10 @@ func NewHandler(p *redis.Pool, c Config) (handler.Handler, error) {
 	h.errorTemplate, err = template.New("error").Parse(h.config.ErrorTopicTemplate)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse error template error")
+	}
+	h.statusTemplate, err = template.New("status").Parse(h.config.StatusTopicTemplate)
+	if err != nil {
+		return nil, errors.Wrap(err, "parse status template error")
 	}
 
 	// generate downlink topic matching all applications and devices
@@ -219,6 +225,11 @@ func (h *MQTTHandler) SendACKNotification(payload handler.ACKNotification) error
 // SendErrorNotification sends an ErrorNotification.
 func (h *MQTTHandler) SendErrorNotification(payload handler.ErrorNotification) error {
 	return h.publish(payload.ApplicationID, payload.DevEUI, h.errorTemplate, payload)
+}
+
+// SendStatusNotification sends a StatusNotification.
+func (h *MQTTHandler) SendStatusNotification(payload handler.StatusNotification) error {
+	return h.publish(payload.ApplicationID, payload.DevEUI, h.statusTemplate, payload)
 }
 
 func (h *MQTTHandler) publish(applicationID int64, devEUI lorawan.EUI64, topicTemplate *template.Template, v interface{}) error {

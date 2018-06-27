@@ -13,6 +13,7 @@ func init() {
 	gob.Register(JoinNotification{})
 	gob.Register(ACKNotification{})
 	gob.Register(ErrorNotification{})
+	gob.Register(StatusNotification{})
 }
 
 // DataRate contains the data-rate related fields.
@@ -45,18 +46,16 @@ type TXInfo struct {
 
 // DataUpPayload represents a data-up payload.
 type DataUpPayload struct {
-	ApplicationID       int64         `json:"applicationID,string"`
-	ApplicationName     string        `json:"applicationName"`
-	DeviceName          string        `json:"deviceName"`
-	DevEUI              lorawan.EUI64 `json:"devEUI"`
-	DeviceStatusBattery *int          `json:"deviceStatusBattery,omitempty"`
-	DeviceStatusMargin  *int          `json:"deviceStatusMargin,omitempty"`
-	RXInfo              []RXInfo      `json:"rxInfo,omitempty"`
-	TXInfo              TXInfo        `json:"txInfo"`
-	FCnt                uint32        `json:"fCnt"`
-	FPort               uint8         `json:"fPort"`
-	Data                []byte        `json:"data"`
-	Object              interface{}   `json:"object,omitempty"`
+	ApplicationID   int64         `json:"applicationID,string"`
+	ApplicationName string        `json:"applicationName"`
+	DeviceName      string        `json:"deviceName"`
+	DevEUI          lorawan.EUI64 `json:"devEUI"`
+	RXInfo          []RXInfo      `json:"rxInfo,omitempty"`
+	TXInfo          TXInfo        `json:"txInfo"`
+	FCnt            uint32        `json:"fCnt"`
+	FPort           uint8         `json:"fPort"`
+	Data            []byte        `json:"data"`
+	Object          interface{}   `json:"object,omitempty"`
 }
 
 // DataDownPayload represents a data-down payload.
@@ -102,4 +101,15 @@ type ErrorNotification struct {
 	Type            string        `json:"type"`
 	Error           string        `json:"error"`
 	FCnt            uint32        `json:"fCnt,omitempty"`
+}
+
+// StatusNotification defines the payload sent to the application
+// on a device-status reporting.
+type StatusNotification struct {
+	ApplicationID   int64         `json:"applicationID,string"`
+	ApplicationName string        `json:"applicationName"`
+	DeviceName      string        `json:"deviceName"`
+	DevEUI          lorawan.EUI64 `json:"devEUI"`
+	Battery         int           `json:"battery"`
+	Margin          int           `json:"margin"`
 }

@@ -156,6 +156,7 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   join_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/join"
   ack_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/ack"
   error_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error"
+  status_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status"
 
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="tcp://localhost:1883"

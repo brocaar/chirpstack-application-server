@@ -8,7 +8,7 @@
     "api/as",
     "api/ns"
   ]
-  revision = "7c3183a8ef657e5e7ebb1c81f5dea7e323390103"
+  revision = "1a3144370fc698f5c5dadd0235bcb75a9fbb9f26"
 
 [[projects]]
   branch = "master"
@@ -17,7 +17,7 @@
     ".",
     "backend"
   ]
-  revision = "33b2e190da53e7b9b86eaad3ba9916c4e866f042"
+  revision = "33c77dad210efd43f1cfb7cb91b50d9088e68854"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"

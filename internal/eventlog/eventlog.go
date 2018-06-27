@@ -24,6 +24,7 @@ const (
 	ACK    = "ack"
 	Join   = "join"
 	Error  = "error"
+	Status = "status"
 )
 
 // EventLog contains an event log.

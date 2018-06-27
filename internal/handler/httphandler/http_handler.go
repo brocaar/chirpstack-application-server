@@ -18,11 +18,12 @@ var headerNameValidator = regexp.MustCompile(`^[A-Za-z0-9-]+$`)
 
 // HandlerConfig contains the configuration for a HTTP handler.
 type HandlerConfig struct {
-	Headers              map[string]string `json:"headers"`
-	DataUpURL            string            `json:"dataUpURL"`
-	JoinNotificationURL  string            `json:"joinNotificationURL"`
-	ACKNotificationURL   string            `json:"ackNotificationURL"`
-	ErrorNotificationURL string            `json:"errorNotificationURL"`
+	Headers               map[string]string `json:"headers"`
+	DataUpURL             string            `json:"dataUpURL"`
+	JoinNotificationURL   string            `json:"joinNotificationURL"`
+	ACKNotificationURL    string            `json:"ackNotificationURL"`
+	ErrorNotificationURL  string            `json:"errorNotificationURL"`
+	StatusNotificationURL string            `json:"statusNotificationURL"`
 }
 
 // Validate validates the HandlerConfig data.
@@ -133,4 +134,17 @@ func (h *Handler) SendErrorNotification(pl handler.ErrorNotification) error {
 		"dev_eui": pl.DevEUI,
 	}).Info("handler/http: publishing error notification")
 	return h.send(h.config.ErrorNotificationURL, pl)
+}
+
+// SendStatusNotification sends a status notification.
+func (h *Handler) SendStatusNotification(pl handler.StatusNotification) error {
+	if h.config.StatusNotificationURL == "" {
+		return nil
+	}
+
+	log.WithFields(log.Fields{
+		"url":     h.config.StatusNotificationURL,
+		"dev_eui": pl.DevEUI,
+	}).Info("handler/http: publishing status notification")
+	return h.send(h.config.StatusNotificationURL, pl)
 }

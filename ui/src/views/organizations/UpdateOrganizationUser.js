@@ -85,7 +85,7 @@ class UpdateOrganizationUser extends Component {
   componentWillMount() {
     OrganizationStore.getUser(this.props.match.params.organizationID, this.props.match.params.userID, (user) => {
       this.setState({
-        user: user,
+        user: user.organizationUser,
       });
     });
 
@@ -97,7 +97,7 @@ class UpdateOrganizationUser extends Component {
   }
 
   onSubmit(user) {
-    OrganizationStore.updateUser(this.props.match.params.organizationID, this.props.match.params.userID, user, (responseData) => {
+    OrganizationStore.updateUser(this.props.match.params.organizationID, this.props.match.params.userID, {organizationUser: user}, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/users`);
     });
   }
@@ -116,7 +116,7 @@ class UpdateOrganizationUser extends Component {
         <div className="panel-heading clearfix">
           <h3 className="panel-title panel-title-buttons pull-left">Update organization user</h3>
           <div className="pull-right">
-            <Link to={`/users/${this.state.user.id}/edit`} className={this.state.isAdmin ? "" : "hidden"}><button className="btn btn-default btn-sm">Goto user</button></Link> &nbsp;
+            <Link to={`/users/${this.state.user.userID}/edit`} className={this.state.isAdmin ? "" : "hidden"}><button className="btn btn-default btn-sm">Goto user</button></Link> &nbsp;
             <button type="button" className="btn btn-danger btn-sm" onClick={this.onDelete}>Remove user</button>
           </div>
         </div>

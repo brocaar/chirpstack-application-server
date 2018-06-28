@@ -1,9 +1,14 @@
 package api
 
 import (
-	"encoding/hex"
 	"encoding/json"
-	"time"
+
+	"github.com/brocaar/loraserver/api/gw"
+
+	"github.com/golang/protobuf/ptypes"
+
+	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/satori/go.uuid"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -34,47 +39,56 @@ func NewDeviceAPI(validator auth.Validator) *DeviceAPI {
 }
 
 // Create creates the given device.
-func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*pb.CreateDeviceResponse, error) {
+func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*empty.Empty, error) {
+	if req.Device == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "device must not be nil")
+	}
+
 	var devEUI lorawan.EUI64
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := devEUI.UnmarshalText([]byte(req.Device.DevEui)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	dpID, err := uuid.FromString(req.Device.DeviceProfileId)
+	if err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
 	if err := a.validator.Validate(ctx,
-		auth.ValidateNodesAccess(req.ApplicationID, auth.Create)); err != nil {
+		auth.ValidateNodesAccess(req.Device.ApplicationId, auth.Create)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	// if Name is "", set it to the DevEUI
-	if req.Name == "" {
-		req.Name = req.DevEUI
+	if req.Device.Name == "" {
+		req.Device.Name = req.Device.DevEui
 	}
 
 	d := storage.Device{
 		DevEUI:          devEUI,
-		ApplicationID:   req.ApplicationID,
-		DeviceProfileID: req.DeviceProfileID,
-		Name:            req.Name,
-		Description:     req.Description,
-		SkipFCntCheck:   req.SkipFCntCheck,
+		ApplicationID:   req.Device.ApplicationId,
+		DeviceProfileID: dpID,
+		Name:            req.Device.Name,
+		Description:     req.Device.Description,
+		SkipFCntCheck:   req.Device.SkipFCntCheck,
 	}
 
 	// as this also performs a remote call to create the node on the
 	// network-server, wrap it in a transaction
-	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		return storage.CreateDevice(tx, &d)
 	})
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.CreateDeviceResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // Get returns the device matching the given DevEUI.
 func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetDeviceResponse, error) {
 	var eui lorawan.EUI64
-	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := eui.UnmarshalText([]byte(req.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
@@ -89,14 +103,17 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 	}
 
 	resp := pb.GetDeviceResponse{
-		DevEUI:              d.DevEUI.String(),
-		Name:                d.Name,
-		ApplicationID:       d.ApplicationID,
-		Description:         d.Description,
-		DeviceProfileID:     d.DeviceProfileID,
+		Device: &pb.Device{
+			DevEui:          d.DevEUI.String(),
+			Name:            d.Name,
+			ApplicationId:   d.ApplicationID,
+			Description:     d.Description,
+			DeviceProfileId: d.DeviceProfileID.String(),
+			SkipFCntCheck:   d.SkipFCntCheck,
+		},
+
 		DeviceStatusBattery: 256,
 		DeviceStatusMargin:  256,
-		SkipFCntCheck:       d.SkipFCntCheck,
 	}
 
 	if d.DeviceStatusBattery != nil {
@@ -106,7 +123,10 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 		resp.DeviceStatusMargin = int32(*d.DeviceStatusMargin)
 	}
 	if d.LastSeenAt != nil {
-		resp.LastSeenAt = d.LastSeenAt.Format(time.RFC3339Nano)
+		resp.LastSeenAt, err = ptypes.TimestampProto(*d.LastSeenAt)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
 	}
 
 	return &resp, nil
@@ -115,15 +135,15 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 // ListByApplicationID lists the devices by the given application ID, sorted by the name of the device.
 func (a *DeviceAPI) ListByApplicationID(ctx context.Context, req *pb.ListDeviceByApplicationIDRequest) (*pb.ListDeviceResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateNodesAccess(req.ApplicationID, auth.List)); err != nil {
+		auth.ValidateNodesAccess(req.ApplicationId, auth.List)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	devices, err := storage.GetDevicesForApplicationID(config.C.PostgreSQL.DB, req.ApplicationID, int(req.Limit), int(req.Offset), req.Search)
+	devices, err := storage.GetDevicesForApplicationID(config.C.PostgreSQL.DB, req.ApplicationId, int(req.Limit), int(req.Offset), req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	count, err := storage.GetDeviceCountForApplicationID(config.C.PostgreSQL.DB, req.ApplicationID, req.Search)
+	count, err := storage.GetDeviceCountForApplicationID(config.C.PostgreSQL.DB, req.ApplicationId, req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -131,9 +151,18 @@ func (a *DeviceAPI) ListByApplicationID(ctx context.Context, req *pb.ListDeviceB
 }
 
 // Update updates the device matching the given DevEUI.
-func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*pb.UpdateDeviceResponse, error) {
+func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*empty.Empty, error) {
+	if req.Device == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "device must not be nil")
+	}
+
 	var devEUI lorawan.EUI64
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := devEUI.UnmarshalText([]byte(req.Device.DevEui)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	dpID, err := uuid.FromString(req.Device.DeviceProfileId)
+	if err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
@@ -147,10 +176,10 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*p
 		return nil, errToRPCError(err)
 	}
 
-	d.DeviceProfileID = req.DeviceProfileID
-	d.Name = req.Name
-	d.Description = req.Description
-	d.SkipFCntCheck = req.SkipFCntCheck
+	d.DeviceProfileID = dpID
+	d.Name = req.Device.Name
+	d.Description = req.Device.Description
+	d.SkipFCntCheck = req.Device.SkipFCntCheck
 
 	// as this also performs a remote call to update the node on the
 	// network-server, wrap it in a transaction
@@ -161,13 +190,13 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*p
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.UpdateDeviceResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // Delete deletes the node matching the given name.
-func (a *DeviceAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*pb.DeleteDeviceResponse, error) {
+func (a *DeviceAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*empty.Empty, error) {
 	var eui lorawan.EUI64
-	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := eui.UnmarshalText([]byte(req.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
@@ -190,13 +219,13 @@ func (a *DeviceAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*p
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.DeleteDeviceResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // CreateKeys creates the given device-keys.
-func (a *DeviceAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequest) (*pb.CreateDeviceKeysResponse, error) {
+func (a *DeviceAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequest) (*empty.Empty, error) {
 	if req.DeviceKeys == nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "devicesKeys expected")
+		return nil, grpc.Errorf(codes.InvalidArgument, "device_keys must not be nil")
 	}
 
 	// appKey is not used for LoRaWAN 1.0
@@ -213,7 +242,7 @@ func (a *DeviceAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequ
 	}
 
 	var eui lorawan.EUI64
-	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := eui.UnmarshalText([]byte(req.DeviceKeys.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
@@ -232,13 +261,13 @@ func (a *DeviceAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequ
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.CreateDeviceKeysResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // GetKeys returns the device-keys for the given DevEUI.
 func (a *DeviceAPI) GetKeys(ctx context.Context, req *pb.GetDeviceKeysRequest) (*pb.GetDeviceKeysResponse, error) {
 	var eui lorawan.EUI64
-	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := eui.UnmarshalText([]byte(req.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
@@ -255,6 +284,7 @@ func (a *DeviceAPI) GetKeys(ctx context.Context, req *pb.GetDeviceKeysRequest) (
 
 	return &pb.GetDeviceKeysResponse{
 		DeviceKeys: &pb.DeviceKeys{
+			DevEui: eui.String(),
 			AppKey: dk.AppKey.String(),
 			NwkKey: dk.NwkKey.String(),
 		},
@@ -262,9 +292,9 @@ func (a *DeviceAPI) GetKeys(ctx context.Context, req *pb.GetDeviceKeysRequest) (
 }
 
 // UpdateKeys updates the device-keys.
-func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequest) (*pb.UpdateDeviceKeysResponse, error) {
+func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequest) (*empty.Empty, error) {
 	if req.DeviceKeys == nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "devicesKeys expected")
+		return nil, grpc.Errorf(codes.InvalidArgument, "device_keys must not be nil")
 	}
 
 	var appKey lorawan.AES128Key
@@ -281,7 +311,7 @@ func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequ
 	}
 
 	var eui lorawan.EUI64
-	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := eui.UnmarshalText([]byte(req.DeviceKeys.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
@@ -303,13 +333,13 @@ func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequ
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.UpdateDeviceKeysResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // DeleteKeys deletes the device-keys for the given DevEUI.
-func (a *DeviceAPI) DeleteKeys(ctx context.Context, req *pb.DeleteDeviceKeysRequest) (*pb.DeleteDeviceKeysResponse, error) {
+func (a *DeviceAPI) DeleteKeys(ctx context.Context, req *pb.DeleteDeviceKeysRequest) (*empty.Empty, error) {
 	var eui lorawan.EUI64
-	if err := eui.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := eui.UnmarshalText([]byte(req.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
@@ -323,11 +353,15 @@ func (a *DeviceAPI) DeleteKeys(ctx context.Context, req *pb.DeleteDeviceKeysRequ
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.DeleteDeviceKeysResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // Activate activates the node (ABP only).
-func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest) (*pb.ActivateDeviceResponse, error) {
+func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest) (*empty.Empty, error) {
+	if req.DeviceActivation == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "device_activation must not be nil")
+	}
+
 	var devAddr lorawan.DevAddr
 	var devEUI lorawan.EUI64
 	var appSKey lorawan.AES128Key
@@ -335,22 +369,22 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 	var sNwkSIntKey lorawan.AES128Key
 	var fNwkSIntKey lorawan.AES128Key
 
-	if err := devAddr.UnmarshalText([]byte(req.DevAddr)); err != nil {
+	if err := devAddr.UnmarshalText([]byte(req.DeviceActivation.DevAddr)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devAddr: %s", err)
 	}
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := devEUI.UnmarshalText([]byte(req.DeviceActivation.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
-	if err := appSKey.UnmarshalText([]byte(req.AppSKey)); err != nil {
+	if err := appSKey.UnmarshalText([]byte(req.DeviceActivation.AppSKey)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "appSKey: %s", err)
 	}
-	if err := nwkSEncKey.UnmarshalText([]byte(req.NwkSEncKey)); err != nil {
+	if err := nwkSEncKey.UnmarshalText([]byte(req.DeviceActivation.NwkSEncKey)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "nwkSEncKey: %s", err)
 	}
-	if err := sNwkSIntKey.UnmarshalText([]byte(req.SNwkSIntKey)); err != nil {
+	if err := sNwkSIntKey.UnmarshalText([]byte(req.DeviceActivation.SNwkSIntKey)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "sNwkSIntKey: %s", err)
 	}
-	if err := fNwkSIntKey.UnmarshalText([]byte(req.FNwkSIntKey)); err != nil {
+	if err := fNwkSIntKey.UnmarshalText([]byte(req.DeviceActivation.FNwkSIntKey)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "fNwkSIntKey: %s", err)
 	}
 
@@ -384,19 +418,20 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 	}
 
 	_, _ = nsClient.DeactivateDevice(context.Background(), &ns.DeactivateDeviceRequest{
-		DevEUI: d.DevEUI[:],
+		DevEui: d.DevEUI[:],
 	})
 
 	actReq := ns.ActivateDeviceRequest{
-		DevEUI:        d.DevEUI[:],
-		DevAddr:       devAddr[:],
-		NwkSEncKey:    nwkSEncKey[:],
-		SNwkSIntKey:   sNwkSIntKey[:],
-		FNwkSIntKey:   fNwkSIntKey[:],
-		FCntUp:        req.FCntUp,
-		NFCntDown:     req.NFCntDown,
-		AFCntDown:     req.AFCntDown,
-		SkipFCntCheck: req.SkipFCntCheck,
+		DeviceActivation: &ns.DeviceActivation{
+			DevEui:      d.DevEUI[:],
+			DevAddr:     devAddr[:],
+			NwkSEncKey:  nwkSEncKey[:],
+			SNwkSIntKey: sNwkSIntKey[:],
+			FNwkSIntKey: fNwkSIntKey[:],
+			FCntUp:      req.DeviceActivation.FCntUp,
+			NFCntDown:   req.DeviceActivation.NFCntDown,
+			AFCntDown:   req.DeviceActivation.AFCntDown,
+		},
 	}
 
 	_, err = nsClient.ActivateDevice(context.Background(), &actReq)
@@ -425,7 +460,7 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		"dev_eui":  d.DevEUI,
 	}).Info("device activated")
 
-	return &pb.ActivateDeviceResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // GetActivation returns the device activation for the given DevEUI.
@@ -436,7 +471,7 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 	var fNwkSIntKey lorawan.AES128Key
 	var nwkSEncKey lorawan.AES128Key
 
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := devEUI.UnmarshalText([]byte(req.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
@@ -466,36 +501,37 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 	}
 
 	devAct, err := nsClient.GetDeviceActivation(context.Background(), &ns.GetDeviceActivationRequest{
-		DevEUI: d.DevEUI[:],
+		DevEui: d.DevEUI[:],
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	copy(devAddr[:], devAct.DevAddr)
-	copy(nwkSEncKey[:], devAct.NwkSEncKey)
-	copy(sNwkSIntKey[:], devAct.SNwkSIntKey)
-	copy(fNwkSIntKey[:], devAct.FNwkSIntKey)
+	copy(devAddr[:], devAct.DeviceActivation.DevAddr)
+	copy(nwkSEncKey[:], devAct.DeviceActivation.NwkSEncKey)
+	copy(sNwkSIntKey[:], devAct.DeviceActivation.SNwkSIntKey)
+	copy(fNwkSIntKey[:], devAct.DeviceActivation.FNwkSIntKey)
 
 	return &pb.GetDeviceActivationResponse{
-		DevAddr:       devAddr.String(),
-		AppSKey:       da.AppSKey.String(),
-		NwkSEncKey:    nwkSEncKey.String(),
-		SNwkSIntKey:   sNwkSIntKey.String(),
-		FNwkSIntKey:   fNwkSIntKey.String(),
-		FCntUp:        devAct.FCntUp,
-		NFCntDown:     devAct.NFCntDown,
-		AFCntDown:     devAct.AFCntDown,
-		SkipFCntCheck: devAct.SkipFCntCheck,
+		DeviceActivation: &pb.DeviceActivation{
+			DevAddr:     devAddr.String(),
+			AppSKey:     da.AppSKey.String(),
+			NwkSEncKey:  nwkSEncKey.String(),
+			SNwkSIntKey: sNwkSIntKey.String(),
+			FNwkSIntKey: fNwkSIntKey.String(),
+			FCntUp:      devAct.DeviceActivation.FCntUp,
+			NFCntDown:   devAct.DeviceActivation.NFCntDown,
+			AFCntDown:   devAct.DeviceActivation.AFCntDown,
+		},
 	}, nil
 }
 
 // StreamFrameLogs streams the uplink and downlink frame-logs for the given DevEUI.
 // Note: these are the raw LoRaWAN frames and this endpoint is intended for debugging.
-func (a *DeviceAPI) StreamFrameLogs(req *pb.StreamDeviceFrameLogsRequest, srv pb.Device_StreamFrameLogsServer) error {
+func (a *DeviceAPI) StreamFrameLogs(req *pb.StreamDeviceFrameLogsRequest, srv pb.DeviceService_StreamFrameLogsServer) error {
 	var devEUI lorawan.EUI64
 
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := devEUI.UnmarshalText([]byte(req.DevEui)); err != nil {
 		return grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
@@ -515,7 +551,7 @@ func (a *DeviceAPI) StreamFrameLogs(req *pb.StreamDeviceFrameLogsRequest, srv pb
 	}
 
 	streamClient, err := nsClient.StreamFrameLogsForDevice(srv.Context(), &ns.StreamFrameLogsForDeviceRequest{
-		DevEUI: devEUI[:],
+		DevEui: devEUI[:],
 	})
 	if err != nil {
 		return err
@@ -527,15 +563,25 @@ func (a *DeviceAPI) StreamFrameLogs(req *pb.StreamDeviceFrameLogsRequest, srv pb
 			return err
 		}
 
-		up, down, err := convertUplinkAndDownlinkFrames(resp.UplinkFrames, resp.DownlinkFrames, true)
+		up, down, err := convertUplinkAndDownlinkFrames(resp.GetUplinkFrameSet(), resp.GetDownlinkFrame(), true)
 		if err != nil {
 			return errToRPCError(err)
 		}
 
-		err = srv.Send(&pb.StreamDeviceFrameLogsResponse{
-			UplinkFrames:   up,
-			DownlinkFrames: down,
-		})
+		var frameResp pb.StreamDeviceFrameLogsResponse
+		if up != nil {
+			frameResp.Frame = &pb.StreamDeviceFrameLogsResponse_UplinkFrame{
+				UplinkFrame: up,
+			}
+		}
+
+		if down != nil {
+			frameResp.Frame = &pb.StreamDeviceFrameLogsResponse_DownlinkFrame{
+				DownlinkFrame: down,
+			}
+		}
+
+		err = srv.Send(&frameResp)
 		if err != nil {
 			return err
 		}
@@ -545,10 +591,10 @@ func (a *DeviceAPI) StreamFrameLogs(req *pb.StreamDeviceFrameLogsRequest, srv pb
 // StreamEventLogs stream the device events (uplink payloads, ACKs, joins, errors).
 // Note: this endpoint is intended for debugging and should not be used for building
 // integrations.
-func (a *DeviceAPI) StreamEventLogs(req *pb.StreamDeviceEventLogsRequest, srv pb.Device_StreamEventLogsServer) error {
+func (a *DeviceAPI) StreamEventLogs(req *pb.StreamDeviceEventLogsRequest, srv pb.DeviceService_StreamEventLogsServer) error {
 	var devEUI lorawan.EUI64
 
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := devEUI.UnmarshalText([]byte(req.DevEui)); err != nil {
 		return grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
@@ -574,7 +620,7 @@ func (a *DeviceAPI) StreamEventLogs(req *pb.StreamDeviceEventLogsRequest, srv pb
 
 		resp := pb.StreamDeviceEventLogsResponse{
 			Type:        el.Type,
-			PayloadJSON: string(b),
+			PayloadJson: string(b),
 		}
 
 		err = srv.Send(&resp)
@@ -590,7 +636,7 @@ func (a *DeviceAPI) StreamEventLogs(req *pb.StreamDeviceEventLogsRequest, srv pb
 func (a *DeviceAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAddrRequest) (*pb.GetRandomDevAddrResponse, error) {
 	var devEUI lorawan.EUI64
 
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := devEUI.UnmarshalText([]byte(req.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
@@ -604,7 +650,7 @@ func (a *DeviceAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAd
 		return nil, errToRPCError(err)
 	}
 
-	resp, err := nsClient.GetRandomDevAddr(context.Background(), &ns.GetRandomDevAddrRequest{})
+	resp, err := nsClient.GetRandomDevAddr(context.Background(), &empty.Empty{})
 	if err != nil {
 		return nil, err
 	}
@@ -623,11 +669,11 @@ func (a *DeviceAPI) returnList(count int, devices []storage.DeviceListItem) (*pb
 	}
 	for _, device := range devices {
 		item := pb.DeviceListItem{
-			DevEUI:              device.DevEUI.String(),
+			DevEui:              device.DevEUI.String(),
 			Name:                device.Name,
 			Description:         device.Description,
-			ApplicationID:       device.ApplicationID,
-			DeviceProfileID:     device.DeviceProfileID,
+			ApplicationId:       device.ApplicationID,
+			DeviceProfileId:     device.DeviceProfileID.String(),
 			DeviceProfileName:   device.DeviceProfileName,
 			DeviceStatusBattery: 256,
 			DeviceStatusMargin:  256,
@@ -640,7 +686,11 @@ func (a *DeviceAPI) returnList(count int, devices []storage.DeviceListItem) (*pb
 			item.DeviceStatusMargin = int32(*device.DeviceStatusMargin)
 		}
 		if device.LastSeenAt != nil {
-			item.LastSeenAt = device.LastSeenAt.Format(time.RFC3339Nano)
+			var err error
+			item.LastSeenAt, err = ptypes.TimestampProto(*device.LastSeenAt)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
 		}
 
 		resp.Result = append(resp.Result, &item)
@@ -648,115 +698,105 @@ func (a *DeviceAPI) returnList(count int, devices []storage.DeviceListItem) (*pb
 	return &resp, nil
 }
 
-func convertUplinkAndDownlinkFrames(up []*ns.UplinkFrameLog, down []*ns.DownlinkFrameLog, decodeMACCommands bool) ([]*pb.UplinkFrameLog, []*pb.DownlinkFrameLog, error) {
-	var outUp []*pb.UplinkFrameLog
-	var outDown []*pb.DownlinkFrameLog
+func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFrame, decodeMACCommands bool) (*pb.UplinkFrameLog, *pb.DownlinkFrameLog, error) {
+	var phy lorawan.PHYPayload
 
-	for _, upFL := range up {
-		var rxInfo []*pb.UplinkRXInfo
-		var phy lorawan.PHYPayload
-
-		if err := phy.UnmarshalBinary(upFL.PhyPayload); err != nil {
+	if up != nil {
+		if err := phy.UnmarshalBinary(up.PhyPayload); err != nil {
 			return nil, nil, errors.Wrap(err, "unmarshal phypayload error")
 		}
+	}
 
-		if decodeMACCommands {
-			switch v := phy.MACPayload.(type) {
-			case *lorawan.MACPayload:
-				if err := phy.DecodeFOptsToMACCommands(); err != nil {
-					return nil, nil, errors.Wrap(err, "decode fopts to mac-commands error")
-				}
+	if down != nil {
+		if err := phy.UnmarshalBinary(down.PhyPayload); err != nil {
+			return nil, nil, errors.Wrap(err, "unmarshal phypayload error")
+		}
+	}
 
-				if v.FPort != nil && *v.FPort == 0 {
-					if err := phy.DecodeFRMPayloadToMACCommands(); err != nil {
-						return nil, nil, errors.Wrap(err, "decode frmpayload to mac-commands error")
-					}
+	if decodeMACCommands {
+		switch v := phy.MACPayload.(type) {
+		case *lorawan.MACPayload:
+			if err := phy.DecodeFOptsToMACCommands(); err != nil {
+				return nil, nil, errors.Wrap(err, "decode fopts to mac-commands error")
+			}
+
+			if v.FPort != nil && *v.FPort == 0 {
+				if err := phy.DecodeFRMPayloadToMACCommands(); err != nil {
+					return nil, nil, errors.Wrap(err, "decode frmpayload to mac-commands error")
 				}
 			}
 		}
+	}
 
-		phyB, err := json.Marshal(phy)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "marshal phypayload error")
+	phyJSON, err := json.Marshal(phy)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "marshal phypayload error")
+	}
+
+	if up != nil {
+		uplinkFrameLog := pb.UplinkFrameLog{
+			TxInfo:         up.TxInfo,
+			PhyPayloadJson: string(phyJSON),
 		}
 
-		for _, upRXInfo := range upFL.RxInfo {
-			rxInfo = append(rxInfo, &pb.UplinkRXInfo{
-				Mac:               hex.EncodeToString(upRXInfo.Mac),
-				Time:              upRXInfo.Time,
-				TimeSinceGPSEpoch: upRXInfo.TimeSinceGPSEpoch,
-				Timestamp:         upRXInfo.Timestamp,
-				Rssi:              upRXInfo.Rssi,
-				LoRaSNR:           upRXInfo.LoRaSNR,
-				Board:             upRXInfo.Board,
-				Antenna:           upRXInfo.Antenna,
+		for _, rxInfo := range up.RxInfo {
+			var mac lorawan.EUI64
+			copy(mac[:], rxInfo.GatewayId)
+
+			uplinkFrameLog.RxInfo = append(uplinkFrameLog.RxInfo, &pb.UplinkRXInfo{
+				GatewayId:         mac.String(),
+				Time:              rxInfo.Time,
+				TimeSinceGpsEpoch: rxInfo.TimeSinceGpsEpoch,
+				Timestamp:         rxInfo.Timestamp,
+				Rssi:              rxInfo.Rssi,
+				LoraSnr:           rxInfo.LoraSnr,
+				Channel:           rxInfo.Channel,
+				RfChain:           rxInfo.RfChain,
+				Board:             rxInfo.Board,
+				Antenna:           rxInfo.Antenna,
+				Location:          rxInfo.Location,
 			})
 		}
 
-		outUp = append(outUp, &pb.UplinkFrameLog{
-			TxInfo: &pb.UplinkTXInfo{
-				Frequency: upFL.TxInfo.Frequency,
-				DataRate: &pb.DataRate{
-					Modulation:   upFL.TxInfo.DataRate.Modulation,
-					Bandwidth:    upFL.TxInfo.DataRate.Bandwidth,
-					SpreadFactor: upFL.TxInfo.DataRate.SpreadFactor,
-					Bitrate:      upFL.TxInfo.DataRate.Bitrate,
-				},
-				CodeRate: upFL.TxInfo.CodeRate,
-			},
-			RxInfo:         rxInfo,
-			PhyPayloadJSON: string(phyB),
-		})
+		return &uplinkFrameLog, nil, nil
 	}
 
-	for _, downFL := range down {
-		var phy lorawan.PHYPayload
-		if err := phy.UnmarshalBinary(downFL.PhyPayload); err != nil {
-			return nil, nil, errors.Wrap(err, "unmarshal phypayload error")
+	if down != nil {
+		downlinkFrameLog := pb.DownlinkFrameLog{
+			PhyPayloadJson: string(phyJSON),
 		}
 
-		if decodeMACCommands {
-			switch v := phy.MACPayload.(type) {
-			case *lorawan.MACPayload:
-				if err := phy.DecodeFOptsToMACCommands(); err != nil {
-					return nil, nil, errors.Wrap(err, "decode fopts to mac-commands error")
-				}
+		if down.TxInfo != nil {
+			var mac lorawan.EUI64
+			copy(mac[:], down.TxInfo.GatewayId[:])
 
-				if v.FPort != nil && *v.FPort == 0 {
-					if err := phy.DecodeFRMPayloadToMACCommands(); err != nil {
-						return nil, nil, errors.Wrap(err, "decode frmpayload to mac-commands error")
-					}
+			downlinkFrameLog.TxInfo = &pb.DownlinkTXInfo{
+				GatewayId:         mac.String(),
+				Immediately:       down.TxInfo.Immediately,
+				TimeSinceGpsEpoch: down.TxInfo.TimeSinceGpsEpoch,
+				Timestamp:         down.TxInfo.Timestamp,
+				Frequency:         down.TxInfo.Frequency,
+				Power:             down.TxInfo.Power,
+				Modulation:        down.TxInfo.Modulation,
+				Board:             down.TxInfo.Board,
+				Antenna:           down.TxInfo.Antenna,
+			}
+
+			if lora := down.TxInfo.GetLoraModulationInfo(); lora != nil {
+				downlinkFrameLog.TxInfo.ModulationInfo = &pb.DownlinkTXInfo_LoraModulationInfo{
+					LoraModulationInfo: lora,
+				}
+			}
+
+			if fsk := down.TxInfo.GetFskModulationInfo(); fsk != nil {
+				downlinkFrameLog.TxInfo.ModulationInfo = &pb.DownlinkTXInfo_FskModulationInfo{
+					FskModulationInfo: fsk,
 				}
 			}
 		}
 
-		phyB, err := json.Marshal(phy)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "marshal phypayload error")
-		}
-
-		outDown = append(outDown, &pb.DownlinkFrameLog{
-			TxInfo: &pb.DownlinkTXInfo{
-				Mac:               hex.EncodeToString(downFL.TxInfo.Mac),
-				Immediately:       downFL.TxInfo.Immediately,
-				TimeSinceGPSEpoch: downFL.TxInfo.TimeSinceGPSEpoch,
-				Timestamp:         downFL.TxInfo.Timestamp,
-				Frequency:         downFL.TxInfo.Frequency,
-				Power:             downFL.TxInfo.Power,
-				DataRate: &pb.DataRate{
-					Modulation:   downFL.TxInfo.DataRate.Modulation,
-					Bandwidth:    downFL.TxInfo.DataRate.Bandwidth,
-					SpreadFactor: downFL.TxInfo.DataRate.SpreadFactor,
-					Bitrate:      downFL.TxInfo.DataRate.Bitrate,
-				},
-				CodeRate: downFL.TxInfo.CodeRate,
-				IPol:     downFL.TxInfo.IPol,
-				Board:    downFL.TxInfo.Board,
-				Antenna:  downFL.TxInfo.Antenna,
-			},
-			PhyPayloadJSON: string(phyB),
-		})
+		return nil, &downlinkFrameLog, nil
 	}
 
-	return outUp, outDown, nil
+	return nil, nil, nil
 }

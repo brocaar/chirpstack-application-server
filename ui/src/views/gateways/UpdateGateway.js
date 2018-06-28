@@ -19,14 +19,14 @@ class UpdateGateway extends Component {
   componentWillMount() {
     GatewayStore.getGateway(this.props.match.params.mac, (gateway) => {
       this.setState({
-        gateway: gateway,
+        gateway: gateway.gateway,
       });
     });
   }
 
   onSubmit(gateway) {
-    GatewayStore.updateGateway(this.props.match.params.mac, gateway, (responseData) => {
-      this.props.history.push(`/organizations/${gateway.organizationID}/gateways/${gateway.mac}`);
+    GatewayStore.updateGateway(this.props.match.params.mac, {gateway: gateway}, (responseData) => {
+      this.props.history.push(`/organizations/${gateway.organizationID}/gateways/${gateway.id}`);
       window.scrollTo(0, 0);
     });
   }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/brocaar/lorawan"
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/loraserver/api/ns"
@@ -93,14 +94,19 @@ func CreateNetworkServer(db sqlx.Queryer, n *NetworkServer) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	rpID, err := uuid.FromString(config.C.ApplicationServer.ID)
+	if err != nil {
+		return errors.Wrap(err, "uuid from string error")
+	}
+
 	_, err = nsClient.CreateRoutingProfile(context.Background(), &ns.CreateRoutingProfileRequest{
 		RoutingProfile: &ns.RoutingProfile{
-			RoutingProfileID: config.C.ApplicationServer.ID,
-			AsID:             config.C.ApplicationServer.API.PublicHost,
+			Id:      rpID.Bytes(),
+			AsId:    config.C.ApplicationServer.API.PublicHost,
+			CaCert:  n.RoutingProfileCACert,
+			TlsCert: n.RoutingProfileTLSCert,
+			TlsKey:  n.RoutingProfileTLSKey,
 		},
-		CaCert:  n.RoutingProfileCACert,
-		TlsCert: n.RoutingProfileTLSCert,
-		TlsKey:  n.RoutingProfileTLSKey,
 	})
 	if err != nil {
 		log.WithError(err).Error("network-server create routing-profile api error")
@@ -183,14 +189,19 @@ func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	rpID, err := uuid.FromString(config.C.ApplicationServer.ID)
+	if err != nil {
+		return errors.Wrap(err, "uuid from string error")
+	}
+
 	_, err = nsClient.UpdateRoutingProfile(context.Background(), &ns.UpdateRoutingProfileRequest{
 		RoutingProfile: &ns.RoutingProfile{
-			RoutingProfileID: config.C.ApplicationServer.ID,
-			AsID:             config.C.ApplicationServer.API.PublicHost,
+			Id:      rpID.Bytes(),
+			AsId:    config.C.ApplicationServer.API.PublicHost,
+			CaCert:  n.RoutingProfileCACert,
+			TlsCert: n.RoutingProfileTLSCert,
+			TlsKey:  n.RoutingProfileTLSKey,
 		},
-		CaCert:  n.RoutingProfileCACert,
-		TlsCert: n.RoutingProfileTLSCert,
-		TlsKey:  n.RoutingProfileTLSKey,
 	})
 	if err != nil {
 		log.WithError(err).Error("network-server update routing-profile api error")
@@ -229,8 +240,13 @@ func DeleteNetworkServer(db sqlx.Ext, id int64) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	rpID, err := uuid.FromString(config.C.ApplicationServer.ID)
+	if err != nil {
+		return errors.Wrap(err, "uuid from string error")
+	}
+
 	_, err = nsClient.DeleteRoutingProfile(context.Background(), &ns.DeleteRoutingProfileRequest{
-		RoutingProfileID: config.C.ApplicationServer.ID,
+		Id: rpID.Bytes(),
 	})
 	if err != nil {
 		log.WithError(err).Error("network-server delete routing-profile api error")
@@ -346,7 +362,7 @@ func GetNetworkServerForDevEUI(db sqlx.Queryer, devEUI lorawan.EUI64) (NetworkSe
 
 // GetNetworkServerForDeviceProfileID returns the network-server for the given
 // device-profile id.
-func GetNetworkServerForDeviceProfileID(db sqlx.Queryer, id string) (NetworkServer, error) {
+func GetNetworkServerForDeviceProfileID(db sqlx.Queryer, id uuid.UUID) (NetworkServer, error) {
 	var n NetworkServer
 	err := sqlx.Get(db, &n, `
 		select
@@ -367,7 +383,7 @@ func GetNetworkServerForDeviceProfileID(db sqlx.Queryer, id string) (NetworkServ
 
 // GetNetworkServerForServiceProfileID returns the network-server for the given
 // service-profile id.
-func GetNetworkServerForServiceProfileID(db sqlx.Queryer, id string) (NetworkServer, error) {
+func GetNetworkServerForServiceProfileID(db sqlx.Queryer, id uuid.UUID) (NetworkServer, error) {
 	var n NetworkServer
 	err := sqlx.Get(db, &n, `
 		select
@@ -408,7 +424,7 @@ func GetNetworkServerForGatewayMAC(db sqlx.Queryer, mac lorawan.EUI64) (NetworkS
 
 // GetNetworkServerForGatewayProfileID returns the network-server for the given
 // gateway-profile id.
-func GetNetworkServerForGatewayProfileID(db sqlx.Queryer, id string) (NetworkServer, error) {
+func GetNetworkServerForGatewayProfileID(db sqlx.Queryer, id uuid.UUID) (NetworkServer, error) {
 	var n NetworkServer
 	err := sqlx.Get(db, &n, `
 		select

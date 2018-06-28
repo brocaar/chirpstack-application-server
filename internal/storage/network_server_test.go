@@ -5,10 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/satori/go.uuid"
+
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
-	"github.com/brocaar/lorawan/backend"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -59,6 +60,9 @@ func TestNetworkServer(t *testing.T) {
 		}
 		So(CreateOrganization(db, &org), ShouldBeNil)
 
+		rpID, err := uuid.FromString(config.C.ApplicationServer.ID)
+		So(err, ShouldBeNil)
+
 		Convey("Then CreateNetworkServer creates a network-server", func() {
 			n := NetworkServer{
 				Name:                        "test-ns",
@@ -80,12 +84,12 @@ func TestNetworkServer(t *testing.T) {
 			So(nsClient.CreateRoutingProfileChan, ShouldHaveLength, 1)
 			So(<-nsClient.CreateRoutingProfileChan, ShouldResemble, ns.CreateRoutingProfileRequest{
 				RoutingProfile: &ns.RoutingProfile{
-					RoutingProfileID: config.C.ApplicationServer.ID,
-					AsID:             config.C.ApplicationServer.API.PublicHost,
+					Id:      rpID.Bytes(),
+					AsId:    config.C.ApplicationServer.API.PublicHost,
+					CaCert:  "RPCACERT",
+					TlsCert: "RPTLSCERT",
+					TlsKey:  "RPTLSKEY",
 				},
-				CaCert:  "RPCACERT",
-				TlsCert: "RPTLSCERT",
-				TlsKey:  "RPTLSKEY",
 			})
 
 			Convey("Then GetNetworkServer returns the network-server", func() {
@@ -119,7 +123,6 @@ func TestNetworkServer(t *testing.T) {
 					NetworkServerID: n.ID,
 					OrganizationID:  org.ID,
 					Name:            "test-service-profile",
-					ServiceProfile:  backend.ServiceProfile{},
 				}
 				So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
@@ -161,12 +164,12 @@ func TestNetworkServer(t *testing.T) {
 				So(nsClient.UpdateRoutingProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.UpdateRoutingProfileChan, ShouldResemble, ns.UpdateRoutingProfileRequest{
 					RoutingProfile: &ns.RoutingProfile{
-						RoutingProfileID: config.C.ApplicationServer.ID,
-						AsID:             config.C.ApplicationServer.API.PublicHost,
+						Id:      rpID.Bytes(),
+						AsId:    config.C.ApplicationServer.API.PublicHost,
+						CaCert:  "RPCACERT2",
+						TlsCert: "RPTLSCERT2",
+						TlsKey:  "RPTLSKEY2",
 					},
-					CaCert:  "RPCACERT2",
-					TlsCert: "RPTLSCERT2",
-					TlsKey:  "RPTLSKEY2",
 				})
 
 				n.UpdatedAt = n.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -183,7 +186,7 @@ func TestNetworkServer(t *testing.T) {
 				So(DeleteNetworkServer(db, n.ID), ShouldBeNil)
 				So(nsClient.DeleteRoutingProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.DeleteRoutingProfileChan, ShouldResemble, ns.DeleteRoutingProfileRequest{
-					RoutingProfileID: config.C.ApplicationServer.ID,
+					Id: rpID.Bytes(),
 				})
 
 				_, err := GetNetworkServer(db, n.ID)

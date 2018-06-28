@@ -9,7 +9,7 @@ class GatewayProfileRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`/network-servers/${this.props.profile.networkServerID}/gateway-profiles/${this.props.profile.gatewayProfileID}/edit`}>{this.props.profile.name}</Link></td>
+        <td><Link to={`/network-servers/${this.props.profile.networkServerID}/gateway-profiles/${this.props.profile.id}/edit`}>{this.props.profile.name}</Link></td>
       </tr>
     );
   }

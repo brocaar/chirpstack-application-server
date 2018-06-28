@@ -10,9 +10,7 @@ class CreateGatewayProfile extends Component {
     super();
 
     this.state = {
-      gatewayProfile: {
-        gatewayProfile: {},
-      },
+      gatewayProfile: {},
     };
 
     this.onSubmit = this.onSubmit.bind(this);
@@ -22,13 +20,12 @@ class CreateGatewayProfile extends Component {
     this.setState({
       gatewayProfile: {
         networkServerID: this.props.match.params.networkServerID,
-        gatewayProfile: {},
       },
     });
   }
 
   onSubmit(gatewayProfile) {
-    GatewayProfileStore.createGatewayProfile(gatewayProfile, (responseData) => {
+    GatewayProfileStore.createGatewayProfile({gatewayProfile: gatewayProfile}, (responseData) => {
       this.props.history.push(`/network-servers/${this.props.match.params.networkServerID}/gateway-profiles`);
     });
   }
@@ -41,7 +38,7 @@ class CreateGatewayProfile extends Component {
             Create gateway-profile
           </div>
           <div className="panel-body">
-            <GatewayProfileForm profile={this.state.gatewayProfile} onSubmit={this.onSubmit} />
+            <GatewayProfileForm gatewayProfile={this.state.gatewayProfile} onSubmit={this.onSubmit} />
           </div>
         </div>
       </div>

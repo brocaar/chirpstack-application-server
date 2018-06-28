@@ -17,7 +17,7 @@ class CreateOrganization extends Component {
   }
 
   onSubmit(organization) {
-	  OrganizationStore.createOrganization(organization, (responseData) => {
+	  OrganizationStore.createOrganization({organization: organization}, (responseData) => {
       this.props.history.push("/organizations");
     });
   }

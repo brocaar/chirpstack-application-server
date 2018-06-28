@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
+
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -19,6 +22,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
+	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/lorawan"
 )
 
@@ -32,10 +36,10 @@ func NewApplicationServerAPI() *ApplicationServerAPI {
 }
 
 // HandleUplinkData handles incoming (uplink) data.
-func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.HandleUplinkDataRequest) (*as.HandleUplinkDataResponse, error) {
+func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.HandleUplinkDataRequest) (*empty.Empty, error) {
 	var appEUI, devEUI lorawan.EUI64
-	copy(appEUI[:], req.AppEUI)
-	copy(devEUI[:], req.DevEUI)
+	copy(appEUI[:], req.JoinEui)
+	copy(devEUI[:], req.DevEui)
 
 	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
@@ -121,14 +125,7 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		RXInfo:          []handler.RXInfo{},
 		TXInfo: handler.TXInfo{
 			Frequency: int(req.TxInfo.Frequency),
-			DataRate: handler.DataRate{
-				Modulation:   req.TxInfo.DataRate.Modulation,
-				Bandwidth:    int(req.TxInfo.DataRate.BandWidth),
-				SpreadFactor: int(req.TxInfo.DataRate.SpreadFactor),
-				Bitrate:      int(req.TxInfo.DataRate.Bitrate),
-			},
-			ADR:      req.TxInfo.Adr,
-			CodeRate: req.TxInfo.CodeRate,
+			ADR:       req.Adr,
 		},
 		FCnt:   req.FCnt,
 		FPort:  uint8(req.FPort),
@@ -136,32 +133,74 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		Object: object,
 	}
 
-	for _, rxInfo := range req.RxInfo {
-		var timestamp *time.Time
-		var mac lorawan.EUI64
-		copy(mac[:], rxInfo.Mac)
+	switch req.TxInfo.Modulation {
+	case common.Modulation_LORA:
+		modulationInfo := req.TxInfo.GetLoraModulationInfo()
+		if modulationInfo == nil {
+			break
+		}
 
-		if len(rxInfo.Time) > 0 {
-			ts, err := time.Parse(time.RFC3339Nano, rxInfo.Time)
+		pl.TXInfo.DataRate = handler.DataRate{
+			Modulation:   common.Modulation_LORA.String(),
+			Bandwidth:    int(modulationInfo.Bandwidth),
+			SpreadFactor: int(modulationInfo.SpreadingFactor),
+		}
+		pl.TXInfo.CodeRate = modulationInfo.CodeRate
+	case common.Modulation_FSK:
+		modulationInfo := req.TxInfo.GetFskModulationInfo()
+		if modulationInfo == nil {
+			break
+		}
+
+		pl.TXInfo.DataRate = handler.DataRate{
+			Modulation: req.TxInfo.Modulation.String(),
+			Bandwidth:  int(modulationInfo.Bandwidth),
+			Bitrate:    int(modulationInfo.Bitrate),
+		}
+	}
+
+	var macs []lorawan.EUI64
+	for _, rxInfo := range req.RxInfo {
+		var mac lorawan.EUI64
+		copy(mac[:], rxInfo.GatewayId)
+		macs = append(macs, mac)
+	}
+
+	gws, err := storage.GetGatewaysForMACs(config.C.PostgreSQL.DB, macs)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Internal, "get gateways for macs error: %s", err)
+	}
+
+	for _, rxInfo := range req.RxInfo {
+		var mac lorawan.EUI64
+		copy(mac[:], rxInfo.GatewayId)
+
+		row := handler.RXInfo{
+			MAC:     mac,
+			RSSI:    int(rxInfo.Rssi),
+			LoRaSNR: rxInfo.LoraSnr,
+		}
+
+		if rxInfo.Location != nil {
+			row.Latitude = rxInfo.Location.Latitude
+			row.Longitude = rxInfo.Location.Longitude
+			row.Altitude = rxInfo.Location.Altitude
+		}
+
+		if gw, ok := gws[mac]; ok {
+			row.Name = gw.Name
+		}
+
+		if rxInfo.Time != nil {
+			ts, err := ptypes.Timestamp(rxInfo.Time)
 			if err != nil {
-				log.WithFields(log.Fields{
-					"dev_eui":  devEUI,
-					"time_str": rxInfo.Time,
-				}).Errorf("unmarshal time error: %s", err)
-			} else if !ts.Equal(time.Time{}) {
-				timestamp = &ts
+				log.WithField("dev_eui", devEUI).WithError(err).Error("parse timestamp error")
+			} else {
+				row.Time = &ts
 			}
 		}
-		pl.RXInfo = append(pl.RXInfo, handler.RXInfo{
-			MAC:       mac,
-			Time:      timestamp,
-			RSSI:      int(rxInfo.Rssi),
-			LoRaSNR:   rxInfo.LoRaSNR,
-			Name:      rxInfo.Name,
-			Latitude:  rxInfo.Latitude,
-			Longitude: rxInfo.Longitude,
-			Altitude:  rxInfo.Altitude,
-		})
+
+		pl.RXInfo = append(pl.RXInfo, row)
 	}
 
 	err = eventlog.LogEventForDevice(devEUI, eventlog.EventLog{
@@ -178,13 +217,13 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		return nil, grpc.Errorf(codes.Internal, err.Error())
 	}
 
-	return &as.HandleUplinkDataResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // HandleDownlinkACK handles an ack on a downlink transmission.
-func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.HandleDownlinkACKRequest) (*as.HandleDownlinkACKResponse, error) {
+func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.HandleDownlinkACKRequest) (*empty.Empty, error) {
 	var devEUI lorawan.EUI64
-	copy(devEUI[:], req.DevEUI)
+	copy(devEUI[:], req.DevEui)
 
 	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
@@ -235,13 +274,13 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		log.Errorf("send ack notification to handler error: %s", err)
 	}
 
-	return &as.HandleDownlinkACKResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // HandleError handles an incoming error.
-func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleErrorRequest) (*as.HandleErrorResponse, error) {
+func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleErrorRequest) (*empty.Empty, error) {
 	var devEUI lorawan.EUI64
-	copy(devEUI[:], req.DevEUI)
+	copy(devEUI[:], req.DevEui)
 
 	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
 	if err != nil {
@@ -286,11 +325,11 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
-	return &as.HandleErrorResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // HandleProprietaryUplink handles proprietary uplink payloads.
-func (a *ApplicationServerAPI) HandleProprietaryUplink(ctx context.Context, req *as.HandleProprietaryUplinkRequest) (*as.HandleProprietaryUplinkResponse, error) {
+func (a *ApplicationServerAPI) HandleProprietaryUplink(ctx context.Context, req *as.HandleProprietaryUplinkRequest) (*empty.Empty, error) {
 	err := gwping.HandleReceivedPing(req)
 	if err != nil {
 		errStr := fmt.Sprintf("handle received ping error: %s", err)
@@ -298,11 +337,11 @@ func (a *ApplicationServerAPI) HandleProprietaryUplink(ctx context.Context, req 
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
-	return &as.HandleProprietaryUplinkResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // SetDeviceStatus updates the device-status for the given device.
-func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetDeviceStatusRequest) (*as.SetDeviceStatusResponse, error) {
+func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetDeviceStatusRequest) (*empty.Empty, error) {
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEui)
 
@@ -347,7 +386,7 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 		return nil, errToRPCError(errors.Wrap(err, "send status notitifaction to handler error"))
 	}
 
-	return &as.SetDeviceStatusResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // getAppNonce returns a random application nonce (used for OTAA).

@@ -85,7 +85,7 @@ class ApplicationForm extends Component {
   render() {
     const serviceProfileOptions = this.state.serviceProfiles.map((serviceProfile, i) => {
       return {
-        value: serviceProfile.serviceProfileID,
+        value: serviceProfile.id,
         label: serviceProfile.name,
       };
     });

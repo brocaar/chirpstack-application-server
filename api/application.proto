@@ -2,11 +2,11 @@ syntax = "proto3";
 
 package api;
 
-// for grpc-gateway
 import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
 
-// Application is the service managing applications.
-service Application {
+// ApplicationService is the service managing applications.
+service ApplicationService {
 	// Create creates the given application.
 	rpc Create(CreateApplicationRequest) returns (CreateApplicationResponse) {
 		option(google.api.http) = {
@@ -23,15 +23,15 @@ service Application {
 	}
 
 	// Update updates the given application.
-	rpc Update(UpdateApplicationRequest) returns (UpdateApplicationResponse) {
+	rpc Update(UpdateApplicationRequest) returns (google.protobuf.Empty) {
 		option(google.api.http) = {
-			put: "/api/applications/{id}"
+			put: "/api/applications/{application.id}"
 			body: "*"
 		};
 	}
 
 	// Delete deletes the given application.
-	rpc Delete(DeleteApplicationRequest) returns (DeleteApplicationResponse) {
+	rpc Delete(DeleteApplicationRequest) returns (google.protobuf.Empty) {
 		option(google.api.http) = {
 			delete: "/api/applications/{id}"
 		};
@@ -45,39 +45,39 @@ service Application {
 	}
 
 	// CreateHTTPIntegration creates a HTTP application-integration.
-	rpc CreateHTTPIntegration(HTTPIntegration) returns (EmptyResponse) {
+	rpc CreateHTTPIntegration(CreateHTTPIntegrationRequest) returns (google.protobuf.Empty) {
 		option(google.api.http) = {
-			post: "/api/applications/{id}/integrations/http"
+			post: "/api/applications/{integration.application_id}/integrations/http"
 			body: "*"
 		};
 	}
 
 	// GetHTTPIntegration returns the HTTP application-integration.
-	rpc GetHTTPIntegration(GetHTTPIntegrationRequest) returns (HTTPIntegration) {
+	rpc GetHTTPIntegration(GetHTTPIntegrationRequest) returns (GetHTTPIntegrationResponse) {
 		option(google.api.http) = {
-			get: "/api/applications/{id}/integrations/http"
+			get: "/api/applications/{application_id}/integrations/http"
 		};
 	}
 
 	// UpdateHTTPIntegration updates the HTTP application-integration.
-	rpc UpdateHTTPIntegration(HTTPIntegration) returns (EmptyResponse) {
+	rpc UpdateHTTPIntegration(UpdateHTTPIntegrationRequest) returns (google.protobuf.Empty) {
 		option(google.api.http) = {
-			put: "/api/applications/{id}/integrations/http"
+			put: "/api/applications/{integration.application_id}/integrations/http"
 			body: "*"
 		};
 	}
 
 	// DeleteIntegration deletes the HTTP application-integration.
-	rpc DeleteHTTPIntegration(DeleteHTTPIntegrationRequest) returns (EmptyResponse) {
+	rpc DeleteHTTPIntegration(DeleteHTTPIntegrationRequest) returns (google.protobuf.Empty) {
 		option(google.api.http) = {
-			delete: "/api/applications/{id}/integrations/http"
+			delete: "/api/applications/{application_id}/integrations/http"
 		};
 	}
 
 	// CreateInfluxDBIntegration create an InfluxDB application-integration.
-	rpc CreateInfluxDBIntegration(CreateInfluxDBIntegrationRequest) returns (EmptyResponse) {
+	rpc CreateInfluxDBIntegration(CreateInfluxDBIntegrationRequest) returns (google.protobuf.Empty) {
 		option(google.api.http) = {
-			post: "/api/applications/{application_id}/integrations/influxdb"
+			post: "/api/applications/{integration.application_id}/integrations/influxdb"
 			body: "*"
 		};
 	}
@@ -90,15 +90,15 @@ service Application {
 	}
 
 	// UpdateInfluxDBIntegration updates the InfluxDB application-integration.
-	rpc UpdateInfluxDBIntegration(UpdateInfluxDBIntegrationRequest) returns (EmptyResponse) {
+	rpc UpdateInfluxDBIntegration(UpdateInfluxDBIntegrationRequest) returns (google.protobuf.Empty) {
 		option(google.api.http) = {
-			put: "/api/applications/{application_id}/integrations/influxdb"
+			put: "/api/applications/{integration.application_id}/integrations/influxdb"
 			body: "*"
 		};
 	}
 
 	// DeleteInfluxDBIntegration deletes the InfluxDB application-integration.
-	rpc DeleteInfluxDBIntegration(DeleteInfluxDBIntegrationRequest) returns (EmptyResponse) {
+	rpc DeleteInfluxDBIntegration(DeleteInfluxDBIntegrationRequest) returns (google.protobuf.Empty) {
 		option(google.api.http) = {
 			delete: "/api/applications/{application_id}/integrations/influxdb"
 		};
@@ -107,7 +107,7 @@ service Application {
 	// ListIntegrations lists all configured integrations.
 	rpc ListIntegrations(ListIntegrationRequest) returns (ListIntegrationResponse) {
 		option(google.api.http) = {
-			get: "/api/applications/{id}/integrations"
+			get: "/api/applications/{application_id}/integrations"
 		};
 	}
 }
@@ -117,96 +117,83 @@ enum IntegrationKind {
 	INFLUXDB = 1;
 }
 
-message CreateApplicationRequest {
+message Application {
+	// Application ID.
+	// This will be automatically assigned on create.
+	int64 id = 1;
+
 	// Name of the application (must be unique).
-	string name = 1;
+	string name = 2;
 
 	// Description of the application.
-	string description = 2;
+	string description = 3;
 
 	// ID of the organization to which the application belongs.
-	int64 organizationID = 14;
+	int64 organization_id = 4 [json_name = "organizationID"];
 
 	// ID of the service profile.
-	string serviceProfileID = 15;
+	string service_profile_id = 5 [json_name = "serviceProfileID"];
 
 	// Payload codec.
-	string payloadCodec = 16;
+	string payload_codec = 6;
 
 	// Payload encoder script.
-	string payloadEncoderScript = 17;
+	string payload_encoder_script = 7;
 
 	// Payload decoder script.
-	string payloadDecoderScript = 18;
+	string payload_decoder_script = 8;
+}
+
+message ApplicationListItem {
+	// Application ID.
+	int64 id = 1;
+
+	// Name of the application.
+	string name = 2;
+
+	// Description of the application.
+	string description = 3;
+
+	// ID of the organization to which the application belongs.
+	int64 organization_id = 4 [json_name = "organizationID"];
+
+	// ID of the service profile.
+	string service_profile_id = 5 [json_name = "serviceProfileID"];
+
+	// Service-profile name.
+	string service_profile_name = 6;
+}
+
+
+message CreateApplicationRequest {
+	// Application object to create.
+	Application application = 1;
 }
 
 message CreateApplicationResponse {
-	// ID of the application that was created.
+	// Application ID.
 	int64 id = 1;
 }
 
 message GetApplicationRequest {
-	// Name of the application.
+	// Application ID.
 	int64 id = 1;
 }
 
 message GetApplicationResponse {
-	// ID of the application.
-	int64 id = 1;
-
-	// Name of the application.
-	string name = 2;
-
-	// Description of the application.
-	string description = 3;
-
-	// ID of the organization to which the application belongs.
-	int64 organizationID = 14;
-
-	// ID of the service profile.
-	string serviceProfileID = 15;
-
-	// Payload codec.
-	string payloadCodec = 16;
-
-	// Payload encoder script.
-	string payloadEncoderScript = 17;
-
-	// Payload decoder script.
-	string payloadDecoderScript = 18;
+	// Application object.
+	Application application = 1;
 }
 
 message UpdateApplicationRequest {
-	// ID of the application to update.
-	int64 id = 1;
-
-	// Name of the application (must be unique).
-	string name = 2;
-
-	// Description of the application.
-	string description = 3;
-
-	// ID of the service profile.
-	string serviceProfileID = 15;
-
-	// Payload codec.
-	string payloadCodec = 16;
-
-	// Payload encoder script.
-	string payloadEncoderScript = 17;
-
-	// Payload decoder script.
-	string payloadDecoderScript = 18;
+	// Application object to update.
+	Application application = 1;
 }
-
-message UpdateApplicationResponse {}
 
 message DeleteApplicationRequest {
-	// ID of the application.
+	// Application ID.
 	int64 id = 1;
 }
-
-message DeleteApplicationResponse {}
 
 message ListApplicationRequest {
 	// Max number of applications to return in the result-test.
@@ -216,41 +203,19 @@ message ListApplicationRequest {
 	int64 offset = 2;
 
 	// ID of the organization to filter on.
-	int64 organizationID = 3;
+	int64 organization_id = 3 [json_name = "organizationID"];
 
 	// Search on name (optional).
 	string search = 4;
 }
 
-message ApplicationListItem {
-	// ID of the application.
-	int64 id = 1;
-
-	// Name of the application.
-	string name = 2;
-
-	// Description of the application.
-	string description = 3;
-
-	// ID of the organization to which the application belongs.
-	int64 organizationID = 14;
-
-	// ID of the service profile.
-	string serviceProfileID = 15;
-
-	// Service-profile name.
-	string serviceProfileName = 16;
-}
-
 message ListApplicationResponse {
 	// Total number of applications available within the result-set.
-	int64 totalCount = 1;
+	int64 total_count = 1;
 	
 	// Applications within this result-set.
 	repeated ApplicationListItem result = 2;
 }
-
-message EmptyResponse {}
 
 message HTTPIntegrationHeader {
 	// Key
@@ -262,37 +227,52 @@ message HTTPIntegrationHeader {
 
 message HTTPIntegration {
 	// The id of the application.
-	int64 id = 1;
+	int64 application_id = 1 [json_name = "applicationID"];
 
 	// The headers to use when making HTTP callbacks.
 	repeated HTTPIntegrationHeader headers = 2;
 
 	// The URL to call for uplink data.
-	string dataUpURL = 3;
+	string uplink_data_url = 3 [json_name = "uplinkDataURL"];
 
 	// The URL to call for join notifications.
-	string joinNotificationURL = 4;
+	string join_notification_url = 4 [json_name = "joinNotificationURL"];
 
 	// The URL to call for ACK notifications (for confirmed downlink data).
-	string ackNotificationURL = 5;
+	string ack_notification_url = 5 [json_name = "ackNotificationURL"];
 
 	// The URL to call for error notifications.
-	string errorNotificationURL = 6;
+	string error_notification_url = 6 [json_name = "errorNotificationURL"];
+}
+
+message CreateHTTPIntegrationRequest {
+	// Integration object to create.
+	HTTPIntegration integration = 1;
 }
 
 message GetHTTPIntegrationRequest {
-	// The id of the application.
-	int64 id = 1;
+	// Application ID.
+	int64 application_id = 1 [json_name = "applicationID"];
+}
+
+message GetHTTPIntegrationResponse {
+	// Integration object.
+	HTTPIntegration integration = 1;
+}
+
+message UpdateHTTPIntegrationRequest {
+	// Integration object to update.
+	HTTPIntegration integration = 1;
 }
 
 message DeleteHTTPIntegrationRequest {
 	// The id of the application.
-	int64 id = 1;
+	int64 application_id = 1 [json_name = "applicationID"];
 }
 
 message ListIntegrationRequest {
 	// The id of the application.
-	int64 id = 1;
+	int64 application_id = 1 [json_name = "applicationID"];
 }
 
 message ListIntegrationResponse {
@@ -309,53 +289,50 @@ enum InfluxDBPrecision {
 	H = 5;
 }
 
-message InfluxDBIntegrationConfiguration {
+message InfluxDBIntegration {
+	// Application ID.
+	int64 application_id = 1 [json_name = "applicationID"];
+
 	// InfluxDB API write endpoint (e.g. http://localhost:8086/write).
-	string endpoint = 1;
+	string endpoint = 2;
 
 	// InfluxDB database name.
-	string db = 2;
+	string db = 3;
 
 	// InfluxDB username.
-	string username = 3;
+	string username = 4;
 
 	// InfluxDB password.
-	string password = 4;
+	string password = 5;
 
 	// InfluxDB retention policy name.
-	string retention_policy_name = 5;
+	string retention_policy_name = 6;
 
 	// InfluxDB timestamp precision.
-	InfluxDBPrecision precision = 6;
+	InfluxDBPrecision precision = 7;
 }
 
 message CreateInfluxDBIntegrationRequest {
-	// Application ID to create the integration for.
-	int64 application_id = 1;
-
-	// Integration configuration.
-	InfluxDBIntegrationConfiguration configuration = 2;
+	// Integration object to create.
+	InfluxDBIntegration integration = 1;
 }
 
 message GetInfluxDBIntegrationRequest {
-	// Application ID to get the integration for.
-	int64 application_id = 2;
+	// Application ID.
+	int64 application_id = 1 [json_name = "applicationID"];
 }
 
 message GetInfluxDBIntegrationResponse {
-	// Integration configuration.
-	InfluxDBIntegrationConfiguration configuration = 1;
+	// Integration object.
+	InfluxDBIntegration integration = 1;
 }
 
 message UpdateInfluxDBIntegrationRequest {
-	// Application ID to update the integration for.
-	int64 application_id = 1;
-
-	// Integration configuration.
-	InfluxDBIntegrationConfiguration configuration = 2;
+	// Integration object.
+	InfluxDBIntegration integration = 1;
 }
 
 message DeleteInfluxDBIntegrationRequest {
-	// Application ID to delete the integration for.
-	int64 application_id = 1;
+	// Application ID.
+	int64 application_id = 1 [json_name = "applicationID"];
 }

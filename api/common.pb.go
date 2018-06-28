@@ -6,6 +6,10 @@ package api
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import common "github.com/brocaar/loraserver/api/common"
+import gw "github.com/brocaar/loraserver/api/gw"
+import duration "github.com/golang/protobuf/ptypes/duration"
+import timestamp "github.com/golang/protobuf/ptypes/timestamp"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -38,266 +42,16 @@ func (x RXWindow) String() string {
 	return proto.EnumName(RXWindow_name, int32(x))
 }
 func (RXWindow) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_common_0ccb55e5f0c871f0, []int{0}
-}
-
-type Modulation int32
-
-const (
-	// LoRa
-	Modulation_LORA Modulation = 0
-	// FSK
-	Modulation_FSK Modulation = 1
-)
-
-var Modulation_name = map[int32]string{
-	0: "LORA",
-	1: "FSK",
-}
-var Modulation_value = map[string]int32{
-	"LORA": 0,
-	"FSK":  1,
-}
-
-func (x Modulation) String() string {
-	return proto.EnumName(Modulation_name, int32(x))
-}
-func (Modulation) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_common_0ccb55e5f0c871f0, []int{1}
-}
-
-type DataRate struct {
-	// The used modulation (LORA or FSK).
-	Modulation string `protobuf:"bytes,1,opt,name=modulation" json:"modulation,omitempty"`
-	// Bandwidth (in kHz).
-	Bandwidth uint32 `protobuf:"varint,2,opt,name=bandwidth" json:"bandwidth,omitempty"`
-	// Used spread-factor.
-	SpreadFactor uint32 `protobuf:"varint,3,opt,name=spreadFactor" json:"spreadFactor,omitempty"`
-	// Bitrate (used for FSK modulation).
-	Bitrate              uint32   `protobuf:"varint,4,opt,name=bitrate" json:"bitrate,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *DataRate) Reset()         { *m = DataRate{} }
-func (m *DataRate) String() string { return proto.CompactTextString(m) }
-func (*DataRate) ProtoMessage()    {}
-func (*DataRate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_common_0ccb55e5f0c871f0, []int{0}
-}
-func (m *DataRate) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DataRate.Unmarshal(m, b)
-}
-func (m *DataRate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DataRate.Marshal(b, m, deterministic)
-}
-func (dst *DataRate) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DataRate.Merge(dst, src)
-}
-func (m *DataRate) XXX_Size() int {
-	return xxx_messageInfo_DataRate.Size(m)
-}
-func (m *DataRate) XXX_DiscardUnknown() {
-	xxx_messageInfo_DataRate.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DataRate proto.InternalMessageInfo
-
-func (m *DataRate) GetModulation() string {
-	if m != nil {
-		return m.Modulation
-	}
-	return ""
-}
-
-func (m *DataRate) GetBandwidth() uint32 {
-	if m != nil {
-		return m.Bandwidth
-	}
-	return 0
-}
-
-func (m *DataRate) GetSpreadFactor() uint32 {
-	if m != nil {
-		return m.SpreadFactor
-	}
-	return 0
-}
-
-func (m *DataRate) GetBitrate() uint32 {
-	if m != nil {
-		return m.Bitrate
-	}
-	return 0
-}
-
-type UplinkTXInfo struct {
-	// TX frequency (in Hz).
-	Frequency uint32 `protobuf:"varint,1,opt,name=frequency" json:"frequency,omitempty"`
-	// Data-rate.
-	DataRate *DataRate `protobuf:"bytes,2,opt,name=dataRate" json:"dataRate,omitempty"`
-	// Code rate.
-	CodeRate             string   `protobuf:"bytes,3,opt,name=codeRate" json:"codeRate,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UplinkTXInfo) Reset()         { *m = UplinkTXInfo{} }
-func (m *UplinkTXInfo) String() string { return proto.CompactTextString(m) }
-func (*UplinkTXInfo) ProtoMessage()    {}
-func (*UplinkTXInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_common_0ccb55e5f0c871f0, []int{1}
-}
-func (m *UplinkTXInfo) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UplinkTXInfo.Unmarshal(m, b)
-}
-func (m *UplinkTXInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UplinkTXInfo.Marshal(b, m, deterministic)
-}
-func (dst *UplinkTXInfo) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UplinkTXInfo.Merge(dst, src)
-}
-func (m *UplinkTXInfo) XXX_Size() int {
-	return xxx_messageInfo_UplinkTXInfo.Size(m)
-}
-func (m *UplinkTXInfo) XXX_DiscardUnknown() {
-	xxx_messageInfo_UplinkTXInfo.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UplinkTXInfo proto.InternalMessageInfo
-
-func (m *UplinkTXInfo) GetFrequency() uint32 {
-	if m != nil {
-		return m.Frequency
-	}
-	return 0
-}
-
-func (m *UplinkTXInfo) GetDataRate() *DataRate {
-	if m != nil {
-		return m.DataRate
-	}
-	return nil
-}
-
-func (m *UplinkTXInfo) GetCodeRate() string {
-	if m != nil {
-		return m.CodeRate
-	}
-	return ""
-}
-
-type UplinkRXInfo struct {
-	// Gateway MAC.
-	Mac string `protobuf:"bytes,1,opt,name=mac" json:"mac,omitempty"`
-	// Time when the frame was received (if available).
-	Time string `protobuf:"bytes,2,opt,name=time" json:"time,omitempty"`
-	// Time when the frame was received as time since GPS epoch (if available).
-	TimeSinceGPSEpoch string `protobuf:"bytes,3,opt,name=timeSinceGPSEpoch" json:"timeSinceGPSEpoch,omitempty"`
-	// Gateway internal timestamp.
-	Timestamp uint32 `protobuf:"varint,4,opt,name=timestamp" json:"timestamp,omitempty"`
-	// RSSI.
-	Rssi int32 `protobuf:"varint,5,opt,name=rssi" json:"rssi,omitempty"`
-	// LoRa SNR.
-	LoRaSNR float32 `protobuf:"fixed32,6,opt,name=loRaSNR" json:"loRaSNR,omitempty"`
-	// The board identifier that received the uplink frame.
-	Board uint32 `protobuf:"varint,7,opt,name=board" json:"board,omitempty"`
-	// THe antenna identifier that received the uplink frame.
-	Antenna              uint32   `protobuf:"varint,8,opt,name=antenna" json:"antenna,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UplinkRXInfo) Reset()         { *m = UplinkRXInfo{} }
-func (m *UplinkRXInfo) String() string { return proto.CompactTextString(m) }
-func (*UplinkRXInfo) ProtoMessage()    {}
-func (*UplinkRXInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_common_0ccb55e5f0c871f0, []int{2}
-}
-func (m *UplinkRXInfo) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UplinkRXInfo.Unmarshal(m, b)
-}
-func (m *UplinkRXInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UplinkRXInfo.Marshal(b, m, deterministic)
-}
-func (dst *UplinkRXInfo) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UplinkRXInfo.Merge(dst, src)
-}
-func (m *UplinkRXInfo) XXX_Size() int {
-	return xxx_messageInfo_UplinkRXInfo.Size(m)
-}
-func (m *UplinkRXInfo) XXX_DiscardUnknown() {
-	xxx_messageInfo_UplinkRXInfo.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UplinkRXInfo proto.InternalMessageInfo
-
-func (m *UplinkRXInfo) GetMac() string {
-	if m != nil {
-		return m.Mac
-	}
-	return ""
-}
-
-func (m *UplinkRXInfo) GetTime() string {
-	if m != nil {
-		return m.Time
-	}
-	return ""
-}
-
-func (m *UplinkRXInfo) GetTimeSinceGPSEpoch() string {
-	if m != nil {
-		return m.TimeSinceGPSEpoch
-	}
-	return ""
-}
-
-func (m *UplinkRXInfo) GetTimestamp() uint32 {
-	if m != nil {
-		return m.Timestamp
-	}
-	return 0
-}
-
-func (m *UplinkRXInfo) GetRssi() int32 {
-	if m != nil {
-		return m.Rssi
-	}
-	return 0
-}
-
-func (m *UplinkRXInfo) GetLoRaSNR() float32 {
-	if m != nil {
-		return m.LoRaSNR
-	}
-	return 0
-}
-
-func (m *UplinkRXInfo) GetBoard() uint32 {
-	if m != nil {
-		return m.Board
-	}
-	return 0
-}
-
-func (m *UplinkRXInfo) GetAntenna() uint32 {
-	if m != nil {
-		return m.Antenna
-	}
-	return 0
+	return fileDescriptor_common_cb02b43eab00b173, []int{0}
 }
 
 type UplinkFrameLog struct {
 	// TX information of the uplink.
-	TxInfo *UplinkTXInfo `protobuf:"bytes,1,opt,name=txInfo" json:"txInfo,omitempty"`
+	TxInfo *gw.UplinkTXInfo `protobuf:"bytes,1,opt,name=tx_info,json=txInfo,proto3" json:"tx_info,omitempty"`
 	// RX information of the uplink.
-	RxInfo []*UplinkRXInfo `protobuf:"bytes,2,rep,name=rxInfo" json:"rxInfo,omitempty"`
+	RxInfo []*UplinkRXInfo `protobuf:"bytes,2,rep,name=rx_info,json=rxInfo,proto3" json:"rx_info,omitempty"`
 	// LoRaWAN PHYPayload.
-	PhyPayloadJSON       string   `protobuf:"bytes,3,opt,name=phyPayloadJSON" json:"phyPayloadJSON,omitempty"`
+	PhyPayloadJson       string   `protobuf:"bytes,3,opt,name=phy_payload_json,json=phyPayloadJSON,proto3" json:"phy_payload_json,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -307,7 +61,7 @@ func (m *UplinkFrameLog) Reset()         { *m = UplinkFrameLog{} }
 func (m *UplinkFrameLog) String() string { return proto.CompactTextString(m) }
 func (*UplinkFrameLog) ProtoMessage()    {}
 func (*UplinkFrameLog) Descriptor() ([]byte, []int) {
-	return fileDescriptor_common_0ccb55e5f0c871f0, []int{3}
+	return fileDescriptor_common_cb02b43eab00b173, []int{0}
 }
 func (m *UplinkFrameLog) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UplinkFrameLog.Unmarshal(m, b)
@@ -327,7 +81,7 @@ func (m *UplinkFrameLog) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UplinkFrameLog proto.InternalMessageInfo
 
-func (m *UplinkFrameLog) GetTxInfo() *UplinkTXInfo {
+func (m *UplinkFrameLog) GetTxInfo() *gw.UplinkTXInfo {
 	if m != nil {
 		return m.TxInfo
 	}
@@ -341,147 +95,18 @@ func (m *UplinkFrameLog) GetRxInfo() []*UplinkRXInfo {
 	return nil
 }
 
-func (m *UplinkFrameLog) GetPhyPayloadJSON() string {
+func (m *UplinkFrameLog) GetPhyPayloadJson() string {
 	if m != nil {
-		return m.PhyPayloadJSON
+		return m.PhyPayloadJson
 	}
 	return ""
-}
-
-type DownlinkTXInfo struct {
-	// Gateway MAC.
-	Mac string `protobuf:"bytes,1,opt,name=mac" json:"mac,omitempty"`
-	// Frame must be sent immediately.
-	Immediately bool `protobuf:"varint,2,opt,name=immediately" json:"immediately,omitempty"`
-	// Transmit frame at the given time since GPS epoch.
-	TimeSinceGPSEpoch string `protobuf:"bytes,3,opt,name=timeSinceGPSEpoch" json:"timeSinceGPSEpoch,omitempty"`
-	// Transmit the frame at the given gateway internal timestamp.
-	Timestamp uint32 `protobuf:"varint,4,opt,name=timestamp" json:"timestamp,omitempty"`
-	// TX frequency (in Hz).
-	Frequency uint32 `protobuf:"varint,5,opt,name=frequency" json:"frequency,omitempty"`
-	// TX power (in dBm).
-	Power int32 `protobuf:"varint,6,opt,name=power" json:"power,omitempty"`
-	// Data-rate.
-	DataRate *DataRate `protobuf:"bytes,7,opt,name=dataRate" json:"dataRate,omitempty"`
-	// Code rate.
-	CodeRate string `protobuf:"bytes,8,opt,name=codeRate" json:"codeRate,omitempty"`
-	// Lora modulation polarization inversion.
-	IPol bool `protobuf:"varint,9,opt,name=iPol" json:"iPol,omitempty"`
-	// The board identifier that received the uplink frame.
-	Board uint32 `protobuf:"varint,10,opt,name=board" json:"board,omitempty"`
-	// THe antenna identifier that received the uplink frame.
-	Antenna              uint32   `protobuf:"varint,11,opt,name=antenna" json:"antenna,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *DownlinkTXInfo) Reset()         { *m = DownlinkTXInfo{} }
-func (m *DownlinkTXInfo) String() string { return proto.CompactTextString(m) }
-func (*DownlinkTXInfo) ProtoMessage()    {}
-func (*DownlinkTXInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_common_0ccb55e5f0c871f0, []int{4}
-}
-func (m *DownlinkTXInfo) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DownlinkTXInfo.Unmarshal(m, b)
-}
-func (m *DownlinkTXInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DownlinkTXInfo.Marshal(b, m, deterministic)
-}
-func (dst *DownlinkTXInfo) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DownlinkTXInfo.Merge(dst, src)
-}
-func (m *DownlinkTXInfo) XXX_Size() int {
-	return xxx_messageInfo_DownlinkTXInfo.Size(m)
-}
-func (m *DownlinkTXInfo) XXX_DiscardUnknown() {
-	xxx_messageInfo_DownlinkTXInfo.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DownlinkTXInfo proto.InternalMessageInfo
-
-func (m *DownlinkTXInfo) GetMac() string {
-	if m != nil {
-		return m.Mac
-	}
-	return ""
-}
-
-func (m *DownlinkTXInfo) GetImmediately() bool {
-	if m != nil {
-		return m.Immediately
-	}
-	return false
-}
-
-func (m *DownlinkTXInfo) GetTimeSinceGPSEpoch() string {
-	if m != nil {
-		return m.TimeSinceGPSEpoch
-	}
-	return ""
-}
-
-func (m *DownlinkTXInfo) GetTimestamp() uint32 {
-	if m != nil {
-		return m.Timestamp
-	}
-	return 0
-}
-
-func (m *DownlinkTXInfo) GetFrequency() uint32 {
-	if m != nil {
-		return m.Frequency
-	}
-	return 0
-}
-
-func (m *DownlinkTXInfo) GetPower() int32 {
-	if m != nil {
-		return m.Power
-	}
-	return 0
-}
-
-func (m *DownlinkTXInfo) GetDataRate() *DataRate {
-	if m != nil {
-		return m.DataRate
-	}
-	return nil
-}
-
-func (m *DownlinkTXInfo) GetCodeRate() string {
-	if m != nil {
-		return m.CodeRate
-	}
-	return ""
-}
-
-func (m *DownlinkTXInfo) GetIPol() bool {
-	if m != nil {
-		return m.IPol
-	}
-	return false
-}
-
-func (m *DownlinkTXInfo) GetBoard() uint32 {
-	if m != nil {
-		return m.Board
-	}
-	return 0
-}
-
-func (m *DownlinkTXInfo) GetAntenna() uint32 {
-	if m != nil {
-		return m.Antenna
-	}
-	return 0
 }
 
 type DownlinkFrameLog struct {
 	// TX information of the downlink.
-	TxInfo *DownlinkTXInfo `protobuf:"bytes,1,opt,name=txInfo" json:"txInfo,omitempty"`
+	TxInfo *DownlinkTXInfo `protobuf:"bytes,1,opt,name=tx_info,json=txInfo,proto3" json:"tx_info,omitempty"`
 	// LoRaWAN PHYPayload.
-	PhyPayloadJSON       string   `protobuf:"bytes,2,opt,name=phyPayloadJSON" json:"phyPayloadJSON,omitempty"`
+	PhyPayloadJson       string   `protobuf:"bytes,2,opt,name=phy_payload_json,json=phyPayloadJSON,proto3" json:"phy_payload_json,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -491,7 +116,7 @@ func (m *DownlinkFrameLog) Reset()         { *m = DownlinkFrameLog{} }
 func (m *DownlinkFrameLog) String() string { return proto.CompactTextString(m) }
 func (*DownlinkFrameLog) ProtoMessage()    {}
 func (*DownlinkFrameLog) Descriptor() ([]byte, []int) {
-	return fileDescriptor_common_0ccb55e5f0c871f0, []int{5}
+	return fileDescriptor_common_cb02b43eab00b173, []int{1}
 }
 func (m *DownlinkFrameLog) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DownlinkFrameLog.Unmarshal(m, b)
@@ -518,60 +143,421 @@ func (m *DownlinkFrameLog) GetTxInfo() *DownlinkTXInfo {
 	return nil
 }
 
-func (m *DownlinkFrameLog) GetPhyPayloadJSON() string {
+func (m *DownlinkFrameLog) GetPhyPayloadJson() string {
 	if m != nil {
-		return m.PhyPayloadJSON
+		return m.PhyPayloadJson
 	}
 	return ""
 }
 
-func init() {
-	proto.RegisterType((*DataRate)(nil), "api.DataRate")
-	proto.RegisterType((*UplinkTXInfo)(nil), "api.UplinkTXInfo")
-	proto.RegisterType((*UplinkRXInfo)(nil), "api.UplinkRXInfo")
-	proto.RegisterType((*UplinkFrameLog)(nil), "api.UplinkFrameLog")
-	proto.RegisterType((*DownlinkTXInfo)(nil), "api.DownlinkTXInfo")
-	proto.RegisterType((*DownlinkFrameLog)(nil), "api.DownlinkFrameLog")
-	proto.RegisterEnum("api.RXWindow", RXWindow_name, RXWindow_value)
-	proto.RegisterEnum("api.Modulation", Modulation_name, Modulation_value)
+// This is a copy of gw.UplinkRXInfo with the only change that the
+// gateway_id is of type string so that we can return it as HEX encoded
+// instead of base64.
+type UplinkRXInfo struct {
+	// Gateway ID.
+	GatewayId string `protobuf:"bytes,1,opt,name=gateway_id,json=gatewayId,proto3" json:"gateway_id,omitempty"`
+	// RX time (only set when the gateway has a GPS module).
+	Time *timestamp.Timestamp `protobuf:"bytes,2,opt,name=time,proto3" json:"time,omitempty"`
+	// RX time since GPS epoch (only set when the gateway has a GPS module).
+	TimeSinceGpsEpoch *duration.Duration `protobuf:"bytes,3,opt,name=time_since_gps_epoch,json=timeSinceGpsEpoch,proto3" json:"time_since_gps_epoch,omitempty"`
+	// Gateway internal timestamp.
+	Timestamp uint32 `protobuf:"varint,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	// RSSI.
+	Rssi int32 `protobuf:"varint,5,opt,name=rssi,proto3" json:"rssi,omitempty"`
+	// LoRa SNR.
+	LoraSnr float64 `protobuf:"fixed64,6,opt,name=lora_snr,json=loraSnr,proto3" json:"lora_snr,omitempty"`
+	// Channel.
+	Channel uint32 `protobuf:"varint,7,opt,name=channel,proto3" json:"channel,omitempty"`
+	// RF Chain.
+	RfChain uint32 `protobuf:"varint,8,opt,name=rf_chain,json=rfChain,proto3" json:"rf_chain,omitempty"`
+	// Board.
+	Board uint32 `protobuf:"varint,9,opt,name=board,proto3" json:"board,omitempty"`
+	// Antenna.
+	Antenna uint32 `protobuf:"varint,10,opt,name=antenna,proto3" json:"antenna,omitempty"`
+	// Location.
+	Location             *gw.Location `protobuf:"bytes,11,opt,name=location,proto3" json:"location,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
+	XXX_unrecognized     []byte       `json:"-"`
+	XXX_sizecache        int32        `json:"-"`
 }
 
-func init() { proto.RegisterFile("common.proto", fileDescriptor_common_0ccb55e5f0c871f0) }
+func (m *UplinkRXInfo) Reset()         { *m = UplinkRXInfo{} }
+func (m *UplinkRXInfo) String() string { return proto.CompactTextString(m) }
+func (*UplinkRXInfo) ProtoMessage()    {}
+func (*UplinkRXInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_common_cb02b43eab00b173, []int{2}
+}
+func (m *UplinkRXInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UplinkRXInfo.Unmarshal(m, b)
+}
+func (m *UplinkRXInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UplinkRXInfo.Marshal(b, m, deterministic)
+}
+func (dst *UplinkRXInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UplinkRXInfo.Merge(dst, src)
+}
+func (m *UplinkRXInfo) XXX_Size() int {
+	return xxx_messageInfo_UplinkRXInfo.Size(m)
+}
+func (m *UplinkRXInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_UplinkRXInfo.DiscardUnknown(m)
+}
 
-var fileDescriptor_common_0ccb55e5f0c871f0 = []byte{
-	// 535 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xcb, 0x8e, 0xd3, 0x30,
-	0x14, 0x25, 0x4d, 0xd3, 0xa6, 0xb7, 0x0f, 0x75, 0xcc, 0x2c, 0x22, 0x34, 0x82, 0x28, 0x0b, 0xd4,
-	0x19, 0x50, 0x25, 0xca, 0x17, 0x20, 0x0d, 0x45, 0xc0, 0x30, 0x53, 0xb9, 0x20, 0xba, 0xbd, 0x4d,
-	0x3c, 0x53, 0x8b, 0xc4, 0x0e, 0xa9, 0x47, 0xa5, 0x3f, 0xc0, 0x92, 0x5f, 0xe3, 0x0f, 0xf8, 0x16,
-	0x64, 0x3b, 0x7d, 0xa4, 0x05, 0x89, 0x05, 0xab, 0xdc, 0x7b, 0x7c, 0x64, 0xdf, 0x73, 0xce, 0x55,
-	0xa0, 0x13, 0xcb, 0x2c, 0x93, 0x62, 0x98, 0x17, 0x52, 0x49, 0xe2, 0x62, 0xce, 0xa3, 0xef, 0x0e,
-	0xf8, 0x97, 0xa8, 0x90, 0xa2, 0x62, 0xe4, 0x31, 0x40, 0x26, 0x93, 0xfb, 0x14, 0x15, 0x97, 0x22,
-	0x70, 0x42, 0x67, 0xd0, 0xa2, 0x7b, 0x08, 0x39, 0x83, 0xd6, 0x1c, 0x45, 0xb2, 0xe2, 0x89, 0x5a,
-	0x04, 0xb5, 0xd0, 0x19, 0x74, 0xe9, 0x0e, 0x20, 0x11, 0x74, 0x96, 0x79, 0xc1, 0x30, 0x19, 0x63,
-	0xac, 0x64, 0x11, 0xb8, 0x86, 0x50, 0xc1, 0x48, 0x00, 0xcd, 0x39, 0x57, 0x05, 0x2a, 0x16, 0xd4,
-	0xcd, 0xf1, 0xa6, 0x8d, 0x96, 0xd0, 0xf9, 0x94, 0xa7, 0x5c, 0x7c, 0xf9, 0x38, 0x7b, 0x2b, 0x6e,
-	0xa5, 0x7e, 0xeb, 0xb6, 0x60, 0x5f, 0xef, 0x99, 0x88, 0xd7, 0x66, 0x94, 0x2e, 0xdd, 0x01, 0xe4,
-	0x1c, 0xfc, 0xa4, 0x9c, 0xda, 0x0c, 0xd2, 0x1e, 0x75, 0x87, 0x98, 0xf3, 0xe1, 0x46, 0x0a, 0xdd,
-	0x1e, 0x93, 0x47, 0xe0, 0xc7, 0x32, 0x61, 0x86, 0xea, 0x1a, 0x49, 0xdb, 0x3e, 0xfa, 0xe5, 0x6c,
-	0x5e, 0xa5, 0xf6, 0xd5, 0x3e, 0xb8, 0x19, 0xc6, 0xa5, 0x74, 0x5d, 0x12, 0x02, 0x75, 0xc5, 0x33,
-	0xfb, 0x4a, 0x8b, 0x9a, 0x9a, 0x3c, 0x87, 0x13, 0xfd, 0x9d, 0x72, 0x11, 0xb3, 0x37, 0x93, 0xe9,
-	0xeb, 0x5c, 0xc6, 0x8b, 0xf2, 0xee, 0xe3, 0x03, 0xad, 0x44, 0x83, 0x4b, 0x85, 0x59, 0x5e, 0xaa,
-	0xde, 0x01, 0xfa, 0xfe, 0x62, 0xb9, 0xe4, 0x81, 0x17, 0x3a, 0x03, 0x8f, 0x9a, 0x5a, 0xbb, 0x94,
-	0x4a, 0x8a, 0xd3, 0x6b, 0x1a, 0x34, 0x42, 0x67, 0x50, 0xa3, 0x9b, 0x96, 0x9c, 0x82, 0x37, 0x97,
-	0x58, 0x24, 0x41, 0xd3, 0xdc, 0x63, 0x1b, 0xcd, 0x47, 0xa1, 0x98, 0x10, 0x18, 0xf8, 0xd6, 0xd5,
-	0xb2, 0x8d, 0x7e, 0x38, 0xd0, 0xb3, 0x02, 0xc7, 0x05, 0x66, 0xec, 0x4a, 0xde, 0x91, 0x73, 0x68,
-	0xa8, 0x6f, 0x5a, 0xac, 0x51, 0xd9, 0x1e, 0x9d, 0x18, 0xe3, 0xf6, 0xbd, 0xa7, 0x25, 0x41, 0x53,
-	0x0b, 0x4b, 0xad, 0x85, 0xee, 0x01, 0x95, 0x96, 0x54, 0x4b, 0x20, 0x4f, 0xa1, 0x97, 0x2f, 0xd6,
-	0x13, 0x5c, 0xa7, 0x12, 0x93, 0x77, 0xd3, 0x9b, 0xeb, 0xd2, 0x8f, 0x03, 0x34, 0xfa, 0x59, 0x83,
-	0xde, 0xa5, 0x5c, 0x89, 0xbd, 0xa4, 0x8f, 0x3d, 0x0f, 0xa1, 0xcd, 0xb3, 0x8c, 0x25, 0x1c, 0x15,
-	0x4b, 0xd7, 0xc6, 0x7a, 0x9f, 0xee, 0x43, 0xff, 0x35, 0x81, 0xca, 0xa6, 0x79, 0x87, 0x9b, 0x76,
-	0x0a, 0x5e, 0x2e, 0x57, 0xac, 0x30, 0x49, 0x78, 0xd4, 0x36, 0x95, 0xfd, 0x6b, 0xfe, 0xfb, 0xfe,
-	0xf9, 0xd5, 0xfd, 0xd3, 0xe1, 0xf3, 0x89, 0x4c, 0x83, 0x96, 0x51, 0x68, 0xea, 0x5d, 0xc4, 0xf0,
-	0x97, 0x88, 0xdb, 0xd5, 0x88, 0xef, 0xa0, 0xbf, 0x31, 0x74, 0x9b, 0xf1, 0xb3, 0x83, 0x8c, 0x1f,
-	0xda, 0xe1, 0x2a, 0xbe, 0x6f, 0x53, 0x3e, 0x8e, 0xae, 0xf6, 0xa7, 0xe8, 0x2e, 0xce, 0xc0, 0xa7,
-	0xb3, 0xcf, 0x5c, 0x24, 0x72, 0x45, 0x9a, 0xe0, 0xd2, 0xd9, 0x8b, 0xfe, 0x03, 0x5b, 0x8c, 0xfa,
-	0xce, 0xc5, 0x13, 0x80, 0x0f, 0xbb, 0x3f, 0x85, 0x0f, 0xf5, 0xab, 0x1b, 0xfa, 0xca, 0x12, 0xc6,
-	0xd3, 0xf7, 0x7d, 0x67, 0xde, 0x30, 0x7f, 0x9d, 0x97, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0xca,
-	0xc5, 0xed, 0xa6, 0x85, 0x04, 0x00, 0x00,
+var xxx_messageInfo_UplinkRXInfo proto.InternalMessageInfo
+
+func (m *UplinkRXInfo) GetGatewayId() string {
+	if m != nil {
+		return m.GatewayId
+	}
+	return ""
+}
+
+func (m *UplinkRXInfo) GetTime() *timestamp.Timestamp {
+	if m != nil {
+		return m.Time
+	}
+	return nil
+}
+
+func (m *UplinkRXInfo) GetTimeSinceGpsEpoch() *duration.Duration {
+	if m != nil {
+		return m.TimeSinceGpsEpoch
+	}
+	return nil
+}
+
+func (m *UplinkRXInfo) GetTimestamp() uint32 {
+	if m != nil {
+		return m.Timestamp
+	}
+	return 0
+}
+
+func (m *UplinkRXInfo) GetRssi() int32 {
+	if m != nil {
+		return m.Rssi
+	}
+	return 0
+}
+
+func (m *UplinkRXInfo) GetLoraSnr() float64 {
+	if m != nil {
+		return m.LoraSnr
+	}
+	return 0
+}
+
+func (m *UplinkRXInfo) GetChannel() uint32 {
+	if m != nil {
+		return m.Channel
+	}
+	return 0
+}
+
+func (m *UplinkRXInfo) GetRfChain() uint32 {
+	if m != nil {
+		return m.RfChain
+	}
+	return 0
+}
+
+func (m *UplinkRXInfo) GetBoard() uint32 {
+	if m != nil {
+		return m.Board
+	}
+	return 0
+}
+
+func (m *UplinkRXInfo) GetAntenna() uint32 {
+	if m != nil {
+		return m.Antenna
+	}
+	return 0
+}
+
+func (m *UplinkRXInfo) GetLocation() *gw.Location {
+	if m != nil {
+		return m.Location
+	}
+	return nil
+}
+
+// Same comment as above applies to this message.
+type DownlinkTXInfo struct {
+	// Gateway ID.
+	GatewayId string `protobuf:"bytes,1,opt,name=gateway_id,json=gatewayId,proto3" json:"gateway_id,omitempty"`
+	// Frame must be sent immediately.
+	Immediately bool `protobuf:"varint,2,opt,name=immediately,proto3" json:"immediately,omitempty"`
+	// Emit frame at the given time since GPS epoch.
+	TimeSinceGpsEpoch *duration.Duration `protobuf:"bytes,3,opt,name=time_since_gps_epoch,json=timeSinceGpsEpoch,proto3" json:"time_since_gps_epoch,omitempty"`
+	// Emit the frame at the given gateway internal timestamp.
+	Timestamp uint32 `protobuf:"varint,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	// TX frequency (in Hz).
+	Frequency uint32 `protobuf:"varint,5,opt,name=frequency,proto3" json:"frequency,omitempty"`
+	// TX power (in dBm).
+	Power int32 `protobuf:"varint,6,opt,name=power,proto3" json:"power,omitempty"`
+	// Modulation.
+	Modulation common.Modulation `protobuf:"varint,7,opt,name=modulation,proto3,enum=common.Modulation" json:"modulation,omitempty"`
+	// Types that are valid to be assigned to ModulationInfo:
+	//	*DownlinkTXInfo_LoraModulationInfo
+	//	*DownlinkTXInfo_FskModulationInfo
+	ModulationInfo isDownlinkTXInfo_ModulationInfo `protobuf_oneof:"modulation_info"`
+	// The board identifier for emitting the frame.
+	Board uint32 `protobuf:"varint,10,opt,name=board,proto3" json:"board,omitempty"`
+	// The antenna identifier for emitting the frame.
+	Antenna              uint32   `protobuf:"varint,11,opt,name=antenna,proto3" json:"antenna,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DownlinkTXInfo) Reset()         { *m = DownlinkTXInfo{} }
+func (m *DownlinkTXInfo) String() string { return proto.CompactTextString(m) }
+func (*DownlinkTXInfo) ProtoMessage()    {}
+func (*DownlinkTXInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_common_cb02b43eab00b173, []int{3}
+}
+func (m *DownlinkTXInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DownlinkTXInfo.Unmarshal(m, b)
+}
+func (m *DownlinkTXInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DownlinkTXInfo.Marshal(b, m, deterministic)
+}
+func (dst *DownlinkTXInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DownlinkTXInfo.Merge(dst, src)
+}
+func (m *DownlinkTXInfo) XXX_Size() int {
+	return xxx_messageInfo_DownlinkTXInfo.Size(m)
+}
+func (m *DownlinkTXInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_DownlinkTXInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DownlinkTXInfo proto.InternalMessageInfo
+
+type isDownlinkTXInfo_ModulationInfo interface {
+	isDownlinkTXInfo_ModulationInfo()
+}
+
+type DownlinkTXInfo_LoraModulationInfo struct {
+	LoraModulationInfo *gw.LoRaModulationInfo `protobuf:"bytes,8,opt,name=lora_modulation_info,json=loraModulationInfo,proto3,oneof"`
+}
+type DownlinkTXInfo_FskModulationInfo struct {
+	FskModulationInfo *gw.FSKModulationInfo `protobuf:"bytes,9,opt,name=fsk_modulation_info,json=fskModulationInfo,proto3,oneof"`
+}
+
+func (*DownlinkTXInfo_LoraModulationInfo) isDownlinkTXInfo_ModulationInfo() {}
+func (*DownlinkTXInfo_FskModulationInfo) isDownlinkTXInfo_ModulationInfo()  {}
+
+func (m *DownlinkTXInfo) GetModulationInfo() isDownlinkTXInfo_ModulationInfo {
+	if m != nil {
+		return m.ModulationInfo
+	}
+	return nil
+}
+
+func (m *DownlinkTXInfo) GetGatewayId() string {
+	if m != nil {
+		return m.GatewayId
+	}
+	return ""
+}
+
+func (m *DownlinkTXInfo) GetImmediately() bool {
+	if m != nil {
+		return m.Immediately
+	}
+	return false
+}
+
+func (m *DownlinkTXInfo) GetTimeSinceGpsEpoch() *duration.Duration {
+	if m != nil {
+		return m.TimeSinceGpsEpoch
+	}
+	return nil
+}
+
+func (m *DownlinkTXInfo) GetTimestamp() uint32 {
+	if m != nil {
+		return m.Timestamp
+	}
+	return 0
+}
+
+func (m *DownlinkTXInfo) GetFrequency() uint32 {
+	if m != nil {
+		return m.Frequency
+	}
+	return 0
+}
+
+func (m *DownlinkTXInfo) GetPower() int32 {
+	if m != nil {
+		return m.Power
+	}
+	return 0
+}
+
+func (m *DownlinkTXInfo) GetModulation() common.Modulation {
+	if m != nil {
+		return m.Modulation
+	}
+	return common.Modulation_LORA
+}
+
+func (m *DownlinkTXInfo) GetLoraModulationInfo() *gw.LoRaModulationInfo {
+	if x, ok := m.GetModulationInfo().(*DownlinkTXInfo_LoraModulationInfo); ok {
+		return x.LoraModulationInfo
+	}
+	return nil
+}
+
+func (m *DownlinkTXInfo) GetFskModulationInfo() *gw.FSKModulationInfo {
+	if x, ok := m.GetModulationInfo().(*DownlinkTXInfo_FskModulationInfo); ok {
+		return x.FskModulationInfo
+	}
+	return nil
+}
+
+func (m *DownlinkTXInfo) GetBoard() uint32 {
+	if m != nil {
+		return m.Board
+	}
+	return 0
+}
+
+func (m *DownlinkTXInfo) GetAntenna() uint32 {
+	if m != nil {
+		return m.Antenna
+	}
+	return 0
+}
+
+// XXX_OneofFuncs is for the internal use of the proto package.
+func (*DownlinkTXInfo) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _DownlinkTXInfo_OneofMarshaler, _DownlinkTXInfo_OneofUnmarshaler, _DownlinkTXInfo_OneofSizer, []interface{}{
+		(*DownlinkTXInfo_LoraModulationInfo)(nil),
+		(*DownlinkTXInfo_FskModulationInfo)(nil),
+	}
+}
+
+func _DownlinkTXInfo_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*DownlinkTXInfo)
+	// modulation_info
+	switch x := m.ModulationInfo.(type) {
+	case *DownlinkTXInfo_LoraModulationInfo:
+		b.EncodeVarint(8<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.LoraModulationInfo); err != nil {
+			return err
+		}
+	case *DownlinkTXInfo_FskModulationInfo:
+		b.EncodeVarint(9<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.FskModulationInfo); err != nil {
+			return err
+		}
+	case nil:
+	default:
+		return fmt.Errorf("DownlinkTXInfo.ModulationInfo has unexpected type %T", x)
+	}
+	return nil
+}
+
+func _DownlinkTXInfo_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*DownlinkTXInfo)
+	switch tag {
+	case 8: // modulation_info.lora_modulation_info
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(gw.LoRaModulationInfo)
+		err := b.DecodeMessage(msg)
+		m.ModulationInfo = &DownlinkTXInfo_LoraModulationInfo{msg}
+		return true, err
+	case 9: // modulation_info.fsk_modulation_info
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(gw.FSKModulationInfo)
+		err := b.DecodeMessage(msg)
+		m.ModulationInfo = &DownlinkTXInfo_FskModulationInfo{msg}
+		return true, err
+	default:
+		return false, nil
+	}
+}
+
+func _DownlinkTXInfo_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*DownlinkTXInfo)
+	// modulation_info
+	switch x := m.ModulationInfo.(type) {
+	case *DownlinkTXInfo_LoraModulationInfo:
+		s := proto.Size(x.LoraModulationInfo)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *DownlinkTXInfo_FskModulationInfo:
+		s := proto.Size(x.FskModulationInfo)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case nil:
+	default:
+		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
+	}
+	return n
+}
+
+func init() {
+	proto.RegisterType((*UplinkFrameLog)(nil), "api.UplinkFrameLog")
+	proto.RegisterType((*DownlinkFrameLog)(nil), "api.DownlinkFrameLog")
+	proto.RegisterType((*UplinkRXInfo)(nil), "api.UplinkRXInfo")
+	proto.RegisterType((*DownlinkTXInfo)(nil), "api.DownlinkTXInfo")
+	proto.RegisterEnum("api.RXWindow", RXWindow_name, RXWindow_value)
+}
+
+func init() { proto.RegisterFile("common.proto", fileDescriptor_common_cb02b43eab00b173) }
+
+var fileDescriptor_common_cb02b43eab00b173 = []byte{
+	// 648 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x53, 0xdd, 0x52, 0xdb, 0x38,
+	0x14, 0xc6, 0x84, 0x90, 0x44, 0x86, 0x6c, 0x22, 0xd8, 0x1d, 0x93, 0x61, 0x77, 0x3d, 0x5c, 0xb9,
+	0x4c, 0x6b, 0x4f, 0xdd, 0xe9, 0x0b, 0xb4, 0x14, 0x0a, 0xa5, 0x3f, 0xa3, 0xd0, 0x29, 0x77, 0x1e,
+	0xc5, 0x96, 0x1d, 0x81, 0x2d, 0xb9, 0xb2, 0x53, 0x93, 0x07, 0xe8, 0x03, 0xf4, 0x79, 0x7b, 0xd3,
+	0x91, 0xe4, 0xfc, 0x42, 0x87, 0xbb, 0x5e, 0xd9, 0xe7, 0xd3, 0x77, 0xbe, 0xa3, 0x73, 0xbe, 0x23,
+	0xb0, 0x13, 0xf2, 0x2c, 0xe3, 0xcc, 0xcd, 0x05, 0x2f, 0x39, 0x6c, 0xe0, 0x9c, 0x0e, 0xfe, 0x4f,
+	0x38, 0x4f, 0x52, 0xe2, 0x29, 0x68, 0x34, 0x89, 0xbd, 0x92, 0x66, 0xa4, 0x28, 0x71, 0x96, 0x6b,
+	0xd6, 0xe0, 0xbf, 0x75, 0x42, 0x34, 0x11, 0xb8, 0xa4, 0x33, 0x95, 0xc1, 0xcb, 0x84, 0x96, 0xe3,
+	0xc9, 0xc8, 0x0d, 0x79, 0xe6, 0x8d, 0x04, 0x0f, 0x31, 0x16, 0x5e, 0xca, 0x05, 0x2e, 0x88, 0xf8,
+	0x46, 0x84, 0x87, 0x73, 0xea, 0xe9, 0xaa, 0xde, 0x72, 0xf1, 0xc1, 0xb3, 0xc7, 0xd3, 0x92, 0xca,
+	0x4b, 0x2a, 0x4d, 0x3f, 0xfa, 0x61, 0x80, 0xee, 0xe7, 0x3c, 0xa5, 0xec, 0xf6, 0x54, 0xe0, 0x8c,
+	0x5c, 0xf2, 0x04, 0x3e, 0x01, 0xad, 0xf2, 0x2e, 0xa0, 0x2c, 0xe6, 0x96, 0x61, 0x1b, 0x8e, 0xe9,
+	0xf7, 0xdc, 0xa4, 0x72, 0x35, 0xe9, 0xea, 0xfa, 0x9c, 0xc5, 0x1c, 0x6d, 0x97, 0x77, 0xf2, 0x0b,
+	0x8f, 0x41, 0x4b, 0xd4, 0xd4, 0x4d, 0xbb, 0xe1, 0x98, 0x7e, 0xdf, 0xc5, 0x39, 0xad, 0xb9, 0xa8,
+	0xe6, 0x0a, 0xcd, 0x75, 0x40, 0x2f, 0x1f, 0x4f, 0x83, 0x1c, 0x4f, 0x53, 0x8e, 0xa3, 0xe0, 0xa6,
+	0xe0, 0xcc, 0x6a, 0xd8, 0x86, 0xd3, 0x41, 0xdd, 0x7c, 0x3c, 0xfd, 0xa4, 0xe1, 0x8b, 0xe1, 0xc7,
+	0x0f, 0x47, 0x37, 0xa0, 0x77, 0xc2, 0x2b, 0xb6, 0x72, 0xa9, 0xa7, 0xeb, 0x97, 0xda, 0x53, 0x95,
+	0x66, 0xbc, 0xb5, 0x7b, 0x3d, 0x54, 0x6b, 0xf3, 0xc1, 0x5a, 0xdf, 0x1b, 0x60, 0x67, 0xf9, 0xba,
+	0xf0, 0x5f, 0x00, 0x12, 0x5c, 0x92, 0x0a, 0x4f, 0x03, 0x1a, 0xa9, 0x5a, 0x1d, 0xd4, 0xa9, 0x91,
+	0xf3, 0x08, 0xba, 0x60, 0x4b, 0x1a, 0xa9, 0xd4, 0x4c, 0x7f, 0xe0, 0x6a, 0x13, 0xdd, 0x99, 0x89,
+	0xee, 0xd5, 0xcc, 0x65, 0xa4, 0x78, 0xf0, 0x02, 0xec, 0xcb, 0x6f, 0x50, 0x50, 0x16, 0x92, 0x20,
+	0xc9, 0x8b, 0x80, 0xe4, 0x3c, 0x1c, 0xab, 0xce, 0x4d, 0xff, 0xe0, 0x5e, 0xfe, 0x49, 0xbd, 0x04,
+	0xa8, 0x2f, 0xd3, 0x86, 0x32, 0xeb, 0x2c, 0x2f, 0xde, 0xc8, 0x1c, 0x78, 0x08, 0x3a, 0xf3, 0x25,
+	0xb2, 0xb6, 0x6c, 0xc3, 0xd9, 0x45, 0x0b, 0x00, 0x42, 0xb0, 0x25, 0x8a, 0x82, 0x5a, 0x4d, 0xdb,
+	0x70, 0x9a, 0x48, 0xfd, 0xc3, 0x03, 0xd0, 0x96, 0xde, 0x07, 0x05, 0x13, 0xd6, 0xb6, 0x6d, 0x38,
+	0x06, 0x6a, 0xc9, 0x78, 0xc8, 0x04, 0xb4, 0x40, 0x2b, 0x1c, 0x63, 0xc6, 0x48, 0x6a, 0xb5, 0x94,
+	0xd4, 0x2c, 0x94, 0x49, 0x22, 0x0e, 0xc2, 0x31, 0xa6, 0xcc, 0x6a, 0xeb, 0x23, 0x11, 0xbf, 0x96,
+	0x21, 0xdc, 0x07, 0xcd, 0x11, 0xc7, 0x22, 0xb2, 0x3a, 0x0a, 0xd7, 0x81, 0x94, 0xc2, 0xac, 0x24,
+	0x8c, 0x61, 0x0b, 0x68, 0x7e, 0x1d, 0x42, 0x47, 0xd6, 0x0f, 0x55, 0x43, 0x96, 0xa9, 0x3a, 0xde,
+	0x91, 0xbb, 0x74, 0x59, 0x63, 0x68, 0x7e, 0x7a, 0xf4, 0xb3, 0x01, 0xba, 0xab, 0x66, 0x3e, 0xe6,
+	0x84, 0x0d, 0x4c, 0x9a, 0x65, 0x24, 0xa2, 0xb8, 0x24, 0xe9, 0x54, 0x19, 0xd2, 0x46, 0xcb, 0xd0,
+	0x1f, 0x9c, 0xfd, 0x21, 0xe8, 0xc4, 0x82, 0x7c, 0x9d, 0x10, 0x16, 0x4e, 0x95, 0x01, 0xbb, 0x68,
+	0x01, 0xc8, 0xa9, 0xe5, 0xbc, 0x22, 0xda, 0x82, 0x26, 0xd2, 0x01, 0xf4, 0x01, 0xc8, 0x78, 0x34,
+	0x49, 0xf5, 0x74, 0xa4, 0x07, 0x5d, 0x1f, 0xba, 0xf5, 0x5b, 0x7e, 0x3f, 0x3f, 0x41, 0x4b, 0x2c,
+	0xd9, 0x91, 0xf2, 0x73, 0x01, 0xe9, 0x27, 0xd1, 0x56, 0x1d, 0xfd, 0xa3, 0x67, 0x8b, 0xf0, 0x22,
+	0x5b, 0x0e, 0xf2, 0xed, 0x06, 0x82, 0x32, 0x6b, 0x15, 0x85, 0x67, 0x60, 0x2f, 0x2e, 0x6e, 0xef,
+	0x49, 0x75, 0x94, 0xd4, 0xdf, 0x52, 0xea, 0x74, 0xf8, 0xee, 0x9e, 0x52, 0x3f, 0x2e, 0x6e, 0xd7,
+	0x84, 0xe6, 0x4b, 0x01, 0x7e, 0xb3, 0x14, 0xe6, 0xca, 0x52, 0xbc, 0xea, 0x83, 0xbf, 0xd6, 0x8a,
+	0x1e, 0x1f, 0x82, 0x36, 0xba, 0xfe, 0x42, 0x59, 0xc4, 0x2b, 0xd8, 0x02, 0x0d, 0x74, 0xfd, 0xbc,
+	0xb7, 0xa1, 0x7f, 0xfc, 0x9e, 0x31, 0xda, 0x56, 0x0e, 0xbd, 0xf8, 0x15, 0x00, 0x00, 0xff, 0xff,
+	0x05, 0x66, 0x77, 0x72, 0x66, 0x05, 0x00, 0x00,
 }

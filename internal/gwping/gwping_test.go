@@ -4,13 +4,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brocaar/loraserver/api/as"
-
-	"github.com/brocaar/lorawan"
-
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/loraserver/api/as"
+	"github.com/brocaar/loraserver/api/gw"
+	"github.com/brocaar/lorawan"
+	"github.com/golang/protobuf/ptypes"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -44,7 +44,7 @@ func TestGatewayPing(t *testing.T) {
 		}
 		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
-		gw := storage.Gateway{
+		gw1 := storage.Gateway{
 			MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 			Name:            "test-gw",
 			Description:     "test gateway",
@@ -52,7 +52,7 @@ func TestGatewayPing(t *testing.T) {
 			Ping:            true,
 			NetworkServerID: n.ID,
 		}
-		So(storage.CreateGateway(config.C.PostgreSQL.DB, &gw), ShouldBeNil)
+		So(storage.CreateGateway(config.C.PostgreSQL.DB, &gw1), ShouldBeNil)
 
 		Convey("When gateway discovery is disabled on the network-server", func() {
 			n.GatewayDiscoveryEnabled = false
@@ -63,7 +63,7 @@ func TestGatewayPing(t *testing.T) {
 			})
 
 			Convey("Then no ping was sent", func() {
-				gwGet, err := storage.GetGateway(db, gw.MAC, false)
+				gwGet, err := storage.GetGateway(db, gw1.MAC, false)
 				So(err, ShouldBeNil)
 				So(gwGet.LastPingID, ShouldBeNil)
 				So(gwGet.LastPingSentAt, ShouldBeNil)
@@ -74,7 +74,7 @@ func TestGatewayPing(t *testing.T) {
 			So(sendGatewayPing(), ShouldBeNil)
 
 			Convey("Then the gateway ping fields have been set", func() {
-				gwGet, err := storage.GetGateway(config.C.PostgreSQL.DB, gw.MAC, false)
+				gwGet, err := storage.GetGateway(config.C.PostgreSQL.DB, gw1.MAC, false)
 				So(err, ShouldBeNil)
 				So(gwGet.LastPingID, ShouldNotBeNil)
 				So(gwGet.LastPingSentAt, ShouldNotBeNil)
@@ -92,8 +92,8 @@ func TestGatewayPing(t *testing.T) {
 					req := <-nsClient.SendProprietaryPayloadChan
 					So(req.Dr, ShouldEqual, uint32(n.GatewayDiscoveryDR))
 					So(req.Frequency, ShouldEqual, uint32(n.GatewayDiscoveryTXFrequency))
-					So(req.GatewayMACs, ShouldResemble, [][]byte{{1, 2, 3, 4, 5, 6, 7, 8}})
-					So(req.IPol, ShouldBeFalse)
+					So(req.GatewayMacs, ShouldResemble, [][]byte{{1, 2, 3, 4, 5, 6, 7, 8}})
+					So(req.PolarizationInversion, ShouldBeFalse)
 
 					var mic lorawan.MIC
 					copy(mic[:], req.Mic)
@@ -119,19 +119,20 @@ func TestGatewayPing(t *testing.T) {
 
 						pong := as.HandleProprietaryUplinkRequest{
 							Mic: mic[:],
-							RxInfo: []*as.RXInfo{
+							RxInfo: []*gw.UplinkRXInfo{
 								{
-									Mac:       gw2.MAC[:],
-									Time:      now.Format(time.RFC3339Nano),
+									GatewayId: gw2.MAC[:],
 									Rssi:      -10,
-									LoRaSNR:   5.5,
-									Name:      "test-gw-2",
-									Latitude:  1.12345,
-									Longitude: 1.23456,
-									Altitude:  10,
+									LoraSnr:   5.5,
+									Location: &gw.Location{
+										Latitude:  1.12345,
+										Longitude: 1.23456,
+										Altitude:  10,
+									},
 								},
 							},
 						}
+						pong.RxInfo[0].Time, _ = ptypes.TimestampProto(now)
 						So(HandleReceivedPing(&pong), ShouldBeNil)
 
 						Convey("Then the ping lookup has been deleted", func() {
@@ -140,7 +141,7 @@ func TestGatewayPing(t *testing.T) {
 						})
 
 						Convey("Then the received ping has been stored to the database", func() {
-							ping, rx, err := storage.GetLastGatewayPingAndRX(config.C.PostgreSQL.DB, gw.MAC)
+							ping, rx, err := storage.GetLastGatewayPingAndRX(config.C.PostgreSQL.DB, gw1.MAC)
 							So(err, ShouldBeNil)
 
 							So(ping.ID, ShouldEqual, *gwGet.LastPingID)

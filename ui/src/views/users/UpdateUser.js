@@ -19,13 +19,13 @@ class UpdateUser extends Component {
   componentWillMount() {
     UserStore.getUser(this.props.match.params.userID, (user) => {
       this.setState({
-        user: user,
+        user: user.user,
       });
     });
   }
 
   onSubmit(user) {
-    UserStore.updateUser(this.props.match.params.userID, this.state.user, (responseData) => {
+    UserStore.updateUser(this.props.match.params.userID, {user: user}, (responseData) => {
       this.props.history.push('/users');
     });
   }

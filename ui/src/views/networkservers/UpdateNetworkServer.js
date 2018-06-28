@@ -19,13 +19,13 @@ class UpdateNetworkServer extends Component {
   componentDidMount() {
     NetworkServerStore.getNetworkServer(this.props.match.params.networkServerID, (networkServer) => {
       this.setState({
-        networkServer: networkServer,
+        networkServer: networkServer.networkServer,
       });
     });
   }
 
   onSubmit(networkServer) {
-    NetworkServerStore.updateNetworkServer(this.props.match.params.networkServerID, networkServer, (responseData) => {
+    NetworkServerStore.updateNetworkServer(this.props.match.params.networkServerID, {networkServer: networkServer}, (responseData) => {
       this.props.history.push("/network-servers");
     });
   }

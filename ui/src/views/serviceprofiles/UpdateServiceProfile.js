@@ -24,7 +24,7 @@ class UpdateServiceProfile extends Component {
   componentDidMount() {
     ServiceProfileStore.getServiceProfile(this.props.match.params.serviceProfileID, (serviceProfile) => {
       this.setState({
-        serviceProfile: serviceProfile,
+        serviceProfile: serviceProfile.serviceProfile,
         isAdmin: SessionStore.isAdmin(),
       });
     });
@@ -37,7 +37,7 @@ class UpdateServiceProfile extends Component {
   }
 
   onSubmit(serviceProfile) {
-    ServiceProfileStore.updateServiceProfile(serviceProfile.serviceProfile.serviceProfileID, serviceProfile, (responseData) => {
+    ServiceProfileStore.updateServiceProfile(serviceProfile.id, {serviceProfile: serviceProfile}, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/service-profiles`)
     });
   }

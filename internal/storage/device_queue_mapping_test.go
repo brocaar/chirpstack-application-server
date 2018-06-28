@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/satori/go.uuid"
+
 	"github.com/brocaar/lorawan"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -43,6 +45,8 @@ func TestDeviceQueueMapping(t *testing.T) {
 			Name:            "test-sp",
 		}
 		So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
+		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+		So(err, ShouldBeNil)
 
 		dp := DeviceProfile{
 			NetworkServerID: n.ID,
@@ -50,10 +54,11 @@ func TestDeviceQueueMapping(t *testing.T) {
 			Name:            "test-dp",
 		}
 		So(CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
+		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
 
 		app := Application{
 			OrganizationID:   org.ID,
-			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+			ServiceProfileID: spID,
 			Name:             "test-app",
 		}
 		So(CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
@@ -62,7 +67,7 @@ func TestDeviceQueueMapping(t *testing.T) {
 			Name:            "test-device",
 			DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 			ApplicationID:   app.ID,
-			DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+			DeviceProfileID: dpID,
 		}
 		So(CreateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 

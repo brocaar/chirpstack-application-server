@@ -22,7 +22,7 @@ class CreateGateway extends Component {
   }
 
   onSubmit(gateway) {
-    GatewayStore.createGateway(gateway, (responseData) => {
+    GatewayStore.createGateway({gateway: gateway}, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/gateways`);
     });
   }

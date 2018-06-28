@@ -1,8 +1,8 @@
 package api
 
 import (
-	"time"
-
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -12,7 +12,6 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/loraserver/api/ns"
 )
 
 // NetworkServerAPI exports the NetworkServer related functions.
@@ -29,6 +28,10 @@ func NewNetworkServerAPI(validator auth.Validator) *NetworkServerAPI {
 
 // Create creates the given network-server.
 func (a *NetworkServerAPI) Create(ctx context.Context, req *pb.CreateNetworkServerRequest) (*pb.CreateNetworkServerResponse, error) {
+	if req.NetworkServer == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "network_server must not be nil")
+	}
+
 	if err := a.validator.Validate(ctx,
 		auth.ValidateNetworkServersAccess(auth.Create, 0),
 	); err != nil {
@@ -36,18 +39,18 @@ func (a *NetworkServerAPI) Create(ctx context.Context, req *pb.CreateNetworkServ
 	}
 
 	ns := storage.NetworkServer{
-		Name:                        req.Name,
-		Server:                      req.Server,
-		CACert:                      req.CaCert,
-		TLSCert:                     req.TlsCert,
-		TLSKey:                      req.TlsKey,
-		RoutingProfileCACert:        req.RoutingProfileCACert,
-		RoutingProfileTLSCert:       req.RoutingProfileTLSCert,
-		RoutingProfileTLSKey:        req.RoutingProfileTLSKey,
-		GatewayDiscoveryEnabled:     req.GatewayDiscoveryEnabled,
-		GatewayDiscoveryInterval:    int(req.GatewayDiscoveryInterval),
-		GatewayDiscoveryTXFrequency: int(req.GatewayDiscoveryTXFrequency),
-		GatewayDiscoveryDR:          int(req.GatewayDiscoveryDR),
+		Name:                        req.NetworkServer.Name,
+		Server:                      req.NetworkServer.Server,
+		CACert:                      req.NetworkServer.CaCert,
+		TLSCert:                     req.NetworkServer.TlsCert,
+		TLSKey:                      req.NetworkServer.TlsKey,
+		RoutingProfileCACert:        req.NetworkServer.RoutingProfileCaCert,
+		RoutingProfileTLSCert:       req.NetworkServer.RoutingProfileTlsCert,
+		RoutingProfileTLSKey:        req.NetworkServer.RoutingProfileTlsKey,
+		GatewayDiscoveryEnabled:     req.NetworkServer.GatewayDiscoveryEnabled,
+		GatewayDiscoveryInterval:    int(req.NetworkServer.GatewayDiscoveryInterval),
+		GatewayDiscoveryTXFrequency: int(req.NetworkServer.GatewayDiscoveryTxFrequency),
+		GatewayDiscoveryDR:          int(req.NetworkServer.GatewayDiscoveryDr),
 	}
 
 	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
@@ -80,65 +83,80 @@ func (a *NetworkServerAPI) Get(ctx context.Context, req *pb.GetNetworkServerRequ
 
 	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err == nil {
-		resp, err := nsClient.GetVersion(context.Background(), &ns.GetVersionRequest{})
+		resp, err := nsClient.GetVersion(context.Background(), &empty.Empty{})
 		if err == nil {
 			region = resp.Region.String()
 			version = resp.Version
 		}
 	}
 
-	return &pb.GetNetworkServerResponse{
-		Id:                          n.ID,
-		CreatedAt:                   n.CreatedAt.Format(time.RFC3339Nano),
-		UpdatedAt:                   n.UpdatedAt.Format(time.RFC3339Nano),
-		Name:                        n.Name,
-		Server:                      n.Server,
-		CaCert:                      n.CACert,
-		TlsCert:                     n.TLSCert,
-		RoutingProfileCACert:        n.RoutingProfileCACert,
-		RoutingProfileTLSCert:       n.RoutingProfileTLSCert,
-		GatewayDiscoveryEnabled:     n.GatewayDiscoveryEnabled,
-		GatewayDiscoveryInterval:    uint32(n.GatewayDiscoveryInterval),
-		GatewayDiscoveryTXFrequency: uint32(n.GatewayDiscoveryTXFrequency),
-		GatewayDiscoveryDR:          uint32(n.GatewayDiscoveryDR),
-		Region:                      region,
-		Version:                     version,
-	}, nil
-}
-
-// Update updates the given network-server.
-func (a *NetworkServerAPI) Update(ctx context.Context, req *pb.UpdateNetworkServerRequest) (*pb.UpdateNetworkServerResponse, error) {
-	if err := a.validator.Validate(ctx,
-		auth.ValidateNetworkServerAccess(auth.Update, req.Id),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	resp := pb.GetNetworkServerResponse{
+		NetworkServer: &pb.NetworkServer{
+			Id:                          n.ID,
+			Name:                        n.Name,
+			Server:                      n.Server,
+			CaCert:                      n.CACert,
+			TlsCert:                     n.TLSCert,
+			RoutingProfileCaCert:        n.RoutingProfileCACert,
+			RoutingProfileTlsCert:       n.RoutingProfileTLSCert,
+			GatewayDiscoveryEnabled:     n.GatewayDiscoveryEnabled,
+			GatewayDiscoveryInterval:    uint32(n.GatewayDiscoveryInterval),
+			GatewayDiscoveryTxFrequency: uint32(n.GatewayDiscoveryTXFrequency),
+			GatewayDiscoveryDr:          uint32(n.GatewayDiscoveryDR),
+		},
+		Region:  region,
+		Version: version,
 	}
 
-	ns, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.Id)
+	resp.CreatedAt, err = ptypes.TimestampProto(n.CreatedAt)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+	resp.UpdatedAt, err = ptypes.TimestampProto(n.UpdatedAt)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	ns.Name = req.Name
-	ns.Server = req.Server
-	ns.CACert = req.CaCert
-	ns.TLSCert = req.TlsCert
-	ns.RoutingProfileCACert = req.RoutingProfileCACert
-	ns.RoutingProfileTLSCert = req.RoutingProfileTLSCert
-	ns.GatewayDiscoveryEnabled = req.GatewayDiscoveryEnabled
-	ns.GatewayDiscoveryInterval = int(req.GatewayDiscoveryInterval)
-	ns.GatewayDiscoveryTXFrequency = int(req.GatewayDiscoveryTXFrequency)
-	ns.GatewayDiscoveryDR = int(req.GatewayDiscoveryDR)
+	return &resp, nil
+}
 
-	if req.TlsKey != "" {
-		ns.TLSKey = req.TlsKey
+// Update updates the given network-server.
+func (a *NetworkServerAPI) Update(ctx context.Context, req *pb.UpdateNetworkServerRequest) (*empty.Empty, error) {
+	if req.NetworkServer == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "network_server must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNetworkServerAccess(auth.Update, req.NetworkServer.Id),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	ns, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, req.NetworkServer.Id)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	ns.Name = req.NetworkServer.Name
+	ns.Server = req.NetworkServer.Server
+	ns.CACert = req.NetworkServer.CaCert
+	ns.TLSCert = req.NetworkServer.TlsCert
+	ns.RoutingProfileCACert = req.NetworkServer.RoutingProfileCaCert
+	ns.RoutingProfileTLSCert = req.NetworkServer.RoutingProfileTlsCert
+	ns.GatewayDiscoveryEnabled = req.NetworkServer.GatewayDiscoveryEnabled
+	ns.GatewayDiscoveryInterval = int(req.NetworkServer.GatewayDiscoveryInterval)
+	ns.GatewayDiscoveryTXFrequency = int(req.NetworkServer.GatewayDiscoveryTxFrequency)
+	ns.GatewayDiscoveryDR = int(req.NetworkServer.GatewayDiscoveryDr)
+
+	if req.NetworkServer.TlsKey != "" {
+		ns.TLSKey = req.NetworkServer.TlsKey
 	}
 	if ns.TLSCert == "" {
 		ns.TLSKey = ""
 	}
 
-	if req.RoutingProfileTLSKey != "" {
-		ns.RoutingProfileTLSKey = req.RoutingProfileTLSKey
+	if req.NetworkServer.RoutingProfileTlsKey != "" {
+		ns.RoutingProfileTLSKey = req.NetworkServer.RoutingProfileTlsKey
 	}
 	if ns.RoutingProfileTLSCert == "" {
 		ns.RoutingProfileTLSKey = ""
@@ -151,11 +169,11 @@ func (a *NetworkServerAPI) Update(ctx context.Context, req *pb.UpdateNetworkServ
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.UpdateNetworkServerResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // Delete deletes the network-server matching the given id.
-func (a *NetworkServerAPI) Delete(ctx context.Context, req *pb.DeleteNetworkServerRequest) (*pb.DeleteNetworkServerResponse, error) {
+func (a *NetworkServerAPI) Delete(ctx context.Context, req *pb.DeleteNetworkServerRequest) (*empty.Empty, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateNetworkServerAccess(auth.Delete, req.Id),
 	); err != nil {
@@ -169,13 +187,13 @@ func (a *NetworkServerAPI) Delete(ctx context.Context, req *pb.DeleteNetworkServ
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.DeleteNetworkServerResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // List lists the available network-servers.
 func (a *NetworkServerAPI) List(ctx context.Context, req *pb.ListNetworkServerRequest) (*pb.ListNetworkServerResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateNetworkServersAccess(auth.List, req.OrganizationID),
+		auth.ValidateNetworkServersAccess(auth.List, req.OrganizationId),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -188,7 +206,7 @@ func (a *NetworkServerAPI) List(ctx context.Context, req *pb.ListNetworkServerRe
 	var count int
 	var nss []storage.NetworkServer
 
-	if req.OrganizationID == 0 {
+	if req.OrganizationId == 0 {
 		if isAdmin {
 			count, err = storage.GetNetworkServerCount(config.C.PostgreSQL.DB)
 			if err != nil {
@@ -200,11 +218,11 @@ func (a *NetworkServerAPI) List(ctx context.Context, req *pb.ListNetworkServerRe
 			}
 		}
 	} else {
-		count, err = storage.GetNetworkServerCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID)
+		count, err = storage.GetNetworkServerCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationId)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
-		nss, err = storage.GetNetworkServersForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+		nss, err = storage.GetNetworkServersForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationId, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
@@ -215,13 +233,22 @@ func (a *NetworkServerAPI) List(ctx context.Context, req *pb.ListNetworkServerRe
 	}
 
 	for _, ns := range nss {
-		resp.Result = append(resp.Result, &pb.GetNetworkServerResponse{
-			Id:        ns.ID,
-			CreatedAt: ns.CreatedAt.Format(time.RFC3339Nano),
-			UpdatedAt: ns.UpdatedAt.Format(time.RFC3339Nano),
-			Name:      ns.Name,
-			Server:    ns.Server,
-		})
+		row := pb.NetworkServerListItem{
+			Id:     ns.ID,
+			Name:   ns.Name,
+			Server: ns.Server,
+		}
+
+		row.CreatedAt, err = ptypes.TimestampProto(ns.CreatedAt)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		row.UpdatedAt, err = ptypes.TimestampProto(ns.UpdatedAt)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		resp.Result = append(resp.Result, &row)
 	}
 
 	return &resp, nil

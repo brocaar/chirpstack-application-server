@@ -10,7 +10,7 @@ class DeviceProfileRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`/organizations/${this.props.organizationID}/device-profiles/${this.props.deviceProfile.deviceProfileID}`}>{this.props.deviceProfile.name}</Link></td>
+        <td><Link to={`/organizations/${this.props.organizationID}/device-profiles/${this.props.deviceProfile.id}`}>{this.props.deviceProfile.name}</Link></td>
       </tr>
     );
   }

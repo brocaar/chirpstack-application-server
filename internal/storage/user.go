@@ -308,7 +308,7 @@ func GetUserCount(db sqlx.Queryer, search string) (int32, error) {
 }
 
 // GetUsers returns a slice of users, respecting the given limit and offset.
-func GetUsers(db sqlx.Queryer, limit, offset int32, search string) ([]User, error) {
+func GetUsers(db sqlx.Queryer, limit, offset int, search string) ([]User, error) {
 	var users []User
 	if search != "" {
 		search = "%" + search + "%"

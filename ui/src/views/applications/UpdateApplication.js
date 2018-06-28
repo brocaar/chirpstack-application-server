@@ -17,12 +17,12 @@ class UpdateApplication extends Component {
 
   componentDidMount() {
     ApplicationStore.getApplication(this.props.match.params.applicationID, (application) => {
-      this.setState({application: application});
+      this.setState({application: application.application});
     });
   }
 
   onSubmit(application) {
-    ApplicationStore.updateApplication(this.props.match.params.applicationID, this.state.application, (responseData) => {
+    ApplicationStore.updateApplication(this.props.match.params.applicationID, {application: this.state.application}, (responseData) => {
       this.props.history.push(`/organizations/${application.organizationID}/applications/${application.id}`);
     });
   }

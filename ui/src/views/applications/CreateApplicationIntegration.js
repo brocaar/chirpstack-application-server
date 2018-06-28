@@ -19,7 +19,7 @@ class CreateApplicationIntegration extends Component {
   }
 
   onSubmit(integration) {
-    ApplicationStore.createIntegration(this.props.match.params.applicationID, integration.kind, integration, (responseData) => {
+    ApplicationStore.createIntegration(this.props.match.params.applicationID, integration.kind, {integration: integration}, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
     });
   }

@@ -52,15 +52,15 @@ func request_ServiceProfileService_Get_0(ctx context.Context, marshaler runtime.
 		_   = err
 	)
 
-	val, ok = pathParams["serviceProfileID"]
+	val, ok = pathParams["id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "serviceProfileID")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
 
-	protoReq.ServiceProfileID, err = runtime.String(val)
+	protoReq.Id, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "serviceProfileID", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
 	msg, err := client.Get(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -83,15 +83,15 @@ func request_ServiceProfileService_Update_0(ctx context.Context, marshaler runti
 		_   = err
 	)
 
-	val, ok = pathParams["serviceProfile.serviceProfileID"]
+	val, ok = pathParams["service_profile.id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "serviceProfile.serviceProfileID")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "service_profile.id")
 	}
 
-	err = runtime.PopulateFieldFromPath(&protoReq, "serviceProfile.serviceProfileID", val)
+	err = runtime.PopulateFieldFromPath(&protoReq, "service_profile.id", val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "serviceProfile.serviceProfileID", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "service_profile.id", err)
 	}
 
 	msg, err := client.Update(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -110,15 +110,15 @@ func request_ServiceProfileService_Delete_0(ctx context.Context, marshaler runti
 		_   = err
 	)
 
-	val, ok = pathParams["serviceProfileID"]
+	val, ok = pathParams["id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "serviceProfileID")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
 
-	protoReq.ServiceProfileID, err = runtime.String(val)
+	protoReq.Id, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "serviceProfileID", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
 	msg, err := client.Delete(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -153,14 +153,14 @@ func RegisterServiceProfileServiceHandlerFromEndpoint(ctx context.Context, mux *
 	defer func() {
 		if err != nil {
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Printf("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 			return
 		}
 		go func() {
 			<-ctx.Done()
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Printf("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 		}()
 	}()
@@ -174,8 +174,8 @@ func RegisterServiceProfileServiceHandler(ctx context.Context, mux *runtime.Serv
 	return RegisterServiceProfileServiceHandlerClient(ctx, mux, NewServiceProfileServiceClient(conn))
 }
 
-// RegisterServiceProfileServiceHandler registers the http handlers for service ServiceProfileService to "mux".
-// The handlers forward requests to the grpc endpoint over the given implementation of "ServiceProfileServiceClient".
+// RegisterServiceProfileServiceHandlerClient registers the http handlers for service ServiceProfileService
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "ServiceProfileServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "ServiceProfileServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "ServiceProfileServiceClient" to call the correct interceptors.
@@ -332,11 +332,11 @@ func RegisterServiceProfileServiceHandlerClient(ctx context.Context, mux *runtim
 var (
 	pattern_ServiceProfileService_Create_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "service-profiles"}, ""))
 
-	pattern_ServiceProfileService_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "service-profiles", "serviceProfileID"}, ""))
+	pattern_ServiceProfileService_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "service-profiles", "id"}, ""))
 
-	pattern_ServiceProfileService_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "service-profiles", "serviceProfile.serviceProfileID"}, ""))
+	pattern_ServiceProfileService_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "service-profiles", "service_profile.id"}, ""))
 
-	pattern_ServiceProfileService_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "service-profiles", "serviceProfileID"}, ""))
+	pattern_ServiceProfileService_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "service-profiles", "id"}, ""))
 
 	pattern_ServiceProfileService_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "service-profiles"}, ""))
 )

@@ -2,14 +2,16 @@ syntax = "proto3";
 
 package api;
 
-// for grpc-gateway
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 import "common.proto";
 
-// Gateway is the service managing the gateways.
-service Gateway {
+
+// GatewayService is the service managing the gateways.
+service GatewayService {
 	// Create creates the given gateway.
-	rpc Create(CreateGatewayRequest) returns (CreateGatewayResponse) {
+	rpc Create(CreateGatewayRequest) returns (google.protobuf.Empty) {
 		option(google.api.http) = {
 			post: "/api/gateways"
 			body: "*"
@@ -19,22 +21,22 @@ service Gateway {
 	// Get returns the gateway for the requested mac address.
 	rpc Get(GetGatewayRequest) returns (GetGatewayResponse) {
 		option (google.api.http) = {
-			get: "/api/gateways/{mac}"
+			get: "/api/gateways/{id}"
 		};
 	}
 
 	// Update updates the gateway matching the given mac address.
-	rpc Update(UpdateGatewayRequest) returns (UpdateGatewayResponse) {
+	rpc Update(UpdateGatewayRequest) returns (google.protobuf.Empty) {
 		option (google.api.http) = {
-			put: "/api/gateways/{mac}"
+			put: "/api/gateways/{gateway.id}"
 			body: "*"
 		};
 	}
 	
 	// Delete deletes the gateway matching the given mac address.
-	rpc Delete(DeleteGatewayRequest) returns (DeleteGatewayResponse) {
+	rpc Delete(DeleteGatewayRequest) returns (google.protobuf.Empty) {
 		option (google.api.http) = {
-			delete: "/api/gateways/{mac}"
+			delete: "/api/gateways/{id}"
 		};
 	}
 
@@ -48,14 +50,14 @@ service Gateway {
 	// GetStats lists the gateway stats given the query parameters.
 	rpc GetStats(GetGatewayStatsRequest) returns (GetGatewayStatsResponse) {
 		option (google.api.http) = {
-			get: "/api/gateways/{mac}/stats"
+			get: "/api/gateways/{gateway_id}/stats"
 		};
 	}
 
 	// GetLastPing returns the last emitted ping and gateways receiving this ping.
 	rpc GetLastPing(GetLastPingRequest) returns (GetLastPingResponse) {
 		option (google.api.http) = {
-			get: "/api/gateways/{mac}/pings/last"
+			get: "/api/gateways/{gateway_id}/pings/last"
 		};
 	}
 
@@ -63,19 +65,19 @@ service Gateway {
     // Note: these are the raw LoRaWAN frames and this endpoint is intended for debugging.
     rpc StreamFrameLogs(StreamGatewayFrameLogsRequest) returns (stream StreamGatewayFrameLogsResponse) {
         option (google.api.http) = {
-            get: "/api/gateways/{mac}/frames"
+            get: "/api/gateways/{gateway_id}/frames"
         };
 	}
 }
 
-message CreateGatewayRequest {
-	// Hex encoded mac address.
-	string mac = 1;
-	
-	// A name for the gateway
+message Gateway {
+	// Gateway ID (HEX encoded).
+	string id = 1;
+
+	// Gateway name.
 	string name = 2;
 	
-	// A description for the gateway
+	// Gateway description.
 	string description = 3;
 	
 	// Latitude of the gateway -90 to 90
@@ -84,79 +86,53 @@ message CreateGatewayRequest {
 	// Longitude of the gateway -180 to 180
 	double longitude = 5;
 	
-	// Altitude of the gateway in meters
+	// Altitude of the gateway in (meters)
 	double altitude = 6;
 
-	// ID of the organization to which this gateway belongs.
-	int64 organizationID = 7;
+	// Organization ID to which the gateway belongs.
+	int64 organization_id = 7 [json_name = "organizationID"];
 
-	// Gateway sends out a periodic ping.
-	bool ping = 9;
+	// Set to true to enable gateway discovery.
+	bool discovery_enabled = 8;
 
-	// ID of the network-server to which the gateway is connected.
-	int64 networkServerID = 10;
+	// Network-server ID on which the gateway is provisioned.
+	int64 network_server_id = 9 [json_name = "networkServerID"];
 
-	// ID of the gateway-profile (optional).
-	string gatewayProfileID = 11;
+	// Gateway-profile ID (UUID string, optional).
+	string gateway_profile_id = 10 [json_name = "gatewayProfileID"];
 }
 
-message CreateGatewayResponse {}
+message CreateGatewayRequest {
+	// Gateway object to create.
+	Gateway gateway = 1;
+}
 
 message GetGatewayRequest {
-	// Hex encoded mac address of the node.
-	string mac = 1;
+	// Gateway ID (HEX encoded).
+	string id = 1;
 }
 
 message GetGatewayResponse {
-	// Hex encoded mac address.
-	string mac = 1;
+	// Gateway object.
+	Gateway gateway = 1;
 	
-	// A name for the gateway
-	string name = 2;
+	// Created at timestamp.
+	google.protobuf.Timestamp created_at = 2;
 	
-	// A description for the gateway
-	string description = 3;
+	// Last update timestamp.
+	google.protobuf.Timestamp updated_at = 3;
 	
-	// Latitude of the gateway -90.0 to 90.0
-	double latitude = 4;
+	// First seen at timestamp.
+	google.protobuf.Timestamp first_seen_at = 4;
 	
-	// Longitude of the gateway -180.0 to 180.0
-	double longitude = 5;
-	
-	// Altitude of the gateway in meters
-	double altitude = 6;
-	
-	// Creation timestamp of the record
-	string createdAt = 7;
-	
-	// Last update timestamp of the record
-	string updatedAt = 8;
-	
-	// The timestamp of the first data from the gateway.
-	string firstSeenAt = 9;
-	
-	// The timestamp of the most recent data from the gateway.
-	string lastSeenAt = 10;
-
-	// ID of the organization to which this gateway belongs.
-	int64 organizationID = 11;
-
-	// Gateway sends out a periodic ping.
-	bool ping = 13;
-
-	// ID of the network-server to which the gateway is connected.
-	int64 networkServerID = 14;
-
-	// ID of the gateway-profile (optional).
-	string gatewayProfileID = 15;
+	// Last seen at timestamp.
+	google.protobuf.Timestamp last_seen_at = 5;
 };
 
 message DeleteGatewayRequest {
-	// Hex encoded mac address.
-	string mac = 1;
+	// Gateway ID (HEX encoded).
+	string id = 1;
 }
-
-message DeleteGatewayResponse {}
 
 message ListGatewayRequest {
 	// Max number of nodes to return in the result-set.
@@ -167,15 +143,15 @@ message ListGatewayRequest {
 
 	// ID of the organization for which to filter on, when left blank the
 	// response will return all gateways to which the user has access to.
-	int64 organizationID = 3;
+	int64 organization_id = 3 [json_name = "organizationID"];
 
 	// Search on name or gateway MAC (optional).
 	string search = 4;
 }
 
-message ListGatewayItem {
-	// Hex encoded mac address.
-	string mac = 1;
+message GatewayListItem {
+	// Gateway ID (HEX encoded).
+	string id = 1;
 	
 	// A name for the gateway
 	string name = 2;
@@ -183,89 +159,63 @@ message ListGatewayItem {
 	// A description for the gateway
 	string description = 3;
 
-	// Creation timestamp of the record
-	string createdAt = 4;
+	// Create timestamp.
+	google.protobuf.Timestamp created_at = 4;
 	
-	// Last update timestamp of the record
-	string updatedAt = 5;
+	// Last update timestamp.
+	google.protobuf.Timestamp updated_at = 5;
 
-	// ID of the organization to which this gateway belongs.
-	int64 organizationID = 6;
+	// Organization ID.
+	int64 organization_id = 6 [json_name = "organizationID"];
 
-	// ID of the network-server to which the gateway is connected.
-	int64 networkServerID = 7;
+	// Network-server ID.
+	int64 network_server_id = 7 [json_name = "networkServerID"];
 }
 
 message ListGatewayResponse {
 	// Total number of nodes available within the result-set.
-	int32 totalCount = 1;
+	int64 total_count = 1;
 
 	// Nodes within this result-set.
-	repeated ListGatewayItem result = 2;
+	repeated GatewayListItem result = 2;
 }
 
 
 message UpdateGatewayRequest {
-	// Hex encoded mac address.
-	string mac = 1;
-	
-	// A name for the gateway
-	string name = 2;
-	
-	// A description for the gateway
-	string description = 3;
-	
-	// Latitude of the gateway -90.0 to 90.0
-	double latitude = 4;
-	
-	// Longitude of the gateway -180.0 to 180.0
-	double longitude = 5;
-	
-	// Altitude of the gateway in meters
-	double altitude = 6;
-
-	// ID of the organization to which this gateway belongs.
-	int64 organizationID = 7;
-
-	// Gateway sends out a periodic ping.
-	bool ping = 9;
-
-	// ID of the gateway-profile (optional).
-	string gatewayProfileID = 10;
+	// Gateway object to update.
+	Gateway gateway = 1;
 }
-
-message UpdateGatewayResponse {}
 
 message GatewayStats {
 	// Timestamp of the (aggregated) measurement.
-	string timestamp = 1;
+	google.protobuf.Timestamp timestamp = 1;
 
 	// Packets received by the gateway.
-	int32 rxPacketsReceived = 2;
+	int32 rx_packets_received = 2;
 
 	// Packets received by the gateway that passed the CRC check.
-	int32 rxPacketsReceivedOK = 3;
+	int32 rx_packets_received_ok = 3 [json_name = "rxPacketsReceivedOK"];
 
 	// Packets received by the gateway for transmission.
-	int32 txPacketsReceived = 4;
+	int32 tx_packets_received = 4;
 
 	// Packets transmitted by the gateway.
-	int32 txPacketsEmitted = 5;
+	int32 tx_packets_emitted = 5;
 }
 
 message GetGatewayStatsRequest {
-	// Hex encoded mac address.
-	string mac = 1;
+	// Gateway ID (HEX encoded).
+	string gateway_id = 1 [json_name = "gatewayID"];
 
 	// Aggregation interval.  One of "second", "minute", "hour", "day", "week",
 	// "month", "quarter", "year".  Case insensitive.
 	string interval = 2;
 
 	// Timestamp to start from.
-	string startTimestamp = 3;
+	google.protobuf.Timestamp start_timestamp = 3;
 
 	// Timestamp until to get from.
-	string endTimestamp = 4;
+	google.protobuf.Timestamp end_timestamp = 4;
 }
 
 message GetGatewayStatsResponse {
@@ -273,14 +223,14 @@ message GetGatewayStatsResponse {
 }
 
 message PingRX {
-	// Hex encoded mac address.
-	string mac = 1;
+	// Gateway ID (HEX encoded).
+	string gateway_id = 1 [json_name = "gatewayID"];
 
 	// RSSI.
 	int32 rssi = 2;
 
 	// LoRa SNR.
-	double loraSNR = 3;
+	double lora_snr = 3 [json_name = "loRaSNR"];
 
 	// Latitude of the gateway -90.0 to 90.0.
 	double latitude = 4;
@@ -293,33 +243,35 @@ message PingRX {
 }
 
 message GetLastPingRequest {
-	// Hex encoded mac address.
-	string mac = 1;
+	// Gateway ID (HEX encoded).
+	string gateway_id = 1 [json_name = "gatewayID"];
 }
 
 message GetLastPingResponse {
-	// Created at.
-	string createdAt = 1;
+	// Created at timestamp.
+	google.protobuf.Timestamp created_at = 1;
 
-	// Frequency.
+	// Frequency (Hz).
 	uint32 frequency = 2;
 
 	// Data-rate.
 	uint32 dr = 3;
 
 	// Gateways and meta-data of reception.
-	repeated PingRX pingRX = 4;
+	repeated PingRX ping_rx = 4 [json_name = "pingRX"];
 }
 
 message StreamGatewayFrameLogsRequest {
-    // Hex encoded mac.
-    string mac = 1;
+	// Gateway ID (HEX encoded).
+	string gateway_id = 1 [json_name = "gatewayID"];
 }
 
 message StreamGatewayFrameLogsResponse {
-    // Contains zero or one uplink frame.
-    repeated UplinkFrameLog uplinkFrames = 1;
+    oneof frame {
+        // Contains an uplink frame.
+        UplinkFrameLog uplink_frame = 1;
 
-    // Contains zero or one downlink frame.
-    repeated DownlinkFrameLog downlinkFrames = 2;
+        // Contains a downlink frame.
+        DownlinkFrameLog downlink_frame = 2;
+    }
 }

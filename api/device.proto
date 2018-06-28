@@ -2,15 +2,16 @@ syntax = "proto3";
 
 package api;
 
-// for grpc-gateway
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 import "common.proto";
 
 
-// Device is the service managing the devices.
-service Device {
+// DeviceService is the service managing the devices.
+service DeviceService {
     // Create creates the given device.
-    rpc Create(CreateDeviceRequest) returns (CreateDeviceResponse) {
+    rpc Create(CreateDeviceRequest) returns (google.protobuf.Empty) {
         option(google.api.http) = {
             post: "/api/devices"
             body: "*"
@@ -20,36 +21,36 @@ service Device {
     // Get returns the device matching the given DevEUI.
     rpc Get(GetDeviceRequest) returns (GetDeviceResponse) {
         option (google.api.http) = {
-            get: "/api/devices/{devEUI}"
+            get: "/api/devices/{dev_eui}"
         };
     }
 
     // Delete deletes the device matching the given DevEUI.
-    rpc Delete(DeleteDeviceRequest) returns (DeleteDeviceResponse) {
+    rpc Delete(DeleteDeviceRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            delete: "/api/devices/{devEUI}"
+            delete: "/api/devices/{dev_eui}"
         };
     }
 
     // ListByApplicationID lists the devices by the given application ID, sorted by the name of the device.
     rpc ListByApplicationID(ListDeviceByApplicationIDRequest) returns (ListDeviceResponse) {
         option (google.api.http) = {
-            get: "/api/applications/{applicationID}/devices"
+            get: "/api/applications/{application_id}/devices"
         };
     }
 
     // Update updates the device matching the given DevEUI.
-    rpc Update(UpdateDeviceRequest) returns (UpdateDeviceResponse) {
+    rpc Update(UpdateDeviceRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            put: "/api/devices/{devEUI}"
+            put: "/api/devices/{device.dev_eui}"
             body: "*"
         };
     }
 
     // CreateKeys creates the given device-keys.
-    rpc CreateKeys(CreateDeviceKeysRequest) returns (CreateDeviceKeysResponse) {
+    rpc CreateKeys(CreateDeviceKeysRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/api/devices/{devEUI}/keys"
+            post: "/api/devices/{device_keys.dev_eui}/keys"
             body: "*"
         };
     }
@@ -57,29 +58,29 @@ service Device {
     // GetKeys returns the device-keys for the given DevEUI.
     rpc GetKeys(GetDeviceKeysRequest) returns (GetDeviceKeysResponse) {
         option (google.api.http) = {
-            get: "/api/devices/{devEUI}/keys"
+            get: "/api/devices/{dev_eui}/keys"
         };
     }
 
     // UpdateKeys updates the device-keys.
-    rpc UpdateKeys(UpdateDeviceKeysRequest) returns (UpdateDeviceKeysResponse) {
+    rpc UpdateKeys(UpdateDeviceKeysRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            put: "/api/devices/{devEUI}/keys"
+            put: "/api/devices/{device_keys.dev_eui}/keys"
             body: "*"
         };
     }
 
     // DeleteKeys deletes the device-keys for the given DevEUI.
-    rpc DeleteKeys(DeleteDeviceKeysRequest) returns (DeleteDeviceKeysResponse) {
+    rpc DeleteKeys(DeleteDeviceKeysRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            delete: "/api/devices/{devEUI}/keys"
+            delete: "/api/devices/{dev_eui}/keys"
         };
     };
 
     // Activate (re)activates the device (only when ABP is set to true).
-    rpc Activate(ActivateDeviceRequest) returns (ActivateDeviceResponse) {
+    rpc Activate(ActivateDeviceRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/api/devices/{devEUI}/activate"
+            post: "/api/devices/{device_activation.dev_eui}/activate"
             body: "*"
         };
     }
@@ -87,22 +88,23 @@ service Device {
     // GetActivation returns the current activation details of the device (OTAA and ABP).
     rpc GetActivation(GetDeviceActivationRequest) returns (GetDeviceActivationResponse) {
         option (google.api.http) = {
-            get: "/api/devices/{devEUI}/activation"
+            get: "/api/devices/{dev_eui}/activation"
         };
     }
 
     // GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
     rpc GetRandomDevAddr(GetRandomDevAddrRequest) returns (GetRandomDevAddrResponse) {
         option (google.api.http) = {
-            post: "/api/devices/{devEUI}/getRandomDevAddr"
+            post: "/api/devices/{dev_eui}/getRandomDevAddr"
         };
     }
 
     // StreamFrameLogs streams the uplink and downlink frame-logs for the given DevEUI.
-    // Note: these are the raw LoRaWAN frames and this endpoint is intended for debugging.
+    // Note: these are the raw LoRaWAN frames. This endpoint is intended for debugging
+    // only.
     rpc StreamFrameLogs(StreamDeviceFrameLogsRequest) returns (stream StreamDeviceFrameLogsResponse) {
         option (google.api.http) = {
-            get: "/api/devices/{devEUI}/frames"
+            get: "/api/devices/{dev_eui}/frames"
         };
     }
 
@@ -111,94 +113,122 @@ service Device {
     // integrations.
     rpc StreamEventLogs(StreamDeviceEventLogsRequest) returns (stream StreamDeviceEventLogsResponse) {
         option (google.api.http) = {
-            get: "/api/devices/{devEUI}/events"
+            get: "/api/devices/{dev_eui}/events"
         };
     }
 }
 
-message DeviceKeys {
-    // HEX encoded network key.
-    // Note: For LoRaWAN 1.0.x, use this field for the LoRaWAN 1.0.x 'AppKey`!
-    string nwkKey = 1;
-
-    // HEX encoded application key.
-    // Note: This field only needs to be set for LoRaWAN 1.1.x devices!
-    string appKey = 2;
-}
-
-message CreateDeviceRequest {
-    // Hex encoded DevEUI.
-    string devEUI = 1; 
+message Device {
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"]; 
     
     // Name of the device (if left blank, it will be set to the DevEUI).
-    string name = 9;
+    string name = 2;
 
     // ID of the application to which the device must be added.
-    int64 applicationID = 13;
+    int64 application_id = 3 [json_name = "applicationID"];
 
     // Description of the device.
-    string description = 14;
+    string description = 4;
 
     // DeviceProfileID attached to the device.
-    string deviceProfileID = 18;
+    string device_profile_id = 5 [json_name = "deviceProfileID"];
 
     // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
-    bool skipFCntCheck = 19;
+    bool skip_f_cnt_check = 6;
 }
 
-message CreateDeviceResponse {}
-
-message GetDeviceRequest {
-    // Hex encoded DevEUI of the device.
-    string devEUI = 1;
-}
-
-message GetDeviceResponse {
-    // Hex encoded DevEUI.
-    string devEUI = 1; 
+message DeviceListItem {
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"]; 
     
-    // Name of the device (if left blank, it will be set to the DevEUI).
-    string name = 9;
+    // Name of the device.
+    string name = 2;
 
-    // ID of the application to which the device must be added.
-    int64 applicationID = 13;
+    // Application ID.
+    int64 application_id = 3 [json_name = "applicationID"];
 
     // Description of the device.
-    string description = 14;
+    string description = 4;
 
-    // DeviceProfileID attached to the device.
-    string deviceProfileID = 18;
+    // Device-profile ID attached to the device.
+    string device_profile_id = 5 [json_name = "deviceProfileID"];
+
+    // Device-profile name.
+    string device_profile_name = 6;
 
     // The device battery status
     // 0:      The end-device is connected to an external power source
     // 1..254: The battery level, 1 being at minimum and 254 being at maximum
     // 255:    The end-device was not able to measure the battery level
     // 256:    The device-status is not available.
-    uint32 deviceStatusBattery = 19;
+    uint32 device_status_battery = 7;
 
     // The device margin status
     // -32..32: The demodulation SNR ration in dB
     // 256:     The device-status is not available.
-    int32  deviceStatusMargin = 20;
+    int32  device_status_margin = 8;
 
     // The last time the application-server received any data from the device,
     // or an empty string when the device never sent any data.
-    string lastSeenAt = 21;
+    google.protobuf.Timestamp last_seen_at = 9 [json_name = "lastSeenAt"];
+}
 
-    // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
-    bool skipFCntCheck = 22;
+message DeviceKeys {
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
+
+    // Network root key (HEX encoded).
+    // Note: For LoRaWAN 1.0.x, use this field for the LoRaWAN 1.0.x 'AppKey`!
+    string nwk_key = 2;
+
+    // Application root key (HEX encoded).
+    // Note: This field only needs to be set for LoRaWAN 1.1.x devices!
+    string app_key = 3;
+}
+
+message CreateDeviceRequest {
+    // Device object to create.
+    Device device = 1;
+}
+
+message GetDeviceRequest {
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
+}
+
+message GetDeviceResponse {
+    // Device object.
+    Device device = 1;
+
+    // Created at 2
+    // Updated at 3
+    // First seen at 4
+
+    // Last seen timestamp.
+    google.protobuf.Timestamp last_seen_at = 5 [json_name = "lastSeenAt"];
+
+    // The device battery status
+    // 0:      The end-device is connected to an external power source
+    // 1..254: The battery level, 1 being at minimum and 254 being at maximum
+    // 255:    The end-device was not able to measure the battery level
+    // 256:    The device-status is not available.
+    uint32 device_status_battery = 6;
+
+    // The device margin status
+    // -32..32: The demodulation SNR ration in dB
+    // 256:     The device-status is not available.
+    int32  device_status_margin = 20;
 };
 
 message DeleteDeviceRequest {
-    // Hex encoded DevEUI of the device.
-    string devEUI = 1;
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
 }
-
-message DeleteDeviceResponse {}
 
 message ListDeviceByApplicationIDRequest {
     // ID of the application for which to list the devices.
-    int64 applicationID = 3;
+    int64 application_id = 3 [json_name = "applicationID"];
 
     // Max number of devices to return in the result-set.
     int64 limit = 1;
@@ -210,202 +240,116 @@ message ListDeviceByApplicationIDRequest {
 	string search = 4;
 }
 
-message DeviceListItem {
-    // Hex encoded DevEUI.
-    string devEUI = 1; 
-    
-    // Name of the device (if left blank, it will be set to the DevEUI).
-    string name = 9;
-
-    // ID of the application to which the device must be added.
-    int64 applicationID = 13;
-
-    // Description of the device.
-    string description = 14;
-
-    // DeviceProfileID attached to the device.
-    string deviceProfileID = 18;
-
-    // Device-profile name.
-    string deviceProfileName = 19;
-
-    // The device battery status
-    // 0:      The end-device is connected to an external power source
-    // 1..254: The battery level, 1 being at minimum and 254 being at maximum
-    // 255:    The end-device was not able to measure the battery level
-    // 256:    The device-status is not available.
-    uint32 deviceStatusBattery = 20;
-
-    // The device margin status
-    // -32..32: The demodulation SNR ration in dB
-    // 256:     The device-status is not available.
-    int32  deviceStatusMargin = 21;
-
-    // The last time the application-server received any data from the device,
-    // or an empty string when the device never sent any data.
-    string lastSeenAt = 22;
-}
 
 message ListDeviceResponse {
     // Total number of devices available within the result-set.
-    int64 totalCount = 1;
+    int64 total_count = 1;
 
     // Devices within this result-set.
     repeated DeviceListItem result = 2;
 }
 
-
 message UpdateDeviceRequest {
-    // Hex encoded DevEUI.
-    string devEUI = 1; 
-    
-    // Name of the device (if left blank, it will be set to the DevEUI).
-    string name = 9;
-
-    // ID of the application to which the device must be added.
-    int64 applicationID = 13;
-
-    // Description of the device.
-    string description = 14;
-
-    // DeviceProfileID attached to the device.
-    string deviceProfileID = 18;
-
-    // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
-    bool skipFCntCheck = 19;
+    // Device object to update.
+    Device device = 1;
 }
-
-message UpdateDeviceResponse {}
 
 message CreateDeviceKeysRequest {
-    // Hex encoded DevEUI of the device.
-    string devEUI = 1;
-
-    DeviceKeys deviceKeys = 2;
+    // Device-keys object to create.
+    DeviceKeys device_keys = 1;
 }
 
-message CreateDeviceKeysResponse {}
-
 message GetDeviceKeysRequest {
-    // Hex encoded DevEUI of the device.
-    string devEUI = 1;
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
 }
 
 message GetDeviceKeysResponse {
-    DeviceKeys deviceKeys = 1;
+    // Device-key object.
+    DeviceKeys device_keys = 1;
 }
 
 message UpdateDeviceKeysRequest {
-    // Hex encoded DevEUI of the device.
-    string devEUI = 1;
-
-    DeviceKeys deviceKeys = 2;
+    // Device-keys object to update.
+    DeviceKeys device_keys = 1;
 }
-
-message UpdateDeviceKeysResponse {}
 
 message DeleteDeviceKeysRequest {
-    // Hex encoded DevEUI of the device.
-    string devEUI = 1;
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
 }
 
-message DeleteDeviceKeysResponse {}
+message DeviceActivation {
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
 
-message ActivateDeviceRequest {
-    // Hex encoded DevEUI of the device to activate.
-    string devEUI = 1;
+    // Device address (HEX encoded).
+    string dev_addr = 2;
 
-    // Hex encoded DevAddr.
-    string devAddr = 2;
+    // Application session key (HEX encoded).
+    string app_s_key = 3;
 
-    // Hex encoded application session key.
-    string appSKey = 3;
+    // Network session encryption key (HEX encoded).
+    string nwk_s_enc_key = 4;
 
-    // Hex encoded network session encryption key.
-    string nwkSEncKey = 4;
+    // Serving network session integrity key (HEX encoded).
+    string s_nwk_s_int_key = 8;
 
-    // Hex encoded serving network session integrity key.
-    string sNwkSIntKey = 8;
-
-    // Hex encoded forwarding network session integrity key.
-    string fNwkSIntKey = 9;
+    // Forwarding network session integrity key (HEX encoded).
+    string f_nwk_s_int_key = 9;
 
     // Uplink frame-counter.
-    uint32 fCntUp = 5;
+    uint32 f_cnt_up = 5;
 
     // Downlink network frame-counter.
-    uint32 nFCntDown = 6;
+    uint32 n_f_cnt_down = 6;
 
     // Downlink application frame-counter.
-    uint32 aFCntDown = 10;
-
-    // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
-    // Deprecated! Use the skipFCntCheck flag on the device object itself.
-    bool skipFCntCheck = 7;
+    uint32 a_f_cnt_down = 10;
 }
 
-message ActivateDeviceResponse {}
+message ActivateDeviceRequest {
+    DeviceActivation device_activation = 1;
+}
 
 message GetDeviceActivationRequest {
-    // Hex encoded DevEUI of the device.
-    string devEUI = 1;
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
 }
 
 message GetDeviceActivationResponse {
-    // Hex encoded DevAddr.
-    string devAddr = 1;
-
-    // Hex encoded application session key.
-    string appSKey = 2;
-
-    // Hex encoded network session encryption key.
-    string nwkSEncKey = 3;
-
-    // Hex encoded serving network session integrity key.
-    string sNwkSIntKey = 7;
-
-    // Hex encoded forwarding network session integrity key.
-    string fNwkSIntKey = 8;
-
-    // Uplink frame-counter.
-    uint32 fCntUp = 4;
-
-    // Downlink network frame-counter.
-    uint32 nFCntDown = 5;
-
-    // Downlink application frame-counter.
-    uint32 aFCntDown = 9;
-
-    // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
-    bool skipFCntCheck = 6;
+    // Device-activation object.
+    DeviceActivation device_activation = 1;
 }
 
 message GetRandomDevAddrRequest {
-    // Hex encoded DevEUI of the device to activate.
-    string devEUI = 1;
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
 }
 
 message GetRandomDevAddrResponse {
-    // Hex encoded DevAddr.
-    string devAddr = 1;
+    // Device address (HEX encoded).
+    string dev_addr = 1;
 }
 
 message StreamDeviceFrameLogsRequest {
-    // Hex encoded DevEUI.
-    string devEUI = 1;
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
 }
 
 message StreamDeviceFrameLogsResponse {
-    // Contains zero or one uplink frame.
-    repeated UplinkFrameLog uplinkFrames = 1;
+    oneof frame {
+        // Contains an uplink frame.
+        UplinkFrameLog uplink_frame = 1;
 
-    // Contains zero or one downlink frame.
-    repeated DownlinkFrameLog downlinkFrames = 2;
+        // Contains a downlink frame.
+        DownlinkFrameLog downlink_frame = 2;
+    }
 }
 
 message StreamDeviceEventLogsRequest {
-    // Hex encoded DevEUI.
-    string devEUI = 1;
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
 }
 
 message StreamDeviceEventLogsResponse {
@@ -413,5 +357,5 @@ message StreamDeviceEventLogsResponse {
     string type = 1;
 
     // The event payload in JSON encoding.
-    string payloadJSON = 2;
+    string payload_json = 2 [json_name = "payloadJSON"];
 }

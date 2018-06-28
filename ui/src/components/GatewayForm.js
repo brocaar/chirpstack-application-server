@@ -197,10 +197,10 @@ class GatewayForm extends Component {
             <textarea className="form-control" id="description" rows="4" placeholder="an optional note about the gateway" value={this.state.gateway.description || ''} onChange={this.onChange.bind(this, 'description')} />
           </div>
           <div className="form-group">
-            <label className="control-label" htmlFor="mac">MAC address</label>
-            <input className="form-control" id="mac" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required disabled={this.state.update} value={this.state.gateway.mac || ''} onChange={this.onChange.bind(this, 'mac')} /> 
+            <label className="control-label" htmlFor="mac">Gateway ID</label>
+            <input className="form-control" id="mac" type="text" placeholder="0000000000000000" pattern="[A-Fa-f0-9]{16}" required disabled={this.state.update} value={this.state.gateway.id || ''} onChange={this.onChange.bind(this, 'id')} /> 
             <p className="help-block">
-              Enter the gateway MAC address as configured in the packet-forwarder configuration on the gateway.
+              Enter the gateway ID address as configured in the packet-forwarder configuration on the gateway.
             </p>
           </div>
           <div className="form-group">
@@ -227,8 +227,8 @@ class GatewayForm extends Component {
             <p className="help-block">An optional gateway-profile which can be assigned to a gateway. This configuration can be used to automatically re-configure the gateway when LoRa Gateway Bridge is configured so that it manages the packet-forwarder configuration.</p>
           </div>
           <div className="form-group">
-            <label className="control-label" htmlFor="ping">
-              <input type="checkbox" name="ping" id="ping" checked={!!this.state.gateway.ping} onChange={this.onChange.bind(this, 'ping')} /> Discovery enabled
+            <label className="control-label" htmlFor="discoveryEnabled">
+              <input type="checkbox" name="discoveryEnabled" id="discoveryEnabled" checked={!!this.state.gateway.discoveryEnabled} onChange={this.onChange.bind(this, 'discoveryEnabled')} /> Discovery enabled
             </label>
             <p className="help-block">When enabled (and LoRa App Server is configured with the gateway discover feature enabled), the gateway will send out periodical pings to test its coverage by other gateways in the same network.</p>
           </div>

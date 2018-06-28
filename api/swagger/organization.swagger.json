@@ -33,16 +33,16 @@
             "description": "Max number of organizations to return in the result-set.",
             "in": "query",
             "required": false,
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "format": "int64"
           },
           {
             "name": "offset",
             "description": "Offset in the result-set (for pagination).",
             "in": "query",
             "required": false,
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "format": "int64"
           },
           {
             "name": "search",
@@ -53,7 +53,7 @@
           }
         ],
         "tags": [
-          "Organization"
+          "OrganizationService"
         ]
       },
       "post": {
@@ -78,7 +78,7 @@
           }
         ],
         "tags": [
-          "Organization"
+          "OrganizationService"
         ]
       }
     },
@@ -104,7 +104,7 @@
           }
         ],
         "tags": [
-          "Organization"
+          "OrganizationService"
         ]
       },
       "delete": {
@@ -114,7 +114,7 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiOrganizationEmptyResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
@@ -128,9 +128,11 @@
           }
         ],
         "tags": [
-          "Organization"
+          "OrganizationService"
         ]
-      },
+      }
+    },
+    "/api/organizations/{organization.id}": {
       "put": {
         "summary": "Update an existing organization.",
         "operationId": "Update",
@@ -138,13 +140,13 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiOrganizationEmptyResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
         "parameters": [
           {
-            "name": "id",
+            "name": "organization.id",
             "in": "path",
             "required": true,
             "type": "string",
@@ -160,11 +162,11 @@
           }
         ],
         "tags": [
-          "Organization"
+          "OrganizationService"
         ]
       }
     },
-    "/api/organizations/{id}/users": {
+    "/api/organizations/{organization_id}/users": {
       "get": {
         "summary": "Get organization's user list.",
         "operationId": "ListUsers",
@@ -178,7 +180,7 @@
         },
         "parameters": [
           {
-            "name": "id",
+            "name": "organization_id",
             "in": "path",
             "required": true,
             "type": "string",
@@ -202,43 +204,11 @@
           }
         ],
         "tags": [
-          "Organization"
-        ]
-      },
-      "post": {
-        "summary": "Add a new user to an organization.",
-        "operationId": "AddUser",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiOrganizationEmptyResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiOrganizationUserRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Organization"
+          "OrganizationService"
         ]
       }
     },
-    "/api/organizations/{id}/users/{userID}": {
+    "/api/organizations/{organization_id}/users/{user_id}": {
       "get": {
         "summary": "Get data for a particular organization user.",
         "operationId": "GetUser",
@@ -252,14 +222,14 @@
         },
         "parameters": [
           {
-            "name": "id",
+            "name": "organization_id",
             "in": "path",
             "required": true,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "userID",
+            "name": "user_id",
             "in": "path",
             "required": true,
             "type": "string",
@@ -267,7 +237,7 @@
           }
         ],
         "tags": [
-          "Organization"
+          "OrganizationService"
         ]
       },
       "delete": {
@@ -277,20 +247,20 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiOrganizationEmptyResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
         "parameters": [
           {
-            "name": "id",
+            "name": "organization_id",
             "in": "path",
             "required": true,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "userID",
+            "name": "user_id",
             "in": "path",
             "required": true,
             "type": "string",
@@ -298,30 +268,25 @@
           }
         ],
         "tags": [
-          "Organization"
+          "OrganizationService"
         ]
-      },
-      "put": {
-        "summary": "Update a user in an organization.",
-        "operationId": "UpdateUser",
+      }
+    },
+    "/api/organizations/{organization_user.organization_id}/users": {
+      "post": {
+        "summary": "Add a new user to an organization.",
+        "operationId": "AddUser",
         "responses": {
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiOrganizationEmptyResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "userID",
+            "name": "organization_user.organization_id",
             "in": "path",
             "required": true,
             "type": "string",
@@ -332,35 +297,75 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiOrganizationUserRequest"
+              "$ref": "#/definitions/apiAddOrganizationUserRequest"
             }
           }
         ],
         "tags": [
-          "Organization"
+          "OrganizationService"
+        ]
+      }
+    },
+    "/api/organizations/{organization_user.organization_id}/users/{organization_user.user_id}": {
+      "put": {
+        "summary": "Update a user in an organization.",
+        "operationId": "UpdateUser",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/protobufEmpty"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organization_user.organization_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "organization_user.user_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateOrganizationUserRequest"
+            }
+          }
+        ],
+        "tags": [
+          "OrganizationService"
         ]
       }
     }
   },
   "definitions": {
+    "apiAddOrganizationUserRequest": {
+      "type": "object",
+      "properties": {
+        "organizationUser": {
+          "$ref": "#/definitions/apiOrganizationUser",
+          "description": "Organization-user object to create."
+        }
+      }
+    },
     "apiCreateOrganizationRequest": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string",
-          "description": "Organization name."
-        },
-        "displayName": {
-          "type": "string",
-          "description": "Organization display name."
-        },
-        "canHaveGateways": {
-          "type": "boolean",
-          "format": "boolean",
-          "title": "Can the organization create and \"own\" Gateways?"
+        "organization": {
+          "$ref": "#/definitions/apiOrganization",
+          "description": "Organization object to create."
         }
-      },
-      "description": "Add a new organization."
+      }
     },
     "apiCreateOrganizationResponse": {
       "type": "object",
@@ -368,65 +373,45 @@
         "id": {
           "type": "string",
           "format": "int64",
-          "description": "ID of the organization."
+          "description": "Organization ID."
         }
       }
     },
     "apiGetOrganizationResponse": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the user."
-        },
-        "name": {
-          "type": "string",
-          "description": "Organization name."
-        },
-        "displayName": {
-          "type": "string",
-          "description": "Organization display name."
-        },
-        "canHaveGateways": {
-          "type": "boolean",
-          "format": "boolean",
-          "title": "Can the organization create and \"own\" Gateways?"
+        "organization": {
+          "$ref": "#/definitions/apiOrganization",
+          "description": "Organization object."
         },
         "createdAt": {
           "type": "string",
-          "description": "When the user was created."
+          "format": "date-time",
+          "description": "Created at timestamp."
         },
         "updatedAt": {
           "type": "string",
-          "description": "When the user was last updated (excludes changes in application access)."
+          "format": "date-time",
+          "description": "Last update timestamp."
         }
       }
     },
     "apiGetOrganizationUserResponse": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the user."
-        },
-        "username": {
-          "type": "string",
-          "description": "Username of the user."
-        },
-        "isAdmin": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "If the user is a system admin, capable of creating other users."
+        "organizationUser": {
+          "$ref": "#/definitions/apiOrganizationUser",
+          "description": "Organization-user object."
         },
         "createdAt": {
           "type": "string",
-          "description": "When the user was created."
+          "format": "date-time",
+          "description": "Created at timestamp."
         },
         "updatedAt": {
           "type": "string",
-          "description": "When the user was last updated (excludes changes in application access)."
+          "format": "date-time",
+          "description": "Last update timestamp."
         }
       },
       "title": "Response for a user in the organization"
@@ -435,13 +420,14 @@
       "type": "object",
       "properties": {
         "totalCount": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64",
+          "description": "Total number of organizations."
         },
         "result": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiGetOrganizationResponse"
+            "$ref": "#/definitions/apiOrganizationListItem"
           }
         }
       }
@@ -450,66 +436,149 @@
       "type": "object",
       "properties": {
         "totalCount": {
-          "type": "integer",
-          "format": "int32",
+          "type": "string",
+          "format": "int64",
           "description": "The total number of users in the organization."
         },
         "result": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiGetOrganizationUserResponse"
-          },
-          "description": "The users in the requested limit, offset range."
-        }
-      },
-      "description": "Response for the users in an organization."
-    },
-    "apiOrganizationEmptyResponse": {
-      "type": "object"
-    },
-    "apiOrganizationUserRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "The organization id."
-        },
-        "userID": {
-          "type": "string",
-          "format": "int64",
-          "description": "The user's id."
-        },
-        "isAdmin": {
-          "type": "boolean",
-          "format": "boolean",
-          "title": "The user's admin status for the organization"
+            "$ref": "#/definitions/apiOrganizationUserListItem"
+          }
         }
       }
     },
-    "apiUpdateOrganizationRequest": {
+    "apiOrganization": {
       "type": "object",
       "properties": {
         "id": {
           "type": "string",
           "format": "int64",
-          "description": "The ID of the organization to be updated."
+          "description": "Organization ID."
         },
         "name": {
           "type": "string",
-          "description": "The new name."
+          "description": "Organization name."
         },
         "displayName": {
           "type": "string",
-          "description": "The new display name."
+          "description": "Organization display name."
         },
         "canHaveGateways": {
           "type": "boolean",
           "format": "boolean",
           "title": "Can the organization create and \"own\" Gateways?"
         }
-      },
-      "description": "Not quite the AddOrganizationRequest."
+      }
+    },
+    "apiOrganizationListItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "Organization ID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Organization name."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Organization display name."
+        },
+        "canHaveGateways": {
+          "type": "boolean",
+          "format": "boolean",
+          "title": "Can the organization create and \"own\" Gateways?"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Created at timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp."
+        }
+      }
+    },
+    "apiOrganizationUser": {
+      "type": "object",
+      "properties": {
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Organization ID."
+        },
+        "userID": {
+          "type": "string",
+          "format": "int64",
+          "description": "User ID."
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "User is admin within the context of the organization."
+        },
+        "username": {
+          "type": "string",
+          "description": "Username (only used on get)."
+        }
+      }
+    },
+    "apiOrganizationUserListItem": {
+      "type": "object",
+      "properties": {
+        "userID": {
+          "type": "string",
+          "format": "int64",
+          "description": "User ID."
+        },
+        "username": {
+          "type": "string",
+          "description": "Username."
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "User is admin within the context of the organization."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Created at timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp."
+        }
+      }
+    },
+    "apiUpdateOrganizationRequest": {
+      "type": "object",
+      "properties": {
+        "organization": {
+          "$ref": "#/definitions/apiOrganization",
+          "description": "Organization object to update."
+        }
+      }
+    },
+    "apiUpdateOrganizationUserRequest": {
+      "type": "object",
+      "properties": {
+        "organizationUser": {
+          "$ref": "#/definitions/apiOrganizationUser",
+          "description": "Organization-user object to update."
+        }
+      }
+    },
+    "protobufEmpty": {
+      "type": "object",
+      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
+      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
     }
   }
 }

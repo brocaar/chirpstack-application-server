@@ -2,8 +2,9 @@ syntax = "proto3";
 
 package api;
 
-// for grpc-gateway
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 // profiles
 import "profiles.proto";
@@ -21,22 +22,22 @@ service DeviceProfileService {
     // Get returns the device-profile matching the given id.
     rpc Get(GetDeviceProfileRequest) returns (GetDeviceProfileResponse) {
         option(google.api.http) = {
-            get: "/api/device-profiles/{deviceProfileID}"
+            get: "/api/device-profiles/{id}"
         };
     }
 
     // Update updates the given device-profile.
-    rpc Update(UpdateDeviceProfileRequest) returns (UpdateDeviceProfileResponse) {
+    rpc Update(UpdateDeviceProfileRequest) returns (google.protobuf.Empty) {
         option(google.api.http) = {
-            put: "/api/device-profiles/{deviceProfile.deviceProfileID}"
+            put: "/api/device-profiles/{device_profile.id}"
             body: "*"
         };
     }
 
     // Delete deletes the device-profile matching the given id.
-    rpc Delete(DeleteDeviceProfileRequest) returns (DeleteDeviceProfileResponse) {
+    rpc Delete(DeleteDeviceProfileRequest) returns (google.protobuf.Empty) {
         option(google.api.http) = {
-            delete: "/api/device-profiles/{deviceProfileID}"
+            delete: "/api/device-profiles/{id}"
         };
     }
 
@@ -49,62 +50,60 @@ service DeviceProfileService {
 }
 
 message CreateDeviceProfileRequest {
-    DeviceProfile deviceProfile = 1;
-
-    // Name of the device-profile.
-    string name = 2;
-
-    // Organization id of the device-profile.
-    int64 organizationID = 3;
-
-    // Network-server id of the device-profile.
-    int64 networkServerID = 4;
+    // Device-profile object to create.
+    DeviceProfile device_profile = 1;
 }
 
 message CreateDeviceProfileResponse {
-    // ID of the device-profile.
-    string deviceProfileID = 1;
+    // Device-profile ID (UUID string).
+    string id = 1;
 }
 
 message GetDeviceProfileRequest {
-    // ID of the device-profile.
-    string deviceProfileID = 1;
+    // Device-profile ID (UUID string).
+    string id = 1;
 }
 
 message GetDeviceProfileResponse {
-    DeviceProfile deviceProfile = 1;
+    // Device-profile object.
+    DeviceProfile device_profile = 1;
 
-    // Name of the device-profile.
-    string name = 2;
+    // Created at timestamp.
+    google.protobuf.Timestamp created_at = 2;
 
-    // Organization id of the device-profile.
-    int64 organizationID = 3;
-
-    // Network-server id of the device-profile.
-    int64 networkServerID = 4;
-
-    // Timestamp when the record was created.
-    string createdAt = 5;
-
-    // Timestamp when the record was last updated.
-    string updatedAt = 6;
+    // Last update timestamp.
+    google.protobuf.Timestamp updated_at = 3;
 }
 
 message UpdateDeviceProfileRequest {
-    DeviceProfile deviceProfile = 1;
-
-    // Name of the device-profile.
-    string name = 2;
+    // Device-profile object to update.
+    DeviceProfile device_profile = 1;
 }
-
-message UpdateDeviceProfileResponse {}
 
 message DeleteDeviceProfileRequest {
-    // ID of the device-profile.
-    string deviceProfileID = 1;
+    // Device-profile ID (UUID string).
+    string id = 1;
 }
 
-message DeleteDeviceProfileResponse {}
+message DeviceProfileListItem {
+    // Device-profile ID (UUID string).
+    string id = 1;
+
+    // Device-profile name.
+    string name = 2;
+
+    // Organization ID.
+    int64 organization_id = 3 [json_name = "organizationID"];
+
+    // Network-server ID.
+    int64 network_server_id = 4 [json_name = "networkServerID"];
+
+    // Created at timestamp.
+    google.protobuf.Timestamp created_at = 5;
+
+    // Last update timestamp.
+    google.protobuf.Timestamp updated_at = 6;
+}
 
 message ListDeviceProfileRequest {
     // Max number of items to return.
@@ -114,35 +113,15 @@ message ListDeviceProfileRequest {
     int64 offset = 2;
 
     // Organization id to filter on.
-    int64 organizationID = 3;
+    int64 organization_id = 3 [json_name = "organizationID"];
 
     // Application id to filter on.
-    int64 applicationID = 4;
-}
-
-message DeviceProfileMeta {
-    // ID of the device-profile.
-    string deviceProfileID = 1;
-
-    // Name of the device-profile.
-    string name = 2;
-
-    // Organization id of the device-profile.
-    int64 organizationID = 3;
-
-    // Network-server id of the device-profile.
-    int64 networkServerID = 4;
-
-    // Timestamp when the record was created.
-    string createdAt = 5;
-
-    // Timestamp when the record was last updated.
-    string updatedAt = 6;
+    int64 application_id = 4 [json_name = "applicationID"];
 }
 
 message ListDeviceProfileResponse {
     // Total number of device-profiles.
-    int64 totalCount = 1;
+    int64 total_count = 1;
 
-    repeated DeviceProfileMeta result = 2;
+    repeated DeviceProfileListItem result = 2;
 }

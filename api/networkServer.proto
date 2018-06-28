@@ -2,11 +2,12 @@ syntax = "proto3";
 
 package api;
 
-// for grpc-gateway
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
-// NetworkServer is the service managing network-servers.
-service NetworkServer {
+// NetworkServerService is the service managing network-servers.
+service NetworkServerService {
     // Create creates the given network-server.
     rpc Create(CreateNetworkServerRequest) returns (CreateNetworkServerResponse) {
         option(google.api.http) = {
@@ -23,15 +24,15 @@ service NetworkServer {
     }
 
     // Update updates the given network-server.
-    rpc Update(UpdateNetworkServerRequest) returns (UpdateNetworkServerResponse) {
+    rpc Update(UpdateNetworkServerRequest) returns (google.protobuf.Empty) {
         option(google.api.http) = {
-            put: "/api/network-servers/{id}"
+            put: "/api/network-servers/{network_server.id}"
             body: "*"
         };
     }
 
     // Delete deletes the network-server matching the given id.
-    rpc Delete(DeleteNetworkServerRequest) returns (DeleteNetworkServerResponse) {
+    rpc Delete(DeleteNetworkServerRequest) returns (google.protobuf.Empty) {
         option(google.api.http) = {
             delete: "/api/network-servers/{id}"
         };
@@ -45,164 +46,111 @@ service NetworkServer {
     }
 }
 
-message CreateNetworkServerRequest {
-    // Name of the network-server.
-    string name = 1;
+message NetworkServer {
+    // Network-server ID.
+    int64 id = 1;
 
-    // hostname:ip of the network-server.
-    string server = 2;
+    // Network-server name.
+    string name = 2;
 
-    // ca certificate for connecting to the network-server
-    string caCert = 3;
+    // Network-server server.
+    // Format: hostname:ip (e.g. localhost:8000).
+    string server = 3;
 
-    // tls (client) certificate for connecting to the network-server
-    string tlsCert = 4;
+    // CA certificate (optional).
+    string ca_cert = 4;
 
-    // tls (client) key for connecting to the network-server
-    string tlsKey = 5;
+    // TLS (client) certificate for connecting to the network-server (optional).
+    string tls_cert = 5;
 
-    // routing-profile ca certificate (used by the network-server to connect
-    // back to the application-server)
-    string routingProfileCACert = 6;
+    // TLS (client) key for connecting to the network-server (optional).
+    string tls_key = 6;
 
-    // routing-profile tls certificate (used by the network-server to connect
-    // back to the application-server)
-    string routingProfileTLSCert = 7;
+    // Routing-profile ca certificate (used by the network-server to connect
+    // back to the application-server) (optional).
+    string routing_profile_ca_cert = 7 [json_name = "routingProfileCACert"];
 
-    // routing-profile tls key (used by the network-server to connect
-    // back to the application-server)
-    string routingProfileTLSKey = 8;
+    // Routing-profile TLS certificate (used by the network-server to connect
+    // back to the application-server) (optional).
+    string routing_profile_tls_cert = 8 [json_name = "routingProfileTLSCert"];
 
-    // The gateway discovery feature is enabled for gateways provisioned
-    // on this network-server.
-    bool gatewayDiscoveryEnabled = 9;
+    // Routing-profile TLS key (used by the network-server to connect
+    // back to the application-server) (optional).
+    string routing_profile_tls_key = 9 [json_name = "routingProfileTLSKey"];
+
+    // Enable gateway discovery for this network-server.
+    bool gateway_discovery_enabled = 10;
 
     // The number of times per day the gateway discovery 'ping' must be
     // broadcasted per gateway.
-    uint32 gatewayDiscoveryInterval = 10;
+    uint32 gateway_discovery_interval = 11;
 
     // The frequency (Hz) of the gateway discovery 'ping'.
-    uint32 gatewayDiscoveryTXFrequency = 11;
+    uint32 gateway_discovery_tx_frequency = 12 [json_name = "gatewayDiscoveryTXFrequency"];
 
     // The data-rate of the gateway discovery 'ping'.
-    uint32 gatewayDiscoveryDR = 12;
+    uint32 gateway_discovery_dr = 13 [json_name = "gatewayDiscoveryDR"];
+}
+
+message NetworkServerListItem {
+    // Network-server ID.
+    int64 id = 1;
+
+    // Network-server name.
+    string name = 2;
+
+    // Network-server server.
+    // Format: hostname:ip (e.g. localhost:8000).
+    string server = 3;
+
+    // Created at timestamp.
+    google.protobuf.Timestamp created_at = 4;
+
+    // Last update timestamp.
+    google.protobuf.Timestamp updated_at = 5;
+}
+
+message CreateNetworkServerRequest {
+    // Network-server object to create.
+    NetworkServer network_server = 1;
 }
 
 message CreateNetworkServerResponse {
-    // ID of the network-server.
+    // Network-server ID.
     int64 id = 1;
 }
 
 message GetNetworkServerRequest {
-    // ID of the network-server.
+    // Network-server ID.
     int64 id = 1;
 }
 
 message GetNetworkServerResponse {
-    // ID of the network-server.
-    int64 id = 1;
+    // Network-server object.
+    NetworkServer network_server = 1;
 
-    // Timestamp when the record was created.
-    string createdAt = 2;
+    // Created at timestamp.
+    google.protobuf.Timestamp created_at = 2;
 
-    // Timestamp when the record was last updated.
-    string updatedAt = 3;
-
-    // Name of the network-server.
-    string name = 4;
-
-    // hostname:ip of the network-server.
-    string server = 5;
-
-    // ca certificate for connecting to the network-server
-    string caCert = 6;
-
-    // tls (client) certificate for connecting to the network-server
-    string tlsCert = 7;
-
-    // routing-profile ca certificate (used by the network-server to connect
-    // back to the application-server)
-    string routingProfileCACert = 8;
-
-    // routing-profile tls certificate (used by the network-server to connect
-    // back to the application-server)
-    string routingProfileTLSCert = 9;
-
-    // The gateway discovery feature is enabled for gateways provisioned
-    // on this network-server.
-    bool gatewayDiscoveryEnabled = 10;
-
-    // The number of times per day the gateway discovery 'ping' must be
-    // broadcasted per gateway.
-    uint32 gatewayDiscoveryInterval = 11;
-
-    // The frequency (Hz) of the gateway discovery 'ping'.
-    uint32 gatewayDiscoveryTXFrequency = 12;
-
-    // The data-rate of the gateway discovery 'ping'.
-    uint32 gatewayDiscoveryDR = 13;
+    // Last update timestamp.
+    google.protobuf.Timestamp updated_at = 3;
 
     // The LoRa Server version.
-    string version = 14;
+    string version = 4;
 
     // The LoRa Server region configured.
-    string region = 15;
+    string region = 5;
 }
 
 message UpdateNetworkServerRequest {
-    // ID of the network-server.
-    int64 id = 1;
-
-    // Name of the network-server.
-    string name = 2;
-
-    // hostname:ip of the network-server.
-    string server = 3;
-
-    // ca certificate for connecting to the network-server
-    string caCert = 4;
-
-    // tls (client) certificate for connecting to the network-server
-    string tlsCert = 5;
-
-    // tls (client) key for connecting to the network-server
-    string tlsKey = 6;
-
-    // routing-profile ca certificate (used by the network-server to connect
-    // back to the application-server)
-    string routingProfileCACert = 7;
-
-    // routing-profile tls certificate (used by the network-server to connect
-    // back to the application-server)
-    string routingProfileTLSCert = 8;
-
-    // routing-profile tls key (used by the network-server to connect
-    // back to the application-server)
-    string routingProfileTLSKey = 9;
-
-    // The gateway discovery feature is enabled for gateways provisioned
-    // on this network-server.
-    bool gatewayDiscoveryEnabled = 10;
-
-    // The interval in which the gateway discovery 'pings' are broadcasted.
-    // (requests / day).
-    uint32 gatewayDiscoveryInterval = 11;
-
-    // The frequency (Hz) of the gateway discovery 'ping'.
-    uint32 gatewayDiscoveryTXFrequency = 12;
-
-    // The data-rate of the gateway discovery 'ping'.
-    uint32 gatewayDiscoveryDR = 13;
+    // Network-server object to update.
+    NetworkServer network_server = 1;
 }
-
-message UpdateNetworkServerResponse {}
 
 message DeleteNetworkServerRequest {
-    // ID of the network-server.
+    // Network-server ID.
     int64 id = 1;
 }
-
-message DeleteNetworkServerResponse {}
 
 message ListNetworkServerRequest {
     // Max number of items to return.
@@ -212,13 +160,13 @@ message ListNetworkServerRequest {
     int64 offset = 2;
 
     // Organization id to filter on.
-    int64 organizationID = 3;
+    int64 organization_id = 3 [json_name = "organizationID"];
 }
 
 message ListNetworkServerResponse {
     // Total number of network-servers.
-    int64 totalCount = 1;
+    int64 total_count = 1;
 
     // Network-servers within the result-set.
-    repeated GetNetworkServerResponse result = 2;
+    repeated NetworkServerListItem result = 2;
 }

@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/devices/{devEUI}/queue": {
+    "/api/devices/{dev_eui}/queue": {
       "get": {
         "summary": "List lists the items in the device-queue.",
         "operationId": "List",
@@ -29,14 +29,14 @@
         },
         "parameters": [
           {
-            "name": "devEUI",
+            "name": "dev_eui",
             "in": "path",
             "required": true,
             "type": "string"
           }
         ],
         "tags": [
-          "DeviceQueue"
+          "DeviceQueueService"
         ]
       },
       "delete": {
@@ -46,22 +46,24 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiFlushDeviceQueueResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
         "parameters": [
           {
-            "name": "devEUI",
+            "name": "dev_eui",
             "in": "path",
             "required": true,
             "type": "string"
           }
         ],
         "tags": [
-          "DeviceQueue"
+          "DeviceQueueService"
         ]
-      },
+      }
+    },
+    "/api/devices/{queue_item.dev_eui}/queue": {
       "post": {
         "summary": "Enqueue adds the given item to the device-queue.",
         "operationId": "Enqueue",
@@ -69,13 +71,13 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiEnqueueDeviceQueueItemResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
         "parameters": [
           {
-            "name": "devEUI",
+            "name": "queue_item.dev_eui",
             "in": "path",
             "required": true,
             "type": "string"
@@ -90,7 +92,7 @@
           }
         ],
         "tags": [
-          "DeviceQueue"
+          "DeviceQueueService"
         ]
       }
     }
@@ -101,7 +103,7 @@
       "properties": {
         "devEUI": {
           "type": "string",
-          "description": "Hex encoded DevEUI of the device."
+          "description": "Device EUI (HEX encoded)."
         },
         "reference": {
           "type": "string",
@@ -110,62 +112,32 @@
         "confirmed": {
           "type": "boolean",
           "format": "boolean",
-          "description": "Is an ACK required from the device."
+          "description": "Set this to true when an acknowledgement from the device is required.\nPlease note that this must not be used to guarantee a delivery."
         },
         "fPort": {
           "type": "integer",
           "format": "int64",
-          "description": "FPort used (must be \u003e0)."
+          "title": "FPort used (must be \u003e 0)"
         },
         "data": {
           "type": "string",
           "format": "byte",
-          "description": "Base64 encoded data."
+          "description": "Base64 encoded data.\nOr use the json_object field when an application codec has been configured."
         },
-        "fCnt": {
-          "type": "integer",
-          "format": "int64",
-          "description": "FCnt of the queue item."
+        "jsonObject": {
+          "type": "string",
+          "description": "JSON object (string).\nOnly use this when an application codec has been configured that can convert\nthis object into binary form."
         }
       }
     },
     "apiEnqueueDeviceQueueItemRequest": {
       "type": "object",
       "properties": {
-        "devEUI": {
-          "type": "string",
-          "description": "Hex encoded DevEUI of the node."
-        },
-        "reference": {
-          "type": "string",
-          "description": "Random reference (used on ack notification)."
-        },
-        "confirmed": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Is an ACK required from the node."
-        },
-        "fPort": {
-          "type": "integer",
-          "format": "int64",
-          "title": "FPort used (must be \u003e0)"
-        },
-        "data": {
-          "type": "string",
-          "format": "byte",
-          "description": "Base64 encoded data (or use the jsonObject when an application codec has been configured)."
-        },
-        "jsonObject": {
-          "type": "string",
-          "description": "String containing a JSON object (to be enqueued by the application codec)."
+        "queueItem": {
+          "$ref": "#/definitions/apiDeviceQueueItem",
+          "description": "Queue-item object to enqueue."
         }
       }
-    },
-    "apiEnqueueDeviceQueueItemResponse": {
-      "type": "object"
-    },
-    "apiFlushDeviceQueueResponse": {
-      "type": "object"
     },
     "apiListDeviceQueueItemsResponse": {
       "type": "object",
@@ -177,6 +149,11 @@
           }
         }
       }
+    },
+    "protobufEmpty": {
+      "type": "object",
+      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
+      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
     }
   }
 }

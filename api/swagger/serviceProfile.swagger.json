@@ -45,7 +45,7 @@
             "format": "int64"
           },
           {
-            "name": "organizationID",
+            "name": "organization_id",
             "description": "Organization id to filter on.",
             "in": "query",
             "required": false,
@@ -83,7 +83,55 @@
         ]
       }
     },
-    "/api/service-profiles/{serviceProfile.serviceProfileID}": {
+    "/api/service-profiles/{id}": {
+      "get": {
+        "summary": "Get returns the service-profile matching the given id.",
+        "operationId": "Get",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetServiceProfileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ServiceProfileService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete deletes the service-profile matching the given id.",
+        "operationId": "Delete",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/protobufEmpty"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ServiceProfileService"
+        ]
+      }
+    },
+    "/api/service-profiles/{service_profile.id}": {
       "put": {
         "summary": "Update updates the given serviceprofile.",
         "operationId": "Update",
@@ -91,13 +139,13 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiUpdateServiceProfileResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
         "parameters": [
           {
-            "name": "serviceProfile.serviceProfileID",
+            "name": "service_profile.id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -115,54 +163,6 @@
           "ServiceProfileService"
         ]
       }
-    },
-    "/api/service-profiles/{serviceProfileID}": {
-      "get": {
-        "summary": "Get returns the service-profile matching the given id.",
-        "operationId": "Get",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiGetServiceProfileResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "serviceProfileID",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ServiceProfileService"
-        ]
-      },
-      "delete": {
-        "summary": "Delete deletes the service-profile matching the given id.",
-        "operationId": "Delete",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiDeleteServiceProfileResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "serviceProfileID",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ServiceProfileService"
-        ]
-      }
     }
   },
   "definitions": {
@@ -170,63 +170,36 @@
       "type": "object",
       "properties": {
         "serviceProfile": {
-          "$ref": "#/definitions/apiServiceProfile"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the service-profile."
-        },
-        "organizationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Organization id of the service-profile."
-        },
-        "networkServerID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Network-server id of the service-profile."
+          "$ref": "#/definitions/apiServiceProfile",
+          "description": "Service-profile object to create."
         }
       }
     },
     "apiCreateServiceProfileResponse": {
       "type": "object",
       "properties": {
-        "serviceProfileID": {
+        "id": {
           "type": "string",
-          "description": "ID of the service-profile."
+          "description": "Service-profile ID (UUID string)."
         }
       }
-    },
-    "apiDeleteServiceProfileResponse": {
-      "type": "object"
     },
     "apiGetServiceProfileResponse": {
       "type": "object",
       "properties": {
         "serviceProfile": {
-          "$ref": "#/definitions/apiServiceProfile"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the service-profile."
-        },
-        "organizationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Organization id of the service-profile."
-        },
-        "networkServerID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Network-server id of the service-profile."
+          "$ref": "#/definitions/apiServiceProfile",
+          "description": "Service-profile object."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the record was created."
+          "format": "date-time",
+          "description": "Created at timestamp."
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp when the record was last updated."
+          "format": "date-time",
+          "description": "Last update timestamp."
         }
       }
     },
@@ -241,7 +214,7 @@
         "result": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiServiceProfileMeta"
+            "$ref": "#/definitions/apiServiceProfileListItem"
           }
         }
       }
@@ -258,113 +231,149 @@
     "apiServiceProfile": {
       "type": "object",
       "properties": {
-        "serviceProfileID": {
-          "type": "string"
-        },
-        "ulRate": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "ulBucketSize": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "ulRatePolicy": {
-          "$ref": "#/definitions/apiRatePolicy"
-        },
-        "dlRate": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "dlBucketSize": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "dlRatePolicy": {
-          "$ref": "#/definitions/apiRatePolicy"
-        },
-        "addGWMetadata": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "devStatusReqFreq": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "reportDevStatusBattery": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "reportDevStatusMargin": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "drMin": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "drMax": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "channelMask": {
+        "id": {
           "type": "string",
-          "format": "byte"
-        },
-        "prAllowed": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "hrAllowed": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "raAllowed": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "nwkGeoLoc": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "targetPER": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "minGWDiversity": {
-          "type": "integer",
-          "format": "int64"
-        }
-      }
-    },
-    "apiServiceProfileMeta": {
-      "type": "object",
-      "properties": {
-        "serviceProfileID": {
-          "type": "string",
-          "description": "ID of the service-profile."
+          "description": "Service-profile ID (UUID string).\nThis will be automatically set on create."
         },
         "name": {
           "type": "string",
-          "description": "Name of the service-profile."
+          "description": "Service-profile name."
         },
         "organizationID": {
           "type": "string",
           "format": "int64",
-          "description": "Organization id of the service-profile."
+          "description": "Organization ID to which the service-profile is assigned."
         },
         "networkServerID": {
           "type": "string",
           "format": "int64",
-          "description": "Network-server id of the service-profile."
+          "description": "Network-server ID on which the service-profile is provisioned."
+        },
+        "ulRate": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Token bucket filling rate, including ACKs (packet/h)."
+        },
+        "ulBucketSize": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Token bucket burst size."
+        },
+        "ulRatePolicy": {
+          "$ref": "#/definitions/apiRatePolicy",
+          "description": "Drop or mark when exceeding ULRate."
+        },
+        "dlRate": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Token bucket filling rate, including ACKs (packet/h)."
+        },
+        "dlBucketSize": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Token bucket burst size."
+        },
+        "dlRatePolicy": {
+          "$ref": "#/definitions/apiRatePolicy",
+          "description": "Drop or mark when exceeding DLRate."
+        },
+        "addGWMetaData": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "GW metadata (RSSI, SNR, GW geoloc., etc.) are added to the packet sent to AS."
+        },
+        "devStatusReqFreq": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Frequency to initiate an End-Device status request (request/day)."
+        },
+        "reportDevStatusBattery": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Report End-Device battery level to AS."
+        },
+        "reportDevStatusMargin": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Report End-Device margin to AS."
+        },
+        "drMin": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Minimum allowed data rate. Used for ADR."
+        },
+        "drMax": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Maximum allowed data rate. Used for ADR."
+        },
+        "channelMask": {
+          "type": "string",
+          "format": "byte",
+          "description": "Channel mask. sNS does not have to obey (i.e., informative)."
+        },
+        "prAllowed": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Passive Roaming allowed."
+        },
+        "hrAllowed": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Handover Roaming allowed."
+        },
+        "raAllowed": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Roaming Activation allowed."
+        },
+        "nwkGeoLoc": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Enable network geolocation service."
+        },
+        "targetPER": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Target Packet Error Rate."
+        },
+        "minGWDiversity": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Minimum number of receiving GWs (informative)."
+        }
+      }
+    },
+    "apiServiceProfileListItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Service-profile ID (UUID string)."
+        },
+        "name": {
+          "type": "string",
+          "description": "Service-profile name."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Organization ID of the service-profile."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Network-server ID of the service-profile."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the record was created."
+          "format": "date-time",
+          "description": "Created at timestamp."
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp when the record was last updated."
+          "format": "date-time",
+          "description": "Last update timestamp."
         }
       }
     },
@@ -372,16 +381,15 @@
       "type": "object",
       "properties": {
         "serviceProfile": {
-          "$ref": "#/definitions/apiServiceProfile"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the service-profile."
+          "$ref": "#/definitions/apiServiceProfile",
+          "description": "Service-profile object to update."
         }
       }
     },
-    "apiUpdateServiceProfileResponse": {
-      "type": "object"
+    "protobufEmpty": {
+      "type": "object",
+      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
+      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
     }
   }
 }

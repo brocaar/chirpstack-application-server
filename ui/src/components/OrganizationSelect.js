@@ -12,7 +12,9 @@ class OrganizationSelect extends Component {
     super();
 
     this.state = {
-      organization: {},
+      organization: {
+        organization: {},
+      },
       showDropdown: false,
       initialOptions: [],
     };
@@ -103,8 +105,8 @@ class OrganizationSelect extends Component {
 
     if (this.state.showDropdown) {
       const value = {
-        label: this.state.organization.name,
-        value: this.state.organization.id,
+        label: this.state.organization.organization.name,
+        value: this.state.organization.organization.id,
       };
 
       org = <div className="org-select"><Select.Async
@@ -120,7 +122,7 @@ class OrganizationSelect extends Component {
         onChange={this.onSelect}
       /></div>
     } else {
-      org = <Link to={`/organizations/${this.state.organization.id}`}>{this.state.organization.displayName}</Link>;
+      org = <Link to={`/organizations/${this.state.organization.organization.id}`}>{this.state.organization.organization.displayName}</Link>;
     }
 
     return(org);

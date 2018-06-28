@@ -130,26 +130,26 @@ class GatewayFrameLogs extends Component {
     let frames = this.state.frames;
     const now = new Date();
 
-    if (frame.uplinkFrames.length !== 0) {
+    if (frame.uplinkFrame !== undefined) {
       frames.unshift({
         id: now.getTime(),
         receivedAt: new Date(),
         uplinkMetaData: {
-          rxInfo: frame.uplinkFrames[0].rxInfo,
-          txInfo: frame.uplinkFrames[0].txInfo,
+          rxInfo: frame.uplinkFrame.rxInfo,
+          txInfo: frame.uplinkFrame.txInfo,
         },
-        phyPayload: JSON.parse(frame.uplinkFrames[0].phyPayloadJSON),
+        phyPayload: JSON.parse(frame.uplinkFrame.phyPayloadJSON),
       });
     }
 
-    if (frame.downlinkFrames.length !== 0) {
+    if (frame.downlinkFrame !== undefined) {
       frames.unshift({
         id: now.getTime(),
         receivedAt: new Date(),
         downlinkMetaData: {
-          txInfo: frame.downlinkFrames[0].txInfo,
+          txInfo: frame.downlinkFrame.txInfo,
         },
-        phyPayload: JSON.parse(frame.downlinkFrames[0].phyPayloadJSON),
+        phyPayload: JSON.parse(frame.downlinkFrame.phyPayloadJSON),
       });
     }
 

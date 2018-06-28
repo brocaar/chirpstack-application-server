@@ -252,15 +252,15 @@ func startClientAPI(ctx context.Context) func() error {
 		}
 
 		clientAPIHandler := grpc.NewServer(gRPCLoggingServerOptions()...)
-		pb.RegisterApplicationServer(clientAPIHandler, api.NewApplicationAPI(validator))
-		pb.RegisterDeviceQueueServer(clientAPIHandler, api.NewDeviceQueueAPI(validator))
-		pb.RegisterDeviceServer(clientAPIHandler, api.NewDeviceAPI(validator))
-		pb.RegisterUserServer(clientAPIHandler, api.NewUserAPI(validator))
-		pb.RegisterInternalServer(clientAPIHandler, api.NewInternalUserAPI(validator))
-		pb.RegisterGatewayServer(clientAPIHandler, api.NewGatewayAPI(validator))
+		pb.RegisterApplicationServiceServer(clientAPIHandler, api.NewApplicationAPI(validator))
+		pb.RegisterDeviceQueueServiceServer(clientAPIHandler, api.NewDeviceQueueAPI(validator))
+		pb.RegisterDeviceServiceServer(clientAPIHandler, api.NewDeviceAPI(validator))
+		pb.RegisterUserServiceServer(clientAPIHandler, api.NewUserAPI(validator))
+		pb.RegisterInternalServiceServer(clientAPIHandler, api.NewInternalUserAPI(validator))
+		pb.RegisterGatewayServiceServer(clientAPIHandler, api.NewGatewayAPI(validator))
 		pb.RegisterGatewayProfileServiceServer(clientAPIHandler, api.NewGatewayProfileAPI(validator))
-		pb.RegisterOrganizationServer(clientAPIHandler, api.NewOrganizationAPI(validator))
-		pb.RegisterNetworkServerServer(clientAPIHandler, api.NewNetworkServerAPI(validator))
+		pb.RegisterOrganizationServiceServer(clientAPIHandler, api.NewOrganizationAPI(validator))
+		pb.RegisterNetworkServerServiceServer(clientAPIHandler, api.NewNetworkServerAPI(validator))
 		pb.RegisterServiceProfileServiceServer(clientAPIHandler, api.NewServiceProfileServiceAPI(validator))
 		pb.RegisterDeviceProfileServiceServer(clientAPIHandler, api.NewDeviceProfileServiceAPI(validator))
 
@@ -335,7 +335,7 @@ func mustGetAPIServer() *grpc.Server {
 	}
 	gs := grpc.NewServer(opts...)
 	asAPI := api.NewApplicationServerAPI()
-	as.RegisterApplicationServerServer(gs, asAPI)
+	as.RegisterApplicationServerServiceServer(gs, asAPI)
 	return gs
 }
 
@@ -402,31 +402,31 @@ func getJSONGateway(ctx context.Context) (http.Handler, error) {
 		},
 	))
 
-	if err := pb.RegisterApplicationHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+	if err := pb.RegisterApplicationServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register application handler error")
 	}
-	if err := pb.RegisterDeviceQueueHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+	if err := pb.RegisterDeviceQueueServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register downlink queue handler error")
 	}
-	if err := pb.RegisterDeviceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+	if err := pb.RegisterDeviceServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register node handler error")
 	}
-	if err := pb.RegisterUserHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+	if err := pb.RegisterUserServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register user handler error")
 	}
-	if err := pb.RegisterInternalHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+	if err := pb.RegisterInternalServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register internal handler error")
 	}
-	if err := pb.RegisterGatewayHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+	if err := pb.RegisterGatewayServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register gateway handler error")
 	}
 	if err := pb.RegisterGatewayProfileServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register gateway-profile handler error")
 	}
-	if err := pb.RegisterOrganizationHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+	if err := pb.RegisterOrganizationServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register organization handler error")
 	}
-	if err := pb.RegisterNetworkServerHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+	if err := pb.RegisterNetworkServerServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register network-server handler error")
 	}
 	if err := pb.RegisterServiceProfileServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {

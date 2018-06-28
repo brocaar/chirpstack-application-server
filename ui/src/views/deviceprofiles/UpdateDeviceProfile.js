@@ -11,9 +11,7 @@ class UpdateDeviceProfile extends Component {
     super();
 
     this.state = {
-      deviceProfile: {
-          deviceProfile: {},
-      },
+      deviceProfile: {},
       isAdmin: false,
     };
 
@@ -24,14 +22,14 @@ class UpdateDeviceProfile extends Component {
   componentDidMount() {
     DeviceProfileStore.getDeviceProfile(this.props.match.params.deviceProfileID, (deviceProfile) => {
       this.setState({
-        deviceProfile: deviceProfile,
+        deviceProfile: deviceProfile.deviceProfile,
         isAdmin: SessionStore.isAdmin(),
       });
     });
   }
 
   onSubmit(deviceProfile) {
-    DeviceProfileStore.updateDeviceProfile(deviceProfile.deviceProfile.deviceProfileID, deviceProfile, (responseData) => {
+    DeviceProfileStore.updateDeviceProfile(deviceProfile.id, {deviceProfile: deviceProfile}, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/device-profiles`);
     });
   }

@@ -1,7 +1,11 @@
 package api
 
 import (
-	"time"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/satori/go.uuid"
+
+	"github.com/brocaar/loraserver/api/ns"
 
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
@@ -12,7 +16,6 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lorawan/backend"
 )
 
 // DeviceProfileServiceAPI exports the ServiceProfile related functions.
@@ -34,39 +37,36 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 	}
 
 	if err := a.validator.Validate(ctx,
-		auth.ValidateDeviceProfilesAccess(auth.Create, req.OrganizationID, 0),
+		auth.ValidateDeviceProfilesAccess(auth.Create, req.DeviceProfile.OrganizationId, 0),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	dp := storage.DeviceProfile{
-		OrganizationID:  req.OrganizationID,
-		NetworkServerID: req.NetworkServerID,
-		Name:            req.Name,
-		DeviceProfile: backend.DeviceProfile{
-			SupportsClassB:    req.DeviceProfile.SupportsClassB,
-			ClassBTimeout:     int(req.DeviceProfile.ClassBTimeout),
-			PingSlotPeriod:    int(req.DeviceProfile.PingSlotPeriod),
-			PingSlotDR:        int(req.DeviceProfile.PingSlotDR),
-			PingSlotFreq:      backend.Frequency(req.DeviceProfile.PingSlotFreq),
-			SupportsClassC:    req.DeviceProfile.SupportsClassC,
-			ClassCTimeout:     int(req.DeviceProfile.ClassCTimeout),
-			MACVersion:        req.DeviceProfile.MacVersion,
-			RegParamsRevision: req.DeviceProfile.RegParamsRevision,
-			RXDelay1:          int(req.DeviceProfile.RxDelay1),
-			RXDROffset1:       int(req.DeviceProfile.RxDROffset1),
-			RXDataRate2:       int(req.DeviceProfile.RxDataRate2),
-			RXFreq2:           backend.Frequency(req.DeviceProfile.RxFreq2),
-			MaxEIRP:           int(req.DeviceProfile.MaxEIRP),
-			MaxDutyCycle:      backend.Percentage(req.DeviceProfile.MaxDutyCycle),
-			SupportsJoin:      req.DeviceProfile.SupportsJoin,
-			RFRegion:          backend.RFRegion(req.DeviceProfile.RfRegion),
-			Supports32bitFCnt: req.DeviceProfile.Supports32BitFCnt,
+		OrganizationID:  req.DeviceProfile.OrganizationId,
+		NetworkServerID: req.DeviceProfile.NetworkServerId,
+		Name:            req.DeviceProfile.Name,
+		DeviceProfile: ns.DeviceProfile{
+			SupportsClassB:     req.DeviceProfile.SupportsClassB,
+			ClassBTimeout:      req.DeviceProfile.ClassBTimeout,
+			PingSlotPeriod:     req.DeviceProfile.PingSlotPeriod,
+			PingSlotDr:         req.DeviceProfile.PingSlotDr,
+			PingSlotFreq:       req.DeviceProfile.PingSlotFreq,
+			SupportsClassC:     req.DeviceProfile.SupportsClassC,
+			ClassCTimeout:      req.DeviceProfile.ClassCTimeout,
+			MacVersion:         req.DeviceProfile.MacVersion,
+			RegParamsRevision:  req.DeviceProfile.RegParamsRevision,
+			RxDelay_1:          req.DeviceProfile.RxDelay_1,
+			RxDrOffset_1:       req.DeviceProfile.RxDrOffset_1,
+			RxDatarate_2:       req.DeviceProfile.RxDatarate_2,
+			RxFreq_2:           req.DeviceProfile.RxFreq_2,
+			MaxEirp:            req.DeviceProfile.MaxEirp,
+			MaxDutyCycle:       req.DeviceProfile.MaxDutyCycle,
+			SupportsJoin:       req.DeviceProfile.SupportsJoin,
+			RfRegion:           req.DeviceProfile.RfRegion,
+			Supports_32BitFCnt: req.DeviceProfile.Supports_32BitFCnt,
+			FactoryPresetFreqs: req.DeviceProfile.FactoryPresetFreqs,
 		},
-	}
-
-	for _, freq := range req.DeviceProfile.FactoryPresetFreqs {
-		dp.DeviceProfile.FactoryPresetFreqs = append(dp.DeviceProfile.FactoryPresetFreqs, backend.Frequency(freq))
 	}
 
 	// as this also performs a remote call to create the device-profile
@@ -78,102 +78,118 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 		return nil, errToRPCError(err)
 	}
 
+	dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
 	return &pb.CreateDeviceProfileResponse{
-		DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+		Id: dpID.String(),
 	}, nil
 }
 
 // Get returns the device-profile matching the given id.
 func (a *DeviceProfileServiceAPI) Get(ctx context.Context, req *pb.GetDeviceProfileRequest) (*pb.GetDeviceProfileResponse, error) {
+	dpID, err := uuid.FromString(req.Id)
+	if err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "uuid error: %s", err)
+	}
+
 	if err := a.validator.Validate(ctx,
-		auth.ValidateDeviceProfileAccess(auth.Read, req.DeviceProfileID),
+		auth.ValidateDeviceProfileAccess(auth.Read, dpID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	dp, err := storage.GetDeviceProfile(config.C.PostgreSQL.DB, req.DeviceProfileID)
+	dp, err := storage.GetDeviceProfile(config.C.PostgreSQL.DB, dpID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
 	resp := pb.GetDeviceProfileResponse{
-		Name:            dp.Name,
-		OrganizationID:  dp.OrganizationID,
-		NetworkServerID: dp.NetworkServerID,
-		CreatedAt:       dp.CreatedAt.Format(time.RFC3339Nano),
-		UpdatedAt:       dp.UpdatedAt.Format(time.RFC3339Nano),
 		DeviceProfile: &pb.DeviceProfile{
-			DeviceProfileID:   dp.DeviceProfile.DeviceProfileID,
-			SupportsClassB:    dp.DeviceProfile.SupportsClassB,
-			ClassBTimeout:     uint32(dp.DeviceProfile.ClassBTimeout),
-			PingSlotPeriod:    uint32(dp.DeviceProfile.PingSlotPeriod),
-			PingSlotDR:        uint32(dp.DeviceProfile.PingSlotDR),
-			PingSlotFreq:      uint32(dp.DeviceProfile.PingSlotFreq),
-			SupportsClassC:    dp.DeviceProfile.SupportsClassC,
-			ClassCTimeout:     uint32(dp.DeviceProfile.ClassCTimeout),
-			MacVersion:        dp.DeviceProfile.MACVersion,
-			RegParamsRevision: dp.DeviceProfile.RegParamsRevision,
-			RxDelay1:          uint32(dp.DeviceProfile.RXDelay1),
-			RxDROffset1:       uint32(dp.DeviceProfile.RXDROffset1),
-			RxDataRate2:       uint32(dp.DeviceProfile.RXDataRate2),
-			RxFreq2:           uint32(dp.DeviceProfile.RXFreq2),
-			MaxEIRP:           uint32(dp.DeviceProfile.MaxEIRP),
-			MaxDutyCycle:      uint32(dp.DeviceProfile.MaxDutyCycle),
-			SupportsJoin:      dp.DeviceProfile.SupportsJoin,
-			RfRegion:          string(dp.DeviceProfile.RFRegion),
-			Supports32BitFCnt: dp.DeviceProfile.Supports32bitFCnt,
+			Id:                 dpID.String(),
+			Name:               dp.Name,
+			OrganizationId:     dp.OrganizationID,
+			NetworkServerId:    dp.NetworkServerID,
+			SupportsClassB:     dp.DeviceProfile.SupportsClassB,
+			ClassBTimeout:      dp.DeviceProfile.ClassBTimeout,
+			PingSlotPeriod:     dp.DeviceProfile.PingSlotPeriod,
+			PingSlotDr:         dp.DeviceProfile.PingSlotDr,
+			PingSlotFreq:       dp.DeviceProfile.PingSlotFreq,
+			SupportsClassC:     dp.DeviceProfile.SupportsClassC,
+			ClassCTimeout:      dp.DeviceProfile.ClassCTimeout,
+			MacVersion:         dp.DeviceProfile.MacVersion,
+			RegParamsRevision:  dp.DeviceProfile.RegParamsRevision,
+			RxDelay_1:          dp.DeviceProfile.RxDelay_1,
+			RxDrOffset_1:       dp.DeviceProfile.RxDrOffset_1,
+			RxDatarate_2:       dp.DeviceProfile.RxDatarate_2,
+			RxFreq_2:           dp.DeviceProfile.RxFreq_2,
+			MaxEirp:            dp.DeviceProfile.MaxEirp,
+			MaxDutyCycle:       dp.DeviceProfile.MaxDutyCycle,
+			SupportsJoin:       dp.DeviceProfile.SupportsJoin,
+			RfRegion:           dp.DeviceProfile.RfRegion,
+			Supports_32BitFCnt: dp.DeviceProfile.Supports_32BitFCnt,
+			FactoryPresetFreqs: dp.DeviceProfile.FactoryPresetFreqs,
 		},
 	}
 
-	for _, freq := range dp.DeviceProfile.FactoryPresetFreqs {
-		resp.DeviceProfile.FactoryPresetFreqs = append(resp.DeviceProfile.FactoryPresetFreqs, uint32(freq))
+	resp.CreatedAt, err = ptypes.TimestampProto(dp.CreatedAt)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+	resp.UpdatedAt, err = ptypes.TimestampProto(dp.UpdatedAt)
+	if err != nil {
+		return nil, errToRPCError(err)
 	}
 
 	return &resp, nil
 }
 
 // Update updates the given device-profile.
-func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDeviceProfileRequest) (*pb.UpdateDeviceProfileResponse, error) {
+func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDeviceProfileRequest) (*empty.Empty, error) {
 	if req.DeviceProfile == nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "deviceProfile expected")
 	}
 
+	dpID, err := uuid.FromString(req.DeviceProfile.Id)
+	if err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "uuid error: %s", err)
+	}
+
 	if err := a.validator.Validate(ctx,
-		auth.ValidateDeviceProfileAccess(auth.Update, req.DeviceProfile.DeviceProfileID),
+		auth.ValidateDeviceProfileAccess(auth.Update, dpID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	dp, err := storage.GetDeviceProfile(config.C.PostgreSQL.DB, req.DeviceProfile.DeviceProfileID)
+	dp, err := storage.GetDeviceProfile(config.C.PostgreSQL.DB, dpID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	dp.Name = req.Name
-	dp.DeviceProfile = backend.DeviceProfile{
-		DeviceProfileID:   req.DeviceProfile.DeviceProfileID,
-		SupportsClassB:    req.DeviceProfile.SupportsClassB,
-		ClassBTimeout:     int(req.DeviceProfile.ClassBTimeout),
-		PingSlotPeriod:    int(req.DeviceProfile.PingSlotPeriod),
-		PingSlotDR:        int(req.DeviceProfile.PingSlotDR),
-		PingSlotFreq:      backend.Frequency(req.DeviceProfile.PingSlotFreq),
-		SupportsClassC:    req.DeviceProfile.SupportsClassC,
-		ClassCTimeout:     int(req.DeviceProfile.ClassCTimeout),
-		MACVersion:        req.DeviceProfile.MacVersion,
-		RegParamsRevision: req.DeviceProfile.RegParamsRevision,
-		RXDelay1:          int(req.DeviceProfile.RxDelay1),
-		RXDROffset1:       int(req.DeviceProfile.RxDROffset1),
-		RXDataRate2:       int(req.DeviceProfile.RxDataRate2),
-		RXFreq2:           backend.Frequency(req.DeviceProfile.RxFreq2),
-		MaxEIRP:           int(req.DeviceProfile.MaxEIRP),
-		MaxDutyCycle:      backend.Percentage(req.DeviceProfile.MaxDutyCycle),
-		SupportsJoin:      req.DeviceProfile.SupportsJoin,
-		RFRegion:          backend.RFRegion(req.DeviceProfile.RfRegion),
-		Supports32bitFCnt: req.DeviceProfile.Supports32BitFCnt,
-	}
-
-	for _, freq := range req.DeviceProfile.FactoryPresetFreqs {
-		dp.DeviceProfile.FactoryPresetFreqs = append(dp.DeviceProfile.FactoryPresetFreqs, backend.Frequency(freq))
+	dp.Name = req.DeviceProfile.Name
+	dp.DeviceProfile = ns.DeviceProfile{
+		Id:                 dpID.Bytes(),
+		SupportsClassB:     req.DeviceProfile.SupportsClassB,
+		ClassBTimeout:      req.DeviceProfile.ClassBTimeout,
+		PingSlotPeriod:     req.DeviceProfile.PingSlotPeriod,
+		PingSlotDr:         req.DeviceProfile.PingSlotDr,
+		PingSlotFreq:       req.DeviceProfile.PingSlotFreq,
+		SupportsClassC:     req.DeviceProfile.SupportsClassC,
+		ClassCTimeout:      req.DeviceProfile.ClassCTimeout,
+		MacVersion:         req.DeviceProfile.MacVersion,
+		RegParamsRevision:  req.DeviceProfile.RegParamsRevision,
+		RxDelay_1:          req.DeviceProfile.RxDelay_1,
+		RxDrOffset_1:       req.DeviceProfile.RxDrOffset_1,
+		RxDatarate_2:       req.DeviceProfile.RxDatarate_2,
+		RxFreq_2:           req.DeviceProfile.RxFreq_2,
+		MaxEirp:            req.DeviceProfile.MaxEirp,
+		MaxDutyCycle:       req.DeviceProfile.MaxDutyCycle,
+		SupportsJoin:       req.DeviceProfile.SupportsJoin,
+		RfRegion:           req.DeviceProfile.RfRegion,
+		Supports_32BitFCnt: req.DeviceProfile.Supports_32BitFCnt,
+		FactoryPresetFreqs: req.DeviceProfile.FactoryPresetFreqs,
 	}
 
 	// as this also performs a remote call to update the device-profile
@@ -185,40 +201,45 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.UpdateDeviceProfileResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // Delete deletes the device-profile matching the given id.
-func (a *DeviceProfileServiceAPI) Delete(ctx context.Context, req *pb.DeleteDeviceProfileRequest) (*pb.DeleteDeviceProfileResponse, error) {
+func (a *DeviceProfileServiceAPI) Delete(ctx context.Context, req *pb.DeleteDeviceProfileRequest) (*empty.Empty, error) {
+	dpID, err := uuid.FromString(req.Id)
+	if err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "uuid error: %s", err)
+	}
+
 	if err := a.validator.Validate(ctx,
-		auth.ValidateDeviceProfileAccess(auth.Delete, req.DeviceProfileID),
+		auth.ValidateDeviceProfileAccess(auth.Delete, dpID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	// as this also performs a remote call to delete the device-profile
 	// on the network-server, wrap it in a transaction
-	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
-		return storage.DeleteDeviceProfile(tx, req.DeviceProfileID)
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
+		return storage.DeleteDeviceProfile(tx, dpID)
 	})
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.DeleteDeviceProfileResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // List lists the available device-profiles.
 func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDeviceProfileRequest) (*pb.ListDeviceProfileResponse, error) {
-	if req.ApplicationID != 0 {
+	if req.ApplicationId != 0 {
 		if err := a.validator.Validate(ctx,
-			auth.ValidateDeviceProfilesAccess(auth.List, 0, req.ApplicationID),
+			auth.ValidateDeviceProfilesAccess(auth.List, 0, req.ApplicationId),
 		); err != nil {
 			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 		}
 	} else {
 		if err := a.validator.Validate(ctx,
-			auth.ValidateDeviceProfilesAccess(auth.List, req.OrganizationID, 0),
+			auth.ValidateDeviceProfilesAccess(auth.List, req.OrganizationId, 0),
 		); err != nil {
 			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 		}
@@ -237,23 +258,23 @@ func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDevicePr
 	var count int
 	var dps []storage.DeviceProfileMeta
 
-	if req.ApplicationID != 0 {
-		dps, err = storage.GetDeviceProfilesForApplicationID(config.C.PostgreSQL.DB, req.ApplicationID, int(req.Limit), int(req.Offset))
+	if req.ApplicationId != 0 {
+		dps, err = storage.GetDeviceProfilesForApplicationID(config.C.PostgreSQL.DB, req.ApplicationId, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 
-		count, err = storage.GetDeviceProfileCountForApplicationID(config.C.PostgreSQL.DB, req.ApplicationID)
+		count, err = storage.GetDeviceProfileCountForApplicationID(config.C.PostgreSQL.DB, req.ApplicationId)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
-	} else if req.OrganizationID != 0 {
-		dps, err = storage.GetDeviceProfilesForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+	} else if req.OrganizationId != 0 {
+		dps, err = storage.GetDeviceProfilesForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationId, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 
-		count, err = storage.GetDeviceProfileCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID)
+		count, err = storage.GetDeviceProfileCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationId)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
@@ -284,15 +305,25 @@ func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDevicePr
 	resp := pb.ListDeviceProfileResponse{
 		TotalCount: int64(count),
 	}
+
 	for _, dp := range dps {
-		resp.Result = append(resp.Result, &pb.DeviceProfileMeta{
-			DeviceProfileID: dp.DeviceProfileID,
+		row := pb.DeviceProfileListItem{
+			Id:              dp.DeviceProfileID.String(),
 			Name:            dp.Name,
-			OrganizationID:  dp.OrganizationID,
-			NetworkServerID: dp.NetworkServerID,
-			CreatedAt:       dp.CreatedAt.Format(time.RFC3339Nano),
-			UpdatedAt:       dp.UpdatedAt.Format(time.RFC3339Nano),
-		})
+			OrganizationId:  dp.OrganizationID,
+			NetworkServerId: dp.NetworkServerID,
+		}
+
+		row.CreatedAt, err = ptypes.TimestampProto(dp.CreatedAt)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		row.UpdatedAt, err = ptypes.TimestampProto(dp.UpdatedAt)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		resp.Result = append(resp.Result, &row)
 	}
 
 	return &resp, nil

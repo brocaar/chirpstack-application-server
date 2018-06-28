@@ -28,7 +28,7 @@ var _ status.Status
 var _ = runtime.String
 var _ = utilities.NewDoubleArray
 
-func request_DeviceQueue_Enqueue_0(ctx context.Context, marshaler runtime.Marshaler, client DeviceQueueClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_DeviceQueueService_Enqueue_0(ctx context.Context, marshaler runtime.Marshaler, client DeviceQueueServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq EnqueueDeviceQueueItemRequest
 	var metadata runtime.ServerMetadata
 
@@ -43,15 +43,15 @@ func request_DeviceQueue_Enqueue_0(ctx context.Context, marshaler runtime.Marsha
 		_   = err
 	)
 
-	val, ok = pathParams["devEUI"]
+	val, ok = pathParams["queue_item.dev_eui"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "queue_item.dev_eui")
 	}
 
-	protoReq.DevEUI, err = runtime.String(val)
+	err = runtime.PopulateFieldFromPath(&protoReq, "queue_item.dev_eui", val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "devEUI", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "queue_item.dev_eui", err)
 	}
 
 	msg, err := client.Enqueue(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -59,7 +59,7 @@ func request_DeviceQueue_Enqueue_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
-func request_DeviceQueue_Flush_0(ctx context.Context, marshaler runtime.Marshaler, client DeviceQueueClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_DeviceQueueService_Flush_0(ctx context.Context, marshaler runtime.Marshaler, client DeviceQueueServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq FlushDeviceQueueRequest
 	var metadata runtime.ServerMetadata
 
@@ -70,15 +70,15 @@ func request_DeviceQueue_Flush_0(ctx context.Context, marshaler runtime.Marshale
 		_   = err
 	)
 
-	val, ok = pathParams["devEUI"]
+	val, ok = pathParams["dev_eui"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "dev_eui")
 	}
 
-	protoReq.DevEUI, err = runtime.String(val)
+	protoReq.DevEui, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "devEUI", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "dev_eui", err)
 	}
 
 	msg, err := client.Flush(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -86,7 +86,7 @@ func request_DeviceQueue_Flush_0(ctx context.Context, marshaler runtime.Marshale
 
 }
 
-func request_DeviceQueue_List_0(ctx context.Context, marshaler runtime.Marshaler, client DeviceQueueClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_DeviceQueueService_List_0(ctx context.Context, marshaler runtime.Marshaler, client DeviceQueueServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListDeviceQueueItemsRequest
 	var metadata runtime.ServerMetadata
 
@@ -97,15 +97,15 @@ func request_DeviceQueue_List_0(ctx context.Context, marshaler runtime.Marshaler
 		_   = err
 	)
 
-	val, ok = pathParams["devEUI"]
+	val, ok = pathParams["dev_eui"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "devEUI")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "dev_eui")
 	}
 
-	protoReq.DevEUI, err = runtime.String(val)
+	protoReq.DevEui, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "devEUI", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "dev_eui", err)
 	}
 
 	msg, err := client.List(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -113,9 +113,9 @@ func request_DeviceQueue_List_0(ctx context.Context, marshaler runtime.Marshaler
 
 }
 
-// RegisterDeviceQueueHandlerFromEndpoint is same as RegisterDeviceQueueHandler but
+// RegisterDeviceQueueServiceHandlerFromEndpoint is same as RegisterDeviceQueueServiceHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
-func RegisterDeviceQueueHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+func RegisterDeviceQueueServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
 	conn, err := grpc.Dial(endpoint, opts...)
 	if err != nil {
 		return err
@@ -123,35 +123,35 @@ func RegisterDeviceQueueHandlerFromEndpoint(ctx context.Context, mux *runtime.Se
 	defer func() {
 		if err != nil {
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Printf("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 			return
 		}
 		go func() {
 			<-ctx.Done()
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Printf("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 		}()
 	}()
 
-	return RegisterDeviceQueueHandler(ctx, mux, conn)
+	return RegisterDeviceQueueServiceHandler(ctx, mux, conn)
 }
 
-// RegisterDeviceQueueHandler registers the http handlers for service DeviceQueue to "mux".
+// RegisterDeviceQueueServiceHandler registers the http handlers for service DeviceQueueService to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterDeviceQueueHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return RegisterDeviceQueueHandlerClient(ctx, mux, NewDeviceQueueClient(conn))
+func RegisterDeviceQueueServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterDeviceQueueServiceHandlerClient(ctx, mux, NewDeviceQueueServiceClient(conn))
 }
 
-// RegisterDeviceQueueHandler registers the http handlers for service DeviceQueue to "mux".
-// The handlers forward requests to the grpc endpoint over the given implementation of "DeviceQueueClient".
-// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "DeviceQueueClient"
+// RegisterDeviceQueueServiceHandlerClient registers the http handlers for service DeviceQueueService
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "DeviceQueueServiceClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "DeviceQueueServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "DeviceQueueClient" to call the correct interceptors.
-func RegisterDeviceQueueHandlerClient(ctx context.Context, mux *runtime.ServeMux, client DeviceQueueClient) error {
+// "DeviceQueueServiceClient" to call the correct interceptors.
+func RegisterDeviceQueueServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client DeviceQueueServiceClient) error {
 
-	mux.Handle("POST", pattern_DeviceQueue_Enqueue_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_DeviceQueueService_Enqueue_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
@@ -169,18 +169,18 @@ func RegisterDeviceQueueHandlerClient(ctx context.Context, mux *runtime.ServeMux
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_DeviceQueue_Enqueue_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_DeviceQueueService_Enqueue_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DeviceQueue_Enqueue_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DeviceQueueService_Enqueue_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_DeviceQueue_Flush_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_DeviceQueueService_Flush_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
@@ -198,18 +198,18 @@ func RegisterDeviceQueueHandlerClient(ctx context.Context, mux *runtime.ServeMux
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_DeviceQueue_Flush_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_DeviceQueueService_Flush_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DeviceQueue_Flush_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DeviceQueueService_Flush_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_DeviceQueue_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_DeviceQueueService_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
@@ -227,14 +227,14 @@ func RegisterDeviceQueueHandlerClient(ctx context.Context, mux *runtime.ServeMux
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_DeviceQueue_List_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_DeviceQueueService_List_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DeviceQueue_List_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DeviceQueueService_List_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -242,17 +242,17 @@ func RegisterDeviceQueueHandlerClient(ctx context.Context, mux *runtime.ServeMux
 }
 
 var (
-	pattern_DeviceQueue_Enqueue_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "devices", "devEUI", "queue"}, ""))
+	pattern_DeviceQueueService_Enqueue_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "devices", "queue_item.dev_eui", "queue"}, ""))
 
-	pattern_DeviceQueue_Flush_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "devices", "devEUI", "queue"}, ""))
+	pattern_DeviceQueueService_Flush_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "devices", "dev_eui", "queue"}, ""))
 
-	pattern_DeviceQueue_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "devices", "devEUI", "queue"}, ""))
+	pattern_DeviceQueueService_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "devices", "dev_eui", "queue"}, ""))
 )
 
 var (
-	forward_DeviceQueue_Enqueue_0 = runtime.ForwardResponseMessage
+	forward_DeviceQueueService_Enqueue_0 = runtime.ForwardResponseMessage
 
-	forward_DeviceQueue_Flush_0 = runtime.ForwardResponseMessage
+	forward_DeviceQueueService_Flush_0 = runtime.ForwardResponseMessage
 
-	forward_DeviceQueue_List_0 = runtime.ForwardResponseMessage
+	forward_DeviceQueueService_List_0 = runtime.ForwardResponseMessage
 )

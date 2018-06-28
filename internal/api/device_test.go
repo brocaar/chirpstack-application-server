@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/satori/go.uuid"
+
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -17,7 +19,6 @@ import (
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
-	"github.com/brocaar/lorawan/backend"
 )
 
 func TestNodeAPI(t *testing.T) {
@@ -47,7 +48,7 @@ func TestNodeAPI(t *testing.T) {
 
 		grpcServer := grpc.NewServer()
 		apiServer := NewDeviceAPI(validator)
-		pb.RegisterDeviceServer(grpcServer, apiServer)
+		pb.RegisterDeviceServiceServer(grpcServer, apiServer)
 
 		ln, err := net.Listen("tcp", "localhost:0")
 		So(err, ShouldBeNil)
@@ -61,7 +62,7 @@ func TestNodeAPI(t *testing.T) {
 		So(err, ShouldBeNil)
 		defer apiClient.Close()
 
-		api := pb.NewDeviceClient(apiClient)
+		api := pb.NewDeviceServiceClient(apiClient)
 
 		org := storage.Organization{
 			Name: "test-org",
@@ -78,14 +79,15 @@ func TestNodeAPI(t *testing.T) {
 			Name:            "test-sp",
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
-			ServiceProfile:  backend.ServiceProfile{},
 		}
 		So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
+		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+		So(err, ShouldBeNil)
 
 		app := storage.Application{
 			OrganizationID:   org.ID,
 			Name:             "test-app",
-			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+			ServiceProfileID: spID,
 		}
 		So(storage.CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
 
@@ -93,40 +95,48 @@ func TestNodeAPI(t *testing.T) {
 			Name:            "test-dp",
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
-			DeviceProfile:   backend.DeviceProfile{},
 		}
 		So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
+		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
+		So(err, ShouldBeNil)
 
 		Convey("When creating a device without a name set", func() {
 			_, err := api.Create(ctx, &pb.CreateDeviceRequest{
-				ApplicationID:   app.ID,
-				Description:     "test device description",
-				DevEUI:          "0807060504030201",
-				DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+				Device: &pb.Device{
+					DevEui:          "0807060504030201",
+					ApplicationId:   app.ID,
+					Description:     "test device description",
+					DeviceProfileId: dpID.String(),
+				},
 			})
 			So(err, ShouldBeNil)
 			So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 			Convey("Then the DevEUI is used as name", func() {
 				d, err := api.Get(ctx, &pb.GetDeviceRequest{
-					DevEUI: "0807060504030201",
+					DevEui: "0807060504030201",
 				})
 				So(err, ShouldBeNil)
-				So(d.Name, ShouldEqual, "0807060504030201")
+				So(d.Device.Name, ShouldEqual, "0807060504030201")
 			})
 		})
 
 		Convey("When creating a device", func() {
-			_, err := api.Create(ctx, &pb.CreateDeviceRequest{
-				ApplicationID:   app.ID,
-				Name:            "test-device",
-				Description:     "test device description",
-				DevEUI:          "0807060504030201",
-				DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
-				SkipFCntCheck:   true,
-			})
+			createReq := pb.CreateDeviceRequest{
+				Device: &pb.Device{
+					ApplicationId:   app.ID,
+					Name:            "test-device",
+					Description:     "test device description",
+					DevEui:          "0807060504030201",
+					DeviceProfileId: dpID.String(),
+					SkipFCntCheck:   true,
+				},
+			}
+
+			_, err := api.Create(ctx, &createReq)
 			So(err, ShouldBeNil)
 			So(validator.validatorFuncs, ShouldHaveLength, 1)
+			createReq.Device.XXX_sizecache = 0
 
 			nsReq := <-nsClient.CreateDeviceChan
 			nsClient.GetDeviceResponse = ns.GetDeviceResponse{
@@ -135,20 +145,14 @@ func TestNodeAPI(t *testing.T) {
 
 			Convey("The device has been created", func() {
 				d, err := api.Get(ctx, &pb.GetDeviceRequest{
-					DevEUI: "0807060504030201",
+					DevEui: "0807060504030201",
 				})
 				So(err, ShouldBeNil)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
-				So(d, ShouldResemble, &pb.GetDeviceResponse{
-					Name:                "test-device",
-					Description:         "test device description",
-					DevEUI:              "0807060504030201",
-					ApplicationID:       app.ID,
-					DeviceProfileID:     dp.DeviceProfile.DeviceProfileID,
-					DeviceStatusMargin:  256,
-					DeviceStatusBattery: 256,
-					SkipFCntCheck:       true,
-				})
+				So(d.Device, ShouldResemble, createReq.Device)
+				So(d.LastSeenAt, ShouldBeNil)
+				So(d.DeviceStatusBattery, ShouldEqual, 256)
+				So(d.DeviceStatusMargin, ShouldEqual, 256)
 
 				Convey("When setting the device-status battery and margin", func() {
 					ten := 10
@@ -162,7 +166,7 @@ func TestNodeAPI(t *testing.T) {
 
 					Convey("Then Get returns the battery and margin status", func() {
 						d, err := api.Get(ctx, &pb.GetDeviceRequest{
-							DevEUI: "0807060504030201",
+							DevEui: "0807060504030201",
 						})
 						So(err, ShouldBeNil)
 						So(d.DeviceStatusBattery, ShouldEqual, 10)
@@ -180,17 +184,17 @@ func TestNodeAPI(t *testing.T) {
 
 					Convey("Then Get returns the last-seen timestamp", func() {
 						d, err := api.Get(ctx, &pb.GetDeviceRequest{
-							DevEUI: "0807060504030201",
+							DevEui: "0807060504030201",
 						})
 						So(err, ShouldBeNil)
-						So(d.LastSeenAt, ShouldEqual, now.Format(time.RFC3339Nano))
+						So(d.LastSeenAt, ShouldNotBeNil)
 					})
 				})
 			})
 
 			Convey("Then listing the devices for the application returns a single items", func() {
 				devices, err := api.ListByApplicationID(ctx, &pb.ListDeviceByApplicationIDRequest{
-					ApplicationID: app.ID,
+					ApplicationId: app.ID,
 					Limit:         10,
 					Search:        "test",
 				})
@@ -201,9 +205,9 @@ func TestNodeAPI(t *testing.T) {
 				So(devices.Result[0], ShouldResemble, &pb.DeviceListItem{
 					Name:                "test-device",
 					Description:         "test device description",
-					DevEUI:              "0807060504030201",
-					ApplicationID:       app.ID,
-					DeviceProfileID:     dp.DeviceProfile.DeviceProfileID,
+					DevEui:              "0807060504030201",
+					ApplicationId:       app.ID,
+					DeviceProfileId:     dpID.String(),
 					DeviceProfileName:   dp.Name,
 					DeviceStatusBattery: 256,
 					DeviceStatusMargin:  256,
@@ -211,45 +215,41 @@ func TestNodeAPI(t *testing.T) {
 			})
 
 			Convey("When updating the device", func() {
-				_, err := api.Update(ctx, &pb.UpdateDeviceRequest{
-					ApplicationID:   app.ID,
-					DevEUI:          "0807060504030201",
-					Name:            "test-device-updated",
-					Description:     "test device description updated",
-					DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
-					SkipFCntCheck:   true,
-				})
+				updateReq := pb.UpdateDeviceRequest{
+					Device: &pb.Device{
+						ApplicationId:   app.ID,
+						DevEui:          "0807060504030201",
+						Name:            "test-device-updated",
+						Description:     "test device description updated",
+						DeviceProfileId: dpID.String(),
+						SkipFCntCheck:   true,
+					},
+				}
+
+				_, err := api.Update(ctx, &updateReq)
 				So(err, ShouldBeNil)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
+				updateReq.Device.XXX_sizecache = 0
 
 				Convey("Then the device has been updated", func() {
 					d, err := api.Get(ctx, &pb.GetDeviceRequest{
-						DevEUI: "0807060504030201",
+						DevEui: "0807060504030201",
 					})
 					So(err, ShouldBeNil)
-					So(d, ShouldResemble, &pb.GetDeviceResponse{
-						Name:                "test-device-updated",
-						Description:         "test device description updated",
-						DevEUI:              "0807060504030201",
-						ApplicationID:       app.ID,
-						DeviceProfileID:     dp.DeviceProfile.DeviceProfileID,
-						DeviceStatusBattery: 256,
-						DeviceStatusMargin:  256,
-						SkipFCntCheck:       true,
-					})
+					So(d.Device, ShouldResemble, updateReq.Device)
 				})
 			})
 
 			Convey("After deleting the device", func() {
 				_, err := api.Delete(ctx, &pb.DeleteDeviceRequest{
-					DevEUI: "0807060504030201",
+					DevEui: "0807060504030201",
 				})
 				So(err, ShouldBeNil)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then listing the devices returns zero devices", func() {
 					devices, err := api.ListByApplicationID(ctx, &pb.ListDeviceByApplicationIDRequest{
-						ApplicationID: app.ID,
+						ApplicationId: app.ID,
 						Limit:         10,
 					})
 					So(err, ShouldBeNil)
@@ -259,56 +259,58 @@ func TestNodeAPI(t *testing.T) {
 			})
 
 			Convey("Then CreateKeys creates device-keys", func() {
-				_, err := api.CreateKeys(ctx, &pb.CreateDeviceKeysRequest{
-					DevEUI: "0807060504030201",
+				createReq := pb.CreateDeviceKeysRequest{
 					DeviceKeys: &pb.DeviceKeys{
+						DevEui: "0807060504030201",
 						NwkKey: "01020304050607080807060504030201",
 					},
-				})
+				}
+
+				_, err := api.CreateKeys(ctx, &createReq)
 				So(err, ShouldBeNil)
 
 				Convey("Then GetKeys returns the device-keys", func() {
 					dk, err := api.GetKeys(ctx, &pb.GetDeviceKeysRequest{
-						DevEUI: "0807060504030201",
+						DevEui: "0807060504030201",
 					})
 					So(err, ShouldBeNil)
-					So(dk, ShouldResemble, &pb.GetDeviceKeysResponse{
-						DeviceKeys: &pb.DeviceKeys{
-							NwkKey: "01020304050607080807060504030201",
-							AppKey: "00000000000000000000000000000000",
-						},
+					So(dk.DeviceKeys, ShouldResemble, &pb.DeviceKeys{
+						DevEui: "0807060504030201",
+						NwkKey: "01020304050607080807060504030201",
+						AppKey: "00000000000000000000000000000000",
 					})
 				})
 
 				Convey("Then UpdateKeys updates the device-keys", func() {
-					_, err := api.UpdateKeys(ctx, &pb.UpdateDeviceKeysRequest{
-						DevEUI: "0807060504030201",
+					updateReq := pb.UpdateDeviceKeysRequest{
 						DeviceKeys: &pb.DeviceKeys{
+							DevEui: "0807060504030201",
 							NwkKey: "08070605040302010102030405060708",
 						},
-					})
+					}
+
+					_, err := api.UpdateKeys(ctx, &updateReq)
 					So(err, ShouldBeNil)
 
 					dk, err := api.GetKeys(ctx, &pb.GetDeviceKeysRequest{
-						DevEUI: "0807060504030201",
+						DevEui: "0807060504030201",
 					})
 					So(err, ShouldBeNil)
-					So(dk, ShouldResemble, &pb.GetDeviceKeysResponse{
-						DeviceKeys: &pb.DeviceKeys{
-							NwkKey: "08070605040302010102030405060708",
-							AppKey: "00000000000000000000000000000000",
-						},
+					So(dk.DeviceKeys, ShouldResemble, &pb.DeviceKeys{
+						DevEui: "0807060504030201",
+						NwkKey: "08070605040302010102030405060708",
+						AppKey: "00000000000000000000000000000000",
 					})
 				})
 
 				Convey("Then DeleteKeys deletes the device-keys", func() {
 					_, err := api.DeleteKeys(ctx, &pb.DeleteDeviceKeysRequest{
-						DevEUI: "0807060504030201",
+						DevEui: "0807060504030201",
 					})
 					So(err, ShouldBeNil)
 
 					_, err = api.DeleteKeys(ctx, &pb.DeleteDeviceKeysRequest{
-						DevEUI: "0807060504030201",
+						DevEui: "0807060504030201",
 					})
 					So(err, ShouldNotBeNil)
 					So(grpc.Code(err), ShouldEqual, codes.NotFound)
@@ -316,38 +318,44 @@ func TestNodeAPI(t *testing.T) {
 			})
 
 			Convey("When activating the device (ABP)", func() {
-				_, err := api.Activate(ctx, &pb.ActivateDeviceRequest{
-					DevEUI:      "0807060504030201",
-					DevAddr:     "01020304",
-					AppSKey:     "01020304050607080102030405060708",
-					NwkSEncKey:  "08070605040302010807060504030201",
-					SNwkSIntKey: "08070605040302010807060504030202",
-					FNwkSIntKey: "08070605040302010807060504030203",
-					FCntUp:      10,
-					NFCntDown:   11,
-					AFCntDown:   12,
-				})
+				activateReq := pb.ActivateDeviceRequest{
+					DeviceActivation: &pb.DeviceActivation{
+						DevEui:      "0807060504030201",
+						DevAddr:     "01020304",
+						AppSKey:     "01020304050607080102030405060708",
+						NwkSEncKey:  "08070605040302010807060504030201",
+						SNwkSIntKey: "08070605040302010807060504030202",
+						FNwkSIntKey: "08070605040302010807060504030203",
+						FCntUp:      10,
+						NFCntDown:   11,
+						AFCntDown:   12,
+					},
+				}
+
+				_, err := api.Activate(ctx, &activateReq)
 				So(err, ShouldBeNil)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then an attempt was made to deactivate the device-session", func() {
 					So(nsClient.DeactivateDeviceChan, ShouldHaveLength, 1)
 					So(<-nsClient.DeactivateDeviceChan, ShouldResemble, ns.DeactivateDeviceRequest{
-						DevEUI: []byte{8, 7, 6, 5, 4, 3, 2, 1},
+						DevEui: []byte{8, 7, 6, 5, 4, 3, 2, 1},
 					})
 				})
 
 				Convey("Then a device-session was created", func() {
 					So(nsClient.ActivateDeviceChan, ShouldHaveLength, 1)
 					So(<-nsClient.ActivateDeviceChan, ShouldResemble, ns.ActivateDeviceRequest{
-						DevAddr:     []uint8{1, 2, 3, 4},
-						DevEUI:      []uint8{8, 7, 6, 5, 4, 3, 2, 1},
-						NwkSEncKey:  []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
-						SNwkSIntKey: []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 2},
-						FNwkSIntKey: []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 3},
-						FCntUp:      10,
-						NFCntDown:   11,
-						AFCntDown:   12,
+						DeviceActivation: &ns.DeviceActivation{
+							DevEui:      []uint8{8, 7, 6, 5, 4, 3, 2, 1},
+							DevAddr:     []uint8{1, 2, 3, 4},
+							NwkSEncKey:  []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
+							SNwkSIntKey: []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 2},
+							FNwkSIntKey: []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 3},
+							FCntUp:      10,
+							NFCntDown:   11,
+							AFCntDown:   12,
+						},
 					})
 				})
 
@@ -366,7 +374,7 @@ func TestNodeAPI(t *testing.T) {
 				respChan := make(chan *pb.StreamDeviceEventLogsResponse)
 
 				client, err := api.StreamEventLogs(ctx, &pb.StreamDeviceEventLogsRequest{
-					DevEUI: "0807060504030201",
+					DevEui: "0807060504030201",
 				})
 				So(err, ShouldBeNil)
 

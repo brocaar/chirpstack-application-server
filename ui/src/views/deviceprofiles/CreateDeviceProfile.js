@@ -10,16 +10,14 @@ class CreateDeviceProfile extends Component {
     super();
 
     this.state = {
-      deviceProfile: {
-        deviceProfile: {},
-      },
+      deviceProfile: {},
     };
 
     this.onSubmit = this.onSubmit.bind(this);
   }
 
   onSubmit(deviceProfile) {
-    DeviceProfileStore.createDeviceProfile(deviceProfile, (responseData) => {
+    DeviceProfileStore.createDeviceProfile({deviceProfile: deviceProfile}, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/device-profiles`);
     });
   }
@@ -28,7 +26,6 @@ class CreateDeviceProfile extends Component {
     this.setState({
       deviceProfile: {
         organizationID: this.props.match.params.organizationID,
-        deviceProfile: {},
       },
     });
   }

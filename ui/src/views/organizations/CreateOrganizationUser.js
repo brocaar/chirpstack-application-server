@@ -215,13 +215,26 @@ class CreateOrganizationUser extends Component {
   }
 
   handleAssign(user) {
-    OrganizationStore.addUser(this.props.match.params.organizationID, user, (responseData) => {
+    OrganizationStore.addUser(this.props.match.params.organizationID, {organizationUser: user}, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/users`);
     }); 
   }
 
   handleCreateAndAssign(user) {
-    UserStore.createUser({username: user.username, email: user.email, note: user.note, password: user.password, isActive: true, organizations: [{organizationID: this.props.match.params.organizationID, isAdmin: user.isAdmin}]}, (resp) => {
+    const req = {
+      user: {
+        username: user.username,
+        email: user.email,
+        note: user.note,
+        isActive: true,
+      },
+      password: user.password,
+      organizations: [{
+        organizationID: this.props.match.params.organizationID,
+        isAdmin: user.isAdmin,
+      }],
+    };
+    UserStore.createUser(req, (resp) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/users`);
     });
   }

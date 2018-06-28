@@ -17,7 +17,7 @@ class CreateNetworkServer extends Component {
   }
 
   onSubmit(networkServer) {
-    NetworkServerStore.createNetworkServer(networkServer, (responseData) => {
+    NetworkServerStore.createNetworkServer({networkServer: networkServer}, (responseData) => {
       this.props.history.push("/network-servers");
     });
   }

@@ -33,7 +33,7 @@ class NodeLayout extends Component {
 
   componentDidMount() {
     NodeStore.getNode(this.props.match.params.applicationID, this.props.match.params.devEUI, (node) => {
-      this.setState({node: node});
+      this.setState({node: node.device});
 
       DeviceProfileStore.getDeviceProfile(this.state.node.deviceProfileID, (deviceProfile) => {
         this.setState({
@@ -43,7 +43,7 @@ class NodeLayout extends Component {
     });
 
     ApplicationStore.getApplication(this.props.match.params.applicationID, (application) => {
-      this.setState({application: application});
+      this.setState({application: application.application});
     });
 
     this.setState({

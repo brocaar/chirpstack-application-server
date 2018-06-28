@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/satori/go.uuid"
+
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
@@ -75,6 +77,7 @@ func TestValidators(t *testing.T) {
 		{Name: "test-sp-1", NetworkServerID: networkServers[0].ID},
 		{Name: "test-sp-2", NetworkServerID: networkServers[0].ID},
 	}
+	var serviceProfilesIDs []uuid.UUID
 	for i := range organizations {
 		if err := storage.CreateOrganization(db, &organizations[i]); err != nil {
 			t.Fatal(err)
@@ -84,21 +87,27 @@ func TestValidators(t *testing.T) {
 		if err := storage.CreateServiceProfile(db, &serviceProfiles[i]); err != nil {
 			t.Fatal(err)
 		}
+
+		spID, _ := uuid.FromBytes(serviceProfiles[i].ServiceProfile.Id)
+		serviceProfilesIDs = append(serviceProfilesIDs, spID)
 	}
 
 	deviceProfiles := []storage.DeviceProfile{
 		{Name: "test-dp-1", OrganizationID: organizations[0].ID, NetworkServerID: networkServers[0].ID},
 		{Name: "test-dp-2", OrganizationID: organizations[1].ID, NetworkServerID: networkServers[0].ID},
 	}
+	var deviceProfilesIDs []uuid.UUID
 	for i := range deviceProfiles {
 		if err := storage.CreateDeviceProfile(db, &deviceProfiles[i]); err != nil {
 			t.Fatal(err)
 		}
+		dpID, _ := uuid.FromBytes(deviceProfiles[i].DeviceProfile.Id)
+		deviceProfilesIDs = append(deviceProfilesIDs, dpID)
 	}
 
 	applications := []storage.Application{
-		{OrganizationID: organizations[0].ID, Name: "application-1", ServiceProfileID: serviceProfiles[0].ServiceProfile.ServiceProfileID},
-		{OrganizationID: organizations[1].ID, Name: "application-2", ServiceProfileID: serviceProfiles[0].ServiceProfile.ServiceProfileID},
+		{OrganizationID: organizations[0].ID, Name: "application-1", ServiceProfileID: serviceProfilesIDs[0]},
+		{OrganizationID: organizations[1].ID, Name: "application-2", ServiceProfileID: serviceProfilesIDs[0]},
 	}
 	for i := range applications {
 		if err := storage.CreateApplication(db, &applications[i]); err != nil {
@@ -107,8 +116,8 @@ func TestValidators(t *testing.T) {
 	}
 
 	devices := []storage.Device{
-		{DevEUI: lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1}, Name: "test-1", ApplicationID: applications[0].ID, DeviceProfileID: deviceProfiles[0].DeviceProfile.DeviceProfileID},
-		{DevEUI: lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2}, Name: "test-2", ApplicationID: applications[1].ID, DeviceProfileID: deviceProfiles[1].DeviceProfile.DeviceProfileID},
+		{DevEUI: lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1}, Name: "test-1", ApplicationID: applications[0].ID, DeviceProfileID: deviceProfilesIDs[0]},
+		{DevEUI: lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2}, Name: "test-2", ApplicationID: applications[1].ID, DeviceProfileID: deviceProfilesIDs[1]},
 	}
 	for _, d := range devices {
 		if err := storage.CreateDevice(db, &d); err != nil {
@@ -910,7 +919,7 @@ func TestValidators(t *testing.T) {
 		})
 
 		Convey("When testing ValidateServiceProfileAccess", func() {
-			id := serviceProfiles[0].ServiceProfile.ServiceProfileID
+			id := serviceProfilesIDs[0]
 
 			tests := []validatorTest{
 				{
@@ -1013,31 +1022,31 @@ func TestValidators(t *testing.T) {
 			tests := []validatorTest{
 				{
 					Name:       "global admin users can read, update and delete",
-					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Update, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Delete, deviceProfiles[0].DeviceProfile.DeviceProfileID)},
+					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Update, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Delete, deviceProfilesIDs[0])},
 					Claims:     Claims{Username: "user1"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "organization admin users can read, update and delete",
-					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Update, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Delete, deviceProfiles[0].DeviceProfile.DeviceProfileID)},
+					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Update, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Delete, deviceProfilesIDs[0])},
 					Claims:     Claims{Username: "user10"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "organization users can read",
-					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfiles[0].DeviceProfile.DeviceProfileID)},
+					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfilesIDs[0])},
 					Claims:     Claims{Username: "user9"},
 					ExpectedOK: true,
 				},
 				{
 					Name:       "organization users can not update and delete",
-					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Update, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Delete, deviceProfiles[0].DeviceProfile.DeviceProfileID)},
+					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Update, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Delete, deviceProfilesIDs[0])},
 					Claims:     Claims{Username: "user9"},
 					ExpectedOK: false,
 				},
 				{
 					Name:       "non-organization users can not read, update ande delete",
-					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Update, deviceProfiles[0].DeviceProfile.DeviceProfileID), ValidateDeviceProfileAccess(Delete, deviceProfiles[0].DeviceProfile.DeviceProfileID)},
+					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Update, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Delete, deviceProfilesIDs[0])},
 					Claims:     Claims{Username: "user12"},
 					ExpectedOK: false,
 				},

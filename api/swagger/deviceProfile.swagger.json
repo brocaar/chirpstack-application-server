@@ -45,7 +45,7 @@
             "format": "int64"
           },
           {
-            "name": "organizationID",
+            "name": "organization_id",
             "description": "Organization id to filter on.",
             "in": "query",
             "required": false,
@@ -53,7 +53,7 @@
             "format": "int64"
           },
           {
-            "name": "applicationID",
+            "name": "application_id",
             "description": "Application id to filter on.",
             "in": "query",
             "required": false,
@@ -91,7 +91,7 @@
         ]
       }
     },
-    "/api/device-profiles/{deviceProfile.deviceProfileID}": {
+    "/api/device-profiles/{device_profile.id}": {
       "put": {
         "summary": "Update updates the given device-profile.",
         "operationId": "Update",
@@ -99,13 +99,13 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiUpdateDeviceProfileResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
         "parameters": [
           {
-            "name": "deviceProfile.deviceProfileID",
+            "name": "device_profile.id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -124,7 +124,7 @@
         ]
       }
     },
-    "/api/device-profiles/{deviceProfileID}": {
+    "/api/device-profiles/{id}": {
       "get": {
         "summary": "Get returns the device-profile matching the given id.",
         "operationId": "Get",
@@ -138,7 +138,7 @@
         },
         "parameters": [
           {
-            "name": "deviceProfileID",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -155,13 +155,13 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiDeleteDeviceProfileResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
         "parameters": [
           {
-            "name": "deviceProfileID",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -178,148 +178,168 @@
       "type": "object",
       "properties": {
         "deviceProfile": {
-          "$ref": "#/definitions/apiDeviceProfile"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the device-profile."
-        },
-        "organizationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Organization id of the device-profile."
-        },
-        "networkServerID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Network-server id of the device-profile."
+          "$ref": "#/definitions/apiDeviceProfile",
+          "description": "Device-profile object to create."
         }
       }
     },
     "apiCreateDeviceProfileResponse": {
       "type": "object",
       "properties": {
-        "deviceProfileID": {
+        "id": {
           "type": "string",
-          "description": "ID of the device-profile."
+          "description": "Device-profile ID (UUID string)."
         }
       }
-    },
-    "apiDeleteDeviceProfileResponse": {
-      "type": "object"
     },
     "apiDeviceProfile": {
       "type": "object",
       "properties": {
-        "deviceProfileID": {
-          "type": "string"
+        "id": {
+          "type": "string",
+          "description": "Device-profile ID (UUID string)."
+        },
+        "name": {
+          "type": "string",
+          "description": "Device-profile name."
+        },
+        "organizationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Organization ID to which the service-profile is assigned."
+        },
+        "networkServerID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Network-server ID on which the service-profile is provisioned."
         },
         "supportsClassB": {
           "type": "boolean",
-          "format": "boolean"
+          "format": "boolean",
+          "description": "End-Device supports Class B."
         },
         "classBTimeout": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Maximum delay for the End-Device to answer a MAC request or a confirmed DL frame (mandatory if class B mode supported)."
         },
         "pingSlotPeriod": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Mandatory if class B mode supported."
         },
         "pingSlotDR": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Mandatory if class B mode supported."
         },
         "pingSlotFreq": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Mandatory if class B mode supported."
         },
         "supportsClassC": {
           "type": "boolean",
-          "format": "boolean"
+          "format": "boolean",
+          "description": "End-Device supports Class C."
         },
         "classCTimeout": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Maximum delay for the End-Device to answer a MAC request or a confirmed DL frame (mandatory if class C mode supported)."
         },
         "macVersion": {
-          "type": "string"
+          "type": "string",
+          "description": "Version of the LoRaWAN supported by the End-Device."
         },
         "regParamsRevision": {
-          "type": "string"
+          "type": "string",
+          "description": "Revision of the Regional Parameters document supported by the End-Device."
         },
         "rxDelay1": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Class A RX1 delay (mandatory for ABP)."
         },
         "rxDROffset1": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX1 data rate offset (mandatory for ABP)."
         },
         "rxDataRate2": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX2 data rate (mandatory for ABP)."
         },
         "rxFreq2": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "RX2 channel frequency (mandatory for ABP)."
         },
         "factoryPresetFreqs": {
           "type": "array",
           "items": {
             "type": "integer",
             "format": "int64"
-          }
+          },
+          "description": "List of factory-preset frequencies (mandatory for ABP)."
         },
         "maxEIRP": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Maximum EIRP supported by the End-Device."
         },
         "maxDutyCycle": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Maximum duty cycle supported by the End-Device."
         },
         "supportsJoin": {
           "type": "boolean",
-          "format": "boolean"
+          "format": "boolean",
+          "description": "End-Device supports Join (OTAA) or not (ABP)."
         },
         "rfRegion": {
-          "type": "string"
+          "type": "string",
+          "description": "RF region name."
         },
-        "supports32bitFCnt": {
+        "supports32BitFCnt": {
           "type": "boolean",
-          "format": "boolean"
+          "format": "boolean",
+          "description": "End-Device uses 32bit FCnt (mandatory for LoRaWAN 1.0 End-Device)."
         }
       }
     },
-    "apiDeviceProfileMeta": {
+    "apiDeviceProfileListItem": {
       "type": "object",
       "properties": {
-        "deviceProfileID": {
+        "id": {
           "type": "string",
-          "description": "ID of the device-profile."
+          "description": "Device-profile ID (UUID string)."
         },
         "name": {
           "type": "string",
-          "description": "Name of the device-profile."
+          "description": "Device-profile name."
         },
         "organizationID": {
           "type": "string",
           "format": "int64",
-          "description": "Organization id of the device-profile."
+          "description": "Organization ID."
         },
         "networkServerID": {
           "type": "string",
           "format": "int64",
-          "description": "Network-server id of the device-profile."
+          "description": "Network-server ID."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the record was created."
+          "format": "date-time",
+          "description": "Created at timestamp."
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp when the record was last updated."
+          "format": "date-time",
+          "description": "Last update timestamp."
         }
       }
     },
@@ -327,29 +347,18 @@
       "type": "object",
       "properties": {
         "deviceProfile": {
-          "$ref": "#/definitions/apiDeviceProfile"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the device-profile."
-        },
-        "organizationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Organization id of the device-profile."
-        },
-        "networkServerID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Network-server id of the device-profile."
+          "$ref": "#/definitions/apiDeviceProfile",
+          "description": "Device-profile object."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the record was created."
+          "format": "date-time",
+          "description": "Created at timestamp."
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp when the record was last updated."
+          "format": "date-time",
+          "description": "Last update timestamp."
         }
       }
     },
@@ -364,7 +373,7 @@
         "result": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiDeviceProfileMeta"
+            "$ref": "#/definitions/apiDeviceProfileListItem"
           }
         }
       }
@@ -373,16 +382,15 @@
       "type": "object",
       "properties": {
         "deviceProfile": {
-          "$ref": "#/definitions/apiDeviceProfile"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the device-profile."
+          "$ref": "#/definitions/apiDeviceProfile",
+          "description": "Device-profile object to update."
         }
       }
     },
-    "apiUpdateDeviceProfileResponse": {
-      "type": "object"
+    "protobufEmpty": {
+      "type": "object",
+      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
+      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
     }
   }
 }

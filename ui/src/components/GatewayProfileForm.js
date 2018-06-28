@@ -98,9 +98,7 @@ class GatewayProfileForm extends Component {
     super();
 
     this.state = {
-      profile: {
         gatewayProfile: {},
-      },
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -110,103 +108,94 @@ class GatewayProfileForm extends Component {
   }
 
   componentDidMount() {
-    let profile = this.props.profile;
-    if (profile.gatewayProfile !== undefined && profile.gatewayProfile.channels !== undefined && profile.gatewayProfile.channelsStr === undefined) {
-      profile.gatewayProfile.channelsStr = profile.gatewayProfile.channels.join(", ");
+    let gatewayProfile = this.props.gatewayProfile;
+    if (gatewayProfile !== undefined && gatewayProfile.channels !== undefined && gatewayProfile.channelsStr === undefined) {
+      gatewayProfile.channelsStr = gatewayProfile.channels.join(", ");
     }
 
     this.setState({
-      profile: profile,
+      gatewayProfile: gatewayProfile,
     });
   }
 
   componentWillReceiveProps(nextProps) {
-    let profile = nextProps.profile;
-    if (profile.gatewayProfile !== undefined && profile.gatewayProfile.channels !== undefined && profile.gatewayProfile.channelsStr === undefined) {
-      profile.gatewayProfile.channelsStr = profile.gatewayProfile.channels.join(", ");
+    let gatewayProfile = nextProps.gatewayProfile;
+    if (gatewayProfile!== undefined && gatewayProfile.channels !== undefined && gatewayProfile.channelsStr === undefined) {
+      gatewayProfile.channelsStr = gatewayProfile.channels.join(", ");
     }
 
     this.setState({
-      profile: profile,
+      gatewayProfile: gatewayProfile,
     });
   }
 
-  onChange(fieldLookup, e) {
-    let lookup = fieldLookup.split(".");
-    const fieldName = lookup[lookup.length-1];
-    lookup.pop(); // remove last item
+  onChange(field, e) {
+    let gatewayProfile = this.state.gatewayProfile;
 
-    let profile = this.state.profile;
-    let obj = profile;
-
-    for(const f of lookup) {
-      obj = obj[f];
-    }
-
-    if (fieldName === "channelsStr") {
+    if (field === "channelsStr") {
       let channelsStr = e.target.value.split(",");
-      obj[fieldName] = e.target.value;
-      obj["channels"] = channelsStr.map((c, i) => parseInt(c, 10));
+      gatewayProfile[field] = e.target.value;
+      gatewayProfile["channels"] = channelsStr.map((c, i) => parseInt(c, 10));
     } else {
-      obj[fieldName] = e.target.value;
+      gatewayProfile[field] = e.target.value;
     }
 
     this.setState({
-      profile: profile,
+      gatewayProfile: gatewayProfile,
     });
   }
 
   updateExtraChannel(i, ec) {
-    let profile = this.state.profile;
-    profile.gatewayProfile.extraChannels[i] = ec;
+    let gatewayProfile = this.state.gatewayProfile;
+    gatewayProfile.extraChannels[i] = ec;
 
     this.setState({
-      profile: profile,
+      gatewayProfile: gatewayProfile,
     });
   }
 
   deleteExtraChannel(i) {
-    let profile = this.state.profile;
-    profile.gatewayProfile.extraChannels.splice(i, 1);
+    let gatewayProfile = this.state.gatewayProfile;
+    gatewayProfile.extraChannels.splice(i, 1);
     this.setState({
-      profile: profile,
+      gatewayProfile: gatewayProfile,
     });
   }
   
   addExtraChannel() {
-    let profile = this.state.profile;
-    if (profile.gatewayProfile.extraChannels === undefined) {
-      profile.gatewayProfile.extraChannels = [{}];
+    let gatewayProfile = this.state.gatewayProfile;
+    if (gatewayProfile.extraChannels === undefined) {
+      gatewayProfile.extraChannels = [{}];
     } else {
-      profile.gatewayProfile.extraChannels.push({});
+      gatewayProfile.extraChannels.push({});
     }
 
     this.setState({
-      profile: profile,
+      gatewayProfile: gatewayProfile,
     });
   }
 
   handleSubmit(e) {
     e.preventDefault();
-    this.props.onSubmit(this.state.profile);
+    this.props.onSubmit(this.state.gatewayProfile);
   }
 
   render() {
     let extraChannelRows = [];
 
-    if (this.state.profile.gatewayProfile.extraChannels !== undefined) {
-      extraChannelRows = this.state.profile.gatewayProfile.extraChannels.map((ec, i) => <GatewayProfileExtraChannel key={i} channel={ec} i={i} onChange={(ec) => this.updateExtraChannel(i, ec)} onDelete={() => this.deleteExtraChannel(i)} />);
+    if (this.state.gatewayProfile.extraChannels !== undefined) {
+      extraChannelRows = this.state.gatewayProfile.extraChannels.map((ec, i) => <GatewayProfileExtraChannel key={i} channel={ec} i={i} onChange={(ec) => this.updateExtraChannel(i, ec)} onDelete={() => this.deleteExtraChannel(i)} />);
     }
 
     return(
       <form onSubmit={this.handleSubmit}>
         <div className="form-group">
           <label className="control-label" htmlFor="name">Name</label>
-          <input className="form-control" id="name" type="text" placeholder="a short name identifying the gateway-profile" required value={this.state.profile.name || ''} onChange={this.onChange.bind(this, 'name')} />
+          <input className="form-control" id="name" type="text" placeholder="a short name identifying the gateway-profile" required value={this.state.gatewayProfile.name || ''} onChange={this.onChange.bind(this, 'name')} />
         </div>
         <div className="form-group">
           <label className="control-label" htmlFor="name">Enabled channels</label>
-          <input className="form-control" id="channelsStr" type="text" placeholder="0, 1, 2" required pattern="[0-9]+(,[\s]*[0-9]+)*" value={this.state.profile.gatewayProfile.channelsStr || ''} onChange={this.onChange.bind(this, 'gatewayProfile.channelsStr')} />
+          <input className="form-control" id="channelsStr" type="text" placeholder="0, 1, 2" required pattern="[0-9]+(,[\s]*[0-9]+)*" value={this.state.gatewayProfile.channelsStr || ''} onChange={this.onChange.bind(this, 'channelsStr')} />
           <p className="help-block">
             The channels active in this gateway-profile as specified in the LoRaWAN Regional Parameters sepecification.
             Separate channels by comma, e.g. 0, 1, 2. Extra channels must not be included in this list.

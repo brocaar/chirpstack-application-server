@@ -9,9 +9,9 @@ class OrganizationUserRow extends Component {
   render() {
     return(
       <tr>
-        <td>{this.props.user.id}</td>
+        <td>{this.props.user.userID}</td>
         <td>
-          <Link to={`/organizations/${this.props.organizationID}/users/${this.props.user.id}/edit`}>{this.props.user.username}</Link>
+          <Link to={`/organizations/${this.props.organizationID}/users/${this.props.user.userID}/edit`}>{this.props.user.username}</Link>
         </td>
         <td>
           <span className={"glyphicon glyphicon-" + (this.props.user.isAdmin ? 'ok' : 'remove')} aria-hidden="true"></span>

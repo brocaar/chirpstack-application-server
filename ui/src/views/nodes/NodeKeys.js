@@ -9,9 +9,7 @@ class DeviceKeysForm extends Component {
     super();
 
     this.state = {
-      deviceKeys: {
-        deviceKeys: {},
-      },
+      deviceKeys: {},
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -34,19 +32,9 @@ class DeviceKeysForm extends Component {
     this.props.onSubmit(this.state.deviceKeys);
   }
 
-  onChange(fieldLookup, e) {
-    let lookup = fieldLookup.split(".");
-    const fieldName = lookup[lookup.length-1];
-    lookup.pop(); // remove last item
-
+  onChange(field, e) {
     let deviceKeys = this.state.deviceKeys;
-    let obj = deviceKeys;
-
-    for (const f of lookup) {
-      obj = obj[f];
-    }
-
-    obj[fieldName] = e.target.value;
+    deviceKeys[field] = e.target.value;
 
     this.setState({
       deviceKeys: deviceKeys,
@@ -58,14 +46,14 @@ class DeviceKeysForm extends Component {
       <form onSubmit={this.handleSubmit}>
         <div className="form-group">
           <label className="control-label" htmlFor="nwkKey">Network key</label>
-          <input className="form-control" id="nwkKey" type="text" placeholder="00000000000000000000000000000000" pattern="[A-Fa-f0-9]{32}" required value={this.state.deviceKeys.deviceKeys.nwkKey || ''} onChange={this.onChange.bind(this, 'deviceKeys.nwkKey')} /> 
+          <input className="form-control" id="nwkKey" type="text" placeholder="00000000000000000000000000000000" pattern="[A-Fa-f0-9]{32}" required value={this.state.deviceKeys.nwkKey || ''} onChange={this.onChange.bind(this, 'nwkKey')} /> 
           <p className="help-block">
             For LoRaWAN 1.0 devices, this is the only key you need to set (in LoRaWAN 1.0 this used to be the application-key).
           </p>
         </div>
         <div className="form-group">
           <label className="control-label" htmlFor="appKey">Application key</label>
-          <input className="form-control" id="appKey" type="text" placeholder="00000000000000000000000000000000" pattern="[A-Fa-f0-9]{32}" value={this.state.deviceKeys.deviceKeys.appKey || ''} onChange={this.onChange.bind(this, 'deviceKeys.appKey')} /> 
+          <input className="form-control" id="appKey" type="text" placeholder="00000000000000000000000000000000" pattern="[A-Fa-f0-9]{32}" value={this.state.deviceKeys.appKey || ''} onChange={this.onChange.bind(this, 'appKey')} /> 
           <p className="help-block">
             Leave this blank for LoRaWAN 1.0 devices.
           </p>
@@ -85,9 +73,7 @@ class NodeKeys extends Component {
     super();
 
     this.state = {
-      deviceKeys: {
-        deviceKeys: {},
-      },
+      deviceKeys: {},
       update: false,
     };
 
@@ -98,18 +84,18 @@ class NodeKeys extends Component {
     NodeStore.getNodeKeys(this.props.match.params.devEUI, (deviceKeys) => {
       this.setState({
         update: true,
-        deviceKeys: deviceKeys,
+        deviceKeys: deviceKeys.deviceKeys,
       });
     });
   }
 
   onSubmit(deviceKeys) {
     if (this.state.update) {
-      NodeStore.updateNodeKeys(this.props.match.params.devEUI, deviceKeys, (responseData) => {
+      NodeStore.updateNodeKeys(this.props.match.params.devEUI, {deviceKeys: deviceKeys}, (responseData) => {
         this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
       });
     } else {
-      NodeStore.createNodeKeys(this.props.match.params.devEUI, deviceKeys, (responseData) => {
+      NodeStore.createNodeKeys(this.props.match.params.devEUI, {deviceKeys: deviceKeys}, (responseData) => {
         this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
       });
     }

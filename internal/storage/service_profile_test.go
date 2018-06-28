@@ -4,10 +4,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/satori/go.uuid"
+
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
-	"github.com/brocaar/lorawan/backend"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -50,39 +51,14 @@ func TestServiceProfile(t *testing.T) {
 				OrganizationID:  org.ID,
 				NetworkServerID: n.ID,
 				Name:            "test-service-profile",
-				ServiceProfile: backend.ServiceProfile{
-					ULRate:                 100,
-					ULBucketSize:           10,
-					ULRatePolicy:           backend.Mark,
-					DLRate:                 200,
-					DLBucketSize:           20,
-					DLRatePolicy:           backend.Drop,
-					AddGWMetadata:          true,
-					DevStatusReqFreq:       4,
-					ReportDevStatusBattery: true,
-					ReportDevStatusMargin:  true,
-					DRMin:          3,
-					DRMax:          5,
-					PRAllowed:      true,
-					HRAllowed:      true,
-					RAAllowed:      true,
-					NwkGeoLoc:      true,
-					TargetPER:      10,
-					MinGWDiversity: 3,
-				},
-			}
-			So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
-			So(nsClient.CreateServiceProfileChan, ShouldHaveLength, 1)
-			So(<-nsClient.CreateServiceProfileChan, ShouldResemble, ns.CreateServiceProfileRequest{
-				ServiceProfile: &ns.ServiceProfile{
-					ServiceProfileID:       sp.ServiceProfile.ServiceProfileID,
+				ServiceProfile: ns.ServiceProfile{
 					UlRate:                 100,
 					UlBucketSize:           10,
 					UlRatePolicy:           ns.RatePolicy_MARK,
 					DlRate:                 200,
 					DlBucketSize:           20,
 					DlRatePolicy:           ns.RatePolicy_DROP,
-					AddGWMetadata:          true,
+					AddGwMetadata:          true,
 					DevStatusReqFreq:       4,
 					ReportDevStatusBattery: true,
 					ReportDevStatusMargin:  true,
@@ -92,97 +68,63 @@ func TestServiceProfile(t *testing.T) {
 					HrAllowed:      true,
 					RaAllowed:      true,
 					NwkGeoLoc:      true,
-					TargetPER:      10,
-					MinGWDiversity: 3,
+					TargetPer:      10,
+					MinGwDiversity: 3,
 				},
+			}
+			So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
+			So(nsClient.CreateServiceProfileChan, ShouldHaveLength, 1)
+			So(<-nsClient.CreateServiceProfileChan, ShouldResemble, ns.CreateServiceProfileRequest{
+				ServiceProfile: &sp.ServiceProfile,
 			})
 			sp.CreatedAt = sp.CreatedAt.UTC().Truncate(time.Millisecond)
 			sp.UpdatedAt = sp.UpdatedAt.UTC().Truncate(time.Millisecond)
+			spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+			So(err, ShouldBeNil)
 
 			Convey("Then GetServiceProfile returns the service-profile", func() {
 				nsClient.GetServiceProfileResponse = ns.GetServiceProfileResponse{
-					ServiceProfile: &ns.ServiceProfile{
-						ServiceProfileID:       sp.ServiceProfile.ServiceProfileID,
-						UlRate:                 100,
-						UlBucketSize:           10,
-						UlRatePolicy:           ns.RatePolicy_MARK,
-						DlRate:                 200,
-						DlBucketSize:           20,
-						DlRatePolicy:           ns.RatePolicy_DROP,
-						AddGWMetadata:          true,
-						DevStatusReqFreq:       4,
-						ReportDevStatusBattery: true,
-						ReportDevStatusMargin:  true,
-						DrMin:          3,
-						DrMax:          5,
-						PrAllowed:      true,
-						HrAllowed:      true,
-						RaAllowed:      true,
-						NwkGeoLoc:      true,
-						TargetPER:      10,
-						MinGWDiversity: 3,
-					},
+					ServiceProfile: &sp.ServiceProfile,
 				}
 
-				spGet, err := GetServiceProfile(config.C.PostgreSQL.DB, sp.ServiceProfile.ServiceProfileID)
+				spGet, err := GetServiceProfile(config.C.PostgreSQL.DB, spID)
 				So(err, ShouldBeNil)
 				spGet.CreatedAt = spGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				spGet.UpdatedAt = spGet.UpdatedAt.UTC().Truncate(time.Millisecond)
-
 				So(spGet, ShouldResemble, sp)
 			})
 
 			Convey("Then UpdateServiceProfile updates the service-profile", func() {
 				sp.Name = "updated-service-profile"
-				sp.ServiceProfile = backend.ServiceProfile{
-					ServiceProfileID:       sp.ServiceProfile.ServiceProfileID,
-					ULRate:                 101,
-					ULBucketSize:           11,
-					ULRatePolicy:           backend.Drop,
-					DLRate:                 201,
-					DLBucketSize:           21,
-					DLRatePolicy:           backend.Mark,
-					AddGWMetadata:          true,
+				sp.ServiceProfile = ns.ServiceProfile{
+					Id:                     sp.ServiceProfile.Id,
+					UlRate:                 101,
+					UlBucketSize:           11,
+					UlRatePolicy:           ns.RatePolicy_DROP,
+					DlRate:                 201,
+					DlBucketSize:           21,
+					DlRatePolicy:           ns.RatePolicy_MARK,
+					AddGwMetadata:          true,
 					DevStatusReqFreq:       5,
 					ReportDevStatusBattery: true,
 					ReportDevStatusMargin:  true,
-					DRMin:          4,
-					DRMax:          6,
-					PRAllowed:      true,
-					HRAllowed:      true,
-					RAAllowed:      true,
+					DrMin:          4,
+					DrMax:          6,
+					PrAllowed:      true,
+					HrAllowed:      true,
+					RaAllowed:      true,
 					NwkGeoLoc:      true,
-					TargetPER:      11,
-					MinGWDiversity: 4,
+					TargetPer:      11,
+					MinGwDiversity: 4,
 				}
 				So(UpdateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 				sp.UpdatedAt = sp.UpdatedAt.UTC().Truncate(time.Millisecond)
 				So(nsClient.UpdateServiceProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.UpdateServiceProfileChan, ShouldResemble, ns.UpdateServiceProfileRequest{
-					ServiceProfile: &ns.ServiceProfile{
-						ServiceProfileID:       sp.ServiceProfile.ServiceProfileID,
-						UlRate:                 101,
-						UlBucketSize:           11,
-						UlRatePolicy:           ns.RatePolicy_DROP,
-						DlRate:                 201,
-						DlBucketSize:           21,
-						DlRatePolicy:           ns.RatePolicy_MARK,
-						AddGWMetadata:          true,
-						DevStatusReqFreq:       5,
-						ReportDevStatusBattery: true,
-						ReportDevStatusMargin:  true,
-						DrMin:          4,
-						DrMax:          6,
-						PrAllowed:      true,
-						HrAllowed:      true,
-						RaAllowed:      true,
-						NwkGeoLoc:      true,
-						TargetPER:      11,
-						MinGWDiversity: 4,
-					},
+					ServiceProfile: &sp.ServiceProfile,
 				})
 
-				spGet, err := GetServiceProfile(config.C.PostgreSQL.DB, sp.ServiceProfile.ServiceProfileID)
+				spGet, err := GetServiceProfile(config.C.PostgreSQL.DB, spID)
 				So(err, ShouldBeNil)
 				spGet.UpdatedAt = spGet.UpdatedAt.UTC().Truncate(time.Millisecond)
 				So(spGet.Name, ShouldEqual, "updated-service-profile")
@@ -190,13 +132,13 @@ func TestServiceProfile(t *testing.T) {
 			})
 
 			Convey("Then DeleteServiceProfile deletes the service-profile", func() {
-				So(DeleteServiceProfile(config.C.PostgreSQL.DB, sp.ServiceProfile.ServiceProfileID), ShouldBeNil)
+				So(DeleteServiceProfile(config.C.PostgreSQL.DB, spID), ShouldBeNil)
 				So(nsClient.DeleteServiceProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.DeleteServiceProfileChan, ShouldResemble, ns.DeleteServiceProfileRequest{
-					ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+					Id: sp.ServiceProfile.Id,
 				})
 
-				_, err := GetServiceProfile(config.C.PostgreSQL.DB, sp.ServiceProfile.ServiceProfileID)
+				_, err := GetServiceProfile(config.C.PostgreSQL.DB, spID)
 				So(err, ShouldEqual, ErrDoesNotExist)
 			})
 

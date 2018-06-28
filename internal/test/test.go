@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/garyburd/redigo/redis"
+	"github.com/golang/protobuf/ptypes/empty"
 	migrate "github.com/rubenv/sql-migrate"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -89,12 +90,12 @@ func MustFlushRedis(p *redis.Pool) {
 
 // NetworkServerPool is a network-server pool for testing.
 type NetworkServerPool struct {
-	Client      ns.NetworkServerClient
+	Client      ns.NetworkServerServiceClient
 	GetHostname string
 }
 
 // Get returns the Client.
-func (p *NetworkServerPool) Get(hostname string, caCert, tlsCert, tlsKey []byte) (ns.NetworkServerClient, error) {
+func (p *NetworkServerPool) Get(hostname string, caCert, tlsCert, tlsKey []byte) (ns.NetworkServerServiceClient, error) {
 	p.GetHostname = hostname
 	return p.Client, nil
 }
@@ -116,10 +117,10 @@ type NetworkServerClient struct {
 	GetServiceProfileResponse ns.GetServiceProfileResponse
 
 	UpdateServiceProfileChan     chan ns.UpdateServiceProfileRequest
-	UpdateServiceProfileResponse ns.UpdateServiceProfileResponse
+	UpdateServiceProfileResponse empty.Empty
 
 	DeleteServiceProfileChan     chan ns.DeleteServiceProfileRequest
-	DeleteServiceProfileResponse ns.DeleteServiceProfileResponse
+	DeleteServiceProfileResponse empty.Empty
 
 	CreateRoutingProfileChan     chan ns.CreateRoutingProfileRequest
 	CreateRoutingProfileResponse ns.CreateRoutingProfileResponse
@@ -128,10 +129,10 @@ type NetworkServerClient struct {
 	GetRoutingProfileResponse ns.GetRoutingProfileResponse
 
 	UpdateRoutingProfileChan     chan ns.UpdateRoutingProfileRequest
-	UpdateRoutingProfileResponse ns.UpdateRoutingProfileResponse
+	UpdateRoutingProfileResponse empty.Empty
 
 	DeleteRoutingProfileChan     chan ns.DeleteRoutingProfileRequest
-	DeleteRoutingProfileResponse ns.DeleteRoutingProfileResponse
+	DeleteRoutingProfileResponse empty.Empty
 
 	CreateDeviceProfileChan     chan ns.CreateDeviceProfileRequest
 	CreateDeviceProfileResponse ns.CreateDeviceProfileResponse
@@ -140,52 +141,52 @@ type NetworkServerClient struct {
 	GetDeviceProfileResponse ns.GetDeviceProfileResponse
 
 	UpdateDeviceProfileChan     chan ns.UpdateDeviceProfileRequest
-	UpdateDeviceProfileResponse ns.UpdateDeviceProfileResponse
+	UpdateDeviceProfileResponse empty.Empty
 
 	DeleteDeviceProfileChan     chan ns.DeleteDeviceProfileRequest
-	DeleteDeviceProfileResponse ns.DeleteDeviceProfileResponse
+	DeleteDeviceProfileResponse empty.Empty
 
 	CreateDeviceChan     chan ns.CreateDeviceRequest
-	CreateDeviceResponse ns.CreateDeviceResponse
+	CreateDeviceResponse empty.Empty
 
 	GetDeviceChan     chan ns.GetDeviceRequest
 	GetDeviceResponse ns.GetDeviceResponse
 
 	UpdateDeviceChan     chan ns.UpdateDeviceRequest
-	UpdateDeviceResponse ns.UpdateDeviceResponse
+	UpdateDeviceResponse empty.Empty
 
 	DeleteDeviceChan     chan ns.DeleteDeviceRequest
-	DeleteDeviceResponse ns.DeleteDeviceResponse
+	DeleteDeviceResponse empty.Empty
 
 	ActivateDeviceChan     chan ns.ActivateDeviceRequest
-	ActivateDeviceResponse ns.ActivateDeviceResponse
+	ActivateDeviceResponse empty.Empty
 
 	DeactivateDeviceChan     chan ns.DeactivateDeviceRequest
-	DeactivateDeviceResponse ns.DeactivateDeviceResponse
+	DeactivateDeviceResponse empty.Empty
 
 	GetDeviceActivationChan     chan ns.GetDeviceActivationRequest
 	GetDeviceActivationResponse ns.GetDeviceActivationResponse
 
-	GetRandomDevAddrChan     chan ns.GetRandomDevAddrRequest
+	GetRandomDevAddrChan     chan empty.Empty
 	GetRandomDevAddrResponse ns.GetRandomDevAddrResponse
 
 	CreateMACCommandQueueItemChan     chan ns.CreateMACCommandQueueItemRequest
-	CreateMACCommandQueueItemResponse ns.CreateMACCommandQueueItemResponse
+	CreateMACCommandQueueItemResponse empty.Empty
 
 	SendProprietaryPayloadChan     chan ns.SendProprietaryPayloadRequest
-	SendProprietaryPayloadResponse ns.SendProprietaryPayloadResponse
+	SendProprietaryPayloadResponse empty.Empty
 
 	CreateGatewayChan     chan ns.CreateGatewayRequest
-	CreateGatewayResponse ns.CreateGatewayResponse
+	CreateGatewayResponse empty.Empty
 
 	GetGatewayChan     chan ns.GetGatewayRequest
 	GetGatewayResponse ns.GetGatewayResponse
 
 	UpdateGatewayChan     chan ns.UpdateGatewayRequest
-	UpdateGatewayResponse ns.UpdateGatewayResponse
+	UpdateGatewayResponse empty.Empty
 
 	DeleteGatewayChan     chan ns.DeleteGatewayRequest
-	DeleteGatewayResponse ns.DeleteGatewayResponse
+	DeleteGatewayResponse empty.Empty
 
 	GetGatewayStatsChan     chan ns.GetGatewayStatsRequest
 	GetGatewayStatsResponse ns.GetGatewayStatsResponse
@@ -197,16 +198,16 @@ type NetworkServerClient struct {
 	GetGatewayProfileResponse ns.GetGatewayProfileResponse
 
 	UpdateGatewayProfileChan     chan ns.UpdateGatewayProfileRequest
-	UpdateGatewayProfileResponse ns.UpdateGatewayProfileResponse
+	UpdateGatewayProfileResponse empty.Empty
 
 	DeleteGatewayProfileChan     chan ns.DeleteGatewayProfileRequest
-	DeleteGatewayProfileResponse ns.DeleteGatewayProfileResponse
+	DeleteGatewayProfileResponse empty.Empty
 
 	CreateDeviceQueueItemChan     chan ns.CreateDeviceQueueItemRequest
-	CreateDeviceQueueItemResponse ns.CreateDeviceQueueItemResponse
+	CreateDeviceQueueItemResponse empty.Empty
 
 	FlushDeviceQueueForDevEUIChan     chan ns.FlushDeviceQueueForDevEUIRequest
-	FlushDeviceQueueForDevEUIResponse ns.FlushDeviceQueueForDevEUIResponse
+	FlushDeviceQueueForDevEUIResponse empty.Empty
 
 	GetDeviceQueueItemsForDevEUIChan     chan ns.GetDeviceQueueItemsForDevEUIRequest
 	GetDeviceQueueItemsForDevEUIResponse ns.GetDeviceQueueItemsForDevEUIResponse
@@ -239,7 +240,7 @@ func NewNetworkServerClient() *NetworkServerClient {
 		ActivateDeviceChan:               make(chan ns.ActivateDeviceRequest, 100),
 		DeactivateDeviceChan:             make(chan ns.DeactivateDeviceRequest, 100),
 		GetDeviceActivationChan:          make(chan ns.GetDeviceActivationRequest, 100),
-		GetRandomDevAddrChan:             make(chan ns.GetRandomDevAddrRequest, 100),
+		GetRandomDevAddrChan:             make(chan empty.Empty, 100),
 		CreateMACCommandQueueItemChan:    make(chan ns.CreateMACCommandQueueItemRequest, 100),
 		SendProprietaryPayloadChan:       make(chan ns.SendProprietaryPayloadRequest, 100),
 		CreateGatewayChan:                make(chan ns.CreateGatewayRequest, 100),
@@ -271,13 +272,13 @@ func (n *NetworkServerClient) GetServiceProfile(ctx context.Context, in *ns.GetS
 }
 
 // UpdateServiceProfile method.
-func (n *NetworkServerClient) UpdateServiceProfile(ctx context.Context, in *ns.UpdateServiceProfileRequest, opts ...grpc.CallOption) (*ns.UpdateServiceProfileResponse, error) {
+func (n *NetworkServerClient) UpdateServiceProfile(ctx context.Context, in *ns.UpdateServiceProfileRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.UpdateServiceProfileChan <- *in
 	return &n.UpdateServiceProfileResponse, nil
 }
 
 // DeleteServiceProfile method.
-func (n *NetworkServerClient) DeleteServiceProfile(ctx context.Context, in *ns.DeleteServiceProfileRequest, opts ...grpc.CallOption) (*ns.DeleteServiceProfileResponse, error) {
+func (n *NetworkServerClient) DeleteServiceProfile(ctx context.Context, in *ns.DeleteServiceProfileRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.DeleteServiceProfileChan <- *in
 	return &n.DeleteServiceProfileResponse, nil
 }
@@ -295,13 +296,13 @@ func (n *NetworkServerClient) GetRoutingProfile(ctx context.Context, in *ns.GetR
 }
 
 // UpdateRoutingProfile method.
-func (n *NetworkServerClient) UpdateRoutingProfile(ctx context.Context, in *ns.UpdateRoutingProfileRequest, opts ...grpc.CallOption) (*ns.UpdateRoutingProfileResponse, error) {
+func (n *NetworkServerClient) UpdateRoutingProfile(ctx context.Context, in *ns.UpdateRoutingProfileRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.UpdateRoutingProfileChan <- *in
 	return &n.UpdateRoutingProfileResponse, nil
 }
 
 // DeleteRoutingProfile method.
-func (n *NetworkServerClient) DeleteRoutingProfile(ctx context.Context, in *ns.DeleteRoutingProfileRequest, opts ...grpc.CallOption) (*ns.DeleteRoutingProfileResponse, error) {
+func (n *NetworkServerClient) DeleteRoutingProfile(ctx context.Context, in *ns.DeleteRoutingProfileRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.DeleteRoutingProfileChan <- *in
 	return &n.DeleteRoutingProfileResponse, nil
 }
@@ -319,19 +320,19 @@ func (n *NetworkServerClient) GetDeviceProfile(ctx context.Context, in *ns.GetDe
 }
 
 // UpdateDeviceProfile method.
-func (n *NetworkServerClient) UpdateDeviceProfile(ctx context.Context, in *ns.UpdateDeviceProfileRequest, opts ...grpc.CallOption) (*ns.UpdateDeviceProfileResponse, error) {
+func (n *NetworkServerClient) UpdateDeviceProfile(ctx context.Context, in *ns.UpdateDeviceProfileRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.UpdateDeviceProfileChan <- *in
 	return &n.UpdateDeviceProfileResponse, nil
 }
 
 // DeleteDeviceProfile method.
-func (n *NetworkServerClient) DeleteDeviceProfile(ctx context.Context, in *ns.DeleteDeviceProfileRequest, opts ...grpc.CallOption) (*ns.DeleteDeviceProfileResponse, error) {
+func (n *NetworkServerClient) DeleteDeviceProfile(ctx context.Context, in *ns.DeleteDeviceProfileRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.DeleteDeviceProfileChan <- *in
 	return &n.DeleteDeviceProfileResponse, nil
 }
 
 // CreateDevice method.
-func (n *NetworkServerClient) CreateDevice(ctx context.Context, in *ns.CreateDeviceRequest, opts ...grpc.CallOption) (*ns.CreateDeviceResponse, error) {
+func (n *NetworkServerClient) CreateDevice(ctx context.Context, in *ns.CreateDeviceRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.CreateDeviceChan <- *in
 	return &n.CreateDeviceResponse, nil
 }
@@ -343,19 +344,19 @@ func (n *NetworkServerClient) GetDevice(ctx context.Context, in *ns.GetDeviceReq
 }
 
 // UpdateDevice method.
-func (n *NetworkServerClient) UpdateDevice(ctx context.Context, in *ns.UpdateDeviceRequest, opts ...grpc.CallOption) (*ns.UpdateDeviceResponse, error) {
+func (n *NetworkServerClient) UpdateDevice(ctx context.Context, in *ns.UpdateDeviceRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.UpdateDeviceChan <- *in
 	return &n.UpdateDeviceResponse, nil
 }
 
 // DeleteDevice method.
-func (n *NetworkServerClient) DeleteDevice(ctx context.Context, in *ns.DeleteDeviceRequest, opts ...grpc.CallOption) (*ns.DeleteDeviceResponse, error) {
+func (n *NetworkServerClient) DeleteDevice(ctx context.Context, in *ns.DeleteDeviceRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.DeleteDeviceChan <- *in
 	return &n.DeleteDeviceResponse, nil
 }
 
 // ActivateDevice method.
-func (n *NetworkServerClient) ActivateDevice(ctx context.Context, in *ns.ActivateDeviceRequest, opts ...grpc.CallOption) (*ns.ActivateDeviceResponse, error) {
+func (n *NetworkServerClient) ActivateDevice(ctx context.Context, in *ns.ActivateDeviceRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.ActivateDeviceChan <- *in
 	return &n.ActivateDeviceResponse, nil
 }
@@ -367,13 +368,13 @@ func (n *NetworkServerClient) GetDeviceActivation(ctx context.Context, in *ns.Ge
 }
 
 // DeactivateDevice method.
-func (n *NetworkServerClient) DeactivateDevice(ctx context.Context, in *ns.DeactivateDeviceRequest, opts ...grpc.CallOption) (*ns.DeactivateDeviceResponse, error) {
+func (n *NetworkServerClient) DeactivateDevice(ctx context.Context, in *ns.DeactivateDeviceRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.DeactivateDeviceChan <- *in
 	return &n.DeactivateDeviceResponse, nil
 }
 
 // CreateGateway method.
-func (n *NetworkServerClient) CreateGateway(ctx context.Context, in *ns.CreateGatewayRequest, opts ...grpc.CallOption) (*ns.CreateGatewayResponse, error) {
+func (n *NetworkServerClient) CreateGateway(ctx context.Context, in *ns.CreateGatewayRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.CreateGatewayChan <- *in
 	return &n.CreateGatewayResponse, nil
 }
@@ -385,13 +386,13 @@ func (n *NetworkServerClient) GetGateway(ctx context.Context, in *ns.GetGatewayR
 }
 
 // UpdateGateway method.
-func (n *NetworkServerClient) UpdateGateway(ctx context.Context, in *ns.UpdateGatewayRequest, opts ...grpc.CallOption) (*ns.UpdateGatewayResponse, error) {
+func (n *NetworkServerClient) UpdateGateway(ctx context.Context, in *ns.UpdateGatewayRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.UpdateGatewayChan <- *in
 	return &n.UpdateGatewayResponse, nil
 }
 
 // DeleteGateway method.
-func (n *NetworkServerClient) DeleteGateway(ctx context.Context, in *ns.DeleteGatewayRequest, opts ...grpc.CallOption) (*ns.DeleteGatewayResponse, error) {
+func (n *NetworkServerClient) DeleteGateway(ctx context.Context, in *ns.DeleteGatewayRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.DeleteGatewayChan <- *in
 	return &n.DeleteGatewayResponse, nil
 }
@@ -403,19 +404,19 @@ func (n *NetworkServerClient) GetGatewayStats(ctx context.Context, in *ns.GetGat
 }
 
 // GetRandomDevAddr method.
-func (n *NetworkServerClient) GetRandomDevAddr(ctx context.Context, in *ns.GetRandomDevAddrRequest, opts ...grpc.CallOption) (*ns.GetRandomDevAddrResponse, error) {
+func (n *NetworkServerClient) GetRandomDevAddr(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ns.GetRandomDevAddrResponse, error) {
 	n.GetRandomDevAddrChan <- *in
 	return &n.GetRandomDevAddrResponse, nil
 }
 
 // CreateMACCommandQueueItem method.
-func (n *NetworkServerClient) CreateMACCommandQueueItem(ctx context.Context, in *ns.CreateMACCommandQueueItemRequest, opts ...grpc.CallOption) (*ns.CreateMACCommandQueueItemResponse, error) {
+func (n *NetworkServerClient) CreateMACCommandQueueItem(ctx context.Context, in *ns.CreateMACCommandQueueItemRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.CreateMACCommandQueueItemChan <- *in
 	return &n.CreateMACCommandQueueItemResponse, nil
 }
 
 // SendProprietaryPayload method.
-func (n *NetworkServerClient) SendProprietaryPayload(ctx context.Context, in *ns.SendProprietaryPayloadRequest, opts ...grpc.CallOption) (*ns.SendProprietaryPayloadResponse, error) {
+func (n *NetworkServerClient) SendProprietaryPayload(ctx context.Context, in *ns.SendProprietaryPayloadRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.SendProprietaryPayloadChan <- *in
 	return &n.SendProprietaryPayloadResponse, nil
 }
@@ -433,25 +434,25 @@ func (n *NetworkServerClient) GetGatewayProfile(ctx context.Context, in *ns.GetG
 }
 
 // UpdateGatewayProfile method.
-func (n *NetworkServerClient) UpdateGatewayProfile(ctx context.Context, in *ns.UpdateGatewayProfileRequest, opts ...grpc.CallOption) (*ns.UpdateGatewayProfileResponse, error) {
+func (n *NetworkServerClient) UpdateGatewayProfile(ctx context.Context, in *ns.UpdateGatewayProfileRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.UpdateGatewayProfileChan <- *in
 	return &n.UpdateGatewayProfileResponse, nil
 }
 
 // DeleteGatewayProfile method.
-func (n *NetworkServerClient) DeleteGatewayProfile(ctx context.Context, in *ns.DeleteGatewayProfileRequest, opts ...grpc.CallOption) (*ns.DeleteGatewayProfileResponse, error) {
+func (n *NetworkServerClient) DeleteGatewayProfile(ctx context.Context, in *ns.DeleteGatewayProfileRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.DeleteGatewayProfileChan <- *in
 	return &n.DeleteGatewayProfileResponse, nil
 }
 
 // CreateDeviceQueueItem method.
-func (n NetworkServerClient) CreateDeviceQueueItem(ctx context.Context, in *ns.CreateDeviceQueueItemRequest, opts ...grpc.CallOption) (*ns.CreateDeviceQueueItemResponse, error) {
+func (n NetworkServerClient) CreateDeviceQueueItem(ctx context.Context, in *ns.CreateDeviceQueueItemRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.CreateDeviceQueueItemChan <- *in
 	return &n.CreateDeviceQueueItemResponse, nil
 }
 
 // FlushDeviceQueueForDevEUI method.
-func (n NetworkServerClient) FlushDeviceQueueForDevEUI(ctx context.Context, in *ns.FlushDeviceQueueForDevEUIRequest, opts ...grpc.CallOption) (*ns.FlushDeviceQueueForDevEUIResponse, error) {
+func (n NetworkServerClient) FlushDeviceQueueForDevEUI(ctx context.Context, in *ns.FlushDeviceQueueForDevEUIRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.FlushDeviceQueueForDevEUIChan <- *in
 	return &n.FlushDeviceQueueForDevEUIResponse, nil
 }
@@ -469,16 +470,16 @@ func (n NetworkServerClient) GetNextDownlinkFCntForDevEUI(ctx context.Context, i
 }
 
 // GetVersion method.
-func (n NetworkServerClient) GetVersion(ctx context.Context, in *ns.GetVersionRequest, opts ...grpc.CallOption) (*ns.GetVersionResponse, error) {
+func (n NetworkServerClient) GetVersion(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ns.GetVersionResponse, error) {
 	return &n.GetVersionResponse, nil
 }
 
 // StreamFrameLogsForGateway method.
-func (n NetworkServerClient) StreamFrameLogsForGateway(ctx context.Context, in *ns.StreamFrameLogsForGatewayRequest, opts ...grpc.CallOption) (ns.NetworkServer_StreamFrameLogsForGatewayClient, error) {
+func (n NetworkServerClient) StreamFrameLogsForGateway(ctx context.Context, in *ns.StreamFrameLogsForGatewayRequest, opts ...grpc.CallOption) (ns.NetworkServerService_StreamFrameLogsForGatewayClient, error) {
 	panic("not implemented")
 }
 
 // StreamFrameLogsForDevice method.
-func (n NetworkServerClient) StreamFrameLogsForDevice(ctx context.Context, in *ns.StreamFrameLogsForDeviceRequest, opts ...grpc.CallOption) (ns.NetworkServer_StreamFrameLogsForDeviceClient, error) {
+func (n NetworkServerClient) StreamFrameLogsForDevice(ctx context.Context, in *ns.StreamFrameLogsForDeviceRequest, opts ...grpc.CallOption) (ns.NetworkServerService_StreamFrameLogsForDeviceClient, error) {
 	panic("not implemented")
 }

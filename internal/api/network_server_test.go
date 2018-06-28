@@ -10,7 +10,6 @@ import (
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
-	"github.com/brocaar/lorawan/backend"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
 )
@@ -39,20 +38,24 @@ func TestNetworkServerAPI(t *testing.T) {
 		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		Convey("Then Create creates a network-server", func() {
-			resp, err := api.Create(ctx, &pb.CreateNetworkServerRequest{
-				Name:                        "test ns",
-				Server:                      "test-ns:1234",
-				CaCert:                      "CACERT",
-				TlsCert:                     "TLSCERT",
-				TlsKey:                      "TLSKEY",
-				RoutingProfileCACert:        "RPCACERT",
-				RoutingProfileTLSCert:       "RPTLSCERT",
-				RoutingProfileTLSKey:        "RPTLSKEY",
-				GatewayDiscoveryEnabled:     true,
-				GatewayDiscoveryInterval:    5,
-				GatewayDiscoveryTXFrequency: 868100000,
-				GatewayDiscoveryDR:          5,
-			})
+			createReq := pb.CreateNetworkServerRequest{
+				NetworkServer: &pb.NetworkServer{
+					Name:                        "test ns",
+					Server:                      "test-ns:1234",
+					CaCert:                      "CACERT",
+					TlsCert:                     "TLSCERT",
+					TlsKey:                      "TLSKEY",
+					RoutingProfileCaCert:        "RPCACERT",
+					RoutingProfileTlsCert:       "RPTLSCERT",
+					RoutingProfileTlsKey:        "RPTLSKEY",
+					GatewayDiscoveryEnabled:     true,
+					GatewayDiscoveryInterval:    5,
+					GatewayDiscoveryTxFrequency: 868100000,
+					GatewayDiscoveryDr:          5,
+				},
+			}
+
+			resp, err := api.Create(ctx, &createReq)
 			So(err, ShouldBeNil)
 			So(resp.Id, ShouldBeGreaterThan, 0)
 
@@ -61,8 +64,12 @@ func TestNetworkServerAPI(t *testing.T) {
 					Id: resp.Id,
 				})
 				So(err, ShouldBeNil)
-				So(getResp.Name, ShouldEqual, "test ns")
-				So(getResp.Server, ShouldEqual, "test-ns:1234")
+
+				createReq.NetworkServer.Id = resp.Id
+				createReq.NetworkServer.TlsKey = "" // key is not returned on get
+				createReq.NetworkServer.RoutingProfileTlsKey = ""
+
+				So(getResp.NetworkServer, ShouldResemble, createReq.NetworkServer)
 			})
 
 			Convey("Then the CA and TLS fields are populated", func() {
@@ -77,29 +84,35 @@ func TestNetworkServerAPI(t *testing.T) {
 			})
 
 			Convey("Then Update updates the network-server", func() {
-				_, err := api.Update(ctx, &pb.UpdateNetworkServerRequest{
-					Id:                          resp.Id,
-					Name:                        "updated-test-ns",
-					Server:                      "updated-test-ns:1234",
-					CaCert:                      "CACERT2",
-					TlsCert:                     "TLSCERT2",
-					TlsKey:                      "TLSKEY2",
-					RoutingProfileCACert:        "RPCACERT2",
-					RoutingProfileTLSCert:       "RPTLSCERT2",
-					RoutingProfileTLSKey:        "RPTLSKEY2",
-					GatewayDiscoveryEnabled:     false,
-					GatewayDiscoveryInterval:    1,
-					GatewayDiscoveryTXFrequency: 868300000,
-					GatewayDiscoveryDR:          4,
-				})
+				updateReq := pb.UpdateNetworkServerRequest{
+					NetworkServer: &pb.NetworkServer{
+						Id:                          resp.Id,
+						Name:                        "updated-test-ns",
+						Server:                      "updated-test-ns:1234",
+						CaCert:                      "CACERT2",
+						TlsCert:                     "TLSCERT2",
+						TlsKey:                      "TLSKEY2",
+						RoutingProfileCaCert:        "RPCACERT2",
+						RoutingProfileTlsCert:       "RPTLSCERT2",
+						RoutingProfileTlsKey:        "RPTLSKEY2",
+						GatewayDiscoveryEnabled:     false,
+						GatewayDiscoveryInterval:    1,
+						GatewayDiscoveryTxFrequency: 868300000,
+						GatewayDiscoveryDr:          4,
+					},
+				}
+
+				_, err := api.Update(ctx, &updateReq)
 				So(err, ShouldBeNil)
 
 				getResp, err := api.Get(ctx, &pb.GetNetworkServerRequest{
 					Id: resp.Id,
 				})
 				So(err, ShouldBeNil)
-				So(getResp.Name, ShouldEqual, "updated-test-ns")
-				So(getResp.Server, ShouldEqual, "updated-test-ns:1234")
+
+				updateReq.NetworkServer.TlsKey = "" // is not returned on get
+				updateReq.NetworkServer.RoutingProfileTlsKey = ""
+				So(getResp.NetworkServer, ShouldResemble, updateReq.NetworkServer)
 
 				Convey("Then the network-server is updated", func() {
 					n, err := storage.GetNetworkServer(config.C.PostgreSQL.DB, resp.Id)
@@ -162,14 +175,13 @@ func TestNetworkServerAPI(t *testing.T) {
 					NetworkServerID: resp.Id,
 					OrganizationID:  org.ID,
 					Name:            "test-sp",
-					ServiceProfile:  backend.ServiceProfile{},
 				}
 				So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 
 				Convey("Then List with organization id lists the network-servers for the given organization id", func() {
 					listResp, err := api.List(ctx, &pb.ListNetworkServerRequest{
 						Limit:          10,
-						OrganizationID: org.ID,
+						OrganizationId: org.ID,
 					})
 					So(err, ShouldBeNil)
 					So(listResp.TotalCount, ShouldEqual, 1)
@@ -177,7 +189,7 @@ func TestNetworkServerAPI(t *testing.T) {
 
 					listResp, err = api.List(ctx, &pb.ListNetworkServerRequest{
 						Limit:          10,
-						OrganizationID: org2.ID,
+						OrganizationId: org2.ID,
 					})
 					So(err, ShouldBeNil)
 					So(listResp.TotalCount, ShouldEqual, 0)

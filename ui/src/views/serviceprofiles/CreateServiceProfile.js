@@ -19,7 +19,7 @@ class CreateServiceProfile extends Component {
   }
 
   onSubmit(serviceProfile) {
-    ServiceProfileStore.createServiceProfile(serviceProfile, (responseData) => {
+    ServiceProfileStore.createServiceProfile({serviceProfile: serviceProfile}, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/service-profiles`);
     });
   }

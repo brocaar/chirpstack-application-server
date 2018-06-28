@@ -6,6 +6,8 @@ package api
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import empty "github.com/golang/protobuf/ptypes/empty"
+import timestamp "github.com/golang/protobuf/ptypes/timestamp"
 import _ "google.golang.org/genproto/googleapis/api/annotations"
 
 import (
@@ -24,46 +26,247 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-type CreateNetworkServerRequest struct {
-	// Name of the network-server.
-	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
-	// hostname:ip of the network-server.
-	Server string `protobuf:"bytes,2,opt,name=server" json:"server,omitempty"`
-	// ca certificate for connecting to the network-server
-	CaCert string `protobuf:"bytes,3,opt,name=caCert" json:"caCert,omitempty"`
-	// tls (client) certificate for connecting to the network-server
-	TlsCert string `protobuf:"bytes,4,opt,name=tlsCert" json:"tlsCert,omitempty"`
-	// tls (client) key for connecting to the network-server
-	TlsKey string `protobuf:"bytes,5,opt,name=tlsKey" json:"tlsKey,omitempty"`
-	// routing-profile ca certificate (used by the network-server to connect
-	// back to the application-server)
-	RoutingProfileCACert string `protobuf:"bytes,6,opt,name=routingProfileCACert" json:"routingProfileCACert,omitempty"`
-	// routing-profile tls certificate (used by the network-server to connect
-	// back to the application-server)
-	RoutingProfileTLSCert string `protobuf:"bytes,7,opt,name=routingProfileTLSCert" json:"routingProfileTLSCert,omitempty"`
-	// routing-profile tls key (used by the network-server to connect
-	// back to the application-server)
-	RoutingProfileTLSKey string `protobuf:"bytes,8,opt,name=routingProfileTLSKey" json:"routingProfileTLSKey,omitempty"`
-	// The gateway discovery feature is enabled for gateways provisioned
-	// on this network-server.
-	GatewayDiscoveryEnabled bool `protobuf:"varint,9,opt,name=gatewayDiscoveryEnabled" json:"gatewayDiscoveryEnabled,omitempty"`
+type NetworkServer struct {
+	// Network-server ID.
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Network-server name.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Network-server server.
+	// Format: hostname:ip (e.g. localhost:8000).
+	Server string `protobuf:"bytes,3,opt,name=server,proto3" json:"server,omitempty"`
+	// CA certificate (optional).
+	CaCert string `protobuf:"bytes,4,opt,name=ca_cert,json=caCert,proto3" json:"ca_cert,omitempty"`
+	// TLS (client) certificate for connecting to the network-server (optional).
+	TlsCert string `protobuf:"bytes,5,opt,name=tls_cert,json=tlsCert,proto3" json:"tls_cert,omitempty"`
+	// TLS (client) key for connecting to the network-server (optional).
+	TlsKey string `protobuf:"bytes,6,opt,name=tls_key,json=tlsKey,proto3" json:"tls_key,omitempty"`
+	// Routing-profile ca certificate (used by the network-server to connect
+	// back to the application-server) (optional).
+	RoutingProfileCaCert string `protobuf:"bytes,7,opt,name=routing_profile_ca_cert,json=routingProfileCACert,proto3" json:"routing_profile_ca_cert,omitempty"`
+	// Routing-profile TLS certificate (used by the network-server to connect
+	// back to the application-server) (optional).
+	RoutingProfileTlsCert string `protobuf:"bytes,8,opt,name=routing_profile_tls_cert,json=routingProfileTLSCert,proto3" json:"routing_profile_tls_cert,omitempty"`
+	// Routing-profile TLS key (used by the network-server to connect
+	// back to the application-server) (optional).
+	RoutingProfileTlsKey string `protobuf:"bytes,9,opt,name=routing_profile_tls_key,json=routingProfileTLSKey,proto3" json:"routing_profile_tls_key,omitempty"`
+	// Enable gateway discovery for this network-server.
+	GatewayDiscoveryEnabled bool `protobuf:"varint,10,opt,name=gateway_discovery_enabled,json=gatewayDiscoveryEnabled,proto3" json:"gateway_discovery_enabled,omitempty"`
 	// The number of times per day the gateway discovery 'ping' must be
 	// broadcasted per gateway.
-	GatewayDiscoveryInterval uint32 `protobuf:"varint,10,opt,name=gatewayDiscoveryInterval" json:"gatewayDiscoveryInterval,omitempty"`
+	GatewayDiscoveryInterval uint32 `protobuf:"varint,11,opt,name=gateway_discovery_interval,json=gatewayDiscoveryInterval,proto3" json:"gateway_discovery_interval,omitempty"`
 	// The frequency (Hz) of the gateway discovery 'ping'.
-	GatewayDiscoveryTXFrequency uint32 `protobuf:"varint,11,opt,name=gatewayDiscoveryTXFrequency" json:"gatewayDiscoveryTXFrequency,omitempty"`
+	GatewayDiscoveryTxFrequency uint32 `protobuf:"varint,12,opt,name=gateway_discovery_tx_frequency,json=gatewayDiscoveryTXFrequency,proto3" json:"gateway_discovery_tx_frequency,omitempty"`
 	// The data-rate of the gateway discovery 'ping'.
-	GatewayDiscoveryDR   uint32   `protobuf:"varint,12,opt,name=gatewayDiscoveryDR" json:"gatewayDiscoveryDR,omitempty"`
+	GatewayDiscoveryDr   uint32   `protobuf:"varint,13,opt,name=gateway_discovery_dr,json=gatewayDiscoveryDR,proto3" json:"gateway_discovery_dr,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *NetworkServer) Reset()         { *m = NetworkServer{} }
+func (m *NetworkServer) String() string { return proto.CompactTextString(m) }
+func (*NetworkServer) ProtoMessage()    {}
+func (*NetworkServer) Descriptor() ([]byte, []int) {
+	return fileDescriptor_networkServer_c5636b3563702496, []int{0}
+}
+func (m *NetworkServer) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NetworkServer.Unmarshal(m, b)
+}
+func (m *NetworkServer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NetworkServer.Marshal(b, m, deterministic)
+}
+func (dst *NetworkServer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkServer.Merge(dst, src)
+}
+func (m *NetworkServer) XXX_Size() int {
+	return xxx_messageInfo_NetworkServer.Size(m)
+}
+func (m *NetworkServer) XXX_DiscardUnknown() {
+	xxx_messageInfo_NetworkServer.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NetworkServer proto.InternalMessageInfo
+
+func (m *NetworkServer) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *NetworkServer) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *NetworkServer) GetServer() string {
+	if m != nil {
+		return m.Server
+	}
+	return ""
+}
+
+func (m *NetworkServer) GetCaCert() string {
+	if m != nil {
+		return m.CaCert
+	}
+	return ""
+}
+
+func (m *NetworkServer) GetTlsCert() string {
+	if m != nil {
+		return m.TlsCert
+	}
+	return ""
+}
+
+func (m *NetworkServer) GetTlsKey() string {
+	if m != nil {
+		return m.TlsKey
+	}
+	return ""
+}
+
+func (m *NetworkServer) GetRoutingProfileCaCert() string {
+	if m != nil {
+		return m.RoutingProfileCaCert
+	}
+	return ""
+}
+
+func (m *NetworkServer) GetRoutingProfileTlsCert() string {
+	if m != nil {
+		return m.RoutingProfileTlsCert
+	}
+	return ""
+}
+
+func (m *NetworkServer) GetRoutingProfileTlsKey() string {
+	if m != nil {
+		return m.RoutingProfileTlsKey
+	}
+	return ""
+}
+
+func (m *NetworkServer) GetGatewayDiscoveryEnabled() bool {
+	if m != nil {
+		return m.GatewayDiscoveryEnabled
+	}
+	return false
+}
+
+func (m *NetworkServer) GetGatewayDiscoveryInterval() uint32 {
+	if m != nil {
+		return m.GatewayDiscoveryInterval
+	}
+	return 0
+}
+
+func (m *NetworkServer) GetGatewayDiscoveryTxFrequency() uint32 {
+	if m != nil {
+		return m.GatewayDiscoveryTxFrequency
+	}
+	return 0
+}
+
+func (m *NetworkServer) GetGatewayDiscoveryDr() uint32 {
+	if m != nil {
+		return m.GatewayDiscoveryDr
+	}
+	return 0
+}
+
+type NetworkServerListItem struct {
+	// Network-server ID.
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Network-server name.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Network-server server.
+	// Format: hostname:ip (e.g. localhost:8000).
+	Server string `protobuf:"bytes,3,opt,name=server,proto3" json:"server,omitempty"`
+	// Created at timestamp.
+	CreatedAt *timestamp.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Last update timestamp.
+	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *NetworkServerListItem) Reset()         { *m = NetworkServerListItem{} }
+func (m *NetworkServerListItem) String() string { return proto.CompactTextString(m) }
+func (*NetworkServerListItem) ProtoMessage()    {}
+func (*NetworkServerListItem) Descriptor() ([]byte, []int) {
+	return fileDescriptor_networkServer_c5636b3563702496, []int{1}
+}
+func (m *NetworkServerListItem) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NetworkServerListItem.Unmarshal(m, b)
+}
+func (m *NetworkServerListItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NetworkServerListItem.Marshal(b, m, deterministic)
+}
+func (dst *NetworkServerListItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkServerListItem.Merge(dst, src)
+}
+func (m *NetworkServerListItem) XXX_Size() int {
+	return xxx_messageInfo_NetworkServerListItem.Size(m)
+}
+func (m *NetworkServerListItem) XXX_DiscardUnknown() {
+	xxx_messageInfo_NetworkServerListItem.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NetworkServerListItem proto.InternalMessageInfo
+
+func (m *NetworkServerListItem) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *NetworkServerListItem) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *NetworkServerListItem) GetServer() string {
+	if m != nil {
+		return m.Server
+	}
+	return ""
+}
+
+func (m *NetworkServerListItem) GetCreatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return nil
+}
+
+func (m *NetworkServerListItem) GetUpdatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.UpdatedAt
+	}
+	return nil
+}
+
+type CreateNetworkServerRequest struct {
+	// Network-server object to create.
+	NetworkServer        *NetworkServer `protobuf:"bytes,1,opt,name=network_server,json=networkServer,proto3" json:"network_server,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
+	XXX_unrecognized     []byte         `json:"-"`
+	XXX_sizecache        int32          `json:"-"`
 }
 
 func (m *CreateNetworkServerRequest) Reset()         { *m = CreateNetworkServerRequest{} }
 func (m *CreateNetworkServerRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateNetworkServerRequest) ProtoMessage()    {}
 func (*CreateNetworkServerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{0}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{2}
 }
 func (m *CreateNetworkServerRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateNetworkServerRequest.Unmarshal(m, b)
@@ -83,93 +286,16 @@ func (m *CreateNetworkServerRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateNetworkServerRequest proto.InternalMessageInfo
 
-func (m *CreateNetworkServerRequest) GetName() string {
+func (m *CreateNetworkServerRequest) GetNetworkServer() *NetworkServer {
 	if m != nil {
-		return m.Name
+		return m.NetworkServer
 	}
-	return ""
-}
-
-func (m *CreateNetworkServerRequest) GetServer() string {
-	if m != nil {
-		return m.Server
-	}
-	return ""
-}
-
-func (m *CreateNetworkServerRequest) GetCaCert() string {
-	if m != nil {
-		return m.CaCert
-	}
-	return ""
-}
-
-func (m *CreateNetworkServerRequest) GetTlsCert() string {
-	if m != nil {
-		return m.TlsCert
-	}
-	return ""
-}
-
-func (m *CreateNetworkServerRequest) GetTlsKey() string {
-	if m != nil {
-		return m.TlsKey
-	}
-	return ""
-}
-
-func (m *CreateNetworkServerRequest) GetRoutingProfileCACert() string {
-	if m != nil {
-		return m.RoutingProfileCACert
-	}
-	return ""
-}
-
-func (m *CreateNetworkServerRequest) GetRoutingProfileTLSCert() string {
-	if m != nil {
-		return m.RoutingProfileTLSCert
-	}
-	return ""
-}
-
-func (m *CreateNetworkServerRequest) GetRoutingProfileTLSKey() string {
-	if m != nil {
-		return m.RoutingProfileTLSKey
-	}
-	return ""
-}
-
-func (m *CreateNetworkServerRequest) GetGatewayDiscoveryEnabled() bool {
-	if m != nil {
-		return m.GatewayDiscoveryEnabled
-	}
-	return false
-}
-
-func (m *CreateNetworkServerRequest) GetGatewayDiscoveryInterval() uint32 {
-	if m != nil {
-		return m.GatewayDiscoveryInterval
-	}
-	return 0
-}
-
-func (m *CreateNetworkServerRequest) GetGatewayDiscoveryTXFrequency() uint32 {
-	if m != nil {
-		return m.GatewayDiscoveryTXFrequency
-	}
-	return 0
-}
-
-func (m *CreateNetworkServerRequest) GetGatewayDiscoveryDR() uint32 {
-	if m != nil {
-		return m.GatewayDiscoveryDR
-	}
-	return 0
+	return nil
 }
 
 type CreateNetworkServerResponse struct {
-	// ID of the network-server.
-	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	// Network-server ID.
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -179,7 +305,7 @@ func (m *CreateNetworkServerResponse) Reset()         { *m = CreateNetworkServer
 func (m *CreateNetworkServerResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateNetworkServerResponse) ProtoMessage()    {}
 func (*CreateNetworkServerResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{1}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{3}
 }
 func (m *CreateNetworkServerResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateNetworkServerResponse.Unmarshal(m, b)
@@ -207,8 +333,8 @@ func (m *CreateNetworkServerResponse) GetId() int64 {
 }
 
 type GetNetworkServerRequest struct {
-	// ID of the network-server.
-	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	// Network-server ID.
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -218,7 +344,7 @@ func (m *GetNetworkServerRequest) Reset()         { *m = GetNetworkServerRequest
 func (m *GetNetworkServerRequest) String() string { return proto.CompactTextString(m) }
 func (*GetNetworkServerRequest) ProtoMessage()    {}
 func (*GetNetworkServerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{2}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{4}
 }
 func (m *GetNetworkServerRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetNetworkServerRequest.Unmarshal(m, b)
@@ -246,40 +372,16 @@ func (m *GetNetworkServerRequest) GetId() int64 {
 }
 
 type GetNetworkServerResponse struct {
-	// ID of the network-server.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	// Timestamp when the record was created.
-	CreatedAt string `protobuf:"bytes,2,opt,name=createdAt" json:"createdAt,omitempty"`
-	// Timestamp when the record was last updated.
-	UpdatedAt string `protobuf:"bytes,3,opt,name=updatedAt" json:"updatedAt,omitempty"`
-	// Name of the network-server.
-	Name string `protobuf:"bytes,4,opt,name=name" json:"name,omitempty"`
-	// hostname:ip of the network-server.
-	Server string `protobuf:"bytes,5,opt,name=server" json:"server,omitempty"`
-	// ca certificate for connecting to the network-server
-	CaCert string `protobuf:"bytes,6,opt,name=caCert" json:"caCert,omitempty"`
-	// tls (client) certificate for connecting to the network-server
-	TlsCert string `protobuf:"bytes,7,opt,name=tlsCert" json:"tlsCert,omitempty"`
-	// routing-profile ca certificate (used by the network-server to connect
-	// back to the application-server)
-	RoutingProfileCACert string `protobuf:"bytes,8,opt,name=routingProfileCACert" json:"routingProfileCACert,omitempty"`
-	// routing-profile tls certificate (used by the network-server to connect
-	// back to the application-server)
-	RoutingProfileTLSCert string `protobuf:"bytes,9,opt,name=routingProfileTLSCert" json:"routingProfileTLSCert,omitempty"`
-	// The gateway discovery feature is enabled for gateways provisioned
-	// on this network-server.
-	GatewayDiscoveryEnabled bool `protobuf:"varint,10,opt,name=gatewayDiscoveryEnabled" json:"gatewayDiscoveryEnabled,omitempty"`
-	// The number of times per day the gateway discovery 'ping' must be
-	// broadcasted per gateway.
-	GatewayDiscoveryInterval uint32 `protobuf:"varint,11,opt,name=gatewayDiscoveryInterval" json:"gatewayDiscoveryInterval,omitempty"`
-	// The frequency (Hz) of the gateway discovery 'ping'.
-	GatewayDiscoveryTXFrequency uint32 `protobuf:"varint,12,opt,name=gatewayDiscoveryTXFrequency" json:"gatewayDiscoveryTXFrequency,omitempty"`
-	// The data-rate of the gateway discovery 'ping'.
-	GatewayDiscoveryDR uint32 `protobuf:"varint,13,opt,name=gatewayDiscoveryDR" json:"gatewayDiscoveryDR,omitempty"`
+	// Network-server object.
+	NetworkServer *NetworkServer `protobuf:"bytes,1,opt,name=network_server,json=networkServer,proto3" json:"network_server,omitempty"`
+	// Created at timestamp.
+	CreatedAt *timestamp.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Last update timestamp.
+	UpdatedAt *timestamp.Timestamp `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	// The LoRa Server version.
-	Version string `protobuf:"bytes,14,opt,name=version" json:"version,omitempty"`
+	Version string `protobuf:"bytes,4,opt,name=version,proto3" json:"version,omitempty"`
 	// The LoRa Server region configured.
-	Region               string   `protobuf:"bytes,15,opt,name=region" json:"region,omitempty"`
+	Region               string   `protobuf:"bytes,5,opt,name=region,proto3" json:"region,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -289,7 +391,7 @@ func (m *GetNetworkServerResponse) Reset()         { *m = GetNetworkServerRespon
 func (m *GetNetworkServerResponse) String() string { return proto.CompactTextString(m) }
 func (*GetNetworkServerResponse) ProtoMessage()    {}
 func (*GetNetworkServerResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{3}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{5}
 }
 func (m *GetNetworkServerResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetNetworkServerResponse.Unmarshal(m, b)
@@ -309,95 +411,25 @@ func (m *GetNetworkServerResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetNetworkServerResponse proto.InternalMessageInfo
 
-func (m *GetNetworkServerResponse) GetId() int64 {
+func (m *GetNetworkServerResponse) GetNetworkServer() *NetworkServer {
 	if m != nil {
-		return m.Id
+		return m.NetworkServer
 	}
-	return 0
+	return nil
 }
 
-func (m *GetNetworkServerResponse) GetCreatedAt() string {
+func (m *GetNetworkServerResponse) GetCreatedAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.CreatedAt
 	}
-	return ""
+	return nil
 }
 
-func (m *GetNetworkServerResponse) GetUpdatedAt() string {
+func (m *GetNetworkServerResponse) GetUpdatedAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.UpdatedAt
 	}
-	return ""
-}
-
-func (m *GetNetworkServerResponse) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *GetNetworkServerResponse) GetServer() string {
-	if m != nil {
-		return m.Server
-	}
-	return ""
-}
-
-func (m *GetNetworkServerResponse) GetCaCert() string {
-	if m != nil {
-		return m.CaCert
-	}
-	return ""
-}
-
-func (m *GetNetworkServerResponse) GetTlsCert() string {
-	if m != nil {
-		return m.TlsCert
-	}
-	return ""
-}
-
-func (m *GetNetworkServerResponse) GetRoutingProfileCACert() string {
-	if m != nil {
-		return m.RoutingProfileCACert
-	}
-	return ""
-}
-
-func (m *GetNetworkServerResponse) GetRoutingProfileTLSCert() string {
-	if m != nil {
-		return m.RoutingProfileTLSCert
-	}
-	return ""
-}
-
-func (m *GetNetworkServerResponse) GetGatewayDiscoveryEnabled() bool {
-	if m != nil {
-		return m.GatewayDiscoveryEnabled
-	}
-	return false
-}
-
-func (m *GetNetworkServerResponse) GetGatewayDiscoveryInterval() uint32 {
-	if m != nil {
-		return m.GatewayDiscoveryInterval
-	}
-	return 0
-}
-
-func (m *GetNetworkServerResponse) GetGatewayDiscoveryTXFrequency() uint32 {
-	if m != nil {
-		return m.GatewayDiscoveryTXFrequency
-	}
-	return 0
-}
-
-func (m *GetNetworkServerResponse) GetGatewayDiscoveryDR() uint32 {
-	if m != nil {
-		return m.GatewayDiscoveryDR
-	}
-	return 0
+	return nil
 }
 
 func (m *GetNetworkServerResponse) GetVersion() string {
@@ -415,47 +447,18 @@ func (m *GetNetworkServerResponse) GetRegion() string {
 }
 
 type UpdateNetworkServerRequest struct {
-	// ID of the network-server.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	// Name of the network-server.
-	Name string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
-	// hostname:ip of the network-server.
-	Server string `protobuf:"bytes,3,opt,name=server" json:"server,omitempty"`
-	// ca certificate for connecting to the network-server
-	CaCert string `protobuf:"bytes,4,opt,name=caCert" json:"caCert,omitempty"`
-	// tls (client) certificate for connecting to the network-server
-	TlsCert string `protobuf:"bytes,5,opt,name=tlsCert" json:"tlsCert,omitempty"`
-	// tls (client) key for connecting to the network-server
-	TlsKey string `protobuf:"bytes,6,opt,name=tlsKey" json:"tlsKey,omitempty"`
-	// routing-profile ca certificate (used by the network-server to connect
-	// back to the application-server)
-	RoutingProfileCACert string `protobuf:"bytes,7,opt,name=routingProfileCACert" json:"routingProfileCACert,omitempty"`
-	// routing-profile tls certificate (used by the network-server to connect
-	// back to the application-server)
-	RoutingProfileTLSCert string `protobuf:"bytes,8,opt,name=routingProfileTLSCert" json:"routingProfileTLSCert,omitempty"`
-	// routing-profile tls key (used by the network-server to connect
-	// back to the application-server)
-	RoutingProfileTLSKey string `protobuf:"bytes,9,opt,name=routingProfileTLSKey" json:"routingProfileTLSKey,omitempty"`
-	// The gateway discovery feature is enabled for gateways provisioned
-	// on this network-server.
-	GatewayDiscoveryEnabled bool `protobuf:"varint,10,opt,name=gatewayDiscoveryEnabled" json:"gatewayDiscoveryEnabled,omitempty"`
-	// The interval in which the gateway discovery 'pings' are broadcasted.
-	// (requests / day).
-	GatewayDiscoveryInterval uint32 `protobuf:"varint,11,opt,name=gatewayDiscoveryInterval" json:"gatewayDiscoveryInterval,omitempty"`
-	// The frequency (Hz) of the gateway discovery 'ping'.
-	GatewayDiscoveryTXFrequency uint32 `protobuf:"varint,12,opt,name=gatewayDiscoveryTXFrequency" json:"gatewayDiscoveryTXFrequency,omitempty"`
-	// The data-rate of the gateway discovery 'ping'.
-	GatewayDiscoveryDR   uint32   `protobuf:"varint,13,opt,name=gatewayDiscoveryDR" json:"gatewayDiscoveryDR,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Network-server object to update.
+	NetworkServer        *NetworkServer `protobuf:"bytes,1,opt,name=network_server,json=networkServer,proto3" json:"network_server,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
+	XXX_unrecognized     []byte         `json:"-"`
+	XXX_sizecache        int32          `json:"-"`
 }
 
 func (m *UpdateNetworkServerRequest) Reset()         { *m = UpdateNetworkServerRequest{} }
 func (m *UpdateNetworkServerRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateNetworkServerRequest) ProtoMessage()    {}
 func (*UpdateNetworkServerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{4}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{6}
 }
 func (m *UpdateNetworkServerRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateNetworkServerRequest.Unmarshal(m, b)
@@ -475,130 +478,16 @@ func (m *UpdateNetworkServerRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateNetworkServerRequest proto.InternalMessageInfo
 
-func (m *UpdateNetworkServerRequest) GetId() int64 {
+func (m *UpdateNetworkServerRequest) GetNetworkServer() *NetworkServer {
 	if m != nil {
-		return m.Id
+		return m.NetworkServer
 	}
-	return 0
+	return nil
 }
-
-func (m *UpdateNetworkServerRequest) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *UpdateNetworkServerRequest) GetServer() string {
-	if m != nil {
-		return m.Server
-	}
-	return ""
-}
-
-func (m *UpdateNetworkServerRequest) GetCaCert() string {
-	if m != nil {
-		return m.CaCert
-	}
-	return ""
-}
-
-func (m *UpdateNetworkServerRequest) GetTlsCert() string {
-	if m != nil {
-		return m.TlsCert
-	}
-	return ""
-}
-
-func (m *UpdateNetworkServerRequest) GetTlsKey() string {
-	if m != nil {
-		return m.TlsKey
-	}
-	return ""
-}
-
-func (m *UpdateNetworkServerRequest) GetRoutingProfileCACert() string {
-	if m != nil {
-		return m.RoutingProfileCACert
-	}
-	return ""
-}
-
-func (m *UpdateNetworkServerRequest) GetRoutingProfileTLSCert() string {
-	if m != nil {
-		return m.RoutingProfileTLSCert
-	}
-	return ""
-}
-
-func (m *UpdateNetworkServerRequest) GetRoutingProfileTLSKey() string {
-	if m != nil {
-		return m.RoutingProfileTLSKey
-	}
-	return ""
-}
-
-func (m *UpdateNetworkServerRequest) GetGatewayDiscoveryEnabled() bool {
-	if m != nil {
-		return m.GatewayDiscoveryEnabled
-	}
-	return false
-}
-
-func (m *UpdateNetworkServerRequest) GetGatewayDiscoveryInterval() uint32 {
-	if m != nil {
-		return m.GatewayDiscoveryInterval
-	}
-	return 0
-}
-
-func (m *UpdateNetworkServerRequest) GetGatewayDiscoveryTXFrequency() uint32 {
-	if m != nil {
-		return m.GatewayDiscoveryTXFrequency
-	}
-	return 0
-}
-
-func (m *UpdateNetworkServerRequest) GetGatewayDiscoveryDR() uint32 {
-	if m != nil {
-		return m.GatewayDiscoveryDR
-	}
-	return 0
-}
-
-type UpdateNetworkServerResponse struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpdateNetworkServerResponse) Reset()         { *m = UpdateNetworkServerResponse{} }
-func (m *UpdateNetworkServerResponse) String() string { return proto.CompactTextString(m) }
-func (*UpdateNetworkServerResponse) ProtoMessage()    {}
-func (*UpdateNetworkServerResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{5}
-}
-func (m *UpdateNetworkServerResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateNetworkServerResponse.Unmarshal(m, b)
-}
-func (m *UpdateNetworkServerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateNetworkServerResponse.Marshal(b, m, deterministic)
-}
-func (dst *UpdateNetworkServerResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateNetworkServerResponse.Merge(dst, src)
-}
-func (m *UpdateNetworkServerResponse) XXX_Size() int {
-	return xxx_messageInfo_UpdateNetworkServerResponse.Size(m)
-}
-func (m *UpdateNetworkServerResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateNetworkServerResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateNetworkServerResponse proto.InternalMessageInfo
 
 type DeleteNetworkServerRequest struct {
-	// ID of the network-server.
-	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	// Network-server ID.
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -608,7 +497,7 @@ func (m *DeleteNetworkServerRequest) Reset()         { *m = DeleteNetworkServerR
 func (m *DeleteNetworkServerRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteNetworkServerRequest) ProtoMessage()    {}
 func (*DeleteNetworkServerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{6}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{7}
 }
 func (m *DeleteNetworkServerRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteNetworkServerRequest.Unmarshal(m, b)
@@ -635,43 +524,13 @@ func (m *DeleteNetworkServerRequest) GetId() int64 {
 	return 0
 }
 
-type DeleteNetworkServerResponse struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *DeleteNetworkServerResponse) Reset()         { *m = DeleteNetworkServerResponse{} }
-func (m *DeleteNetworkServerResponse) String() string { return proto.CompactTextString(m) }
-func (*DeleteNetworkServerResponse) ProtoMessage()    {}
-func (*DeleteNetworkServerResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{7}
-}
-func (m *DeleteNetworkServerResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeleteNetworkServerResponse.Unmarshal(m, b)
-}
-func (m *DeleteNetworkServerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeleteNetworkServerResponse.Marshal(b, m, deterministic)
-}
-func (dst *DeleteNetworkServerResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteNetworkServerResponse.Merge(dst, src)
-}
-func (m *DeleteNetworkServerResponse) XXX_Size() int {
-	return xxx_messageInfo_DeleteNetworkServerResponse.Size(m)
-}
-func (m *DeleteNetworkServerResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeleteNetworkServerResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DeleteNetworkServerResponse proto.InternalMessageInfo
-
 type ListNetworkServerRequest struct {
 	// Max number of items to return.
-	Limit int64 `protobuf:"varint,1,opt,name=limit" json:"limit,omitempty"`
+	Limit int64 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
 	// Offset in the result-set (for pagination).
-	Offset int64 `protobuf:"varint,2,opt,name=offset" json:"offset,omitempty"`
+	Offset int64 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
 	// Organization id to filter on.
-	OrganizationID       int64    `protobuf:"varint,3,opt,name=organizationID" json:"organizationID,omitempty"`
+	OrganizationId       int64    `protobuf:"varint,3,opt,name=organization_id,json=organizationID,proto3" json:"organization_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -681,7 +540,7 @@ func (m *ListNetworkServerRequest) Reset()         { *m = ListNetworkServerReque
 func (m *ListNetworkServerRequest) String() string { return proto.CompactTextString(m) }
 func (*ListNetworkServerRequest) ProtoMessage()    {}
 func (*ListNetworkServerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{8}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{8}
 }
 func (m *ListNetworkServerRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListNetworkServerRequest.Unmarshal(m, b)
@@ -715,28 +574,28 @@ func (m *ListNetworkServerRequest) GetOffset() int64 {
 	return 0
 }
 
-func (m *ListNetworkServerRequest) GetOrganizationID() int64 {
+func (m *ListNetworkServerRequest) GetOrganizationId() int64 {
 	if m != nil {
-		return m.OrganizationID
+		return m.OrganizationId
 	}
 	return 0
 }
 
 type ListNetworkServerResponse struct {
 	// Total number of network-servers.
-	TotalCount int64 `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
+	TotalCount int64 `protobuf:"varint,1,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
 	// Network-servers within the result-set.
-	Result               []*GetNetworkServerResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
-	XXX_unrecognized     []byte                      `json:"-"`
-	XXX_sizecache        int32                       `json:"-"`
+	Result               []*NetworkServerListItem `protobuf:"bytes,2,rep,name=result,proto3" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
+	XXX_unrecognized     []byte                   `json:"-"`
+	XXX_sizecache        int32                    `json:"-"`
 }
 
 func (m *ListNetworkServerResponse) Reset()         { *m = ListNetworkServerResponse{} }
 func (m *ListNetworkServerResponse) String() string { return proto.CompactTextString(m) }
 func (*ListNetworkServerResponse) ProtoMessage()    {}
 func (*ListNetworkServerResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_networkServer_4c10e9cf61681e4d, []int{9}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{9}
 }
 func (m *ListNetworkServerResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListNetworkServerResponse.Unmarshal(m, b)
@@ -763,7 +622,7 @@ func (m *ListNetworkServerResponse) GetTotalCount() int64 {
 	return 0
 }
 
-func (m *ListNetworkServerResponse) GetResult() []*GetNetworkServerResponse {
+func (m *ListNetworkServerResponse) GetResult() []*NetworkServerListItem {
 	if m != nil {
 		return m.Result
 	}
@@ -771,14 +630,14 @@ func (m *ListNetworkServerResponse) GetResult() []*GetNetworkServerResponse {
 }
 
 func init() {
+	proto.RegisterType((*NetworkServer)(nil), "api.NetworkServer")
+	proto.RegisterType((*NetworkServerListItem)(nil), "api.NetworkServerListItem")
 	proto.RegisterType((*CreateNetworkServerRequest)(nil), "api.CreateNetworkServerRequest")
 	proto.RegisterType((*CreateNetworkServerResponse)(nil), "api.CreateNetworkServerResponse")
 	proto.RegisterType((*GetNetworkServerRequest)(nil), "api.GetNetworkServerRequest")
 	proto.RegisterType((*GetNetworkServerResponse)(nil), "api.GetNetworkServerResponse")
 	proto.RegisterType((*UpdateNetworkServerRequest)(nil), "api.UpdateNetworkServerRequest")
-	proto.RegisterType((*UpdateNetworkServerResponse)(nil), "api.UpdateNetworkServerResponse")
 	proto.RegisterType((*DeleteNetworkServerRequest)(nil), "api.DeleteNetworkServerRequest")
-	proto.RegisterType((*DeleteNetworkServerResponse)(nil), "api.DeleteNetworkServerResponse")
 	proto.RegisterType((*ListNetworkServerRequest)(nil), "api.ListNetworkServerRequest")
 	proto.RegisterType((*ListNetworkServerResponse)(nil), "api.ListNetworkServerResponse")
 }
@@ -791,262 +650,265 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// NetworkServerClient is the client API for NetworkServer service.
+// NetworkServerServiceClient is the client API for NetworkServerService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type NetworkServerClient interface {
+type NetworkServerServiceClient interface {
 	// Create creates the given network-server.
 	Create(ctx context.Context, in *CreateNetworkServerRequest, opts ...grpc.CallOption) (*CreateNetworkServerResponse, error)
 	// Get returns the network-server matching the given id.
 	Get(ctx context.Context, in *GetNetworkServerRequest, opts ...grpc.CallOption) (*GetNetworkServerResponse, error)
 	// Update updates the given network-server.
-	Update(ctx context.Context, in *UpdateNetworkServerRequest, opts ...grpc.CallOption) (*UpdateNetworkServerResponse, error)
+	Update(ctx context.Context, in *UpdateNetworkServerRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Delete deletes the network-server matching the given id.
-	Delete(ctx context.Context, in *DeleteNetworkServerRequest, opts ...grpc.CallOption) (*DeleteNetworkServerResponse, error)
+	Delete(ctx context.Context, in *DeleteNetworkServerRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// List lists the available network-servers.
 	List(ctx context.Context, in *ListNetworkServerRequest, opts ...grpc.CallOption) (*ListNetworkServerResponse, error)
 }
 
-type networkServerClient struct {
+type networkServerServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewNetworkServerClient(cc *grpc.ClientConn) NetworkServerClient {
-	return &networkServerClient{cc}
+func NewNetworkServerServiceClient(cc *grpc.ClientConn) NetworkServerServiceClient {
+	return &networkServerServiceClient{cc}
 }
 
-func (c *networkServerClient) Create(ctx context.Context, in *CreateNetworkServerRequest, opts ...grpc.CallOption) (*CreateNetworkServerResponse, error) {
+func (c *networkServerServiceClient) Create(ctx context.Context, in *CreateNetworkServerRequest, opts ...grpc.CallOption) (*CreateNetworkServerResponse, error) {
 	out := new(CreateNetworkServerResponse)
-	err := c.cc.Invoke(ctx, "/api.NetworkServer/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.NetworkServerService/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *networkServerClient) Get(ctx context.Context, in *GetNetworkServerRequest, opts ...grpc.CallOption) (*GetNetworkServerResponse, error) {
+func (c *networkServerServiceClient) Get(ctx context.Context, in *GetNetworkServerRequest, opts ...grpc.CallOption) (*GetNetworkServerResponse, error) {
 	out := new(GetNetworkServerResponse)
-	err := c.cc.Invoke(ctx, "/api.NetworkServer/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.NetworkServerService/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *networkServerClient) Update(ctx context.Context, in *UpdateNetworkServerRequest, opts ...grpc.CallOption) (*UpdateNetworkServerResponse, error) {
-	out := new(UpdateNetworkServerResponse)
-	err := c.cc.Invoke(ctx, "/api.NetworkServer/Update", in, out, opts...)
+func (c *networkServerServiceClient) Update(ctx context.Context, in *UpdateNetworkServerRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.NetworkServerService/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *networkServerClient) Delete(ctx context.Context, in *DeleteNetworkServerRequest, opts ...grpc.CallOption) (*DeleteNetworkServerResponse, error) {
-	out := new(DeleteNetworkServerResponse)
-	err := c.cc.Invoke(ctx, "/api.NetworkServer/Delete", in, out, opts...)
+func (c *networkServerServiceClient) Delete(ctx context.Context, in *DeleteNetworkServerRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.NetworkServerService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *networkServerClient) List(ctx context.Context, in *ListNetworkServerRequest, opts ...grpc.CallOption) (*ListNetworkServerResponse, error) {
+func (c *networkServerServiceClient) List(ctx context.Context, in *ListNetworkServerRequest, opts ...grpc.CallOption) (*ListNetworkServerResponse, error) {
 	out := new(ListNetworkServerResponse)
-	err := c.cc.Invoke(ctx, "/api.NetworkServer/List", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.NetworkServerService/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for NetworkServer service
-
-type NetworkServerServer interface {
+// NetworkServerServiceServer is the server API for NetworkServerService service.
+type NetworkServerServiceServer interface {
 	// Create creates the given network-server.
 	Create(context.Context, *CreateNetworkServerRequest) (*CreateNetworkServerResponse, error)
 	// Get returns the network-server matching the given id.
 	Get(context.Context, *GetNetworkServerRequest) (*GetNetworkServerResponse, error)
 	// Update updates the given network-server.
-	Update(context.Context, *UpdateNetworkServerRequest) (*UpdateNetworkServerResponse, error)
+	Update(context.Context, *UpdateNetworkServerRequest) (*empty.Empty, error)
 	// Delete deletes the network-server matching the given id.
-	Delete(context.Context, *DeleteNetworkServerRequest) (*DeleteNetworkServerResponse, error)
+	Delete(context.Context, *DeleteNetworkServerRequest) (*empty.Empty, error)
 	// List lists the available network-servers.
 	List(context.Context, *ListNetworkServerRequest) (*ListNetworkServerResponse, error)
 }
 
-func RegisterNetworkServerServer(s *grpc.Server, srv NetworkServerServer) {
-	s.RegisterService(&_NetworkServer_serviceDesc, srv)
+func RegisterNetworkServerServiceServer(s *grpc.Server, srv NetworkServerServiceServer) {
+	s.RegisterService(&_NetworkServerService_serviceDesc, srv)
 }
 
-func _NetworkServer_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _NetworkServerService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateNetworkServerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NetworkServerServer).Create(ctx, in)
+		return srv.(NetworkServerServiceServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.NetworkServer/Create",
+		FullMethod: "/api.NetworkServerService/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NetworkServerServer).Create(ctx, req.(*CreateNetworkServerRequest))
+		return srv.(NetworkServerServiceServer).Create(ctx, req.(*CreateNetworkServerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NetworkServer_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _NetworkServerService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetNetworkServerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NetworkServerServer).Get(ctx, in)
+		return srv.(NetworkServerServiceServer).Get(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.NetworkServer/Get",
+		FullMethod: "/api.NetworkServerService/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NetworkServerServer).Get(ctx, req.(*GetNetworkServerRequest))
+		return srv.(NetworkServerServiceServer).Get(ctx, req.(*GetNetworkServerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NetworkServer_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _NetworkServerService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateNetworkServerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NetworkServerServer).Update(ctx, in)
+		return srv.(NetworkServerServiceServer).Update(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.NetworkServer/Update",
+		FullMethod: "/api.NetworkServerService/Update",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NetworkServerServer).Update(ctx, req.(*UpdateNetworkServerRequest))
+		return srv.(NetworkServerServiceServer).Update(ctx, req.(*UpdateNetworkServerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NetworkServer_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _NetworkServerService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteNetworkServerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NetworkServerServer).Delete(ctx, in)
+		return srv.(NetworkServerServiceServer).Delete(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.NetworkServer/Delete",
+		FullMethod: "/api.NetworkServerService/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NetworkServerServer).Delete(ctx, req.(*DeleteNetworkServerRequest))
+		return srv.(NetworkServerServiceServer).Delete(ctx, req.(*DeleteNetworkServerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NetworkServer_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _NetworkServerService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListNetworkServerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NetworkServerServer).List(ctx, in)
+		return srv.(NetworkServerServiceServer).List(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.NetworkServer/List",
+		FullMethod: "/api.NetworkServerService/List",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NetworkServerServer).List(ctx, req.(*ListNetworkServerRequest))
+		return srv.(NetworkServerServiceServer).List(ctx, req.(*ListNetworkServerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _NetworkServer_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "api.NetworkServer",
-	HandlerType: (*NetworkServerServer)(nil),
+var _NetworkServerService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "api.NetworkServerService",
+	HandlerType: (*NetworkServerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Create",
-			Handler:    _NetworkServer_Create_Handler,
+			Handler:    _NetworkServerService_Create_Handler,
 		},
 		{
 			MethodName: "Get",
-			Handler:    _NetworkServer_Get_Handler,
+			Handler:    _NetworkServerService_Get_Handler,
 		},
 		{
 			MethodName: "Update",
-			Handler:    _NetworkServer_Update_Handler,
+			Handler:    _NetworkServerService_Update_Handler,
 		},
 		{
 			MethodName: "Delete",
-			Handler:    _NetworkServer_Delete_Handler,
+			Handler:    _NetworkServerService_Delete_Handler,
 		},
 		{
 			MethodName: "List",
-			Handler:    _NetworkServer_List_Handler,
+			Handler:    _NetworkServerService_List_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "networkServer.proto",
 }
 
-func init() { proto.RegisterFile("networkServer.proto", fileDescriptor_networkServer_4c10e9cf61681e4d) }
+func init() { proto.RegisterFile("networkServer.proto", fileDescriptor_networkServer_c5636b3563702496) }
 
-var fileDescriptor_networkServer_4c10e9cf61681e4d = []byte{
-	// 746 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x96, 0xcd, 0x6e, 0x13, 0x3b,
-	0x14, 0xc7, 0x95, 0xcc, 0x64, 0x92, 0x9c, 0x7e, 0x5c, 0xc9, 0xb7, 0xb7, 0x9d, 0x26, 0x69, 0x9b,
-	0x3b, 0xba, 0xba, 0x0a, 0x15, 0x4d, 0xa5, 0x02, 0x12, 0xea, 0x8a, 0x2a, 0x81, 0xaa, 0xa2, 0x42,
-	0x68, 0x5a, 0x24, 0xb6, 0xd3, 0xc4, 0x8d, 0x2c, 0xa6, 0x76, 0xea, 0x71, 0x52, 0x05, 0xc4, 0x86,
-	0x57, 0x60, 0xc3, 0x23, 0xb0, 0xe0, 0x41, 0xd8, 0xf3, 0x0a, 0x3c, 0x08, 0xf2, 0x47, 0xbf, 0x52,
-	0x7b, 0x54, 0x85, 0x1d, 0xbb, 0x9c, 0xf3, 0x3f, 0xc7, 0xff, 0xf1, 0xf8, 0x97, 0x33, 0x86, 0xbf,
-	0x29, 0x16, 0x17, 0x8c, 0xbf, 0x3b, 0xc2, 0x7c, 0x8c, 0x79, 0x7b, 0xc8, 0x99, 0x60, 0xc8, 0x4b,
-	0x86, 0xa4, 0xd6, 0x18, 0x30, 0x36, 0x48, 0xf1, 0x76, 0x32, 0x24, 0xdb, 0x09, 0xa5, 0x4c, 0x24,
-	0x82, 0x30, 0x9a, 0xe9, 0x92, 0xe8, 0x8b, 0x0f, 0xb5, 0x0e, 0xc7, 0x89, 0xc0, 0xaf, 0x6e, 0x2e,
-	0x10, 0xe3, 0xf3, 0x11, 0xce, 0x04, 0x42, 0xe0, 0xd3, 0xe4, 0x0c, 0x87, 0x85, 0x66, 0xa1, 0x55,
-	0x8d, 0xd5, 0x6f, 0xb4, 0x0c, 0x41, 0xa6, 0x8a, 0xc2, 0xa2, 0xca, 0x9a, 0x48, 0xe6, 0x7b, 0x49,
-	0x07, 0x73, 0x11, 0x7a, 0x3a, 0xaf, 0x23, 0x14, 0x42, 0x59, 0xa4, 0x99, 0x12, 0x7c, 0x25, 0x5c,
-	0x86, 0xb2, 0x43, 0xa4, 0xd9, 0x4b, 0x3c, 0x09, 0x4b, 0xba, 0x43, 0x47, 0x68, 0x07, 0x96, 0x38,
-	0x1b, 0x09, 0x42, 0x07, 0xaf, 0x39, 0x3b, 0x25, 0x29, 0xee, 0xec, 0xa9, 0xf6, 0x40, 0x55, 0x59,
-	0x35, 0xf4, 0x18, 0xfe, 0xb9, 0x9d, 0x3f, 0x3e, 0x3c, 0x52, 0x4d, 0x65, 0xd5, 0x64, 0x17, 0xef,
-	0x3a, 0x1d, 0x1f, 0x1e, 0xc9, 0xe7, 0xa9, 0xd8, 0x9c, 0xb4, 0x86, 0x9e, 0xc2, 0xca, 0x20, 0x11,
-	0xf8, 0x22, 0x99, 0x74, 0x49, 0xd6, 0x63, 0x63, 0xcc, 0x27, 0xcf, 0x69, 0x72, 0x92, 0xe2, 0x7e,
-	0x58, 0x6d, 0x16, 0x5a, 0x95, 0xd8, 0x25, 0xa3, 0x5d, 0x08, 0xa7, 0xa5, 0x03, 0x2a, 0x30, 0x1f,
-	0x27, 0x69, 0x08, 0xcd, 0x42, 0x6b, 0x21, 0x76, 0xea, 0xe8, 0x19, 0xd4, 0xa7, 0xb5, 0xe3, 0xb7,
-	0x2f, 0xb8, 0x3c, 0x27, 0xda, 0x9b, 0x84, 0x73, 0xaa, 0x3d, 0xaf, 0x04, 0xb5, 0x01, 0x4d, 0xcb,
-	0xdd, 0x38, 0x9c, 0x57, 0x8d, 0x16, 0x25, 0xda, 0x82, 0xba, 0x95, 0x8c, 0x6c, 0xc8, 0x68, 0x86,
-	0xd1, 0x22, 0x14, 0x49, 0x5f, 0x81, 0xe1, 0xc5, 0x45, 0xd2, 0x8f, 0x1e, 0xc0, 0xca, 0x3e, 0x16,
-	0x56, 0x8a, 0xa6, 0x4b, 0xbf, 0xfb, 0x10, 0xde, 0xad, 0xb5, 0xaf, 0x8b, 0x1a, 0x50, 0xed, 0xa9,
-	0xc7, 0xe8, 0xef, 0x09, 0x43, 0xdc, 0x75, 0x42, 0xaa, 0xa3, 0x61, 0xdf, 0xa8, 0x9a, 0xbb, 0xeb,
-	0xc4, 0x15, 0xbe, 0xbe, 0x15, 0xdf, 0x92, 0x03, 0xdf, 0xc0, 0x85, 0x6f, 0xf9, 0x36, 0xbe, 0x2e,
-	0x4c, 0x2b, 0xb3, 0x60, 0x5a, 0xcd, 0xc3, 0x34, 0x07, 0x39, 0x98, 0x1d, 0xb9, 0xb9, 0xdf, 0x43,
-	0x6e, 0x7e, 0x56, 0xe4, 0x16, 0x5c, 0xc8, 0xc9, 0x77, 0x3d, 0xc6, 0x3c, 0x23, 0x8c, 0x86, 0x8b,
-	0xfa, 0x5d, 0x9b, 0x50, 0x9e, 0x0e, 0xc7, 0x03, 0x29, 0xfc, 0xa5, 0x4f, 0x47, 0x47, 0xd1, 0x57,
-	0x1f, 0x6a, 0x6f, 0xd4, 0x79, 0xdf, 0x87, 0xbc, 0x2b, 0x20, 0x8a, 0x56, 0x20, 0x3c, 0x07, 0x10,
-	0xbe, 0x0b, 0x88, 0x92, 0x6b, 0x9e, 0x05, 0xf7, 0x9a, 0x67, 0xe5, 0x59, 0x40, 0xa9, 0xcc, 0x32,
-	0xcf, 0xaa, 0xb3, 0xcd, 0xb3, 0x3f, 0x09, 0xae, 0x68, 0x0d, 0xea, 0x56, 0x52, 0xf4, 0xdc, 0x89,
-	0x1e, 0x42, 0xad, 0x8b, 0x53, 0x7c, 0x3f, 0x90, 0xe4, 0x62, 0xd6, 0x6a, 0xb3, 0xd8, 0x10, 0xc2,
-	0x43, 0x92, 0xd9, 0xa7, 0xe1, 0x12, 0x94, 0x52, 0x72, 0x46, 0x84, 0x59, 0x4d, 0x07, 0x92, 0x1d,
-	0x76, 0x7a, 0x9a, 0x61, 0x3d, 0xe3, 0xbc, 0xd8, 0x44, 0xe8, 0x7f, 0x58, 0x64, 0x7c, 0x90, 0x50,
-	0xf2, 0x5e, 0x7d, 0xb7, 0x0f, 0xba, 0x8a, 0x52, 0x2f, 0x9e, 0xca, 0x46, 0x1c, 0x56, 0x2d, 0x8e,
-	0x66, 0xa6, 0xae, 0x03, 0x08, 0x26, 0x92, 0xb4, 0xc3, 0x46, 0xf4, 0xd2, 0xf7, 0x46, 0x06, 0x3d,
-	0x91, 0xff, 0xae, 0x6c, 0x94, 0x4a, 0x73, 0xaf, 0x35, 0xb7, 0xb3, 0xd6, 0x4e, 0x86, 0xa4, 0xed,
-	0x1a, 0xd1, 0xb1, 0x29, 0xde, 0xf9, 0xe6, 0xc3, 0xc2, 0xad, 0x0a, 0x94, 0x42, 0xa0, 0xbf, 0x19,
-	0x68, 0x43, 0x2d, 0xe1, 0xbe, 0x5a, 0xd4, 0x9a, 0xee, 0x02, 0xf3, 0x12, 0x37, 0x3e, 0xfd, 0xf8,
-	0xf9, 0xb9, 0xb8, 0x1a, 0x2d, 0xa9, 0xbb, 0x8b, 0xb9, 0xe0, 0x6c, 0xe9, 0x7f, 0x67, 0xb6, 0x5b,
-	0xd8, 0x44, 0x18, 0xbc, 0x7d, 0x2c, 0x50, 0xc3, 0xf1, 0xb4, 0xda, 0x27, 0x7f, 0x2f, 0xd1, 0xbf,
-	0xca, 0xa4, 0x8e, 0x56, 0x6d, 0x26, 0xdb, 0x1f, 0x48, 0xff, 0x23, 0x3a, 0x87, 0x40, 0x83, 0x63,
-	0x36, 0xe5, 0x9e, 0x37, 0x66, 0x53, 0x79, 0x98, 0xfd, 0xa7, 0xfc, 0xd6, 0x6b, 0x6e, 0x3f, 0xb9,
-	0x33, 0x0a, 0x81, 0xc6, 0xcb, 0x58, 0xba, 0xc9, 0x34, 0x96, 0x79, 0x30, 0x9a, 0x2d, 0x6e, 0xe6,
-	0x6c, 0xb1, 0x07, 0xbe, 0xa4, 0x07, 0xe9, 0x97, 0xe5, 0x42, 0xb7, 0xb6, 0xee, 0x92, 0x8d, 0x53,
-	0x43, 0x39, 0x2d, 0x23, 0xeb, 0x89, 0x9d, 0x04, 0xea, 0xca, 0xf9, 0xe8, 0x57, 0x00, 0x00, 0x00,
-	0xff, 0xff, 0xbc, 0xab, 0x70, 0x95, 0xac, 0x0a, 0x00, 0x00,
+var fileDescriptor_networkServer_c5636b3563702496 = []byte{
+	// 810 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xdd, 0x6e, 0xe3, 0x44,
+	0x14, 0x96, 0xe3, 0x34, 0x6d, 0x4f, 0x69, 0x91, 0x86, 0x6c, 0xe3, 0xb8, 0x65, 0x1b, 0x7c, 0x43,
+	0x58, 0xd1, 0x04, 0x75, 0x85, 0x10, 0x2b, 0x6e, 0xaa, 0x64, 0x59, 0x55, 0x54, 0x08, 0xb9, 0x41,
+	0x70, 0x67, 0x4d, 0xed, 0x93, 0x68, 0xb4, 0x8e, 0xc7, 0x3b, 0x9e, 0x64, 0x09, 0x68, 0x6f, 0x78,
+	0x05, 0xde, 0x03, 0xf1, 0x1a, 0x5c, 0xf3, 0x0a, 0xbc, 0x06, 0x12, 0x9a, 0x1f, 0xa3, 0x8d, 0x63,
+	0x83, 0x58, 0xb8, 0x89, 0x32, 0xfe, 0xbe, 0xef, 0x7c, 0x33, 0xe7, 0x7c, 0x63, 0xc3, 0x3b, 0x19,
+	0xca, 0x97, 0x5c, 0x3c, 0xbf, 0x43, 0xb1, 0x46, 0x31, 0xca, 0x05, 0x97, 0x9c, 0xb8, 0x34, 0x67,
+	0xfe, 0xf9, 0x82, 0xf3, 0x45, 0x8a, 0x63, 0x9a, 0xb3, 0x31, 0xcd, 0x32, 0x2e, 0xa9, 0x64, 0x3c,
+	0x2b, 0x0c, 0xc5, 0xbf, 0xb0, 0xa8, 0x5e, 0xdd, 0xaf, 0xe6, 0x63, 0xc9, 0x96, 0x58, 0x48, 0xba,
+	0xcc, 0x2d, 0xe1, 0xac, 0x4a, 0xc0, 0x65, 0x2e, 0x37, 0x06, 0x0c, 0x7e, 0x69, 0xc3, 0xf1, 0x97,
+	0xaf, 0x1b, 0x93, 0x13, 0x68, 0xb1, 0xc4, 0x73, 0x06, 0xce, 0xd0, 0x0d, 0x5b, 0x2c, 0x21, 0x04,
+	0xda, 0x19, 0x5d, 0xa2, 0xd7, 0x1a, 0x38, 0xc3, 0xc3, 0x50, 0xff, 0x27, 0xa7, 0xd0, 0x29, 0x34,
+	0xdb, 0x73, 0xf5, 0x53, 0xbb, 0x22, 0x3d, 0xd8, 0x8f, 0x69, 0x14, 0xa3, 0x90, 0x5e, 0xdb, 0x00,
+	0x31, 0x9d, 0xa0, 0x90, 0xa4, 0x0f, 0x07, 0x32, 0x2d, 0x0c, 0xb2, 0xa7, 0x91, 0x7d, 0x99, 0x16,
+	0x1a, 0xea, 0x81, 0xfa, 0x1b, 0x3d, 0xc7, 0x8d, 0xd7, 0x31, 0x1a, 0x99, 0x16, 0x5f, 0xe0, 0x86,
+	0x7c, 0x0c, 0x3d, 0xc1, 0x57, 0x92, 0x65, 0x8b, 0x28, 0x17, 0x7c, 0xce, 0x52, 0x8c, 0xca, 0xe2,
+	0xfb, 0x9a, 0xd8, 0xb5, 0xf0, 0x57, 0x06, 0x9d, 0x5c, 0xeb, 0x7a, 0x9f, 0x80, 0x57, 0x95, 0xfd,
+	0x65, 0x7d, 0xa0, 0x75, 0x0f, 0xb6, 0x75, 0xb3, 0xdb, 0x3b, 0x2d, 0xac, 0xf1, 0x2b, 0x37, 0x76,
+	0x58, 0xe7, 0x37, 0xbb, 0xbd, 0x53, 0xdb, 0x7c, 0x02, 0xfd, 0x05, 0x95, 0xf8, 0x92, 0x6e, 0xa2,
+	0x84, 0x15, 0x31, 0x5f, 0xa3, 0xd8, 0x44, 0x98, 0xd1, 0xfb, 0x14, 0x13, 0x0f, 0x06, 0xce, 0xf0,
+	0x20, 0xec, 0x59, 0xc2, 0xb4, 0xc4, 0x9f, 0x1a, 0x98, 0x7c, 0x06, 0xfe, 0xae, 0x96, 0x65, 0x12,
+	0xc5, 0x9a, 0xa6, 0xde, 0xd1, 0xc0, 0x19, 0x1e, 0x87, 0x5e, 0x55, 0x7c, 0x63, 0x71, 0x32, 0x81,
+	0x87, 0xbb, 0x6a, 0xf9, 0x5d, 0x34, 0x17, 0xf8, 0x62, 0x85, 0x59, 0xbc, 0xf1, 0xde, 0xd2, 0x15,
+	0xce, 0xaa, 0x15, 0x66, 0xdf, 0x7e, 0x5e, 0x52, 0xc8, 0x47, 0xd0, 0xdd, 0x2d, 0x92, 0x08, 0xef,
+	0x58, 0x4b, 0x49, 0x55, 0x3a, 0x0d, 0x83, 0x5f, 0x1d, 0x78, 0xb0, 0x15, 0x99, 0x5b, 0x56, 0xc8,
+	0x1b, 0x89, 0xcb, 0xff, 0x14, 0x9d, 0x4f, 0x01, 0x62, 0x81, 0x54, 0x62, 0x12, 0x51, 0x93, 0x9e,
+	0xa3, 0x2b, 0x7f, 0x64, 0xa2, 0x3b, 0x2a, 0xa3, 0x3b, 0x9a, 0x95, 0xd9, 0x0e, 0x0f, 0x2d, 0xfb,
+	0x5a, 0x2a, 0xe9, 0x2a, 0x4f, 0x4a, 0xe9, 0xde, 0x3f, 0x4b, 0x2d, 0xfb, 0x5a, 0x06, 0xdf, 0x80,
+	0x3f, 0xd1, 0x75, 0xb6, 0x0e, 0x14, 0xaa, 0xe6, 0x14, 0xaa, 0xf0, 0x89, 0xbd, 0x94, 0x91, 0xdd,
+	0xb3, 0xa3, 0x8b, 0x93, 0x11, 0xcd, 0xd9, 0x68, 0x5b, 0x72, 0xbc, 0x75, 0x7d, 0x83, 0x4b, 0x38,
+	0xab, 0x2d, 0x5c, 0xe4, 0x3c, 0x2b, 0xb0, 0xda, 0xa9, 0xe0, 0x03, 0xe8, 0x3d, 0x43, 0x59, 0xbb,
+	0x89, 0x2a, 0xf5, 0x0f, 0x07, 0xbc, 0x5d, 0xae, 0xad, 0xfb, 0xe6, 0x3b, 0xae, 0x0c, 0xa0, 0xf5,
+	0xe6, 0x03, 0x70, 0xff, 0xc5, 0x00, 0x88, 0x07, 0xfb, 0x6b, 0x14, 0x05, 0xe3, 0x99, 0x7d, 0x63,
+	0x94, 0x4b, 0x15, 0x14, 0x81, 0x0b, 0x05, 0x98, 0x17, 0x86, 0x5d, 0xa9, 0x91, 0x7d, 0xad, 0xe5,
+	0xff, 0xf7, 0xc8, 0x3e, 0x04, 0x7f, 0x8a, 0x29, 0x36, 0x14, 0xae, 0x8e, 0xe1, 0x05, 0x78, 0x2a,
+	0xf7, 0xb5, 0xdc, 0x2e, 0xec, 0xa5, 0x6c, 0xc9, 0xa4, 0xa5, 0x9b, 0x85, 0x3a, 0x10, 0x9f, 0xcf,
+	0x0b, 0x34, 0xcd, 0x75, 0x43, 0xbb, 0x22, 0xef, 0xc3, 0xdb, 0x5c, 0x2c, 0x68, 0xc6, 0xbe, 0xd7,
+	0xef, 0xf5, 0x88, 0x25, 0xba, 0x85, 0x6e, 0x78, 0xf2, 0xfa, 0xe3, 0x9b, 0x69, 0x90, 0x43, 0xbf,
+	0xc6, 0xd2, 0x4e, 0xfe, 0x02, 0x8e, 0x24, 0x97, 0x34, 0x8d, 0x62, 0xbe, 0xca, 0x4a, 0x67, 0xd0,
+	0x8f, 0x26, 0xea, 0x09, 0xb9, 0x52, 0xfd, 0x2c, 0x56, 0xa9, 0xb2, 0x77, 0xf5, 0x80, 0x76, 0x3a,
+	0x52, 0x5e, 0xe4, 0xd0, 0x32, 0xaf, 0x7e, 0x6e, 0x43, 0x77, 0x8b, 0xa1, 0x7e, 0x59, 0x8c, 0x24,
+	0x85, 0x8e, 0x89, 0x37, 0xb9, 0xd0, 0x65, 0x9a, 0x2f, 0x91, 0x3f, 0x68, 0x26, 0x98, 0xad, 0x07,
+	0x17, 0x3f, 0xfe, 0xf6, 0xfb, 0x4f, 0xad, 0x7e, 0xd0, 0xd5, 0x5f, 0x38, 0x3b, 0x94, 0x4b, 0x33,
+	0xbe, 0xe2, 0x89, 0xf3, 0x88, 0x20, 0xb8, 0xcf, 0x50, 0x92, 0x73, 0x5d, 0xa9, 0xe1, 0x9e, 0xf8,
+	0xef, 0x36, 0xa0, 0xd6, 0xe4, 0x3d, 0x6d, 0x72, 0x46, 0xfa, 0x75, 0x26, 0xe3, 0x1f, 0x58, 0xf2,
+	0x8a, 0xac, 0xa1, 0x63, 0x92, 0x65, 0x0f, 0xd5, 0x1c, 0x33, 0xff, 0x74, 0x27, 0xdd, 0x4f, 0xd5,
+	0x47, 0x35, 0x78, 0xac, 0x5d, 0x2e, 0xfd, 0x61, 0xbd, 0xcb, 0x76, 0x34, 0x47, 0x2c, 0x79, 0xa5,
+	0x8e, 0x97, 0x40, 0xc7, 0x04, 0xcf, 0xfa, 0x36, 0xa7, 0xb0, 0xd1, 0xd7, 0x9e, 0xee, 0xd1, 0xdf,
+	0x9c, 0x2e, 0x86, 0xb6, 0x9a, 0x2f, 0x31, 0x7d, 0x6a, 0xca, 0xae, 0xff, 0xb0, 0x09, 0xb6, 0x7d,
+	0x3c, 0xd7, 0x4e, 0xa7, 0xa4, 0x76, 0x58, 0xf7, 0x1d, 0xbd, 0xaf, 0xc7, 0x7f, 0x06, 0x00, 0x00,
+	0xff, 0xff, 0x2f, 0x2e, 0xd5, 0xe2, 0xcd, 0x08, 0x00, 0x00,
 }

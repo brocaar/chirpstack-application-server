@@ -10,7 +10,7 @@ class ServiceProfileRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`/organizations/${this.props.organizationID}/service-profiles/${this.props.serviceProfile.serviceProfileID}`}>{this.props.serviceProfile.name}</Link></td>
+        <td><Link to={`/organizations/${this.props.organizationID}/service-profiles/${this.props.serviceProfile.id}`}>{this.props.serviceProfile.name}</Link></td>
       </tr>
     );
   }

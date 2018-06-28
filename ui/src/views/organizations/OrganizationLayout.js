@@ -51,7 +51,7 @@ class OrganizationLayout extends Component {
 
     OrganizationStore.getOrganization(this.props.match.params.organizationID, (org) => {
       this.setState({
-        organization: org,
+        organization: org.organization,
       });
     });
 

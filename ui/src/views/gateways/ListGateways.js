@@ -35,7 +35,7 @@ class GatewayRow extends Component {
 
 
   componentWillMount() {
-    GatewayStore.getGatewayStats(this.props.gateway.mac, "DAY", moment().subtract(29, 'days').toISOString(), moment().toISOString(), (records) => {
+    GatewayStore.getGatewayStats(this.props.gateway.id, "DAY", moment().subtract(29, 'days').toISOString(), moment().toISOString(), (records) => {
       let stats = this.state.stats;
       for (const record of records) {
         stats.labels.push(record.timestamp);
@@ -51,7 +51,7 @@ class GatewayRow extends Component {
   render() {
     return(
       <tr>
-        <td><Link to={`/organizations/${this.props.gateway.organizationID}/gateways/${this.props.gateway.mac}`}>{this.props.gateway.name}</Link></td>
+        <td><Link to={`/organizations/${this.props.gateway.organizationID}/gateways/${this.props.gateway.id}`}>{this.props.gateway.name}</Link></td>
         <td>{this.props.gateway.mac}</td>
         <td>
           <Bar width="380" height="23" data={this.state.stats} options={this.state.options} />

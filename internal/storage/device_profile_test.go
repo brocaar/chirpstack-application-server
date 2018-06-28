@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/satori/go.uuid"
+
 	"github.com/brocaar/loraserver/api/ns"
 
 	"github.com/brocaar/lora-app-server/internal/config"
@@ -51,85 +53,45 @@ func TestDeviceProfile(t *testing.T) {
 				NetworkServerID: n.ID,
 				OrganizationID:  org.ID,
 				Name:            "device-profile",
-				DeviceProfile: backend.DeviceProfile{
+				DeviceProfile: ns.DeviceProfile{
 					SupportsClassB:     true,
 					ClassBTimeout:      10,
 					PingSlotPeriod:     20,
-					PingSlotDR:         5,
-					PingSlotFreq:       868100000,
-					SupportsClassC:     true,
-					ClassCTimeout:      30,
-					MACVersion:         "1.0.2",
-					RegParamsRevision:  "B",
-					RXDelay1:           1,
-					RXDROffset1:        1,
-					RXDataRate2:        6,
-					RXFreq2:            868300000,
-					FactoryPresetFreqs: []backend.Frequency{868100000, 868300000, 868500000},
-					MaxEIRP:            14,
-					MaxDutyCycle:       10,
-					SupportsJoin:       true,
-					RFRegion:           backend.EU868,
-					Supports32bitFCnt:  true,
-				},
-			}
-			So(CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
-			dp.CreatedAt = dp.CreatedAt.UTC().Truncate(time.Millisecond)
-			dp.UpdatedAt = dp.UpdatedAt.UTC().Truncate(time.Millisecond)
-
-			So(nsClient.CreateDeviceProfileChan, ShouldHaveLength, 1)
-			So(<-nsClient.CreateDeviceProfileChan, ShouldResemble, ns.CreateDeviceProfileRequest{
-				DeviceProfile: &ns.DeviceProfile{
-					DeviceProfileID:    dp.DeviceProfile.DeviceProfileID,
-					SupportsClassB:     true,
-					ClassBTimeout:      10,
-					PingSlotPeriod:     20,
-					PingSlotDR:         5,
+					PingSlotDr:         5,
 					PingSlotFreq:       868100000,
 					SupportsClassC:     true,
 					ClassCTimeout:      30,
 					MacVersion:         "1.0.2",
 					RegParamsRevision:  "B",
-					RxDelay1:           1,
-					RxDROffset1:        1,
-					RxDataRate2:        6,
-					RxFreq2:            868300000,
+					RxDelay_1:          1,
+					RxDrOffset_1:       1,
+					RxDatarate_2:       6,
+					RxFreq_2:           868300000,
 					FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000},
-					MaxEIRP:            14,
+					MaxEirp:            14,
 					MaxDutyCycle:       10,
 					SupportsJoin:       true,
-					RfRegion:           "EU868",
-					Supports32BitFCnt:  true,
+					RfRegion:           string(backend.EU868),
+					Supports_32BitFCnt: true,
 				},
+			}
+			So(CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
+			dp.CreatedAt = dp.CreatedAt.UTC().Truncate(time.Millisecond)
+			dp.UpdatedAt = dp.UpdatedAt.UTC().Truncate(time.Millisecond)
+			dp.DeviceProfile.XXX_sizecache = 0
+			dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
+			So(err, ShouldBeNil)
+
+			So(nsClient.CreateDeviceProfileChan, ShouldHaveLength, 1)
+			So(<-nsClient.CreateDeviceProfileChan, ShouldResemble, ns.CreateDeviceProfileRequest{
+				DeviceProfile: &dp.DeviceProfile,
 			})
 
 			Convey("Then GetDeviceProfile returns the device-profile", func() {
 				nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
-					DeviceProfile: &ns.DeviceProfile{
-						DeviceProfileID:    dp.DeviceProfile.DeviceProfileID,
-						SupportsClassB:     true,
-						ClassBTimeout:      10,
-						PingSlotPeriod:     20,
-						PingSlotDR:         5,
-						PingSlotFreq:       868100000,
-						SupportsClassC:     true,
-						ClassCTimeout:      30,
-						MacVersion:         "1.0.2",
-						RegParamsRevision:  "B",
-						RxDelay1:           1,
-						RxDROffset1:        1,
-						RxDataRate2:        6,
-						RxFreq2:            868300000,
-						FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000},
-						MaxEIRP:            14,
-						MaxDutyCycle:       10,
-						SupportsJoin:       true,
-						RfRegion:           "EU868",
-						Supports32BitFCnt:  true,
-					},
+					DeviceProfile: &dp.DeviceProfile,
 				}
-
-				dpGet, err := GetDeviceProfile(config.C.PostgreSQL.DB, dp.DeviceProfile.DeviceProfileID)
+				dpGet, err := GetDeviceProfile(config.C.PostgreSQL.DB, dpID)
 				So(err, ShouldBeNil)
 				dpGet.CreatedAt = dpGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				dpGet.UpdatedAt = dpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -139,57 +101,36 @@ func TestDeviceProfile(t *testing.T) {
 
 			Convey("Then UpdateDeviceProfile updates the device-profile", func() {
 				dp.Name = "updated-device-profile"
-				dp.DeviceProfile = backend.DeviceProfile{
-					DeviceProfileID:    dp.DeviceProfile.DeviceProfileID,
+				dp.DeviceProfile = ns.DeviceProfile{
+					Id:                 dp.DeviceProfile.Id,
 					SupportsClassB:     true,
 					ClassBTimeout:      11,
 					PingSlotPeriod:     21,
-					PingSlotDR:         6,
+					PingSlotDr:         6,
 					PingSlotFreq:       868300000,
 					SupportsClassC:     true,
 					ClassCTimeout:      31,
-					MACVersion:         "1.1.0",
+					MacVersion:         "1.1.0",
 					RegParamsRevision:  "B",
-					RXDelay1:           2,
-					RXDROffset1:        2,
-					RXDataRate2:        5,
-					RXFreq2:            868500000,
-					FactoryPresetFreqs: []backend.Frequency{868100000, 868300000, 868500000, 868700000},
-					MaxEIRP:            17,
+					RxDelay_1:          2,
+					RxDrOffset_1:       2,
+					RxDatarate_2:       5,
+					RxFreq_2:           868500000,
+					FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000, 868700000},
+					MaxEirp:            17,
 					MaxDutyCycle:       1,
 					SupportsJoin:       true,
-					RFRegion:           backend.EU868,
-					Supports32bitFCnt:  true,
+					RfRegion:           string(backend.EU868),
+					Supports_32BitFCnt: true,
 				}
 				So(UpdateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
 				dp.UpdatedAt = dp.UpdatedAt.UTC().Truncate(time.Millisecond)
 				So(nsClient.UpdateDeviceProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.UpdateDeviceProfileChan, ShouldResemble, ns.UpdateDeviceProfileRequest{
-					DeviceProfile: &ns.DeviceProfile{
-						DeviceProfileID:    dp.DeviceProfile.DeviceProfileID,
-						SupportsClassB:     true,
-						ClassBTimeout:      11,
-						PingSlotPeriod:     21,
-						PingSlotDR:         6,
-						PingSlotFreq:       868300000,
-						SupportsClassC:     true,
-						ClassCTimeout:      31,
-						MacVersion:         "1.1.0",
-						RegParamsRevision:  "B",
-						RxDelay1:           2,
-						RxDROffset1:        2,
-						RxDataRate2:        5,
-						RxFreq2:            868500000,
-						FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000, 868700000},
-						MaxEIRP:            17,
-						MaxDutyCycle:       1,
-						SupportsJoin:       true,
-						RfRegion:           "EU868",
-						Supports32BitFCnt:  true,
-					},
+					DeviceProfile: &dp.DeviceProfile,
 				})
 
-				dpGet, err := GetDeviceProfile(config.C.PostgreSQL.DB, dp.DeviceProfile.DeviceProfileID)
+				dpGet, err := GetDeviceProfile(config.C.PostgreSQL.DB, dpID)
 				So(err, ShouldBeNil)
 				dpGet.UpdatedAt = dpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
 				So(dpGet.Name, ShouldEqual, "updated-device-profile")
@@ -197,13 +138,13 @@ func TestDeviceProfile(t *testing.T) {
 			})
 
 			Convey("Then DeleteDeviceProfile deletes the device-profile", func() {
-				So(DeleteDeviceProfile(config.C.PostgreSQL.DB, dp.DeviceProfile.DeviceProfileID), ShouldBeNil)
+				So(DeleteDeviceProfile(config.C.PostgreSQL.DB, dpID), ShouldBeNil)
 				So(nsClient.DeleteDeviceProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.DeleteDeviceProfileChan, ShouldResemble, ns.DeleteDeviceProfileRequest{
-					DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+					Id: dp.DeviceProfile.Id,
 				})
 
-				_, err := GetDeviceProfile(config.C.PostgreSQL.DB, dp.DeviceProfile.DeviceProfileID)
+				_, err := GetDeviceProfile(config.C.PostgreSQL.DB, dpID)
 				So(err, ShouldEqual, ErrDoesNotExist)
 			})
 
@@ -240,7 +181,7 @@ func TestDeviceProfile(t *testing.T) {
 				So(dps[0].Name, ShouldEqual, dp.Name)
 				So(dps[0].OrganizationID, ShouldEqual, dp.OrganizationID)
 				So(dps[0].NetworkServerID, ShouldEqual, dp.NetworkServerID)
-				So(dps[0].DeviceProfileID, ShouldEqual, dp.DeviceProfile.DeviceProfileID)
+				So(dps[0].DeviceProfileID, ShouldEqual, dpID)
 			})
 
 			Convey("Then GetDeviceProfilesForOrganizationID returns the device-profiles for the given organization", func() {
@@ -276,6 +217,8 @@ func TestDeviceProfile(t *testing.T) {
 					OrganizationID:  org.ID,
 				}
 				So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp1), ShouldBeNil)
+				sp1ID, err := uuid.FromBytes(sp1.ServiceProfile.Id)
+				So(err, ShouldBeNil)
 
 				sp2 := ServiceProfile{
 					Name:            "test-sp-2",
@@ -283,12 +226,14 @@ func TestDeviceProfile(t *testing.T) {
 					OrganizationID:  org.ID,
 				}
 				So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp2), ShouldBeNil)
+				sp2ID, err := uuid.FromBytes(sp2.ServiceProfile.Id)
+				So(err, ShouldBeNil)
 
 				app1 := Application{
 					Name:             "test-app",
 					Description:      "test app",
 					OrganizationID:   org.ID,
-					ServiceProfileID: sp1.ServiceProfile.ServiceProfileID,
+					ServiceProfileID: sp1ID,
 				}
 				So(CreateApplication(config.C.PostgreSQL.DB, &app1), ShouldBeNil)
 
@@ -296,7 +241,7 @@ func TestDeviceProfile(t *testing.T) {
 					Name:             "test-app-2",
 					Description:      "test app 2",
 					OrganizationID:   org.ID,
-					ServiceProfileID: sp2.ServiceProfile.ServiceProfileID,
+					ServiceProfileID: sp2ID,
 				}
 				So(CreateApplication(config.C.PostgreSQL.DB, &app2), ShouldBeNil)
 
@@ -314,7 +259,7 @@ func TestDeviceProfile(t *testing.T) {
 					dps, err := GetDeviceProfilesForApplicationID(config.C.PostgreSQL.DB, app1.ID, 10, 0)
 					So(err, ShouldBeNil)
 					So(dps, ShouldHaveLength, 1)
-					So(dps[0].DeviceProfileID, ShouldEqual, dp.DeviceProfile.DeviceProfileID)
+					So(dps[0].DeviceProfileID, ShouldEqual, dpID)
 
 					dps, err = GetDeviceProfilesForApplicationID(config.C.PostgreSQL.DB, app2.ID, 10, 0)
 					So(err, ShouldBeNil)

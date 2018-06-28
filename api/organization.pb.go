@@ -6,6 +6,8 @@ package api
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import empty "github.com/golang/protobuf/ptypes/empty"
+import timestamp "github.com/golang/protobuf/ptypes/timestamp"
 import _ "google.golang.org/genproto/googleapis/api/annotations"
 
 import (
@@ -24,98 +26,189 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-// Request the organizations defined in the system.
-type ListOrganizationRequest struct {
-	// Max number of organizations to return in the result-set.
-	Limit int32 `protobuf:"varint,1,opt,name=limit" json:"limit,omitempty"`
-	// Offset in the result-set (for pagination).
-	Offset int32 `protobuf:"varint,2,opt,name=offset" json:"offset,omitempty"`
-	// When provided, the given string will be used to search on
-	// displayName.
-	Search               string   `protobuf:"bytes,3,opt,name=search" json:"search,omitempty"`
+type Organization struct {
+	// Organization ID.
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Organization name.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Organization display name.
+	DisplayName string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// Can the organization create and "own" Gateways?
+	CanHaveGateways      bool     `protobuf:"varint,4,opt,name=can_have_gateways,json=canHaveGateways,proto3" json:"can_have_gateways,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListOrganizationRequest) Reset()         { *m = ListOrganizationRequest{} }
-func (m *ListOrganizationRequest) String() string { return proto.CompactTextString(m) }
-func (*ListOrganizationRequest) ProtoMessage()    {}
-func (*ListOrganizationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{0}
+func (m *Organization) Reset()         { *m = Organization{} }
+func (m *Organization) String() string { return proto.CompactTextString(m) }
+func (*Organization) ProtoMessage()    {}
+func (*Organization) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{0}
 }
-func (m *ListOrganizationRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ListOrganizationRequest.Unmarshal(m, b)
+func (m *Organization) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Organization.Unmarshal(m, b)
 }
-func (m *ListOrganizationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ListOrganizationRequest.Marshal(b, m, deterministic)
+func (m *Organization) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Organization.Marshal(b, m, deterministic)
 }
-func (dst *ListOrganizationRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListOrganizationRequest.Merge(dst, src)
+func (dst *Organization) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Organization.Merge(dst, src)
 }
-func (m *ListOrganizationRequest) XXX_Size() int {
-	return xxx_messageInfo_ListOrganizationRequest.Size(m)
+func (m *Organization) XXX_Size() int {
+	return xxx_messageInfo_Organization.Size(m)
 }
-func (m *ListOrganizationRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListOrganizationRequest.DiscardUnknown(m)
+func (m *Organization) XXX_DiscardUnknown() {
+	xxx_messageInfo_Organization.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ListOrganizationRequest proto.InternalMessageInfo
+var xxx_messageInfo_Organization proto.InternalMessageInfo
 
-func (m *ListOrganizationRequest) GetLimit() int32 {
+func (m *Organization) GetId() int64 {
 	if m != nil {
-		return m.Limit
+		return m.Id
 	}
 	return 0
 }
 
-func (m *ListOrganizationRequest) GetOffset() int32 {
+func (m *Organization) GetName() string {
 	if m != nil {
-		return m.Offset
-	}
-	return 0
-}
-
-func (m *ListOrganizationRequest) GetSearch() string {
-	if m != nil {
-		return m.Search
+		return m.Name
 	}
 	return ""
 }
 
-// Request the user information.
-type OrganizationRequest struct {
-	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+func (m *Organization) GetDisplayName() string {
+	if m != nil {
+		return m.DisplayName
+	}
+	return ""
+}
+
+func (m *Organization) GetCanHaveGateways() bool {
+	if m != nil {
+		return m.CanHaveGateways
+	}
+	return false
+}
+
+type OrganizationListItem struct {
+	// Organization ID.
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Organization name.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Organization display name.
+	DisplayName string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// Can the organization create and "own" Gateways?
+	CanHaveGateways bool `protobuf:"varint,4,opt,name=can_have_gateways,json=canHaveGateways,proto3" json:"can_have_gateways,omitempty"`
+	// Created at timestamp.
+	CreatedAt *timestamp.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Last update timestamp.
+	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *OrganizationListItem) Reset()         { *m = OrganizationListItem{} }
+func (m *OrganizationListItem) String() string { return proto.CompactTextString(m) }
+func (*OrganizationListItem) ProtoMessage()    {}
+func (*OrganizationListItem) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{1}
+}
+func (m *OrganizationListItem) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_OrganizationListItem.Unmarshal(m, b)
+}
+func (m *OrganizationListItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_OrganizationListItem.Marshal(b, m, deterministic)
+}
+func (dst *OrganizationListItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OrganizationListItem.Merge(dst, src)
+}
+func (m *OrganizationListItem) XXX_Size() int {
+	return xxx_messageInfo_OrganizationListItem.Size(m)
+}
+func (m *OrganizationListItem) XXX_DiscardUnknown() {
+	xxx_messageInfo_OrganizationListItem.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_OrganizationListItem proto.InternalMessageInfo
+
+func (m *OrganizationListItem) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *OrganizationListItem) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *OrganizationListItem) GetDisplayName() string {
+	if m != nil {
+		return m.DisplayName
+	}
+	return ""
+}
+
+func (m *OrganizationListItem) GetCanHaveGateways() bool {
+	if m != nil {
+		return m.CanHaveGateways
+	}
+	return false
+}
+
+func (m *OrganizationListItem) GetCreatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return nil
+}
+
+func (m *OrganizationListItem) GetUpdatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.UpdatedAt
+	}
+	return nil
+}
+
+type GetOrganizationRequest struct {
+	// Organization ID.
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *OrganizationRequest) Reset()         { *m = OrganizationRequest{} }
-func (m *OrganizationRequest) String() string { return proto.CompactTextString(m) }
-func (*OrganizationRequest) ProtoMessage()    {}
-func (*OrganizationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{1}
+func (m *GetOrganizationRequest) Reset()         { *m = GetOrganizationRequest{} }
+func (m *GetOrganizationRequest) String() string { return proto.CompactTextString(m) }
+func (*GetOrganizationRequest) ProtoMessage()    {}
+func (*GetOrganizationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{2}
 }
-func (m *OrganizationRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_OrganizationRequest.Unmarshal(m, b)
+func (m *GetOrganizationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetOrganizationRequest.Unmarshal(m, b)
 }
-func (m *OrganizationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_OrganizationRequest.Marshal(b, m, deterministic)
+func (m *GetOrganizationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetOrganizationRequest.Marshal(b, m, deterministic)
 }
-func (dst *OrganizationRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_OrganizationRequest.Merge(dst, src)
+func (dst *GetOrganizationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetOrganizationRequest.Merge(dst, src)
 }
-func (m *OrganizationRequest) XXX_Size() int {
-	return xxx_messageInfo_OrganizationRequest.Size(m)
+func (m *GetOrganizationRequest) XXX_Size() int {
+	return xxx_messageInfo_GetOrganizationRequest.Size(m)
 }
-func (m *OrganizationRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_OrganizationRequest.DiscardUnknown(m)
+func (m *GetOrganizationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetOrganizationRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_OrganizationRequest proto.InternalMessageInfo
+var xxx_messageInfo_GetOrganizationRequest proto.InternalMessageInfo
 
-func (m *OrganizationRequest) GetId() int64 {
+func (m *GetOrganizationRequest) GetId() int64 {
 	if m != nil {
 		return m.Id
 	}
@@ -123,28 +216,22 @@ func (m *OrganizationRequest) GetId() int64 {
 }
 
 type GetOrganizationResponse struct {
-	// ID of the user.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	// Organization name.
-	Name string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
-	// Organization display name.
-	DisplayName string `protobuf:"bytes,3,opt,name=displayName" json:"displayName,omitempty"`
-	// Can the organization create and "own" Gateways?
-	CanHaveGateways bool `protobuf:"varint,4,opt,name=canHaveGateways" json:"canHaveGateways,omitempty"`
-	// When the user was created.
-	CreatedAt string `protobuf:"bytes,5,opt,name=createdAt" json:"createdAt,omitempty"`
-	// When the user was last updated (excludes changes in application access).
-	UpdatedAt            string   `protobuf:"bytes,6,opt,name=updatedAt" json:"updatedAt,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Organization object.
+	Organization *Organization `protobuf:"bytes,1,opt,name=organization,proto3" json:"organization,omitempty"`
+	// Created at timestamp.
+	CreatedAt *timestamp.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Last update timestamp.
+	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
 }
 
 func (m *GetOrganizationResponse) Reset()         { *m = GetOrganizationResponse{} }
 func (m *GetOrganizationResponse) String() string { return proto.CompactTextString(m) }
 func (*GetOrganizationResponse) ProtoMessage()    {}
 func (*GetOrganizationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{2}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{3}
 }
 func (m *GetOrganizationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetOrganizationResponse.Unmarshal(m, b)
@@ -164,66 +251,40 @@ func (m *GetOrganizationResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetOrganizationResponse proto.InternalMessageInfo
 
-func (m *GetOrganizationResponse) GetId() int64 {
+func (m *GetOrganizationResponse) GetOrganization() *Organization {
 	if m != nil {
-		return m.Id
+		return m.Organization
 	}
-	return 0
+	return nil
 }
 
-func (m *GetOrganizationResponse) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *GetOrganizationResponse) GetDisplayName() string {
-	if m != nil {
-		return m.DisplayName
-	}
-	return ""
-}
-
-func (m *GetOrganizationResponse) GetCanHaveGateways() bool {
-	if m != nil {
-		return m.CanHaveGateways
-	}
-	return false
-}
-
-func (m *GetOrganizationResponse) GetCreatedAt() string {
+func (m *GetOrganizationResponse) GetCreatedAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.CreatedAt
 	}
-	return ""
+	return nil
 }
 
-func (m *GetOrganizationResponse) GetUpdatedAt() string {
+func (m *GetOrganizationResponse) GetUpdatedAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.UpdatedAt
 	}
-	return ""
+	return nil
 }
 
-// Add a new organization.
 type CreateOrganizationRequest struct {
-	// Organization name.
-	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
-	// Organization display name.
-	DisplayName string `protobuf:"bytes,2,opt,name=displayName" json:"displayName,omitempty"`
-	// Can the organization create and "own" Gateways?
-	CanHaveGateways      bool     `protobuf:"varint,3,opt,name=canHaveGateways" json:"canHaveGateways,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Organization object to create.
+	Organization         *Organization `protobuf:"bytes,1,opt,name=organization,proto3" json:"organization,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
 func (m *CreateOrganizationRequest) Reset()         { *m = CreateOrganizationRequest{} }
 func (m *CreateOrganizationRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateOrganizationRequest) ProtoMessage()    {}
 func (*CreateOrganizationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{3}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{4}
 }
 func (m *CreateOrganizationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateOrganizationRequest.Unmarshal(m, b)
@@ -243,30 +304,16 @@ func (m *CreateOrganizationRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateOrganizationRequest proto.InternalMessageInfo
 
-func (m *CreateOrganizationRequest) GetName() string {
+func (m *CreateOrganizationRequest) GetOrganization() *Organization {
 	if m != nil {
-		return m.Name
+		return m.Organization
 	}
-	return ""
-}
-
-func (m *CreateOrganizationRequest) GetDisplayName() string {
-	if m != nil {
-		return m.DisplayName
-	}
-	return ""
-}
-
-func (m *CreateOrganizationRequest) GetCanHaveGateways() bool {
-	if m != nil {
-		return m.CanHaveGateways
-	}
-	return false
+	return nil
 }
 
 type CreateOrganizationResponse struct {
-	// ID of the organization.
-	Id                   int64    `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	// Organization ID.
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -276,7 +323,7 @@ func (m *CreateOrganizationResponse) Reset()         { *m = CreateOrganizationRe
 func (m *CreateOrganizationResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateOrganizationResponse) ProtoMessage()    {}
 func (*CreateOrganizationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{4}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{5}
 }
 func (m *CreateOrganizationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateOrganizationResponse.Unmarshal(m, b)
@@ -303,26 +350,19 @@ func (m *CreateOrganizationResponse) GetId() int64 {
 	return 0
 }
 
-// Not quite the AddOrganizationRequest.
 type UpdateOrganizationRequest struct {
-	// The ID of the organization to be updated.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	// The new name.
-	Name string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
-	// The new display name.
-	DisplayName string `protobuf:"bytes,3,opt,name=displayName" json:"displayName,omitempty"`
-	// Can the organization create and "own" Gateways?
-	CanHaveGateways      bool     `protobuf:"varint,4,opt,name=canHaveGateways" json:"canHaveGateways,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Organization object to update.
+	Organization         *Organization `protobuf:"bytes,1,opt,name=organization,proto3" json:"organization,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
 func (m *UpdateOrganizationRequest) Reset()         { *m = UpdateOrganizationRequest{} }
 func (m *UpdateOrganizationRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateOrganizationRequest) ProtoMessage()    {}
 func (*UpdateOrganizationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{5}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{6}
 }
 func (m *UpdateOrganizationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateOrganizationRequest.Unmarshal(m, b)
@@ -342,47 +382,124 @@ func (m *UpdateOrganizationRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateOrganizationRequest proto.InternalMessageInfo
 
-func (m *UpdateOrganizationRequest) GetId() int64 {
+func (m *UpdateOrganizationRequest) GetOrganization() *Organization {
+	if m != nil {
+		return m.Organization
+	}
+	return nil
+}
+
+type DeleteOrganizationRequest struct {
+	// Organization ID.
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteOrganizationRequest) Reset()         { *m = DeleteOrganizationRequest{} }
+func (m *DeleteOrganizationRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteOrganizationRequest) ProtoMessage()    {}
+func (*DeleteOrganizationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{7}
+}
+func (m *DeleteOrganizationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteOrganizationRequest.Unmarshal(m, b)
+}
+func (m *DeleteOrganizationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteOrganizationRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteOrganizationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteOrganizationRequest.Merge(dst, src)
+}
+func (m *DeleteOrganizationRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteOrganizationRequest.Size(m)
+}
+func (m *DeleteOrganizationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteOrganizationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteOrganizationRequest proto.InternalMessageInfo
+
+func (m *DeleteOrganizationRequest) GetId() int64 {
 	if m != nil {
 		return m.Id
 	}
 	return 0
 }
 
-func (m *UpdateOrganizationRequest) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
+type ListOrganizationRequest struct {
+	// Max number of organizations to return in the result-set.
+	Limit int64 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	// Offset in the result-set (for pagination).
+	Offset int64 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	// When provided, the given string will be used to search on
+	// displayName.
+	Search               string   `protobuf:"bytes,3,opt,name=search,proto3" json:"search,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UpdateOrganizationRequest) GetDisplayName() string {
-	if m != nil {
-		return m.DisplayName
-	}
-	return ""
+func (m *ListOrganizationRequest) Reset()         { *m = ListOrganizationRequest{} }
+func (m *ListOrganizationRequest) String() string { return proto.CompactTextString(m) }
+func (*ListOrganizationRequest) ProtoMessage()    {}
+func (*ListOrganizationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{8}
+}
+func (m *ListOrganizationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListOrganizationRequest.Unmarshal(m, b)
+}
+func (m *ListOrganizationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListOrganizationRequest.Marshal(b, m, deterministic)
+}
+func (dst *ListOrganizationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListOrganizationRequest.Merge(dst, src)
+}
+func (m *ListOrganizationRequest) XXX_Size() int {
+	return xxx_messageInfo_ListOrganizationRequest.Size(m)
+}
+func (m *ListOrganizationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListOrganizationRequest.DiscardUnknown(m)
 }
 
-func (m *UpdateOrganizationRequest) GetCanHaveGateways() bool {
+var xxx_messageInfo_ListOrganizationRequest proto.InternalMessageInfo
+
+func (m *ListOrganizationRequest) GetLimit() int64 {
 	if m != nil {
-		return m.CanHaveGateways
+		return m.Limit
 	}
-	return false
+	return 0
+}
+
+func (m *ListOrganizationRequest) GetOffset() int64 {
+	if m != nil {
+		return m.Offset
+	}
+	return 0
+}
+
+func (m *ListOrganizationRequest) GetSearch() string {
+	if m != nil {
+		return m.Search
+	}
+	return ""
 }
 
 type ListOrganizationResponse struct {
-	TotalCount           int32                      `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
-	Result               []*GetOrganizationResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
-	XXX_unrecognized     []byte                     `json:"-"`
-	XXX_sizecache        int32                      `json:"-"`
+	// Total number of organizations.
+	TotalCount           int64                   `protobuf:"varint,1,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	Result               []*OrganizationListItem `protobuf:"bytes,2,rep,name=result,proto3" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
 }
 
 func (m *ListOrganizationResponse) Reset()         { *m = ListOrganizationResponse{} }
 func (m *ListOrganizationResponse) String() string { return proto.CompactTextString(m) }
 func (*ListOrganizationResponse) ProtoMessage()    {}
 func (*ListOrganizationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{6}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{9}
 }
 func (m *ListOrganizationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListOrganizationResponse.Unmarshal(m, b)
@@ -402,112 +519,244 @@ func (m *ListOrganizationResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ListOrganizationResponse proto.InternalMessageInfo
 
-func (m *ListOrganizationResponse) GetTotalCount() int32 {
+func (m *ListOrganizationResponse) GetTotalCount() int64 {
 	if m != nil {
 		return m.TotalCount
 	}
 	return 0
 }
 
-func (m *ListOrganizationResponse) GetResult() []*GetOrganizationResponse {
+func (m *ListOrganizationResponse) GetResult() []*OrganizationListItem {
 	if m != nil {
 		return m.Result
 	}
 	return nil
 }
 
-type OrganizationEmptyResponse struct {
+type OrganizationUser struct {
+	// Organization ID.
+	OrganizationId int64 `protobuf:"varint,1,opt,name=organization_id,json=organizationID,proto3" json:"organization_id,omitempty"`
+	// User ID.
+	UserId int64 `protobuf:"varint,2,opt,name=user_id,json=userID,proto3" json:"user_id,omitempty"`
+	// User is admin within the context of the organization.
+	IsAdmin bool `protobuf:"varint,3,opt,name=is_admin,json=isAdmin,proto3" json:"is_admin,omitempty"`
+	// Username (only used on get).
+	Username             string   `protobuf:"bytes,4,opt,name=username,proto3" json:"username,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *OrganizationEmptyResponse) Reset()         { *m = OrganizationEmptyResponse{} }
-func (m *OrganizationEmptyResponse) String() string { return proto.CompactTextString(m) }
-func (*OrganizationEmptyResponse) ProtoMessage()    {}
-func (*OrganizationEmptyResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{7}
+func (m *OrganizationUser) Reset()         { *m = OrganizationUser{} }
+func (m *OrganizationUser) String() string { return proto.CompactTextString(m) }
+func (*OrganizationUser) ProtoMessage()    {}
+func (*OrganizationUser) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{10}
 }
-func (m *OrganizationEmptyResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_OrganizationEmptyResponse.Unmarshal(m, b)
+func (m *OrganizationUser) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_OrganizationUser.Unmarshal(m, b)
 }
-func (m *OrganizationEmptyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_OrganizationEmptyResponse.Marshal(b, m, deterministic)
+func (m *OrganizationUser) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_OrganizationUser.Marshal(b, m, deterministic)
 }
-func (dst *OrganizationEmptyResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_OrganizationEmptyResponse.Merge(dst, src)
+func (dst *OrganizationUser) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OrganizationUser.Merge(dst, src)
 }
-func (m *OrganizationEmptyResponse) XXX_Size() int {
-	return xxx_messageInfo_OrganizationEmptyResponse.Size(m)
+func (m *OrganizationUser) XXX_Size() int {
+	return xxx_messageInfo_OrganizationUser.Size(m)
 }
-func (m *OrganizationEmptyResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_OrganizationEmptyResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_OrganizationEmptyResponse proto.InternalMessageInfo
-
-type OrganizationUserRequest struct {
-	// The organization id.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	// The user's id.
-	UserID int64 `protobuf:"varint,2,opt,name=userID" json:"userID,omitempty"`
-	// The user's admin status for the organization
-	IsAdmin              bool     `protobuf:"varint,3,opt,name=isAdmin" json:"isAdmin,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+func (m *OrganizationUser) XXX_DiscardUnknown() {
+	xxx_messageInfo_OrganizationUser.DiscardUnknown(m)
 }
 
-func (m *OrganizationUserRequest) Reset()         { *m = OrganizationUserRequest{} }
-func (m *OrganizationUserRequest) String() string { return proto.CompactTextString(m) }
-func (*OrganizationUserRequest) ProtoMessage()    {}
-func (*OrganizationUserRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{8}
-}
-func (m *OrganizationUserRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_OrganizationUserRequest.Unmarshal(m, b)
-}
-func (m *OrganizationUserRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_OrganizationUserRequest.Marshal(b, m, deterministic)
-}
-func (dst *OrganizationUserRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_OrganizationUserRequest.Merge(dst, src)
-}
-func (m *OrganizationUserRequest) XXX_Size() int {
-	return xxx_messageInfo_OrganizationUserRequest.Size(m)
-}
-func (m *OrganizationUserRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_OrganizationUserRequest.DiscardUnknown(m)
-}
+var xxx_messageInfo_OrganizationUser proto.InternalMessageInfo
 
-var xxx_messageInfo_OrganizationUserRequest proto.InternalMessageInfo
-
-func (m *OrganizationUserRequest) GetId() int64 {
+func (m *OrganizationUser) GetOrganizationId() int64 {
 	if m != nil {
-		return m.Id
+		return m.OrganizationId
 	}
 	return 0
 }
 
-func (m *OrganizationUserRequest) GetUserID() int64 {
+func (m *OrganizationUser) GetUserId() int64 {
 	if m != nil {
-		return m.UserID
+		return m.UserId
 	}
 	return 0
 }
 
-func (m *OrganizationUserRequest) GetIsAdmin() bool {
+func (m *OrganizationUser) GetIsAdmin() bool {
 	if m != nil {
 		return m.IsAdmin
 	}
 	return false
 }
 
+func (m *OrganizationUser) GetUsername() string {
+	if m != nil {
+		return m.Username
+	}
+	return ""
+}
+
+type OrganizationUserListItem struct {
+	// User ID.
+	UserId int64 `protobuf:"varint,1,opt,name=user_id,json=userID,proto3" json:"user_id,omitempty"`
+	// Username.
+	Username string `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	// User is admin within the context of the organization.
+	IsAdmin bool `protobuf:"varint,3,opt,name=is_admin,json=isAdmin,proto3" json:"is_admin,omitempty"`
+	// Created at timestamp.
+	CreatedAt *timestamp.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Last update timestamp.
+	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *OrganizationUserListItem) Reset()         { *m = OrganizationUserListItem{} }
+func (m *OrganizationUserListItem) String() string { return proto.CompactTextString(m) }
+func (*OrganizationUserListItem) ProtoMessage()    {}
+func (*OrganizationUserListItem) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{11}
+}
+func (m *OrganizationUserListItem) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_OrganizationUserListItem.Unmarshal(m, b)
+}
+func (m *OrganizationUserListItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_OrganizationUserListItem.Marshal(b, m, deterministic)
+}
+func (dst *OrganizationUserListItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OrganizationUserListItem.Merge(dst, src)
+}
+func (m *OrganizationUserListItem) XXX_Size() int {
+	return xxx_messageInfo_OrganizationUserListItem.Size(m)
+}
+func (m *OrganizationUserListItem) XXX_DiscardUnknown() {
+	xxx_messageInfo_OrganizationUserListItem.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_OrganizationUserListItem proto.InternalMessageInfo
+
+func (m *OrganizationUserListItem) GetUserId() int64 {
+	if m != nil {
+		return m.UserId
+	}
+	return 0
+}
+
+func (m *OrganizationUserListItem) GetUsername() string {
+	if m != nil {
+		return m.Username
+	}
+	return ""
+}
+
+func (m *OrganizationUserListItem) GetIsAdmin() bool {
+	if m != nil {
+		return m.IsAdmin
+	}
+	return false
+}
+
+func (m *OrganizationUserListItem) GetCreatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return nil
+}
+
+func (m *OrganizationUserListItem) GetUpdatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.UpdatedAt
+	}
+	return nil
+}
+
+type AddOrganizationUserRequest struct {
+	// Organization-user object to create.
+	OrganizationUser     *OrganizationUser `protobuf:"bytes,1,opt,name=organization_user,json=organizationUser,proto3" json:"organization_user,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *AddOrganizationUserRequest) Reset()         { *m = AddOrganizationUserRequest{} }
+func (m *AddOrganizationUserRequest) String() string { return proto.CompactTextString(m) }
+func (*AddOrganizationUserRequest) ProtoMessage()    {}
+func (*AddOrganizationUserRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{12}
+}
+func (m *AddOrganizationUserRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AddOrganizationUserRequest.Unmarshal(m, b)
+}
+func (m *AddOrganizationUserRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AddOrganizationUserRequest.Marshal(b, m, deterministic)
+}
+func (dst *AddOrganizationUserRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AddOrganizationUserRequest.Merge(dst, src)
+}
+func (m *AddOrganizationUserRequest) XXX_Size() int {
+	return xxx_messageInfo_AddOrganizationUserRequest.Size(m)
+}
+func (m *AddOrganizationUserRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AddOrganizationUserRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AddOrganizationUserRequest proto.InternalMessageInfo
+
+func (m *AddOrganizationUserRequest) GetOrganizationUser() *OrganizationUser {
+	if m != nil {
+		return m.OrganizationUser
+	}
+	return nil
+}
+
+type UpdateOrganizationUserRequest struct {
+	// Organization-user object to update.
+	OrganizationUser     *OrganizationUser `protobuf:"bytes,1,opt,name=organization_user,json=organizationUser,proto3" json:"organization_user,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *UpdateOrganizationUserRequest) Reset()         { *m = UpdateOrganizationUserRequest{} }
+func (m *UpdateOrganizationUserRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateOrganizationUserRequest) ProtoMessage()    {}
+func (*UpdateOrganizationUserRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{13}
+}
+func (m *UpdateOrganizationUserRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateOrganizationUserRequest.Unmarshal(m, b)
+}
+func (m *UpdateOrganizationUserRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateOrganizationUserRequest.Marshal(b, m, deterministic)
+}
+func (dst *UpdateOrganizationUserRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateOrganizationUserRequest.Merge(dst, src)
+}
+func (m *UpdateOrganizationUserRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateOrganizationUserRequest.Size(m)
+}
+func (m *UpdateOrganizationUserRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateOrganizationUserRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateOrganizationUserRequest proto.InternalMessageInfo
+
+func (m *UpdateOrganizationUserRequest) GetOrganizationUser() *OrganizationUser {
+	if m != nil {
+		return m.OrganizationUser
+	}
+	return nil
+}
+
 type DeleteOrganizationUserRequest struct {
-	// The organization id.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	// The user's id.
-	UserID               int64    `protobuf:"varint,2,opt,name=userID" json:"userID,omitempty"`
+	// Organization ID.
+	OrganizationId int64 `protobuf:"varint,1,opt,name=organization_id,json=organizationID,proto3" json:"organization_id,omitempty"`
+	// User ID.
+	UserId               int64    `protobuf:"varint,2,opt,name=user_id,json=userID,proto3" json:"user_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -517,7 +766,7 @@ func (m *DeleteOrganizationUserRequest) Reset()         { *m = DeleteOrganizatio
 func (m *DeleteOrganizationUserRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteOrganizationUserRequest) ProtoMessage()    {}
 func (*DeleteOrganizationUserRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{9}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{14}
 }
 func (m *DeleteOrganizationUserRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteOrganizationUserRequest.Unmarshal(m, b)
@@ -537,28 +786,27 @@ func (m *DeleteOrganizationUserRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DeleteOrganizationUserRequest proto.InternalMessageInfo
 
-func (m *DeleteOrganizationUserRequest) GetId() int64 {
+func (m *DeleteOrganizationUserRequest) GetOrganizationId() int64 {
 	if m != nil {
-		return m.Id
+		return m.OrganizationId
 	}
 	return 0
 }
 
-func (m *DeleteOrganizationUserRequest) GetUserID() int64 {
+func (m *DeleteOrganizationUserRequest) GetUserId() int64 {
 	if m != nil {
-		return m.UserID
+		return m.UserId
 	}
 	return 0
 }
 
-// Request the users in an organization.
 type ListOrganizationUsersRequest struct {
-	// The organization id.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	// Organization ID.
+	OrganizationId int64 `protobuf:"varint,1,opt,name=organization_id,json=organizationID,proto3" json:"organization_id,omitempty"`
 	// Max number of users to return in the result-set.
-	Limit int32 `protobuf:"varint,2,opt,name=limit" json:"limit,omitempty"`
+	Limit int32 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
 	// Offset in the result-set (for pagination).
-	Offset               int32    `protobuf:"varint,3,opt,name=offset" json:"offset,omitempty"`
+	Offset               int32    `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -568,7 +816,7 @@ func (m *ListOrganizationUsersRequest) Reset()         { *m = ListOrganizationUs
 func (m *ListOrganizationUsersRequest) String() string { return proto.CompactTextString(m) }
 func (*ListOrganizationUsersRequest) ProtoMessage()    {}
 func (*ListOrganizationUsersRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{10}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{15}
 }
 func (m *ListOrganizationUsersRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListOrganizationUsersRequest.Unmarshal(m, b)
@@ -588,9 +836,9 @@ func (m *ListOrganizationUsersRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ListOrganizationUsersRequest proto.InternalMessageInfo
 
-func (m *ListOrganizationUsersRequest) GetId() int64 {
+func (m *ListOrganizationUsersRequest) GetOrganizationId() int64 {
 	if m != nil {
-		return m.Id
+		return m.OrganizationId
 	}
 	return 0
 }
@@ -609,146 +857,20 @@ func (m *ListOrganizationUsersRequest) GetOffset() int32 {
 	return 0
 }
 
-type GetOrganizationUserRequest struct {
-	// ID of the organization.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	// ID of the user.
-	UserID               int64    `protobuf:"varint,2,opt,name=userID" json:"userID,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *GetOrganizationUserRequest) Reset()         { *m = GetOrganizationUserRequest{} }
-func (m *GetOrganizationUserRequest) String() string { return proto.CompactTextString(m) }
-func (*GetOrganizationUserRequest) ProtoMessage()    {}
-func (*GetOrganizationUserRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{11}
-}
-func (m *GetOrganizationUserRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GetOrganizationUserRequest.Unmarshal(m, b)
-}
-func (m *GetOrganizationUserRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GetOrganizationUserRequest.Marshal(b, m, deterministic)
-}
-func (dst *GetOrganizationUserRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetOrganizationUserRequest.Merge(dst, src)
-}
-func (m *GetOrganizationUserRequest) XXX_Size() int {
-	return xxx_messageInfo_GetOrganizationUserRequest.Size(m)
-}
-func (m *GetOrganizationUserRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetOrganizationUserRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_GetOrganizationUserRequest proto.InternalMessageInfo
-
-func (m *GetOrganizationUserRequest) GetId() int64 {
-	if m != nil {
-		return m.Id
-	}
-	return 0
-}
-
-func (m *GetOrganizationUserRequest) GetUserID() int64 {
-	if m != nil {
-		return m.UserID
-	}
-	return 0
-}
-
-// Response for a user in the organization
-type GetOrganizationUserResponse struct {
-	// ID of the user.
-	Id int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	// Username of the user.
-	Username string `protobuf:"bytes,2,opt,name=username" json:"username,omitempty"`
-	// If the user is a system admin, capable of creating other users.
-	IsAdmin bool `protobuf:"varint,3,opt,name=isAdmin" json:"isAdmin,omitempty"`
-	// When the user was created.
-	CreatedAt string `protobuf:"bytes,4,opt,name=createdAt" json:"createdAt,omitempty"`
-	// When the user was last updated (excludes changes in application access).
-	UpdatedAt            string   `protobuf:"bytes,5,opt,name=updatedAt" json:"updatedAt,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *GetOrganizationUserResponse) Reset()         { *m = GetOrganizationUserResponse{} }
-func (m *GetOrganizationUserResponse) String() string { return proto.CompactTextString(m) }
-func (*GetOrganizationUserResponse) ProtoMessage()    {}
-func (*GetOrganizationUserResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{12}
-}
-func (m *GetOrganizationUserResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GetOrganizationUserResponse.Unmarshal(m, b)
-}
-func (m *GetOrganizationUserResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GetOrganizationUserResponse.Marshal(b, m, deterministic)
-}
-func (dst *GetOrganizationUserResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetOrganizationUserResponse.Merge(dst, src)
-}
-func (m *GetOrganizationUserResponse) XXX_Size() int {
-	return xxx_messageInfo_GetOrganizationUserResponse.Size(m)
-}
-func (m *GetOrganizationUserResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetOrganizationUserResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_GetOrganizationUserResponse proto.InternalMessageInfo
-
-func (m *GetOrganizationUserResponse) GetId() int64 {
-	if m != nil {
-		return m.Id
-	}
-	return 0
-}
-
-func (m *GetOrganizationUserResponse) GetUsername() string {
-	if m != nil {
-		return m.Username
-	}
-	return ""
-}
-
-func (m *GetOrganizationUserResponse) GetIsAdmin() bool {
-	if m != nil {
-		return m.IsAdmin
-	}
-	return false
-}
-
-func (m *GetOrganizationUserResponse) GetCreatedAt() string {
-	if m != nil {
-		return m.CreatedAt
-	}
-	return ""
-}
-
-func (m *GetOrganizationUserResponse) GetUpdatedAt() string {
-	if m != nil {
-		return m.UpdatedAt
-	}
-	return ""
-}
-
-// Response for the users in an organization.
 type ListOrganizationUsersResponse struct {
 	// The total number of users in the organization.
-	TotalCount int32 `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
-	// The users in the requested limit, offset range.
-	Result               []*GetOrganizationUserResponse `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                       `json:"-"`
-	XXX_unrecognized     []byte                         `json:"-"`
-	XXX_sizecache        int32                          `json:"-"`
+	TotalCount           int64                       `protobuf:"varint,1,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	Result               []*OrganizationUserListItem `protobuf:"bytes,2,rep,name=result,proto3" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
+	XXX_unrecognized     []byte                      `json:"-"`
+	XXX_sizecache        int32                       `json:"-"`
 }
 
 func (m *ListOrganizationUsersResponse) Reset()         { *m = ListOrganizationUsersResponse{} }
 func (m *ListOrganizationUsersResponse) String() string { return proto.CompactTextString(m) }
 func (*ListOrganizationUsersResponse) ProtoMessage()    {}
 func (*ListOrganizationUsersResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_organization_d08647b84d11cd44, []int{13}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{16}
 }
 func (m *ListOrganizationUsersResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListOrganizationUsersResponse.Unmarshal(m, b)
@@ -768,35 +890,146 @@ func (m *ListOrganizationUsersResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ListOrganizationUsersResponse proto.InternalMessageInfo
 
-func (m *ListOrganizationUsersResponse) GetTotalCount() int32 {
+func (m *ListOrganizationUsersResponse) GetTotalCount() int64 {
 	if m != nil {
 		return m.TotalCount
 	}
 	return 0
 }
 
-func (m *ListOrganizationUsersResponse) GetResult() []*GetOrganizationUserResponse {
+func (m *ListOrganizationUsersResponse) GetResult() []*OrganizationUserListItem {
 	if m != nil {
 		return m.Result
 	}
 	return nil
 }
 
+type GetOrganizationUserRequest struct {
+	// Organization ID.
+	OrganizationId int64 `protobuf:"varint,1,opt,name=organization_id,json=organizationID,proto3" json:"organization_id,omitempty"`
+	// User ID.
+	UserId               int64    `protobuf:"varint,2,opt,name=user_id,json=userID,proto3" json:"user_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetOrganizationUserRequest) Reset()         { *m = GetOrganizationUserRequest{} }
+func (m *GetOrganizationUserRequest) String() string { return proto.CompactTextString(m) }
+func (*GetOrganizationUserRequest) ProtoMessage()    {}
+func (*GetOrganizationUserRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{17}
+}
+func (m *GetOrganizationUserRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetOrganizationUserRequest.Unmarshal(m, b)
+}
+func (m *GetOrganizationUserRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetOrganizationUserRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetOrganizationUserRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetOrganizationUserRequest.Merge(dst, src)
+}
+func (m *GetOrganizationUserRequest) XXX_Size() int {
+	return xxx_messageInfo_GetOrganizationUserRequest.Size(m)
+}
+func (m *GetOrganizationUserRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetOrganizationUserRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetOrganizationUserRequest proto.InternalMessageInfo
+
+func (m *GetOrganizationUserRequest) GetOrganizationId() int64 {
+	if m != nil {
+		return m.OrganizationId
+	}
+	return 0
+}
+
+func (m *GetOrganizationUserRequest) GetUserId() int64 {
+	if m != nil {
+		return m.UserId
+	}
+	return 0
+}
+
+// Response for a user in the organization
+type GetOrganizationUserResponse struct {
+	// Organization-user object.
+	OrganizationUser *OrganizationUser `protobuf:"bytes,1,opt,name=organization_user,json=organizationUser,proto3" json:"organization_user,omitempty"`
+	// Created at timestamp.
+	CreatedAt *timestamp.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Last update timestamp.
+	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *GetOrganizationUserResponse) Reset()         { *m = GetOrganizationUserResponse{} }
+func (m *GetOrganizationUserResponse) String() string { return proto.CompactTextString(m) }
+func (*GetOrganizationUserResponse) ProtoMessage()    {}
+func (*GetOrganizationUserResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{18}
+}
+func (m *GetOrganizationUserResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetOrganizationUserResponse.Unmarshal(m, b)
+}
+func (m *GetOrganizationUserResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetOrganizationUserResponse.Marshal(b, m, deterministic)
+}
+func (dst *GetOrganizationUserResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetOrganizationUserResponse.Merge(dst, src)
+}
+func (m *GetOrganizationUserResponse) XXX_Size() int {
+	return xxx_messageInfo_GetOrganizationUserResponse.Size(m)
+}
+func (m *GetOrganizationUserResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetOrganizationUserResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetOrganizationUserResponse proto.InternalMessageInfo
+
+func (m *GetOrganizationUserResponse) GetOrganizationUser() *OrganizationUser {
+	if m != nil {
+		return m.OrganizationUser
+	}
+	return nil
+}
+
+func (m *GetOrganizationUserResponse) GetCreatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return nil
+}
+
+func (m *GetOrganizationUserResponse) GetUpdatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.UpdatedAt
+	}
+	return nil
+}
+
 func init() {
-	proto.RegisterType((*ListOrganizationRequest)(nil), "api.ListOrganizationRequest")
-	proto.RegisterType((*OrganizationRequest)(nil), "api.OrganizationRequest")
+	proto.RegisterType((*Organization)(nil), "api.Organization")
+	proto.RegisterType((*OrganizationListItem)(nil), "api.OrganizationListItem")
+	proto.RegisterType((*GetOrganizationRequest)(nil), "api.GetOrganizationRequest")
 	proto.RegisterType((*GetOrganizationResponse)(nil), "api.GetOrganizationResponse")
 	proto.RegisterType((*CreateOrganizationRequest)(nil), "api.CreateOrganizationRequest")
 	proto.RegisterType((*CreateOrganizationResponse)(nil), "api.CreateOrganizationResponse")
 	proto.RegisterType((*UpdateOrganizationRequest)(nil), "api.UpdateOrganizationRequest")
+	proto.RegisterType((*DeleteOrganizationRequest)(nil), "api.DeleteOrganizationRequest")
+	proto.RegisterType((*ListOrganizationRequest)(nil), "api.ListOrganizationRequest")
 	proto.RegisterType((*ListOrganizationResponse)(nil), "api.ListOrganizationResponse")
-	proto.RegisterType((*OrganizationEmptyResponse)(nil), "api.OrganizationEmptyResponse")
-	proto.RegisterType((*OrganizationUserRequest)(nil), "api.OrganizationUserRequest")
+	proto.RegisterType((*OrganizationUser)(nil), "api.OrganizationUser")
+	proto.RegisterType((*OrganizationUserListItem)(nil), "api.OrganizationUserListItem")
+	proto.RegisterType((*AddOrganizationUserRequest)(nil), "api.AddOrganizationUserRequest")
+	proto.RegisterType((*UpdateOrganizationUserRequest)(nil), "api.UpdateOrganizationUserRequest")
 	proto.RegisterType((*DeleteOrganizationUserRequest)(nil), "api.DeleteOrganizationUserRequest")
 	proto.RegisterType((*ListOrganizationUsersRequest)(nil), "api.ListOrganizationUsersRequest")
+	proto.RegisterType((*ListOrganizationUsersResponse)(nil), "api.ListOrganizationUsersResponse")
 	proto.RegisterType((*GetOrganizationUserRequest)(nil), "api.GetOrganizationUserRequest")
 	proto.RegisterType((*GetOrganizationUserResponse)(nil), "api.GetOrganizationUserResponse")
-	proto.RegisterType((*ListOrganizationUsersResponse)(nil), "api.ListOrganizationUsersResponse")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -807,437 +1040,450 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// OrganizationClient is the client API for Organization service.
+// OrganizationServiceClient is the client API for OrganizationService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type OrganizationClient interface {
+type OrganizationServiceClient interface {
 	// Get organization list.
 	List(ctx context.Context, in *ListOrganizationRequest, opts ...grpc.CallOption) (*ListOrganizationResponse, error)
 	// Get data for a particular organization.
-	Get(ctx context.Context, in *OrganizationRequest, opts ...grpc.CallOption) (*GetOrganizationResponse, error)
+	Get(ctx context.Context, in *GetOrganizationRequest, opts ...grpc.CallOption) (*GetOrganizationResponse, error)
 	// Create a new organization.
 	Create(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error)
 	// Update an existing organization.
-	Update(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error)
+	Update(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Delete an organization.
-	Delete(ctx context.Context, in *OrganizationRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error)
+	Delete(ctx context.Context, in *DeleteOrganizationRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Get organization's user list.
 	ListUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error)
 	// Get data for a particular organization user.
 	GetUser(ctx context.Context, in *GetOrganizationUserRequest, opts ...grpc.CallOption) (*GetOrganizationUserResponse, error)
 	// Add a new user to an organization.
-	AddUser(ctx context.Context, in *OrganizationUserRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error)
+	AddUser(ctx context.Context, in *AddOrganizationUserRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Update a user in an organization.
-	UpdateUser(ctx context.Context, in *OrganizationUserRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error)
+	UpdateUser(ctx context.Context, in *UpdateOrganizationUserRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Delete a user from an organization.
-	DeleteUser(ctx context.Context, in *DeleteOrganizationUserRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error)
+	DeleteUser(ctx context.Context, in *DeleteOrganizationUserRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
-type organizationClient struct {
+type organizationServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewOrganizationClient(cc *grpc.ClientConn) OrganizationClient {
-	return &organizationClient{cc}
+func NewOrganizationServiceClient(cc *grpc.ClientConn) OrganizationServiceClient {
+	return &organizationServiceClient{cc}
 }
 
-func (c *organizationClient) List(ctx context.Context, in *ListOrganizationRequest, opts ...grpc.CallOption) (*ListOrganizationResponse, error) {
+func (c *organizationServiceClient) List(ctx context.Context, in *ListOrganizationRequest, opts ...grpc.CallOption) (*ListOrganizationResponse, error) {
 	out := new(ListOrganizationResponse)
-	err := c.cc.Invoke(ctx, "/api.Organization/List", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.OrganizationService/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *organizationClient) Get(ctx context.Context, in *OrganizationRequest, opts ...grpc.CallOption) (*GetOrganizationResponse, error) {
+func (c *organizationServiceClient) Get(ctx context.Context, in *GetOrganizationRequest, opts ...grpc.CallOption) (*GetOrganizationResponse, error) {
 	out := new(GetOrganizationResponse)
-	err := c.cc.Invoke(ctx, "/api.Organization/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.OrganizationService/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *organizationClient) Create(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error) {
+func (c *organizationServiceClient) Create(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error) {
 	out := new(CreateOrganizationResponse)
-	err := c.cc.Invoke(ctx, "/api.Organization/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.OrganizationService/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *organizationClient) Update(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error) {
-	out := new(OrganizationEmptyResponse)
-	err := c.cc.Invoke(ctx, "/api.Organization/Update", in, out, opts...)
+func (c *organizationServiceClient) Update(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.OrganizationService/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *organizationClient) Delete(ctx context.Context, in *OrganizationRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error) {
-	out := new(OrganizationEmptyResponse)
-	err := c.cc.Invoke(ctx, "/api.Organization/Delete", in, out, opts...)
+func (c *organizationServiceClient) Delete(ctx context.Context, in *DeleteOrganizationRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.OrganizationService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *organizationClient) ListUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error) {
+func (c *organizationServiceClient) ListUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error) {
 	out := new(ListOrganizationUsersResponse)
-	err := c.cc.Invoke(ctx, "/api.Organization/ListUsers", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.OrganizationService/ListUsers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *organizationClient) GetUser(ctx context.Context, in *GetOrganizationUserRequest, opts ...grpc.CallOption) (*GetOrganizationUserResponse, error) {
+func (c *organizationServiceClient) GetUser(ctx context.Context, in *GetOrganizationUserRequest, opts ...grpc.CallOption) (*GetOrganizationUserResponse, error) {
 	out := new(GetOrganizationUserResponse)
-	err := c.cc.Invoke(ctx, "/api.Organization/GetUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.OrganizationService/GetUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *organizationClient) AddUser(ctx context.Context, in *OrganizationUserRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error) {
-	out := new(OrganizationEmptyResponse)
-	err := c.cc.Invoke(ctx, "/api.Organization/AddUser", in, out, opts...)
+func (c *organizationServiceClient) AddUser(ctx context.Context, in *AddOrganizationUserRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.OrganizationService/AddUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *organizationClient) UpdateUser(ctx context.Context, in *OrganizationUserRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error) {
-	out := new(OrganizationEmptyResponse)
-	err := c.cc.Invoke(ctx, "/api.Organization/UpdateUser", in, out, opts...)
+func (c *organizationServiceClient) UpdateUser(ctx context.Context, in *UpdateOrganizationUserRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.OrganizationService/UpdateUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *organizationClient) DeleteUser(ctx context.Context, in *DeleteOrganizationUserRequest, opts ...grpc.CallOption) (*OrganizationEmptyResponse, error) {
-	out := new(OrganizationEmptyResponse)
-	err := c.cc.Invoke(ctx, "/api.Organization/DeleteUser", in, out, opts...)
+func (c *organizationServiceClient) DeleteUser(ctx context.Context, in *DeleteOrganizationUserRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.OrganizationService/DeleteUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for Organization service
-
-type OrganizationServer interface {
+// OrganizationServiceServer is the server API for OrganizationService service.
+type OrganizationServiceServer interface {
 	// Get organization list.
 	List(context.Context, *ListOrganizationRequest) (*ListOrganizationResponse, error)
 	// Get data for a particular organization.
-	Get(context.Context, *OrganizationRequest) (*GetOrganizationResponse, error)
+	Get(context.Context, *GetOrganizationRequest) (*GetOrganizationResponse, error)
 	// Create a new organization.
 	Create(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error)
 	// Update an existing organization.
-	Update(context.Context, *UpdateOrganizationRequest) (*OrganizationEmptyResponse, error)
+	Update(context.Context, *UpdateOrganizationRequest) (*empty.Empty, error)
 	// Delete an organization.
-	Delete(context.Context, *OrganizationRequest) (*OrganizationEmptyResponse, error)
+	Delete(context.Context, *DeleteOrganizationRequest) (*empty.Empty, error)
 	// Get organization's user list.
 	ListUsers(context.Context, *ListOrganizationUsersRequest) (*ListOrganizationUsersResponse, error)
 	// Get data for a particular organization user.
 	GetUser(context.Context, *GetOrganizationUserRequest) (*GetOrganizationUserResponse, error)
 	// Add a new user to an organization.
-	AddUser(context.Context, *OrganizationUserRequest) (*OrganizationEmptyResponse, error)
+	AddUser(context.Context, *AddOrganizationUserRequest) (*empty.Empty, error)
 	// Update a user in an organization.
-	UpdateUser(context.Context, *OrganizationUserRequest) (*OrganizationEmptyResponse, error)
+	UpdateUser(context.Context, *UpdateOrganizationUserRequest) (*empty.Empty, error)
 	// Delete a user from an organization.
-	DeleteUser(context.Context, *DeleteOrganizationUserRequest) (*OrganizationEmptyResponse, error)
+	DeleteUser(context.Context, *DeleteOrganizationUserRequest) (*empty.Empty, error)
 }
 
-func RegisterOrganizationServer(s *grpc.Server, srv OrganizationServer) {
-	s.RegisterService(&_Organization_serviceDesc, srv)
+func RegisterOrganizationServiceServer(s *grpc.Server, srv OrganizationServiceServer) {
+	s.RegisterService(&_OrganizationService_serviceDesc, srv)
 }
 
-func _Organization_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _OrganizationService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrganizationServer).List(ctx, in)
+		return srv.(OrganizationServiceServer).List(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Organization/List",
+		FullMethod: "/api.OrganizationService/List",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).List(ctx, req.(*ListOrganizationRequest))
+		return srv.(OrganizationServiceServer).List(ctx, req.(*ListOrganizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Organization_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OrganizationRequest)
+func _OrganizationService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrganizationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrganizationServer).Get(ctx, in)
+		return srv.(OrganizationServiceServer).Get(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Organization/Get",
+		FullMethod: "/api.OrganizationService/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).Get(ctx, req.(*OrganizationRequest))
+		return srv.(OrganizationServiceServer).Get(ctx, req.(*GetOrganizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Organization_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _OrganizationService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateOrganizationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrganizationServer).Create(ctx, in)
+		return srv.(OrganizationServiceServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Organization/Create",
+		FullMethod: "/api.OrganizationService/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).Create(ctx, req.(*CreateOrganizationRequest))
+		return srv.(OrganizationServiceServer).Create(ctx, req.(*CreateOrganizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Organization_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _OrganizationService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateOrganizationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrganizationServer).Update(ctx, in)
+		return srv.(OrganizationServiceServer).Update(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Organization/Update",
+		FullMethod: "/api.OrganizationService/Update",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).Update(ctx, req.(*UpdateOrganizationRequest))
+		return srv.(OrganizationServiceServer).Update(ctx, req.(*UpdateOrganizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Organization_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OrganizationRequest)
+func _OrganizationService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteOrganizationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrganizationServer).Delete(ctx, in)
+		return srv.(OrganizationServiceServer).Delete(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Organization/Delete",
+		FullMethod: "/api.OrganizationService/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).Delete(ctx, req.(*OrganizationRequest))
+		return srv.(OrganizationServiceServer).Delete(ctx, req.(*DeleteOrganizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Organization_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _OrganizationService_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationUsersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrganizationServer).ListUsers(ctx, in)
+		return srv.(OrganizationServiceServer).ListUsers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Organization/ListUsers",
+		FullMethod: "/api.OrganizationService/ListUsers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).ListUsers(ctx, req.(*ListOrganizationUsersRequest))
+		return srv.(OrganizationServiceServer).ListUsers(ctx, req.(*ListOrganizationUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Organization_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _OrganizationService_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrganizationUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrganizationServer).GetUser(ctx, in)
+		return srv.(OrganizationServiceServer).GetUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Organization/GetUser",
+		FullMethod: "/api.OrganizationService/GetUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).GetUser(ctx, req.(*GetOrganizationUserRequest))
+		return srv.(OrganizationServiceServer).GetUser(ctx, req.(*GetOrganizationUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Organization_AddUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OrganizationUserRequest)
+func _OrganizationService_AddUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddOrganizationUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrganizationServer).AddUser(ctx, in)
+		return srv.(OrganizationServiceServer).AddUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Organization/AddUser",
+		FullMethod: "/api.OrganizationService/AddUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).AddUser(ctx, req.(*OrganizationUserRequest))
+		return srv.(OrganizationServiceServer).AddUser(ctx, req.(*AddOrganizationUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Organization_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OrganizationUserRequest)
+func _OrganizationService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateOrganizationUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrganizationServer).UpdateUser(ctx, in)
+		return srv.(OrganizationServiceServer).UpdateUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Organization/UpdateUser",
+		FullMethod: "/api.OrganizationService/UpdateUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).UpdateUser(ctx, req.(*OrganizationUserRequest))
+		return srv.(OrganizationServiceServer).UpdateUser(ctx, req.(*UpdateOrganizationUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Organization_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _OrganizationService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteOrganizationUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrganizationServer).DeleteUser(ctx, in)
+		return srv.(OrganizationServiceServer).DeleteUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Organization/DeleteUser",
+		FullMethod: "/api.OrganizationService/DeleteUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).DeleteUser(ctx, req.(*DeleteOrganizationUserRequest))
+		return srv.(OrganizationServiceServer).DeleteUser(ctx, req.(*DeleteOrganizationUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Organization_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "api.Organization",
-	HandlerType: (*OrganizationServer)(nil),
+var _OrganizationService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "api.OrganizationService",
+	HandlerType: (*OrganizationServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "List",
-			Handler:    _Organization_List_Handler,
+			Handler:    _OrganizationService_List_Handler,
 		},
 		{
 			MethodName: "Get",
-			Handler:    _Organization_Get_Handler,
+			Handler:    _OrganizationService_Get_Handler,
 		},
 		{
 			MethodName: "Create",
-			Handler:    _Organization_Create_Handler,
+			Handler:    _OrganizationService_Create_Handler,
 		},
 		{
 			MethodName: "Update",
-			Handler:    _Organization_Update_Handler,
+			Handler:    _OrganizationService_Update_Handler,
 		},
 		{
 			MethodName: "Delete",
-			Handler:    _Organization_Delete_Handler,
+			Handler:    _OrganizationService_Delete_Handler,
 		},
 		{
 			MethodName: "ListUsers",
-			Handler:    _Organization_ListUsers_Handler,
+			Handler:    _OrganizationService_ListUsers_Handler,
 		},
 		{
 			MethodName: "GetUser",
-			Handler:    _Organization_GetUser_Handler,
+			Handler:    _OrganizationService_GetUser_Handler,
 		},
 		{
 			MethodName: "AddUser",
-			Handler:    _Organization_AddUser_Handler,
+			Handler:    _OrganizationService_AddUser_Handler,
 		},
 		{
 			MethodName: "UpdateUser",
-			Handler:    _Organization_UpdateUser_Handler,
+			Handler:    _OrganizationService_UpdateUser_Handler,
 		},
 		{
 			MethodName: "DeleteUser",
-			Handler:    _Organization_DeleteUser_Handler,
+			Handler:    _OrganizationService_DeleteUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "organization.proto",
 }
 
-func init() { proto.RegisterFile("organization.proto", fileDescriptor_organization_d08647b84d11cd44) }
+func init() { proto.RegisterFile("organization.proto", fileDescriptor_organization_f7d28f2f8c3cdcd6) }
 
-var fileDescriptor_organization_d08647b84d11cd44 = []byte{
-	// 745 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xc1, 0x6e, 0xd3, 0x40,
-	0x10, 0x95, 0xe3, 0xc4, 0x6d, 0xa6, 0x08, 0xa4, 0xa5, 0x6a, 0x1c, 0x37, 0x69, 0xc2, 0x4a, 0x45,
-	0x51, 0x41, 0x89, 0x28, 0x1c, 0x10, 0xb7, 0xaa, 0x45, 0x01, 0x09, 0x81, 0x64, 0xa9, 0x27, 0x10,
-	0xd5, 0x12, 0x6f, 0xdb, 0x95, 0x1c, 0xdb, 0xf5, 0x6e, 0x40, 0xa1, 0x54, 0x42, 0x5c, 0x39, 0xf2,
-	0x01, 0x7c, 0x0d, 0x5f, 0xc0, 0x2f, 0xf0, 0x15, 0x9c, 0x90, 0xd7, 0x9b, 0xe2, 0x3a, 0x5e, 0x27,
-	0xaa, 0xe0, 0xd6, 0xdd, 0x99, 0xcc, 0x7b, 0xf3, 0xf6, 0xcd, 0xb8, 0x80, 0xc2, 0xf8, 0x84, 0x04,
-	0xec, 0x23, 0x11, 0x2c, 0x0c, 0xfa, 0x51, 0x1c, 0x8a, 0x10, 0x99, 0x24, 0x62, 0x4e, 0xeb, 0x24,
-	0x0c, 0x4f, 0x7c, 0x3a, 0x20, 0x11, 0x1b, 0x90, 0x20, 0x08, 0x85, 0xcc, 0xe0, 0x69, 0x0a, 0x3e,
-	0x82, 0xc6, 0x0b, 0xc6, 0xc5, 0xab, 0xcc, 0x8f, 0x5d, 0x7a, 0x36, 0xa1, 0x5c, 0xa0, 0x75, 0xa8,
-	0xf9, 0x6c, 0xcc, 0x84, 0x6d, 0x74, 0x8d, 0x5e, 0xcd, 0x4d, 0x0f, 0x68, 0x03, 0xac, 0xf0, 0xf8,
-	0x98, 0x53, 0x61, 0x57, 0xe4, 0xb5, 0x3a, 0x25, 0xf7, 0x9c, 0x92, 0x78, 0x74, 0x6a, 0x9b, 0x5d,
-	0xa3, 0x57, 0x77, 0xd5, 0x09, 0x6f, 0xc3, 0xed, 0xa2, 0xe2, 0x37, 0xa1, 0xc2, 0x3c, 0x59, 0xd9,
-	0x74, 0x2b, 0xcc, 0xc3, 0x3f, 0x0c, 0x68, 0x0c, 0x69, 0x8e, 0x07, 0x8f, 0xc2, 0x80, 0xd3, 0x7c,
-	0x2e, 0x42, 0x50, 0x0d, 0xc8, 0x98, 0x4a, 0x02, 0x75, 0x57, 0xfe, 0x8d, 0xba, 0xb0, 0xe6, 0x31,
-	0x1e, 0xf9, 0x64, 0xfa, 0x32, 0x09, 0xa5, 0x1c, 0xb2, 0x57, 0xa8, 0x07, 0xb7, 0x46, 0x24, 0x78,
-	0x46, 0xde, 0xd3, 0x21, 0x11, 0xf4, 0x03, 0x99, 0x72, 0xbb, 0xda, 0x35, 0x7a, 0xab, 0x6e, 0xfe,
-	0x1a, 0xb5, 0xa0, 0x3e, 0x8a, 0x29, 0x11, 0xd4, 0xdb, 0x13, 0x76, 0x4d, 0x56, 0xfa, 0x7b, 0x91,
-	0x44, 0x27, 0x91, 0xa7, 0xa2, 0x56, 0x1a, 0xbd, 0xbc, 0xc0, 0xe7, 0xd0, 0xdc, 0x97, 0xa9, 0x45,
-	0x4d, 0xcf, 0x88, 0x1b, 0x7a, 0xe2, 0x95, 0xa5, 0x88, 0x9b, 0x85, 0xc4, 0xf1, 0x7d, 0x70, 0x8a,
-	0xc0, 0x8b, 0x65, 0xc4, 0x5f, 0x0d, 0x68, 0x1e, 0x4a, 0xe2, 0x4b, 0x3c, 0xd0, 0xff, 0x16, 0x1d,
-	0x47, 0x60, 0xcf, 0x1b, 0x51, 0x31, 0xdf, 0x02, 0x10, 0xa1, 0x20, 0xfe, 0x7e, 0x38, 0x09, 0x66,
-	0x76, 0xcc, 0xdc, 0xa0, 0x47, 0x60, 0xc5, 0x94, 0x4f, 0xfc, 0xc4, 0x93, 0x66, 0x6f, 0x6d, 0xb7,
-	0xd5, 0x27, 0x11, 0xeb, 0x6b, 0xec, 0xe4, 0xaa, 0x5c, 0xbc, 0x09, 0xcd, 0x6c, 0xfc, 0xe9, 0x38,
-	0x12, 0xd3, 0x59, 0x12, 0x7e, 0x0d, 0x8d, 0x6c, 0xf0, 0x90, 0xd3, 0x58, 0xa7, 0xcc, 0x06, 0x58,
-	0x13, 0x4e, 0xe3, 0xe7, 0x07, 0x52, 0x1b, 0xd3, 0x55, 0x27, 0x64, 0xc3, 0x0a, 0xe3, 0x7b, 0xde,
-	0x98, 0x05, 0xea, 0xbd, 0x66, 0x47, 0x3c, 0x84, 0xf6, 0x01, 0xf5, 0xe9, 0x55, 0xe1, 0xaf, 0x01,
-	0x81, 0xdf, 0x40, 0x2b, 0x2f, 0x5a, 0x52, 0x86, 0xeb, 0xea, 0x5c, 0x8e, 0x74, 0xa5, 0x78, 0xa4,
-	0xcd, 0xec, 0x48, 0xe3, 0x03, 0x70, 0x72, 0x1a, 0x5e, 0x87, 0xe3, 0x77, 0x03, 0x36, 0x0b, 0xcb,
-	0x68, 0xa6, 0xdb, 0x81, 0xd5, 0xe4, 0x97, 0x19, 0xb3, 0x5d, 0x9e, 0xf5, 0x92, 0x5e, 0x9d, 0xd9,
-	0x6a, 0xe9, 0xcc, 0xd6, 0xf2, 0x33, 0x3b, 0x85, 0xb6, 0x46, 0xc5, 0x25, 0xfd, 0xf7, 0x38, 0xe7,
-	0xbf, 0x6e, 0x91, 0xff, 0xb2, 0x4d, 0xcf, 0x3c, 0xb8, 0xfb, 0x7b, 0x15, 0x6e, 0x64, 0x93, 0xd0,
-	0x11, 0x54, 0x13, 0x2e, 0x28, 0xb5, 0xb0, 0x66, 0x35, 0x3b, 0x6d, 0x4d, 0x54, 0x99, 0xd7, 0xf9,
-	0xf2, 0xf3, 0xd7, 0xb7, 0xca, 0x3a, 0x42, 0x72, 0xe9, 0x67, 0x3f, 0x0c, 0x1c, 0xbd, 0x05, 0x73,
-	0x48, 0x05, 0xb2, 0x65, 0x85, 0xa2, 0xda, 0xa5, 0xc3, 0x83, 0x3b, 0xb2, 0x74, 0x13, 0x35, 0xe6,
-	0x4b, 0x0f, 0xce, 0x99, 0x77, 0x81, 0x4e, 0xc1, 0x4a, 0x77, 0x10, 0xda, 0x92, 0x85, 0xb4, 0xdb,
-	0xd0, 0xe9, 0x68, 0xe3, 0x0a, 0xab, 0x2d, 0xb1, 0x1a, 0xb8, 0xa0, 0x8d, 0x27, 0xc6, 0x0e, 0xf2,
-	0xc1, 0x4a, 0xd7, 0x97, 0x42, 0xd2, 0xee, 0x32, 0x67, 0x6b, 0xae, 0xd9, 0xab, 0xc3, 0x8e, 0x25,
-	0x50, 0xcb, 0xd1, 0x35, 0x95, 0xa0, 0x8d, 0xc0, 0x4a, 0x67, 0xb6, 0x44, 0xba, 0x45, 0x38, 0x4a,
-	0xbc, 0x1d, 0xad, 0x78, 0x53, 0xa8, 0x27, 0x8f, 0x2a, 0xdd, 0x87, 0xee, 0x14, 0x3e, 0x72, 0x76,
-	0xbe, 0x1d, 0x5c, 0x96, 0xa2, 0x40, 0xb7, 0x25, 0x68, 0x07, 0xb5, 0x35, 0xa0, 0x83, 0x89, 0x44,
-	0xfb, 0x04, 0x2b, 0x43, 0x2a, 0x91, 0x51, 0x47, 0x6f, 0xdf, 0x14, 0x76, 0xa1, 0xbf, 0x71, 0x5f,
-	0x82, 0xf6, 0xd0, 0xdd, 0x52, 0xd0, 0xc1, 0x79, 0xba, 0x23, 0x2e, 0xd0, 0x19, 0xac, 0xec, 0x79,
-	0x9e, 0x44, 0x6f, 0xcd, 0x89, 0x98, 0x85, 0x5e, 0x24, 0x71, 0x4f, 0x02, 0x63, 0x5c, 0xde, 0x6d,
-	0xf2, 0xa0, 0x17, 0x00, 0xa9, 0x63, 0xfe, 0x01, 0xea, 0x03, 0x89, 0x7a, 0xcf, 0x59, 0xb2, 0xdd,
-	0x04, 0xfe, 0xb3, 0x01, 0x90, 0x1a, 0x4a, 0xe2, 0xa7, 0x2f, 0x59, 0xfa, 0x55, 0x58, 0xc8, 0x42,
-	0x89, 0xbe, 0xb3, 0x24, 0x8b, 0x77, 0x96, 0xfc, 0x17, 0xf0, 0xe1, 0x9f, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0x81, 0xc9, 0x5a, 0xec, 0x3b, 0x0a, 0x00, 0x00,
+var fileDescriptor_organization_f7d28f2f8c3cdcd6 = []byte{
+	// 971 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x56, 0x4d, 0x6f, 0x23, 0x35,
+	0x18, 0x96, 0x93, 0x34, 0x6d, 0xdf, 0x54, 0xbb, 0x5b, 0x53, 0x9a, 0x64, 0xda, 0x90, 0xac, 0x85,
+	0x44, 0x08, 0xab, 0x44, 0x04, 0x16, 0x09, 0xb4, 0x97, 0xb0, 0x45, 0xa1, 0x12, 0x02, 0x69, 0x60,
+	0x25, 0x2e, 0x30, 0x78, 0x33, 0x6e, 0x6b, 0x29, 0x99, 0x99, 0x8d, 0x3d, 0x5d, 0x95, 0x55, 0x0f,
+	0x70, 0xd8, 0x03, 0x7b, 0xe4, 0x77, 0xf0, 0x37, 0xf8, 0x03, 0x1c, 0xb8, 0x72, 0xe0, 0x37, 0x70,
+	0x65, 0x65, 0x8f, 0x53, 0x39, 0xf3, 0xd1, 0xaf, 0xad, 0xd4, 0xdb, 0xd8, 0x7e, 0xfc, 0x3e, 0xcf,
+	0xfb, 0xf8, 0x7d, 0xed, 0x01, 0x1c, 0xce, 0x0f, 0x69, 0xc0, 0x7f, 0xa6, 0x92, 0x87, 0x41, 0x3f,
+	0x9a, 0x87, 0x32, 0xc4, 0x65, 0x1a, 0x71, 0x67, 0xf7, 0x30, 0x0c, 0x0f, 0xa7, 0x6c, 0x40, 0x23,
+	0x3e, 0xa0, 0x41, 0x10, 0x4a, 0x8d, 0x10, 0x09, 0xc4, 0x69, 0x9b, 0x55, 0x3d, 0x7a, 0x1a, 0x1f,
+	0x0c, 0x24, 0x9f, 0x31, 0x21, 0xe9, 0x2c, 0x32, 0x80, 0x9d, 0x34, 0x80, 0xcd, 0x22, 0x79, 0x92,
+	0x2c, 0x92, 0x5f, 0x10, 0x6c, 0x7c, 0x63, 0xf1, 0xe2, 0x3b, 0x50, 0xe2, 0x7e, 0x03, 0x75, 0x50,
+	0xb7, 0xec, 0x96, 0xb8, 0x8f, 0x31, 0x54, 0x02, 0x3a, 0x63, 0x8d, 0x52, 0x07, 0x75, 0xd7, 0x5d,
+	0xfd, 0x8d, 0xef, 0xc3, 0x86, 0xcf, 0x45, 0x34, 0xa5, 0x27, 0x9e, 0x5e, 0x2b, 0xeb, 0xb5, 0x9a,
+	0x99, 0xfb, 0x5a, 0x41, 0x7a, 0xb0, 0x39, 0xa1, 0x81, 0x77, 0x44, 0x8f, 0x99, 0x77, 0x48, 0x25,
+	0x7b, 0x4e, 0x4f, 0x44, 0xa3, 0xd2, 0x41, 0xdd, 0x35, 0xf7, 0xee, 0x84, 0x06, 0x5f, 0xd2, 0x63,
+	0x36, 0x36, 0xd3, 0xe4, 0x7f, 0x04, 0x5b, 0xb6, 0x86, 0xaf, 0xb8, 0x90, 0xfb, 0x92, 0xcd, 0x6e,
+	0x41, 0x0b, 0xfe, 0x14, 0x60, 0x32, 0x67, 0x54, 0x32, 0xdf, 0xa3, 0xb2, 0xb1, 0xd2, 0x41, 0xdd,
+	0xda, 0xd0, 0xe9, 0x27, 0x0e, 0xf6, 0x17, 0x0e, 0xf6, 0xbf, 0x5b, 0x58, 0xec, 0xae, 0x1b, 0xf4,
+	0x48, 0xaa, 0xad, 0x71, 0xe4, 0x2f, 0xb6, 0x56, 0x2f, 0xde, 0x6a, 0xd0, 0x23, 0x49, 0xba, 0xb0,
+	0x3d, 0x66, 0xd2, 0xf6, 0xc0, 0x65, 0xcf, 0x62, 0x26, 0x64, 0xda, 0x02, 0xf2, 0x27, 0x82, 0x7a,
+	0x06, 0x2a, 0xa2, 0x30, 0x10, 0x0c, 0x3f, 0x84, 0x0d, 0xbb, 0x84, 0xf4, 0xae, 0xda, 0x70, 0xb3,
+	0x4f, 0x23, 0xde, 0x5f, 0xda, 0xb0, 0x04, 0x4b, 0xa5, 0x5c, 0xba, 0x7e, 0xca, 0xe5, 0xab, 0xa4,
+	0xec, 0x42, 0xf3, 0xb1, 0x8e, 0x93, 0x97, 0xf5, 0xf5, 0x32, 0x21, 0x0f, 0xc0, 0xc9, 0x8b, 0x69,
+	0xec, 0x49, 0x5b, 0xe9, 0x42, 0xf3, 0x89, 0x96, 0x73, 0x83, 0x0a, 0x3e, 0x80, 0xe6, 0x1e, 0x9b,
+	0xb2, 0xfc, 0x98, 0x69, 0x01, 0x1e, 0xd4, 0x55, 0xa9, 0xe7, 0x41, 0xb7, 0x60, 0x65, 0xca, 0x67,
+	0x5c, 0x1a, 0x74, 0x32, 0xc0, 0xdb, 0x50, 0x0d, 0x0f, 0x0e, 0x04, 0x4b, 0x4e, 0xa9, 0xec, 0x9a,
+	0x91, 0x9a, 0x17, 0x8c, 0xce, 0x27, 0x47, 0xa6, 0xfa, 0xcd, 0x88, 0x04, 0xd0, 0xc8, 0x12, 0x18,
+	0x37, 0xda, 0x50, 0x93, 0xa1, 0xa4, 0x53, 0x6f, 0x12, 0xc6, 0xc1, 0x82, 0x07, 0xf4, 0xd4, 0x63,
+	0x35, 0x83, 0x3f, 0x84, 0xea, 0x9c, 0x89, 0x78, 0xaa, 0xc8, 0xca, 0xdd, 0xda, 0xb0, 0x99, 0xc9,
+	0x7d, 0xd1, 0xa7, 0xae, 0x01, 0x92, 0x57, 0x08, 0xee, 0xd9, 0x80, 0x27, 0x82, 0xcd, 0xf1, 0x7b,
+	0x70, 0xd7, 0xb6, 0xc8, 0x3b, 0xb3, 0xe0, 0x8e, 0x3d, 0xbd, 0xbf, 0x87, 0xeb, 0xb0, 0x1a, 0x0b,
+	0x36, 0x57, 0x00, 0x93, 0x9e, 0x1a, 0xee, 0xef, 0xe1, 0x26, 0xac, 0x71, 0xe1, 0x51, 0x7f, 0xc6,
+	0x03, 0x9d, 0xe0, 0x9a, 0xbb, 0xca, 0xc5, 0x48, 0x0d, 0xb1, 0x03, 0x6b, 0x0a, 0xa4, 0x3b, 0xbf,
+	0xa2, 0x73, 0x3f, 0x1b, 0x93, 0x7f, 0x10, 0x34, 0xd2, 0x6a, 0xce, 0xae, 0x16, 0x8b, 0x0c, 0x2d,
+	0x91, 0xd9, 0x11, 0x4b, 0xcb, 0x11, 0xcf, 0x13, 0xb2, 0xdc, 0x44, 0x95, 0xeb, 0x37, 0xd1, 0xca,
+	0x55, 0x9a, 0xe8, 0x27, 0x70, 0x46, 0xbe, 0x9f, 0x4e, 0x72, 0x51, 0x44, 0x9f, 0xc3, 0xe6, 0x92,
+	0xf3, 0x2a, 0x0f, 0x53, 0xc8, 0x6f, 0x67, 0x0e, 0x53, 0x6f, 0xbc, 0x17, 0xa6, 0x66, 0xc8, 0x04,
+	0x5a, 0xd9, 0x26, 0xb9, 0x69, 0x12, 0x0a, 0xad, 0x6c, 0xd7, 0xd8, 0x24, 0x6f, 0x5c, 0x43, 0x24,
+	0x86, 0xdd, 0x74, 0x2b, 0x28, 0x02, 0x71, 0x65, 0x86, 0xb3, 0xce, 0x54, 0xf1, 0x57, 0xb2, 0x9d,
+	0x59, 0xd6, 0xd3, 0x66, 0x44, 0x9e, 0x43, 0xab, 0x80, 0xf6, 0xb2, 0x6d, 0xf8, 0x30, 0xd5, 0x86,
+	0xad, 0x5c, 0x53, 0x33, 0xad, 0xf8, 0x23, 0x38, 0xa9, 0x67, 0xe2, 0x66, 0xfd, 0xfc, 0x1b, 0xc1,
+	0x4e, 0x2e, 0x81, 0xc9, 0xeb, 0x06, 0xca, 0xe2, 0x76, 0x1e, 0xa6, 0xe1, 0x7f, 0xeb, 0xf0, 0x96,
+	0x2d, 0xee, 0x5b, 0x36, 0x3f, 0xe6, 0x13, 0x86, 0x3d, 0xa8, 0x28, 0x97, 0xf1, 0xae, 0x96, 0x5f,
+	0x70, 0x71, 0x3b, 0xad, 0x82, 0xd5, 0xc4, 0x16, 0xe2, 0xfc, 0xfa, 0xd7, 0xbf, 0xbf, 0x97, 0xb6,
+	0x30, 0xd6, 0x3f, 0x73, 0x76, 0xc6, 0x02, 0x53, 0x28, 0x8f, 0x99, 0xc4, 0x3b, 0x3a, 0x42, 0xfe,
+	0xef, 0x80, 0xb3, 0x9b, 0xbf, 0x68, 0xa2, 0xb7, 0x75, 0xf4, 0x26, 0xae, 0x67, 0xa3, 0x0f, 0x5e,
+	0x70, 0xff, 0x14, 0x1f, 0x41, 0x35, 0x79, 0x20, 0xf1, 0x3b, 0x3a, 0x50, 0xe1, 0x0b, 0xec, 0xb4,
+	0x0b, 0xd7, 0x0d, 0x57, 0x4b, 0x73, 0xd5, 0x49, 0x4e, 0x26, 0x9f, 0xa1, 0x1e, 0x7e, 0x06, 0xd5,
+	0xe4, 0xde, 0x30, 0x4c, 0x85, 0x2f, 0xad, 0xb3, 0x9d, 0x39, 0x96, 0x2f, 0xd4, 0xff, 0x29, 0x19,
+	0x68, 0x82, 0xf7, 0x9d, 0x77, 0xf3, 0x92, 0x59, 0xfa, 0x55, 0xe6, 0xfe, 0xa9, 0xa2, 0xa4, 0x50,
+	0x4d, 0x6e, 0x11, 0x43, 0x59, 0xf8, 0x10, 0x17, 0x52, 0x1a, 0xff, 0x7a, 0x85, 0xfe, 0xbd, 0x44,
+	0xb0, 0xae, 0xce, 0x56, 0xf7, 0x30, 0xbe, 0x9f, 0x7b, 0xd6, 0xf6, 0xb5, 0xe2, 0x90, 0xf3, 0x20,
+	0xc6, 0xc9, 0xa1, 0x66, 0x7d, 0x80, 0x7b, 0x17, 0x25, 0xea, 0x71, 0xff, 0x74, 0x10, 0x6b, 0xea,
+	0xdf, 0x10, 0xac, 0x8e, 0x99, 0xd6, 0x81, 0xdb, 0x79, 0x35, 0x61, 0x75, 0xbb, 0xd3, 0x29, 0x06,
+	0x18, 0x09, 0x8f, 0xb4, 0x84, 0x4f, 0xf0, 0xc7, 0x97, 0x97, 0x30, 0x78, 0x61, 0x2e, 0x86, 0x53,
+	0xfc, 0x0a, 0xc1, 0xea, 0xc8, 0xf7, 0x2d, 0x31, 0xc5, 0x8f, 0x52, 0xa1, 0xf7, 0x63, 0x2d, 0x61,
+	0x44, 0x1e, 0x5d, 0x28, 0x41, 0xf1, 0xf6, 0xf3, 0x45, 0xa9, 0x32, 0xf8, 0x03, 0x01, 0x24, 0xd5,
+	0xa6, 0x05, 0x91, 0x82, 0xf2, 0xbb, 0x8c, 0xa6, 0x89, 0xd6, 0xf4, 0x83, 0xf3, 0xfd, 0x9b, 0x68,
+	0xca, 0x43, 0x2e, 0xac, 0x53, 0x7a, 0x5f, 0x22, 0x80, 0xa4, 0x54, 0x2d, 0xbd, 0xe7, 0x3e, 0x87,
+	0x85, 0x7a, 0xcd, 0x31, 0xf6, 0xae, 0x75, 0x8c, 0x4f, 0xab, 0x3a, 0xda, 0x47, 0xaf, 0x03, 0x00,
+	0x00, 0xff, 0xff, 0x3c, 0xad, 0xf9, 0x9b, 0x88, 0x0e, 0x00, 0x00,
 }

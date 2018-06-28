@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/satori/go.uuid"
+
 	"github.com/brocaar/loraserver/api/ns"
 
 	"github.com/brocaar/lorawan"
@@ -43,61 +45,65 @@ func TestDevice(t *testing.T) {
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 			Name:            "test-service-profile",
-			ServiceProfile: backend.ServiceProfile{
-				ULRate:                 100,
-				ULBucketSize:           10,
-				ULRatePolicy:           backend.Mark,
-				DLRate:                 200,
-				DLBucketSize:           20,
-				DLRatePolicy:           backend.Drop,
-				AddGWMetadata:          true,
+			ServiceProfile: ns.ServiceProfile{
+				UlRate:                 100,
+				UlBucketSize:           10,
+				UlRatePolicy:           ns.RatePolicy_MARK,
+				DlRate:                 200,
+				DlBucketSize:           20,
+				DlRatePolicy:           ns.RatePolicy_DROP,
+				AddGwMetadata:          true,
 				DevStatusReqFreq:       4,
 				ReportDevStatusBattery: true,
 				ReportDevStatusMargin:  true,
-				DRMin:          3,
-				DRMax:          5,
-				PRAllowed:      true,
-				HRAllowed:      true,
-				RAAllowed:      true,
+				DrMin:          3,
+				DrMax:          5,
+				PrAllowed:      true,
+				HrAllowed:      true,
+				RaAllowed:      true,
 				NwkGeoLoc:      true,
-				TargetPER:      10,
-				MinGWDiversity: 3,
+				TargetPer:      10,
+				MinGwDiversity: 3,
 			},
 		}
 		So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
+		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+		So(err, ShouldBeNil)
 
 		dp := DeviceProfile{
 			NetworkServerID: n.ID,
 			OrganizationID:  org.ID,
 			Name:            "device-profile",
-			DeviceProfile: backend.DeviceProfile{
+			DeviceProfile: ns.DeviceProfile{
 				SupportsClassB:     true,
 				ClassBTimeout:      10,
 				PingSlotPeriod:     20,
-				PingSlotDR:         5,
+				PingSlotDr:         5,
 				PingSlotFreq:       868100000,
 				SupportsClassC:     true,
 				ClassCTimeout:      30,
-				MACVersion:         "1.0.2",
+				MacVersion:         "1.0.2",
 				RegParamsRevision:  "B",
-				RXDelay1:           1,
-				RXDROffset1:        1,
-				RXDataRate2:        6,
-				RXFreq2:            868300000,
-				FactoryPresetFreqs: []backend.Frequency{868100000, 868300000, 868500000},
-				MaxEIRP:            14,
+				RxDelay_1:          1,
+				RxDrOffset_1:       1,
+				RxDatarate_2:       6,
+				RxFreq_2:           868300000,
+				FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000},
+				MaxEirp:            14,
 				MaxDutyCycle:       10,
 				SupportsJoin:       true,
-				RFRegion:           backend.EU868,
-				Supports32bitFCnt:  true,
+				RfRegion:           string(backend.EU868),
+				Supports_32BitFCnt: true,
 			},
 		}
 		So(CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
+		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
+		So(err, ShouldBeNil)
 
 		app := Application{
 			OrganizationID:   org.ID,
 			Name:             "test-app",
-			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+			ServiceProfileID: spID,
 		}
 		So(CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
 
@@ -108,7 +114,7 @@ func TestDevice(t *testing.T) {
 			d := Device{
 				DevEUI:              lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 				ApplicationID:       app.ID,
-				DeviceProfileID:     dp.DeviceProfile.DeviceProfileID,
+				DeviceProfileID:     dpID,
 				Name:                "test-device",
 				Description:         "test device",
 				DeviceStatusBattery: &ten,
@@ -119,13 +125,16 @@ func TestDevice(t *testing.T) {
 			d.CreatedAt = d.CreatedAt.UTC().Truncate(time.Millisecond)
 			d.UpdatedAt = d.UpdatedAt.UTC().Truncate(time.Millisecond)
 
+			rpID, err := uuid.FromString(config.C.ApplicationServer.ID)
+			So(err, ShouldBeNil)
+
 			So(nsClient.CreateDeviceChan, ShouldHaveLength, 1)
 			So(<-nsClient.CreateDeviceChan, ShouldResemble, ns.CreateDeviceRequest{
 				Device: &ns.Device{
-					DevEUI:           []byte{1, 2, 3, 4, 5, 6, 7, 8},
-					DeviceProfileID:  dp.DeviceProfile.DeviceProfileID,
-					ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
-					RoutingProfileID: config.C.ApplicationServer.ID,
+					DevEui:           []byte{1, 2, 3, 4, 5, 6, 7, 8},
+					DeviceProfileId:  dp.DeviceProfile.Id,
+					ServiceProfileId: sp.ServiceProfile.Id,
+					RoutingProfileId: rpID.Bytes(),
 					SkipFCntCheck:    true,
 				},
 			})
@@ -133,10 +142,10 @@ func TestDevice(t *testing.T) {
 			Convey("Then GetDevice returns the device", func() {
 				nsClient.GetDeviceResponse = ns.GetDeviceResponse{
 					Device: &ns.Device{
-						DevEUI:           []byte{1, 2, 3, 4, 5, 6, 7, 8},
-						DeviceProfileID:  dp.DeviceProfile.DeviceProfileID,
-						ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
-						RoutingProfileID: config.C.ApplicationServer.ID,
+						DevEui:           []byte{1, 2, 3, 4, 5, 6, 7, 8},
+						DeviceProfileId:  dp.DeviceProfile.Id,
+						ServiceProfileId: sp.ServiceProfile.Id,
+						RoutingProfileId: rpID.Bytes(),
 						SkipFCntCheck:    true,
 					},
 				}
@@ -153,22 +162,23 @@ func TestDevice(t *testing.T) {
 						NetworkServerID: n.ID,
 						OrganizationID:  org.ID,
 						Name:            "device-profile-2",
-						DeviceProfile:   backend.DeviceProfile{},
 					}
 					So(CreateDeviceProfile(config.C.PostgreSQL.DB, &dp2), ShouldBeNil)
+					dp2ID, err := uuid.FromBytes(dp2.DeviceProfile.Id)
+					So(err, ShouldBeNil)
 
 					d.Name = "updated-test-device"
-					d.DeviceProfileID = dp2.DeviceProfile.DeviceProfileID
+					d.DeviceProfileID = dp2ID
 					So(UpdateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 					d.UpdatedAt = d.UpdatedAt.UTC().Truncate(time.Millisecond)
 
 					So(nsClient.UpdateDeviceChan, ShouldHaveLength, 1)
 					So(<-nsClient.UpdateDeviceChan, ShouldResemble, ns.UpdateDeviceRequest{
 						Device: &ns.Device{
-							DevEUI:           []byte{1, 2, 3, 4, 5, 6, 7, 8},
-							DeviceProfileID:  dp2.DeviceProfile.DeviceProfileID,
-							ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
-							RoutingProfileID: config.C.ApplicationServer.ID,
+							DevEui:           []byte{1, 2, 3, 4, 5, 6, 7, 8},
+							DeviceProfileId:  dp2.DeviceProfile.Id,
+							ServiceProfileId: sp.ServiceProfile.Id,
+							RoutingProfileId: rpID.Bytes(),
 							SkipFCntCheck:    true,
 						},
 					})
@@ -184,7 +194,7 @@ func TestDevice(t *testing.T) {
 					So(DeleteDevice(config.C.PostgreSQL.DB, d.DevEUI), ShouldBeNil)
 					So(nsClient.DeleteDeviceChan, ShouldHaveLength, 1)
 					So(<-nsClient.DeleteDeviceChan, ShouldResemble, ns.DeleteDeviceRequest{
-						DevEUI: []byte{1, 2, 3, 4, 5, 6, 7, 8},
+						DevEui: []byte{1, 2, 3, 4, 5, 6, 7, 8},
 					})
 
 					_, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI)

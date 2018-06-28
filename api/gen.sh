@@ -16,7 +16,7 @@ done
 IFS=$OIFS
 
 # generate the gRPC code
-protoc  -I/usr/local/include -I. ${GOPATHLIST} --go_out=plugins=grpc:. \
+protoc -I../vendor -I/usr/local/include -I. ${GOPATHLIST} --go_out=plugins=grpc:. \
     device.proto \
     application.proto \
     deviceQueue.proto \
@@ -28,10 +28,11 @@ protoc  -I/usr/local/include -I. ${GOPATHLIST} --go_out=plugins=grpc:. \
     networkServer.proto \
     serviceProfile.proto \
     deviceProfile.proto \
-    gatewayProfile.proto
+    gatewayProfile.proto \
+    internal.proto
 
 # generate the JSON interface code
-protoc -I/usr/local/include -I. ${GOPATHLIST} --grpc-gateway_out=logtostderr=true:. \
+protoc -I../vendor -I/usr/local/include -I. ${GOPATHLIST} --grpc-gateway_out=logtostderr=true:. \
     device.proto \
     application.proto \
     deviceQueue.proto \
@@ -43,10 +44,11 @@ protoc -I/usr/local/include -I. ${GOPATHLIST} --grpc-gateway_out=logtostderr=tru
     networkServer.proto \
     serviceProfile.proto \
     deviceProfile.proto \
-    gatewayProfile.proto
+    gatewayProfile.proto \
+    internal.proto
 
 # generate the swagger definitions
-protoc -I/usr/local/include -I. ${GOPATHLIST} --swagger_out=logtostderr=true:./swagger \
+protoc -I../vendor -I/usr/local/include -I. ${GOPATHLIST} --swagger_out=logtostderr=true:./swagger \
     device.proto \
     application.proto \
     deviceQueue.proto \
@@ -58,7 +60,8 @@ protoc -I/usr/local/include -I. ${GOPATHLIST} --swagger_out=logtostderr=true:./s
     networkServer.proto \
     serviceProfile.proto \
     deviceProfile.proto \
-    gatewayProfile.proto
+    gatewayProfile.proto \
+    internal.proto
 
 # merge the swagger code into one file
 go run swagger/main.go swagger > ../static/swagger/api.swagger.json

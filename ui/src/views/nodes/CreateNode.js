@@ -25,7 +25,7 @@ class CreateNode extends Component {
   }
 
   onSubmit(node) {
-    NodeStore.createNode(this.props.match.params.applicationID, node, (responseData) => {
+    NodeStore.createNode(this.props.match.params.applicationID, {device: node}, (responseData) => {
       DeviceProfileStore.getDeviceProfile(node.deviceProfileID, (deviceProfile) => {
         if (deviceProfile.deviceProfile.supportsJoin) {
           this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/nodes/${node.devEUI}/keys`);

@@ -5,10 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
+	"github.com/golang/protobuf/ptypes"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/config"
@@ -52,44 +53,37 @@ func TestGatewayAPI(t *testing.T) {
 
 		now := time.Now().UTC()
 		getGatewayResponseNS := ns.GetGatewayResponse{
-			Mac:         []byte{1, 2, 3, 4, 5, 6, 7, 8},
-			Name:        "test-gateway",
-			Description: "test gateway",
-			Latitude:    1.1234,
-			Longitude:   1.1235,
-			Altitude:    5.5,
-			CreatedAt:   now.UTC().Format(time.RFC3339Nano),
-			UpdatedAt:   now.UTC().Add(1 * time.Second).Format(time.RFC3339Nano),
-			FirstSeenAt: now.UTC().Add(2 * time.Second).Format(time.RFC3339Nano),
-			LastSeenAt:  now.UTC().Add(3 * time.Second).Format(time.RFC3339Nano),
+			Gateway: &ns.Gateway{
+				Id:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
+				Name:        "test-gateway",
+				Description: "test gateway",
+				Latitude:    1.1234,
+				Longitude:   1.1235,
+				Altitude:    5.5,
+			},
 		}
 
-		getGatewayResponseAS := pb.GetGatewayResponse{
-			Mac:             "0102030405060708",
-			Name:            "test-gateway",
-			Description:     "test gateway",
-			Latitude:        1.1234,
-			Longitude:       1.1235,
-			Altitude:        5.5,
-			FirstSeenAt:     now.UTC().Add(2 * time.Second).Format(time.RFC3339Nano),
-			LastSeenAt:      now.UTC().Add(3 * time.Second).Format(time.RFC3339Nano),
-			OrganizationID:  org.ID,
-			Ping:            true,
-			NetworkServerID: n.ID,
-		}
+		getGatewayResponseNS.CreatedAt, _ = ptypes.TimestampProto(now)
+		getGatewayResponseNS.UpdatedAt, _ = ptypes.TimestampProto(now.Add(time.Second))
+		getGatewayResponseNS.FirstSeenAt, _ = ptypes.TimestampProto(now.Add(2 * time.Second))
+		getGatewayResponseNS.LastSeenAt, _ = ptypes.TimestampProto(now.Add(3 * time.Second))
 
 		Convey("When calling create", func() {
-			_, err := api.Create(ctx, &pb.CreateGatewayRequest{
-				Mac:             "0102030405060708",
-				Name:            "test-gateway",
-				Description:     "test gateway",
-				Latitude:        1.1234,
-				Longitude:       1.1235,
-				Altitude:        5.5,
-				OrganizationID:  org.ID,
-				Ping:            true,
-				NetworkServerID: n.ID,
-			})
+			createReq := pb.CreateGatewayRequest{
+				Gateway: &pb.Gateway{
+					Id:               "0102030405060708",
+					Name:             "test-gateway",
+					Description:      "test gateway",
+					Latitude:         1.1234,
+					Longitude:        1.1235,
+					Altitude:         5.5,
+					OrganizationId:   org.ID,
+					DiscoveryEnabled: true,
+					NetworkServerId:  n.ID,
+				},
+			}
+
+			_, err := api.Create(ctx, &createReq)
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
 			So(validator.validatorFuncs, ShouldHaveLength, 1)
@@ -97,41 +91,37 @@ func TestGatewayAPI(t *testing.T) {
 			Convey("Then the correct request was forwarded to the network-server api", func() {
 				So(nsClient.CreateGatewayChan, ShouldHaveLength, 1)
 				So(<-nsClient.CreateGatewayChan, ShouldResemble, ns.CreateGatewayRequest{
-					Mac:         []byte{1, 2, 3, 4, 5, 6, 7, 8},
-					Name:        "test-gateway",
-					Description: "test gateway",
-					Latitude:    1.1234,
-					Longitude:   1.1235,
-					Altitude:    5.5,
+					Gateway: &ns.Gateway{
+						Id:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
+						Name:        "test-gateway",
+						Description: "test gateway",
+						Latitude:    1.1234,
+						Longitude:   1.1235,
+						Altitude:    5.5,
+					},
 				})
-			})
-
-			Convey("Then the gateway was created in the config.C.PostgreSQL.DB", func() {
-				_, err := storage.GetGateway(config.C.PostgreSQL.DB, lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}, false)
-				So(err, ShouldBeNil)
 			})
 
 			Convey("When calling Get", func() {
 				nsClient.GetGatewayResponse = getGatewayResponseNS
+
 				resp, err := api.Get(ctx, &pb.GetGatewayRequest{
-					Mac: "0102030405060708",
+					Id: "0102030405060708",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then the expected response was returned", func() {
-					So(resp.CreatedAt, ShouldNotEqual, "")
-					So(resp.UpdatedAt, ShouldNotEqual, "")
-					resp.CreatedAt = ""
-					resp.UpdatedAt = ""
-					So(resp, ShouldResemble, &getGatewayResponseAS)
+					So(resp.CreatedAt, ShouldNotBeNil)
+					So(resp.UpdatedAt, ShouldNotBeNil)
+					So(resp.Gateway, ShouldResemble, createReq.Gateway)
 				})
 
 				Convey("Then the correct network-server request was made", func() {
 					So(nsClient.GetGatewayChan, ShouldHaveLength, 1)
 					So(<-nsClient.GetGatewayChan, ShouldResemble, ns.GetGatewayRequest{
-						Mac: []byte{1, 2, 3, 4, 5, 6, 7, 8},
+						Id: []byte{1, 2, 3, 4, 5, 6, 7, 8},
 					})
 				})
 			})
@@ -141,6 +131,7 @@ func TestGatewayAPI(t *testing.T) {
 					Name: "test-org-2",
 				}
 				So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org2), ShouldBeNil)
+
 				gw2 := storage.Gateway{
 					Name:            "test-gw-2",
 					MAC:             lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
@@ -187,7 +178,7 @@ func TestGatewayAPI(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(gws.TotalCount, ShouldEqual, 1)
 						So(gws.Result, ShouldHaveLength, 1)
-						So(gws.Result[0].Mac, ShouldEqual, "0102030405060708")
+						So(gws.Result[0].Id, ShouldEqual, "0102030405060708")
 					})
 
 				})
@@ -197,12 +188,12 @@ func TestGatewayAPI(t *testing.T) {
 						gws, err := api.List(ctx, &pb.ListGatewayRequest{
 							Limit:          10,
 							Offset:         0,
-							OrganizationID: org2.ID,
+							OrganizationId: org2.ID,
 						})
 						So(err, ShouldBeNil)
 						So(gws.TotalCount, ShouldEqual, 1)
 						So(gws.Result, ShouldHaveLength, 1)
-						So(gws.Result[0].Mac, ShouldEqual, "0807060504030201")
+						So(gws.Result[0].Id, ShouldEqual, "0807060504030201")
 					})
 				})
 			})
@@ -210,14 +201,15 @@ func TestGatewayAPI(t *testing.T) {
 			Convey("When calling Update as non-admin", func() {
 				validator.returnIsAdmin = false
 				_, err := api.Update(ctx, &pb.UpdateGatewayRequest{
-					Mac:            "0102030405060708",
-					Name:           "test-gateway-updated",
-					Description:    "updated test gateway",
-					Latitude:       1.1235,
-					Longitude:      1.1236,
-					Altitude:       5.7,
-					OrganizationID: org2.ID,
-					Ping:           false,
+					Gateway: &pb.Gateway{
+						Id:             "0102030405060708",
+						Name:           "test-gateway-updated",
+						Description:    "updated test gateway",
+						Latitude:       1.1235,
+						Longitude:      1.1236,
+						Altitude:       5.7,
+						OrganizationId: org2.ID,
+					},
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -235,12 +227,14 @@ func TestGatewayAPI(t *testing.T) {
 				Convey("Then the expected request was sent to the network-server", func() {
 					So(nsClient.UpdateGatewayChan, ShouldHaveLength, 1)
 					So(<-nsClient.UpdateGatewayChan, ShouldResemble, ns.UpdateGatewayRequest{
-						Mac:         []byte{1, 2, 3, 4, 5, 6, 7, 8},
-						Name:        "test-gateway-updated",
-						Description: "updated test gateway",
-						Latitude:    1.1235,
-						Longitude:   1.1236,
-						Altitude:    5.7,
+						Gateway: &ns.Gateway{
+							Id:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
+							Name:        "test-gateway-updated",
+							Description: "updated test gateway",
+							Latitude:    1.1235,
+							Longitude:   1.1236,
+							Altitude:    5.7,
+						},
 					})
 				})
 			})
@@ -248,13 +242,15 @@ func TestGatewayAPI(t *testing.T) {
 			Convey("When calling Update as an admin", func() {
 				validator.returnIsAdmin = true
 				_, err := api.Update(ctx, &pb.UpdateGatewayRequest{
-					Mac:            "0102030405060708",
-					Name:           "test-gateway-updated",
-					Description:    "updated test gateway",
-					Latitude:       1.1235,
-					Longitude:      1.1236,
-					Altitude:       5.7,
-					OrganizationID: org2.ID,
+					Gateway: &pb.Gateway{
+						Id:             "0102030405060708",
+						Name:           "test-gateway-updated",
+						Description:    "updated test gateway",
+						Latitude:       1.1235,
+						Longitude:      1.1236,
+						Altitude:       5.7,
+						OrganizationId: org2.ID,
+					},
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -271,19 +267,21 @@ func TestGatewayAPI(t *testing.T) {
 				Convey("Then the expected request was sent to the network-server", func() {
 					So(nsClient.UpdateGatewayChan, ShouldHaveLength, 1)
 					So(<-nsClient.UpdateGatewayChan, ShouldResemble, ns.UpdateGatewayRequest{
-						Mac:         []byte{1, 2, 3, 4, 5, 6, 7, 8},
-						Name:        "test-gateway-updated",
-						Description: "updated test gateway",
-						Latitude:    1.1235,
-						Longitude:   1.1236,
-						Altitude:    5.7,
+						Gateway: &ns.Gateway{
+							Id:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
+							Name:        "test-gateway-updated",
+							Description: "updated test gateway",
+							Latitude:    1.1235,
+							Longitude:   1.1236,
+							Altitude:    5.7,
+						},
 					})
 				})
 			})
 
 			Convey("When calling Delete", func() {
 				_, err := api.Delete(ctx, &pb.DeleteGatewayRequest{
-					Mac: "0102030405060708",
+					Id: "0102030405060708",
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -291,7 +289,7 @@ func TestGatewayAPI(t *testing.T) {
 
 				Convey("Then the gateway has been deleted", func() {
 					_, err := api.Get(ctx, &pb.GetGatewayRequest{
-						Mac: "0102030405060708",
+						Id: "0102030405060708",
 					})
 					So(err, ShouldNotBeNil)
 					So(grpc.Code(err), ShouldEqual, codes.NotFound)
@@ -300,20 +298,22 @@ func TestGatewayAPI(t *testing.T) {
 				Convey("Then the expected request was sent to the network-server", func() {
 					So(nsClient.DeleteGatewayChan, ShouldHaveLength, 1)
 					So(<-nsClient.DeleteGatewayChan, ShouldResemble, ns.DeleteGatewayRequest{
-						Mac: []byte{1, 2, 3, 4, 5, 6, 7, 8},
+						Id: []byte{1, 2, 3, 4, 5, 6, 7, 8},
 					})
 				})
 			})
 
 			Convey("When calling GetStats", func() {
 				now := time.Now().UTC()
+				nowPB, _ := ptypes.TimestampProto(now)
+				now24hPB, _ := ptypes.TimestampProto(now.Add(24 * time.Hour))
 
 				nsClient.GetGatewayStatsResponse = ns.GetGatewayStatsResponse{
 					Result: []*ns.GatewayStats{
 						{
-							Timestamp:           now.Format(time.RFC3339Nano),
+							Timestamp:           nowPB,
 							RxPacketsReceived:   10,
-							RxPacketsReceivedOK: 9,
+							RxPacketsReceivedOk: 9,
 							TxPacketsReceived:   8,
 							TxPacketsEmitted:    7,
 						},
@@ -321,10 +321,10 @@ func TestGatewayAPI(t *testing.T) {
 				}
 
 				resp, err := api.GetStats(ctx, &pb.GetGatewayStatsRequest{
-					Mac:            "0102030405060708",
+					GatewayId:      "0102030405060708",
 					Interval:       "DAY",
-					StartTimestamp: now.Format(time.RFC3339Nano),
-					EndTimestamp:   now.Add(24 * time.Hour).Format(time.RFC3339Nano),
+					StartTimestamp: nowPB,
+					EndTimestamp:   now24hPB,
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -333,18 +333,18 @@ func TestGatewayAPI(t *testing.T) {
 				Convey("Then the correct request / response was forwarded to / from the network-server api", func() {
 					So(nsClient.GetGatewayStatsChan, ShouldHaveLength, 1)
 					So(<-nsClient.GetGatewayStatsChan, ShouldResemble, ns.GetGatewayStatsRequest{
-						Mac:            []byte{1, 2, 3, 4, 5, 6, 7, 8},
+						GatewayId:      []byte{1, 2, 3, 4, 5, 6, 7, 8},
 						Interval:       ns.AggregationInterval_DAY,
-						StartTimestamp: now.Format(time.RFC3339Nano),
-						EndTimestamp:   now.Add(24 * time.Hour).Format(time.RFC3339Nano),
+						StartTimestamp: nowPB,
+						EndTimestamp:   now24hPB,
 					})
 
 					So(resp, ShouldResemble, &pb.GetGatewayStatsResponse{
 						Result: []*pb.GatewayStats{
 							{
-								Timestamp:           now.Format(time.RFC3339Nano),
+								Timestamp:           nowPB,
 								RxPacketsReceived:   10,
-								RxPacketsReceivedOK: 9,
+								RxPacketsReceivedOk: 9,
 								TxPacketsReceived:   8,
 								TxPacketsEmitted:    7,
 							},
@@ -416,29 +416,27 @@ func TestGatewayAPI(t *testing.T) {
 
 				Convey("When calling GetLastPing", func() {
 					resp, err := api.GetLastPing(ctx, &pb.GetLastPingRequest{
-						Mac: "0102030405060708",
+						GatewayId: "0102030405060708",
 					})
 					So(err, ShouldBeNil)
 
 					Convey("Then the expected result is returned", func() {
-						createdAt, err := time.Parse(time.RFC3339Nano, resp.CreatedAt)
-						So(err, ShouldBeNil)
-						So(createdAt.Truncate(time.Millisecond).Equal(ping.CreatedAt), ShouldBeTrue)
+						So(resp.CreatedAt, ShouldNotBeNil)
 						So(resp.Frequency, ShouldEqual, 868100000)
 						So(resp.Dr, ShouldEqual, 5)
-						So(resp.PingRX, ShouldResemble, []*pb.PingRX{
+						So(resp.PingRx, ShouldResemble, []*pb.PingRX{
 							{
-								Mac:       "0202030405060708",
+								GatewayId: "0202030405060708",
 								Rssi:      12,
-								LoraSNR:   5.5,
+								LoraSnr:   5.5,
 								Latitude:  1.12345,
 								Longitude: 2.12345,
 								Altitude:  10,
 							},
 							{
-								Mac:       "0302030405060708",
+								GatewayId: "0302030405060708",
 								Rssi:      15,
-								LoraSNR:   7.5,
+								LoraSnr:   7.5,
 								Latitude:  2.12345,
 								Longitude: 3.12345,
 								Altitude:  11,

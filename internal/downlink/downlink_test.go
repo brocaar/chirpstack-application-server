@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/satori/go.uuid"
+
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
@@ -16,7 +18,6 @@ import (
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
-	"github.com/brocaar/lorawan/backend"
 )
 
 func TestHandleDownlinkQueueItem(t *testing.T) {
@@ -51,28 +52,30 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			Name:            "test-sp",
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
-			ServiceProfile:  backend.ServiceProfile{},
 		}
 		So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
+		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+		So(err, ShouldBeNil)
 
 		dp := storage.DeviceProfile{
 			Name:            "test-dp",
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
-			DeviceProfile:   backend.DeviceProfile{},
 		}
 		So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
+		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
+		So(err, ShouldBeNil)
 
 		app := storage.Application{
 			OrganizationID:   org.ID,
 			Name:             "test-app",
-			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+			ServiceProfileID: spID,
 		}
 		So(storage.CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
 
 		device := storage.Device{
 			ApplicationID:   app.ID,
-			DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+			DeviceProfileID: dpID,
 			Name:            "test-node",
 			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		}
@@ -112,7 +115,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 
 					ExpectedCreateDeviceQueueItemRequest: ns.CreateDeviceQueueItemRequest{
 						Item: &ns.DeviceQueueItem{
-							DevEUI:     device.DevEUI[:],
+							DevEui:     device.DevEUI[:],
 							FrmPayload: b,
 							FCnt:       12,
 							FPort:      2,
@@ -133,7 +136,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 
 					ExpectedCreateDeviceQueueItemRequest: ns.CreateDeviceQueueItemRequest{
 						Item: &ns.DeviceQueueItem{
-							DevEUI:     device.DevEUI[:],
+							DevEui:     device.DevEUI[:],
 							FrmPayload: b,
 							FCnt:       12,
 							FPort:      2,
@@ -176,7 +179,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 
 					ExpectedCreateDeviceQueueItemRequest: ns.CreateDeviceQueueItemRequest{
 						Item: &ns.DeviceQueueItem{
-							DevEUI:     device.DevEUI[:],
+							DevEui:     device.DevEUI[:],
 							FrmPayload: b,
 							FCnt:       12,
 							FPort:      2,

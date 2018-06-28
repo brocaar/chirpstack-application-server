@@ -19,13 +19,13 @@ class UpdateOrganization extends Component {
   componentDidMount() {
     OrganizationStore.getOrganization(this.props.match.params.organizationID, (organization) => {
       this.setState({
-        organization: organization,
+        organization: organization.organization,
       });
     });
   }
 
   onSubmit(organization) {
-    OrganizationStore.updateOrganization(this.props.match.params.organizationID, organization, (responseData) => {
+    OrganizationStore.updateOrganization(this.props.match.params.organizationID, {organization: organization}, (responseData) => {
       this.props.history.push('/organizations');
     });
   }

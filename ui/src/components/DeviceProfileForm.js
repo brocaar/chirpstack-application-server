@@ -13,9 +13,7 @@ class DeviceProfileForm extends Component {
     super();
 
     this.state = {
-      deviceProfile: {
-        deviceProfile: {},
-      },
+      deviceProfile: {},
       networkServers: [],
       update: false,
       activeTab: "general",
@@ -44,13 +42,13 @@ class DeviceProfileForm extends Component {
 
   componentWillReceiveProps(nextProps) {
     let dp = nextProps.deviceProfile;
-    if (dp.deviceProfile !== undefined && dp.deviceProfile.factoryPresetFreqs !== undefined && dp.deviceProfile.factoryPresetFreqs.length > 0) {
-      dp.deviceProfile.factoryPresetFreqsStr = dp.deviceProfile.factoryPresetFreqs.join(', ');
+    if (dp !== undefined && dp.factoryPresetFreqs !== undefined && dp.factoryPresetFreqs.length > 0) {
+      dp.factoryPresetFreqsStr = dp.factoryPresetFreqs.join(', ');
     }
 
     this.setState({
       deviceProfile: dp,
-      update: nextProps.deviceProfile.deviceProfile.deviceProfileID !== undefined,
+      update: nextProps.deviceProfile.id !== undefined,
     });
   }
 
@@ -59,33 +57,24 @@ class DeviceProfileForm extends Component {
     this.props.onSubmit(this.state.deviceProfile);
   }
 
-  onChange(fieldLookup, e) {
-    let lookup = fieldLookup.split(".");
-    const fieldName = lookup[lookup.length-1];
-    lookup.pop(); // remove last item
-
+  onChange(field, e) {
     let deviceProfile = this.state.deviceProfile;
-    let obj = deviceProfile;
 
-    for (const f of lookup) {
-      obj = obj[f];
-    }
-
-    if (fieldName === "factoryPresetFreqsStr") {
-      obj[fieldName] = e.target.value;
+    if (field === "factoryPresetFreqsStr") {
+      deviceProfile[field] = e.target.value;
 
       if (e.target.value === "") {
-        obj["factoryPresetFreqs"] = [];
+        deviceProfile[field] = [];
       } else {
         let freqsStr = e.target.value.split(",");
-        obj["factoryPresetFreqs"] = freqsStr.map((c, i) => parseInt(c, 10));
+        deviceProfile[field] = freqsStr.map((c, i) => parseInt(c, 10));
       }
     } else if (e.target.type === "number") {
-      obj[fieldName] = parseInt(e.target.value, 10);
+      deviceProfile[field] = parseInt(e.target.value, 10);
     } else if (e.target.type === "checkbox") {
-      obj[fieldName] = e.target.checked;
+      deviceProfile[field] = e.target.checked;
     } else {
-      obj[fieldName] = e.target.value;
+      deviceProfile[field] = e.target.value;
     }
 
     this.setState({
@@ -93,19 +82,9 @@ class DeviceProfileForm extends Component {
     });
   }
 
-  onSelectChange(fieldLookup, val) {
-    let lookup = fieldLookup.split(".");
-    const fieldName = lookup[lookup.length-1];
-    lookup.pop(); // remove last item
-
+  onSelectChange(field, val) {
     let deviceProfile = this.state.deviceProfile;
-    let obj = deviceProfile;
-
-    for (const f of lookup) {
-      obj = obj[f];
-    }
-
-    obj[fieldName] = val.value;
+    deviceProfile[field] = val.value;
 
     this.setState({
       deviceProfile: deviceProfile,
@@ -191,8 +170,8 @@ class DeviceProfileForm extends Component {
                   <Select 
                     name="macVersion"
                     options={macVersionOptions}
-                    value={this.state.deviceProfile.deviceProfile.macVersion}
-                    onChange={this.onSelectChange.bind(this, 'deviceProfile.macVersion')}
+                    value={this.state.deviceProfile.macVersion}
+                    onChange={this.onSelectChange.bind(this, 'macVersion')}
                   />
                   <p className="help-block">
                     Version of the LoRaWAN supported by the End-Device.
@@ -203,8 +182,8 @@ class DeviceProfileForm extends Component {
                   <Select 
                     name="regParamsRevision"
                     options={regParamsOptions}
-                    value={this.state.deviceProfile.deviceProfile.regParamsRevision}
-                    onChange={this.onSelectChange.bind(this, 'deviceProfile.regParamsRevision')}
+                    value={this.state.deviceProfile.regParamsRevision}
+                    onChange={this.onSelectChange.bind(this, 'regParamsRevision')}
                   />
                   <p className="help-block">
                     Revision of the Regional Parameters document supported by the End-Device.
@@ -212,7 +191,7 @@ class DeviceProfileForm extends Component {
                 </div>
                 <div className="form-group">
                   <label className="control-label" htmlFor="maxEIRP">Max EIRP</label>
-                  <input className="form-control" name="maxEIRP" id="maxEIRP" type="number" value={this.state.deviceProfile.deviceProfile.maxEIRP || 0} onChange={this.onChange.bind(this, 'deviceProfile.maxEIRP')} />
+                  <input className="form-control" name="maxEIRP" id="maxEIRP" type="number" value={this.state.deviceProfile.maxEIRP || 0} onChange={this.onChange.bind(this, 'maxEIRP')} />
                   <p className="help-block">
                     Maximum EIRP supported by the End-Device.
                   </p>
@@ -223,44 +202,44 @@ class DeviceProfileForm extends Component {
                   <label className="control-label" htmlFor="supportsJoin">Supports join (OTAA)</label>
                   <div className="checkbox">
                     <label>
-                      <input type="checkbox" name="supportsJoin" id="supportsJoin" checked={!!this.state.deviceProfile.deviceProfile.supportsJoin} onChange={this.onChange.bind(this, 'deviceProfile.supportsJoin')} /> Supports join
+                      <input type="checkbox" name="supportsJoin" id="supportsJoin" checked={!!this.state.deviceProfile.supportsJoin} onChange={this.onChange.bind(this, 'supportsJoin')} /> Supports join
                     </label>
                   </div>
                   <p className="help-block">
                     End-Device supports Join (OTAA) or not (ABP).
                   </p>
                 </div>
-                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsJoin === true ? "hidden" : "")}>
+                <div className={"form-group " + (this.state.deviceProfile.supportsJoin === true ? "hidden" : "")}>
                   <label className="control-label" htmlFor="rxDelay1">RX1 delay</label>
-                  <input className="form-control" name="rxDelay1" id="rxDelay1" type="number" value={this.state.deviceProfile.deviceProfile.rxDelay1 || 0} onChange={this.onChange.bind(this, 'deviceProfile.rxDelay1')} />
+                  <input className="form-control" name="rxDelay1" id="rxDelay1" type="number" value={this.state.deviceProfile.rxDelay1 || 0} onChange={this.onChange.bind(this, 'rxDelay1')} />
                   <p className="help-block">
                     Class A RX1 delay (mandatory for ABP).
                   </p>
                 </div>
-                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsJoin === true ? "hidden" : "")}>
+                <div className={"form-group " + (this.state.deviceProfile.supportsJoin === true ? "hidden" : "")}>
                   <label className="control-label" htmlFor="rxDROffset1">RX1 data-rate offset</label>
-                  <input className="form-control" name="rxDROffset1" id="rxDROffset1" type="number" value={this.state.deviceProfile.deviceProfile.rxDROffset1 || 0} onChange={this.onChange.bind(this, 'deviceProfile.rxDROffset1')} />
+                  <input className="form-control" name="rxDROffset1" id="rxDROffset1" type="number" value={this.state.deviceProfile.rxDROffset1 || 0} onChange={this.onChange.bind(this, 'rxDROffset1')} />
                   <p className="help-block">
                     RX1 data rate offset (mandatory for ABP).
                   </p>
                 </div>
-                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsJoin === true ? "hidden" : "")}>
+                <div className={"form-group " + (this.state.deviceProfile.supportsJoin === true ? "hidden" : "")}>
                   <label className="control-label" htmlFor="rxDataRate2">RX2 data-rate</label>
-                  <input className="form-control" name="rxDataRate2" id="rxDataRate2" type="number" value={this.state.deviceProfile.deviceProfile.rxDataRate2 || 0} onChange={this.onChange.bind(this, 'deviceProfile.rxDataRate2')} />
+                  <input className="form-control" name="rxDataRate2" id="rxDataRate2" type="number" value={this.state.deviceProfile.rxDataRate2 || 0} onChange={this.onChange.bind(this, 'rxDataRate2')} />
                   <p className="help-block">
                     RX2 data rate (mandatory for ABP).
                   </p>
                 </div>
-                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsJoin === true ? "hidden" : "")}>
+                <div className={"form-group " + (this.state.deviceProfile.supportsJoin === true ? "hidden" : "")}>
                   <label className="control-label" htmlFor="rxFreq2">RX2 channel frequency</label>
-                  <input className="form-control" name="rxFreq2" id="rxFreq2" type="number" value={this.state.deviceProfile.deviceProfile.rxFreq2 || 0} onChange={this.onChange.bind(this, 'deviceProfile.rxFreq2')} />
+                  <input className="form-control" name="rxFreq2" id="rxFreq2" type="number" value={this.state.deviceProfile.rxFreq2 || 0} onChange={this.onChange.bind(this, 'rxFreq2')} />
                   <p className="help-block">
                     RX2 channel frequency (mandatory for ABP).
                   </p>
                 </div>
-                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsJoin === true ? "hidden" : "")}>
+                <div className={"form-group " + (this.state.deviceProfile.supportsJoin === true ? "hidden" : "")}>
                   <label className="control-label" htmlFor="factoryPresetFreqsStr">Factory-present frequencies</label>
-                  <input className="form-control" id="factoryPresetFreqsStr" type="text" placeholder="e.g. 868100000, 868300000, 868500000" value={this.state.deviceProfile.deviceProfile.factoryPresetFreqsStr || ''} onChange={this.onChange.bind(this, 'deviceProfile.factoryPresetFreqsStr')} />
+                  <input className="form-control" id="factoryPresetFreqsStr" type="text" placeholder="e.g. 868100000, 868300000, 868500000" value={this.state.deviceProfile.factoryPresetFreqsStr || ''} onChange={this.onChange.bind(this, 'factoryPresetFreqsStr')} />
                   <p className="help-block">
                     List of factory-preset frequencies (mandatory for ABP).
                   </p>
@@ -271,42 +250,42 @@ class DeviceProfileForm extends Component {
                   <label className="control-label" htmlFor="supportsClassB">Supports Class-B</label>
                   <div className="checkbox">
                     <label>
-                      <input type="checkbox" name="supportsClassB" id="supportsClassB" checked={this.state.deviceProfile.deviceProfile.supportsClassB} onChange={this.onChange.bind(this, 'deviceProfile.supportsClassB')} /> Supports Class-B
+                      <input type="checkbox" name="supportsClassB" id="supportsClassB" checked={this.state.deviceProfile.supportsClassB} onChange={this.onChange.bind(this, 'supportsClassB')} /> Supports Class-B
                     </label>
                   </div>
                   <p className="help-block">
                     End-Device supports Class B.
                   </p>
                 </div>
-                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsClassB === true ? "" : "hidden")}>
+                <div className={"form-group " + (this.state.deviceProfile.supportsClassB === true ? "" : "hidden")}>
                   <label className="control-label" htmlFor="classBTimeout">Class-B confirmed downlink timeout</label>
-                  <input className="form-control" name="classBTimeout" id="classBTimeout" type="number" value={this.state.deviceProfile.deviceProfile.classBTimeout || 0} onChange={this.onChange.bind(this, 'deviceProfile.classBTimeout')} />
+                  <input className="form-control" name="classBTimeout" id="classBTimeout" type="number" value={this.state.deviceProfile.classBTimeout || 0} onChange={this.onChange.bind(this, 'classBTimeout')} />
                   <p className="help-block">
                     Class-B timeout (in seconds) for confirmed downlink transmissions.
                   </p>
                 </div>
-                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsClassB === true ? "" : "hidden")}>
+                <div className={"form-group " + (this.state.deviceProfile.supportsClassB === true ? "" : "hidden")}>
                   <label className="control-label" htmlFor="pingSlotPeriod">Class-B ping-slot periodicity</label>
                   <Select
                     name="pingSlotPeriod"
                     options={pingSlotPeriodOptions}
-                    value={this.state.deviceProfile.deviceProfile.pingSlotPeriod}
-                    onChange={this.onSelectChange.bind(this, 'deviceProfile.pingSlotPeriod')}
+                    value={this.state.deviceProfile.pingSlotPeriod}
+                    onChange={this.onSelectChange.bind(this, 'pingSlotPeriod')}
                   />
                   <p className="help-block">
                     Class-B ping-slot periodicity.
                   </p>
                 </div>
-                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsClassB === true ? "" : "hidden")}>
+                <div className={"form-group " + (this.state.deviceProfile.supportsClassB === true ? "" : "hidden")}>
                   <label className="control-label" htmlFor="pingSlotDR">Class-B ping-slot data-rate</label>
-                  <input className="form-control" name="pingSlotDR" id="pingSlotDR" type="number" value={this.state.deviceProfile.deviceProfile.pingSlotDR || 0} onChange={this.onChange.bind(this, 'deviceProfile.pingSlotDR')} />
+                  <input className="form-control" name="pingSlotDR" id="pingSlotDR" type="number" value={this.state.deviceProfile.pingSlotDR || 0} onChange={this.onChange.bind(this, 'pingSlotDR')} />
                   <p className="help-block">
                     Class-B data-rate.
                   </p>
                 </div>
-                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsClassB === true ? "" : "hidden")}>
+                <div className={"form-group " + (this.state.deviceProfile.supportsClassB === true ? "" : "hidden")}>
                   <label className="control-label" htmlFor="pingSlotFreq">Class-B ping-slot frequency (Hz)</label>
-                  <input className="form-control" name="pingSlotFreq" id="pingSlotFreq" type="number" value={this.state.deviceProfile.deviceProfile.pingSlotFreq || 0} onChange={this.onChange.bind(this, 'deviceProfile.pingSlotFreq')} />
+                  <input className="form-control" name="pingSlotFreq" id="pingSlotFreq" type="number" value={this.state.deviceProfile.pingSlotFreq || 0} onChange={this.onChange.bind(this, 'pingSlotFreq')} />
                   <p className="help-block">
                     Class-B frequency (in Hz).
                   </p>
@@ -317,16 +296,16 @@ class DeviceProfileForm extends Component {
                   <label className="control-label" htmlFor="supportsClassC">Supports Class-C</label>
                   <div className="checkbox">
                     <label>
-                      <input type="checkbox" name="supportsClassC" id="supportsClassC" checked={!!this.state.deviceProfile.deviceProfile.supportsClassC} onChange={this.onChange.bind(this, 'deviceProfile.supportsClassC')} /> Supports Class-C
+                      <input type="checkbox" name="supportsClassC" id="supportsClassC" checked={!!this.state.deviceProfile.supportsClassC} onChange={this.onChange.bind(this, 'supportsClassC')} /> Supports Class-C
                     </label>
                   </div>
                   <p className="help-block">
                     End-Device supports Class C.
                   </p>
                 </div>
-                <div className={"form-group " + (this.state.deviceProfile.deviceProfile.supportsClassC === true ? "" : "hidden")}>
+                <div className={"form-group " + (this.state.deviceProfile.supportsClassC === true ? "" : "hidden")}>
                   <label className="control-label" htmlFor="classCTimeout">Class-C confirmed downlink timeout</label>
-                  <input className="form-control" name="classCTimeout" id="classCTimeout" type="number" value={this.state.deviceProfile.deviceProfile.classCTimeout || 0} onChange={this.onChange.bind(this, 'deviceProfile.classCTimeout')} />
+                  <input className="form-control" name="classCTimeout" id="classCTimeout" type="number" value={this.state.deviceProfile.classCTimeout || 0} onChange={this.onChange.bind(this, 'classCTimeout')} />
                   <p className="help-block">
                     Class-C timeout (in seconds) for confirmed downlink transmissions.
                   </p>

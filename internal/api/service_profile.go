@@ -1,8 +1,10 @@
 package api
 
 import (
-	"time"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/satori/go.uuid"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -12,7 +14,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lorawan/backend"
+	"github.com/brocaar/loraserver/api/ns"
 )
 
 // ServiceProfileServiceAPI export the ServiceProfile related functions.
@@ -30,52 +32,40 @@ func NewServiceProfileServiceAPI(validator auth.Validator) *ServiceProfileServic
 // Create creates the given service-profile.
 func (a *ServiceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateServiceProfileRequest) (*pb.CreateServiceProfileResponse, error) {
 	if req.ServiceProfile == nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "serviceProfile expected")
+		return nil, grpc.Errorf(codes.InvalidArgument, "service_profile must not be nil")
 	}
 
 	if err := a.validator.Validate(ctx,
-		auth.ValidateServiceProfilesAccess(auth.Create, req.OrganizationID),
+		auth.ValidateServiceProfilesAccess(auth.Create, req.ServiceProfile.OrganizationId),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	sp := storage.ServiceProfile{
-		OrganizationID:  req.OrganizationID,
-		NetworkServerID: req.NetworkServerID,
-		Name:            req.Name,
-		ServiceProfile: backend.ServiceProfile{
-			ULRate:                 int(req.ServiceProfile.UlRate),
-			ULBucketSize:           int(req.ServiceProfile.UlBucketSize),
-			DLRate:                 int(req.ServiceProfile.DlRate),
-			DLBucketSize:           int(req.ServiceProfile.DlBucketSize),
-			AddGWMetadata:          req.ServiceProfile.AddGWMetadata,
-			DevStatusReqFreq:       int(req.ServiceProfile.DevStatusReqFreq),
+		OrganizationID:  req.ServiceProfile.OrganizationId,
+		NetworkServerID: req.ServiceProfile.NetworkServerId,
+		Name:            req.ServiceProfile.Name,
+		ServiceProfile: ns.ServiceProfile{
+			UlRate:                 req.ServiceProfile.UlRate,
+			UlBucketSize:           req.ServiceProfile.UlBucketSize,
+			DlRate:                 req.ServiceProfile.DlRate,
+			DlBucketSize:           req.ServiceProfile.DlBucketSize,
+			AddGwMetadata:          req.ServiceProfile.AddGwMetadata,
+			DevStatusReqFreq:       req.ServiceProfile.DevStatusReqFreq,
 			ReportDevStatusBattery: req.ServiceProfile.ReportDevStatusBattery,
 			ReportDevStatusMargin:  req.ServiceProfile.ReportDevStatusMargin,
-			DRMin:          int(req.ServiceProfile.DrMin),
-			DRMax:          int(req.ServiceProfile.DrMax),
-			ChannelMask:    backend.HEXBytes(req.ServiceProfile.ChannelMask),
-			PRAllowed:      req.ServiceProfile.PrAllowed,
-			HRAllowed:      req.ServiceProfile.HrAllowed,
-			RAAllowed:      req.ServiceProfile.RaAllowed,
+			DrMin:          req.ServiceProfile.DrMin,
+			DrMax:          req.ServiceProfile.DrMax,
+			ChannelMask:    req.ServiceProfile.ChannelMask,
+			PrAllowed:      req.ServiceProfile.PrAllowed,
+			HrAllowed:      req.ServiceProfile.HrAllowed,
+			RaAllowed:      req.ServiceProfile.RaAllowed,
 			NwkGeoLoc:      req.ServiceProfile.NwkGeoLoc,
-			TargetPER:      backend.Percentage(req.ServiceProfile.TargetPER),
-			MinGWDiversity: int(req.ServiceProfile.MinGWDiversity),
+			TargetPer:      req.ServiceProfile.TargetPer,
+			MinGwDiversity: req.ServiceProfile.MinGwDiversity,
+			UlRatePolicy:   ns.RatePolicy(req.ServiceProfile.UlRatePolicy),
+			DlRatePolicy:   ns.RatePolicy(req.ServiceProfile.DlRatePolicy),
 		},
-	}
-
-	switch req.ServiceProfile.UlRatePolicy {
-	case pb.RatePolicy_MARK:
-		sp.ServiceProfile.ULRatePolicy = backend.Mark
-	case pb.RatePolicy_DROP:
-		sp.ServiceProfile.ULRatePolicy = backend.Drop
-	}
-
-	switch req.ServiceProfile.DlRatePolicy {
-	case pb.RatePolicy_MARK:
-		sp.ServiceProfile.DLRatePolicy = backend.Mark
-	case pb.RatePolicy_DROP:
-		sp.ServiceProfile.DLRatePolicy = backend.Drop
 	}
 
 	// as this also performs a remote call to create the service-profile
@@ -87,120 +77,118 @@ func (a *ServiceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateSer
 		return nil, errToRPCError(err)
 	}
 
+	spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
 	return &pb.CreateServiceProfileResponse{
-		ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+		Id: spID.String(),
 	}, nil
 }
 
 // Get returns the service-profile matching the given id.
 func (a *ServiceProfileServiceAPI) Get(ctx context.Context, req *pb.GetServiceProfileRequest) (*pb.GetServiceProfileResponse, error) {
+	spID, err := uuid.FromString(req.Id)
+	if err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "uuid error: %s", err)
+	}
+
 	if err := a.validator.Validate(ctx,
-		auth.ValidateServiceProfileAccess(auth.Read, req.ServiceProfileID),
+		auth.ValidateServiceProfileAccess(auth.Read, spID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	sp, err := storage.GetServiceProfile(config.C.PostgreSQL.DB, req.ServiceProfileID)
+	sp, err := storage.GetServiceProfile(config.C.PostgreSQL.DB, spID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
 	resp := pb.GetServiceProfileResponse{
-		CreatedAt:       sp.CreatedAt.Format(time.RFC3339Nano),
-		UpdatedAt:       sp.UpdatedAt.Format(time.RFC3339Nano),
-		OrganizationID:  sp.OrganizationID,
-		NetworkServerID: sp.NetworkServerID,
-		Name:            sp.Name,
 		ServiceProfile: &pb.ServiceProfile{
-			ServiceProfileID:       sp.ServiceProfile.ServiceProfileID,
-			UlRate:                 uint32(sp.ServiceProfile.ULRate),
-			UlBucketSize:           uint32(sp.ServiceProfile.ULBucketSize),
-			DlRate:                 uint32(sp.ServiceProfile.DLRate),
-			DlBucketSize:           uint32(sp.ServiceProfile.DLBucketSize),
-			AddGWMetadata:          sp.ServiceProfile.AddGWMetadata,
-			DevStatusReqFreq:       uint32(sp.ServiceProfile.DevStatusReqFreq),
+			Id:                     spID.String(),
+			Name:                   sp.Name,
+			OrganizationId:         sp.OrganizationID,
+			NetworkServerId:        sp.NetworkServerID,
+			UlRate:                 sp.ServiceProfile.UlRate,
+			UlBucketSize:           sp.ServiceProfile.UlBucketSize,
+			DlRate:                 sp.ServiceProfile.DlRate,
+			DlBucketSize:           sp.ServiceProfile.DlBucketSize,
+			AddGwMetadata:          sp.ServiceProfile.AddGwMetadata,
+			DevStatusReqFreq:       sp.ServiceProfile.DevStatusReqFreq,
 			ReportDevStatusBattery: sp.ServiceProfile.ReportDevStatusBattery,
 			ReportDevStatusMargin:  sp.ServiceProfile.ReportDevStatusMargin,
-			DrMin:          uint32(sp.ServiceProfile.DRMin),
-			DrMax:          uint32(sp.ServiceProfile.DRMax),
-			ChannelMask:    []byte(sp.ServiceProfile.ChannelMask),
-			PrAllowed:      sp.ServiceProfile.PRAllowed,
-			HrAllowed:      sp.ServiceProfile.HRAllowed,
-			RaAllowed:      sp.ServiceProfile.RAAllowed,
+			DrMin:          sp.ServiceProfile.DrMin,
+			DrMax:          sp.ServiceProfile.DrMax,
+			ChannelMask:    sp.ServiceProfile.ChannelMask,
+			PrAllowed:      sp.ServiceProfile.PrAllowed,
+			HrAllowed:      sp.ServiceProfile.HrAllowed,
+			RaAllowed:      sp.ServiceProfile.RaAllowed,
 			NwkGeoLoc:      sp.ServiceProfile.NwkGeoLoc,
-			TargetPER:      uint32(sp.ServiceProfile.TargetPER),
-			MinGWDiversity: uint32(sp.ServiceProfile.MinGWDiversity),
+			TargetPer:      sp.ServiceProfile.TargetPer,
+			MinGwDiversity: sp.ServiceProfile.MinGwDiversity,
+			UlRatePolicy:   pb.RatePolicy(sp.ServiceProfile.UlRatePolicy),
+			DlRatePolicy:   pb.RatePolicy(sp.ServiceProfile.DlRatePolicy),
 		},
 	}
 
-	switch sp.ServiceProfile.ULRatePolicy {
-	case backend.Mark:
-		resp.ServiceProfile.UlRatePolicy = pb.RatePolicy_MARK
-	case backend.Drop:
-		resp.ServiceProfile.UlRatePolicy = pb.RatePolicy_DROP
+	resp.CreatedAt, err = ptypes.TimestampProto(sp.CreatedAt)
+	if err != nil {
+		return nil, errToRPCError(err)
 	}
-
-	switch sp.ServiceProfile.DLRatePolicy {
-	case backend.Mark:
-		resp.ServiceProfile.DlRatePolicy = pb.RatePolicy_MARK
-	case backend.Drop:
-		resp.ServiceProfile.DlRatePolicy = pb.RatePolicy_DROP
+	resp.UpdatedAt, err = ptypes.TimestampProto(sp.UpdatedAt)
+	if err != nil {
+		return nil, errToRPCError(err)
 	}
 
 	return &resp, nil
 }
 
 // Update updates the given serviceprofile.
-func (a *ServiceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateServiceProfileRequest) (*pb.UpdateServiceProfileResponse, error) {
+func (a *ServiceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateServiceProfileRequest) (*empty.Empty, error) {
 	if req.ServiceProfile == nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "serviceProfile expected")
+		return nil, grpc.Errorf(codes.InvalidArgument, "service_profile must not be nil")
+	}
+
+	spID, err := uuid.FromString(req.ServiceProfile.Id)
+	if err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "uuid error: %s", err)
 	}
 
 	if err := a.validator.Validate(ctx,
-		auth.ValidateServiceProfileAccess(auth.Update, req.ServiceProfile.ServiceProfileID),
+		auth.ValidateServiceProfileAccess(auth.Update, spID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	sp, err := storage.GetServiceProfile(config.C.PostgreSQL.DB, req.ServiceProfile.ServiceProfileID)
+	sp, err := storage.GetServiceProfile(config.C.PostgreSQL.DB, spID)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	sp.Name = req.Name
-	sp.ServiceProfile = backend.ServiceProfile{
-		ServiceProfileID:       req.ServiceProfile.ServiceProfileID,
-		ULRate:                 int(req.ServiceProfile.UlRate),
-		ULBucketSize:           int(req.ServiceProfile.UlBucketSize),
-		DLRate:                 int(req.ServiceProfile.DlRate),
-		DLBucketSize:           int(req.ServiceProfile.DlBucketSize),
-		AddGWMetadata:          req.ServiceProfile.AddGWMetadata,
-		DevStatusReqFreq:       int(req.ServiceProfile.DevStatusReqFreq),
+	sp.Name = req.ServiceProfile.Name
+	sp.ServiceProfile = ns.ServiceProfile{
+		Id:                     spID.Bytes(),
+		UlRate:                 req.ServiceProfile.UlRate,
+		UlBucketSize:           req.ServiceProfile.UlBucketSize,
+		DlRate:                 req.ServiceProfile.DlRate,
+		DlBucketSize:           req.ServiceProfile.DlBucketSize,
+		AddGwMetadata:          req.ServiceProfile.AddGwMetadata,
+		DevStatusReqFreq:       req.ServiceProfile.DevStatusReqFreq,
 		ReportDevStatusBattery: req.ServiceProfile.ReportDevStatusBattery,
 		ReportDevStatusMargin:  req.ServiceProfile.ReportDevStatusMargin,
-		DRMin:          int(req.ServiceProfile.DrMin),
-		DRMax:          int(req.ServiceProfile.DrMax),
-		ChannelMask:    backend.HEXBytes(req.ServiceProfile.ChannelMask),
-		PRAllowed:      req.ServiceProfile.PrAllowed,
-		HRAllowed:      req.ServiceProfile.HrAllowed,
-		RAAllowed:      req.ServiceProfile.RaAllowed,
+		DrMin:          req.ServiceProfile.DrMin,
+		DrMax:          req.ServiceProfile.DrMax,
+		ChannelMask:    req.ServiceProfile.ChannelMask,
+		PrAllowed:      req.ServiceProfile.PrAllowed,
+		HrAllowed:      req.ServiceProfile.HrAllowed,
+		RaAllowed:      req.ServiceProfile.RaAllowed,
 		NwkGeoLoc:      req.ServiceProfile.NwkGeoLoc,
-		TargetPER:      backend.Percentage(req.ServiceProfile.TargetPER),
-		MinGWDiversity: int(req.ServiceProfile.MinGWDiversity),
-	}
-
-	switch req.ServiceProfile.UlRatePolicy {
-	case pb.RatePolicy_MARK:
-		sp.ServiceProfile.ULRatePolicy = backend.Mark
-	case pb.RatePolicy_DROP:
-		sp.ServiceProfile.ULRatePolicy = backend.Drop
-	}
-
-	switch req.ServiceProfile.DlRatePolicy {
-	case pb.RatePolicy_MARK:
-		sp.ServiceProfile.DLRatePolicy = backend.Mark
-	case pb.RatePolicy_DROP:
-		sp.ServiceProfile.DLRatePolicy = backend.Drop
+		TargetPer:      req.ServiceProfile.TargetPer,
+		MinGwDiversity: req.ServiceProfile.MinGwDiversity,
+		UlRatePolicy:   ns.RatePolicy(req.ServiceProfile.UlRatePolicy),
+		DlRatePolicy:   ns.RatePolicy(req.ServiceProfile.DlRatePolicy),
 	}
 
 	// as this also performs a remote call to create the service-profile
@@ -212,31 +200,36 @@ func (a *ServiceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateSer
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.UpdateServiceProfileResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // Delete deletes the service-profile matching the given id.
-func (a *ServiceProfileServiceAPI) Delete(ctx context.Context, req *pb.DeleteServiceProfileRequest) (*pb.DeleteServiceProfileResponse, error) {
+func (a *ServiceProfileServiceAPI) Delete(ctx context.Context, req *pb.DeleteServiceProfileRequest) (*empty.Empty, error) {
+	spID, err := uuid.FromString(req.Id)
+	if err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "uuid error: %s", err)
+	}
+
 	if err := a.validator.Validate(ctx,
-		auth.ValidateServiceProfileAccess(auth.Delete, req.ServiceProfileID),
+		auth.ValidateServiceProfileAccess(auth.Delete, spID),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
-		return storage.DeleteServiceProfile(tx, req.ServiceProfileID)
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
+		return storage.DeleteServiceProfile(tx, spID)
 	})
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.DeleteServiceProfileResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // List lists the available service-profiles.
 func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListServiceProfileRequest) (*pb.ListServiceProfileResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateServiceProfilesAccess(auth.List, req.OrganizationID),
+		auth.ValidateServiceProfilesAccess(auth.List, req.OrganizationId),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -254,7 +247,7 @@ func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListService
 	var count int
 	var sps []storage.ServiceProfileMeta
 
-	if req.OrganizationID == 0 {
+	if req.OrganizationId == 0 {
 		if isAdmin {
 			sps, err = storage.GetServiceProfiles(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset))
 			if err != nil {
@@ -277,12 +270,12 @@ func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListService
 			}
 		}
 	} else {
-		sps, err = storage.GetServiceProfilesForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset))
+		sps, err = storage.GetServiceProfilesForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationId, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 
-		count, err = storage.GetServiceProfileCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID)
+		count, err = storage.GetServiceProfileCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationId)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
@@ -292,14 +285,23 @@ func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListService
 		TotalCount: int64(count),
 	}
 	for _, sp := range sps {
-		resp.Result = append(resp.Result, &pb.ServiceProfileMeta{
-			ServiceProfileID: sp.ServiceProfileID,
-			Name:             sp.Name,
-			OrganizationID:   sp.OrganizationID,
-			NetworkServerID:  sp.NetworkServerID,
-			CreatedAt:        sp.CreatedAt.Format(time.RFC3339Nano),
-			UpdatedAt:        sp.UpdatedAt.Format(time.RFC3339Nano),
-		})
+		row := pb.ServiceProfileListItem{
+			Id:              sp.ServiceProfileID.String(),
+			Name:            sp.Name,
+			OrganizationId:  sp.OrganizationID,
+			NetworkServerId: sp.NetworkServerID,
+		}
+
+		row.CreatedAt, err = ptypes.TimestampProto(sp.CreatedAt)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		row.UpdatedAt, err = ptypes.TimestampProto(sp.UpdatedAt)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		resp.Result = append(resp.Result, &row)
 	}
 
 	return &resp, nil

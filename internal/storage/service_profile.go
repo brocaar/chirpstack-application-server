@@ -14,22 +14,21 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/loraserver/api/ns"
-	"github.com/brocaar/lorawan/backend"
 )
 
 // ServiceProfile defines the service-profile.
 type ServiceProfile struct {
-	NetworkServerID int64                  `db:"network_server_id"`
-	OrganizationID  int64                  `db:"organization_id"`
-	CreatedAt       time.Time              `db:"created_at"`
-	UpdatedAt       time.Time              `db:"updated_at"`
-	Name            string                 `db:"name"`
-	ServiceProfile  backend.ServiceProfile `db:"-"`
+	NetworkServerID int64             `db:"network_server_id"`
+	OrganizationID  int64             `db:"organization_id"`
+	CreatedAt       time.Time         `db:"created_at"`
+	UpdatedAt       time.Time         `db:"updated_at"`
+	Name            string            `db:"name"`
+	ServiceProfile  ns.ServiceProfile `db:"-"`
 }
 
 // ServiceProfileMeta defines the service-profile meta record.
 type ServiceProfileMeta struct {
-	ServiceProfileID string    `db:"service_profile_id"`
+	ServiceProfileID uuid.UUID `db:"service_profile_id"`
 	NetworkServerID  int64     `db:"network_server_id"`
 	OrganizationID   int64     `db:"organization_id"`
 	CreatedAt        time.Time `db:"created_at"`
@@ -49,9 +48,11 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 	}
 
 	now := time.Now()
+	spID := uuid.NewV4()
+
 	sp.CreatedAt = now
 	sp.UpdatedAt = now
-	sp.ServiceProfile.ServiceProfileID = uuid.NewV4().String()
+	sp.ServiceProfile.Id = spID.Bytes()
 
 	_, err := db.Exec(`
 		insert into service_profile (
@@ -62,7 +63,7 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 			updated_at,
 			name
 		) values ($1, $2, $3, $4, $5, $6)`,
-		sp.ServiceProfile.ServiceProfileID,
+		spID,
 		sp.NetworkServerID,
 		sp.OrganizationID,
 		sp.CreatedAt,
@@ -71,43 +72,6 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
-	}
-
-	req := ns.CreateServiceProfileRequest{
-		ServiceProfile: &ns.ServiceProfile{
-			ServiceProfileID:       sp.ServiceProfile.ServiceProfileID,
-			UlRate:                 uint32(sp.ServiceProfile.ULRate),
-			UlBucketSize:           uint32(sp.ServiceProfile.ULBucketSize),
-			DlRate:                 uint32(sp.ServiceProfile.DLRate),
-			DlBucketSize:           uint32(sp.ServiceProfile.DLBucketSize),
-			AddGWMetadata:          sp.ServiceProfile.AddGWMetadata,
-			DevStatusReqFreq:       uint32(sp.ServiceProfile.DevStatusReqFreq),
-			ReportDevStatusBattery: sp.ServiceProfile.ReportDevStatusBattery,
-			ReportDevStatusMargin:  sp.ServiceProfile.ReportDevStatusMargin,
-			DrMin:          uint32(sp.ServiceProfile.DRMin),
-			DrMax:          uint32(sp.ServiceProfile.DRMax),
-			ChannelMask:    []byte(sp.ServiceProfile.ChannelMask),
-			PrAllowed:      sp.ServiceProfile.PRAllowed,
-			HrAllowed:      sp.ServiceProfile.HRAllowed,
-			RaAllowed:      sp.ServiceProfile.RAAllowed,
-			NwkGeoLoc:      sp.ServiceProfile.NwkGeoLoc,
-			TargetPER:      uint32(sp.ServiceProfile.TargetPER),
-			MinGWDiversity: uint32(sp.ServiceProfile.MinGWDiversity),
-		},
-	}
-
-	switch sp.ServiceProfile.ULRatePolicy {
-	case backend.Drop:
-		req.ServiceProfile.UlRatePolicy = ns.RatePolicy_DROP
-	case backend.Mark:
-		req.ServiceProfile.UlRatePolicy = ns.RatePolicy_MARK
-	}
-
-	switch sp.ServiceProfile.DLRatePolicy {
-	case backend.Drop:
-		req.ServiceProfile.DlRatePolicy = ns.RatePolicy_DROP
-	case backend.Mark:
-		req.ServiceProfile.DlRatePolicy = ns.RatePolicy_MARK
 	}
 
 	n, err := GetNetworkServer(db, sp.NetworkServerID)
@@ -120,21 +84,22 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
-	_, err = nsClient.CreateServiceProfile(context.Background(), &req)
+	_, err = nsClient.CreateServiceProfile(context.Background(), &ns.CreateServiceProfileRequest{
+		ServiceProfile: &sp.ServiceProfile,
+	})
 	if err != nil {
 		return handleGrpcError(err, "create service-profile error")
 	}
 
-	log.WithField("service_profile_id", sp.ServiceProfile.ServiceProfileID).Info("service-profile created")
+	log.WithField("id", spID).Info("service-profile created")
 	return nil
 }
 
 // GetServiceProfile returns the service-profile matching the given id.
-func GetServiceProfile(db sqlx.Queryer, id string) (ServiceProfile, error) {
+func GetServiceProfile(db sqlx.Queryer, id uuid.UUID) (ServiceProfile, error) {
 	var sp ServiceProfile
 	row := db.QueryRowx(`
 		select 
-			service_profile_id,
 			network_server_id,
 			organization_id,
 			created_at,
@@ -149,7 +114,7 @@ func GetServiceProfile(db sqlx.Queryer, id string) (ServiceProfile, error) {
 		return sp, handlePSQLError(Select, err, "select error")
 	}
 
-	err := row.Scan(&sp.ServiceProfile.ServiceProfileID, &sp.NetworkServerID, &sp.OrganizationID, &sp.CreatedAt, &sp.UpdatedAt, &sp.Name)
+	err := row.Scan(&sp.NetworkServerID, &sp.OrganizationID, &sp.CreatedAt, &sp.UpdatedAt, &sp.Name)
 	if err != nil {
 		return sp, handlePSQLError(Scan, err, "scan error")
 	}
@@ -165,46 +130,17 @@ func GetServiceProfile(db sqlx.Queryer, id string) (ServiceProfile, error) {
 	}
 
 	resp, err := nsClient.GetServiceProfile(context.Background(), &ns.GetServiceProfileRequest{
-		ServiceProfileID: id,
+		Id: id.Bytes(),
 	})
 	if err != nil {
 		return sp, handleGrpcError(err, "get service-profile error")
 	}
 
-	sp.ServiceProfile = backend.ServiceProfile{
-		ServiceProfileID:       resp.ServiceProfile.ServiceProfileID,
-		ULRate:                 int(resp.ServiceProfile.UlRate),
-		ULBucketSize:           int(resp.ServiceProfile.UlBucketSize),
-		DLRate:                 int(resp.ServiceProfile.DlRate),
-		DLBucketSize:           int(resp.ServiceProfile.DlBucketSize),
-		AddGWMetadata:          resp.ServiceProfile.AddGWMetadata,
-		DevStatusReqFreq:       int(resp.ServiceProfile.DevStatusReqFreq),
-		ReportDevStatusBattery: resp.ServiceProfile.ReportDevStatusBattery,
-		ReportDevStatusMargin:  resp.ServiceProfile.ReportDevStatusMargin,
-		DRMin:          int(resp.ServiceProfile.DrMin),
-		DRMax:          int(resp.ServiceProfile.DrMax),
-		ChannelMask:    backend.HEXBytes(resp.ServiceProfile.ChannelMask),
-		PRAllowed:      resp.ServiceProfile.PrAllowed,
-		HRAllowed:      resp.ServiceProfile.HrAllowed,
-		RAAllowed:      resp.ServiceProfile.RaAllowed,
-		NwkGeoLoc:      resp.ServiceProfile.NwkGeoLoc,
-		TargetPER:      backend.Percentage(resp.ServiceProfile.TargetPER),
-		MinGWDiversity: int(resp.ServiceProfile.MinGWDiversity),
+	if resp.ServiceProfile == nil {
+		return sp, errors.New("service_profile must not be nil")
 	}
 
-	switch resp.ServiceProfile.UlRatePolicy {
-	case ns.RatePolicy_MARK:
-		sp.ServiceProfile.ULRatePolicy = backend.Mark
-	case ns.RatePolicy_DROP:
-		sp.ServiceProfile.ULRatePolicy = backend.Drop
-	}
-
-	switch resp.ServiceProfile.DlRatePolicy {
-	case ns.RatePolicy_MARK:
-		sp.ServiceProfile.DLRatePolicy = backend.Mark
-	case ns.RatePolicy_DROP:
-		sp.ServiceProfile.DLRatePolicy = backend.Drop
-	}
+	sp.ServiceProfile = *resp.ServiceProfile
 
 	return sp, nil
 }
@@ -215,6 +151,11 @@ func UpdateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		return errors.Wrap(err, "validate error")
 	}
 
+	spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+	if err != nil {
+		return errors.Wrap(err, "uuid from bytes error")
+	}
+
 	sp.UpdatedAt = time.Now()
 	res, err := db.Exec(`
 		update service_profile
@@ -222,7 +163,7 @@ func UpdateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 			updated_at = $2,
 			name = $3
 		where service_profile_id = $1`,
-		sp.ServiceProfile.ServiceProfileID,
+		spID,
 		sp.UpdatedAt,
 		sp.Name,
 	)
@@ -237,43 +178,6 @@ func UpdateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		return ErrDoesNotExist
 	}
 
-	req := ns.UpdateServiceProfileRequest{
-		ServiceProfile: &ns.ServiceProfile{
-			ServiceProfileID:       sp.ServiceProfile.ServiceProfileID,
-			UlRate:                 uint32(sp.ServiceProfile.ULRate),
-			UlBucketSize:           uint32(sp.ServiceProfile.ULBucketSize),
-			DlRate:                 uint32(sp.ServiceProfile.DLRate),
-			DlBucketSize:           uint32(sp.ServiceProfile.DLBucketSize),
-			AddGWMetadata:          sp.ServiceProfile.AddGWMetadata,
-			DevStatusReqFreq:       uint32(sp.ServiceProfile.DevStatusReqFreq),
-			ReportDevStatusBattery: sp.ServiceProfile.ReportDevStatusBattery,
-			ReportDevStatusMargin:  sp.ServiceProfile.ReportDevStatusMargin,
-			DrMin:          uint32(sp.ServiceProfile.DRMin),
-			DrMax:          uint32(sp.ServiceProfile.DRMax),
-			ChannelMask:    []byte(sp.ServiceProfile.ChannelMask),
-			PrAllowed:      sp.ServiceProfile.PRAllowed,
-			HrAllowed:      sp.ServiceProfile.HRAllowed,
-			RaAllowed:      sp.ServiceProfile.RAAllowed,
-			NwkGeoLoc:      sp.ServiceProfile.NwkGeoLoc,
-			TargetPER:      uint32(sp.ServiceProfile.TargetPER),
-			MinGWDiversity: uint32(sp.ServiceProfile.MinGWDiversity),
-		},
-	}
-
-	switch sp.ServiceProfile.ULRatePolicy {
-	case backend.Drop:
-		req.ServiceProfile.UlRatePolicy = ns.RatePolicy_DROP
-	case backend.Mark:
-		req.ServiceProfile.UlRatePolicy = ns.RatePolicy_MARK
-	}
-
-	switch sp.ServiceProfile.DLRatePolicy {
-	case backend.Drop:
-		req.ServiceProfile.DlRatePolicy = ns.RatePolicy_DROP
-	case backend.Mark:
-		req.ServiceProfile.DlRatePolicy = ns.RatePolicy_MARK
-	}
-
 	n, err := GetNetworkServer(db, sp.NetworkServerID)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
@@ -284,18 +188,20 @@ func UpdateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
-	_, err = nsClient.UpdateServiceProfile(context.Background(), &req)
+	_, err = nsClient.UpdateServiceProfile(context.Background(), &ns.UpdateServiceProfileRequest{
+		ServiceProfile: &sp.ServiceProfile,
+	})
 	if err != nil {
 		return handleGrpcError(err, "update service-profile error")
 	}
 
-	log.WithField("service_profile_id", sp.ServiceProfile.ServiceProfileID).Info("service-profile updated")
+	log.WithField("id", spID).Info("service-profile updated")
 
 	return nil
 }
 
 // DeleteServiceProfile deletes the service-profile matching the given id.
-func DeleteServiceProfile(db sqlx.Ext, id string) error {
+func DeleteServiceProfile(db sqlx.Ext, id uuid.UUID) error {
 	n, err := GetNetworkServerForServiceProfileID(db, id)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
@@ -319,13 +225,13 @@ func DeleteServiceProfile(db sqlx.Ext, id string) error {
 	}
 
 	_, err = nsClient.DeleteServiceProfile(context.Background(), &ns.DeleteServiceProfileRequest{
-		ServiceProfileID: id,
+		Id: id.Bytes(),
 	})
 	if err != nil && grpc.Code(err) != codes.NotFound {
 		return handleGrpcError(err, "delete service-profile error")
 	}
 
-	log.WithField("service_profile_id", id).Info("service-profile deleted")
+	log.WithField("id", id).Info("service-profile deleted")
 
 	return nil
 }

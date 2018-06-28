@@ -29,9 +29,11 @@ func TestOrganizationAPI(t *testing.T) {
 		Convey("When creating an organization with a bad name (spaces)", func() {
 			validator.returnIsAdmin = true
 			createReq := &pb.CreateOrganizationRequest{
-				Name:            "organization name",
-				DisplayName:     "Display Name",
-				CanHaveGateways: true,
+				Organization: &pb.Organization{
+					Name:            "organization name",
+					DisplayName:     "Display Name",
+					CanHaveGateways: true,
+				},
 			}
 			createResp, err := api.Create(ctx, createReq)
 			So(err, ShouldNotBeNil)
@@ -41,24 +43,26 @@ func TestOrganizationAPI(t *testing.T) {
 
 		Convey("When creating an organization as a global admin with a valid name", func() {
 			validator.returnIsAdmin = true
-			createReq := &pb.CreateOrganizationRequest{
-				Name:            "orgName",
-				DisplayName:     "Display Name",
-				CanHaveGateways: true,
+			createReq := pb.CreateOrganizationRequest{
+				Organization: &pb.Organization{
+					Name:            "orgName",
+					DisplayName:     "Display Name",
+					CanHaveGateways: true,
+				},
 			}
-			createResp, err := api.Create(ctx, createReq)
+			createResp, err := api.Create(ctx, &createReq)
 			So(err, ShouldBeNil)
 			So(validator.validatorFuncs, ShouldHaveLength, 1)
 			So(createResp, ShouldNotBeNil)
 
 			Convey("Then the organization has been created", func() {
-				org, err := api.Get(ctx, &pb.OrganizationRequest{
+				org, err := api.Get(ctx, &pb.GetOrganizationRequest{
 					Id: createResp.Id,
 				})
 				So(err, ShouldBeNil)
-				So(org.Name, ShouldEqual, createReq.Name)
-				So(org.DisplayName, ShouldEqual, createReq.DisplayName)
-				So(org.CanHaveGateways, ShouldEqual, createReq.CanHaveGateways)
+
+				createReq.Organization.Id = createResp.Id
+				So(org.Organization, ShouldResemble, createReq.Organization)
 
 				orgs, err := api.List(ctx, &pb.ListOrganizationRequest{
 					Limit:  10,
@@ -69,56 +73,53 @@ func TestOrganizationAPI(t *testing.T) {
 				So(orgs, ShouldNotBeNil)
 				// Default org is already in the database.
 				So(orgs.Result, ShouldHaveLength, 2)
-				orgId := int64(0)
 
-				// If the length is not what was expected, then these checks
-				// will, at best, be checking against some random data, and at
-				// worst, crash the test.
-				if 2 == len(orgs.Result) {
-					So(orgs.Result[0].Name, ShouldEqual, createReq.Name)
-					So(orgs.Result[0].DisplayName, ShouldEqual, createReq.DisplayName)
-					So(orgs.Result[0].CanHaveGateways, ShouldEqual, createReq.CanHaveGateways)
-					orgId = createResp.Id
-				}
+				So(orgs.Result[0].Name, ShouldEqual, createReq.Organization.Name)
+				So(orgs.Result[0].DisplayName, ShouldEqual, createReq.Organization.DisplayName)
+				So(orgs.Result[0].CanHaveGateways, ShouldEqual, createReq.Organization.CanHaveGateways)
 
 				Convey("When updating the organization", func() {
 					updateOrg := &pb.UpdateOrganizationRequest{
-						Id:              orgId,
-						Name:            "anotherorg",
-						DisplayName:     "Display Name 2",
-						CanHaveGateways: false,
+						Organization: &pb.Organization{
+							Id:              createResp.Id,
+							Name:            "anotherorg",
+							DisplayName:     "Display Name 2",
+							CanHaveGateways: false,
+						},
 					}
 					_, err := api.Update(ctx, updateOrg)
 					So(err, ShouldBeNil)
 					So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 					Convey("Then the organization has been updated", func() {
-						orgUpd, err := api.Get(ctx, &pb.OrganizationRequest{
-							Id: orgId,
+						orgUpd, err := api.Get(ctx, &pb.GetOrganizationRequest{
+							Id: createResp.Id,
 						})
 						So(err, ShouldBeNil)
 						So(validator.validatorFuncs, ShouldHaveLength, 1)
-						So(orgUpd.Name, ShouldResemble, updateOrg.Name)
-						So(orgUpd.DisplayName, ShouldResemble, updateOrg.DisplayName)
-						So(orgUpd.CanHaveGateways, ShouldResemble, updateOrg.CanHaveGateways)
+
+						createReq.Organization.Id = createResp.Id
+						So(orgUpd.Organization, ShouldResemble, updateOrg.Organization)
 					})
 
 				})
 
 				// Add a new user for adding to the organization.
 				Convey("When adding a user", func() {
-					userReq := &pb.AddUserRequest{
-						Username:   "username",
-						Password:   "pass^^ord",
-						IsActive:   true,
-						SessionTTL: 180,
-						Email:      "foo@bar.com",
+					userReq := &pb.CreateUserRequest{
+						User: &pb.User{
+							Username:   "username",
+							IsActive:   true,
+							SessionTtl: 180,
+							Email:      "foo@bar.com",
+						},
+						Password: "pass^^ord",
 					}
 					userResp, err := userAPI.Create(ctx, userReq)
 					So(err, ShouldBeNil)
 
 					validator.returnIsAdmin = false
-					validator.returnUsername = userReq.Username
+					validator.returnUsername = userReq.User.Username
 
 					Convey("When listing the organizations for the user", func() {
 						orgs, err := api.List(ctx, &pb.ListOrganizationRequest{
@@ -134,10 +135,12 @@ func TestOrganizationAPI(t *testing.T) {
 					})
 
 					Convey("When adding the user to the organization", func() {
-						addOrgUser := &pb.OrganizationUserRequest{
-							Id:      orgId,
-							UserID:  userResp.Id,
-							IsAdmin: false,
+						addOrgUser := &pb.AddOrganizationUserRequest{
+							OrganizationUser: &pb.OrganizationUser{
+								OrganizationId: createResp.Id,
+								UserId:         userResp.Id,
+								IsAdmin:        false,
+							},
 						}
 						_, err := api.AddUser(ctx, addOrgUser)
 						So(err, ShouldBeNil)
@@ -157,59 +160,57 @@ func TestOrganizationAPI(t *testing.T) {
 
 						Convey("Then the user should be part of the organization", func() {
 							orgUsers, err := api.ListUsers(ctx, &pb.ListOrganizationUsersRequest{
-								Id:     orgId,
-								Limit:  10,
-								Offset: 0,
+								OrganizationId: createResp.Id,
+								Limit:          10,
+								Offset:         0,
 							})
 							So(err, ShouldBeNil)
 							So(orgUsers.Result, ShouldHaveLength, 1)
-							So(orgUsers.Result[0].Id, ShouldEqual, userResp.Id)
-							So(orgUsers.Result[0].Username, ShouldEqual, userReq.Username)
-							So(orgUsers.Result[0].IsAdmin, ShouldEqual, addOrgUser.IsAdmin)
+							So(orgUsers.Result[0].UserId, ShouldEqual, userResp.Id)
+							So(orgUsers.Result[0].Username, ShouldEqual, userReq.User.Username)
+							So(orgUsers.Result[0].IsAdmin, ShouldEqual, addOrgUser.OrganizationUser.IsAdmin)
 						})
 
 						Convey("When updating the user in the organization", func() {
-							updOrgUser := &pb.OrganizationUserRequest{
-								Id:      addOrgUser.Id,
-								UserID:  addOrgUser.UserID,
-								IsAdmin: !addOrgUser.IsAdmin,
+							updOrgUser := &pb.UpdateOrganizationUserRequest{
+								OrganizationUser: &pb.OrganizationUser{
+									OrganizationId: createResp.Id,
+									UserId:         addOrgUser.OrganizationUser.UserId,
+									IsAdmin:        !addOrgUser.OrganizationUser.IsAdmin,
+								},
 							}
 							_, err := api.UpdateUser(ctx, updOrgUser)
 							So(err, ShouldBeNil)
 
 							Convey("Then the user should be changed", func() {
 								orgUsers, err := api.ListUsers(ctx, &pb.ListOrganizationUsersRequest{
-									Id:     orgId,
-									Limit:  10,
-									Offset: 0,
+									OrganizationId: createResp.Id,
+									Limit:          10,
+									Offset:         0,
 								})
 								So(err, ShouldBeNil)
 								So(orgUsers, ShouldNotBeNil)
-								if nil != orgUsers {
-									So(orgUsers.Result, ShouldHaveLength, 1)
-									if 1 == len(orgUsers.Result) {
-										So(orgUsers.Result[0].Id, ShouldEqual, userResp.Id)
-										So(orgUsers.Result[0].Username, ShouldEqual, userReq.Username)
-										So(orgUsers.Result[0].IsAdmin, ShouldEqual, updOrgUser.IsAdmin)
-									}
-								}
+								So(orgUsers.Result, ShouldHaveLength, 1)
+								So(orgUsers.Result[0].UserId, ShouldEqual, userResp.Id)
+								So(orgUsers.Result[0].Username, ShouldEqual, userReq.User.Username)
+								So(orgUsers.Result[0].IsAdmin, ShouldEqual, updOrgUser.OrganizationUser.IsAdmin)
 							})
 
 						})
 
 						Convey("When removing the user from the organization", func() {
 							delOrgUser := &pb.DeleteOrganizationUserRequest{
-								Id:     addOrgUser.Id,
-								UserID: addOrgUser.UserID,
+								OrganizationId: createResp.Id,
+								UserId:         addOrgUser.OrganizationUser.UserId,
 							}
 							_, err := api.DeleteUser(ctx, delOrgUser)
 							So(err, ShouldBeNil)
 
 							Convey("Then the user should be removed", func() {
 								orgUsers, err := api.ListUsers(ctx, &pb.ListOrganizationUsersRequest{
-									Id:     orgId,
-									Limit:  10,
-									Offset: 0,
+									OrganizationId: createResp.Id,
+									Limit:          10,
+									Offset:         0,
 								})
 								So(err, ShouldBeNil)
 								So(orgUsers, ShouldNotBeNil)
@@ -221,8 +222,8 @@ func TestOrganizationAPI(t *testing.T) {
 					Convey("When deleting the organization", func() {
 						validator.returnIsAdmin = true
 
-						_, err := api.Delete(ctx, &pb.OrganizationRequest{
-							Id: orgId,
+						_, err := api.Delete(ctx, &pb.DeleteOrganizationRequest{
+							Id: createResp.Id,
 						})
 						So(err, ShouldBeNil)
 						So(validator.validatorFuncs, ShouldHaveLength, 1)

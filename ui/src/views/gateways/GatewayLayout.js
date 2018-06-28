@@ -26,7 +26,7 @@ class GatewayLayout extends Component {
   componentDidMount() {
     GatewayStore.getGateway(this.props.match.params.mac, (gateway) => {
       this.setState({
-        gateway: gateway,
+        gateway: gateway.gateway,
       });
     });
 

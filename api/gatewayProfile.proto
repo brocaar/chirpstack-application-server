@@ -2,9 +2,10 @@ syntax = "proto3";
 
 package api;
 
-// for grpc-gateway
 import "google/api/annotations.proto";
-import "common.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "github.com/brocaar/loraserver/api/common/common.proto";
 
 
 // GatewayProfileService is the service managing the gateway-profiles.
@@ -20,22 +21,22 @@ service GatewayProfileService {
 	// Get returns the gateway-profile matching the given id.
 	rpc Get(GetGatewayProfileRequest) returns (GetGatewayProfileResponse) {
 		option (google.api.http) = {
-			get: "/api/gateway-profiles/{gatewayProfileID}"
+			get: "/api/gateway-profiles/{id}"
 		};
 	}
 
 	// Update updates the given gateway-profile.
-	rpc Update(UpdateGatewayProfileRequest) returns (UpdateGatewayProfileResponse) {
+	rpc Update(UpdateGatewayProfileRequest) returns (google.protobuf.Empty) {
 		option (google.api.http) = {
-			put: "/api/gateway-profiles/{gatewayProfile.gatewayProfileID}"
+			put: "/api/gateway-profiles/{gateway_profile.id}"
 			body: "*"
 		};
 	}
 
 	// Delete deletes the gateway-profile matching the given id.
-	rpc Delete(DeleteGatewayProfileRequest) returns (DeleteGatewayProfileResponse) {
+	rpc Delete(DeleteGatewayProfileRequest) returns (google.protobuf.Empty) {
 		option (google.api.http) = {
-			delete: "/api/gateway-profiles/{gatewayProfileID}"
+			delete: "/api/gateway-profiles/{id}"
 		};
 	}
 
@@ -48,38 +49,44 @@ service GatewayProfileService {
 }
 
 message GatewayProfile {
-    // ID of the gateway-profile.
-    string gatewayProfileID = 1;
-
-    // Default channels (channels specified by the LoRaWAN Regional Parameters
-    // specification) enabled for this configuration.
-    repeated uint32 channels = 2;
-
-    // Extra channels added to the channel-configuration (in case the LoRaWAN
-    // region supports adding custom channels).
-    repeated GatewayProfileExtraChannel extraChannels = 3;
-}
-
-message GatewayProfileMeta {
-    // ID of the gateway-profile.
-    string gatewayProfileID = 1;
+    // Gateway-profile ID (UUID string).
+    string id = 1;
 
     // Name of the gateway-profile.
     string name = 2;
 
-    // Network-server id of the gateway-profile.
-    int64 networkServerID = 3;
+    // Network-server ID of the gateway-profile.
+    int64 network_server_id = 3 [json_name = "networkServerID"];
 
-    // Timestamp when the record was created.
-    string createdAt = 5;
+    // Default channels (channels specified by the LoRaWAN Regional Parameters
+    // specification) enabled for this configuration.
+    repeated uint32 channels = 4;
 
-    // Timestamp when the record was last updated.
-    string updatedAt = 6;
+    // Extra channels added to the channel-configuration (in case the LoRaWAN
+    // region supports adding custom channels).
+    repeated GatewayProfileExtraChannel extra_channels = 5;
+}
+
+message GatewayProfileListItem {
+    // Gateway-profile ID (UUID string).
+    string id = 1;
+
+    // Gateway-profile name,
+    string name = 2;
+
+    // Network-server ID on which the gateway-profile is provisioned.
+    int64 network_server_id = 3 [json_name = "networkServerID"];
+
+    // Created at timestamp.
+    google.protobuf.Timestamp created_at = 5;
+
+    // Last update timestamp.
+    google.protobuf.Timestamp updated_at = 6;
 }
 
 message GatewayProfileExtraChannel {
     // Modulation.
-    Modulation modulation = 1;
+    common.Modulation modulation = 1;
 
     // Frequency.
     uint32 frequency = 2;
@@ -91,60 +98,45 @@ message GatewayProfileExtraChannel {
     uint32 bitrate = 4;
 
     // Spreading factors (in case of LoRa modulation).
-    repeated uint32 spreadingFactors = 5;
+    repeated uint32 spreading_factors = 5;
 }
 
 message CreateGatewayProfileRequest {
-    GatewayProfile gatewayProfile = 1;
+    // Gateway-profile object to create.
+    GatewayProfile gateway_profile = 1;
 
-    // Name of the gateway-profile.
-    string name = 2;
-
-    // Network-server ID of the gateway-profile.
-    int64 networkServerID = 3;
 }
 
 message CreateGatewayProfileResponse {
-    // ID of the created gateway-profile.
-    string gatewayProfileID = 1;
+    // Gateway-profile ID (UUID string).
+    string id = 1;
 }
 
 message GetGatewayProfileRequest {
-    // The ID of the gateway-profile.
-    string gatewayProfileID = 1;
+    // Gateway-profile ID (UUID string).
+    string id = 1;
 }
 
 message GetGatewayProfileResponse {
-    GatewayProfile gatewayProfile = 1;
+    // Gateway-profile object.
+    GatewayProfile gateway_profile = 1;
 
-    // Name of the gateway-profile.
-    string name = 2;
+    // Created at timestamp.
+    google.protobuf.Timestamp created_at = 2;
 
-    // Network-server ID of the gateway-profile.
-    int64 networkServerID = 3;
-
-    // Timestamp when the record was created.
-    string createdAt = 5;
-
-    // Timestamp when the record was last updated.
-    string updatedAt = 6;
+    // Last update timestamp.
+    google.protobuf.Timestamp updated_at = 3;
 }
 
 message UpdateGatewayProfileRequest {
-    GatewayProfile gatewayProfile = 1;
-
-    // Name of the gateway-profile.
-    string name = 2;
+    // Gateway-profile object to update.
+    GatewayProfile gateway_profile = 1;
 }
-
-message UpdateGatewayProfileResponse {}
 
 message DeleteGatewayProfileRequest {
-    // The ID of the gateway-profile.
-    string gatewayProfileID = 1;
+    // Gateway-profile id (UUID string).
+    string id = 1;
 }
-
-message DeleteGatewayProfileResponse {}
 
 message ListGatewayProfilesRequest {
     // Max number of items to return.
@@ -154,12 +146,12 @@ message ListGatewayProfilesRequest {
     int64 offset = 2;
 
     // Network-server ID to filter on (optional).
-    int64 networkServerID = 3;
+    int64 network_server_id = 3 [json_name = "networkServerID"];
 }
 
 message ListGatewayProfilesResponse {
     // Total number of gateway-profiles.
-    int64 totalCount = 1;
+    int64 total_count = 1;
 
-    repeated GatewayProfileMeta result = 2;
+    repeated GatewayProfileListItem result = 2;
 }

@@ -6,6 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
+
+	"github.com/satori/go.uuid"
+
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/brocaar/lora-app-server/internal/codec"
@@ -15,9 +19,10 @@ import (
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lora-app-server/internal/test/testhandler"
 	"github.com/brocaar/loraserver/api/as"
+	"github.com/brocaar/loraserver/api/common"
+	gwPB "github.com/brocaar/loraserver/api/gw"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
-	"github.com/brocaar/lorawan/backend"
 )
 
 func TestApplicationServerAPI(t *testing.T) {
@@ -57,21 +62,23 @@ func TestApplicationServerAPI(t *testing.T) {
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 			Name:            "test-sp",
-			ServiceProfile:  backend.ServiceProfile{},
 		}
 		So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
+		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+		So(err, ShouldBeNil)
 
 		dp := storage.DeviceProfile{
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 			Name:            "test-dp",
-			DeviceProfile:   backend.DeviceProfile{},
 		}
 		So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
+		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
+		So(err, ShouldBeNil)
 
 		app := storage.Application{
 			OrganizationID:   org.ID,
-			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+			ServiceProfileID: spID,
 			Name:             "test-app",
 		}
 		So(storage.CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
@@ -80,7 +87,7 @@ func TestApplicationServerAPI(t *testing.T) {
 			ApplicationID:   app.ID,
 			Name:            "test-node",
 			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-			DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+			DeviceProfileID: dpID,
 		}
 		So(storage.CreateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 
@@ -107,7 +114,7 @@ func TestApplicationServerAPI(t *testing.T) {
 
 		Convey("When calling HandleError", func() {
 			_, err := api.HandleError(ctx, &as.HandleErrorRequest{
-				DevEUI: []byte{1, 2, 3, 4, 5, 6, 7, 8},
+				DevEui: []byte{1, 2, 3, 4, 5, 6, 7, 8},
 				Type:   as.ErrorType_DATA_UP_FCNT,
 				Error:  "BOOM!",
 				FCnt:   123,
@@ -141,34 +148,37 @@ func TestApplicationServerAPI(t *testing.T) {
 			mac := lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}
 
 			req := as.HandleUplinkDataRequest{
-				DevEUI: d.DevEUI[:],
+				DevEui: d.DevEUI[:],
 				FCnt:   10,
 				FPort:  3,
+				Adr:    true,
 				Data:   []byte{1, 2, 3, 4},
-				RxInfo: []*as.RXInfo{
+				RxInfo: []*gwPB.UplinkRXInfo{
 					{
-						Mac:       []byte{1, 2, 3, 4, 5, 6, 7, 8},
-						Name:      "test-gateway",
-						Latitude:  52.3740364,
-						Longitude: 4.9144401,
-						Altitude:  10,
-						Time:      now.Format(time.RFC3339Nano),
+						GatewayId: gw.MAC[:],
 						Rssi:      -60,
-						LoRaSNR:   5,
+						LoraSnr:   5,
+						Location: &gwPB.Location{
+							Latitude:  52.3740364,
+							Longitude: 4.9144401,
+							Altitude:  10,
+						},
 					},
 				},
-				TxInfo: &as.TXInfo{
-					Frequency: 868100000,
-					DataRate: &as.DataRate{
-						Modulation:   "LORA",
-						BandWidth:    250,
-						SpreadFactor: 5,
-						Bitrate:      50000,
+				TxInfo: &gwPB.UplinkTXInfo{
+					Frequency:  868100000,
+					Modulation: common.Modulation_LORA,
+					ModulationInfo: &gwPB.UplinkTXInfo_LoraModulationInfo{
+						LoraModulationInfo: &gwPB.LoRaModulationInfo{
+							Bandwidth:       250,
+							SpreadingFactor: 5,
+							CodeRate:        "4/6",
+						},
 					},
-					Adr:      true,
-					CodeRate: "4/6",
 				},
 			}
+
+			req.RxInfo[0].Time, _ = ptypes.TimestampProto(now)
 
 			Convey("When calling HandleUplinkData", func() {
 				_, err := api.HandleUplinkData(ctx, &req)
@@ -226,7 +236,7 @@ func TestApplicationServerAPI(t *testing.T) {
 						RXInfo: []handler.RXInfo{
 							{
 								MAC:       mac,
-								Name:      "test-gateway",
+								Name:      "test-gw",
 								Latitude:  52.3740364,
 								Longitude: 4.9144401,
 								Altitude:  10,
@@ -241,7 +251,6 @@ func TestApplicationServerAPI(t *testing.T) {
 								Modulation:   "LORA",
 								Bandwidth:    250,
 								SpreadFactor: 5,
-								Bitrate:      50000,
 							},
 							ADR:      true,
 							CodeRate: "4/6",
@@ -293,7 +302,7 @@ func TestApplicationServerAPI(t *testing.T) {
 
 				Convey("On HandleDownlinkACK (ack: true)", func() {
 					_, err := api.HandleDownlinkACK(ctx, &as.HandleDownlinkACKRequest{
-						DevEUI:       d.DevEUI[:],
+						DevEui:       d.DevEUI[:],
 						FCnt:         10,
 						Acknowledged: true,
 					})
@@ -320,7 +329,7 @@ func TestApplicationServerAPI(t *testing.T) {
 
 				Convey("On HandleDownlinkACK (ack: false)", func() {
 					_, err := api.HandleDownlinkACK(ctx, &as.HandleDownlinkACKRequest{
-						DevEUI:       d.DevEUI[:],
+						DevEui:       d.DevEUI[:],
 						FCnt:         10,
 						Acknowledged: false,
 					})

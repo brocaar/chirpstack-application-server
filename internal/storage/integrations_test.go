@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/satori/go.uuid"
+
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
-	"github.com/brocaar/lorawan/backend"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -44,14 +45,15 @@ func TestIntegration(t *testing.T) {
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 			Name:            "test-sp",
-			ServiceProfile:  backend.ServiceProfile{},
 		}
 		So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
+		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+		So(err, ShouldBeNil)
 
 		app := Application{
 			OrganizationID:   org.ID,
-			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 			Name:             "test-app",
+			ServiceProfileID: spID,
 		}
 		So(CreateApplication(db, &app), ShouldBeNil)
 

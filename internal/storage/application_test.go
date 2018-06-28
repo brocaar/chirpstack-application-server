@@ -3,6 +3,8 @@ package storage
 import (
 	"testing"
 
+	"github.com/satori/go.uuid"
+
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -40,11 +42,13 @@ func TestApplication(t *testing.T) {
 			NetworkServerID: n.ID,
 		}
 		So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
+		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+		So(err, ShouldBeNil)
 
 		Convey("When creating an application with an invalid name", func() {
 			app := Application{
 				OrganizationID:   org.ID,
-				ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+				ServiceProfileID: spID,
 				Name:             "i contain spaces",
 			}
 			err := CreateApplication(db, &app)
@@ -58,7 +62,7 @@ func TestApplication(t *testing.T) {
 		Convey("When creating an application", func() {
 			app := Application{
 				OrganizationID:       org.ID,
-				ServiceProfileID:     sp.ServiceProfile.ServiceProfileID,
+				ServiceProfileID:     spID,
 				Name:                 "test-application",
 				Description:          "A test application",
 				PayloadCodec:         "CUSTOM_JS",

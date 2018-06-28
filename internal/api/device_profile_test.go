@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc/codes"
 
 	"github.com/brocaar/loraserver/api/ns"
+	uuid "github.com/satori/go.uuid"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
@@ -48,35 +49,36 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 
 		Convey("Then Create creates a device-profile", func() {
 			createReq := pb.CreateDeviceProfileRequest{
-				Name:            "test-dp",
-				OrganizationID:  org.ID,
-				NetworkServerID: n.ID,
 				DeviceProfile: &pb.DeviceProfile{
+					Name:               "test-dp",
+					OrganizationId:     org.ID,
+					NetworkServerId:    n.ID,
 					SupportsClassB:     true,
 					ClassBTimeout:      10,
 					PingSlotPeriod:     20,
-					PingSlotDR:         5,
+					PingSlotDr:         5,
 					PingSlotFreq:       868100000,
 					SupportsClassC:     true,
 					ClassCTimeout:      30,
 					MacVersion:         "1.0.2",
 					RegParamsRevision:  "B",
-					RxDelay1:           1,
-					RxDROffset1:        1,
-					RxDataRate2:        6,
-					RxFreq2:            868300000,
+					RxDelay_1:          1,
+					RxDrOffset_1:       1,
+					RxDatarate_2:       6,
+					RxFreq_2:           868300000,
 					FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000},
-					MaxEIRP:            14,
+					MaxEirp:            14,
 					MaxDutyCycle:       10,
 					SupportsJoin:       true,
 					RfRegion:           "EU868",
-					Supports32BitFCnt:  true,
+					Supports_32BitFCnt: true,
 				},
 			}
 
 			createResp, err := api.Create(ctx, &createReq)
 			So(err, ShouldBeNil)
-			So(createResp.DeviceProfileID, ShouldNotEqual, "")
+			So(createResp.Id, ShouldNotEqual, "")
+			So(createResp.Id, ShouldNotEqual, uuid.Nil.String())
 			So(nsClient.CreateDeviceProfileChan, ShouldHaveLength, 1)
 
 			// set network-server mock
@@ -87,62 +89,44 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 
 			Convey("Then Get returns the device-profile", func() {
 				getResp, err := api.Get(ctx, &pb.GetDeviceProfileRequest{
-					DeviceProfileID: createResp.DeviceProfileID,
+					Id: createResp.Id,
 				})
 				So(err, ShouldBeNil)
-				So(getResp.Name, ShouldEqual, createReq.Name)
-				So(getResp.OrganizationID, ShouldEqual, createReq.OrganizationID)
-				So(getResp.NetworkServerID, ShouldEqual, createReq.NetworkServerID)
-				So(getResp.DeviceProfile, ShouldResemble, &pb.DeviceProfile{
-					DeviceProfileID:    createResp.DeviceProfileID,
-					SupportsClassB:     true,
-					ClassBTimeout:      10,
-					PingSlotPeriod:     20,
-					PingSlotDR:         5,
-					PingSlotFreq:       868100000,
-					SupportsClassC:     true,
-					ClassCTimeout:      30,
-					MacVersion:         "1.0.2",
-					RegParamsRevision:  "B",
-					RxDelay1:           1,
-					RxDROffset1:        1,
-					RxDataRate2:        6,
-					RxFreq2:            868300000,
-					FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000},
-					MaxEIRP:            14,
-					MaxDutyCycle:       10,
-					SupportsJoin:       true,
-					RfRegion:           "EU868",
-					Supports32BitFCnt:  true,
-				})
+
+				createReq.DeviceProfile.Id = createResp.Id
+				So(getResp.DeviceProfile, ShouldResemble, createReq.DeviceProfile)
 			})
 
 			Convey("Then Update updates the device-profile", func() {
-				_, err := api.Update(ctx, &pb.UpdateDeviceProfileRequest{
-					Name: "updated-dp",
+				updateReq := pb.UpdateDeviceProfileRequest{
 					DeviceProfile: &pb.DeviceProfile{
-						DeviceProfileID:    createResp.DeviceProfileID,
+						Id:                 createResp.Id,
+						OrganizationId:     org.ID,
+						NetworkServerId:    n.ID,
+						Name:               "updated-dp",
 						SupportsClassB:     true,
 						ClassBTimeout:      20,
 						PingSlotPeriod:     30,
-						PingSlotDR:         4,
+						PingSlotDr:         4,
 						PingSlotFreq:       868300000,
 						SupportsClassC:     true,
 						ClassCTimeout:      20,
 						MacVersion:         "1.1.0",
 						RegParamsRevision:  "C",
-						RxDelay1:           2,
-						RxDROffset1:        3,
-						RxDataRate2:        5,
-						RxFreq2:            868500000,
+						RxDelay_1:          2,
+						RxDrOffset_1:       3,
+						RxDatarate_2:       5,
+						RxFreq_2:           868500000,
 						FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000, 868700000},
-						MaxEIRP:            17,
+						MaxEirp:            17,
 						MaxDutyCycle:       1,
 						SupportsJoin:       true,
 						RfRegion:           "EU868",
-						Supports32BitFCnt:  true,
+						Supports_32BitFCnt: true,
 					},
-				})
+				}
+
+				_, err := api.Update(ctx, &updateReq)
 				So(err, ShouldBeNil)
 				So(nsClient.UpdateDeviceProfileChan, ShouldHaveLength, 1)
 
@@ -152,44 +136,20 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 				}
 
 				getResp, err := api.Get(ctx, &pb.GetDeviceProfileRequest{
-					DeviceProfileID: createResp.DeviceProfileID,
+					Id: createResp.Id,
 				})
 				So(err, ShouldBeNil)
-				So(getResp.Name, ShouldEqual, "updated-dp")
-				So(getResp.OrganizationID, ShouldEqual, createReq.OrganizationID)
-				So(getResp.NetworkServerID, ShouldEqual, createReq.NetworkServerID)
-				So(getResp.DeviceProfile, ShouldResemble, &pb.DeviceProfile{
-					DeviceProfileID:    createResp.DeviceProfileID,
-					SupportsClassB:     true,
-					ClassBTimeout:      20,
-					PingSlotPeriod:     30,
-					PingSlotDR:         4,
-					PingSlotFreq:       868300000,
-					SupportsClassC:     true,
-					ClassCTimeout:      20,
-					MacVersion:         "1.1.0",
-					RegParamsRevision:  "C",
-					RxDelay1:           2,
-					RxDROffset1:        3,
-					RxDataRate2:        5,
-					RxFreq2:            868500000,
-					FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000, 868700000},
-					MaxEIRP:            17,
-					MaxDutyCycle:       1,
-					SupportsJoin:       true,
-					RfRegion:           "EU868",
-					Supports32BitFCnt:  true,
-				})
+				So(getResp.DeviceProfile, ShouldResemble, updateReq.DeviceProfile)
 			})
 
 			Convey("Then Delete deletes the device-profile", func() {
 				_, err := api.Delete(ctx, &pb.DeleteDeviceProfileRequest{
-					DeviceProfileID: createResp.DeviceProfileID,
+					Id: createResp.Id,
 				})
 				So(err, ShouldBeNil)
 
 				_, err = api.Get(ctx, &pb.GetDeviceProfileRequest{
-					DeviceProfileID: createResp.DeviceProfileID,
+					Id: createResp.Id,
 				})
 				So(err, ShouldNotBeNil)
 				So(grpc.Code(err), ShouldEqual, codes.NotFound)
@@ -241,7 +201,7 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 			Convey("Then List returns the device-profiles for the given organization id", func() {
 				listResp, err := api.List(ctx, &pb.ListDeviceProfileRequest{
 					Limit:          10,
-					OrganizationID: org.ID,
+					OrganizationId: org.ID,
 				})
 				So(err, ShouldBeNil)
 				So(listResp.TotalCount, ShouldEqual, 1)
@@ -249,7 +209,7 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 
 				listResp, err = api.List(ctx, &pb.ListDeviceProfileRequest{
 					Limit:          10,
-					OrganizationID: org.ID + 1,
+					OrganizationId: org.ID + 1,
 				})
 				So(err, ShouldBeNil)
 				So(listResp.TotalCount, ShouldEqual, 0)
@@ -269,6 +229,8 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 					OrganizationID:  org.ID,
 				}
 				So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp1), ShouldBeNil)
+				sp1ID, err := uuid.FromBytes(sp1.ServiceProfile.Id)
+				So(err, ShouldBeNil)
 
 				sp2 := storage.ServiceProfile{
 					Name:            "test-sp-2",
@@ -276,12 +238,14 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 					OrganizationID:  org.ID,
 				}
 				So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp2), ShouldBeNil)
+				sp2ID, err := uuid.FromBytes(sp2.ServiceProfile.Id)
+				So(err, ShouldBeNil)
 
 				app1 := storage.Application{
 					Name:             "test-app",
 					Description:      "test app",
 					OrganizationID:   org.ID,
-					ServiceProfileID: sp1.ServiceProfile.ServiceProfileID,
+					ServiceProfileID: sp1ID,
 				}
 				So(storage.CreateApplication(config.C.PostgreSQL.DB, &app1), ShouldBeNil)
 
@@ -289,23 +253,24 @@ func TestDeviceProfileServiceAPI(t *testing.T) {
 					Name:             "test-app-2",
 					Description:      "test app 2",
 					OrganizationID:   org.ID,
-					ServiceProfileID: sp2.ServiceProfile.ServiceProfileID,
+					ServiceProfileID: sp2ID,
 				}
 				So(storage.CreateApplication(config.C.PostgreSQL.DB, &app2), ShouldBeNil)
 
 				Convey("Then List filtered on application id returns the device-profiles accessible by the given application id", func() {
 					listResp, err := api.List(ctx, &pb.ListDeviceProfileRequest{
 						Limit:         10,
-						ApplicationID: app1.ID,
+						ApplicationId: app1.ID,
 					})
 					So(err, ShouldBeNil)
 					So(listResp.TotalCount, ShouldEqual, 1)
 					So(listResp.Result, ShouldHaveLength, 1)
-					So(listResp.Result[0].DeviceProfileID, ShouldEqual, createResp.DeviceProfileID)
+
+					So(listResp.Result[0].Id, ShouldEqual, createResp.Id)
 
 					listResp, err = api.List(ctx, &pb.ListDeviceProfileRequest{
 						Limit:         10,
-						ApplicationID: app2.ID,
+						ApplicationId: app2.ID,
 					})
 					So(err, ShouldBeNil)
 					So(listResp.TotalCount, ShouldEqual, 0)

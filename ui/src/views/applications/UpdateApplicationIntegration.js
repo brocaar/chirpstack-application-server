@@ -10,9 +10,7 @@ class UpdateApplicationIntegration extends Component {
     super();
 
     this.state = {
-      integration: {
-        configuration: {},
-      },
+      integration: {},
     };
 
     this.onSubmit = this.onSubmit.bind(this);
@@ -21,15 +19,15 @@ class UpdateApplicationIntegration extends Component {
 
   componentDidMount() {
     ApplicationStore.getIntegration(this.props.match.params.applicationID, this.props.match.params.kind, (integration) => {
-      integration.kind = this.props.match.params.kind;
+      integration.integration.kind = this.props.match.params.kind;
       this.setState({
-        integration: integration,
+        integration: integration.integration,
       }); 
     });
   }
 
   onSubmit(integration) {
-    ApplicationStore.updateIntegration(this.props.match.params.applicationID, integration.kind, integration, (responseData) => {
+    ApplicationStore.updateIntegration(this.props.match.params.applicationID, integration.kind, {integration: integration}, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
     });
   }

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
+
 	"github.com/garyburd/redigo/redis"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -55,35 +57,40 @@ func HandleReceivedPing(req *as.HandleProprietaryUplinkRequest) error {
 
 	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		for _, rx := range req.RxInfo {
-			var receivedAt *time.Time
 			var mac lorawan.EUI64
-			copy(mac[:], rx.Mac)
+			copy(mac[:], rx.GatewayId)
 
 			// ignore pings received by the sending gateway
 			if ping.GatewayMAC == mac {
 				continue
 			}
 
-			if rx.Time != "" {
-				t, err := time.Parse(time.RFC3339Nano, rx.Time)
+			var receivedAt *time.Time
+			if rx.Time != nil {
+				ts, err := ptypes.Timestamp(rx.Time)
 				if err != nil {
-					return errors.Wrap(err, "parse time error")
+					return err
 				}
-				receivedAt = &t
+				receivedAt = &ts
 			}
 
-			err := storage.CreateGatewayPingRX(tx, &storage.GatewayPingRX{
+			pingRX := storage.GatewayPingRX{
 				PingID:     id,
 				GatewayMAC: mac,
 				ReceivedAt: receivedAt,
 				RSSI:       int(rx.Rssi),
-				LoRaSNR:    rx.LoRaSNR,
-				Location: storage.GPSPoint{
-					Latitude:  rx.Latitude,
-					Longitude: rx.Longitude,
-				},
-				Altitude: rx.Altitude,
-			})
+				LoRaSNR:    rx.LoraSnr,
+			}
+
+			if rx.Location != nil {
+				pingRX.Location = storage.GPSPoint{
+					Latitude:  rx.Location.Latitude,
+					Longitude: rx.Location.Longitude,
+				}
+				pingRX.Altitude = rx.Location.Altitude
+			}
+
+			err := storage.CreateGatewayPingRX(tx, &pingRX)
 			if err != nil {
 				return errors.Wrap(err, "create gateway ping rx error")
 			}
@@ -187,11 +194,11 @@ func sendPing(mic lorawan.MIC, n storage.NetworkServer, ping storage.GatewayPing
 	}
 
 	_, err = nsClient.SendProprietaryPayload(context.Background(), &ns.SendProprietaryPayloadRequest{
-		Mic:         mic[:],
-		GatewayMACs: [][]byte{ping.GatewayMAC[:]},
-		IPol:        false,
-		Frequency:   uint32(ping.Frequency),
-		Dr:          uint32(ping.DR),
+		Mic:                   mic[:],
+		GatewayMacs:           [][]byte{ping.GatewayMAC[:]},
+		PolarizationInversion: false,
+		Frequency:             uint32(ping.Frequency),
+		Dr:                    uint32(ping.DR),
 	})
 	if err != nil {
 		return errors.Wrap(err, "send proprietary payload error")

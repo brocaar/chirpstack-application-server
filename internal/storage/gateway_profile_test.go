@@ -4,6 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/satori/go.uuid"
+
+	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/loraserver/api/ns"
 
 	"github.com/brocaar/lora-app-server/internal/config"
@@ -35,53 +38,35 @@ func TestGatewayProfile(t *testing.T) {
 			gp := GatewayProfile{
 				NetworkServerID: n.ID,
 				Name:            "test-gateway-profile",
-				Channels:        []int{0, 1, 2},
-				ExtraChannels: []ExtraChannel{
-					{
-						Modulation:       ModulationLoRa,
-						Frequency:        867100000,
-						SpreadingFactors: []int{10, 11, 12},
-						Bandwidth:        125,
-					},
-				},
-			}
-			So(CreateGatewayProfile(db, &gp), ShouldBeNil)
-			gp.CreatedAt = gp.CreatedAt.UTC().Truncate(time.Millisecond)
-			gp.UpdatedAt = gp.UpdatedAt.UTC().Truncate(time.Millisecond)
-
-			So(nsClient.CreateGatewayProfileChan, ShouldHaveLength, 1)
-			So(<-nsClient.CreateGatewayProfileChan, ShouldResemble, ns.CreateGatewayProfileRequest{
-				GatewayProfile: &ns.GatewayProfile{
-					GatewayProfileID: gp.GatewayProfileID,
-					Channels:         []uint32{0, 1, 2},
+				GatewayProfile: ns.GatewayProfile{
+					Channels: []uint32{0, 1, 2},
 					ExtraChannels: []*ns.GatewayProfileExtraChannel{
 						{
-							Modulation:       ns.Modulation_LORA,
+							Modulation:       common.Modulation_LORA,
 							Frequency:        867100000,
 							SpreadingFactors: []uint32{10, 11, 12},
 							Bandwidth:        125,
 						},
 					},
 				},
+			}
+			So(CreateGatewayProfile(db, &gp), ShouldBeNil)
+			gp.CreatedAt = gp.CreatedAt.UTC().Truncate(time.Millisecond)
+			gp.UpdatedAt = gp.UpdatedAt.UTC().Truncate(time.Millisecond)
+			gpID, err := uuid.FromBytes(gp.GatewayProfile.Id)
+			So(err, ShouldBeNil)
+
+			So(nsClient.CreateGatewayProfileChan, ShouldHaveLength, 1)
+			So(<-nsClient.CreateGatewayProfileChan, ShouldResemble, ns.CreateGatewayProfileRequest{
+				GatewayProfile: &gp.GatewayProfile,
 			})
 
 			Convey("Then GetGatewayProfile reuturns the gateway-profile", func() {
 				nsClient.GetGatewayProfileResponse = ns.GetGatewayProfileResponse{
-					GatewayProfile: &ns.GatewayProfile{
-						GatewayProfileID: gp.GatewayProfileID,
-						Channels:         []uint32{0, 1, 2},
-						ExtraChannels: []*ns.GatewayProfileExtraChannel{
-							{
-								Modulation:       ns.Modulation_LORA,
-								Frequency:        867100000,
-								SpreadingFactors: []uint32{10, 11, 12},
-								Bandwidth:        125,
-							},
-						},
-					},
+					GatewayProfile: &gp.GatewayProfile,
 				}
 
-				gpGet, err := GetGatewayProfile(db, gp.GatewayProfileID)
+				gpGet, err := GetGatewayProfile(db, gpID)
 				So(err, ShouldBeNil)
 				gpGet.CreatedAt = gpGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				gpGet.UpdatedAt = gpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -91,13 +76,16 @@ func TestGatewayProfile(t *testing.T) {
 
 			Convey("Then UpdateGatewayProfile updates the gateway-profile", func() {
 				gp.Name = "updated-gateway-profile"
-				gp.Channels = []int{0, 1}
-				gp.ExtraChannels = []ExtraChannel{
-					{
-						Modulation:       ModulationLoRa,
-						Frequency:        867300000,
-						SpreadingFactors: []int{9, 10, 11, 12},
-						Bandwidth:        250,
+				gp.GatewayProfile = ns.GatewayProfile{
+					Id:       gp.GatewayProfile.Id,
+					Channels: []uint32{0, 1},
+					ExtraChannels: []*ns.GatewayProfileExtraChannel{
+						{
+							Modulation:       common.Modulation_LORA,
+							Frequency:        867300000,
+							SpreadingFactors: []uint32{9, 10, 11, 12},
+							Bandwidth:        250,
+						},
 					},
 				}
 
@@ -106,33 +94,22 @@ func TestGatewayProfile(t *testing.T) {
 
 				So(nsClient.UpdateGatewayProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.UpdateGatewayProfileChan, ShouldResemble, ns.UpdateGatewayProfileRequest{
-					GatewayProfile: &ns.GatewayProfile{
-						GatewayProfileID: gp.GatewayProfileID,
-						Channels:         []uint32{0, 1},
-						ExtraChannels: []*ns.GatewayProfileExtraChannel{
-							{
-								Modulation:       ns.Modulation_LORA,
-								Frequency:        867300000,
-								SpreadingFactors: []uint32{9, 10, 11, 12},
-								Bandwidth:        250,
-							},
-						},
-					},
+					GatewayProfile: &gp.GatewayProfile,
 				})
 
-				gpGet, err := GetGatewayProfile(db, gp.GatewayProfileID)
+				gpGet, err := GetGatewayProfile(db, gpID)
 				So(err, ShouldBeNil)
 				So(gpGet.Name, ShouldEqual, "updated-gateway-profile")
 			})
 
 			Convey("Then DeleteGatewayProfile deletes the gateway-profile", func() {
-				So(DeleteGatewayProfile(db, gp.GatewayProfileID), ShouldBeNil)
+				So(DeleteGatewayProfile(db, gpID), ShouldBeNil)
 				So(nsClient.DeleteGatewayProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.DeleteGatewayProfileChan, ShouldResemble, ns.DeleteGatewayProfileRequest{
-					GatewayProfileID: gp.GatewayProfileID,
+					Id: gp.GatewayProfile.Id,
 				})
 
-				_, err := GetGatewayProfile(db, gp.GatewayProfileID)
+				_, err := GetGatewayProfile(db, gpID)
 				So(err, ShouldEqual, ErrDoesNotExist)
 			})
 
@@ -146,7 +123,7 @@ func TestGatewayProfile(t *testing.T) {
 				gps, err := GetGatewayProfiles(db, 10, 0)
 				So(err, ShouldBeNil)
 				So(gps, ShouldHaveLength, 1)
-				So(gps[0].GatewayProfileID, ShouldEqual, gp.GatewayProfileID)
+				So(gps[0].GatewayProfileID, ShouldEqual, gpID)
 				So(gps[0].NetworkServerID, ShouldEqual, gp.NetworkServerID)
 				So(gps[0].Name, ShouldEqual, gp.Name)
 			})
@@ -161,7 +138,7 @@ func TestGatewayProfile(t *testing.T) {
 				gps, err := GetGatewayProfilesForNetworkServerID(db, n.ID, 10, 0)
 				So(err, ShouldBeNil)
 				So(gps, ShouldHaveLength, 1)
-				So(gps[0].GatewayProfileID, ShouldEqual, gp.GatewayProfileID)
+				So(gps[0].GatewayProfileID, ShouldEqual, gpID)
 				So(gps[0].NetworkServerID, ShouldEqual, gp.NetworkServerID)
 				So(gps[0].Name, ShouldEqual, gp.Name)
 			})

@@ -17,7 +17,9 @@ class NetworkServerLayout extends Component {
     super();
 
     this.state = {
-      networkServer: {},
+      networkServer: {
+        networkServer: {},
+      },
     };
 
     this.onDelete = this.onDelete.bind(this);
@@ -34,7 +36,7 @@ class NetworkServerLayout extends Component {
   onDelete() {
     if (window.confirm("Are you sure you want to delete this network-server?")) {
       NetworkServerStore.deleteNetworkServer(this.props.match.params.networkServerID, (responseData) => {
-        this.props.history.push("network-servers");
+        this.props.history.push("/network-servers");
       });
     }
   }
@@ -46,7 +48,7 @@ class NetworkServerLayout extends Component {
       <div>
         <ol className="breadcrumb">
           <li><Link to="/network-servers">Network servers</Link></li>
-          <li className="active">{this.state.networkServer.name} ({this.state.networkServer.region} @ {this.state.networkServer.version})</li>
+          <li className="active">{this.state.networkServer.networkServer.name} ({this.state.networkServer.region} @ {this.state.networkServer.version})</li>
         </ol>
         <div className="clearfix">
           <div className="btn-group pull-right" role="group" aria-label="...">

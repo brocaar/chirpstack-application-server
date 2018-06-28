@@ -12,6 +12,7 @@ type TestHandler struct {
 	SendStatusNotificationChan chan handler.StatusNotification
 }
 
+// NewTestHandler returns a TestHandler.
 func NewTestHandler() *TestHandler {
 	return &TestHandler{
 		SendDataUpChan:             make(chan handler.DataUpPayload, 100),
@@ -23,34 +24,41 @@ func NewTestHandler() *TestHandler {
 	}
 }
 
+// Close method.
 func (t *TestHandler) Close() error {
 	return nil
 }
 
+// SendDataUp method.
 func (t *TestHandler) SendDataUp(payload handler.DataUpPayload) error {
 	t.SendDataUpChan <- payload
 	return nil
 }
 
+// SendJoinNotification Method.
 func (t *TestHandler) SendJoinNotification(payload handler.JoinNotification) error {
 	t.SendJoinNotificationChan <- payload
 	return nil
 }
 
+// SendACKNotification method.
 func (t *TestHandler) SendACKNotification(payload handler.ACKNotification) error {
 	t.SendACKNotificationChan <- payload
 	return nil
 }
 
+// SendErrorNotification method.
 func (t *TestHandler) SendErrorNotification(payload handler.ErrorNotification) error {
 	t.SendErrorNotificationChan <- payload
 	return nil
 }
 
+// DataDownChan method.
 func (t *TestHandler) DataDownChan() chan handler.DataDownPayload {
 	return t.DataDownPayloadChan
 }
 
+// SendStatusNotification method.
 func (t *TestHandler) SendStatusNotification(payload handler.StatusNotification) error {
 	t.SendStatusNotificationChan <- payload
 	return nil

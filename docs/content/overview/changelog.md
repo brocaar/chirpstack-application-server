@@ -8,7 +8,7 @@ menu:
 
 # Changelog
 
-## v2.0.0
+## v2.0.0 (in development)
 
 ### Upgrade notes
 
@@ -18,14 +18,54 @@ first :-)
 
 ### Features
 
-* LoRaWAN 1.1 support!
+#### LoRaWAN 1.1 support!
+
+This release adds support for LoRaWAN 1.1 devices (meaning that both LoRaWAN 1.0
+and LoRaWAN 1.1 devices are supported). Please note that the LoRaWAN 1.0 *AppKey*
+is now called *NwkKey* and LoRaWAN 1.1 adds a new key called *AppKey*.
 
 ### Changes
 
-* The device-status has been removed from the uplink payload and is sent over
-  a separate MQTT topic (or HTTP integration). This to make sure that the
-  the device-status is only published when an update is available.
-  See also [Sending and receiving data](https://www.loraserver.io/lora-app-server/integrate/sending-receiving/).
+#### Device-status
+The device-status has been removed from the uplink payload and is sent over
+a separate MQTT topic (or HTTP integration). This to make sure that the
+the device-status is only published when an update is available.
+See also [Sending and receiving data](https://www.loraserver.io/lora-app-server/integrate/sending-receiving/).
+
+#### API changes
+
+The API has been cleaned up to improve consistency and usability. This update
+affects most of the endpoints! Most of these changes can be summarized by
+the following example (where `device` is a separate object which now can be
+re-used for create / get and update methods).
+
+##### Old API
+
+`POST /api/devices`
+
+```json
+{
+  "name": "test-device",
+  "devEUI": "0102030405060708",
+  "applicationID": "123"
+  ...
+}
+```
+
+##### New API
+
+`POST /api/devices`
+
+```json
+{
+  "device": {
+    "name": "test-device",
+    "devEUI": "0102030405060708",
+    "applicationID": "123"
+    ...
+  }
+}
+```
 
 ## v1.0.1
 

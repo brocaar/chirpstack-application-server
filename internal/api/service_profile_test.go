@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc/codes"
 
 	"github.com/brocaar/loraserver/api/ns"
+	uuid "github.com/satori/go.uuid"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
@@ -49,17 +50,17 @@ func TestServiceProfileServiceAPI(t *testing.T) {
 
 		Convey("Then Create creates a service-profile", func() {
 			createReq := pb.CreateServiceProfileRequest{
-				Name:            "test-sp",
-				OrganizationID:  org.ID,
-				NetworkServerID: n.ID,
 				ServiceProfile: &pb.ServiceProfile{
+					Name:                   "test-sp",
+					OrganizationId:         org.ID,
+					NetworkServerId:        n.ID,
 					UlRate:                 100,
 					UlBucketSize:           10,
 					UlRatePolicy:           pb.RatePolicy_MARK,
 					DlRate:                 200,
 					DlBucketSize:           20,
 					DlRatePolicy:           pb.RatePolicy_DROP,
-					AddGWMetadata:          true,
+					AddGwMetadata:          true,
 					DevStatusReqFreq:       4,
 					ReportDevStatusBattery: true,
 					ReportDevStatusMargin:  true,
@@ -69,14 +70,15 @@ func TestServiceProfileServiceAPI(t *testing.T) {
 					HrAllowed:      true,
 					RaAllowed:      true,
 					NwkGeoLoc:      true,
-					TargetPER:      10,
-					MinGWDiversity: 3,
+					TargetPer:      10,
+					MinGwDiversity: 3,
 				},
 			}
 
 			createResp, err := api.Create(ctx, &createReq)
 			So(err, ShouldBeNil)
-			So(createResp.ServiceProfileID, ShouldNotEqual, "")
+			So(createResp.Id, ShouldNotEqual, "")
+			So(createResp.Id, ShouldNotEqual, uuid.Nil.String())
 			So(nsClient.CreateServiceProfileChan, ShouldHaveLength, 1)
 
 			// set network-server mock
@@ -87,47 +89,28 @@ func TestServiceProfileServiceAPI(t *testing.T) {
 
 			Convey("Then Get returns the service-profile", func() {
 				getResp, err := api.Get(ctx, &pb.GetServiceProfileRequest{
-					ServiceProfileID: createResp.ServiceProfileID,
+					Id: createResp.Id,
 				})
 				So(err, ShouldBeNil)
-				So(getResp.Name, ShouldEqual, createReq.Name)
-				So(getResp.OrganizationID, ShouldEqual, createReq.OrganizationID)
-				So(getResp.NetworkServerID, ShouldEqual, createReq.NetworkServerID)
-				So(getResp.ServiceProfile, ShouldResemble, &pb.ServiceProfile{
-					ServiceProfileID:       createResp.ServiceProfileID,
-					UlRate:                 100,
-					UlBucketSize:           10,
-					UlRatePolicy:           pb.RatePolicy_MARK,
-					DlRate:                 200,
-					DlBucketSize:           20,
-					DlRatePolicy:           pb.RatePolicy_DROP,
-					AddGWMetadata:          true,
-					DevStatusReqFreq:       4,
-					ReportDevStatusBattery: true,
-					ReportDevStatusMargin:  true,
-					DrMin:          3,
-					DrMax:          5,
-					PrAllowed:      true,
-					HrAllowed:      true,
-					RaAllowed:      true,
-					NwkGeoLoc:      true,
-					TargetPER:      10,
-					MinGWDiversity: 3,
-				})
+
+				createReq.ServiceProfile.Id = createResp.Id
+				So(getResp.ServiceProfile, ShouldResemble, createReq.ServiceProfile)
 			})
 
 			Convey("Then Update updates the service-profile", func() {
-				_, err := api.Update(ctx, &pb.UpdateServiceProfileRequest{
-					Name: "updated-sp",
+				updateReq := pb.UpdateServiceProfileRequest{
 					ServiceProfile: &pb.ServiceProfile{
-						ServiceProfileID:       createResp.ServiceProfileID,
+						Id:                     createResp.Id,
+						Name:                   "updated-sp",
+						OrganizationId:         org.ID,
+						NetworkServerId:        n.ID,
 						UlRate:                 200,
 						UlBucketSize:           20,
 						UlRatePolicy:           pb.RatePolicy_DROP,
 						DlRate:                 300,
 						DlBucketSize:           30,
 						DlRatePolicy:           pb.RatePolicy_MARK,
-						AddGWMetadata:          true,
+						AddGwMetadata:          true,
 						DevStatusReqFreq:       5,
 						ReportDevStatusBattery: true,
 						ReportDevStatusMargin:  true,
@@ -137,10 +120,12 @@ func TestServiceProfileServiceAPI(t *testing.T) {
 						HrAllowed:      true,
 						RaAllowed:      true,
 						NwkGeoLoc:      true,
-						TargetPER:      20,
-						MinGWDiversity: 4,
+						TargetPer:      20,
+						MinGwDiversity: 4,
 					},
-				})
+				}
+
+				_, err := api.Update(ctx, &updateReq)
 				So(err, ShouldBeNil)
 				So(nsClient.UpdateServiceProfileChan, ShouldHaveLength, 1)
 
@@ -150,43 +135,20 @@ func TestServiceProfileServiceAPI(t *testing.T) {
 				}
 
 				getResp, err := api.Get(ctx, &pb.GetServiceProfileRequest{
-					ServiceProfileID: createResp.ServiceProfileID,
+					Id: createResp.Id,
 				})
 				So(err, ShouldBeNil)
-				So(getResp.Name, ShouldEqual, "updated-sp")
-				So(getResp.OrganizationID, ShouldEqual, org.ID)
-				So(getResp.NetworkServerID, ShouldEqual, n.ID)
-				So(getResp.ServiceProfile, ShouldResemble, &pb.ServiceProfile{
-					ServiceProfileID:       createResp.ServiceProfileID,
-					UlRate:                 200,
-					UlBucketSize:           20,
-					UlRatePolicy:           pb.RatePolicy_DROP,
-					DlRate:                 300,
-					DlBucketSize:           30,
-					DlRatePolicy:           pb.RatePolicy_MARK,
-					AddGWMetadata:          true,
-					DevStatusReqFreq:       5,
-					ReportDevStatusBattery: true,
-					ReportDevStatusMargin:  true,
-					DrMin:          2,
-					DrMax:          4,
-					PrAllowed:      true,
-					HrAllowed:      true,
-					RaAllowed:      true,
-					NwkGeoLoc:      true,
-					TargetPER:      20,
-					MinGWDiversity: 4,
-				})
+				So(getResp.ServiceProfile, ShouldResemble, updateReq.ServiceProfile)
 			})
 
 			Convey("Then Delete deletes the service-profile", func() {
 				_, err := api.Delete(ctx, &pb.DeleteServiceProfileRequest{
-					ServiceProfileID: createResp.ServiceProfileID,
+					Id: createResp.Id,
 				})
 				So(err, ShouldBeNil)
 
 				_, err = api.Get(ctx, &pb.GetServiceProfileRequest{
-					ServiceProfileID: createResp.ServiceProfileID,
+					Id: createResp.Id,
 				})
 				So(err, ShouldNotBeNil)
 				So(grpc.Code(err), ShouldEqual, codes.NotFound)
@@ -238,7 +200,7 @@ func TestServiceProfileServiceAPI(t *testing.T) {
 			Convey("Then List returns the service-profiles for the given organization id", func() {
 				listResp, err := api.List(ctx, &pb.ListServiceProfileRequest{
 					Limit:          10,
-					OrganizationID: org.ID,
+					OrganizationId: org.ID,
 				})
 				So(err, ShouldBeNil)
 				So(listResp.TotalCount, ShouldEqual, 1)
@@ -246,7 +208,7 @@ func TestServiceProfileServiceAPI(t *testing.T) {
 
 				listResp, err = api.List(ctx, &pb.ListServiceProfileRequest{
 					Limit:          10,
-					OrganizationID: org.ID + 1,
+					OrganizationId: org.ID + 1,
 				})
 				So(err, ShouldBeNil)
 				So(listResp.TotalCount, ShouldEqual, 0)

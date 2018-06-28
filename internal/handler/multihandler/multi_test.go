@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/satori/go.uuid"
+
 	"github.com/brocaar/lora-app-server/internal/handler/influxdbhandler"
 
 	"github.com/brocaar/lora-app-server/internal/config"
@@ -17,7 +19,6 @@ import (
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan"
-	"github.com/brocaar/lorawan/backend"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -98,14 +99,15 @@ func TestHandler(t *testing.T) {
 				Name:            "test-sp",
 				OrganizationID:  org.ID,
 				NetworkServerID: n.ID,
-				ServiceProfile:  backend.ServiceProfile{},
 			}
 			So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
+			spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+			So(err, ShouldBeNil)
 
 			app := storage.Application{
 				OrganizationID:   org.ID,
 				Name:             "test-app",
-				ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+				ServiceProfileID: spID,
 			}
 			So(storage.CreateApplication(db, &app), ShouldBeNil)
 
@@ -113,15 +115,16 @@ func TestHandler(t *testing.T) {
 				Name:            "test-dp",
 				OrganizationID:  org.ID,
 				NetworkServerID: n.ID,
-				DeviceProfile:   backend.DeviceProfile{},
 			}
 			So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
+			dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
+			So(err, ShouldBeNil)
 
 			device := storage.Device{
 				ApplicationID:   app.ID,
 				Name:            "test-node",
 				DevEUI:          lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1},
-				DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+				DeviceProfileID: dpID,
 			}
 			So(storage.CreateDevice(db, &device), ShouldBeNil)
 

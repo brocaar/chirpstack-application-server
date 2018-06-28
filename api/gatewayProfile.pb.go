@@ -6,6 +6,9 @@ package api
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import common "github.com/brocaar/loraserver/api/common"
+import empty "github.com/golang/protobuf/ptypes/empty"
+import timestamp "github.com/golang/protobuf/ptypes/timestamp"
 import _ "google.golang.org/genproto/googleapis/api/annotations"
 
 import (
@@ -25,14 +28,18 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type GatewayProfile struct {
-	// ID of the gateway-profile.
-	GatewayProfileID string `protobuf:"bytes,1,opt,name=gatewayProfileID" json:"gatewayProfileID,omitempty"`
+	// Gateway-profile ID (UUID string).
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Name of the gateway-profile.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Network-server ID of the gateway-profile.
+	NetworkServerId int64 `protobuf:"varint,3,opt,name=network_server_id,json=networkServerID,proto3" json:"network_server_id,omitempty"`
 	// Default channels (channels specified by the LoRaWAN Regional Parameters
 	// specification) enabled for this configuration.
-	Channels []uint32 `protobuf:"varint,2,rep,packed,name=channels" json:"channels,omitempty"`
+	Channels []uint32 `protobuf:"varint,4,rep,packed,name=channels,proto3" json:"channels,omitempty"`
 	// Extra channels added to the channel-configuration (in case the LoRaWAN
 	// region supports adding custom channels).
-	ExtraChannels        []*GatewayProfileExtraChannel `protobuf:"bytes,3,rep,name=extraChannels" json:"extraChannels,omitempty"`
+	ExtraChannels        []*GatewayProfileExtraChannel `protobuf:"bytes,5,rep,name=extra_channels,json=extraChannels,proto3" json:"extra_channels,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
 	XXX_unrecognized     []byte                        `json:"-"`
 	XXX_sizecache        int32                         `json:"-"`
@@ -42,7 +49,7 @@ func (m *GatewayProfile) Reset()         { *m = GatewayProfile{} }
 func (m *GatewayProfile) String() string { return proto.CompactTextString(m) }
 func (*GatewayProfile) ProtoMessage()    {}
 func (*GatewayProfile) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gatewayProfile_22a95352687b66ac, []int{0}
+	return fileDescriptor_gatewayProfile_765be6837324e325, []int{0}
 }
 func (m *GatewayProfile) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GatewayProfile.Unmarshal(m, b)
@@ -62,11 +69,25 @@ func (m *GatewayProfile) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GatewayProfile proto.InternalMessageInfo
 
-func (m *GatewayProfile) GetGatewayProfileID() string {
+func (m *GatewayProfile) GetId() string {
 	if m != nil {
-		return m.GatewayProfileID
+		return m.Id
 	}
 	return ""
+}
+
+func (m *GatewayProfile) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *GatewayProfile) GetNetworkServerId() int64 {
+	if m != nil {
+		return m.NetworkServerId
+	}
+	return 0
 }
 
 func (m *GatewayProfile) GetChannels() []uint32 {
@@ -83,92 +104,92 @@ func (m *GatewayProfile) GetExtraChannels() []*GatewayProfileExtraChannel {
 	return nil
 }
 
-type GatewayProfileMeta struct {
-	// ID of the gateway-profile.
-	GatewayProfileID string `protobuf:"bytes,1,opt,name=gatewayProfileID" json:"gatewayProfileID,omitempty"`
-	// Name of the gateway-profile.
-	Name string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
-	// Network-server id of the gateway-profile.
-	NetworkServerID int64 `protobuf:"varint,3,opt,name=networkServerID" json:"networkServerID,omitempty"`
-	// Timestamp when the record was created.
-	CreatedAt string `protobuf:"bytes,5,opt,name=createdAt" json:"createdAt,omitempty"`
-	// Timestamp when the record was last updated.
-	UpdatedAt            string   `protobuf:"bytes,6,opt,name=updatedAt" json:"updatedAt,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+type GatewayProfileListItem struct {
+	// Gateway-profile ID (UUID string).
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Gateway-profile name,
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Network-server ID on which the gateway-profile is provisioned.
+	NetworkServerId int64 `protobuf:"varint,3,opt,name=network_server_id,json=networkServerID,proto3" json:"network_server_id,omitempty"`
+	// Created at timestamp.
+	CreatedAt *timestamp.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Last update timestamp.
+	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
 }
 
-func (m *GatewayProfileMeta) Reset()         { *m = GatewayProfileMeta{} }
-func (m *GatewayProfileMeta) String() string { return proto.CompactTextString(m) }
-func (*GatewayProfileMeta) ProtoMessage()    {}
-func (*GatewayProfileMeta) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gatewayProfile_22a95352687b66ac, []int{1}
+func (m *GatewayProfileListItem) Reset()         { *m = GatewayProfileListItem{} }
+func (m *GatewayProfileListItem) String() string { return proto.CompactTextString(m) }
+func (*GatewayProfileListItem) ProtoMessage()    {}
+func (*GatewayProfileListItem) Descriptor() ([]byte, []int) {
+	return fileDescriptor_gatewayProfile_765be6837324e325, []int{1}
 }
-func (m *GatewayProfileMeta) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GatewayProfileMeta.Unmarshal(m, b)
+func (m *GatewayProfileListItem) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GatewayProfileListItem.Unmarshal(m, b)
 }
-func (m *GatewayProfileMeta) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GatewayProfileMeta.Marshal(b, m, deterministic)
+func (m *GatewayProfileListItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GatewayProfileListItem.Marshal(b, m, deterministic)
 }
-func (dst *GatewayProfileMeta) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GatewayProfileMeta.Merge(dst, src)
+func (dst *GatewayProfileListItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GatewayProfileListItem.Merge(dst, src)
 }
-func (m *GatewayProfileMeta) XXX_Size() int {
-	return xxx_messageInfo_GatewayProfileMeta.Size(m)
+func (m *GatewayProfileListItem) XXX_Size() int {
+	return xxx_messageInfo_GatewayProfileListItem.Size(m)
 }
-func (m *GatewayProfileMeta) XXX_DiscardUnknown() {
-	xxx_messageInfo_GatewayProfileMeta.DiscardUnknown(m)
+func (m *GatewayProfileListItem) XXX_DiscardUnknown() {
+	xxx_messageInfo_GatewayProfileListItem.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GatewayProfileMeta proto.InternalMessageInfo
+var xxx_messageInfo_GatewayProfileListItem proto.InternalMessageInfo
 
-func (m *GatewayProfileMeta) GetGatewayProfileID() string {
+func (m *GatewayProfileListItem) GetId() string {
 	if m != nil {
-		return m.GatewayProfileID
+		return m.Id
 	}
 	return ""
 }
 
-func (m *GatewayProfileMeta) GetName() string {
+func (m *GatewayProfileListItem) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *GatewayProfileMeta) GetNetworkServerID() int64 {
+func (m *GatewayProfileListItem) GetNetworkServerId() int64 {
 	if m != nil {
-		return m.NetworkServerID
+		return m.NetworkServerId
 	}
 	return 0
 }
 
-func (m *GatewayProfileMeta) GetCreatedAt() string {
+func (m *GatewayProfileListItem) GetCreatedAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.CreatedAt
 	}
-	return ""
+	return nil
 }
 
-func (m *GatewayProfileMeta) GetUpdatedAt() string {
+func (m *GatewayProfileListItem) GetUpdatedAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.UpdatedAt
 	}
-	return ""
+	return nil
 }
 
 type GatewayProfileExtraChannel struct {
 	// Modulation.
-	Modulation Modulation `protobuf:"varint,1,opt,name=modulation,enum=api.Modulation" json:"modulation,omitempty"`
+	Modulation common.Modulation `protobuf:"varint,1,opt,name=modulation,proto3,enum=common.Modulation" json:"modulation,omitempty"`
 	// Frequency.
-	Frequency uint32 `protobuf:"varint,2,opt,name=frequency" json:"frequency,omitempty"`
+	Frequency uint32 `protobuf:"varint,2,opt,name=frequency,proto3" json:"frequency,omitempty"`
 	// Bandwidth.
-	Bandwidth uint32 `protobuf:"varint,3,opt,name=bandwidth" json:"bandwidth,omitempty"`
+	Bandwidth uint32 `protobuf:"varint,3,opt,name=bandwidth,proto3" json:"bandwidth,omitempty"`
 	// Bitrate (in case of FSK modulation).
-	Bitrate uint32 `protobuf:"varint,4,opt,name=bitrate" json:"bitrate,omitempty"`
+	Bitrate uint32 `protobuf:"varint,4,opt,name=bitrate,proto3" json:"bitrate,omitempty"`
 	// Spreading factors (in case of LoRa modulation).
-	SpreadingFactors     []uint32 `protobuf:"varint,5,rep,packed,name=spreadingFactors" json:"spreadingFactors,omitempty"`
+	SpreadingFactors     []uint32 `protobuf:"varint,5,rep,packed,name=spreading_factors,json=spreadingFactors,proto3" json:"spreading_factors,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -178,7 +199,7 @@ func (m *GatewayProfileExtraChannel) Reset()         { *m = GatewayProfileExtraC
 func (m *GatewayProfileExtraChannel) String() string { return proto.CompactTextString(m) }
 func (*GatewayProfileExtraChannel) ProtoMessage()    {}
 func (*GatewayProfileExtraChannel) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gatewayProfile_22a95352687b66ac, []int{2}
+	return fileDescriptor_gatewayProfile_765be6837324e325, []int{2}
 }
 func (m *GatewayProfileExtraChannel) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GatewayProfileExtraChannel.Unmarshal(m, b)
@@ -198,11 +219,11 @@ func (m *GatewayProfileExtraChannel) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GatewayProfileExtraChannel proto.InternalMessageInfo
 
-func (m *GatewayProfileExtraChannel) GetModulation() Modulation {
+func (m *GatewayProfileExtraChannel) GetModulation() common.Modulation {
 	if m != nil {
 		return m.Modulation
 	}
-	return Modulation_LORA
+	return common.Modulation_LORA
 }
 
 func (m *GatewayProfileExtraChannel) GetFrequency() uint32 {
@@ -234,21 +255,18 @@ func (m *GatewayProfileExtraChannel) GetSpreadingFactors() []uint32 {
 }
 
 type CreateGatewayProfileRequest struct {
-	GatewayProfile *GatewayProfile `protobuf:"bytes,1,opt,name=gatewayProfile" json:"gatewayProfile,omitempty"`
-	// Name of the gateway-profile.
-	Name string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
-	// Network-server ID of the gateway-profile.
-	NetworkServerID      int64    `protobuf:"varint,3,opt,name=networkServerID" json:"networkServerID,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Gateway-profile object to create.
+	GatewayProfile       *GatewayProfile `protobuf:"bytes,1,opt,name=gateway_profile,json=gatewayProfile,proto3" json:"gateway_profile,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
 }
 
 func (m *CreateGatewayProfileRequest) Reset()         { *m = CreateGatewayProfileRequest{} }
 func (m *CreateGatewayProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateGatewayProfileRequest) ProtoMessage()    {}
 func (*CreateGatewayProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gatewayProfile_22a95352687b66ac, []int{3}
+	return fileDescriptor_gatewayProfile_765be6837324e325, []int{3}
 }
 func (m *CreateGatewayProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateGatewayProfileRequest.Unmarshal(m, b)
@@ -275,23 +293,9 @@ func (m *CreateGatewayProfileRequest) GetGatewayProfile() *GatewayProfile {
 	return nil
 }
 
-func (m *CreateGatewayProfileRequest) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *CreateGatewayProfileRequest) GetNetworkServerID() int64 {
-	if m != nil {
-		return m.NetworkServerID
-	}
-	return 0
-}
-
 type CreateGatewayProfileResponse struct {
-	// ID of the created gateway-profile.
-	GatewayProfileID     string   `protobuf:"bytes,1,opt,name=gatewayProfileID" json:"gatewayProfileID,omitempty"`
+	// Gateway-profile ID (UUID string).
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -301,7 +305,7 @@ func (m *CreateGatewayProfileResponse) Reset()         { *m = CreateGatewayProfi
 func (m *CreateGatewayProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateGatewayProfileResponse) ProtoMessage()    {}
 func (*CreateGatewayProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gatewayProfile_22a95352687b66ac, []int{4}
+	return fileDescriptor_gatewayProfile_765be6837324e325, []int{4}
 }
 func (m *CreateGatewayProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateGatewayProfileResponse.Unmarshal(m, b)
@@ -321,16 +325,16 @@ func (m *CreateGatewayProfileResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateGatewayProfileResponse proto.InternalMessageInfo
 
-func (m *CreateGatewayProfileResponse) GetGatewayProfileID() string {
+func (m *CreateGatewayProfileResponse) GetId() string {
 	if m != nil {
-		return m.GatewayProfileID
+		return m.Id
 	}
 	return ""
 }
 
 type GetGatewayProfileRequest struct {
-	// The ID of the gateway-profile.
-	GatewayProfileID     string   `protobuf:"bytes,1,opt,name=gatewayProfileID" json:"gatewayProfileID,omitempty"`
+	// Gateway-profile ID (UUID string).
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -340,7 +344,7 @@ func (m *GetGatewayProfileRequest) Reset()         { *m = GetGatewayProfileReque
 func (m *GetGatewayProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*GetGatewayProfileRequest) ProtoMessage()    {}
 func (*GetGatewayProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gatewayProfile_22a95352687b66ac, []int{5}
+	return fileDescriptor_gatewayProfile_765be6837324e325, []int{5}
 }
 func (m *GetGatewayProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetGatewayProfileRequest.Unmarshal(m, b)
@@ -360,33 +364,30 @@ func (m *GetGatewayProfileRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetGatewayProfileRequest proto.InternalMessageInfo
 
-func (m *GetGatewayProfileRequest) GetGatewayProfileID() string {
+func (m *GetGatewayProfileRequest) GetId() string {
 	if m != nil {
-		return m.GatewayProfileID
+		return m.Id
 	}
 	return ""
 }
 
 type GetGatewayProfileResponse struct {
-	GatewayProfile *GatewayProfile `protobuf:"bytes,1,opt,name=gatewayProfile" json:"gatewayProfile,omitempty"`
-	// Name of the gateway-profile.
-	Name string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
-	// Network-server ID of the gateway-profile.
-	NetworkServerID int64 `protobuf:"varint,3,opt,name=networkServerID" json:"networkServerID,omitempty"`
-	// Timestamp when the record was created.
-	CreatedAt string `protobuf:"bytes,5,opt,name=createdAt" json:"createdAt,omitempty"`
-	// Timestamp when the record was last updated.
-	UpdatedAt            string   `protobuf:"bytes,6,opt,name=updatedAt" json:"updatedAt,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Gateway-profile object.
+	GatewayProfile *GatewayProfile `protobuf:"bytes,1,opt,name=gateway_profile,json=gatewayProfile,proto3" json:"gateway_profile,omitempty"`
+	// Created at timestamp.
+	CreatedAt *timestamp.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Last update timestamp.
+	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
 }
 
 func (m *GetGatewayProfileResponse) Reset()         { *m = GetGatewayProfileResponse{} }
 func (m *GetGatewayProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*GetGatewayProfileResponse) ProtoMessage()    {}
 func (*GetGatewayProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gatewayProfile_22a95352687b66ac, []int{6}
+	return fileDescriptor_gatewayProfile_765be6837324e325, []int{6}
 }
 func (m *GetGatewayProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetGatewayProfileResponse.Unmarshal(m, b)
@@ -413,48 +414,33 @@ func (m *GetGatewayProfileResponse) GetGatewayProfile() *GatewayProfile {
 	return nil
 }
 
-func (m *GetGatewayProfileResponse) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *GetGatewayProfileResponse) GetNetworkServerID() int64 {
-	if m != nil {
-		return m.NetworkServerID
-	}
-	return 0
-}
-
-func (m *GetGatewayProfileResponse) GetCreatedAt() string {
+func (m *GetGatewayProfileResponse) GetCreatedAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.CreatedAt
 	}
-	return ""
+	return nil
 }
 
-func (m *GetGatewayProfileResponse) GetUpdatedAt() string {
+func (m *GetGatewayProfileResponse) GetUpdatedAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.UpdatedAt
 	}
-	return ""
+	return nil
 }
 
 type UpdateGatewayProfileRequest struct {
-	GatewayProfile *GatewayProfile `protobuf:"bytes,1,opt,name=gatewayProfile" json:"gatewayProfile,omitempty"`
-	// Name of the gateway-profile.
-	Name                 string   `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Gateway-profile object to update.
+	GatewayProfile       *GatewayProfile `protobuf:"bytes,1,opt,name=gateway_profile,json=gatewayProfile,proto3" json:"gateway_profile,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
 }
 
 func (m *UpdateGatewayProfileRequest) Reset()         { *m = UpdateGatewayProfileRequest{} }
 func (m *UpdateGatewayProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateGatewayProfileRequest) ProtoMessage()    {}
 func (*UpdateGatewayProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gatewayProfile_22a95352687b66ac, []int{7}
+	return fileDescriptor_gatewayProfile_765be6837324e325, []int{7}
 }
 func (m *UpdateGatewayProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateGatewayProfileRequest.Unmarshal(m, b)
@@ -481,46 +467,9 @@ func (m *UpdateGatewayProfileRequest) GetGatewayProfile() *GatewayProfile {
 	return nil
 }
 
-func (m *UpdateGatewayProfileRequest) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-type UpdateGatewayProfileResponse struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpdateGatewayProfileResponse) Reset()         { *m = UpdateGatewayProfileResponse{} }
-func (m *UpdateGatewayProfileResponse) String() string { return proto.CompactTextString(m) }
-func (*UpdateGatewayProfileResponse) ProtoMessage()    {}
-func (*UpdateGatewayProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gatewayProfile_22a95352687b66ac, []int{8}
-}
-func (m *UpdateGatewayProfileResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateGatewayProfileResponse.Unmarshal(m, b)
-}
-func (m *UpdateGatewayProfileResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateGatewayProfileResponse.Marshal(b, m, deterministic)
-}
-func (dst *UpdateGatewayProfileResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateGatewayProfileResponse.Merge(dst, src)
-}
-func (m *UpdateGatewayProfileResponse) XXX_Size() int {
-	return xxx_messageInfo_UpdateGatewayProfileResponse.Size(m)
-}
-func (m *UpdateGatewayProfileResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateGatewayProfileResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateGatewayProfileResponse proto.InternalMessageInfo
-
 type DeleteGatewayProfileRequest struct {
-	// The ID of the gateway-profile.
-	GatewayProfileID     string   `protobuf:"bytes,1,opt,name=gatewayProfileID" json:"gatewayProfileID,omitempty"`
+	// Gateway-profile id (UUID string).
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -530,7 +479,7 @@ func (m *DeleteGatewayProfileRequest) Reset()         { *m = DeleteGatewayProfil
 func (m *DeleteGatewayProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteGatewayProfileRequest) ProtoMessage()    {}
 func (*DeleteGatewayProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gatewayProfile_22a95352687b66ac, []int{9}
+	return fileDescriptor_gatewayProfile_765be6837324e325, []int{8}
 }
 func (m *DeleteGatewayProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteGatewayProfileRequest.Unmarshal(m, b)
@@ -550,50 +499,20 @@ func (m *DeleteGatewayProfileRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DeleteGatewayProfileRequest proto.InternalMessageInfo
 
-func (m *DeleteGatewayProfileRequest) GetGatewayProfileID() string {
+func (m *DeleteGatewayProfileRequest) GetId() string {
 	if m != nil {
-		return m.GatewayProfileID
+		return m.Id
 	}
 	return ""
 }
 
-type DeleteGatewayProfileResponse struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *DeleteGatewayProfileResponse) Reset()         { *m = DeleteGatewayProfileResponse{} }
-func (m *DeleteGatewayProfileResponse) String() string { return proto.CompactTextString(m) }
-func (*DeleteGatewayProfileResponse) ProtoMessage()    {}
-func (*DeleteGatewayProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gatewayProfile_22a95352687b66ac, []int{10}
-}
-func (m *DeleteGatewayProfileResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeleteGatewayProfileResponse.Unmarshal(m, b)
-}
-func (m *DeleteGatewayProfileResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeleteGatewayProfileResponse.Marshal(b, m, deterministic)
-}
-func (dst *DeleteGatewayProfileResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteGatewayProfileResponse.Merge(dst, src)
-}
-func (m *DeleteGatewayProfileResponse) XXX_Size() int {
-	return xxx_messageInfo_DeleteGatewayProfileResponse.Size(m)
-}
-func (m *DeleteGatewayProfileResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeleteGatewayProfileResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DeleteGatewayProfileResponse proto.InternalMessageInfo
-
 type ListGatewayProfilesRequest struct {
 	// Max number of items to return.
-	Limit int64 `protobuf:"varint,1,opt,name=limit" json:"limit,omitempty"`
+	Limit int64 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
 	// Offset in the result-set (for pagination).
-	Offset int64 `protobuf:"varint,2,opt,name=offset" json:"offset,omitempty"`
+	Offset int64 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
 	// Network-server ID to filter on (optional).
-	NetworkServerID      int64    `protobuf:"varint,3,opt,name=networkServerID" json:"networkServerID,omitempty"`
+	NetworkServerId      int64    `protobuf:"varint,3,opt,name=network_server_id,json=networkServerID,proto3" json:"network_server_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -603,7 +522,7 @@ func (m *ListGatewayProfilesRequest) Reset()         { *m = ListGatewayProfilesR
 func (m *ListGatewayProfilesRequest) String() string { return proto.CompactTextString(m) }
 func (*ListGatewayProfilesRequest) ProtoMessage()    {}
 func (*ListGatewayProfilesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gatewayProfile_22a95352687b66ac, []int{11}
+	return fileDescriptor_gatewayProfile_765be6837324e325, []int{9}
 }
 func (m *ListGatewayProfilesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListGatewayProfilesRequest.Unmarshal(m, b)
@@ -637,27 +556,27 @@ func (m *ListGatewayProfilesRequest) GetOffset() int64 {
 	return 0
 }
 
-func (m *ListGatewayProfilesRequest) GetNetworkServerID() int64 {
+func (m *ListGatewayProfilesRequest) GetNetworkServerId() int64 {
 	if m != nil {
-		return m.NetworkServerID
+		return m.NetworkServerId
 	}
 	return 0
 }
 
 type ListGatewayProfilesResponse struct {
 	// Total number of gateway-profiles.
-	TotalCount           int64                 `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
-	Result               []*GatewayProfileMeta `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
-	XXX_unrecognized     []byte                `json:"-"`
-	XXX_sizecache        int32                 `json:"-"`
+	TotalCount           int64                     `protobuf:"varint,1,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	Result               []*GatewayProfileListItem `protobuf:"bytes,2,rep,name=result,proto3" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
 }
 
 func (m *ListGatewayProfilesResponse) Reset()         { *m = ListGatewayProfilesResponse{} }
 func (m *ListGatewayProfilesResponse) String() string { return proto.CompactTextString(m) }
 func (*ListGatewayProfilesResponse) ProtoMessage()    {}
 func (*ListGatewayProfilesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gatewayProfile_22a95352687b66ac, []int{12}
+	return fileDescriptor_gatewayProfile_765be6837324e325, []int{10}
 }
 func (m *ListGatewayProfilesResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListGatewayProfilesResponse.Unmarshal(m, b)
@@ -684,7 +603,7 @@ func (m *ListGatewayProfilesResponse) GetTotalCount() int64 {
 	return 0
 }
 
-func (m *ListGatewayProfilesResponse) GetResult() []*GatewayProfileMeta {
+func (m *ListGatewayProfilesResponse) GetResult() []*GatewayProfileListItem {
 	if m != nil {
 		return m.Result
 	}
@@ -693,16 +612,14 @@ func (m *ListGatewayProfilesResponse) GetResult() []*GatewayProfileMeta {
 
 func init() {
 	proto.RegisterType((*GatewayProfile)(nil), "api.GatewayProfile")
-	proto.RegisterType((*GatewayProfileMeta)(nil), "api.GatewayProfileMeta")
+	proto.RegisterType((*GatewayProfileListItem)(nil), "api.GatewayProfileListItem")
 	proto.RegisterType((*GatewayProfileExtraChannel)(nil), "api.GatewayProfileExtraChannel")
 	proto.RegisterType((*CreateGatewayProfileRequest)(nil), "api.CreateGatewayProfileRequest")
 	proto.RegisterType((*CreateGatewayProfileResponse)(nil), "api.CreateGatewayProfileResponse")
 	proto.RegisterType((*GetGatewayProfileRequest)(nil), "api.GetGatewayProfileRequest")
 	proto.RegisterType((*GetGatewayProfileResponse)(nil), "api.GetGatewayProfileResponse")
 	proto.RegisterType((*UpdateGatewayProfileRequest)(nil), "api.UpdateGatewayProfileRequest")
-	proto.RegisterType((*UpdateGatewayProfileResponse)(nil), "api.UpdateGatewayProfileResponse")
 	proto.RegisterType((*DeleteGatewayProfileRequest)(nil), "api.DeleteGatewayProfileRequest")
-	proto.RegisterType((*DeleteGatewayProfileResponse)(nil), "api.DeleteGatewayProfileResponse")
 	proto.RegisterType((*ListGatewayProfilesRequest)(nil), "api.ListGatewayProfilesRequest")
 	proto.RegisterType((*ListGatewayProfilesResponse)(nil), "api.ListGatewayProfilesResponse")
 }
@@ -724,9 +641,9 @@ type GatewayProfileServiceClient interface {
 	// Get returns the gateway-profile matching the given id.
 	Get(ctx context.Context, in *GetGatewayProfileRequest, opts ...grpc.CallOption) (*GetGatewayProfileResponse, error)
 	// Update updates the given gateway-profile.
-	Update(ctx context.Context, in *UpdateGatewayProfileRequest, opts ...grpc.CallOption) (*UpdateGatewayProfileResponse, error)
+	Update(ctx context.Context, in *UpdateGatewayProfileRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Delete deletes the gateway-profile matching the given id.
-	Delete(ctx context.Context, in *DeleteGatewayProfileRequest, opts ...grpc.CallOption) (*DeleteGatewayProfileResponse, error)
+	Delete(ctx context.Context, in *DeleteGatewayProfileRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// List returns the existing gateway-profiles.
 	List(ctx context.Context, in *ListGatewayProfilesRequest, opts ...grpc.CallOption) (*ListGatewayProfilesResponse, error)
 }
@@ -757,8 +674,8 @@ func (c *gatewayProfileServiceClient) Get(ctx context.Context, in *GetGatewayPro
 	return out, nil
 }
 
-func (c *gatewayProfileServiceClient) Update(ctx context.Context, in *UpdateGatewayProfileRequest, opts ...grpc.CallOption) (*UpdateGatewayProfileResponse, error) {
-	out := new(UpdateGatewayProfileResponse)
+func (c *gatewayProfileServiceClient) Update(ctx context.Context, in *UpdateGatewayProfileRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/api.GatewayProfileService/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -766,8 +683,8 @@ func (c *gatewayProfileServiceClient) Update(ctx context.Context, in *UpdateGate
 	return out, nil
 }
 
-func (c *gatewayProfileServiceClient) Delete(ctx context.Context, in *DeleteGatewayProfileRequest, opts ...grpc.CallOption) (*DeleteGatewayProfileResponse, error) {
-	out := new(DeleteGatewayProfileResponse)
+func (c *gatewayProfileServiceClient) Delete(ctx context.Context, in *DeleteGatewayProfileRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/api.GatewayProfileService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -784,17 +701,16 @@ func (c *gatewayProfileServiceClient) List(ctx context.Context, in *ListGatewayP
 	return out, nil
 }
 
-// Server API for GatewayProfileService service
-
+// GatewayProfileServiceServer is the server API for GatewayProfileService service.
 type GatewayProfileServiceServer interface {
 	// Create creates the given gateway-profile.
 	Create(context.Context, *CreateGatewayProfileRequest) (*CreateGatewayProfileResponse, error)
 	// Get returns the gateway-profile matching the given id.
 	Get(context.Context, *GetGatewayProfileRequest) (*GetGatewayProfileResponse, error)
 	// Update updates the given gateway-profile.
-	Update(context.Context, *UpdateGatewayProfileRequest) (*UpdateGatewayProfileResponse, error)
+	Update(context.Context, *UpdateGatewayProfileRequest) (*empty.Empty, error)
 	// Delete deletes the gateway-profile matching the given id.
-	Delete(context.Context, *DeleteGatewayProfileRequest) (*DeleteGatewayProfileResponse, error)
+	Delete(context.Context, *DeleteGatewayProfileRequest) (*empty.Empty, error)
 	// List returns the existing gateway-profiles.
 	List(context.Context, *ListGatewayProfilesRequest) (*ListGatewayProfilesResponse, error)
 }
@@ -923,53 +839,58 @@ var _GatewayProfileService_serviceDesc = grpc.ServiceDesc{
 }
 
 func init() {
-	proto.RegisterFile("gatewayProfile.proto", fileDescriptor_gatewayProfile_22a95352687b66ac)
+	proto.RegisterFile("gatewayProfile.proto", fileDescriptor_gatewayProfile_765be6837324e325)
 }
 
-var fileDescriptor_gatewayProfile_22a95352687b66ac = []byte{
-	// 689 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x56, 0x5d, 0x6e, 0xd3, 0x4c,
-	0x14, 0x95, 0xeb, 0xd4, 0xdf, 0xd7, 0x5b, 0xd2, 0xa2, 0xa1, 0xa5, 0xc6, 0x49, 0x83, 0xf1, 0x53,
-	0x14, 0x89, 0x04, 0x85, 0x07, 0x24, 0xe0, 0x05, 0xfa, 0xa7, 0x22, 0x2a, 0xa1, 0x41, 0x2c, 0x60,
-	0x9a, 0x4c, 0xd2, 0x11, 0xce, 0x8c, 0x19, 0x4f, 0x5a, 0x2a, 0x84, 0x90, 0xd8, 0x01, 0xe2, 0x85,
-	0x37, 0xf6, 0xc1, 0x26, 0x90, 0x60, 0x0b, 0xec, 0x03, 0xe4, 0xf1, 0xa4, 0xad, 0x13, 0xdb, 0x6a,
-	0x54, 0x09, 0xde, 0x7a, 0x7f, 0x7a, 0xcf, 0x39, 0xf7, 0x1e, 0xdb, 0x81, 0xb5, 0x21, 0x51, 0xf4,
-	0x84, 0x9c, 0xbe, 0x90, 0x62, 0xc0, 0x42, 0xda, 0x8e, 0xa4, 0x50, 0x02, 0xd9, 0x24, 0x62, 0x5e,
-	0x7d, 0x28, 0xc4, 0x30, 0xa4, 0x1d, 0x12, 0xb1, 0x0e, 0xe1, 0x5c, 0x28, 0xa2, 0x98, 0xe0, 0x71,
-	0xda, 0xe2, 0x5d, 0xeb, 0x89, 0xd1, 0x48, 0xf0, 0x34, 0x0a, 0xbe, 0x5a, 0xb0, 0xb2, 0x97, 0x99,
-	0x84, 0x5a, 0x70, 0x3d, 0x3b, 0x7b, 0x7f, 0xdb, 0xb5, 0x7c, 0xab, 0xb9, 0x84, 0x67, 0xf2, 0xc8,
-	0x83, 0xff, 0x7b, 0x47, 0x84, 0x73, 0x1a, 0xc6, 0xee, 0x82, 0x6f, 0x37, 0xab, 0xf8, 0x2c, 0x46,
-	0x3b, 0x50, 0xa5, 0x6f, 0x95, 0x24, 0x5b, 0x93, 0x06, 0xdb, 0xb7, 0x9b, 0xcb, 0xdd, 0xdb, 0x6d,
-	0x12, 0xb1, 0x76, 0x16, 0x73, 0xe7, 0x42, 0x1f, 0xce, 0xfe, 0x57, 0xf0, 0xcd, 0x02, 0x94, 0xed,
-	0x3e, 0xa0, 0x8a, 0xcc, 0xc5, 0x12, 0x41, 0x85, 0x93, 0x11, 0x75, 0x17, 0x74, 0x5d, 0xff, 0x8d,
-	0x9a, 0xb0, 0xca, 0xa9, 0x3a, 0x11, 0xf2, 0xf5, 0x4b, 0x2a, 0x8f, 0xa9, 0xdc, 0xdf, 0x76, 0x6d,
-	0xdf, 0x6a, 0xda, 0x78, 0x3a, 0x8d, 0xea, 0xb0, 0xd4, 0x93, 0x94, 0x28, 0xda, 0x7f, 0xa2, 0xdc,
-	0x45, 0x3d, 0xe2, 0x3c, 0x91, 0x54, 0xc7, 0x51, 0xdf, 0x54, 0x9d, 0xb4, 0x7a, 0x96, 0x08, 0xbe,
-	0x5b, 0xe0, 0x15, 0x4b, 0x45, 0x1d, 0x80, 0x91, 0xe8, 0x8f, 0x43, 0x7d, 0x20, 0x4d, 0x7f, 0xa5,
-	0xbb, 0xaa, 0xf7, 0x73, 0x70, 0x96, 0xc6, 0x17, 0x5a, 0x12, 0xb4, 0x81, 0xa4, 0x6f, 0xc6, 0x94,
-	0xf7, 0x4e, 0xb5, 0x9c, 0x2a, 0x3e, 0x4f, 0x24, 0xd5, 0x43, 0xc2, 0xfb, 0x27, 0xac, 0xaf, 0x8e,
-	0xb4, 0x9a, 0x2a, 0x3e, 0x4f, 0x20, 0x17, 0xfe, 0x3b, 0x64, 0x4a, 0x12, 0x45, 0xdd, 0x8a, 0xae,
-	0x4d, 0xc2, 0x64, 0x97, 0x71, 0x24, 0x29, 0xe9, 0x33, 0x3e, 0xdc, 0x25, 0x3d, 0x25, 0x64, 0xec,
-	0x2e, 0xea, 0x6b, 0xce, 0xe4, 0x83, 0x2f, 0x16, 0xd4, 0xb6, 0xb4, 0xfa, 0xac, 0x2e, 0x9c, 0x90,
-	0x88, 0x15, 0x7a, 0x04, 0x2b, 0xd9, 0xfd, 0x6b, 0x59, 0xcb, 0xdd, 0x1b, 0x39, 0x67, 0xc7, 0x53,
-	0xad, 0x57, 0x3b, 0x54, 0xf0, 0x0c, 0xea, 0xf9, 0xcc, 0xe2, 0x48, 0xf0, 0x78, 0x2e, 0x63, 0x07,
-	0xbb, 0xe0, 0xee, 0x51, 0x95, 0x2f, 0x71, 0x9e, 0x39, 0x3f, 0x2c, 0xb8, 0x95, 0x33, 0xc8, 0x30,
-	0xfa, 0x77, 0xcb, 0xba, 0x92, 0xab, 0x39, 0xd4, 0x5e, 0xe9, 0xe0, 0xef, 0x58, 0x20, 0x68, 0x40,
-	0x3d, 0x1f, 0x2f, 0x5d, 0x63, 0xb0, 0x0f, 0xb5, 0x6d, 0x1a, 0xd2, 0x22, 0x3e, 0xf3, 0xdc, 0xab,
-	0x01, 0xf5, 0xfc, 0x51, 0x06, 0x4a, 0x81, 0xf7, 0x9c, 0xc5, 0x53, 0xf7, 0x8c, 0x27, 0x48, 0x6b,
-	0xb0, 0x18, 0xb2, 0x11, 0x53, 0x7a, 0xbc, 0x8d, 0xd3, 0x00, 0xdd, 0x04, 0x47, 0x0c, 0x06, 0x31,
-	0x55, 0x5a, 0x94, 0x8d, 0x4d, 0x34, 0x87, 0xb3, 0x39, 0xd4, 0x72, 0x51, 0x8d, 0x8d, 0x1a, 0x00,
-	0x4a, 0x28, 0x12, 0x6e, 0x89, 0x31, 0x9f, 0x60, 0x5f, 0xc8, 0xa0, 0x0e, 0x38, 0x92, 0xc6, 0xe3,
-	0x50, 0xe9, 0x77, 0xf4, 0x72, 0x77, 0x23, 0xe7, 0x10, 0xc9, 0x4b, 0x15, 0x9b, 0xb6, 0xee, 0xef,
-	0x0a, 0xac, 0x67, 0xcb, 0x09, 0x15, 0xd6, 0xa3, 0x48, 0x80, 0x93, 0x3e, 0x63, 0xc8, 0xd7, 0x43,
-	0x4a, 0x5e, 0x05, 0xde, 0x9d, 0x92, 0x0e, 0xb3, 0x4e, 0xff, 0xe3, 0xcf, 0x5f, 0x9f, 0x17, 0xbc,
-	0x60, 0x5d, 0x7f, 0xac, 0xcc, 0x35, 0xee, 0x46, 0x46, 0xe0, 0x43, 0xab, 0x85, 0x8e, 0xc1, 0xde,
-	0xa3, 0x0a, 0x6d, 0xa6, 0x94, 0x0b, 0x1e, 0x49, 0xaf, 0x51, 0x54, 0x36, 0x38, 0xf7, 0x34, 0x4e,
-	0x0b, 0x35, 0x73, 0x71, 0x3a, 0xef, 0xa6, 0x7d, 0xf0, 0x1e, 0x7d, 0xb2, 0xc0, 0x49, 0x4d, 0x67,
-	0x94, 0x96, 0x38, 0xde, 0x28, 0x2d, 0xf5, 0xe8, 0x53, 0xcd, 0xe0, 0xb1, 0xf7, 0xe0, 0x52, 0x0c,
-	0xda, 0x33, 0x84, 0x92, 0x5d, 0x7c, 0x00, 0x27, 0x35, 0xa7, 0xa1, 0x54, 0x62, 0x7a, 0x43, 0xa9,
-	0xd4, 0xcb, 0x66, 0x29, 0xad, 0xcb, 0x2f, 0xe5, 0x08, 0x2a, 0x89, 0x0f, 0x51, 0xfa, 0x0d, 0x2f,
-	0x7e, 0x10, 0x3c, 0xbf, 0xb8, 0xc1, 0x80, 0x6f, 0x6a, 0xf0, 0x0d, 0x94, 0x7f, 0xf9, 0x43, 0x47,
-	0xff, 0x3c, 0xb9, 0xff, 0x27, 0x00, 0x00, 0xff, 0xff, 0xf0, 0x77, 0xb1, 0x86, 0xe7, 0x08, 0x00,
+var fileDescriptor_gatewayProfile_765be6837324e325 = []byte{
+	// 769 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x55, 0xcd, 0x6e, 0xd3, 0x4a,
+	0x14, 0x96, 0xe3, 0x34, 0xf7, 0xf6, 0x44, 0x49, 0x6f, 0xe7, 0xb6, 0xbd, 0xbe, 0x4e, 0x4a, 0x8d,
+	0x57, 0x51, 0x50, 0x1d, 0x29, 0x55, 0x17, 0x20, 0x36, 0x55, 0xff, 0x54, 0x09, 0x24, 0x64, 0x60,
+	0xd5, 0x45, 0x34, 0xb1, 0x27, 0xc9, 0x08, 0xdb, 0x63, 0xec, 0x49, 0x4b, 0x84, 0xba, 0xe1, 0x15,
+	0x78, 0x20, 0x36, 0xec, 0x59, 0x74, 0xcf, 0x8a, 0x07, 0x41, 0x9e, 0x99, 0xa4, 0x4d, 0x6a, 0x07,
+	0x95, 0x9f, 0x55, 0x72, 0xce, 0xf9, 0x66, 0xbe, 0xf3, 0xf3, 0x1d, 0x0f, 0x6c, 0x0c, 0x31, 0x27,
+	0x97, 0x78, 0xf2, 0x22, 0x61, 0x03, 0x1a, 0x10, 0x27, 0x4e, 0x18, 0x67, 0x48, 0xc7, 0x31, 0x35,
+	0x9b, 0x43, 0xc6, 0x86, 0x01, 0xe9, 0xe0, 0x98, 0x76, 0x70, 0x14, 0x31, 0x8e, 0x39, 0x65, 0x51,
+	0x2a, 0x21, 0xe6, 0x8e, 0x8a, 0x0a, 0xab, 0x3f, 0x1e, 0x74, 0x38, 0x0d, 0x49, 0xca, 0x71, 0x18,
+	0x2b, 0x40, 0x63, 0x11, 0x40, 0xc2, 0x98, 0x4f, 0x54, 0x70, 0x7f, 0x48, 0xf9, 0x68, 0xdc, 0x77,
+	0x3c, 0x16, 0x76, 0xfa, 0x09, 0xf3, 0x30, 0x4e, 0x3a, 0x01, 0x4b, 0x70, 0x4a, 0x92, 0x0b, 0x92,
+	0x08, 0x4a, 0x8f, 0x85, 0x21, 0x8b, 0xd4, 0x8f, 0x3c, 0x66, 0x7f, 0xd6, 0xa0, 0x7e, 0x3a, 0x97,
+	0x30, 0xaa, 0x43, 0x89, 0xfa, 0x86, 0x66, 0x69, 0xad, 0x55, 0xb7, 0x44, 0x7d, 0x84, 0xa0, 0x1c,
+	0xe1, 0x90, 0x18, 0x25, 0xe1, 0x11, 0xff, 0x51, 0x1b, 0xd6, 0x23, 0xc2, 0x2f, 0x59, 0xf2, 0xa6,
+	0x27, 0x09, 0x7a, 0xd4, 0x37, 0x74, 0x4b, 0x6b, 0xe9, 0xee, 0x9a, 0x0a, 0xbc, 0x14, 0xfe, 0xb3,
+	0x23, 0x64, 0xc2, 0xdf, 0xde, 0x08, 0x47, 0x11, 0x09, 0x52, 0xa3, 0x6c, 0xe9, 0xad, 0x9a, 0x3b,
+	0xb3, 0xd1, 0x09, 0xd4, 0xc9, 0x3b, 0x9e, 0xe0, 0xde, 0x0c, 0xb1, 0x62, 0xe9, 0xad, 0x6a, 0x77,
+	0xc7, 0xc1, 0x31, 0x75, 0xe6, 0x13, 0x3b, 0xce, 0x80, 0x87, 0x12, 0xe7, 0xd6, 0xc8, 0x2d, 0x2b,
+	0xb5, 0xbf, 0x6a, 0xb0, 0x35, 0x8f, 0x7e, 0x46, 0x53, 0x7e, 0xc6, 0x49, 0xf8, 0xdb, 0xcb, 0x79,
+	0x0c, 0xe0, 0x25, 0x04, 0x73, 0xe2, 0xf7, 0x30, 0x37, 0x56, 0x2c, 0xad, 0x55, 0xed, 0x9a, 0x8e,
+	0x1c, 0x8d, 0x33, 0x1d, 0x8d, 0xf3, 0x6a, 0x3a, 0x3b, 0x77, 0x55, 0xa1, 0x0f, 0x78, 0x76, 0x74,
+	0x1c, 0xfb, 0xd3, 0xa3, 0x95, 0x1f, 0x1f, 0x55, 0xe8, 0x03, 0x6e, 0x5f, 0x6b, 0x60, 0x16, 0xb7,
+	0x03, 0x75, 0x01, 0x42, 0xe6, 0x8f, 0x03, 0x21, 0x28, 0x51, 0x6c, 0xbd, 0x8b, 0x1c, 0x35, 0xe9,
+	0xe7, 0xb3, 0x88, 0x7b, 0x0b, 0x85, 0x9a, 0xb0, 0x3a, 0x48, 0xc8, 0xdb, 0x31, 0x89, 0xbc, 0x89,
+	0xe8, 0x46, 0xcd, 0xbd, 0x71, 0x64, 0xd1, 0x3e, 0x8e, 0xfc, 0x4b, 0xea, 0xf3, 0x91, 0x68, 0x45,
+	0xcd, 0xbd, 0x71, 0x20, 0x03, 0xfe, 0xea, 0x53, 0x9e, 0x60, 0x4e, 0x8c, 0xb2, 0x88, 0x4d, 0x4d,
+	0xf4, 0x08, 0xd6, 0xd3, 0x38, 0x21, 0xd8, 0xa7, 0xd1, 0xb0, 0x37, 0xc0, 0x1e, 0x67, 0x89, 0x1c,
+	0x6a, 0xcd, 0xfd, 0x67, 0x16, 0x38, 0x91, 0x7e, 0xfb, 0x1c, 0x1a, 0x87, 0xa2, 0x3b, 0xf3, 0xa5,
+	0xb9, 0x59, 0x12, 0x29, 0x47, 0x4f, 0x61, 0x4d, 0x2d, 0x53, 0x2f, 0x96, 0x11, 0x51, 0x5a, 0xb5,
+	0xfb, 0x6f, 0x8e, 0x3c, 0xdc, 0xfa, 0xfc, 0xe2, 0xd9, 0x0e, 0x34, 0xf3, 0x2f, 0x4f, 0x63, 0x16,
+	0xa5, 0x77, 0x74, 0x6e, 0xb7, 0xc1, 0x38, 0x25, 0x3c, 0x3f, 0x93, 0x45, 0xec, 0x17, 0x0d, 0xfe,
+	0xcf, 0x01, 0xab, 0x9b, 0x7f, 0x29, 0xef, 0x05, 0x81, 0x95, 0x7e, 0x5e, 0x60, 0xfa, 0x7d, 0x04,
+	0x76, 0x0e, 0x8d, 0xd7, 0xc2, 0xf8, 0x13, 0xa3, 0xd8, 0x85, 0xc6, 0x11, 0x09, 0x48, 0xd1, 0xe5,
+	0x8b, 0xdd, 0xbd, 0x00, 0x33, 0x5b, 0xdf, 0x79, 0x70, 0x3a, 0x45, 0x6f, 0xc0, 0x4a, 0x40, 0x43,
+	0xca, 0xc5, 0x01, 0xdd, 0x95, 0x06, 0xda, 0x82, 0x0a, 0x1b, 0x0c, 0x52, 0x22, 0x3b, 0xa6, 0xbb,
+	0xca, 0xba, 0xcf, 0x6a, 0xdb, 0x29, 0x34, 0x72, 0x79, 0xd5, 0x58, 0x77, 0xa0, 0xca, 0x19, 0xc7,
+	0x41, 0xcf, 0x63, 0xe3, 0x68, 0x4a, 0x0f, 0xc2, 0x75, 0x98, 0x79, 0xd0, 0x1e, 0x54, 0x12, 0x92,
+	0x8e, 0x83, 0x2c, 0x87, 0xec, 0x2b, 0xd6, 0xc8, 0xe9, 0xcd, 0xf4, 0xbb, 0xe4, 0x2a, 0x68, 0xf7,
+	0x53, 0x19, 0x36, 0xe7, 0x21, 0x59, 0x3e, 0xd4, 0x23, 0x88, 0x41, 0x45, 0x0a, 0x18, 0x59, 0xe2,
+	0xa2, 0x25, 0xab, 0x62, 0x3e, 0x5c, 0x82, 0x90, 0xe9, 0xdb, 0xd6, 0x87, 0xeb, 0x6f, 0x1f, 0x4b,
+	0xa6, 0xbd, 0x29, 0x1e, 0x03, 0x35, 0xa1, 0x5d, 0x35, 0xcd, 0xf4, 0x89, 0xd6, 0x46, 0x23, 0xd0,
+	0x4f, 0x09, 0x47, 0xdb, 0x32, 0xed, 0x82, 0x5d, 0x30, 0x1f, 0x14, 0x85, 0x15, 0x8f, 0x2d, 0x78,
+	0x9a, 0xc8, 0xcc, 0xe5, 0xe9, 0xbc, 0xa7, 0xfe, 0x15, 0x9a, 0x40, 0x45, 0xaa, 0x4d, 0x95, 0xb6,
+	0x44, 0x7a, 0xe6, 0xd6, 0x1d, 0x01, 0x1f, 0x67, 0xef, 0x9e, 0xbd, 0x2f, 0x78, 0x3a, 0x66, 0xbb,
+	0x80, 0x67, 0x41, 0xaf, 0x0e, 0xf5, 0xaf, 0xb2, 0x22, 0x07, 0x50, 0x91, 0x5a, 0x54, 0xd4, 0x4b,
+	0x84, 0x59, 0x48, 0xad, 0x4a, 0x6c, 0x2f, 0x2b, 0x71, 0x04, 0xe5, 0x6c, 0xd6, 0x48, 0x3e, 0x65,
+	0xc5, 0x7a, 0x36, 0xad, 0x62, 0x80, 0xea, 0xe8, 0xb6, 0xa0, 0xfb, 0x0f, 0xe5, 0x4f, 0xae, 0x5f,
+	0x11, 0xd9, 0xed, 0x7d, 0x0f, 0x00, 0x00, 0xff, 0xff, 0x6c, 0x18, 0x3f, 0x5a, 0x7a, 0x08, 0x00,
 	0x00,
 }

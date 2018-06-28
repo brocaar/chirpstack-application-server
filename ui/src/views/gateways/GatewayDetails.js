@@ -156,7 +156,8 @@ class GatewayDetails extends Component {
   componentWillMount() {
     GatewayStore.getGateway(this.props.match.params.mac, (gateway) => {
       this.setState({
-        gateway: gateway,
+        gateway: gateway.gateway,
+        lastSeenAt: gateway.lastSeenAt,
       });
     }); 
   }
@@ -175,8 +176,8 @@ class GatewayDetails extends Component {
       position = [0,0];
     }
 
-    if (typeof(this.state.gateway.lastSeenAt) !== "undefined" && this.state.gateway.lastSeenAt !== "") {
-      lastseen = moment(this.state.gateway.lastSeenAt).fromNow();    
+    if (typeof(this.state.lastSeenAt) !== "undefined" && this.state.lastSeenAt !== null) {
+      lastseen = moment(this.state.lastSeenAt).fromNow();    
     }
 
     return(
@@ -192,8 +193,8 @@ class GatewayDetails extends Component {
                 </thead>
                 <tbody>
                   <tr>
-                    <td className="col-md-4"><strong>MAC</strong></td>
-                    <td>{this.state.gateway.mac}</td>
+                    <td className="col-md-4"><strong>Gateway ID</strong></td>
+                    <td>{this.state.gateway.id}</td>
                   </tr>
                   <tr>
                     <td className="col-md-4"><strong>Altitude</strong></td>

@@ -45,7 +45,7 @@
             "format": "int64"
           },
           {
-            "name": "organizationID",
+            "name": "organization_id",
             "description": "ID of the organization to filter on.",
             "in": "query",
             "required": false,
@@ -61,7 +61,7 @@
           }
         ],
         "tags": [
-          "Application"
+          "ApplicationService"
         ]
       },
       "post": {
@@ -86,7 +86,117 @@
           }
         ],
         "tags": [
-          "Application"
+          "ApplicationService"
+        ]
+      }
+    },
+    "/api/applications/{application.id}": {
+      "put": {
+        "summary": "Update updates the given application.",
+        "operationId": "Update",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/protobufEmpty"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "application.id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateApplicationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ApplicationService"
+        ]
+      }
+    },
+    "/api/applications/{application_id}/integrations": {
+      "get": {
+        "summary": "ListIntegrations lists all configured integrations.",
+        "operationId": "ListIntegrations",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListIntegrationResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "ApplicationService"
+        ]
+      }
+    },
+    "/api/applications/{application_id}/integrations/http": {
+      "get": {
+        "summary": "GetHTTPIntegration returns the HTTP application-integration.",
+        "operationId": "GetHTTPIntegration",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetHTTPIntegrationResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "ApplicationService"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteIntegration deletes the HTTP application-integration.",
+        "operationId": "DeleteHTTPIntegration",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/protobufEmpty"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "ApplicationService"
         ]
       }
     },
@@ -112,7 +222,7 @@
           }
         ],
         "tags": [
-          "Application"
+          "ApplicationService"
         ]
       },
       "delete": {
@@ -122,7 +232,7 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiEmptyResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
@@ -136,71 +246,7 @@
           }
         ],
         "tags": [
-          "Application"
-        ]
-      },
-      "post": {
-        "summary": "CreateInfluxDBIntegration create an InfluxDB application-integration.",
-        "operationId": "CreateInfluxDBIntegration",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiEmptyResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "application_id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiCreateInfluxDBIntegrationRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Application"
-        ]
-      },
-      "put": {
-        "summary": "UpdateInfluxDBIntegration updates the InfluxDB application-integration.",
-        "operationId": "UpdateInfluxDBIntegration",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiEmptyResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "application_id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiUpdateInfluxDBIntegrationRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Application"
+          "ApplicationService"
         ]
       }
     },
@@ -226,7 +272,7 @@
           }
         ],
         "tags": [
-          "Application"
+          "ApplicationService"
         ]
       },
       "delete": {
@@ -236,7 +282,7 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiDeleteApplicationResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
@@ -250,117 +296,11 @@
           }
         ],
         "tags": [
-          "Application"
-        ]
-      },
-      "put": {
-        "summary": "Update updates the given application.",
-        "operationId": "Update",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiUpdateApplicationResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiUpdateApplicationRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Application"
+          "ApplicationService"
         ]
       }
     },
-    "/api/applications/{id}/integrations": {
-      "get": {
-        "summary": "ListIntegrations lists all configured integrations.",
-        "operationId": "ListIntegrations",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiListIntegrationResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          }
-        ],
-        "tags": [
-          "Application"
-        ]
-      }
-    },
-    "/api/applications/{id}/integrations/http": {
-      "get": {
-        "summary": "GetHTTPIntegration returns the HTTP application-integration.",
-        "operationId": "GetHTTPIntegration",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiHTTPIntegration"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          }
-        ],
-        "tags": [
-          "Application"
-        ]
-      },
-      "delete": {
-        "summary": "DeleteIntegration deletes the HTTP application-integration.",
-        "operationId": "DeleteHTTPIntegration",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiEmptyResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          }
-        ],
-        "tags": [
-          "Application"
-        ]
-      },
+    "/api/applications/{integration.application_id}/integrations/http": {
       "post": {
         "summary": "CreateHTTPIntegration creates a HTTP application-integration.",
         "operationId": "CreateHTTPIntegration",
@@ -368,13 +308,13 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiEmptyResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
         "parameters": [
           {
-            "name": "id",
+            "name": "integration.application_id",
             "in": "path",
             "required": true,
             "type": "string",
@@ -385,12 +325,12 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiHTTPIntegration"
+              "$ref": "#/definitions/apiCreateHTTPIntegrationRequest"
             }
           }
         ],
         "tags": [
-          "Application"
+          "ApplicationService"
         ]
       },
       "put": {
@@ -400,13 +340,13 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiEmptyResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
         "parameters": [
           {
-            "name": "id",
+            "name": "integration.application_id",
             "in": "path",
             "required": true,
             "type": "string",
@@ -417,51 +357,91 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiHTTPIntegration"
+              "$ref": "#/definitions/apiUpdateHTTPIntegrationRequest"
             }
           }
         ],
         "tags": [
-          "Application"
+          "ApplicationService"
+        ]
+      }
+    },
+    "/api/applications/{integration.application_id}/integrations/influxdb": {
+      "post": {
+        "summary": "CreateInfluxDBIntegration create an InfluxDB application-integration.",
+        "operationId": "CreateInfluxDBIntegration",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/protobufEmpty"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "integration.application_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateInfluxDBIntegrationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ApplicationService"
+        ]
+      },
+      "put": {
+        "summary": "UpdateInfluxDBIntegration updates the InfluxDB application-integration.",
+        "operationId": "UpdateInfluxDBIntegration",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/protobufEmpty"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "integration.application_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateInfluxDBIntegrationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ApplicationService"
         ]
       }
     }
   },
   "definitions": {
-    "apiApplicationListItem": {
+    "apiApplication": {
       "type": "object",
       "properties": {
         "id": {
           "type": "string",
           "format": "int64",
-          "description": "ID of the application."
+          "description": "Application ID.\nThis will be automatically assigned on create."
         },
-        "name": {
-          "type": "string",
-          "description": "Name of the application."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the application."
-        },
-        "organizationID": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the organization to which the application belongs."
-        },
-        "serviceProfileID": {
-          "type": "string",
-          "description": "ID of the service profile."
-        },
-        "serviceProfileName": {
-          "type": "string",
-          "description": "Service-profile name."
-        }
-      }
-    },
-    "apiCreateApplicationRequest": {
-      "type": "object",
-      "properties": {
         "name": {
           "type": "string",
           "description": "Name of the application (must be unique)."
@@ -493,43 +473,13 @@
         }
       }
     },
-    "apiCreateApplicationResponse": {
+    "apiApplicationListItem": {
       "type": "object",
       "properties": {
         "id": {
           "type": "string",
           "format": "int64",
-          "description": "ID of the application that was created."
-        }
-      }
-    },
-    "apiCreateInfluxDBIntegrationRequest": {
-      "type": "object",
-      "properties": {
-        "application_id": {
-          "type": "string",
-          "format": "int64",
-          "description": "Application ID to create the integration for."
-        },
-        "configuration": {
-          "$ref": "#/definitions/apiInfluxDBIntegrationConfiguration",
-          "description": "Integration configuration."
-        }
-      }
-    },
-    "apiDeleteApplicationResponse": {
-      "type": "object"
-    },
-    "apiEmptyResponse": {
-      "type": "object"
-    },
-    "apiGetApplicationResponse": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application."
+          "description": "Application ID."
         },
         "name": {
           "type": "string",
@@ -548,33 +498,80 @@
           "type": "string",
           "description": "ID of the service profile."
         },
-        "payloadCodec": {
+        "serviceProfileName": {
           "type": "string",
-          "description": "Payload codec."
-        },
-        "payloadEncoderScript": {
+          "description": "Service-profile name."
+        }
+      }
+    },
+    "apiCreateApplicationRequest": {
+      "type": "object",
+      "properties": {
+        "application": {
+          "$ref": "#/definitions/apiApplication",
+          "description": "Application object to create."
+        }
+      }
+    },
+    "apiCreateApplicationResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
           "type": "string",
-          "description": "Payload encoder script."
-        },
-        "payloadDecoderScript": {
-          "type": "string",
-          "description": "Payload decoder script."
+          "format": "int64",
+          "description": "Application ID."
+        }
+      }
+    },
+    "apiCreateHTTPIntegrationRequest": {
+      "type": "object",
+      "properties": {
+        "integration": {
+          "$ref": "#/definitions/apiHTTPIntegration",
+          "description": "Integration object to create."
+        }
+      }
+    },
+    "apiCreateInfluxDBIntegrationRequest": {
+      "type": "object",
+      "properties": {
+        "integration": {
+          "$ref": "#/definitions/apiInfluxDBIntegration",
+          "description": "Integration object to create."
+        }
+      }
+    },
+    "apiGetApplicationResponse": {
+      "type": "object",
+      "properties": {
+        "application": {
+          "$ref": "#/definitions/apiApplication",
+          "description": "Application object."
+        }
+      }
+    },
+    "apiGetHTTPIntegrationResponse": {
+      "type": "object",
+      "properties": {
+        "integration": {
+          "$ref": "#/definitions/apiHTTPIntegration",
+          "description": "Integration object."
         }
       }
     },
     "apiGetInfluxDBIntegrationResponse": {
       "type": "object",
       "properties": {
-        "configuration": {
-          "$ref": "#/definitions/apiInfluxDBIntegrationConfiguration",
-          "description": "Integration configuration."
+        "integration": {
+          "$ref": "#/definitions/apiInfluxDBIntegration",
+          "description": "Integration object."
         }
       }
     },
     "apiHTTPIntegration": {
       "type": "object",
       "properties": {
-        "id": {
+        "applicationID": {
           "type": "string",
           "format": "int64",
           "description": "The id of the application."
@@ -586,7 +583,7 @@
           },
           "description": "The headers to use when making HTTP callbacks."
         },
-        "dataUpURL": {
+        "uplinkDataURL": {
           "type": "string",
           "description": "The URL to call for uplink data."
         },
@@ -617,9 +614,14 @@
         }
       }
     },
-    "apiInfluxDBIntegrationConfiguration": {
+    "apiInfluxDBIntegration": {
       "type": "object",
       "properties": {
+        "applicationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Application ID."
+        },
         "endpoint": {
           "type": "string",
           "description": "InfluxDB API write endpoint (e.g. http://localhost:8086/write)."
@@ -636,7 +638,7 @@
           "type": "string",
           "description": "InfluxDB password."
         },
-        "retention_policy_name": {
+        "retentionPolicyName": {
           "type": "string",
           "description": "InfluxDB retention policy name."
         },
@@ -698,53 +700,34 @@
     "apiUpdateApplicationRequest": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the application to update."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the application (must be unique)."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the application."
-        },
-        "serviceProfileID": {
-          "type": "string",
-          "description": "ID of the service profile."
-        },
-        "payloadCodec": {
-          "type": "string",
-          "description": "Payload codec."
-        },
-        "payloadEncoderScript": {
-          "type": "string",
-          "description": "Payload encoder script."
-        },
-        "payloadDecoderScript": {
-          "type": "string",
-          "description": "Payload decoder script."
+        "application": {
+          "$ref": "#/definitions/apiApplication",
+          "description": "Application object to update."
         }
       }
     },
-    "apiUpdateApplicationResponse": {
-      "type": "object"
+    "apiUpdateHTTPIntegrationRequest": {
+      "type": "object",
+      "properties": {
+        "integration": {
+          "$ref": "#/definitions/apiHTTPIntegration",
+          "description": "Integration object to update."
+        }
+      }
     },
     "apiUpdateInfluxDBIntegrationRequest": {
       "type": "object",
       "properties": {
-        "application_id": {
-          "type": "string",
-          "format": "int64",
-          "description": "Application ID to update the integration for."
-        },
-        "configuration": {
-          "$ref": "#/definitions/apiInfluxDBIntegrationConfiguration",
-          "description": "Integration configuration."
+        "integration": {
+          "$ref": "#/definitions/apiInfluxDBIntegration",
+          "description": "Integration object."
         }
       }
+    },
+    "protobufEmpty": {
+      "type": "object",
+      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
+      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
     }
   }
 }

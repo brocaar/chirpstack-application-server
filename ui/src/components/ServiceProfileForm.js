@@ -13,9 +13,7 @@ class ServiceProfileForm extends Component {
     super();
 
     this.state = {
-      serviceProfile: {
-        serviceProfile: {},
-      },
+      serviceProfile: {},
       networkServers: [],
       update: false,
       isAdmin: false,
@@ -63,7 +61,7 @@ class ServiceProfileForm extends Component {
   componentWillReceiveProps(nextProps) {
     this.setState({
       serviceProfile: nextProps.serviceProfile,
-      update: nextProps.serviceProfile.serviceProfile.serviceProfileID !== undefined,
+      update: nextProps.serviceProfile.serviceProfileID !== undefined,
     });
   }
 
@@ -72,24 +70,15 @@ class ServiceProfileForm extends Component {
     this.props.onSubmit(this.state.serviceProfile);
   }
 
-  onChange(fieldLookup, e) {
-    let lookup = fieldLookup.split(".");
-    const fieldName = lookup[lookup.length-1];
-    lookup.pop(); // remove last item
-
+  onChange(field, e) {
     let serviceProfile = this.state.serviceProfile;
-    let obj = serviceProfile;
-
-    for (const f of lookup) {
-      obj = obj[f];
-    }
 
     if (e.target.type === "number") {
-      obj[fieldName] = parseInt(e.target.value, 10);
+      serviceProfile[field] = parseInt(e.target.value, 10);
     } else if (e.target.type === "checkbox") {
-      obj[fieldName] = e.target.checked;
+      serviceProfile[field] = e.target.checked;
     } else {
-      obj[fieldName] = e.target.value;
+      serviceProfile[field] = e.target.value;
     }
 
     this.setState({
@@ -145,10 +134,10 @@ class ServiceProfileForm extends Component {
               </p>
             </div>
             <div className="form-group">
-              <label className="control-label" htmlFor="addGWMetadata">Add gateway meta-data</label>
+              <label className="control-label" htmlFor="addGWMetaData">Add gateway meta-data</label>
               <div className="checkbox">
                 <label>
-                  <input type="checkbox" name="addGWMetadata" id="addGWMetadata" checked={!!this.state.serviceProfile.serviceProfile.addGWMetadata} onChange={this.onChange.bind(this, 'serviceProfile.addGWMetadata')} /> Add gateway meta-data
+                  <input type="checkbox" name="addGWMetaData" id="addGWMetaData" checked={!!this.state.serviceProfile.addGWMetaData} onChange={this.onChange.bind(this, 'addGWMetaData')} /> Add gateway meta-data
                 </label>
               </div>
               <p className="help-block">
@@ -157,7 +146,7 @@ class ServiceProfileForm extends Component {
             </div>
             <div className="form-group">
               <label className="control-label" htmlFor="devStatusReqFreq">Device-status request frequency</label>
-              <input className="form-control" id="devStatusReqFreq" type="number" required value={this.state.serviceProfile.serviceProfile.devStatusReqFreq || 0} onChange={this.onChange.bind(this, 'serviceProfile.devStatusReqFreq')} />
+              <input className="form-control" id="devStatusReqFreq" type="number" required value={this.state.serviceProfile.devStatusReqFreq || 0} onChange={this.onChange.bind(this, 'devStatusReqFreq')} />
               <p className="help-block">
                 Frequency to initiate an End-Device status request (request/day). Set to 0 to disable.
               </p>
@@ -166,7 +155,7 @@ class ServiceProfileForm extends Component {
               <label className="control-label" htmlFor="reportDevStatusBattery">Report battery level</label>
               <div className="checkbox">
                 <label>
-                  <input type="checkbox" name="reportDevStatusBattery" id="reportDevStatusBattery" checked={!!this.state.serviceProfile.serviceProfile.reportDevStatusBattery} onChange={this.onChange.bind(this, 'serviceProfile.reportDevStatusBattery')} /> Report battery level
+                  <input type="checkbox" name="reportDevStatusBattery" id="reportDevStatusBattery" checked={!!this.state.serviceProfile.reportDevStatusBattery} onChange={this.onChange.bind(this, 'reportDevStatusBattery')} /> Report battery level
                 </label>
               </div>
               <p className="help-block">
@@ -177,7 +166,7 @@ class ServiceProfileForm extends Component {
               <label className="control-label" htmlFor="reportDevStatusBattery">Report margin</label>
               <div className="checkbox">
                 <label>
-                  <input type="checkbox" name="reportDevStatusMargin" id="reportDevStatusMargin" checked={!!this.state.serviceProfile.serviceProfile.reportDevStatusMargin} onChange={this.onChange.bind(this, 'serviceProfile.reportDevStatusMargin')} /> Report margin
+                  <input type="checkbox" name="reportDevStatusMargin" id="reportDevStatusMargin" checked={!!this.state.serviceProfile.reportDevStatusMargin} onChange={this.onChange.bind(this, 'reportDevStatusMargin')} /> Report margin
                 </label>
               </div>
               <p className="help-block">
@@ -186,14 +175,14 @@ class ServiceProfileForm extends Component {
             </div>
             <div className="form-group">
               <label className="control-label" htmlFor="drMin">Minimum allowed data-rate</label>
-              <input className="form-control" id="drMin" type="number" required value={this.state.serviceProfile.serviceProfile.drMin || 0} onChange={this.onChange.bind(this, 'serviceProfile.drMin')} />
+              <input className="form-control" id="drMin" type="number" required value={this.state.serviceProfile.drMin || 0} onChange={this.onChange.bind(this, 'drMin')} />
               <p className="help-block">
                 Minimum allowed data rate. Used for ADR.
               </p>
             </div>
             <div className="form-group">
               <label className="control-label" htmlFor="drMax">Maximum allowed data-rate</label>
-              <input className="form-control" id="drMax" type="number" required value={this.state.serviceProfile.serviceProfile.drMax || 0} onChange={this.onChange.bind(this, 'serviceProfile.drMax')} />
+              <input className="form-control" id="drMax" type="number" required value={this.state.serviceProfile.drMax || 0} onChange={this.onChange.bind(this, 'drMax')} />
               <p className="help-block">
                 Maximum allowed data rate. Used for ADR.
               </p>

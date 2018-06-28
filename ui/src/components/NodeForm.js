@@ -79,7 +79,7 @@ class NodeForm extends Component {
   render() {
     const deviceProfileOptions = this.state.deviceProfiles.map((deviceProfile, i) => {
       return {
-        value: deviceProfile.deviceProfileID,
+        value: deviceProfile.id,
         label: deviceProfile.name,
       };
     });

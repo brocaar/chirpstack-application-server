@@ -45,7 +45,7 @@
             "format": "int64"
           },
           {
-            "name": "networkServerID",
+            "name": "network_server_id",
             "description": "Network-server ID to filter on (optional).",
             "in": "query",
             "required": false,
@@ -83,7 +83,7 @@
         ]
       }
     },
-    "/api/gateway-profiles/{gatewayProfile.gatewayProfileID}": {
+    "/api/gateway-profiles/{gateway_profile.id}": {
       "put": {
         "summary": "Update updates the given gateway-profile.",
         "operationId": "Update",
@@ -91,13 +91,13 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiUpdateGatewayProfileResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
         "parameters": [
           {
-            "name": "gatewayProfile.gatewayProfileID",
+            "name": "gateway_profile.id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -116,7 +116,7 @@
         ]
       }
     },
-    "/api/gateway-profiles/{gatewayProfileID}": {
+    "/api/gateway-profiles/{id}": {
       "get": {
         "summary": "Get returns the gateway-profile matching the given id.",
         "operationId": "Get",
@@ -130,7 +130,7 @@
         },
         "parameters": [
           {
-            "name": "gatewayProfileID",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -147,13 +147,13 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiDeleteGatewayProfileResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
         "parameters": [
           {
-            "name": "gatewayProfileID",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -170,7 +170,26 @@
       "type": "object",
       "properties": {
         "gatewayProfile": {
-          "$ref": "#/definitions/apiGatewayProfile"
+          "$ref": "#/definitions/apiGatewayProfile",
+          "description": "Gateway-profile object to create."
+        }
+      }
+    },
+    "apiCreateGatewayProfileResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Gateway-profile ID (UUID string)."
+        }
+      }
+    },
+    "apiGatewayProfile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Gateway-profile ID (UUID string)."
         },
         "name": {
           "type": "string",
@@ -180,27 +199,6 @@
           "type": "string",
           "format": "int64",
           "description": "Network-server ID of the gateway-profile."
-        }
-      }
-    },
-    "apiCreateGatewayProfileResponse": {
-      "type": "object",
-      "properties": {
-        "gatewayProfileID": {
-          "type": "string",
-          "description": "ID of the created gateway-profile."
-        }
-      }
-    },
-    "apiDeleteGatewayProfileResponse": {
-      "type": "object"
-    },
-    "apiGatewayProfile": {
-      "type": "object",
-      "properties": {
-        "gatewayProfileID": {
-          "type": "string",
-          "description": "ID of the gateway-profile."
         },
         "channels": {
           "type": "array",
@@ -223,7 +221,7 @@
       "type": "object",
       "properties": {
         "modulation": {
-          "$ref": "#/definitions/apiModulation",
+          "$ref": "#/definitions/commonModulation",
           "description": "Modulation."
         },
         "frequency": {
@@ -251,29 +249,31 @@
         }
       }
     },
-    "apiGatewayProfileMeta": {
+    "apiGatewayProfileListItem": {
       "type": "object",
       "properties": {
-        "gatewayProfileID": {
+        "id": {
           "type": "string",
-          "description": "ID of the gateway-profile."
+          "description": "Gateway-profile ID (UUID string)."
         },
         "name": {
           "type": "string",
-          "description": "Name of the gateway-profile."
+          "title": "Gateway-profile name,"
         },
         "networkServerID": {
           "type": "string",
           "format": "int64",
-          "description": "Network-server id of the gateway-profile."
+          "description": "Network-server ID on which the gateway-profile is provisioned."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the record was created."
+          "format": "date-time",
+          "description": "Created at timestamp."
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp when the record was last updated."
+          "format": "date-time",
+          "description": "Last update timestamp."
         }
       }
     },
@@ -281,24 +281,18 @@
       "type": "object",
       "properties": {
         "gatewayProfile": {
-          "$ref": "#/definitions/apiGatewayProfile"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the gateway-profile."
-        },
-        "networkServerID": {
-          "type": "string",
-          "format": "int64",
-          "description": "Network-server ID of the gateway-profile."
+          "$ref": "#/definitions/apiGatewayProfile",
+          "description": "Gateway-profile object."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the record was created."
+          "format": "date-time",
+          "description": "Created at timestamp."
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp when the record was last updated."
+          "format": "date-time",
+          "description": "Last update timestamp."
         }
       }
     },
@@ -313,12 +307,21 @@
         "result": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiGatewayProfileMeta"
+            "$ref": "#/definitions/apiGatewayProfileListItem"
           }
         }
       }
     },
-    "apiModulation": {
+    "apiUpdateGatewayProfileRequest": {
+      "type": "object",
+      "properties": {
+        "gatewayProfile": {
+          "$ref": "#/definitions/apiGatewayProfile",
+          "description": "Gateway-profile object to update."
+        }
+      }
+    },
+    "commonModulation": {
       "type": "string",
       "enum": [
         "LORA",
@@ -327,20 +330,10 @@
       "default": "LORA",
       "title": "- LORA: LoRa\n - FSK: FSK"
     },
-    "apiUpdateGatewayProfileRequest": {
+    "protobufEmpty": {
       "type": "object",
-      "properties": {
-        "gatewayProfile": {
-          "$ref": "#/definitions/apiGatewayProfile"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the gateway-profile."
-        }
-      }
-    },
-    "apiUpdateGatewayProfileResponse": {
-      "type": "object"
+      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
+      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
     }
   }
 }

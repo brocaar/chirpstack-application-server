@@ -1,0 +1,147 @@
+syntax = "proto3";
+
+package api;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "user.proto";
+
+
+// InternalService is the service providing API endpoints for internal usage.
+service InternalService {
+	// Log in a user
+	rpc Login(LoginRequest) returns (LoginResponse) {
+		option(google.api.http) = {
+			post: "/api/internal/login"
+			body: "*"
+		};
+	}
+
+	// Get the current user's profile
+	rpc Profile(google.protobuf.Empty) returns (ProfileResponse) {
+		option(google.api.http) = {
+			get: "/api/internal/profile"
+		};
+	}
+
+	// Get the branding for the UI
+	rpc Branding(google.protobuf.Empty) returns (BrandingResponse) {
+		option(google.api.http) = {
+			get: "/api/internal/branding"
+		};
+	}
+
+	// Perform a global search.
+	rpc GlobalSearch(GlobalSearchRequest) returns (GlobalSearchResponse) {
+		option(google.api.http) = {
+			get: "/api/internal/search"
+		};
+	}
+}
+
+message ProfileSettings {
+	// Existing users in the system can not be assigned to organizations and
+	// application and can not be listed by non global admin users.
+	bool disable_assign_existing_users = 1;
+}
+
+// Defines an organization to which an user is associated.
+message OrganizationLink {
+    // Organization ID.
+    int64 organization_id = 1 [json_name = "organizationID"];
+    
+    // Organization name.
+    string organization_name = 2;
+    
+    // User is admin within the context of this organization.
+    bool is_admin = 3;
+    
+    // Created at timestamp.
+    google.protobuf.Timestamp created_at = 4;
+    
+    // Last update timestamp.
+	google.protobuf.Timestamp updated_at = 5;
+}
+
+message LoginRequest {
+	// Username of the user.
+	string username = 1;
+
+	// Password of the user.
+	string password = 2;
+}
+
+message LoginResponse {
+	// The JWT tag to be used to access lora-app-server interfaces.
+	string jwt = 1;
+}
+
+message ProfileResponse {
+    // User object.
+    User user = 1;
+    
+    // Organizations to which the user is associated.
+    repeated OrganizationLink organizations = 3;
+    
+    // Profile settings.
+	ProfileSettings settings = 4;
+}
+
+message GlobalSearchRequest {
+	// Search query.
+	string search = 1;
+
+	// Max number of results to return.
+	int64 limit = 2;
+
+	// Offset offset of the result-set (for pagination).
+	int64 offset = 3;
+}
+
+message GlobalSearchResponse {
+	repeated GlobalSearchResult result = 1;
+}
+
+message GlobalSearchResult {
+	// Record kind.
+	string kind = 1;
+
+	// Search score.
+	float score = 2;
+
+	// Organization id.
+	int64 organization_id = 3 [json_name = "organizationID"];
+
+	// Organization name.
+	string organization_name = 4;
+
+	// Application id.
+	int64 application_id = 5 [json_name = "applicationID"];
+
+	// Application name.
+	string application_name = 6;
+
+	// Device DevEUI (hex encoded).
+	string device_dev_eui = 7 [json_name = "deviceDevEUI"];
+
+	// Device name.
+	string device_name = 8;
+
+	// Gateway MAC (hex encoded).
+	string gateway_mac = 9 [json_name = "gatewayMAC"];
+
+	// Gateway name.
+	string gateway_name = 10;
+}
+
+message BrandingResponse {
+    // Logo html.
+    string logo = 1;
+    
+    // Registration html.
+    string registration = 2;
+    
+    // Footer html.
+	string footer = 3;
+}

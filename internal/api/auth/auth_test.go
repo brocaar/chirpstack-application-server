@@ -65,8 +65,8 @@ func TestJWTValidator(t *testing.T) {
 				Description:   "valid key but validation returning error",
 				Key:           v.secret,
 				Claims:        Claims{},
-				ValidatorFunc: testValidator(true, errors.New("boom!")),
-				Error:         "boom!",
+				ValidatorFunc: testValidator(true, errors.New("boom")),
+				Error:         "boom",
 			},
 		}
 

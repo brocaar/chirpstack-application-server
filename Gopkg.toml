@@ -111,3 +111,8 @@
   non-go = true
   go-tests = true
   unused-packages = true
+
+  [[prune.project]]
+  name = "github.com/brocaar/loraserver"
+  non-go = false
+

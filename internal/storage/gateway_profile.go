@@ -30,18 +30,16 @@ type ExtraChannel struct {
 
 // GatewayProfile defines a gateway-profile.
 type GatewayProfile struct {
-	GatewayProfileID string         `db:"gateway_profile_id"`
-	NetworkServerID  int64          `db:"network_server_id"`
-	CreatedAt        time.Time      `db:"created_at"`
-	UpdatedAt        time.Time      `db:"updated_at"`
-	Name             string         `db:"name"`
-	Channels         []int          `db:"-"`
-	ExtraChannels    []ExtraChannel `db:"-"`
+	NetworkServerID int64             `db:"network_server_id"`
+	CreatedAt       time.Time         `db:"created_at"`
+	UpdatedAt       time.Time         `db:"updated_at"`
+	Name            string            `db:"name"`
+	GatewayProfile  ns.GatewayProfile `db:"-"`
 }
 
 // GatewayProfileMeta defines the gateway-profile meta record.
 type GatewayProfileMeta struct {
-	GatewayProfileID string    `db:"gateway_profile_id"`
+	GatewayProfileID uuid.UUID `db:"gateway_profile_id"`
 	NetworkServerID  int64     `db:"network_server_id"`
 	CreatedAt        time.Time `db:"created_at"`
 	UpdatedAt        time.Time `db:"updated_at"`
@@ -52,8 +50,10 @@ type GatewayProfileMeta struct {
 // This will create the gateway-profile at the network-server side and will
 // create a local reference record.
 func CreateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
+	gpID := uuid.NewV4()
 	now := time.Now()
-	gp.GatewayProfileID = uuid.NewV4().String()
+
+	gp.GatewayProfile.Id = gpID.Bytes()
 	gp.CreatedAt = now
 	gp.UpdatedAt = now
 
@@ -66,7 +66,7 @@ func CreateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 			name
 		) values ($1, $2, $3, $4, $5)`,
 
-		gp.GatewayProfileID,
+		gpID,
 		gp.NetworkServerID,
 		gp.CreatedAt,
 		gp.UpdatedAt,
@@ -74,37 +74,6 @@ func CreateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
-	}
-
-	req := ns.CreateGatewayProfileRequest{
-		GatewayProfile: &ns.GatewayProfile{
-			GatewayProfileID: gp.GatewayProfileID,
-		},
-	}
-
-	for _, c := range gp.Channels {
-		req.GatewayProfile.Channels = append(req.GatewayProfile.Channels, uint32(c))
-	}
-
-	for _, ec := range gp.ExtraChannels {
-		c := ns.GatewayProfileExtraChannel{
-			Frequency: uint32(ec.Frequency),
-			Bandwidth: uint32(ec.Bandwidth),
-			Bitrate:   uint32(ec.Bitrate),
-		}
-
-		switch ec.Modulation {
-		case ModulationFSK:
-			c.Modulation = ns.Modulation_FSK
-		default:
-			c.Modulation = ns.Modulation_LORA
-		}
-
-		for _, sf := range ec.SpreadingFactors {
-			c.SpreadingFactors = append(c.SpreadingFactors, uint32(sf))
-		}
-
-		req.GatewayProfile.ExtraChannels = append(req.GatewayProfile.ExtraChannels, &c)
 	}
 
 	n, err := GetNetworkServer(db, gp.NetworkServerID)
@@ -117,23 +86,29 @@ func CreateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
-	_, err = nsClient.CreateGatewayProfile(context.Background(), &req)
+	_, err = nsClient.CreateGatewayProfile(context.Background(), &ns.CreateGatewayProfileRequest{
+		GatewayProfile: &gp.GatewayProfile,
+	})
 	if err != nil {
 		return handleGrpcError(err, "create gateway-profile error")
 	}
 
 	log.WithFields(log.Fields{
-		"gateway_profile_id": gp.GatewayProfileID,
+		"id": gpID,
 	}).Info("gateway-profile created")
 
 	return nil
 }
 
 // GetGatewayProfile returns the gateway-profile matching the given id.
-func GetGatewayProfile(db sqlx.Queryer, id string) (GatewayProfile, error) {
+func GetGatewayProfile(db sqlx.Queryer, id uuid.UUID) (GatewayProfile, error) {
 	var gp GatewayProfile
 	err := sqlx.Get(db, &gp, `
-		select *
+		select
+			network_server_id,
+			name,
+			created_at,
+			updated_at
 		from gateway_profile
 		where
 			gateway_profile_id = $1`,
@@ -154,36 +129,17 @@ func GetGatewayProfile(db sqlx.Queryer, id string) (GatewayProfile, error) {
 	}
 
 	resp, err := nsClient.GetGatewayProfile(context.Background(), &ns.GetGatewayProfileRequest{
-		GatewayProfileID: id,
+		Id: id.Bytes(),
 	})
 	if err != nil {
 		return gp, handleGrpcError(err, "get gateway-profile error")
 	}
 
-	for _, c := range resp.GatewayProfile.Channels {
-		gp.Channels = append(gp.Channels, int(c))
+	if resp.GatewayProfile == nil {
+		return gp, errors.New("gateway_profile must not be nil")
 	}
 
-	for _, ec := range resp.GatewayProfile.ExtraChannels {
-		c := ExtraChannel{
-			Frequency: int(ec.Frequency),
-			Bandwidth: int(ec.Bandwidth),
-			Bitrate:   int(ec.Bitrate),
-		}
-
-		switch ec.Modulation {
-		case ns.Modulation_FSK:
-			c.Modulation = ModulationFSK
-		default:
-			c.Modulation = ModulationLoRa
-		}
-
-		for _, sf := range ec.SpreadingFactors {
-			c.SpreadingFactors = append(c.SpreadingFactors, int(sf))
-		}
-
-		gp.ExtraChannels = append(gp.ExtraChannels, c)
-	}
+	gp.GatewayProfile = *resp.GatewayProfile
 
 	return gp, nil
 }
@@ -191,6 +147,10 @@ func GetGatewayProfile(db sqlx.Queryer, id string) (GatewayProfile, error) {
 // UpdateGatewayProfile updates the given gateway-profile.
 func UpdateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 	gp.UpdatedAt = time.Now()
+	gpID, err := uuid.FromBytes(gp.GatewayProfile.Id)
+	if err != nil {
+		return errors.Wrap(err, "uuid from bytes error")
+	}
 
 	res, err := db.Exec(`
 		update gateway_profile
@@ -200,7 +160,7 @@ func UpdateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 			name = $4
 		where
 			gateway_profile_id = $1`,
-		gp.GatewayProfileID,
+		gpID,
 		gp.UpdatedAt,
 		gp.NetworkServerID,
 		gp.Name,
@@ -227,38 +187,9 @@ func UpdateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
-	req := ns.UpdateGatewayProfileRequest{
-		GatewayProfile: &ns.GatewayProfile{
-			GatewayProfileID: gp.GatewayProfileID,
-		},
-	}
-
-	for _, c := range gp.Channels {
-		req.GatewayProfile.Channels = append(req.GatewayProfile.Channels, uint32(c))
-	}
-
-	for _, ec := range gp.ExtraChannels {
-		c := ns.GatewayProfileExtraChannel{
-			Frequency: uint32(ec.Frequency),
-			Bandwidth: uint32(ec.Bandwidth),
-			Bitrate:   uint32(ec.Bitrate),
-		}
-
-		switch ec.Modulation {
-		case ModulationFSK:
-			c.Modulation = ns.Modulation_FSK
-		default:
-			c.Modulation = ns.Modulation_LORA
-		}
-
-		for _, sf := range ec.SpreadingFactors {
-			c.SpreadingFactors = append(c.SpreadingFactors, uint32(sf))
-		}
-
-		req.GatewayProfile.ExtraChannels = append(req.GatewayProfile.ExtraChannels, &c)
-	}
-
-	_, err = nsClient.UpdateGatewayProfile(context.Background(), &req)
+	_, err = nsClient.UpdateGatewayProfile(context.Background(), &ns.UpdateGatewayProfileRequest{
+		GatewayProfile: &gp.GatewayProfile,
+	})
 	if err != nil {
 		handleGrpcError(err, "update gateway-profile error")
 	}
@@ -267,7 +198,7 @@ func UpdateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 }
 
 // DeleteGatewayProfile deletes the gateway-profile matching the given id.
-func DeleteGatewayProfile(db sqlx.Ext, id string) error {
+func DeleteGatewayProfile(db sqlx.Ext, id uuid.UUID) error {
 	n, err := GetNetworkServerForGatewayProfileID(db, id)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
@@ -297,7 +228,7 @@ func DeleteGatewayProfile(db sqlx.Ext, id string) error {
 	}
 
 	_, err = nsClient.DeleteGatewayProfile(context.Background(), &ns.DeleteGatewayProfileRequest{
-		GatewayProfileID: id,
+		Id: id.Bytes(),
 	})
 	if err != nil {
 		return handleGrpcError(err, "delete gateway-profile error")

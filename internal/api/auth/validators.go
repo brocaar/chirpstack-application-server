@@ -3,6 +3,8 @@ package auth
 import (
 	"strings"
 
+	"github.com/satori/go.uuid"
+
 	"github.com/brocaar/lorawan"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -694,7 +696,7 @@ func ValidateServiceProfilesAccess(flag Flag, organizationID int64) ValidatorFun
 
 // ValidateServiceProfileAccess validates if the client has access to the
 // given service-profile.
-func ValidateServiceProfileAccess(flag Flag, id string) ValidatorFunc {
+func ValidateServiceProfileAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 	var where = [][]string{}
 
 	switch flag {
@@ -750,7 +752,7 @@ func ValidateDeviceProfilesAccess(flag Flag, organizationID, applicationID int64
 
 // ValidateDeviceProfileAccess validates if the client has access to the
 // given device-profile.
-func ValidateDeviceProfileAccess(flag Flag, id string) ValidatorFunc {
+func ValidateDeviceProfileAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 	var where = [][]string{}
 
 	switch flag {

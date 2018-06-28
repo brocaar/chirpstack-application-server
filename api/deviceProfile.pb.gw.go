@@ -52,15 +52,15 @@ func request_DeviceProfileService_Get_0(ctx context.Context, marshaler runtime.M
 		_   = err
 	)
 
-	val, ok = pathParams["deviceProfileID"]
+	val, ok = pathParams["id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "deviceProfileID")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
 
-	protoReq.DeviceProfileID, err = runtime.String(val)
+	protoReq.Id, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "deviceProfileID", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
 	msg, err := client.Get(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -83,15 +83,15 @@ func request_DeviceProfileService_Update_0(ctx context.Context, marshaler runtim
 		_   = err
 	)
 
-	val, ok = pathParams["deviceProfile.deviceProfileID"]
+	val, ok = pathParams["device_profile.id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "deviceProfile.deviceProfileID")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "device_profile.id")
 	}
 
-	err = runtime.PopulateFieldFromPath(&protoReq, "deviceProfile.deviceProfileID", val)
+	err = runtime.PopulateFieldFromPath(&protoReq, "device_profile.id", val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "deviceProfile.deviceProfileID", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "device_profile.id", err)
 	}
 
 	msg, err := client.Update(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -110,15 +110,15 @@ func request_DeviceProfileService_Delete_0(ctx context.Context, marshaler runtim
 		_   = err
 	)
 
-	val, ok = pathParams["deviceProfileID"]
+	val, ok = pathParams["id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "deviceProfileID")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
 
-	protoReq.DeviceProfileID, err = runtime.String(val)
+	protoReq.Id, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "deviceProfileID", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
 	msg, err := client.Delete(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -153,14 +153,14 @@ func RegisterDeviceProfileServiceHandlerFromEndpoint(ctx context.Context, mux *r
 	defer func() {
 		if err != nil {
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Printf("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 			return
 		}
 		go func() {
 			<-ctx.Done()
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Printf("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 		}()
 	}()
@@ -174,8 +174,8 @@ func RegisterDeviceProfileServiceHandler(ctx context.Context, mux *runtime.Serve
 	return RegisterDeviceProfileServiceHandlerClient(ctx, mux, NewDeviceProfileServiceClient(conn))
 }
 
-// RegisterDeviceProfileServiceHandler registers the http handlers for service DeviceProfileService to "mux".
-// The handlers forward requests to the grpc endpoint over the given implementation of "DeviceProfileServiceClient".
+// RegisterDeviceProfileServiceHandlerClient registers the http handlers for service DeviceProfileService
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "DeviceProfileServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "DeviceProfileServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "DeviceProfileServiceClient" to call the correct interceptors.
@@ -332,11 +332,11 @@ func RegisterDeviceProfileServiceHandlerClient(ctx context.Context, mux *runtime
 var (
 	pattern_DeviceProfileService_Create_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "device-profiles"}, ""))
 
-	pattern_DeviceProfileService_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "device-profiles", "deviceProfileID"}, ""))
+	pattern_DeviceProfileService_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "device-profiles", "id"}, ""))
 
-	pattern_DeviceProfileService_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "device-profiles", "deviceProfile.deviceProfileID"}, ""))
+	pattern_DeviceProfileService_Update_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "device-profiles", "device_profile.id"}, ""))
 
-	pattern_DeviceProfileService_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "device-profiles", "deviceProfileID"}, ""))
+	pattern_DeviceProfileService_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "device-profiles", "id"}, ""))
 
 	pattern_DeviceProfileService_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "device-profiles"}, ""))
 )

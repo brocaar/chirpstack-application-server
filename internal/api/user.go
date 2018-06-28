@@ -1,8 +1,8 @@
 package api
 
 import (
-	"time"
-
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -32,7 +32,11 @@ func NewUserAPI(validator auth.Validator) *UserAPI {
 }
 
 // Create creates the given user.
-func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUserResponse, error) {
+func (a *UserAPI) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
+	if req.User == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "user must not be nil")
+	}
+
 	if err := a.validator.Validate(ctx,
 		auth.ValidateUsersAccess(auth.Create)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
@@ -42,18 +46,18 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 	// to which the user must be linked
 	for _, org := range req.Organizations {
 		if err := a.validator.Validate(ctx,
-			auth.ValidateIsOrganizationAdmin(org.OrganizationID)); err != nil {
+			auth.ValidateIsOrganizationAdmin(org.OrganizationId)); err != nil {
 			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 		}
 	}
 
 	user := storage.User{
-		Username:   req.Username,
-		SessionTTL: req.SessionTTL,
-		IsAdmin:    req.IsAdmin,
-		IsActive:   req.IsActive,
-		Email:      req.Email,
-		Note:       req.Note,
+		Username:   req.User.Username,
+		SessionTTL: req.User.SessionTtl,
+		IsAdmin:    req.User.IsAdmin,
+		IsActive:   req.User.IsActive,
+		Email:      req.User.Email,
+		Note:       req.User.Note,
 	}
 
 	isAdmin, err := a.validator.GetIsAdmin(ctx)
@@ -77,7 +81,7 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 		}
 
 		for _, org := range req.Organizations {
-			if err := storage.CreateOrganizationUser(tx, org.OrganizationID, userID, org.IsAdmin); err != nil {
+			if err := storage.CreateOrganizationUser(tx, org.OrganizationId, userID, org.IsAdmin); err != nil {
 				return err
 			}
 		}
@@ -88,11 +92,11 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.AddUserRequest) (*pb.AddUs
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.AddUserResponse{Id: userID}, nil
+	return &pb.CreateUserResponse{Id: userID}, nil
 }
 
 // Get returns the user matching the given ID.
-func (a *UserAPI) Get(ctx context.Context, req *pb.UserRequest) (*pb.GetUserResponse, error) {
+func (a *UserAPI) Get(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateUserAccess(req.Id, auth.Read)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
@@ -103,17 +107,28 @@ func (a *UserAPI) Get(ctx context.Context, req *pb.UserRequest) (*pb.GetUserResp
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.GetUserResponse{
-		Id:         user.ID,
-		Username:   user.Username,
-		SessionTTL: user.SessionTTL,
-		IsAdmin:    user.IsAdmin,
-		IsActive:   user.IsActive,
-		CreatedAt:  user.CreatedAt.String(),
-		UpdatedAt:  user.UpdatedAt.String(),
-		Email:      user.Email,
-		Note:       user.Note,
-	}, nil
+	resp := pb.GetUserResponse{
+		User: &pb.User{
+			Id:         user.ID,
+			Username:   user.Username,
+			SessionTtl: user.SessionTTL,
+			IsAdmin:    user.IsAdmin,
+			IsActive:   user.IsActive,
+			Email:      user.Email,
+			Note:       user.Note,
+		},
+	}
+
+	resp.CreatedAt, err = ptypes.TimestampProto(user.CreatedAt)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+	resp.UpdatedAt, err = ptypes.TimestampProto(user.UpdatedAt)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	return &resp, nil
 }
 
 // List lists the users.
@@ -123,7 +138,7 @@ func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	users, err := storage.GetUsers(config.C.PostgreSQL.DB, req.Limit, req.Offset, req.Search)
+	users, err := storage.GetUsers(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset), req.Search)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -133,40 +148,53 @@ func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUs
 		return nil, errToRPCError(err)
 	}
 
-	result := make([]*pb.GetUserResponse, len(users))
-	for i, user := range users {
-		result[i] = &pb.GetUserResponse{
-			Id:         user.ID,
-			Username:   user.Username,
-			SessionTTL: user.SessionTTL,
-			IsAdmin:    user.IsAdmin,
-			IsActive:   user.IsActive,
-			CreatedAt:  user.CreatedAt.String(),
-			UpdatedAt:  user.UpdatedAt.String(),
-		}
+	resp := pb.ListUserResponse{
+		TotalCount: int64(totalUserCount),
 	}
 
-	return &pb.ListUserResponse{
-		TotalCount: totalUserCount,
-		Result:     result,
-	}, nil
+	for _, u := range users {
+		row := pb.UserListItem{
+			Id:         u.ID,
+			Username:   u.Username,
+			SessionTtl: u.SessionTTL,
+			IsAdmin:    u.IsAdmin,
+			IsActive:   u.IsActive,
+		}
+
+		row.CreatedAt, err = ptypes.TimestampProto(u.CreatedAt)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		row.UpdatedAt, err = ptypes.TimestampProto(u.UpdatedAt)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		resp.Result = append(resp.Result, &row)
+	}
+
+	return &resp, nil
 }
 
 // Update updates the given user.
-func (a *UserAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserEmptyResponse, error) {
+func (a *UserAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*empty.Empty, error) {
+	if req.User == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "user must not be nil")
+	}
+
 	if err := a.validator.Validate(ctx,
-		auth.ValidateUserAccess(req.Id, auth.Update)); err != nil {
+		auth.ValidateUserAccess(req.User.Id, auth.Update)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	userUpdate := storage.UserUpdate{
-		ID:         req.Id,
-		Username:   req.Username,
-		IsAdmin:    req.IsAdmin,
-		IsActive:   req.IsActive,
-		SessionTTL: req.SessionTTL,
-		Email:      req.Email,
-		Note:       req.Note,
+		ID:         req.User.Id,
+		Username:   req.User.Username,
+		IsAdmin:    req.User.IsAdmin,
+		IsActive:   req.User.IsActive,
+		SessionTTL: req.User.SessionTtl,
+		Email:      req.User.Email,
+		Note:       req.User.Note,
 	}
 
 	err := storage.UpdateUser(config.C.PostgreSQL.DB, userUpdate)
@@ -174,11 +202,11 @@ func (a *UserAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.Us
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.UserEmptyResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // Delete deletes the user matching the given ID.
-func (a *UserAPI) Delete(ctx context.Context, req *pb.UserRequest) (*pb.UserEmptyResponse, error) {
+func (a *UserAPI) Delete(ctx context.Context, req *pb.DeleteUserRequest) (*empty.Empty, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateUserAccess(req.Id, auth.Delete)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
@@ -188,21 +216,23 @@ func (a *UserAPI) Delete(ctx context.Context, req *pb.UserRequest) (*pb.UserEmpt
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	return &pb.UserEmptyResponse{}, nil
+
+	return &empty.Empty{}, nil
 }
 
 // UpdatePassword updates the password for the user matching the given ID.
-func (a *UserAPI) UpdatePassword(ctx context.Context, req *pb.UpdateUserPasswordRequest) (*pb.UserEmptyResponse, error) {
+func (a *UserAPI) UpdatePassword(ctx context.Context, req *pb.UpdateUserPasswordRequest) (*empty.Empty, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateUserAccess(req.Id, auth.UpdateProfile)); err != nil {
+		auth.ValidateUserAccess(req.UserId, auth.UpdateProfile)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.UpdatePassword(config.C.PostgreSQL.DB, req.Id, req.Password)
+	err := storage.UpdatePassword(config.C.PostgreSQL.DB, req.UserId, req.Password)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	return &pb.UserEmptyResponse{}, nil
+
+	return &empty.Empty{}, nil
 }
 
 // NewInternalUserAPI creates a new InternalUserAPI.
@@ -227,7 +257,7 @@ type claims struct {
 }
 
 // Profile returns the user profile.
-func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (*pb.ProfileResponse, error) {
+func (a *InternalUserAPI) Profile(ctx context.Context, req *empty.Empty) (*pb.ProfileResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateActiveUser()); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
@@ -250,36 +280,42 @@ func (a *InternalUserAPI) Profile(ctx context.Context, req *pb.ProfileRequest) (
 	}
 
 	resp := pb.ProfileResponse{
-		User: &pb.GetUserResponse{
+		User: &pb.User{
 			Id:         prof.User.ID,
 			Username:   prof.User.Username,
-			SessionTTL: prof.User.SessionTTL,
+			SessionTtl: prof.User.SessionTTL,
 			IsAdmin:    prof.User.IsAdmin,
 			IsActive:   prof.User.IsActive,
-			CreatedAt:  prof.User.CreatedAt.Format(time.RFC3339Nano),
-			UpdatedAt:  prof.User.UpdatedAt.Format(time.RFC3339Nano),
 		},
-		Organizations: make([]*pb.OrganizationLink, len(prof.Organizations)),
 		Settings: &pb.ProfileSettings{
 			DisableAssignExistingUsers: auth.DisableAssignExistingUsers,
 		},
 	}
 
-	for i := range prof.Organizations {
-		resp.Organizations[i] = &pb.OrganizationLink{
-			OrganizationID:   prof.Organizations[i].ID,
-			OrganizationName: prof.Organizations[i].Name,
-			IsAdmin:          prof.Organizations[i].IsAdmin,
-			UpdatedAt:        prof.Organizations[i].UpdatedAt.Format(time.RFC3339Nano),
-			CreatedAt:        prof.Organizations[i].CreatedAt.Format(time.RFC3339Nano),
+	for _, org := range prof.Organizations {
+		row := pb.OrganizationLink{
+			OrganizationId:   org.ID,
+			OrganizationName: org.Name,
+			IsAdmin:          org.IsAdmin,
 		}
+
+		row.CreatedAt, err = ptypes.TimestampProto(org.CreatedAt)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		row.UpdatedAt, err = ptypes.TimestampProto(org.UpdatedAt)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		resp.Organizations = append(resp.Organizations, &row)
 	}
 
 	return &resp, nil
 }
 
 // Branding returns UI branding.
-func (a *InternalUserAPI) Branding(ctx context.Context, req *pb.BrandingRequest) (*pb.BrandingResponse, error) {
+func (a *InternalUserAPI) Branding(ctx context.Context, req *empty.Empty) (*pb.BrandingResponse, error) {
 	resp := pb.BrandingResponse{
 		Logo:         config.C.ApplicationServer.Branding.Header,
 		Registration: config.C.ApplicationServer.Branding.Registration,
@@ -320,28 +356,28 @@ func (a *InternalUserAPI) GlobalSearch(ctx context.Context, req *pb.GlobalSearch
 		}
 
 		if r.OrganizationID != nil {
-			res.OrganizationID = *r.OrganizationID
+			res.OrganizationId = *r.OrganizationID
 		}
 		if r.OrganizationName != nil {
 			res.OrganizationName = *r.OrganizationName
 		}
 
 		if r.ApplicationID != nil {
-			res.ApplicationID = *r.ApplicationID
+			res.ApplicationId = *r.ApplicationID
 		}
 		if r.ApplicationName != nil {
 			res.ApplicationName = *r.ApplicationName
 		}
 
 		if r.DeviceDevEUI != nil {
-			res.DeviceDevEUI = r.DeviceDevEUI.String()
+			res.DeviceDevEui = r.DeviceDevEUI.String()
 		}
 		if r.DeviceName != nil {
 			res.DeviceName = *r.DeviceName
 		}
 
 		if r.GatewayMAC != nil {
-			res.GatewayMAC = r.GatewayMAC.String()
+			res.GatewayMac = r.GatewayMAC.String()
 		}
 		if r.GatewayName != nil {
 			res.GatewayName = *r.GatewayName

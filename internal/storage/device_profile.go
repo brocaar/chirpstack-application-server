@@ -4,33 +4,30 @@ import (
 	"context"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
+	"github.com/satori/go.uuid"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/satori/go.uuid"
-
-	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/loraserver/api/ns"
-	"github.com/brocaar/lorawan/backend"
 )
 
 // DeviceProfile defines the device-profile.
 type DeviceProfile struct {
-	NetworkServerID int64                 `db:"network_server_id"`
-	OrganizationID  int64                 `db:"organization_id"`
-	CreatedAt       time.Time             `db:"created_at"`
-	UpdatedAt       time.Time             `db:"updated_at"`
-	Name            string                `db:"name"`
-	DeviceProfile   backend.DeviceProfile `db:"-"`
+	NetworkServerID int64            `db:"network_server_id"`
+	OrganizationID  int64            `db:"organization_id"`
+	CreatedAt       time.Time        `db:"created_at"`
+	UpdatedAt       time.Time        `db:"updated_at"`
+	Name            string           `db:"name"`
+	DeviceProfile   ns.DeviceProfile `db:"-"`
 }
 
 // DeviceProfileMeta defines the device-profile meta record.
 type DeviceProfileMeta struct {
-	DeviceProfileID string    `db:"device_profile_id"`
+	DeviceProfileID uuid.UUID `db:"device_profile_id"`
 	NetworkServerID int64     `db:"network_server_id"`
 	OrganizationID  int64     `db:"organization_id"`
 	CreatedAt       time.Time `db:"created_at"`
@@ -52,7 +49,8 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 	}
 
 	now := time.Now()
-	dp.DeviceProfile.DeviceProfileID = uuid.NewV4().String()
+	dpID := uuid.NewV4()
+	dp.DeviceProfile.Id = dpID.Bytes()
 	dp.CreatedAt = now
 	dp.UpdatedAt = now
 
@@ -64,8 +62,8 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
             created_at,
             updated_at,
             name
-        ) values ($1, $2, $3, $4, $5, $6)`,
-		dp.DeviceProfile.DeviceProfileID,
+		) values ($1, $2, $3, $4, $5, $6)`,
+		dpID,
 		dp.NetworkServerID,
 		dp.OrganizationID,
 		dp.CreatedAt,
@@ -73,13 +71,8 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		dp.Name,
 	)
 	if err != nil {
-		log.WithField("device_profile_id", dp.DeviceProfile.DeviceProfileID).Errorf("create device-profile error: %s", err)
+		log.WithField("id", dpID).Errorf("create device-profile error: %s", err)
 		return handlePSQLError(Insert, err, "insert error")
-	}
-
-	var factoryPresetFreqs []uint32
-	for _, f := range dp.DeviceProfile.FactoryPresetFreqs {
-		factoryPresetFreqs = append(factoryPresetFreqs, uint32(f))
 	}
 
 	n, err := GetNetworkServer(db, dp.NetworkServerID)
@@ -93,46 +86,25 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 	}
 
 	_, err = nsClient.CreateDeviceProfile(context.Background(), &ns.CreateDeviceProfileRequest{
-		DeviceProfile: &ns.DeviceProfile{
-			DeviceProfileID:    dp.DeviceProfile.DeviceProfileID,
-			SupportsClassB:     dp.DeviceProfile.SupportsClassB,
-			ClassBTimeout:      uint32(dp.DeviceProfile.ClassBTimeout),
-			PingSlotPeriod:     uint32(dp.DeviceProfile.PingSlotPeriod),
-			PingSlotDR:         uint32(dp.DeviceProfile.PingSlotDR),
-			PingSlotFreq:       uint32(dp.DeviceProfile.PingSlotFreq),
-			SupportsClassC:     dp.DeviceProfile.SupportsClassC,
-			ClassCTimeout:      uint32(dp.DeviceProfile.ClassCTimeout),
-			MacVersion:         dp.DeviceProfile.MACVersion,
-			RegParamsRevision:  dp.DeviceProfile.RegParamsRevision,
-			RxDelay1:           uint32(dp.DeviceProfile.RXDelay1),
-			RxDROffset1:        uint32(dp.DeviceProfile.RXDROffset1),
-			RxDataRate2:        uint32(dp.DeviceProfile.RXDataRate2),
-			RxFreq2:            uint32(dp.DeviceProfile.RXFreq2),
-			FactoryPresetFreqs: factoryPresetFreqs,
-			MaxEIRP:            uint32(dp.DeviceProfile.MaxEIRP),
-			MaxDutyCycle:       uint32(dp.DeviceProfile.MaxDutyCycle),
-			SupportsJoin:       dp.DeviceProfile.SupportsJoin,
-			RfRegion:           string(dp.DeviceProfile.RFRegion),
-			Supports32BitFCnt:  dp.DeviceProfile.Supports32bitFCnt,
-		},
+		DeviceProfile: &dp.DeviceProfile,
 	})
 	if err != nil {
 		return handleGrpcError(err, "create device-profile error")
 	}
 
 	log.WithFields(log.Fields{
-		"device_profile_id": dp.DeviceProfile.DeviceProfileID,
+		"id": dpID,
 	}).Info("device-profile created")
 
 	return nil
 }
 
 // GetDeviceProfile returns the device-profile matching the given id.
-func GetDeviceProfile(db sqlx.Queryer, id string) (DeviceProfile, error) {
+func GetDeviceProfile(db sqlx.Queryer, id uuid.UUID) (DeviceProfile, error) {
 	var dp DeviceProfile
+
 	row := db.QueryRowx(`
 		select
-			device_profile_id,
 			network_server_id,
 			organization_id,
 			created_at,
@@ -147,7 +119,7 @@ func GetDeviceProfile(db sqlx.Queryer, id string) (DeviceProfile, error) {
 		return dp, handlePSQLError(Select, err, "select error")
 	}
 
-	err := row.Scan(&dp.DeviceProfile.DeviceProfileID, &dp.NetworkServerID, &dp.OrganizationID, &dp.CreatedAt, &dp.UpdatedAt, &dp.Name)
+	err := row.Scan(&dp.NetworkServerID, &dp.OrganizationID, &dp.CreatedAt, &dp.UpdatedAt, &dp.Name)
 	if err != nil {
 		return dp, handlePSQLError(Scan, err, "scan error")
 	}
@@ -163,42 +135,16 @@ func GetDeviceProfile(db sqlx.Queryer, id string) (DeviceProfile, error) {
 	}
 
 	resp, err := nsClient.GetDeviceProfile(context.Background(), &ns.GetDeviceProfileRequest{
-		DeviceProfileID: id,
+		Id: id.Bytes(),
 	})
 	if err != nil {
 		return dp, handleGrpcError(err, "get device-profile error")
 	}
 	if resp.DeviceProfile == nil {
-		return dp, errors.New("expected DeviceProfile, got nil")
+		return dp, errors.New("device_profile must not be nil")
 	}
 
-	var factoryPresetFreqs []backend.Frequency
-	for _, f := range resp.DeviceProfile.FactoryPresetFreqs {
-		factoryPresetFreqs = append(factoryPresetFreqs, backend.Frequency(f))
-	}
-
-	dp.DeviceProfile = backend.DeviceProfile{
-		DeviceProfileID:    id,
-		SupportsClassB:     resp.DeviceProfile.SupportsClassB,
-		ClassBTimeout:      int(resp.DeviceProfile.ClassBTimeout),
-		PingSlotPeriod:     int(resp.DeviceProfile.PingSlotPeriod),
-		PingSlotDR:         int(resp.DeviceProfile.PingSlotDR),
-		PingSlotFreq:       backend.Frequency(resp.DeviceProfile.PingSlotFreq),
-		SupportsClassC:     resp.DeviceProfile.SupportsClassC,
-		ClassCTimeout:      int(resp.DeviceProfile.ClassCTimeout),
-		MACVersion:         resp.DeviceProfile.MacVersion,
-		RegParamsRevision:  resp.DeviceProfile.RegParamsRevision,
-		RXDelay1:           int(resp.DeviceProfile.RxDelay1),
-		RXDROffset1:        int(resp.DeviceProfile.RxDROffset1),
-		RXDataRate2:        int(resp.DeviceProfile.RxDataRate2),
-		RXFreq2:            backend.Frequency(resp.DeviceProfile.RxFreq2),
-		FactoryPresetFreqs: factoryPresetFreqs,
-		MaxEIRP:            int(resp.DeviceProfile.MaxEIRP),
-		MaxDutyCycle:       backend.Percentage(resp.DeviceProfile.MaxDutyCycle),
-		SupportsJoin:       resp.DeviceProfile.SupportsJoin,
-		RFRegion:           backend.RFRegion(resp.DeviceProfile.RfRegion),
-		Supports32bitFCnt:  resp.DeviceProfile.Supports32BitFCnt,
-	}
+	dp.DeviceProfile = *resp.DeviceProfile
 
 	return dp, nil
 }
@@ -209,9 +155,9 @@ func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		return errors.Wrap(err, "validate error")
 	}
 
-	var factoryPresetFreqs []uint32
-	for _, f := range dp.DeviceProfile.FactoryPresetFreqs {
-		factoryPresetFreqs = append(factoryPresetFreqs, uint32(f))
+	dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
+	if err != nil {
+		return errors.Wrap(err, "uuid from bytes error")
 	}
 
 	n, err := GetNetworkServer(db, dp.NetworkServerID)
@@ -225,28 +171,7 @@ func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 	}
 
 	_, err = nsClient.UpdateDeviceProfile(context.Background(), &ns.UpdateDeviceProfileRequest{
-		DeviceProfile: &ns.DeviceProfile{
-			DeviceProfileID:    dp.DeviceProfile.DeviceProfileID,
-			SupportsClassB:     dp.DeviceProfile.SupportsClassB,
-			ClassBTimeout:      uint32(dp.DeviceProfile.ClassBTimeout),
-			PingSlotPeriod:     uint32(dp.DeviceProfile.PingSlotPeriod),
-			PingSlotDR:         uint32(dp.DeviceProfile.PingSlotDR),
-			PingSlotFreq:       uint32(dp.DeviceProfile.PingSlotFreq),
-			SupportsClassC:     dp.DeviceProfile.SupportsClassC,
-			ClassCTimeout:      uint32(dp.DeviceProfile.ClassCTimeout),
-			MacVersion:         dp.DeviceProfile.MACVersion,
-			RegParamsRevision:  dp.DeviceProfile.RegParamsRevision,
-			RxDelay1:           uint32(dp.DeviceProfile.RXDelay1),
-			RxDROffset1:        uint32(dp.DeviceProfile.RXDROffset1),
-			RxDataRate2:        uint32(dp.DeviceProfile.RXDataRate2),
-			RxFreq2:            uint32(dp.DeviceProfile.RXFreq2),
-			FactoryPresetFreqs: factoryPresetFreqs,
-			MaxEIRP:            uint32(dp.DeviceProfile.MaxEIRP),
-			MaxDutyCycle:       uint32(dp.DeviceProfile.MaxDutyCycle),
-			SupportsJoin:       dp.DeviceProfile.SupportsJoin,
-			RfRegion:           string(dp.DeviceProfile.RFRegion),
-			Supports32BitFCnt:  dp.DeviceProfile.Supports32bitFCnt,
-		},
+		DeviceProfile: &dp.DeviceProfile,
 	})
 	if err != nil {
 		return handleGrpcError(err, "update device-profile error")
@@ -259,8 +184,8 @@ func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
         set
             updated_at = $2,
             name = $3
-        where device_profile_id = $1`,
-		dp.DeviceProfile.DeviceProfileID,
+		where device_profile_id = $1`,
+		dpID,
 		dp.UpdatedAt,
 		dp.Name,
 	)
@@ -276,14 +201,14 @@ func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 	}
 
 	log.WithFields(log.Fields{
-		"device_profile_id": dp.DeviceProfile.DeviceProfileID,
+		"id": dpID,
 	}).Info("device-profile updated")
 
 	return nil
 }
 
 // DeleteDeviceProfile deletes the device-profile matching the given id.
-func DeleteDeviceProfile(db sqlx.Ext, id string) error {
+func DeleteDeviceProfile(db sqlx.Ext, id uuid.UUID) error {
 	n, err := GetNetworkServerForDeviceProfileID(db, id)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
@@ -307,13 +232,13 @@ func DeleteDeviceProfile(db sqlx.Ext, id string) error {
 	}
 
 	_, err = nsClient.DeleteDeviceProfile(context.Background(), &ns.DeleteDeviceProfileRequest{
-		DeviceProfileID: id,
+		Id: id.Bytes(),
 	})
 	if err != nil && grpc.Code(err) != codes.NotFound {
 		return handleGrpcError(err, "delete device-profile error")
 	}
 
-	log.WithField("device_profile_id", id).Info("device-profile deleted")
+	log.WithField("id", id).Info("device-profile deleted")
 
 	return nil
 }

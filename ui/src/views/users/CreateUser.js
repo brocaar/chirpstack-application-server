@@ -18,7 +18,11 @@ class CreateUser extends Component {
   }
 
   onSubmit(user) {
-    UserStore.createUser(user, (responseData) => {
+    const req = {
+      user: user,
+      password: user.password,
+    }
+    UserStore.createUser(req, (responseData) => {
       this.props.history.push('/users');
     });
   }

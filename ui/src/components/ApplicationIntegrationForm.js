@@ -105,8 +105,8 @@ class ApplicationHTTPIntegrationForm extends Component {
         <fieldset>
           <legend>Endpoints</legend>
           <div className="form-group">
-            <label className="control-label" htmlFor="dataUpURL">Uplink data URL</label>
-            <input className="form-control" id="dataUpURL" name="dataUpURL" type="text" placeholder="http://example.com/uplink" value={this.props.integration.dataUpURL || ''} onChange={this.onChange.bind(this, 'dataUpURL')} />
+            <label className="control-label" htmlFor="uplinkDataURL">Uplink data URL</label>
+            <input className="form-control" id="uplinkDataURL" name="uplinkDataURL" type="text" placeholder="http://example.com/uplink" value={this.props.integration.uplinkDataURL || ''} onChange={this.onChange.bind(this, 'uplinkDataURL')} />
           </div>
           <div className="form-group">
             <label className="control-label" htmlFor="joinNotificationURL">Join notification URL</label>
@@ -135,14 +135,14 @@ class ApplicationInfluxDBIntegrationForm extends Component {
 
   onChange(field, e) {
     let integration = this.props.integration;
-    integration.configuration[field] = e.target.value;
+    integration[field] = e.target.value;
 
     this.props.onFormChange(integration);
   }
 
   onPrecisionSelect(val) {
     let integration = this.props.integration;
-    integration.configuration.precision = val.value;
+    integration.precision = val.value;
 
     this.props.onFormChange(integration);
   }
@@ -162,23 +162,23 @@ class ApplicationInfluxDBIntegrationForm extends Component {
         <legend>InfluxDB configuration</legend>
         <div className="form-group">
           <label className="control-label" htmlFor="endpoint">API endpoint (write)</label>
-          <input className="form-control" id="endpoint" name="endpoint" type="text" placeholder="http://localhost:8086/write" value={this.props.integration.configuration.endpoint || ''} onChange={this.onChange.bind(this, 'endpoint')} />
+          <input className="form-control" id="endpoint" name="endpoint" type="text" placeholder="http://localhost:8086/write" value={this.props.integration.endpoint || ''} onChange={this.onChange.bind(this, 'endpoint')} />
         </div>
         <div className="form-group">
           <label className="control-label" htmlFor="username">Username</label>
-          <input className="form-control" id="username" name="username" type="text" placeholder="" value={this.props.integration.configuration.username || ''} onChange={this.onChange.bind(this, 'username')} />
+          <input className="form-control" id="username" name="username" type="text" placeholder="" value={this.props.integration.username || ''} onChange={this.onChange.bind(this, 'username')} />
         </div>
         <div className="form-group">
           <label className="control-label" htmlFor="username">Password</label>
-          <input className="form-control" id="password" name="password" type="password" placeholder="" value={this.props.integration.configuration.password || ''} onChange={this.onChange.bind(this, 'password')} />
+          <input className="form-control" id="password" name="password" type="password" placeholder="" value={this.props.integration.password || ''} onChange={this.onChange.bind(this, 'password')} />
         </div>
         <div className="form-group">
           <label className="control-label" htmlFor="db">Database name</label>
-          <input className="form-control" id="db" name="db" type="text" placeholder="device_measurements" value={this.props.integration.configuration.db || ''} onChange={this.onChange.bind(this, 'db')} />
+          <input className="form-control" id="db" name="db" type="text" placeholder="device_measurements" value={this.props.integration.db || ''} onChange={this.onChange.bind(this, 'db')} />
         </div>
         <div className="form-group">
           <label className="control-label" htmlFor="retentionPolicyName">Retention policy name</label>
-          <input className="form-control" id="retentionPolicyName" name="retentionPolicyName" type="text" placeholder="" value={this.props.integration.configuration.retentionPolicyName || ''} onChange={this.onChange.bind(this, 'retentionPolicyName')} />
+          <input className="form-control" id="retentionPolicyName" name="retentionPolicyName" type="text" placeholder="" value={this.props.integration.retentionPolicyName || ''} onChange={this.onChange.bind(this, 'retentionPolicyName')} />
           <p className="help-block">
             Sets the target retention policy for the write. InfluxDB writes to the DEFAULT retention policy if you do not specify a retention policy.
           </p>
@@ -187,7 +187,7 @@ class ApplicationInfluxDBIntegrationForm extends Component {
           <label className="control-label" htmlFor="precision">Timestamp precision</label>
           <Select
             name="precision"
-            value={this.props.integration.configuration.precision}
+            value={this.props.integration.precision}
             options={precisionOptions}
             onChange={this.onPrecisionSelect}
             clearable={false}

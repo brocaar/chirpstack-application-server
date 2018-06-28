@@ -4,16 +4,15 @@ import (
 	"context"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/brocaar/loraserver/api/ns"
-
-	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 )
 
@@ -24,7 +23,7 @@ type Device struct {
 	UpdatedAt           time.Time     `db:"updated_at"`
 	LastSeenAt          *time.Time    `db:"last_seen_at"`
 	ApplicationID       int64         `db:"application_id"`
-	DeviceProfileID     string        `db:"device_profile_id"`
+	DeviceProfileID     uuid.UUID     `db:"device_profile_id"`
 	Name                string        `db:"name"`
 	Description         string        `db:"description"`
 	SkipFCntCheck       bool          `db:"-"`
@@ -119,12 +118,17 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	rpID, err := uuid.FromString(config.C.ApplicationServer.ID)
+	if err != nil {
+		return errors.Wrap(err, "uuid from string error")
+	}
+
 	_, err = nsClient.CreateDevice(context.Background(), &ns.CreateDeviceRequest{
 		Device: &ns.Device{
-			DevEUI:           d.DevEUI[:],
-			DeviceProfileID:  d.DeviceProfileID,
-			ServiceProfileID: app.ServiceProfileID,
-			RoutingProfileID: config.C.ApplicationServer.ID,
+			DevEui:           d.DevEUI[:],
+			DeviceProfileId:  d.DeviceProfileID.Bytes(),
+			ServiceProfileId: app.ServiceProfileID.Bytes(),
+			RoutingProfileId: rpID.Bytes(),
 			SkipFCntCheck:    d.SkipFCntCheck,
 		},
 	})
@@ -159,7 +163,7 @@ func GetDevice(db sqlx.Queryer, devEUI lorawan.EUI64) (Device, error) {
 	}
 
 	resp, err := nsClient.GetDevice(context.Background(), &ns.GetDeviceRequest{
-		DevEUI: d.DevEUI[:],
+		DevEui: d.DevEUI[:],
 	})
 	if err != nil {
 		return d, err
@@ -285,12 +289,17 @@ func UpdateDevice(db sqlx.Ext, d *Device) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	rpID, err := uuid.FromString(config.C.ApplicationServer.ID)
+	if err != nil {
+		return errors.Wrap(err, "uuid from string error")
+	}
+
 	_, err = nsClient.UpdateDevice(context.Background(), &ns.UpdateDeviceRequest{
 		Device: &ns.Device{
-			DevEUI:           d.DevEUI[:],
-			DeviceProfileID:  d.DeviceProfileID,
-			ServiceProfileID: app.ServiceProfileID,
-			RoutingProfileID: config.C.ApplicationServer.ID,
+			DevEui:           d.DevEUI[:],
+			DeviceProfileId:  d.DeviceProfileID.Bytes(),
+			ServiceProfileId: app.ServiceProfileID.Bytes(),
+			RoutingProfileId: rpID.Bytes(),
 			SkipFCntCheck:    d.SkipFCntCheck,
 		},
 	})
@@ -331,7 +340,7 @@ func DeleteDevice(db sqlx.Ext, devEUI lorawan.EUI64) error {
 	}
 
 	_, err = nsClient.DeleteDevice(context.Background(), &ns.DeleteDeviceRequest{
-		DevEUI: devEUI[:],
+		DevEui: devEUI[:],
 	})
 	if err != nil && grpc.Code(err) != codes.NotFound {
 		log.WithError(err).Error("network-server delete device api error")

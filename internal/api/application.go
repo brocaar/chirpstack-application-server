@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/satori/go.uuid"
+
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -33,20 +36,29 @@ func NewApplicationAPI(validator auth.Validator) *ApplicationAPI {
 
 // Create creates the given application.
 func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRequest) (*pb.CreateApplicationResponse, error) {
+	if req.Application == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "application must not be nil")
+	}
+
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationsAccess(auth.Create, req.OrganizationID),
+		auth.ValidateApplicationsAccess(auth.Create, req.Application.OrganizationId),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
+	spID, err := uuid.FromString(req.Application.ServiceProfileId)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
 	app := storage.Application{
-		Name:                 req.Name,
-		Description:          req.Description,
-		OrganizationID:       req.OrganizationID,
-		ServiceProfileID:     req.ServiceProfileID,
-		PayloadCodec:         codec.Type(req.PayloadCodec),
-		PayloadEncoderScript: req.PayloadEncoderScript,
-		PayloadDecoderScript: req.PayloadDecoderScript,
+		Name:                 req.Application.Name,
+		Description:          req.Application.Description,
+		OrganizationID:       req.Application.OrganizationId,
+		ServiceProfileID:     spID,
+		PayloadCodec:         codec.Type(req.Application.PayloadCodec),
+		PayloadEncoderScript: req.Application.PayloadEncoderScript,
+		PayloadDecoderScript: req.Application.PayloadDecoderScript,
 	}
 
 	if err := storage.CreateApplication(config.C.PostgreSQL.DB, &app); err != nil {
@@ -71,50 +83,61 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 		return nil, errToRPCError(err)
 	}
 	resp := pb.GetApplicationResponse{
-		Id:                   app.ID,
-		Name:                 app.Name,
-		Description:          app.Description,
-		OrganizationID:       app.OrganizationID,
-		ServiceProfileID:     app.ServiceProfileID,
-		PayloadCodec:         string(app.PayloadCodec),
-		PayloadEncoderScript: app.PayloadEncoderScript,
-		PayloadDecoderScript: app.PayloadDecoderScript,
+		Application: &pb.Application{
+			Id:                   app.ID,
+			Name:                 app.Name,
+			Description:          app.Description,
+			OrganizationId:       app.OrganizationID,
+			ServiceProfileId:     app.ServiceProfileID.String(),
+			PayloadCodec:         string(app.PayloadCodec),
+			PayloadEncoderScript: app.PayloadEncoderScript,
+			PayloadDecoderScript: app.PayloadDecoderScript,
+		},
 	}
 
 	return &resp, nil
 }
 
 // Update updates the given application.
-func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRequest) (*pb.UpdateApplicationResponse, error) {
+func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRequest) (*empty.Empty, error) {
+	if req.Application == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "application must not be nil")
+	}
+
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationAccess(req.Id, auth.Update),
+		auth.ValidateApplicationAccess(req.Application.Id, auth.Update),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplication(config.C.PostgreSQL.DB, req.Id)
+	app, err := storage.GetApplication(config.C.PostgreSQL.DB, req.Application.Id)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	spID, err := uuid.FromString(req.Application.ServiceProfileId)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
 	// update the fields
-	app.Name = req.Name
-	app.Description = req.Description
-	app.ServiceProfileID = req.ServiceProfileID
-	app.PayloadCodec = codec.Type(req.PayloadCodec)
-	app.PayloadEncoderScript = req.PayloadEncoderScript
-	app.PayloadDecoderScript = req.PayloadDecoderScript
+	app.Name = req.Application.Name
+	app.Description = req.Application.Description
+	app.ServiceProfileID = spID
+	app.PayloadCodec = codec.Type(req.Application.PayloadCodec)
+	app.PayloadEncoderScript = req.Application.PayloadEncoderScript
+	app.PayloadDecoderScript = req.Application.PayloadDecoderScript
 
 	err = storage.UpdateApplication(config.C.PostgreSQL.DB, app)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.UpdateApplicationResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // Delete deletes the given application.
-func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRequest) (*pb.DeleteApplicationResponse, error) {
+func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRequest) (*empty.Empty, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateApplicationAccess(req.Id, auth.Delete),
 	); err != nil {
@@ -132,13 +155,13 @@ func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRe
 		return nil, err
 	}
 
-	return &pb.DeleteApplicationResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // List lists the available applications.
 func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationRequest) (*pb.ListApplicationResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationsAccess(auth.List, req.OrganizationID),
+		auth.ValidateApplicationsAccess(auth.List, req.OrganizationId),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -156,7 +179,7 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 	var count int
 	var apps []storage.ApplicationListItem
 
-	if req.OrganizationID == 0 {
+	if req.OrganizationId == 0 {
 		if isAdmin {
 			apps, err = storage.GetApplications(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
@@ -178,20 +201,20 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 		}
 	} else {
 		if isAdmin {
-			apps, err = storage.GetApplicationsForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset), req.Search)
+			apps, err = storage.GetApplicationsForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationId, int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, req.Search)
+			count, err = storage.GetApplicationCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationId, req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
 		} else {
-			apps, err = storage.GetApplicationsForUser(config.C.PostgreSQL.DB, username, req.OrganizationID, int(req.Limit), int(req.Offset), req.Search)
+			apps, err = storage.GetApplicationsForUser(config.C.PostgreSQL.DB, username, req.OrganizationId, int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForUser(config.C.PostgreSQL.DB, username, req.OrganizationID, req.Search)
+			count, err = storage.GetApplicationCountForUser(config.C.PostgreSQL.DB, username, req.OrganizationId, req.Search)
 			if err != nil {
 				return nil, errToRPCError(err)
 			}
@@ -206,8 +229,8 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 			Id:                 app.ID,
 			Name:               app.Name,
 			Description:        app.Description,
-			OrganizationID:     app.OrganizationID,
-			ServiceProfileID:   app.ServiceProfileID,
+			OrganizationId:     app.OrganizationID,
+			ServiceProfileId:   app.ServiceProfileID.String(),
 			ServiceProfileName: app.ServiceProfileName,
 		}
 
@@ -218,24 +241,28 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 }
 
 // CreateHTTPIntegration creates an HTTP application-integration.
-func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.HTTPIntegration) (*pb.EmptyResponse, error) {
+func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.CreateHTTPIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationAccess(in.Id, auth.Update),
+		auth.ValidateApplicationAccess(in.Integration.ApplicationId, auth.Update),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	headers := make(map[string]string)
-	for _, h := range in.Headers {
+	for _, h := range in.Integration.Headers {
 		headers[h.Key] = h.Value
 	}
 
 	conf := httphandler.HandlerConfig{
 		Headers:              headers,
-		DataUpURL:            in.DataUpURL,
-		JoinNotificationURL:  in.JoinNotificationURL,
-		ACKNotificationURL:   in.AckNotificationURL,
-		ErrorNotificationURL: in.ErrorNotificationURL,
+		DataUpURL:            in.Integration.UplinkDataUrl,
+		JoinNotificationURL:  in.Integration.JoinNotificationUrl,
+		ACKNotificationURL:   in.Integration.AckNotificationUrl,
+		ErrorNotificationURL: in.Integration.ErrorNotificationUrl,
 	}
 	if err := conf.Validate(); err != nil {
 		return nil, errToRPCError(err)
@@ -247,7 +274,7 @@ func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 	}
 
 	integration := storage.Integration{
-		ApplicationID: in.Id,
+		ApplicationID: in.Integration.ApplicationId,
 		Kind:          handler.HTTPHandlerKind,
 		Settings:      confJSON,
 	}
@@ -255,18 +282,18 @@ func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.EmptyResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // GetHTTPIntegration returns the HTTP application-itegration.
-func (a *ApplicationAPI) GetHTTPIntegration(ctx context.Context, in *pb.GetHTTPIntegrationRequest) (*pb.HTTPIntegration, error) {
+func (a *ApplicationAPI) GetHTTPIntegration(ctx context.Context, in *pb.GetHTTPIntegrationRequest) (*pb.GetHTTPIntegrationResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationAccess(in.Id, auth.Update),
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.Id, handler.HTTPHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, handler.HTTPHandlerKind)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -285,40 +312,46 @@ func (a *ApplicationAPI) GetHTTPIntegration(ctx context.Context, in *pb.GetHTTPI
 
 	}
 
-	return &pb.HTTPIntegration{
-		Id:                   integration.ApplicationID,
-		Headers:              headers,
-		DataUpURL:            conf.DataUpURL,
-		JoinNotificationURL:  conf.JoinNotificationURL,
-		AckNotificationURL:   conf.ACKNotificationURL,
-		ErrorNotificationURL: conf.ErrorNotificationURL,
+	return &pb.GetHTTPIntegrationResponse{
+		Integration: &pb.HTTPIntegration{
+			ApplicationId:        integration.ApplicationID,
+			Headers:              headers,
+			UplinkDataUrl:        conf.DataUpURL,
+			JoinNotificationUrl:  conf.JoinNotificationURL,
+			AckNotificationUrl:   conf.ACKNotificationURL,
+			ErrorNotificationUrl: conf.ErrorNotificationURL,
+		},
 	}, nil
 }
 
 // UpdateHTTPIntegration updates the HTTP application-integration.
-func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.HTTPIntegration) (*pb.EmptyResponse, error) {
+func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.UpdateHTTPIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationAccess(in.Id, auth.Update),
+		auth.ValidateApplicationAccess(in.Integration.ApplicationId, auth.Update),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.Id, handler.HTTPHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.Integration.ApplicationId, handler.HTTPHandlerKind)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
 	headers := make(map[string]string)
-	for _, h := range in.Headers {
+	for _, h := range in.Integration.Headers {
 		headers[h.Key] = h.Value
 	}
 
 	conf := httphandler.HandlerConfig{
 		Headers:              headers,
-		DataUpURL:            in.DataUpURL,
-		JoinNotificationURL:  in.JoinNotificationURL,
-		ACKNotificationURL:   in.AckNotificationURL,
-		ErrorNotificationURL: in.ErrorNotificationURL,
+		DataUpURL:            in.Integration.UplinkDataUrl,
+		JoinNotificationURL:  in.Integration.JoinNotificationUrl,
+		ACKNotificationURL:   in.Integration.AckNotificationUrl,
+		ErrorNotificationURL: in.Integration.ErrorNotificationUrl,
 	}
 	if err := conf.Validate(); err != nil {
 		return nil, errToRPCError(err)
@@ -334,18 +367,18 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.HTTPI
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.EmptyResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // DeleteHTTPIntegration deletes the application-integration of the given type.
-func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.DeleteHTTPIntegrationRequest) (*pb.EmptyResponse, error) {
+func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.DeleteHTTPIntegrationRequest) (*empty.Empty, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationAccess(in.Id, auth.Update),
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.Id, handler.HTTPHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, handler.HTTPHandlerKind)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -354,28 +387,28 @@ func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.Delet
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.EmptyResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // CreateInfluxDBIntegration create an InfluxDB application-integration.
-func (a *ApplicationAPI) CreateInfluxDBIntegration(ctx context.Context, in *pb.CreateInfluxDBIntegrationRequest) (*pb.EmptyResponse, error) {
+func (a *ApplicationAPI) CreateInfluxDBIntegration(ctx context.Context, in *pb.CreateInfluxDBIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+		auth.ValidateApplicationAccess(in.Integration.ApplicationId, auth.Update),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	if in.Configuration == nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "configuration must not be nil")
-	}
-
 	conf := influxdbhandler.HandlerConfig{
-		Endpoint:            in.Configuration.Endpoint,
-		DB:                  in.Configuration.Db,
-		Username:            in.Configuration.Username,
-		Password:            in.Configuration.Password,
-		RetentionPolicyName: in.Configuration.RetentionPolicyName,
-		Precision:           strings.ToLower(in.Configuration.Precision.String()),
+		Endpoint:            in.Integration.Endpoint,
+		DB:                  in.Integration.Db,
+		Username:            in.Integration.Username,
+		Password:            in.Integration.Password,
+		RetentionPolicyName: in.Integration.RetentionPolicyName,
+		Precision:           strings.ToLower(in.Integration.Precision.String()),
 	}
 	if err := conf.Validate(); err != nil {
 		return nil, errToRPCError(err)
@@ -387,7 +420,7 @@ func (a *ApplicationAPI) CreateInfluxDBIntegration(ctx context.Context, in *pb.C
 	}
 
 	integration := storage.Integration{
-		ApplicationID: in.ApplicationId,
+		ApplicationID: in.Integration.ApplicationId,
 		Kind:          handler.InfluxDBHandlerKind,
 		Settings:      confJSON,
 	}
@@ -395,7 +428,7 @@ func (a *ApplicationAPI) CreateInfluxDBIntegration(ctx context.Context, in *pb.C
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.EmptyResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // GetInfluxDBIntegration returns the InfluxDB application-integration.
@@ -419,7 +452,8 @@ func (a *ApplicationAPI) GetInfluxDBIntegration(ctx context.Context, in *pb.GetI
 	prec, _ := pb.InfluxDBPrecision_value[strings.ToUpper(conf.Precision)]
 
 	return &pb.GetInfluxDBIntegrationResponse{
-		Configuration: &pb.InfluxDBIntegrationConfiguration{
+		Integration: &pb.InfluxDBIntegration{
+			ApplicationId:       in.ApplicationId,
 			Endpoint:            conf.Endpoint,
 			Db:                  conf.DB,
 			Username:            conf.Username,
@@ -431,29 +465,29 @@ func (a *ApplicationAPI) GetInfluxDBIntegration(ctx context.Context, in *pb.GetI
 }
 
 // UpdateInfluxDBIntegration updates the InfluxDB application-integration.
-func (a *ApplicationAPI) UpdateInfluxDBIntegration(ctx context.Context, in *pb.UpdateInfluxDBIntegrationRequest) (*pb.EmptyResponse, error) {
+func (a *ApplicationAPI) UpdateInfluxDBIntegration(ctx context.Context, in *pb.UpdateInfluxDBIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+		auth.ValidateApplicationAccess(in.Integration.ApplicationId, auth.Update),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	if in.Configuration == nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, "configuration must not be nil")
-	}
-
-	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, handler.InfluxDBHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.Integration.ApplicationId, handler.InfluxDBHandlerKind)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
 	conf := influxdbhandler.HandlerConfig{
-		Endpoint:            in.Configuration.Endpoint,
-		DB:                  in.Configuration.Db,
-		Username:            in.Configuration.Username,
-		Password:            in.Configuration.Password,
-		RetentionPolicyName: in.Configuration.RetentionPolicyName,
-		Precision:           strings.ToLower(in.Configuration.Precision.String()),
+		Endpoint:            in.Integration.Endpoint,
+		DB:                  in.Integration.Db,
+		Username:            in.Integration.Username,
+		Password:            in.Integration.Password,
+		RetentionPolicyName: in.Integration.RetentionPolicyName,
+		Precision:           strings.ToLower(in.Integration.Precision.String()),
 	}
 	if err := conf.Validate(); err != nil {
 		return nil, errToRPCError(err)
@@ -469,11 +503,11 @@ func (a *ApplicationAPI) UpdateInfluxDBIntegration(ctx context.Context, in *pb.U
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.EmptyResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // DeleteInfluxDBIntegration deletes the InfluxDB application-integration.
-func (a *ApplicationAPI) DeleteInfluxDBIntegration(ctx context.Context, in *pb.DeleteInfluxDBIntegrationRequest) (*pb.EmptyResponse, error) {
+func (a *ApplicationAPI) DeleteInfluxDBIntegration(ctx context.Context, in *pb.DeleteInfluxDBIntegrationRequest) (*empty.Empty, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
 	); err != nil {
@@ -489,18 +523,18 @@ func (a *ApplicationAPI) DeleteInfluxDBIntegration(ctx context.Context, in *pb.D
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.EmptyResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // ListIntegrations lists all configured integrations.
 func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegrationRequest) (*pb.ListIntegrationResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateApplicationAccess(in.Id, auth.Update),
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
 	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integrations, err := storage.GetIntegrationsForApplicationID(config.C.PostgreSQL.DB, in.Id)
+	integrations, err := storage.GetIntegrationsForApplicationID(config.C.PostgreSQL.DB, in.ApplicationId)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

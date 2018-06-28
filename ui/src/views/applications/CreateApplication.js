@@ -14,7 +14,7 @@ class CreateApplication extends Component {
   }
 
   onSubmit(application) {
-    ApplicationStore.createApplication(application, (responseData) => {
+    ApplicationStore.createApplication({application: application}, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${responseData.id}`);
     });
   }

@@ -18,7 +18,7 @@ class UpdatePassword extends Component {
   componentDidMount() {
     UserStore.getUser(this.props.match.params.userID, (user) => {
       this.setState({
-        user: user,
+        user: user.user,
       });
     });
   }

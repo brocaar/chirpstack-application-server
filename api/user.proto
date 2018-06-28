@@ -2,12 +2,12 @@ syntax = "proto3";
 
 package api;
 
-
-// for grpc-gateway
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
-// User is the service managing the user access.
-service User {
+// UserService is the service managing the user access.
+service UserService {
 	// Get user list.
 	rpc List(ListUserRequest) returns (ListUserResponse) {
 		option(google.api.http) = {
@@ -16,14 +16,14 @@ service User {
 	}
 
 	// Get data for a particular user.
-	rpc Get(UserRequest) returns (GetUserResponse) {
+	rpc Get(GetUserRequest) returns (GetUserResponse) {
 		option(google.api.http) = {
 			get: "/api/users/{id}"
 		};
 	}
 
 	// Create a new user.
-	rpc Create(AddUserRequest) returns (AddUserResponse) {
+	rpc Create(CreateUserRequest) returns (CreateUserResponse) {
 		option(google.api.http) = {
 			post: "/api/users"
 			body: "*"
@@ -31,237 +31,46 @@ service User {
 	}
 
 	// Update an existing user.
-	rpc Update(UpdateUserRequest) returns (UserEmptyResponse) {
+	rpc Update(UpdateUserRequest) returns (google.protobuf.Empty) {
 		option(google.api.http) = {
-			put: "/api/users/{id}"
+			put: "/api/users/{user.id}"
 			body: "*"
 		};
 	}
 
 	// Delete a user.
-	rpc Delete(UserRequest) returns (UserEmptyResponse) {
+	rpc Delete(DeleteUserRequest) returns (google.protobuf.Empty) {
 		option(google.api.http) = {
 			delete: "/api/users/{id}"
 		};
 	}
 
 	// UpdatePassword updates a password.
-	rpc UpdatePassword(UpdateUserPasswordRequest) returns (UserEmptyResponse) {
+	rpc UpdatePassword(UpdateUserPasswordRequest) returns (google.protobuf.Empty) {
 		option(google.api.http) = {
-			put: "/api/users/{id}/password"
+			put: "/api/users/{user_id}/password"
 			body: "*"
 		};
 	}
 
 }
 
-// Internal is the service managing the user login and profile.
-service Internal {
-	// Log in a user
-	rpc Login(LoginRequest) returns (LoginResponse) {
-		option(google.api.http) = {
-			post: "/api/internal/login"
-			body: "*"
-		};
-	}
-
-	// Get the current user's profile
-	rpc Profile(ProfileRequest) returns (ProfileResponse) {
-		option(google.api.http) = {
-			get: "/api/internal/profile"
-		};
-	}
-
-	// Get the branding for the UI
-	rpc Branding(BrandingRequest) returns (BrandingResponse) {
-		option(google.api.http) = {
-			get: "/api/internal/branding"
-		};
-	}
-
-	// Perform a global search.
-	rpc GlobalSearch(GlobalSearchRequest) returns (GlobalSearchResponse) {
-		option(google.api.http) = {
-			get: "/api/internal/search"
-		};
-	}
-}
-
-// Defines the organizations that the user is associated with.
-message OrganizationLink {
-	int64 organizationID = 1;
-	string organizationName = 2;
-	bool isAdmin = 3;
-	string createdAt = 4;
-	string updatedAt = 5;
-}
-
-// The request for profile requires not input as the profile is returned for
-// the logged in user based on the JWT token passed in.
-message ProfileRequest {
-}
-
-// The user's profile. This specifies the access the user has to the data
-// and should be used limit what the UI presents as options (e.g., read-only
-// access to an application should not allow an "edit" button on that
-// application).
-message ProfileResponse {
-	GetUserResponse user = 1;
-	repeated OrganizationLink organizations = 3;
-	ProfileSettings settings = 4;
-}
-
-message ProfileSettings {
-	// Existing users in the system can not be assigned to organizations and
-	// application and can not be listed by non global admin users.
-	bool disableAssignExistingUsers = 1;
-}
-
-
-// The data for logging in to the system.  The connection is expected to be
-// protected by SSL, allowing us to use the username and password in the clear.
-message LoginRequest {
-	// Username of the user.
-	string username = 1;
-
-	// Password of the user.
-	string password = 2;
-}
-
-// The response to the login request upon success. The jwt token is to be
-// placed in the header field named "Grpc-Metadata-Authorization" for all
-// subsequent queries to the server.
-message LoginResponse {
-	// The JWT tag to be used to access lora-app-server interfaces.
-	string jwt = 1;
-}
-
-// Request the users defined in the system.
-message ListUserRequest {
-	// Max number of user to return in the result-set.
-	int32 limit = 1;
-
-	// Offset in the result-set (for pagination).
-	int32 offset = 2;
-
-	// When provided, the given string will be used to search on username.
-	string search = 3;
-}
-
-// Request the user information.
-message UserRequest {
+message User {
+	// User ID.
+	// Will be set automatically on create.
 	int64 id = 1;
-}
 
-message AddUserResponse {
-	int64 id = 1;
-}
-
-// User data not including the data access profile.
-message UserSettings {
-	// ID of the user.
-	int64 id = 1;
-	
 	// Username of the user.
 	string username = 2;
 
 	// The session timeout, in minutes.
-	int32 sessionTTL = 3;
+	int32 session_ttl = 3 [json_name = "sessionTTL"];
 
-	// If the user is a system admin, capable of creating other users.
-	bool isAdmin = 4;
+	// Set to true to make the user a global administrator.
+	bool is_admin = 4;
 
-	// If the user is active.
-	bool isActive = 5;
-
-	// When the user was created.
-	string createdAt = 6;
-
-	// When the user was last updated (excludes changes in application access).
-	string updatedAt = 7;
-}
-
-message GetUserResponse {
-	// ID of the user.
-	int64 id = 1;
-	
-	// Username of the user.
-	string username = 2;
-
-	// The session timeout, in minutes.
-	int32 sessionTTL = 3;
-
-	// If the user is a system admin, capable of creating other users.
-	bool isAdmin = 4;
-
-	// If the user is active.
-	bool isActive = 5;
-
-	// When the user was created.
-	string createdAt = 6;
-
-	// When the user was last updated (excludes changes in application access).
-	string updatedAt = 7;
-
-	// E-mail of the user.
-	string email = 8;
-
-	// Optional note to store with the user.
-	string note = 9;
-}
-
-// Add a new user. Not quite the UserSettings data as it includes a password
-// and excludes the ID and create/update dates.
-message AddUserRequest {
-	// Username of the user.
-	string username = 1;
-
-	// Passowrd of the user.
-	string password = 2;
-
-	// The session timeout, in minutes.
-	int32 sessionTTL = 3;
-
-	// If the user is a system-wide admin.
-	bool isAdmin = 4;
-
-	// If the user is active.
-	bool isActive = 5;
-
-	// Add the user to the following organizations.
-	repeated AddUserOrganization organizations = 6;
-
-	// E-mail of the user.
-	string email = 7;
-
-	// Optional note to store with the user.
-	string note = 8;
-}
-
-message AddUserOrganization {
-	// ID of the organization.
-	int64 organizationID = 1;
-
-	// User has admin rights within the organization.
-	bool isAdmin = 2;
-}
-
-// Not quite the AddUserRequest as no password.
-message UpdateUserRequest {
-	// The ID of the user to be updated.
-	int64 id = 1;
-
-	// The new username.
-	string username = 2;
-
-	// The session timeout, in minutes.
-	int32 sessionTTL = 3;
-
-	// If the user is a system-wide admin.
-	bool isAdmin = 4;
-
-	// If the user is active.
-	bool isActive = 5;
+	// Set to false to disable the user.
+	bool is_active = 5;
 
 	// E-mail of the user.
 	string email = 6;
@@ -270,77 +79,109 @@ message UpdateUserRequest {
 	string note = 7;
 }
 
-message ListUserResponse {
-	int32 totalCount = 1;
-	repeated GetUserResponse result = 2;
+message UserListItem {
+	// User ID.
+	// Will be set automatically on create.
+	int64 id = 1;
+
+	// Username of the user.
+	string username = 2;
+
+	// The session timeout, in minutes.
+	int32 session_ttl = 3 [json_name = "sessionTTL"];
+
+	// Set to true to make the user a global administrator.
+	bool is_admin = 4;
+
+	// Set to false to disable the user.
+	bool is_active = 5;
+
+	// E-mail of the user.
+	string email = 6;
+
+	// Optional note to store with the user.
+	string note = 7;
+
+	// Created at timestamp.
+	google.protobuf.Timestamp created_at = 8;
+
+	// Last update timestamp.
+	google.protobuf.Timestamp updated_at = 9;
 }
 
-message UserEmptyResponse {
-	// Nothing to return on delete.
+message UserOrganization {
+	// Organization ID.
+	int64 organization_id = 1 [json_name = "organizationID"];
+
+	// User has admin rights within the organization.
+	bool is_admin = 2;
+}
+
+message CreateUserRequest {
+	// User object to create.
+	User user = 1;
+
+	// Password of the user.
+	string password = 2;
+
+	// Add the user to the following organizations.
+	repeated UserOrganization organizations = 3;
+}
+
+message CreateUserResponse {
+	// User ID.
+	int64 id = 1;
+}
+
+message GetUserRequest {
+	// User ID.
+	int64 id = 1;
+}
+
+message GetUserResponse {
+	// User object.
+	User user = 1;
+
+	// Created at timestamp.
+	google.protobuf.Timestamp created_at = 2;
+
+	// Last update timestamp.
+	google.protobuf.Timestamp updated_at = 3;
+}
+
+message UpdateUserRequest {
+	// User object to update.
+	User user = 1;
+}
+
+message DeleteUserRequest {
+	// User ID.
+	int64 id = 1;
+}
+
+message ListUserRequest {
+	// Max number of user to return in the result-set.
+	int64 limit = 1;
+
+	// Offset in the result-set (for pagination).
+	int64 offset = 2;
+
+	// When provided, the given string will be used to search on username.
+	string search = 3;
+}
+
+message ListUserResponse {
+	// Total number of users.
+	int64 total_count = 1;
+
+	// Result-set.
+	repeated UserListItem result = 2;
 }
 
 message UpdateUserPasswordRequest {
-	// The ID of the user for which to update the password.
-	int64 id = 1;
+	// User ID.
+	int64 user_id = 1;
 
-	// The new password to set.
+	// New pasword.
 	string password = 2;
-}
-
-// The request for branding
-message BrandingRequest {
-}
-
-// The branding data.
-message BrandingResponse {
-	string logo = 1;
-	string registration = 2;
-	string footer = 3;
-}
-
-message GlobalSearchRequest {
-	// Search query.
-	string search = 1;
-
-	// Max number of results to return.
-	int64 limit = 2;
-
-	// Offset offset of the result-set (for pagination).
-	int64 offset = 3;
-}
-
-message GlobalSearchResponse {
-	repeated GlobalSearchResult result = 1;
-}
-
-message GlobalSearchResult {
-	// Record kind.
-	string kind = 1;
-
-	// Search score.
-	float score = 2;
-
-	// Organization id.
-	int64 organizationID = 3;
-
-	// Organization name.
-	string organizationName = 4;
-
-	// Application id.
-	int64 applicationID = 5;
-
-	// Application name.
-	string applicationName = 6;
-
-	// Device DevEUI (hex encoded).
-	string deviceDevEUI = 7;
-
-	// Device name.
-	string deviceName = 8;
-
-	// Gateway MAC (hex encoded).
-	string gatewayMAC = 9;
-
-	// Gateway name.
-	string gatewayName = 10;
 }

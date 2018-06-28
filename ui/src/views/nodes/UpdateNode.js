@@ -22,7 +22,7 @@ class UpdateNode extends Component {
 
   componentWillMount() {
     NodeStore.getNode(this.props.match.params.applicationID, this.props.match.params.devEUI, (node) => {
-      this.setState({node: node});
+      this.setState({node: node.device});
     });
     ApplicationStore.getApplication(this.props.match.params.applicationID, (application) => {
       this.setState({application: application});
@@ -41,7 +41,7 @@ class UpdateNode extends Component {
 
   onSubmit(node) {
     node.applicationID = this.props.match.params.applicationID;
-    NodeStore.updateNode(this.props.match.params.applicationID, this.props.match.params.devEUI, node, (responseData) => {
+    NodeStore.updateNode(this.props.match.params.applicationID, this.props.match.params.devEUI, {device: node}, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
     });
   }

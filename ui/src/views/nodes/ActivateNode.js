@@ -117,7 +117,7 @@ class ActivateNode extends Component {
   }
 
   onSubmit(activation) {
-    NodeStore.activateNode(this.props.match.params.devEUI, activation, (responseData) => {
+    NodeStore.activateNode(this.props.match.params.devEUI, {deviceActivation: activation}, (responseData) => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
     });
   }

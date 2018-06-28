@@ -7,6 +7,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,7 +19,7 @@ type Application struct {
 	Name                 string     `db:"name"`
 	Description          string     `db:"description"`
 	OrganizationID       int64      `db:"organization_id"`
-	ServiceProfileID     string     `db:"service_profile_id"`
+	ServiceProfileID     uuid.UUID  `db:"service_profile_id"`
 	PayloadCodec         codec.Type `db:"payload_codec"`
 	PayloadEncoderScript string     `db:"payload_encoder_script"`
 	PayloadDecoderScript string     `db:"payload_decoder_script"`

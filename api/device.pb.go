@@ -6,6 +6,8 @@ package api
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import empty "github.com/golang/protobuf/ptypes/empty"
+import timestamp "github.com/golang/protobuf/ptypes/timestamp"
 import _ "google.golang.org/genproto/googleapis/api/annotations"
 
 import (
@@ -24,498 +26,126 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-type DeviceKeys struct {
-	// HEX encoded network key.
-	// Note: For LoRaWAN 1.0.x, use this field for the LoRaWAN 1.0.x 'AppKey`!
-	NwkKey string `protobuf:"bytes,1,opt,name=nwkKey" json:"nwkKey,omitempty"`
-	// HEX encoded application key.
-	// Note: This field only needs to be set for LoRaWAN 1.1.x devices!
-	AppKey               string   `protobuf:"bytes,2,opt,name=appKey" json:"appKey,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *DeviceKeys) Reset()         { *m = DeviceKeys{} }
-func (m *DeviceKeys) String() string { return proto.CompactTextString(m) }
-func (*DeviceKeys) ProtoMessage()    {}
-func (*DeviceKeys) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{0}
-}
-func (m *DeviceKeys) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeviceKeys.Unmarshal(m, b)
-}
-func (m *DeviceKeys) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeviceKeys.Marshal(b, m, deterministic)
-}
-func (dst *DeviceKeys) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeviceKeys.Merge(dst, src)
-}
-func (m *DeviceKeys) XXX_Size() int {
-	return xxx_messageInfo_DeviceKeys.Size(m)
-}
-func (m *DeviceKeys) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeviceKeys.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DeviceKeys proto.InternalMessageInfo
-
-func (m *DeviceKeys) GetNwkKey() string {
-	if m != nil {
-		return m.NwkKey
-	}
-	return ""
-}
-
-func (m *DeviceKeys) GetAppKey() string {
-	if m != nil {
-		return m.AppKey
-	}
-	return ""
-}
-
-type CreateDeviceRequest struct {
-	// Hex encoded DevEUI.
-	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+type Device struct {
+	// Device EUI (HEX encoded).
+	DevEui string `protobuf:"bytes,1,opt,name=dev_eui,json=devEUI,proto3" json:"dev_eui,omitempty"`
 	// Name of the device (if left blank, it will be set to the DevEUI).
-	Name string `protobuf:"bytes,9,opt,name=name" json:"name,omitempty"`
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// ID of the application to which the device must be added.
-	ApplicationID int64 `protobuf:"varint,13,opt,name=applicationID" json:"applicationID,omitempty"`
+	ApplicationId int64 `protobuf:"varint,3,opt,name=application_id,json=applicationID,proto3" json:"application_id,omitempty"`
 	// Description of the device.
-	Description string `protobuf:"bytes,14,opt,name=description" json:"description,omitempty"`
+	Description string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
 	// DeviceProfileID attached to the device.
-	DeviceProfileID string `protobuf:"bytes,18,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
+	DeviceProfileId string `protobuf:"bytes,5,opt,name=device_profile_id,json=deviceProfileID,proto3" json:"device_profile_id,omitempty"`
 	// Skip frame-counter checks (this is insecure, but could be helpful for debugging).
-	SkipFCntCheck        bool     `protobuf:"varint,19,opt,name=skipFCntCheck" json:"skipFCntCheck,omitempty"`
+	SkipFCntCheck        bool     `protobuf:"varint,6,opt,name=skip_f_cnt_check,json=skipFCntCheck,proto3" json:"skip_f_cnt_check,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateDeviceRequest) Reset()         { *m = CreateDeviceRequest{} }
-func (m *CreateDeviceRequest) String() string { return proto.CompactTextString(m) }
-func (*CreateDeviceRequest) ProtoMessage()    {}
-func (*CreateDeviceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{1}
+func (m *Device) Reset()         { *m = Device{} }
+func (m *Device) String() string { return proto.CompactTextString(m) }
+func (*Device) ProtoMessage()    {}
+func (*Device) Descriptor() ([]byte, []int) {
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{0}
 }
-func (m *CreateDeviceRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_CreateDeviceRequest.Unmarshal(m, b)
+func (m *Device) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Device.Unmarshal(m, b)
 }
-func (m *CreateDeviceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_CreateDeviceRequest.Marshal(b, m, deterministic)
+func (m *Device) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Device.Marshal(b, m, deterministic)
 }
-func (dst *CreateDeviceRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateDeviceRequest.Merge(dst, src)
+func (dst *Device) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Device.Merge(dst, src)
 }
-func (m *CreateDeviceRequest) XXX_Size() int {
-	return xxx_messageInfo_CreateDeviceRequest.Size(m)
+func (m *Device) XXX_Size() int {
+	return xxx_messageInfo_Device.Size(m)
 }
-func (m *CreateDeviceRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateDeviceRequest.DiscardUnknown(m)
+func (m *Device) XXX_DiscardUnknown() {
+	xxx_messageInfo_Device.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CreateDeviceRequest proto.InternalMessageInfo
+var xxx_messageInfo_Device proto.InternalMessageInfo
 
-func (m *CreateDeviceRequest) GetDevEUI() string {
+func (m *Device) GetDevEui() string {
 	if m != nil {
-		return m.DevEUI
+		return m.DevEui
 	}
 	return ""
 }
 
-func (m *CreateDeviceRequest) GetName() string {
+func (m *Device) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *CreateDeviceRequest) GetApplicationID() int64 {
+func (m *Device) GetApplicationId() int64 {
 	if m != nil {
-		return m.ApplicationID
+		return m.ApplicationId
 	}
 	return 0
 }
 
-func (m *CreateDeviceRequest) GetDescription() string {
+func (m *Device) GetDescription() string {
 	if m != nil {
 		return m.Description
 	}
 	return ""
 }
 
-func (m *CreateDeviceRequest) GetDeviceProfileID() string {
+func (m *Device) GetDeviceProfileId() string {
 	if m != nil {
-		return m.DeviceProfileID
+		return m.DeviceProfileId
 	}
 	return ""
 }
 
-func (m *CreateDeviceRequest) GetSkipFCntCheck() bool {
+func (m *Device) GetSkipFCntCheck() bool {
 	if m != nil {
 		return m.SkipFCntCheck
 	}
 	return false
-}
-
-type CreateDeviceResponse struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *CreateDeviceResponse) Reset()         { *m = CreateDeviceResponse{} }
-func (m *CreateDeviceResponse) String() string { return proto.CompactTextString(m) }
-func (*CreateDeviceResponse) ProtoMessage()    {}
-func (*CreateDeviceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{2}
-}
-func (m *CreateDeviceResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_CreateDeviceResponse.Unmarshal(m, b)
-}
-func (m *CreateDeviceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_CreateDeviceResponse.Marshal(b, m, deterministic)
-}
-func (dst *CreateDeviceResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateDeviceResponse.Merge(dst, src)
-}
-func (m *CreateDeviceResponse) XXX_Size() int {
-	return xxx_messageInfo_CreateDeviceResponse.Size(m)
-}
-func (m *CreateDeviceResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateDeviceResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_CreateDeviceResponse proto.InternalMessageInfo
-
-type GetDeviceRequest struct {
-	// Hex encoded DevEUI of the device.
-	DevEUI               string   `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *GetDeviceRequest) Reset()         { *m = GetDeviceRequest{} }
-func (m *GetDeviceRequest) String() string { return proto.CompactTextString(m) }
-func (*GetDeviceRequest) ProtoMessage()    {}
-func (*GetDeviceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{3}
-}
-func (m *GetDeviceRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GetDeviceRequest.Unmarshal(m, b)
-}
-func (m *GetDeviceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GetDeviceRequest.Marshal(b, m, deterministic)
-}
-func (dst *GetDeviceRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetDeviceRequest.Merge(dst, src)
-}
-func (m *GetDeviceRequest) XXX_Size() int {
-	return xxx_messageInfo_GetDeviceRequest.Size(m)
-}
-func (m *GetDeviceRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetDeviceRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_GetDeviceRequest proto.InternalMessageInfo
-
-func (m *GetDeviceRequest) GetDevEUI() string {
-	if m != nil {
-		return m.DevEUI
-	}
-	return ""
-}
-
-type GetDeviceResponse struct {
-	// Hex encoded DevEUI.
-	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
-	// Name of the device (if left blank, it will be set to the DevEUI).
-	Name string `protobuf:"bytes,9,opt,name=name" json:"name,omitempty"`
-	// ID of the application to which the device must be added.
-	ApplicationID int64 `protobuf:"varint,13,opt,name=applicationID" json:"applicationID,omitempty"`
-	// Description of the device.
-	Description string `protobuf:"bytes,14,opt,name=description" json:"description,omitempty"`
-	// DeviceProfileID attached to the device.
-	DeviceProfileID string `protobuf:"bytes,18,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
-	// The device battery status
-	// 0:      The end-device is connected to an external power source
-	// 1..254: The battery level, 1 being at minimum and 254 being at maximum
-	// 255:    The end-device was not able to measure the battery level
-	// 256:    The device-status is not available.
-	DeviceStatusBattery uint32 `protobuf:"varint,19,opt,name=deviceStatusBattery" json:"deviceStatusBattery,omitempty"`
-	// The device margin status
-	// -32..32: The demodulation SNR ration in dB
-	// 256:     The device-status is not available.
-	DeviceStatusMargin int32 `protobuf:"varint,20,opt,name=deviceStatusMargin" json:"deviceStatusMargin,omitempty"`
-	// The last time the application-server received any data from the device,
-	// or an empty string when the device never sent any data.
-	LastSeenAt string `protobuf:"bytes,21,opt,name=lastSeenAt" json:"lastSeenAt,omitempty"`
-	// Skip frame-counter checks (this is insecure, but could be helpful for debugging).
-	SkipFCntCheck        bool     `protobuf:"varint,22,opt,name=skipFCntCheck" json:"skipFCntCheck,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *GetDeviceResponse) Reset()         { *m = GetDeviceResponse{} }
-func (m *GetDeviceResponse) String() string { return proto.CompactTextString(m) }
-func (*GetDeviceResponse) ProtoMessage()    {}
-func (*GetDeviceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{4}
-}
-func (m *GetDeviceResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GetDeviceResponse.Unmarshal(m, b)
-}
-func (m *GetDeviceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GetDeviceResponse.Marshal(b, m, deterministic)
-}
-func (dst *GetDeviceResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetDeviceResponse.Merge(dst, src)
-}
-func (m *GetDeviceResponse) XXX_Size() int {
-	return xxx_messageInfo_GetDeviceResponse.Size(m)
-}
-func (m *GetDeviceResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetDeviceResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_GetDeviceResponse proto.InternalMessageInfo
-
-func (m *GetDeviceResponse) GetDevEUI() string {
-	if m != nil {
-		return m.DevEUI
-	}
-	return ""
-}
-
-func (m *GetDeviceResponse) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *GetDeviceResponse) GetApplicationID() int64 {
-	if m != nil {
-		return m.ApplicationID
-	}
-	return 0
-}
-
-func (m *GetDeviceResponse) GetDescription() string {
-	if m != nil {
-		return m.Description
-	}
-	return ""
-}
-
-func (m *GetDeviceResponse) GetDeviceProfileID() string {
-	if m != nil {
-		return m.DeviceProfileID
-	}
-	return ""
-}
-
-func (m *GetDeviceResponse) GetDeviceStatusBattery() uint32 {
-	if m != nil {
-		return m.DeviceStatusBattery
-	}
-	return 0
-}
-
-func (m *GetDeviceResponse) GetDeviceStatusMargin() int32 {
-	if m != nil {
-		return m.DeviceStatusMargin
-	}
-	return 0
-}
-
-func (m *GetDeviceResponse) GetLastSeenAt() string {
-	if m != nil {
-		return m.LastSeenAt
-	}
-	return ""
-}
-
-func (m *GetDeviceResponse) GetSkipFCntCheck() bool {
-	if m != nil {
-		return m.SkipFCntCheck
-	}
-	return false
-}
-
-type DeleteDeviceRequest struct {
-	// Hex encoded DevEUI of the device.
-	DevEUI               string   `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *DeleteDeviceRequest) Reset()         { *m = DeleteDeviceRequest{} }
-func (m *DeleteDeviceRequest) String() string { return proto.CompactTextString(m) }
-func (*DeleteDeviceRequest) ProtoMessage()    {}
-func (*DeleteDeviceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{5}
-}
-func (m *DeleteDeviceRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeleteDeviceRequest.Unmarshal(m, b)
-}
-func (m *DeleteDeviceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeleteDeviceRequest.Marshal(b, m, deterministic)
-}
-func (dst *DeleteDeviceRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteDeviceRequest.Merge(dst, src)
-}
-func (m *DeleteDeviceRequest) XXX_Size() int {
-	return xxx_messageInfo_DeleteDeviceRequest.Size(m)
-}
-func (m *DeleteDeviceRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeleteDeviceRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DeleteDeviceRequest proto.InternalMessageInfo
-
-func (m *DeleteDeviceRequest) GetDevEUI() string {
-	if m != nil {
-		return m.DevEUI
-	}
-	return ""
-}
-
-type DeleteDeviceResponse struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *DeleteDeviceResponse) Reset()         { *m = DeleteDeviceResponse{} }
-func (m *DeleteDeviceResponse) String() string { return proto.CompactTextString(m) }
-func (*DeleteDeviceResponse) ProtoMessage()    {}
-func (*DeleteDeviceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{6}
-}
-func (m *DeleteDeviceResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeleteDeviceResponse.Unmarshal(m, b)
-}
-func (m *DeleteDeviceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeleteDeviceResponse.Marshal(b, m, deterministic)
-}
-func (dst *DeleteDeviceResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteDeviceResponse.Merge(dst, src)
-}
-func (m *DeleteDeviceResponse) XXX_Size() int {
-	return xxx_messageInfo_DeleteDeviceResponse.Size(m)
-}
-func (m *DeleteDeviceResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeleteDeviceResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DeleteDeviceResponse proto.InternalMessageInfo
-
-type ListDeviceByApplicationIDRequest struct {
-	// ID of the application for which to list the devices.
-	ApplicationID int64 `protobuf:"varint,3,opt,name=applicationID" json:"applicationID,omitempty"`
-	// Max number of devices to return in the result-set.
-	Limit int64 `protobuf:"varint,1,opt,name=limit" json:"limit,omitempty"`
-	// Offset of the result-set (for pagination).
-	Offset int64 `protobuf:"varint,2,opt,name=offset" json:"offset,omitempty"`
-	// Search against name or DevEUI
-	Search               string   `protobuf:"bytes,4,opt,name=search" json:"search,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ListDeviceByApplicationIDRequest) Reset()         { *m = ListDeviceByApplicationIDRequest{} }
-func (m *ListDeviceByApplicationIDRequest) String() string { return proto.CompactTextString(m) }
-func (*ListDeviceByApplicationIDRequest) ProtoMessage()    {}
-func (*ListDeviceByApplicationIDRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{7}
-}
-func (m *ListDeviceByApplicationIDRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ListDeviceByApplicationIDRequest.Unmarshal(m, b)
-}
-func (m *ListDeviceByApplicationIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ListDeviceByApplicationIDRequest.Marshal(b, m, deterministic)
-}
-func (dst *ListDeviceByApplicationIDRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListDeviceByApplicationIDRequest.Merge(dst, src)
-}
-func (m *ListDeviceByApplicationIDRequest) XXX_Size() int {
-	return xxx_messageInfo_ListDeviceByApplicationIDRequest.Size(m)
-}
-func (m *ListDeviceByApplicationIDRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListDeviceByApplicationIDRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ListDeviceByApplicationIDRequest proto.InternalMessageInfo
-
-func (m *ListDeviceByApplicationIDRequest) GetApplicationID() int64 {
-	if m != nil {
-		return m.ApplicationID
-	}
-	return 0
-}
-
-func (m *ListDeviceByApplicationIDRequest) GetLimit() int64 {
-	if m != nil {
-		return m.Limit
-	}
-	return 0
-}
-
-func (m *ListDeviceByApplicationIDRequest) GetOffset() int64 {
-	if m != nil {
-		return m.Offset
-	}
-	return 0
-}
-
-func (m *ListDeviceByApplicationIDRequest) GetSearch() string {
-	if m != nil {
-		return m.Search
-	}
-	return ""
 }
 
 type DeviceListItem struct {
-	// Hex encoded DevEUI.
-	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
-	// Name of the device (if left blank, it will be set to the DevEUI).
-	Name string `protobuf:"bytes,9,opt,name=name" json:"name,omitempty"`
-	// ID of the application to which the device must be added.
-	ApplicationID int64 `protobuf:"varint,13,opt,name=applicationID" json:"applicationID,omitempty"`
+	// Device EUI (HEX encoded).
+	DevEui string `protobuf:"bytes,1,opt,name=dev_eui,json=devEUI,proto3" json:"dev_eui,omitempty"`
+	// Name of the device.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Application ID.
+	ApplicationId int64 `protobuf:"varint,3,opt,name=application_id,json=applicationID,proto3" json:"application_id,omitempty"`
 	// Description of the device.
-	Description string `protobuf:"bytes,14,opt,name=description" json:"description,omitempty"`
-	// DeviceProfileID attached to the device.
-	DeviceProfileID string `protobuf:"bytes,18,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
+	Description string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	// Device-profile ID attached to the device.
+	DeviceProfileId string `protobuf:"bytes,5,opt,name=device_profile_id,json=deviceProfileID,proto3" json:"device_profile_id,omitempty"`
 	// Device-profile name.
-	DeviceProfileName string `protobuf:"bytes,19,opt,name=deviceProfileName" json:"deviceProfileName,omitempty"`
+	DeviceProfileName string `protobuf:"bytes,6,opt,name=device_profile_name,json=deviceProfileName,proto3" json:"device_profile_name,omitempty"`
 	// The device battery status
 	// 0:      The end-device is connected to an external power source
 	// 1..254: The battery level, 1 being at minimum and 254 being at maximum
 	// 255:    The end-device was not able to measure the battery level
 	// 256:    The device-status is not available.
-	DeviceStatusBattery uint32 `protobuf:"varint,20,opt,name=deviceStatusBattery" json:"deviceStatusBattery,omitempty"`
+	DeviceStatusBattery uint32 `protobuf:"varint,7,opt,name=device_status_battery,json=deviceStatusBattery,proto3" json:"device_status_battery,omitempty"`
 	// The device margin status
 	// -32..32: The demodulation SNR ration in dB
 	// 256:     The device-status is not available.
-	DeviceStatusMargin int32 `protobuf:"varint,21,opt,name=deviceStatusMargin" json:"deviceStatusMargin,omitempty"`
+	DeviceStatusMargin int32 `protobuf:"varint,8,opt,name=device_status_margin,json=deviceStatusMargin,proto3" json:"device_status_margin,omitempty"`
 	// The last time the application-server received any data from the device,
 	// or an empty string when the device never sent any data.
-	LastSeenAt           string   `protobuf:"bytes,22,opt,name=lastSeenAt" json:"lastSeenAt,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	LastSeenAt           *timestamp.Timestamp `protobuf:"bytes,9,opt,name=last_seen_at,json=lastSeenAt,proto3" json:"last_seen_at,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
 }
 
 func (m *DeviceListItem) Reset()         { *m = DeviceListItem{} }
 func (m *DeviceListItem) String() string { return proto.CompactTextString(m) }
 func (*DeviceListItem) ProtoMessage()    {}
 func (*DeviceListItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{8}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{1}
 }
 func (m *DeviceListItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeviceListItem.Unmarshal(m, b)
@@ -535,9 +165,9 @@ func (m *DeviceListItem) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DeviceListItem proto.InternalMessageInfo
 
-func (m *DeviceListItem) GetDevEUI() string {
+func (m *DeviceListItem) GetDevEui() string {
 	if m != nil {
-		return m.DevEUI
+		return m.DevEui
 	}
 	return ""
 }
@@ -549,9 +179,9 @@ func (m *DeviceListItem) GetName() string {
 	return ""
 }
 
-func (m *DeviceListItem) GetApplicationID() int64 {
+func (m *DeviceListItem) GetApplicationId() int64 {
 	if m != nil {
-		return m.ApplicationID
+		return m.ApplicationId
 	}
 	return 0
 }
@@ -563,9 +193,9 @@ func (m *DeviceListItem) GetDescription() string {
 	return ""
 }
 
-func (m *DeviceListItem) GetDeviceProfileID() string {
+func (m *DeviceListItem) GetDeviceProfileId() string {
 	if m != nil {
-		return m.DeviceProfileID
+		return m.DeviceProfileId
 	}
 	return ""
 }
@@ -591,18 +221,332 @@ func (m *DeviceListItem) GetDeviceStatusMargin() int32 {
 	return 0
 }
 
-func (m *DeviceListItem) GetLastSeenAt() string {
+func (m *DeviceListItem) GetLastSeenAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.LastSeenAt
+	}
+	return nil
+}
+
+type DeviceKeys struct {
+	// Device EUI (HEX encoded).
+	DevEui string `protobuf:"bytes,1,opt,name=dev_eui,json=devEUI,proto3" json:"dev_eui,omitempty"`
+	// Network root key (HEX encoded).
+	// Note: For LoRaWAN 1.0.x, use this field for the LoRaWAN 1.0.x 'AppKey`!
+	NwkKey string `protobuf:"bytes,2,opt,name=nwk_key,json=nwkKey,proto3" json:"nwk_key,omitempty"`
+	// Application root key (HEX encoded).
+	// Note: This field only needs to be set for LoRaWAN 1.1.x devices!
+	AppKey               string   `protobuf:"bytes,3,opt,name=app_key,json=appKey,proto3" json:"app_key,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeviceKeys) Reset()         { *m = DeviceKeys{} }
+func (m *DeviceKeys) String() string { return proto.CompactTextString(m) }
+func (*DeviceKeys) ProtoMessage()    {}
+func (*DeviceKeys) Descriptor() ([]byte, []int) {
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{2}
+}
+func (m *DeviceKeys) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeviceKeys.Unmarshal(m, b)
+}
+func (m *DeviceKeys) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeviceKeys.Marshal(b, m, deterministic)
+}
+func (dst *DeviceKeys) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeviceKeys.Merge(dst, src)
+}
+func (m *DeviceKeys) XXX_Size() int {
+	return xxx_messageInfo_DeviceKeys.Size(m)
+}
+func (m *DeviceKeys) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeviceKeys.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeviceKeys proto.InternalMessageInfo
+
+func (m *DeviceKeys) GetDevEui() string {
+	if m != nil {
+		return m.DevEui
+	}
+	return ""
+}
+
+func (m *DeviceKeys) GetNwkKey() string {
+	if m != nil {
+		return m.NwkKey
+	}
+	return ""
+}
+
+func (m *DeviceKeys) GetAppKey() string {
+	if m != nil {
+		return m.AppKey
+	}
+	return ""
+}
+
+type CreateDeviceRequest struct {
+	// Device object to create.
+	Device               *Device  `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateDeviceRequest) Reset()         { *m = CreateDeviceRequest{} }
+func (m *CreateDeviceRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateDeviceRequest) ProtoMessage()    {}
+func (*CreateDeviceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{3}
+}
+func (m *CreateDeviceRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateDeviceRequest.Unmarshal(m, b)
+}
+func (m *CreateDeviceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateDeviceRequest.Marshal(b, m, deterministic)
+}
+func (dst *CreateDeviceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateDeviceRequest.Merge(dst, src)
+}
+func (m *CreateDeviceRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateDeviceRequest.Size(m)
+}
+func (m *CreateDeviceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateDeviceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateDeviceRequest proto.InternalMessageInfo
+
+func (m *CreateDeviceRequest) GetDevice() *Device {
+	if m != nil {
+		return m.Device
+	}
+	return nil
+}
+
+type GetDeviceRequest struct {
+	// Device EUI (HEX encoded).
+	DevEui               string   `protobuf:"bytes,1,opt,name=dev_eui,json=devEUI,proto3" json:"dev_eui,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetDeviceRequest) Reset()         { *m = GetDeviceRequest{} }
+func (m *GetDeviceRequest) String() string { return proto.CompactTextString(m) }
+func (*GetDeviceRequest) ProtoMessage()    {}
+func (*GetDeviceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{4}
+}
+func (m *GetDeviceRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetDeviceRequest.Unmarshal(m, b)
+}
+func (m *GetDeviceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetDeviceRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetDeviceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetDeviceRequest.Merge(dst, src)
+}
+func (m *GetDeviceRequest) XXX_Size() int {
+	return xxx_messageInfo_GetDeviceRequest.Size(m)
+}
+func (m *GetDeviceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetDeviceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetDeviceRequest proto.InternalMessageInfo
+
+func (m *GetDeviceRequest) GetDevEui() string {
+	if m != nil {
+		return m.DevEui
+	}
+	return ""
+}
+
+type GetDeviceResponse struct {
+	// Device object.
+	Device *Device `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
+	// Last seen timestamp.
+	LastSeenAt *timestamp.Timestamp `protobuf:"bytes,5,opt,name=last_seen_at,json=lastSeenAt,proto3" json:"last_seen_at,omitempty"`
+	// The device battery status
+	// 0:      The end-device is connected to an external power source
+	// 1..254: The battery level, 1 being at minimum and 254 being at maximum
+	// 255:    The end-device was not able to measure the battery level
+	// 256:    The device-status is not available.
+	DeviceStatusBattery uint32 `protobuf:"varint,6,opt,name=device_status_battery,json=deviceStatusBattery,proto3" json:"device_status_battery,omitempty"`
+	// The device margin status
+	// -32..32: The demodulation SNR ration in dB
+	// 256:     The device-status is not available.
+	DeviceStatusMargin   int32    `protobuf:"varint,20,opt,name=device_status_margin,json=deviceStatusMargin,proto3" json:"device_status_margin,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetDeviceResponse) Reset()         { *m = GetDeviceResponse{} }
+func (m *GetDeviceResponse) String() string { return proto.CompactTextString(m) }
+func (*GetDeviceResponse) ProtoMessage()    {}
+func (*GetDeviceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{5}
+}
+func (m *GetDeviceResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetDeviceResponse.Unmarshal(m, b)
+}
+func (m *GetDeviceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetDeviceResponse.Marshal(b, m, deterministic)
+}
+func (dst *GetDeviceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetDeviceResponse.Merge(dst, src)
+}
+func (m *GetDeviceResponse) XXX_Size() int {
+	return xxx_messageInfo_GetDeviceResponse.Size(m)
+}
+func (m *GetDeviceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetDeviceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetDeviceResponse proto.InternalMessageInfo
+
+func (m *GetDeviceResponse) GetDevice() *Device {
+	if m != nil {
+		return m.Device
+	}
+	return nil
+}
+
+func (m *GetDeviceResponse) GetLastSeenAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.LastSeenAt
+	}
+	return nil
+}
+
+func (m *GetDeviceResponse) GetDeviceStatusBattery() uint32 {
+	if m != nil {
+		return m.DeviceStatusBattery
+	}
+	return 0
+}
+
+func (m *GetDeviceResponse) GetDeviceStatusMargin() int32 {
+	if m != nil {
+		return m.DeviceStatusMargin
+	}
+	return 0
+}
+
+type DeleteDeviceRequest struct {
+	// Device EUI (HEX encoded).
+	DevEui               string   `protobuf:"bytes,1,opt,name=dev_eui,json=devEUI,proto3" json:"dev_eui,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteDeviceRequest) Reset()         { *m = DeleteDeviceRequest{} }
+func (m *DeleteDeviceRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteDeviceRequest) ProtoMessage()    {}
+func (*DeleteDeviceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{6}
+}
+func (m *DeleteDeviceRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteDeviceRequest.Unmarshal(m, b)
+}
+func (m *DeleteDeviceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteDeviceRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteDeviceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteDeviceRequest.Merge(dst, src)
+}
+func (m *DeleteDeviceRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteDeviceRequest.Size(m)
+}
+func (m *DeleteDeviceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteDeviceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteDeviceRequest proto.InternalMessageInfo
+
+func (m *DeleteDeviceRequest) GetDevEui() string {
+	if m != nil {
+		return m.DevEui
+	}
+	return ""
+}
+
+type ListDeviceByApplicationIDRequest struct {
+	// ID of the application for which to list the devices.
+	ApplicationId int64 `protobuf:"varint,3,opt,name=application_id,json=applicationID,proto3" json:"application_id,omitempty"`
+	// Max number of devices to return in the result-set.
+	Limit int64 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	// Offset of the result-set (for pagination).
+	Offset int64 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	// Search against name or DevEUI
+	Search               string   `protobuf:"bytes,4,opt,name=search,proto3" json:"search,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ListDeviceByApplicationIDRequest) Reset()         { *m = ListDeviceByApplicationIDRequest{} }
+func (m *ListDeviceByApplicationIDRequest) String() string { return proto.CompactTextString(m) }
+func (*ListDeviceByApplicationIDRequest) ProtoMessage()    {}
+func (*ListDeviceByApplicationIDRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{7}
+}
+func (m *ListDeviceByApplicationIDRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListDeviceByApplicationIDRequest.Unmarshal(m, b)
+}
+func (m *ListDeviceByApplicationIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListDeviceByApplicationIDRequest.Marshal(b, m, deterministic)
+}
+func (dst *ListDeviceByApplicationIDRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListDeviceByApplicationIDRequest.Merge(dst, src)
+}
+func (m *ListDeviceByApplicationIDRequest) XXX_Size() int {
+	return xxx_messageInfo_ListDeviceByApplicationIDRequest.Size(m)
+}
+func (m *ListDeviceByApplicationIDRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListDeviceByApplicationIDRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListDeviceByApplicationIDRequest proto.InternalMessageInfo
+
+func (m *ListDeviceByApplicationIDRequest) GetApplicationId() int64 {
+	if m != nil {
+		return m.ApplicationId
+	}
+	return 0
+}
+
+func (m *ListDeviceByApplicationIDRequest) GetLimit() int64 {
+	if m != nil {
+		return m.Limit
+	}
+	return 0
+}
+
+func (m *ListDeviceByApplicationIDRequest) GetOffset() int64 {
+	if m != nil {
+		return m.Offset
+	}
+	return 0
+}
+
+func (m *ListDeviceByApplicationIDRequest) GetSearch() string {
+	if m != nil {
+		return m.Search
 	}
 	return ""
 }
 
 type ListDeviceResponse struct {
 	// Total number of devices available within the result-set.
-	TotalCount int64 `protobuf:"varint,1,opt,name=totalCount" json:"totalCount,omitempty"`
+	TotalCount int64 `protobuf:"varint,1,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
 	// Devices within this result-set.
-	Result               []*DeviceListItem `protobuf:"bytes,2,rep,name=result" json:"result,omitempty"`
+	Result               []*DeviceListItem `protobuf:"bytes,2,rep,name=result,proto3" json:"result,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
 	XXX_sizecache        int32             `json:"-"`
@@ -612,7 +556,7 @@ func (m *ListDeviceResponse) Reset()         { *m = ListDeviceResponse{} }
 func (m *ListDeviceResponse) String() string { return proto.CompactTextString(m) }
 func (*ListDeviceResponse) ProtoMessage()    {}
 func (*ListDeviceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{9}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{8}
 }
 func (m *ListDeviceResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListDeviceResponse.Unmarshal(m, b)
@@ -647,18 +591,8 @@ func (m *ListDeviceResponse) GetResult() []*DeviceListItem {
 }
 
 type UpdateDeviceRequest struct {
-	// Hex encoded DevEUI.
-	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
-	// Name of the device (if left blank, it will be set to the DevEUI).
-	Name string `protobuf:"bytes,9,opt,name=name" json:"name,omitempty"`
-	// ID of the application to which the device must be added.
-	ApplicationID int64 `protobuf:"varint,13,opt,name=applicationID" json:"applicationID,omitempty"`
-	// Description of the device.
-	Description string `protobuf:"bytes,14,opt,name=description" json:"description,omitempty"`
-	// DeviceProfileID attached to the device.
-	DeviceProfileID string `protobuf:"bytes,18,opt,name=deviceProfileID" json:"deviceProfileID,omitempty"`
-	// Skip frame-counter checks (this is insecure, but could be helpful for debugging).
-	SkipFCntCheck        bool     `protobuf:"varint,19,opt,name=skipFCntCheck" json:"skipFCntCheck,omitempty"`
+	// Device object to update.
+	Device               *Device  `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -668,7 +602,7 @@ func (m *UpdateDeviceRequest) Reset()         { *m = UpdateDeviceRequest{} }
 func (m *UpdateDeviceRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateDeviceRequest) ProtoMessage()    {}
 func (*UpdateDeviceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{10}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{9}
 }
 func (m *UpdateDeviceRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateDeviceRequest.Unmarshal(m, b)
@@ -688,82 +622,16 @@ func (m *UpdateDeviceRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateDeviceRequest proto.InternalMessageInfo
 
-func (m *UpdateDeviceRequest) GetDevEUI() string {
+func (m *UpdateDeviceRequest) GetDevice() *Device {
 	if m != nil {
-		return m.DevEUI
+		return m.Device
 	}
-	return ""
+	return nil
 }
-
-func (m *UpdateDeviceRequest) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *UpdateDeviceRequest) GetApplicationID() int64 {
-	if m != nil {
-		return m.ApplicationID
-	}
-	return 0
-}
-
-func (m *UpdateDeviceRequest) GetDescription() string {
-	if m != nil {
-		return m.Description
-	}
-	return ""
-}
-
-func (m *UpdateDeviceRequest) GetDeviceProfileID() string {
-	if m != nil {
-		return m.DeviceProfileID
-	}
-	return ""
-}
-
-func (m *UpdateDeviceRequest) GetSkipFCntCheck() bool {
-	if m != nil {
-		return m.SkipFCntCheck
-	}
-	return false
-}
-
-type UpdateDeviceResponse struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpdateDeviceResponse) Reset()         { *m = UpdateDeviceResponse{} }
-func (m *UpdateDeviceResponse) String() string { return proto.CompactTextString(m) }
-func (*UpdateDeviceResponse) ProtoMessage()    {}
-func (*UpdateDeviceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{11}
-}
-func (m *UpdateDeviceResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateDeviceResponse.Unmarshal(m, b)
-}
-func (m *UpdateDeviceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateDeviceResponse.Marshal(b, m, deterministic)
-}
-func (dst *UpdateDeviceResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateDeviceResponse.Merge(dst, src)
-}
-func (m *UpdateDeviceResponse) XXX_Size() int {
-	return xxx_messageInfo_UpdateDeviceResponse.Size(m)
-}
-func (m *UpdateDeviceResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateDeviceResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateDeviceResponse proto.InternalMessageInfo
 
 type CreateDeviceKeysRequest struct {
-	// Hex encoded DevEUI of the device.
-	DevEUI               string      `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
-	DeviceKeys           *DeviceKeys `protobuf:"bytes,2,opt,name=deviceKeys" json:"deviceKeys,omitempty"`
+	// Device-keys object to create.
+	DeviceKeys           *DeviceKeys `protobuf:"bytes,1,opt,name=device_keys,json=deviceKeys,proto3" json:"device_keys,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
@@ -773,7 +641,7 @@ func (m *CreateDeviceKeysRequest) Reset()         { *m = CreateDeviceKeysRequest
 func (m *CreateDeviceKeysRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateDeviceKeysRequest) ProtoMessage()    {}
 func (*CreateDeviceKeysRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{12}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{10}
 }
 func (m *CreateDeviceKeysRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateDeviceKeysRequest.Unmarshal(m, b)
@@ -793,13 +661,6 @@ func (m *CreateDeviceKeysRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateDeviceKeysRequest proto.InternalMessageInfo
 
-func (m *CreateDeviceKeysRequest) GetDevEUI() string {
-	if m != nil {
-		return m.DevEUI
-	}
-	return ""
-}
-
 func (m *CreateDeviceKeysRequest) GetDeviceKeys() *DeviceKeys {
 	if m != nil {
 		return m.DeviceKeys
@@ -807,39 +668,9 @@ func (m *CreateDeviceKeysRequest) GetDeviceKeys() *DeviceKeys {
 	return nil
 }
 
-type CreateDeviceKeysResponse struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *CreateDeviceKeysResponse) Reset()         { *m = CreateDeviceKeysResponse{} }
-func (m *CreateDeviceKeysResponse) String() string { return proto.CompactTextString(m) }
-func (*CreateDeviceKeysResponse) ProtoMessage()    {}
-func (*CreateDeviceKeysResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{13}
-}
-func (m *CreateDeviceKeysResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_CreateDeviceKeysResponse.Unmarshal(m, b)
-}
-func (m *CreateDeviceKeysResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_CreateDeviceKeysResponse.Marshal(b, m, deterministic)
-}
-func (dst *CreateDeviceKeysResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateDeviceKeysResponse.Merge(dst, src)
-}
-func (m *CreateDeviceKeysResponse) XXX_Size() int {
-	return xxx_messageInfo_CreateDeviceKeysResponse.Size(m)
-}
-func (m *CreateDeviceKeysResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateDeviceKeysResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_CreateDeviceKeysResponse proto.InternalMessageInfo
-
 type GetDeviceKeysRequest struct {
-	// Hex encoded DevEUI of the device.
-	DevEUI               string   `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+	// Device EUI (HEX encoded).
+	DevEui               string   `protobuf:"bytes,1,opt,name=dev_eui,json=devEUI,proto3" json:"dev_eui,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -849,7 +680,7 @@ func (m *GetDeviceKeysRequest) Reset()         { *m = GetDeviceKeysRequest{} }
 func (m *GetDeviceKeysRequest) String() string { return proto.CompactTextString(m) }
 func (*GetDeviceKeysRequest) ProtoMessage()    {}
 func (*GetDeviceKeysRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{14}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{11}
 }
 func (m *GetDeviceKeysRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetDeviceKeysRequest.Unmarshal(m, b)
@@ -869,15 +700,16 @@ func (m *GetDeviceKeysRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetDeviceKeysRequest proto.InternalMessageInfo
 
-func (m *GetDeviceKeysRequest) GetDevEUI() string {
+func (m *GetDeviceKeysRequest) GetDevEui() string {
 	if m != nil {
-		return m.DevEUI
+		return m.DevEui
 	}
 	return ""
 }
 
 type GetDeviceKeysResponse struct {
-	DeviceKeys           *DeviceKeys `protobuf:"bytes,1,opt,name=deviceKeys" json:"deviceKeys,omitempty"`
+	// Device-key object.
+	DeviceKeys           *DeviceKeys `protobuf:"bytes,1,opt,name=device_keys,json=deviceKeys,proto3" json:"device_keys,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
@@ -887,7 +719,7 @@ func (m *GetDeviceKeysResponse) Reset()         { *m = GetDeviceKeysResponse{} }
 func (m *GetDeviceKeysResponse) String() string { return proto.CompactTextString(m) }
 func (*GetDeviceKeysResponse) ProtoMessage()    {}
 func (*GetDeviceKeysResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{15}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{12}
 }
 func (m *GetDeviceKeysResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetDeviceKeysResponse.Unmarshal(m, b)
@@ -915,9 +747,8 @@ func (m *GetDeviceKeysResponse) GetDeviceKeys() *DeviceKeys {
 }
 
 type UpdateDeviceKeysRequest struct {
-	// Hex encoded DevEUI of the device.
-	DevEUI               string      `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
-	DeviceKeys           *DeviceKeys `protobuf:"bytes,2,opt,name=deviceKeys" json:"deviceKeys,omitempty"`
+	// Device-keys object to update.
+	DeviceKeys           *DeviceKeys `protobuf:"bytes,1,opt,name=device_keys,json=deviceKeys,proto3" json:"device_keys,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
@@ -927,7 +758,7 @@ func (m *UpdateDeviceKeysRequest) Reset()         { *m = UpdateDeviceKeysRequest
 func (m *UpdateDeviceKeysRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateDeviceKeysRequest) ProtoMessage()    {}
 func (*UpdateDeviceKeysRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{16}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{13}
 }
 func (m *UpdateDeviceKeysRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateDeviceKeysRequest.Unmarshal(m, b)
@@ -947,13 +778,6 @@ func (m *UpdateDeviceKeysRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateDeviceKeysRequest proto.InternalMessageInfo
 
-func (m *UpdateDeviceKeysRequest) GetDevEUI() string {
-	if m != nil {
-		return m.DevEUI
-	}
-	return ""
-}
-
 func (m *UpdateDeviceKeysRequest) GetDeviceKeys() *DeviceKeys {
 	if m != nil {
 		return m.DeviceKeys
@@ -961,39 +785,9 @@ func (m *UpdateDeviceKeysRequest) GetDeviceKeys() *DeviceKeys {
 	return nil
 }
 
-type UpdateDeviceKeysResponse struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpdateDeviceKeysResponse) Reset()         { *m = UpdateDeviceKeysResponse{} }
-func (m *UpdateDeviceKeysResponse) String() string { return proto.CompactTextString(m) }
-func (*UpdateDeviceKeysResponse) ProtoMessage()    {}
-func (*UpdateDeviceKeysResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{17}
-}
-func (m *UpdateDeviceKeysResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateDeviceKeysResponse.Unmarshal(m, b)
-}
-func (m *UpdateDeviceKeysResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateDeviceKeysResponse.Marshal(b, m, deterministic)
-}
-func (dst *UpdateDeviceKeysResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateDeviceKeysResponse.Merge(dst, src)
-}
-func (m *UpdateDeviceKeysResponse) XXX_Size() int {
-	return xxx_messageInfo_UpdateDeviceKeysResponse.Size(m)
-}
-func (m *UpdateDeviceKeysResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateDeviceKeysResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateDeviceKeysResponse proto.InternalMessageInfo
-
 type DeleteDeviceKeysRequest struct {
-	// Hex encoded DevEUI of the device.
-	DevEUI               string   `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+	// Device EUI (HEX encoded).
+	DevEui               string   `protobuf:"bytes,1,opt,name=dev_eui,json=devEUI,proto3" json:"dev_eui,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1003,7 +797,7 @@ func (m *DeleteDeviceKeysRequest) Reset()         { *m = DeleteDeviceKeysRequest
 func (m *DeleteDeviceKeysRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteDeviceKeysRequest) ProtoMessage()    {}
 func (*DeleteDeviceKeysRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{18}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{14}
 }
 func (m *DeleteDeviceKeysRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteDeviceKeysRequest.Unmarshal(m, b)
@@ -1023,75 +817,136 @@ func (m *DeleteDeviceKeysRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DeleteDeviceKeysRequest proto.InternalMessageInfo
 
-func (m *DeleteDeviceKeysRequest) GetDevEUI() string {
+func (m *DeleteDeviceKeysRequest) GetDevEui() string {
 	if m != nil {
-		return m.DevEUI
+		return m.DevEui
 	}
 	return ""
 }
 
-type DeleteDeviceKeysResponse struct {
+type DeviceActivation struct {
+	// Device EUI (HEX encoded).
+	DevEui string `protobuf:"bytes,1,opt,name=dev_eui,json=devEUI,proto3" json:"dev_eui,omitempty"`
+	// Device address (HEX encoded).
+	DevAddr string `protobuf:"bytes,2,opt,name=dev_addr,json=devAddr,proto3" json:"dev_addr,omitempty"`
+	// Application session key (HEX encoded).
+	AppSKey string `protobuf:"bytes,3,opt,name=app_s_key,json=appSKey,proto3" json:"app_s_key,omitempty"`
+	// Network session encryption key (HEX encoded).
+	NwkSEncKey string `protobuf:"bytes,4,opt,name=nwk_s_enc_key,json=nwkSEncKey,proto3" json:"nwk_s_enc_key,omitempty"`
+	// Serving network session integrity key (HEX encoded).
+	SNwkSIntKey string `protobuf:"bytes,8,opt,name=s_nwk_s_int_key,json=sNwkSIntKey,proto3" json:"s_nwk_s_int_key,omitempty"`
+	// Forwarding network session integrity key (HEX encoded).
+	FNwkSIntKey string `protobuf:"bytes,9,opt,name=f_nwk_s_int_key,json=fNwkSIntKey,proto3" json:"f_nwk_s_int_key,omitempty"`
+	// Uplink frame-counter.
+	FCntUp uint32 `protobuf:"varint,5,opt,name=f_cnt_up,json=fCntUp,proto3" json:"f_cnt_up,omitempty"`
+	// Downlink network frame-counter.
+	NFCntDown uint32 `protobuf:"varint,6,opt,name=n_f_cnt_down,json=nFCntDown,proto3" json:"n_f_cnt_down,omitempty"`
+	// Downlink application frame-counter.
+	AFCntDown            uint32   `protobuf:"varint,10,opt,name=a_f_cnt_down,json=aFCntDown,proto3" json:"a_f_cnt_down,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteDeviceKeysResponse) Reset()         { *m = DeleteDeviceKeysResponse{} }
-func (m *DeleteDeviceKeysResponse) String() string { return proto.CompactTextString(m) }
-func (*DeleteDeviceKeysResponse) ProtoMessage()    {}
-func (*DeleteDeviceKeysResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{19}
+func (m *DeviceActivation) Reset()         { *m = DeviceActivation{} }
+func (m *DeviceActivation) String() string { return proto.CompactTextString(m) }
+func (*DeviceActivation) ProtoMessage()    {}
+func (*DeviceActivation) Descriptor() ([]byte, []int) {
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{15}
 }
-func (m *DeleteDeviceKeysResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeleteDeviceKeysResponse.Unmarshal(m, b)
+func (m *DeviceActivation) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeviceActivation.Unmarshal(m, b)
 }
-func (m *DeleteDeviceKeysResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeleteDeviceKeysResponse.Marshal(b, m, deterministic)
+func (m *DeviceActivation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeviceActivation.Marshal(b, m, deterministic)
 }
-func (dst *DeleteDeviceKeysResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteDeviceKeysResponse.Merge(dst, src)
+func (dst *DeviceActivation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeviceActivation.Merge(dst, src)
 }
-func (m *DeleteDeviceKeysResponse) XXX_Size() int {
-	return xxx_messageInfo_DeleteDeviceKeysResponse.Size(m)
+func (m *DeviceActivation) XXX_Size() int {
+	return xxx_messageInfo_DeviceActivation.Size(m)
 }
-func (m *DeleteDeviceKeysResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeleteDeviceKeysResponse.DiscardUnknown(m)
+func (m *DeviceActivation) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeviceActivation.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DeleteDeviceKeysResponse proto.InternalMessageInfo
+var xxx_messageInfo_DeviceActivation proto.InternalMessageInfo
+
+func (m *DeviceActivation) GetDevEui() string {
+	if m != nil {
+		return m.DevEui
+	}
+	return ""
+}
+
+func (m *DeviceActivation) GetDevAddr() string {
+	if m != nil {
+		return m.DevAddr
+	}
+	return ""
+}
+
+func (m *DeviceActivation) GetAppSKey() string {
+	if m != nil {
+		return m.AppSKey
+	}
+	return ""
+}
+
+func (m *DeviceActivation) GetNwkSEncKey() string {
+	if m != nil {
+		return m.NwkSEncKey
+	}
+	return ""
+}
+
+func (m *DeviceActivation) GetSNwkSIntKey() string {
+	if m != nil {
+		return m.SNwkSIntKey
+	}
+	return ""
+}
+
+func (m *DeviceActivation) GetFNwkSIntKey() string {
+	if m != nil {
+		return m.FNwkSIntKey
+	}
+	return ""
+}
+
+func (m *DeviceActivation) GetFCntUp() uint32 {
+	if m != nil {
+		return m.FCntUp
+	}
+	return 0
+}
+
+func (m *DeviceActivation) GetNFCntDown() uint32 {
+	if m != nil {
+		return m.NFCntDown
+	}
+	return 0
+}
+
+func (m *DeviceActivation) GetAFCntDown() uint32 {
+	if m != nil {
+		return m.AFCntDown
+	}
+	return 0
+}
 
 type ActivateDeviceRequest struct {
-	// Hex encoded DevEUI of the device to activate.
-	DevEUI string `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
-	// Hex encoded DevAddr.
-	DevAddr string `protobuf:"bytes,2,opt,name=devAddr" json:"devAddr,omitempty"`
-	// Hex encoded application session key.
-	AppSKey string `protobuf:"bytes,3,opt,name=appSKey" json:"appSKey,omitempty"`
-	// Hex encoded network session encryption key.
-	NwkSEncKey string `protobuf:"bytes,4,opt,name=nwkSEncKey" json:"nwkSEncKey,omitempty"`
-	// Hex encoded serving network session integrity key.
-	SNwkSIntKey string `protobuf:"bytes,8,opt,name=sNwkSIntKey" json:"sNwkSIntKey,omitempty"`
-	// Hex encoded forwarding network session integrity key.
-	FNwkSIntKey string `protobuf:"bytes,9,opt,name=fNwkSIntKey" json:"fNwkSIntKey,omitempty"`
-	// Uplink frame-counter.
-	FCntUp uint32 `protobuf:"varint,5,opt,name=fCntUp" json:"fCntUp,omitempty"`
-	// Downlink network frame-counter.
-	NFCntDown uint32 `protobuf:"varint,6,opt,name=nFCntDown" json:"nFCntDown,omitempty"`
-	// Downlink application frame-counter.
-	AFCntDown uint32 `protobuf:"varint,10,opt,name=aFCntDown" json:"aFCntDown,omitempty"`
-	// Skip frame-counter checks (this is insecure, but could be helpful for debugging).
-	// Deprecated! Use the skipFCntCheck flag on the device object itself.
-	SkipFCntCheck        bool     `protobuf:"varint,7,opt,name=skipFCntCheck" json:"skipFCntCheck,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	DeviceActivation     *DeviceActivation `protobuf:"bytes,1,opt,name=device_activation,json=deviceActivation,proto3" json:"device_activation,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *ActivateDeviceRequest) Reset()         { *m = ActivateDeviceRequest{} }
 func (m *ActivateDeviceRequest) String() string { return proto.CompactTextString(m) }
 func (*ActivateDeviceRequest) ProtoMessage()    {}
 func (*ActivateDeviceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{20}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{16}
 }
 func (m *ActivateDeviceRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ActivateDeviceRequest.Unmarshal(m, b)
@@ -1111,109 +966,16 @@ func (m *ActivateDeviceRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ActivateDeviceRequest proto.InternalMessageInfo
 
-func (m *ActivateDeviceRequest) GetDevEUI() string {
+func (m *ActivateDeviceRequest) GetDeviceActivation() *DeviceActivation {
 	if m != nil {
-		return m.DevEUI
+		return m.DeviceActivation
 	}
-	return ""
+	return nil
 }
-
-func (m *ActivateDeviceRequest) GetDevAddr() string {
-	if m != nil {
-		return m.DevAddr
-	}
-	return ""
-}
-
-func (m *ActivateDeviceRequest) GetAppSKey() string {
-	if m != nil {
-		return m.AppSKey
-	}
-	return ""
-}
-
-func (m *ActivateDeviceRequest) GetNwkSEncKey() string {
-	if m != nil {
-		return m.NwkSEncKey
-	}
-	return ""
-}
-
-func (m *ActivateDeviceRequest) GetSNwkSIntKey() string {
-	if m != nil {
-		return m.SNwkSIntKey
-	}
-	return ""
-}
-
-func (m *ActivateDeviceRequest) GetFNwkSIntKey() string {
-	if m != nil {
-		return m.FNwkSIntKey
-	}
-	return ""
-}
-
-func (m *ActivateDeviceRequest) GetFCntUp() uint32 {
-	if m != nil {
-		return m.FCntUp
-	}
-	return 0
-}
-
-func (m *ActivateDeviceRequest) GetNFCntDown() uint32 {
-	if m != nil {
-		return m.NFCntDown
-	}
-	return 0
-}
-
-func (m *ActivateDeviceRequest) GetAFCntDown() uint32 {
-	if m != nil {
-		return m.AFCntDown
-	}
-	return 0
-}
-
-func (m *ActivateDeviceRequest) GetSkipFCntCheck() bool {
-	if m != nil {
-		return m.SkipFCntCheck
-	}
-	return false
-}
-
-type ActivateDeviceResponse struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ActivateDeviceResponse) Reset()         { *m = ActivateDeviceResponse{} }
-func (m *ActivateDeviceResponse) String() string { return proto.CompactTextString(m) }
-func (*ActivateDeviceResponse) ProtoMessage()    {}
-func (*ActivateDeviceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{21}
-}
-func (m *ActivateDeviceResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ActivateDeviceResponse.Unmarshal(m, b)
-}
-func (m *ActivateDeviceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ActivateDeviceResponse.Marshal(b, m, deterministic)
-}
-func (dst *ActivateDeviceResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ActivateDeviceResponse.Merge(dst, src)
-}
-func (m *ActivateDeviceResponse) XXX_Size() int {
-	return xxx_messageInfo_ActivateDeviceResponse.Size(m)
-}
-func (m *ActivateDeviceResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_ActivateDeviceResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ActivateDeviceResponse proto.InternalMessageInfo
 
 type GetDeviceActivationRequest struct {
-	// Hex encoded DevEUI of the device.
-	DevEUI               string   `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+	// Device EUI (HEX encoded).
+	DevEui               string   `protobuf:"bytes,1,opt,name=dev_eui,json=devEUI,proto3" json:"dev_eui,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1223,7 +985,7 @@ func (m *GetDeviceActivationRequest) Reset()         { *m = GetDeviceActivationR
 func (m *GetDeviceActivationRequest) String() string { return proto.CompactTextString(m) }
 func (*GetDeviceActivationRequest) ProtoMessage()    {}
 func (*GetDeviceActivationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{22}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{17}
 }
 func (m *GetDeviceActivationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetDeviceActivationRequest.Unmarshal(m, b)
@@ -1243,42 +1005,26 @@ func (m *GetDeviceActivationRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetDeviceActivationRequest proto.InternalMessageInfo
 
-func (m *GetDeviceActivationRequest) GetDevEUI() string {
+func (m *GetDeviceActivationRequest) GetDevEui() string {
 	if m != nil {
-		return m.DevEUI
+		return m.DevEui
 	}
 	return ""
 }
 
 type GetDeviceActivationResponse struct {
-	// Hex encoded DevAddr.
-	DevAddr string `protobuf:"bytes,1,opt,name=devAddr" json:"devAddr,omitempty"`
-	// Hex encoded application session key.
-	AppSKey string `protobuf:"bytes,2,opt,name=appSKey" json:"appSKey,omitempty"`
-	// Hex encoded network session encryption key.
-	NwkSEncKey string `protobuf:"bytes,3,opt,name=nwkSEncKey" json:"nwkSEncKey,omitempty"`
-	// Hex encoded serving network session integrity key.
-	SNwkSIntKey string `protobuf:"bytes,7,opt,name=sNwkSIntKey" json:"sNwkSIntKey,omitempty"`
-	// Hex encoded forwarding network session integrity key.
-	FNwkSIntKey string `protobuf:"bytes,8,opt,name=fNwkSIntKey" json:"fNwkSIntKey,omitempty"`
-	// Uplink frame-counter.
-	FCntUp uint32 `protobuf:"varint,4,opt,name=fCntUp" json:"fCntUp,omitempty"`
-	// Downlink network frame-counter.
-	NFCntDown uint32 `protobuf:"varint,5,opt,name=nFCntDown" json:"nFCntDown,omitempty"`
-	// Downlink application frame-counter.
-	AFCntDown uint32 `protobuf:"varint,9,opt,name=aFCntDown" json:"aFCntDown,omitempty"`
-	// Skip frame-counter checks (this is insecure, but could be helpful for debugging).
-	SkipFCntCheck        bool     `protobuf:"varint,6,opt,name=skipFCntCheck" json:"skipFCntCheck,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Device-activation object.
+	DeviceActivation     *DeviceActivation `protobuf:"bytes,1,opt,name=device_activation,json=deviceActivation,proto3" json:"device_activation,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *GetDeviceActivationResponse) Reset()         { *m = GetDeviceActivationResponse{} }
 func (m *GetDeviceActivationResponse) String() string { return proto.CompactTextString(m) }
 func (*GetDeviceActivationResponse) ProtoMessage()    {}
 func (*GetDeviceActivationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{23}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{18}
 }
 func (m *GetDeviceActivationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetDeviceActivationResponse.Unmarshal(m, b)
@@ -1298,72 +1044,16 @@ func (m *GetDeviceActivationResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetDeviceActivationResponse proto.InternalMessageInfo
 
-func (m *GetDeviceActivationResponse) GetDevAddr() string {
+func (m *GetDeviceActivationResponse) GetDeviceActivation() *DeviceActivation {
 	if m != nil {
-		return m.DevAddr
+		return m.DeviceActivation
 	}
-	return ""
-}
-
-func (m *GetDeviceActivationResponse) GetAppSKey() string {
-	if m != nil {
-		return m.AppSKey
-	}
-	return ""
-}
-
-func (m *GetDeviceActivationResponse) GetNwkSEncKey() string {
-	if m != nil {
-		return m.NwkSEncKey
-	}
-	return ""
-}
-
-func (m *GetDeviceActivationResponse) GetSNwkSIntKey() string {
-	if m != nil {
-		return m.SNwkSIntKey
-	}
-	return ""
-}
-
-func (m *GetDeviceActivationResponse) GetFNwkSIntKey() string {
-	if m != nil {
-		return m.FNwkSIntKey
-	}
-	return ""
-}
-
-func (m *GetDeviceActivationResponse) GetFCntUp() uint32 {
-	if m != nil {
-		return m.FCntUp
-	}
-	return 0
-}
-
-func (m *GetDeviceActivationResponse) GetNFCntDown() uint32 {
-	if m != nil {
-		return m.NFCntDown
-	}
-	return 0
-}
-
-func (m *GetDeviceActivationResponse) GetAFCntDown() uint32 {
-	if m != nil {
-		return m.AFCntDown
-	}
-	return 0
-}
-
-func (m *GetDeviceActivationResponse) GetSkipFCntCheck() bool {
-	if m != nil {
-		return m.SkipFCntCheck
-	}
-	return false
+	return nil
 }
 
 type GetRandomDevAddrRequest struct {
-	// Hex encoded DevEUI of the device to activate.
-	DevEUI               string   `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+	// Device EUI (HEX encoded).
+	DevEui               string   `protobuf:"bytes,1,opt,name=dev_eui,json=devEUI,proto3" json:"dev_eui,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1373,7 +1063,7 @@ func (m *GetRandomDevAddrRequest) Reset()         { *m = GetRandomDevAddrRequest
 func (m *GetRandomDevAddrRequest) String() string { return proto.CompactTextString(m) }
 func (*GetRandomDevAddrRequest) ProtoMessage()    {}
 func (*GetRandomDevAddrRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{24}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{19}
 }
 func (m *GetRandomDevAddrRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetRandomDevAddrRequest.Unmarshal(m, b)
@@ -1393,16 +1083,16 @@ func (m *GetRandomDevAddrRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetRandomDevAddrRequest proto.InternalMessageInfo
 
-func (m *GetRandomDevAddrRequest) GetDevEUI() string {
+func (m *GetRandomDevAddrRequest) GetDevEui() string {
 	if m != nil {
-		return m.DevEUI
+		return m.DevEui
 	}
 	return ""
 }
 
 type GetRandomDevAddrResponse struct {
-	// Hex encoded DevAddr.
-	DevAddr              string   `protobuf:"bytes,1,opt,name=devAddr" json:"devAddr,omitempty"`
+	// Device address (HEX encoded).
+	DevAddr              string   `protobuf:"bytes,1,opt,name=dev_addr,json=devAddr,proto3" json:"dev_addr,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1412,7 +1102,7 @@ func (m *GetRandomDevAddrResponse) Reset()         { *m = GetRandomDevAddrRespon
 func (m *GetRandomDevAddrResponse) String() string { return proto.CompactTextString(m) }
 func (*GetRandomDevAddrResponse) ProtoMessage()    {}
 func (*GetRandomDevAddrResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{25}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{20}
 }
 func (m *GetRandomDevAddrResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetRandomDevAddrResponse.Unmarshal(m, b)
@@ -1440,8 +1130,8 @@ func (m *GetRandomDevAddrResponse) GetDevAddr() string {
 }
 
 type StreamDeviceFrameLogsRequest struct {
-	// Hex encoded DevEUI.
-	DevEUI               string   `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+	// Device EUI (HEX encoded).
+	DevEui               string   `protobuf:"bytes,1,opt,name=dev_eui,json=devEUI,proto3" json:"dev_eui,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1451,7 +1141,7 @@ func (m *StreamDeviceFrameLogsRequest) Reset()         { *m = StreamDeviceFrameL
 func (m *StreamDeviceFrameLogsRequest) String() string { return proto.CompactTextString(m) }
 func (*StreamDeviceFrameLogsRequest) ProtoMessage()    {}
 func (*StreamDeviceFrameLogsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{26}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{21}
 }
 func (m *StreamDeviceFrameLogsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamDeviceFrameLogsRequest.Unmarshal(m, b)
@@ -1471,28 +1161,28 @@ func (m *StreamDeviceFrameLogsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_StreamDeviceFrameLogsRequest proto.InternalMessageInfo
 
-func (m *StreamDeviceFrameLogsRequest) GetDevEUI() string {
+func (m *StreamDeviceFrameLogsRequest) GetDevEui() string {
 	if m != nil {
-		return m.DevEUI
+		return m.DevEui
 	}
 	return ""
 }
 
 type StreamDeviceFrameLogsResponse struct {
-	// Contains zero or one uplink frame.
-	UplinkFrames []*UplinkFrameLog `protobuf:"bytes,1,rep,name=uplinkFrames" json:"uplinkFrames,omitempty"`
-	// Contains zero or one downlink frame.
-	DownlinkFrames       []*DownlinkFrameLog `protobuf:"bytes,2,rep,name=downlinkFrames" json:"downlinkFrames,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
-	XXX_unrecognized     []byte              `json:"-"`
-	XXX_sizecache        int32               `json:"-"`
+	// Types that are valid to be assigned to Frame:
+	//	*StreamDeviceFrameLogsResponse_UplinkFrame
+	//	*StreamDeviceFrameLogsResponse_DownlinkFrame
+	Frame                isStreamDeviceFrameLogsResponse_Frame `protobuf_oneof:"frame"`
+	XXX_NoUnkeyedLiteral struct{}                              `json:"-"`
+	XXX_unrecognized     []byte                                `json:"-"`
+	XXX_sizecache        int32                                 `json:"-"`
 }
 
 func (m *StreamDeviceFrameLogsResponse) Reset()         { *m = StreamDeviceFrameLogsResponse{} }
 func (m *StreamDeviceFrameLogsResponse) String() string { return proto.CompactTextString(m) }
 func (*StreamDeviceFrameLogsResponse) ProtoMessage()    {}
 func (*StreamDeviceFrameLogsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{27}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{22}
 }
 func (m *StreamDeviceFrameLogsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamDeviceFrameLogsResponse.Unmarshal(m, b)
@@ -1512,23 +1202,118 @@ func (m *StreamDeviceFrameLogsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_StreamDeviceFrameLogsResponse proto.InternalMessageInfo
 
-func (m *StreamDeviceFrameLogsResponse) GetUplinkFrames() []*UplinkFrameLog {
+type isStreamDeviceFrameLogsResponse_Frame interface {
+	isStreamDeviceFrameLogsResponse_Frame()
+}
+
+type StreamDeviceFrameLogsResponse_UplinkFrame struct {
+	UplinkFrame *UplinkFrameLog `protobuf:"bytes,1,opt,name=uplink_frame,json=uplinkFrame,proto3,oneof"`
+}
+type StreamDeviceFrameLogsResponse_DownlinkFrame struct {
+	DownlinkFrame *DownlinkFrameLog `protobuf:"bytes,2,opt,name=downlink_frame,json=downlinkFrame,proto3,oneof"`
+}
+
+func (*StreamDeviceFrameLogsResponse_UplinkFrame) isStreamDeviceFrameLogsResponse_Frame()   {}
+func (*StreamDeviceFrameLogsResponse_DownlinkFrame) isStreamDeviceFrameLogsResponse_Frame() {}
+
+func (m *StreamDeviceFrameLogsResponse) GetFrame() isStreamDeviceFrameLogsResponse_Frame {
 	if m != nil {
-		return m.UplinkFrames
+		return m.Frame
 	}
 	return nil
 }
 
-func (m *StreamDeviceFrameLogsResponse) GetDownlinkFrames() []*DownlinkFrameLog {
-	if m != nil {
-		return m.DownlinkFrames
+func (m *StreamDeviceFrameLogsResponse) GetUplinkFrame() *UplinkFrameLog {
+	if x, ok := m.GetFrame().(*StreamDeviceFrameLogsResponse_UplinkFrame); ok {
+		return x.UplinkFrame
 	}
 	return nil
+}
+
+func (m *StreamDeviceFrameLogsResponse) GetDownlinkFrame() *DownlinkFrameLog {
+	if x, ok := m.GetFrame().(*StreamDeviceFrameLogsResponse_DownlinkFrame); ok {
+		return x.DownlinkFrame
+	}
+	return nil
+}
+
+// XXX_OneofFuncs is for the internal use of the proto package.
+func (*StreamDeviceFrameLogsResponse) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _StreamDeviceFrameLogsResponse_OneofMarshaler, _StreamDeviceFrameLogsResponse_OneofUnmarshaler, _StreamDeviceFrameLogsResponse_OneofSizer, []interface{}{
+		(*StreamDeviceFrameLogsResponse_UplinkFrame)(nil),
+		(*StreamDeviceFrameLogsResponse_DownlinkFrame)(nil),
+	}
+}
+
+func _StreamDeviceFrameLogsResponse_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*StreamDeviceFrameLogsResponse)
+	// frame
+	switch x := m.Frame.(type) {
+	case *StreamDeviceFrameLogsResponse_UplinkFrame:
+		b.EncodeVarint(1<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.UplinkFrame); err != nil {
+			return err
+		}
+	case *StreamDeviceFrameLogsResponse_DownlinkFrame:
+		b.EncodeVarint(2<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.DownlinkFrame); err != nil {
+			return err
+		}
+	case nil:
+	default:
+		return fmt.Errorf("StreamDeviceFrameLogsResponse.Frame has unexpected type %T", x)
+	}
+	return nil
+}
+
+func _StreamDeviceFrameLogsResponse_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*StreamDeviceFrameLogsResponse)
+	switch tag {
+	case 1: // frame.uplink_frame
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(UplinkFrameLog)
+		err := b.DecodeMessage(msg)
+		m.Frame = &StreamDeviceFrameLogsResponse_UplinkFrame{msg}
+		return true, err
+	case 2: // frame.downlink_frame
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(DownlinkFrameLog)
+		err := b.DecodeMessage(msg)
+		m.Frame = &StreamDeviceFrameLogsResponse_DownlinkFrame{msg}
+		return true, err
+	default:
+		return false, nil
+	}
+}
+
+func _StreamDeviceFrameLogsResponse_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*StreamDeviceFrameLogsResponse)
+	// frame
+	switch x := m.Frame.(type) {
+	case *StreamDeviceFrameLogsResponse_UplinkFrame:
+		s := proto.Size(x.UplinkFrame)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *StreamDeviceFrameLogsResponse_DownlinkFrame:
+		s := proto.Size(x.DownlinkFrame)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case nil:
+	default:
+		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
+	}
+	return n
 }
 
 type StreamDeviceEventLogsRequest struct {
-	// Hex encoded DevEUI.
-	DevEUI               string   `protobuf:"bytes,1,opt,name=devEUI" json:"devEUI,omitempty"`
+	// Device EUI (HEX encoded).
+	DevEui               string   `protobuf:"bytes,1,opt,name=dev_eui,json=devEUI,proto3" json:"dev_eui,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1538,7 +1323,7 @@ func (m *StreamDeviceEventLogsRequest) Reset()         { *m = StreamDeviceEventL
 func (m *StreamDeviceEventLogsRequest) String() string { return proto.CompactTextString(m) }
 func (*StreamDeviceEventLogsRequest) ProtoMessage()    {}
 func (*StreamDeviceEventLogsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{28}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{23}
 }
 func (m *StreamDeviceEventLogsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamDeviceEventLogsRequest.Unmarshal(m, b)
@@ -1558,18 +1343,18 @@ func (m *StreamDeviceEventLogsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_StreamDeviceEventLogsRequest proto.InternalMessageInfo
 
-func (m *StreamDeviceEventLogsRequest) GetDevEUI() string {
+func (m *StreamDeviceEventLogsRequest) GetDevEui() string {
 	if m != nil {
-		return m.DevEUI
+		return m.DevEui
 	}
 	return ""
 }
 
 type StreamDeviceEventLogsResponse struct {
 	// The event type.
-	Type string `protobuf:"bytes,1,opt,name=type" json:"type,omitempty"`
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
 	// The event payload in JSON encoding.
-	PayloadJSON          string   `protobuf:"bytes,2,opt,name=payloadJSON" json:"payloadJSON,omitempty"`
+	PayloadJson          string   `protobuf:"bytes,2,opt,name=payload_json,json=payloadJSON,proto3" json:"payload_json,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1579,7 +1364,7 @@ func (m *StreamDeviceEventLogsResponse) Reset()         { *m = StreamDeviceEvent
 func (m *StreamDeviceEventLogsResponse) String() string { return proto.CompactTextString(m) }
 func (*StreamDeviceEventLogsResponse) ProtoMessage()    {}
 func (*StreamDeviceEventLogsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_device_619c4a801b415441, []int{29}
+	return fileDescriptor_device_ce6fa63c4e685d7a, []int{24}
 }
 func (m *StreamDeviceEventLogsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamDeviceEventLogsResponse.Unmarshal(m, b)
@@ -1606,36 +1391,31 @@ func (m *StreamDeviceEventLogsResponse) GetType() string {
 	return ""
 }
 
-func (m *StreamDeviceEventLogsResponse) GetPayloadJSON() string {
+func (m *StreamDeviceEventLogsResponse) GetPayloadJson() string {
 	if m != nil {
-		return m.PayloadJSON
+		return m.PayloadJson
 	}
 	return ""
 }
 
 func init() {
+	proto.RegisterType((*Device)(nil), "api.Device")
+	proto.RegisterType((*DeviceListItem)(nil), "api.DeviceListItem")
 	proto.RegisterType((*DeviceKeys)(nil), "api.DeviceKeys")
 	proto.RegisterType((*CreateDeviceRequest)(nil), "api.CreateDeviceRequest")
-	proto.RegisterType((*CreateDeviceResponse)(nil), "api.CreateDeviceResponse")
 	proto.RegisterType((*GetDeviceRequest)(nil), "api.GetDeviceRequest")
 	proto.RegisterType((*GetDeviceResponse)(nil), "api.GetDeviceResponse")
 	proto.RegisterType((*DeleteDeviceRequest)(nil), "api.DeleteDeviceRequest")
-	proto.RegisterType((*DeleteDeviceResponse)(nil), "api.DeleteDeviceResponse")
 	proto.RegisterType((*ListDeviceByApplicationIDRequest)(nil), "api.ListDeviceByApplicationIDRequest")
-	proto.RegisterType((*DeviceListItem)(nil), "api.DeviceListItem")
 	proto.RegisterType((*ListDeviceResponse)(nil), "api.ListDeviceResponse")
 	proto.RegisterType((*UpdateDeviceRequest)(nil), "api.UpdateDeviceRequest")
-	proto.RegisterType((*UpdateDeviceResponse)(nil), "api.UpdateDeviceResponse")
 	proto.RegisterType((*CreateDeviceKeysRequest)(nil), "api.CreateDeviceKeysRequest")
-	proto.RegisterType((*CreateDeviceKeysResponse)(nil), "api.CreateDeviceKeysResponse")
 	proto.RegisterType((*GetDeviceKeysRequest)(nil), "api.GetDeviceKeysRequest")
 	proto.RegisterType((*GetDeviceKeysResponse)(nil), "api.GetDeviceKeysResponse")
 	proto.RegisterType((*UpdateDeviceKeysRequest)(nil), "api.UpdateDeviceKeysRequest")
-	proto.RegisterType((*UpdateDeviceKeysResponse)(nil), "api.UpdateDeviceKeysResponse")
 	proto.RegisterType((*DeleteDeviceKeysRequest)(nil), "api.DeleteDeviceKeysRequest")
-	proto.RegisterType((*DeleteDeviceKeysResponse)(nil), "api.DeleteDeviceKeysResponse")
+	proto.RegisterType((*DeviceActivation)(nil), "api.DeviceActivation")
 	proto.RegisterType((*ActivateDeviceRequest)(nil), "api.ActivateDeviceRequest")
-	proto.RegisterType((*ActivateDeviceResponse)(nil), "api.ActivateDeviceResponse")
 	proto.RegisterType((*GetDeviceActivationRequest)(nil), "api.GetDeviceActivationRequest")
 	proto.RegisterType((*GetDeviceActivationResponse)(nil), "api.GetDeviceActivationResponse")
 	proto.RegisterType((*GetRandomDevAddrRequest)(nil), "api.GetRandomDevAddrRequest")
@@ -1654,165 +1434,166 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// DeviceClient is the client API for Device service.
+// DeviceServiceClient is the client API for DeviceService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type DeviceClient interface {
+type DeviceServiceClient interface {
 	// Create creates the given device.
-	Create(ctx context.Context, in *CreateDeviceRequest, opts ...grpc.CallOption) (*CreateDeviceResponse, error)
+	Create(ctx context.Context, in *CreateDeviceRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Get returns the device matching the given DevEUI.
 	Get(ctx context.Context, in *GetDeviceRequest, opts ...grpc.CallOption) (*GetDeviceResponse, error)
 	// Delete deletes the device matching the given DevEUI.
-	Delete(ctx context.Context, in *DeleteDeviceRequest, opts ...grpc.CallOption) (*DeleteDeviceResponse, error)
+	Delete(ctx context.Context, in *DeleteDeviceRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// ListByApplicationID lists the devices by the given application ID, sorted by the name of the device.
 	ListByApplicationID(ctx context.Context, in *ListDeviceByApplicationIDRequest, opts ...grpc.CallOption) (*ListDeviceResponse, error)
 	// Update updates the device matching the given DevEUI.
-	Update(ctx context.Context, in *UpdateDeviceRequest, opts ...grpc.CallOption) (*UpdateDeviceResponse, error)
+	Update(ctx context.Context, in *UpdateDeviceRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// CreateKeys creates the given device-keys.
-	CreateKeys(ctx context.Context, in *CreateDeviceKeysRequest, opts ...grpc.CallOption) (*CreateDeviceKeysResponse, error)
+	CreateKeys(ctx context.Context, in *CreateDeviceKeysRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// GetKeys returns the device-keys for the given DevEUI.
 	GetKeys(ctx context.Context, in *GetDeviceKeysRequest, opts ...grpc.CallOption) (*GetDeviceKeysResponse, error)
 	// UpdateKeys updates the device-keys.
-	UpdateKeys(ctx context.Context, in *UpdateDeviceKeysRequest, opts ...grpc.CallOption) (*UpdateDeviceKeysResponse, error)
+	UpdateKeys(ctx context.Context, in *UpdateDeviceKeysRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// DeleteKeys deletes the device-keys for the given DevEUI.
-	DeleteKeys(ctx context.Context, in *DeleteDeviceKeysRequest, opts ...grpc.CallOption) (*DeleteDeviceKeysResponse, error)
+	DeleteKeys(ctx context.Context, in *DeleteDeviceKeysRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Activate (re)activates the device (only when ABP is set to true).
-	Activate(ctx context.Context, in *ActivateDeviceRequest, opts ...grpc.CallOption) (*ActivateDeviceResponse, error)
+	Activate(ctx context.Context, in *ActivateDeviceRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// GetActivation returns the current activation details of the device (OTAA and ABP).
 	GetActivation(ctx context.Context, in *GetDeviceActivationRequest, opts ...grpc.CallOption) (*GetDeviceActivationResponse, error)
 	// GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
 	GetRandomDevAddr(ctx context.Context, in *GetRandomDevAddrRequest, opts ...grpc.CallOption) (*GetRandomDevAddrResponse, error)
 	// StreamFrameLogs streams the uplink and downlink frame-logs for the given DevEUI.
-	// Note: these are the raw LoRaWAN frames and this endpoint is intended for debugging.
-	StreamFrameLogs(ctx context.Context, in *StreamDeviceFrameLogsRequest, opts ...grpc.CallOption) (Device_StreamFrameLogsClient, error)
+	// Note: these are the raw LoRaWAN frames. This endpoint is intended for debugging
+	// only.
+	StreamFrameLogs(ctx context.Context, in *StreamDeviceFrameLogsRequest, opts ...grpc.CallOption) (DeviceService_StreamFrameLogsClient, error)
 	// StreamEventLogs stream the device events (uplink payloads, ACKs, joins, errors).
 	// Note: this endpoint is intended for debugging and should not be used for building
 	// integrations.
-	StreamEventLogs(ctx context.Context, in *StreamDeviceEventLogsRequest, opts ...grpc.CallOption) (Device_StreamEventLogsClient, error)
+	StreamEventLogs(ctx context.Context, in *StreamDeviceEventLogsRequest, opts ...grpc.CallOption) (DeviceService_StreamEventLogsClient, error)
 }
 
-type deviceClient struct {
+type deviceServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewDeviceClient(cc *grpc.ClientConn) DeviceClient {
-	return &deviceClient{cc}
+func NewDeviceServiceClient(cc *grpc.ClientConn) DeviceServiceClient {
+	return &deviceServiceClient{cc}
 }
 
-func (c *deviceClient) Create(ctx context.Context, in *CreateDeviceRequest, opts ...grpc.CallOption) (*CreateDeviceResponse, error) {
-	out := new(CreateDeviceResponse)
-	err := c.cc.Invoke(ctx, "/api.Device/Create", in, out, opts...)
+func (c *deviceServiceClient) Create(ctx context.Context, in *CreateDeviceRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.DeviceService/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) Get(ctx context.Context, in *GetDeviceRequest, opts ...grpc.CallOption) (*GetDeviceResponse, error) {
+func (c *deviceServiceClient) Get(ctx context.Context, in *GetDeviceRequest, opts ...grpc.CallOption) (*GetDeviceResponse, error) {
 	out := new(GetDeviceResponse)
-	err := c.cc.Invoke(ctx, "/api.Device/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.DeviceService/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) Delete(ctx context.Context, in *DeleteDeviceRequest, opts ...grpc.CallOption) (*DeleteDeviceResponse, error) {
-	out := new(DeleteDeviceResponse)
-	err := c.cc.Invoke(ctx, "/api.Device/Delete", in, out, opts...)
+func (c *deviceServiceClient) Delete(ctx context.Context, in *DeleteDeviceRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.DeviceService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) ListByApplicationID(ctx context.Context, in *ListDeviceByApplicationIDRequest, opts ...grpc.CallOption) (*ListDeviceResponse, error) {
+func (c *deviceServiceClient) ListByApplicationID(ctx context.Context, in *ListDeviceByApplicationIDRequest, opts ...grpc.CallOption) (*ListDeviceResponse, error) {
 	out := new(ListDeviceResponse)
-	err := c.cc.Invoke(ctx, "/api.Device/ListByApplicationID", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.DeviceService/ListByApplicationID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) Update(ctx context.Context, in *UpdateDeviceRequest, opts ...grpc.CallOption) (*UpdateDeviceResponse, error) {
-	out := new(UpdateDeviceResponse)
-	err := c.cc.Invoke(ctx, "/api.Device/Update", in, out, opts...)
+func (c *deviceServiceClient) Update(ctx context.Context, in *UpdateDeviceRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.DeviceService/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) CreateKeys(ctx context.Context, in *CreateDeviceKeysRequest, opts ...grpc.CallOption) (*CreateDeviceKeysResponse, error) {
-	out := new(CreateDeviceKeysResponse)
-	err := c.cc.Invoke(ctx, "/api.Device/CreateKeys", in, out, opts...)
+func (c *deviceServiceClient) CreateKeys(ctx context.Context, in *CreateDeviceKeysRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.DeviceService/CreateKeys", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) GetKeys(ctx context.Context, in *GetDeviceKeysRequest, opts ...grpc.CallOption) (*GetDeviceKeysResponse, error) {
+func (c *deviceServiceClient) GetKeys(ctx context.Context, in *GetDeviceKeysRequest, opts ...grpc.CallOption) (*GetDeviceKeysResponse, error) {
 	out := new(GetDeviceKeysResponse)
-	err := c.cc.Invoke(ctx, "/api.Device/GetKeys", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.DeviceService/GetKeys", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) UpdateKeys(ctx context.Context, in *UpdateDeviceKeysRequest, opts ...grpc.CallOption) (*UpdateDeviceKeysResponse, error) {
-	out := new(UpdateDeviceKeysResponse)
-	err := c.cc.Invoke(ctx, "/api.Device/UpdateKeys", in, out, opts...)
+func (c *deviceServiceClient) UpdateKeys(ctx context.Context, in *UpdateDeviceKeysRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.DeviceService/UpdateKeys", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) DeleteKeys(ctx context.Context, in *DeleteDeviceKeysRequest, opts ...grpc.CallOption) (*DeleteDeviceKeysResponse, error) {
-	out := new(DeleteDeviceKeysResponse)
-	err := c.cc.Invoke(ctx, "/api.Device/DeleteKeys", in, out, opts...)
+func (c *deviceServiceClient) DeleteKeys(ctx context.Context, in *DeleteDeviceKeysRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.DeviceService/DeleteKeys", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) Activate(ctx context.Context, in *ActivateDeviceRequest, opts ...grpc.CallOption) (*ActivateDeviceResponse, error) {
-	out := new(ActivateDeviceResponse)
-	err := c.cc.Invoke(ctx, "/api.Device/Activate", in, out, opts...)
+func (c *deviceServiceClient) Activate(ctx context.Context, in *ActivateDeviceRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/api.DeviceService/Activate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) GetActivation(ctx context.Context, in *GetDeviceActivationRequest, opts ...grpc.CallOption) (*GetDeviceActivationResponse, error) {
+func (c *deviceServiceClient) GetActivation(ctx context.Context, in *GetDeviceActivationRequest, opts ...grpc.CallOption) (*GetDeviceActivationResponse, error) {
 	out := new(GetDeviceActivationResponse)
-	err := c.cc.Invoke(ctx, "/api.Device/GetActivation", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.DeviceService/GetActivation", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) GetRandomDevAddr(ctx context.Context, in *GetRandomDevAddrRequest, opts ...grpc.CallOption) (*GetRandomDevAddrResponse, error) {
+func (c *deviceServiceClient) GetRandomDevAddr(ctx context.Context, in *GetRandomDevAddrRequest, opts ...grpc.CallOption) (*GetRandomDevAddrResponse, error) {
 	out := new(GetRandomDevAddrResponse)
-	err := c.cc.Invoke(ctx, "/api.Device/GetRandomDevAddr", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.DeviceService/GetRandomDevAddr", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) StreamFrameLogs(ctx context.Context, in *StreamDeviceFrameLogsRequest, opts ...grpc.CallOption) (Device_StreamFrameLogsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Device_serviceDesc.Streams[0], "/api.Device/StreamFrameLogs", opts...)
+func (c *deviceServiceClient) StreamFrameLogs(ctx context.Context, in *StreamDeviceFrameLogsRequest, opts ...grpc.CallOption) (DeviceService_StreamFrameLogsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_DeviceService_serviceDesc.Streams[0], "/api.DeviceService/StreamFrameLogs", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &deviceStreamFrameLogsClient{stream}
+	x := &deviceServiceStreamFrameLogsClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -1822,16 +1603,16 @@ func (c *deviceClient) StreamFrameLogs(ctx context.Context, in *StreamDeviceFram
 	return x, nil
 }
 
-type Device_StreamFrameLogsClient interface {
+type DeviceService_StreamFrameLogsClient interface {
 	Recv() (*StreamDeviceFrameLogsResponse, error)
 	grpc.ClientStream
 }
 
-type deviceStreamFrameLogsClient struct {
+type deviceServiceStreamFrameLogsClient struct {
 	grpc.ClientStream
 }
 
-func (x *deviceStreamFrameLogsClient) Recv() (*StreamDeviceFrameLogsResponse, error) {
+func (x *deviceServiceStreamFrameLogsClient) Recv() (*StreamDeviceFrameLogsResponse, error) {
 	m := new(StreamDeviceFrameLogsResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -1839,12 +1620,12 @@ func (x *deviceStreamFrameLogsClient) Recv() (*StreamDeviceFrameLogsResponse, er
 	return m, nil
 }
 
-func (c *deviceClient) StreamEventLogs(ctx context.Context, in *StreamDeviceEventLogsRequest, opts ...grpc.CallOption) (Device_StreamEventLogsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Device_serviceDesc.Streams[1], "/api.Device/StreamEventLogs", opts...)
+func (c *deviceServiceClient) StreamEventLogs(ctx context.Context, in *StreamDeviceEventLogsRequest, opts ...grpc.CallOption) (DeviceService_StreamEventLogsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_DeviceService_serviceDesc.Streams[1], "/api.DeviceService/StreamEventLogs", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &deviceStreamEventLogsClient{stream}
+	x := &deviceServiceStreamEventLogsClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -1854,16 +1635,16 @@ func (c *deviceClient) StreamEventLogs(ctx context.Context, in *StreamDeviceEven
 	return x, nil
 }
 
-type Device_StreamEventLogsClient interface {
+type DeviceService_StreamEventLogsClient interface {
 	Recv() (*StreamDeviceEventLogsResponse, error)
 	grpc.ClientStream
 }
 
-type deviceStreamEventLogsClient struct {
+type deviceServiceStreamEventLogsClient struct {
 	grpc.ClientStream
 }
 
-func (x *deviceStreamEventLogsClient) Recv() (*StreamDeviceEventLogsResponse, error) {
+func (x *deviceServiceStreamEventLogsClient) Recv() (*StreamDeviceEventLogsResponse, error) {
 	m := new(StreamDeviceEventLogsResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -1871,456 +1652,463 @@ func (x *deviceStreamEventLogsClient) Recv() (*StreamDeviceEventLogsResponse, er
 	return m, nil
 }
 
-// Server API for Device service
-
-type DeviceServer interface {
+// DeviceServiceServer is the server API for DeviceService service.
+type DeviceServiceServer interface {
 	// Create creates the given device.
-	Create(context.Context, *CreateDeviceRequest) (*CreateDeviceResponse, error)
+	Create(context.Context, *CreateDeviceRequest) (*empty.Empty, error)
 	// Get returns the device matching the given DevEUI.
 	Get(context.Context, *GetDeviceRequest) (*GetDeviceResponse, error)
 	// Delete deletes the device matching the given DevEUI.
-	Delete(context.Context, *DeleteDeviceRequest) (*DeleteDeviceResponse, error)
+	Delete(context.Context, *DeleteDeviceRequest) (*empty.Empty, error)
 	// ListByApplicationID lists the devices by the given application ID, sorted by the name of the device.
 	ListByApplicationID(context.Context, *ListDeviceByApplicationIDRequest) (*ListDeviceResponse, error)
 	// Update updates the device matching the given DevEUI.
-	Update(context.Context, *UpdateDeviceRequest) (*UpdateDeviceResponse, error)
+	Update(context.Context, *UpdateDeviceRequest) (*empty.Empty, error)
 	// CreateKeys creates the given device-keys.
-	CreateKeys(context.Context, *CreateDeviceKeysRequest) (*CreateDeviceKeysResponse, error)
+	CreateKeys(context.Context, *CreateDeviceKeysRequest) (*empty.Empty, error)
 	// GetKeys returns the device-keys for the given DevEUI.
 	GetKeys(context.Context, *GetDeviceKeysRequest) (*GetDeviceKeysResponse, error)
 	// UpdateKeys updates the device-keys.
-	UpdateKeys(context.Context, *UpdateDeviceKeysRequest) (*UpdateDeviceKeysResponse, error)
+	UpdateKeys(context.Context, *UpdateDeviceKeysRequest) (*empty.Empty, error)
 	// DeleteKeys deletes the device-keys for the given DevEUI.
-	DeleteKeys(context.Context, *DeleteDeviceKeysRequest) (*DeleteDeviceKeysResponse, error)
+	DeleteKeys(context.Context, *DeleteDeviceKeysRequest) (*empty.Empty, error)
 	// Activate (re)activates the device (only when ABP is set to true).
-	Activate(context.Context, *ActivateDeviceRequest) (*ActivateDeviceResponse, error)
+	Activate(context.Context, *ActivateDeviceRequest) (*empty.Empty, error)
 	// GetActivation returns the current activation details of the device (OTAA and ABP).
 	GetActivation(context.Context, *GetDeviceActivationRequest) (*GetDeviceActivationResponse, error)
 	// GetRandomDevAddr returns a random DevAddr taking the NwkID prefix into account.
 	GetRandomDevAddr(context.Context, *GetRandomDevAddrRequest) (*GetRandomDevAddrResponse, error)
 	// StreamFrameLogs streams the uplink and downlink frame-logs for the given DevEUI.
-	// Note: these are the raw LoRaWAN frames and this endpoint is intended for debugging.
-	StreamFrameLogs(*StreamDeviceFrameLogsRequest, Device_StreamFrameLogsServer) error
+	// Note: these are the raw LoRaWAN frames. This endpoint is intended for debugging
+	// only.
+	StreamFrameLogs(*StreamDeviceFrameLogsRequest, DeviceService_StreamFrameLogsServer) error
 	// StreamEventLogs stream the device events (uplink payloads, ACKs, joins, errors).
 	// Note: this endpoint is intended for debugging and should not be used for building
 	// integrations.
-	StreamEventLogs(*StreamDeviceEventLogsRequest, Device_StreamEventLogsServer) error
+	StreamEventLogs(*StreamDeviceEventLogsRequest, DeviceService_StreamEventLogsServer) error
 }
 
-func RegisterDeviceServer(s *grpc.Server, srv DeviceServer) {
-	s.RegisterService(&_Device_serviceDesc, srv)
+func RegisterDeviceServiceServer(s *grpc.Server, srv DeviceServiceServer) {
+	s.RegisterService(&_DeviceService_serviceDesc, srv)
 }
 
-func _Device_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeviceService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateDeviceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).Create(ctx, in)
+		return srv.(DeviceServiceServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Device/Create",
+		FullMethod: "/api.DeviceService/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).Create(ctx, req.(*CreateDeviceRequest))
+		return srv.(DeviceServiceServer).Create(ctx, req.(*CreateDeviceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeviceService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetDeviceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).Get(ctx, in)
+		return srv.(DeviceServiceServer).Get(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Device/Get",
+		FullMethod: "/api.DeviceService/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).Get(ctx, req.(*GetDeviceRequest))
+		return srv.(DeviceServiceServer).Get(ctx, req.(*GetDeviceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeviceService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteDeviceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).Delete(ctx, in)
+		return srv.(DeviceServiceServer).Delete(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Device/Delete",
+		FullMethod: "/api.DeviceService/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).Delete(ctx, req.(*DeleteDeviceRequest))
+		return srv.(DeviceServiceServer).Delete(ctx, req.(*DeleteDeviceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_ListByApplicationID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeviceService_ListByApplicationID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListDeviceByApplicationIDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).ListByApplicationID(ctx, in)
+		return srv.(DeviceServiceServer).ListByApplicationID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Device/ListByApplicationID",
+		FullMethod: "/api.DeviceService/ListByApplicationID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).ListByApplicationID(ctx, req.(*ListDeviceByApplicationIDRequest))
+		return srv.(DeviceServiceServer).ListByApplicationID(ctx, req.(*ListDeviceByApplicationIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeviceService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateDeviceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).Update(ctx, in)
+		return srv.(DeviceServiceServer).Update(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Device/Update",
+		FullMethod: "/api.DeviceService/Update",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).Update(ctx, req.(*UpdateDeviceRequest))
+		return srv.(DeviceServiceServer).Update(ctx, req.(*UpdateDeviceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_CreateKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeviceService_CreateKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateDeviceKeysRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).CreateKeys(ctx, in)
+		return srv.(DeviceServiceServer).CreateKeys(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Device/CreateKeys",
+		FullMethod: "/api.DeviceService/CreateKeys",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).CreateKeys(ctx, req.(*CreateDeviceKeysRequest))
+		return srv.(DeviceServiceServer).CreateKeys(ctx, req.(*CreateDeviceKeysRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_GetKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeviceService_GetKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetDeviceKeysRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).GetKeys(ctx, in)
+		return srv.(DeviceServiceServer).GetKeys(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Device/GetKeys",
+		FullMethod: "/api.DeviceService/GetKeys",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).GetKeys(ctx, req.(*GetDeviceKeysRequest))
+		return srv.(DeviceServiceServer).GetKeys(ctx, req.(*GetDeviceKeysRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_UpdateKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeviceService_UpdateKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateDeviceKeysRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).UpdateKeys(ctx, in)
+		return srv.(DeviceServiceServer).UpdateKeys(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Device/UpdateKeys",
+		FullMethod: "/api.DeviceService/UpdateKeys",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).UpdateKeys(ctx, req.(*UpdateDeviceKeysRequest))
+		return srv.(DeviceServiceServer).UpdateKeys(ctx, req.(*UpdateDeviceKeysRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_DeleteKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeviceService_DeleteKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteDeviceKeysRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).DeleteKeys(ctx, in)
+		return srv.(DeviceServiceServer).DeleteKeys(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Device/DeleteKeys",
+		FullMethod: "/api.DeviceService/DeleteKeys",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).DeleteKeys(ctx, req.(*DeleteDeviceKeysRequest))
+		return srv.(DeviceServiceServer).DeleteKeys(ctx, req.(*DeleteDeviceKeysRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_Activate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeviceService_Activate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ActivateDeviceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).Activate(ctx, in)
+		return srv.(DeviceServiceServer).Activate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Device/Activate",
+		FullMethod: "/api.DeviceService/Activate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).Activate(ctx, req.(*ActivateDeviceRequest))
+		return srv.(DeviceServiceServer).Activate(ctx, req.(*ActivateDeviceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_GetActivation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeviceService_GetActivation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetDeviceActivationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).GetActivation(ctx, in)
+		return srv.(DeviceServiceServer).GetActivation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Device/GetActivation",
+		FullMethod: "/api.DeviceService/GetActivation",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).GetActivation(ctx, req.(*GetDeviceActivationRequest))
+		return srv.(DeviceServiceServer).GetActivation(ctx, req.(*GetDeviceActivationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_GetRandomDevAddr_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeviceService_GetRandomDevAddr_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetRandomDevAddrRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).GetRandomDevAddr(ctx, in)
+		return srv.(DeviceServiceServer).GetRandomDevAddr(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Device/GetRandomDevAddr",
+		FullMethod: "/api.DeviceService/GetRandomDevAddr",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).GetRandomDevAddr(ctx, req.(*GetRandomDevAddrRequest))
+		return srv.(DeviceServiceServer).GetRandomDevAddr(ctx, req.(*GetRandomDevAddrRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_StreamFrameLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _DeviceService_StreamFrameLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(StreamDeviceFrameLogsRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(DeviceServer).StreamFrameLogs(m, &deviceStreamFrameLogsServer{stream})
+	return srv.(DeviceServiceServer).StreamFrameLogs(m, &deviceServiceStreamFrameLogsServer{stream})
 }
 
-type Device_StreamFrameLogsServer interface {
+type DeviceService_StreamFrameLogsServer interface {
 	Send(*StreamDeviceFrameLogsResponse) error
 	grpc.ServerStream
 }
 
-type deviceStreamFrameLogsServer struct {
+type deviceServiceStreamFrameLogsServer struct {
 	grpc.ServerStream
 }
 
-func (x *deviceStreamFrameLogsServer) Send(m *StreamDeviceFrameLogsResponse) error {
+func (x *deviceServiceStreamFrameLogsServer) Send(m *StreamDeviceFrameLogsResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _Device_StreamEventLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _DeviceService_StreamEventLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(StreamDeviceEventLogsRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(DeviceServer).StreamEventLogs(m, &deviceStreamEventLogsServer{stream})
+	return srv.(DeviceServiceServer).StreamEventLogs(m, &deviceServiceStreamEventLogsServer{stream})
 }
 
-type Device_StreamEventLogsServer interface {
+type DeviceService_StreamEventLogsServer interface {
 	Send(*StreamDeviceEventLogsResponse) error
 	grpc.ServerStream
 }
 
-type deviceStreamEventLogsServer struct {
+type deviceServiceStreamEventLogsServer struct {
 	grpc.ServerStream
 }
 
-func (x *deviceStreamEventLogsServer) Send(m *StreamDeviceEventLogsResponse) error {
+func (x *deviceServiceStreamEventLogsServer) Send(m *StreamDeviceEventLogsResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-var _Device_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "api.Device",
-	HandlerType: (*DeviceServer)(nil),
+var _DeviceService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "api.DeviceService",
+	HandlerType: (*DeviceServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Create",
-			Handler:    _Device_Create_Handler,
+			Handler:    _DeviceService_Create_Handler,
 		},
 		{
 			MethodName: "Get",
-			Handler:    _Device_Get_Handler,
+			Handler:    _DeviceService_Get_Handler,
 		},
 		{
 			MethodName: "Delete",
-			Handler:    _Device_Delete_Handler,
+			Handler:    _DeviceService_Delete_Handler,
 		},
 		{
 			MethodName: "ListByApplicationID",
-			Handler:    _Device_ListByApplicationID_Handler,
+			Handler:    _DeviceService_ListByApplicationID_Handler,
 		},
 		{
 			MethodName: "Update",
-			Handler:    _Device_Update_Handler,
+			Handler:    _DeviceService_Update_Handler,
 		},
 		{
 			MethodName: "CreateKeys",
-			Handler:    _Device_CreateKeys_Handler,
+			Handler:    _DeviceService_CreateKeys_Handler,
 		},
 		{
 			MethodName: "GetKeys",
-			Handler:    _Device_GetKeys_Handler,
+			Handler:    _DeviceService_GetKeys_Handler,
 		},
 		{
 			MethodName: "UpdateKeys",
-			Handler:    _Device_UpdateKeys_Handler,
+			Handler:    _DeviceService_UpdateKeys_Handler,
 		},
 		{
 			MethodName: "DeleteKeys",
-			Handler:    _Device_DeleteKeys_Handler,
+			Handler:    _DeviceService_DeleteKeys_Handler,
 		},
 		{
 			MethodName: "Activate",
-			Handler:    _Device_Activate_Handler,
+			Handler:    _DeviceService_Activate_Handler,
 		},
 		{
 			MethodName: "GetActivation",
-			Handler:    _Device_GetActivation_Handler,
+			Handler:    _DeviceService_GetActivation_Handler,
 		},
 		{
 			MethodName: "GetRandomDevAddr",
-			Handler:    _Device_GetRandomDevAddr_Handler,
+			Handler:    _DeviceService_GetRandomDevAddr_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "StreamFrameLogs",
-			Handler:       _Device_StreamFrameLogs_Handler,
+			Handler:       _DeviceService_StreamFrameLogs_Handler,
 			ServerStreams: true,
 		},
 		{
 			StreamName:    "StreamEventLogs",
-			Handler:       _Device_StreamEventLogs_Handler,
+			Handler:       _DeviceService_StreamEventLogs_Handler,
 			ServerStreams: true,
 		},
 	},
 	Metadata: "device.proto",
 }
 
-func init() { proto.RegisterFile("device.proto", fileDescriptor_device_619c4a801b415441) }
+func init() { proto.RegisterFile("device.proto", fileDescriptor_device_ce6fa63c4e685d7a) }
 
-var fileDescriptor_device_619c4a801b415441 = []byte{
-	// 1307 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x58, 0xcf, 0x6f, 0x1b, 0xc5,
-	0x17, 0xd7, 0xda, 0x89, 0x93, 0xbc, 0x26, 0xcd, 0x37, 0xe3, 0xd8, 0xde, 0x6e, 0x9d, 0xd4, 0xdf,
-	0xa5, 0x45, 0x6e, 0x0a, 0x76, 0x1a, 0x2a, 0x90, 0x10, 0x1c, 0xd2, 0x38, 0x0d, 0xa1, 0x21, 0x20,
-	0x5b, 0xe1, 0x84, 0x84, 0x26, 0xde, 0xb1, 0xbb, 0xb2, 0xbd, 0xbb, 0x78, 0x27, 0x89, 0xac, 0x52,
-	0x81, 0x38, 0x71, 0xe2, 0xc2, 0x81, 0xbf, 0x02, 0xf1, 0x37, 0xf0, 0x37, 0x70, 0xea, 0x85, 0x13,
-	0x7f, 0x08, 0x9a, 0x1f, 0xb6, 0x67, 0xd7, 0xb3, 0x5e, 0x73, 0x40, 0xaa, 0xb8, 0x79, 0xde, 0x7b,
-	0xf3, 0x3e, 0xef, 0xd7, 0xbc, 0xf7, 0xd6, 0xb0, 0xee, 0x90, 0x6b, 0xb7, 0x4d, 0x6a, 0xc1, 0xd0,
-	0xa7, 0x3e, 0xca, 0xe2, 0xc0, 0xb5, 0xca, 0x5d, 0xdf, 0xef, 0xf6, 0x49, 0x1d, 0x07, 0x6e, 0x1d,
-	0x7b, 0x9e, 0x4f, 0x31, 0x75, 0x7d, 0x2f, 0x14, 0x22, 0xd6, 0x7a, 0xdb, 0x1f, 0x0c, 0x7c, 0x4f,
-	0x9c, 0xec, 0x8f, 0x00, 0x1a, 0x5c, 0xc1, 0x73, 0x32, 0x0a, 0x51, 0x11, 0x72, 0xde, 0x4d, 0xef,
-	0x39, 0x19, 0x99, 0x46, 0xc5, 0xa8, 0xae, 0x35, 0xe5, 0x89, 0xd1, 0x71, 0x10, 0x30, 0x7a, 0x46,
-	0xd0, 0xc5, 0xc9, 0x7e, 0x6d, 0x40, 0xfe, 0x68, 0x48, 0x30, 0x25, 0x42, 0x49, 0x93, 0x7c, 0x73,
-	0x45, 0x42, 0xca, 0xe4, 0x1d, 0x72, 0x7d, 0x7c, 0x71, 0x3a, 0xd6, 0x23, 0x4e, 0x08, 0xc1, 0x92,
-	0x87, 0x07, 0xc4, 0x5c, 0xe3, 0x54, 0xfe, 0x1b, 0xdd, 0x87, 0x0d, 0x1c, 0x04, 0x7d, 0xb7, 0xcd,
-	0xad, 0x3c, 0x6d, 0x98, 0x1b, 0x15, 0xa3, 0x9a, 0x6d, 0x46, 0x89, 0xa8, 0x02, 0xb7, 0x1c, 0x12,
-	0xb6, 0x87, 0x6e, 0xc0, 0x08, 0xe6, 0x6d, 0xae, 0x40, 0x25, 0xa1, 0x2a, 0x6c, 0x8a, 0x50, 0x7c,
-	0x31, 0xf4, 0x3b, 0x6e, 0x9f, 0x9c, 0x36, 0x4c, 0xc4, 0xa5, 0xe2, 0x64, 0x86, 0x18, 0xf6, 0xdc,
-	0xe0, 0xd9, 0x91, 0x47, 0x8f, 0x5e, 0x90, 0x76, 0xcf, 0xcc, 0x57, 0x8c, 0xea, 0x6a, 0x33, 0x4a,
-	0xb4, 0x8b, 0xb0, 0x1d, 0x75, 0x2d, 0x0c, 0x7c, 0x2f, 0x24, 0xf6, 0x1e, 0xfc, 0xef, 0x84, 0xd0,
-	0x85, 0xfc, 0xb5, 0x5f, 0x67, 0x60, 0x4b, 0x11, 0x16, 0x1a, 0xde, 0xf0, 0xe8, 0xec, 0x43, 0x5e,
-	0x90, 0x5a, 0x14, 0xd3, 0xab, 0xf0, 0x29, 0xa6, 0x94, 0x0c, 0x47, 0x3c, 0x46, 0x1b, 0x4d, 0x1d,
-	0x0b, 0xd5, 0x00, 0xa9, 0xe4, 0xcf, 0xf0, 0xb0, 0xeb, 0x7a, 0xe6, 0x76, 0xc5, 0xa8, 0x2e, 0x37,
-	0x35, 0x1c, 0xb4, 0x0b, 0xd0, 0xc7, 0x21, 0x6d, 0x11, 0xe2, 0x1d, 0x52, 0xb3, 0xc0, 0xcd, 0x50,
-	0x28, 0xb3, 0xf9, 0x29, 0xea, 0xf2, 0xf3, 0x2e, 0xe4, 0x1b, 0xa4, 0x4f, 0x16, 0x2c, 0x3d, 0x96,
-	0xce, 0xa8, 0xb8, 0x4c, 0xe7, 0x4f, 0x06, 0x54, 0xce, 0xdc, 0x50, 0xe6, 0xe8, 0xe9, 0xe8, 0x50,
-	0x0d, 0xec, 0x58, 0xe9, 0x4c, 0x16, 0xb2, 0xba, 0x2c, 0x6c, 0xc3, 0x72, 0xdf, 0x1d, 0xb8, 0x94,
-	0x23, 0x67, 0x9b, 0xe2, 0xc0, 0x0c, 0xf2, 0x3b, 0x9d, 0x90, 0x50, 0xfe, 0x76, 0xb2, 0x4d, 0x79,
-	0x62, 0xf4, 0x90, 0xe0, 0x61, 0xfb, 0x85, 0xb9, 0x24, 0x0c, 0x15, 0x27, 0xfb, 0xcf, 0x0c, 0xdc,
-	0x16, 0xc6, 0x30, 0xb3, 0x4e, 0x29, 0x19, 0xbc, 0xe1, 0x05, 0xf3, 0x0e, 0x6c, 0x45, 0x48, 0xe7,
-	0xcc, 0xa4, 0x3c, 0x97, 0x9d, 0x65, 0x24, 0x95, 0xd7, 0xf6, 0x3f, 0x2d, 0xaf, 0xc2, 0x82, 0xe5,
-	0x55, 0x8c, 0x97, 0x97, 0x8d, 0x01, 0x4d, 0x13, 0x3e, 0x79, 0x94, 0xbb, 0x00, 0xd4, 0xa7, 0xb8,
-	0x7f, 0xe4, 0x5f, 0x79, 0xe3, 0x0c, 0x2a, 0x14, 0xf4, 0x08, 0x72, 0x43, 0x12, 0x5e, 0xf5, 0x59,
-	0x1a, 0xb3, 0xd5, 0x5b, 0x07, 0xf9, 0x1a, 0x0e, 0xdc, 0x5a, 0x34, 0x51, 0x4d, 0x29, 0xc2, 0xfb,
-	0xe2, 0x45, 0xe0, 0xfc, 0x57, 0xfb, 0x62, 0xd4, 0x35, 0xf9, 0x90, 0x2e, 0xa1, 0xa4, 0xf6, 0x4b,
-	0x36, 0x4f, 0xd2, 0xdc, 0xae, 0x03, 0x38, 0x13, 0x61, 0xfe, 0x3c, 0x6e, 0x1d, 0x6c, 0x2a, 0x71,
-	0xe5, 0x3a, 0x14, 0x11, 0xdb, 0x02, 0x73, 0x16, 0x43, 0xe2, 0xd7, 0x60, 0x7b, 0xd2, 0x6a, 0x17,
-	0x00, 0xb7, 0x3f, 0x81, 0x42, 0x4c, 0x5e, 0x56, 0x42, 0xd4, 0x2a, 0x23, 0xdd, 0xaa, 0x4b, 0x28,
-	0xa9, 0x11, 0xf9, 0xb7, 0x3c, 0x9f, 0xc5, 0x90, 0x9e, 0x3f, 0x86, 0x92, 0xda, 0xda, 0x16, 0x71,
-	0xde, 0x02, 0x73, 0xf6, 0x8a, 0x54, 0xf7, 0x7b, 0x06, 0x0a, 0x87, 0x6d, 0xea, 0x5e, 0x2f, 0x5c,
-	0xbe, 0x26, 0xac, 0x38, 0xe4, 0xfa, 0xd0, 0x71, 0x86, 0x72, 0x3f, 0x18, 0x1f, 0x19, 0x07, 0x07,
-	0x41, 0x8b, 0x6d, 0x0e, 0x59, 0xc1, 0x91, 0x47, 0xf6, 0xde, 0xbc, 0x9b, 0x5e, 0xeb, 0xd8, 0x6b,
-	0x33, 0xa6, 0x68, 0x81, 0x0a, 0x85, 0x15, 0x76, 0x78, 0x7e, 0xd3, 0x6b, 0x9d, 0x7a, 0x94, 0x09,
-	0xac, 0x8a, 0xc2, 0x56, 0x48, 0x4c, 0xa2, 0xa3, 0x48, 0x88, 0xb7, 0xa3, 0x92, 0x98, 0xbd, 0x9d,
-	0x23, 0x8f, 0x5e, 0x04, 0xe6, 0x32, 0x6f, 0x2f, 0xf2, 0x84, 0xca, 0xb0, 0xe6, 0xb1, 0x82, 0x6e,
-	0xf8, 0x37, 0x9e, 0x99, 0xe3, 0xac, 0x29, 0x81, 0x71, 0xf1, 0x84, 0x0b, 0x82, 0x3b, 0x21, 0xcc,
-	0x3e, 0x92, 0x15, 0xdd, 0x23, 0x31, 0xa1, 0x18, 0x0f, 0xa1, 0x8c, 0xee, 0x13, 0xb0, 0x26, 0x65,
-	0x27, 0x45, 0x5c, 0xdf, 0x4b, 0xcb, 0xd7, 0x6f, 0x19, 0xb8, 0xab, 0xbd, 0x26, 0x6b, 0x56, 0xc9,
-	0x80, 0x91, 0x98, 0x81, 0xcc, 0xbc, 0x0c, 0x64, 0xd3, 0x32, 0xb0, 0x92, 0x9a, 0x81, 0xd5, 0x79,
-	0x19, 0x58, 0x4a, 0xce, 0xc0, 0xf2, 0xdc, 0x0c, 0xac, 0xa5, 0x66, 0x20, 0xa7, 0xcb, 0xc0, 0x63,
-	0x28, 0x9d, 0x10, 0xda, 0xc4, 0x9e, 0xe3, 0x0f, 0x1a, 0x22, 0x16, 0x69, 0x41, 0x7e, 0x02, 0xe6,
-	0xec, 0x95, 0xb4, 0x00, 0xdb, 0xef, 0x43, 0xb9, 0x45, 0x87, 0x04, 0x0f, 0x44, 0x72, 0x9e, 0x0d,
-	0xf1, 0x80, 0x9c, 0xf9, 0xdd, 0xd4, 0x27, 0xf8, 0x8b, 0x01, 0x3b, 0x09, 0x17, 0x25, 0xe6, 0x07,
-	0xb0, 0x7e, 0x15, 0xf4, 0x5d, 0xaf, 0xc7, 0x59, 0xac, 0x15, 0x4d, 0x07, 0xcf, 0xc5, 0x94, 0x71,
-	0xe6, 0x77, 0x9b, 0x11, 0x41, 0xf4, 0x31, 0xdc, 0x76, 0xfc, 0x1b, 0x4f, 0xb9, 0x2a, 0x66, 0x56,
-	0x41, 0x74, 0x18, 0x95, 0xc5, 0x2e, 0xc7, 0x84, 0xe3, 0x1e, 0x1d, 0x5f, 0x13, 0x8f, 0x2e, 0xe2,
-	0xd1, 0x45, 0xd4, 0x21, 0xe5, 0x9e, 0x74, 0x08, 0xc1, 0x12, 0x1d, 0x05, 0x44, 0x5e, 0xe3, 0xbf,
-	0x59, 0x0d, 0x05, 0x78, 0xd4, 0xf7, 0xb1, 0xf3, 0x69, 0xeb, 0xf3, 0x73, 0x59, 0xa3, 0x2a, 0xe9,
-	0xe0, 0xd7, 0x75, 0xc8, 0x09, 0x8d, 0xe8, 0x4b, 0xc8, 0x89, 0xfe, 0x8f, 0x4c, 0xee, 0x8a, 0xe6,
-	0xdb, 0xc3, 0xba, 0xa3, 0xe1, 0xc8, 0xb7, 0x57, 0xfa, 0xe1, 0x8f, 0xbf, 0x7e, 0xce, 0x6c, 0xd9,
-	0xeb, 0xfc, 0xd3, 0x48, 0x74, 0xd7, 0xf0, 0x43, 0x63, 0x0f, 0xb5, 0x20, 0x7b, 0x42, 0x28, 0x12,
-	0xf1, 0x89, 0x6f, 0xf7, 0x56, 0x31, 0x4e, 0x96, 0xea, 0x76, 0xb8, 0xba, 0x12, 0x2a, 0xa8, 0xea,
-	0xea, 0x2f, 0x45, 0x34, 0x5e, 0xa1, 0xaf, 0x98, 0xd9, 0xac, 0xc7, 0x4a, 0x63, 0x35, 0xdb, 0xaa,
-	0x34, 0x56, 0xbb, 0x98, 0x4a, 0xed, 0x7b, 0x09, 0xda, 0x7f, 0x34, 0x20, 0xcf, 0xf6, 0x8e, 0xd8,
-	0xc6, 0x8a, 0x1e, 0x70, 0x8d, 0x69, 0x1b, 0xad, 0x55, 0x8a, 0x89, 0x4d, 0x87, 0x09, 0x87, 0x7d,
-	0x84, 0x1e, 0x8a, 0xcf, 0xc7, 0xe9, 0xdd, 0xb0, 0xfe, 0x32, 0xb2, 0x7a, 0xbc, 0x1a, 0xdb, 0x84,
-	0xbe, 0x86, 0x9c, 0x98, 0x4d, 0xd2, 0x51, 0xcd, 0xe6, 0x23, 0x1d, 0xd5, 0x2e, 0x0e, 0x15, 0x8e,
-	0x68, 0x59, 0x7a, 0x47, 0x59, 0x7a, 0x02, 0x00, 0x91, 0x4f, 0xfe, 0x91, 0x5a, 0x9e, 0x49, 0xb0,
-	0x32, 0xf1, 0xac, 0x9d, 0x04, 0xae, 0x04, 0x7b, 0xc0, 0xc1, 0xee, 0xd9, 0x96, 0x16, 0xac, 0xde,
-	0x23, 0x23, 0x5e, 0x10, 0x0e, 0xac, 0x9c, 0x10, 0xca, 0xe1, 0xee, 0x44, 0xb3, 0xaf, 0x62, 0x59,
-	0x3a, 0x96, 0x04, 0xb2, 0x39, 0x50, 0x19, 0xcd, 0x01, 0x62, 0x7e, 0x89, 0x88, 0x28, 0x7e, 0x25,
-	0x6c, 0x12, 0xd2, 0xaf, 0xc4, 0x1d, 0x40, 0xfa, 0x65, 0xa5, 0xf8, 0x35, 0x60, 0x9f, 0xfb, 0xac,
-	0xd8, 0x14, 0xc4, 0x84, 0xdd, 0x41, 0x22, 0x26, 0xae, 0x09, 0xd2, 0xc1, 0xbd, 0x79, 0x0e, 0x7a,
-	0xb0, 0x3a, 0x1e, 0x83, 0x48, 0x04, 0x4b, 0xbb, 0x58, 0x58, 0x77, 0xb5, 0x3c, 0x09, 0xf4, 0x90,
-	0x03, 0xbd, 0x65, 0xef, 0xea, 0x81, 0xb0, 0xbc, 0xc5, 0xdc, 0xfb, 0x16, 0x36, 0x4e, 0x08, 0x9d,
-	0xce, 0x47, 0x74, 0x2f, 0x9a, 0xa1, 0x99, 0x81, 0x6b, 0x55, 0x92, 0x05, 0x24, 0x7c, 0x95, 0xc3,
-	0xdb, 0xa8, 0x32, 0x17, 0x9e, 0x81, 0x7d, 0xc7, 0xff, 0x19, 0x88, 0xcc, 0x0f, 0x19, 0xe2, 0x84,
-	0x49, 0x24, 0x43, 0x9c, 0x34, 0x74, 0xec, 0x1a, 0x87, 0xae, 0xda, 0x6f, 0xeb, 0xa1, 0xbb, 0x71,
-	0xb0, 0xef, 0x0d, 0xd8, 0x14, 0x1d, 0x78, 0x32, 0x4c, 0xd0, 0xff, 0x39, 0xc4, 0xbc, 0x09, 0x65,
-	0xd9, 0xf3, 0x44, 0xa4, 0x29, 0xf7, 0xb9, 0x29, 0xbb, 0xa8, 0xac, 0x37, 0xa5, 0xc3, 0x27, 0xc7,
-	0xbe, 0xa1, 0x98, 0x30, 0x69, 0xff, 0x1a, 0x13, 0xe2, 0x23, 0x45, 0x63, 0xc2, 0xcc, 0xf4, 0x48,
-	0x33, 0x81, 0xb0, 0x0b, 0xe1, 0xbe, 0x71, 0x99, 0xe3, 0xff, 0x6c, 0xbd, 0xf7, 0x77, 0x00, 0x00,
-	0x00, 0xff, 0xff, 0xc6, 0x0e, 0x8b, 0xfc, 0x1a, 0x13, 0x00, 0x00,
+var fileDescriptor_device_ce6fa63c4e685d7a = []byte{
+	// 1419 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x57, 0x5b, 0x6f, 0x1b, 0xc5,
+	0x17, 0xff, 0x6f, 0xdc, 0x38, 0xc9, 0xb1, 0xdd, 0x24, 0x93, 0x8b, 0xdd, 0x6d, 0xf3, 0x8f, 0xb3,
+	0xa5, 0xaa, 0x9b, 0x22, 0x3b, 0x18, 0x15, 0x50, 0x55, 0x21, 0xe5, 0xd6, 0x10, 0x52, 0x0a, 0x5a,
+	0x37, 0x20, 0xc1, 0xc3, 0x6a, 0xe2, 0x1d, 0xa7, 0x8b, 0xed, 0xd9, 0xc5, 0x33, 0x4e, 0x64, 0x95,
+	0x4a, 0xc0, 0x03, 0x12, 0x4f, 0x3c, 0xf0, 0x0d, 0x78, 0xe7, 0xbb, 0x20, 0xf5, 0x95, 0x47, 0x3e,
+	0x08, 0x9a, 0x8b, 0xed, 0xf1, 0xda, 0x9b, 0x0b, 0xf0, 0xc2, 0x9b, 0xf7, 0x9c, 0xdf, 0x99, 0x73,
+	0x9d, 0xf3, 0x1b, 0x43, 0xd6, 0x27, 0x67, 0x41, 0x9d, 0x94, 0xa3, 0x4e, 0xc8, 0x43, 0x94, 0xc2,
+	0x51, 0x60, 0xdf, 0x39, 0x0d, 0xc3, 0xd3, 0x16, 0xa9, 0xe0, 0x28, 0xa8, 0x60, 0x4a, 0x43, 0x8e,
+	0x79, 0x10, 0x52, 0xa6, 0x20, 0xf6, 0xba, 0xd6, 0xca, 0xaf, 0x93, 0x6e, 0xa3, 0xc2, 0x83, 0x36,
+	0x61, 0x1c, 0xb7, 0x23, 0x0d, 0xb8, 0x1d, 0x07, 0x90, 0x76, 0xc4, 0x7b, 0x5a, 0x99, 0xad, 0x87,
+	0xed, 0x76, 0x48, 0xd5, 0x97, 0xf3, 0xc6, 0x82, 0xf4, 0x9e, 0xf4, 0x8f, 0xf2, 0x30, 0xe3, 0x93,
+	0x33, 0x8f, 0x74, 0x83, 0x82, 0x55, 0xb4, 0x4a, 0x73, 0x6e, 0xda, 0x27, 0x67, 0xfb, 0xc7, 0x87,
+	0x08, 0xc1, 0x0d, 0x8a, 0xdb, 0xa4, 0x30, 0x25, 0xa5, 0xf2, 0x37, 0xba, 0x07, 0x37, 0x71, 0x14,
+	0xb5, 0x82, 0xba, 0x8c, 0xcc, 0x0b, 0xfc, 0x42, 0xaa, 0x68, 0x95, 0x52, 0x6e, 0xce, 0x90, 0x1e,
+	0xee, 0xa1, 0x22, 0x64, 0x7c, 0xc2, 0xea, 0x9d, 0x20, 0x12, 0x82, 0xc2, 0x0d, 0x79, 0x82, 0x29,
+	0x42, 0x9b, 0xb0, 0xa8, 0xf2, 0xf7, 0xa2, 0x4e, 0xd8, 0x08, 0x5a, 0x44, 0x9c, 0x35, 0x2d, 0x71,
+	0xf3, 0x4a, 0xf1, 0x99, 0x92, 0x1f, 0xee, 0xa1, 0xfb, 0xb0, 0xc0, 0x9a, 0x41, 0xe4, 0x35, 0xbc,
+	0x3a, 0xe5, 0x5e, 0xfd, 0x25, 0xa9, 0x37, 0x0b, 0xe9, 0xa2, 0x55, 0x9a, 0x75, 0x73, 0x42, 0xfe,
+	0x74, 0x97, 0xf2, 0x5d, 0x21, 0x74, 0x7e, 0x4c, 0xc1, 0x4d, 0x95, 0xd5, 0xb3, 0x80, 0xf1, 0x43,
+	0x4e, 0xda, 0xff, 0x81, 0xec, 0xca, 0xb0, 0x14, 0xc3, 0xca, 0xb8, 0xd2, 0x12, 0xbd, 0x38, 0x82,
+	0x7e, 0x2e, 0x82, 0xac, 0xc2, 0x8a, 0xc6, 0x33, 0x8e, 0x79, 0x97, 0x79, 0x27, 0x98, 0x73, 0xd2,
+	0xe9, 0x15, 0x66, 0x8a, 0x56, 0x29, 0xe7, 0xea, 0xc3, 0x6a, 0x52, 0xb7, 0xa3, 0x54, 0x68, 0x0b,
+	0x96, 0x47, 0x6d, 0xda, 0xb8, 0x73, 0x1a, 0xd0, 0xc2, 0x6c, 0xd1, 0x2a, 0x4d, 0xbb, 0xc8, 0x34,
+	0xf9, 0x44, 0x6a, 0xd0, 0x13, 0xc8, 0xb6, 0x30, 0xe3, 0x1e, 0x23, 0x84, 0x7a, 0x98, 0x17, 0xe6,
+	0x8a, 0x56, 0x29, 0x53, 0xb5, 0xcb, 0x6a, 0xc4, 0xca, 0xfd, 0x11, 0x2b, 0xbf, 0xe8, 0xcf, 0xa0,
+	0x0b, 0x02, 0x5f, 0x23, 0x84, 0x6e, 0x73, 0xe7, 0x0b, 0x00, 0xd5, 0x87, 0x23, 0xd2, 0x63, 0xc9,
+	0x3d, 0xc8, 0xc3, 0x0c, 0x3d, 0x6f, 0x7a, 0x4d, 0xd2, 0xd3, 0x6d, 0x48, 0xd3, 0xf3, 0xe6, 0x11,
+	0xe9, 0x09, 0x05, 0x8e, 0x22, 0xa9, 0x48, 0x29, 0x05, 0x8e, 0xa2, 0x23, 0xd2, 0x73, 0x1e, 0xc3,
+	0xd2, 0x6e, 0x87, 0x60, 0x4e, 0xd4, 0xf1, 0x2e, 0xf9, 0xa6, 0x4b, 0x18, 0x47, 0x77, 0x21, 0xad,
+	0x72, 0x90, 0x0e, 0x32, 0xd5, 0x4c, 0x19, 0x47, 0x41, 0x59, 0x63, 0xb4, 0xca, 0x79, 0x08, 0x0b,
+	0x07, 0x84, 0x8f, 0x1a, 0x26, 0x85, 0xe6, 0xfc, 0x61, 0xc1, 0xa2, 0x81, 0x66, 0x51, 0x48, 0x19,
+	0xb9, 0x92, 0x9f, 0xb1, 0xd2, 0x4d, 0x5f, 0xa7, 0x74, 0xc9, 0xed, 0x4d, 0x5f, 0xbf, 0xbd, 0xcb,
+	0x49, 0xed, 0x75, 0xca, 0xb0, 0xb4, 0x47, 0x5a, 0x24, 0x5e, 0xc7, 0xc4, 0x72, 0xfc, 0x6c, 0x41,
+	0x51, 0xdc, 0x29, 0x05, 0xdf, 0xe9, 0x6d, 0x9b, 0x17, 0xa2, 0x6f, 0x7d, 0xc5, 0xeb, 0xb3, 0x0c,
+	0xd3, 0xad, 0xa0, 0x1d, 0x70, 0xe9, 0x22, 0xe5, 0xaa, 0x0f, 0xb4, 0x0a, 0xe9, 0xb0, 0xd1, 0x60,
+	0x84, 0xcb, 0x51, 0x48, 0xb9, 0xfa, 0x4b, 0xc8, 0x19, 0xc1, 0x9d, 0xfa, 0x4b, 0x7d, 0xcf, 0xf4,
+	0x97, 0x73, 0x02, 0x68, 0x18, 0xd0, 0xa0, 0x41, 0xeb, 0x90, 0xe1, 0x21, 0xc7, 0x2d, 0xaf, 0x1e,
+	0x76, 0x69, 0xdf, 0x03, 0x48, 0xd1, 0xae, 0x90, 0xa0, 0x87, 0x90, 0xee, 0x10, 0xd6, 0x6d, 0x09,
+	0x37, 0xa9, 0x52, 0xa6, 0xba, 0x64, 0x74, 0xb0, 0xbf, 0x34, 0x5c, 0x0d, 0x11, 0xd3, 0x76, 0x1c,
+	0xf9, 0x7f, 0x6f, 0xda, 0x8e, 0x20, 0x6f, 0x4e, 0xaa, 0xb8, 0x08, 0x7d, 0xfb, 0x2d, 0xb1, 0x3f,
+	0x64, 0xbb, 0x9a, 0xa4, 0xc7, 0xf4, 0x21, 0xf3, 0xc6, 0x21, 0x12, 0x0c, 0xfe, 0xe0, 0xb7, 0x53,
+	0x81, 0xe5, 0xc1, 0x30, 0x9a, 0x27, 0x25, 0xf6, 0xeb, 0x10, 0x56, 0x62, 0x06, 0xba, 0x40, 0xd7,
+	0xf7, 0x7d, 0x04, 0x79, 0xb3, 0x08, 0xff, 0x2c, 0x91, 0x2a, 0xe4, 0xcd, 0xb9, 0xbb, 0x52, 0x2e,
+	0xbf, 0x4d, 0xc1, 0x82, 0x82, 0x6f, 0xd7, 0x79, 0x70, 0x26, 0xc7, 0x28, 0x79, 0xa7, 0xdc, 0x82,
+	0x59, 0xa1, 0xc0, 0xbe, 0xdf, 0xd1, 0x4b, 0x45, 0x00, 0xb7, 0x7d, 0xbf, 0x83, 0x6c, 0x98, 0x13,
+	0x5b, 0x85, 0x19, 0x7b, 0x45, 0xac, 0x99, 0x9a, 0xd8, 0x38, 0x1b, 0x90, 0x13, 0xab, 0x88, 0x79,
+	0x84, 0xd6, 0xa5, 0x5e, 0x4d, 0x1b, 0xd0, 0xf3, 0x66, 0x6d, 0x9f, 0xd6, 0x05, 0xe4, 0x2d, 0x98,
+	0x67, 0x9e, 0x02, 0x05, 0x94, 0x4b, 0xd0, 0xac, 0x5a, 0xfd, 0xec, 0xf9, 0x79, 0xb3, 0x76, 0x48,
+	0xb9, 0x46, 0x35, 0x62, 0xa8, 0x39, 0x85, 0x6a, 0x18, 0xa8, 0x02, 0xcc, 0x2a, 0x36, 0xeb, 0x46,
+	0x72, 0x3f, 0xe4, 0xdc, 0x74, 0x63, 0x97, 0xf2, 0xe3, 0x08, 0xad, 0x43, 0x96, 0x6a, 0xa6, 0xf3,
+	0xc3, 0x73, 0xaa, 0xaf, 0xfd, 0x1c, 0x15, 0x2c, 0xb7, 0x17, 0x9e, 0x53, 0x01, 0xc0, 0x26, 0x00,
+	0x14, 0x00, 0xf7, 0x01, 0xce, 0x57, 0xb0, 0xa2, 0x0b, 0x15, 0x9b, 0xdb, 0x9d, 0x01, 0x2b, 0xe1,
+	0x41, 0x21, 0x75, 0xd3, 0x56, 0x8c, 0xa6, 0x0d, 0xab, 0xec, 0x2e, 0xf8, 0x31, 0x89, 0xf3, 0x08,
+	0xec, 0xc1, 0x60, 0x19, 0xc0, 0xcb, 0x7a, 0x88, 0xe1, 0xf6, 0x44, 0x33, 0x3d, 0x95, 0xff, 0x46,
+	0x64, 0x55, 0xc8, 0x1f, 0x10, 0xee, 0x62, 0xea, 0x87, 0xed, 0x3d, 0xd5, 0xf1, 0x4b, 0xc3, 0x7a,
+	0x04, 0x85, 0x71, 0x1b, 0x1d, 0x93, 0x39, 0x48, 0xd6, 0xc8, 0x20, 0x39, 0xef, 0xc3, 0x9d, 0x1a,
+	0xef, 0x10, 0xdc, 0x56, 0x61, 0x3d, 0xed, 0xe0, 0x36, 0x79, 0x16, 0x9e, 0x5e, 0x3e, 0xca, 0xbf,
+	0x5a, 0xb0, 0x96, 0x60, 0xa9, 0xbd, 0x7e, 0x00, 0xd9, 0x6e, 0xd4, 0x0a, 0x68, 0xd3, 0x6b, 0x08,
+	0x9d, 0x2e, 0x82, 0xda, 0x52, 0xc7, 0x52, 0xd1, 0xb7, 0xf9, 0xe8, 0x7f, 0x6e, 0xa6, 0x3b, 0x94,
+	0xa0, 0x0f, 0xe1, 0xa6, 0x98, 0x07, 0xc3, 0x76, 0xca, 0x2c, 0xa0, 0x56, 0x19, 0xd6, 0x39, 0xdf,
+	0x94, 0xed, 0xcc, 0xc0, 0xb4, 0x34, 0x8b, 0x67, 0xb7, 0x7f, 0x46, 0x28, 0xbf, 0x52, 0x76, 0x9f,
+	0x8f, 0x26, 0x67, 0x18, 0xea, 0xe4, 0x10, 0xdc, 0xe0, 0xbd, 0x88, 0x68, 0x33, 0xf9, 0x1b, 0x6d,
+	0x40, 0x36, 0xc2, 0xbd, 0x56, 0x88, 0x7d, 0xef, 0x6b, 0x16, 0x52, 0x7d, 0x67, 0x33, 0x5a, 0xf6,
+	0x71, 0xed, 0xd3, 0xe7, 0xd5, 0xdf, 0xb3, 0x90, 0x53, 0x47, 0xd6, 0x48, 0x47, 0x52, 0x6c, 0x0d,
+	0xd2, 0x6a, 0xb9, 0xa2, 0x82, 0xcc, 0x6e, 0xc2, 0x9b, 0xc0, 0x5e, 0x1d, 0x23, 0xdc, 0x7d, 0xf1,
+	0x1c, 0x76, 0xf2, 0x3f, 0xbc, 0xf9, 0xf3, 0x97, 0xa9, 0x45, 0x27, 0x2b, 0x9f, 0xd9, 0x6a, 0x8c,
+	0xd8, 0x63, 0x6b, 0x13, 0xbd, 0x80, 0xd4, 0x01, 0xe1, 0x48, 0xd5, 0x2b, 0xfe, 0x52, 0xb0, 0x57,
+	0xe3, 0x62, 0x95, 0x93, 0xf3, 0x7f, 0x79, 0x5c, 0x01, 0xad, 0x9a, 0xc7, 0x55, 0x5e, 0xe9, 0x0a,
+	0xbd, 0x46, 0x5f, 0x8a, 0x87, 0xb6, 0xd8, 0x78, 0x3a, 0xd4, 0x09, 0xb4, 0x9b, 0x18, 0xaa, 0x3e,
+	0x7b, 0x33, 0xe9, 0xec, 0x9f, 0x2c, 0x58, 0x12, 0xa4, 0x15, 0xe3, 0x63, 0x74, 0x4f, 0x7a, 0xba,
+	0x8c, 0xaf, 0xed, 0x7c, 0x0c, 0x36, 0xc8, 0xa9, 0x2a, 0xfd, 0xbe, 0x8d, 0x36, 0xd5, 0x3f, 0x91,
+	0xa1, 0x2d, 0xab, 0xbc, 0x1a, 0x65, 0xf8, 0xd7, 0xfd, 0xa8, 0x90, 0x0f, 0x69, 0x45, 0x13, 0x3a,
+	0xcf, 0x09, 0xc4, 0x99, 0x98, 0x67, 0x49, 0xfa, 0x73, 0xec, 0xb5, 0xb1, 0x3c, 0xc5, 0x1f, 0xa4,
+	0x7e, 0xba, 0xa2, 0x47, 0x67, 0x00, 0xaa, 0xd7, 0xf2, 0x61, 0x79, 0x67, 0xac, 0xf9, 0x06, 0xa1,
+	0x24, 0x7a, 0xd3, 0xd9, 0x39, 0xf7, 0x27, 0x79, 0x93, 0x4c, 0x36, 0x70, 0x59, 0x11, 0x5f, 0xc2,
+	0x2f, 0x81, 0x99, 0x03, 0xc2, 0xa5, 0xd3, 0x5b, 0xa3, 0x83, 0x60, 0x7a, 0xb4, 0x27, 0xa9, 0x74,
+	0x4d, 0xef, 0x4a, 0xaf, 0x6b, 0xe8, 0xf6, 0xe4, 0x5e, 0x4a, 0x4f, 0x22, 0x3d, 0x55, 0x37, 0x23,
+	0xbd, 0x04, 0xf2, 0xbd, 0x2c, 0x3d, 0xfb, 0x3a, 0xe9, 0x9d, 0x8a, 0xf7, 0xba, 0x98, 0x4b, 0xc3,
+	0x6f, 0x02, 0x4f, 0x27, 0xfa, 0xd5, 0x09, 0x6e, 0x5e, 0x98, 0xe0, 0xb7, 0x30, 0xdb, 0xe7, 0x26,
+	0xa4, 0xaa, 0x35, 0x91, 0xaa, 0x12, 0x9d, 0x3c, 0x91, 0x4e, 0xde, 0x73, 0xde, 0x99, 0x98, 0xdc,
+	0x90, 0x3c, 0x86, 0x29, 0x6a, 0x19, 0x11, 0x69, 0xbe, 0x86, 0xdc, 0x01, 0xe1, 0xc6, 0x2b, 0x62,
+	0x7d, 0xb4, 0x61, 0x63, 0x84, 0x66, 0x17, 0x93, 0x01, 0xba, 0xaf, 0x0f, 0x64, 0x44, 0x77, 0xd1,
+	0x46, 0x42, 0xda, 0xc3, 0x98, 0xd0, 0x77, 0x96, 0xfc, 0x07, 0x32, 0x42, 0x37, 0xba, 0xd8, 0x09,
+	0xcc, 0x65, 0xaf, 0x25, 0x68, 0xb5, 0xf3, 0x8a, 0x74, 0xfe, 0x60, 0xc2, 0x28, 0x2b, 0xe7, 0xa7,
+	0x71, 0x6f, 0xdf, 0x5b, 0x30, 0xaf, 0x76, 0xf4, 0x80, 0x7a, 0xd0, 0x86, 0xf4, 0x71, 0x11, 0xa1,
+	0xd9, 0xce, 0x45, 0x10, 0x1d, 0xcb, 0x3d, 0x19, 0xcb, 0x3a, 0x5a, 0x4b, 0x88, 0x45, 0x92, 0x0b,
+	0xdb, 0xb2, 0x8c, 0x18, 0x06, 0x0c, 0x31, 0x21, 0x86, 0x38, 0xed, 0x4c, 0x88, 0x61, 0x8c, 0x60,
+	0x2e, 0x8d, 0x81, 0x08, 0x0b, 0xb6, 0x65, 0x9d, 0xa4, 0xe5, 0x5c, 0xbd, 0xfb, 0x57, 0x00, 0x00,
+	0x00, 0xff, 0xff, 0x45, 0x79, 0x2a, 0x7b, 0x85, 0x11, 0x00, 0x00,
 }

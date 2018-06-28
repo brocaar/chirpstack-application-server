@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -32,9 +33,13 @@ func NewDeviceQueueAPI(validator auth.Validator) *DeviceQueueAPI {
 }
 
 // Enqueue adds the given item to the device-queue.
-func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueueItemRequest) (*pb.EnqueueDeviceQueueItemResponse, error) {
+func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueueItemRequest) (*empty.Empty, error) {
+	if req.QueueItem == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "queue_item must not be nil")
+	}
+
 	var devEUI lorawan.EUI64
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := devEUI.UnmarshalText([]byte(req.QueueItem.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
@@ -44,7 +49,7 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 	}
 
 	// if JSON object is set, try to encode it to bytes
-	if req.JsonObject != "" {
+	if req.QueueItem.JsonObject != "" {
 		dev, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
 		if err != nil {
 			return nil, errToRPCError(err)
@@ -56,24 +61,24 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 		}
 
 		// get codec payload configured for the application
-		codecPL := codec.NewPayload(app.PayloadCodec, uint8(req.FPort), app.PayloadEncoderScript, app.PayloadDecoderScript)
+		codecPL := codec.NewPayload(app.PayloadCodec, uint8(req.QueueItem.FPort), app.PayloadEncoderScript, app.PayloadDecoderScript)
 		if codecPL == nil {
 			return nil, grpc.Errorf(codes.FailedPrecondition, "no or invalid codec configured for application")
 		}
 
-		err = json.Unmarshal([]byte(req.JsonObject), &codecPL)
+		err = json.Unmarshal([]byte(req.QueueItem.JsonObject), &codecPL)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 
-		req.Data, err = codecPL.EncodeToBytes()
+		req.QueueItem.Data, err = codecPL.EncodeToBytes()
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 	}
 
 	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
-		if err := downlink.EnqueueDownlinkPayload(tx, devEUI, req.Reference, req.Confirmed, uint8(req.FPort), req.Data); err != nil {
+		if err := downlink.EnqueueDownlinkPayload(tx, devEUI, req.QueueItem.Reference, req.QueueItem.Confirmed, uint8(req.QueueItem.FPort), req.QueueItem.Data); err != nil {
 			return errors.Wrap(err, "enqueue downlink payload error")
 		}
 		return nil
@@ -82,13 +87,13 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 		return nil, errToRPCError(err)
 	}
 
-	return &pb.EnqueueDeviceQueueItemResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // Flush flushes the downlink device-queue.
-func (d *DeviceQueueAPI) Flush(ctx context.Context, req *pb.FlushDeviceQueueRequest) (*pb.FlushDeviceQueueResponse, error) {
+func (d *DeviceQueueAPI) Flush(ctx context.Context, req *pb.FlushDeviceQueueRequest) (*empty.Empty, error) {
 	var devEUI lorawan.EUI64
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := devEUI.UnmarshalText([]byte(req.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
@@ -113,7 +118,7 @@ func (d *DeviceQueueAPI) Flush(ctx context.Context, req *pb.FlushDeviceQueueRequ
 		}
 
 		_, err := nsClient.FlushDeviceQueueForDevEUI(ctx, &ns.FlushDeviceQueueForDevEUIRequest{
-			DevEUI: devEUI[:],
+			DevEui: devEUI[:],
 		})
 		return err
 	})
@@ -121,13 +126,13 @@ func (d *DeviceQueueAPI) Flush(ctx context.Context, req *pb.FlushDeviceQueueRequ
 		return nil, err
 	}
 
-	return &pb.FlushDeviceQueueResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // List lists the items in the device-queue.
 func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsRequest) (*pb.ListDeviceQueueItemsResponse, error) {
 	var devEUI lorawan.EUI64
-	if err := devEUI.UnmarshalText([]byte(req.DevEUI)); err != nil {
+	if err := devEUI.UnmarshalText([]byte(req.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
@@ -152,7 +157,7 @@ func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsR
 	}
 
 	queueItemsResp, err := nsClient.GetDeviceQueueItemsForDevEUI(ctx, &ns.GetDeviceQueueItemsForDevEUIRequest{
-		DevEUI: devEUI[:],
+		DevEui: devEUI[:],
 	})
 
 	var resp pb.ListDeviceQueueItemsResponse
@@ -163,11 +168,10 @@ func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsR
 		}
 
 		resp.Items = append(resp.Items, &pb.DeviceQueueItem{
-			DevEUI:    devEUI.String(),
+			DevEui:    devEUI.String(),
 			Confirmed: qi.Confirmed,
 			FPort:     qi.FPort,
 			Data:      b,
-			FCnt:      qi.FCnt,
 		})
 	}
 

@@ -15,7 +15,7 @@ class NodeActivation extends Component {
   componentDidMount() {
     NodeStore.getActivation(this.props.match.params.devEUI, (nodeActivation) => {
       this.setState({
-        activation: nodeActivation,
+        activation: nodeActivation.deviceActivation,
       });
     });
   }

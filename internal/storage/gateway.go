@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/lib/pq"
+
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/loraserver/api/ns"
 	"google.golang.org/grpc"
@@ -212,7 +214,7 @@ func DeleteGateway(db sqlx.Ext, mac lorawan.EUI64) error {
 	}
 
 	_, err = nsClient.DeleteGateway(context.Background(), &ns.DeleteGatewayRequest{
-		Mac: mac[:],
+		Id: mac[:],
 	})
 	if err != nil && grpc.Code(err) != codes.NotFound {
 		return errors.Wrap(err, "delete gateway error")
@@ -299,6 +301,34 @@ func GetGateways(db sqlx.Queryer, limit, offset int, search string) ([]Gateway, 
 		return nil, errors.Wrap(err, "select error")
 	}
 	return gws, nil
+}
+
+// GetGatewaysForMACs returns a map of gateways given a slice of MACs.
+func GetGatewaysForMACs(db sqlx.Queryer, macs []lorawan.EUI64) (map[lorawan.EUI64]Gateway, error) {
+	out := make(map[lorawan.EUI64]Gateway)
+	var macsB [][]byte
+	for i := range macs {
+		macsB = append(macsB, macs[i][:])
+	}
+
+	var gws []Gateway
+	err := sqlx.Select(db, &gws, "select * from gateway where mac = any($1)", pq.ByteaArray(macsB))
+	if err != nil {
+		return nil, handlePSQLError(Select, err, "select error")
+	}
+
+	if len(gws) != len(macs) {
+		log.WithFields(log.Fields{
+			"expected": len(macs),
+			"returned": len(gws),
+		}).Warning("requested number of gateways does not match returned")
+	}
+
+	for i := range gws {
+		out[gws[i].MAC] = gws[i]
+	}
+
+	return out, nil
 }
 
 // GetGatewayCountForOrganizationID returns the total number of gateways

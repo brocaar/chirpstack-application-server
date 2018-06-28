@@ -21,7 +21,9 @@ class ApplicationLayout extends Component {
     super();
 
     this.state = {
-      application: {},
+      application: {
+        application: {},
+      },
       isAdmin: false,
     };
 
@@ -61,7 +63,7 @@ class ApplicationLayout extends Component {
           <li><Link to="/organizations">Organizations</Link></li>
           <li><OrganizationSelect organizationID={this.props.match.params.organizationID} /></li>
           <li><Link to={`/organizations/${this.props.match.params.organizationID}/applications`}>Applications</Link></li>
-          <li className="active">{this.state.application.name}</li>
+          <li className="active">{this.state.application.application.name}</li>
         </ol>
         <div className={(this.state.isAdmin ? '' : 'hidden')}>
           <div className="clearfix">

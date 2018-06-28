@@ -2,7 +2,11 @@ package api
 
 import (
 	"strings"
-	"time"
+
+	"github.com/golang/protobuf/ptypes"
+
+	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/satori/go.uuid"
 
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
@@ -30,47 +34,60 @@ func NewGatewayAPI(validator auth.Validator) *GatewayAPI {
 }
 
 // Create creates the given gateway.
-func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (*pb.CreateGatewayResponse, error) {
-	err := a.validator.Validate(ctx, auth.ValidateGatewaysAccess(auth.Create, req.OrganizationID))
+func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (*empty.Empty, error) {
+	if req.Gateway == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "gateway must not be nil")
+	}
+
+	err := a.validator.Validate(ctx, auth.ValidateGatewaysAccess(auth.Create, req.Gateway.OrganizationId))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	// also validate that the network-server is accessible for the given organization
-	err = a.validator.Validate(ctx, auth.ValidateOrganizationNetworkServerAccess(auth.Read, req.OrganizationID, req.NetworkServerID))
+	err = a.validator.Validate(ctx, auth.ValidateOrganizationNetworkServerAccess(auth.Read, req.Gateway.OrganizationId, req.Gateway.NetworkServerId))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	var mac lorawan.EUI64
-	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+	if err := mac.UnmarshalText([]byte(req.Gateway.Id)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
 	}
 
 	createReq := ns.CreateGatewayRequest{
-		Mac:              mac[:],
-		Name:             req.Name,
-		Description:      req.Description,
-		Latitude:         req.Latitude,
-		Longitude:        req.Longitude,
-		Altitude:         req.Altitude,
-		GatewayProfileID: req.GatewayProfileID,
+		Gateway: &ns.Gateway{
+			Id:          mac[:],
+			Name:        req.Gateway.Name,
+			Description: req.Gateway.Description,
+			Latitude:    req.Gateway.Latitude,
+			Longitude:   req.Gateway.Longitude,
+			Altitude:    req.Gateway.Altitude,
+		},
+	}
+
+	if req.Gateway.GatewayProfileId != "" {
+		gpID, err := uuid.FromString(req.Gateway.GatewayProfileId)
+		if err != nil {
+			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+		}
+		createReq.Gateway.GatewayProfileId = gpID.Bytes()
 	}
 
 	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		err = storage.CreateGateway(tx, &storage.Gateway{
 			MAC:             mac,
-			Name:            req.Name,
-			Description:     req.Description,
-			OrganizationID:  req.OrganizationID,
-			Ping:            req.Ping,
-			NetworkServerID: req.NetworkServerID,
+			Name:            req.Gateway.Name,
+			Description:     req.Gateway.Description,
+			OrganizationID:  req.Gateway.OrganizationId,
+			Ping:            req.Gateway.DiscoveryEnabled,
+			NetworkServerID: req.Gateway.NetworkServerId,
 		})
 		if err != nil {
 			return errToRPCError(err)
 		}
 
-		n, err := storage.GetNetworkServer(tx, req.NetworkServerID)
+		n, err := storage.GetNetworkServer(tx, req.Gateway.NetworkServerId)
 		if err != nil {
 			return errToRPCError(err)
 		}
@@ -91,13 +108,13 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 		return nil, err
 	}
 
-	return &pb.CreateGatewayResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // Get returns the gateway matching the given Mac.
 func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.GetGatewayResponse, error) {
 	var mac lorawan.EUI64
-	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+	if err := mac.UnmarshalText([]byte(req.Id)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
 	}
 
@@ -122,34 +139,51 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 	}
 
 	getResp, err := nsClient.GetGateway(ctx, &ns.GetGatewayRequest{
-		Mac: mac[:],
+		Id: mac[:],
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	ret := &pb.GetGatewayResponse{
-		Mac:              mac.String(),
-		Name:             gw.Name,
-		Description:      gw.Description,
-		OrganizationID:   gw.OrganizationID,
-		Ping:             gw.Ping,
-		Latitude:         getResp.Latitude,
-		Longitude:        getResp.Longitude,
-		Altitude:         getResp.Altitude,
-		CreatedAt:        gw.CreatedAt.Format(time.RFC3339Nano),
-		UpdatedAt:        gw.UpdatedAt.Format(time.RFC3339Nano),
-		FirstSeenAt:      getResp.FirstSeenAt,
-		LastSeenAt:       getResp.LastSeenAt,
-		GatewayProfileID: getResp.GatewayProfileID,
-		NetworkServerID:  gw.NetworkServerID,
+	resp := pb.GetGatewayResponse{
+		Gateway: &pb.Gateway{
+			Id:               mac.String(),
+			Name:             gw.Name,
+			Description:      gw.Description,
+			OrganizationId:   gw.OrganizationID,
+			DiscoveryEnabled: gw.Ping,
+			Latitude:         getResp.Gateway.Latitude,
+			Longitude:        getResp.Gateway.Longitude,
+			Altitude:         getResp.Gateway.Altitude,
+			NetworkServerId:  gw.NetworkServerID,
+		},
+		FirstSeenAt: getResp.FirstSeenAt,
+		LastSeenAt:  getResp.LastSeenAt,
 	}
-	return ret, err
+
+	resp.CreatedAt, err = ptypes.TimestampProto(gw.CreatedAt)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+	resp.UpdatedAt, err = ptypes.TimestampProto(gw.UpdatedAt)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	if len(getResp.Gateway.GatewayProfileId) != 0 {
+		gpID, err := uuid.FromBytes(getResp.Gateway.GatewayProfileId)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		resp.Gateway.GatewayProfileId = gpID.String()
+	}
+
+	return &resp, err
 }
 
 // List lists the gateways.
 func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.ListGatewayResponse, error) {
-	err := a.validator.Validate(ctx, auth.ValidateGatewaysAccess(auth.List, req.OrganizationID))
+	err := a.validator.Validate(ctx, auth.ValidateGatewaysAccess(auth.List, req.OrganizationId))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
@@ -157,7 +191,7 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 	var count int
 	var gws []storage.Gateway
 
-	if req.OrganizationID == 0 {
+	if req.OrganizationId == 0 {
 		isAdmin, err := a.validator.GetIsAdmin(ctx)
 		if err != nil {
 			return nil, errToRPCError(err)
@@ -190,39 +224,52 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 			}
 		}
 	} else {
-		count, err = storage.GetGatewayCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, req.Search)
+		count, err = storage.GetGatewayCountForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationId, req.Search)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
-		gws, err = storage.GetGatewaysForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationID, int(req.Limit), int(req.Offset), req.Search)
+		gws, err = storage.GetGatewaysForOrganizationID(config.C.PostgreSQL.DB, req.OrganizationId, int(req.Limit), int(req.Offset), req.Search)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 	}
 
-	result := make([]*pb.ListGatewayItem, 0, len(gws))
-	for i := range gws {
-		result = append(result, &pb.ListGatewayItem{
-			Mac:             gws[i].MAC.String(),
-			Name:            gws[i].Name,
-			Description:     gws[i].Description,
-			CreatedAt:       gws[i].CreatedAt.Format(time.RFC3339Nano),
-			UpdatedAt:       gws[i].UpdatedAt.Format(time.RFC3339Nano),
-			OrganizationID:  gws[i].OrganizationID,
-			NetworkServerID: gws[i].NetworkServerID,
-		})
+	resp := pb.ListGatewayResponse{
+		TotalCount: int64(count),
 	}
 
-	return &pb.ListGatewayResponse{
-		TotalCount: int32(count),
-		Result:     result,
-	}, nil
+	for _, gw := range gws {
+		row := pb.GatewayListItem{
+			Id:              gw.MAC.String(),
+			Name:            gw.Name,
+			Description:     gw.Description,
+			OrganizationId:  gw.OrganizationID,
+			NetworkServerId: gw.NetworkServerID,
+		}
+
+		row.CreatedAt, err = ptypes.TimestampProto(gw.CreatedAt)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+		row.UpdatedAt, err = ptypes.TimestampProto(gw.UpdatedAt)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		resp.Result = append(resp.Result, &row)
+	}
+
+	return &resp, nil
 }
 
 // Update updates the given gateway.
-func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (*pb.UpdateGatewayResponse, error) {
+func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (*empty.Empty, error) {
+	if req.Gateway == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "gateway must not be nil")
+	}
+
 	var mac lorawan.EUI64
-	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+	if err := mac.UnmarshalText([]byte(req.Gateway.Id)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
 	}
 
@@ -242,11 +289,11 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 			return errToRPCError(err)
 		}
 
-		gw.Name = req.Name
-		gw.Description = req.Description
-		gw.Ping = req.Ping
+		gw.Name = req.Gateway.Name
+		gw.Description = req.Gateway.Description
+		gw.Ping = req.Gateway.DiscoveryEnabled
 		if isAdmin {
-			gw.OrganizationID = req.OrganizationID
+			gw.OrganizationID = req.Gateway.OrganizationId
 		}
 
 		err = storage.UpdateGateway(tx, &gw)
@@ -255,13 +302,22 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		}
 
 		updateReq := ns.UpdateGatewayRequest{
-			Mac:              mac[:],
-			Name:             req.Name,
-			Description:      req.Description,
-			Latitude:         req.Latitude,
-			Longitude:        req.Longitude,
-			Altitude:         req.Altitude,
-			GatewayProfileID: req.GatewayProfileID,
+			Gateway: &ns.Gateway{
+				Id:          mac[:],
+				Name:        req.Gateway.Name,
+				Description: req.Gateway.Description,
+				Latitude:    req.Gateway.Latitude,
+				Longitude:   req.Gateway.Longitude,
+				Altitude:    req.Gateway.Altitude,
+			},
+		}
+
+		if req.Gateway.GatewayProfileId != "" {
+			gpID, err := uuid.FromString(req.Gateway.GatewayProfileId)
+			if err != nil {
+				return grpc.Errorf(codes.InvalidArgument, err.Error())
+			}
+			updateReq.Gateway.GatewayProfileId = gpID.Bytes()
 		}
 
 		n, err := storage.GetNetworkServer(tx, gw.NetworkServerID)
@@ -284,13 +340,13 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		return nil, err
 	}
 
-	return &pb.UpdateGatewayResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // Delete deletes the gateway matching the given ID.
-func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (*pb.DeleteGatewayResponse, error) {
+func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (*empty.Empty, error) {
 	var mac lorawan.EUI64
-	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+	if err := mac.UnmarshalText([]byte(req.Id)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
 	}
 
@@ -311,13 +367,13 @@ func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (
 		return nil, err
 	}
 
-	return &pb.DeleteGatewayResponse{}, nil
+	return &empty.Empty{}, nil
 }
 
 // GetStats gets the gateway statistics for the gateway with the given Mac.
 func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsRequest) (*pb.GetGatewayStatsResponse, error) {
 	var mac lorawan.EUI64
-	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+	if err := mac.UnmarshalText([]byte(req.GatewayId)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
 	}
 
@@ -347,7 +403,7 @@ func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsReques
 	}
 
 	statsReq := ns.GetGatewayStatsRequest{
-		Mac:            mac[:],
+		GatewayId:      mac[:],
 		Interval:       ns.AggregationInterval(interval),
 		StartTimestamp: req.StartTimestamp,
 		EndTimestamp:   req.EndTimestamp,
@@ -362,7 +418,7 @@ func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsReques
 		result[i] = &pb.GatewayStats{
 			Timestamp:           stat.Timestamp,
 			RxPacketsReceived:   stat.RxPacketsReceived,
-			RxPacketsReceivedOK: stat.RxPacketsReceivedOK,
+			RxPacketsReceivedOk: stat.RxPacketsReceivedOk,
 			TxPacketsReceived:   stat.TxPacketsReceived,
 			TxPacketsEmitted:    stat.TxPacketsEmitted,
 		}
@@ -376,7 +432,7 @@ func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsReques
 // GetLastPing returns the last emitted ping and gateways receiving this ping.
 func (a *GatewayAPI) GetLastPing(ctx context.Context, req *pb.GetLastPingRequest) (*pb.GetLastPingResponse, error) {
 	var mac lorawan.EUI64
-	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+	if err := mac.UnmarshalText([]byte(req.GatewayId)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
 	}
 
@@ -391,16 +447,20 @@ func (a *GatewayAPI) GetLastPing(ctx context.Context, req *pb.GetLastPingRequest
 	}
 
 	resp := pb.GetLastPingResponse{
-		CreatedAt: ping.CreatedAt.Format(time.RFC3339Nano),
 		Frequency: uint32(ping.Frequency),
 		Dr:        uint32(ping.DR),
 	}
 
+	resp.CreatedAt, err = ptypes.TimestampProto(ping.CreatedAt)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
 	for _, rx := range pingRX {
-		resp.PingRX = append(resp.PingRX, &pb.PingRX{
-			Mac:       rx.GatewayMAC.String(),
+		resp.PingRx = append(resp.PingRx, &pb.PingRX{
+			GatewayId: rx.GatewayMAC.String(),
 			Rssi:      int32(rx.RSSI),
-			LoraSNR:   rx.LoRaSNR,
+			LoraSnr:   rx.LoRaSNR,
 			Latitude:  rx.Location.Latitude,
 			Longitude: rx.Location.Longitude,
 			Altitude:  rx.Altitude,
@@ -412,10 +472,10 @@ func (a *GatewayAPI) GetLastPing(ctx context.Context, req *pb.GetLastPingRequest
 
 // StreamFrameLogs streams the uplink and downlink frame-logs for the given mac.
 // Note: these are the raw LoRaWAN frames and this endpoint is intended for debugging.
-func (a *GatewayAPI) StreamFrameLogs(req *pb.StreamGatewayFrameLogsRequest, srv pb.Gateway_StreamFrameLogsServer) error {
+func (a *GatewayAPI) StreamFrameLogs(req *pb.StreamGatewayFrameLogsRequest, srv pb.GatewayService_StreamFrameLogsServer) error {
 	var mac lorawan.EUI64
 
-	if err := mac.UnmarshalText([]byte(req.Mac)); err != nil {
+	if err := mac.UnmarshalText([]byte(req.GatewayId)); err != nil {
 		return grpc.Errorf(codes.InvalidArgument, "mac: %s", err)
 	}
 
@@ -435,7 +495,7 @@ func (a *GatewayAPI) StreamFrameLogs(req *pb.StreamGatewayFrameLogsRequest, srv 
 	}
 
 	streamClient, err := nsClient.StreamFrameLogsForGateway(srv.Context(), &ns.StreamFrameLogsForGatewayRequest{
-		Mac: mac[:],
+		GatewayId: mac[:],
 	})
 	if err != nil {
 		return err
@@ -447,15 +507,25 @@ func (a *GatewayAPI) StreamFrameLogs(req *pb.StreamGatewayFrameLogsRequest, srv 
 			return err
 		}
 
-		up, down, err := convertUplinkAndDownlinkFrames(resp.UplinkFrames, resp.DownlinkFrames, false)
+		up, down, err := convertUplinkAndDownlinkFrames(resp.GetUplinkFrameSet(), resp.GetDownlinkFrame(), false)
 		if err != nil {
 			return errToRPCError(err)
 		}
 
-		err = srv.Send(&pb.StreamGatewayFrameLogsResponse{
-			UplinkFrames:   up,
-			DownlinkFrames: down,
-		})
+		var frameResp pb.StreamGatewayFrameLogsResponse
+		if up != nil {
+			frameResp.Frame = &pb.StreamGatewayFrameLogsResponse_UplinkFrame{
+				UplinkFrame: up,
+			}
+		}
+
+		if down != nil {
+			frameResp.Frame = &pb.StreamGatewayFrameLogsResponse_DownlinkFrame{
+				DownlinkFrame: down,
+			}
+		}
+
+		err = srv.Send(&frameResp)
 		if err != nil {
 			return err
 		}

@@ -98,7 +98,7 @@ func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, reference string,
 
 	// get fCnt to use for encrypting and enqueueing
 	resp, err := nsClient.GetNextDownlinkFCntForDevEUI(context.Background(), &ns.GetNextDownlinkFCntForDevEUIRequest{
-		DevEUI: devEUI[:],
+		DevEui: devEUI[:],
 	})
 	if err != nil {
 		return errors.Wrap(err, "get next downlink fcnt for deveui error")
@@ -132,7 +132,7 @@ func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, reference string,
 	// enqueue device-queue item
 	_, err = nsClient.CreateDeviceQueueItem(context.Background(), &ns.CreateDeviceQueueItemRequest{
 		Item: &ns.DeviceQueueItem{
-			DevEUI:     devEUI[:],
+			DevEui:     devEUI[:],
 			FrmPayload: b,
 			FCnt:       resp.FCnt,
 			FPort:      uint32(fPort),

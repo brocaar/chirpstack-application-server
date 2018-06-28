@@ -13,7 +13,7 @@ class NodeRow extends Component {
     let lastseen = "n/a";
     let margin = "n/a";
     let battery = "n/a";
-    if (this.props.node.lastSeenAt !== undefined && this.props.node.lastSeenAt !== "") {
+    if (this.props.node.lastSeenAt !== undefined && this.props.node.lastSeenAt !== null) {
       lastseen = moment(this.props.node.lastSeenAt).fromNow();
     }
 
@@ -65,7 +65,7 @@ class ListNodes extends Component {
   componentDidMount() {
     this.updatePage(this.props);
     ApplicationStore.getApplication(this.props.match.params.applicationID, (application) => {
-      this.setState({application: application});
+      this.setState({application: application.application});
     });
 
     this.setState({
@@ -131,7 +131,7 @@ class ListNodes extends Component {
             </div>
           </form>
           <div className={`btn-group pull-right ${this.state.isAdmin ? "" : "hidden"}`}>
-            <Link to={`/organizations/${this.props.match.params.organizationID}/applications/${this.state.application.id}/nodes/create`}><button type="button" className="btn btn-default btn-sm">Create device</button></Link>
+            <Link to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/nodes/create`}><button type="button" className="btn btn-default btn-sm">Create device</button></Link>
           </div>
         </div>
         <div className="panel-body">

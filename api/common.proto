@@ -2,54 +2,48 @@ syntax = "proto3";
 
 package api;
 
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "github.com/brocaar/loraserver/api/common/common.proto";
+import "github.com/brocaar/loraserver/api/gw/gw.proto";
+
+
 enum RXWindow {
 	RX1 = 0;
 	RX2 = 1;
 }
 
-enum Modulation {
-	// LoRa
-	LORA = 0;
+message UplinkFrameLog {
+    // TX information of the uplink.
+    gw.UplinkTXInfo tx_info = 1;
 
-	// FSK
-	FSK = 1;
+    // RX information of the uplink.
+    repeated UplinkRXInfo rx_info = 2;
+
+    // LoRaWAN PHYPayload.
+    string phy_payload_json = 3 [json_name = "phyPayloadJSON"];
 }
 
-message DataRate {
-    // The used modulation (LORA or FSK).
-    string modulation = 1;
+message DownlinkFrameLog {
+    // TX information of the downlink.
+    DownlinkTXInfo tx_info = 1;
 
-    // Bandwidth (in kHz).
-    uint32 bandwidth = 2;
-
-    // Used spread-factor.
-    uint32 spreadFactor = 3;
-
-    // Bitrate (used for FSK modulation).
-    uint32 bitrate = 4;
+    // LoRaWAN PHYPayload.
+    string phy_payload_json = 2 [json_name = "phyPayloadJSON"];
 }
 
-
-message UplinkTXInfo {
-    // TX frequency (in Hz).
-    uint32 frequency = 1;
-
-    // Data-rate.
-    DataRate dataRate = 2;
-
-    // Code rate.
-    string codeRate = 3;
-}
-
+// This is a copy of gw.UplinkRXInfo with the only change that the
+// gateway_id is of type string so that we can return it as HEX encoded
+// instead of base64.
 message UplinkRXInfo {
-    // Gateway MAC.
-    string mac = 1;
+    // Gateway ID.
+    string gateway_id = 1;
 
-    // Time when the frame was received (if available).
-    string time = 2;
+    // RX time (only set when the gateway has a GPS module).
+    google.protobuf.Timestamp time = 2;
 
-    // Time when the frame was received as time since GPS epoch (if available).
-    string timeSinceGPSEpoch = 3;
+    // RX time since GPS epoch (only set when the gateway has a GPS module).
+    google.protobuf.Duration time_since_gps_epoch = 3;
 
     // Gateway internal timestamp.
     uint32 timestamp = 4;
@@ -58,37 +52,36 @@ message UplinkRXInfo {
     int32 rssi = 5;
 
     // LoRa SNR.
-    float loRaSNR = 6;
+    double lora_snr = 6;
 
-    // The board identifier that received the uplink frame.
-    uint32 board = 7;
+    // Channel.
+    uint32 channel = 7;
 
-    // THe antenna identifier that received the uplink frame.
-    uint32 antenna = 8;
+    // RF Chain.
+    uint32 rf_chain = 8;
+
+    // Board.
+    uint32 board = 9;
+
+    // Antenna.
+    uint32 antenna = 10;
+
+    // Location.
+    gw.Location location = 11;
 }
 
-message UplinkFrameLog {
-    // TX information of the uplink.
-    UplinkTXInfo txInfo = 1;
-
-    // RX information of the uplink.
-    repeated UplinkRXInfo rxInfo = 2;
-
-    // LoRaWAN PHYPayload.
-    string phyPayloadJSON = 3;
-}
-
+// Same comment as above applies to this message.
 message DownlinkTXInfo {
-    // Gateway MAC.
-    string mac = 1;
+    // Gateway ID.
+    string gateway_id = 1;
 
     // Frame must be sent immediately.
     bool immediately = 2;
 
-    // Transmit frame at the given time since GPS epoch.
-    string timeSinceGPSEpoch = 3;
+    // Emit frame at the given time since GPS epoch.
+    google.protobuf.Duration time_since_gps_epoch = 3;
 
-    // Transmit the frame at the given gateway internal timestamp.
+    // Emit the frame at the given gateway internal timestamp.
     uint32 timestamp = 4;
 
     // TX frequency (in Hz).
@@ -97,26 +90,20 @@ message DownlinkTXInfo {
     // TX power (in dBm).
     int32 power = 6;
 
-    // Data-rate.
-    DataRate dataRate = 7;
+    // Modulation.
+    common.Modulation modulation = 7;
 
-    // Code rate.
-    string codeRate = 8;
+    oneof modulation_info {
+        // LoRa modulation information.
+        gw.LoRaModulationInfo lora_modulation_info = 8;
 
-    // Lora modulation polarization inversion.
-    bool iPol = 9;
+        // FSK modulation information.
+        gw.FSKModulationInfo fsk_modulation_info = 9;
+    }
 
-    // The board identifier that received the uplink frame.
+    // The board identifier for emitting the frame.
     uint32 board = 10;
 
-    // THe antenna identifier that received the uplink frame.
+    // The antenna identifier for emitting the frame.
     uint32 antenna = 11;
-}
-
-message DownlinkFrameLog {
-    // TX information of the downlink.
-    DownlinkTXInfo txInfo = 1;
-
-    // LoRaWAN PHYPayload.
-    string phyPayloadJSON = 2;
 }

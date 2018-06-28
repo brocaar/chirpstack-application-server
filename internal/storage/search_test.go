@@ -3,6 +3,8 @@ package storage
 import (
 	"testing"
 
+	"github.com/satori/go.uuid"
+
 	"github.com/brocaar/lorawan"
 
 	"github.com/brocaar/lora-app-server/internal/config"
@@ -47,6 +49,8 @@ func TestSearch(t *testing.T) {
 			Name:            "test-sp",
 		}
 		So(CreateServiceProfile(db, &sp), ShouldBeNil)
+		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+		So(err, ShouldBeNil)
 
 		dp := DeviceProfile{
 			OrganizationID:  org.ID,
@@ -54,11 +58,13 @@ func TestSearch(t *testing.T) {
 			Name:            "test-dp",
 		}
 		So(CreateDeviceProfile(db, &dp), ShouldBeNil)
+		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
+		So(err, ShouldBeNil)
 
 		a := Application{
 			Name:             "test-app",
 			OrganizationID:   org.ID,
-			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
+			ServiceProfileID: spID,
 		}
 		So(CreateApplication(db, &a), ShouldBeNil)
 
@@ -74,7 +80,7 @@ func TestSearch(t *testing.T) {
 			DevEUI:          lorawan.EUI64{2, 3, 4, 5, 6, 7, 8, 9},
 			Name:            "test-device",
 			ApplicationID:   a.ID,
-			DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+			DeviceProfileID: dpID,
 		}
 		So(CreateDevice(db, &d), ShouldBeNil)
 

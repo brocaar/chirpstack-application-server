@@ -6,16 +6,19 @@
   name = "github.com/brocaar/loraserver"
   packages = [
     "api/as",
+    "api/common",
+    "api/gw",
     "api/ns"
   ]
-  revision = "1a3144370fc698f5c5dadd0235bcb75a9fbb9f26"
+  revision = "8329230e2116e1d661651bec2241ac40c3f3d8cb"
 
 [[projects]]
   branch = "master"
   name = "github.com/brocaar/lorawan"
   packages = [
     ".",
-    "backend"
+    "backend",
+    "band"
   ]
   revision = "33c77dad210efd43f1cfb7cb91b50d9088e68854"
 
@@ -64,6 +67,7 @@
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
+    "ptypes/empty",
     "ptypes/struct",
     "ptypes/timestamp"
   ]
@@ -419,6 +423,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0064dd904aff3d8901ea4fdb4334c42f5d6037085b5989bfa31f2390502aa384"
+  inputs-digest = "c9d6d86170ba4d4a8ff77eda908821c82f0b2916e89cdb4e8422c0899659a84d"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/satori/go.uuid"
+
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/config"
@@ -11,7 +13,6 @@ import (
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
-	"github.com/brocaar/lorawan/backend"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -52,28 +53,30 @@ func TestDownlinkQueueAPI(t *testing.T) {
 			Name:            "test-sp",
 			NetworkServerID: n.ID,
 			OrganizationID:  org.ID,
-			ServiceProfile:  backend.ServiceProfile{},
 		}
 		So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
+		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+		So(err, ShouldBeNil)
 
 		dp := storage.DeviceProfile{
 			Name:            "test-dp",
 			NetworkServerID: n.ID,
 			OrganizationID:  org.ID,
-			DeviceProfile:   backend.DeviceProfile{},
 		}
 		So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
+		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
+		So(err, ShouldBeNil)
 
 		app := storage.Application{
 			OrganizationID:   org.ID,
+			ServiceProfileID: spID,
 			Name:             "test-app",
-			ServiceProfileID: sp.ServiceProfile.ServiceProfileID,
 		}
 		So(storage.CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
 
 		d := storage.Device{
 			ApplicationID:   app.ID,
-			DeviceProfileID: dp.DeviceProfile.DeviceProfileID,
+			DeviceProfileID: dpID,
 			Name:            "test-node",
 			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		}
@@ -106,9 +109,11 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 			Convey("When enqueueing a downlink queue item with raw JSON object", func() {
 				_, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{
-					DevEUI:     d.DevEUI.String(),
-					FPort:      10,
-					JsonObject: `{"Bytes": [4,3,2,1]}`,
+					QueueItem: &pb.DeviceQueueItem{
+						DevEui:     d.DevEUI.String(),
+						FPort:      10,
+						JsonObject: `{"Bytes": [4,3,2,1]}`,
+					},
 				})
 				So(err, ShouldBeNil)
 				So(validator.ctx, ShouldResemble, ctx)
@@ -118,7 +123,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 					So(nsClient.CreateDeviceQueueItemChan, ShouldHaveLength, 1)
 					So(<-nsClient.CreateDeviceQueueItemChan, ShouldResemble, ns.CreateDeviceQueueItemRequest{
 						Item: &ns.DeviceQueueItem{
-							DevEUI:     d.DevEUI[:],
+							DevEui:     d.DevEUI[:],
 							FrmPayload: b,
 							FCnt:       12,
 							FPort:      10,
@@ -130,9 +135,11 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 		Convey("When enqueueing a downlink queue item", func() {
 			_, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{
-				DevEUI: d.DevEUI.String(),
-				FPort:  10,
-				Data:   []byte{1, 2, 3, 4},
+				QueueItem: &pb.DeviceQueueItem{
+					DevEui: d.DevEUI.String(),
+					FPort:  10,
+					Data:   []byte{1, 2, 3, 4},
+				},
 			})
 			So(err, ShouldBeNil)
 			So(validator.ctx, ShouldResemble, ctx)
@@ -142,7 +149,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 				So(nsClient.CreateDeviceQueueItemChan, ShouldHaveLength, 1)
 				So(<-nsClient.CreateDeviceQueueItemChan, ShouldResemble, ns.CreateDeviceQueueItemRequest{
 					Item: &ns.DeviceQueueItem{
-						DevEUI:     d.DevEUI[:],
+						DevEui:     d.DevEUI[:],
 						FrmPayload: b,
 						FCnt:       12,
 						FPort:      10,
@@ -155,7 +162,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 			nsClient.GetDeviceQueueItemsForDevEUIResponse = ns.GetDeviceQueueItemsForDevEUIResponse{
 				Items: []*ns.DeviceQueueItem{
 					{
-						DevEUI:     d.DevEUI[:],
+						DevEui:     d.DevEUI[:],
 						FrmPayload: b,
 						FCnt:       12,
 						FPort:      10,
@@ -166,15 +173,14 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 			Convey("Then list returns the expected item", func() {
 				resp, err := api.List(ctx, &pb.ListDeviceQueueItemsRequest{
-					DevEUI: d.DevEUI.String(),
+					DevEui: d.DevEUI.String(),
 				})
 				So(err, ShouldBeNil)
 				So(resp.Items, ShouldHaveLength, 1)
 				So(resp.Items[0], ShouldResemble, &pb.DeviceQueueItem{
-					DevEUI:    d.DevEUI.String(),
+					DevEui:    d.DevEUI.String(),
 					Confirmed: true,
 					FPort:     10,
-					FCnt:      12,
 					Data:      []byte{1, 2, 3, 4},
 				})
 			})
@@ -190,14 +196,14 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 			Convey("When calling Flush", func() {
 				_, err := api.Flush(ctx, &pb.FlushDeviceQueueRequest{
-					DevEUI: d.DevEUI.String(),
+					DevEui: d.DevEUI.String(),
 				})
 				So(err, ShouldBeNil)
 
 				Convey("Then the expected request has been made to the network-server", func() {
 					So(nsClient.FlushDeviceQueueForDevEUIChan, ShouldHaveLength, 1)
 					So(<-nsClient.FlushDeviceQueueForDevEUIChan, ShouldResemble, ns.FlushDeviceQueueForDevEUIRequest{
-						DevEUI: d.DevEUI[:],
+						DevEui: d.DevEUI[:],
 					})
 				})
 

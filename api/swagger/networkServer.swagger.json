@@ -45,7 +45,7 @@
             "format": "int64"
           },
           {
-            "name": "organizationID",
+            "name": "organization_id",
             "description": "Organization id to filter on.",
             "in": "query",
             "required": false,
@@ -54,7 +54,7 @@
           }
         ],
         "tags": [
-          "NetworkServer"
+          "NetworkServerService"
         ]
       },
       "post": {
@@ -79,7 +79,7 @@
           }
         ],
         "tags": [
-          "NetworkServer"
+          "NetworkServerService"
         ]
       }
     },
@@ -105,7 +105,7 @@
           }
         ],
         "tags": [
-          "NetworkServer"
+          "NetworkServerService"
         ]
       },
       "delete": {
@@ -115,7 +115,7 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiDeleteNetworkServerResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
@@ -129,9 +129,11 @@
           }
         ],
         "tags": [
-          "NetworkServer"
+          "NetworkServerService"
         ]
-      },
+      }
+    },
+    "/api/network-servers/{network_server.id}": {
       "put": {
         "summary": "Update updates the given network-server.",
         "operationId": "Update",
@@ -139,13 +141,13 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiUpdateNetworkServerResponse"
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
         "parameters": [
           {
-            "name": "id",
+            "name": "network_server.id",
             "in": "path",
             "required": true,
             "type": "string",
@@ -161,7 +163,7 @@
           }
         ],
         "tags": [
-          "NetworkServer"
+          "NetworkServerService"
         ]
       }
     }
@@ -170,57 +172,9 @@
     "apiCreateNetworkServerRequest": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the network-server."
-        },
-        "server": {
-          "type": "string",
-          "description": "hostname:ip of the network-server."
-        },
-        "caCert": {
-          "type": "string",
-          "title": "ca certificate for connecting to the network-server"
-        },
-        "tlsCert": {
-          "type": "string",
-          "title": "tls (client) certificate for connecting to the network-server"
-        },
-        "tlsKey": {
-          "type": "string",
-          "title": "tls (client) key for connecting to the network-server"
-        },
-        "routingProfileCACert": {
-          "type": "string",
-          "title": "routing-profile ca certificate (used by the network-server to connect\nback to the application-server)"
-        },
-        "routingProfileTLSCert": {
-          "type": "string",
-          "title": "routing-profile tls certificate (used by the network-server to connect\nback to the application-server)"
-        },
-        "routingProfileTLSKey": {
-          "type": "string",
-          "title": "routing-profile tls key (used by the network-server to connect\nback to the application-server)"
-        },
-        "gatewayDiscoveryEnabled": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "The gateway discovery feature is enabled for gateways provisioned\non this network-server."
-        },
-        "gatewayDiscoveryInterval": {
-          "type": "integer",
-          "format": "int64",
-          "description": "The number of times per day the gateway discovery 'ping' must be\nbroadcasted per gateway."
-        },
-        "gatewayDiscoveryTXFrequency": {
-          "type": "integer",
-          "format": "int64",
-          "description": "The frequency (Hz) of the gateway discovery 'ping'."
-        },
-        "gatewayDiscoveryDR": {
-          "type": "integer",
-          "format": "int64",
-          "description": "The data-rate of the gateway discovery 'ping'."
+        "networkServer": {
+          "$ref": "#/definitions/apiNetworkServer",
+          "description": "Network-server object to create."
         }
       }
     },
@@ -230,72 +184,26 @@
         "id": {
           "type": "string",
           "format": "int64",
-          "description": "ID of the network-server."
+          "description": "Network-server ID."
         }
       }
-    },
-    "apiDeleteNetworkServerResponse": {
-      "type": "object"
     },
     "apiGetNetworkServerResponse": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64",
-          "description": "ID of the network-server."
+        "networkServer": {
+          "$ref": "#/definitions/apiNetworkServer",
+          "description": "Network-server object."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the record was created."
+          "format": "date-time",
+          "description": "Created at timestamp."
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp when the record was last updated."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the network-server."
-        },
-        "server": {
-          "type": "string",
-          "description": "hostname:ip of the network-server."
-        },
-        "caCert": {
-          "type": "string",
-          "title": "ca certificate for connecting to the network-server"
-        },
-        "tlsCert": {
-          "type": "string",
-          "title": "tls (client) certificate for connecting to the network-server"
-        },
-        "routingProfileCACert": {
-          "type": "string",
-          "title": "routing-profile ca certificate (used by the network-server to connect\nback to the application-server)"
-        },
-        "routingProfileTLSCert": {
-          "type": "string",
-          "title": "routing-profile tls certificate (used by the network-server to connect\nback to the application-server)"
-        },
-        "gatewayDiscoveryEnabled": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "The gateway discovery feature is enabled for gateways provisioned\non this network-server."
-        },
-        "gatewayDiscoveryInterval": {
-          "type": "integer",
-          "format": "int64",
-          "description": "The number of times per day the gateway discovery 'ping' must be\nbroadcasted per gateway."
-        },
-        "gatewayDiscoveryTXFrequency": {
-          "type": "integer",
-          "format": "int64",
-          "description": "The frequency (Hz) of the gateway discovery 'ping'."
-        },
-        "gatewayDiscoveryDR": {
-          "type": "integer",
-          "format": "int64",
-          "description": "The data-rate of the gateway discovery 'ping'."
+          "format": "date-time",
+          "description": "Last update timestamp."
         },
         "version": {
           "type": "string",
@@ -318,61 +226,61 @@
         "result": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiGetNetworkServerResponse"
+            "$ref": "#/definitions/apiNetworkServerListItem"
           },
           "description": "Network-servers within the result-set."
         }
       }
     },
-    "apiUpdateNetworkServerRequest": {
+    "apiNetworkServer": {
       "type": "object",
       "properties": {
         "id": {
           "type": "string",
           "format": "int64",
-          "description": "ID of the network-server."
+          "description": "Network-server ID."
         },
         "name": {
           "type": "string",
-          "description": "Name of the network-server."
+          "description": "Network-server name."
         },
         "server": {
           "type": "string",
-          "description": "hostname:ip of the network-server."
+          "description": "Network-server server.\nFormat: hostname:ip (e.g. localhost:8000)."
         },
         "caCert": {
           "type": "string",
-          "title": "ca certificate for connecting to the network-server"
+          "description": "CA certificate (optional)."
         },
         "tlsCert": {
           "type": "string",
-          "title": "tls (client) certificate for connecting to the network-server"
+          "description": "TLS (client) certificate for connecting to the network-server (optional)."
         },
         "tlsKey": {
           "type": "string",
-          "title": "tls (client) key for connecting to the network-server"
+          "description": "TLS (client) key for connecting to the network-server (optional)."
         },
         "routingProfileCACert": {
           "type": "string",
-          "title": "routing-profile ca certificate (used by the network-server to connect\nback to the application-server)"
+          "description": "Routing-profile ca certificate (used by the network-server to connect\nback to the application-server) (optional)."
         },
         "routingProfileTLSCert": {
           "type": "string",
-          "title": "routing-profile tls certificate (used by the network-server to connect\nback to the application-server)"
+          "description": "Routing-profile TLS certificate (used by the network-server to connect\nback to the application-server) (optional)."
         },
         "routingProfileTLSKey": {
           "type": "string",
-          "title": "routing-profile tls key (used by the network-server to connect\nback to the application-server)"
+          "description": "Routing-profile TLS key (used by the network-server to connect\nback to the application-server) (optional)."
         },
         "gatewayDiscoveryEnabled": {
           "type": "boolean",
           "format": "boolean",
-          "description": "The gateway discovery feature is enabled for gateways provisioned\non this network-server."
+          "description": "Enable gateway discovery for this network-server."
         },
         "gatewayDiscoveryInterval": {
           "type": "integer",
           "format": "int64",
-          "description": "The interval in which the gateway discovery 'pings' are broadcasted.\n(requests / day)."
+          "description": "The number of times per day the gateway discovery 'ping' must be\nbroadcasted per gateway."
         },
         "gatewayDiscoveryTXFrequency": {
           "type": "integer",
@@ -386,8 +294,47 @@
         }
       }
     },
-    "apiUpdateNetworkServerResponse": {
-      "type": "object"
+    "apiNetworkServerListItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "Network-server ID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Network-server name."
+        },
+        "server": {
+          "type": "string",
+          "description": "Network-server server.\nFormat: hostname:ip (e.g. localhost:8000)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Created at timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp."
+        }
+      }
+    },
+    "apiUpdateNetworkServerRequest": {
+      "type": "object",
+      "properties": {
+        "networkServer": {
+          "$ref": "#/definitions/apiNetworkServer",
+          "description": "Network-server object to update."
+        }
+      }
+    },
+    "protobufEmpty": {
+      "type": "object",
+      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
+      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
     }
   }
 }

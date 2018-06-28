@@ -88,14 +88,8 @@ with a counter value `1`, with the following tags for aggregation:
 * `application_name`
 * `device_name`
 * `dev_eui`
-* `spreading_factor`
-* `bandwidth`
-* `modulation`
-* `bitrate` (FSK)
+* `dr`
 * `frequency`
-
-**Note:** in a future release, the `spreading_factor`, `bandwidth`, `modulation`
-and `bitrate` might be combined into a single `data_rate` tag.
 
 ## Device battery status
 

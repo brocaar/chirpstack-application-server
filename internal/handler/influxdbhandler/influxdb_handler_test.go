@@ -108,11 +108,7 @@ device_status_margin,application_name=test-app,dev_eui=0102030405060708,device_n
 						FPort:           20,
 						TXInfo: handler.TXInfo{
 							Frequency: 868100000,
-							DataRate: handler.DataRate{
-								Modulation:   "LORA",
-								SpreadFactor: 10,
-								Bandwidth:    125,
-							},
+							DR:        2,
 						},
 						Object: map[string]interface{}{
 							"temperature": 25.4,
@@ -125,7 +121,7 @@ device_status_margin,application_name=test-app,dev_eui=0102030405060708,device_n
 device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=20i
 device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value="on"
 device_frmpayload_data_temperature,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=25.400000
-device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=0102030405060708,device_name=test-dev,frequency=868100000,modulation=LORA,spreading_factor=10 value=1i`,
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 value=1i`,
 				},
 				{
 					Name: "Mixed level depth",
@@ -137,11 +133,7 @@ device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=01020304
 						FPort:           20,
 						TXInfo: handler.TXInfo{
 							Frequency: 868100000,
-							DataRate: handler.DataRate{
-								Modulation:   "LORA",
-								SpreadFactor: 10,
-								Bandwidth:    125,
-							},
+							DR:        2,
 						},
 						Object: map[string]interface{}{
 							"temperature": map[string]interface{}{
@@ -158,7 +150,7 @@ device_frmpayload_data_humidity,application_name=test-app,dev_eui=01020304050607
 device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value="on"
 device_frmpayload_data_temperature_a,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=20.500000
 device_frmpayload_data_temperature_b,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=33.300000
-device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=0102030405060708,device_name=test-dev,frequency=868100000,modulation=LORA,spreading_factor=10 value=1i`,
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 value=1i`,
 				},
 				{
 					Name: "One level depth + device status fields",
@@ -170,11 +162,7 @@ device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=01020304
 						FPort:           20,
 						TXInfo: handler.TXInfo{
 							Frequency: 868100000,
-							DataRate: handler.DataRate{
-								Modulation:   "LORA",
-								SpreadFactor: 10,
-								Bandwidth:    125,
-							},
+							DR:        2,
 						},
 						Object: map[string]interface{}{
 							"temperature": 25.4,
@@ -187,7 +175,7 @@ device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=01020304
 device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=20i
 device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value="on"
 device_frmpayload_data_temperature,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=25.400000
-device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=0102030405060708,device_name=test-dev,frequency=868100000,modulation=LORA,spreading_factor=10 value=1i`,
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 value=1i`,
 				},
 				{
 					Name: "Latitude and longitude",
@@ -199,11 +187,7 @@ device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=01020304
 						FPort:           20,
 						TXInfo: handler.TXInfo{
 							Frequency: 868100000,
-							DataRate: handler.DataRate{
-								Modulation:   "LORA",
-								SpreadFactor: 10,
-								Bandwidth:    125,
-							},
+							DR:        2,
 						},
 						Object: map[string]interface{}{
 							"latitude":  1.123,
@@ -215,7 +199,7 @@ device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=01020304
 					ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=true
 device_frmpayload_data_location,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 geohash="s01w2k3vvqre",latitude=1.123000,longitude=2.123000
 device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value="on"
-device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=0102030405060708,device_name=test-dev,frequency=868100000,modulation=LORA,spreading_factor=10 value=1i`,
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 value=1i`,
 				},
 				{
 					Name: "Cayenne LPP with latitude and longitude",
@@ -227,11 +211,7 @@ device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=01020304
 						FPort:           20,
 						TXInfo: handler.TXInfo{
 							Frequency: 868100000,
-							DataRate: handler.DataRate{
-								Modulation:   "LORA",
-								SpreadFactor: 10,
-								Bandwidth:    125,
-							},
+							DR:        2,
 						},
 						Object: &codec.CayenneLPP{
 							GPSLocation: map[byte]codec.GPSLocation{
@@ -245,7 +225,7 @@ device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=01020304
 					},
 					ExpectedBody: `device_frmpayload_data_gps_location_10_altitude,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=3.123000
 device_frmpayload_data_gps_location_10_location,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 geohash="s01w2k3vvqre",latitude=1.123000,longitude=2.123000
-device_uplink,application_name=test-app,bandwidth=125,bitrate=0,dev_eui=0102030405060708,device_name=test-dev,frequency=868100000,modulation=LORA,spreading_factor=10 value=1i`,
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 value=1i`,
 				},
 			}
 

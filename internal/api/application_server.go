@@ -22,7 +22,6 @@ import (
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
-	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/lorawan"
 )
 
@@ -125,47 +124,22 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		RXInfo:          []handler.RXInfo{},
 		TXInfo: handler.TXInfo{
 			Frequency: int(req.TxInfo.Frequency),
-			ADR:       req.Adr,
+			DR:        int(req.Dr),
 		},
+		ADR:    req.Adr,
 		FCnt:   req.FCnt,
 		FPort:  uint8(req.FPort),
 		Data:   b,
 		Object: object,
 	}
 
-	switch req.TxInfo.Modulation {
-	case common.Modulation_LORA:
-		modulationInfo := req.TxInfo.GetLoraModulationInfo()
-		if modulationInfo == nil {
-			break
-		}
-
-		pl.TXInfo.DataRate = handler.DataRate{
-			Modulation:   common.Modulation_LORA.String(),
-			Bandwidth:    int(modulationInfo.Bandwidth),
-			SpreadFactor: int(modulationInfo.SpreadingFactor),
-		}
-		pl.TXInfo.CodeRate = modulationInfo.CodeRate
-	case common.Modulation_FSK:
-		modulationInfo := req.TxInfo.GetFskModulationInfo()
-		if modulationInfo == nil {
-			break
-		}
-
-		pl.TXInfo.DataRate = handler.DataRate{
-			Modulation: req.TxInfo.Modulation.String(),
-			Bandwidth:  int(modulationInfo.Bandwidth),
-			Bitrate:    int(modulationInfo.Bitrate),
-		}
-	}
-
+	// collect gateway data of receiving gateways (e.g. gateway name)
 	var macs []lorawan.EUI64
 	for _, rxInfo := range req.RxInfo {
 		var mac lorawan.EUI64
 		copy(mac[:], rxInfo.GatewayId)
 		macs = append(macs, mac)
 	}
-
 	gws, err := storage.GetGatewaysForMACs(config.C.PostgreSQL.DB, macs)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Internal, "get gateways for macs error: %s", err)
@@ -176,15 +150,17 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		copy(mac[:], rxInfo.GatewayId)
 
 		row := handler.RXInfo{
-			MAC:     mac,
-			RSSI:    int(rxInfo.Rssi),
-			LoRaSNR: rxInfo.LoraSnr,
+			GatewayID: mac,
+			RSSI:      int(rxInfo.Rssi),
+			LoRaSNR:   rxInfo.LoraSnr,
 		}
 
 		if rxInfo.Location != nil {
-			row.Latitude = rxInfo.Location.Latitude
-			row.Longitude = rxInfo.Location.Longitude
-			row.Altitude = rxInfo.Location.Altitude
+			row.Location = &handler.Location{
+				Latitude:  rxInfo.Location.Latitude,
+				Longitude: rxInfo.Location.Longitude,
+				Altitude:  rxInfo.Location.Altitude,
+			}
 		}
 
 		if gw, ok := gws[mac]; ok {

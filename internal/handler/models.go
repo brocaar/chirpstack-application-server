@@ -16,32 +16,27 @@ func init() {
 	gob.Register(StatusNotification{})
 }
 
-// DataRate contains the data-rate related fields.
-type DataRate struct {
-	Modulation   string `json:"modulation"`
-	Bandwidth    int    `json:"bandwidth"`
-	SpreadFactor int    `json:"spreadFactor,omitempty"`
-	Bitrate      int    `json:"bitrate,omitempty"`
+// Location details.
+type Location struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Altitude  float64 `json:"altitude"`
 }
 
 // RXInfo contains the RX information.
 type RXInfo struct {
-	MAC       lorawan.EUI64 `json:"mac"`
+	GatewayID lorawan.EUI64 `json:"gatewayID"`
+	Name      string        `json:"name"`
 	Time      *time.Time    `json:"time,omitempty"`
 	RSSI      int           `json:"rssi"`
 	LoRaSNR   float64       `json:"loRaSNR"`
-	Name      string        `json:"name"`
-	Latitude  float64       `json:"latitude"`
-	Longitude float64       `json:"longitude"`
-	Altitude  float64       `json:"altitude"`
+	Location  *Location     `json:"location"`
 }
 
 // TXInfo contains the TX information.
 type TXInfo struct {
-	Frequency int      `json:"frequency"`
-	DataRate  DataRate `json:"dataRate"`
-	ADR       bool     `json:"adr"`
-	CodeRate  string   `json:"codeRate"`
+	Frequency int `json:"frequency"`
+	DR        int `json:"dr"`
 }
 
 // DataUpPayload represents a data-up payload.
@@ -52,6 +47,7 @@ type DataUpPayload struct {
 	DevEUI          lorawan.EUI64 `json:"devEUI"`
 	RXInfo          []RXInfo      `json:"rxInfo,omitempty"`
 	TXInfo          TXInfo        `json:"txInfo"`
+	ADR             bool          `json:"adr"`
 	FCnt            uint32        `json:"fCnt"`
 	FPort           uint8         `json:"fPort"`
 	Data            []byte        `json:"data"`

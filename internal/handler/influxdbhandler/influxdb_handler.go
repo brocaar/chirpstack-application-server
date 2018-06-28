@@ -157,10 +157,7 @@ func (h *Handler) SendDataUp(pl handler.DataUpPayload) error {
 			"application_name": pl.ApplicationName,
 			"device_name":      pl.DeviceName,
 			"dev_eui":          pl.DevEUI.String(),
-			"spreading_factor": strconv.FormatInt(int64(pl.TXInfo.DataRate.SpreadFactor), 10),
-			"bandwidth":        strconv.FormatInt(int64(pl.TXInfo.DataRate.Bandwidth), 10),
-			"modulation":       pl.TXInfo.DataRate.Modulation,
-			"bitrate":          strconv.FormatInt(int64(pl.TXInfo.DataRate.Bitrate), 10),
+			"dr":               strconv.FormatInt(int64(pl.TXInfo.DR), 10),
 			"frequency":        strconv.FormatInt(int64(pl.TXInfo.Frequency), 10),
 		},
 		Values: map[string]interface{}{

@@ -67,6 +67,21 @@ re-used for create / get and update methods).
 }
 ```
 
+#### InfluxDB changes
+
+The `device_uplink` measurement `spreading_factor`, `bandwidth`, `modulation`
+and `bitrate` tags are now replaced by a single `dr` tag.
+
+#### Uplink message payload
+
+The uplink message payload (used for MQTT and HTTP integrations) has been
+modified slightly:
+
+* It now contains a `dr` field indicating the used uplink data-rate.
+* Location related fields of each `rxInfo` element has been moved inside a `location` object.
+* `MAC` has been renamed to `gatewayID` for each `rxInfo` element.
+* The `adr` field has been moved out of `txInfo` and moved into the root object.
+
 ## v1.0.1
 
 ### Improvements

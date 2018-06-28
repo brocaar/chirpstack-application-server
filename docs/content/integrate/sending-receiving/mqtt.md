@@ -45,27 +45,23 @@ Topic for payloads received from your devices. Example payload:
     "devEUI": "0202020202020202",
     "rxInfo": [
         {
-            "mac": "0303030303030303",                 // MAC of the receiving gateway
+            "gatewayID": "0303030303030303",          // ID of the receiving gateway
             "name": "rooftop-gateway",                 // name of the receiving gateway
-            "latitude": 52.3740364,                    // latitude of the receiving gateway
-            "longitude": 4.9144401,                    // longitude of the receiving gateway
-            "altitude": 10.5,                          // altitude of the receiving gateway
             "time": "2016-11-25T16:24:37.295915988Z",  // time when the package was received (GPS time of gateway, only set when available)
             "rssi": -57,                               // signal strength (dBm)
-            "loRaSNR": 10                              // signal to noise ratio
+            "loRaSNR": 10,                             // signal to noise ratio
+            "location": {
+                "latitude": 52.3740364,  // latitude of the receiving gateway
+                "longitude": 4.9144401,  // longitude of the receiving gateway
+                "altitude": 10.5,        // altitude of the receiving gateway
+            }
         }
     ],
     "txInfo": {
-        "frequency": 868100000,    // frequency used for transmission
-        "dataRate": {
-            "modulation": "LORA",  // modulation (LORA or FSK)
-            "bandwidth": 250,      // used bandwidth
-            "spreadFactor": 5      // used SF (LORA)
-            // "bitrate": 50000    // used bitrate (FSK)
-        },
-        "adr": false,
-        "codeRate": "4/6"
+        "frequency": 868100000,  // frequency used for transmission
+        "dr": 5                  // data-rate used for transmission
     },
+    "adr": false,                  // device ADR status
     "fCnt": 10,                    // frame-counter
     "fPort": 5,                    // FPort
     "data": "...",                 // base64 encoded payload (decrypted)

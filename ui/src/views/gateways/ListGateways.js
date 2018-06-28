@@ -52,7 +52,7 @@ class GatewayRow extends Component {
     return(
       <tr>
         <td><Link to={`/organizations/${this.props.gateway.organizationID}/gateways/${this.props.gateway.id}`}>{this.props.gateway.name}</Link></td>
-        <td>{this.props.gateway.mac}</td>
+        <td>{this.props.gateway.id}</td>
         <td>
           <Bar width="380" height="23" data={this.state.stats} options={this.state.options} />
         </td>
@@ -125,7 +125,7 @@ class ListGateways extends Component {
             <thead>
               <tr>
                 <th className="col-md-3">Name</th>
-                <th>MAC</th>
+                <th>Gateway ID</th>
                 <th className="col-md-4">Gateway activity (30d)</th>
               </tr>
             </thead>

@@ -36,6 +36,10 @@ func NewApplicationServerAPI() *ApplicationServerAPI {
 
 // HandleUplinkData handles incoming (uplink) data.
 func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.HandleUplinkDataRequest) (*empty.Empty, error) {
+	if req.TxInfo == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "tx_info must not be nil")
+	}
+
 	var appEUI, devEUI lorawan.EUI64
 	copy(appEUI[:], req.JoinEui)
 	copy(devEUI[:], req.DevEui)
@@ -306,6 +310,10 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 
 // HandleProprietaryUplink handles proprietary uplink payloads.
 func (a *ApplicationServerAPI) HandleProprietaryUplink(ctx context.Context, req *as.HandleProprietaryUplinkRequest) (*empty.Empty, error) {
+	if req.TxInfo == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "tx_info must not be nil")
+	}
+
 	err := gwping.HandleReceivedPing(req)
 	if err != nil {
 		errStr := fmt.Sprintf("handle received ping error: %s", err)

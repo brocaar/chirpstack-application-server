@@ -45,7 +45,7 @@
             "format": "int32"
           },
           {
-            "name": "organization_id",
+            "name": "organizationID",
             "description": "ID of the organization for which to filter on, when left blank the\nresponse will return all gateways to which the user has access to.",
             "in": "query",
             "required": false,
@@ -200,7 +200,7 @@
             "type": "string"
           },
           {
-            "name": "start_timestamp",
+            "name": "startTimestamp",
             "description": "Timestamp to start from.",
             "in": "query",
             "required": false,
@@ -208,7 +208,7 @@
             "format": "date-time"
           },
           {
-            "name": "end_timestamp",
+            "name": "endTimestamp",
             "description": "Timestamp until to get from.",
             "in": "query",
             "required": false,

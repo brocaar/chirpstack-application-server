@@ -45,7 +45,7 @@
             "format": "int64"
           },
           {
-            "name": "organization_id",
+            "name": "organizationID",
             "description": "Organization id to filter on.",
             "in": "query",
             "required": false,
@@ -53,7 +53,7 @@
             "format": "int64"
           },
           {
-            "name": "application_id",
+            "name": "applicationID",
             "description": "Application id to filter on.",
             "in": "query",
             "required": false,

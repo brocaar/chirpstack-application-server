@@ -7,7 +7,7 @@ import { checkStatus, errorHandler, errorHandlerIgnoreNotFound } from "./helpers
 
 class NodeStore extends EventEmitter {
   getAll(applicationID, pageSize, offset, search, callbackFunc) {
-    fetch("/api/applications/"+applicationID+"/devices?limit="+pageSize+"&offset="+offset+"&search="+search, {headers: sessionStore.getHeader()})
+    fetch("/api/devices?limit="+pageSize+"&offset="+offset+"&search="+search+"&applicationID="+applicationID, {headers: sessionStore.getHeader()})
       .then(checkStatus)
       .then((response) => response.json())
       .then((responseData) => {

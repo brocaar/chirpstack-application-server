@@ -25,17 +25,17 @@ service DeviceService {
         };
     }
 
+    // List returns the available devices.
+    rpc List(ListDeviceRequest) returns (ListDeviceResponse) {
+        option (google.api.http) = {
+            get: "/api/devices"
+        };
+    }
+
     // Delete deletes the device matching the given DevEUI.
     rpc Delete(DeleteDeviceRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             delete: "/api/devices/{dev_eui}"
-        };
-    }
-
-    // ListByApplicationID lists the devices by the given application ID, sorted by the name of the device.
-    rpc ListByApplicationID(ListDeviceByApplicationIDRequest) returns (ListDeviceResponse) {
-        option (google.api.http) = {
-            get: "/api/applications/{application_id}/devices"
         };
     }
 
@@ -219,27 +219,21 @@ message GetDeviceResponse {
     // -32..32: The demodulation SNR ration in dB
     // 256:     The device-status is not available.
     int32  device_status_margin = 20;
-};
-
-message DeleteDeviceRequest {
-    // Device EUI (HEX encoded).
-    string dev_eui = 1 [json_name = "devEUI"];
 }
 
-message ListDeviceByApplicationIDRequest {
-    // ID of the application for which to list the devices.
-    int64 application_id = 3 [json_name = "applicationID"];
-
+message ListDeviceRequest {
     // Max number of devices to return in the result-set.
     int64 limit = 1;
 
-	// Offset of the result-set (for pagination).
-	int64 offset = 2;
+    // Offset in the result-set (for pagination).
+    int64 offset = 2;
 
-	// Search against name or DevEUI
-	string search = 4;
+    // Application ID to filter on.
+    int64 application_id = 3 [json_name = "applicationID"];
+
+    // Search on name or DevEUI.
+    string search = 4;
 }
-
 
 message ListDeviceResponse {
     // Total number of devices available within the result-set.
@@ -248,6 +242,12 @@ message ListDeviceResponse {
     // Devices within this result-set.
     repeated DeviceListItem result = 2;
 }
+
+message DeleteDeviceRequest {
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
+}
+
 
 message UpdateDeviceRequest {
     // Device object to update.

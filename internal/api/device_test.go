@@ -192,25 +192,86 @@ func TestNodeAPI(t *testing.T) {
 				})
 			})
 
-			Convey("Then listing the devices for the application returns a single items", func() {
-				devices, err := api.ListByApplicationID(ctx, &pb.ListDeviceByApplicationIDRequest{
-					ApplicationId: app.ID,
-					Limit:         10,
-					Search:        "test",
-				})
+			// Convey("Then listing the devices for the application returns a single items", func() {
+			// 	devices, err := api.ListByApplicationID(ctx, &pb.ListDeviceByApplicationIDRequest{
+			// 		ApplicationId: app.ID,
+			// 		Limit:         10,
+			// 		Search:        "test",
+			// 	})
+			// 	So(err, ShouldBeNil)
+			// 	So(validator.validatorFuncs, ShouldHaveLength, 1)
+			// 	So(devices.Result, ShouldHaveLength, 1)
+			// 	So(devices.TotalCount, ShouldEqual, 1)
+			// 	So(devices.Result[0], ShouldResemble, &pb.DeviceListItem{
+			// 		Name:                "test-device",
+			// 		Description:         "test device description",
+			// 		DevEui:              "0807060504030201",
+			// 		ApplicationId:       app.ID,
+			// 		DeviceProfileId:     dpID.String(),
+			// 		DeviceProfileName:   dp.Name,
+			// 		DeviceStatusBattery: 256,
+			// 		DeviceStatusMargin:  256,
+			// 	})
+			// })
+
+			Convey("Testing the List method", func() {
+				user := storage.User{
+					Username: "testuser",
+					Email:    "test@test.com",
+					IsActive: true,
+				}
+				_, err := storage.CreateUser(db, &user, "testpassword")
 				So(err, ShouldBeNil)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
-				So(devices.Result, ShouldHaveLength, 1)
-				So(devices.TotalCount, ShouldEqual, 1)
-				So(devices.Result[0], ShouldResemble, &pb.DeviceListItem{
-					Name:                "test-device",
-					Description:         "test device description",
-					DevEui:              "0807060504030201",
-					ApplicationId:       app.ID,
-					DeviceProfileId:     dpID.String(),
-					DeviceProfileName:   dp.Name,
-					DeviceStatusBattery: 256,
-					DeviceStatusMargin:  256,
+
+				Convey("Then a global admin user can list all devices", func() {
+					validator.returnIsAdmin = true
+					devices, err := api.List(ctx, &pb.ListDeviceRequest{
+						Limit:  10,
+						Offset: 0,
+					})
+					So(err, ShouldBeNil)
+					So(validator.validatorFuncs, ShouldHaveLength, 1)
+					So(devices.TotalCount, ShouldEqual, 1)
+					So(devices.Result, ShouldHaveLength, 1)
+
+					devices, err = api.List(ctx, &pb.ListDeviceRequest{
+						Limit:         10,
+						Offset:        0,
+						ApplicationId: app.ID,
+					})
+					So(err, ShouldBeNil)
+					So(validator.validatorFuncs, ShouldHaveLength, 1)
+					So(devices.TotalCount, ShouldEqual, 1)
+					So(devices.Result, ShouldHaveLength, 1)
+				})
+
+				Convey("Then a non-admin can not list the devices", func() {
+					validator.returnIsAdmin = false
+					validator.returnUsername = user.Username
+
+					devices, err := api.List(ctx, &pb.ListDeviceRequest{
+						Limit:  10,
+						Offset: 0,
+					})
+					So(err, ShouldBeNil)
+					So(devices.TotalCount, ShouldEqual, 0)
+				})
+
+				Convey("When assigning the user to the organization", func() {
+					So(storage.CreateOrganizationUser(db, org.ID, user.ID, false), ShouldBeNil)
+
+					Convey("Then it can list the devices", func() {
+						validator.returnIsAdmin = false
+						validator.returnUsername = user.Username
+
+						devices, err := api.List(ctx, &pb.ListDeviceRequest{
+							Limit:  10,
+							Offset: 0,
+						})
+						So(err, ShouldBeNil)
+						So(devices.TotalCount, ShouldEqual, 1)
+						So(devices.Result, ShouldHaveLength, 1)
+					})
 				})
 			})
 
@@ -248,7 +309,7 @@ func TestNodeAPI(t *testing.T) {
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 
 				Convey("Then listing the devices returns zero devices", func() {
-					devices, err := api.ListByApplicationID(ctx, &pb.ListDeviceByApplicationIDRequest{
+					devices, err := api.List(ctx, &pb.ListDeviceRequest{
 						ApplicationId: app.ID,
 						Limit:         10,
 					})

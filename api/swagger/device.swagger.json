@@ -15,10 +15,10 @@
     "application/json"
   ],
   "paths": {
-    "/api/applications/{application_id}/devices": {
+    "/api/devices": {
       "get": {
-        "summary": "ListByApplicationID lists the devices by the given application ID, sorted by the name of the device.",
-        "operationId": "ListByApplicationID",
+        "summary": "List returns the available devices.",
+        "operationId": "List",
         "responses": {
           "200": {
             "description": "",
@@ -29,13 +29,6 @@
         },
         "parameters": [
           {
-            "name": "application_id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
             "name": "limit",
             "description": "Max number of devices to return in the result-set.",
             "in": "query",
@@ -45,7 +38,15 @@
           },
           {
             "name": "offset",
-            "description": "Offset of the result-set (for pagination).",
+            "description": "Offset in the result-set (for pagination).",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "applicationID",
+            "description": "Application ID to filter on.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -53,7 +54,7 @@
           },
           {
             "name": "search",
-            "description": "Search against name or DevEUI.",
+            "description": "Search on name or DevEUI.",
             "in": "query",
             "required": false,
             "type": "string"
@@ -62,9 +63,7 @@
         "tags": [
           "DeviceService"
         ]
-      }
-    },
-    "/api/devices": {
+      },
       "post": {
         "summary": "Create creates the given device.",
         "operationId": "Create",

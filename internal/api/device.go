@@ -132,21 +132,69 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 	return &resp, nil
 }
 
-// ListByApplicationID lists the devices by the given application ID, sorted by the name of the device.
-func (a *DeviceAPI) ListByApplicationID(ctx context.Context, req *pb.ListDeviceByApplicationIDRequest) (*pb.ListDeviceResponse, error) {
+// List lists the available applications.
+func (a *DeviceAPI) List(ctx context.Context, req *pb.ListDeviceRequest) (*pb.ListDeviceResponse, error) {
 	if err := a.validator.Validate(ctx,
-		auth.ValidateNodesAccess(req.ApplicationId, auth.List)); err != nil {
+		auth.ValidateNodesAccess(req.ApplicationId, auth.List),
+	); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	devices, err := storage.GetDevicesForApplicationID(config.C.PostgreSQL.DB, req.ApplicationId, int(req.Limit), int(req.Offset), req.Search)
+	isAdmin, err := a.validator.GetIsAdmin(ctx)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
-	count, err := storage.GetDeviceCountForApplicationID(config.C.PostgreSQL.DB, req.ApplicationId, req.Search)
+
+	username, err := a.validator.GetUsername(ctx)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
+
+	var count int
+	var devices []storage.DeviceListItem
+
+	if req.ApplicationId == 0 {
+		if isAdmin {
+			devices, err = storage.GetDevices(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset), req.Search)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			count, err = storage.GetDeviceCount(config.C.PostgreSQL.DB, req.Search)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+		} else {
+			devices, err = storage.GetDevicesForUser(config.C.PostgreSQL.DB, username, 0, int(req.Limit), int(req.Offset), req.Search)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			count, err = storage.GetDeviceCountForUser(config.C.PostgreSQL.DB, username, 0, req.Search)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+		}
+	} else {
+		if isAdmin {
+			devices, err = storage.GetDevicesForApplicationID(config.C.PostgreSQL.DB, req.ApplicationId, int(req.Limit), int(req.Offset), req.Search)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			count, err = storage.GetDeviceCountForApplicationID(config.C.PostgreSQL.DB, req.ApplicationId, req.Search)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+		} else {
+			devices, err = storage.GetDevicesForUser(config.C.PostgreSQL.DB, username, req.ApplicationId, int(req.Limit), int(req.Offset), req.Search)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+			count, err = storage.GetDeviceCountForUser(config.C.PostgreSQL.DB, username, req.ApplicationId, req.Search)
+			if err != nil {
+				return nil, errToRPCError(err)
+			}
+		}
+	}
+
 	return a.returnList(count, devices)
 }
 

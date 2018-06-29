@@ -387,6 +387,12 @@ func TestValidators(t *testing.T) {
 					ExpectedOK: true,
 				},
 				{
+					Name:       "normal users can list when no organization id is given",
+					Validators: []ValidatorFunc{ValidateNodesAccess(0, List)},
+					Claims:     Claims{Username: "user4"},
+					ExpectedOK: true,
+				},
+				{
 					Name:       "organization users can not create",
 					Validators: []ValidatorFunc{ValidateNodesAccess(applications[0].ID, Create)},
 					Claims:     Claims{Username: "user9"},

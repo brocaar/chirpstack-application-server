@@ -176,6 +176,57 @@ func GetDevice(db sqlx.Queryer, devEUI lorawan.EUI64) (Device, error) {
 	return d, nil
 }
 
+// GetDevices returns a slice of devices.
+func GetDevices(db sqlx.Queryer, limit, offset int, search string) ([]DeviceListItem, error) {
+	var devices []DeviceListItem
+	if search != "" {
+		search = "%" + search + "%"
+	}
+
+	err := sqlx.Select(db, &devices, `
+		select
+			d.*,
+			dp.name as device_profile_name
+		from
+			device d
+		inner join device_profile dp
+			on dp.device_profile_id = d.device_profile_id
+		where
+			$3 = ''
+			or ($3 != '' and (d.name ilike $3 or encode(d.dev_eui, 'hex') ilike $3))
+		order by
+			d.name
+		limit $1 offset $2
+	`, limit, offset, search)
+	if err != nil {
+		return nil, handlePSQLError(Select, err, "select error")
+	}
+
+	return devices, nil
+}
+
+// GetDeviceCount returns the number of devices.
+func GetDeviceCount(db sqlx.Queryer, search string) (int, error) {
+	var count int
+	if search != "" {
+		search = "%" + search + "%"
+	}
+
+	err := sqlx.Get(db, &count, `
+		select
+			count(d.*)
+		from device d
+		where
+			$1 = ''
+			or ($1 != '' and (d.name ilike $1 or encode(d.dev_eui, 'hex') ilike $1))
+	`, search)
+	if err != nil {
+		return count, handlePSQLError(Select, err, "select error")
+	}
+
+	return count, nil
+}
+
 // GetDevicesForApplicationID returns a slice of devices for the given
 // application id.
 func GetDevicesForApplicationID(db sqlx.Queryer, applicationID int64, limit, offset int, search string) ([]DeviceListItem, error) {
@@ -183,24 +234,25 @@ func GetDevicesForApplicationID(db sqlx.Queryer, applicationID int64, limit, off
 	if search != "" {
 		search = "%" + search + "%"
 	}
+
 	err := sqlx.Select(db, &devices, `
 		select
 			d.*,
 			dp.name as device_profile_name
-		from device d
+		from
+			device d
 		inner join device_profile dp
 			on dp.device_profile_id = d.device_profile_id
 		where
 			d.application_id = $1
-			and ( ($4 = '') or ($4 != '' and (d.name ilike $4 or encode(d.dev_eui, 'hex') ilike $4)) )
-		order by d.name
-		limit $2
-		offset $3`,
-		applicationID,
-		limit,
-		offset,
-		search,
-	)
+			and (
+				$4 = ''
+				or ($4 != '' and (d.name ilike $4 or encode(d.dev_eui, 'hex') ilike $4))
+			)
+		order by
+			d.name
+		limit $2 offset $3`,
+		applicationID, limit, offset, search)
 	if err != nil {
 		return nil, handlePSQLError(Select, err, "select error")
 	}
@@ -215,20 +267,103 @@ func GetDeviceCountForApplicationID(db sqlx.Queryer, applicationID int64, search
 	if search != "" {
 		search = "%" + search + "%"
 	}
+
 	err := sqlx.Get(db, &count, `
 		select
-			count(*)
-		from device
+			count(d.*)
+		from
+			device d
 		where
-			application_id = $1
-			and ( ($2 = '') or ($2 != '' and (name ilike $2 or encode(dev_eui, 'hex') ilike $2)) )`,
-		applicationID,
-		search,
-	)
+			d.application_id = $1
+			and (
+				$2 = ''
+				or ($2 != '' and (d.name ilike $2 or encode(d.dev_eui, 'hex') ilike $2))
+			)
+	`, applicationID, search)
 	if err != nil {
 		return count, handlePSQLError(Select, err, "select error")
 	}
 
+	return count, nil
+}
+
+// GetDevicesForUser returns a slice of devices to which the given user
+// has access to.
+func GetDevicesForUser(db sqlx.Queryer, username string, applicationID int64, limit, offset int, search string) ([]DeviceListItem, error) {
+	var devices []DeviceListItem
+	if search != "" {
+		search = "%" + search + "%"
+	}
+
+	err := sqlx.Select(db, &devices, `
+		select
+			d.*,
+			dp.name as device_profile_name
+		from
+			device d
+		inner join device_profile dp
+			on dp.device_profile_id = d.device_profile_id
+		inner join application a
+			on a.id = d.application_id
+		inner join organization_user ou
+			on ou.organization_id = a.organization_id
+		inner join "user" u
+			on u.id = ou.user_id
+		where
+			u.username = $1
+			and u.is_active = true
+			and (
+				$2 = 0
+				or a.id = $2
+			)
+			and (
+				$5 = ''
+				or ($5 != '' and (d.name ilike $5 or encode(d.dev_eui, 'hex') ilike $5))
+			)
+		order by
+			d.name
+		limit $3 offset $4
+	`, username, applicationID, limit, offset, search)
+	if err != nil {
+		return nil, handlePSQLError(Select, err, "select error")
+	}
+	return devices, nil
+}
+
+// GetDeviceCountForUser returns the number of devices to which the given user
+// has access to.
+func GetDeviceCountForUser(db sqlx.Queryer, username string, applicationID int64, search string) (int, error) {
+	var count int
+	if search != "" {
+		search = "%" + search + "%"
+	}
+
+	err := sqlx.Get(db, &count, `
+		select
+			count(d.*)
+		from
+			device d
+		inner join application a
+			on a.id = d.application_id
+		inner join organization_user ou
+			on ou.organization_id = a.organization_id
+		inner join "user" u
+			on u.id = ou.user_id
+		where
+			u.username = $1
+			and u.is_active = true
+			and (
+				$2 = 0
+				or a.id = $2
+			)
+			and (
+				$3 = ''
+				or ($3 != '' and (d.name ilike $3 or encode(d.dev_eui, 'hex') ilike $3))
+			)
+	`, username, applicationID, search)
+	if err != nil {
+		return count, handlePSQLError(Select, err, "select error")
+	}
 	return count, nil
 }
 

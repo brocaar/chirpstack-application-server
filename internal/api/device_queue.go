@@ -34,12 +34,12 @@ func NewDeviceQueueAPI(validator auth.Validator) *DeviceQueueAPI {
 
 // Enqueue adds the given item to the device-queue.
 func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueueItemRequest) (*empty.Empty, error) {
-	if req.QueueItem == nil {
+	if req.DeviceQueueItem == nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "queue_item must not be nil")
 	}
 
 	var devEUI lorawan.EUI64
-	if err := devEUI.UnmarshalText([]byte(req.QueueItem.DevEui)); err != nil {
+	if err := devEUI.UnmarshalText([]byte(req.DeviceQueueItem.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
@@ -49,7 +49,7 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 	}
 
 	// if JSON object is set, try to encode it to bytes
-	if req.QueueItem.JsonObject != "" {
+	if req.DeviceQueueItem.JsonObject != "" {
 		dev, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
 		if err != nil {
 			return nil, errToRPCError(err)
@@ -61,24 +61,24 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 		}
 
 		// get codec payload configured for the application
-		codecPL := codec.NewPayload(app.PayloadCodec, uint8(req.QueueItem.FPort), app.PayloadEncoderScript, app.PayloadDecoderScript)
+		codecPL := codec.NewPayload(app.PayloadCodec, uint8(req.DeviceQueueItem.FPort), app.PayloadEncoderScript, app.PayloadDecoderScript)
 		if codecPL == nil {
 			return nil, grpc.Errorf(codes.FailedPrecondition, "no or invalid codec configured for application")
 		}
 
-		err = json.Unmarshal([]byte(req.QueueItem.JsonObject), &codecPL)
+		err = json.Unmarshal([]byte(req.DeviceQueueItem.JsonObject), &codecPL)
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 
-		req.QueueItem.Data, err = codecPL.EncodeToBytes()
+		req.DeviceQueueItem.Data, err = codecPL.EncodeToBytes()
 		if err != nil {
 			return nil, errToRPCError(err)
 		}
 	}
 
 	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
-		if err := downlink.EnqueueDownlinkPayload(tx, devEUI, req.QueueItem.Reference, req.QueueItem.Confirmed, uint8(req.QueueItem.FPort), req.QueueItem.Data); err != nil {
+		if err := downlink.EnqueueDownlinkPayload(tx, devEUI, req.DeviceQueueItem.Reference, req.DeviceQueueItem.Confirmed, uint8(req.DeviceQueueItem.FPort), req.DeviceQueueItem.Data); err != nil {
 			return errors.Wrap(err, "enqueue downlink payload error")
 		}
 		return nil
@@ -167,7 +167,7 @@ func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsR
 			return nil, errToRPCError(err)
 		}
 
-		resp.Items = append(resp.Items, &pb.DeviceQueueItem{
+		resp.DeviceQueueItems = append(resp.DeviceQueueItems, &pb.DeviceQueueItem{
 			DevEui:    devEUI.String(),
 			Confirmed: qi.Confirmed,
 			FPort:     qi.FPort,

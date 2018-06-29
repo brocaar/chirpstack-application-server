@@ -10,7 +10,7 @@ service DeviceQueueService {
     // Enqueue adds the given item to the device-queue.
     rpc Enqueue(EnqueueDeviceQueueItemRequest) returns (google.protobuf.Empty) {
         option(google.api.http) = {
-            post: "/api/devices/{queue_item.dev_eui}/queue"
+            post: "/api/devices/{device_queue_item.dev_eui}/queue"
             body: "*"
         };
     }
@@ -56,7 +56,7 @@ message DeviceQueueItem {
 
 message EnqueueDeviceQueueItemRequest {
     // Queue-item object to enqueue.
-    DeviceQueueItem queue_item = 1;
+    DeviceQueueItem device_queue_item = 1;
 }
 
 message FlushDeviceQueueRequest {
@@ -70,5 +70,5 @@ message ListDeviceQueueItemsRequest {
 }
 
 message ListDeviceQueueItemsResponse {
-    repeated DeviceQueueItem items = 1;
+    repeated DeviceQueueItem device_queue_items = 1;
 }

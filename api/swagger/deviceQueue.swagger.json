@@ -63,7 +63,7 @@
         ]
       }
     },
-    "/api/devices/{queue_item.dev_eui}/queue": {
+    "/api/devices/{device_queue_item.dev_eui}/queue": {
       "post": {
         "summary": "Enqueue adds the given item to the device-queue.",
         "operationId": "Enqueue",
@@ -77,7 +77,7 @@
         },
         "parameters": [
           {
-            "name": "queue_item.dev_eui",
+            "name": "device_queue_item.dev_eui",
             "in": "path",
             "required": true,
             "type": "string"
@@ -133,7 +133,7 @@
     "apiEnqueueDeviceQueueItemRequest": {
       "type": "object",
       "properties": {
-        "queueItem": {
+        "deviceQueueItem": {
           "$ref": "#/definitions/apiDeviceQueueItem",
           "description": "Queue-item object to enqueue."
         }
@@ -142,7 +142,7 @@
     "apiListDeviceQueueItemsResponse": {
       "type": "object",
       "properties": {
-        "items": {
+        "deviceQueueItems": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/apiDeviceQueueItem"

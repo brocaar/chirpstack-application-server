@@ -109,7 +109,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 			Convey("When enqueueing a downlink queue item with raw JSON object", func() {
 				_, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{
-					QueueItem: &pb.DeviceQueueItem{
+					DeviceQueueItem: &pb.DeviceQueueItem{
 						DevEui:     d.DevEUI.String(),
 						FPort:      10,
 						JsonObject: `{"Bytes": [4,3,2,1]}`,
@@ -135,7 +135,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 
 		Convey("When enqueueing a downlink queue item", func() {
 			_, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{
-				QueueItem: &pb.DeviceQueueItem{
+				DeviceQueueItem: &pb.DeviceQueueItem{
 					DevEui: d.DevEUI.String(),
 					FPort:  10,
 					Data:   []byte{1, 2, 3, 4},
@@ -176,8 +176,8 @@ func TestDownlinkQueueAPI(t *testing.T) {
 					DevEui: d.DevEUI.String(),
 				})
 				So(err, ShouldBeNil)
-				So(resp.Items, ShouldHaveLength, 1)
-				So(resp.Items[0], ShouldResemble, &pb.DeviceQueueItem{
+				So(resp.DeviceQueueItems, ShouldHaveLength, 1)
+				So(resp.DeviceQueueItems[0], ShouldResemble, &pb.DeviceQueueItem{
 					DevEui:    d.DevEUI.String(),
 					Confirmed: true,
 					FPort:     10,

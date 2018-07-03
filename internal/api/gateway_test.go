@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brocaar/loraserver/api/gw"
+
 	"github.com/golang/protobuf/ptypes"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -54,12 +56,12 @@ func TestGatewayAPI(t *testing.T) {
 		now := time.Now().UTC()
 		getGatewayResponseNS := ns.GetGatewayResponse{
 			Gateway: &ns.Gateway{
-				Id:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
-				Name:        "test-gateway",
-				Description: "test gateway",
-				Latitude:    1.1234,
-				Longitude:   1.1235,
-				Altitude:    5.5,
+				Id: []byte{1, 2, 3, 4, 5, 6, 7, 8},
+				Location: &gw.Location{
+					Latitude:  1.1234,
+					Longitude: 1.1235,
+					Altitude:  5.5,
+				},
 			},
 		}
 
@@ -71,12 +73,14 @@ func TestGatewayAPI(t *testing.T) {
 		Convey("When calling create", func() {
 			createReq := pb.CreateGatewayRequest{
 				Gateway: &pb.Gateway{
-					Id:               "0102030405060708",
-					Name:             "test-gateway",
-					Description:      "test gateway",
-					Latitude:         1.1234,
-					Longitude:        1.1235,
-					Altitude:         5.5,
+					Id:          "0102030405060708",
+					Name:        "test-gateway",
+					Description: "test gateway",
+					Location: &gw.Location{
+						Latitude:  1.1234,
+						Longitude: 1.1235,
+						Altitude:  5.5,
+					},
 					OrganizationId:   org.ID,
 					DiscoveryEnabled: true,
 					NetworkServerId:  n.ID,
@@ -92,12 +96,12 @@ func TestGatewayAPI(t *testing.T) {
 				So(nsClient.CreateGatewayChan, ShouldHaveLength, 1)
 				So(<-nsClient.CreateGatewayChan, ShouldResemble, ns.CreateGatewayRequest{
 					Gateway: &ns.Gateway{
-						Id:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
-						Name:        "test-gateway",
-						Description: "test gateway",
-						Latitude:    1.1234,
-						Longitude:   1.1235,
-						Altitude:    5.5,
+						Id: []byte{1, 2, 3, 4, 5, 6, 7, 8},
+						Location: &gw.Location{
+							Latitude:  1.1234,
+							Longitude: 1.1235,
+							Altitude:  5.5,
+						},
 					},
 				})
 			})
@@ -202,12 +206,14 @@ func TestGatewayAPI(t *testing.T) {
 				validator.returnIsAdmin = false
 				_, err := api.Update(ctx, &pb.UpdateGatewayRequest{
 					Gateway: &pb.Gateway{
-						Id:             "0102030405060708",
-						Name:           "test-gateway-updated",
-						Description:    "updated test gateway",
-						Latitude:       1.1235,
-						Longitude:      1.1236,
-						Altitude:       5.7,
+						Id:          "0102030405060708",
+						Name:        "test-gateway-updated",
+						Description: "updated test gateway",
+						Location: &gw.Location{
+							Latitude:  1.1235,
+							Longitude: 1.1236,
+							Altitude:  5.7,
+						},
 						OrganizationId: org2.ID,
 					},
 				})
@@ -228,12 +234,12 @@ func TestGatewayAPI(t *testing.T) {
 					So(nsClient.UpdateGatewayChan, ShouldHaveLength, 1)
 					So(<-nsClient.UpdateGatewayChan, ShouldResemble, ns.UpdateGatewayRequest{
 						Gateway: &ns.Gateway{
-							Id:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
-							Name:        "test-gateway-updated",
-							Description: "updated test gateway",
-							Latitude:    1.1235,
-							Longitude:   1.1236,
-							Altitude:    5.7,
+							Id: []byte{1, 2, 3, 4, 5, 6, 7, 8},
+							Location: &gw.Location{
+								Latitude:  1.1235,
+								Longitude: 1.1236,
+								Altitude:  5.7,
+							},
 						},
 					})
 				})
@@ -243,12 +249,14 @@ func TestGatewayAPI(t *testing.T) {
 				validator.returnIsAdmin = true
 				_, err := api.Update(ctx, &pb.UpdateGatewayRequest{
 					Gateway: &pb.Gateway{
-						Id:             "0102030405060708",
-						Name:           "test-gateway-updated",
-						Description:    "updated test gateway",
-						Latitude:       1.1235,
-						Longitude:      1.1236,
-						Altitude:       5.7,
+						Id:          "0102030405060708",
+						Name:        "test-gateway-updated",
+						Description: "updated test gateway",
+						Location: &gw.Location{
+							Latitude:  1.1235,
+							Longitude: 1.1236,
+							Altitude:  5.7,
+						},
 						OrganizationId: org2.ID,
 					},
 				})
@@ -268,12 +276,12 @@ func TestGatewayAPI(t *testing.T) {
 					So(nsClient.UpdateGatewayChan, ShouldHaveLength, 1)
 					So(<-nsClient.UpdateGatewayChan, ShouldResemble, ns.UpdateGatewayRequest{
 						Gateway: &ns.Gateway{
-							Id:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
-							Name:        "test-gateway-updated",
-							Description: "updated test gateway",
-							Latitude:    1.1235,
-							Longitude:   1.1236,
-							Altitude:    5.7,
+							Id: []byte{1, 2, 3, 4, 5, 6, 7, 8},
+							Location: &gw.Location{
+								Latitude:  1.1235,
+								Longitude: 1.1236,
+								Altitude:  5.7,
+							},
 						},
 					})
 				})

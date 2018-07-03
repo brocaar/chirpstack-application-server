@@ -149,7 +149,9 @@ class GatewayDetails extends Component {
     super();
 
     this.state = {
-      gateway: {},
+      gateway: {
+        location: {},
+      },
     }
   }
 
@@ -170,8 +172,8 @@ class GatewayDetails extends Component {
     let lastseen = "";
     let position = [];
 
-    if (typeof(this.state.gateway.latitude) !== "undefined" && typeof(this.state.gateway.longitude !== "undefined")) {
-      position = [this.state.gateway.latitude, this.state.gateway.longitude]; 
+    if (typeof(this.state.gateway.location.latitude) !== "undefined" && typeof(this.state.gateway.location.longitude !== "undefined")) {
+      position = [this.state.gateway.location.latitude, this.state.gateway.location.longitude]; 
     } else {
       position = [0,0];
     }
@@ -198,11 +200,11 @@ class GatewayDetails extends Component {
                   </tr>
                   <tr>
                     <td className="col-md-4"><strong>Altitude</strong></td>
-                    <td>{this.state.gateway.altitude} meters</td>
+                    <td>{this.state.gateway.location.altitude} meters</td>
                   </tr>
                   <tr>
                     <td className="col-md-4"><strong>GPS coordinates</strong></td>
-                    <td>{this.state.gateway.latitude}, {this.state.gateway.longitude}</td>
+                    <td>{this.state.gateway.location.latitude}, {this.state.gateway.location.longitude}</td>
                   </tr>
                   <tr>
                     <td className="col-md-4"><strong>Last seen (stats)</strong></td>

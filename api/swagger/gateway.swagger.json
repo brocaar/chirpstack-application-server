@@ -364,20 +364,9 @@
           "type": "string",
           "description": "Gateway description."
         },
-        "latitude": {
-          "type": "number",
-          "format": "double",
-          "title": "Latitude of the gateway -90 to 90"
-        },
-        "longitude": {
-          "type": "number",
-          "format": "double",
-          "title": "Longitude of the gateway -180 to 180"
-        },
-        "altitude": {
-          "type": "number",
-          "format": "double",
-          "title": "Altitude of the gateway in (meters)"
+        "location": {
+          "$ref": "#/definitions/gwLocation",
+          "description": "Gateway location."
         },
         "organizationID": {
           "type": "string",

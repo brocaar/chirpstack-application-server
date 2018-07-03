@@ -39,6 +39,10 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 		return nil, grpc.Errorf(codes.InvalidArgument, "gateway must not be nil")
 	}
 
+	if req.Gateway.Location == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "gateway.location must not be nil")
+	}
+
 	err := a.validator.Validate(ctx, auth.ValidateGatewaysAccess(auth.Create, req.Gateway.OrganizationId))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
@@ -57,12 +61,8 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 
 	createReq := ns.CreateGatewayRequest{
 		Gateway: &ns.Gateway{
-			Id:          mac[:],
-			Name:        req.Gateway.Name,
-			Description: req.Gateway.Description,
-			Latitude:    req.Gateway.Latitude,
-			Longitude:   req.Gateway.Longitude,
-			Altitude:    req.Gateway.Altitude,
+			Id:       mac[:],
+			Location: req.Gateway.Location,
 		},
 	}
 
@@ -152,9 +152,7 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 			Description:      gw.Description,
 			OrganizationId:   gw.OrganizationID,
 			DiscoveryEnabled: gw.Ping,
-			Latitude:         getResp.Gateway.Latitude,
-			Longitude:        getResp.Gateway.Longitude,
-			Altitude:         getResp.Gateway.Altitude,
+			Location:         getResp.Gateway.Location,
 			NetworkServerId:  gw.NetworkServerID,
 		},
 		FirstSeenAt: getResp.FirstSeenAt,
@@ -268,6 +266,10 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		return nil, grpc.Errorf(codes.InvalidArgument, "gateway must not be nil")
 	}
 
+	if req.Gateway.Location == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "gateway.location must not be nil")
+	}
+
 	var mac lorawan.EUI64
 	if err := mac.UnmarshalText([]byte(req.Gateway.Id)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
@@ -303,12 +305,8 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 
 		updateReq := ns.UpdateGatewayRequest{
 			Gateway: &ns.Gateway{
-				Id:          mac[:],
-				Name:        req.Gateway.Name,
-				Description: req.Gateway.Description,
-				Latitude:    req.Gateway.Latitude,
-				Longitude:   req.Gateway.Longitude,
-				Altitude:    req.Gateway.Altitude,
+				Id:       mac[:],
+				Location: req.Gateway.Location,
 			},
 		}
 

@@ -9,7 +9,9 @@ class CreateGateway extends Component {
     super();
 
     this.state = {
-      gateway: {},
+      gateway: {
+        location: {},
+      },
     };
 
     this.onSubmit = this.onSubmit.bind(this);
@@ -17,7 +19,7 @@ class CreateGateway extends Component {
 
   componentWillMount() {
     this.setState({
-      gateway: {organizationID: this.props.match.params.organizationID},
+      gateway: {location: {}, organizationID: this.props.match.params.organizationID},
     });
   }
 

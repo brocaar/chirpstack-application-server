@@ -10,7 +10,7 @@
     "api/gw",
     "api/ns"
   ]
-  revision = "8329230e2116e1d661651bec2241ac40c3f3d8cb"
+  revision = "4d0a4ad58fc2b6cb9f4f8d8fca41d8aa972934d3"
 
 [[projects]]
   branch = "master"

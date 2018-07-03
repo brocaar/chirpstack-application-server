@@ -10,7 +10,9 @@ class UpdateGateway extends Component {
     super();
 
     this.state = {
-      gateway: {},
+      gateway: {
+        location: {},
+      },
     };
 
     this.onSubmit = this.onSubmit.bind(this);

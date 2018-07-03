@@ -5,6 +5,7 @@ package api;
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "github.com/brocaar/loraserver/api/gw/gw.proto";
 import "common.proto";
 
 
@@ -79,27 +80,21 @@ message Gateway {
 	
 	// Gateway description.
 	string description = 3;
-	
-	// Latitude of the gateway -90 to 90
-	double latitude = 4;
-	
-	// Longitude of the gateway -180 to 180
-	double longitude = 5;
-	
-	// Altitude of the gateway in (meters)
-	double altitude = 6;
+
+	// Gateway location.
+	gw.Location location = 4;
 
 	// Organization ID to which the gateway belongs.
-	int64 organization_id = 7 [json_name = "organizationID"];
+	int64 organization_id = 5 [json_name = "organizationID"];
 
 	// Set to true to enable gateway discovery.
-	bool discovery_enabled = 8;
+	bool discovery_enabled = 6;
 
 	// Network-server ID on which the gateway is provisioned.
-	int64 network_server_id = 9 [json_name = "networkServerID"];
+	int64 network_server_id = 7 [json_name = "networkServerID"];
 
 	// Gateway-profile ID (UUID string, optional).
-	string gateway_profile_id = 10 [json_name = "gatewayProfileID"];
+	string gateway_profile_id = 8 [json_name = "gatewayProfileID"];
 }
 
 message CreateGatewayRequest {

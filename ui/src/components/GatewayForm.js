@@ -16,7 +16,9 @@ class GatewayForm extends Component {
     super();
 
     this.state = {
-      gateway: {},
+      gateway: {
+        location: {},
+      },
       mapZoom: 15,
       update: false,
       gatewayProfiles: [],
@@ -73,8 +75,8 @@ class GatewayForm extends Component {
   updatePosition() {
     const position = this.refs.marker.leafletElement.getLatLng();
     let gateway = this.state.gateway;
-    gateway.latitude = position.lat;
-    gateway.longitude = position.lng;
+    gateway.location.latitude = position.lat;
+    gateway.location.longitude = position.lng;
     this.setState({
       gateway: gateway,
     });
@@ -118,8 +120,8 @@ class GatewayForm extends Component {
     LocationStore.getLocation((position) => {
       if (overwrite === true || typeof(this.state.gateway.latitude) === "undefined" || typeof(this.state.gateway.longitude) === "undefined" || this.state.gateway.latitude === 0 || this.state.gateway.longitude === 0) {
         let gateway = this.state.gateway;
-        gateway.latitude = position.coords.latitude;
-        gateway.longitude = position.coords.longitude;
+        gateway.location.latitude = position.coords.latitude;
+        gateway.location.longitude = position.coords.longitude;
         this.setState({
           gateway: gateway,
         });
@@ -159,8 +161,8 @@ class GatewayForm extends Component {
 
     let position = [];
 
-    if (typeof(this.state.gateway.latitude) !== "undefined" || typeof(this.state.gateway.longitude) !== "undefined") {
-      position = [this.state.gateway.latitude, this.state.gateway.longitude];
+    if (typeof(this.state.gateway.location.latitude) !== "undefined" || typeof(this.state.gateway.location.longitude) !== "undefined") {
+      position = [this.state.gateway.location.latitude, this.state.gateway.location.longitude];
     } else {
       position = [0,0];
     }

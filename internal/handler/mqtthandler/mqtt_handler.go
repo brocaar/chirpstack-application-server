@@ -333,8 +333,7 @@ func (h *MQTTHandler) txPayloadHandler(c mqtt.Client, msg mqtt.Message) {
 	// Since with MQTT all subscribers will receive the downlink messages sent
 	// by the application, the first instance receiving the message must lock it,
 	// so that other instances can ignore the message.
-	// As an unique id, the Reference field is used.
-	key := fmt.Sprintf("lora:as:downlink:lock:%d:%s:%s", pl.ApplicationID, pl.DevEUI, pl.Reference)
+	key := fmt.Sprintf("lora:as:downlink:lock:%d:%s", pl.ApplicationID, pl.DevEUI)
 	redisConn := h.redisPool.Get()
 	defer redisConn.Close()
 

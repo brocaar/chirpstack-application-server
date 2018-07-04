@@ -58,7 +58,6 @@ type DataUpPayload struct {
 type DataDownPayload struct {
 	ApplicationID int64           `json:"applicationID,string"`
 	DevEUI        lorawan.EUI64   `json:"devEUI"`
-	Reference     string          `json:"reference"`
 	Confirmed     bool            `json:"confirmed"`
 	FPort         uint8           `json:"fPort"`
 	Data          []byte          `json:"data"`
@@ -82,7 +81,6 @@ type ACKNotification struct {
 	ApplicationName string        `json:"applicationName"`
 	DeviceName      string        `json:"deviceName"`
 	DevEUI          lorawan.EUI64 `json:"devEUI"`
-	Reference       string        `json:"reference"`
 	Acknowledged    bool          `json:"acknowledged"`
 	FCnt            uint32        `json:"fCnt"`
 }

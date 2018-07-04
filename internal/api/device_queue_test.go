@@ -108,7 +108,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 			So(storage.UpdateApplication(config.C.PostgreSQL.DB, app), ShouldBeNil)
 
 			Convey("When enqueueing a downlink queue item with raw JSON object", func() {
-				_, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{
+				resp, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{
 					DeviceQueueItem: &pb.DeviceQueueItem{
 						DevEui:     d.DevEUI.String(),
 						FPort:      10,
@@ -130,11 +130,17 @@ func TestDownlinkQueueAPI(t *testing.T) {
 						},
 					})
 				})
+
+				Convey("Then the expected response was returned", func() {
+					So(resp, ShouldResemble, &pb.EnqueueDeviceQueueItemResponse{
+						FCnt: 12,
+					})
+				})
 			})
 		})
 
 		Convey("When enqueueing a downlink queue item", func() {
-			_, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{
+			resp, err := api.Enqueue(ctx, &pb.EnqueueDeviceQueueItemRequest{
 				DeviceQueueItem: &pb.DeviceQueueItem{
 					DevEui: d.DevEUI.String(),
 					FPort:  10,
@@ -154,6 +160,12 @@ func TestDownlinkQueueAPI(t *testing.T) {
 						FCnt:       12,
 						FPort:      10,
 					},
+				})
+			})
+
+			Convey("Then the expected response was returned", func() {
+				So(resp, ShouldResemble, &pb.EnqueueDeviceQueueItemResponse{
+					FCnt: 12,
 				})
 			})
 		})
@@ -186,30 +198,16 @@ func TestDownlinkQueueAPI(t *testing.T) {
 			})
 		})
 
-		Convey("Given a device-queue mapping", func() {
-			dqm := storage.DeviceQueueMapping{
-				DevEUI:    d.DevEUI,
-				Reference: "test-123",
-				FCnt:      12,
-			}
-			So(storage.CreateDeviceQueueMapping(config.C.PostgreSQL.DB, &dqm), ShouldBeNil)
+		Convey("When calling Flush", func() {
+			_, err := api.Flush(ctx, &pb.FlushDeviceQueueRequest{
+				DevEui: d.DevEUI.String(),
+			})
+			So(err, ShouldBeNil)
 
-			Convey("When calling Flush", func() {
-				_, err := api.Flush(ctx, &pb.FlushDeviceQueueRequest{
-					DevEui: d.DevEUI.String(),
-				})
-				So(err, ShouldBeNil)
-
-				Convey("Then the expected request has been made to the network-server", func() {
-					So(nsClient.FlushDeviceQueueForDevEUIChan, ShouldHaveLength, 1)
-					So(<-nsClient.FlushDeviceQueueForDevEUIChan, ShouldResemble, ns.FlushDeviceQueueForDevEUIRequest{
-						DevEui: d.DevEUI[:],
-					})
-				})
-
-				Convey("Then the device-queue mapping has been removed", func() {
-					_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, d.DevEUI, 12)
-					So(err, ShouldEqual, storage.ErrDoesNotExist)
+			Convey("Then the expected request has been made to the network-server", func() {
+				So(nsClient.FlushDeviceQueueForDevEUIChan, ShouldHaveLength, 1)
+				So(<-nsClient.FlushDeviceQueueForDevEUIChan, ShouldResemble, ns.FlushDeviceQueueForDevEUIRequest{
+					DevEui: d.DevEUI[:],
 				})
 			})
 		})

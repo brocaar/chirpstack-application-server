@@ -290,68 +290,27 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 			})
 
-			Convey("Given a device-queue mapping", func() {
-				dqm := storage.DeviceQueueMapping{
-					Reference: "test-1234",
-					DevEUI:    d.DevEUI,
-					FCnt:      10,
-				}
-				So(storage.CreateDeviceQueueMapping(config.C.PostgreSQL.DB, &dqm), ShouldBeNil)
-
-				Convey("On HandleDownlinkACK (ack: true)", func() {
-					_, err := api.HandleDownlinkACK(ctx, &as.HandleDownlinkACKRequest{
-						DevEui:       d.DevEUI[:],
-						FCnt:         10,
-						Acknowledged: true,
-					})
-					So(err, ShouldBeNil)
-
-					Convey("Then the device-queue mapping has been removed", func() {
-						_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, d.DevEUI, 10)
-						So(err, ShouldEqual, storage.ErrDoesNotExist)
-					})
-
-					Convey("Then an ack (true) notification was sent to the handler", func() {
-						So(h.SendACKNotificationChan, ShouldHaveLength, 1)
-						So(<-h.SendACKNotificationChan, ShouldResemble, handler.ACKNotification{
-							ApplicationID:   app.ID,
-							ApplicationName: app.Name,
-							DeviceName:      d.Name,
-							DevEUI:          d.DevEUI,
-							Reference:       dqm.Reference,
-							Acknowledged:    true,
-							FCnt:            10,
-						})
-					})
+			Convey("On HandleDownlinkACK (ack: true)", func() {
+				_, err := api.HandleDownlinkACK(ctx, &as.HandleDownlinkACKRequest{
+					DevEui:       d.DevEUI[:],
+					FCnt:         10,
+					Acknowledged: true,
 				})
+				So(err, ShouldBeNil)
 
-				Convey("On HandleDownlinkACK (ack: false)", func() {
-					_, err := api.HandleDownlinkACK(ctx, &as.HandleDownlinkACKRequest{
-						DevEui:       d.DevEUI[:],
-						FCnt:         10,
-						Acknowledged: false,
-					})
-					So(err, ShouldBeNil)
-
-					Convey("Then the device-queue mapping has been removed", func() {
-						_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, d.DevEUI, 10)
-						So(err, ShouldEqual, storage.ErrDoesNotExist)
-					})
-
-					Convey("Then an ack (true) notification was sent to the handler", func() {
-						So(h.SendACKNotificationChan, ShouldHaveLength, 1)
-						So(<-h.SendACKNotificationChan, ShouldResemble, handler.ACKNotification{
-							ApplicationID:   app.ID,
-							ApplicationName: app.Name,
-							DeviceName:      d.Name,
-							DevEUI:          d.DevEUI,
-							Reference:       dqm.Reference,
-							Acknowledged:    false,
-							FCnt:            10,
-						})
+				Convey("Then an ack (true) notification was sent to the handler", func() {
+					So(h.SendACKNotificationChan, ShouldHaveLength, 1)
+					So(<-h.SendACKNotificationChan, ShouldResemble, handler.ACKNotification{
+						ApplicationID:   app.ID,
+						ApplicationName: app.Name,
+						DeviceName:      d.Name,
+						DevEUI:          d.DevEUI,
+						Acknowledged:    true,
+						FCnt:            10,
 					})
 				})
 			})
 		})
+
 	})
 }

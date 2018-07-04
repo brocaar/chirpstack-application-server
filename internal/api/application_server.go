@@ -218,15 +218,6 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
-	dqm, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, devEUI, req.FCnt)
-	if err != nil {
-		return nil, errToRPCError(err)
-	}
-
-	if err := storage.DeleteDeviceQueueMapping(config.C.PostgreSQL.DB, dqm.ID); err != nil {
-		return nil, errToRPCError(err)
-	}
-
 	log.WithFields(log.Fields{
 		"dev_eui": devEUI,
 	}).Info("downlink device-queue item acknowledged")
@@ -236,7 +227,6 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,
 		DevEUI:          devEUI,
-		Reference:       dqm.Reference,
 		Acknowledged:    req.Acknowledged,
 		FCnt:            req.FCnt,
 	}

@@ -133,7 +133,6 @@ Topic for ACK notifications. Example payload:
     "applicationID": "123",
     "applicationName": "temperature-sensor",
     "deviceName": "garden-sensor",
-    "reference": "abcd1234",                  // the reference given when sending the downlink payload
     "devEUI": "0202020202020202",             // device EUI
     "acknowledged": true,                     // whether the frame was acknowledged or not (e.g. timeout)
     "fCnt": 12                                // downlink frame-counter
@@ -175,7 +174,6 @@ Example payload:
 
 ```json
 {
-    "reference": "abcd1234",                  // reference which will be used on ack or error (this can be a random string)
     "confirmed": true,                        // whether the payload must be sent as confirmed data down or not
     "fPort": 10,                              // FPort to use (must be > 0)
     "data": "...."                            // base64 encoded data (plaintext, will be encrypted by LoRa Server)

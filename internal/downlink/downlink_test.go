@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/handler"
-	"github.com/pkg/errors"
-
-	. "github.com/smartystreets/goconvey/convey"
-
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
@@ -98,7 +96,6 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 				PayloadCodec         codec.Type
 				PayloadEncoderScript string
 
-				ExpectedDeviceQueueMapping           bool
 				ExpectedError                        error
 				ExpectedCreateDeviceQueueItemRequest ns.CreateDeviceQueueItemRequest
 			}{
@@ -107,7 +104,6 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 					Payload: handler.DataDownPayload{
 						ApplicationID: app.ID,
 						DevEUI:        device.DevEUI,
-						Reference:     "test-123",
 						Confirmed:     false,
 						FPort:         2,
 						Data:          []byte{1, 2, 3, 4},
@@ -128,7 +124,6 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 					Payload: handler.DataDownPayload{
 						ApplicationID: app.ID,
 						DevEUI:        device.DevEUI,
-						Reference:     "test-123",
 						Confirmed:     true,
 						FPort:         2,
 						Data:          []byte{1, 2, 3, 4},
@@ -143,14 +138,12 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 							Confirmed:  true,
 						},
 					},
-					ExpectedDeviceQueueMapping: true,
 				},
 				{
 					Name: "invalid application id",
 					Payload: handler.DataDownPayload{
 						ApplicationID: app.ID + 1,
 						DevEUI:        device.DevEUI,
-						Reference:     "test-123",
 						Confirmed:     true,
 						FPort:         2,
 						Data:          []byte{1, 2, 3, 4},
@@ -190,7 +183,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			}
 
 			for i, test := range tests {
-				Convey(fmt.Sprintf("Testint: %s [%d]", test.Name, i), func() {
+				Convey(fmt.Sprintf("Testing: %s [%d]", test.Name, i), func() {
 					// update application
 					app.PayloadCodec = test.PayloadCodec
 					app.PayloadEncoderScript = test.PayloadEncoderScript
@@ -207,15 +200,6 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 					So(nsClient.GetNextDownlinkFCntForDevEUIChan, ShouldHaveLength, 1)
 					So(nsClient.CreateDeviceQueueItemChan, ShouldHaveLength, 1)
 					So(<-nsClient.CreateDeviceQueueItemChan, ShouldResemble, test.ExpectedCreateDeviceQueueItemRequest)
-
-					if test.ExpectedDeviceQueueMapping {
-						dqm, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, device.DevEUI, 12)
-						So(err, ShouldBeNil)
-						So(dqm.Reference, ShouldEqual, test.Payload.Reference)
-					} else {
-						_, err := storage.GetDeviceQueueMappingForDevEUIAndFCnt(config.C.PostgreSQL.DB, device.DevEUI, 12)
-						So(err, ShouldEqual, storage.ErrDoesNotExist)
-					}
 				})
 			}
 		})

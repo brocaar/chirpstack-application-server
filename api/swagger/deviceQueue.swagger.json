@@ -71,7 +71,7 @@
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "$ref": "#/definitions/apiEnqueueDeviceQueueItemResponse"
             }
           }
         },
@@ -105,10 +105,6 @@
           "type": "string",
           "description": "Device EUI (HEX encoded)."
         },
-        "reference": {
-          "type": "string",
-          "description": "Random reference (used on ack notification)."
-        },
         "confirmed": {
           "type": "boolean",
           "format": "boolean",
@@ -136,6 +132,16 @@
         "deviceQueueItem": {
           "$ref": "#/definitions/apiDeviceQueueItem",
           "description": "Queue-item object to enqueue."
+        }
+      }
+    },
+    "apiEnqueueDeviceQueueItemResponse": {
+      "type": "object",
+      "properties": {
+        "fCnt": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Frame-counter for the enqueued payload."
         }
       }
     },

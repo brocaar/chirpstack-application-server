@@ -82,6 +82,14 @@ modified slightly:
 * `MAC` has been renamed to `gatewayID` for each `rxInfo` element.
 * The `adr` field has been moved out of `txInfo` and moved into the root object.
 
+#### Downlink queue changes
+
+The `reference` field has been removed to simplify the downlink queue handling.
+When using the REST or gRPC API interface, the response to an enqueue action
+contains the frame-counter mapped with the downlink queue item. This
+frame-counter then can be used to map the acknowledgement in case of a confirmed
+downlink payload.
+
 ## v1.0.2
 
 ### Bugfixes

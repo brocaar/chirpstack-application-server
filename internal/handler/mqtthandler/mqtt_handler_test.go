@@ -116,7 +116,6 @@ func TestMQTTHandler(t *testing.T) {
 						ApplicationName: "test-app",
 						DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 						DeviceName:      "test-node",
-						Reference:       "1234",
 					}
 					So(h.SendACKNotification(pl), ShouldBeNil)
 

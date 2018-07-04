@@ -32,7 +32,9 @@ func NewDeviceQueueAPI(validator auth.Validator) *DeviceQueueAPI {
 }
 
 // Enqueue adds the given item to the device-queue.
-func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueueItemRequest) (*empty.Empty, error) {
+func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueueItemRequest) (*pb.EnqueueDeviceQueueItemResponse, error) {
+	var fCnt uint32
+
 	if req.DeviceQueueItem == nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "queue_item must not be nil")
 	}
@@ -77,7 +79,9 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 			}
 		}
 
-		if err := downlink.EnqueueDownlinkPayload(tx, devEUI, req.DeviceQueueItem.Reference, req.DeviceQueueItem.Confirmed, uint8(req.DeviceQueueItem.FPort), req.DeviceQueueItem.Data); err != nil {
+		var err error
+		fCnt, err = downlink.EnqueueDownlinkPayload(tx, devEUI, req.DeviceQueueItem.Confirmed, uint8(req.DeviceQueueItem.FPort), req.DeviceQueueItem.Data)
+		if err != nil {
 			return grpc.Errorf(codes.Internal, "enqueue downlink payload error: %s", err)
 		}
 
@@ -86,7 +90,9 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 		return nil, err
 	}
 
-	return &empty.Empty{}, nil
+	return &pb.EnqueueDeviceQueueItemResponse{
+		FCnt: fCnt,
+	}, nil
 }
 
 // Flush flushes the downlink device-queue.
@@ -111,15 +117,8 @@ func (d *DeviceQueueAPI) Flush(ctx context.Context, req *pb.FlushDeviceQueueRequ
 		return nil, errToRPCError(err)
 	}
 
-	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
-		if err := storage.FlushDeviceQueueMappingForDevEUI(tx, devEUI); err != nil {
-			return errToRPCError(err)
-		}
-
-		_, err := nsClient.FlushDeviceQueueForDevEUI(ctx, &ns.FlushDeviceQueueForDevEUIRequest{
-			DevEui: devEUI[:],
-		})
-		return err
+	_, err = nsClient.FlushDeviceQueueForDevEUI(ctx, &ns.FlushDeviceQueueForDevEUIRequest{
+		DevEui: devEUI[:],
 	})
 	if err != nil {
 		return nil, err

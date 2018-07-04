@@ -45,7 +45,6 @@ var joinTasks = []func(*context) error{
 	setJoinNonce,
 	setSessionKeys,
 	createDeviceActivationRecord,
-	flushDeviceQueueMapping,
 	sendJoinNotification,
 	createJoinAnsPayload,
 }
@@ -58,7 +57,6 @@ var rejoinTasks = []func(*context) error{
 	setJoinNonce,
 	setSessionKeys,
 	createDeviceActivationRecord,
-	flushDeviceQueueMapping,
 	sendJoinNotification,
 	createRejoinAnsPayload,
 }
@@ -321,13 +319,6 @@ func createDeviceActivationRecord(ctx *context) error {
 		return errors.Wrap(err, "create device-activation error")
 	}
 
-	return nil
-}
-
-func flushDeviceQueueMapping(ctx *context) error {
-	if err := storage.FlushDeviceQueueMappingForDevEUI(config.C.PostgreSQL.DB, ctx.device.DevEUI); err != nil {
-		return errors.Wrap(err, "flush device-queue mapping error")
-	}
 	return nil
 }
 

@@ -122,7 +122,7 @@ func TestHandler(t *testing.T) {
 
 		Convey("Then SendACKNotification sends the correct notification", func() {
 			reqPL := handler.ACKNotification{
-				Reference: "ack-123",
+				DevEUI: lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 			}
 			So(h.SendACKNotification(reqPL), ShouldBeNil)
 

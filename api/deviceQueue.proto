@@ -8,7 +8,7 @@ import "google/protobuf/empty.proto";
 // DeviceQueueService is the service managing the downlink data queue.
 service DeviceQueueService {
     // Enqueue adds the given item to the device-queue.
-    rpc Enqueue(EnqueueDeviceQueueItemRequest) returns (google.protobuf.Empty) {
+    rpc Enqueue(EnqueueDeviceQueueItemRequest) returns (EnqueueDeviceQueueItemResponse) {
         option(google.api.http) = {
             post: "/api/devices/{device_queue_item.dev_eui}/queue"
             body: "*"
@@ -34,29 +34,31 @@ message DeviceQueueItem {
     // Device EUI (HEX encoded).
     string dev_eui = 1 [json_name = "devEUI"];
 
-    // Random reference (used on ack notification).
-    string reference = 2;
-
     // Set this to true when an acknowledgement from the device is required.
     // Please note that this must not be used to guarantee a delivery.
-    bool confirmed = 3;
+    bool confirmed = 2;
 
     // FPort used (must be > 0)
-    uint32 f_port = 4;
+    uint32 f_port = 3;
 
     // Base64 encoded data.
     // Or use the json_object field when an application codec has been configured.
-    bytes data = 5;
+    bytes data = 4;
 
     // JSON object (string).
     // Only use this when an application codec has been configured that can convert
     // this object into binary form.
-    string json_object = 6;
+    string json_object = 5;
 }
 
 message EnqueueDeviceQueueItemRequest {
     // Queue-item object to enqueue.
     DeviceQueueItem device_queue_item = 1;
+}
+
+message EnqueueDeviceQueueItemResponse {
+    // Frame-counter for the enqueued payload.
+    uint32 f_cnt = 1;
 }
 
 message FlushDeviceQueueRequest {

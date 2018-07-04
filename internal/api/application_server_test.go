@@ -222,7 +222,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 
 				Convey("Then the device was updated", func() {
-					d, err := storage.GetDevice(config.C.PostgreSQL.DB, d.DevEUI)
+					d, err := storage.GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false)
 					So(err, ShouldBeNil)
 					So(*d.DeviceStatusBattery, ShouldEqual, 10)
 					So(*d.DeviceStatusMargin, ShouldEqual, 11)
@@ -239,7 +239,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 
 				Convey("Then the device was updated", func() {
-					d, err := storage.GetDevice(config.C.PostgreSQL.DB, d.DevEUI)
+					d, err := storage.GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false)
 					So(err, ShouldBeNil)
 					So(d.DeviceStatusBattery, ShouldBeNil)
 					So(d.DeviceStatusMargin, ShouldBeNil)

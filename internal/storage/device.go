@@ -137,9 +137,15 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 }
 
 // GetDevice returns the device matching the given DevEUI.
-func GetDevice(db sqlx.Queryer, devEUI lorawan.EUI64) (Device, error) {
+// when forUpdate is set to true, then db must be a db transaction.
+func GetDevice(db sqlx.Queryer, devEUI lorawan.EUI64, forUpdate bool) (Device, error) {
+	var fu string
+	if forUpdate {
+		fu = " for update"
+	}
+
 	var d Device
-	err := sqlx.Get(db, &d, "select * from device where dev_eui = $1", devEUI[:])
+	err := sqlx.Get(db, &d, "select * from device where dev_eui = $1"+fu, devEUI[:])
 	if err != nil {
 		return d, handlePSQLError(Select, err, "select error")
 	}

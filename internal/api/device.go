@@ -83,7 +83,7 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, eui)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, eui, false)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -142,7 +142,7 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*p
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -176,7 +176,7 @@ func (a *DeviceAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*p
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, eui)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, eui, false)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -331,7 +331,7 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -414,7 +414,7 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

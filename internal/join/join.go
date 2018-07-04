@@ -111,7 +111,7 @@ func setPHYPayload(ctx *context) error {
 }
 
 func getDevice(ctx *context) error {
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, ctx.joinReqPayload.DevEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, ctx.joinReqPayload.DevEUI, false)
 	if err != nil {
 		return errors.Wrap(err, "get device error")
 	}

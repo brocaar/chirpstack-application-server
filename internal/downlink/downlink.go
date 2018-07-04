@@ -35,50 +35,53 @@ func HandleDataDownPayloads() {
 }
 
 func handleDataDownPayload(pl handler.DataDownPayload) error {
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, pl.DevEUI)
-	if err != nil {
-		return fmt.Errorf("get device error: %s", err)
-	}
-
-	// Validate that the ApplicationID matches the actual DevEUI.
-	// This is needed as authorisation might be performed on MQTT topic level
-	// where it is unknown if the given ApplicationID matches the given
-	// DevEUI.
-	if d.ApplicationID != pl.ApplicationID {
-		return errors.New("enqueue downlink payload: device does not exist for given application")
-	}
-
-	// if Object is set, try to encode it to bytes using the application codec
-	if pl.Object != nil {
-		app, err := storage.GetApplication(config.C.PostgreSQL.DB, d.ApplicationID)
-		if err != nil {
-			return errors.Wrap(err, "get application error")
-		}
-
-		// get the codec payload configured for the application
-		codecPL := codec.NewPayload(app.PayloadCodec, pl.FPort, app.PayloadEncoderScript, app.PayloadDecoderScript)
-		if codecPL == nil {
-			logCodecError(app, d, errors.New("no or invalid codec configured for application"))
-			return errors.New("no or invalid codec configured for application")
-		}
-
-		err = json.Unmarshal(pl.Object, &codecPL)
-		if err != nil {
-			logCodecError(app, d, err)
-			return errors.Wrap(err, "unmarshal to codec payload error")
-		}
-
-		pl.Data, err = codecPL.EncodeToBytes()
-		if err != nil {
-			logCodecError(app, d, err)
-			return errors.Wrap(err, "marshal codec payload to binary error")
-		}
-	}
-
 	return storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
+		// lock the device so that a concurrent Enqueue action will block
+		// until this transaction has been completed
+		d, err := storage.GetDevice(tx, pl.DevEUI, true)
+		if err != nil {
+			return fmt.Errorf("get device error: %s", err)
+		}
+
+		// Validate that the ApplicationID matches the actual DevEUI.
+		// This is needed as authorisation might be performed on MQTT topic level
+		// where it is unknown if the given ApplicationID matches the given
+		// DevEUI.
+		if d.ApplicationID != pl.ApplicationID {
+			return errors.New("enqueue downlink payload: device does not exist for given application")
+		}
+
+		// if Object is set, try to encode it to bytes using the application codec
+		if pl.Object != nil {
+			app, err := storage.GetApplication(tx, d.ApplicationID)
+			if err != nil {
+				return errors.Wrap(err, "get application error")
+			}
+
+			// get the codec payload configured for the application
+			codecPL := codec.NewPayload(app.PayloadCodec, pl.FPort, app.PayloadEncoderScript, app.PayloadDecoderScript)
+			if codecPL == nil {
+				logCodecError(app, d, errors.New("no or invalid codec configured for application"))
+				return errors.New("no or invalid codec configured for application")
+			}
+
+			err = json.Unmarshal(pl.Object, &codecPL)
+			if err != nil {
+				logCodecError(app, d, err)
+				return errors.Wrap(err, "unmarshal to codec payload error")
+			}
+
+			pl.Data, err = codecPL.EncodeToBytes()
+			if err != nil {
+				logCodecError(app, d, err)
+				return errors.Wrap(err, "marshal codec payload to binary error")
+			}
+		}
+
 		if err := EnqueueDownlinkPayload(tx, pl.DevEUI, pl.Reference, pl.Confirmed, pl.FPort, pl.Data); err != nil {
 			return errors.Wrap(err, "enqueue downlink device-queue item error")
 		}
+
 		return nil
 	})
 }

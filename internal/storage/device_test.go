@@ -170,7 +170,7 @@ func TestDevice(t *testing.T) {
 					},
 				}
 
-				dGet, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI)
+				dGet, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false)
 				So(err, ShouldBeNil)
 				dGet.CreatedAt = dGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				dGet.UpdatedAt = dGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -203,7 +203,7 @@ func TestDevice(t *testing.T) {
 						},
 					})
 
-					dGet, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI)
+					dGet, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false)
 					So(err, ShouldBeNil)
 					dGet.CreatedAt = dGet.CreatedAt.UTC().Truncate(time.Millisecond)
 					dGet.UpdatedAt = dGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -217,7 +217,7 @@ func TestDevice(t *testing.T) {
 						DevEui: []byte{1, 2, 3, 4, 5, 6, 7, 8},
 					})
 
-					_, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI)
+					_, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false)
 					So(err, ShouldEqual, ErrDoesNotExist)
 				})
 

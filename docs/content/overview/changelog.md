@@ -82,6 +82,12 @@ modified slightly:
 * `MAC` has been renamed to `gatewayID` for each `rxInfo` element.
 * The `adr` field has been moved out of `txInfo` and moved into the root object.
 
+## v1.0.2
+
+### Bugfixes
+
+* Lock device row on downlink enqueue to avoid duplicated frame-counter values ([#245](https://github.com/brocaar/lora-app-server/issues/245))
+
 ## v1.0.1
 
 ### Improvements

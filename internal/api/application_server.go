@@ -44,7 +44,7 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 	copy(appEUI[:], req.JoinEui)
 	copy(devEUI[:], req.DevEui)
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
 	if err != nil {
 		errStr := fmt.Sprintf("get device error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
@@ -205,7 +205,7 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEui)
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
 	if err != nil {
 		errStr := fmt.Sprintf("get device error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
@@ -262,7 +262,7 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEui)
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
 	if err != nil {
 		errStr := fmt.Sprintf("get device error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
@@ -329,7 +329,7 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEui)
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
 	if err != nil {
 		return nil, errToRPCError(errors.Wrap(err, "get device error"))
 	}

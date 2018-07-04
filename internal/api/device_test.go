@@ -158,7 +158,7 @@ func TestNodeAPI(t *testing.T) {
 					ten := 10
 					eleven := 11
 
-					d, err := storage.GetDevice(config.C.PostgreSQL.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
+					d, err := storage.GetDevice(config.C.PostgreSQL.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false)
 					So(err, ShouldBeNil)
 					d.DeviceStatusBattery = &ten
 					d.DeviceStatusMargin = &eleven
@@ -177,7 +177,7 @@ func TestNodeAPI(t *testing.T) {
 				Convey("When setting the LastSeenAt timestamp", func() {
 					now := time.Now().Truncate(time.Millisecond)
 
-					d, err := storage.GetDevice(config.C.PostgreSQL.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
+					d, err := storage.GetDevice(config.C.PostgreSQL.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false)
 					So(err, ShouldBeNil)
 					d.LastSeenAt = &now
 					So(storage.UpdateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)

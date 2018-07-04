@@ -5,7 +5,6 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -48,43 +47,43 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	// if JSON object is set, try to encode it to bytes
-	if req.DeviceQueueItem.JsonObject != "" {
-		dev, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI)
-		if err != nil {
-			return nil, errToRPCError(err)
+	if err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
+		// if JSON object is set, try to encode it to bytes
+		if req.DeviceQueueItem.JsonObject != "" {
+			dev, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, true)
+			if err != nil {
+				return errToRPCError(err)
+			}
+
+			app, err := storage.GetApplication(config.C.PostgreSQL.DB, dev.ApplicationID)
+			if err != nil {
+				return errToRPCError(err)
+			}
+
+			// get codec payload configured for the application
+			codecPL := codec.NewPayload(app.PayloadCodec, uint8(req.DeviceQueueItem.FPort), app.PayloadEncoderScript, app.PayloadDecoderScript)
+			if codecPL == nil {
+				return grpc.Errorf(codes.FailedPrecondition, "no or invalid codec configured for application")
+			}
+
+			err = json.Unmarshal([]byte(req.DeviceQueueItem.JsonObject), &codecPL)
+			if err != nil {
+				return errToRPCError(err)
+			}
+
+			req.DeviceQueueItem.Data, err = codecPL.EncodeToBytes()
+			if err != nil {
+				return errToRPCError(err)
+			}
 		}
 
-		app, err := storage.GetApplication(config.C.PostgreSQL.DB, dev.ApplicationID)
-		if err != nil {
-			return nil, errToRPCError(err)
-		}
-
-		// get codec payload configured for the application
-		codecPL := codec.NewPayload(app.PayloadCodec, uint8(req.DeviceQueueItem.FPort), app.PayloadEncoderScript, app.PayloadDecoderScript)
-		if codecPL == nil {
-			return nil, grpc.Errorf(codes.FailedPrecondition, "no or invalid codec configured for application")
-		}
-
-		err = json.Unmarshal([]byte(req.DeviceQueueItem.JsonObject), &codecPL)
-		if err != nil {
-			return nil, errToRPCError(err)
-		}
-
-		req.DeviceQueueItem.Data, err = codecPL.EncodeToBytes()
-		if err != nil {
-			return nil, errToRPCError(err)
-		}
-	}
-
-	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		if err := downlink.EnqueueDownlinkPayload(tx, devEUI, req.DeviceQueueItem.Reference, req.DeviceQueueItem.Confirmed, uint8(req.DeviceQueueItem.FPort), req.DeviceQueueItem.Data); err != nil {
-			return errors.Wrap(err, "enqueue downlink payload error")
+			return grpc.Errorf(codes.Internal, "enqueue downlink payload error: %s", err)
 		}
+
 		return nil
-	})
-	if err != nil {
-		return nil, errToRPCError(err)
+	}); err != nil {
+		return nil, err
 	}
 
 	return &empty.Empty{}, nil

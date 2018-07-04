@@ -221,7 +221,7 @@ func setRejoinContext(ctx *context) error {
 }
 
 func getDevice(ctx *context) error {
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, ctx.devEUI)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, ctx.devEUI, false)
 	if err != nil {
 		return errors.Wrap(err, "get device error")
 	}

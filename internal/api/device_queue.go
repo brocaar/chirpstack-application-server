@@ -39,6 +39,10 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 		return nil, grpc.Errorf(codes.InvalidArgument, "queue_item must not be nil")
 	}
 
+	if req.DeviceQueueItem.FPort == 0 {
+		return nil, grpc.Errorf(codes.InvalidArgument, "f_port must be > 0")
+	}
+
 	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.DeviceQueueItem.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)

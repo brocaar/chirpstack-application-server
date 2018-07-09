@@ -38,6 +38,10 @@ message DeviceQueueItem {
     // Please note that this must not be used to guarantee a delivery.
     bool confirmed = 2;
 
+    // Downlink frame-counter.
+    // This will be automatically set on enquue.
+    uint32 f_cnt = 6;
+
     // FPort used (must be > 0)
     uint32 f_port = 3;
 

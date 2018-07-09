@@ -110,6 +110,11 @@
           "format": "boolean",
           "description": "Set this to true when an acknowledgement from the device is required.\nPlease note that this must not be used to guarantee a delivery."
         },
+        "fCnt": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Downlink frame-counter.\nThis will be automatically set on enquue."
+        },
         "fPort": {
           "type": "integer",
           "format": "int64",

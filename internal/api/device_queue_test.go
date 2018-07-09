@@ -193,6 +193,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 					DevEui:    d.DevEUI.String(),
 					Confirmed: true,
 					FPort:     10,
+					FCnt:      12,
 					Data:      []byte{1, 2, 3, 4},
 				})
 			})

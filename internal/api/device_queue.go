@@ -173,6 +173,7 @@ func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsR
 			DevEui:    devEUI.String(),
 			Confirmed: qi.Confirmed,
 			FPort:     qi.FPort,
+			FCnt:      qi.FCnt,
 			Data:      b,
 		})
 	}

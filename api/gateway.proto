@@ -62,8 +62,10 @@ service GatewayService {
 		};
 	}
 
-    // StreamFrameLogs streams the uplink and downlink frame-logs for the given mac.
-    // Note: these are the raw LoRaWAN frames and this endpoint is intended for debugging.
+    // StreamFrameLogs streams the uplink and downlink frame-logs for the given gateway ID.
+	// Notes:
+	//   * These are the raw LoRaWAN frames and this endpoint is intended for debugging only.
+	//   * This endpoint does not work from a web-browser.
     rpc StreamFrameLogs(StreamGatewayFrameLogsRequest) returns (stream StreamGatewayFrameLogsResponse) {
         option (google.api.http) = {
             get: "/api/gateways/{gateway_id}/frames"

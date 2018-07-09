@@ -100,8 +100,8 @@ service DeviceService {
     }
 
     // StreamFrameLogs streams the uplink and downlink frame-logs for the given DevEUI.
-    // Note: these are the raw LoRaWAN frames. This endpoint is intended for debugging
-    // only.
+	//   * These are the raw LoRaWAN frames and this endpoint is intended for debugging only.
+	//   * This endpoint does not work from a web-browser.
     rpc StreamFrameLogs(StreamDeviceFrameLogsRequest) returns (stream StreamDeviceFrameLogsResponse) {
         option (google.api.http) = {
             get: "/api/devices/{dev_eui}/frames"
@@ -109,8 +109,8 @@ service DeviceService {
     }
 
     // StreamEventLogs stream the device events (uplink payloads, ACKs, joins, errors).
-    // Note: this endpoint is intended for debugging and should not be used for building
-    // integrations.
+	//   * This endpoint is intended for debugging only.
+	//   * This endpoint does not work from a web-browser.
     rpc StreamEventLogs(StreamDeviceEventLogsRequest) returns (stream StreamDeviceEventLogsResponse) {
         option (google.api.http) = {
             get: "/api/devices/{dev_eui}/events"

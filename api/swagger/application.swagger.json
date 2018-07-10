@@ -668,6 +668,15 @@
       ],
       "default": "HTTP"
     },
+    "apiIntegrationListItem": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/definitions/apiIntegrationKind",
+          "description": "Integration kind."
+        }
+      }
+    },
     "apiListApplicationResponse": {
       "type": "object",
       "properties": {
@@ -688,12 +697,17 @@
     "apiListIntegrationResponse": {
       "type": "object",
       "properties": {
-        "kinds": {
+        "totalCount": {
+          "type": "string",
+          "format": "int64",
+          "description": "Total number of integrations available within the result-set."
+        },
+        "result": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apiIntegrationKind"
+            "$ref": "#/definitions/apiIntegrationListItem"
           },
-          "description": "The integration kinds associated with the application."
+          "description": "Integrations within result-set."
         }
       }
     },

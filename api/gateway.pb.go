@@ -53,7 +53,7 @@ func (m *Gateway) Reset()         { *m = Gateway{} }
 func (m *Gateway) String() string { return proto.CompactTextString(m) }
 func (*Gateway) ProtoMessage()    {}
 func (*Gateway) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{0}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{0}
 }
 func (m *Gateway) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Gateway.Unmarshal(m, b)
@@ -141,7 +141,7 @@ func (m *CreateGatewayRequest) Reset()         { *m = CreateGatewayRequest{} }
 func (m *CreateGatewayRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateGatewayRequest) ProtoMessage()    {}
 func (*CreateGatewayRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{1}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{1}
 }
 func (m *CreateGatewayRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateGatewayRequest.Unmarshal(m, b)
@@ -180,7 +180,7 @@ func (m *GetGatewayRequest) Reset()         { *m = GetGatewayRequest{} }
 func (m *GetGatewayRequest) String() string { return proto.CompactTextString(m) }
 func (*GetGatewayRequest) ProtoMessage()    {}
 func (*GetGatewayRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{2}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{2}
 }
 func (m *GetGatewayRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetGatewayRequest.Unmarshal(m, b)
@@ -227,7 +227,7 @@ func (m *GetGatewayResponse) Reset()         { *m = GetGatewayResponse{} }
 func (m *GetGatewayResponse) String() string { return proto.CompactTextString(m) }
 func (*GetGatewayResponse) ProtoMessage()    {}
 func (*GetGatewayResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{3}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{3}
 }
 func (m *GetGatewayResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetGatewayResponse.Unmarshal(m, b)
@@ -294,7 +294,7 @@ func (m *DeleteGatewayRequest) Reset()         { *m = DeleteGatewayRequest{} }
 func (m *DeleteGatewayRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteGatewayRequest) ProtoMessage()    {}
 func (*DeleteGatewayRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{4}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{4}
 }
 func (m *DeleteGatewayRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteGatewayRequest.Unmarshal(m, b)
@@ -340,7 +340,7 @@ func (m *ListGatewayRequest) Reset()         { *m = ListGatewayRequest{} }
 func (m *ListGatewayRequest) String() string { return proto.CompactTextString(m) }
 func (*ListGatewayRequest) ProtoMessage()    {}
 func (*ListGatewayRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{5}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{5}
 }
 func (m *ListGatewayRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListGatewayRequest.Unmarshal(m, b)
@@ -412,7 +412,7 @@ func (m *GatewayListItem) Reset()         { *m = GatewayListItem{} }
 func (m *GatewayListItem) String() string { return proto.CompactTextString(m) }
 func (*GatewayListItem) ProtoMessage()    {}
 func (*GatewayListItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{6}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{6}
 }
 func (m *GatewayListItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GatewayListItem.Unmarshal(m, b)
@@ -495,7 +495,7 @@ func (m *ListGatewayResponse) Reset()         { *m = ListGatewayResponse{} }
 func (m *ListGatewayResponse) String() string { return proto.CompactTextString(m) }
 func (*ListGatewayResponse) ProtoMessage()    {}
 func (*ListGatewayResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{7}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{7}
 }
 func (m *ListGatewayResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListGatewayResponse.Unmarshal(m, b)
@@ -541,7 +541,7 @@ func (m *UpdateGatewayRequest) Reset()         { *m = UpdateGatewayRequest{} }
 func (m *UpdateGatewayRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateGatewayRequest) ProtoMessage()    {}
 func (*UpdateGatewayRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{8}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{8}
 }
 func (m *UpdateGatewayRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateGatewayRequest.Unmarshal(m, b)
@@ -588,7 +588,7 @@ func (m *GatewayStats) Reset()         { *m = GatewayStats{} }
 func (m *GatewayStats) String() string { return proto.CompactTextString(m) }
 func (*GatewayStats) ProtoMessage()    {}
 func (*GatewayStats) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{9}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{9}
 }
 func (m *GatewayStats) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GatewayStats.Unmarshal(m, b)
@@ -662,7 +662,7 @@ func (m *GetGatewayStatsRequest) Reset()         { *m = GetGatewayStatsRequest{}
 func (m *GetGatewayStatsRequest) String() string { return proto.CompactTextString(m) }
 func (*GetGatewayStatsRequest) ProtoMessage()    {}
 func (*GetGatewayStatsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{10}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{10}
 }
 func (m *GetGatewayStatsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetGatewayStatsRequest.Unmarshal(m, b)
@@ -721,7 +721,7 @@ func (m *GetGatewayStatsResponse) Reset()         { *m = GetGatewayStatsResponse
 func (m *GetGatewayStatsResponse) String() string { return proto.CompactTextString(m) }
 func (*GetGatewayStatsResponse) ProtoMessage()    {}
 func (*GetGatewayStatsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{11}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{11}
 }
 func (m *GetGatewayStatsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetGatewayStatsResponse.Unmarshal(m, b)
@@ -770,7 +770,7 @@ func (m *PingRX) Reset()         { *m = PingRX{} }
 func (m *PingRX) String() string { return proto.CompactTextString(m) }
 func (*PingRX) ProtoMessage()    {}
 func (*PingRX) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{12}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{12}
 }
 func (m *PingRX) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PingRX.Unmarshal(m, b)
@@ -844,7 +844,7 @@ func (m *GetLastPingRequest) Reset()         { *m = GetLastPingRequest{} }
 func (m *GetLastPingRequest) String() string { return proto.CompactTextString(m) }
 func (*GetLastPingRequest) ProtoMessage()    {}
 func (*GetLastPingRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{13}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{13}
 }
 func (m *GetLastPingRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetLastPingRequest.Unmarshal(m, b)
@@ -889,7 +889,7 @@ func (m *GetLastPingResponse) Reset()         { *m = GetLastPingResponse{} }
 func (m *GetLastPingResponse) String() string { return proto.CompactTextString(m) }
 func (*GetLastPingResponse) ProtoMessage()    {}
 func (*GetLastPingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{14}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{14}
 }
 func (m *GetLastPingResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetLastPingResponse.Unmarshal(m, b)
@@ -949,7 +949,7 @@ func (m *StreamGatewayFrameLogsRequest) Reset()         { *m = StreamGatewayFram
 func (m *StreamGatewayFrameLogsRequest) String() string { return proto.CompactTextString(m) }
 func (*StreamGatewayFrameLogsRequest) ProtoMessage()    {}
 func (*StreamGatewayFrameLogsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{15}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{15}
 }
 func (m *StreamGatewayFrameLogsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamGatewayFrameLogsRequest.Unmarshal(m, b)
@@ -990,7 +990,7 @@ func (m *StreamGatewayFrameLogsResponse) Reset()         { *m = StreamGatewayFra
 func (m *StreamGatewayFrameLogsResponse) String() string { return proto.CompactTextString(m) }
 func (*StreamGatewayFrameLogsResponse) ProtoMessage()    {}
 func (*StreamGatewayFrameLogsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_0ae921d970f30daa, []int{16}
+	return fileDescriptor_gateway_5c87c500a8c77902, []int{16}
 }
 func (m *StreamGatewayFrameLogsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamGatewayFrameLogsResponse.Unmarshal(m, b)
@@ -1165,8 +1165,10 @@ type GatewayServiceClient interface {
 	GetStats(ctx context.Context, in *GetGatewayStatsRequest, opts ...grpc.CallOption) (*GetGatewayStatsResponse, error)
 	// GetLastPing returns the last emitted ping and gateways receiving this ping.
 	GetLastPing(ctx context.Context, in *GetLastPingRequest, opts ...grpc.CallOption) (*GetLastPingResponse, error)
-	// StreamFrameLogs streams the uplink and downlink frame-logs for the given mac.
-	// Note: these are the raw LoRaWAN frames and this endpoint is intended for debugging.
+	// StreamFrameLogs streams the uplink and downlink frame-logs for the given gateway ID.
+	// Notes:
+	//   * These are the raw LoRaWAN frames and this endpoint is intended for debugging only.
+	//   * This endpoint does not work from a web-browser.
 	StreamFrameLogs(ctx context.Context, in *StreamGatewayFrameLogsRequest, opts ...grpc.CallOption) (GatewayService_StreamFrameLogsClient, error)
 }
 
@@ -1289,8 +1291,10 @@ type GatewayServiceServer interface {
 	GetStats(context.Context, *GetGatewayStatsRequest) (*GetGatewayStatsResponse, error)
 	// GetLastPing returns the last emitted ping and gateways receiving this ping.
 	GetLastPing(context.Context, *GetLastPingRequest) (*GetLastPingResponse, error)
-	// StreamFrameLogs streams the uplink and downlink frame-logs for the given mac.
-	// Note: these are the raw LoRaWAN frames and this endpoint is intended for debugging.
+	// StreamFrameLogs streams the uplink and downlink frame-logs for the given gateway ID.
+	// Notes:
+	//   * These are the raw LoRaWAN frames and this endpoint is intended for debugging only.
+	//   * This endpoint does not work from a web-browser.
 	StreamFrameLogs(*StreamGatewayFrameLogsRequest, GatewayService_StreamFrameLogsServer) error
 }
 
@@ -1488,9 +1492,9 @@ var _GatewayService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "gateway.proto",
 }
 
-func init() { proto.RegisterFile("gateway.proto", fileDescriptor_gateway_0ae921d970f30daa) }
+func init() { proto.RegisterFile("gateway.proto", fileDescriptor_gateway_5c87c500a8c77902) }
 
-var fileDescriptor_gateway_0ae921d970f30daa = []byte{
+var fileDescriptor_gateway_5c87c500a8c77902 = []byte{
 	// 1289 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0x4d, 0x73, 0xdc, 0x44,
 	0x13, 0x7e, 0xb5, 0x1f, 0xb2, 0xb7, 0xd7, 0x6b, 0xc7, 0x63, 0xc7, 0xd9, 0x28, 0xce, 0x1b, 0xa3,

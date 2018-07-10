@@ -265,6 +265,10 @@
           "format": "int64",
           "description": "Network-server ID on which the gateway-profile is provisioned."
         },
+        "networkServerName": {
+          "type": "string",
+          "description": "Network-server name."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",

@@ -77,6 +77,9 @@ message GatewayProfileListItem {
     // Network-server ID on which the gateway-profile is provisioned.
     int64 network_server_id = 3 [json_name = "networkServerID"];
 
+    // Network-server name.
+    string network_server_name = 7;
+
     // Created at timestamp.
     google.protobuf.Timestamp created_at = 5;
 

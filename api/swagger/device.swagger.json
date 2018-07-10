@@ -165,7 +165,7 @@
     },
     "/api/devices/{dev_eui}/events": {
       "get": {
-        "summary": "StreamEventLogs stream the device events (uplink payloads, ACKs, joins, errors).\nNote: this endpoint is intended for debugging and should not be used for building\nintegrations.",
+        "summary": "StreamEventLogs stream the device events (uplink payloads, ACKs, joins, errors).\n  * This endpoint is intended for debugging only.\n  * This endpoint does not work from a web-browser.",
         "operationId": "StreamEventLogs",
         "responses": {
           "200": {
@@ -190,7 +190,7 @@
     },
     "/api/devices/{dev_eui}/frames": {
       "get": {
-        "summary": "StreamFrameLogs streams the uplink and downlink frame-logs for the given DevEUI.\nNote: these are the raw LoRaWAN frames. This endpoint is intended for debugging\nonly.",
+        "summary": "StreamFrameLogs streams the uplink and downlink frame-logs for the given DevEUI.\n  * These are the raw LoRaWAN frames and this endpoint is intended for debugging only.\n  * This endpoint does not work from a web-browser.",
         "operationId": "StreamFrameLogs",
         "responses": {
           "200": {

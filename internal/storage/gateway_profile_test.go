@@ -125,6 +125,7 @@ func TestGatewayProfile(t *testing.T) {
 				So(gps, ShouldHaveLength, 1)
 				So(gps[0].GatewayProfileID, ShouldEqual, gpID)
 				So(gps[0].NetworkServerID, ShouldEqual, gp.NetworkServerID)
+				So(gps[0].NetworkServerName, ShouldEqual, n.Name)
 				So(gps[0].Name, ShouldEqual, gp.Name)
 			})
 
@@ -140,6 +141,7 @@ func TestGatewayProfile(t *testing.T) {
 				So(gps, ShouldHaveLength, 1)
 				So(gps[0].GatewayProfileID, ShouldEqual, gpID)
 				So(gps[0].NetworkServerID, ShouldEqual, gp.NetworkServerID)
+				So(gps[0].NetworkServerName, ShouldEqual, n.Name)
 				So(gps[0].Name, ShouldEqual, gp.Name)
 			})
 		})

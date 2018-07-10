@@ -275,9 +275,17 @@ message ListIntegrationRequest {
 	int64 application_id = 1 [json_name = "applicationID"];
 }
 
+message IntegrationListItem {
+	// Integration kind.
+	IntegrationKind kind = 1;
+}
+
 message ListIntegrationResponse {
-	// The integration kinds associated with the application.
-	repeated IntegrationKind kinds = 1;
+	// Total number of integrations available within the result-set.
+	int64 total_count = 1;
+
+	// Integrations within result-set.
+	repeated IntegrationListItem result = 2;
 }
 
 enum InfluxDBPrecision {

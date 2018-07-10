@@ -232,7 +232,10 @@ func TestApplicationAPI(t *testing.T) {
 				Convey("Then the integrations can be listed", func() {
 					resp, err := api.ListIntegrations(ctx, &pb.ListIntegrationRequest{ApplicationId: createResp.Id})
 					So(err, ShouldBeNil)
-					So(resp.Kinds, ShouldResemble, []pb.IntegrationKind{pb.IntegrationKind_HTTP})
+					So(resp.TotalCount, ShouldEqual, 1)
+					So(resp.Result[0], ShouldResemble, &pb.IntegrationListItem{
+						Kind: pb.IntegrationKind_HTTP,
+					})
 				})
 
 				Convey("Then the integration can be updated", func() {
@@ -291,7 +294,8 @@ func TestApplicationAPI(t *testing.T) {
 				Convey("Then the integrations can be listed", func() {
 					resp, err := api.ListIntegrations(ctx, &pb.ListIntegrationRequest{ApplicationId: createResp.Id})
 					So(err, ShouldBeNil)
-					So(resp.Kinds, ShouldResemble, []pb.IntegrationKind{pb.IntegrationKind_INFLUXDB})
+					So(resp.TotalCount, ShouldEqual, 1)
+					So(resp.Result[0].Kind, ShouldEqual, pb.IntegrationKind_INFLUXDB)
 				})
 
 				Convey("Then the integration can be updated", func() {

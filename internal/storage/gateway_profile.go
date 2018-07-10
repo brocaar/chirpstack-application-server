@@ -39,11 +39,12 @@ type GatewayProfile struct {
 
 // GatewayProfileMeta defines the gateway-profile meta record.
 type GatewayProfileMeta struct {
-	GatewayProfileID uuid.UUID `db:"gateway_profile_id"`
-	NetworkServerID  int64     `db:"network_server_id"`
-	CreatedAt        time.Time `db:"created_at"`
-	UpdatedAt        time.Time `db:"updated_at"`
-	Name             string    `db:"name"`
+	GatewayProfileID  uuid.UUID `db:"gateway_profile_id"`
+	NetworkServerID   int64     `db:"network_server_id"`
+	NetworkServerName string    `db:"network_server_name"`
+	CreatedAt         time.Time `db:"created_at"`
+	UpdatedAt         time.Time `db:"updated_at"`
+	Name              string    `db:"name"`
 }
 
 // CreateGatewayProfile creates the given gateway-profile.
@@ -275,9 +276,16 @@ func GetGatewayProfiles(db sqlx.Queryer, limit, offset int) ([]GatewayProfileMet
 	var gps []GatewayProfileMeta
 	err := sqlx.Select(db, &gps, `
 		select
-			*
-		from gateway_profile
-		order by name
+			gp.*,
+			n.name as network_server_name
+		from
+			gateway_profile gp
+		inner join
+			network_server n
+		on
+			n.id = gp.network_server_id
+		order by
+			name
 		limit $1 offset $2`,
 		limit,
 		offset,
@@ -295,11 +303,18 @@ func GetGatewayProfilesForNetworkServerID(db sqlx.Queryer, networkServerID int64
 	var gps []GatewayProfileMeta
 	err := sqlx.Select(db, &gps, `
 		select
-			*
-		from gateway_profile
+			gp.*,
+			n.name as network_server_name
+		from
+			gateway_profile gp
+		inner join
+			network_server n
+		on
+			n.id = gp.network_server_id
 		where
 			network_server_id = $1
-		order by name
+		order by
+			name
 		limit $2 offset $3`,
 		networkServerID,
 		limit,

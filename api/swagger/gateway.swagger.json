@@ -125,7 +125,7 @@
     },
     "/api/gateways/{gateway_id}/frames": {
       "get": {
-        "summary": "StreamFrameLogs streams the uplink and downlink frame-logs for the given mac.\nNote: these are the raw LoRaWAN frames and this endpoint is intended for debugging.",
+        "summary": "StreamFrameLogs streams the uplink and downlink frame-logs for the given gateway ID.\nNotes:\n  * These are the raw LoRaWAN frames and this endpoint is intended for debugging only.\n  * This endpoint does not work from a web-browser.",
         "operationId": "StreamFrameLogs",
         "responses": {
           "200": {

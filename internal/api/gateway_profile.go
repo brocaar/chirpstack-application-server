@@ -232,9 +232,10 @@ func (a *GatewayProfileAPI) List(ctx context.Context, req *pb.ListGatewayProfile
 
 	for _, gp := range gps {
 		row := pb.GatewayProfileListItem{
-			Id:              gp.GatewayProfileID.String(),
-			Name:            gp.Name,
-			NetworkServerId: gp.NetworkServerID,
+			Id:                gp.GatewayProfileID.String(),
+			Name:              gp.Name,
+			NetworkServerName: gp.NetworkServerName,
+			NetworkServerId:   gp.NetworkServerID,
 		}
 
 		row.CreatedAt, err = ptypes.TimestampProto(gp.CreatedAt)

@@ -539,13 +539,16 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 		return nil, errToRPCError(err)
 	}
 
-	var out pb.ListIntegrationResponse
+	out := pb.ListIntegrationResponse{
+		TotalCount: int64(len(integrations)),
+	}
+
 	for _, integration := range integrations {
 		switch integration.Kind {
 		case handler.HTTPHandlerKind:
-			out.Kinds = append(out.Kinds, pb.IntegrationKind_HTTP)
+			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_HTTP})
 		case handler.InfluxDBHandlerKind:
-			out.Kinds = append(out.Kinds, pb.IntegrationKind_INFLUXDB)
+			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_INFLUXDB})
 		default:
 			return nil, grpc.Errorf(codes.Internal, "unknown integration kind: %s", integration.Kind)
 		}

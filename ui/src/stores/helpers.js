@@ -11,27 +11,49 @@ export function checkStatus(response) {
 };
 
 export function errorHandler(error) {
-  error.then((data) => {
-    if (data.code === 16) {
+  if(error.response === undefined) {
+    dispatcher.dispatch({
+      type: "CREATE_NOTIFICATION",
+      notification: {
+        type: "error",
+        message: error.message,
+      },
+    });
+  } else {
+    if (error.response.obj.code === 16 && history.location.pathname !== "/login") {
       history.push("/login");
     } else {
       dispatcher.dispatch({
-        type: "CREATE_ERROR",
-        error: data,
+        type: "CREATE_NOTIFICATION",
+        notification: {
+          type: "error",
+          message: error.response.obj.error + " (code: " + error.response.obj.code + ")",
+        },
       });
     }
-  });
+  }
 };
 
 export function errorHandlerIgnoreNotFound(error) {
-  error.then((data) => {
-    if (data.code === 16) {
+  if (error.response === undefined) {
+    dispatcher.dispatch({
+      type: "CREATE_NOTIFICATION",
+      notification: {
+        type: "error",
+        message: error.message,
+      },
+    });
+  } else {
+    if (error.response.obj.code === 16 && history.location.pathname !== "/login") {
       history.push("/login");
-    } else if (data.code !== 5) {
+    } else if (error.response.obj.code !== 5) {
       dispatcher.dispatch({
-        type: "CREATE_ERROR",
-        error: data,
+        type: "CREATE_NOTIFICATION",
+        notification: {
+          type: "error",
+          message: error.response.obj.error + " (code: " + error.response.obj.code + ")",
+        },
       });
     }
-  });
+  }
 };

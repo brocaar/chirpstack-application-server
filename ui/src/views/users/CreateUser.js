@@ -1,46 +1,48 @@
-import React, { Component } from 'react';
-import { Link, withRouter } from 'react-router-dom';
+import React, { Component } from "react";
+import { withRouter } from 'react-router-dom';
 
+import Grid from '@material-ui/core/Grid';
+import Card from '@material-ui/core/Card';
+
+import { CardContent } from "@material-ui/core";
+
+import TitleBar from "../../components/TitleBar";
+import TitleBarTitle from "../../components/TitleBarTitle";
+import UserForm from "./UserForm";
 import UserStore from "../../stores/UserStore";
-import UserForm from "../../components/UserForm";
+
 
 class CreateUser extends Component {
   constructor() {
     super();
-
-    this.state = {
-      user: {
-        isActive: true,
-      },
-    };
-
     this.onSubmit = this.onSubmit.bind(this);
   }
 
   onSubmit(user) {
-    const req = {
-      user: user,
-      password: user.password,
-    }
-    UserStore.createUser(req, (responseData) => {
-      this.props.history.push('/users');
+    UserStore.create(user, user.password, [], resp => {
+      this.props.history.push("/users");
     });
   }
 
   render() {
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/users">Users</Link></li>
-          <li className="active">Create user</li>
-        </ol>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <UserForm user={this.state.user} onSubmit={this.onSubmit} />
-          </div>
-        </div>
-      </div>
+      <Grid container spacing={24}>
+        <TitleBar>
+          <TitleBarTitle title="Users" to="/Users" />
+          <TitleBarTitle title="/" />
+          <TitleBarTitle title="Create" />
+        </TitleBar>
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <UserForm
+                submitLabel="Create user"
+                onSubmit={this.onSubmit}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     );
   }
 }

@@ -1,120 +1,180 @@
 import { EventEmitter } from "events";
-import "whatwg-fetch";
+
+import Swagger from "swagger-client";
+
 import sessionStore from "./SessionStore";
-import { checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler } from "./helpers";
+import dispatcher from "../dispatcher";
+
 
 class OrganizationStore extends EventEmitter {
-  getAll(search, pageSize, offset, callbackFunc) {
-    fetch("/api/organizations?limit="+pageSize+"&offset="+offset+"&search="+encodeURIComponent(search), {headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if(typeof(responseData.result) === "undefined") {
-          callbackFunc(0, []);
-        } else {
-          callbackFunc(responseData.totalCount, responseData.result);
-        }
-      })
-      .catch(errorHandler);
+  constructor() {
+    super();
+    this.swagger = new Swagger("/swagger/organization.swagger.json", sessionStore.getClientOpts());
   }
 
-  getOrganization(organizationID, callbackFunc) {
-    fetch("/api/organizations/"+organizationID, {headers: sessionStore.getHeader()})
+  create(organization, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.OrganizationService.Create({
+        body: {
+          organization: organization,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("created");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  createOrganization(organization, callbackFunc) {
-    fetch("/api/organizations", {method: "POST", body: JSON.stringify(organization), headers: sessionStore.getHeader()})
+  get(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.OrganizationService.Get({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  updateOrganization(organizationID, organization, callbackFunc) {
-    fetch("/api/organizations/"+organizationID, {method: "PUT", body: JSON.stringify(organization), headers: sessionStore.getHeader()})
+  update(organization, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.OrganizationService.Update({
+        "organization.id": organization.id,
+        body: {
+          organization: organization,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.emit("change", organization);
+        this.notify("updated");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  deleteOrganization(organizationID, callbackFunc) {
-    fetch("/api/organizations/"+organizationID, {method: "DELETE", headers: sessionStore.getHeader()})
+  delete(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.OrganizationService.Delete({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("deleted");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  getUsers(organizationID, pageSize, offset, callbackFunc) {
-    fetch("/api/organizations/"+organizationID+"/users?limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
+  list(search, limit, offset, callbackFunc) {
+    this.swagger.then((client) => {
+      client.apis.OrganizationService.List({
+        search: search,
+        limit: limit,
+        offset: offset,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if(typeof(responseData.result) === "undefined") {
-          callbackFunc(0, []);
-        } else {
-          callbackFunc(responseData.totalCount, responseData.result);
-        }
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
   addUser(organizationID, user, callbackFunc) {
-    fetch("/api/organizations/"+organizationID+"/users", {method: "POST", body: JSON.stringify(user), headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+    this.swagger.then(client => {
+      client.apis.OrganizationService.AddUser({
+        "organization_user.organization_id": organizationID,
+        body: {
+          organizationUser: user,
+        },
       })
-    .catch(errorHandler);
-  } 
+      .then(checkStatus)
+      .then(resp => {
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
 
   getUser(organizationID, userID, callbackFunc) {
-    fetch("/api/organizations/"+organizationID+"/users/"+userID, {headers: sessionStore.getHeader()})
+    this.swagger.then(client => {
+      client.apis.OrganizationService.GetUser({
+        organization_id: organizationID,
+        user_id: userID,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  removeUser(organizationID, userID, callbackFunc) {
-    fetch("/api/organizations/"+organizationID+"/users/"+userID, {method: "DELETE", headers: sessionStore.getHeader()})
+  deleteUser(organizationID, userID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.OrganizationService.DeleteUser({
+        organization_id: organizationID,
+        user_id: userID,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        this.emit("change");
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  updateUser(organizationID, userID, user, callbackFunc) {
-    fetch("/api/organizations/"+organizationID+"/users/"+userID, {method: "PUT", body: JSON.stringify(user), headers: sessionStore.getHeader()})
+  updateUser(organizationUser, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.OrganizationService.UpdateUser({
+        "organization_user.organization_id": organizationUser.organizationID,
+        "organization_user.user_id": organizationUser.userID,
+        body: {
+          organizationUser: organizationUser,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        this.emit("change");
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
+  }
+
+  listUsers(organizationID, limit, offset, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.OrganizationService.ListUsers({
+        organization_id: organizationID,
+        limit: limit,
+        offset: offset,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  notify(action) {
+    dispatcher.dispatch({
+      type: "CREATE_NOTIFICATION",
+      notification: {
+        type: "success",
+        message: "organization has been " + action,
+      },
+    });
   }
 }
 
 const organizationStore = new OrganizationStore();
-
 export default organizationStore;

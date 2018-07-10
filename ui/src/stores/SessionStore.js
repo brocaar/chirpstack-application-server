@@ -1,30 +1,38 @@
 import { EventEmitter } from "events";
-import { errorHandler, checkStatus } from "./helpers";
-import dispatcher from "../dispatcher";
 
-var loginErrorHandler = (error) => {
-  error.then((data) => {
-    dispatcher.dispatch({
-      type: "CREATE_ERROR",
-      error: data,
-    });
-  });
-};
+import Swagger from "swagger-client";
+import { checkStatus, errorHandler } from "./helpers";
+
 
 class SessionStore extends EventEmitter {
   constructor() {
     super();
-    this.user = {};
-    this.applications = [];
+    this.client = null;
+    this.user = null;
     this.organizations = [];
     this.settings = {};
     this.branding = {};
 
-    this.fetchBranding( () => {} );
+    this.swagger = Swagger("/swagger/internal.swagger.json", this.getClientOpts())
+    
+    this.swagger.then(client => {
+      this.client = client;
 
-    if (this.getToken() !== "") {
-      this.fetchProfile(() => {});
-    } 
+      if (this.getToken() !== "") {
+        this.fetchProfile(() => {});
+      }
+    });
+  }
+
+  getClientOpts() {
+    return {
+      requestInterceptor: (req) => {
+        if (this.getToken() !== null) {
+          req.headers["Grpc-Metadata-Authorization"] = "Bearer " + this.getToken();
+        }
+        return req;
+      },
+    }
   }
 
   setToken(token) {
@@ -35,135 +43,113 @@ class SessionStore extends EventEmitter {
     return localStorage.getItem("jwt");
   }
 
-  setOrganizationID(id) {
-    localStorage.setItem("organizationID", id);
-  }
-
   getOrganizationID() {
-    return localStorage.getItem("organizationID");
-  }
-
-  getHeader() {
-    if (this.getToken() !== "") {
-      return {
-        "Grpc-Metadata-Authorization": "Bearer " + this.getToken(),
-      }
-    } else {
-      return {}
-    }
-  }
-
-  getLogo() {
-    if (this.branding) {
-        return this.branding.logo;
-      } else {
-        return null;
-    }
-  }
-
-  getFooter() {
-    if (this.branding) {
-        return this.branding.footer;
-      } else {
-        return null;
-    }
-  }
-
-  getRegistration() {
-    if (this.branding) {
-      return this.branding.registration;
-    } else {
+    const orgID = localStorage.getItem("organizationID");
+    if (orgID === "") {
       return null;
     }
+
+    return orgID;
   }
 
-  login(login, callbackFunc) {
-    fetch("/api/internal/login", {method: "POST", body: JSON.stringify(login)})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        this.setToken(responseData.jwt);
-        this.fetchProfile(callbackFunc);
-      })
-      .catch(loginErrorHandler);
-  }
-
-  fetchProfile(callbackFunc) {
-    fetch("/api/internal/profile", {headers: this.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        this.user = responseData.user;
-
-        if (typeof(responseData.applications) !== "undefined") {
-          this.applications = responseData.applications;
-        } else {
-          this.applications = [];
-        }
-
-        if (typeof(responseData.organizations) !== "undefined") {
-          this.organizations = responseData.organizations;
-        } else {
-          this.organizations = [];
-        }
-
-        if (typeof(responseData.settings) !== "undefined") {
-          this.settings = responseData.settings;
-        } else {
-          this.settings = {};
-        }
-
-        this.emit("change");
-        callbackFunc();
-      })
-      .catch(errorHandler);
-  }
-
-  fetchBranding(callbackFunc) {
-    fetch("/api/internal/branding", {headers: this.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        this.branding = responseData;
-        this.emit("change");
-        callbackFunc();
-      })
-      .catch(errorHandler);
-  }
-
-  logout(callbackFunc) {
-    localStorage.setItem("jwt", "");
-    localStorage.setItem("organizationID", "");
-    this.user = {};
-    this.applications = [];
-    this.settings = {};
-    this.emit("change");
-    callbackFunc();
+  setOrganizationID(id) {
+    localStorage.setItem("organizationID", id);
+    this.emit("organization.change");
   }
 
   getUser() {
     return this.user;
   }
 
-  getSetting(key) {
-    return this.settings[key];
+  getSettings() {
+    return this.settings;
   }
 
   isAdmin() {
+    if (this.user === undefined || this.user === null) {
+      return false;
+    }
     return this.user.isAdmin;
   }
 
   isOrganizationAdmin(organizationID) {
     for (let i = 0; i < this.organizations.length; i++) {
-      if (Number(this.organizations[i].organizationID) === Number(organizationID)) {
+      if (this.organizations[i].organizationID === organizationID) {
         return this.organizations[i].isAdmin;
       }
     }
-    return false;
+  }
+
+  login(login, callBackFunc) {
+    this.swagger.then(client => {
+      client.apis.InternalService.Login({body: login})
+        .then(checkStatus)
+        .then(resp => {
+          this.setToken(resp.obj.jwt);
+          this.fetchProfile(callBackFunc);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  logout(callBackFunc) {
+    localStorage.setItem("jwt", "");
+    localStorage.setItem("organizationID", "");
+    this.user = null;
+    this.organizations = [];
+    this.settings = {};
+    this.emit("change");
+    callBackFunc();
+  }
+
+  fetchProfile(callBackFunc) {
+    this.swagger.then(client => {
+      client.apis.InternalService.Profile({})
+        .then(checkStatus)
+        .then(resp => {
+          this.user = resp.obj.user;
+
+          if(resp.obj.organizations !== undefined) {
+            this.organizations = resp.obj.organizations;
+          }
+
+          if(resp.obj.settings !== undefined) {
+            this.settings = resp.obj.settings;
+          }
+
+          this.emit("change");
+          callBackFunc();
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  globalSearch(search, limit, offset, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.InternalService.GlobalSearch({
+        search: search,
+        limit: limit,
+        offset: offset,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+      });
+  }
+
+  getBranding(callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.InternalService.Branding({})
+        .then(checkStatus)
+        .then(resp => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
   }
 }
 
 const sessionStore = new SessionStore();
-window.sessionStore = sessionStore;
-
 export default sessionStore;

@@ -1,146 +1,190 @@
 import { EventEmitter } from "events";
-import ReconnectingWebSocket from 'reconnecting-websocket';
+import RobustWebSocket from "robust-websocket";
+
+import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import { checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler, errorHandlerIgnoreNotFound } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
 class GatewayStore extends EventEmitter {
-  getAll(pageSize, offset, callbackFunc) {
-    fetch("/api/gateways?limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if(typeof(responseData.result) === "undefined") {
-          callbackFunc(0, []);
-        } else {
-          callbackFunc(responseData.totalCount, responseData.result);
-        }
-      })
-      .catch(errorHandler);
+  constructor() {
+    super();
+    this.wsStatus = null;
+    this.swagger = new Swagger("/swagger/gateway.swagger.json", sessionStore.getClientOpts());
   }
 
-  getAllForOrganization(organizationID, pageSize, offset, callbackFunc) {
-    fetch("/api/gateways?organizationID="+organizationID+"&limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if(typeof(responseData.result) === "undefined") {
-          callbackFunc(0, []);
-        } else {
-          callbackFunc(responseData.totalCount, responseData.result);
-        }
-      })
-      .catch(errorHandler);
+  getWSStatus() {
+    return this.wsStatus;
   }
 
-  getGatewayStats(mac, interval, start, end, callbackFunc) {
-    fetch("/api/gateways/"+mac+"/stats?interval="+interval+"&startTimestamp="+start+"&endTimestamp="+end, {headers: sessionStore.getHeader()})
+  create(gateway, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.GatewayService.Create({
+        body: {
+          gateway: gateway,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if(typeof(responseData.result) === "undefined") {
-          callbackFunc([]);
-        } else {
-          callbackFunc(responseData.result);
-        }
+      .then(resp => {
+        this.notify("created");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  getGateway(mac, callbackFunc) {
-    fetch("/api/gateways/"+mac, {headers: sessionStore.getHeader()})
+  get(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.GatewayService.Get({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  createGateway(gateway, callbackFunc) {
-    fetch("/api/gateways", {method: "POST", body: JSON.stringify(gateway), headers: sessionStore.getHeader()})
+  update(gateway, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.GatewayService.Update({
+        "gateway.id": gateway.id,
+        body: {
+          gateway: gateway,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("updated");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  deleteGateway(mac, callbackFunc) {
-    fetch("/api/gateways/"+mac, {method: "DELETE", headers: sessionStore.getHeader()})
+  delete(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.GatewayService.Delete({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("deleted");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  updateGateway(mac, gateway, callbackFunc) {
-    fetch("/api/gateways/"+mac, {method: "PUT", body: JSON.stringify(gateway), headers: sessionStore.getHeader()})
+  list(search, organizationID, limit, offset, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.GatewayService.List({
+        limit: limit,
+        offset: offset,
+        organizationID: organizationID,
+        search: search,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        this.emit("change");
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  getLastPing(mac, callbackFunc) {
-    fetch("/api/gateways/"+mac+"/pings/last", {headers: sessionStore.getHeader()})
+  getStats(gatewayID, start, end, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.GatewayService.GetStats({
+        gateway_id: gatewayID,
+        interval: "DAY",
+        startTimestamp: start,
+        endTimestamp: end,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  getFrameLogsConnection(mac, onOpen, onClose, onData) {
+  getLastPing(gatewayID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.GatewayService.GetLastPing({
+        gateway_id: gatewayID,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandlerIgnoreNotFound);
+    });
+  }
+
+  getFrameLogsConnection(gatewayID, onOpen, onClose, onData) {
     const loc = window.location;
     const wsURL = (() => {
-      if (loc.host === "localhost:3000") {
-        return `wss://localhost:8080/api/gateways/${mac}/frames`;
+      if (loc.host === "localhost:3000" || loc.host === "localhost:3001") {
+        return `wss://localhost:8080/api/gateways/${gatewayID}/frames`;
       }
 
       const wsProtocol = loc.protocol === "https:" ? "wss:" : "ws:";
-      return `${wsProtocol}//${loc.host}/api/gateways/${mac}/frames`;
+      return `${wsProtocol}//${loc.host}/api/gateways/${gatewayID}/frames`;
     })();
 
-    const conn = new ReconnectingWebSocket(wsURL, ["Bearer", sessionStore.getToken()]);
-    conn.onopen = () => {
+    const conn = new RobustWebSocket(wsURL, ["Bearer", sessionStore.getToken()], {});
+
+    conn.addEventListener("open", () => {
       console.log('connected to', wsURL);
+      this.wsStatus = "CONNECTED";
+      this.emit("ws.status.change");
       onOpen();
-    };
+    });
 
-    conn.onclose = () => {
-      console.log('closing', wsURL);
-      onClose();
-    };
-
-    conn.onmessage = (e) => {
+    conn.addEventListener("message", (e) => {
       const msg = JSON.parse(e.data);
       if (msg.error !== undefined) {
         dispatcher.dispatch({
-          type: "CREATE_ERROR",
-          error: {
-            code: msg.error.grpcCode,
-            error: msg.error.message,
+          type: "CREATE_NOTIFICATION",
+          notification: {
+            type: "error",
+            message: msg.error.message,
           },
         });
       } else if (msg.result !== undefined) {
         onData(msg.result);
       }
-    };
+    });
+
+    conn.addEventListener("close", () => {
+      console.log('closing', wsURL);
+      this.wsStatus = null;
+      this.emit("ws.status.change");
+      onClose();
+    });
+
+    conn.addEventListener("error", () => {
+      console.log("error");
+      this.wsStatus = "ERROR";
+      this.emit("ws.status.change");
+    });
 
     return conn;
+  }
+
+  notify(action) {
+    dispatcher.dispatch({
+      type: "CREATE_NOTIFICATION",
+      notification: {
+        type: "success",
+        message: "gateway has been " + action,
+      },
+    });
   }
 }
 
 const gatewayStore = new GatewayStore();
-
 export default gatewayStore;

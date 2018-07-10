@@ -1,91 +1,84 @@
-import React, { Component } from 'react';
-import { Link, withRouter } from 'react-router-dom';
+import React, { Component } from "react";
 
-import Pagination from "../../components/Pagination";
+import Grid from '@material-ui/core/Grid';
+import TableCell from '@material-ui/core/TableCell';
+import TableRow from '@material-ui/core/TableRow';
+
+import Check from "mdi-material-ui/Check";
+import Close from "mdi-material-ui/Close";
+import Plus from "mdi-material-ui/Plus";
+
+import TitleBar from "../../components/TitleBar";
+import TitleBarTitle from "../../components/TitleBarTitle";
+import TableCellLink from "../../components/TableCellLink";
+import TitleBarButton from "../../components/TitleBarButton";
+import DataTable from "../../components/DataTable";
+
 import UserStore from "../../stores/UserStore";
 
-class UserRow extends Component {
-  render() {
-    return(
-      <tr>
-        <td><Link to={`/users/${this.props.user.id}/edit`}>{this.props.user.username}</Link></td>
-        <td><span className={"glyphicon glyphicon-" + (this.props.user.isActive ? 'ok' : 'remove')} aria-hidden="true"></span></td>
-        <td><span className={"glyphicon glyphicon-" + (this.props.user.isAdmin ? 'ok' : 'remove')} aria-hidden="true"></span></td>
-      </tr>
-    );
-  }
-}
 
 class ListUsers extends Component {
-  constructor() {
-    super();
-
-    this.state = {
-      users: [],
-      pageSize: 20,
-      pageNumber: 1,
-      pages: 1,
-    };
-
-    this.updatePage = this.updatePage.bind(this);
+  getPage(limit, offset, callbackFunc) {
+    UserStore.list("", limit, offset, callbackFunc);
   }
 
-  componentDidMount() {
-    this.updatePage(this.props);
-  }
+  getRow(obj) {
+    let active = null;
+    let admin = null;
 
-  componentWillReceiveProps(nextProps) {
-    this.updatePage(nextProps);
-  }
+    if (obj.isAdmin) {
+      admin = <Check />;
+    } else {
+      admin = <Close />;
+    }
 
-  updatePage(props) {
-    const query = new URLSearchParams(props.location.search);
-    const page = (query.get('page') === null) ? 1 : query.get('page');
+    if (obj.isActive) {
+      active = <Check />;
+    } else {
+      active = <Close />;
+    }
 
-    UserStore.getAll("", this.state.pageSize, (page-1) * this.state.pageSize, (totalCount, users) => {
-      this.setState({
-        users: users,
-        pageNumber: page,
-        pages: Math.ceil(totalCount / this.state.pageSize),
-      });
-      window.scrollTo(0, 0);
-    });
+    return(
+      <TableRow key={obj.id}>
+        <TableCellLink to={`/users/${obj.id}`}>{obj.username}</TableCellLink>
+        <TableCell>{active}</TableCell>
+        <TableCell>{admin}</TableCell>
+      </TableRow>
+    );
   }
 
   render() {
-    const UserRows = this.state.users.map((user, i) => <UserRow key={user.id} user={user} />);
-
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li className="active">Users</li>
-        </ol>
-        <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
-            <Link to="/users/create"><button type="button" className="btn btn-default">Create user</button></Link>
-          </div>
-        </div>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <table className="table table-hover">
-              <thead>
-                <tr>
-                  <th>Username</th>
-                  <th className="col-md-1">Active</th>
-                  <th className="col-md-1">Admin</th>
-                </tr>
-              </thead>
-              <tbody>
-                {UserRows}
-              </tbody>
-            </table>
-          </div>
-          <Pagination pages={this.state.pages} currentPage={this.state.pageNumber} pathname="/users" />
-        </div>
-      </div>
+      <Grid container spacing={24}>
+        <TitleBar
+          title="Users"
+          buttons={[
+            <TitleBarButton
+              key={1}
+              label="Create"
+              icon={<Plus />}
+              to={`/users/create`}
+            />,
+          ]}
+        >
+          <TitleBarTitle title="Users" />
+        </TitleBar>
+        <Grid item xs={12}>
+          <DataTable
+            header={
+              <TableRow>
+                <TableCell>Username</TableCell>
+                <TableCell>Active</TableCell>
+                <TableCell>Admin</TableCell>
+              </TableRow>
+            }
+            getPage={this.getPage}
+            getRow={this.getRow}
+          />
+        </Grid>
+      </Grid>
     );
   }
 }
 
-export default withRouter(ListUsers);
+export default ListUsers;

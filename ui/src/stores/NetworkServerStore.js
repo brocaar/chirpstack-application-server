@@ -1,79 +1,104 @@
 import { EventEmitter } from "events";
-import "whatwg-fetch";
+
+import Swagger from "swagger-client";
+
 import sessionStore from "./SessionStore";
-import { checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler } from "./helpers";
+import dispatcher from "../dispatcher";
 
 
 class NetworkServerStore extends EventEmitter {
-  getAll(pageSize, offset, callbackFunc) {
-    fetch("/api/network-servers?limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if(typeof(responseData.result) === "undefined") {
-          callbackFunc(0, []);
-        } else {
-          callbackFunc(responseData.totalCount, responseData.result);
-        }
-      })
-      .catch(errorHandler);
+  constructor() {
+    super();
+    this.swagger = new Swagger("/swagger/networkServer.swagger.json", sessionStore.getClientOpts());
   }
 
-  getAllForOrganizationID(organizationID, pageSize, offset, callbackFunc) {
-    fetch("/api/network-servers?limit="+pageSize+"&offset="+offset+"&organizationID="+organizationID, {headers: sessionStore.getHeader()})
+  create(networkServer, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.NetworkServerService.Create({
+        body: {
+          networkServer: networkServer,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if(typeof(responseData.result) === "undefined") {
-          callbackFunc(0, []);
-        } else {
-          callbackFunc(responseData.totalCount, responseData.result);
-        }
+      .then(resp => {
+        this.notifiy("created");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  getNetworkServer(networkServerID, callbackFunc) {
-    fetch("/api/network-servers/"+networkServerID, {headers: sessionStore.getHeader()})
+  get(id, callbackFunc) {
+    this.swagger.then((client) => {
+      client.apis.NetworkServerService.Get({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  createNetworkServer(networkServer, callbackFunc) {
-    fetch("/api/network-servers", {method: "POST", body: JSON.stringify(networkServer), headers: sessionStore.getHeader()})
+  update(networkServer, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.NetworkServerService.Update({
+        "network_server.id": networkServer.id,
+        body: {
+          networkServer: networkServer,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notifiy("updated");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  updateNetworkServer(networkServerID, networkServer, callbackFunc) {
-    fetch("/api/network-servers/"+networkServerID, {method: "PUT", body: JSON.stringify(networkServer), headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
+  notifiy(action) {
+    dispatcher.dispatch({
+      type: "CREATE_NOTIFICATION",
+      notification: {
+        type: "success",
+        message: "network-server has been " + action,
+      },
+    });
   }
 
-  deleteNetworkServer(networkServerID, callbackFunc) {
-    fetch("/api/network-servers/"+networkServerID, {method: "DELETE", headers: sessionStore.getHeader()})
+  delete(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.NetworkServerService.Delete({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notifiy("deleted");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
+  }
+  
+  list(organizationID, limit, offset, callbackFunc) {
+    this.swagger.then((client) => {
+      client.apis.NetworkServerService.List({
+        organizationID: organizationID,
+        limit: limit,
+        offset: offset,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
   }
 }
 
 const networkServerStore = new NetworkServerStore();
-
 export default networkServerStore;
+window.test = networkServerStore;

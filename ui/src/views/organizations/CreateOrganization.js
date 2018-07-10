@@ -1,41 +1,48 @@
 import React, { Component } from "react";
-import { Link, withRouter } from "react-router-dom";
+import { withRouter } from 'react-router-dom';
 
+import Grid from '@material-ui/core/Grid';
+import Card from '@material-ui/core/Card';
+
+import { CardContent } from "@material-ui/core";
+
+import TitleBar from "../../components/TitleBar";
+import TitleBarTitle from "../../components/TitleBarTitle";
+import OrganizationForm from "./OrganizationForm";
 import OrganizationStore from "../../stores/OrganizationStore";
-import OrganizationForm from "../../components/OrganizationForm";
 
 
 class CreateOrganization extends Component {
   constructor() {
     super();
-
-    this.state = {
-      organization: {},
-    };
-
     this.onSubmit = this.onSubmit.bind(this);
   }
 
   onSubmit(organization) {
-	  OrganizationStore.createOrganization({organization: organization}, (responseData) => {
+    OrganizationStore.create(organization, resp => {
       this.props.history.push("/organizations");
     });
   }
 
   render() {
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li><Link to="/organizations">Organizations</Link></li>
-          <li className="active">Create organization</li>
-        </ol>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <OrganizationForm organization={this.state.organization} onSubmit={this.onSubmit} />
-          </div>
-        </div>
-      </div>
+      <Grid container spacing={24}>
+        <TitleBar>
+          <TitleBarTitle title="Organizations" to="/organizations" />
+          <TitleBarTitle title="/" />
+          <TitleBarTitle title="Create" />
+        </TitleBar>
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <OrganizationForm
+                submitLabel="Create organization"
+                onSubmit={this.onSubmit}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     );
   }
 }

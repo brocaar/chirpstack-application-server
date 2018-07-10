@@ -8,13 +8,13 @@ import SessionStore from "../../stores/SessionStore";
 class OrganizationRedirect extends Component {
   componentDidMount() {
     const organizationID = SessionStore.getOrganizationID();
-    if (!isNaN(parseInt(organizationID, 10))) {
-      this.props.history.push('/organizations/' + organizationID); 
+    if (organizationID !== undefined && organizationID !== null && organizationID !== "") {
+      this.props.history.push(`/organizations/${organizationID}/applications`);
     } else {
-      OrganizationStore.getAll("", 1, 0, (totalCount, orgs) => {
-        if (orgs.length > 0) {
-          this.props.history.push('/organizations/' + orgs[0].id); 
-        }    
+      OrganizationStore.list("", 1, 0, resp => {
+        if (resp.result.length > 0) {
+          this.props.history.push(`/organizations/${resp.result[0].id}/applications`);
+        }
       });
     }
   }

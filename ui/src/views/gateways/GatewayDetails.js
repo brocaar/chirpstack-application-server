@@ -1,234 +1,176 @@
-import React, { Component } from 'react';
-import moment from "moment";
-import { Map, Marker, TileLayer } from 'react-leaflet';
-import { Bar } from "react-chartjs";
+import React, { Component } from "react";
 
+import { withStyles } from "@material-ui/core/styles";
+import Paper from '@material-ui/core/Paper';
+import Card from "@material-ui/core/Card";
+import CardHeader from "@material-ui/core/CardHeader";
+import CardContent from "@material-ui/core/CardContent";
+import Typography from "@material-ui/core/Typography";
+import Grid from '@material-ui/core/Grid';
+
+import moment from "moment";
+import { Map, Marker } from 'react-leaflet';
+import { Line } from "react-chartjs-2";
+
+import MapTileLayer from "../../components/MapTileLayer";
 import GatewayStore from "../../stores/GatewayStore";
 
 
-class GatewayStats extends Component {
+const styles = {
+  chart: {
+    height: 300,
+  },
+};
+
+
+class GatewayDetails extends Component {
   constructor() {
     super();
+    this.state = {};
+    this.loadStats = this.loadStats.bind(this);
+  }
 
-    this.state = {
-      periodSelected: '30d',
-      periods: {
-        "hour": {
-          interval: "MINUTE",
-          substract: 59,
-          substractInterval: 'minutes',
-          format: "mm",
-        },
-        "1d": {
-          interval: "HOUR",
-          substract: 23,
-          substractInterval: "hours",
-          format: "HH",
-        },
-        "14d": {
-          interval: "DAY",
-          substract: 13,
-          substractInterval: "days",
-          format: "Do",
-        },
-        "30d": {
-          interval: "DAY",
-          substract: 29,
-          substractInterval: "days",
-          format: "Do",
-        },
-      },
-      statsUp: {
+  componentDidMount() {
+    this.loadStats();
+  }
+
+  loadStats() {
+    const end = moment().toISOString()
+    const start = moment().subtract(30, "days").toISOString()
+
+    GatewayStore.getStats(this.props.match.params.gatewayID, start, end, resp => {
+      let statsDown = {
         labels: [],
         datasets: [
           {
-            label: "received for transmission",
+            label: "rx received",
+            borderColor: "rgba(33, 150, 243, 1)",
+            backgroundColor: "rgba(0, 0, 0, 0)",
+            lineTension: 0,
+            pointBackgroundColor: "rgba(33, 150, 243, 1)",
             data: [],
-            fillColor: "rgba(33, 150, 243, 0.25)",
-          },
-          {
-            label: "emitted",
-            data: [],
-            fillColor: "rgba(33, 150, 243, 1)",
           },
         ],
-      },
-      statsDown: {
+      }
+
+      let statsUp = {
         labels: [],
         datasets: [
           {
-            label: "total received",
+            label: "tx emitted",
+            borderColor: "rgba(33, 150, 243, 1)",
+            backgroundColor: "rgba(0, 0, 0, 0)",
+            lineTension: 0,
+            pointBackgroundColor: "rgba(33, 150, 243, 1)",
             data: [],
-            fillColor: "rgba(33, 150, 243, 0.25)",
-          },
-          {
-            label: "received with valid CRC",
-            data: [],
-            fillColor: "rgba(33, 150, 243, 1)",
           },
         ],
-      },
-      statsOptions: {
-        animation: true,
-        barShowStroke: false,
-        barValueSpacing: 4,
-        responsive: true,
-      },
-    };
+      }
 
-    this.updateStats = this.updateStats.bind(this);
-  }
-
-  componentWillMount() {
-    this.updateStats(this.state.periodSelected);
-  }
-
-  updateStats(period) {
-    GatewayStore.getGatewayStats(this.props.mac, this.state.periods[period].interval, moment().subtract(this.state.periods[period].substract, this.state.periods[period].substractInterval).toISOString(), moment().toISOString(), (records) => {
-      let statsUp = this.state.statsUp;
-      let statsDown = this.state.statsDown;
-
-      statsUp.labels = [];
-      statsDown.labels = [];
-      statsUp.datasets[0].data = [];
-      statsUp.datasets[1].data = [];
-      statsDown.datasets[0].data = [];
-      statsDown.datasets[1].data = [];
-
-      for (const record of records) {
-        statsUp.labels.push(moment(record.timestamp).format(this.state.periods[period].format));
-        statsDown.labels.push(moment(record.timestamp).format(this.state.periods[period].format));
-        statsUp.datasets[0].data.push(record.txPacketsReceived);
-        statsUp.datasets[1].data.push(record.txPacketsEmitted);
-        statsDown.datasets[0].data.push(record.rxPacketsReceived);
-        statsDown.datasets[1].data.push(record.rxPacketsReceivedOK);
+      for (const row of resp.result) {
+        statsUp.labels.push(moment(row.timestamp).format("Do"));
+        statsDown.labels.push(moment(row.timestamp).format("Do"));
+        statsUp.datasets[0].data.push(row.txPacketsEmitted);
+        statsDown.datasets[0].data.push(row.rxPacketsReceivedOK);
       }
 
       this.setState({
         statsUp: statsUp,
         statsDown: statsDown,
       });
-    });  
-  }
-
-  updatePeriod(p) {
-    this.setState({
-      periodSelected: p,
     });
-
-    this.updateStats(p);
   }
-
 
   render() {
-    return(
-      <div>
-        <div className="clearfix">
-          <div className="btn-group pull-right" role="group" aria-label="...">
-            <button type="button" className={'btn btn-' + (this.state.periodSelected === 'hour' ? 'primary' : 'default')} onClick={this.updatePeriod.bind(this, 'hour')}>hour</button>
-            <button type="button" className={'btn btn-' + (this.state.periodSelected === '1d' ? 'primary' : 'default')} onClick={this.updatePeriod.bind(this, '1d')}>1D</button>
-            <button type="button" className={'btn btn-' + (this.state.periodSelected === '14d' ? 'primary' : 'default')} onClick={this.updatePeriod.bind(this, '14d')}>14D</button>
-            <button type="button" className={'btn btn-' + (this.state.periodSelected === '30d' ? 'primary' : 'default')} onClick={this.updatePeriod.bind(this, '30d')}>30D</button>
-          </div>
-        </div>
-
-        <h4>Frames sent per {this.state.periods[this.state.periodSelected].interval.toLowerCase()}</h4>
-        <Bar height="75" data={this.state.statsUp} options={this.state.statsOptions} redraw />
-        <hr />
-        <h4>Frames received per {this.state.periods[this.state.periodSelected].interval.toLowerCase()}</h4>
-        <Bar height="75" data={this.state.statsDown} options={this.state.statsOptions} redraw /> 
-
-
-      </div>
-    );
-  }
-}
-
-class GatewayDetails extends Component {
-  constructor() {
-    super();
-
-    this.state = {
-      gateway: {
-        location: {},
-      },
+    if (this.props.gateway === undefined || this.state.statsDown === undefined || this.state.statsUp === undefined) {
+      return(<div></div>);
     }
-  }
 
-  componentWillMount() {
-    GatewayStore.getGateway(this.props.match.params.mac, (gateway) => {
-      this.setState({
-        gateway: gateway.gateway,
-        lastSeenAt: gateway.lastSeenAt,
-      });
-    }); 
-  }
-
-  render() {
     const style = {
-      height: "400px",
+      height: 400,
     };
 
-    let lastseen = "";
-    let position = [];
+    const statsOptions = {
+      legend: {
+        display: false,
+      },
+      maintainAspectRatio: false,
+    }
 
-    if (typeof(this.state.gateway.location.latitude) !== "undefined" && typeof(this.state.gateway.location.longitude !== "undefined")) {
-      position = [this.state.gateway.location.latitude, this.state.gateway.location.longitude]; 
+    let position = [];
+    if (typeof(this.props.gateway.location.latitude) !== "undefined" && typeof(this.props.gateway.location.longitude !== "undefined")) {
+      position = [this.props.gateway.location.latitude, this.props.gateway.location.longitude]; 
     } else {
       position = [0,0];
     }
 
-    if (typeof(this.state.lastSeenAt) !== "undefined" && this.state.lastSeenAt !== null) {
-      lastseen = moment(this.state.lastSeenAt).fromNow();    
+    let lastseen = "";
+    if (this.props.lastSeenAt !== undefined) {
+      lastseen = moment(this.props.lastSeenAt).fromNow();
     }
 
     return(
-      <div className="panel panel-default">
-        <div className="panel-body">
-          <div className="row">
-            <div className="col-md-6">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th colSpan={2}><h4>{this.state.gateway.name}</h4></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="col-md-4"><strong>Gateway ID</strong></td>
-                    <td>{this.state.gateway.id}</td>
-                  </tr>
-                  <tr>
-                    <td className="col-md-4"><strong>Altitude</strong></td>
-                    <td>{this.state.gateway.location.altitude} meters</td>
-                  </tr>
-                  <tr>
-                    <td className="col-md-4"><strong>GPS coordinates</strong></td>
-                    <td>{this.state.gateway.location.latitude}, {this.state.gateway.location.longitude}</td>
-                  </tr>
-                  <tr>
-                    <td className="col-md-4"><strong>Last seen (stats)</strong></td>
-                    <td>{lastseen}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="col-md-6">
-              <Map center={position} zoom={15} style={style} animate={true} scrollWheelZoom={false}>
-                <TileLayer
-                  url='//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-                  attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                />
-                <Marker position={position} />
-              </Map>
-            </div>
-          </div>
-          <hr />
-          <GatewayStats mac={this.props.match.params.mac} />
-        </div>
-      </div>
+      <Grid container spacing={24}>
+        <Grid item xs={6}>
+          <Card>
+            <CardHeader
+              title="Gateway details"
+            />
+            <CardContent>
+              <Typography variant="subheading" color="primary">
+                Gateway ID
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                {this.props.gateway.id}
+              </Typography>
+              <Typography variant="subheading" color="primary">
+                Altitude
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                {this.props.gateway.location.altitude} meters
+              </Typography>
+              <Typography variant="subheading" color="primary">
+                GPS coordinates
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                {this.props.gateway.location.latitude}, {this.props.gateway.location.longitude}
+              </Typography>
+              <Typography variant="subheading" color="primary">
+                Last seen
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                {lastseen}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={6}>
+          <Paper>
+            <Map center={position} zoom={15} style={style} animate={true} scrollWheelZoom={false}>
+              <MapTileLayer />
+              <Marker position={position} />
+            </Map>
+          </Paper>
+        </Grid>
+        <Grid item xs={12}>
+          <Card>
+            <CardHeader title="Frames received" />
+            <CardContent className={this.props.classes.chart}>
+              <Line height={75} options={statsOptions} data={this.state.statsDown} redraw />
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12}>
+          <Card>
+            <CardHeader title="Frames transmitted" />
+            <CardContent className={this.props.classes.chart}>
+              <Line height={75} options={statsOptions} data={this.state.statsUp} redraw />
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     );
   }
 }
 
-export default GatewayDetails;
+export default withStyles(styles)(GatewayDetails);

@@ -1,41 +1,52 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import { withRouter } from 'react-router-dom';
 
+import { withStyles } from "@material-ui/core/styles";
+import Grid from '@material-ui/core/Grid';
+import Card from '@material-ui/core/Card';
+import CardContent from "@material-ui/core/CardContent";
+
 import ApplicationStore from "../../stores/ApplicationStore";
-import ApplicationForm from "../../components/ApplicationForm";
+import ApplicationForm from "./ApplicationForm";
+
+
+const styles = {
+  card: {
+    overflow: "visible",
+  },
+};
 
 
 class UpdateApplication extends Component {
   constructor() {
     super();
-    this.state = {
-      application: {},
-    };
-
     this.onSubmit = this.onSubmit.bind(this);
   }
 
-  componentDidMount() {
-    ApplicationStore.getApplication(this.props.match.params.applicationID, (application) => {
-      this.setState({application: application.application});
-    });
-  }
-
   onSubmit(application) {
-    ApplicationStore.updateApplication(this.props.match.params.applicationID, {application: this.state.application}, (responseData) => {
-      this.props.history.push(`/organizations/${application.organizationID}/applications/${application.id}`);
+    ApplicationStore.update(application, resp => {
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${application.id}`);
     });
   }
 
   render() {
     return(
-      <div className="panel panel-default">
-        <div className="panel-body">
-          <ApplicationForm application={this.state.application} onSubmit={this.onSubmit} update={true} organizationID={this.props.match.params.organizationID} />
-        </div>
-      </div>
+      <Grid container spacing={24}>
+        <Grid item xs={12}>
+          <Card className={this.props.classes.card}>
+            <CardContent>
+              <ApplicationForm
+                submitLabel="Update application"
+                object={this.props.application}
+                onSubmit={this.onSubmit}
+                update={true}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     );
   }
 }
 
-export default withRouter(UpdateApplication);
+export default withStyles(styles)(withRouter(UpdateApplication));

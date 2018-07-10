@@ -10,7 +10,8 @@ build: ui/build internal/statics internal/migrations
 clean:
 	@echo "Cleaning up workspace"
 	@rm -rf build dist internal/migrations internal/static ui/build static/static
-	@rm -f static/index.html
+	@rm -f static/index.html static/icon.png static/manifest.json static/asset-manifest.json static/service-worker.js
+	@rm -rf static/logo
 	@rm -rf docs/public
 	@rm -rf dist
 
@@ -55,6 +56,7 @@ internal/statics internal/migrations: static/swagger/api.swagger.json
 static/swagger/api.swagger.json:
 	@echo "Generating combined Swagger JSON"
 	@GOOS="" GOARCH="" go run api/swagger/main.go api/swagger > static/swagger/api.swagger.json
+	@cp api/swagger/*.json static/swagger
 
 
 # shortcuts for development

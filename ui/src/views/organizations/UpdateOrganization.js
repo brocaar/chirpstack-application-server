@@ -1,42 +1,41 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import { withRouter } from 'react-router-dom';
 
-import OrganizationStore from "../../stores/OrganizationStore";
-import OrganizationForm from "../../components/OrganizationForm";
+import Grid from '@material-ui/core/Grid';
+import Card from '@material-ui/core/Card';
+import CardContent from "@material-ui/core/CardContent";
+
+import OrganzationStore from "../../stores/OrganizationStore";
+import OrganizationForm from "./OrganizationForm";
 
 
 class UpdateOrganization extends Component {
   constructor() {
     super();
-
-    this.state = {
-      organization: {},
-    };
-
     this.onSubmit = this.onSubmit.bind(this);
   }
 
-  componentDidMount() {
-    OrganizationStore.getOrganization(this.props.match.params.organizationID, (organization) => {
-      this.setState({
-        organization: organization.organization,
-      });
-    });
-  }
-
   onSubmit(organization) {
-    OrganizationStore.updateOrganization(this.props.match.params.organizationID, {organization: organization}, (responseData) => {
-      this.props.history.push('/organizations');
+    OrganzationStore.update(organization, resp => {
+      this.props.history.push("/organizations");
     });
   }
 
   render() {
     return(
-      <div className="panel panel-default">
-        <div className="panel-body">
-          <OrganizationForm organization={this.state.organization} onSubmit={this.onSubmit} />
-        </div>
-      </div>
+      <Grid container spacing={24}>
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <OrganizationForm
+                submitLabel="Update organization"
+                object={this.props.organization}
+                onSubmit={this.onSubmit}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     );
   }
 }

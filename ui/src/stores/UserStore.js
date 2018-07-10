@@ -1,74 +1,122 @@
 import { EventEmitter } from "events";
-import "whatwg-fetch";
+
+import Swagger from "swagger-client";
+
 import sessionStore from "./SessionStore";
-import { checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler } from "./helpers";
+import dispatcher from "../dispatcher";
+
 
 class UserStore extends EventEmitter {
-  getAll(search, pageSize, offset, callbackFunc) {
-    fetch("/api/users?limit="+pageSize+"&offset="+offset+"&search="+encodeURIComponent(search), {headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if (typeof(responseData.result) === "undefined") {
-          callbackFunc(0, []);
-        } else {
-          callbackFunc(responseData.totalCount, responseData.result);
-        }
-      })
-      .catch(errorHandler);
-  } 
-
-  getUser(userID, callbackFunc) {
-    fetch("/api/users/"+userID, {headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
+  constructor() {
+    super();
+    this.swagger = new Swagger("/swagger/user.swagger.json", sessionStore.getClientOpts());
   }
 
-  createUser(user, callbackFunc) {
-    fetch("/api/users", {method: "POST", body: JSON.stringify(user), headers: sessionStore.getHeader()})
+  create(user, password, organizations, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.UserService.Create({
+        body: {
+          organizations: organizations,
+          password: password,
+          user: user,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("created");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  updateUser(userID, user, callbackFunc) {
-    fetch("/api/users/"+userID, {method: "PUT", body: JSON.stringify(user), headers: sessionStore.getHeader()})
+  get(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.UserService.Get({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  deleteUser(userID, callbackFunc) {
-    fetch("/api/users/"+userID, {method: "DELETE", headers: sessionStore.getHeader()})
+  update(user, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.UserService.Update({
+        "user.id": user.id,
+        body: {
+          "user": user,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("updated");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  updatePassword(userID, password, callbackFunc) {
-    fetch("/api/users/"+userID+"/password", {method: "PUT", body: JSON.stringify(password), headers: sessionStore.getHeader()})
+  delete(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.UserService.Delete({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("deleted");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
+  }
+
+  updatePassword(id, password, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.UserService.UpdatePassword({
+        "user_id": id,
+        body: {
+          password: password,
+        },
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.notify("updated");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  list(search, limit, offset, callbackFunc) {
+    this.swagger.then((client) => {
+      client.apis.UserService.List({
+        search: search,
+        limit: limit,
+        offset: offset,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  notify(action) {
+    dispatcher.dispatch({
+      type: "CREATE_NOTIFICATION",
+      notification: {
+        type: "success",
+        message: "user has been " + action,
+      },
+    });
   }
 }
 
 const userStore = new UserStore();
-
 export default userStore;

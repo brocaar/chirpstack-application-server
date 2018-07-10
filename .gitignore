@@ -12,11 +12,14 @@
 /build
 /internal/static
 /internal/migrations
+/static/logo
 /static/static
-/static/swagger/api.swagger.json
+/static/swagger/*.json
 /static/index.html
 /static/asset-manifest.json
 /static/service-worker.js
+/static/manifest.json
+/static/icon.png
 /ui/build
 /docs/public
 
@@ -27,4 +30,4 @@
 /certs
 
 # node modules
-/ui/node_modules
+node_modules

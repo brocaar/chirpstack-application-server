@@ -1,0 +1,174 @@
+import React from "react";
+
+import { withStyles } from "@material-ui/core/styles";
+import TextField from '@material-ui/core/TextField';
+import FormControl from "@material-ui/core/FormControl";
+import FormHelperText from "@material-ui/core/FormHelperText";
+
+import {Controlled as CodeMirror} from "react-codemirror2";
+import "codemirror/mode/javascript/javascript";
+
+import FormComponent from "../../classes/FormComponent";
+import Form from "../../components/Form";
+import AutocompleteSelect from "../../components/AutocompleteSelect";
+import ServiceProfileStore from "../../stores/ServiceProfileStore";
+
+
+const styles = {
+  codeMirror: {
+    zIndex: 1,
+  },
+};
+
+
+class ApplicationForm extends FormComponent {
+  constructor() {
+    super();
+    this.getServiceProfileOption = this.getServiceProfileOption.bind(this);
+    this.getServiceProfileOptions = this.getServiceProfileOptions.bind(this);
+    this.getPayloadCodecOptions = this.getPayloadCodecOptions.bind(this);
+    this.onCodeChange = this.onCodeChange.bind(this);
+  }
+
+  getServiceProfileOption(id, callbackFunc) {
+    ServiceProfileStore.get(id, resp => {
+      callbackFunc({label: resp.serviceProfile.name, value: resp.serviceProfile.id});
+    });
+  }
+
+  getServiceProfileOptions(search, callbackFunc) {
+    ServiceProfileStore.list(this.props.match.params.organizationID, 999, 0, resp => {
+      const options = resp.result.map((sp, i) => {return {label: sp.name, value: sp.id}});
+      callbackFunc(options);
+    });
+  }
+
+  getPayloadCodecOptions(search, callbackFunc) {
+    const payloadCodecOptions = [
+      {value: "", label: "None"},
+      {value: "CAYENNE_LPP", label: "Cayenne LPP"},
+      {value: "CUSTOM_JS", label: "Custom JavaScript codec functions"},
+    ];
+
+    callbackFunc(payloadCodecOptions);
+  }
+
+  onCodeChange(field, editor, data, newCode) {
+    let object = this.state.object;
+    object[field] = newCode;
+    this.setState({
+      object: object,
+    });
+  }
+
+  render() {
+    if (this.state.object === undefined) {
+      return(<div></div>);
+    }
+
+    const codeMirrorOptions = {
+      lineNumbers: true,
+      mode: "javascript",
+      theme: "base16-light",
+    };
+    
+    let payloadEncoderScript = this.state.object.payloadEncoderScript;
+    let payloadDecoderScript = this.state.object.payloadDecoderScript;
+
+    if (payloadEncoderScript === "" || payloadEncoderScript === undefined) {
+      payloadEncoderScript = `// Encode encodes the given object into an array of bytes.
+//  - fPort contains the LoRaWAN fPort number
+//  - obj is an object, e.g. {"temperature": 22.5}
+// The function must return an array of bytes, e.g. [225, 230, 255, 0]
+function Encode(fPort, obj) {
+  return [];
+}`;
+    }
+
+    if (payloadDecoderScript === "" || payloadDecoderScript === undefined) {
+      payloadDecoderScript = `// Decode decodes an array of bytes into an object.
+//  - fPort contains the LoRaWAN fPort number
+//  - bytes is an array of bytes, e.g. [225, 230, 255, 0]
+// The function must return an object, e.g. {"temperature": 22.5}
+function Decode(fPort, bytes) {
+  return {};
+}`;
+    }
+
+    return(
+      <Form
+        submitLabel={this.props.submitLabel}
+        onSubmit={this.onSubmit}
+      >
+        <TextField
+          id="name"
+          label="Application name"
+          margin="normal"
+          value={this.state.object.name || ""}
+          onChange={this.onChange}
+          helperText="The name may only contain words, numbers and dashes."
+          fullWidth
+        />
+        <TextField
+          id="description"
+          label="Application description"
+          margin="normal"
+          value={this.state.object.description || ""}
+          onChange={this.onChange}
+          fullWidth
+        />
+        {!this.props.update && <FormControl fullWidth margin="normal">
+          <AutocompleteSelect
+            id="serviceProfileID"
+            label="Service-profile"
+            value={this.state.object.serviceProfileID || ""}
+            onChange={this.onChange}
+            getOption={this.getServiceProfileOption}
+            getOptions={this.getServiceProfileOptions}
+          />
+          <FormHelperText>
+            The service-profile to which this application will be attached. Note that you can't change this value after the application has been created.
+          </FormHelperText>
+        </FormControl>}
+        <FormControl fullWidth margin="normal">
+          <AutocompleteSelect
+            id="payloadCodec"
+            label="Payload codec"
+            value={this.state.object.payloadCodec || ""}
+            onChange={this.onChange}
+            getOptions={this.getPayloadCodecOptions}
+          />
+          <FormHelperText>
+            By defining a payload codec, LoRa App Server can encode and decode the binary device payload for you.
+          </FormHelperText>
+        </FormControl>
+        {this.state.object.payloadCodec === "CUSTOM_JS" && <FormControl fullWidth margin="normal">
+          <CodeMirror
+            value={payloadDecoderScript}
+            options={codeMirrorOptions}
+            onBeforeChange={this.onCodeChange.bind(this, 'payloadDecoderScript')}
+            className={this.props.classes.codeMirror}
+          />
+          <FormHelperText>
+            The function must have the signature <strong>function Decode(fPort, bytes)</strong> and must return an object.
+            LoRa App Server will convert this object to JSON.
+          </FormHelperText>
+        </FormControl>}
+        {this.state.object.payloadCodec === "CUSTOM_JS" && <FormControl fullWidth margin="normal">
+          <CodeMirror
+            value={payloadEncoderScript}
+            options={codeMirrorOptions}
+            onBeforeChange={this.onCodeChange.bind(this, 'payloadEncoderScript')}
+            className={this.props.classes.codeMirror}
+          />
+          <FormHelperText>
+            The function must have the signature <strong>function Encode(fPort, obj)</strong> and must return an array
+            of bytes.
+          </FormHelperText>
+        </FormControl>}
+      </Form>
+    );
+  }
+}
+
+export default withStyles(styles)(ApplicationForm);

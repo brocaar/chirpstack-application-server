@@ -1,67 +1,103 @@
 import { EventEmitter } from "events";
-import "whatwg-fetch";
+
+import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import { checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler } from "./helpers";
+import dispatcher from "../dispatcher";
 
 
 class GatewayProfileStore extends EventEmitter {
-  getAllForNetworkServerID(networkServerID, pageSize, offset, callbackFunc) {
-    fetch(`/api/gateway-profiles?networkServerID=${networkServerID}&limit=${pageSize}&offset=${offset}`, {headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if(typeof(responseData.result) === "undefined") {
-          callbackFunc(0, []);
-        } else {
-          callbackFunc(responseData.totalCount, responseData.result);
-        }
-      })
-      .catch(errorHandler);
+  constructor() {
+    super();
+    this.swagger = new Swagger("/swagger/gatewayProfile.swagger.json", sessionStore.getClientOpts());
   }
 
-  getGatewayProfile(id, callbackFunc) {
-    fetch(`/api/gateway-profiles/${id}`, {headers: sessionStore.getHeader()})
+  create(gatewayProfile, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.GatewayProfileService.Create({
+        body: {
+          gatewayProfile: gatewayProfile,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("created");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  createGatewayProfile(gatewayProfile, callbackFunc) {
-    fetch(`/api/gateway-profiles`, {method: "POST", body: JSON.stringify(gatewayProfile), headers: sessionStore.getHeader()})
+  get(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.GatewayProfileService.Get({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  updateGatewayProfile(gatewayProfileID, gatewayProfile, callbackFunc) {
-    fetch(`/api/gateway-profiles/${gatewayProfileID}`, {method: "PUT", body: JSON.stringify(gatewayProfile), headers: sessionStore.getHeader()})
+  update(gatewayProfile, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.GatewayProfileService.Update({
+        "gateway_profile.id": gatewayProfile.id,
+        body: {
+          gatewayProfile: gatewayProfile,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("updated");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  deleteGatewayProfile(gatewayProfileID, callbackFunc) {
-    fetch(`/api/gateway-profiles/${gatewayProfileID}`, {method: "DELETE", headers: sessionStore.getHeader()})
+  delete(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.GatewayProfileService.Delete({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("deleted");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
+  }
+
+  list(networkServerID, limit, offset, callbackFunc) {
+    this.swagger.then((client) => {
+      client.apis.GatewayProfileService.List({
+        networkServerID: networkServerID,
+        limit: limit,
+        offset: offset,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  notify(action) {
+    dispatcher.dispatch({
+      type: "CREATE_NOTIFICATION",
+      notification: {
+        type: "success",
+        message: "gateway-profile has been " + action,
+      },
+    });
   }
 }
 
-
 const gatewayProfileStore = new GatewayProfileStore();
-
 export default gatewayProfileStore;

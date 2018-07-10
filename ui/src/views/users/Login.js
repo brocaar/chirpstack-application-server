@@ -1,6 +1,31 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
+
+import Grid from '@material-ui/core/Grid';
+import TextField from '@material-ui/core/TextField';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardContent from '@material-ui/core/CardContent';
+import Typography from "@material-ui/core/Typography";
+import { withStyles } from "@material-ui/core/styles";
+
+import Form from "../../components/Form";
 import SessionStore from "../../stores/SessionStore";
+import theme from "../../theme";
+
+
+const styles = {
+  textField: {
+    width: "100%",
+  },
+  link: {
+    "& a": {
+      color: theme.palette.primary.main,
+      textDecoration: "none",
+    },
+  },
+};
+
 
 class Login extends Component {
   constructor() {
@@ -11,64 +36,76 @@ class Login extends Component {
       registration: null,
     };
 
+    this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
   }
 
   componentDidMount() {
     SessionStore.logout(() => {});
-    this.setState({
-      registration: SessionStore.getRegistration(),
-    });
 
-    SessionStore.on("change", () => {
-      this.setState({
-        registration: SessionStore.getRegistration(),
-      });
-    })
+    SessionStore.getBranding(resp => {
+      if (resp.registration !== "") {
+        this.setState({
+          registration: resp.registration,
+        });
+      }
+    });
   }
 
-  onChange(field, e) {
+  onSubmit() {
+    SessionStore.login(this.state.login, () => {
+      this.props.history.push("/");
+    });
+  }
+
+  onChange(e) {
     let login = this.state.login;
-    login[field] = e.target.value;
+    login[e.target.id] = e.target.value;
     this.setState({
       login: login,
     });
   }
 
-  onSubmit(e) {
-    e.preventDefault(); 
-    SessionStore.login(this.state.login, (token) => {
-      this.props.history.push("/");
-    });
-  }
-
   render() {
     return(
-      <div>
-        <ol className="breadcrumb">
-          <li className="active">Login</li>
-        </ol>
-        <hr />
-        <div className="panel panel-default">
-          <div className="panel-body">
-            <form onSubmit={this.onSubmit}>
-              <div className="form-group">
-                <label className="control-label" htmlFor="username">Username</label>
-                <input className="form-control" id="username" type="text" placeholder="username" required value={this.state.login.username || ''} onChange={this.onChange.bind(this, 'username')} />
-              </div>
-              <div className="form-group">
-                <label className="control-label" htmlFor="password">Password</label>
-                <input className="form-control" id="password" type="password" placeholder="password" value={this.state.login.password || ''} onChange={this.onChange.bind(this, 'password')} />
-              </div>
-              <hr />
-              <button type="submit" className="btn btn-primary pull-right">Login</button>
-            </form>
-            <div dangerouslySetInnerHTML={{ __html: (typeof(this.state.registration) === "undefined" ? "" : this.state.registration) }}/>
-          </div>
-        </div>
-      </div>
+      <Grid container justify="center">
+        <Grid item xs={6}>
+          <Card>
+            <CardHeader
+              title="Login"
+            />
+            <CardContent>
+              <Form
+                submitLabel="Login"
+                onSubmit={this.onSubmit}
+              >
+                <TextField
+                  id="username"
+                  label="Username"
+                  fullWidth={true}
+                  margin="normal"
+                  value={this.state.login.username || ""}
+                  onChange={this.onChange}
+                />
+                <TextField
+                  id="password"
+                  label="Password"
+                  fullWidth={true}
+                  type="password"
+                  margin="normal"
+                  value={this.state.login.password || ""}
+                  onChange={this.onChange}
+                />
+              </Form>
+            </CardContent>
+            {this.state.registration && <CardContent>
+              <Typography className={this.props.classes.link} dangerouslySetInnerHTML={{__html: this.state.registration}}></Typography>
+             </CardContent>}
+          </Card>
+        </Grid>
+      </Grid>
     );
   }
 }
 
-export default withRouter(Login);
+export default withStyles(styles)(withRouter(Login));

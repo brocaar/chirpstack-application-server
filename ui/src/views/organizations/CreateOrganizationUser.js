@@ -1,182 +1,165 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import { withRouter } from 'react-router-dom';
 
-import Select from "react-select";
+import { withStyles } from "@material-ui/core/styles";
+import Grid from '@material-ui/core/Grid';
+import Card from '@material-ui/core/Card';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormGroup from "@material-ui/core/FormGroup";
+import Checkbox from '@material-ui/core/Checkbox';
+import TextField from "@material-ui/core/TextField";
+import CardContent from "@material-ui/core/CardContent";
 
-import OrganizationStore from "../../stores/OrganizationStore";
+import TitleBar from "../../components/TitleBar";
+import TitleBarTitle from "../../components/TitleBarTitle";
+import AutocompleteSelect from "../../components/AutocompleteSelect";
+import FormComponent from "../../classes/FormComponent";
+import Form from "../../components/Form";
 import UserStore from "../../stores/UserStore";
+import OrganizationStore from "../../stores/OrganizationStore";
 import SessionStore from "../../stores/SessionStore";
+import theme from "../../theme";
 
 
-class AssignUserForm extends Component {
+class AssignUserForm extends FormComponent {
   constructor() {
     super();
 
-    this.state = {
-      user: {},
-      initialOptions: [],
-      selectedUser: {},
-    };
-
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.onAutocompleteSelect = this.onAutocompleteSelect.bind(this);
-    this.onAutocomplete = this.onAutocomplete.bind(this);
-    this.setInitialOptions = this.setInitialOptions.bind(this);
+    this.getUserOption = this.getUserOption.bind(this);
+    this.getUserOptions = this.getUserOptions.bind(this);
   }
 
-  setInitialOptions() {
-    if (this.state.initialOptions.length === 0) {
-      UserStore.getAll("", 10, 0, (totalCount, users) => {
-        const options = users.map((user, i) => {
-          return {
-            value: user.id,
-            label: user.username,
-          };
-        });
-
-        this.setState({
-          initialOptions: options,
-        });
-      });
-    }
-  }
-
-  handleSubmit(e) {
-    e.preventDefault();
-    this.props.onSubmit(this.state.user);
-  }
-
-  onChange(field, e) {
-    let user = this.state.user;
-    if (e.target.type === "checkbox") {
-      user[field] = e.target.checked;
-    } else {
-      user[field] = e.target.value;
-    }
-    this.setState({user: user});
-  }
-
-  onAutocompleteSelect(val) {
-    let user = this.state.user;
-    user.userID = val.value;
-    this.setState({
-      user: user,
-      selectedUser: val,
+  getUserOption(id, callbackFunc) {
+    UserStore.get(id, resp => {
+      callbackFunc({label: resp.user.username, value: resp.user.id});
     });
   }
 
-  onAutocomplete(input, callbackFunc) {
-    UserStore.getAll(input, 10, 0, (totalCount, users) => {
-      const options = users.map((user, i) => {
-        return {
-          value: user.id,
-          label: user.username,
-      }}); 
-
-      callbackFunc(null, {
-        options: options,
-        complete: true,
-      });
-    }); 
+  getUserOptions(search, callbackFunc) {
+    UserStore.list(search, 10, 0, resp => {
+      const options = resp.result.map((u, i) => {return {label: u.username, value: u.id}});
+      callbackFunc(options);
+    });
   }
 
   render() {
-    return(
-      <form onSubmit={this.handleSubmit}>
-        <div className="form-group">
-          <label className="control-label" htmlFor="name">Username</label>
-          <Select.Async name="username" required onOpen={this.setInitialOptions} options={this.state.initialOptions} loadOptions={this.onAutocomplete} value={this.state.selectedUser} onChange={this.onAutocompleteSelect} clearable={false} autoload={false} />
-        </div>
-        <div className="form-group">
-          <label className="control-label">Admin</label>
-          <div className="checkbox">
-            <label>
-              <input type="checkbox" name="isAdmin" id="isAdmin" checked={!!this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is organization admin
-            </label>
-          </div>
-          <p className="help-block">
-            When checked, the user will be assigned admin permissions within the context of the organization.
-          </p>
-        </div>
-        <hr />
-        <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
-          <button type="submit" className="btn btn-primary">Submit</button>
-        </div>
-      </form>
-    );
-  }
-}
-
-
-class CreateUserForm extends Component {
-  constructor() {
-    super();
-
-    this.state = {
-      user: {},
-    };
-
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }  
-
-  handleSubmit(e) {
-    e.preventDefault();
-    this.props.onSubmit(this.state.user);
-  }
-
-  onChange(field, e) {
-    let user = this.state.user;
-    if (e.target.type === "checkbox") {
-      user[field] = e.target.checked;
-    } else {
-      user[field] = e.target.value;
+    if (this.state.object === undefined) {
+      return(<div></div>);
     }
-    this.setState({user: user});
-  }
 
-  render() {
     return(
-      <form onSubmit={this.handleSubmit}>
-        <div className="form-group">
-          <label className="control-label" htmlFor="username">Username</label>
-          <input className="form-control" id="username" type="text" placeholder="username" required value={this.state.user.username || ''} onChange={this.onChange.bind(this, 'username')} />
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="email">E-mail address</label>
-          <input className="form-control" id="email" type="email" placeholder="e-mail address" required value={this.state.user.email || ''} onChange={this.onChange.bind(this, 'email')} />
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="note">Optional note</label>
-          <input className="form-control" id="note" type="text" placeholder="optional note (e.g. phone, address, ...)" value={this.state.user.note || ''} onChange={this.onChange.bind(this, 'note')} />
-          <p className="help-block">
-            Optional note, e.g. a phone number, address, comment...
-          </p>
-        </div>
-        <div className="form-group">
-          <label className="control-label" htmlFor="password">Password</label>
-          <input className="form-control" id="password" type="password" placeholder="password" value={this.state.user.password || ''} onChange={this.onChange.bind(this, 'password')} />
-        </div>
-        <div className="form-group">
-          <label className="control-label">Admin</label>
-          <div className="checkbox">
-            <label>
-              <input type="checkbox" name="isAdmin" id="isAdmin" checked={!!this.state.user.isAdmin} onChange={this.onChange.bind(this, 'isAdmin')} /> Is organization admin
-            </label>
-          </div>
-          <p className="help-block">
-            When checked, the user will be assigned admin permissions within the context of the organization.
-          </p>
-        </div>
-        <hr />
-        <div className="btn-toolbar pull-right">
-          <a className="btn btn-default" onClick={this.props.history.goBack}>Go back</a>
-          <button type="submit" className="btn btn-primary">Submit</button>
-        </div>
-      </form>
+      <Form
+        submitLabel="Add user"
+        onSubmit={this.onSubmit}
+      >
+        <AutocompleteSelect
+          id="userID"
+          label="Username"
+          value={this.state.object.userID || null}
+          onChange={this.onChange}
+          getOption={this.getUserOption}
+          getOptions={this.getUserOptions}
+        />
+        <FormGroup row>
+          <FormControlLabel
+            label="Is organization admin"
+            control={
+              <Checkbox
+                id="isAdmin"
+                checked={!!this.state.object.isAdmin}
+                onChange={this.onChange}
+                color="primary"
+              />
+            }
+          />
+        </FormGroup>
+      </Form>
+    );
+  };
+}
+
+
+class CreateUserForm extends FormComponent {
+  render() {
+    if (this.state.object === undefined) {
+      return(<div></div>);
+    }
+
+    return(
+      <Form
+        submitLabel="Create user"
+        onSubmit={this.onSubmit}
+      >
+        <TextField
+          id="username"
+          label="Username"
+          margin="normal"
+          value={this.state.object.username || ""}
+          onChange={this.onChange}
+          required
+          fullWidth
+        />
+        <TextField
+          id="email"
+          label="E-mail address"
+          margin="normal"
+          value={this.state.object.email || ""}
+          onChange={this.onChange}
+          required
+          fullWidth
+        />
+        <TextField
+          id="note"
+          label="Optional note"
+          helperText="Optional note, e.g. a phone number, address, comment..."
+          margin="normal"
+          value={this.state.object.note || ""}
+          onChange={this.onChange}
+          rows={4}
+          fullWidth
+          multiline
+        />
+        <TextField
+          id="password"
+          label="Password"
+          type="password"
+          margin="normal"
+          value={this.state.object.password || ""}
+          onChange={this.onChange}
+          required
+          fullWidth
+        />
+        <FormGroup row>
+          <FormControlLabel
+            label="Is organization admin"
+            control={
+              <Checkbox
+                id="isAdmin"
+                checked={!!this.state.object.isAdmin}
+                onChange={this.onChange}
+                color="primary"
+              />
+            }
+          />
+        </FormGroup>
+      </Form>
     );
   }
 }
+
+
+const styles = {
+  card: {
+    overflow: "visible",
+  },
+  tabs: {
+    borderBottom: "1px solid " + theme.palette.divider,
+    height: "48px",
+    overflow: "visible",
+  },
+};
 
 
 class CreateOrganizationUser extends Component {
@@ -184,80 +167,86 @@ class CreateOrganizationUser extends Component {
     super();
 
     this.state = {
-      activeTab: "create",
-      displayAssignUser: false,
+      tab: 0,
+      assignUser: false,
     };
 
-    this.changeTab = this.changeTab.bind(this);
-    this.handleAssign = this.handleAssign.bind(this);
-    this.handleCreateAndAssign = this.handleCreateAndAssign.bind(this);
+    this.onChangeTab = this.onChangeTab.bind(this);
+    this.onAssignUser = this.onAssignUser.bind(this);
+    this.onCreateUser = this.onCreateUser.bind(this);
+    this.setAssignUser = this.setAssignUser.bind(this);
   }
 
   componentDidMount() {
+    this.setAssignUser();
+
+    SessionStore.on("change", this.setAssignUser);
+  }
+
+  comomentWillUnmount() {
+    SessionStore.removeListener("change", this.setAssignUser);
+  }
+
+  setAssignUser() {
+    const settings = SessionStore.getSettings();
     this.setState({
-      displayAssignUser: SessionStore.isAdmin() || !SessionStore.getSetting('disableAssignExistingUsers'),
-      activeTab: (SessionStore.isAdmin() || !SessionStore.getSetting('disableAssignExistingUsers')) ? 'assign' : 'create',
-    });
-
-    SessionStore.on("change", () => {
-      this.setState({
-        displayAssignUser: SessionStore.isAdmin() || !SessionStore.getSetting('disableAssignExistingUsers'),
-        activeTab: (SessionStore.isAdmin() || !SessionStore.getSetting('disableAssignExistingUsers')) ? 'assign' : 'create',
-      });
+      assignUser: !settings.disableAssignExistingUsers || SessionStore.isAdmin(),
     });
   }
 
-  changeTab(e) {
-    e.preventDefault();
+  onChangeTab(e, v) {
     this.setState({
-      activeTab: e.target.getAttribute('aria-controls'),
+      tab: v,
     });
   }
 
-  handleAssign(user) {
-    OrganizationStore.addUser(this.props.match.params.organizationID, {organizationUser: user}, (responseData) => {
-      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/users`);
-    }); 
-  }
-
-  handleCreateAndAssign(user) {
-    const req = {
-      user: {
-        username: user.username,
-        email: user.email,
-        note: user.note,
-        isActive: true,
-      },
-      password: user.password,
-      organizations: [{
-        organizationID: this.props.match.params.organizationID,
-        isAdmin: user.isAdmin,
-      }],
-    };
-    UserStore.createUser(req, (resp) => {
+  onAssignUser(user) {
+    OrganizationStore.addUser(this.props.match.params.organizationID, user, resp => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/users`);
     });
-  }
+  };
+
+  onCreateUser(user) {
+    const orgs = [
+      {isAdmin: user.isAdmin, organizationID: this.props.match.params.organizationID},
+    ];
+
+    let u = user;
+    u.isAdmin = false;
+    u.isActive = true;
+
+    UserStore.create(u, user.password, orgs, resp => {
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/users`);
+    });
+  };
 
   render() {
     return(
-      <div className="panel panel-default">
-        <div className="panel-body">
-          <ul className="nav nav-tabs">
-            <li role="presentation" className={(this.state.activeTab === "assign" ? 'active' : '') + " " + (this.state.displayAssignUser ? '' : 'hidden')}><a onClick={this.changeTab} href="#assign" aria-controls="assign">Assign existing user</a></li>
-            <li role="presentation" className={(this.state.activeTab === "create" ? 'active' : '')}><a onClick={this.changeTab} href="#create" aria-controls="create">Create and assign user</a></li>
-          </ul>
-          <hr />
-          <div className={(this.state.activeTab === "assign" ? '' : 'hidden')}>
-            <AssignUserForm history={this.props.history} onSubmit={this.handleAssign} />
-          </div>
-          <div className={(this.state.activeTab === "create" ? '' : 'hidden')}>
-            <CreateUserForm history={this.props.history} onSubmit={this.handleCreateAndAssign} />
-          </div>
-        </div>
-      </div>
+      <Grid container spacing={24}>
+        <TitleBar>
+          <TitleBarTitle title="Organization users" to={`/organizations/${this.props.match.params.organizationID}/users`} />
+          <TitleBarTitle title="/" />
+          <TitleBarTitle title="Create" />
+        </TitleBar>
+
+        <Grid item xs={12}>
+          <Tabs value={this.state.tab} onChange={this.onChangeTab} indicatorColor="primary" fullWidth className={this.props.classes.tabs}>
+            {this.state.assignUser && <Tab label="Assign existing user" />}
+            <Tab label="Create and assign user" />
+          </Tabs>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Card className={this.props.classes.card}>
+            <CardContent>
+              {(this.state.tab === 0 && this.state.assignUser) && <AssignUserForm onSubmit={this.onAssignUser} />}
+              {(this.state.tab === 1 || !this.state.assignUser) && <CreateUserForm onSubmit={this.onCreateUser} />}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     );
   }
 }
 
-export default withRouter(CreateOrganizationUser);
+export default withStyles(styles)(withRouter(CreateOrganizationUser));

@@ -18,11 +18,17 @@ first :-)
 
 ### Features
 
-#### LoRaWAN 1.1 support!
+#### LoRaWAN 1.1 support
 
 This release adds support for LoRaWAN 1.1 devices (meaning that both LoRaWAN 1.0
 and LoRaWAN 1.1 devices are supported). Please note that the LoRaWAN 1.0 *AppKey*
 is now called *NwkKey* and LoRaWAN 1.1 adds a new key called *AppKey*.
+
+
+#### New UI
+
+The LoRa App Server web-interface has been re-designed with a focus on better
+navigation. All main components are now accessible from a sidebar.
 
 ### Changes
 

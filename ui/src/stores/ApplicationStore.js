@@ -1,129 +1,251 @@
 import { EventEmitter } from "events";
-import "whatwg-fetch";
+
+import Swagger from "swagger-client";
+
 import sessionStore from "./SessionStore";
-import { checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler } from "./helpers";
+import dispatcher from "../dispatcher";
 
 
 class ApplicationStore extends EventEmitter {
-  getAll(pageSize, offset, callbackFunc) {
-    fetch("/api/applications?limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if(typeof(responseData.result) === "undefined") {
-          callbackFunc(0, []);
-        } else {
-          callbackFunc(responseData.totalCount, responseData.result);
-        }
-      })
-      .catch(errorHandler);
+  constructor() {
+    super();
+    this.swagger = new Swagger("/swagger/application.swagger.json", sessionStore.getClientOpts());
   }
 
-  getAllForOrganization(organizationID, pageSize, offset, callbackFunc) {
-    fetch("/api/applications?organizationID="+organizationID+"&limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
+  create(application, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.Create({
+        body: {
+          application: application,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if(typeof(responseData.result) === "undefined") {
-          callbackFunc(0, []);
-        } else {
-          callbackFunc(responseData.totalCount, responseData.result);
-        }
+      .then(resp => {
+        this.notify("created");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  getApplication(applicationID, callbackFunc) {
-    fetch("/api/applications/"+applicationID, {headers: sessionStore.getHeader()})
+  get(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.Get({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  createApplication(application, callbackFunc) {
-    fetch("/api/applications", {method: "POST", body: JSON.stringify(application), headers: sessionStore.getHeader()})
+  update(application, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.Update({
+        "application.id": application.id,
+        body: {
+          application: application,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("updated");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  updateApplication(applicationID, application, callbackFunc) {
-    fetch("/api/applications/"+applicationID, {method: "PUT", body: JSON.stringify(application), headers: sessionStore.getHeader()})
+  delete(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.Delete({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("deleted");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  deleteApplication(applicationID, callbackFunc) {
-    fetch("/api/applications/"+applicationID, {method: "DELETE", headers: sessionStore.getHeader()})
+  list(search, organizationID, limit, offset, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.List({
+        limit: limit,
+        offset: offset,
+        organizationID: organizationID,
+        search: search,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
-  }
-
-  createIntegration(applicationID, kind, integration, callbackFunc) {
-    fetch(`/api/applications/${applicationID}/integrations/${kind}`, {method: "POST", body: JSON.stringify(integration), headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
-  }
-
-  getIntegration(applicationID, kind, callbackFunc) {
-    fetch(`/api/applications/${applicationID}/integrations/${kind}`, {headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
-  }
-
-  updateIntegration(applicationID, kind, integration, callbackFunc) {
-    fetch(`/api/applications/${applicationID}/integrations/${kind}`, {method: "PUT", body: JSON.stringify(integration), headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
-  }
-
-  deleteIntegration(applicationID, kind, callbackFunc) {
-    fetch(`/api/applications/${applicationID}/integrations/${kind}`, {method: "DELETE", headers: sessionStore.getHeader()}) 
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
-      })
-      .catch(errorHandler);
+    });
   }
 
   listIntegrations(applicationID, callbackFunc) {
-    fetch(`/api/applications/${applicationID}/integrations`, {headers: sessionStore.getHeader()}) 
+    this.swagger.then(client => {
+      client.apis.ApplicationService.ListIntegrations({
+        application_id: applicationID,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
+  }
+
+  createHTTPIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.CreateHTTPIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("http", "created");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  getHTTPIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.GetHTTPIntegration({
+        application_id: applicationID,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  updateHTTPIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.UpdateHTTPIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("http", "updated");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  deleteHTTPIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.DeleteHTTPIntegration({
+        application_id: applicationID,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("http", "deleted");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+      ;
+    });
+  }
+
+  createInfluxDBIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.CreateInfluxDBIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("InfluxDB", "created");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  getInfluxDBIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.GetInfluxDBIntegration({
+        application_id: applicationID,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  updateInfluxDBIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.UpdateInfluxDBIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("InfluxDB", "updated");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  deleteInfluxDBIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.DeleteInfluxDBIntegration({
+        application_id: applicationID,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("InfluxDB", "deleted");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+      ;
+    });
+  }
+
+  notify(action) {
+    dispatcher.dispatch({
+      type: "CREATE_NOTIFICATION",
+      notification: {
+        type: "success",
+        message: "application has been " + action,
+      },
+    });
+  }
+
+  integrationNotification(kind, action) {
+    dispatcher.dispatch({
+      type: "CREATE_NOTIFICATION",
+      notification: {
+        type: "success",
+        message: kind + " integration has been " + action,
+      },
+    });
   }
 }
 
 const applicationStore = new ApplicationStore();
-
 export default applicationStore;

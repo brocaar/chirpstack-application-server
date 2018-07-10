@@ -1,65 +1,103 @@
 import { EventEmitter } from "events";
-import "whatwg-fetch";
+
+import Swagger from "swagger-client";
+
 import sessionStore from "./SessionStore";
-import { checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler } from "./helpers";
+import dispatcher from "../dispatcher";
 
 
 class ServiceProfileStore extends EventEmitter {
-  getAllForOrganizationID(organizationID, pageSize, offset, callbackFunc) {
-    fetch("/api/service-profiles?organizationID="+organizationID+"&limit="+pageSize+"&offset="+offset, {headers: sessionStore.getHeader()})
-      .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        if(typeof(responseData.result) === "undefined") {
-          callbackFunc(0, []);
-        } else {
-          callbackFunc(responseData.totalCount, responseData.result);
-        }
-      })
-      .catch(errorHandler);
+  constructor() {
+    super();
+    this.swagger = new Swagger("/swagger/serviceProfile.swagger.json", sessionStore.getClientOpts());
   }
 
-  getServiceProfile(serviceProfileID, callbackFunc) {
-    fetch("/api/service-profiles/"+serviceProfileID, {headers: sessionStore.getHeader()})
+  create(serviceProfile, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ServiceProfileService.Create({
+        body: {
+          serviceProfile: serviceProfile,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("created");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  createServiceProfile(serviceProfile, callbackFunc) {
-    fetch("/api/service-profiles", {method: "POST", body: JSON.stringify(serviceProfile), headers: sessionStore.getHeader()})
+  get(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ServiceProfileService.Get({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  updateServiceProfile(serviceProfileID, serviceProfile, callbackFunc) {
-    fetch("/api/service-profiles/"+serviceProfileID, {method: "PUT", body: JSON.stringify(serviceProfile), headers: sessionStore.getHeader()})
+  update(serviceProfile, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ServiceProfileService.Update({
+        "service_profile.id": serviceProfile.id,
+        body: {
+          serviceProfile: serviceProfile,
+        },
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("updated");
+        callbackFunc(resp.obj);
       })
       .catch(errorHandler);
+    });
   }
 
-  deleteServiceProfile(serviceProfileID, callbackFunc) {
-    fetch("/api/service-profiles/"+serviceProfileID, {method: "DELETE", headers: sessionStore.getHeader()})
+  delete(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ServiceProfileService.Delete({
+        id: id,
+      })
       .then(checkStatus)
-      .then((response) => response.json())
-      .then((responseData) => {
-        callbackFunc(responseData);
+      .then(resp => {
+        this.notify("deleted");
+        callbackFunc(resp.ojb);
       })
       .catch(errorHandler);
+    });
+  }
+
+  list(organizationID, limit, offset, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ServiceProfileService.List({
+        organizationID: organizationID,
+        limit: limit,
+        offset: offset,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  notify(action) {
+    dispatcher.dispatch({
+      type: "CREATE_NOTIFICATION",
+      notification: {
+        type: "success",
+        message: "service-profile has been " + action,
+      },
+    });
   }
 }
 
 const serviceProfileStore = new ServiceProfileStore();
-
 export default serviceProfileStore;

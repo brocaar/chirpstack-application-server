@@ -18,7 +18,7 @@ class SessionStore extends EventEmitter {
     this.swagger.then(client => {
       this.client = client;
 
-      if (this.getToken() !== "") {
+      if (this.getToken() !== null) {
         this.fetchProfile(() => {});
       }
     });
@@ -93,8 +93,7 @@ class SessionStore extends EventEmitter {
   }
 
   logout(callBackFunc) {
-    localStorage.setItem("jwt", "");
-    localStorage.setItem("organizationID", "");
+    localStorage.clear();
     this.user = null;
     this.organizations = [];
     this.settings = {};

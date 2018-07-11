@@ -22,6 +22,7 @@ class OrganizationStore extends EventEmitter {
       })
       .then(checkStatus)
       .then(resp => {
+        this.emit("create", organization);
         this.notify("created");
         callbackFunc(resp.obj);
       })
@@ -67,6 +68,7 @@ class OrganizationStore extends EventEmitter {
       })
       .then(checkStatus)
       .then(resp => {
+        this.emit("delete", id);
         this.notify("deleted");
         callbackFunc(resp.obj);
       })

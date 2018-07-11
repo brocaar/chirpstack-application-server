@@ -38,6 +38,8 @@ class SideNav extends Component {
 
     this.state = {
       open: true,
+      organization: null,
+      cacheCounter: 0,
     };
 
 
@@ -56,12 +58,30 @@ class SideNav extends Component {
       });
     });
 
+    OrganizationStore.on("create", () => {
+      this.setState({
+        cacheCounter: this.state.cacheCounter + 1,
+      });
+    });
+
     OrganizationStore.on("change", (org) => {
-      if (this.state.organization !== undefined && this.state.organization.id === org.id) {
+      if (this.state.organization !== null && this.state.organization.id === org.id) {
         this.setState({
           organization: org,
         });
       }
+    });
+
+    OrganizationStore.on("delete", id => {
+      if (this.state.organization !== null && this.state.organization.id === id) {
+        this.setState({
+          organization: null,
+        });
+      }
+
+      this.setState({
+        cacheCounter: this.state.cacheCounter + 1,
+      });
     });
 
     if (SessionStore.getOrganizationID() !== null) {
@@ -91,7 +111,7 @@ class SideNav extends Component {
     const organizationRe = /\/organizations\/(\d+)/g;
     const match = organizationRe.exec(this.props.history.location.pathname);
 
-    if (match !== null && (this.state.organization === undefined || this.state.organization.id !== match[1])) {
+    if (match !== null && (this.state.organization === null || this.state.organization.id !== match[1])) {
       SessionStore.setOrganizationID(match[1]);
     }
   }
@@ -111,7 +131,7 @@ class SideNav extends Component {
 
   render() {
     let organizationID = "";
-    if (this.state.organization !== undefined) {
+    if (this.state.organization !== null) {
       organizationID = this.state.organization.id;
     }
 
@@ -159,6 +179,7 @@ class SideNav extends Component {
           getOption={this.getOrganizationOption}
           getOptions={this.getOrganizationOptions}
           className={this.props.classes.select}
+          triggerReload={this.state.cacheCounter}
         />
 
         {this.state.organization && <List>

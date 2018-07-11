@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 
 import Swagger from "swagger-client";
-import { checkStatus, errorHandler } from "./helpers";
+import { checkStatus, errorHandler, errorHandlerLogin } from "./helpers";
 
 
 class SessionStore extends EventEmitter {
@@ -88,7 +88,7 @@ class SessionStore extends EventEmitter {
           this.setToken(resp.obj.jwt);
           this.fetchProfile(callBackFunc);
         })
-        .catch(errorHandler);
+        .catch(errorHandlerLogin);
     });
   }
 

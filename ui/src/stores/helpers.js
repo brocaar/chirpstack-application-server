@@ -20,7 +20,7 @@ export function errorHandler(error) {
       },
     });
   } else {
-    if (error.response.obj.code === 16 && history.location.pathname !== "/login") {
+    if (error.response.obj.code === 16) {
       history.push("/login");
     } else {
       dispatcher.dispatch({
@@ -31,6 +31,26 @@ export function errorHandler(error) {
         },
       });
     }
+  }
+};
+
+export function errorHandlerLogin(error) {
+  if(error.response === undefined) {
+    dispatcher.dispatch({
+      type: "CREATE_NOTIFICATION",
+      notification: {
+        type: "error",
+        message: error.message,
+      },
+    });
+  } else {
+    dispatcher.dispatch({
+      type: "CREATE_NOTIFICATION",
+      notification: {
+        type: "error",
+        message: error.response.obj.error + " (code: " + error.response.obj.code + ")",
+      },
+    });
   }
 };
 

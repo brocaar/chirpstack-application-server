@@ -228,12 +228,18 @@ class AutocompleteSelect extends Component {
   }
 
   setSelectedOption() {
-    if (this.props.getOption !== undefined && this.props.value !== undefined && this.props.value !== "" && this.props.value !== null) {
-      this.props.getOption(this.props.value, resp => {
-        this.setState({
-          selectedOption: resp,
+    if (this.props.getOption !== undefined) {
+      if (this.props.value !== undefined && this.props.value !== "" && this.props.value !== null) {
+        this.props.getOption(this.props.value, resp => {
+          this.setState({
+            selectedOption: resp,
+          });
         });
-      });
+      } else {
+        this.setState({
+          selectedOption: "",
+        });
+      }
     }
   }
 

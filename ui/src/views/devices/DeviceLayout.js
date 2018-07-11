@@ -97,6 +97,9 @@ class DeviceLayout extends Component {
     this.setState({
       admin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID),
     });
+
+    // we need to update the tab index, as for non-admins, some tabs are hidden
+    this.locationToTab();
   }
 
   wsStatusChange() {

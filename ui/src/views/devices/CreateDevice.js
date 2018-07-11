@@ -66,7 +66,14 @@ class CreateDevice extends Component {
     dev.applicationID = this.props.match.params.applicationID;
 
     DeviceStore.create(dev, resp => {
-      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
+      DeviceProfileStore.get(dev.deviceProfileID, resp => {
+        if (resp.deviceProfile.supportsJoin) {
+          this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${dev.devEUI}/keys`);
+        } else {
+          this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${dev.devEUI}/activation`);
+        }
+      });
+
     });
   }
 

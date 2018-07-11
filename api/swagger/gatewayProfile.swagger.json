@@ -98,6 +98,7 @@
         "parameters": [
           {
             "name": "gateway_profile.id",
+            "description": "Gateway-profile ID (UUID string).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -131,6 +132,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Gateway-profile ID (UUID string).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -154,6 +156,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Gateway-profile id (UUID string).",
             "in": "path",
             "required": true,
             "type": "string"

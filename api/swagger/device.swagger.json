@@ -105,6 +105,7 @@
         "parameters": [
           {
             "name": "dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -128,6 +129,7 @@
         "parameters": [
           {
             "name": "dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -153,6 +155,7 @@
         "parameters": [
           {
             "name": "dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -178,6 +181,7 @@
         "parameters": [
           {
             "name": "dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -203,6 +207,7 @@
         "parameters": [
           {
             "name": "dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -228,6 +233,7 @@
         "parameters": [
           {
             "name": "dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -253,6 +259,7 @@
         "parameters": [
           {
             "name": "dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -276,6 +283,7 @@
         "parameters": [
           {
             "name": "dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -301,6 +309,7 @@
         "parameters": [
           {
             "name": "device.dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -334,6 +343,7 @@
         "parameters": [
           {
             "name": "device_activation.dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -367,6 +377,7 @@
         "parameters": [
           {
             "name": "device_keys.dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -398,6 +409,7 @@
         "parameters": [
           {
             "name": "device_keys.dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"

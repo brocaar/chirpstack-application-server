@@ -97,6 +97,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "User ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -121,6 +122,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "User ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -147,6 +149,7 @@
         "parameters": [
           {
             "name": "user.id",
+            "description": "User ID.\nWill be set automatically on create.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -181,6 +184,7 @@
         "parameters": [
           {
             "name": "user_id",
+            "description": "User ID.",
             "in": "path",
             "required": true,
             "type": "string",

@@ -98,6 +98,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Service-profile ID (UUID string).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -121,6 +122,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Service-profile ID (UUID string).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -146,6 +148,7 @@
         "parameters": [
           {
             "name": "service_profile.id",
+            "description": "Service-profile ID (UUID string).\nThis will be automatically set on create.",
             "in": "path",
             "required": true,
             "type": "string"

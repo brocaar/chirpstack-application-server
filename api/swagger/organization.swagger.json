@@ -97,6 +97,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Organization ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -121,6 +122,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Organization ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -147,6 +149,7 @@
         "parameters": [
           {
             "name": "organization.id",
+            "description": "Organization ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -181,6 +184,7 @@
         "parameters": [
           {
             "name": "organization_id",
+            "description": "Organization ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -223,6 +227,7 @@
         "parameters": [
           {
             "name": "organization_id",
+            "description": "Organization ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -230,6 +235,7 @@
           },
           {
             "name": "user_id",
+            "description": "User ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -254,6 +260,7 @@
         "parameters": [
           {
             "name": "organization_id",
+            "description": "Organization ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -261,6 +268,7 @@
           },
           {
             "name": "user_id",
+            "description": "User ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -287,6 +295,7 @@
         "parameters": [
           {
             "name": "organization_user.organization_id",
+            "description": "Organization ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -321,6 +330,7 @@
         "parameters": [
           {
             "name": "organization_user.organization_id",
+            "description": "Organization ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -328,6 +338,7 @@
           },
           {
             "name": "organization_user.user_id",
+            "description": "User ID.",
             "in": "path",
             "required": true,
             "type": "string",

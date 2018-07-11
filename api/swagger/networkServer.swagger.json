@@ -98,6 +98,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Network-server ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -122,6 +123,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Network-server ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -148,6 +150,7 @@
         "parameters": [
           {
             "name": "network_server.id",
+            "description": "Network-server ID.",
             "in": "path",
             "required": true,
             "type": "string",

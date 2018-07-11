@@ -106,6 +106,7 @@
         "parameters": [
           {
             "name": "device_profile.id",
+            "description": "Device-profile ID (UUID string).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -139,6 +140,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Device-profile ID (UUID string).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -162,6 +164,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Device-profile ID (UUID string).",
             "in": "path",
             "required": true,
             "type": "string"

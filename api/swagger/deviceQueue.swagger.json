@@ -30,6 +30,7 @@
         "parameters": [
           {
             "name": "dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -53,6 +54,7 @@
         "parameters": [
           {
             "name": "dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"
@@ -78,6 +80,7 @@
         "parameters": [
           {
             "name": "device_queue_item.dev_eui",
+            "description": "Device EUI (HEX encoded).",
             "in": "path",
             "required": true,
             "type": "string"

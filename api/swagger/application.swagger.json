@@ -105,6 +105,7 @@
         "parameters": [
           {
             "name": "application.id",
+            "description": "Application ID.\nThis will be automatically assigned on create.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -139,6 +140,7 @@
         "parameters": [
           {
             "name": "application_id",
+            "description": "The id of the application.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -165,6 +167,7 @@
         "parameters": [
           {
             "name": "application_id",
+            "description": "Application ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -189,6 +192,7 @@
         "parameters": [
           {
             "name": "application_id",
+            "description": "The id of the application.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -215,6 +219,7 @@
         "parameters": [
           {
             "name": "application_id",
+            "description": "Application ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -239,6 +244,7 @@
         "parameters": [
           {
             "name": "application_id",
+            "description": "Application ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -265,6 +271,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Application ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -289,6 +296,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Application ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -315,6 +323,7 @@
         "parameters": [
           {
             "name": "integration.application_id",
+            "description": "The id of the application.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -347,6 +356,7 @@
         "parameters": [
           {
             "name": "integration.application_id",
+            "description": "The id of the application.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -381,6 +391,7 @@
         "parameters": [
           {
             "name": "integration.application_id",
+            "description": "Application ID.",
             "in": "path",
             "required": true,
             "type": "string",
@@ -413,6 +424,7 @@
         "parameters": [
           {
             "name": "integration.application_id",
+            "description": "Application ID.",
             "in": "path",
             "required": true,
             "type": "string",

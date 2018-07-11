@@ -62,19 +62,19 @@ static/swagger/api.swagger.json:
 # shortcuts for development
 
 requirements:
-	@echo "Installing development tools"
-	@go get -u github.com/golang/lint/golint
-	@go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-	@go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
-	@go get -u github.com/golang/protobuf/protoc-gen-go
-	@go get -u github.com/elazarl/go-bindata-assetfs/...
-	@go get -u github.com/jteeuwen/go-bindata/...
-	@go get -u github.com/kisielk/errcheck
-	@go get -u github.com/smartystreets/goconvey
-	@go get -u golang.org/x/tools/cmd/stringer
-	@go get -u github.com/golang/dep/cmd/dep
-	@go get -u github.com/goreleaser/goreleaser
-	@dep ensure -v
+	echo "Installing development tools"
+	go get -u github.com/golang/lint/golint
+	go get -u github.com/brocaar/grpc-gateway/protoc-gen-grpc-gateway
+	go get -u github.com/brocaar/grpc-gateway/protoc-gen-swagger
+	go get -u github.com/golang/protobuf/protoc-gen-go
+	go get -u github.com/elazarl/go-bindata-assetfs/...
+	go get -u github.com/jteeuwen/go-bindata/...
+	go get -u github.com/kisielk/errcheck
+	go get -u github.com/smartystreets/goconvey
+	go get -u golang.org/x/tools/cmd/stringer
+	go get -u github.com/golang/dep/cmd/dep
+	go get -u github.com/goreleaser/goreleaser
+	dep ensure -v
 
 ui-requirements:
 	@echo "Installing UI requirements"

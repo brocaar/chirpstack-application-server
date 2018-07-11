@@ -211,7 +211,7 @@ class AutocompleteSelect extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps === this.props) {
+    if (prevProps.value === this.props.value && prevProps.triggerReload === this.props.triggerReload) {
       return;
     }
 

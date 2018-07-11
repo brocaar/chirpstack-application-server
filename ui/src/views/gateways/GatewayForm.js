@@ -209,6 +209,7 @@ class GatewayForm extends FormComponent {
             id="gatewayProfileID"
             label="Gateway-profile"
             value={this.state.object.gatewayProfileID || ""}
+            triggerReload={this.state.object.networkServerID || ""}
             onChange={this.onChange}
             getOption={this.getGatewayProfileOption}
             getOptions={this.getGatewayProfileOptions}

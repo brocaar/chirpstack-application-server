@@ -206,8 +206,7 @@ class AutocompleteSelect extends Component {
   }
 
   componentDidMount() {
-    this.setInitialOptions();
-    this.setSelectedOption();
+    this.setInitialOptions(this.setSelectedOption);
   }
 
   componentDidUpdate(prevProps) {
@@ -215,15 +214,14 @@ class AutocompleteSelect extends Component {
       return;
     }
 
-    this.setInitialOptions();
-    this.setSelectedOption();
+    this.setInitialOptions(this.setSelectedOption);
   }
 
-  setInitialOptions() {
+  setInitialOptions(callbackFunc) {
     this.props.getOptions("", options => {
       this.setState({
         options: options,
-      });
+      }, callbackFunc);
     });
   }
 
@@ -235,6 +233,20 @@ class AutocompleteSelect extends Component {
             selectedOption: resp,
           });
         });
+      } else {
+        this.setState({
+          selectedOption: "",
+        });
+      }
+    } else {
+      if (this.props.value !== undefined && this.props.value !== "" && this.props.value !== null) {
+        for (const opt of this.state.options) {
+          if (this.props.value === opt.value) {
+            this.setState({
+              selectedOption: opt,
+            });
+          }
+        }
       } else {
         this.setState({
           selectedOption: "",

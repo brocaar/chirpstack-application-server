@@ -210,7 +210,7 @@ class GatewayForm extends FormComponent {
           </FormHelperText>
         </FormControl>}
         <FormControl fullWidth margin="normal">
-          <FormLabel className={this.props.classes.formLabel} required>Gateway-profile</FormLabel>
+          <FormLabel className={this.props.classes.formLabel}>Gateway-profile</FormLabel>
           <AutocompleteSelect
             id="gatewayProfileID"
             label="Select gateway-profile"

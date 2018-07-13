@@ -82,19 +82,21 @@ class Login extends Component {
                 <TextField
                   id="username"
                   label="Username"
-                  fullWidth={true}
                   margin="normal"
                   value={this.state.login.username || ""}
                   onChange={this.onChange}
+                  fullWidth
+                  required
                 />
                 <TextField
                   id="password"
                   label="Password"
-                  fullWidth={true}
                   type="password"
                   margin="normal"
                   value={this.state.login.password || ""}
                   onChange={this.onChange}
+                  fullWidth
+                  required
                 />
               </Form>
             </CardContent>

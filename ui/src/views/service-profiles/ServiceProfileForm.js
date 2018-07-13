@@ -1,6 +1,8 @@
 import React from "react";
 
+import { withStyles } from "@material-ui/core/styles";
 import TextField from '@material-ui/core/TextField';
+import FormLabel from "@material-ui/core/FormLabel";
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from "@material-ui/core/FormGroup";
 import Checkbox from '@material-ui/core/Checkbox';
@@ -11,6 +13,11 @@ import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import NetworkServerStore from "../../stores/NetworkServerStore";
+
+
+const styles = {
+  fontSize: 12,
+};
 
 
 class ServiceProfileForm extends FormComponent {
@@ -55,6 +62,7 @@ class ServiceProfileForm extends FormComponent {
           fullWidth
         />
         {!this.props.update && <FormControl fullWidth margin="normal">
+          <FormLabel className={this.props.classes.FormLabel} required>Network-server</FormLabel>
           <AutocompleteSelect
             id="networkServerID"
             label="Network-server"
@@ -146,4 +154,4 @@ class ServiceProfileForm extends FormComponent {
   }
 }
 
-export default ServiceProfileForm;
+export default withStyles(styles)(ServiceProfileForm);

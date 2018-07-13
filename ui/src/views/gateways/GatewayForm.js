@@ -20,12 +20,16 @@ import LocationStore from "../../stores/LocationStore";
 import MapTileLayer from "../../components/MapTileLayer";
 import theme from "../../theme";
 
+
 const styles = {
   mapLabel: {
     marginBottom: theme.spacing.unit,
   },
   link: {
     color: theme.palette.primary.main,
+  },
+  formLabel: {
+    fontSize: 12,
   },
 };
 
@@ -192,9 +196,10 @@ class GatewayForm extends FormComponent {
           fullWidth
         />}
         {!this.props.update && <FormControl fullWidth margin="normal">
+          <FormLabel className={this.props.classes.formLabel} required>Network-server</FormLabel>
           <AutocompleteSelect
             id="networkServerID"
-            label="Network-server"
+            label="Select network-server"
             value={this.state.object.networkServerID || ""}
             onChange={this.onChange}
             getOption={this.getNetworkServerOption}
@@ -205,9 +210,10 @@ class GatewayForm extends FormComponent {
           </FormHelperText>
         </FormControl>}
         <FormControl fullWidth margin="normal">
+          <FormLabel className={this.props.classes.formLabel} required>Gateway-profile</FormLabel>
           <AutocompleteSelect
             id="gatewayProfileID"
-            label="Gateway-profile"
+            label="Select gateway-profile"
             value={this.state.object.gatewayProfileID || ""}
             triggerReload={this.state.object.networkServerID || ""}
             onChange={this.onChange}

@@ -1,5 +1,6 @@
 import React from "react";
 
+import { withStyles } from "@material-ui/core/styles";
 import TextField from '@material-ui/core/TextField';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -12,6 +13,14 @@ import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import NetworkServerStore from "../../stores/NetworkServerStore";
+import { FormLabel } from "../../../node_modules/@material-ui/core";
+
+
+const styles = {
+  formLabel: {
+    fontSize: 12,
+  },
+};
 
 
 class DeviceProfileForm extends FormComponent {
@@ -132,9 +141,10 @@ class DeviceProfileForm extends FormComponent {
             fullWidth
           />
           {!this.props.update && <FormControl fullWidth margin="normal">
+            <FormLabel className={this.props.classes.formLabel} required>Network-server</FormLabel>
             <AutocompleteSelect
               id="networkServerID"
-              label="Network-server"
+              label="Select network-server"
               value={this.state.object.networkServerID || ""}
               onChange={this.onChange}
               getOption={this.getNetworkServerOption}
@@ -145,9 +155,10 @@ class DeviceProfileForm extends FormComponent {
             </FormHelperText>
           </FormControl>}
           <FormControl fullWidth margin="normal">
+            <FormLabel className={this.props.classes.formLabel} required>LoRaWAN MAC version</FormLabel>
             <AutocompleteSelect
               id="macVersion"
-              label="LoRaWAN MAC version"
+              label="Select LoRaWAN MAC version"
               value={this.state.object.macVersion || ""}
               onChange={this.onChange}
               getOptions={this.getMACVersionOptions}
@@ -157,9 +168,10 @@ class DeviceProfileForm extends FormComponent {
             </FormHelperText>
           </FormControl>
           <FormControl fullWidth margin="normal">
+            <FormLabel className={this.props.classes.formLabel} required>LoRaWAN Regional Parameters revision</FormLabel>
             <AutocompleteSelect
               id="regParamsRevision"
-              label="LoRaWAN Regional Parameters revision"
+              label="Select LoRaWAN Regional Parameters revision"
               value={this.state.object.regParamsRevision || ""}
               onChange={this.onChange}
               getOptions={this.getRegParamsOptions}
@@ -280,9 +292,10 @@ class DeviceProfileForm extends FormComponent {
               fullWidth
               margin="normal"
             >
+              <FormLabel className={this.props.classes.formLabel} required>Class-B ping-slot periodicity</FormLabel>
               <AutocompleteSelect
                 id="pingSlotPeriod"
-                label="Class-B ping-slot periodicity"
+                label="Select Class-B ping-slot periodicity"
                 value={this.state.object.pingSlotPeriod || ""}
                 onChange={this.onChange}
                 getOptions={this.getPingSlotPeriodOptions}
@@ -343,4 +356,4 @@ class DeviceProfileForm extends FormComponent {
   }
 }
 
-export default DeviceProfileForm;
+export default withStyles(styles)(DeviceProfileForm);

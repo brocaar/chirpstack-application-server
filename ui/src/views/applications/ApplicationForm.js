@@ -3,6 +3,7 @@ import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import TextField from '@material-ui/core/TextField';
 import FormControl from "@material-ui/core/FormControl";
+import FormLabel from "@material-ui/core/FormLabel";
 import FormHelperText from "@material-ui/core/FormHelperText";
 
 import {Controlled as CodeMirror} from "react-codemirror2";
@@ -17,6 +18,9 @@ import ServiceProfileStore from "../../stores/ServiceProfileStore";
 const styles = {
   codeMirror: {
     zIndex: 1,
+  },
+  formLabel: {
+    fontSize: 12,
   },
 };
 
@@ -108,6 +112,7 @@ function Decode(fPort, bytes) {
           onChange={this.onChange}
           helperText="The name may only contain words, numbers and dashes."
           fullWidth
+          required
         />
         <TextField
           id="description"
@@ -116,11 +121,13 @@ function Decode(fPort, bytes) {
           value={this.state.object.description || ""}
           onChange={this.onChange}
           fullWidth
+          required
         />
         {!this.props.update && <FormControl fullWidth margin="normal">
+          <FormLabel className={this.props.classes.formLabel} required>Service-profile</FormLabel>
           <AutocompleteSelect
             id="serviceProfileID"
-            label="Service-profile"
+            label="Select service-profile"
             value={this.state.object.serviceProfileID || ""}
             onChange={this.onChange}
             getOption={this.getServiceProfileOption}
@@ -131,9 +138,10 @@ function Decode(fPort, bytes) {
           </FormHelperText>
         </FormControl>}
         <FormControl fullWidth margin="normal">
+          <FormLabel className={this.props.classes.formLabel}>Payload codec</FormLabel>
           <AutocompleteSelect
             id="payloadCodec"
-            label="Payload codec"
+            label="Select payload codec"
             value={this.state.object.payloadCodec || ""}
             onChange={this.onChange}
             getOptions={this.getPayloadCodecOptions}

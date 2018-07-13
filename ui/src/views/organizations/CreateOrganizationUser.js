@@ -6,6 +6,8 @@ import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+import FormControl from "@material-ui/core/FormControl";
+import FormLabel from "@material-ui/core/FormLabel";
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from "@material-ui/core/FormGroup";
 import Checkbox from '@material-ui/core/Checkbox';
@@ -21,6 +23,22 @@ import UserStore from "../../stores/UserStore";
 import OrganizationStore from "../../stores/OrganizationStore";
 import SessionStore from "../../stores/SessionStore";
 import theme from "../../theme";
+
+
+const styles = {
+  card: {
+    overflow: "visible",
+  },
+  tabs: {
+    borderBottom: "1px solid " + theme.palette.divider,
+    height: "48px",
+    overflow: "visible",
+  },
+  formLabel: {
+    fontSize: 12,
+  },
+};
+
 
 
 class AssignUserForm extends FormComponent {
@@ -54,14 +72,17 @@ class AssignUserForm extends FormComponent {
         submitLabel="Add user"
         onSubmit={this.onSubmit}
       >
-        <AutocompleteSelect
-          id="userID"
-          label="Username"
-          value={this.state.object.userID || null}
-          onChange={this.onChange}
-          getOption={this.getUserOption}
-          getOptions={this.getUserOptions}
-        />
+        <FormControl margin="normal" fullWidth>
+          <FormLabel className={this.props.classes.formLabel} required>Username</FormLabel>
+          <AutocompleteSelect
+            id="userID"
+            label="Select username"
+            value={this.state.object.userID || null}
+            onChange={this.onChange}
+            getOption={this.getUserOption}
+            getOptions={this.getUserOptions}
+          />
+        </FormControl>
         <FormGroup row>
           <FormControlLabel
             label="Is organization admin"
@@ -79,6 +100,8 @@ class AssignUserForm extends FormComponent {
     );
   };
 }
+
+AssignUserForm = withStyles(styles)(AssignUserForm);
 
 
 class CreateUserForm extends FormComponent {
@@ -148,18 +171,6 @@ class CreateUserForm extends FormComponent {
     );
   }
 }
-
-
-const styles = {
-  card: {
-    overflow: "visible",
-  },
-  tabs: {
-    borderBottom: "1px solid " + theme.palette.divider,
-    height: "48px",
-    overflow: "visible",
-  },
-};
 
 
 class CreateOrganizationUser extends Component {

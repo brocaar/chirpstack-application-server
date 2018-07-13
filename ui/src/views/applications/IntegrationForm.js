@@ -21,6 +21,9 @@ const styles = {
   delete: {
     marginTop: 3 * theme.spacing.unit,
   },
+  formLabel: {
+    fontSize: 12,
+  },
 };
 
 
@@ -255,10 +258,10 @@ class InfluxDBIntegrationForm extends FormComponent {
           fullWidth
         />
         <FormControl fullWidth margin="normal">
-          <FormLabel>Timestamp precision</FormLabel>
+          <FormLabel className={this.props.classes.formLabel} required>Timestamp precision</FormLabel>
           <AutocompleteSelect
             id="precision"
-            label="Timestamp precision"
+            label="Select timestamp precision"
             value={this.state.object.precision || ""}
             onChange={this.onChange}
             getOptions={this.getPrecisionOptions}
@@ -271,6 +274,8 @@ class InfluxDBIntegrationForm extends FormComponent {
     );
   }
 }
+
+InfluxDBIntegrationForm = withStyles(styles)(InfluxDBIntegrationForm);
 
 
 class IntegrationForm extends FormComponent {
@@ -306,10 +311,10 @@ class IntegrationForm extends FormComponent {
         onSubmit={this.onSubmit}
       >
         {!this.props.update && <FormControl fullWidth margin="normal">
-          <FormLabel>Integration kind</FormLabel>
+          <FormLabel className={this.props.classes.formLabel} required>Integration kind</FormLabel>
           <AutocompleteSelect
             id="kind"
-            label="Integration kind"
+            label="Select integration kind"
             value={this.state.object.kind || ""}
             onChange={this.onChange}
             getOptions={this.getKindOptions}
@@ -322,4 +327,4 @@ class IntegrationForm extends FormComponent {
   }
 }
 
-export default IntegrationForm;
+export default withStyles(styles)(IntegrationForm);

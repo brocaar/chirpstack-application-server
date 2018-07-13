@@ -6,6 +6,7 @@ import FormGroup from "@material-ui/core/FormGroup";
 import Checkbox from '@material-ui/core/Checkbox';
 
 import FormComponent from "../../classes/FormComponent";
+import FormControl from "../../components/FormControl";
 import Form from "../../components/Form";
 
 
@@ -59,30 +60,32 @@ class UserForm extends FormComponent {
           required
           fullWidth
         />}
-        <FormGroup row>
-          <FormControlLabel
-            label="Is active"
-            control={
-              <Checkbox
-                id="isActive"
-                checked={!!this.state.object.isActive}
-                onChange={this.onChange}
-                color="primary"
-              />
-            }
-          />
-          <FormControlLabel
-            label="Is global admin"
-            control={
-              <Checkbox
-                id="isAdmin"
-                checked={!!this.state.object.isAdmin}
-                onChange={this.onChange}
-                color="primary"
-              />
-            }
-          />
-        </FormGroup>
+        <FormControl label="Permissions">
+          <FormGroup row>
+            <FormControlLabel
+              label="Is active"
+              control={
+                <Checkbox
+                  id="isActive"
+                  checked={!!this.state.object.isActive}
+                  onChange={this.onChange}
+                  color="primary"
+                />
+              }
+            />
+            <FormControlLabel
+              label="Is global admin"
+              control={
+                <Checkbox
+                  id="isAdmin"
+                  checked={!!this.state.object.isAdmin}
+                  onChange={this.onChange}
+                  color="primary"
+                />
+              }
+            />
+          </FormGroup>
+        </FormControl>
       </Form>
     );
   }

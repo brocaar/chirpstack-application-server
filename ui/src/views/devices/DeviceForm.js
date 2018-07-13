@@ -1,5 +1,6 @@
 import React from "react";
 
+import { withStyles } from "@material-ui/core/styles";
 import TextField from '@material-ui/core/TextField';
 import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
@@ -12,6 +13,13 @@ import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import DeviceProfileStore from "../../stores/DeviceProfileStore";
+
+
+const styles = {
+  formLabel: {
+    fontSize: 12,
+  },
+};
 
 
 class DeviceForm extends FormComponent {
@@ -80,8 +88,8 @@ class DeviceForm extends FormComponent {
           fullWidth
           required
         />}
-        <FormControl fullWidth margin="normal" required>
-          <FormLabel>Device-profile</FormLabel>
+        <FormControl fullWidth margin="normal">
+          <FormLabel className={this.props.classes.formLabel} required>Device-profile</FormLabel>
           <AutocompleteSelect
             id="deviceProfileID"
             label="Device-profile"
@@ -114,4 +122,4 @@ class DeviceForm extends FormComponent {
   }
 }
 
-export default DeviceForm;
+export default withStyles(styles)(DeviceForm);

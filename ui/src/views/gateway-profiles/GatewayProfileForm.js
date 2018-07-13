@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 
 import { withStyles } from '@material-ui/core/styles';
+import FormControlOrig from "@material-ui/core/FormControl";
+import FormLabel from "@material-ui/core/FormLabel";
 import TextField from '@material-ui/core/TextField';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
@@ -20,6 +22,9 @@ import theme from "../../theme";
 const styles = {
   a: {
     color: theme.palette.primary.main,
+  },
+  formLabel: {
+    fontSize: 12,
   },
 };
 
@@ -80,14 +85,13 @@ class ExtraChannel extends Component {
         <Grid container spacing={24}>
           <Grid item xs={6}>
             <FormControl>
-              <InputLabel htmlFor="modulation">Modulation</InputLabel>
+              <InputLabel htmlFor="modulation" required>Modulation</InputLabel>
               <Select
                 value={this.props.channel.modulation || ""}
                 onChange={this.onChange}
                 inputProps={{
                   name: "modulation",
                 }}
-                required
               >
                 <MenuItem value="LORA">LoRa</MenuItem>
                 <MenuItem value="FSK">FSK</MenuItem>
@@ -96,14 +100,13 @@ class ExtraChannel extends Component {
           </Grid>
           <Grid item xs={6}>
             <FormControl>
-              <InputLabel htmlFor="bandwidth">bandwidth (kHz)</InputLabel>
+              <InputLabel htmlFor="bandwidth" required>bandwidth (kHz)</InputLabel>
               <Select
                 value={this.props.channel.bandwidth || ""}
                 onChange={this.onChange}
                 inputProps={{
                   name: "bandwidth",
                 }}
-                required
               >
                 <MenuItem value={125}>125 kHz</MenuItem>
                 <MenuItem value={250}>250 kHz</MenuItem>
@@ -296,18 +299,21 @@ class GatewayProfileForm extends FormComponent {
           required
           fullWidth
         />
-        {!this.props.update && <AutocompleteSelect
-          id="networkServerID"
-          label="Network-server"
-          value={this.state.object.networkServerID || ""}
-          onChange={this.onChange}
-          getOption={this.getNetworkServerOption}
-          getOptions={this.getNetworkServerOptions}
-        />}
+        {!this.props.update && <FormControlOrig margin="normal" fullWidth>
+          <FormLabel className={this.props.classes.formLabel} required>Network-server</FormLabel>
+          <AutocompleteSelect
+            id="networkServerID"
+            label="Select network-server"
+            value={this.state.object.networkServerID || ""}
+            onChange={this.onChange}
+            getOption={this.getNetworkServerOption}
+            getOptions={this.getNetworkServerOptions}
+          />
+        </FormControlOrig>}
         {extraChannels}
       </Form>
     );
   }
 }
 
-export default GatewayProfileForm;
+export default withStyles(styles)(GatewayProfileForm);

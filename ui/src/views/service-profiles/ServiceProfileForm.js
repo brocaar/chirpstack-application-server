@@ -102,7 +102,7 @@ class ServiceProfileForm extends FormComponent {
           fullWidth
         />
         {this.state.object.devStatusReqFreq > 0 && <FormControl fullWidth margin="normal">
-          <FormGroup row>
+          <FormGroup>
             <FormControlLabel
               label="Report device battery level to application-server"
               control={

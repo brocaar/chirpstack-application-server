@@ -83,7 +83,7 @@ class AssignUserForm extends FormComponent {
             getOptions={this.getUserOptions}
           />
         </FormControl>
-        <FormGroup row>
+        <FormGroup>
           <FormControlLabel
             label="Is organization admin"
             control={
@@ -154,7 +154,7 @@ class CreateUserForm extends FormComponent {
           required
           fullWidth
         />
-        <FormGroup row>
+        <FormGroup>
           <FormControlLabel
             label="Is organization admin"
             control={

@@ -20,7 +20,7 @@ class OrganizationUserForm extends FormComponent {
         submitLabel={this.props.submitLabel}
         onSubmit={this.onSubmit}
       >
-        <FormGroup row>
+        <FormGroup>
           <TextField
             label="Username"
             margin="normal"

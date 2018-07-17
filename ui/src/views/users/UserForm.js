@@ -61,7 +61,7 @@ class UserForm extends FormComponent {
           fullWidth
         />}
         <FormControl label="Permissions">
-          <FormGroup row>
+          <FormGroup>
             <FormControlLabel
               label="Is active"
               control={

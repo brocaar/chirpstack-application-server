@@ -100,7 +100,7 @@ class DeviceForm extends FormComponent {
           />
         </FormControl>
         <FormControl margin="normal">
-          <FormGroup row>
+          <FormGroup>
             <FormControlLabel
               label="Disable frame-counter validation"
               control={

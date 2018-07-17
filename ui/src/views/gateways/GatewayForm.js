@@ -228,7 +228,7 @@ class GatewayForm extends FormComponent {
             An optional gateway-profile which can be assigned to a gateway. This configuration can be used to automatically re-configure the gateway when LoRa Gateway Bridge is configured so that it manages the packet-forwarder configuration.
           </FormHelperText>
         </FormControl>
-        <FormGroup row>
+        <FormGroup>
           <FormControlLabel
             label="Gateway discovery enabled"
             control={

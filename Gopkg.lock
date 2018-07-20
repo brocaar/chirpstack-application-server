@@ -3,7 +3,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4b4dcd4ce2d702314181c529c841bb9e156f4cb05ccb7524867be448c2f68103"
+  digest = "1:78232ec7580e72acfc3b8cecd63b1aaf4f92f5579380eaee1e1dcebe27253a57"
+  name = "github.com/NickBall/go-aes-key-wrap"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "1c3aa3e4dfc5b00bec9983bd1de6a71b3d52cd6d"
+
+[[projects]]
+  branch = "master"
+  digest = "1:51a102e78784c98caa2b260c6998a86baccb867d1f2043c93297c0bb0a43ffb7"
   name = "github.com/brocaar/loraserver"
   packages = [
     "api/as",
@@ -12,11 +20,11 @@
     "api/ns",
   ]
   pruneopts = "UT"
-  revision = "4d0a4ad58fc2b6cb9f4f8d8fca41d8aa972934d3"
+  revision = "95340c1a93ba94f6d4368ff7eecc3a4bc1c79a78"
 
 [[projects]]
   branch = "master"
-  digest = "1:8c0a2b7685a36ff810c35a23dd4793759fd10a73c6fd80e1664ee4364f3bb7d0"
+  digest = "1:1f6d2e8a529e7a05e9efb20b7aca2ce3876d0b3c9e79b3218637e3f7b138651f"
   name = "github.com/brocaar/lorawan"
   packages = [
     ".",
@@ -24,7 +32,7 @@
     "band",
   ]
   pruneopts = "NUT"
-  revision = "33c77dad210efd43f1cfb7cb91b50d9088e68854"
+  revision = "f8d816eb916de4ef3253cc6f1f1036d25a1e324b"
 
 [[projects]]
   digest = "1:01ced7908dbaae42990af9521328922b8948bdcb174c23bba6db572381515716"
@@ -518,6 +526,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/NickBall/go-aes-key-wrap",
     "github.com/brocaar/loraserver/api/as",
     "github.com/brocaar/loraserver/api/common",
     "github.com/brocaar/loraserver/api/gw",

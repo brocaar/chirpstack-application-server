@@ -56,7 +56,7 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 	if err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		// if JSON object is set, try to encode it to bytes
 		if req.DeviceQueueItem.JsonObject != "" {
-			dev, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, true)
+			dev, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, true, true)
 			if err != nil {
 				return errToRPCError(err)
 			}

@@ -3,15 +3,11 @@ package api
 import (
 	"encoding/json"
 
-	"github.com/brocaar/loraserver/api/gw"
-
 	"github.com/golang/protobuf/ptypes"
-
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/satori/go.uuid"
-
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -22,6 +18,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/eventlog"
 	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/loraserver/api/gw"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 )
@@ -97,7 +94,7 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, eui, false)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, eui, false, false)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -219,23 +216,25 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*e
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
-	if err != nil {
-		return nil, errToRPCError(err)
-	}
-
-	d.DeviceProfileID = dpID
-	d.Name = req.Device.Name
-	d.Description = req.Device.Description
-	d.SkipFCntCheck = req.Device.SkipFCntCheck
-
-	// as this also performs a remote call to update the node on the
-	// network-server, wrap it in a transaction
 	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
-		return storage.UpdateDevice(tx, &d)
+		d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, true, false)
+		if err != nil {
+			return errToRPCError(err)
+		}
+
+		d.DeviceProfileID = dpID
+		d.Name = req.Device.Name
+		d.Description = req.Device.Description
+		d.SkipFCntCheck = req.Device.SkipFCntCheck
+
+		if err := storage.UpdateDevice(tx, &d, false); err != nil {
+			return errToRPCError(err)
+		}
+
+		return nil
 	})
 	if err != nil {
-		return nil, errToRPCError(err)
+		return nil, err
 	}
 
 	return &empty.Empty{}, nil
@@ -253,15 +252,10 @@ func (a *DeviceAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*e
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, eui, false)
-	if err != nil {
-		return nil, errToRPCError(err)
-	}
-
 	// as this also performs a remote call to delete the node from the
 	// network-server, wrap it in a transaction
-	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
-		return storage.DeleteDevice(tx, d.DevEUI)
+	err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
+		return storage.DeleteDevice(tx, eui)
 	})
 	if err != nil {
 		return nil, errToRPCError(err)
@@ -441,7 +435,7 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false, true)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -488,12 +482,9 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 	}
 
 	err = storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &storage.DeviceActivation{
-		DevEUI:      d.DevEUI,
-		DevAddr:     devAddr,
-		AppSKey:     appSKey,
-		FNwkSIntKey: fNwkSIntKey,
-		SNwkSIntKey: sNwkSIntKey,
-		NwkSEncKey:  nwkSEncKey,
+		DevEUI:  d.DevEUI,
+		DevAddr: devAddr,
+		AppSKey: appSKey,
 	})
 	if err != nil {
 		return nil, errToRPCError(err)
@@ -524,7 +515,7 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false, true)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

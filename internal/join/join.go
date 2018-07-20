@@ -5,11 +5,8 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/eventlog"
-	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/backend"
@@ -22,7 +19,6 @@ type context struct {
 	rejoinAnsPaylaod backend.RejoinAnsPayload
 	joinType         lorawan.JoinType
 	phyPayload       lorawan.PHYPayload
-	device           storage.Device
 	application      storage.Application
 	deviceKeys       storage.DeviceKeys
 	devNonce         lorawan.DevNonce
@@ -38,26 +34,18 @@ type context struct {
 
 var joinTasks = []func(*context) error{
 	setJoinContext,
-	getDevice,
-	getApplication,
 	getDeviceKeys,
 	validateMIC,
 	setJoinNonce,
 	setSessionKeys,
-	createDeviceActivationRecord,
-	sendJoinNotification,
 	createJoinAnsPayload,
 }
 
 var rejoinTasks = []func(*context) error{
 	setRejoinContext,
-	getDevice,
-	getApplication,
 	getDeviceKeys,
 	setJoinNonce,
 	setSessionKeys,
-	createDeviceActivationRecord,
-	sendJoinNotification,
 	createRejoinAnsPayload,
 }
 
@@ -218,28 +206,8 @@ func setRejoinContext(ctx *context) error {
 	return nil
 }
 
-func getDevice(ctx *context) error {
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, ctx.devEUI, false)
-	if err != nil {
-		return errors.Wrap(err, "get device error")
-	}
-
-	ctx.device = d
-	return nil
-}
-
-func getApplication(ctx *context) error {
-	a, err := storage.GetApplication(config.C.PostgreSQL.DB, ctx.device.ApplicationID)
-	if err != nil {
-		return errors.Wrap(err, "get application error")
-	}
-
-	ctx.application = a
-	return nil
-}
-
 func getDeviceKeys(ctx *context) error {
-	dk, err := storage.GetDeviceKeys(config.C.PostgreSQL.DB, ctx.device.DevEUI)
+	dk, err := storage.GetDeviceKeys(config.C.PostgreSQL.DB, ctx.devEUI)
 	if err != nil {
 		return errors.Wrap(err, "get device-keys error")
 	}
@@ -305,47 +273,6 @@ func setSessionKeys(ctx *context) error {
 	return nil
 }
 
-func createDeviceActivationRecord(ctx *context) error {
-	da := storage.DeviceActivation{
-		DevEUI:      ctx.device.DevEUI,
-		DevAddr:     ctx.joinReqPayload.DevAddr,
-		FNwkSIntKey: ctx.fNwkSIntKey,
-		AppSKey:     ctx.appSKey,
-		SNwkSIntKey: ctx.sNwkSIntKey,
-		NwkSEncKey:  ctx.nwkSEncKey,
-	}
-
-	if err := storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &da); err != nil {
-		return errors.Wrap(err, "create device-activation error")
-	}
-
-	return nil
-}
-
-func sendJoinNotification(ctx *context) error {
-	pl := handler.JoinNotification{
-		ApplicationID:   ctx.device.ApplicationID,
-		ApplicationName: ctx.application.Name,
-		DeviceName:      ctx.device.Name,
-		DevEUI:          ctx.device.DevEUI,
-		DevAddr:         ctx.joinReqPayload.DevAddr,
-	}
-
-	err := eventlog.LogEventForDevice(ctx.device.DevEUI, eventlog.EventLog{
-		Type:    eventlog.Join,
-		Payload: pl,
-	})
-	if err != nil {
-		log.WithError(err).Error("log event for device error")
-	}
-
-	err = config.C.ApplicationServer.Integration.Handler.SendJoinNotification(pl)
-	if err != nil {
-		return errors.Wrap(err, "send join notification error")
-	}
-	return nil
-}
-
 func createJoinAnsPayload(ctx *context) error {
 	var cFList *lorawan.CFList
 	if len(ctx.joinReqPayload.CFList[:]) != 0 {
@@ -371,7 +298,7 @@ func createJoinAnsPayload(ctx *context) error {
 	}
 
 	if ctx.joinReqPayload.DLSettings.OptNeg {
-		jsIntKey, err := getJSIntKey(ctx.deviceKeys.NwkKey, ctx.device.DevEUI)
+		jsIntKey, err := getJSIntKey(ctx.deviceKeys.NwkKey, ctx.devEUI)
 		if err != nil {
 			return err
 		}
@@ -398,24 +325,33 @@ func createJoinAnsPayload(ctx *context) error {
 		Result: backend.Result{
 			ResultCode: backend.Success,
 		},
-		// TODO: add AppSKey and Lifetime
+		// TODO add Lifetime?
+	}
+
+	ctx.joinAnsPayload.AppSKey, err = getASKeyEnvelope(ctx.appSKey)
+	if err != nil {
+		return err
 	}
 
 	if ctx.joinReqPayload.DLSettings.OptNeg {
 		// LoRaWAN 1.1+
-		ctx.joinAnsPayload.FNwkSIntKey = &backend.KeyEnvelope{
-			AESKey: ctx.fNwkSIntKey,
+		ctx.joinAnsPayload.FNwkSIntKey, err = getNSKeyEnvelope(ctx.netID, ctx.fNwkSIntKey)
+		if err != nil {
+			return err
 		}
-		ctx.joinAnsPayload.SNwkSIntKey = &backend.KeyEnvelope{
-			AESKey: ctx.sNwkSIntKey,
+		ctx.joinAnsPayload.SNwkSIntKey, err = getNSKeyEnvelope(ctx.netID, ctx.sNwkSIntKey)
+		if err != nil {
+			return err
 		}
-		ctx.joinAnsPayload.NwkSEncKey = &backend.KeyEnvelope{
-			AESKey: ctx.nwkSEncKey,
+		ctx.joinAnsPayload.NwkSEncKey, err = getNSKeyEnvelope(ctx.netID, ctx.nwkSEncKey)
+		if err != nil {
+			return err
 		}
 	} else {
 		// LoRaWAN 1.0.x
-		ctx.joinAnsPayload.NwkSKey = &backend.KeyEnvelope{
-			AESKey: ctx.fNwkSIntKey,
+		ctx.joinAnsPayload.NwkSKey, err = getNSKeyEnvelope(ctx.netID, ctx.fNwkSIntKey)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -446,12 +382,12 @@ func createRejoinAnsPayload(ctx *context) error {
 		},
 	}
 
-	jsIntKey, err := getJSIntKey(ctx.deviceKeys.NwkKey, ctx.device.DevEUI)
+	jsIntKey, err := getJSIntKey(ctx.deviceKeys.NwkKey, ctx.devEUI)
 	if err != nil {
 		return err
 	}
 
-	jsEncKey, err := getJSEncKey(ctx.deviceKeys.NwkKey, ctx.device.DevEUI)
+	jsEncKey, err := getJSEncKey(ctx.deviceKeys.NwkKey, ctx.devEUI)
 	if err != nil {
 		return err
 	}
@@ -476,16 +412,25 @@ func createRejoinAnsPayload(ctx *context) error {
 			ResultCode: backend.Success,
 		},
 		PHYPayload: backend.HEXBytes(b),
-		FNwkSIntKey: &backend.KeyEnvelope{
-			AESKey: ctx.fNwkSIntKey,
-		},
-		SNwkSIntKey: &backend.KeyEnvelope{
-			AESKey: ctx.sNwkSIntKey,
-		},
-		NwkSEncKey: &backend.KeyEnvelope{
-			AESKey: ctx.nwkSEncKey,
-		},
-		// TODO: add AppSKey and Lifetime
+		// TODO: add Lifetime?
+	}
+
+	ctx.rejoinAnsPaylaod.AppSKey, err = getASKeyEnvelope(ctx.appSKey)
+	if err != nil {
+		return err
+	}
+
+	ctx.rejoinAnsPaylaod.FNwkSIntKey, err = getNSKeyEnvelope(ctx.netID, ctx.fNwkSIntKey)
+	if err != nil {
+		return err
+	}
+	ctx.rejoinAnsPaylaod.SNwkSIntKey, err = getNSKeyEnvelope(ctx.netID, ctx.sNwkSIntKey)
+	if err != nil {
+		return err
+	}
+	ctx.rejoinAnsPaylaod.NwkSEncKey, err = getNSKeyEnvelope(ctx.netID, ctx.nwkSEncKey)
+	if err != nil {
+		return err
 	}
 
 	return nil

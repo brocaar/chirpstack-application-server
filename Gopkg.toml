@@ -116,3 +116,7 @@
   name = "github.com/brocaar/loraserver"
   non-go = false
 
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/NickBall/go-aes-key-wrap"

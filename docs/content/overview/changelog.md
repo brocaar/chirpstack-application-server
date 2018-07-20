@@ -24,6 +24,16 @@ This release adds support for LoRaWAN 1.1 devices (meaning that both LoRaWAN 1.0
 and LoRaWAN 1.1 devices are supported). Please note that the LoRaWAN 1.0 *AppKey*
 is now called *NwkKey* and LoRaWAN 1.1 adds a new key called *AppKey*.
 
+#### (Encrypted) key signaling
+
+The LoRa App Server join-server API supports using Key Encryption Keys (KEK)
+for encrypting the session-keys on a (re)join-request, requested by LoRa Server.
+It will also send the (encrypted) AppSKey in this response to LoRa Server.
+
+When LoRa Server receives the first uplink from the device (in case of a rejoin-request,
+this will be the first uplink using the new security context), it will send this
+(encrypted) AppSKey together with the application payload to LoRa App Server.
+This will also be the moment when LoRa App Server will sent the join notification!
 
 #### New UI
 

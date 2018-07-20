@@ -37,7 +37,7 @@ func handleDataDownPayload(pl handler.DataDownPayload) error {
 	return storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		// lock the device so that a concurrent Enqueue action will block
 		// until this transaction has been completed
-		d, err := storage.GetDevice(tx, pl.DevEUI, true)
+		d, err := storage.GetDevice(tx, pl.DevEUI, true, true)
 		if err != nil {
 			return fmt.Errorf("get device error: %s", err)
 		}

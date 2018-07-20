@@ -5,15 +5,12 @@ import (
 	"time"
 
 	"github.com/satori/go.uuid"
-
-	"github.com/brocaar/loraserver/api/ns"
-
-	"github.com/brocaar/lorawan"
-
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/loraserver/api/ns"
+	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/backend"
 )
 
@@ -170,7 +167,7 @@ func TestDevice(t *testing.T) {
 					},
 				}
 
-				dGet, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false)
+				dGet, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false, false)
 				So(err, ShouldBeNil)
 				dGet.CreatedAt = dGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				dGet.UpdatedAt = dGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -189,7 +186,7 @@ func TestDevice(t *testing.T) {
 
 					d.Name = "updated-test-device"
 					d.DeviceProfileID = dp2ID
-					So(UpdateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
+					So(UpdateDevice(config.C.PostgreSQL.DB, &d, false), ShouldBeNil)
 					d.UpdatedAt = d.UpdatedAt.UTC().Truncate(time.Millisecond)
 
 					So(nsClient.UpdateDeviceChan, ShouldHaveLength, 1)
@@ -203,7 +200,7 @@ func TestDevice(t *testing.T) {
 						},
 					})
 
-					dGet, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false)
+					dGet, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false, false)
 					So(err, ShouldBeNil)
 					dGet.CreatedAt = dGet.CreatedAt.UTC().Truncate(time.Millisecond)
 					dGet.UpdatedAt = dGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -217,7 +214,7 @@ func TestDevice(t *testing.T) {
 						DevEui: []byte{1, 2, 3, 4, 5, 6, 7, 8},
 					})
 
-					_, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false)
+					_, err := GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false, true)
 					So(err, ShouldEqual, ErrDoesNotExist)
 				})
 
@@ -263,12 +260,9 @@ func TestDevice(t *testing.T) {
 
 				Convey("Then CreateDeviceActivation creates the device-activation", func() {
 					da := DeviceActivation{
-						DevEUI:      d.DevEUI,
-						DevAddr:     lorawan.DevAddr{1, 2, 3, 4},
-						FNwkSIntKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-						AppSKey:     lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-						SNwkSIntKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3},
-						NwkSEncKey:  lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
+						DevEUI:  d.DevEUI,
+						DevAddr: lorawan.DevAddr{1, 2, 3, 4},
+						AppSKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
 					}
 					So(CreateDeviceActivation(config.C.PostgreSQL.DB, &da), ShouldBeNil)
 					da.CreatedAt = da.CreatedAt.UTC().Truncate(time.Millisecond)
@@ -278,14 +272,11 @@ func TestDevice(t *testing.T) {
 					daGet.CreatedAt = daGet.CreatedAt.UTC().Truncate(time.Millisecond)
 					So(daGet, ShouldResemble, da)
 
-					Convey("Then GetLastDeviceActivationForDevEUI returns the last actication", func() {
+					Convey("Then GetLastDeviceActivationForDevEUI returns the last activation", func() {
 						da2 := DeviceActivation{
-							DevEUI:      d.DevEUI,
-							DevAddr:     lorawan.DevAddr{4, 3, 2, 1},
-							FNwkSIntKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-							AppSKey:     lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-							SNwkSIntKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3},
-							NwkSEncKey:  lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
+							DevEUI:  d.DevEUI,
+							DevAddr: lorawan.DevAddr{4, 3, 2, 1},
+							AppSKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
 						}
 						So(CreateDeviceActivation(config.C.PostgreSQL.DB, &da2), ShouldBeNil)
 						da2.CreatedAt = da2.CreatedAt.UTC().Truncate(time.Millisecond)

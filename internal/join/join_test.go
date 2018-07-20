@@ -7,10 +7,9 @@ import (
 	"github.com/satori/go.uuid"
 
 	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/test/testhandler"
-
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/lora-app-server/internal/test/testhandler"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/backend"
 	. "github.com/smartystreets/goconvey/convey"
@@ -100,6 +99,9 @@ func TestJoin(t *testing.T) {
 		}
 		cFListB, err := cFList.MarshalBinary()
 		So(err, ShouldBeNil)
+
+		config.C.JoinServer.KEK.ASKEKLabel = ""
+		config.C.JoinServer.KEK.Set = nil
 
 		Convey("Given a set of tests for join-request", func() {
 			validJRPHY := lorawan.PHYPayload{
@@ -200,7 +202,6 @@ func TestJoin(t *testing.T) {
 				PreRun          func() error
 				RequestPayload  backend.JoinReqPayload
 				ExpectedPayload backend.JoinAnsPayload
-				ExpectedAppSKey lorawan.AES128Key
 			}{
 				{
 					Name: "valid join-request (LoRaWAN 1.0)",
@@ -236,10 +237,12 @@ func TestJoin(t *testing.T) {
 						},
 						PHYPayload: backend.HEXBytes(validJAPHYBytes),
 						NwkSKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{223, 83, 195, 95, 48, 52, 204, 206, 208, 255, 53, 76, 112, 222, 4, 223},
+							AESKey: []byte{223, 83, 195, 95, 48, 52, 204, 206, 208, 255, 53, 76, 112, 222, 4, 223},
+						},
+						AppSKey: &backend.KeyEnvelope{
+							AESKey: []byte{146, 123, 156, 145, 17, 131, 207, 254, 76, 178, 255, 75, 117, 84, 95, 109},
 						},
 					},
-					ExpectedAppSKey: lorawan.AES128Key{146, 123, 156, 145, 17, 131, 207, 254, 76, 178, 255, 75, 117, 84, 95, 109},
 				},
 				{
 					Name: "valid join-request (LoRaWAN 1.1)",
@@ -276,16 +279,88 @@ func TestJoin(t *testing.T) {
 						},
 						PHYPayload: backend.HEXBytes(validJAPHYLW11Bytes),
 						FNwkSIntKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{83, 127, 138, 174, 137, 108, 121, 224, 21, 209, 2, 208, 98, 134, 53, 78},
+							AESKey: []byte{83, 127, 138, 174, 137, 108, 121, 224, 21, 209, 2, 208, 98, 134, 53, 78},
 						},
 						SNwkSIntKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{88, 148, 152, 153, 48, 146, 207, 219, 95, 210, 224, 42, 199, 81, 11, 241},
+							AESKey: []byte{88, 148, 152, 153, 48, 146, 207, 219, 95, 210, 224, 42, 199, 81, 11, 241},
 						},
 						NwkSEncKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{152, 152, 40, 60, 79, 102, 235, 108, 111, 213, 22, 88, 130, 4, 108, 64},
+							AESKey: []byte{152, 152, 40, 60, 79, 102, 235, 108, 111, 213, 22, 88, 130, 4, 108, 64},
+						},
+						AppSKey: &backend.KeyEnvelope{
+							AESKey: []byte{1, 98, 18, 21, 209, 202, 8, 254, 191, 12, 96, 44, 194, 173, 144, 250},
 						},
 					},
-					ExpectedAppSKey: lorawan.AES128Key{1, 98, 18, 21, 209, 202, 8, 254, 191, 12, 96, 44, 194, 173, 144, 250},
+				},
+				{
+					PreRun: func() error {
+						config.C.JoinServer.KEK.ASKEKLabel = "lora-app-server"
+						config.C.JoinServer.KEK.Set = []struct {
+							Label string `mapstructure:"label"`
+							KEK   string `mapstructure:"kek"`
+						}{
+							{
+								Label: "010203",
+								KEK:   "00000000000000000000000000000000",
+							},
+							{
+								Label: "lora-app-server",
+								KEK:   "00000000000000000000000000000000",
+							},
+						}
+
+						return nil
+					},
+					Name: "valid join-request (LoRaWAN 1.1) with KEK",
+					RequestPayload: backend.JoinReqPayload{
+						BasePayload: backend.BasePayload{
+							ProtocolVersion: backend.ProtocolVersion1_0,
+							SenderID:        "010203",
+							ReceiverID:      "0807060504030201",
+							TransactionID:   1234,
+							MessageType:     backend.JoinReq,
+						},
+						MACVersion: "1.1.0",
+						PHYPayload: backend.HEXBytes(validJRPHYBytes),
+						DevEUI:     d.DevEUI,
+						DevAddr:    lorawan.DevAddr{1, 2, 3, 4},
+						DLSettings: lorawan.DLSettings{
+							OptNeg:      true,
+							RX2DataRate: 5,
+							RX1DROffset: 1,
+						},
+						RxDelay: 1,
+						CFList:  backend.HEXBytes(cFListB),
+					},
+					ExpectedPayload: backend.JoinAnsPayload{
+						BasePayload: backend.BasePayload{
+							ProtocolVersion: backend.ProtocolVersion1_0,
+							SenderID:        "0807060504030201",
+							ReceiverID:      "010203",
+							TransactionID:   1234,
+							MessageType:     backend.JoinAns,
+						},
+						Result: backend.Result{
+							ResultCode: backend.Success,
+						},
+						PHYPayload: backend.HEXBytes(validJAPHYLW11Bytes),
+						FNwkSIntKey: &backend.KeyEnvelope{
+							KEKLabel: "010203",
+							AESKey:   []byte{87, 85, 230, 195, 36, 30, 231, 230, 100, 111, 15, 254, 135, 120, 122, 0, 44, 249, 228, 176, 131, 73, 143, 0},
+						},
+						SNwkSIntKey: &backend.KeyEnvelope{
+							KEKLabel: "010203",
+							AESKey:   []byte{246, 176, 184, 31, 61, 48, 41, 18, 85, 145, 192, 176, 184, 141, 118, 201, 59, 72, 172, 164, 4, 22, 133, 211},
+						},
+						NwkSEncKey: &backend.KeyEnvelope{
+							KEKLabel: "010203",
+							AESKey:   []byte{78, 225, 236, 219, 189, 151, 82, 239, 109, 226, 140, 65, 233, 189, 174, 37, 39, 206, 241, 242, 2, 127, 157, 247},
+						},
+						AppSKey: &backend.KeyEnvelope{
+							KEKLabel: "lora-app-server",
+							AESKey:   []byte{248, 215, 201, 250, 55, 176, 209, 198, 53, 78, 109, 184, 225, 157, 157, 122, 180, 229, 199, 88, 30, 159, 30, 32},
+						},
+					},
 				},
 				{
 					Name: "join-request with invalid mic",
@@ -353,7 +428,7 @@ func TestJoin(t *testing.T) {
 						},
 						Result: backend.Result{
 							ResultCode:  backend.UnknownDevEUI,
-							Description: "get device error: object does not exist",
+							Description: "get device-keys error: object does not exist",
 						},
 					},
 				},
@@ -405,13 +480,6 @@ func TestJoin(t *testing.T) {
 
 					ans := HandleJoinRequest(test.RequestPayload)
 					So(ans, ShouldResemble, test.ExpectedPayload)
-
-					if ans.Result.ResultCode == backend.Success {
-						da, err := storage.GetLastDeviceActivationForDevEUI(config.C.PostgreSQL.DB, d.DevEUI)
-						So(err, ShouldBeNil)
-
-						So(da.AppSKey, ShouldEqual, test.ExpectedAppSKey)
-					}
 				})
 			}
 		})
@@ -559,7 +627,6 @@ func TestJoin(t *testing.T) {
 				PreRun          func() error
 				RequestPayload  backend.RejoinReqPayload
 				ExpectedPayload backend.RejoinAnsPayload
-				ExpectedAppSKey lorawan.AES128Key
 			}{
 				{
 					Name: "valid rejoin-request type 0",
@@ -596,16 +663,18 @@ func TestJoin(t *testing.T) {
 						},
 						PHYPayload: backend.HEXBytes(ja0PHYBytes),
 						SNwkSIntKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{84, 115, 118, 176, 7, 14, 169, 150, 78, 61, 226, 98, 252, 231, 85, 145},
+							AESKey: []byte{84, 115, 118, 176, 7, 14, 169, 150, 78, 61, 226, 98, 252, 231, 85, 145},
 						},
 						FNwkSIntKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{15, 235, 84, 189, 47, 133, 75, 254, 195, 103, 254, 91, 27, 132, 16, 55},
+							AESKey: []byte{15, 235, 84, 189, 47, 133, 75, 254, 195, 103, 254, 91, 27, 132, 16, 55},
 						},
 						NwkSEncKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{212, 9, 208, 87, 17, 14, 159, 221, 5, 199, 126, 12, 85, 63, 119, 244},
+							AESKey: []byte{212, 9, 208, 87, 17, 14, 159, 221, 5, 199, 126, 12, 85, 63, 119, 244},
+						},
+						AppSKey: &backend.KeyEnvelope{
+							AESKey: []byte{11, 25, 22, 151, 83, 252, 60, 31, 222, 161, 118, 106, 12, 34, 117, 225},
 						},
 					},
-					ExpectedAppSKey: lorawan.AES128Key{11, 25, 22, 151, 83, 252, 60, 31, 222, 161, 118, 106, 12, 34, 117, 225},
 				},
 				{
 					Name: "valid rejoin-request type 1",
@@ -642,16 +711,18 @@ func TestJoin(t *testing.T) {
 						},
 						PHYPayload: backend.HEXBytes(ja1PHYBytes),
 						SNwkSIntKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{84, 115, 118, 176, 7, 14, 169, 150, 78, 61, 226, 98, 252, 231, 85, 145},
+							AESKey: []byte{84, 115, 118, 176, 7, 14, 169, 150, 78, 61, 226, 98, 252, 231, 85, 145},
 						},
 						FNwkSIntKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{15, 235, 84, 189, 47, 133, 75, 254, 195, 103, 254, 91, 27, 132, 16, 55},
+							AESKey: []byte{15, 235, 84, 189, 47, 133, 75, 254, 195, 103, 254, 91, 27, 132, 16, 55},
 						},
 						NwkSEncKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{212, 9, 208, 87, 17, 14, 159, 221, 5, 199, 126, 12, 85, 63, 119, 244},
+							AESKey: []byte{212, 9, 208, 87, 17, 14, 159, 221, 5, 199, 126, 12, 85, 63, 119, 244},
+						},
+						AppSKey: &backend.KeyEnvelope{
+							AESKey: []byte{11, 25, 22, 151, 83, 252, 60, 31, 222, 161, 118, 106, 12, 34, 117, 225},
 						},
 					},
-					ExpectedAppSKey: lorawan.AES128Key{11, 25, 22, 151, 83, 252, 60, 31, 222, 161, 118, 106, 12, 34, 117, 225},
 				},
 				{
 					Name: "valid rejoin-request type 2",
@@ -687,16 +758,18 @@ func TestJoin(t *testing.T) {
 						},
 						PHYPayload: backend.HEXBytes(ja2PHYBytes),
 						SNwkSIntKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{84, 115, 118, 176, 7, 14, 169, 150, 78, 61, 226, 98, 252, 231, 85, 145},
+							AESKey: []byte{84, 115, 118, 176, 7, 14, 169, 150, 78, 61, 226, 98, 252, 231, 85, 145},
 						},
 						FNwkSIntKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{15, 235, 84, 189, 47, 133, 75, 254, 195, 103, 254, 91, 27, 132, 16, 55},
+							AESKey: []byte{15, 235, 84, 189, 47, 133, 75, 254, 195, 103, 254, 91, 27, 132, 16, 55},
 						},
 						NwkSEncKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{212, 9, 208, 87, 17, 14, 159, 221, 5, 199, 126, 12, 85, 63, 119, 244},
+							AESKey: []byte{212, 9, 208, 87, 17, 14, 159, 221, 5, 199, 126, 12, 85, 63, 119, 244},
+						},
+						AppSKey: &backend.KeyEnvelope{
+							AESKey: []byte{11, 25, 22, 151, 83, 252, 60, 31, 222, 161, 118, 106, 12, 34, 117, 225},
 						},
 					},
-					ExpectedAppSKey: lorawan.AES128Key{11, 25, 22, 151, 83, 252, 60, 31, 222, 161, 118, 106, 12, 34, 117, 225},
 				},
 			}
 
@@ -708,13 +781,6 @@ func TestJoin(t *testing.T) {
 
 					ans := HandleRejoinRequest(test.RequestPayload)
 					So(ans, ShouldResemble, test.ExpectedPayload)
-
-					if ans.Result.ResultCode == backend.Success {
-						da, err := storage.GetLastDeviceActivationForDevEUI(config.C.PostgreSQL.DB, d.DevEUI)
-						So(err, ShouldBeNil)
-
-						So(da.AppSKey[:], ShouldResemble, test.ExpectedAppSKey[:])
-					}
 				})
 			}
 		})

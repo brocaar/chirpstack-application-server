@@ -214,6 +214,7 @@ id="{{ .ApplicationServer.ID }}"
   registration="{{ .ApplicationServer.Branding.Registration }}"
 
 {{ end }}
+
 # Join-server configuration.
 #
 # LoRa App Server implements a (subset) of the join-api specified by the
@@ -231,6 +232,46 @@ tls_cert="{{ .JoinServer.TLSCert }}"
 
 # tls key used by the join-server api server (optional)
 tls_key="{{ .JoinServer.TLSKey }}"
+
+
+# Key Encryption Key (KEK) configuration.
+#
+# The KEK meganism is used to encrypt the session-keys sent from the
+# join-server to the network-server. 
+#
+# The LoRa App Server join-server will use the NetID of the requesting
+# network-server as the KEK label. When no such label exists in the set,
+# the session-keys will be sent unencrypted (which can be fine for
+# private networks).
+#
+# Please refer to the LoRaWAN Backend Interface specification
+# 'Key Transport Security' section for more information.
+[join_server.kek]
+
+  # Application-server KEK label.
+  #
+  # This defines the KEK label used to encrypt the AppSKey (note that the
+  # AppSKey is signaled to the NS and on the first received uplink from the
+  # NS to the AS).
+  #
+  # When left blank, the AppSKey will be sent unencrypted (which can be fine
+  # for private networks).
+  as_kek_label="{{ .JoinServer.KEK.ASKEKLabel }}"
+
+  # KEK set.
+  #
+  # Example (the [[join_server.kek.set]] can be repeated):
+  # [[join_server.kek.set]]
+  # # KEK label.
+  # label="000000"
+
+  # # Key Encryption Key.
+  # kek="01020304050607080102030405060708"
+{{ range $index, $element := .JoinServer.KEK.Set }}
+  [[join_server.kek.set]]
+  label="{{ $element.Label }}"
+  kek="{{ $element.KEK }}"
+{{ end }}
 `
 
 var configCmd = &cobra.Command{

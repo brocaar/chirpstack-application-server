@@ -10,7 +10,6 @@ import (
 	"github.com/satori/go.uuid"
 
 	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/test/testhandler"
 
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -199,19 +198,11 @@ func TestJoinServerAPI(t *testing.T) {
 						},
 						PHYPayload: backend.HEXBytes(jaPHYBytes),
 						NwkSKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{223, 83, 195, 95, 48, 52, 204, 206, 208, 255, 53, 76, 112, 222, 4, 223},
+							AESKey: []byte{223, 83, 195, 95, 48, 52, 204, 206, 208, 255, 53, 76, 112, 222, 4, 223},
 						},
-					})
-				})
-
-				Convey("Then a join notification was sent", func() {
-					So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
-					So(<-h.SendJoinNotificationChan, ShouldResemble, handler.JoinNotification{
-						ApplicationID:   app.ID,
-						ApplicationName: app.Name,
-						DeviceName:      d.Name,
-						DevEUI:          d.DevEUI,
-						DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
+						AppSKey: &backend.KeyEnvelope{
+							AESKey: []byte{146, 123, 156, 145, 17, 131, 207, 254, 76, 178, 255, 75, 117, 84, 95, 109},
+						},
 					})
 				})
 
@@ -284,13 +275,16 @@ func TestJoinServerAPI(t *testing.T) {
 							ResultCode: backend.Success,
 						},
 						SNwkSIntKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{84, 115, 118, 176, 7, 14, 169, 150, 78, 61, 226, 98, 252, 231, 85, 145},
+							AESKey: []byte{84, 115, 118, 176, 7, 14, 169, 150, 78, 61, 226, 98, 252, 231, 85, 145},
 						},
 						FNwkSIntKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{15, 235, 84, 189, 47, 133, 75, 254, 195, 103, 254, 91, 27, 132, 16, 55},
+							AESKey: []byte{15, 235, 84, 189, 47, 133, 75, 254, 195, 103, 254, 91, 27, 132, 16, 55},
 						},
 						NwkSEncKey: &backend.KeyEnvelope{
-							AESKey: lorawan.AES128Key{212, 9, 208, 87, 17, 14, 159, 221, 5, 199, 126, 12, 85, 63, 119, 244},
+							AESKey: []byte{212, 9, 208, 87, 17, 14, 159, 221, 5, 199, 126, 12, 85, 63, 119, 244},
+						},
+						AppSKey: &backend.KeyEnvelope{
+							AESKey: []byte{11, 25, 22, 151, 83, 252, 60, 31, 222, 161, 118, 106, 12, 34, 117, 225},
 						},
 						PHYPayload: backend.HEXBytes([]byte{32, 119, 168, 146, 89, 229, 41, 109, 112, 191, 64, 133, 175, 89, 101, 194, 76, 190, 109, 70, 29, 106, 9, 76, 214, 165, 255, 143, 250, 27, 248, 233, 75}),
 					})

@@ -54,15 +54,11 @@ type DeviceKeys struct {
 
 // DeviceActivation defines the device-activation for a LoRaWAN device.
 type DeviceActivation struct {
-	ID          int64             `db:"id"`
-	CreatedAt   time.Time         `db:"created_at"`
-	DevEUI      lorawan.EUI64     `db:"dev_eui"`
-	DevAddr     lorawan.DevAddr   `db:"dev_addr"`
-	FNwkSIntKey lorawan.AES128Key `db:"f_nwk_s_int_key"`
-	AppSKey     lorawan.AES128Key `db:"app_s_key"`
-	SNwkSIntKey lorawan.AES128Key `db:"s_nwk_s_int_key"`
-	NwkSEncKey  lorawan.AES128Key `db:"nwk_s_enc_key"`
-	JoinReqType lorawan.JoinType  `db:"join_req_type"`
+	ID        int64             `db:"id"`
+	CreatedAt time.Time         `db:"created_at"`
+	DevEUI    lorawan.EUI64     `db:"dev_eui"`
+	DevAddr   lorawan.DevAddr   `db:"dev_addr"`
+	AppSKey   lorawan.AES128Key `db:"app_s_key"`
 }
 
 // CreateDevice creates the given device.
@@ -145,8 +141,10 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 }
 
 // GetDevice returns the device matching the given DevEUI.
-// when forUpdate is set to true, then db must be a db transaction.
-func GetDevice(db sqlx.Queryer, devEUI lorawan.EUI64, forUpdate bool) (Device, error) {
+// When forUpdate is set to true, then db must be a db transaction.
+// When localOnly is set to true, no call to the network-server is made to
+// retrieve additional device data.
+func GetDevice(db sqlx.Queryer, devEUI lorawan.EUI64, forUpdate, localOnly bool) (Device, error) {
 	var fu string
 	if forUpdate {
 		fu = " for update"
@@ -156,6 +154,10 @@ func GetDevice(db sqlx.Queryer, devEUI lorawan.EUI64, forUpdate bool) (Device, e
 	err := sqlx.Get(db, &d, "select * from device where dev_eui = $1"+fu, devEUI[:])
 	if err != nil {
 		return d, handlePSQLError(Select, err, "select error")
+	}
+
+	if localOnly {
+		return d, nil
 	}
 
 	n, err := GetNetworkServerForDevEUI(db, d.DevEUI)
@@ -374,7 +376,8 @@ func GetDeviceCountForUser(db sqlx.Queryer, username string, applicationID int64
 }
 
 // UpdateDevice updates the given device.
-func UpdateDevice(db sqlx.Ext, d *Device) error {
+// When localOnly is set, it will not update the device on the network-server.
+func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 	if err := d.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
@@ -415,38 +418,41 @@ func UpdateDevice(db sqlx.Ext, d *Device) error {
 		return ErrDoesNotExist
 	}
 
-	app, err := GetApplication(db, d.ApplicationID)
-	if err != nil {
-		return errors.Wrap(err, "get application error")
-	}
+	// update the device on the network-server
+	if !localOnly {
+		app, err := GetApplication(db, d.ApplicationID)
+		if err != nil {
+			return errors.Wrap(err, "get application error")
+		}
 
-	n, err := GetNetworkServerForDevEUI(db, d.DevEUI)
-	if err != nil {
-		return errors.Wrap(err, "get network-server error")
-	}
+		n, err := GetNetworkServerForDevEUI(db, d.DevEUI)
+		if err != nil {
+			return errors.Wrap(err, "get network-server error")
+		}
 
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
-	if err != nil {
-		return errors.Wrap(err, "get network-server client error")
-	}
+		nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+		if err != nil {
+			return errors.Wrap(err, "get network-server client error")
+		}
 
-	rpID, err := uuid.FromString(config.C.ApplicationServer.ID)
-	if err != nil {
-		return errors.Wrap(err, "uuid from string error")
-	}
+		rpID, err := uuid.FromString(config.C.ApplicationServer.ID)
+		if err != nil {
+			return errors.Wrap(err, "uuid from string error")
+		}
 
-	_, err = nsClient.UpdateDevice(context.Background(), &ns.UpdateDeviceRequest{
-		Device: &ns.Device{
-			DevEui:           d.DevEUI[:],
-			DeviceProfileId:  d.DeviceProfileID.Bytes(),
-			ServiceProfileId: app.ServiceProfileID.Bytes(),
-			RoutingProfileId: rpID.Bytes(),
-			SkipFCntCheck:    d.SkipFCntCheck,
-		},
-	})
-	if err != nil {
-		log.WithError(err).Error("network-server update device api error")
-		return handleGrpcError(err, "update device error")
+		_, err = nsClient.UpdateDevice(context.Background(), &ns.UpdateDeviceRequest{
+			Device: &ns.Device{
+				DevEui:           d.DevEUI[:],
+				DeviceProfileId:  d.DeviceProfileID.Bytes(),
+				ServiceProfileId: app.ServiceProfileID.Bytes(),
+				RoutingProfileId: rpID.Bytes(),
+				SkipFCntCheck:    d.SkipFCntCheck,
+			},
+		})
+		if err != nil {
+			log.WithError(err).Error("network-server update device api error")
+			return handleGrpcError(err, "update device error")
+		}
 	}
 
 	log.WithFields(log.Fields{
@@ -605,19 +611,13 @@ func CreateDeviceActivation(db sqlx.Queryer, da *DeviceActivation) error {
             created_at,
             dev_eui,
             dev_addr,
-            f_nwk_s_int_key,
-			app_s_key,
-			s_nwk_s_int_key,
-			nwk_s_enc_key
-        ) values ($1, $2, $3, $4, $5, $6, $7)
+			app_s_key
+        ) values ($1, $2, $3, $4)
         returning id`,
 		da.CreatedAt,
 		da.DevEUI[:],
 		da.DevAddr[:],
-		da.FNwkSIntKey,
 		da.AppSKey[:],
-		da.SNwkSIntKey[:],
-		da.NwkSEncKey[:],
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")

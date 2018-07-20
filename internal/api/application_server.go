@@ -3,12 +3,14 @@ package api
 import (
 	"crypto/aes"
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"time"
 
+	"github.com/NickBall/go-aes-key-wrap"
 	"github.com/golang/protobuf/ptypes"
-
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -22,6 +24,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
+	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/lorawan"
 )
 
@@ -40,15 +43,30 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		return nil, grpc.Errorf(codes.InvalidArgument, "tx_info must not be nil")
 	}
 
+	var err error
+	var d storage.Device
 	var appEUI, devEUI lorawan.EUI64
 	copy(appEUI[:], req.JoinEui)
 	copy(devEUI[:], req.DevEui)
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
+		d, err = storage.GetDevice(tx, devEUI, true, true)
+		if err != nil {
+			grpc.Errorf(codes.Internal, "get device error: %s", err)
+		}
+
+		now := time.Now()
+
+		d.LastSeenAt = &now
+		err = storage.UpdateDevice(tx, &d, true)
+		if err != nil {
+			return grpc.Errorf(codes.Internal, "update device error: %s", err)
+		}
+
+		return nil
+	})
 	if err != nil {
-		errStr := fmt.Sprintf("get device error: %s", err)
-		log.WithField("dev_eui", devEUI).Error(errStr)
-		return nil, grpc.Errorf(codes.Internal, errStr)
+		return nil, err
 	}
 
 	app, err := storage.GetApplication(config.C.PostgreSQL.DB, d.ApplicationID)
@@ -58,19 +76,16 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
+	if req.DeviceActivationContext != nil {
+		if err := handleDeviceActivation(d, app, req.DeviceActivationContext); err != nil {
+			return nil, errToRPCError(err)
+		}
+	}
+
 	da, err := storage.GetLastDeviceActivationForDevEUI(config.C.PostgreSQL.DB, d.DevEUI)
 	if err != nil {
 		errStr := fmt.Sprintf("get device-activation error: %s", err)
 		log.WithField("dev_eui", d.DevEUI).Error(errStr)
-		return nil, grpc.Errorf(codes.Internal, errStr)
-	}
-
-	now := time.Now()
-	d.LastSeenAt = &now
-	err = storage.UpdateDevice(config.C.PostgreSQL.DB, &d)
-	if err != nil {
-		errStr := fmt.Sprintf("update device error: %s", err)
-		log.WithField("dev_eui", devEUI).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
@@ -205,7 +220,7 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEui)
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false, true)
 	if err != nil {
 		errStr := fmt.Sprintf("get device error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
@@ -252,7 +267,7 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEui)
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false, true)
 	if err != nil {
 		errStr := fmt.Sprintf("get device error: %s", err)
 		log.WithField("dev_eui", devEUI).Error(errStr)
@@ -319,19 +334,29 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEui)
 
-	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false)
+	var d storage.Device
+	var err error
+
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
+		d, err = storage.GetDevice(tx, devEUI, true, true)
+		if err != nil {
+			return errToRPCError(errors.Wrap(err, "get device error"))
+		}
+
+		batt := int(req.Battery)
+		marg := int(req.Margin)
+
+		d.DeviceStatusBattery = &batt
+		d.DeviceStatusMargin = &marg
+
+		if err = storage.UpdateDevice(tx, &d, true); err != nil {
+			return errToRPCError(errors.Wrap(err, "update device error"))
+		}
+
+		return nil
+	})
 	if err != nil {
-		return nil, errToRPCError(errors.Wrap(err, "get device error"))
-	}
-
-	batt := int(req.Battery)
-	marg := int(req.Margin)
-
-	d.DeviceStatusBattery = &batt
-	d.DeviceStatusMargin = &marg
-
-	if err := storage.UpdateDevice(config.C.PostgreSQL.DB, &d); err != nil {
-		return nil, errToRPCError(errors.Wrap(err, "update device error"))
+		return nil, err
 	}
 
 	app, err := storage.GetApplication(config.C.PostgreSQL.DB, d.ApplicationID)
@@ -344,8 +369,8 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,
 		DevEUI:          d.DevEUI,
-		Battery:         batt,
-		Margin:          marg,
+		Battery:         int(req.Battery),
+		Margin:          int(req.Margin),
 	}
 	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
 		Type:    eventlog.Status,
@@ -409,4 +434,81 @@ func getSKey(typ byte, appkey lorawan.AES128Key, netID lorawan.NetID, appNonce [
 	}
 	block.Encrypt(key[:], b)
 	return key, nil
+}
+
+func handleDeviceActivation(d storage.Device, app storage.Application, daCtx *as.DeviceActivationContext) error {
+	if daCtx.AppSKey == nil {
+		return errors.New("AppSKey must not be nil")
+	}
+
+	key, err := unwrapASKey(daCtx.AppSKey)
+	if err != nil {
+		return errors.Wrap(err, "unwrap appSKey error")
+	}
+
+	da := storage.DeviceActivation{
+		DevEUI:  d.DevEUI,
+		AppSKey: key,
+	}
+	copy(da.DevAddr[:], daCtx.DevAddr)
+
+	if err = storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &da); err != nil {
+		return errors.Wrap(err, "create device-activation error")
+	}
+
+	pl := handler.JoinNotification{
+		ApplicationID:   app.ID,
+		ApplicationName: app.Name,
+		DevEUI:          d.DevEUI,
+		DeviceName:      d.Name,
+		DevAddr:         da.DevAddr,
+	}
+
+	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
+		Type:    eventlog.Join,
+		Payload: pl,
+	})
+	if err != nil {
+		log.WithError(err).Error("log event for device error")
+	}
+
+	err = config.C.ApplicationServer.Integration.Handler.SendJoinNotification(pl)
+	if err != nil {
+		return errors.Wrap(err, "send join notification error")
+	}
+
+	return nil
+}
+
+func unwrapASKey(ke *common.KeyEnvelope) (lorawan.AES128Key, error) {
+	var key lorawan.AES128Key
+
+	if ke.KekLabel == "" {
+		copy(key[:], ke.AesKey)
+		return key, nil
+	}
+
+	for i := range config.C.JoinServer.KEK.Set {
+		if config.C.JoinServer.KEK.Set[i].Label == ke.KekLabel {
+			kek, err := hex.DecodeString(config.C.JoinServer.KEK.Set[i].KEK)
+			if err != nil {
+				return key, errors.Wrap(err, "decode kek error")
+			}
+
+			block, err := aes.NewCipher(kek)
+			if err != nil {
+				return key, errors.Wrap(err, "new cipher error")
+			}
+
+			b, err := keywrap.Unwrap(block, ke.AesKey)
+			if err != nil {
+				return key, errors.Wrap(err, "key unwrap error")
+			}
+
+			copy(key[:], b)
+			return key, nil
+		}
+	}
+
+	return key, fmt.Errorf("unknown kek label: %s", ke.KekLabel)
 }

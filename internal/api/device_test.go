@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/satori/go.uuid"
-
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -158,11 +157,11 @@ func TestNodeAPI(t *testing.T) {
 					ten := 10
 					eleven := 11
 
-					d, err := storage.GetDevice(config.C.PostgreSQL.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false)
+					d, err := storage.GetDevice(config.C.PostgreSQL.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
 					So(err, ShouldBeNil)
 					d.DeviceStatusBattery = &ten
 					d.DeviceStatusMargin = &eleven
-					So(storage.UpdateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
+					So(storage.UpdateDevice(config.C.PostgreSQL.DB, &d, true), ShouldBeNil)
 
 					Convey("Then Get returns the battery and margin status", func() {
 						d, err := api.Get(ctx, &pb.GetDeviceRequest{
@@ -177,10 +176,10 @@ func TestNodeAPI(t *testing.T) {
 				Convey("When setting the LastSeenAt timestamp", func() {
 					now := time.Now().Truncate(time.Millisecond)
 
-					d, err := storage.GetDevice(config.C.PostgreSQL.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false)
+					d, err := storage.GetDevice(config.C.PostgreSQL.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
 					So(err, ShouldBeNil)
 					d.LastSeenAt = &now
-					So(storage.UpdateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
+					So(storage.UpdateDevice(config.C.PostgreSQL.DB, &d, true), ShouldBeNil)
 
 					Convey("Then Get returns the last-seen timestamp", func() {
 						d, err := api.Get(ctx, &pb.GetDeviceRequest{
@@ -191,28 +190,6 @@ func TestNodeAPI(t *testing.T) {
 					})
 				})
 			})
-
-			// Convey("Then listing the devices for the application returns a single items", func() {
-			// 	devices, err := api.ListByApplicationID(ctx, &pb.ListDeviceByApplicationIDRequest{
-			// 		ApplicationId: app.ID,
-			// 		Limit:         10,
-			// 		Search:        "test",
-			// 	})
-			// 	So(err, ShouldBeNil)
-			// 	So(validator.validatorFuncs, ShouldHaveLength, 1)
-			// 	So(devices.Result, ShouldHaveLength, 1)
-			// 	So(devices.TotalCount, ShouldEqual, 1)
-			// 	So(devices.Result[0], ShouldResemble, &pb.DeviceListItem{
-			// 		Name:                "test-device",
-			// 		Description:         "test device description",
-			// 		DevEui:              "0807060504030201",
-			// 		ApplicationId:       app.ID,
-			// 		DeviceProfileId:     dpID.String(),
-			// 		DeviceProfileName:   dp.Name,
-			// 		DeviceStatusBattery: 256,
-			// 		DeviceStatusMargin:  256,
-			// 	})
-			// })
 
 			Convey("Testing the List method", func() {
 				user := storage.User{
@@ -424,9 +401,6 @@ func TestNodeAPI(t *testing.T) {
 					da, err := storage.GetLastDeviceActivationForDevEUI(config.C.PostgreSQL.DB, [8]byte{8, 7, 6, 5, 4, 3, 2, 1})
 					So(err, ShouldBeNil)
 					So(da.AppSKey, ShouldEqual, lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8})
-					So(da.NwkSEncKey, ShouldEqual, lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1})
-					So(da.SNwkSIntKey, ShouldEqual, lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 2})
-					So(da.FNwkSIntKey, ShouldEqual, lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 3})
 					So(da.DevAddr, ShouldEqual, lorawan.DevAddr{1, 2, 3, 4})
 				})
 			})

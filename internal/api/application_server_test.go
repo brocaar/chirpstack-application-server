@@ -135,12 +135,72 @@ func TestApplicationServerAPI(t *testing.T) {
 			})
 		})
 
+		Convey("Given the device is not activate but HandleUplinkDataRequest contains DeviceSecurityContext", func() {
+			now := time.Now().UTC()
+
+			req := as.HandleUplinkDataRequest{
+				DevEui: d.DevEUI[:],
+				FCnt:   10,
+				FPort:  3,
+				Dr:     6,
+				Adr:    true,
+				Data:   []byte{1, 2, 3, 4},
+				RxInfo: []*gwPB.UplinkRXInfo{
+					{
+						GatewayId: gw.MAC[:],
+						Rssi:      -60,
+						LoraSnr:   5,
+						Location: &gwPB.Location{
+							Latitude:  52.3740364,
+							Longitude: 4.9144401,
+							Altitude:  10,
+						},
+					},
+				},
+				TxInfo: &gwPB.UplinkTXInfo{
+					Frequency:  868100000,
+					Modulation: common.Modulation_LORA,
+					ModulationInfo: &gwPB.UplinkTXInfo_LoraModulationInfo{
+						LoraModulationInfo: &gwPB.LoRaModulationInfo{
+							Bandwidth:       250,
+							SpreadingFactor: 5,
+							CodeRate:        "4/6",
+						},
+					},
+				},
+				DeviceActivationContext: &as.DeviceActivationContext{
+					DevAddr: []byte{1, 2, 3, 4},
+					AppSKey: &common.KeyEnvelope{
+						AesKey: []byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+					},
+				},
+			}
+
+			req.RxInfo[0].Time, _ = ptypes.TimestampProto(now)
+
+			Convey("When calling HandleUplinkData", func() {
+				_, err := api.HandleUplinkData(ctx, &req)
+				So(err, ShouldBeNil)
+
+				Convey("Then a payload was sent to the handler", func() {
+					So(h.SendDataUpChan, ShouldHaveLength, 1)
+					pl := <-h.SendDataUpChan
+					So(pl.Data, ShouldResemble, []byte{33, 99, 53, 13})
+				})
+
+				Convey("Then a join-notification was sent to the handler", func() {
+					So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
+					pl := <-h.SendJoinNotificationChan
+					So(pl.DevAddr, ShouldEqual, lorawan.DevAddr{1, 2, 3, 4})
+				})
+			})
+		})
+
 		Convey("Given the device is activated", func() {
 			da := storage.DeviceActivation{
-				DevEUI:      d.DevEUI,
-				DevAddr:     lorawan.DevAddr{},
-				AppSKey:     lorawan.AES128Key{},
-				FNwkSIntKey: lorawan.AES128Key{},
+				DevEUI:  d.DevEUI,
+				DevAddr: lorawan.DevAddr{},
+				AppSKey: lorawan.AES128Key{},
 			}
 			So(storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &da), ShouldBeNil)
 
@@ -190,7 +250,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 
 				Convey("Then the device was updated", func() {
-					d, err := storage.GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false)
+					d, err := storage.GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false, true)
 					So(err, ShouldBeNil)
 					So(d.DeviceStatusBattery, ShouldBeNil)
 					So(d.DeviceStatusMargin, ShouldBeNil)
@@ -281,7 +341,7 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 
 				Convey("Then the device has been updated", func() {
-					d, err := storage.GetDevice(db, d.DevEUI, false)
+					d, err := storage.GetDevice(db, d.DevEUI, false, true)
 					So(err, ShouldBeNil)
 					So(d.DeviceStatusMargin, ShouldNotBeNil)
 					So(d.DeviceStatusBattery, ShouldNotBeNil)

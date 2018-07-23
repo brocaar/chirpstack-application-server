@@ -31,17 +31,10 @@ class DeviceProfileForm extends FormComponent {
     };
 
     this.onTabChange = this.onTabChange.bind(this);
-    this.getNetworkServerOption = this.getNetworkServerOption.bind(this);
     this.getNetworkServerOptions = this.getNetworkServerOptions.bind(this);
     this.getMACVersionOptions = this.getMACVersionOptions.bind(this);
     this.getRegParamsOptions = this.getRegParamsOptions.bind(this);
     this.getPingSlotPeriodOptions = this.getPingSlotPeriodOptions.bind(this);
-  }
-
-  getNetworkServerOption(id, callbackFunc) {
-    NetworkServerStore.get(id, resp => {
-      callbackFunc({label: resp.networkServer.name, value: resp.networkServer.id});
-    });
   }
 
   getNetworkServerOptions(search, callbackFunc) {
@@ -147,7 +140,6 @@ class DeviceProfileForm extends FormComponent {
               label="Select network-server"
               value={this.state.object.networkServerID || ""}
               onChange={this.onChange}
-              getOption={this.getNetworkServerOption}
               getOptions={this.getNetworkServerOptions}
             />
             <FormHelperText>

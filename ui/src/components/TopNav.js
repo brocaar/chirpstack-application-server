@@ -17,6 +17,7 @@ import MenuIcon from "mdi-material-ui/Menu";
 import Backburger from "mdi-material-ui/Backburger";
 import AccountCircle from "mdi-material-ui/AccountCircle";
 import Magnify from "mdi-material-ui/Magnify";
+import HelpCicle from "mdi-material-ui/HelpCircle";
 
 import SessionStore from "../stores/SessionStore";
 import theme from "../theme";
@@ -61,6 +62,10 @@ const styles = {
     "&:active": {
       background: blue[400],
     },
+  },
+  iconButton: {
+    color: theme.palette.common.white,
+    marginRight: theme.spacing.unit,
   },
 };
 
@@ -155,6 +160,12 @@ class TopNav extends Component {
               }
             />
           </form>
+
+          <a href="https://www.loraserver.io/lora-app-server/" target="loraserver-doc">
+            <IconButton className={this.props.classes.iconButton}>
+              <HelpCicle />
+            </IconButton>
+          </a>
 
           <Chip
             avatar={

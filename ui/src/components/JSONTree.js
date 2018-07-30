@@ -8,7 +8,7 @@ class JSONTree extends Component {
     const theme = {
       scheme: 'google',
       author: 'seth wright (http://sethawright.com)',
-      base00: '#1d1f21',
+      base00: '#000000',
       base01: '#282a2e',
       base02: '#373b41',
       base03: '#969896',

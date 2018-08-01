@@ -6,7 +6,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/codec"

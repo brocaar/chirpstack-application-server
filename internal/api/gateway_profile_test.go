@@ -5,7 +5,7 @@ import (
 
 	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/loraserver/api/ns"
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/gofrs/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 

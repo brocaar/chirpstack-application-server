@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -49,7 +49,7 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 	}
 
 	now := time.Now()
-	dpID := uuid.NewV4()
+	dpID := uuid.Must(uuid.NewV4())
 	dp.DeviceProfile.Id = dpID.Bytes()
 	dp.CreatedAt = now
 	dp.UpdatedAt = now

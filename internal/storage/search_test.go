@@ -3,7 +3,7 @@ package storage
 import (
 	"testing"
 
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 
 	"github.com/brocaar/lorawan"
 

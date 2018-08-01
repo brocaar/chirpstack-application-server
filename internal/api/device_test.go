@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"

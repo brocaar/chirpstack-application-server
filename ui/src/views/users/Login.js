@@ -10,6 +10,7 @@ import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/core/styles";
 
 import Form from "../../components/Form";
+import FormComponent from "../../classes/FormComponent";
 import SessionStore from "../../stores/SessionStore";
 import theme from "../../theme";
 
@@ -27,16 +28,50 @@ const styles = {
 };
 
 
+class LoginForm extends FormComponent {
+  render() {
+    if (this.state.object === undefined) {
+      return null;
+    }
+
+    return(
+      <Form
+        submitLabel={this.props.submitLabel}
+        onSubmit={this.onSubmit}
+      >
+        <TextField
+          id="username"
+          label="Username"
+          margin="normal"
+          value={this.state.object.username || ""}
+          onChange={this.onChange}
+          fullWidth
+          required
+        />
+        <TextField
+          id="password"
+          label="Password"
+          type="password"
+          margin="normal"
+          value={this.state.object.password || ""}
+          onChange={this.onChange}
+          fullWidth
+          required
+        />
+      </Form>
+    );
+  }
+}
+
+
 class Login extends Component {
   constructor() {
     super();
 
     this.state = {
-      login: {},
       registration: null,
     };
 
-    this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
   }
 
@@ -52,53 +87,25 @@ class Login extends Component {
     });
   }
 
-  onSubmit() {
-    SessionStore.login(this.state.login, () => {
+  onSubmit(login) {
+    SessionStore.login(login, () => {
       this.props.history.push("/");
-    });
-  }
-
-  onChange(e) {
-    let login = this.state.login;
-    login[e.target.id] = e.target.value;
-    this.setState({
-      login: login,
     });
   }
 
   render() {
     return(
       <Grid container justify="center">
-        <Grid item xs={6}>
+        <Grid item xs={6} lg={4}>
           <Card>
             <CardHeader
               title="Login"
             />
             <CardContent>
-              <Form
+              <LoginForm
                 submitLabel="Login"
                 onSubmit={this.onSubmit}
-              >
-                <TextField
-                  id="username"
-                  label="Username"
-                  margin="normal"
-                  value={this.state.login.username || ""}
-                  onChange={this.onChange}
-                  fullWidth
-                  required
-                />
-                <TextField
-                  id="password"
-                  label="Password"
-                  type="password"
-                  margin="normal"
-                  value={this.state.login.password || ""}
-                  onChange={this.onChange}
-                  fullWidth
-                  required
-                />
-              </Form>
+              />
             </CardContent>
             {this.state.registration && <CardContent>
               <Typography className={this.props.classes.link} dangerouslySetInnerHTML={{__html: this.state.registration}}></Typography>

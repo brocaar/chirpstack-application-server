@@ -63,8 +63,8 @@ static/swagger/api.swagger.json:
 requirements:
 	echo "Installing development tools"
 	go get -u github.com/golang/lint/golint
-	go get -u github.com/brocaar/grpc-gateway/protoc-gen-grpc-gateway
-	go get -u github.com/brocaar/grpc-gateway/protoc-gen-swagger
+	go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+	go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 	go get -u github.com/golang/protobuf/protoc-gen-go
 	go get -u github.com/elazarl/go-bindata-assetfs/...
 	go get -u github.com/jteeuwen/go-bindata/...

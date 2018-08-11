@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/brocaar/lora-app-server/internal/codec"

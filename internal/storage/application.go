@@ -7,7 +7,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
 )
 

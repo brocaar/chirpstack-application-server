@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/codes"
 
 	"github.com/brocaar/loraserver/api/ns"
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/gofrs/uuid"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"

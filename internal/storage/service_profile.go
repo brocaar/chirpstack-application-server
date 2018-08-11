@@ -7,9 +7,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
+	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/config"
@@ -48,7 +48,7 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 	}
 
 	now := time.Now()
-	spID := uuid.NewV4()
+	spID := uuid.Must(uuid.NewV4())
 
 	sp.CreatedAt = now
 	sp.UpdatedAt = now
@@ -99,7 +99,7 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 func GetServiceProfile(db sqlx.Queryer, id uuid.UUID) (ServiceProfile, error) {
 	var sp ServiceProfile
 	row := db.QueryRowx(`
-		select 
+		select
 			network_server_id,
 			organization_id,
 			created_at,

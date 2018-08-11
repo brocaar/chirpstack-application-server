@@ -3,7 +3,7 @@ package auth
 import (
 	"strings"
 
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 
 	"github.com/brocaar/lorawan"
 	"github.com/jmoiron/sqlx"

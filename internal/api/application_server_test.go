@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 
 	. "github.com/smartystreets/goconvey/convey"
 

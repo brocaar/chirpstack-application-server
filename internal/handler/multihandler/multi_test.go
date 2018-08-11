@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 
 	"github.com/brocaar/lora-app-server/internal/handler/influxdbhandler"
 

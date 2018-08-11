@@ -3,7 +3,7 @@ package api
 import (
 	"testing"
 
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

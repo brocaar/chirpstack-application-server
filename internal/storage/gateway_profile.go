@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/config"
@@ -51,7 +51,7 @@ type GatewayProfileMeta struct {
 // This will create the gateway-profile at the network-server side and will
 // create a local reference record.
 func CreateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
-	gpID := uuid.NewV4()
+	gpID := uuid.Must(uuid.NewV4())
 	now := time.Now()
 
 	gp.GatewayProfile.Id = gpID.Bytes()

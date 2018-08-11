@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 
 	"github.com/brocaar/loraserver/api/ns"
 

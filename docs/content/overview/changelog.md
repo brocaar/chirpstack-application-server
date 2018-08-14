@@ -8,6 +8,13 @@ menu:
 
 # Changelog
 
+## v2.0.1
+
+### Bugfixes
+
+* Use `gofrs/uuid` UUID library as `satori/go.uuid` is not truly random. ([#253](https://github.com/brocaar/lora-app-server/pull/253))
+* Fix web-interface login form (sometimes a double login was required).
+
 ## v2.0.0
 
 ### Upgrade notes

@@ -47,14 +47,17 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		return errors.Wrap(err, "validate error")
 	}
 
-	now := time.Now()
-	spID := uuid.Must(uuid.NewV4())
+	spID, err := uuid.NewV4()
+	if err != nil {
+		return errors.Wrap(err, "new uuid v4 error")
+	}
 
+	now := time.Now()
 	sp.CreatedAt = now
 	sp.UpdatedAt = now
 	sp.ServiceProfile.Id = spID.Bytes()
 
-	_, err := db.Exec(`
+	_, err = db.Exec(`
 		insert into service_profile (
 			service_profile_id,
 			network_server_id,

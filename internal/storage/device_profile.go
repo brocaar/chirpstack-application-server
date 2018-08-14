@@ -48,13 +48,17 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		return errors.Wrap(err, "validate error")
 	}
 
+	dpID, err := uuid.NewV4()
+	if err != nil {
+		return errors.Wrap(err, "new uuid v4 error")
+	}
+
 	now := time.Now()
-	dpID := uuid.Must(uuid.NewV4())
 	dp.DeviceProfile.Id = dpID.Bytes()
 	dp.CreatedAt = now
 	dp.UpdatedAt = now
 
-	_, err := db.Exec(`
+	_, err = db.Exec(`
         insert into device_profile (
             device_profile_id,
             network_server_id,

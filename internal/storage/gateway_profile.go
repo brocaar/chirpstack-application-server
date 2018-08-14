@@ -51,14 +51,18 @@ type GatewayProfileMeta struct {
 // This will create the gateway-profile at the network-server side and will
 // create a local reference record.
 func CreateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
-	gpID := uuid.Must(uuid.NewV4())
+	gpID, err := uuid.NewV4()
+	if err != nil {
+		return errors.Wrap(err, "new uuid v4 error")
+	}
+
 	now := time.Now()
 
 	gp.GatewayProfile.Id = gpID.Bytes()
 	gp.CreatedAt = now
 	gp.UpdatedAt = now
 
-	_, err := db.Exec(`
+	_, err = db.Exec(`
 		insert into gateway_profile (
 			gateway_profile_id,
 			network_server_id,

@@ -5,10 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brocaar/loraserver/api/gw"
-
 	"github.com/golang/protobuf/ptypes"
-
 	. "github.com/smartystreets/goconvey/convey"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -17,6 +14,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 )
@@ -57,7 +55,7 @@ func TestGatewayAPI(t *testing.T) {
 		getGatewayResponseNS := ns.GetGatewayResponse{
 			Gateway: &ns.Gateway{
 				Id: []byte{1, 2, 3, 4, 5, 6, 7, 8},
-				Location: &gw.Location{
+				Location: &common.Location{
 					Latitude:  1.1234,
 					Longitude: 1.1235,
 					Altitude:  5.5,
@@ -76,7 +74,7 @@ func TestGatewayAPI(t *testing.T) {
 					Id:          "0102030405060708",
 					Name:        "test-gateway",
 					Description: "test gateway",
-					Location: &gw.Location{
+					Location: &common.Location{
 						Latitude:  1.1234,
 						Longitude: 1.1235,
 						Altitude:  5.5,
@@ -97,7 +95,7 @@ func TestGatewayAPI(t *testing.T) {
 				So(<-nsClient.CreateGatewayChan, ShouldResemble, ns.CreateGatewayRequest{
 					Gateway: &ns.Gateway{
 						Id: []byte{1, 2, 3, 4, 5, 6, 7, 8},
-						Location: &gw.Location{
+						Location: &common.Location{
 							Latitude:  1.1234,
 							Longitude: 1.1235,
 							Altitude:  5.5,
@@ -209,7 +207,7 @@ func TestGatewayAPI(t *testing.T) {
 						Id:          "0102030405060708",
 						Name:        "test-gateway-updated",
 						Description: "updated test gateway",
-						Location: &gw.Location{
+						Location: &common.Location{
 							Latitude:  1.1235,
 							Longitude: 1.1236,
 							Altitude:  5.7,
@@ -235,7 +233,7 @@ func TestGatewayAPI(t *testing.T) {
 					So(<-nsClient.UpdateGatewayChan, ShouldResemble, ns.UpdateGatewayRequest{
 						Gateway: &ns.Gateway{
 							Id: []byte{1, 2, 3, 4, 5, 6, 7, 8},
-							Location: &gw.Location{
+							Location: &common.Location{
 								Latitude:  1.1235,
 								Longitude: 1.1236,
 								Altitude:  5.7,
@@ -252,7 +250,7 @@ func TestGatewayAPI(t *testing.T) {
 						Id:          "0102030405060708",
 						Name:        "test-gateway-updated",
 						Description: "updated test gateway",
-						Location: &gw.Location{
+						Location: &common.Location{
 							Latitude:  1.1235,
 							Longitude: 1.1236,
 							Altitude:  5.7,
@@ -277,7 +275,7 @@ func TestGatewayAPI(t *testing.T) {
 					So(<-nsClient.UpdateGatewayChan, ShouldResemble, ns.UpdateGatewayRequest{
 						Gateway: &ns.Gateway{
 							Id: []byte{1, 2, 3, 4, 5, 6, 7, 8},
-							Location: &gw.Location{
+							Location: &common.Location{
 								Latitude:  1.1235,
 								Longitude: 1.1236,
 								Altitude:  5.7,

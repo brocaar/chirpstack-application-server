@@ -8,6 +8,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/as"
+	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/loraserver/api/gw"
 	"github.com/brocaar/lorawan"
 	"github.com/golang/protobuf/ptypes"
@@ -124,7 +125,7 @@ func TestGatewayPing(t *testing.T) {
 									GatewayId: gw2.MAC[:],
 									Rssi:      -10,
 									LoraSnr:   5.5,
-									Location: &gw.Location{
+									Location: &common.Location{
 										Latitude:  1.12345,
 										Longitude: 1.23456,
 										Altitude:  10,

@@ -5,7 +5,7 @@ package api;
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
-import "github.com/brocaar/loraserver/api/gw/gw.proto";
+import "github.com/brocaar/loraserver/api/common/common.proto";
 import "common.proto";
 
 
@@ -84,7 +84,7 @@ message Gateway {
 	string description = 3;
 
 	// Gateway location.
-	gw.Location location = 4;
+	common.Location location = 4;
 
 	// Organization ID to which the gateway belongs.
 	int64 organization_id = 5 [json_name = "organizationID"];

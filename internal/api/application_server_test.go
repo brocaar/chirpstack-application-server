@@ -6,10 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-
 	"github.com/gofrs/uuid"
-
+	"github.com/golang/protobuf/ptypes"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/brocaar/lora-app-server/internal/codec"
@@ -150,7 +148,7 @@ func TestApplicationServerAPI(t *testing.T) {
 						GatewayId: gw.MAC[:],
 						Rssi:      -60,
 						LoraSnr:   5,
-						Location: &gwPB.Location{
+						Location: &common.Location{
 							Latitude:  52.3740364,
 							Longitude: 4.9144401,
 							Altitude:  10,
@@ -219,7 +217,7 @@ func TestApplicationServerAPI(t *testing.T) {
 						GatewayId: gw.MAC[:],
 						Rssi:      -60,
 						LoraSnr:   5,
-						Location: &gwPB.Location{
+						Location: &common.Location{
 							Latitude:  52.3740364,
 							Longitude: 4.9144401,
 							Altitude:  10,

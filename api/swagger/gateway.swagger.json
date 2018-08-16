@@ -371,7 +371,7 @@
           "description": "Gateway description."
         },
         "location": {
-          "$ref": "#/definitions/gwLocation",
+          "$ref": "#/definitions/commonLocation",
           "description": "Gateway location."
         },
         "organizationID": {
@@ -674,11 +674,51 @@
           "description": "Antenna."
         },
         "location": {
-          "$ref": "#/definitions/gwLocation",
+          "$ref": "#/definitions/commonLocation",
           "description": "Location."
         }
       },
       "description": "This is a copy of gw.UplinkRXInfo with the only change that the\ngateway_id is of type string so that we can return it as HEX encoded\ninstead of base64."
+    },
+    "commonLocation": {
+      "type": "object",
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "format": "double",
+          "description": "Latitude."
+        },
+        "longitude": {
+          "type": "number",
+          "format": "double",
+          "description": "Longitude."
+        },
+        "altitude": {
+          "type": "number",
+          "format": "double",
+          "description": "Altitude."
+        },
+        "source": {
+          "$ref": "#/definitions/commonLocationSource",
+          "description": "Location source."
+        },
+        "accuracy": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Accuracy (in meters)."
+        }
+      }
+    },
+    "commonLocationSource": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "GPS",
+        "CONFIG",
+        "GEO_RESOLVER"
+      ],
+      "default": "UNKNOWN",
+      "description": " - UNKNOWN: Unknown.\n - GPS: GPS.\n - CONFIG: Manually configured.\n - GEO_RESOLVER: Geo resolver."
     },
     "commonModulation": {
       "type": "string",
@@ -728,26 +768,6 @@
         }
       }
     },
-    "gwLocation": {
-      "type": "object",
-      "properties": {
-        "latitude": {
-          "type": "number",
-          "format": "double",
-          "description": "Latitude."
-        },
-        "longitude": {
-          "type": "number",
-          "format": "double",
-          "description": "Longitude."
-        },
-        "altitude": {
-          "type": "number",
-          "format": "double",
-          "description": "Altitude."
-        }
-      }
-    },
     "gwUplinkTXInfo": {
       "type": "object",
       "properties": {
@@ -760,7 +780,7 @@
           "$ref": "#/definitions/commonModulation",
           "description": "Modulation."
         },
-        "loraModulationInfo": {
+        "loRaModulationInfo": {
           "$ref": "#/definitions/gwLoRaModulationInfo",
           "description": "LoRa modulation information."
         },

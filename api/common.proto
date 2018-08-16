@@ -67,7 +67,7 @@ message UplinkRXInfo {
     uint32 antenna = 10;
 
     // Location.
-    gw.Location location = 11;
+    common.Location location = 11;
 }
 
 // Same comment as above applies to this message.

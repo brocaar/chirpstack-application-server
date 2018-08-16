@@ -49,6 +49,7 @@ class DeviceProfileForm extends FormComponent {
       {value: "1.0.0", label: "1.0.0"},
       {value: "1.0.1", label: "1.0.1"},
       {value: "1.0.2", label: "1.0.2"},
+      {value: "1.0.3", label: "1.0.3"},
       {value: "1.1.0", label: "1.1.0"},
     ];
 

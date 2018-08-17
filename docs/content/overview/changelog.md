@@ -8,6 +8,16 @@ menu:
 
 # Changelog
 
+## v2.0.2
+
+### Features
+
+* Add LoRaWAN 1.0.3 in MAC version dropdown.
+
+### Bugfixes
+
+* Fix organization selector dropdown styling.
+
 ## v2.0.1
 
 ### Bugfixes

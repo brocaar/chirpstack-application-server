@@ -171,16 +171,19 @@ class SideNav extends Component {
           </List>
           <Divider />
         </Admin>
-        <AutocompleteSelect
-          id="organizationID"
-          margin="none"
-          value={organizationID}
-          onChange={this.onChange}
-          getOption={this.getOrganizationOption}
-          getOptions={this.getOrganizationOptions}
-          className={this.props.classes.select}
-          triggerReload={this.state.cacheCounter}
-        />
+
+        <div>
+          <AutocompleteSelect
+            id="organizationID"
+            margin="none"
+            value={organizationID}
+            onChange={this.onChange}
+            getOption={this.getOrganizationOption}
+            getOptions={this.getOrganizationOptions}
+            className={this.props.classes.select}
+            triggerReload={this.state.cacheCounter}
+          />
+        </div>
 
         {this.state.organization && <List>
           <Admin>

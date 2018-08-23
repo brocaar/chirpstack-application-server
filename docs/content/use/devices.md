@@ -129,6 +129,22 @@ following command to obtain it:
 AT+DI?
 ```
 
+### Generic Arduino LMIC-based devices
+
+1. Make sure that your **Device Profile** has `LoRaWAN MAC version` set to `1.0.2`, and `LoRaWAN Regional Parameters revision` set to `A`
+2. Install the Arduino LMIC library using the Library Manager in the Arduino IDE
+3. Open the example sketch from `Examples -> LMIC-Arduino -> ttn-otaa.ino`
+4. Update the sketch with the **Device EUI** as ``0807060504030201``. **Note**: this field
+   must be entered as LSBF (meaning it is the reverse value as created in
+   LoRa Server)!
+5. Update the sketch with the **Application EUI** as ``0102030405060708``. **Note**: this field
+   must be entered as LSBF (meaning it is the reverse value as created in
+   LoRa Server)!
+6. Update the sketch with the **Application Key** as ``01020304050607080910111213141516``.
+   **Note:** Opposite to the *Device / Application EUI*, this field must be
+   entered as-is (the same value as set in LoRa Server).
+7. Flash the sketch to your device and confirm that the device has been activated in the LoraServer console and on the Arduino Serial Monitor
+
 ### Your device not here?
 
 Please help making this guide complete! Fork the [github.com/brocaar/lora-app-server](https://github.com/brocaar/lora-app-server)

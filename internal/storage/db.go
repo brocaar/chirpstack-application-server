@@ -15,8 +15,9 @@ import (
 )
 
 const (
-	redisDialReadTimeout  = 60 * time.Second
 	redisDialWriteTimeout = time.Second
+	redisDialReadTimeout  = time.Minute
+	onBorrowPingInterval  = time.Minute
 )
 
 // NewRedisPool returns a new Redis connection pool.
@@ -35,6 +36,10 @@ func NewRedisPool(redisURL string, maxIdle int, idleTimeout time.Duration) *redi
 			return c, err
 		},
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			if time.Now().Sub(t) < onBorrowPingInterval {
+				return nil
+			}
+
 			_, err := c.Do("PING")
 			if err != nil {
 				return fmt.Errorf("ping redis error: %s", err)

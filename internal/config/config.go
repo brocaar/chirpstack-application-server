@@ -1,6 +1,8 @@
 package config
 
 import (
+	"time"
+
 	"github.com/garyburd/redigo/redis"
 
 	"github.com/brocaar/lora-app-server/internal/common"
@@ -23,8 +25,10 @@ type Config struct {
 	} `mapstructure:"postgresql"`
 
 	Redis struct {
-		URL  string `mapstructure:"url"`
-		Pool *redis.Pool
+		URL         string        `mapstructure:"url"`
+		MaxIdle     int           `mapstructure:"max_idle"`
+		IdleTimeout time.Duration `mapstructure:"idle_timeout"`
+		Pool        *redis.Pool
 	}
 
 	ApplicationServer struct {

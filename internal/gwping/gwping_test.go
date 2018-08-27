@@ -22,7 +22,7 @@ func TestGatewayPing(t *testing.T) {
 		t.Fatal(err)
 	}
 	config.C.PostgreSQL.DB = db
-	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL)
+	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL, 10, 0)
 
 	Convey("Given a clean database and a gateway", t, func() {
 		nsClient := test.NewNetworkServerClient()

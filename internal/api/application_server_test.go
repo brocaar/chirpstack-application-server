@@ -33,7 +33,7 @@ func TestApplicationServerAPI(t *testing.T) {
 	nsClient := test.NewNetworkServerClient()
 
 	config.C.PostgreSQL.DB = db
-	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL)
+	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL, 10, 0)
 	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database with bootstrap data node and api instance", t, func() {

@@ -26,7 +26,7 @@ func TestJoinServerAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 	config.C.PostgreSQL.DB = db
-	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL)
+	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL, 10, 0)
 
 	Convey("Given a clean database with a device", t, func() {
 		test.MustResetDB(config.C.PostgreSQL.DB)

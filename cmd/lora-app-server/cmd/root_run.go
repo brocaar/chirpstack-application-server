@@ -116,7 +116,7 @@ func setPostgreSQLConnection() error {
 func setRedisPool() error {
 	// setup redis pool
 	log.Info("setup redis connection pool")
-	config.C.Redis.Pool = storage.NewRedisPool(config.C.Redis.URL)
+	config.C.Redis.Pool = storage.NewRedisPool(config.C.Redis.URL, config.C.Redis.MaxIdle, config.C.Redis.IdleTimeout)
 	return nil
 }
 

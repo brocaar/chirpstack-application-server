@@ -16,7 +16,7 @@ import (
 
 func TestEventLog(t *testing.T) {
 	conf := test.GetConfig()
-	p := storage.NewRedisPool(conf.RedisURL)
+	p := storage.NewRedisPool(conf.RedisURL, 10, 0)
 	config.C.Redis.Pool = p
 
 	Convey("Given a clean Redis database", t, func() {

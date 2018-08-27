@@ -27,7 +27,7 @@ func TestNodeAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	p := storage.NewRedisPool(conf.RedisURL)
+	p := storage.NewRedisPool(conf.RedisURL, 10, 0)
 
 	config.C.PostgreSQL.DB = db
 	config.C.Redis.Pool = p

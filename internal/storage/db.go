@@ -9,22 +9,21 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
 	// register postgresql driver
 	_ "github.com/lib/pq"
 )
 
 const (
-	redisMaxIdle          = 3
-	redisIdleTimeoutSec   = 240
 	redisDialReadTimeout  = 60 * time.Second
-	redisDialWriteTimeout = 10 * time.Second
+	redisDialWriteTimeout = time.Second
 )
 
 // NewRedisPool returns a new Redis connection pool.
-func NewRedisPool(redisURL string) *redis.Pool {
+func NewRedisPool(redisURL string, maxIdle int, idleTimeout time.Duration) *redis.Pool {
 	return &redis.Pool{
-		MaxIdle:     redisMaxIdle,
-		IdleTimeout: redisIdleTimeoutSec * time.Second,
+		MaxIdle:     maxIdle,
+		IdleTimeout: idleTimeout,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.DialURL(redisURL,
 				redis.DialReadTimeout(redisDialReadTimeout),

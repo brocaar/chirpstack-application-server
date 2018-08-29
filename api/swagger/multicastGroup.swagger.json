@@ -1,0 +1,562 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "multicastGroup.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/multicast-groups": {
+      "get": {
+        "summary": "List lists the available multicast-groups.",
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListMulticastGroupResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "Max number of items to return.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset",
+            "description": "Offset in the result-set (for pagination).",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "organizationID",
+            "description": "Organization id to filter on.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "devEUI",
+            "description": "Device EUI (HEX encoded string) to filter on.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "serviceProfileID",
+            "description": "Service-profile ID to filter on.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "search",
+            "description": "Search can be used to search on the multicast-group name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "MulticastGroupService"
+        ]
+      },
+      "post": {
+        "summary": "Create creates the given multicast-group.",
+        "operationId": "Create",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiCreateMulticastGroupResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateMulticastGroupRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MulticastGroupService"
+        ]
+      }
+    },
+    "/api/multicast-groups/{id}": {
+      "get": {
+        "summary": "Get returns a multicast-group given an ID.",
+        "operationId": "Get",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetMulticastGroupResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "ID (string formatted UUID).",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "MulticastGroupService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete deletes a multicast-group given an ID.",
+        "operationId": "Delete",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/protobufEmpty"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "ID (string formatted UUID).",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "MulticastGroupService"
+        ]
+      }
+    },
+    "/api/multicast-groups/{multicast_group.id}": {
+      "put": {
+        "summary": "Update updates the given multicast-group.",
+        "operationId": "Update",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/protobufEmpty"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "multicast_group.id",
+            "description": "ID (string formatted UUID).\nThis will be generated automatically on create.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateMulticastGroupRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MulticastGroupService"
+        ]
+      }
+    },
+    "/api/multicast-groups/{multicast_group_id}/devices": {
+      "post": {
+        "summary": "AddDevice adds the given device to the multicast-group.",
+        "operationId": "AddDevice",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/protobufEmpty"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "multicast_group_id",
+            "description": "Multicast-group ID (string formatted UUID).",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiAddDeviceToMulticastGroupRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MulticastGroupService"
+        ]
+      }
+    },
+    "/api/multicast-groups/{multicast_group_id}/devices/{dev_eui}": {
+      "delete": {
+        "summary": "RemoveDevice removes the given device from the multicast-group.",
+        "operationId": "RemoveDevice",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/protobufEmpty"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "multicast_group_id",
+            "description": "Multicast-group ID (string formatted UUID).",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "dev_eui",
+            "description": "Device EUI (HEX encoded string).",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "MulticastGroupService"
+        ]
+      }
+    },
+    "/api/multicast-groups/{multicast_group_id}/queue": {
+      "get": {
+        "summary": "ListQueue lists the items in the multicast-group queue.",
+        "operationId": "ListQueue",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListMulticastGroupQueueItemsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "multicast_group_id",
+            "description": "Multicast-group ID (string formatted UUID).",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "MulticastGroupService"
+        ]
+      },
+      "delete": {
+        "summary": "FlushQueue flushes the multicast-group queue.",
+        "operationId": "FlushQueue",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/protobufEmpty"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "multicast_group_id",
+            "description": "Multicast-group ID (string formatted UUID).",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "MulticastGroupService"
+        ]
+      }
+    },
+    "/api/multicast-groups/{multicast_queue_item.multicast_group_id}/queue": {
+      "post": {
+        "summary": "Enqueue adds the given item to the multicast-queue.",
+        "operationId": "Enqueue",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiEnqueueMulticastQueueItemResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "multicast_queue_item.multicast_group_id",
+            "description": "Multicast-group ID (string formatted UUID).",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiEnqueueMulticastQueueItemRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MulticastGroupService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiAddDeviceToMulticastGroupRequest": {
+      "type": "object",
+      "properties": {
+        "multicastGroupID": {
+          "type": "string",
+          "description": "Multicast-group ID (string formatted UUID)."
+        },
+        "devEUI": {
+          "type": "string",
+          "description": "Device EUI (HEX encoded string).\nNote that the device must be under the same service-profile as the\nmulticast-group."
+        }
+      }
+    },
+    "apiCreateMulticastGroupRequest": {
+      "type": "object",
+      "properties": {
+        "multicastGroup": {
+          "$ref": "#/definitions/apiMulticastGroup",
+          "description": "Multicast-group object to create."
+        }
+      }
+    },
+    "apiCreateMulticastGroupResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID of created group (string formatted UUID)."
+        }
+      }
+    },
+    "apiEnqueueMulticastQueueItemRequest": {
+      "type": "object",
+      "properties": {
+        "multicastQueueItem": {
+          "$ref": "#/definitions/apiMulticastQueueItem",
+          "description": "Multicast queue-item object to enqueue."
+        }
+      }
+    },
+    "apiEnqueueMulticastQueueItemResponse": {
+      "type": "object",
+      "properties": {
+        "fCnt": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Frame-counter for the enqueued payload."
+        }
+      }
+    },
+    "apiGetMulticastGroupResponse": {
+      "type": "object",
+      "properties": {
+        "multicastGroup": {
+          "$ref": "#/definitions/apiMulticastGroup",
+          "description": "Multicast-group object."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Created at timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp."
+        }
+      }
+    },
+    "apiListMulticastGroupQueueItemsResponse": {
+      "type": "object",
+      "properties": {
+        "multicastQueueItems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiMulticastQueueItem"
+          }
+        }
+      }
+    },
+    "apiListMulticastGroupResponse": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "string",
+          "format": "int64",
+          "description": "Total number of multicast-groups."
+        },
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiMulticastGroupListItem"
+          }
+        }
+      }
+    },
+    "apiMulticastGroup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID (string formatted UUID).\nThis will be generated automatically on create."
+        },
+        "name": {
+          "type": "string",
+          "description": "Multicast-group name."
+        },
+        "mcAddr": {
+          "type": "string",
+          "description": "Multicast address (HEX encoded DevAddr)."
+        },
+        "mcNwkSKey": {
+          "type": "string",
+          "description": "Multicast network session key (HEX encoded AES128 key)."
+        },
+        "mcAppSKey": {
+          "type": "string",
+          "description": "Multicast application session key (HEX encoded AES128 key)."
+        },
+        "fCnt": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Frame-counter."
+        },
+        "groupType": {
+          "$ref": "#/definitions/apiMulticastGroupType",
+          "description": "Multicast type."
+        },
+        "dr": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Data-rate."
+        },
+        "frequency": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Frequency (Hz)."
+        },
+        "pingSlotPeriod": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Ping-slot period.\nMandatory for Class-B multicast groups."
+        },
+        "serviceProfileID": {
+          "type": "string",
+          "description": "Service-profile ID.\nAfter creation, this can not be updated."
+        }
+      }
+    },
+    "apiMulticastGroupListItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID (string formatted UUID)."
+        },
+        "name": {
+          "type": "string",
+          "description": "Multicast-group name."
+        },
+        "serviceProfileID": {
+          "type": "string",
+          "description": "Service-profile ID (string formatted UUID)."
+        },
+        "serviceProfileName": {
+          "type": "string",
+          "description": "Service-profile name."
+        }
+      }
+    },
+    "apiMulticastGroupType": {
+      "type": "string",
+      "enum": [
+        "CLASS_C",
+        "CLASS_B"
+      ],
+      "default": "CLASS_C",
+      "description": " - CLASS_C: Class-C.\n - CLASS_B: Class-B."
+    },
+    "apiMulticastQueueItem": {
+      "type": "object",
+      "properties": {
+        "multicastGroupID": {
+          "type": "string",
+          "description": "Multicast-group ID (string formatted UUID)."
+        },
+        "fCnt": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Downlink frame-counter.\nThis will be automatically set on enqueue."
+        },
+        "fPort": {
+          "type": "integer",
+          "format": "int64",
+          "description": "FPort used (must be \u003e 0)."
+        },
+        "data": {
+          "type": "string",
+          "format": "byte",
+          "description": "Base64 encoded data."
+        }
+      }
+    },
+    "apiUpdateMulticastGroupRequest": {
+      "type": "object",
+      "properties": {
+        "multicastGroup": {
+          "$ref": "#/definitions/apiMulticastGroup",
+          "description": "Multicast-group object to update."
+        }
+      }
+    },
+    "protobufEmpty": {
+      "type": "object",
+      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
+      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
+    }
+  }
+}

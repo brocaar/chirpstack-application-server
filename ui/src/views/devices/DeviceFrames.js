@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 
 import { withStyles } from "@material-ui/core/styles";
+import Avatar from "@material-ui/core/Avatar";
+import Chip from "@material-ui/core/Chip";
 import Grid from "@material-ui/core/Grid";
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -15,6 +17,7 @@ import Pause from "mdi-material-ui/Pause";
 import Download from "mdi-material-ui/Download";
 import Delete from "mdi-material-ui/Delete";
 import HelpCircleOutline from "mdi-material-ui/HelpCircleOutline";
+import AlertCircleOutline from "mdi-material-ui/AlertCircleOutline";
 
 import fileDownload from "js-file-download";
 
@@ -48,10 +51,12 @@ class DeviceFrames extends Component {
 
     this.state = {
       paused: false,
+      connected: false,
       frames: [],
       dialogOpen: false,
     };
 
+    this.setConnected = this.setConnected.bind(this);
     this.onFrame = this.onFrame.bind(this);
     this.onDownload = this.onDownload.bind(this);
     this.togglePause = this.togglePause.bind(this);
@@ -64,10 +69,15 @@ class DeviceFrames extends Component {
     this.setState({
       wsConn: conn,
     });
+
+    DeviceStore.on("ws.status.change", this.setConnected);
+    this.setConnected();
   }
 
   componentWillUnmount() {
     this.state.wsConn.close();
+
+    DeviceStore.removeListener("ws.status.change", this.setConnected);
   }
 
   onDownload() {
@@ -97,6 +107,12 @@ class DeviceFrames extends Component {
   onClear() {
     this.setState({
       frames: [],
+    });
+  }
+
+  setConnected() {
+    this.setState({
+      connected: DeviceStore.getWSFramesStatus(),
     });
   }
 
@@ -183,8 +199,15 @@ class DeviceFrames extends Component {
           </Button>
         </Grid>
         <Grid item xs={12}>
+          {!this.state.connected && <div className={this.props.classes.center}>
+            <Chip
+              color="secondary"
+              label="Not connected to Websocket API"
+              avatar={<Avatar><AlertCircleOutline /></Avatar>}
+            />
+          </div>}
+          {(this.state.connected && frames.length === 0 && !this.state.paused) && <div className={this.props.classes.center}><CircularProgress className={this.props.classes.progress} /></div>}
           {frames.length > 0 && frames}
-          {(frames.length === 0 && !this.state.paused) && <div className={this.props.classes.center}><CircularProgress className={this.props.classes.progress} /></div>}
         </Grid>
       </Grid>
     );

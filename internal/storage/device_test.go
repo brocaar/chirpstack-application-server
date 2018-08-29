@@ -53,14 +53,14 @@ func TestDevice(t *testing.T) {
 				DevStatusReqFreq:       4,
 				ReportDevStatusBattery: true,
 				ReportDevStatusMargin:  true,
-				DrMin:          3,
-				DrMax:          5,
-				PrAllowed:      true,
-				HrAllowed:      true,
-				RaAllowed:      true,
-				NwkGeoLoc:      true,
-				TargetPer:      10,
-				MinGwDiversity: 3,
+				DrMin:                  3,
+				DrMax:                  5,
+				PrAllowed:              true,
+				HrAllowed:              true,
+				RaAllowed:              true,
+				NwkGeoLoc:              true,
+				TargetPer:              10,
+				MinGwDiversity:         3,
 			},
 		}
 		So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
@@ -137,21 +137,21 @@ func TestDevice(t *testing.T) {
 			})
 
 			Convey("Then the device can be listed and counted", func() {
-				devices, err := GetDevices(db, 10, 0, "")
+				devices, err := GetDevices(db, DeviceFilters{Limit: 10})
 				So(err, ShouldBeNil)
 				So(devices, ShouldHaveLength, 1)
 
-				count, err := GetDeviceCount(db, "")
+				count, err := GetDeviceCount(db, DeviceFilters{})
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 			})
 
 			Convey("Then the device can be listed and counted by application id", func() {
-				devices, err := GetDevicesForApplicationID(db, app.ID, 10, 0, "")
+				devices, err := GetDevices(db, DeviceFilters{Limit: 10, ApplicationID: app.ID})
 				So(err, ShouldBeNil)
 				So(devices, ShouldHaveLength, 1)
 
-				count, err := GetDeviceCountForApplicationID(db, app.ID, "")
+				count, err := GetDeviceCount(db, DeviceFilters{ApplicationID: app.ID})
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 			})
@@ -285,57 +285,6 @@ func TestDevice(t *testing.T) {
 						So(err, ShouldBeNil)
 						daGet.CreatedAt = daGet.CreatedAt.UTC().Truncate(time.Millisecond)
 						So(daGet, ShouldResemble, da2)
-					})
-				})
-			})
-
-			Convey("Given an user", func() {
-				user := User{
-					Username: "testuser",
-					IsActive: true,
-					Email:    "foo@bar.com",
-				}
-
-				_, err := CreateUser(db, &user, "password123")
-				So(err, ShouldBeNil)
-
-				Convey("Then no devices can be retrieved for this user", func() {
-					// app id given
-					devices, err := GetDevicesForUser(db, user.Username, app.ID, 10, 0, "")
-					So(err, ShouldBeNil)
-					So(devices, ShouldHaveLength, 0)
-					count, err := GetDeviceCountForUser(db, user.Username, app.ID, "")
-					So(err, ShouldBeNil)
-					So(count, ShouldEqual, 0)
-
-					// no app given
-					devices, err = GetDevicesForUser(db, user.Username, 0, 10, 0, "")
-					So(err, ShouldBeNil)
-					So(devices, ShouldHaveLength, 0)
-					count, err = GetDeviceCountForUser(db, user.Username, 0, "")
-					So(err, ShouldBeNil)
-					So(count, ShouldEqual, 0)
-				})
-
-				Convey("Given an organization user", func() {
-					So(CreateOrganizationUser(db, org.ID, user.ID, false), ShouldBeNil)
-
-					Convey("Then devices can be retrieved for this user", func() {
-						// app id given
-						devices, err := GetDevicesForUser(db, user.Username, app.ID, 10, 0, "")
-						So(err, ShouldBeNil)
-						So(devices, ShouldHaveLength, 1)
-						count, err := GetDeviceCountForUser(db, user.Username, app.ID, "")
-						So(err, ShouldBeNil)
-						So(count, ShouldEqual, 1)
-
-						// no app given
-						devices, err = GetDevicesForUser(db, user.Username, 0, 10, 0, "")
-						So(err, ShouldBeNil)
-						So(devices, ShouldHaveLength, 1)
-						count, err = GetDeviceCountForUser(db, user.Username, 0, "")
-						So(err, ShouldBeNil)
-						So(count, ShouldEqual, 1)
 					})
 				})
 			})

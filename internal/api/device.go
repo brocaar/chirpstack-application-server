@@ -3,11 +3,11 @@ package api
 import (
 	"encoding/json"
 
+	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -131,65 +131,83 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 
 // List lists the available applications.
 func (a *DeviceAPI) List(ctx context.Context, req *pb.ListDeviceRequest) (*pb.ListDeviceResponse, error) {
-	if err := a.validator.Validate(ctx,
-		auth.ValidateNodesAccess(req.ApplicationId, auth.List),
-	); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	var err error
+	var idFilter bool
+
+	filters := storage.DeviceFilters{
+		ApplicationID: req.ApplicationId,
+		Search:        req.Search,
+		Limit:         int(req.Limit),
+		Offset:        int(req.Offset),
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	if req.MulticastGroupId != "" {
+		filters.MulticastGroupID, err = uuid.FromString(req.MulticastGroupId)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+	}
+
+	if req.ServiceProfileId != "" {
+		filters.ServiceProfileID, err = uuid.FromString(req.ServiceProfileId)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+	}
+
+	if filters.ApplicationID != 0 {
+		idFilter = true
+
+		// validate that the client has access to the given application
+		if err := a.validator.Validate(ctx,
+			auth.ValidateApplicationAccess(req.ApplicationId, auth.Read),
+		); err != nil {
+			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+		}
+
+	}
+
+	if filters.MulticastGroupID != uuid.Nil {
+		idFilter = true
+
+		// validate that the client has access to the given multicast-group
+		if err := a.validator.Validate(ctx,
+			auth.ValidateMulticastGroupAccess(auth.Read, filters.MulticastGroupID),
+		); err != nil {
+			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+		}
+	}
+
+	if filters.ServiceProfileID != uuid.Nil {
+		idFilter = true
+
+		// validate that the client has access to the given service-profile
+		if err := a.validator.Validate(ctx,
+			auth.ValidateServiceProfileAccess(auth.Read, filters.ServiceProfileID),
+		); err != nil {
+			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+		}
+	}
+
+	if !idFilter {
+		isAdmin, err := a.validator.GetIsAdmin(ctx)
+		if err != nil {
+			return nil, errToRPCError(err)
+		}
+
+		if !isAdmin {
+			return nil, grpc.Errorf(codes.Unauthenticated, "client must be global admin for unfiltered request")
+		}
+	}
+
+	count, err := storage.GetDeviceCount(config.C.PostgreSQL.DB, filters)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	username, err := a.validator.GetUsername(ctx)
+	devices, err := storage.GetDevices(config.C.PostgreSQL.DB, filters)
 	if err != nil {
 		return nil, errToRPCError(err)
-	}
-
-	var count int
-	var devices []storage.DeviceListItem
-
-	if req.ApplicationId == 0 {
-		if isAdmin {
-			devices, err = storage.GetDevices(config.C.PostgreSQL.DB, int(req.Limit), int(req.Offset), req.Search)
-			if err != nil {
-				return nil, errToRPCError(err)
-			}
-			count, err = storage.GetDeviceCount(config.C.PostgreSQL.DB, req.Search)
-			if err != nil {
-				return nil, errToRPCError(err)
-			}
-		} else {
-			devices, err = storage.GetDevicesForUser(config.C.PostgreSQL.DB, username, 0, int(req.Limit), int(req.Offset), req.Search)
-			if err != nil {
-				return nil, errToRPCError(err)
-			}
-			count, err = storage.GetDeviceCountForUser(config.C.PostgreSQL.DB, username, 0, req.Search)
-			if err != nil {
-				return nil, errToRPCError(err)
-			}
-		}
-	} else {
-		if isAdmin {
-			devices, err = storage.GetDevicesForApplicationID(config.C.PostgreSQL.DB, req.ApplicationId, int(req.Limit), int(req.Offset), req.Search)
-			if err != nil {
-				return nil, errToRPCError(err)
-			}
-			count, err = storage.GetDeviceCountForApplicationID(config.C.PostgreSQL.DB, req.ApplicationId, req.Search)
-			if err != nil {
-				return nil, errToRPCError(err)
-			}
-		} else {
-			devices, err = storage.GetDevicesForUser(config.C.PostgreSQL.DB, username, req.ApplicationId, int(req.Limit), int(req.Offset), req.Search)
-			if err != nil {
-				return nil, errToRPCError(err)
-			}
-			count, err = storage.GetDeviceCountForUser(config.C.PostgreSQL.DB, username, req.ApplicationId, req.Search)
-			if err != nil {
-				return nil, errToRPCError(err)
-			}
-		}
 	}
 
 	return a.returnList(count, devices)

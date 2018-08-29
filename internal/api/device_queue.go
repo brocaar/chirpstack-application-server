@@ -54,13 +54,15 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 	}
 
 	if err := storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
+		// Lock the device to avoid concurrent enqueue actions for the same
+		// device as this would result in re-use of the same frame-counter.
+		dev, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, true, true)
+		if err != nil {
+			return errToRPCError(err)
+		}
+
 		// if JSON object is set, try to encode it to bytes
 		if req.DeviceQueueItem.JsonObject != "" {
-			dev, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, true, true)
-			if err != nil {
-				return errToRPCError(err)
-			}
-
 			app, err := storage.GetApplication(config.C.PostgreSQL.DB, dev.ApplicationID)
 			if err != nil {
 				return errToRPCError(err)
@@ -83,7 +85,6 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 			}
 		}
 
-		var err error
 		fCnt, err = downlink.EnqueueDownlinkPayload(tx, devEUI, req.DeviceQueueItem.Confirmed, uint8(req.DeviceQueueItem.FPort), req.DeviceQueueItem.Data)
 		if err != nil {
 			return grpc.Errorf(codes.Internal, "enqueue downlink payload error: %s", err)
@@ -161,6 +162,9 @@ func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsR
 	queueItemsResp, err := nsClient.GetDeviceQueueItemsForDevEUI(ctx, &ns.GetDeviceQueueItemsForDevEUIRequest{
 		DevEui: devEUI[:],
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	var resp pb.ListDeviceQueueItemsResponse
 	for _, qi := range queueItemsResp.Items {

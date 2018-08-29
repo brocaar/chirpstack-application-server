@@ -15,6 +15,7 @@ import (
 	"time"
 
 	assetfs "github.com/elazarl/go-bindata-assetfs"
+	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
@@ -251,6 +252,11 @@ func startClientAPI(ctx context.Context) func() error {
 			log.Fatal("jwt secret must be set for external api")
 		}
 
+		rpID, err := uuid.FromString(config.C.ApplicationServer.ID)
+		if err != nil {
+			return errors.Wrap(err, "application-server id to uuid error")
+		}
+
 		clientAPIHandler := grpc.NewServer(gRPCLoggingServerOptions()...)
 		pb.RegisterApplicationServiceServer(clientAPIHandler, api.NewApplicationAPI(validator))
 		pb.RegisterDeviceQueueServiceServer(clientAPIHandler, api.NewDeviceQueueAPI(validator))
@@ -263,6 +269,7 @@ func startClientAPI(ctx context.Context) func() error {
 		pb.RegisterNetworkServerServiceServer(clientAPIHandler, api.NewNetworkServerAPI(validator))
 		pb.RegisterServiceProfileServiceServer(clientAPIHandler, api.NewServiceProfileServiceAPI(validator))
 		pb.RegisterDeviceProfileServiceServer(clientAPIHandler, api.NewDeviceProfileServiceAPI(validator))
+		pb.RegisterMulticastGroupServiceServer(clientAPIHandler, api.NewMulticastGroupAPI(validator, config.C.PostgreSQL.DB, rpID, config.C.NetworkServer.Pool))
 
 		// setup the client http interface variable
 		// we need to start the gRPC service first, as it is used by the
@@ -299,7 +306,6 @@ func startClientAPI(ctx context.Context) func() error {
 		time.Sleep(time.Millisecond * 100)
 
 		// setup the HTTP handler
-		var err error
 		clientHTTPHandler, err = getHTTPHandler(ctx)
 		if err != nil {
 			return err
@@ -434,6 +440,9 @@ func getJSONGateway(ctx context.Context) (http.Handler, error) {
 	}
 	if err := pb.RegisterDeviceProfileServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register device-profile handler error")
+	}
+	if err := pb.RegisterMulticastGroupServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
+		return nil, errors.Wrap(err, "register multicast-group handler error")
 	}
 
 	return mux, nil

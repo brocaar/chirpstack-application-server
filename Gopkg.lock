@@ -11,7 +11,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:653c9473e76c123639cda07a14e1719ca747caeb7be16c02caa3e05883d6018a"
+  digest = "1:143666fb298285d92105a72662fd7a210c0fab5155a62099f67b02092eed9bf4"
   name = "github.com/brocaar/loraserver"
   packages = [
     "api/as",
@@ -20,7 +20,7 @@
     "api/ns",
   ]
   pruneopts = "UT"
-  revision = "59f02c3b53dccf42ad07a9f88c7832cb9207c162"
+  revision = "ea0ed1f93e4eaa451a5da5741f1bdef30ce59653"
 
 [[projects]]
   branch = "master"
@@ -33,6 +33,14 @@
   ]
   pruneopts = "NUT"
   revision = "f8d816eb916de4ef3253cc6f1f1036d25a1e324b"
+
+[[projects]]
+  digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  pruneopts = "NUT"
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:7a6852b35eb5bbc184561443762d225116ae630c26a7c4d90546619f1e7d2ad2"
@@ -274,6 +282,14 @@
   version = "v0.8.0"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  pruneopts = "NUT"
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   digest = "1:52c64bdd680d5b7d372a096dedf522d36d2b39471237eef195eec7269dd19772"
   name = "github.com/robertkrimen/otto"
@@ -382,6 +398,18 @@
   packages = ["."]
   pruneopts = "NUT"
   revision = "907c19d40d9a6c9bb55f040ff4ae45271a4754b9"
+
+[[projects]]
+  digest = "1:ea401d5768217268c640bfbdf50bc58780b948866e79ffac57b07e310a560510"
+  name = "github.com/stretchr/testify"
+  packages = [
+    "assert",
+    "require",
+    "suite",
+  ]
+  pruneopts = "NUT"
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
 
 [[projects]]
   branch = "master"
@@ -565,6 +593,8 @@
     "github.com/smartystreets/goconvey/convey",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
+    "github.com/stretchr/testify/require",
+    "github.com/stretchr/testify/suite",
     "github.com/tmc/grpc-websocket-proxy/wsproxy",
     "golang.org/x/crypto/pbkdf2",
     "golang.org/x/net/context",

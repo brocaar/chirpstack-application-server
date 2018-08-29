@@ -1,7 +1,9 @@
 import React, { Component } from "react";
 
 import { withStyles } from "@material-ui/core/styles";
+import Avatar from "@material-ui/core/Avatar";
 import Grid from "@material-ui/core/Grid";
+import Chip from "@material-ui/core/Chip";
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
@@ -20,6 +22,7 @@ import Download from "mdi-material-ui/Download";
 import Delete from "mdi-material-ui/Delete";
 import ChevronDown from "mdi-material-ui/ChevronDown";
 import HelpCircleOutline from "mdi-material-ui/HelpCircleOutline";
+import AlertCircleOutline from "mdi-material-ui/AlertCircleOutline";
 
 import moment from "moment";
 import fileDownload from "js-file-download";
@@ -94,10 +97,12 @@ class DeviceData extends Component {
 
     this.state = {
       paused: false,
+      connected: false,
       data: [],
       dialogOpen: false,
     };
 
+    this.setConnected = this.setConnected.bind(this);
     this.onData = this.onData.bind(this);
     this.onDownload = this.onDownload.bind(this);
     this.togglePause = this.togglePause.bind(this);
@@ -110,10 +115,14 @@ class DeviceData extends Component {
     this.setState({
       wsConn: conn,
     });
+
+    DeviceStore.on("ws.status.change", this.setConnected);
+    this.setConnected();
   }
 
   componentWillUnmount() {
     this.state.wsConn.close();
+    DeviceStore.removeListener("ws.status.change", this.setConnected);
   }
 
   onDownload() {
@@ -142,6 +151,12 @@ class DeviceData extends Component {
   onClear() {
     this.setState({
       data: [],
+    });
+  }
+
+  setConnected() {
+    this.setState({
+      connected: DeviceStore.getWSDataStatus(),
     });
   }
 
@@ -210,8 +225,15 @@ class DeviceData extends Component {
           </Button>
         </Grid>
         <Grid item xs={12}>
+          {!this.state.connected && <div className={this.props.classes.center}>
+            <Chip
+              color="secondary"
+              label="Not connected to Websocket API"
+              avatar={<Avatar><AlertCircleOutline /></Avatar>}
+            />
+          </div>}
+          {(this.state.connected && data.length === 0 && !this.state.paused) && <div className={this.props.classes.center}><CircularProgress className={this.props.classes.progress} /></div>}
           {data.length > 0 && data}
-          {(data.length === 0 && !this.state.paused) && <div className={this.props.classes.center}><CircularProgress className={this.props.classes.progress} /></div>}
         </Grid>
       </Grid>
     );

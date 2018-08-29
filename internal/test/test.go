@@ -215,47 +215,83 @@ type NetworkServerClient struct {
 	GetNextDownlinkFCntForDevEUIChan     chan ns.GetNextDownlinkFCntForDevEUIRequest
 	GetNextDownlinkFCntForDevEUIResponse ns.GetNextDownlinkFCntForDevEUIResponse
 
+	CreateMulticastGroupChan     chan ns.CreateMulticastGroupRequest
+	CreateMulticastGroupResponse ns.CreateMulticastGroupResponse
+
+	GetMulticastGroupChan     chan ns.GetMulticastGroupRequest
+	GetMulticastGroupResponse ns.GetMulticastGroupResponse
+
+	UpdateMulticastGroupChan     chan ns.UpdateMulticastGroupRequest
+	UpdateMulticastGroupResponse empty.Empty
+
+	DeleteMulticastGroupChan     chan ns.DeleteMulticastGroupRequest
+	DeleteMulticastGroupResponse empty.Empty
+
+	AddDeviceToMulticastGroupChan     chan ns.AddDeviceToMulticastGroupRequest
+	AddDeviceToMulticastGroupResponse empty.Empty
+
+	RemoveDeviceFromMulticastGroupChan     chan ns.RemoveDeviceFromMulticastGroupRequest
+	RemoveDeviceFromMulticastGroupResponse empty.Empty
+
+	EnqueueMulticastQueueItemChan     chan ns.EnqueueMulticastQueueItemRequest
+	EnqueueMulticastQueueItemResponse empty.Empty
+
+	FlushMulticastQueueForMulticastGroupChan     chan ns.FlushMulticastQueueForMulticastGroupRequest
+	FlushMulticastQueueForMulticastGroupResponse empty.Empty
+
+	GetMulticastQueueItemsForMulticastGroupChan     chan ns.GetMulticastQueueItemsForMulticastGroupRequest
+	GetMulticastQueueItemsForMulticastGroupResponse ns.GetMulticastQueueItemsForMulticastGroupResponse
+
 	GetVersionResponse ns.GetVersionResponse
 }
 
 // NewNetworkServerClient creates a new NetworkServerClient.
 func NewNetworkServerClient() *NetworkServerClient {
 	return &NetworkServerClient{
-		CreateServiceProfileChan:         make(chan ns.CreateServiceProfileRequest, 100),
-		GetServiceProfileChan:            make(chan ns.GetServiceProfileRequest, 100),
-		UpdateServiceProfileChan:         make(chan ns.UpdateServiceProfileRequest, 100),
-		DeleteServiceProfileChan:         make(chan ns.DeleteServiceProfileRequest, 100),
-		CreateRoutingProfileChan:         make(chan ns.CreateRoutingProfileRequest, 100),
-		GetRoutingProfileChan:            make(chan ns.GetRoutingProfileRequest, 100),
-		UpdateRoutingProfileChan:         make(chan ns.UpdateRoutingProfileRequest, 100),
-		DeleteRoutingProfileChan:         make(chan ns.DeleteRoutingProfileRequest, 100),
-		CreateDeviceProfileChan:          make(chan ns.CreateDeviceProfileRequest, 100),
-		GetDeviceProfileChan:             make(chan ns.GetDeviceProfileRequest, 100),
-		UpdateDeviceProfileChan:          make(chan ns.UpdateDeviceProfileRequest, 100),
-		DeleteDeviceProfileChan:          make(chan ns.DeleteDeviceProfileRequest, 100),
-		CreateDeviceChan:                 make(chan ns.CreateDeviceRequest, 100),
-		GetDeviceChan:                    make(chan ns.GetDeviceRequest, 100),
-		UpdateDeviceChan:                 make(chan ns.UpdateDeviceRequest, 100),
-		DeleteDeviceChan:                 make(chan ns.DeleteDeviceRequest, 100),
-		ActivateDeviceChan:               make(chan ns.ActivateDeviceRequest, 100),
-		DeactivateDeviceChan:             make(chan ns.DeactivateDeviceRequest, 100),
-		GetDeviceActivationChan:          make(chan ns.GetDeviceActivationRequest, 100),
-		GetRandomDevAddrChan:             make(chan empty.Empty, 100),
-		CreateMACCommandQueueItemChan:    make(chan ns.CreateMACCommandQueueItemRequest, 100),
-		SendProprietaryPayloadChan:       make(chan ns.SendProprietaryPayloadRequest, 100),
-		CreateGatewayChan:                make(chan ns.CreateGatewayRequest, 100),
-		GetGatewayChan:                   make(chan ns.GetGatewayRequest, 100),
-		UpdateGatewayChan:                make(chan ns.UpdateGatewayRequest, 100),
-		DeleteGatewayChan:                make(chan ns.DeleteGatewayRequest, 100),
-		GetGatewayStatsChan:              make(chan ns.GetGatewayStatsRequest, 100),
-		CreateGatewayProfileChan:         make(chan ns.CreateGatewayProfileRequest, 100),
-		GetGatewayProfileChan:            make(chan ns.GetGatewayProfileRequest, 100),
-		UpdateGatewayProfileChan:         make(chan ns.UpdateGatewayProfileRequest, 100),
-		DeleteGatewayProfileChan:         make(chan ns.DeleteGatewayProfileRequest, 100),
-		GetNextDownlinkFCntForDevEUIChan: make(chan ns.GetNextDownlinkFCntForDevEUIRequest, 100),
-		CreateDeviceQueueItemChan:        make(chan ns.CreateDeviceQueueItemRequest, 100),
-		FlushDeviceQueueForDevEUIChan:    make(chan ns.FlushDeviceQueueForDevEUIRequest, 100),
-		GetDeviceQueueItemsForDevEUIChan: make(chan ns.GetDeviceQueueItemsForDevEUIRequest, 100),
+		CreateServiceProfileChan:                    make(chan ns.CreateServiceProfileRequest, 100),
+		GetServiceProfileChan:                       make(chan ns.GetServiceProfileRequest, 100),
+		UpdateServiceProfileChan:                    make(chan ns.UpdateServiceProfileRequest, 100),
+		DeleteServiceProfileChan:                    make(chan ns.DeleteServiceProfileRequest, 100),
+		CreateRoutingProfileChan:                    make(chan ns.CreateRoutingProfileRequest, 100),
+		GetRoutingProfileChan:                       make(chan ns.GetRoutingProfileRequest, 100),
+		UpdateRoutingProfileChan:                    make(chan ns.UpdateRoutingProfileRequest, 100),
+		DeleteRoutingProfileChan:                    make(chan ns.DeleteRoutingProfileRequest, 100),
+		CreateDeviceProfileChan:                     make(chan ns.CreateDeviceProfileRequest, 100),
+		GetDeviceProfileChan:                        make(chan ns.GetDeviceProfileRequest, 100),
+		UpdateDeviceProfileChan:                     make(chan ns.UpdateDeviceProfileRequest, 100),
+		DeleteDeviceProfileChan:                     make(chan ns.DeleteDeviceProfileRequest, 100),
+		CreateDeviceChan:                            make(chan ns.CreateDeviceRequest, 100),
+		GetDeviceChan:                               make(chan ns.GetDeviceRequest, 100),
+		UpdateDeviceChan:                            make(chan ns.UpdateDeviceRequest, 100),
+		DeleteDeviceChan:                            make(chan ns.DeleteDeviceRequest, 100),
+		ActivateDeviceChan:                          make(chan ns.ActivateDeviceRequest, 100),
+		DeactivateDeviceChan:                        make(chan ns.DeactivateDeviceRequest, 100),
+		GetDeviceActivationChan:                     make(chan ns.GetDeviceActivationRequest, 100),
+		GetRandomDevAddrChan:                        make(chan empty.Empty, 100),
+		CreateMACCommandQueueItemChan:               make(chan ns.CreateMACCommandQueueItemRequest, 100),
+		SendProprietaryPayloadChan:                  make(chan ns.SendProprietaryPayloadRequest, 100),
+		CreateGatewayChan:                           make(chan ns.CreateGatewayRequest, 100),
+		GetGatewayChan:                              make(chan ns.GetGatewayRequest, 100),
+		UpdateGatewayChan:                           make(chan ns.UpdateGatewayRequest, 100),
+		DeleteGatewayChan:                           make(chan ns.DeleteGatewayRequest, 100),
+		GetGatewayStatsChan:                         make(chan ns.GetGatewayStatsRequest, 100),
+		CreateGatewayProfileChan:                    make(chan ns.CreateGatewayProfileRequest, 100),
+		GetGatewayProfileChan:                       make(chan ns.GetGatewayProfileRequest, 100),
+		UpdateGatewayProfileChan:                    make(chan ns.UpdateGatewayProfileRequest, 100),
+		DeleteGatewayProfileChan:                    make(chan ns.DeleteGatewayProfileRequest, 100),
+		GetNextDownlinkFCntForDevEUIChan:            make(chan ns.GetNextDownlinkFCntForDevEUIRequest, 100),
+		CreateDeviceQueueItemChan:                   make(chan ns.CreateDeviceQueueItemRequest, 100),
+		FlushDeviceQueueForDevEUIChan:               make(chan ns.FlushDeviceQueueForDevEUIRequest, 100),
+		GetDeviceQueueItemsForDevEUIChan:            make(chan ns.GetDeviceQueueItemsForDevEUIRequest, 100),
+		CreateMulticastGroupChan:                    make(chan ns.CreateMulticastGroupRequest, 100),
+		GetMulticastGroupChan:                       make(chan ns.GetMulticastGroupRequest, 100),
+		UpdateMulticastGroupChan:                    make(chan ns.UpdateMulticastGroupRequest, 100),
+		DeleteMulticastGroupChan:                    make(chan ns.DeleteMulticastGroupRequest, 100),
+		AddDeviceToMulticastGroupChan:               make(chan ns.AddDeviceToMulticastGroupRequest, 100),
+		RemoveDeviceFromMulticastGroupChan:          make(chan ns.RemoveDeviceFromMulticastGroupRequest, 100),
+		EnqueueMulticastQueueItemChan:               make(chan ns.EnqueueMulticastQueueItemRequest, 100),
+		FlushMulticastQueueForMulticastGroupChan:    make(chan ns.FlushMulticastQueueForMulticastGroupRequest, 100),
+		GetMulticastQueueItemsForMulticastGroupChan: make(chan ns.GetMulticastQueueItemsForMulticastGroupRequest, 100),
 	}
 }
 
@@ -482,4 +518,58 @@ func (n NetworkServerClient) StreamFrameLogsForGateway(ctx context.Context, in *
 // StreamFrameLogsForDevice method.
 func (n NetworkServerClient) StreamFrameLogsForDevice(ctx context.Context, in *ns.StreamFrameLogsForDeviceRequest, opts ...grpc.CallOption) (ns.NetworkServerService_StreamFrameLogsForDeviceClient, error) {
 	panic("not implemented")
+}
+
+// CreateMulticastGroup method.
+func (n NetworkServerClient) CreateMulticastGroup(ctx context.Context, in *ns.CreateMulticastGroupRequest, opts ...grpc.CallOption) (*ns.CreateMulticastGroupResponse, error) {
+	n.CreateMulticastGroupChan <- *in
+	return &n.CreateMulticastGroupResponse, nil
+}
+
+// GetMulticastGroup method.
+func (n NetworkServerClient) GetMulticastGroup(ctx context.Context, in *ns.GetMulticastGroupRequest, opts ...grpc.CallOption) (*ns.GetMulticastGroupResponse, error) {
+	n.GetMulticastGroupChan <- *in
+	return &n.GetMulticastGroupResponse, nil
+}
+
+// UpdateMulticastGroup method.
+func (n NetworkServerClient) UpdateMulticastGroup(ctx context.Context, in *ns.UpdateMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	n.UpdateMulticastGroupChan <- *in
+	return &n.UpdateMulticastGroupResponse, nil
+}
+
+// DeleteMulticastGroup method.
+func (n NetworkServerClient) DeleteMulticastGroup(ctx context.Context, in *ns.DeleteMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	n.DeleteMulticastGroupChan <- *in
+	return &n.DeleteMulticastGroupResponse, nil
+}
+
+// AddDeviceToMulticastGroup method.
+func (n NetworkServerClient) AddDeviceToMulticastGroup(ctx context.Context, in *ns.AddDeviceToMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	n.AddDeviceToMulticastGroupChan <- *in
+	return &n.AddDeviceToMulticastGroupResponse, nil
+}
+
+// RemoveDeviceFromMulticastGroup method.
+func (n NetworkServerClient) RemoveDeviceFromMulticastGroup(ctx context.Context, in *ns.RemoveDeviceFromMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	n.RemoveDeviceFromMulticastGroupChan <- *in
+	return &n.RemoveDeviceFromMulticastGroupResponse, nil
+}
+
+// EnqueueMulticastQueueItem method.
+func (n NetworkServerClient) EnqueueMulticastQueueItem(ctx context.Context, in *ns.EnqueueMulticastQueueItemRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	n.EnqueueMulticastQueueItemChan <- *in
+	return &n.EnqueueMulticastQueueItemResponse, nil
+}
+
+// FlushMulticastQueueForMulticastGroup method.
+func (n NetworkServerClient) FlushMulticastQueueForMulticastGroup(ctx context.Context, in *ns.FlushMulticastQueueForMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	n.FlushMulticastQueueForMulticastGroupChan <- *in
+	return &n.FlushMulticastQueueForMulticastGroupResponse, nil
+}
+
+// GetMulticastQueueItemsForMulticastGroup method.
+func (n NetworkServerClient) GetMulticastQueueItemsForMulticastGroup(ctx context.Context, in *ns.GetMulticastQueueItemsForMulticastGroupRequest, opts ...grpc.CallOption) (*ns.GetMulticastQueueItemsForMulticastGroupResponse, error) {
+	n.GetMulticastQueueItemsForMulticastGroupChan <- *in
+	return &n.GetMulticastQueueItemsForMulticastGroupResponse, nil
 }

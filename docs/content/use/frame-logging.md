@@ -3,7 +3,7 @@ title: Frame logging
 menu:
     main:
         parent: use
-        weight: 10
+        weight: 11
 ---
 
 # Frame logging

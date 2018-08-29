@@ -3,7 +3,7 @@ title: Event logging
 menu:
     main:
         parent: use
-        weight: 11
+        weight: 12
 ---
 
 # Event logging

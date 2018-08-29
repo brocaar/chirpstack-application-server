@@ -87,7 +87,7 @@ func TestServiceProfile(t *testing.T) {
 					ServiceProfile: &sp.ServiceProfile,
 				}
 
-				spGet, err := GetServiceProfile(config.C.PostgreSQL.DB, spID)
+				spGet, err := GetServiceProfile(config.C.PostgreSQL.DB, spID, false)
 				So(err, ShouldBeNil)
 				spGet.CreatedAt = spGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				spGet.UpdatedAt = spGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -124,7 +124,7 @@ func TestServiceProfile(t *testing.T) {
 					ServiceProfile: &sp.ServiceProfile,
 				})
 
-				spGet, err := GetServiceProfile(config.C.PostgreSQL.DB, spID)
+				spGet, err := GetServiceProfile(config.C.PostgreSQL.DB, spID, false)
 				So(err, ShouldBeNil)
 				spGet.UpdatedAt = spGet.UpdatedAt.UTC().Truncate(time.Millisecond)
 				So(spGet.Name, ShouldEqual, "updated-service-profile")
@@ -138,7 +138,7 @@ func TestServiceProfile(t *testing.T) {
 					Id: sp.ServiceProfile.Id,
 				})
 
-				_, err := GetServiceProfile(config.C.PostgreSQL.DB, spID)
+				_, err := GetServiceProfile(config.C.PostgreSQL.DB, spID, false)
 				So(err, ShouldEqual, ErrDoesNotExist)
 			})
 

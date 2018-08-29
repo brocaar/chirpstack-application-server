@@ -47,7 +47,10 @@ const userQuery = `
 	left join network_server ns
 		on ns.id = sp.network_server_id or ns.id = dp.network_server_id
 	left join device d
-		on a.id = d.application_id`
+		on a.id = d.application_id
+	left join multicast_group mg
+		on sp.service_profile_id = mg.service_profile_id
+`
 
 // ValidateActiveUser validates if the user in the JWT claim is active.
 func ValidateActiveUser() ValidatorFunc {
@@ -304,8 +307,7 @@ func ValidateNodesAccess(applicationID int64, flag Flag) ValidatorFunc {
 		// organization user
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "$2 != 0", "a.id = $2"},
-			{"u.username = $1", "u.is_active = true", "$2 = 0"},
+			{"u.username = $1", "u.is_active = true", "a.id = $2"},
 		}
 	default:
 		panic("unsupported flag")
@@ -782,6 +784,81 @@ func ValidateDeviceProfileAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, id)
+	}
+}
+
+// ValidateMulticastGroupsAccess validates if the client has access to the
+// multicast-groups.
+func ValidateMulticastGroupsAccess(flag Flag, organizationID int64) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Create:
+		// global admin
+		// organization admin
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+		}
+
+	case List:
+		// global admin
+		// organization user
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "o.id = $2"},
+		}
+	}
+
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, organizationID)
+	}
+}
+
+// ValidateMulticastGroupAccess validates if the client has access to the given
+// multicast-group.
+func ValidateMulticastGroupAccess(flag Flag, multicastGroupID uuid.UUID) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Read:
+		// global admin
+		// organization users
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "mg.id = $2"},
+		}
+	case Update, Delete:
+		// global admin
+		// organization admin users
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "mg.id = $2"},
+		}
+	}
+
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, multicastGroupID)
+	}
+}
+
+// ValidateMulticastGroupQueueAccess validates if the client has access to
+// the given multicast-group queue.
+func ValidateMulticastGroupQueueAccess(flag Flag, multicastGroupID uuid.UUID) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Create, List, Delete:
+		// global admi
+		// organization user
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "mg.id = $2"},
+		}
+	}
+
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, multicastGroupID)
 	}
 }
 

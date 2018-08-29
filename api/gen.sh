@@ -29,6 +29,7 @@ protoc -I../vendor -I/usr/local/include -I. ${GOPATHLIST} --go_out=plugins=grpc:
     serviceProfile.proto \
     deviceProfile.proto \
     gatewayProfile.proto \
+    multicastGroup.proto \
     internal.proto
 
 # generate the JSON interface code
@@ -45,6 +46,7 @@ protoc -I../vendor -I/usr/local/include -I. ${GOPATHLIST} --grpc-gateway_out=log
     serviceProfile.proto \
     deviceProfile.proto \
     gatewayProfile.proto \
+    multicastGroup.proto \
     internal.proto
 
 # generate the swagger definitions
@@ -61,6 +63,7 @@ protoc -I../vendor -I/usr/local/include -I. ${GOPATHLIST} --swagger_out=logtostd
     serviceProfile.proto \
     deviceProfile.proto \
     gatewayProfile.proto \
+    multicastGroup.proto \
     internal.proto
 
 # merge the swagger code into one file

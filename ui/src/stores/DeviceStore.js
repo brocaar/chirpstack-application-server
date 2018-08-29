@@ -84,14 +84,9 @@ class DeviceStore extends EventEmitter {
     });
   }
 
-  list(search, applicationID, limit, offset, callbackFunc) {
+  list(filters, callbackFunc) {
     this.swagger.then(client => {
-      client.apis.DeviceService.List({
-        limit: limit,
-        offset: offset,
-        applicationID: applicationID,
-        search: search,
-      })
+      client.apis.DeviceService.List(filters)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);

@@ -1,8 +1,8 @@
 package api
 
 import (
-	"github.com/golang/protobuf/ptypes"
 	"github.com/gofrs/uuid"
+	"github.com/golang/protobuf/ptypes"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
@@ -100,7 +100,7 @@ func (a *ServiceProfileServiceAPI) Get(ctx context.Context, req *pb.GetServicePr
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	sp, err := storage.GetServiceProfile(config.C.PostgreSQL.DB, spID)
+	sp, err := storage.GetServiceProfile(config.C.PostgreSQL.DB, spID, false)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -162,7 +162,7 @@ func (a *ServiceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateSer
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	sp, err := storage.GetServiceProfile(config.C.PostgreSQL.DB, spID)
+	sp, err := storage.GetServiceProfile(config.C.PostgreSQL.DB, spID, false)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}

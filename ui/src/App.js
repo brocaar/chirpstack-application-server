@@ -64,6 +64,12 @@ import ApplicationLayout from "./views/applications/ApplicationLayout";
 import CreateIntegration from "./views/applications/CreateIntegration";
 import UpdateIntegration from "./views/applications/UpdateIntegration";
 
+// multicast-groups
+import ListMulticastGroups from "./views/multicast-groups/ListMulticastGroups";
+import CreateMulticastGroup from "./views/multicast-groups/CreateMulticastGroup";
+import MulticastGroupLayout from "./views/multicast-groups/MulticastGroupLayout";
+import AddDeviceToMulticastGroup from "./views/multicast-groups/AddDeviceToMulticastGroup";
+
 // device
 import CreateDevice from "./views/devices/CreateDevice";
 import DeviceLayout from "./views/devices/DeviceLayout";
@@ -188,6 +194,11 @@ class App extends Component {
                     <Route exact path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/devices/create" component={CreateDevice} />
                     <Route path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/devices/:devEUI([\w]{16})" component={DeviceLayout} />
                     <Route path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)" component={ApplicationLayout} />
+
+                    <Route exact path="/organizations/:organizationID(\d+)/multicast-groups" component={ListMulticastGroups} />
+                    <Route exact path="/organizations/:organizationID(\d+)/multicast-groups/create" component={CreateMulticastGroup} />
+                    <Route exact path="/organizations/:organizationID(\d+)/multicast-groups/:multicastGroupID/devices/create" component={AddDeviceToMulticastGroup} />
+                    <Route path="/organizations/:organizationID(\d+)/multicast-groups/:multicastGroupID([\w-]{36})" component={MulticastGroupLayout} />
 
                     <Route exact path="/organizations" component={ListOrganizations} />
                     <Route exact path="/organizations/create" component={CreateOrganization} />

@@ -3,19 +3,17 @@ package api
 import (
 	"testing"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-
-	"github.com/brocaar/loraserver/api/ns"
 	uuid "github.com/gofrs/uuid"
-
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/loraserver/api/ns"
 )
 
 func TestServiceProfileServiceAPI(t *testing.T) {

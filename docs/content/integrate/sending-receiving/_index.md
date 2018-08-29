@@ -9,6 +9,13 @@ menu:
 
 # Sending and receiving device data
 
+## APIs
+
+The easiest way to send data to a device is using the [gRPC]({{<ref "/integrate/grpc.md">}})
+or [RESTful JSON]({{<ref "/integrate/rest.md">}}) API. After adding a payload to the queue,
+the downlink frame-counter is directly returned which will be used on an acknowledgement
+of a confirmed-downlink.
+
 ## Global integrations
 
 Global integrations are configured throught the [lora-app-server.toml]({{<ref "install/config.md">}})

@@ -192,14 +192,6 @@ func TestNodeAPI(t *testing.T) {
 			})
 
 			Convey("Testing the List method", func() {
-				user := storage.User{
-					Username: "testuser",
-					Email:    "test@test.com",
-					IsActive: true,
-				}
-				_, err := storage.CreateUser(db, &user, "testpassword")
-				So(err, ShouldBeNil)
-
 				Convey("Then a global admin user can list all devices", func() {
 					validator.returnIsAdmin = true
 					devices, err := api.List(ctx, &pb.ListDeviceRequest{
@@ -224,26 +216,22 @@ func TestNodeAPI(t *testing.T) {
 
 				Convey("Then a non-admin can not list the devices", func() {
 					validator.returnIsAdmin = false
-					validator.returnUsername = user.Username
 
-					devices, err := api.List(ctx, &pb.ListDeviceRequest{
+					_, err := api.List(ctx, &pb.ListDeviceRequest{
 						Limit:  10,
 						Offset: 0,
 					})
-					So(err, ShouldBeNil)
-					So(devices.TotalCount, ShouldEqual, 0)
+					So(err, ShouldNotBeNil)
 				})
 
-				Convey("When assigning the user to the organization", func() {
-					So(storage.CreateOrganizationUser(db, org.ID, user.ID, false), ShouldBeNil)
-
+				Convey("When the application id is given", func() {
 					Convey("Then it can list the devices", func() {
 						validator.returnIsAdmin = false
-						validator.returnUsername = user.Username
 
 						devices, err := api.List(ctx, &pb.ListDeviceRequest{
-							Limit:  10,
-							Offset: 0,
+							Limit:         10,
+							Offset:        0,
+							ApplicationId: app.ID,
 						})
 						So(err, ShouldBeNil)
 						So(devices.TotalCount, ShouldEqual, 1)

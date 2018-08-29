@@ -6,15 +6,17 @@ import Grid from "@material-ui/core/Grid";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import Button from '@material-ui/core/Button';
+import IconButton from "@material-ui/core/IconButton";
 
-import moment from "moment";
 import Plus from "mdi-material-ui/Plus";
+import Delete from "mdi-material-ui/Delete";
 
+import Admin from "../../components/Admin";
 import TableCellLink from "../../components/TableCellLink";
 import DataTable from "../../components/DataTable";
-import Admin from "../../components/Admin";
 import DeviceStore from "../../stores/DeviceStore";
 import theme from "../../theme";
+import multicastGroupStore from "../../stores/MulticastGroupStore";
 
 
 const styles = {
@@ -30,7 +32,8 @@ const styles = {
 };
 
 
-class ListDevices extends Component {
+
+class ListMulticastGroupDevices extends Component {
   constructor() {
     super();
     this.getPage = this.getPage.bind(this);
@@ -39,46 +42,28 @@ class ListDevices extends Component {
 
   getPage(limit, offset, callbackFunc) {
     DeviceStore.list({
-      applicationID: this.props.match.params.applicationID,
+      multicastGroupID: this.props.match.params.multicastGroupID,
       limit: limit,
       offset: offset,
     }, callbackFunc);
   }
 
+  onDelete(devEUI) {
+    if(window.confirm("Are you sure you want to remove this device from the multicast-group? This does not remove the device itself.")) {
+      multicastGroupStore.removeDevice(this.props.match.params.multicastGroupID, devEUI, resp => {
+        this.forceUpdate();
+      });
+    }
+  }
+
   getRow(obj) {
-    let lastseen = "n/a";
-    let margin = "n/a";
-    let battery = "n/a";
-
-    if (obj.lastSeenAt !== undefined && obj.lastSeenAt !== null) {
-      lastseen = moment(obj.lastSeenAt).fromNow();
-    }
-
-    if (obj.deviceStatusBattery !== undefined && obj.deviceStatusBattery !== 256) {
-      switch (obj.deviceStatusBattery) {
-        case 255:
-          battery = "n/a";
-          break;
-        case 0:
-          battery = "external";
-          break;
-        default:
-          battery = Math.round(obj.deviceStatusBattery) + " %";
-          break;
-      }
-    }
-
-    if (obj.deviceStatusMargin !== undefined && obj.deviceStatusMargin !== 256) {
-      margin = `${obj.deviceStatusMargin} dB`;
-    }
-
     return(
       <TableRow key={obj.devEUI}>
-        <TableCell>{lastseen}</TableCell>
-        <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${obj.devEUI}`}>{obj.name}</TableCellLink>
+        <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/applications/${obj.applicationID}/devices/${obj.devEUI}`}>{obj.name}</TableCellLink>
         <TableCell>{obj.devEUI}</TableCell>
-        <TableCell>{margin}</TableCell>
-        <TableCell>{battery}</TableCell>
+        <TableCell className={this.props.classes.buttons}>
+          <IconButton onClick={this.onDelete.bind(this, obj.devEUI)}><Delete /></IconButton>
+        </TableCell>
       </TableRow>
     );
   }
@@ -88,9 +73,9 @@ class ListDevices extends Component {
       <Grid container spacing={24}>
         <Admin organizationID={this.props.match.params.organizationID}>
           <Grid item xs={12} className={this.props.classes.buttons}>
-            <Button variant="outlined" className={this.props.classes.button} component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/create`}>
+            <Button variant="outlined" className={this.props.classes.button} component={Link} to={`/organizations/${this.props.match.params.organizationID}/multicast-groups/${this.props.match.params.multicastGroupID}/devices/create`}>
               <Plus className={this.props.classes.icon} />
-              Create
+              Add
             </Button>
           </Grid>
         </Admin>
@@ -98,11 +83,9 @@ class ListDevices extends Component {
           <DataTable
             header={
               <TableRow>
-                <TableCell>Last seen</TableCell>
                 <TableCell>Device name</TableCell>
                 <TableCell>Device EUI</TableCell>
-                <TableCell>Link margin</TableCell>
-                <TableCell>Battery</TableCell>
+                <TableCell></TableCell>
               </TableRow>
             }
             getPage={this.getPage}
@@ -114,4 +97,4 @@ class ListDevices extends Component {
   }
 }
 
-export default withStyles(styles)(ListDevices);
+export default withStyles(styles)(ListMulticastGroupDevices);

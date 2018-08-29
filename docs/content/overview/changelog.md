@@ -8,11 +8,23 @@ menu:
 
 # Changelog
 
-## v2.0.2
+## v2.1.0 (in development)
+
+### Upgrade notes
+
+This upgrade is backwards compatible with previous v2 releases, but when using
+multicast-support, you must also upgrade LoRa Server to v2.1.0+.
 
 ### Features
 
-* Add LoRaWAN 1.0.3 in MAC version dropdown.
+#### Multicast support
+
+This adds support for creating multicast-groups to which devices can be assigned
+(potentially covered by multiple gateways).
+
+#### LoRaWAN 1.0.3
+
+This update adds LoRaWAN 1.0.3 in MAC version dropdown.
 
 ### Bugfixes
 

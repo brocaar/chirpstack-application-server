@@ -442,3 +442,25 @@ func GetNetworkServerForGatewayProfileID(db sqlx.Queryer, id uuid.UUID) (Network
 	}
 	return n, nil
 }
+
+// GetNetworkServerForMulticastGroupID returns the network-server for the given
+// multicast-group id.
+func GetNetworkServerForMulticastGroupID(db sqlx.Queryer, id uuid.UUID) (NetworkServer, error) {
+	var n NetworkServer
+	err := sqlx.Get(db, &n, `
+		select
+			ns.*
+		from
+			network_server ns
+		inner join service_profile sp
+			on sp.network_server_id = ns.id
+		inner join multicast_group mg
+			on mg.service_profile_id = sp.service_profile_id
+		where
+			mg.id = $1
+	`, id)
+	if err != nil {
+		return n, handlePSQLError(Select, err, "select error")
+	}
+	return n, nil
+}

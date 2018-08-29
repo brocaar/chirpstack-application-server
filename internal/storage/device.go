@@ -2,11 +2,12 @@ package storage
 
 import (
 	"context"
+	"strings"
 	"time"
 
+	uuid "github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	uuid "github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -184,195 +185,110 @@ func GetDevice(db sqlx.Queryer, devEUI lorawan.EUI64, forUpdate, localOnly bool)
 	return d, nil
 }
 
-// GetDevices returns a slice of devices.
-func GetDevices(db sqlx.Queryer, limit, offset int, search string) ([]DeviceListItem, error) {
-	var devices []DeviceListItem
-	if search != "" {
-		search = "%" + search + "%"
+// DeviceFilters provide filters that can be used to filter on devices.
+// Note that empty values are not used as filter.
+type DeviceFilters struct {
+	ApplicationID    int64     `db:"application_id"`
+	MulticastGroupID uuid.UUID `db:"multicast_group_id"`
+	ServiceProfileID uuid.UUID `db:"service_profile_id"`
+	Search           string    `db:"search"`
+
+	// Limit and Offset are added for convenience so that this struct can
+	// be given as the arguments.
+	Limit  int `db:"limit"`
+	Offset int `db:"offset"`
+}
+
+// SQL returns the SQL filter.
+func (f DeviceFilters) SQL() string {
+	var filters []string
+
+	if f.ApplicationID != 0 {
+		filters = append(filters, "d.application_id = :application_id")
 	}
 
-	err := sqlx.Select(db, &devices, `
-		select
-			d.*,
-			dp.name as device_profile_name
-		from
-			device d
-		inner join device_profile dp
-			on dp.device_profile_id = d.device_profile_id
-		where
-			$3 = ''
-			or ($3 != '' and (d.name ilike $3 or encode(d.dev_eui, 'hex') ilike $3))
-		order by
-			d.name
-		limit $1 offset $2
-	`, limit, offset, search)
-	if err != nil {
-		return nil, handlePSQLError(Select, err, "select error")
+	if f.MulticastGroupID != uuid.Nil {
+		filters = append(filters, "dmg.multicast_group_id = :multicast_group_id")
 	}
 
-	return devices, nil
+	if f.ServiceProfileID != uuid.Nil {
+		filters = append(filters, "a.service_profile_id = :service_profile_id")
+	}
+
+	if f.Search != "" {
+		filters = append(filters, "(d.name ilike :search or encode(d.dev_eui, 'hex') ilike :search)")
+	}
+
+	if len(filters) == 0 {
+		return ""
+	}
+
+	return "where " + strings.Join(filters, " and ")
 }
 
 // GetDeviceCount returns the number of devices.
-func GetDeviceCount(db sqlx.Queryer, search string) (int, error) {
-	var count int
-	if search != "" {
-		search = "%" + search + "%"
+func GetDeviceCount(db sqlx.Queryer, filters DeviceFilters) (int, error) {
+	if filters.Search != "" {
+		filters.Search = "%" + filters.Search + "%"
 	}
 
-	err := sqlx.Get(db, &count, `
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
-			count(d.*)
+			count(distinct d.*)
 		from device d
-		where
-			$1 = ''
-			or ($1 != '' and (d.name ilike $1 or encode(d.dev_eui, 'hex') ilike $1))
-	`, search)
+		inner join application a
+			on d.application_id = a.id
+		left join device_multicast_group dmg
+			on d.dev_eui = dmg.dev_eui
+	`+filters.SQL(), filters)
 	if err != nil {
-		return count, handlePSQLError(Select, err, "select error")
+		return 0, errors.Wrap(err, "named query error")
 	}
 
-	return count, nil
-}
-
-// GetDevicesForApplicationID returns a slice of devices for the given
-// application id.
-func GetDevicesForApplicationID(db sqlx.Queryer, applicationID int64, limit, offset int, search string) ([]DeviceListItem, error) {
-	var devices []DeviceListItem
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Select(db, &devices, `
-		select
-			d.*,
-			dp.name as device_profile_name
-		from
-			device d
-		inner join device_profile dp
-			on dp.device_profile_id = d.device_profile_id
-		where
-			d.application_id = $1
-			and (
-				$4 = ''
-				or ($4 != '' and (d.name ilike $4 or encode(d.dev_eui, 'hex') ilike $4))
-			)
-		order by
-			d.name
-		limit $2 offset $3`,
-		applicationID, limit, offset, search)
-	if err != nil {
-		return nil, handlePSQLError(Select, err, "select error")
-	}
-
-	return devices, nil
-}
-
-// GetDeviceCountForApplicationID returns the total number of devices for the
-// given application id.
-func GetDeviceCountForApplicationID(db sqlx.Queryer, applicationID int64, search string) (int, error) {
 	var count int
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Get(db, &count, `
-		select
-			count(d.*)
-		from
-			device d
-		where
-			d.application_id = $1
-			and (
-				$2 = ''
-				or ($2 != '' and (d.name ilike $2 or encode(d.dev_eui, 'hex') ilike $2))
-			)
-	`, applicationID, search)
+	err = sqlx.Get(db, &count, query, args...)
 	if err != nil {
-		return count, handlePSQLError(Select, err, "select error")
+		return 0, handlePSQLError(Select, err, "select error")
 	}
 
 	return count, nil
 }
 
-// GetDevicesForUser returns a slice of devices to which the given user
-// has access to.
-func GetDevicesForUser(db sqlx.Queryer, username string, applicationID int64, limit, offset int, search string) ([]DeviceListItem, error) {
-	var devices []DeviceListItem
-	if search != "" {
-		search = "%" + search + "%"
+// GetDevices returns a slice of devices.
+func GetDevices(db sqlx.Queryer, filters DeviceFilters) ([]DeviceListItem, error) {
+	if filters.Search != "" {
+		filters.Search = "%" + filters.Search + "%"
 	}
 
-	err := sqlx.Select(db, &devices, `
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
-			d.*,
+			distinct d.*,
 			dp.name as device_profile_name
 		from
 			device d
 		inner join device_profile dp
 			on dp.device_profile_id = d.device_profile_id
 		inner join application a
-			on a.id = d.application_id
-		inner join organization_user ou
-			on ou.organization_id = a.organization_id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.username = $1
-			and u.is_active = true
-			and (
-				$2 = 0
-				or a.id = $2
-			)
-			and (
-				$5 = ''
-				or ($5 != '' and (d.name ilike $5 or encode(d.dev_eui, 'hex') ilike $5))
-			)
+			on d.application_id = a.id
+		left join device_multicast_group dmg
+			on d.dev_eui = dmg.dev_eui
+		`+filters.SQL()+`
 		order by
 			d.name
-		limit $3 offset $4
-	`, username, applicationID, limit, offset, search)
+		limit :limit
+		offset :offset
+	`, filters)
+	if err != nil {
+		return nil, errors.Wrap(err, "named query error")
+	}
+
+	var devices []DeviceListItem
+	err = sqlx.Select(db, &devices, query, args...)
 	if err != nil {
 		return nil, handlePSQLError(Select, err, "select error")
 	}
+
 	return devices, nil
-}
-
-// GetDeviceCountForUser returns the number of devices to which the given user
-// has access to.
-func GetDeviceCountForUser(db sqlx.Queryer, username string, applicationID int64, search string) (int, error) {
-	var count int
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Get(db, &count, `
-		select
-			count(d.*)
-		from
-			device d
-		inner join application a
-			on a.id = d.application_id
-		inner join organization_user ou
-			on ou.organization_id = a.organization_id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.username = $1
-			and u.is_active = true
-			and (
-				$2 = 0
-				or a.id = $2
-			)
-			and (
-				$3 = ''
-				or ($3 != '' and (d.name ilike $3 or encode(d.dev_eui, 'hex') ilike $3))
-			)
-	`, username, applicationID, search)
-	if err != nil {
-		return count, handlePSQLError(Select, err, "select error")
-	}
-	return count, nil
 }
 
 // UpdateDevice updates the given device.

@@ -8,7 +8,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Divider from '@material-ui/core/Divider';
-import { Domain, Account, Server, Apps, RadioTower, Tune, AccountSettingsVariant, Settings } from 'mdi-material-ui';
+import { Domain, Account, Server, Apps, RadioTower, Tune, AccountSettingsVariant, Settings, Rss } from 'mdi-material-ui';
 
 import AutocompleteSelect from "./AutocompleteSelect";
 import SessionStore from "../stores/SessionStore";
@@ -225,6 +225,12 @@ class SideNav extends Component {
               <Apps />
             </ListItemIcon>
             <ListItemText primary="Applications" />
+          </ListItem>
+          <ListItem button component={Link} to={`/organizations/${this.state.organization.id}/multicast-groups`}>
+            <ListItemIcon>
+              <Rss />
+            </ListItemIcon>
+            <ListItemText primary="Multicast-groups" />
           </ListItem>
         </List>}
       </Drawer>

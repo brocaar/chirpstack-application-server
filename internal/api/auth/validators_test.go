@@ -92,6 +92,20 @@ func TestValidators(t *testing.T) {
 		serviceProfilesIDs = append(serviceProfilesIDs, spID)
 	}
 
+	multicastGroups := []storage.MulticastGroup{
+		{Name: "mg-1", ServiceProfileID: serviceProfilesIDs[0]},
+		{Name: "mg-2", ServiceProfileID: serviceProfilesIDs[1]},
+	}
+	var multicastGroupsIDs []uuid.UUID
+	for i := range multicastGroups {
+		if err := storage.CreateMulticastGroup(db, &multicastGroups[i]); err != nil {
+			t.Fatal(err)
+		}
+
+		mgID, _ := uuid.FromBytes(multicastGroups[i].MulticastGroup.Id)
+		multicastGroupsIDs = append(multicastGroupsIDs, mgID)
+	}
+
 	deviceProfiles := []storage.DeviceProfile{
 		{Name: "test-dp-1", OrganizationID: organizations[0].ID, NetworkServerID: networkServers[0].ID},
 		{Name: "test-dp-2", OrganizationID: organizations[1].ID, NetworkServerID: networkServers[0].ID},
@@ -384,12 +398,6 @@ func TestValidators(t *testing.T) {
 					Name:       "organization users can list",
 					Validators: []ValidatorFunc{ValidateNodesAccess(applications[0].ID, List)},
 					Claims:     Claims{Username: "user9"},
-					ExpectedOK: true,
-				},
-				{
-					Name:       "normal users can list when no organization id is given",
-					Validators: []ValidatorFunc{ValidateNodesAccess(0, List)},
-					Claims:     Claims{Username: "user4"},
 					ExpectedOK: true,
 				},
 				{
@@ -1065,6 +1073,111 @@ func TestValidators(t *testing.T) {
 				{
 					Name:       "non-organization users can not read, update ande delete",
 					Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Update, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Delete, deviceProfilesIDs[0])},
+					Claims:     Claims{Username: "user12"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing MulticastGroupsAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can create and list",
+					Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, organizations[0].ID), ValidateMulticastGroupsAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can create and list",
+					Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, organizations[0].ID), ValidateMulticastGroupsAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can list",
+					Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can not create",
+					Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, organizations[0].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "non-organization users can not create or list",
+					Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, organizations[0].ID), ValidateMulticastGroupsAccess(List, organizations[0].ID)},
+					Claims:     Claims{Username: "user12"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing MulticastGroupAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin users can read, update and delete",
+					Validators: []ValidatorFunc{ValidateMulticastGroupAccess(Read, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Update, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Delete, multicastGroupsIDs[0])},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can read, update, and delete",
+					Validators: []ValidatorFunc{ValidateMulticastGroupAccess(Read, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Update, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Delete, multicastGroupsIDs[0])},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can read",
+					Validators: []ValidatorFunc{ValidateMulticastGroupAccess(Read, multicastGroupsIDs[0])},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can not update and delete",
+					Validators: []ValidatorFunc{ValidateMulticastGroupAccess(Update, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Delete, multicastGroupsIDs[0])},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "non-organization users can not read, update and delete",
+					Validators: []ValidatorFunc{ValidateMulticastGroupAccess(Read, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Update, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Delete, multicastGroupsIDs[0])},
+					Claims:     Claims{Username: "user12"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, db)
+		})
+
+		Convey("When testing ValidateMulticastGroupQueueAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin user can create, list and delete",
+					Validators: []ValidatorFunc{ValidateMulticastGroupQueueAccess(Create, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(List, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(Delete, multicastGroupsIDs[0])},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin users can create, list and delete",
+					Validators: []ValidatorFunc{ValidateMulticastGroupQueueAccess(Create, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(List, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(Delete, multicastGroupsIDs[0])},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization users can create, list and delete",
+					Validators: []ValidatorFunc{ValidateMulticastGroupQueueAccess(Create, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(List, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(Delete, multicastGroupsIDs[0])},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "non-organization users can not create, list and delete",
+					Validators: []ValidatorFunc{ValidateMulticastGroupQueueAccess(Create, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(List, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(Delete, multicastGroupsIDs[0])},
 					Claims:     Claims{Username: "user12"},
 					ExpectedOK: false,
 				},

@@ -5,7 +5,6 @@ import { withStyles } from "@material-ui/core/styles";
 import Grid from '@material-ui/core/Grid';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import Badge from '@material-ui/core/Badge';
 
 import Delete from "mdi-material-ui/Delete";
 
@@ -29,15 +28,6 @@ const styles = {
     height: "48px",
     overflow: "visible",
   },
-  badge: {
-    padding: `0 ${theme.spacing.unit * 2}px`,
-  },
-  badgeGreen: {
-    padding: `0 ${theme.spacing.unit * 2}px`,
-    "& span": {
-      backgroundColor: "#4CAF50 !important",
-    },
-  },
 };
 
 
@@ -46,13 +36,11 @@ class GatewayLayout extends Component {
     super();
     this.state = {
       tab: 0,
-      wsStatus: null,
       admin: false,
     };
     this.deleteGateway = this.deleteGateway.bind(this);
     this.onChangeTab = this.onChangeTab.bind(this);
     this.locationToTab = this.locationToTab.bind(this);
-    this.wsStatusUpdate = this.wsStatusUpdate.bind(this);
     this.setIsAdmin = this.setIsAdmin.bind(this);
   }
 
@@ -64,10 +52,7 @@ class GatewayLayout extends Component {
     });
 
 
-    GatewayStore.on("ws.status.change", this.wsStatusUpdate);
     SessionStore.on("change", this.setIsAdmin);
-
-    this.wsStatusUpdate();
     this.setIsAdmin();
     this.locationToTab();
   }
@@ -81,19 +66,12 @@ class GatewayLayout extends Component {
   }
 
   componentWillUnmount() {
-    GatewayStore.removeListener("ws.status.change", this.wsStatusUpdate);
     SessionStore.removeListener("change", this.setIsAdmin);
   }
 
   setIsAdmin() {
     this.setState({
       admin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID),
-    });
-  }
-
-  wsStatusUpdate() {
-    this.setState({
-      wsStatus: GatewayStore.getWSStatus(),
     });
   }
 
@@ -136,14 +114,6 @@ class GatewayLayout extends Component {
       return(<div></div>);
     }
 
-    let framesLabel = "Live LoRaWAN frames";
-
-    if (this.state.wsStatus === "CONNECTED") {
-      framesLabel = <Badge badgeContent="" className={this.props.classes.badgeGreen}>{framesLabel}</Badge>;
-    } else if (this.state.tab === 3) {
-      framesLabel = <Badge badgeContent="" color="error" className={this.props.classes.badge}>{framesLabel}</Badge>;
-    }
-
     return(
       <Grid container spacing={24}>
         <TitleBar
@@ -176,7 +146,7 @@ class GatewayLayout extends Component {
             {this.state.admin && <Tab label="Gateway configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.gatewayID}/edit`} />}
             <Tab label="Gateway discovery" disabled={!this.state.gateway.gateway.discoveryEnabled} component={Link} to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.gatewayID}/discovery`} />
             <Tab
-              label={framesLabel}
+              label="Live LoRaWAN frames"
               component={Link}
               to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.gatewayID}/frames`}
             />

@@ -3,7 +3,7 @@ title: Devices
 menu:
     main:
         parent: use
-        weight: 8
+        weight: 9
 ---
 
 # Device management

@@ -99,7 +99,7 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 }
 
 // GetServiceProfile returns the service-profile matching the given id.
-func GetServiceProfile(db sqlx.Queryer, id uuid.UUID) (ServiceProfile, error) {
+func GetServiceProfile(db sqlx.Queryer, id uuid.UUID, localOnly bool) (ServiceProfile, error) {
 	var sp ServiceProfile
 	row := db.QueryRowx(`
 		select
@@ -120,6 +120,10 @@ func GetServiceProfile(db sqlx.Queryer, id uuid.UUID) (ServiceProfile, error) {
 	err := row.Scan(&sp.NetworkServerID, &sp.OrganizationID, &sp.CreatedAt, &sp.UpdatedAt, &sp.Name)
 	if err != nil {
 		return sp, handlePSQLError(Scan, err, "scan error")
+	}
+
+	if localOnly {
+		return sp, nil
 	}
 
 	n, err := GetNetworkServer(db, sp.NetworkServerID)

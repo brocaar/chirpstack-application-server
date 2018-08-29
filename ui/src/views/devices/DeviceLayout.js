@@ -5,7 +5,6 @@ import { withStyles } from "@material-ui/core/styles";
 import Grid from '@material-ui/core/Grid';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import Badge from '@material-ui/core/Badge';
 
 import Delete from "mdi-material-ui/Delete";
 
@@ -33,15 +32,6 @@ const styles = {
     height: "48px",
     overflow: "visible",
   },
-  badge: {
-    padding: `0 ${theme.spacing.unit * 2}px`,
-  },
-  badgeGreen: {
-    padding: `0 ${theme.spacing.unit * 2}px`,
-    "& span": {
-      backgroundColor: "#4CAF50 !important",
-    },
-  },
 };
 
 
@@ -51,14 +41,11 @@ class DeviceLayout extends Component {
     this.state = {
       tab: 0,
       admin: false,
-      wsDataStatus: null,
-      wsFramesStatus: null,
     };
 
     this.onChangeTab = this.onChangeTab.bind(this);
     this.deleteDevice = this.deleteDevice.bind(this);
     this.locationToTab = this.locationToTab.bind(this);
-    this.wsStatusChange = this.wsStatusChange.bind(this);
     this.setIsAdmin = this.setIsAdmin.bind(this);
   }
 
@@ -81,7 +68,6 @@ class DeviceLayout extends Component {
       });
     });
 
-    DeviceStore.on("ws.status.change", this.wsStatusChange);
     SessionStore.on("change", this.setIsAdmin);
 
     this.locationToTab();
@@ -90,7 +76,6 @@ class DeviceLayout extends Component {
 
   componentWillUnmount() {
     SessionStore.removeListener("change", this.setIsAdmin);
-    DeviceStore.on("ws.status.change", this.wsStatusChange);
   }
 
   setIsAdmin() {
@@ -99,13 +84,6 @@ class DeviceLayout extends Component {
     }, () => {
       // we need to update the tab index, as for non-admins, some tabs are hidden
       this.locationToTab();
-    });
-  }
-
-  wsStatusChange() {
-    this.setState({
-      wsDataStatus: DeviceStore.getWSDataStatus(),
-      wsFramesStatus: DeviceStore.getWSFramesStatus(),
     });
   }
 
@@ -150,21 +128,6 @@ class DeviceLayout extends Component {
       return(<div></div>);
     }
 
-    let dataLabel = "Live device data";
-    let framesLabel = "Live LoRaWAN frames";
-
-    if (this.state.wsDataStatus === "CONNECTED") {
-      dataLabel = <Badge badgeContent="" className={this.props.classes.badgeGreen}>{dataLabel}</Badge>;
-    } else if ((this.state.admin && this.state.tab === 3) || (!this.state.admin && this.state.tab === 2)) {
-      dataLabel = <Badge badgeContent="" color="error" className={this.props.classes.badge}>{dataLabel}</Badge>;
-    }
-
-    if (this.state.wsFramesStatus === "CONNECTED") {
-      framesLabel = <Badge badgeContent="" className={this.props.classes.badgeGreen}>{framesLabel}</Badge>;
-    } else if ((this.state.admin && this.state.tab === 4) || (!this.state.admin && this.state.tab === 3)) {
-      framesLabel = <Badge badgeContent="" color="error" className={this.props.classes.badge}>{framesLabel}</Badge>;
-    }
-
     return(
       <Grid container spacing={24}>
         <TitleBar
@@ -199,8 +162,8 @@ class DeviceLayout extends Component {
             <Tab label="Configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}`} />
             {this.state.admin && <Tab label="Keys (OTAA)" disabled={!this.state.deviceProfile.deviceProfile.supportsJoin} component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/keys`} />}
             <Tab label="Activation" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/activation`} />
-            <Tab label={dataLabel} component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/data`} />
-            <Tab label={framesLabel} component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/frames`} />
+            <Tab label="Live device data" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/data`} />
+            <Tab label="Live LoRaWAN Frames" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/frames`} />
           </Tabs>
         </Grid>
 

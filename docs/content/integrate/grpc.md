@@ -8,7 +8,7 @@ menu:
 
 # gRPC API
 
-LoRa App Server provices a [gRPC](http://www.grpc.io/) API for easy integration
+LoRa App Server provides a [gRPC](http://www.grpc.io/) API for easy integration
 with your own projects. gRPC is a RPC framework on top of [protocol-buffers](https://developers.google.com/protocol-buffers/).
 gRPC is really easy to work with, as the protocol buffer file can be seen as
 a contract between the provider and consumer, in other words the fields and

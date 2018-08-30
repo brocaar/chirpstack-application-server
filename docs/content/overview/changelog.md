@@ -8,7 +8,7 @@ menu:
 
 # Changelog
 
-## v2.1.0 (in development)
+## v2.1.0
 
 ### Upgrade notes
 
@@ -19,8 +19,8 @@ multicast-support, you must also upgrade LoRa Server to v2.1.0+.
 
 #### Multicast support
 
-This adds support for creating multicast-groups to which devices can be assigned
-(potentially covered by multiple gateways).
+This adds experimental support for creating multicast-groups to which devices
+can be assigned (potentially covered by multiple gateways).
 
 #### LoRaWAN 1.0.3
 

@@ -4,6 +4,7 @@ menu:
     main:
         parent: use
         weight: 6
+toc: false
 ---
 
 # Device-profile management

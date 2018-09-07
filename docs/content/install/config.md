@@ -4,6 +4,7 @@ menu:
     main:
         parent: install
         weight: 4
+toc: false
 ---
 
 # Configuration

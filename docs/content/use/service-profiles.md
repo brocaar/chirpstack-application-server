@@ -4,6 +4,7 @@ menu:
     main:
         parent: use
         weight: 5
+toc: false
 ---
 
 # Service-profile management

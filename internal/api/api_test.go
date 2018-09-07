@@ -3,13 +3,14 @@ package api
 import (
 	"testing"
 
+	"github.com/gomodule/redigo/redis"
+	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
-	"github.com/garyburd/redigo/redis"
-	"github.com/jmoiron/sqlx"
-	"github.com/stretchr/testify/suite"
 )
 
 // DatabaseTestSuiteBase provides the setup and teardown of the database

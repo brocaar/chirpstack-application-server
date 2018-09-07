@@ -1,7 +1,6 @@
 # Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
 # for detailed Gopkg.toml documentation.
 
-
 [[constraint]]
   branch = "master"
   name = "github.com/brocaar/loraserver"
@@ -23,8 +22,8 @@
   name = "github.com/elazarl/go-bindata-assetfs"
 
 [[constraint]]
-  name = "github.com/garyburd/redigo"
-  version = "1.4.0"
+  name = "github.com/gomodule/redigo"
+  version = "2.0.0"
 
 # override is needed because of grpc-middleware having constraint on master branch
 [[override]]

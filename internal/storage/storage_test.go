@@ -3,7 +3,7 @@ package storage
 import (
 	"testing"
 
-	"github.com/garyburd/redigo/redis"
+	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"
 

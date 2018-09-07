@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/brocaar/lora-app-server/internal/common"
-	"github.com/garyburd/redigo/redis"
+	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

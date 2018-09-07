@@ -8,8 +8,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
-
-	"github.com/garyburd/redigo/redis"
+	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

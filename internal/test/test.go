@@ -3,8 +3,8 @@ package test
 import (
 	"os"
 
-	"github.com/garyburd/redigo/redis"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/gomodule/redigo/redis"
 	migrate "github.com/rubenv/sql-migrate"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"

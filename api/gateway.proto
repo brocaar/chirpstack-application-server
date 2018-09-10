@@ -87,6 +87,7 @@ message Gateway {
 	common.Location location = 4;
 
 	// Organization ID to which the gateway belongs.
+	// This can't be changed after creating the gateway.
 	int64 organization_id = 5 [json_name = "organizationID"];
 
 	// Set to true to enable gateway discovery.
@@ -97,6 +98,20 @@ message Gateway {
 
 	// Gateway-profile ID (UUID string, optional).
 	string gateway_profile_id = 8 [json_name = "gatewayProfileID"];
+
+	// Gateway boards configuration (optional).
+    // This is (currently) only needed when the gateway supports the fine-timestamp
+    // and you you would like to add the FPGA ID to the gateway meta-data or would
+	// like LoRa Server to decrypt the fine-timestamp.
+	repeated GatewayBoard boards = 9;
+}
+
+message GatewayBoard {
+    // FPGA ID of the gateway (HEX encoded) (optional).
+    string fpga_id = 1 [json_name = "fpgaID"];
+
+    // Fine-timestamp AES decryption key (HEX encoded) (optional).
+    string fine_timestamp_key = 2;
 }
 
 message CreateGatewayRequest {

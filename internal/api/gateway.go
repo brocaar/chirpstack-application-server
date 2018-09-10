@@ -3,11 +3,9 @@ package api
 import (
 	"strings"
 
-	"github.com/golang/protobuf/ptypes"
-
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/gofrs/uuid"
-
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -72,6 +70,28 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 		}
 		createReq.Gateway.GatewayProfileId = gpID.Bytes()
+	}
+
+	for _, board := range req.Gateway.Boards {
+		var gwBoard ns.GatewayBoard
+
+		if board.FpgaId != "" {
+			var fpgaID lorawan.EUI64
+			if err := fpgaID.UnmarshalText([]byte(board.FpgaId)); err != nil {
+				return nil, grpc.Errorf(codes.InvalidArgument, "fpga_id: %s", err)
+			}
+			gwBoard.FpgaId = fpgaID[:]
+		}
+
+		if board.FineTimestampKey != "" {
+			var key lorawan.AES128Key
+			if err := key.UnmarshalText([]byte(board.FineTimestampKey)); err != nil {
+				return nil, grpc.Errorf(codes.InvalidArgument, "fine_timestamp_key: %s", err)
+			}
+			gwBoard.FineTimestampKey = key[:]
+		}
+
+		createReq.Gateway.Boards = append(createReq.Gateway.Boards, &gwBoard)
 	}
 
 	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
@@ -174,6 +194,24 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 			return nil, errToRPCError(err)
 		}
 		resp.Gateway.GatewayProfileId = gpID.String()
+	}
+
+	for i := range getResp.Gateway.Boards {
+		var gwBoard pb.GatewayBoard
+
+		if len(getResp.Gateway.Boards[i].FpgaId) != 0 {
+			var fpgaID lorawan.EUI64
+			copy(fpgaID[:], getResp.Gateway.Boards[i].FpgaId)
+			gwBoard.FpgaId = fpgaID.String()
+		}
+
+		if len(getResp.Gateway.Boards[i].FineTimestampKey) != 0 {
+			var key lorawan.AES128Key
+			copy(key[:], getResp.Gateway.Boards[i].FineTimestampKey)
+			gwBoard.FineTimestampKey = key.String()
+		}
+
+		resp.Gateway.Boards = append(resp.Gateway.Boards, &gwBoard)
 	}
 
 	return &resp, err
@@ -280,11 +318,6 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
-	if err != nil {
-		return nil, errToRPCError(err)
-	}
-
 	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		gw, err := storage.GetGateway(tx, mac, true)
 		if err != nil {
@@ -294,9 +327,6 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		gw.Name = req.Gateway.Name
 		gw.Description = req.Gateway.Description
 		gw.Ping = req.Gateway.DiscoveryEnabled
-		if isAdmin {
-			gw.OrganizationID = req.Gateway.OrganizationId
-		}
 
 		err = storage.UpdateGateway(tx, &gw)
 		if err != nil {
@@ -316,6 +346,28 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 				return grpc.Errorf(codes.InvalidArgument, err.Error())
 			}
 			updateReq.Gateway.GatewayProfileId = gpID.Bytes()
+		}
+
+		for _, board := range req.Gateway.Boards {
+			var gwBoard ns.GatewayBoard
+
+			if board.FpgaId != "" {
+				var fpgaID lorawan.EUI64
+				if err := fpgaID.UnmarshalText([]byte(board.FpgaId)); err != nil {
+					return grpc.Errorf(codes.InvalidArgument, "fpga_id: %s", err)
+				}
+				gwBoard.FpgaId = fpgaID[:]
+			}
+
+			if board.FineTimestampKey != "" {
+				var key lorawan.AES128Key
+				if err := key.UnmarshalText([]byte(board.FineTimestampKey)); err != nil {
+					return grpc.Errorf(codes.InvalidArgument, "fine_timestamp_key: %s", err)
+				}
+				gwBoard.FineTimestampKey = key[:]
+			}
+
+			updateReq.Gateway.Boards = append(updateReq.Gateway.Boards, &gwBoard)
 		}
 
 		n, err := storage.GetNetworkServer(tx, gw.NetworkServerID)

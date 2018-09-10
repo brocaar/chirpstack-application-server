@@ -68,6 +68,32 @@ message UplinkRXInfo {
 
     // Location.
     common.Location location = 11;
+
+    // Fine-timestamp type.
+    gw.FineTimestampType fine_timestamp_type = 12;
+
+    // Fine-timestamp data.
+    oneof fine_timestamp {
+        // Encrypted fine-timestamp data.
+        EncryptedFineTimestamp encrypted_fine_timestamp = 13;
+
+        // Plain fine-timestamp data.
+        gw.PlainFineTimestamp plain_fine_timestamp = 14;
+    }
+}
+
+// this s a copy of gw.EncryptedFineTimestamp which the only change that
+// the fpga_id is of type string so that it can be returned in HEX format
+// instead of base64.
+message EncryptedFineTimestamp {
+    // AES key index used for encrypting the fine timestamp.
+    uint32 aes_key_index = 1;
+
+    // Encrypted 'main' fine-timestamp (ns precision part of the timestamp).
+    bytes encrypted_ns = 2 [json_name = "encryptedNS"];
+
+    // FPGA ID.
+    string fpga_id = 3 [json_name = "fpgaID"];
 }
 
 // Same comment as above applies to this message.

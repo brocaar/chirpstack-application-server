@@ -355,6 +355,26 @@
       },
       "description": "Same comment as above applies to this message."
     },
+    "apiEncryptedFineTimestamp": {
+      "type": "object",
+      "properties": {
+        "aesKeyIndex": {
+          "type": "integer",
+          "format": "int64",
+          "description": "AES key index used for encrypting the fine timestamp."
+        },
+        "encryptedNS": {
+          "type": "string",
+          "format": "byte",
+          "description": "Encrypted 'main' fine-timestamp (ns precision part of the timestamp)."
+        },
+        "fpgaID": {
+          "type": "string",
+          "description": "FPGA ID."
+        }
+      },
+      "description": "this s a copy of gw.EncryptedFineTimestamp which the only change that\nthe fpga_id is of type string so that it can be returned in HEX format\ninstead of base64."
+    },
     "apiGateway": {
       "type": "object",
       "properties": {
@@ -377,7 +397,7 @@
         "organizationID": {
           "type": "string",
           "format": "int64",
-          "description": "Organization ID to which the gateway belongs."
+          "description": "Organization ID to which the gateway belongs.\nThis can't be changed after creating the gateway."
         },
         "discoveryEnabled": {
           "type": "boolean",
@@ -392,6 +412,26 @@
         "gatewayProfileID": {
           "type": "string",
           "description": "Gateway-profile ID (UUID string, optional)."
+        },
+        "boards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGatewayBoard"
+          },
+          "description": "Gateway boards configuration (optional).\nThis is (currently) only needed when the gateway supports the fine-timestamp\nand you you would like to add the FPGA ID to the gateway meta-data or would\nlike LoRa Server to decrypt the fine-timestamp."
+        }
+      }
+    },
+    "apiGatewayBoard": {
+      "type": "object",
+      "properties": {
+        "fpgaID": {
+          "type": "string",
+          "description": "FPGA ID of the gateway (HEX encoded) (optional)."
+        },
+        "fineTimestampKey": {
+          "type": "string",
+          "description": "Fine-timestamp AES decryption key (HEX encoded) (optional)."
         }
       }
     },
@@ -676,6 +716,18 @@
         "location": {
           "$ref": "#/definitions/commonLocation",
           "description": "Location."
+        },
+        "fineTimestampType": {
+          "$ref": "#/definitions/gwFineTimestampType",
+          "description": "Fine-timestamp type."
+        },
+        "encryptedFineTimestamp": {
+          "$ref": "#/definitions/apiEncryptedFineTimestamp",
+          "description": "Encrypted fine-timestamp data."
+        },
+        "plainFineTimestamp": {
+          "$ref": "#/definitions/gwPlainFineTimestamp",
+          "description": "Plain fine-timestamp data."
         }
       },
       "description": "This is a copy of gw.UplinkRXInfo with the only change that the\ngateway_id is of type string so that we can return it as HEX encoded\ninstead of base64."
@@ -744,6 +796,16 @@
         }
       }
     },
+    "gwFineTimestampType": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "ENCRYPTED",
+        "PLAIN"
+      ],
+      "default": "NONE",
+      "description": " - NONE: No fine-timestamp available.\n - ENCRYPTED: Encrypted fine-timestamp.\n - PLAIN: Plain fine-timestamp."
+    },
     "gwLoRaModulationInfo": {
       "type": "object",
       "properties": {
@@ -765,6 +827,16 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Polarization inversion."
+        }
+      }
+    },
+    "gwPlainFineTimestamp": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Full timestamp."
         }
       }
     },

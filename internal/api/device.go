@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/hex"
 	"encoding/json"
 
 	"github.com/gofrs/uuid"
@@ -796,7 +797,7 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 			var mac lorawan.EUI64
 			copy(mac[:], rxInfo.GatewayId)
 
-			uplinkFrameLog.RxInfo = append(uplinkFrameLog.RxInfo, &pb.UplinkRXInfo{
+			upRXInfo := pb.UplinkRXInfo{
 				GatewayId:         mac.String(),
 				Time:              rxInfo.Time,
 				TimeSinceGpsEpoch: rxInfo.TimeSinceGpsEpoch,
@@ -808,7 +809,31 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 				Board:             rxInfo.Board,
 				Antenna:           rxInfo.Antenna,
 				Location:          rxInfo.Location,
-			})
+				FineTimestampType: rxInfo.FineTimestampType,
+			}
+
+			switch rxInfo.FineTimestampType {
+			case gw.FineTimestampType_ENCRYPTED:
+				fineTS := rxInfo.GetEncryptedFineTimestamp()
+				if fineTS != nil {
+					upRXInfo.FineTimestamp = &pb.UplinkRXInfo_EncryptedFineTimestamp{
+						EncryptedFineTimestamp: &pb.EncryptedFineTimestamp{
+							AesKeyIndex: fineTS.AesKeyIndex,
+							EncryptedNs: fineTS.EncryptedNs,
+							FpgaId:      hex.EncodeToString(fineTS.FpgaId),
+						},
+					}
+				}
+			case gw.FineTimestampType_PLAIN:
+				fineTS := rxInfo.GetPlainFineTimestamp()
+				if fineTS != nil {
+					upRXInfo.FineTimestamp = &pb.UplinkRXInfo_PlainFineTimestamp{
+						PlainFineTimestamp: fineTS,
+					}
+				}
+			}
+
+			uplinkFrameLog.RxInfo = append(uplinkFrameLog.RxInfo, &upRXInfo)
 		}
 
 		return &uplinkFrameLog, nil, nil

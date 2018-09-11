@@ -568,6 +568,7 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 
 	return &pb.GetDeviceActivationResponse{
 		DeviceActivation: &pb.DeviceActivation{
+			DevEui:      da.DevEUI.String(),
 			DevAddr:     devAddr.String(),
 			AppSKey:     da.AppSKey.String(),
 			NwkSEncKey:  nwkSEncKey.String(),

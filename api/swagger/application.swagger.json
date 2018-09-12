@@ -610,6 +610,14 @@
         "errorNotificationURL": {
           "type": "string",
           "description": "The URL to call for error notifications."
+        },
+        "statusNotificationURL": {
+          "type": "string",
+          "description": "The URL to call for device-status notifications."
+        },
+        "locationNotificationURL": {
+          "type": "string",
+          "description": "The URL to call for location notifications."
         }
       }
     },

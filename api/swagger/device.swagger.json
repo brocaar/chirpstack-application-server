@@ -498,6 +498,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Skip frame-counter checks (this is insecure, but could be helpful for debugging)."
+        },
+        "referenceAltitude": {
+          "type": "number",
+          "format": "double",
+          "description": "Reference altitude.\nWhen using geolocation, this altitude will be used as a reference\n(when supported by the geolocation-server) to increase geolocation\naccuracy."
         }
       }
     },
@@ -735,6 +740,10 @@
           "type": "integer",
           "format": "int32",
           "description": "The device margin status\n-32..32: The demodulation SNR ration in dB\n256:     The device-status is not available."
+        },
+        "location": {
+          "$ref": "#/definitions/commonLocation",
+          "description": "Device location.\nThis will set when the network-server was able to resolve the location\nusing the geolocation-server."
         }
       }
     },

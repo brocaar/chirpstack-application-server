@@ -80,6 +80,7 @@ func TestHandler(t *testing.T) {
 			AckTopicTemplate:      "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/ack",
 			ErrorTopicTemplate:    "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/error",
 			StatusTopicTemplate:   "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/status",
+			LocationTopicTemplate: "application/{{ .ApplicationID }}/node/{{ .DevEUI }}/location",
 		})
 		So(err, ShouldBeNil)
 
@@ -169,11 +170,12 @@ func TestHandler(t *testing.T) {
 
 			Convey("Given a HTTP integration", func() {
 				handlerConfig := httphandler.HandlerConfig{
-					DataUpURL:             server.URL + "/rx",
-					JoinNotificationURL:   server.URL + "/join",
-					ACKNotificationURL:    server.URL + "/ack",
-					ErrorNotificationURL:  server.URL + "/error",
-					StatusNotificationURL: server.URL + "/status",
+					DataUpURL:               server.URL + "/rx",
+					JoinNotificationURL:     server.URL + "/join",
+					ACKNotificationURL:      server.URL + "/ack",
+					ErrorNotificationURL:    server.URL + "/error",
+					StatusNotificationURL:   server.URL + "/status",
+					LocationNotificationURL: server.URL + "/location",
 				}
 				configJSON, err := json.Marshal(handlerConfig)
 				So(err, ShouldBeNil)
@@ -260,6 +262,21 @@ func TestHandler(t *testing.T) {
 
 							req := <-h.requests
 							So(req.URL.Path, ShouldEqual, "/status")
+						})
+					})
+
+					Convey("Calling SendLocationNotification", func() {
+						So(multiHandler.SendLocationNotification(handler.LocationNotification{
+							ApplicationID: app.ID,
+							DevEUI:        device.DevEUI,
+						}), ShouldBeNil)
+
+						Convey("Then the payload was sent to both the MQTT and HTTP handler", func() {
+							msg := <-mqttMessages
+							So(msg.Topic(), ShouldEqual, "application/1/node/0101010101010101/location")
+
+							req := <-h.requests
+							So(req.URL.Path, ShouldEqual, "/location")
 						})
 					})
 				})

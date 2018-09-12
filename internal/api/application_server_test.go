@@ -348,6 +348,42 @@ func TestApplicationServerAPI(t *testing.T) {
 				})
 			})
 
+			Convey("When calling SetDeviceLocation", func() {
+				_, err := api.SetDeviceLocation(ctx, &as.SetDeviceLocationRequest{
+					DevEui: d.DevEUI[:],
+					Location: &common.Location{
+						Latitude:  1.123,
+						Longitude: 2.123,
+						Altitude:  3.123,
+						Source:    common.LocationSource_GEO_RESOLVER,
+					},
+				})
+				So(err, ShouldBeNil)
+
+				Convey("Then the expected payload was sent to the handler", func() {
+					So(h.SendLocationNotificationChan, ShouldHaveLength, 1)
+					So(<-h.SendLocationNotificationChan, ShouldResemble, handler.LocationNotification{
+						ApplicationID:   app.ID,
+						ApplicationName: app.Name,
+						DeviceName:      d.Name,
+						DevEUI:          d.DevEUI,
+						Location: handler.Location{
+							Latitude:  1.123,
+							Longitude: 2.123,
+							Altitude:  3.123,
+						},
+					})
+				})
+
+				Convey("Then the device has been updated", func() {
+					d, err := storage.GetDevice(db, d.DevEUI, false, true)
+					So(err, ShouldBeNil)
+					So(*d.Latitude, ShouldEqual, 1.123)
+					So(*d.Longitude, ShouldEqual, 2.123)
+					So(*d.Altitude, ShouldEqual, 3.123)
+				})
+			})
+
 			Convey("On HandleDownlinkACK (ack: true)", func() {
 				_, err := api.HandleDownlinkACK(ctx, &as.HandleDownlinkACKRequest{
 					DevEui:       d.DevEUI[:],

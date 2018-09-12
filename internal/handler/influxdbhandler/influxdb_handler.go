@@ -237,6 +237,11 @@ func (h *Handler) SendErrorNotification(pl handler.ErrorNotification) error {
 	return nil
 }
 
+// SendLocationNotification is not implemented.
+func (h *Handler) SendLocationNotification(pl handler.LocationNotification) error {
+	return nil
+}
+
 func objectToMeasurements(pl handler.DataUpPayload, prefix string, obj interface{}) []measurement {
 	var out []measurement
 

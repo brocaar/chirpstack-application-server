@@ -79,11 +79,12 @@ func TestHandler(t *testing.T) {
 			Headers: map[string]string{
 				"Foo": "Bar",
 			},
-			DataUpURL:             server.URL + "/dataup",
-			JoinNotificationURL:   server.URL + "/join",
-			ACKNotificationURL:    server.URL + "/ack",
-			ErrorNotificationURL:  server.URL + "/error",
-			StatusNotificationURL: server.URL + "/status",
+			DataUpURL:               server.URL + "/dataup",
+			JoinNotificationURL:     server.URL + "/join",
+			ACKNotificationURL:      server.URL + "/ack",
+			ErrorNotificationURL:    server.URL + "/error",
+			StatusNotificationURL:   server.URL + "/status",
+			LocationNotificationURL: server.URL + "/location",
 		}
 		h, err := NewHandler(conf)
 		So(err, ShouldBeNil)
@@ -162,6 +163,26 @@ func TestHandler(t *testing.T) {
 			So(req.URL.Path, ShouldEqual, "/status")
 
 			var pl handler.StatusNotification
+			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
+			So(pl, ShouldResemble, reqPL)
+			So(req.Header.Get("Foo"), ShouldEqual, "Bar")
+			So(req.Header.Get("Content-Type"), ShouldEqual, "application/json")
+		})
+
+		Convey("Then SendLocationNotification sends the correct notification", func() {
+			reqPL := handler.LocationNotification{
+				Location: handler.Location{
+					Latitude:  1.123,
+					Longitude: 2.123,
+					Altitude:  3.123,
+				},
+			}
+			So(h.SendLocationNotification(reqPL), ShouldBeNil)
+
+			req := <-httpHandler.requests
+			So(req.URL.Path, ShouldEqual, "/location")
+
+			var pl handler.LocationNotification
 			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
 			So(pl, ShouldResemble, reqPL)
 			So(req.Header.Get("Foo"), ShouldEqual, "Bar")

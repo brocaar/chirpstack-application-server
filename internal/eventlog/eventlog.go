@@ -20,11 +20,12 @@ const (
 
 // Event types.
 const (
-	Uplink = "uplink"
-	ACK    = "ack"
-	Join   = "join"
-	Error  = "error"
-	Status = "status"
+	Uplink   = "uplink"
+	ACK      = "ack"
+	Join     = "join"
+	Error    = "error"
+	Status   = "status"
+	Location = "location"
 )
 
 // EventLog contains an event log.

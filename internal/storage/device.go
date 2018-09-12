@@ -28,8 +28,12 @@ type Device struct {
 	Name                string        `db:"name"`
 	Description         string        `db:"description"`
 	SkipFCntCheck       bool          `db:"-"`
+	ReferenceAltitude   float64       `db:"-"`
 	DeviceStatusBattery *int          `db:"device_status_battery"`
 	DeviceStatusMargin  *int          `db:"device_status_margin"`
+	Latitude            *float64      `db:"latitude"`
+	Longitude           *float64      `db:"longitude"`
+	Altitude            *float64      `db:"altitude"`
 }
 
 // DeviceListItem defines the Device as list item.
@@ -83,8 +87,11 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 			description,
 			device_status_battery,
 			device_status_margin,
-			last_seen_at
-        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+			last_seen_at,
+			latitude,
+			longitude,
+			altitude
+        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
 		d.DevEUI[:],
 		d.CreatedAt,
 		d.UpdatedAt,
@@ -95,6 +102,9 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 		d.DeviceStatusBattery,
 		d.DeviceStatusMargin,
 		d.LastSeenAt,
+		d.Latitude,
+		d.Longitude,
+		d.Altitude,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -122,11 +132,12 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 
 	_, err = nsClient.CreateDevice(context.Background(), &ns.CreateDeviceRequest{
 		Device: &ns.Device{
-			DevEui:           d.DevEUI[:],
-			DeviceProfileId:  d.DeviceProfileID.Bytes(),
-			ServiceProfileId: app.ServiceProfileID.Bytes(),
-			RoutingProfileId: rpID.Bytes(),
-			SkipFCntCheck:    d.SkipFCntCheck,
+			DevEui:            d.DevEUI[:],
+			DeviceProfileId:   d.DeviceProfileID.Bytes(),
+			ServiceProfileId:  app.ServiceProfileID.Bytes(),
+			RoutingProfileId:  rpID.Bytes(),
+			SkipFCntCheck:     d.SkipFCntCheck,
+			ReferenceAltitude: d.ReferenceAltitude,
 		},
 	})
 	if err != nil {
@@ -180,6 +191,7 @@ func GetDevice(db sqlx.Queryer, devEUI lorawan.EUI64, forUpdate, localOnly bool)
 
 	if resp.Device != nil {
 		d.SkipFCntCheck = resp.Device.SkipFCntCheck
+		d.ReferenceAltitude = resp.Device.ReferenceAltitude
 	}
 
 	return d, nil
@@ -310,7 +322,10 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 			description = $6,
 			device_status_battery = $7,
 			device_status_margin = $8,
-			last_seen_at = $9
+			last_seen_at = $9,
+			latitude = $10,
+			longitude = $11,
+			altitude = $12
         where
             dev_eui = $1`,
 		d.DevEUI[:],
@@ -322,6 +337,9 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 		d.DeviceStatusBattery,
 		d.DeviceStatusMargin,
 		d.LastSeenAt,
+		d.Latitude,
+		d.Longitude,
+		d.Altitude,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")
@@ -358,11 +376,12 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 
 		_, err = nsClient.UpdateDevice(context.Background(), &ns.UpdateDeviceRequest{
 			Device: &ns.Device{
-				DevEui:           d.DevEUI[:],
-				DeviceProfileId:  d.DeviceProfileID.Bytes(),
-				ServiceProfileId: app.ServiceProfileID.Bytes(),
-				RoutingProfileId: rpID.Bytes(),
-				SkipFCntCheck:    d.SkipFCntCheck,
+				DevEui:            d.DevEUI[:],
+				DeviceProfileId:   d.DeviceProfileID.Bytes(),
+				ServiceProfileId:  app.ServiceProfileID.Bytes(),
+				RoutingProfileId:  rpID.Bytes(),
+				SkipFCntCheck:     d.SkipFCntCheck,
+				ReferenceAltitude: d.ReferenceAltitude,
 			},
 		})
 		if err != nil {

@@ -117,6 +117,7 @@ func TestDevice(t *testing.T) {
 				DeviceStatusBattery: &ten,
 				DeviceStatusMargin:  &eleven,
 				SkipFCntCheck:       true,
+				ReferenceAltitude:   5.6,
 			}
 			So(CreateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
 			d.CreatedAt = d.CreatedAt.UTC().Truncate(time.Millisecond)
@@ -128,11 +129,12 @@ func TestDevice(t *testing.T) {
 			So(nsClient.CreateDeviceChan, ShouldHaveLength, 1)
 			So(<-nsClient.CreateDeviceChan, ShouldResemble, ns.CreateDeviceRequest{
 				Device: &ns.Device{
-					DevEui:           []byte{1, 2, 3, 4, 5, 6, 7, 8},
-					DeviceProfileId:  dp.DeviceProfile.Id,
-					ServiceProfileId: sp.ServiceProfile.Id,
-					RoutingProfileId: rpID.Bytes(),
-					SkipFCntCheck:    true,
+					DevEui:            []byte{1, 2, 3, 4, 5, 6, 7, 8},
+					DeviceProfileId:   dp.DeviceProfile.Id,
+					ServiceProfileId:  sp.ServiceProfile.Id,
+					RoutingProfileId:  rpID.Bytes(),
+					SkipFCntCheck:     true,
+					ReferenceAltitude: 5.6,
 				},
 			})
 
@@ -159,11 +161,12 @@ func TestDevice(t *testing.T) {
 			Convey("Then GetDevice returns the device", func() {
 				nsClient.GetDeviceResponse = ns.GetDeviceResponse{
 					Device: &ns.Device{
-						DevEui:           []byte{1, 2, 3, 4, 5, 6, 7, 8},
-						DeviceProfileId:  dp.DeviceProfile.Id,
-						ServiceProfileId: sp.ServiceProfile.Id,
-						RoutingProfileId: rpID.Bytes(),
-						SkipFCntCheck:    true,
+						DevEui:            []byte{1, 2, 3, 4, 5, 6, 7, 8},
+						DeviceProfileId:   dp.DeviceProfile.Id,
+						ServiceProfileId:  sp.ServiceProfile.Id,
+						RoutingProfileId:  rpID.Bytes(),
+						SkipFCntCheck:     true,
+						ReferenceAltitude: 5.6,
 					},
 				}
 
@@ -184,19 +187,28 @@ func TestDevice(t *testing.T) {
 					dp2ID, err := uuid.FromBytes(dp2.DeviceProfile.Id)
 					So(err, ShouldBeNil)
 
+					lat := float64(1.123)
+					long := float64(2.123)
+					alt := float64(3.123)
+
 					d.Name = "updated-test-device"
 					d.DeviceProfileID = dp2ID
+					d.Latitude = &lat
+					d.Longitude = &long
+					d.Altitude = &alt
+
 					So(UpdateDevice(config.C.PostgreSQL.DB, &d, false), ShouldBeNil)
 					d.UpdatedAt = d.UpdatedAt.UTC().Truncate(time.Millisecond)
 
 					So(nsClient.UpdateDeviceChan, ShouldHaveLength, 1)
 					So(<-nsClient.UpdateDeviceChan, ShouldResemble, ns.UpdateDeviceRequest{
 						Device: &ns.Device{
-							DevEui:           []byte{1, 2, 3, 4, 5, 6, 7, 8},
-							DeviceProfileId:  dp2.DeviceProfile.Id,
-							ServiceProfileId: sp.ServiceProfile.Id,
-							RoutingProfileId: rpID.Bytes(),
-							SkipFCntCheck:    true,
+							DevEui:            []byte{1, 2, 3, 4, 5, 6, 7, 8},
+							DeviceProfileId:   dp2.DeviceProfile.Id,
+							ServiceProfileId:  sp.ServiceProfile.Id,
+							RoutingProfileId:  rpID.Bytes(),
+							SkipFCntCheck:     true,
+							ReferenceAltitude: 5.6,
 						},
 					})
 

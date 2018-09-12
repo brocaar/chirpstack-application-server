@@ -161,6 +161,24 @@ class HTTPIntegrationForm extends FormComponent {
             fullWidth
           />
           <TextField
+            id="statusNotificationURL"
+            label="Device-status notification URL"
+            placeholder="http://example.com/status"
+            value={this.state.object.statusNotificationURL || ""}
+            onChange={this.onChange}
+            margin="normal"
+            fullWidth
+          />
+          <TextField
+            id="locationNotificationURL"
+            label="Location notification URL"
+            placeholder="http://example.com/location"
+            value={this.state.object.locationNotificationURL || ""}
+            onChange={this.onChange}
+            margin="normal"
+            fullWidth
+          />
+          <TextField
             id="ackNotificationURL"
             label="ACK notification URL"
             placeholder="http://example.com/ack"

@@ -14,6 +14,7 @@ func init() {
 	gob.Register(ACKNotification{})
 	gob.Register(ErrorNotification{})
 	gob.Register(StatusNotification{})
+	gob.Register(LocationNotification{})
 }
 
 // Location details.
@@ -106,4 +107,14 @@ type StatusNotification struct {
 	DevEUI          lorawan.EUI64 `json:"devEUI"`
 	Battery         int           `json:"battery"`
 	Margin          int           `json:"margin"`
+}
+
+// LocationNotification defines the payload sent to the application after
+// the device location has been resolved by a geolocation-server.
+type LocationNotification struct {
+	ApplicationID   int64         `json:"applicationID,string"`
+	ApplicationName string        `json:"applicationName"`
+	DeviceName      string        `json:"deviceName"`
+	DevEUI          lorawan.EUI64 `json:"devEUI"`
+	Location        Location      `json:"location"`
 }

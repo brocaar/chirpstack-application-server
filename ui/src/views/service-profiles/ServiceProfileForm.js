@@ -91,6 +91,24 @@ class ServiceProfileForm extends FormComponent {
             GW metadata (RSSI, SNR, GW geoloc., etc.) are added to the packet sent to the application-server.
           </FormHelperText>
         </FormControl>
+        <FormControl fullWidth margin="normal">
+          <FormControlLabel
+            label="Enable network geolocation"
+            control={
+              <Checkbox
+                id="nwkGeoLoc"
+                checked={!!this.state.object.nwkGeoLoc}
+                onChange={this.onChange}
+                color="primary"
+              />
+            }
+          />
+          <FormHelperText>
+            When enabled, the network-server will try to resolve the location of the devices under this service-profile.
+            Please note that you need to have gateways supporting the fine-timestamp feature and that the network-server
+            needs to be configured in order to provide geolocation support.
+          </FormHelperText>
+        </FormControl>
         <TextField
           id="devStatusReqFreq"
           label="Device-status request frequency"

@@ -212,10 +212,12 @@ func TestApplicationAPI(t *testing.T) {
 						Headers: []*pb.HTTPIntegrationHeader{
 							{Key: "Foo", Value: "bar"},
 						},
-						UplinkDataUrl:        "http://up",
-						JoinNotificationUrl:  "http://join",
-						AckNotificationUrl:   "http://ack",
-						ErrorNotificationUrl: "http://error",
+						UplinkDataUrl:           "http://up",
+						JoinNotificationUrl:     "http://join",
+						AckNotificationUrl:      "http://ack",
+						ErrorNotificationUrl:    "http://error",
+						StatusNotificationUrl:   "http://status",
+						LocationNotificationUrl: "http://location",
 					},
 				}
 				_, err := api.CreateHTTPIntegration(ctx, &req)
@@ -241,11 +243,13 @@ func TestApplicationAPI(t *testing.T) {
 				Convey("Then the integration can be updated", func() {
 					req := pb.UpdateHTTPIntegrationRequest{
 						Integration: &pb.HTTPIntegration{
-							ApplicationId:        createResp.Id,
-							UplinkDataUrl:        "http://up2",
-							JoinNotificationUrl:  "http://join2",
-							AckNotificationUrl:   "http://ack2",
-							ErrorNotificationUrl: "http://error",
+							ApplicationId:           createResp.Id,
+							UplinkDataUrl:           "http://up2",
+							JoinNotificationUrl:     "http://join2",
+							AckNotificationUrl:      "http://ack2",
+							ErrorNotificationUrl:    "http://error",
+							StatusNotificationUrl:   "http://status2",
+							LocationNotificationUrl: "http://location2",
 						},
 					}
 					_, err := api.UpdateHTTPIntegration(ctx, &req)

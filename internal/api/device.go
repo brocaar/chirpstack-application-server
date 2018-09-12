@@ -19,6 +19,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/eventlog"
 	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/loraserver/api/gw"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
@@ -63,12 +64,13 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*e
 	}
 
 	d := storage.Device{
-		DevEUI:          devEUI,
-		ApplicationID:   req.Device.ApplicationId,
-		DeviceProfileID: dpID,
-		Name:            req.Device.Name,
-		Description:     req.Device.Description,
-		SkipFCntCheck:   req.Device.SkipFCntCheck,
+		DevEUI:            devEUI,
+		ApplicationID:     req.Device.ApplicationId,
+		DeviceProfileID:   dpID,
+		Name:              req.Device.Name,
+		Description:       req.Device.Description,
+		SkipFCntCheck:     req.Device.SkipFCntCheck,
+		ReferenceAltitude: req.Device.ReferenceAltitude,
 	}
 
 	// as this also performs a remote call to create the node on the
@@ -102,12 +104,13 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 
 	resp := pb.GetDeviceResponse{
 		Device: &pb.Device{
-			DevEui:          d.DevEUI.String(),
-			Name:            d.Name,
-			ApplicationId:   d.ApplicationID,
-			Description:     d.Description,
-			DeviceProfileId: d.DeviceProfileID.String(),
-			SkipFCntCheck:   d.SkipFCntCheck,
+			DevEui:            d.DevEUI.String(),
+			Name:              d.Name,
+			ApplicationId:     d.ApplicationID,
+			Description:       d.Description,
+			DeviceProfileId:   d.DeviceProfileID.String(),
+			SkipFCntCheck:     d.SkipFCntCheck,
+			ReferenceAltitude: d.ReferenceAltitude,
 		},
 
 		DeviceStatusBattery: 256,
@@ -124,6 +127,15 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 		resp.LastSeenAt, err = ptypes.TimestampProto(*d.LastSeenAt)
 		if err != nil {
 			return nil, errToRPCError(err)
+		}
+	}
+
+	if d.Latitude != nil && d.Longitude != nil && d.Altitude != nil {
+		resp.Location = &common.Location{
+			Latitude:  *d.Latitude,
+			Longitude: *d.Longitude,
+			Altitude:  *d.Altitude,
+			Source:    common.LocationSource_GEO_RESOLVER,
 		}
 	}
 
@@ -245,6 +257,7 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*e
 		d.Name = req.Device.Name
 		d.Description = req.Device.Description
 		d.SkipFCntCheck = req.Device.SkipFCntCheck
+		d.ReferenceAltitude = req.Device.ReferenceAltitude
 
 		if err := storage.UpdateDevice(tx, &d, false); err != nil {
 			return errToRPCError(err)

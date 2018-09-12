@@ -382,7 +382,72 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 
 	err = config.C.ApplicationServer.Integration.Handler.SendStatusNotification(pl)
 	if err != nil {
-		return nil, errToRPCError(errors.Wrap(err, "send status notitifaction to handler error"))
+		return nil, errToRPCError(errors.Wrap(err, "send status notification to handler error"))
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// SetDeviceLocation updates the device-location.
+func (a *ApplicationServerAPI) SetDeviceLocation(ctx context.Context, req *as.SetDeviceLocationRequest) (*empty.Empty, error) {
+	if req.Location == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "location must not be nil")
+	}
+
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], req.DevEui)
+
+	var d storage.Device
+	var err error
+
+	err = storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
+		d, err = storage.GetDevice(tx, devEUI, true, true)
+		if err != nil {
+			return errToRPCError(errors.Wrap(err, "get device error"))
+		}
+
+		d.Latitude = &req.Location.Latitude
+		d.Longitude = &req.Location.Longitude
+		d.Altitude = &req.Location.Altitude
+
+		if err = storage.UpdateDevice(tx, &d, true); err != nil {
+			return errToRPCError(errors.Wrap(err, "update device error"))
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	app, err := storage.GetApplication(config.C.PostgreSQL.DB, d.ApplicationID)
+	if err != nil {
+		return nil, errToRPCError(errors.Wrap(err, "get application error"))
+	}
+
+	pl := handler.LocationNotification{
+		ApplicationID:   app.ID,
+		ApplicationName: app.Name,
+		DeviceName:      d.Name,
+		DevEUI:          d.DevEUI,
+		Location: handler.Location{
+			Latitude:  req.Location.Latitude,
+			Longitude: req.Location.Longitude,
+			Altitude:  req.Location.Altitude,
+		},
+	}
+
+	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
+		Type:    eventlog.Location,
+		Payload: pl,
+	})
+	if err != nil {
+		log.WithError(err).Error("log event for device error")
+	}
+
+	err = config.C.ApplicationServer.Integration.Handler.SendLocationNotification(pl)
+	if err != nil {
+		return nil, errToRPCError(errors.Wrap(err, "send location notification to handler error"))
 	}
 
 	return &empty.Empty{}, nil

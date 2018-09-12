@@ -80,6 +80,7 @@ func (ts *MQTTHandlerTestSuite) SetupSuite() {
 			AckTopicTemplate:      "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/ack",
 			ErrorTopicTemplate:    "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error",
 			StatusTopicTemplate:   "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status",
+			LocationTopicTemplate: "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location",
 		},
 	)
 	assert.NoError(err)
@@ -212,6 +213,33 @@ func (ts *MQTTHandlerTestSuite) TestStatus() {
 	}
 	assert.NoError(ts.handler.SendStatusNotification(pl))
 	assert.Equal(pl, <-statusChan)
+}
+
+func (ts *MQTTHandlerTestSuite) TestLocation() {
+	assert := require.New(ts.T())
+
+	locationChan := make(chan handler.LocationNotification, 1)
+	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/location", 0, func(c paho.Client, msg paho.Message) {
+		var pl handler.LocationNotification
+		assert.NoError(json.Unmarshal(msg.Payload(), &pl))
+		locationChan <- pl
+	})
+	token.Wait()
+	assert.NoError(token.Error())
+
+	pl := handler.LocationNotification{
+		ApplicationID:   123,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		Location: handler.Location{
+			Latitude:  1.123,
+			Longitude: 2.123,
+			Altitude:  3.123,
+		},
+	}
+	assert.NoError(ts.handler.SendLocationNotification(pl))
+	assert.Equal(pl, <-locationChan)
 }
 
 func (ts *MQTTHandlerTestSuite) TestDownlink() {

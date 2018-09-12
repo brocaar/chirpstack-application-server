@@ -109,6 +109,22 @@ func (w Handler) SendStatusNotification(pl handler.StatusNotification) error {
 	return nil
 }
 
+// SendLocationNotification sends a location notification.
+func (w Handler) SendLocationNotification(pl handler.LocationNotification) error {
+	handlers, err := w.getHandlersForApplicationID(pl.ApplicationID)
+	if err != nil {
+		log.Errorf("get handlers for application-id error: %s", err)
+		handlers = []handler.IntegrationHandler{w.defaultHandler}
+	}
+
+	for _, h := range handlers {
+		if err := h.SendLocationNotification(pl); err != nil {
+			log.Errorf("handler %T error: %s", h, err)
+		}
+	}
+	return nil
+}
+
 // Close closes the handlers.
 func (w Handler) Close() error {
 	return w.defaultHandler.Close()

@@ -16,6 +16,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/eventlog"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 )
@@ -123,12 +124,13 @@ func TestNodeAPI(t *testing.T) {
 		Convey("When creating a device", func() {
 			createReq := pb.CreateDeviceRequest{
 				Device: &pb.Device{
-					ApplicationId:   app.ID,
-					Name:            "test-device",
-					Description:     "test device description",
-					DevEui:          "0807060504030201",
-					DeviceProfileId: dpID.String(),
-					SkipFCntCheck:   true,
+					ApplicationId:     app.ID,
+					Name:              "test-device",
+					Description:       "test device description",
+					DevEui:            "0807060504030201",
+					DeviceProfileId:   dpID.String(),
+					SkipFCntCheck:     true,
+					ReferenceAltitude: 5.6,
 				},
 			}
 
@@ -189,6 +191,32 @@ func TestNodeAPI(t *testing.T) {
 						So(d.LastSeenAt, ShouldNotBeNil)
 					})
 				})
+
+				Convey("When setting the device location", func() {
+					lat := 1.123
+					long := 2.123
+					alt := 3.123
+
+					d, err := storage.GetDevice(config.C.PostgreSQL.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
+					So(err, ShouldBeNil)
+					d.Latitude = &lat
+					d.Longitude = &long
+					d.Altitude = &alt
+					So(storage.UpdateDevice(config.C.PostgreSQL.DB, &d, true), ShouldBeNil)
+
+					Convey("Then Get returns the location", func() {
+						d, err := api.Get(ctx, &pb.GetDeviceRequest{
+							DevEui: "0807060504030201",
+						})
+						So(err, ShouldBeNil)
+						So(d.Location, ShouldResemble, &common.Location{
+							Latitude:  1.123,
+							Longitude: 2.123,
+							Altitude:  3.123,
+							Source:    common.LocationSource_GEO_RESOLVER,
+						})
+					})
+				})
 			})
 
 			Convey("Testing the List method", func() {
@@ -243,12 +271,13 @@ func TestNodeAPI(t *testing.T) {
 			Convey("When updating the device", func() {
 				updateReq := pb.UpdateDeviceRequest{
 					Device: &pb.Device{
-						ApplicationId:   app.ID,
-						DevEui:          "0807060504030201",
-						Name:            "test-device-updated",
-						Description:     "test device description updated",
-						DeviceProfileId: dpID.String(),
-						SkipFCntCheck:   true,
+						ApplicationId:     app.ID,
+						DevEui:            "0807060504030201",
+						Name:              "test-device-updated",
+						Description:       "test device description updated",
+						DeviceProfileId:   dpID.String(),
+						SkipFCntCheck:     true,
+						ReferenceAltitude: 6.7,
 					},
 				}
 
@@ -256,6 +285,10 @@ func TestNodeAPI(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(validator.validatorFuncs, ShouldHaveLength, 1)
 				updateReq.Device.XXX_sizecache = 0
+				nsUpdateReq := <-nsClient.UpdateDeviceChan
+				nsClient.GetDeviceResponse = ns.GetDeviceResponse{
+					Device: nsUpdateReq.Device,
+				}
 
 				Convey("Then the device has been updated", func() {
 					d, err := api.Get(ctx, &pb.GetDeviceRequest{

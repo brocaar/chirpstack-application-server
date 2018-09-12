@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package api;
 
+import "github.com/brocaar/loraserver/api/common/common.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
@@ -136,6 +137,12 @@ message Device {
 
     // Skip frame-counter checks (this is insecure, but could be helpful for debugging).
     bool skip_f_cnt_check = 6;
+
+    // Reference altitude.
+    // When using geolocation, this altitude will be used as a reference
+    // (when supported by the geolocation-server) to increase geolocation
+    // accuracy.
+    double reference_altitude = 7;
 }
 
 message DeviceListItem {
@@ -219,6 +226,11 @@ message GetDeviceResponse {
     // -32..32: The demodulation SNR ration in dB
     // 256:     The device-status is not available.
     int32  device_status_margin = 20;
+
+    // Device location.
+    // This will set when the network-server was able to resolve the location
+    // using the geolocation-server.
+    common.Location location = 21;
 }
 
 message ListDeviceRequest {

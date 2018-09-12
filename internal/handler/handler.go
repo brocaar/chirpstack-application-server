@@ -14,10 +14,11 @@ type Handler interface {
 
 // IntegrationHandler defines the interface of an integration handler.
 type IntegrationHandler interface {
-	SendDataUp(payload DataUpPayload) error                  // send data-up payload
-	SendJoinNotification(payload JoinNotification) error     // send join notification
-	SendACKNotification(payload ACKNotification) error       // send ack notification
-	SendErrorNotification(payload ErrorNotification) error   // send error notification
-	SendStatusNotification(payload StatusNotification) error // send status notification
-	Close() error                                            // closes the handler
+	SendDataUp(payload DataUpPayload) error                      // send data-up payload
+	SendJoinNotification(payload JoinNotification) error         // send join notification
+	SendACKNotification(payload ACKNotification) error           // send ack notification
+	SendErrorNotification(payload ErrorNotification) error       // send error notification
+	SendStatusNotification(payload StatusNotification) error     // send status notification
+	SendLocationNotification(payload LocationNotification) error // send location notofication
+	Close() error                                                // closes the handler
 }

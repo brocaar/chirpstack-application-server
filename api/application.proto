@@ -243,6 +243,12 @@ message HTTPIntegration {
 
 	// The URL to call for error notifications.
 	string error_notification_url = 6 [json_name = "errorNotificationURL"];
+
+	// The URL to call for device-status notifications.
+	string status_notification_url = 7 [json_name = "statusNotificationURL"];
+
+	// The URL to call for location notifications.
+	string location_notification_url = 8 [json_name = "locationNotificationURL"];
 }
 
 message CreateHTTPIntegrationRequest {

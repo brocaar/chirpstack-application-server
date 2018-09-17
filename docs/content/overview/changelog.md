@@ -9,6 +9,34 @@ toc: false
 
 # Changelog
 
+## v2.2.0
+
+### Upgrade notes
+
+This upgrade is backwards compatible with previous v2 releases, but when using
+geolocation-support, you must also upgrade LoRa Server to v2.2.0+.
+
+### Features
+
+#### Geolocation
+
+This release adds geolocation support.
+
+* Configuration of fine-timestamp decryption keys (e.g. for the Kerlink iBTS).
+* `.../location` MQTT topics on which device locations are published.
+* Location notification endpoint for HTTP integration.
+* Per device reference altitude (for more accurate geolocation).
+
+#### Improvements
+
+* Replace `garyburd/redigo/redis` with `gomodule/redigo/redis`.
+
+
+#### Bugfixes
+
+* Status notification endpoint was missing for HTTP integration.
+* Fix `/api` endpoint redirecting to web-interface (this might require a clear cache).
+
 ## v2.1.0
 
 ### Upgrade notes

@@ -5,6 +5,7 @@ menu:
         parent: overview
         weight: 4
 toc: false
+description: Lists the changes per LoRa App Server release, including steps how to upgrade.
 ---
 
 # Changelog

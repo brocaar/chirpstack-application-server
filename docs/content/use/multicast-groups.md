@@ -4,6 +4,7 @@ menu:
     main:
         parent: use
         weight: 8
+description: Manage multicast-groups for sending downlink frames to a group of devices (the multicast-group).
 ---
 
 # Multicast-groups

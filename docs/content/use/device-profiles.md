@@ -5,6 +5,7 @@ menu:
         parent: use
         weight: 6
 toc: false
+description: Manage device-profiles, containing the device capabilities and boot parameters.
 ---
 
 # Device-profile management

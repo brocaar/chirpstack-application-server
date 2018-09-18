@@ -4,6 +4,7 @@ menu:
     main:
         parent: use
         weight: 10
+description: Manage gateways, show gateway statistics and configure the fine-timestamp decryption keys.
 ---
 
 # Gateway management

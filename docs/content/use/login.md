@@ -4,6 +4,7 @@ menu:
     main:
         parent: use
         weight: 1
+description: Login into the LoRa App Server web-interface.
 ---
 
 # Web-interface login

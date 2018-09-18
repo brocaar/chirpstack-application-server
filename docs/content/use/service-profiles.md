@@ -5,6 +5,7 @@ menu:
         parent: use
         weight: 5
 toc: false
+description: Manage service-profile, defining the features that organizations are allowed to use on a connected network-server.
 ---
 
 # Service-profile management

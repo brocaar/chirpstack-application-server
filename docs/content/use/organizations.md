@@ -4,6 +4,7 @@ menu:
     main:
         parent: use
         weight: 4
+description: Manage organizations, service-profiles assigned to organizations and organization users.
 ---
 
 # Organization management

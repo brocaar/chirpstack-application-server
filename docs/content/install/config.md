@@ -5,6 +5,7 @@ menu:
         parent: install
         weight: 4
 toc: false
+description: Instructions and examples how to configure the LoRa App Server service.
 ---
 
 # Configuration

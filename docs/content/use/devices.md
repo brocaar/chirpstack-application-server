@@ -4,6 +4,7 @@ menu:
     main:
         parent: use
         weight: 9
+description: Manage devices, root-keys and ABP session-keys.
 ---
 
 # Device management

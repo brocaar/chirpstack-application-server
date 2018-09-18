@@ -4,6 +4,7 @@ menu:
     main:
         parent: use
         weight: 12
+description: Show live device events for debugging device behavior.
 ---
 
 # Event logging

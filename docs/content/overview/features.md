@@ -4,6 +4,7 @@ menu:
     main:
         parent: overview
         weight: 2
+description: Features provided by the LoRa App Server service.
 ---
 
 # Features

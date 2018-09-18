@@ -4,6 +4,7 @@ menu:
     main:
         parent: integrate
         weight: 6
+description: Information about integrating with the RESTful JSON API.
 ---
 
 # RESfful JSON API

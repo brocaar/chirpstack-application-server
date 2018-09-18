@@ -4,6 +4,7 @@ menu:
     main:
         parent: integrate
         weight: 4
+description: Information on API tokens for authentication and authorization.
 ---
 
 # Authentication / authorization

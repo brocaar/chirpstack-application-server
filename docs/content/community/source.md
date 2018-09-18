@@ -4,6 +4,7 @@ menu:
     main:
         parent: community
         weight: 3
+description: How to get the LoRa App Server source and how to compile this into an executable binary.
 ---
 
 # LoRa App Server source

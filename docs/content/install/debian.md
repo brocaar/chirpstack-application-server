@@ -4,15 +4,16 @@ menu:
     main:
         parent: install
         weight: 3
+description: Instructions how to install LoRa App Server on a Debian or Ubuntu based Linux installation.
 ---
 
 # Debian / Ubuntu installation
 
 These steps have been tested with:
 
-* Debian Jessie
-* Ubuntu Trusty (14.04)
-* Ubuntu Xenial (16.04)
+* Ubuntu 16.04 (LTS)
+* Ubuntu 18.04 (LTS)
+* Debian 9 (Stretch)
 
 ### Creating an user and database
 

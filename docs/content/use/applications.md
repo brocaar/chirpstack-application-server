@@ -4,6 +4,7 @@ menu:
     main:
         parent: use
         weight: 7
+description: Manage applications, integrations and payload decoders.
 ---
 
 # Application management

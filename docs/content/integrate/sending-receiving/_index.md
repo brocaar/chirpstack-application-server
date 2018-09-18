@@ -5,6 +5,8 @@ menu:
         identifier: sending-receiving
         parent: integrate
         weight: 1
+description: Sending to and receiving data from devices.
+listPages: false
 ---
 
 # Sending and receiving device data

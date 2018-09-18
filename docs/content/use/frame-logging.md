@@ -4,6 +4,7 @@ menu:
     main:
         parent: use
         weight: 11
+description: Show live LoRaWAN frames for debugging device and gateway behavior.
 ---
 
 # Frame logging

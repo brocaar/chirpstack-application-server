@@ -4,6 +4,7 @@ menu:
     main:
         parent: integrate
         weight: 3
+description: Integrate with the LoRa App Server gRCP or RESTful API.
 ---
 
 # LoRa App Server API

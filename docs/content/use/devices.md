@@ -51,22 +51,22 @@ This document will describe this process for different types of devices.
 
 The following example data is used:
 
-```
+{{<highlight text>}}
 DevEUI: 0102030405060708
 AppEUI: 0807060504030201
 AppKey: 01020304050607080910111213141516
-```
+{{< /highlight >}}
 
 ### RN2483 / RN2903
 
 Through a serial terminal, use the following commands (terminated by `CR + LF`):
 
-```
+{{<highlight text>}}
 mac set deveui 0102030405060708
 mac set appeui 0807060504030201
 mac set appkey 01020304050607080910111213141516
 mac join otaa
-```
+{{< /highlight >}}
 
 Any time a `mac save` is done, `mac set devaddr 00000000` should
 first be issued. Not doing so will result in the `mac join otaa` command
@@ -111,7 +111,7 @@ for the following actions:
 
 Through a serial terminal, use the following commands:
 
-```
+{{<highlight text>}}
 AT
 AT+NJM=1
 AT+NI=0,0807060504030201
@@ -121,14 +121,14 @@ AT&W
 ATZ
 
 AT+JOIN
-```
+{{< /highlight >}}
 
 For mDot™ we can't modify DevEUI as it's a factory-programmed setting. use the
 following command to obtain it:
 
-```
+{{<highlight text>}}
 AT+DI?
-```
+{{< /highlight >}}
 
 ### Generic Arduino LMIC-based devices
 

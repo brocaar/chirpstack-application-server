@@ -55,7 +55,7 @@ logged since opening the **Live frame logs** tab.
 
 ### Example JSON output
 
-```json
+{{<highlight json>}}
 [
     {
         "uplinkMetaData": {
@@ -110,4 +110,4 @@ logged since opening the **Live frame logs** tab.
         }
     }
 ]
-```
+{{< /highlight >}}

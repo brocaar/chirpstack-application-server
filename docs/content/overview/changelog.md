@@ -118,20 +118,20 @@ re-used for create / get and update methods).
 
 `POST /api/devices`
 
-```json
+{{<highlight json>}}
 {
   "name": "test-device",
   "devEUI": "0102030405060708",
   "applicationID": "123"
   ...
 }
-```
+{{< /highlight >}}
 
 ##### New API
 
 `POST /api/devices`
 
-```json
+{{<highlight json>}}
 {
   "device": {
     "name": "test-device",
@@ -140,7 +140,7 @@ re-used for create / get and update methods).
     ...
   }
 }
-```
+{{< /highlight >}}
 
 #### InfluxDB changes
 
@@ -187,9 +187,9 @@ This marks the first stable release!
 * As some configuration defaults have been changed (in the MQTT topic `node`
   has been replaced by `device`), make sure the old defaults are in you config
   file. To re-generate a configuration file while keeping your modifications, run:
-  ```bash
+  {{<highlight bash>}}
   lora-app-server -c lora-app-server-old.toml configfile > lora-app-server.toml
-  ```
+  {{< /highlight >}}
 * You are now ready to upgrade to v1.0.0!
 
 See [Downloads](https://www.loraserver.io/lora-app-server/overview/downloads/)
@@ -291,13 +291,13 @@ extension could be enabled using the commands below.
 
 Start the PostgreSQL prompt as the `postgres` user:
 
-```bash
+{{<highlight bash>}}
 sudo -u postgres psql
-```
+{{< /highlight >}}
 
 Within the PostgreSQL prompt, enter the following queries:
 
-```sql
+{{<highlight sql>}}
 -- change to the LoRa App Server database
 \c loraserver_as
 
@@ -306,7 +306,7 @@ create extension pg_trgm;
 
 -- exit the prompt
 \q
-```
+{{< /highlight >}}
 
 ## 0.18.2
 

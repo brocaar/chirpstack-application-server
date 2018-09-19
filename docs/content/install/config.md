@@ -12,7 +12,7 @@ description: Instructions and examples how to configure the LoRa App Server serv
 
 The `lora-app-server` binary has the following command-line flags:
 
-```text
+{{<highlight text>}}
 LoRa App Server is an open-source application-server, part of the LoRa Server project
 	> documentation & support: https://www.loraserver.io/lora-app-server
 	> source & copyright information: https://github.com/brocaar/lora-app-server
@@ -32,7 +32,7 @@ Flags:
       --log-level int   debug=5, info=4, error=2, fatal=1, panic=0 (default 4)
 
 Use "lora-app-server [command] --help" for more information about a command.
-```
+{{< /highlight >}}
 
 ## Configuration file
 
@@ -47,22 +47,22 @@ To load configuration from a different location, use the `--config` flag.
 
 To generate a new configuration file `lora-app-server.toml`, execute the following command:
 
-```bash
+{{<highlight bash>}}
 lora-app-server configfile > lora-app-server.toml
-```
+{{< /highlight >}}
 
 Note that this configuration file will be pre-filled with the current configuration
 (either loaded from the paths mentioned above, or by using the `--config` flag).
 This makes it possible when new fields get added to upgrade your configuration file
 while preserving your old configuration. Example:
 
-```bash
+{{<highlight bash>}}
 lora-app-server configfile --config lora-app-server-old.toml > lora-app-server-new.toml
-```
+{{< /highlight >}}
 
 Example configuration file:
 
-```toml
+{{<highlight toml>}}
 [general]
 # Log level
 #
@@ -319,7 +319,7 @@ tls_key=""
 
   # # Key Encryption Key.
   # kek="01020304050607080102030405060708"
-```
+{{< /highlight >}}
 
 ## Securing the application-server internal API
 
@@ -356,9 +356,9 @@ JSON api together on one port.
 
 A self-signed certificate can be generated with the following command:
 
-```bash
+{{<highlight bash>}}
 openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 90 -nodes
-```
+{{< /highlight >}}
 
 ### Let's Encrypt
 
@@ -366,6 +366,6 @@ For generating a certificate with [Let's Encrypt](https://letsencrypt.org/),
 first follow the [getting started](https://letsencrypt.org/getting-started/)
 instructions. When the `letsencrypt` cli tool has been installed, execute:
 
-```bash
+{{<highlight bash>}}
 letsencrypt certonly --standalone -d DOMAINNAME.HERE 
-```
+{{< /highlight >}}

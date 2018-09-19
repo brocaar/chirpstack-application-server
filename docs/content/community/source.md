@@ -20,9 +20,9 @@ The easiest way to get started is by using the provided
 shell within the docker-compose environment, execute the following command from
 the root of this project:
 
-```bash
+{{<highlight bash>}}
 docker-compose run --rm appserver bash
-```
+{{< /highlight >}}
 
 ### Without Docker
 
@@ -50,7 +50,7 @@ the GO support for Protocol Buffers [installation instructions](https://github.c
 
 A few example commands that you can run:
 
-```bash
+{{<highlight bash>}}
 # install all requirements
 make requirements ui-requirements
 
@@ -68,4 +68,4 @@ make build
 
 # compile snapshot builds for supported architectures (this will also compile the ui and generate the static files)
 make build-snapshot
-```
+{{< /highlight >}}

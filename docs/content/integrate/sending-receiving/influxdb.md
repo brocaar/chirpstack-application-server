@@ -34,7 +34,7 @@ Payload data is prefixed by `device_frmpayload_data`.
 
 Example:
 
-```json
+{{<highlight json>}}
 {
     "object": {
         "temperature_sensor": {
@@ -42,7 +42,7 @@ Example:
         }
     }
 }
-```
+{{< /highlight >}}
 
 The above will translate to the measurement `device_frmpayload_data_temperature_sensor_1`.
 
@@ -58,14 +58,14 @@ the `object`), both measurements are treated as a single geolocation measurement
 
 Example:
 
-```json
+{{<highlight json>}}
 {
     "object": {
         "latitude": 1.123,
         "longitude": 2.123
     }
 }
-```
+{{< /highlight >}}
 
 The above will translate to the measurement `device_frmpayload_data_location`
 with values `latitude`, `longitude` and `geohash` (see also [Geohash](https://en.wikipedia.org/wiki/Geohash)).

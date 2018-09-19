@@ -38,7 +38,7 @@ and encode a JavaScript object to an array of bytes.
 
 #### Decoder function skeleton
 
-```js
+{{<highlight js>}}
 // Decode decodes an array of bytes into an object.
 //  - fPort contains the LoRaWAN fPort number
 //  - bytes is an array of bytes, e.g. [225, 230, 255, 0]
@@ -46,11 +46,11 @@ and encode a JavaScript object to an array of bytes.
 function Decode(fPort, bytes) {
   return {};
 }
-```
+{{< /highlight >}}
 
 #### Encoder function skeleton
 
-```js
+{{<highlight js>}}
 // Encode encodes the given object into an array of bytes.
 //  - fPort contains the LoRaWAN fPort number
 //  - obj is an object, e.g. {"temperature": 22.5}
@@ -58,7 +58,7 @@ function Decode(fPort, bytes) {
 function Encode(fPort, obj) {
   return [];
 }
-```
+{{< /highlight >}}
 
 ## Integrations
 

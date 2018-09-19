@@ -16,10 +16,10 @@ need to subscribe to its MQTT topic. For debugging, you could use a
 Use `+` for a single-level wildcard, `#` for a multi-level wildcard.
 Examples:
 
-```bash
+{{<highlight bash>}}
 mosquitto_sub -t "application/123/#" -v          # display everything for the given application ID
 mosquitto_sub -t "application/123/device/+/rx" -v  # display only the RX payloads for the given application ID
-```
+{{< /highlight >}}
 
 **Notes:**
 
@@ -37,7 +37,7 @@ mosquitto_sub -t "application/123/device/+/rx" -v  # display only the RX payload
 
 Topic for payloads received from your devices. Example payload:
 
-```json
+{{<highlight json>}}
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
@@ -70,13 +70,13 @@ Topic for payloads received from your devices. Example payload:
         "humiditySensor": {"1": 32}
     }
 }
-```
+{{< /highlight >}}
 
 ### application/[applicationID]/device/[devEUI]/status
 
 Topic for battery and margin status received from devices. Example payload:
 
-```json
+{{<highlight json>}}
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
@@ -85,7 +85,7 @@ Topic for battery and margin status received from devices. Example payload:
     "battery": 200,
     "margin": 6
 }
-```
+{{< /highlight >}}
 
 When configured by the [service-profile]({{<ref "use/service-profiles.md">}})
 and when published by the device, this payload contains the device status.
@@ -110,7 +110,7 @@ request by the network-server.
 
 Topic for join notifications. Example payload:
 
-```json
+{{<highlight json>}}
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
@@ -118,7 +118,7 @@ Topic for join notifications. Example payload:
     "devAddr": "06682ea2",                    // assigned device address
     "DevEUI": "0202020202020202"              // device EUI
 }
-```
+{{< /highlight >}}
 
 ### application/[applicationID]/device/[devEUI]/ack
 
@@ -128,7 +128,7 @@ Topic for join notifications. Example payload:
 
 Topic for ACK notifications. Example payload:
 
-```json
+{{<highlight json>}}
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
@@ -137,7 +137,7 @@ Topic for ACK notifications. Example payload:
     "acknowledged": true,                     // whether the frame was acknowledged or not (e.g. timeout)
     "fCnt": 12                                // downlink frame-counter
 }
-```
+{{< /highlight >}}
 
 ### application/[applicationID]/device/[devEUI]/error
 
@@ -149,7 +149,7 @@ Topic for error notifications. An error might be raised when the downlink
 payload size exceeded to max allowed payload size, in case of a MIC error,
 ... Example payload:
 
-```json
+{{<highlight json>}}
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
@@ -158,7 +158,7 @@ payload size exceeded to max allowed payload size, in case of a MIC error,
     "error": "...",
     "fCnt": 123                               // fCnt related to the error (if applicable)
 }
-```
+{{< /highlight >}}
 
 ## Sending
 
@@ -172,7 +172,7 @@ payload size exceeded to max allowed payload size, in case of a MIC error,
 
 Example payload:
 
-```json
+{{<highlight json>}}
 {
     "confirmed": true,                        // whether the payload must be sent as confirmed data down or not
     "fPort": 10,                              // FPort to use (must be > 0)
@@ -183,4 +183,4 @@ Example payload:
     }
 }
 
-```
+{{< /highlight >}}

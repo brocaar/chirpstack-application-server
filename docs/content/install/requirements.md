@@ -23,9 +23,9 @@ In case you install Mosquitto, make sure you install a **recent** version.
 
 In order to install Mosquitto, execute the following command:
 
-```bash
+{{<highlight bash>}}
 sudo apt-get install mosquitto
-```
+{{< /highlight >}}
 
 #### Other platforms
 
@@ -46,13 +46,13 @@ LoRa App Server database is named `loraserver_as`):
 
 Start the PostgreSQL prompt as the `postgres` user:
 
-```bash
+{{<highlight bash>}}
 sudo -u postgres psql
-```
+{{< /highlight >}}
 
 Within the PostgreSQL prompt, enter the following queries:
 
-```sql
+{{<highlight sql>}}
 -- change to the LoRa App Server database
 \c loraserver_as
 
@@ -61,7 +61,7 @@ create extension pg_trgm;
 
 -- exit the prompt
 \q
-```
+{{< /highlight >}}
 
 ### Install
 
@@ -69,9 +69,9 @@ create extension pg_trgm;
 
 To install the latest PostgreSQL:
 
-```bash
+{{<highlight bash>}}
 sudo apt-get install postgresql
-```
+{{< /highlight >}}
 
 #### Other platforms
 
@@ -90,9 +90,9 @@ is required.
 
 To Install Redis:
 
-```bash
+{{<highlight bash>}}
 sudo apt-get install redis-server
-```
+{{< /highlight >}}
 
 #### Other platforms
 

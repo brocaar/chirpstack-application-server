@@ -276,13 +276,20 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 # ip:port to bind the join-server api interface to
 bind="0.0.0.0:8003"
 
-# ca certificate used by the join-server api server
+# CA certificate (optional).
+#
+# When set, the server requires a client-certificate and will validate this
+# certificate on incoming requests.
 ca_cert=""
 
-# tls certificate used by the join-server api server (optional)
+# TLS server-certificate (optional).
+#
+# Set this to enable TLS.
 tls_cert=""
 
-# tls key used by the join-server api server (optional)
+# TLS server-certificate key (optional).
+#
+# Set this to enable TLS.
 tls_key=""
 
 
@@ -341,6 +348,8 @@ In order to protect the join-server API (`[join_server]`) against
 unauthorized access and to encrypt all communication, it is advised to use TLS
 certificates. Once the `ca_cert`, `tls_cert` and `tls_key` are
 set, the API will enforce client certificate validation on all incoming connections.
+When the `ca_cert` is left blank, TLS will still be configured, but the server
+will not require and validate the client-certificate.
 
 Please note that you also need to configure LoRa Server so that it uses a
 client certificate for its join-server API client. See

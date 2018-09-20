@@ -207,11 +207,12 @@ func startJoinServerAPI() error {
 	}).Info("starting join-server api")
 
 	server := http.Server{
-		Handler: api.NewJoinServerAPI(),
-		Addr:    config.C.JoinServer.Bind,
+		Handler:   api.NewJoinServerAPI(),
+		Addr:      config.C.JoinServer.Bind,
+		TLSConfig: &tls.Config{},
 	}
 
-	if config.C.JoinServer.CACert == "" || config.C.JoinServer.TLSCert == "" || config.C.JoinServer.TLSKey == "" {
+	if config.C.JoinServer.CACert == "" && config.C.JoinServer.TLSCert == "" && config.C.JoinServer.TLSKey == "" {
 		go func() {
 			err := server.ListenAndServe()
 			log.WithError(err).Error("join-server api error")
@@ -219,19 +220,22 @@ func startJoinServerAPI() error {
 		return nil
 	}
 
-	caCert, err := ioutil.ReadFile(config.C.JoinServer.CACert)
-	if err != nil {
-		return errors.Wrap(err, "read ca certificate error")
-	}
+	if config.C.JoinServer.CACert != "" {
+		caCert, err := ioutil.ReadFile(config.C.JoinServer.CACert)
+		if err != nil {
+			return errors.Wrap(err, "read ca certificate error")
+		}
 
-	caCertPool := x509.NewCertPool()
-	if !caCertPool.AppendCertsFromPEM(caCert) {
-		return errors.New("append ca certificate error")
-	}
+		caCertPool := x509.NewCertPool()
+		if !caCertPool.AppendCertsFromPEM(caCert) {
+			return errors.New("append ca certificate error")
+		}
+		server.TLSConfig.ClientCAs = caCertPool
+		server.TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
 
-	server.TLSConfig = &tls.Config{
-		ClientCAs:  caCertPool,
-		ClientAuth: tls.RequireAndVerifyClientCert,
+		log.WithFields(log.Fields{
+			"ca_cert": config.C.JoinServer.CACert,
+		}).Info("join-server is configured with client-certificate authentication")
 	}
 
 	go func() {

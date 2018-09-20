@@ -235,13 +235,20 @@ id="{{ .ApplicationServer.ID }}"
 # ip:port to bind the join-server api interface to
 bind="{{ .JoinServer.Bind }}"
 
-# ca certificate used by the join-server api server
+# CA certificate (optional).
+#
+# When set, the server requires a client-certificate and will validate this
+# certificate on incoming requests.
 ca_cert="{{ .JoinServer.CACert }}"
 
-# tls certificate used by the join-server api server (optional)
+# TLS server-certificate (optional).
+#
+# Set this to enable TLS.
 tls_cert="{{ .JoinServer.TLSCert }}"
 
-# tls key used by the join-server api server (optional)
+# TLS server-certificate key (optional).
+#
+# Set this to enable TLS.
 tls_key="{{ .JoinServer.TLSKey }}"
 
 

@@ -10,6 +10,13 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
+## v2.2.1 (unreleased)
+
+### Improvements
+
+* The join-server `ca_cert` can be left blank to disable client-certificate
+  validation when a TLS certificate is configured.
+
 ## v2.2.0
 
 ### Upgrade notes

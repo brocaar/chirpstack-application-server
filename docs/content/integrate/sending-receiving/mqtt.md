@@ -116,7 +116,7 @@ Topic for join notifications. Example payload:
     "applicationName": "temperature-sensor",
     "deviceName": "garden-sensor",
     "devAddr": "06682ea2",                    // assigned device address
-    "DevEUI": "0202020202020202"              // device EUI
+    "devEUI": "0202020202020202"              // device EUI
 }
 {{< /highlight >}}
 

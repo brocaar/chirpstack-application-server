@@ -154,6 +154,7 @@ payload size exceeded to max allowed payload size, in case of a MIC error,
     "applicationID": "123",
     "applicationName": "temperature-sensor",
     "deviceName": "garden-sensor",
+    "devEUI": "0202020202020202",             // device EUI
     "type": "DATA_UP_FCNT",
     "error": "...",
     "fCnt": 123                               // fCnt related to the error (if applicable)

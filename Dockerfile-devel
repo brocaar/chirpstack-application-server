@@ -1,4 +1,4 @@
-FROM golang:1.10-alpine
+FROM golang:1.11-alpine
 
 ENV PROJECT_PATH=/go/src/github.com/brocaar/lora-app-server
 ENV PATH=$PATH:$PROJECT_PATH/build
@@ -12,8 +12,4 @@ RUN mkdir -p $PROJECT_PATH
 COPY . $PROJECT_PATH
 WORKDIR $PROJECT_PATH
 
-RUN mkdir -p /etc/lora-app-server/certs
-RUN openssl req -x509 -newkey rsa:4096 -keyout /etc/lora-app-server/certs/http-key.pem -out /etc/lora-app-server/certs/http.pem -days 365 -nodes -batch -subj "/CN=localhost"
-
-RUN make requirements ui-requirements
-RUN make
+RUN make dev-requirements

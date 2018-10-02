@@ -22,12 +22,6 @@ test: internal/statics internal/migrations
 	@go vet $(PKGS)
 	@go test -p 1 -v $(PKGS)
 
-documentation:
-	@echo "Building documentation"
-	@mkdir -p dist/docs
-	@cd docs && hugo
-	@cd docs/public/ && tar -pczf ../../dist/lora-app-server-documentation.tar.gz .
-
 dist: ui/build internal/statics internal/migrations
 	@goreleaser
 
@@ -60,8 +54,7 @@ static/swagger/api.swagger.json:
 
 # shortcuts for development
 
-requirements:
-	echo "Installing development tools"
+dev-requirements:
 	go get -u github.com/golang/lint/golint
 	go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 	go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
@@ -73,6 +66,8 @@ requirements:
 	go get -u golang.org/x/tools/cmd/stringer
 	go get -u github.com/golang/dep/cmd/dep
 	go get -u github.com/goreleaser/goreleaser
+
+requirements:
 	dep ensure -v
 
 ui-requirements:

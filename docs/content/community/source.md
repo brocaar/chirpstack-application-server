@@ -52,7 +52,7 @@ A few example commands that you can run:
 
 {{<highlight bash>}}
 # install all requirements
-make requirements ui-requirements
+make dev-requirements requirements ui-requirements
 
 # cleanup workspace
 make clean

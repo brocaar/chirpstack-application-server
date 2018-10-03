@@ -26,12 +26,14 @@ description: Pre-compiled binaries for Windows, MacOS and Linux (tarball and Deb
 
 ## Debian / Ubuntu packages
 
-| File name                                                                                                                                        | OS      | Arch  |
-| -------------------------------------------------------------------------------------------------------------------------------------------------| ------- | ----- |
-| [lora-app-server_{{< version >}}_i386.deb](https://artifacts.loraserver.io/downloads/lora-app-server/lora-app-server_{{< version >}}_i386.deb)   | Linux   | 386   |
-| [lora-app-server_{{< version >}}_amd64.deb](https://artifacts.loraserver.io/downloads/lora-app-server/lora-app-server_{{< version >}}_amd64.deb) | Linux   | amd64 |
-| [lora-app-server_{{< version >}}_armhf.deb](https://artifacts.loraserver.io/downloads/lora-app-server/lora-app-server_{{< version >}}_armhf.deb) | Linux   | arm   |
-| [lora-app-server_{{< version >}}_arm64.deb](https://artifacts.loraserver.io/downloads/lora-app-server/lora-app-server_{{< version >}}_arm64.deb) | Linux   | arm64 |
+| File name                                                                                                                                                    | OS      | Arch  |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------| ------- | ----- |
+| [lora-app-server_{{< version >}}_linux_386.deb](https://artifacts.loraserver.io/downloads/lora-app-server/lora-app-server_{{< version >}}_linux_386.deb)     | Linux   | 386   |
+| [lora-app-server_{{< version >}}_linux_amd64.deb](https://artifacts.loraserver.io/downloads/lora-app-server/lora-app-server_{{< version >}}_linux_amd64.deb) | Linux   | amd64 |
+| [lora-app-server_{{< version >}}_linux_armv5.deb](https://artifacts.loraserver.io/downloads/lora-app-server/lora-app-server_{{< version >}}_linux_armv5.deb) | Linux   | arm   |
+| [lora-app-server_{{< version >}}_linux_armv6.deb](https://artifacts.loraserver.io/downloads/lora-app-server/lora-app-server_{{< version >}}_linux_armv6.deb) | Linux   | arm   |
+| [lora-app-server_{{< version >}}_linux_armv7.deb](https://artifacts.loraserver.io/downloads/lora-app-server/lora-app-server_{{< version >}}_linux_armv7.deb) | Linux   | arm   |
+| [lora-app-server_{{< version >}}_linux_arm64.deb](https://artifacts.loraserver.io/downloads/lora-app-server/lora-app-server_{{< version >}}_linux_arm64.deb) | Linux   | arm64 |
 
 ## Debian / Ubuntu repository
 

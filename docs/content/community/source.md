@@ -67,5 +67,5 @@ make test
 make build
 
 # compile snapshot builds for supported architectures (this will also compile the ui and generate the static files)
-make build-snapshot
+make snapshot
 {{< /highlight >}}

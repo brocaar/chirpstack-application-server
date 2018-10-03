@@ -5,8 +5,9 @@
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: LoRa App Server is an open-source application-server for LoRa Server
+# Short-Description: LoRa App Server
 ### END INIT INFO
+
 
 NAME=lora-app-server
 DESC="LoRa App Server"
@@ -14,6 +15,7 @@ DAEMON_USER=appserver
 DAEMON_GROUP=appserver
 DAEMON=/usr/bin/$NAME
 PID_FILE=/var/run/$NAME.pid
+
 
 # check root
 if [ "$UID" != "0" ]; then

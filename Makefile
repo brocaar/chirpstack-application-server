@@ -25,12 +25,8 @@ test: internal/statics internal/migrations
 dist: ui/build internal/statics internal/migrations
 	@goreleaser
 
-build-snapshot: ui/build internal/statics internal/migrations
+snapshot: ui/build internal/statics internal/migrations
 	@goreleaser --snapshot
-
-package-deb: package
-	@echo "Building deb package"
-	@cd packaging && TARGET=deb ./package.sh
 
 ui/build:
 	@echo "Building ui"
@@ -66,6 +62,7 @@ dev-requirements:
 	go get -u golang.org/x/tools/cmd/stringer
 	go get -u github.com/golang/dep/cmd/dep
 	go get -u github.com/goreleaser/goreleaser
+	go get -u github.com/goreleaser/nfpm
 
 requirements:
 	dep ensure -v

@@ -1,8 +1,8 @@
 [Unit]
 Description=LoRa App Server
-Documentation=https://docs.loraserver.io
+Documentation=https://www.loraserver.io/
 Wants=network-online.target
-After=network-online.target mosquitto.service redis.service postgresql.service
+After=network-online.target
 
 [Service]
 User=appserver

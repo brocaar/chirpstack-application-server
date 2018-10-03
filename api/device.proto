@@ -86,6 +86,13 @@ service DeviceService {
         };
     }
 
+    // Deactivate de-activates the device.
+    rpc Deactivate(DeactivateDeviceRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/devices/{dev_eui}/activation"
+        };
+    }
+
     // GetActivation returns the current activation details of the device (OTAA and ABP).
     rpc GetActivation(GetDeviceActivationRequest) returns (GetDeviceActivationResponse) {
         option (google.api.http) = {
@@ -328,6 +335,11 @@ message DeviceActivation {
 
 message ActivateDeviceRequest {
     DeviceActivation device_activation = 1;
+}
+
+message DeactivateDeviceRequest {
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
 }
 
 message GetDeviceActivationRequest {

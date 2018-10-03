@@ -178,6 +178,30 @@
         "tags": [
           "DeviceService"
         ]
+      },
+      "delete": {
+        "summary": "Deactivate de-activates the device.",
+        "operationId": "Deactivate",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/protobufEmpty"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "dev_eui",
+            "description": "Device EUI (HEX encoded).",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "DeviceService"
+        ]
       }
     },
     "/api/devices/{dev_eui}/events": {

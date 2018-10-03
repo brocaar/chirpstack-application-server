@@ -430,6 +430,41 @@ func (a *DeviceAPI) DeleteKeys(ctx context.Context, req *pb.DeleteDeviceKeysRequ
 	return &empty.Empty{}, nil
 }
 
+// Deactivate de-activates the device.
+func (a *DeviceAPI) Deactivate(ctx context.Context, req *pb.DeactivateDeviceRequest) (*empty.Empty, error) {
+	var devEUI lorawan.EUI64
+	if err := devEUI.UnmarshalText([]byte(req.DevEui)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNodeAccess(devEUI, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	d, err := storage.GetDevice(config.C.PostgreSQL.DB, devEUI, false, true)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	n, err := storage.GetNetworkServerForDevEUI(config.C.PostgreSQL.DB, d.DevEUI)
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	if err != nil {
+		return nil, errToRPCError(err)
+	}
+
+	_, _ = nsClient.DeactivateDevice(context.Background(), &ns.DeactivateDeviceRequest{
+		DevEui: d.DevEUI[:],
+	})
+
+	return &empty.Empty{}, nil
+}
+
 // Activate activates the node (ABP only).
 func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest) (*empty.Empty, error) {
 	if req.DeviceActivation == nil {

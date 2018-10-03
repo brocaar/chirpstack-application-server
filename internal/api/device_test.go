@@ -376,6 +376,22 @@ func TestNodeAPI(t *testing.T) {
 				})
 			})
 
+			Convey("When de-activating the device", func() {
+				deactivateReq := pb.DeactivateDeviceRequest{
+					DevEui: "0807060504030201",
+				}
+
+				_, err := api.Deactivate(ctx, &deactivateReq)
+				So(err, ShouldBeNil)
+
+				Convey("Then an attempt was made to deactivate the device-session", func() {
+					So(nsClient.DeactivateDeviceChan, ShouldHaveLength, 1)
+					So(<-nsClient.DeactivateDeviceChan, ShouldResemble, ns.DeactivateDeviceRequest{
+						DevEui: []byte{8, 7, 6, 5, 4, 3, 2, 1},
+					})
+				})
+			})
+
 			Convey("When activating the device (ABP)", func() {
 				activateReq := pb.ActivateDeviceRequest{
 					DeviceActivation: &pb.DeviceActivation{

@@ -171,7 +171,7 @@ message DeviceListItem {
     // Device-profile name.
     string device_profile_name = 6;
 
-    // The device battery status
+    // The device battery status (deprecated, use device_status_battery_level).
     // 0:      The end-device is connected to an external power source
     // 1..254: The battery level, 1 being at minimum and 254 being at maximum
     // 255:    The end-device was not able to measure the battery level
@@ -182,6 +182,15 @@ message DeviceListItem {
     // -32..32: The demodulation SNR ration in dB
     // 256:     The device-status is not available.
     int32  device_status_margin = 8;
+
+    // Device is connected to an external power source.
+    bool device_status_external_power_source = 10;
+
+    // Device battery status is unavailable.
+    bool device_status_battery_level_unavailable = 11;
+
+    // Device battery level as a percentage.
+    float device_status_battery_level = 12;
 
     // The last time the application-server received any data from the device,
     // or an empty string when the device never sent any data.

@@ -772,14 +772,29 @@ func (a *DeviceAPI) returnList(count int, devices []storage.DeviceListItem) (*pb
 	}
 	for _, device := range devices {
 		item := pb.DeviceListItem{
-			DevEui:              device.DevEUI.String(),
-			Name:                device.Name,
-			Description:         device.Description,
-			ApplicationId:       device.ApplicationID,
-			DeviceProfileId:     device.DeviceProfileID.String(),
-			DeviceProfileName:   device.DeviceProfileName,
-			DeviceStatusBattery: 256,
-			DeviceStatusMargin:  256,
+			DevEui:                          device.DevEUI.String(),
+			Name:                            device.Name,
+			Description:                     device.Description,
+			ApplicationId:                   device.ApplicationID,
+			DeviceProfileId:                 device.DeviceProfileID.String(),
+			DeviceProfileName:               device.DeviceProfileName,
+			DeviceStatusBattery:             256,
+			DeviceStatusMargin:              256,
+			DeviceStatusExternalPowerSource: device.DeviceStatusExternalPower,
+		}
+
+		if !device.DeviceStatusExternalPower && device.DeviceStatusBattery == nil {
+			item.DeviceStatusBattery = 255
+			item.DeviceStatusBatteryLevelUnavailable = true
+		}
+
+		if device.DeviceStatusExternalPower {
+			item.DeviceStatusBattery = 0
+		}
+
+		if device.DeviceStatusBattery != nil {
+			item.DeviceStatusBattery = uint32(254 / *device.DeviceStatusBattery * 100)
+			item.DeviceStatusBatteryLevel = *device.DeviceStatusBattery
 		}
 
 		if device.DeviceStatusBattery != nil {

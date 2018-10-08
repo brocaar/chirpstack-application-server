@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/NickBall/go-aes-key-wrap"
@@ -343,11 +344,19 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 			return errToRPCError(errors.Wrap(err, "get device error"))
 		}
 
-		batt := int(req.Battery)
 		marg := int(req.Margin)
-
-		d.DeviceStatusBattery = &batt
 		d.DeviceStatusMargin = &marg
+
+		if req.BatteryLevelUnavailable {
+			d.DeviceStatusBattery = nil
+			d.DeviceStatusExternalPower = false
+		} else if req.ExternalPowerSource {
+			d.DeviceStatusExternalPower = true
+			d.DeviceStatusBattery = nil
+		} else {
+			d.DeviceStatusExternalPower = false
+			d.DeviceStatusBattery = &req.BatteryLevel
+		}
 
 		if err = storage.UpdateDevice(tx, &d, true); err != nil {
 			return errToRPCError(errors.Wrap(err, "update device error"))
@@ -365,12 +374,15 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 	}
 
 	pl := handler.StatusNotification{
-		ApplicationID:   app.ID,
-		ApplicationName: app.Name,
-		DeviceName:      d.Name,
-		DevEUI:          d.DevEUI,
-		Battery:         int(req.Battery),
-		Margin:          int(req.Margin),
+		ApplicationID:           app.ID,
+		ApplicationName:         app.Name,
+		DeviceName:              d.Name,
+		DevEUI:                  d.DevEUI,
+		Battery:                 int(req.Battery),
+		Margin:                  int(req.Margin),
+		ExternalPowerSource:     req.ExternalPowerSource,
+		BatteryLevel:            float32(math.Round(float64(req.BatteryLevel*100))) / 100,
+		BatteryLevelUnavailable: req.BatteryLevelUnavailable,
 	}
 	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
 		Type:    eventlog.Status,

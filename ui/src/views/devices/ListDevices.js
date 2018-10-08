@@ -9,6 +9,7 @@ import Button from '@material-ui/core/Button';
 
 import moment from "moment";
 import Plus from "mdi-material-ui/Plus";
+import PowerPlug from "mdi-material-ui/PowerPlug";
 
 import TableCellLink from "../../components/TableCellLink";
 import DataTable from "../../components/DataTable";
@@ -54,18 +55,12 @@ class ListDevices extends Component {
       lastseen = moment(obj.lastSeenAt).fromNow();
     }
 
-    if (obj.deviceStatusBattery !== undefined && obj.deviceStatusBattery !== 256) {
-      switch (obj.deviceStatusBattery) {
-        case 255:
-          battery = "n/a";
-          break;
-        case 0:
-          battery = "external";
-          break;
-        default:
-          battery = Math.round(obj.deviceStatusBattery) + " %";
-          break;
-      }
+    if (!obj.deviceStatusExternalPowerSource && !obj.deviceStatusBatteryLevelUnavailable) {
+      battery = `${obj.deviceStatusBatteryLevel}%`
+    }
+
+    if (obj.deviceStatusExternalPowerSource) {
+      battery = <PowerPlug />;
     }
 
     if (obj.deviceStatusMargin !== undefined && obj.deviceStatusMargin !== 256) {

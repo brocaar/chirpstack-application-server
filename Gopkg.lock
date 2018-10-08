@@ -11,7 +11,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:dc85085e1a0ead68fe0840a875c0cd28f83781628ae86911ee16376c3734fb57"
+  digest = "1:87a7d3645a5fc9e4dd1d02ec2c6b37cd59fb37489507bd2fcf27fcd62928cfad"
   name = "github.com/brocaar/loraserver"
   packages = [
     "api/as",
@@ -20,7 +20,7 @@
     "api/ns",
   ]
   pruneopts = "UT"
-  revision = "0a32d46093b7e01cb2dd9411181a47d258661c8a"
+  revision = "e52cc177bf037a08b8780e2ea0637562b68de3ac"
 
 [[projects]]
   branch = "master"

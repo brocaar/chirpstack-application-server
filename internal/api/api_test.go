@@ -29,7 +29,6 @@ func (b *DatabaseTestSuiteBase) SetupSuite() {
 		panic(err)
 	}
 	b.db = db
-	test.MustResetDB(db)
 
 	b.p = storage.NewRedisPool(conf.RedisURL, 10, 0)
 
@@ -46,6 +45,7 @@ func (b *DatabaseTestSuiteBase) SetupTest() {
 	b.tx = tx
 
 	test.MustFlushRedis(b.p)
+	test.MustResetDB(b.db)
 }
 
 // TearDownTest is called after every test.

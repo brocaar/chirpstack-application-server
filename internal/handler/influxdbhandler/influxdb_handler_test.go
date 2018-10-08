@@ -59,9 +59,11 @@ func TestHandler(t *testing.T) {
 						DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 						DeviceName:      "test-device",
 						Battery:         123,
+						BatteryLevel:    48.43,
 						Margin:          10,
 					},
 					ExpectedBody: `device_status_battery,application_name=test-app,dev_eui=0102030405060708,device_name=test-device value=123i
+device_status_battery_level,application_name=test-app,dev_eui=0102030405060708,device_name=test-device value=48.430000
 device_status_margin,application_name=test-app,dev_eui=0102030405060708,device_name=test-device value=10i`,
 				},
 			}

@@ -101,12 +101,15 @@ type ErrorNotification struct {
 // StatusNotification defines the payload sent to the application
 // on a device-status reporting.
 type StatusNotification struct {
-	ApplicationID   int64         `json:"applicationID,string"`
-	ApplicationName string        `json:"applicationName"`
-	DeviceName      string        `json:"deviceName"`
-	DevEUI          lorawan.EUI64 `json:"devEUI"`
-	Battery         int           `json:"battery"`
-	Margin          int           `json:"margin"`
+	ApplicationID           int64         `json:"applicationID,string"`
+	ApplicationName         string        `json:"applicationName"`
+	DeviceName              string        `json:"deviceName"`
+	DevEUI                  lorawan.EUI64 `json:"devEUI"`
+	Battery                 int           `json:"battery"`
+	Margin                  int           `json:"margin"`
+	ExternalPowerSource     bool          `json:"externalPowerSource"`
+	BatteryLevel            float32       `json:"batteryLevel"`
+	BatteryLevelUnavailable bool          `json:"batteryLevelUnavailable"`
 }
 
 // LocationNotification defines the payload sent to the application after

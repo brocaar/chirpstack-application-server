@@ -8,7 +8,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/require"
 
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/config"
@@ -23,117 +23,108 @@ import (
 	"github.com/brocaar/lorawan"
 )
 
-func TestApplicationServerAPI(t *testing.T) {
-	conf := test.GetConfig()
-	db, err := storage.OpenDatabase(conf.PostgresDSN)
-	if err != nil {
-		t.Fatal(err)
-	}
+func (ts *APITestSuite) TestApplicationServer() {
+	assert := require.New(ts.T())
 
 	nsClient := test.NewNetworkServerClient()
-
-	config.C.PostgreSQL.DB = db
-	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL, 10, 0)
 	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
-	Convey("Given a clean database with bootstrap data node and api instance", t, func() {
-		test.MustResetDB(config.C.PostgreSQL.DB)
+	nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
+		DeviceProfile: &ns.DeviceProfile{
+			SupportsJoin: true,
+		},
+	}
 
-		nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
-			DeviceProfile: &ns.DeviceProfile{
-				SupportsJoin: true,
-			},
-		}
+	org := storage.Organization{
+		Name: "test-as-org",
+	}
+	assert.NoError(storage.CreateOrganization(ts.DB(), &org))
 
-		org := storage.Organization{
-			Name: "test-org",
-		}
-		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
+	n := storage.NetworkServer{
+		Name:   "test-ns",
+		Server: "test-ns:1234",
+	}
+	assert.NoError(storage.CreateNetworkServer(ts.DB(), &n))
 
-		n := storage.NetworkServer{
-			Name:   "test-ns",
-			Server: "test-ns:1234",
-		}
-		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
+	sp := storage.ServiceProfile{
+		OrganizationID:  org.ID,
+		NetworkServerID: n.ID,
+		Name:            "test-sp",
+	}
+	assert.NoError(storage.CreateServiceProfile(ts.DB(), &sp))
+	spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+	assert.NoError(err)
 
-		sp := storage.ServiceProfile{
-			OrganizationID:  org.ID,
-			NetworkServerID: n.ID,
-			Name:            "test-sp",
-		}
-		So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
-		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
-		So(err, ShouldBeNil)
+	dp := storage.DeviceProfile{
+		OrganizationID:  org.ID,
+		NetworkServerID: n.ID,
+		Name:            "test-dp",
+	}
+	assert.NoError(storage.CreateDeviceProfile(ts.DB(), &dp))
+	dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
 
-		dp := storage.DeviceProfile{
-			OrganizationID:  org.ID,
-			NetworkServerID: n.ID,
-			Name:            "test-dp",
-		}
-		So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
-		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
-		So(err, ShouldBeNil)
+	app := storage.Application{
+		OrganizationID:   org.ID,
+		ServiceProfileID: spID,
+		Name:             "test-app",
+	}
+	assert.NoError(storage.CreateApplication(ts.DB(), &app))
 
-		app := storage.Application{
-			OrganizationID:   org.ID,
-			ServiceProfileID: spID,
-			Name:             "test-app",
-		}
-		So(storage.CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
+	d := storage.Device{
+		ApplicationID:   app.ID,
+		Name:            "test-node",
+		DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
+		DeviceProfileID: dpID,
+	}
+	assert.NoError(storage.CreateDevice(ts.DB(), &d))
 
-		d := storage.Device{
-			ApplicationID:   app.ID,
-			Name:            "test-node",
-			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-			DeviceProfileID: dpID,
-		}
-		So(storage.CreateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
+	dc := storage.DeviceKeys{
+		DevEUI: d.DevEUI,
+		NwkKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+	}
+	assert.NoError(storage.CreateDeviceKeys(ts.DB(), &dc))
 
-		dc := storage.DeviceKeys{
-			DevEUI: d.DevEUI,
-			NwkKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
-		}
-		So(storage.CreateDeviceKeys(config.C.PostgreSQL.DB, &dc), ShouldBeNil)
+	gw := storage.Gateway{
+		MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		Name:            "test-gw",
+		Description:     "test gateway",
+		OrganizationID:  org.ID,
+		NetworkServerID: n.ID,
+	}
+	assert.NoError(storage.CreateGateway(ts.DB(), &gw))
 
-		gw := storage.Gateway{
-			MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
-			Name:            "test-gw",
-			Description:     "test gateway",
-			OrganizationID:  org.ID,
-			NetworkServerID: n.ID,
-		}
-		So(storage.CreateGateway(config.C.PostgreSQL.DB, &gw), ShouldBeNil)
+	h := testhandler.NewTestHandler()
+	config.C.ApplicationServer.Integration.Handler = h
 
-		h := testhandler.NewTestHandler()
-		config.C.ApplicationServer.Integration.Handler = h
+	ctx := context.Background()
+	api := NewApplicationServerAPI()
 
-		ctx := context.Background()
-		api := NewApplicationServerAPI()
+	ts.T().Run("HandleError", func(t *testing.T) {
+		assert := require.New(t)
 
-		Convey("When calling HandleError", func() {
-			_, err := api.HandleError(ctx, &as.HandleErrorRequest{
-				DevEui: []byte{1, 2, 3, 4, 5, 6, 7, 8},
-				Type:   as.ErrorType_DATA_UP_FCNT,
-				Error:  "BOOM!",
-				FCnt:   123,
-			})
-			So(err, ShouldBeNil)
-
-			Convey("Then the error has been sent to the handler", func() {
-				So(h.SendErrorNotificationChan, ShouldHaveLength, 1)
-				So(<-h.SendErrorNotificationChan, ShouldResemble, handler.ErrorNotification{
-					ApplicationID:   app.ID,
-					ApplicationName: "test-app",
-					DeviceName:      "test-node",
-					DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-					Type:            "DATA_UP_FCNT",
-					Error:           "BOOM!",
-					FCnt:            123,
-				})
-			})
+		_, err := api.HandleError(ctx, &as.HandleErrorRequest{
+			DevEui: []byte{1, 2, 3, 4, 5, 6, 7, 8},
+			Type:   as.ErrorType_DATA_UP_FCNT,
+			Error:  "BOOM!",
+			FCnt:   123,
 		})
+		assert.NoError(err)
 
-		Convey("Given the device is not activate but HandleUplinkDataRequest contains DeviceSecurityContext", func() {
+		assert.Equal(handler.ErrorNotification{
+			ApplicationID:   app.ID,
+			ApplicationName: "test-app",
+			DeviceName:      "test-node",
+			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
+			Type:            "DATA_UP_FCNT",
+			Error:           "BOOM!",
+			FCnt:            123,
+		}, <-h.SendErrorNotificationChan)
+	})
+
+	ts.T().Run("HandleUplinkDataRequest", func(t *testing.T) {
+		t.Run("With DeviceSecurityContext", func(t *testing.T) {
+			assert := require.New(t)
+
 			now := time.Now().UTC()
 
 			req := as.HandleUplinkDataRequest{
@@ -173,34 +164,27 @@ func TestApplicationServerAPI(t *testing.T) {
 					},
 				},
 			}
-
 			req.RxInfo[0].Time, _ = ptypes.TimestampProto(now)
 
-			Convey("When calling HandleUplinkData", func() {
-				_, err := api.HandleUplinkData(ctx, &req)
-				So(err, ShouldBeNil)
+			_, err := api.HandleUplinkData(ctx, &req)
+			assert.NoError(err)
 
-				Convey("Then a payload was sent to the handler", func() {
-					So(h.SendDataUpChan, ShouldHaveLength, 1)
-					pl := <-h.SendDataUpChan
-					So(pl.Data, ShouldResemble, []byte{33, 99, 53, 13})
-				})
+			plData := <-h.SendDataUpChan
+			assert.Equal([]byte{33, 99, 53, 13}, plData.Data)
 
-				Convey("Then a join-notification was sent to the handler", func() {
-					So(h.SendJoinNotificationChan, ShouldHaveLength, 1)
-					pl := <-h.SendJoinNotificationChan
-					So(pl.DevAddr, ShouldEqual, lorawan.DevAddr{1, 2, 3, 4})
-				})
-			})
+			plJoin := <-h.SendJoinNotificationChan
+			assert.Equal(lorawan.DevAddr{1, 2, 3, 4}, plJoin.DevAddr)
 		})
 
-		Convey("Given the device is activated", func() {
+		t.Run("Activated device", func(t *testing.T) {
+			assert := require.New(t)
+
 			da := storage.DeviceActivation{
 				DevEUI:  d.DevEUI,
 				DevAddr: lorawan.DevAddr{},
 				AppSKey: lorawan.AES128Key{},
 			}
-			So(storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &da), ShouldBeNil)
+			assert.NoError(storage.CreateDeviceActivation(ts.DB(), &da))
 
 			now := time.Now().UTC()
 			mac := lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}
@@ -236,27 +220,51 @@ func TestApplicationServerAPI(t *testing.T) {
 					},
 				},
 			}
-
 			req.RxInfo[0].Time, _ = ptypes.TimestampProto(now)
 
-			Convey("When calling HandleUplinkData", func() {
+			t.Run("No codec", func(t *testing.T) {
+				assert := require.New(t)
+
 				_, err := api.HandleUplinkData(ctx, &req)
-				So(err, ShouldBeNil)
+				assert.NoError(err)
 
-				Convey("Then a payload was sent to the handler", func() {
-					So(h.SendDataUpChan, ShouldHaveLength, 1)
-				})
+				d, err := storage.GetDevice(ts.DB(), d.DevEUI, false, false)
+				assert.NoError(err)
+				assert.InDelta(time.Now().UnixNano(), d.LastSeenAt.UnixNano(), float64(time.Second))
 
-				Convey("Then the device was updated", func() {
-					d, err := storage.GetDevice(config.C.PostgreSQL.DB, d.DevEUI, false, true)
-					So(err, ShouldBeNil)
-					So(d.DeviceStatusBattery, ShouldBeNil)
-					So(d.DeviceStatusMargin, ShouldBeNil)
-					So(time.Now().Sub(*d.LastSeenAt), ShouldBeLessThan, time.Second)
-				})
+				assert.Equal(handler.DataUpPayload{
+					ApplicationID:   app.ID,
+					ApplicationName: "test-app",
+					DeviceName:      "test-node",
+					DevEUI:          d.DevEUI,
+					RXInfo: []handler.RXInfo{
+						{
+							GatewayID: mac,
+							Name:      "test-gw",
+							Location: &handler.Location{
+								Latitude:  52.3740364,
+								Longitude: 4.9144401,
+								Altitude:  10,
+							},
+							Time:    &now,
+							RSSI:    -60,
+							LoRaSNR: 5,
+						},
+					},
+					TXInfo: handler.TXInfo{
+						Frequency: 868100000,
+						DR:        6,
+					},
+					ADR:   true,
+					FCnt:  10,
+					FPort: 3,
+					Data:  []byte{67, 216, 236, 205},
+				}, <-h.SendDataUpChan)
 			})
 
-			Convey("When calling HandleUplinkData (Custom JS codec configured)", func() {
+			t.Run("JS codec", func(t *testing.T) {
+				assert := require.New(t)
+
 				app.PayloadCodec = codec.CustomJSType
 				app.PayloadDecoderScript = `
 					function Decode(fPort, bytes) {
@@ -266,145 +274,149 @@ func TestApplicationServerAPI(t *testing.T) {
 						}
 					}
 				`
-				So(storage.UpdateApplication(config.C.PostgreSQL.DB, app), ShouldBeNil)
+				assert.NoError(storage.UpdateApplication(ts.DB(), app))
 
 				_, err := api.HandleUplinkData(ctx, &req)
-				So(err, ShouldBeNil)
+				assert.NoError(err)
 
-				Convey("Then the object fields has been set in the payload", func() {
-					So(h.SendDataUpChan, ShouldHaveLength, 1)
-					pl := <-h.SendDataUpChan
-					So(pl.Object, ShouldNotBeNil)
-					b, err := json.Marshal(pl.Object)
-					So(err, ShouldBeNil)
-					So(string(b), ShouldEqual, `{"fPort":3,"firstByte":67}`)
-				})
-			})
-
-			Convey("When calling HandleUplinkData (no codec configured)", func() {
-				_, err := api.HandleUplinkData(ctx, &req)
-				So(err, ShouldBeNil)
-
-				Convey("Then the expected payload was sent to the handler", func() {
-					So(h.SendDataUpChan, ShouldHaveLength, 1)
-					So(<-h.SendDataUpChan, ShouldResemble, handler.DataUpPayload{
-						ApplicationID:   app.ID,
-						ApplicationName: "test-app",
-						DeviceName:      "test-node",
-						DevEUI:          d.DevEUI,
-						RXInfo: []handler.RXInfo{
-							{
-								GatewayID: mac,
-								Name:      "test-gw",
-								Location: &handler.Location{
-									Latitude:  52.3740364,
-									Longitude: 4.9144401,
-									Altitude:  10,
-								},
-								Time:    &now,
-								RSSI:    -60,
-								LoRaSNR: 5,
-							},
-						},
-						TXInfo: handler.TXInfo{
-							Frequency: 868100000,
-							DR:        6,
-						},
-						ADR:   true,
-						FCnt:  10,
-						FPort: 3,
-						Data:  []byte{67, 216, 236, 205},
-					})
-				})
-			})
-
-			Convey("When calling SetDeviceStatus", func() {
-				_, err := api.SetDeviceStatus(ctx, &as.SetDeviceStatusRequest{
-					DevEui:  d.DevEUI[:],
-					Margin:  10,
-					Battery: 123,
-				})
-				So(err, ShouldBeNil)
-
-				Convey("Then the expected payload was sent to the handler", func() {
-					So(h.SendStatusNotificationChan, ShouldHaveLength, 1)
-					So(<-h.SendStatusNotificationChan, ShouldResemble, handler.StatusNotification{
-						ApplicationID:   app.ID,
-						ApplicationName: app.Name,
-						DeviceName:      d.Name,
-						DevEUI:          d.DevEUI,
-						Margin:          10,
-						Battery:         123,
-					})
-				})
-
-				Convey("Then the device has been updated", func() {
-					d, err := storage.GetDevice(db, d.DevEUI, false, true)
-					So(err, ShouldBeNil)
-					So(d.DeviceStatusMargin, ShouldNotBeNil)
-					So(d.DeviceStatusBattery, ShouldNotBeNil)
-					So(*d.DeviceStatusMargin, ShouldEqual, 10)
-					So(*d.DeviceStatusBattery, ShouldEqual, 123)
-				})
-			})
-
-			Convey("When calling SetDeviceLocation", func() {
-				_, err := api.SetDeviceLocation(ctx, &as.SetDeviceLocationRequest{
-					DevEui: d.DevEUI[:],
-					Location: &common.Location{
-						Latitude:  1.123,
-						Longitude: 2.123,
-						Altitude:  3.123,
-						Source:    common.LocationSource_GEO_RESOLVER,
-					},
-				})
-				So(err, ShouldBeNil)
-
-				Convey("Then the expected payload was sent to the handler", func() {
-					So(h.SendLocationNotificationChan, ShouldHaveLength, 1)
-					So(<-h.SendLocationNotificationChan, ShouldResemble, handler.LocationNotification{
-						ApplicationID:   app.ID,
-						ApplicationName: app.Name,
-						DeviceName:      d.Name,
-						DevEUI:          d.DevEUI,
-						Location: handler.Location{
-							Latitude:  1.123,
-							Longitude: 2.123,
-							Altitude:  3.123,
-						},
-					})
-				})
-
-				Convey("Then the device has been updated", func() {
-					d, err := storage.GetDevice(db, d.DevEUI, false, true)
-					So(err, ShouldBeNil)
-					So(*d.Latitude, ShouldEqual, 1.123)
-					So(*d.Longitude, ShouldEqual, 2.123)
-					So(*d.Altitude, ShouldEqual, 3.123)
-				})
-			})
-
-			Convey("On HandleDownlinkACK (ack: true)", func() {
-				_, err := api.HandleDownlinkACK(ctx, &as.HandleDownlinkACKRequest{
-					DevEui:       d.DevEUI[:],
-					FCnt:         10,
-					Acknowledged: true,
-				})
-				So(err, ShouldBeNil)
-
-				Convey("Then an ack (true) notification was sent to the handler", func() {
-					So(h.SendACKNotificationChan, ShouldHaveLength, 1)
-					So(<-h.SendACKNotificationChan, ShouldResemble, handler.ACKNotification{
-						ApplicationID:   app.ID,
-						ApplicationName: app.Name,
-						DeviceName:      d.Name,
-						DevEUI:          d.DevEUI,
-						Acknowledged:    true,
-						FCnt:            10,
-					})
-				})
+				pl := <-h.SendDataUpChan
+				assert.NotNil(pl.Object)
+				b, err := json.Marshal(pl.Object)
+				assert.NoError(err)
+				assert.Equal(`{"fPort":3,"firstByte":67}`, string(b))
 			})
 		})
+	})
 
+	ts.T().Run("SetDeviceStatus", func(t *testing.T) {
+		tests := []struct {
+			Name                   string
+			SetDeviceStatusRequest as.SetDeviceStatusRequest
+			StatusNotification     handler.StatusNotification
+		}{
+			{
+				Name: "battery and margin",
+				SetDeviceStatusRequest: as.SetDeviceStatusRequest{
+					DevEui:       d.DevEUI[:],
+					Margin:       10,
+					Battery:      123,
+					BatteryLevel: 25.50,
+				},
+				StatusNotification: handler.StatusNotification{
+					ApplicationID:   app.ID,
+					ApplicationName: app.Name,
+					DeviceName:      d.Name,
+					DevEUI:          d.DevEUI,
+					Margin:          10,
+					Battery:         123,
+					BatteryLevel:    25.50,
+				},
+			},
+			{
+				Name: "battery unavailable and margin",
+				SetDeviceStatusRequest: as.SetDeviceStatusRequest{
+					DevEui:                  d.DevEUI[:],
+					Margin:                  10,
+					BatteryLevelUnavailable: true,
+				},
+				StatusNotification: handler.StatusNotification{
+					ApplicationID:           app.ID,
+					ApplicationName:         app.Name,
+					DeviceName:              d.Name,
+					DevEUI:                  d.DevEUI,
+					Margin:                  10,
+					BatteryLevelUnavailable: true,
+				},
+			},
+			{
+				Name: "external power and margin",
+				SetDeviceStatusRequest: as.SetDeviceStatusRequest{
+					DevEui:              d.DevEUI[:],
+					Margin:              10,
+					ExternalPowerSource: true,
+				},
+				StatusNotification: handler.StatusNotification{
+					ApplicationID:       app.ID,
+					ApplicationName:     app.Name,
+					DeviceName:          d.Name,
+					DevEUI:              d.DevEUI,
+					Margin:              10,
+					ExternalPowerSource: true,
+				},
+			},
+		}
+
+		for _, tst := range tests {
+			t.Run(tst.Name, func(t *testing.T) {
+				assert := require.New(t)
+
+				_, err := api.SetDeviceStatus(ctx, &tst.SetDeviceStatusRequest)
+				assert.NoError(err)
+				assert.Equal(tst.StatusNotification, <-h.SendStatusNotificationChan)
+
+				d, err := storage.GetDevice(ts.DB(), d.DevEUI, false, false)
+				assert.NoError(err)
+
+				assert.Equal(tst.StatusNotification.Margin, *d.DeviceStatusMargin)
+				assert.Equal(tst.StatusNotification.ExternalPowerSource, d.DeviceStatusExternalPower)
+
+				if tst.SetDeviceStatusRequest.BatteryLevelUnavailable || tst.SetDeviceStatusRequest.ExternalPowerSource {
+					assert.Nil(d.DeviceStatusBattery)
+				} else {
+					assert.Equal(tst.StatusNotification.BatteryLevel, *d.DeviceStatusBattery)
+				}
+			})
+		}
+	})
+
+	ts.T().Run("SetDeviceLocation", func(t *testing.T) {
+		assert := require.New(t)
+
+		_, err := api.SetDeviceLocation(ctx, &as.SetDeviceLocationRequest{
+			DevEui: d.DevEUI[:],
+			Location: &common.Location{
+				Latitude:  1.123,
+				Longitude: 2.123,
+				Altitude:  3.123,
+				Source:    common.LocationSource_GEO_RESOLVER,
+			},
+		})
+		assert.NoError(err)
+
+		assert.Equal(handler.LocationNotification{
+			ApplicationID:   app.ID,
+			ApplicationName: app.Name,
+			DeviceName:      d.Name,
+			DevEUI:          d.DevEUI,
+			Location: handler.Location{
+				Latitude:  1.123,
+				Longitude: 2.123,
+				Altitude:  3.123,
+			},
+		}, <-h.SendLocationNotificationChan)
+
+		d, err := storage.GetDevice(ts.DB(), d.DevEUI, false, true)
+		assert.NoError(err)
+		assert.Equal(1.123, *d.Latitude)
+		assert.Equal(2.123, *d.Longitude)
+		assert.Equal(3.123, *d.Altitude)
+	})
+
+	ts.T().Run("HandleDownlinkACK", func(t *testing.T) {
+		_, err := api.HandleDownlinkACK(ctx, &as.HandleDownlinkACKRequest{
+			DevEui:       d.DevEUI[:],
+			FCnt:         10,
+			Acknowledged: true,
+		})
+		assert.NoError(err)
+
+		assert.Equal(handler.ACKNotification{
+			ApplicationID:   app.ID,
+			ApplicationName: app.Name,
+			DeviceName:      d.Name,
+			DevEUI:          d.DevEUI,
+			Acknowledged:    true,
+			FCnt:            10,
+		}, <-h.SendACKNotificationChan)
 	})
 }

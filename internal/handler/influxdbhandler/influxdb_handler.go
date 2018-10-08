@@ -199,6 +199,20 @@ func (h *Handler) SendStatusNotification(pl handler.StatusNotification) error {
 		},
 	})
 
+	if !pl.ExternalPowerSource && !pl.BatteryLevelUnavailable {
+		measurements = append(measurements, measurement{
+			Name: "device_status_battery_level",
+			Tags: map[string]string{
+				"application_name": pl.ApplicationName,
+				"device_name":      pl.DeviceName,
+				"dev_eui":          pl.DevEUI.String(),
+			},
+			Values: map[string]interface{}{
+				"value": pl.BatteryLevel,
+			},
+		})
+	}
+
 	measurements = append(measurements, measurement{
 		Name: "device_status_margin",
 		Tags: map[string]string{

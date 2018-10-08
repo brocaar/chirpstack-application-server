@@ -156,7 +156,7 @@ func TestNodeAPI(t *testing.T) {
 				So(d.DeviceStatusMargin, ShouldEqual, 256)
 
 				Convey("When setting the device-status battery and margin", func() {
-					ten := 10
+					ten := float32(10)
 					eleven := 11
 
 					d, err := storage.GetDevice(config.C.PostgreSQL.DB, lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)

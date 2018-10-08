@@ -91,11 +91,21 @@ with a counter value `1`, with the following tags for aggregation:
 * `dr`
 * `frequency`
 
-## Device battery status
+## Device battery status (deprecated)
 
 When this information is available, the device battery status will be written
 to the measurement name `device_status_battery`. For aggregation, the following
 tags are available:
+
+* `application_name`
+* `device_name`
+* `dev_eui`
+
+## Device battery level
+
+When this information is available, the device battery level (percentage)
+will be written to the measurement name `device_status_battery_level`. For
+aggregation, the following tags are available:
 
 * `application_name`
 * `device_name`

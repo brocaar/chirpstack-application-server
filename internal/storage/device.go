@@ -19,21 +19,22 @@ import (
 
 // Device defines a LoRaWAN device.
 type Device struct {
-	DevEUI              lorawan.EUI64 `db:"dev_eui"`
-	CreatedAt           time.Time     `db:"created_at"`
-	UpdatedAt           time.Time     `db:"updated_at"`
-	LastSeenAt          *time.Time    `db:"last_seen_at"`
-	ApplicationID       int64         `db:"application_id"`
-	DeviceProfileID     uuid.UUID     `db:"device_profile_id"`
-	Name                string        `db:"name"`
-	Description         string        `db:"description"`
-	SkipFCntCheck       bool          `db:"-"`
-	ReferenceAltitude   float64       `db:"-"`
-	DeviceStatusBattery *int          `db:"device_status_battery"`
-	DeviceStatusMargin  *int          `db:"device_status_margin"`
-	Latitude            *float64      `db:"latitude"`
-	Longitude           *float64      `db:"longitude"`
-	Altitude            *float64      `db:"altitude"`
+	DevEUI                    lorawan.EUI64 `db:"dev_eui"`
+	CreatedAt                 time.Time     `db:"created_at"`
+	UpdatedAt                 time.Time     `db:"updated_at"`
+	LastSeenAt                *time.Time    `db:"last_seen_at"`
+	ApplicationID             int64         `db:"application_id"`
+	DeviceProfileID           uuid.UUID     `db:"device_profile_id"`
+	Name                      string        `db:"name"`
+	Description               string        `db:"description"`
+	SkipFCntCheck             bool          `db:"-"`
+	ReferenceAltitude         float64       `db:"-"`
+	DeviceStatusBattery       *float32      `db:"device_status_battery"`
+	DeviceStatusMargin        *int          `db:"device_status_margin"`
+	DeviceStatusExternalPower bool          `db:"device_status_external_power_source"`
+	Latitude                  *float64      `db:"latitude"`
+	Longitude                 *float64      `db:"longitude"`
+	Altitude                  *float64      `db:"altitude"`
 }
 
 // DeviceListItem defines the Device as list item.
@@ -87,11 +88,12 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 			description,
 			device_status_battery,
 			device_status_margin,
+			device_status_external_power_source,
 			last_seen_at,
 			latitude,
 			longitude,
 			altitude
-        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
 		d.DevEUI[:],
 		d.CreatedAt,
 		d.UpdatedAt,
@@ -101,6 +103,7 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 		d.Description,
 		d.DeviceStatusBattery,
 		d.DeviceStatusMargin,
+		d.DeviceStatusExternalPower,
 		d.LastSeenAt,
 		d.Latitude,
 		d.Longitude,
@@ -325,7 +328,8 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 			last_seen_at = $9,
 			latitude = $10,
 			longitude = $11,
-			altitude = $12
+			altitude = $12,
+			device_status_external_power_source = $13
         where
             dev_eui = $1`,
 		d.DevEUI[:],
@@ -340,6 +344,7 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 		d.Latitude,
 		d.Longitude,
 		d.Altitude,
+		d.DeviceStatusExternalPower,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

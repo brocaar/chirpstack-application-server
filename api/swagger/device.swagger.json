@@ -622,12 +622,27 @@
         "deviceStatusBattery": {
           "type": "integer",
           "format": "int64",
-          "description": "The device battery status\n0:      The end-device is connected to an external power source\n1..254: The battery level, 1 being at minimum and 254 being at maximum\n255:    The end-device was not able to measure the battery level\n256:    The device-status is not available."
+          "description": "The device battery status (deprecated, use device_status_battery_level).\n0:      The end-device is connected to an external power source\n1..254: The battery level, 1 being at minimum and 254 being at maximum\n255:    The end-device was not able to measure the battery level\n256:    The device-status is not available."
         },
         "deviceStatusMargin": {
           "type": "integer",
           "format": "int32",
           "description": "The device margin status\n-32..32: The demodulation SNR ration in dB\n256:     The device-status is not available."
+        },
+        "deviceStatusExternalPowerSource": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Device is connected to an external power source."
+        },
+        "deviceStatusBatteryLevelUnavailable": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Device battery status is unavailable."
+        },
+        "deviceStatusBatteryLevel": {
+          "type": "number",
+          "format": "float",
+          "description": "Device battery level as a percentage."
         },
         "lastSeenAt": {
           "type": "string",

@@ -83,7 +83,10 @@ Topic for battery and margin status received from devices. Example payload:
     "deviceName": "garden-sensor",
     "devEUI": "0202020202020202",
     "battery": 200,
-    "margin": 6
+    "margin": 6,
+    "batteryLevel": 78.74,
+    "batteryLevelUnavailable": false,
+    "externalPowerSource": false
 }
 {{< /highlight >}}
 
@@ -92,9 +95,8 @@ and when published by the device, this payload contains the device status.
 
 #### `battery`
 
-* `0` - The end-device is connected to an external power source
-* `1..254` - The battery level, 1 being at minimum and 254 being at maximum
-* `255` - The end-device was not able to measure the battery level
+This field is deprecated. Please use the `batteryLevel` which holds the
+battery-level as a percentage (0 ... 100%).
 
 #### `margin`
 

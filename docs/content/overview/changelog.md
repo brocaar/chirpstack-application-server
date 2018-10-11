@@ -10,7 +10,26 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
-## v2.2.1 (unreleased)
+## v2.3.0
+
+### Features
+
+#### Google Cloud Platform integration
+
+LoRa App Server is now able to publish application data to
+[Cloud Pub/Sub](https://cloud.google.com/pubsub/) as an alternative to a MQTT
+broker. Please refer to the [Configuration](https://www.loraserver.io/lora-app-server/install/config/)
+for more information.
+
+### Deactivate device API
+
+An API endpoint has been added to de-activate (not remove) devices.
+
+### Device battery status
+
+LoRa App Server now publishes the device battery-level as a percentage instead
+of a value between `0...255`. The `battery` field will be removed in the next
+major release.
 
 ### Improvements
 

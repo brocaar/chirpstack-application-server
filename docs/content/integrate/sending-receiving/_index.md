@@ -95,14 +95,17 @@ Event for battery and margin status received from devices. Example payload:
     "deviceName": "garden-sensor",
     "devEUI": "0202020202020202",
     "battery": 200,
-    "margin": 6
+    "margin": 6,
+    "externalPowerSource": false,
+    "batteryLevelUnavailable": false,
+    "batteryLevel": 75.5
 }
 ```
 
 When configured by the [service-profile]({{<ref "use/service-profiles.md">}})
 and when published by the device, this payload contains the device status.
 
-##### battery
+##### battery (deprecated)
 
 * 0 - The end-device is connected to an external power source
 * 1...254 - The battery level, 1 being at minimum and 254 being at maximum

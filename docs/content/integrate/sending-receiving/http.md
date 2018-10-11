@@ -16,6 +16,6 @@ to the configured endpoints on the following events:
 * ACK notifications
 * Error notifications
 
-The HTTP integration follows exaclty the same JSON data structure as the
-data structures documented in the [MQTT integration]({{< relref "mqtt.md" >}})
-documentation.
+## Events
+
+The HTTP integration exposes all events as documented by [Event Types](../#event-types).

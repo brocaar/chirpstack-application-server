@@ -27,143 +27,24 @@ mosquitto_sub -t "application/123/device/+/rx" -v  # display only the RX payload
 * The `ApplicationID` can be retrieved using the API or from the web-interface,
   this is not the `AppEUI`!
 
-## Receiving
+## Events
 
-### application/[applicationID]/device/[devEUI]/rx
+The MQTT integration exposes all events as documented by [Event Types](../#event-types).
 
-**Note:** for versions before v1.0.0 `.../device/..` was configured as
-`.../node/...`. Please refer to the `application_server.integration.mqtt`
-[configuration]({{<ref "install/config.md">}}) for the correct topic.
+## Event MQTT topics
 
-Topic for payloads received from your devices. Example payload:
+The following mapping to MQTT topics applies for the available events:
 
-{{<highlight json>}}
-{
-    "applicationID": "123",
-    "applicationName": "temperature-sensor",
-    "deviceName": "garden-sensor",
-    "devEUI": "0202020202020202",
-    "rxInfo": [
-        {
-            "gatewayID": "0303030303030303",          // ID of the receiving gateway
-            "name": "rooftop-gateway",                 // name of the receiving gateway
-            "time": "2016-11-25T16:24:37.295915988Z",  // time when the package was received (GPS time of gateway, only set when available)
-            "rssi": -57,                               // signal strength (dBm)
-            "loRaSNR": 10,                             // signal to noise ratio
-            "location": {
-                "latitude": 52.3740364,  // latitude of the receiving gateway
-                "longitude": 4.9144401,  // longitude of the receiving gateway
-                "altitude": 10.5,        // altitude of the receiving gateway
-            }
-        }
-    ],
-    "txInfo": {
-        "frequency": 868100000,  // frequency used for transmission
-        "dr": 5                  // data-rate used for transmission
-    },
-    "adr": false,                  // device ADR status
-    "fCnt": 10,                    // frame-counter
-    "fPort": 5,                    // FPort
-    "data": "...",                 // base64 encoded payload (decrypted)
-    "object": {                    // decoded object (when application coded has been configured)
-        "temperatureSensor": {"1": 25},
-        "humiditySensor": {"1": 32}
-    }
-}
-{{< /highlight >}}
-
-### application/[applicationID]/device/[devEUI]/status
-
-Topic for battery and margin status received from devices. Example payload:
-
-{{<highlight json>}}
-{
-    "applicationID": "123",
-    "applicationName": "temperature-sensor",
-    "deviceName": "garden-sensor",
-    "devEUI": "0202020202020202",
-    "battery": 200,
-    "margin": 6,
-    "batteryLevel": 78.74,
-    "batteryLevelUnavailable": false,
-    "externalPowerSource": false
-}
-{{< /highlight >}}
-
-When configured by the [service-profile]({{<ref "use/service-profiles.md">}})
-and when published by the device, this payload contains the device status.
-
-#### `battery`
-
-This field is deprecated. Please use the `batteryLevel` which holds the
-battery-level as a percentage (0 ... 100%).
-
-#### `margin`
-
-The demodulation signal-to-noise ratio in dB rounded
-to the nearest integer valuefor the last successfully received device-status
-request by the network-server.
-
-### application/[applicationID]/device/[devEUI]/join
+* Uplink: `application/[applicationID]/device/[devEUI]/rx`
+* Status: `application/[applicationID]/device/[devEUI]/status`
+* Ack: `application/[applicationID]/device/[devEUI]/ack`
+* Error: `application/[applicationID]/device/[devEUI]/error`
 
 **Note:** for versions before v1.0.0 `.../device/..` was configured as
 `.../node/...`. Please refer to the `application_server.integration.mqtt`
 [configuration]({{<ref "install/config.md">}}) for the correct topic.
 
-Topic for join notifications. Example payload:
-
-{{<highlight json>}}
-{
-    "applicationID": "123",
-    "applicationName": "temperature-sensor",
-    "deviceName": "garden-sensor",
-    "devAddr": "06682ea2",                    // assigned device address
-    "devEUI": "0202020202020202"              // device EUI
-}
-{{< /highlight >}}
-
-### application/[applicationID]/device/[devEUI]/ack
-
-**Note:** for versions before v1.0.0 `.../device/..` was configured as
-`.../node/...`. Please refer to the `application_server.integration.mqtt`
-[configuration]({{<ref "install/config.md">}}) for the correct topic.
-
-Topic for ACK notifications. Example payload:
-
-{{<highlight json>}}
-{
-    "applicationID": "123",
-    "applicationName": "temperature-sensor",
-    "deviceName": "garden-sensor",
-    "devEUI": "0202020202020202",             // device EUI
-    "acknowledged": true,                     // whether the frame was acknowledged or not (e.g. timeout)
-    "fCnt": 12                                // downlink frame-counter
-}
-{{< /highlight >}}
-
-### application/[applicationID]/device/[devEUI]/error
-
-**Note:** for versions before v1.0.0 `.../device/..` was configured as
-`.../node/...`. Please refer to the `application_server.integration.mqtt`
-[configuration]({{<ref "install/config.md">}}) for the correct topic.
-
-Topic for error notifications. An error might be raised when the downlink
-payload size exceeded to max allowed payload size, in case of a MIC error,
-... Example payload:
-
-{{<highlight json>}}
-{
-    "applicationID": "123",
-    "applicationName": "temperature-sensor",
-    "deviceName": "garden-sensor",
-    "devEUI": "0202020202020202",             // device EUI
-    "type": "DATA_UP_FCNT",
-    "error": "...",
-    "fCnt": 123                               // fCnt related to the error (if applicable)
-}
-{{< /highlight >}}
-
-## Sending
+## Scheduling downlink data
 
 ### application/[applicationID]/device/[devEUI]/tx
 

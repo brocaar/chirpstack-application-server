@@ -7,6 +7,7 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/handler/gcppubsub"
 	"github.com/brocaar/lora-app-server/internal/handler/mqtthandler"
 	"github.com/brocaar/lora-app-server/internal/nsclient"
 )
@@ -35,8 +36,10 @@ type Config struct {
 		ID string `mapstructure:"id"`
 
 		Integration struct {
-			Handler handler.Handler
-			MQTT    mqtthandler.Config `mapstructure:"mqtt"`
+			Backend   string
+			Handler   handler.Handler
+			MQTT      mqtthandler.Config `mapstructure:"mqtt"`
+			GCPPubSub gcppubsub.Config   `mapstructure:"gcp_pub_sub"`
 		}
 
 		API struct {

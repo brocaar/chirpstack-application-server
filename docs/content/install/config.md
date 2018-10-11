@@ -147,15 +147,26 @@ idle_timeout="5m0s"
 id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
 
-  # MQTT integration configuration used for publishing (data) events
-  # and scheduling downlink application payloads.
-  # Next to this integration which is always available, the user is able to
-  # configure additional per-application integrations.
+  # Integration configures the data integration.
+  #
+  # This is the data integration which is available for all applications,
+  # besides the extra integrations that can be added on a per-application
+  # basis.
+  [application_server.integration]
+  # The integration backend.
+  #
+  # This defines the backend to use for the data integration. Use the section
+  # name of one of the following integration backend.
+  # E.g. "mqtt" or "gcp_pub_sub".
+  backend="mqtt"
+
+
+  # MQTT integration backend.
   [application_server.integration.mqtt]
   # MQTT topic templates for the different MQTT topics.
   #
   # The meaning of these topics are documented at:
-  # https://docs.loraserver.io/lora-app-server/integrate/data/
+  # https://www.loraserver.io/lora-app-server/integrate/data/
   #
   # The following substitutions can be used:
   # * "{{ .ApplicationID }}" for the application id.
@@ -216,6 +227,21 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
   # TLS key file (optional)
   tls_key=""
+
+
+  # Google Cloud Pub/Sub backend.
+  [application_server.integration.gcp_pub_sub]
+  # Path to the IAM service-account credentials file.
+  #
+  # Note: this service-account must have the following Pub/Sub roles:
+  #  * Pub/Sub Editor
+  credentials_file=""
+
+  # Google Cloud project id.
+  project_id=""
+
+  # Pub/Sub topic name.
+  topic_name=""
 
 
   # Settings for the "internal api"

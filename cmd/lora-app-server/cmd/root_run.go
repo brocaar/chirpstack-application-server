@@ -35,6 +35,8 @@ import (
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/downlink"
 	"github.com/brocaar/lora-app-server/internal/gwping"
+	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/handler/gcppubsub"
 	"github.com/brocaar/lora-app-server/internal/handler/mqtthandler"
 	"github.com/brocaar/lora-app-server/internal/handler/multihandler"
 	"github.com/brocaar/lora-app-server/internal/migrations"
@@ -122,14 +124,26 @@ func setRedisPool() error {
 }
 
 func setHandler() error {
-	h, err := mqtthandler.NewHandler(
-		config.C.Redis.Pool,
-		config.C.ApplicationServer.Integration.MQTT,
-	)
+	var h handler.Handler
+	var err error
+
+	switch config.C.ApplicationServer.Integration.Backend {
+	case "mqtt":
+		h, err = mqtthandler.NewHandler(
+			config.C.Redis.Pool,
+			config.C.ApplicationServer.Integration.MQTT,
+		)
+	case "gcp_pub_sub":
+		h, err = gcppubsub.NewHandler(config.C.ApplicationServer.Integration.GCPPubSub)
+	default:
+		return fmt.Errorf("invalid integration backend: %s", config.C.ApplicationServer.Integration.Backend)
+	}
+
 	if err != nil {
-		return errors.Wrap(err, "setup mqtt handler error")
+		return errors.Wrap(err, "setup integration backend error")
 	}
 	config.C.ApplicationServer.Integration.Handler = multihandler.NewHandler(h)
+
 	return nil
 }
 

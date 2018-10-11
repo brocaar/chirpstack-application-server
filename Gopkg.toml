@@ -106,6 +106,18 @@
   branch = "master"
   name = "github.com/mmcloughlin/geohash"
 
+[[constraint]]
+  branch = "master"
+  name = "github.com/NickBall/go-aes-key-wrap"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.2"
+
+[[constraint]]
+  name = "cloud.google.com/go"
+  version = "v0.25.0"
+
 [prune]
   non-go = true
   go-tests = true
@@ -114,12 +126,3 @@
   [[prune.project]]
   name = "github.com/brocaar/loraserver"
   non-go = false
-
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/NickBall/go-aes-key-wrap"
-
-[[constraint]]
-  name = "github.com/stretchr/testify"
-  version = "1.2.2"

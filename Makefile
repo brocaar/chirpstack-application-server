@@ -24,6 +24,10 @@ test: internal/statics internal/migrations
 
 dist: ui/build internal/statics internal/migrations
 	@goreleaser
+	mkdir -p dist/upload/tar
+	mkdir -p dist/upload/deb
+	mv dist/*.tar.gz dist/upload/tar
+	mv dist/*.deb dist/upload/deb
 
 snapshot: ui/build internal/statics internal/migrations
 	@goreleaser --snapshot
@@ -51,7 +55,7 @@ static/swagger/api.swagger.json:
 # shortcuts for development
 
 dev-requirements:
-	go get -u github.com/golang/lint/golint
+	go get -u golang.org/x/lint/golint
 	go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 	go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 	go get -u github.com/golang/protobuf/protoc-gen-go

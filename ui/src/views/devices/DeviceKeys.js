@@ -11,7 +11,7 @@ import Form from "../../components/Form";
 import DeviceStore from "../../stores/DeviceStore";
 
 
-class DeviceKeysForm extends FormComponent {
+class LW11DeviceKeysForm extends FormComponent {
   render() {
     if (this.state.object === undefined) {
       return(<div></div>);
@@ -24,9 +24,9 @@ class DeviceKeysForm extends FormComponent {
       >
         <TextField
           id="nwkKey"
-          label="Network key"
-          helperText="For LoRaWAN 1.0 devices, this is the only key you need to set (in LoRaWAN 1.0 this used to be the application-key)."
+          label="Network key (LoRaWAN 1.1)"
           placeholder="00000000000000000000000000000000"
+          helperText="For LoRaWAN 1.1 devices. In case your device does not support LoRaWAN 1.1, update the device-profile first."
           inputProps={{
             pattern: "[A-Fa-f0-9]{32}",
           }}
@@ -38,9 +38,9 @@ class DeviceKeysForm extends FormComponent {
         />
         <TextField
           id="appKey"
-          label="Application key"
-          helperText="Leave this blank for LoRaWAN 1.0 devices."
+          label="Application key (LoRaWAN 1.1)"
           placeholder="00000000000000000000000000000000"
+          helperText="For LoRaWAN 1.1 devices. In case your device does not support LoRaWAN 1.1, update the device-profile first."
           inputProps={{
             pattern: "[A-Fa-f0-9]{32}",
           }}
@@ -48,6 +48,37 @@ class DeviceKeysForm extends FormComponent {
           value={this.state.object.appKey || ""}
           margin="normal"
           fullWidth
+          required
+        />
+      </Form>
+    );
+  }
+}
+
+class LW10DeviceKeysForm extends FormComponent {
+  render() {
+    if (this.state.object === undefined) {
+      return(<div></div>);
+    }
+
+    return(
+      <Form
+        submitLabel={this.props.submitLabel}
+        onSubmit={this.onSubmit}
+      >
+        <TextField
+          id="nwkKey"
+          label="Application key (LoRaWAN 1.0)"
+          helperText="For LoRaWAN 1.0 devices, this is the only key you need to set. In case your device supports LoRaWAN 1.1, update the device-profile first."
+          placeholder="00000000000000000000000000000000"
+          inputProps={{
+            pattern: "[A-Fa-f0-9]{32}",
+          }}
+          onChange={this.onChange}
+          value={this.state.object.nwkKey || ""}
+          margin="normal"
+          fullWidth
+          required
         />
       </Form>
     );
@@ -98,11 +129,16 @@ class DeviceKeys extends Component {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <DeviceKeysForm
+              {this.props.deviceProfile.macVersion.startsWith("1.0") && <LW10DeviceKeysForm
                 submitLabel="Set device-keys"
                 onSubmit={this.onSubmit}
                 object={object}
-              />
+              />}
+              {this.props.deviceProfile.macVersion.startsWith("1.1") && <LW11DeviceKeysForm
+                submitLabel="Set device-keys"
+                onSubmit={this.onSubmit}
+                object={object}
+              />}
             </CardContent>
           </Card>
         </Grid>

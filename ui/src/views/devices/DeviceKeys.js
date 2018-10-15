@@ -4,17 +4,18 @@ import { withRouter } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
 import CardContent from "@material-ui/core/CardContent";
-import TextField from "@material-ui/core/TextField";
 
 import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
+import AESKeyField from "../../components/AESKeyField";
 import DeviceStore from "../../stores/DeviceStore";
 
 
 class LW11DeviceKeysForm extends FormComponent {
   render() {
-    if (this.state.object === undefined) {
-      return(<div></div>);
+    let object = {};
+    if (this.props.object !== undefined) {
+      object = this.props.object;
     }
 
     return(
@@ -22,33 +23,27 @@ class LW11DeviceKeysForm extends FormComponent {
         submitLabel={this.props.submitLabel}
         onSubmit={this.onSubmit}
       >
-        <TextField
+        <AESKeyField
           id="nwkKey"
           label="Network key (LoRaWAN 1.1)"
-          placeholder="00000000000000000000000000000000"
           helperText="For LoRaWAN 1.1 devices. In case your device does not support LoRaWAN 1.1, update the device-profile first."
-          inputProps={{
-            pattern: "[A-Fa-f0-9]{32}",
-          }}
           onChange={this.onChange}
-          value={this.state.object.nwkKey || ""}
+          value={object.nwkKey || ""}
           margin="normal"
           fullWidth
           required
+          random
         />
-        <TextField
+        <AESKeyField
           id="appKey"
           label="Application key (LoRaWAN 1.1)"
-          placeholder="00000000000000000000000000000000"
           helperText="For LoRaWAN 1.1 devices. In case your device does not support LoRaWAN 1.1, update the device-profile first."
-          inputProps={{
-            pattern: "[A-Fa-f0-9]{32}",
-          }}
           onChange={this.onChange}
-          value={this.state.object.appKey || ""}
+          value={object.appKey || ""}
           margin="normal"
           fullWidth
           required
+          random
         />
       </Form>
     );
@@ -57,8 +52,9 @@ class LW11DeviceKeysForm extends FormComponent {
 
 class LW10DeviceKeysForm extends FormComponent {
   render() {
-    if (this.state.object === undefined) {
-      return(<div></div>);
+    let object = {};
+    if (this.props.object !== undefined) {
+      object = this.props.object;
     }
 
     return(
@@ -66,19 +62,16 @@ class LW10DeviceKeysForm extends FormComponent {
         submitLabel={this.props.submitLabel}
         onSubmit={this.onSubmit}
       >
-        <TextField
+        <AESKeyField
           id="nwkKey"
           label="Application key (LoRaWAN 1.0)"
           helperText="For LoRaWAN 1.0 devices, this is the only key you need to set. In case your device supports LoRaWAN 1.1, update the device-profile first."
-          placeholder="00000000000000000000000000000000"
-          inputProps={{
-            pattern: "[A-Fa-f0-9]{32}",
-          }}
           onChange={this.onChange}
-          value={this.state.object.nwkKey || ""}
+          value={object.nwkKey || ""}
           margin="normal"
           fullWidth
           required
+          random
         />
       </Form>
     );
@@ -97,10 +90,18 @@ class DeviceKeys extends Component {
 
   componentDidMount() {
     DeviceStore.getKeys(this.props.match.params.devEUI, resp => {
-      this.setState({
-        update: true,
-        deviceKeys: resp,
-      });
+      if (resp === null) {
+        this.setState({
+          deviceKeys: {
+            deviceKeys: {},
+          },
+        });
+      } else {
+        this.setState({
+          update: true,
+          deviceKeys: resp,
+        });
+      }
     });
   }
 
@@ -119,9 +120,8 @@ class DeviceKeys extends Component {
   }
 
   render() {
-    let object;
-    if (this.state.deviceKeys !== undefined) {
-      object = this.state.deviceKeys.deviceKeys;
+    if (this.state.deviceKeys === undefined) {
+      return null;
     }
 
     return(
@@ -132,12 +132,12 @@ class DeviceKeys extends Component {
               {this.props.deviceProfile.macVersion.startsWith("1.0") && <LW10DeviceKeysForm
                 submitLabel="Set device-keys"
                 onSubmit={this.onSubmit}
-                object={object}
+                object={this.state.deviceKeys.deviceKeys}
               />}
               {this.props.deviceProfile.macVersion.startsWith("1.1") && <LW11DeviceKeysForm
                 submitLabel="Set device-keys"
                 onSubmit={this.onSubmit}
-                object={object}
+                object={this.state.deviceKeys.deviceKeys}
               />}
             </CardContent>
           </Card>

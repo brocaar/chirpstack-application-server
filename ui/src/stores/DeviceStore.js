@@ -4,7 +4,7 @@ import RobustWebSocket from "robust-websocket";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler, errorHandlerIgnoreNotFound } from "./helpers";
+import {checkStatus, errorHandler, errorHandlerIgnoreNotFoundWithCallback } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -104,7 +104,7 @@ class DeviceStore extends EventEmitter {
       .then(resp => {
         callbackFunc(resp.obj);
       })
-      .catch(errorHandlerIgnoreNotFound);
+      .catch(errorHandlerIgnoreNotFoundWithCallback(callbackFunc));
     });
   }
 
@@ -151,7 +151,7 @@ class DeviceStore extends EventEmitter {
       .then(resp => {
         callbackFunc(resp.obj);
       })
-      .catch(errorHandlerIgnoreNotFound);
+      .catch(errorHandlerIgnoreNotFoundWithCallback(callbackFunc));
     });
   }
 

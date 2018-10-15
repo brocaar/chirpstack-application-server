@@ -77,3 +77,13 @@ export function errorHandlerIgnoreNotFound(error) {
     }
   }
 };
+
+export function errorHandlerIgnoreNotFoundWithCallback(callbackFunc) {
+  return function(error) {
+    if (error.response.obj.code === 5) {
+      callbackFunc(null);
+    } else {
+      errorHandlerIgnoreNotFound(error);
+    }
+  }
+}

@@ -22,6 +22,7 @@ var errToCode = map[error]codes.Code{
 	storage.ErrInvalidUsernameOrPassword:       codes.Unauthenticated,
 	storage.ErrInvalidEmail:                    codes.InvalidArgument,
 	storage.ErrInvalidGatewayDiscoveryInterval: codes.InvalidArgument,
+	storage.ErrDeviceProfileInvalidName:        codes.InvalidArgument,
 	httphandler.ErrInvalidHeaderName:           codes.InvalidArgument,
 	influxdbhandler.ErrInvalidPrecision:        codes.InvalidArgument,
 }

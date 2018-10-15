@@ -5,267 +5,289 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-
-	"github.com/brocaar/loraserver/api/ns"
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/require"
 
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan/backend"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestDeviceProfile(t *testing.T) {
-	conf := test.GetConfig()
-	db, err := OpenDatabase(conf.PostgresDSN)
-	if err != nil {
-		t.Fatal(err)
+func TestDeviceProfileValidate(t *testing.T) {
+	tests := []struct {
+		DeviceProfile DeviceProfile
+		Error         error
+	}{
+		{
+			DeviceProfile: DeviceProfile{
+				Name: "valid-name",
+			},
+		},
+		{
+			DeviceProfile: DeviceProfile{
+				Name: "",
+			},
+			Error: ErrDeviceProfileInvalidName,
+		},
 	}
-	config.C.PostgreSQL.DB = db
+
+	assert := require.New(t)
+
+	for _, tst := range tests {
+		assert.Equal(tst.Error, tst.DeviceProfile.Validate())
+	}
+}
+
+func (ts *StorageTestSuite) TestDeviceProfile() {
+	assert := require.New(ts.T())
+
 	nsClient := test.NewNetworkServerClient()
 	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
-	Convey("Given a clean database with organization and network-server", t, func() {
-		test.MustResetDB(config.C.PostgreSQL.DB)
+	org := Organization{
+		Name: "test-org",
+	}
+	assert.NoError(CreateOrganization(ts.Tx(), &org))
 
-		org := Organization{
-			Name: "test-org",
+	u := User{
+		Username: "testuser",
+		IsAdmin:  false,
+		IsActive: true,
+		Email:    "foo@bar.com",
+	}
+	uID, err := CreateUser(ts.Tx(), &u, "testpassword")
+	assert.NoError(err)
+	assert.NoError(CreateOrganizationUser(ts.Tx(), org.ID, uID, false))
+
+	n := NetworkServer{
+		Name:   "test-ns",
+		Server: "test-ns:1234",
+	}
+	assert.NoError(CreateNetworkServer(ts.DB(), &n))
+
+	ts.T().Run("Create", func(t *testing.T) {
+		assert := require.New(t)
+
+		dp := DeviceProfile{
+			NetworkServerID: n.ID,
+			OrganizationID:  org.ID,
+			Name:            "device-profile",
+			DeviceProfile: ns.DeviceProfile{
+				SupportsClassB:     true,
+				ClassBTimeout:      10,
+				PingSlotPeriod:     20,
+				PingSlotDr:         5,
+				PingSlotFreq:       868100000,
+				SupportsClassC:     true,
+				ClassCTimeout:      30,
+				MacVersion:         "1.0.2",
+				RegParamsRevision:  "B",
+				RxDelay_1:          1,
+				RxDrOffset_1:       1,
+				RxDatarate_2:       6,
+				RxFreq_2:           868300000,
+				FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000},
+				MaxEirp:            14,
+				MaxDutyCycle:       10,
+				SupportsJoin:       true,
+				RfRegion:           string(backend.EU868),
+				Supports_32BitFCnt: true,
+			},
 		}
-		So(CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
+		assert.NoError(CreateDeviceProfile(ts.Tx(), &dp))
 
-		u := User{
-			Username: "testuser",
-			IsAdmin:  false,
-			IsActive: true,
-			Email:    "foo@bar.com",
+		dp.CreatedAt = dp.CreatedAt.UTC().Truncate(time.Millisecond)
+		dp.UpdatedAt = dp.UpdatedAt.UTC().Truncate(time.Millisecond)
+		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
+		assert.NoError(err)
+
+		createReq := <-nsClient.CreateDeviceProfileChan
+		if !proto.Equal(createReq.DeviceProfile, &dp.DeviceProfile) {
+			assert.Equal(dp.DeviceProfile, createReq.DeviceProfile)
 		}
-		uID, err := CreateUser(config.C.PostgreSQL.DB, &u, "testpassword")
-		So(err, ShouldBeNil)
-		So(CreateOrganizationUser(config.C.PostgreSQL.DB, org.ID, uID, false), ShouldBeNil)
+		nsClient.GetDeviceProfileResponse.DeviceProfile = createReq.DeviceProfile
 
-		n := NetworkServer{
-			Name:   "test-ns",
-			Server: "test-ns:1234",
-		}
-		So(CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
+		t.Run("Get", func(t *testing.T) {
+			assert := require.New(t)
 
-		Convey("Then CreateDeviceProfile creates the device-profile", func() {
-			dp := DeviceProfile{
+			dpGet, err := GetDeviceProfile(ts.Tx(), dpID)
+			assert.NoError(err)
+			dpGet.CreatedAt = dpGet.CreatedAt.UTC().Truncate(time.Millisecond)
+			dpGet.UpdatedAt = dpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
+
+			assert.Equal(dp, dpGet)
+		})
+
+		t.Run("GetDeviceProfiles", func(t *testing.T) {
+			assert := require.New(t)
+
+			count, err := GetDeviceProfileCount(ts.Tx())
+			assert.NoError(err)
+			assert.Equal(1, count)
+
+			dps, err := GetDeviceProfiles(ts.Tx(), 10, 0)
+			assert.NoError(err)
+			assert.Len(dps, 1)
+			assert.Equal(dp.Name, dps[0].Name)
+			assert.Equal(dp.OrganizationID, dps[0].OrganizationID)
+			assert.Equal(dp.NetworkServerID, dps[0].NetworkServerID)
+			assert.Equal(dpID, dps[0].DeviceProfileID)
+		})
+
+		t.Run("GetDeviceProfilesForOrganizationID", func(t *testing.T) {
+			assert := require.New(t)
+
+			count, err := GetDeviceProfileCountForOrganizationID(ts.Tx(), org.ID)
+			assert.NoError(err)
+			assert.Equal(1, count)
+
+			count, err = GetDeviceProfileCountForOrganizationID(ts.Tx(), org.ID+1)
+			assert.NoError(err)
+			assert.Equal(0, count)
+
+			dps, err := GetDeviceProfilesForOrganizationID(ts.Tx(), org.ID, 10, 0)
+			assert.NoError(err)
+			assert.Len(dps, 1)
+
+			dps, err = GetDeviceProfilesForOrganizationID(ts.Tx(), org.ID+1, 10, 0)
+			assert.NoError(err)
+			assert.Len(dps, 0)
+		})
+
+		t.Run("GetDeviceProfilesForUser", func(t *testing.T) {
+			assert := require.New(t)
+
+			count, err := GetDeviceProfileCountForUser(ts.Tx(), u.Username)
+			assert.NoError(err)
+			assert.Equal(1, count)
+
+			count, err = GetDeviceProfileCountForUser(ts.Tx(), "fakeuser")
+			assert.NoError(err)
+			assert.Equal(0, count)
+
+			dps, err := GetDeviceProfilesForUser(ts.Tx(), u.Username, 10, 0)
+			assert.NoError(err)
+			assert.Len(dps, 1)
+
+			dps, err = GetDeviceProfilesForUser(ts.Tx(), "fakeuser", 10, 0)
+			assert.NoError(err)
+			assert.Len(dps, 0)
+		})
+
+		t.Run("Two service-profiles and applications", func(t *testing.T) {
+			assert := require.New(t)
+
+			n2 := NetworkServer{
+				Name:   "ns-server-2",
+				Server: "ns-server-2:1234",
+			}
+			assert.NoError(CreateNetworkServer(ts.Tx(), &n2))
+
+			sp1 := ServiceProfile{
+				Name:            "test-sp",
 				NetworkServerID: n.ID,
 				OrganizationID:  org.ID,
-				Name:            "device-profile",
-				DeviceProfile: ns.DeviceProfile{
-					SupportsClassB:     true,
-					ClassBTimeout:      10,
-					PingSlotPeriod:     20,
-					PingSlotDr:         5,
-					PingSlotFreq:       868100000,
-					SupportsClassC:     true,
-					ClassCTimeout:      30,
-					MacVersion:         "1.0.2",
-					RegParamsRevision:  "B",
-					RxDelay_1:          1,
-					RxDrOffset_1:       1,
-					RxDatarate_2:       6,
-					RxFreq_2:           868300000,
-					FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000},
-					MaxEirp:            14,
-					MaxDutyCycle:       10,
-					SupportsJoin:       true,
-					RfRegion:           string(backend.EU868),
-					Supports_32BitFCnt: true,
-				},
 			}
-			So(CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
-			dp.CreatedAt = dp.CreatedAt.UTC().Truncate(time.Millisecond)
+			assert.NoError(CreateServiceProfile(ts.Tx(), &sp1))
+			sp1ID, err := uuid.FromBytes(sp1.ServiceProfile.Id)
+			assert.NoError(err)
+
+			sp2 := ServiceProfile{
+				Name:            "test-sp-2",
+				NetworkServerID: n2.ID,
+				OrganizationID:  org.ID,
+			}
+			assert.NoError(CreateServiceProfile(ts.Tx(), &sp2))
+			sp2ID, err := uuid.FromBytes(sp2.ServiceProfile.Id)
+			assert.NoError(err)
+
+			app1 := Application{
+				Name:             "test-app",
+				Description:      "test app",
+				OrganizationID:   org.ID,
+				ServiceProfileID: sp1ID,
+			}
+			assert.NoError(CreateApplication(ts.Tx(), &app1))
+
+			app2 := Application{
+				Name:             "test-app-2",
+				Description:      "test app 2",
+				OrganizationID:   org.ID,
+				ServiceProfileID: sp2ID,
+			}
+			assert.NoError(CreateApplication(ts.Tx(), &app2))
+
+			t.Run("GetDeviceProfilesForApplicationID", func(t *testing.T) {
+				assert := require.New(t)
+
+				count, err := GetDeviceProfileCountForApplicationID(ts.Tx(), app1.ID)
+				assert.NoError(err)
+				assert.Equal(1, count)
+
+				count, err = GetDeviceProfileCountForApplicationID(ts.Tx(), app2.ID)
+				assert.NoError(err)
+				assert.Equal(0, count)
+
+				dps, err := GetDeviceProfilesForApplicationID(ts.Tx(), app1.ID, 10, 0)
+				assert.NoError(err)
+				assert.Len(dps, 1)
+				assert.Equal(dpID, dps[0].DeviceProfileID)
+
+				dps, err = GetDeviceProfilesForApplicationID(ts.Tx(), app2.ID, 10, 0)
+				assert.NoError(err)
+				assert.Len(dps, 0)
+			})
+		})
+
+		t.Run("Update", func(t *testing.T) {
+			assert := require.New(t)
+
+			dp.Name = "updated-device-profile"
+			dp.DeviceProfile = ns.DeviceProfile{
+				Id:                 dp.DeviceProfile.Id,
+				SupportsClassB:     true,
+				ClassBTimeout:      11,
+				PingSlotPeriod:     21,
+				PingSlotDr:         6,
+				PingSlotFreq:       868300000,
+				SupportsClassC:     true,
+				ClassCTimeout:      31,
+				MacVersion:         "1.1.0",
+				RegParamsRevision:  "B",
+				RxDelay_1:          2,
+				RxDrOffset_1:       2,
+				RxDatarate_2:       5,
+				RxFreq_2:           868500000,
+				FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000, 868700000},
+				MaxEirp:            17,
+				MaxDutyCycle:       1,
+				SupportsJoin:       true,
+				RfRegion:           string(backend.EU868),
+				Supports_32BitFCnt: true,
+			}
+			assert.NoError(UpdateDeviceProfile(ts.Tx(), &dp))
 			dp.UpdatedAt = dp.UpdatedAt.UTC().Truncate(time.Millisecond)
-			dp.DeviceProfile.XXX_sizecache = 0
-			dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
-			So(err, ShouldBeNil)
 
-			So(nsClient.CreateDeviceProfileChan, ShouldHaveLength, 1)
-			So(<-nsClient.CreateDeviceProfileChan, ShouldResemble, ns.CreateDeviceProfileRequest{
-				DeviceProfile: &dp.DeviceProfile,
-			})
+			updateReq := <-nsClient.UpdateDeviceProfileChan
+			if !proto.Equal(&dp.DeviceProfile, updateReq.DeviceProfile) {
+				assert.Equal(dp.DeviceProfile, updateReq.DeviceProfile)
+			}
 
-			Convey("Then GetDeviceProfile returns the device-profile", func() {
-				nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
-					DeviceProfile: &dp.DeviceProfile,
-				}
-				dpGet, err := GetDeviceProfile(config.C.PostgreSQL.DB, dpID)
-				So(err, ShouldBeNil)
-				dpGet.CreatedAt = dpGet.CreatedAt.UTC().Truncate(time.Millisecond)
-				dpGet.UpdatedAt = dpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
+			nsClient.GetDeviceProfileResponse.DeviceProfile = updateReq.DeviceProfile
+			dpGet, err := GetDeviceProfile(ts.Tx(), dpID)
+			assert.NoError(err)
+			dpGet.UpdatedAt = dpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
+			assert.Equal("updated-device-profile", dpGet.Name)
+			assert.Equal(dp.UpdatedAt, dpGet.UpdatedAt)
+		})
 
-				So(dpGet, ShouldResemble, dp)
-			})
+		t.Run("Delete", func(t *testing.T) {
+			assert := require.New(t)
 
-			Convey("Then UpdateDeviceProfile updates the device-profile", func() {
-				dp.Name = "updated-device-profile"
-				dp.DeviceProfile = ns.DeviceProfile{
-					Id:                 dp.DeviceProfile.Id,
-					SupportsClassB:     true,
-					ClassBTimeout:      11,
-					PingSlotPeriod:     21,
-					PingSlotDr:         6,
-					PingSlotFreq:       868300000,
-					SupportsClassC:     true,
-					ClassCTimeout:      31,
-					MacVersion:         "1.1.0",
-					RegParamsRevision:  "B",
-					RxDelay_1:          2,
-					RxDrOffset_1:       2,
-					RxDatarate_2:       5,
-					RxFreq_2:           868500000,
-					FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000, 868700000},
-					MaxEirp:            17,
-					MaxDutyCycle:       1,
-					SupportsJoin:       true,
-					RfRegion:           string(backend.EU868),
-					Supports_32BitFCnt: true,
-				}
-				So(UpdateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
-				dp.UpdatedAt = dp.UpdatedAt.UTC().Truncate(time.Millisecond)
-				So(nsClient.UpdateDeviceProfileChan, ShouldHaveLength, 1)
-				So(<-nsClient.UpdateDeviceProfileChan, ShouldResemble, ns.UpdateDeviceProfileRequest{
-					DeviceProfile: &dp.DeviceProfile,
-				})
-
-				dpGet, err := GetDeviceProfile(config.C.PostgreSQL.DB, dpID)
-				So(err, ShouldBeNil)
-				dpGet.UpdatedAt = dpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
-				So(dpGet.Name, ShouldEqual, "updated-device-profile")
-				So(dpGet.UpdatedAt, ShouldResemble, dp.UpdatedAt)
-			})
-
-			Convey("Then DeleteDeviceProfile deletes the device-profile", func() {
-				So(DeleteDeviceProfile(config.C.PostgreSQL.DB, dpID), ShouldBeNil)
-				So(nsClient.DeleteDeviceProfileChan, ShouldHaveLength, 1)
-				So(<-nsClient.DeleteDeviceProfileChan, ShouldResemble, ns.DeleteDeviceProfileRequest{
-					Id: dp.DeviceProfile.Id,
-				})
-
-				_, err := GetDeviceProfile(config.C.PostgreSQL.DB, dpID)
-				So(err, ShouldEqual, ErrDoesNotExist)
-			})
-
-			Convey("Then GetDeviceProfileCount returns 1", func() {
-				count, err := GetDeviceProfileCount(config.C.PostgreSQL.DB)
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 1)
-			})
-
-			Convey("Then GetDeviceProfileCountForOrganizationID returns the number of device-profiles for the given organization", func() {
-				count, err := GetDeviceProfileCountForOrganizationID(config.C.PostgreSQL.DB, org.ID)
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 1)
-
-				count, err = GetDeviceProfileCountForOrganizationID(config.C.PostgreSQL.DB, org.ID+1)
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 0)
-			})
-
-			Convey("Then GetDeviceProfileCountForUser returns the device-profile accessible by a given user", func() {
-				count, err := GetDeviceProfileCountForUser(config.C.PostgreSQL.DB, u.Username)
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 1)
-
-				count, err = GetDeviceProfileCountForUser(config.C.PostgreSQL.DB, "fakeuser")
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 0)
-			})
-
-			Convey("Then GetDeviceProfiles includes the device-profile", func() {
-				dps, err := GetDeviceProfiles(config.C.PostgreSQL.DB, 10, 0)
-				So(err, ShouldBeNil)
-				So(dps, ShouldHaveLength, 1)
-				So(dps[0].Name, ShouldEqual, dp.Name)
-				So(dps[0].OrganizationID, ShouldEqual, dp.OrganizationID)
-				So(dps[0].NetworkServerID, ShouldEqual, dp.NetworkServerID)
-				So(dps[0].DeviceProfileID, ShouldEqual, dpID)
-			})
-
-			Convey("Then GetDeviceProfilesForOrganizationID returns the device-profiles for the given organization", func() {
-				dps, err := GetDeviceProfilesForOrganizationID(config.C.PostgreSQL.DB, org.ID, 10, 0)
-				So(err, ShouldBeNil)
-				So(dps, ShouldHaveLength, 1)
-
-				dps, err = GetDeviceProfilesForOrganizationID(config.C.PostgreSQL.DB, org.ID+1, 10, 0)
-				So(err, ShouldBeNil)
-				So(dps, ShouldHaveLength, 0)
-			})
-
-			Convey("Then GetDeviceProfilesForUser returns the device-profiles accessible by a given user", func() {
-				dps, err := GetDeviceProfilesForUser(config.C.PostgreSQL.DB, u.Username, 10, 0)
-				So(err, ShouldBeNil)
-				So(dps, ShouldHaveLength, 1)
-
-				dps, err = GetDeviceProfilesForUser(config.C.PostgreSQL.DB, "fakeuser", 10, 0)
-				So(err, ShouldBeNil)
-				So(dps, ShouldHaveLength, 0)
-			})
-
-			Convey("Given two service-profiles and applications", func() {
-				n2 := NetworkServer{
-					Name:   "ns-server-2",
-					Server: "ns-server-2:1234",
-				}
-				So(CreateNetworkServer(config.C.PostgreSQL.DB, &n2), ShouldBeNil)
-
-				sp1 := ServiceProfile{
-					Name:            "test-sp",
-					NetworkServerID: n.ID,
-					OrganizationID:  org.ID,
-				}
-				So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp1), ShouldBeNil)
-				sp1ID, err := uuid.FromBytes(sp1.ServiceProfile.Id)
-				So(err, ShouldBeNil)
-
-				sp2 := ServiceProfile{
-					Name:            "test-sp-2",
-					NetworkServerID: n2.ID,
-					OrganizationID:  org.ID,
-				}
-				So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp2), ShouldBeNil)
-				sp2ID, err := uuid.FromBytes(sp2.ServiceProfile.Id)
-				So(err, ShouldBeNil)
-
-				app1 := Application{
-					Name:             "test-app",
-					Description:      "test app",
-					OrganizationID:   org.ID,
-					ServiceProfileID: sp1ID,
-				}
-				So(CreateApplication(config.C.PostgreSQL.DB, &app1), ShouldBeNil)
-
-				app2 := Application{
-					Name:             "test-app-2",
-					Description:      "test app 2",
-					OrganizationID:   org.ID,
-					ServiceProfileID: sp2ID,
-				}
-				So(CreateApplication(config.C.PostgreSQL.DB, &app2), ShouldBeNil)
-
-				Convey("Then GetDeviceProfileCountForApplicationID returns the devices-profiles for the given application", func() {
-					count, err := GetDeviceProfileCountForApplicationID(config.C.PostgreSQL.DB, app1.ID)
-					So(err, ShouldBeNil)
-					So(count, ShouldEqual, 1)
-
-					count, err = GetDeviceProfileCountForApplicationID(config.C.PostgreSQL.DB, app2.ID)
-					So(err, ShouldBeNil)
-					So(count, ShouldEqual, 0)
-				})
-
-				Convey("Then GetDeviceProfilesForApplicationID returns the device-profile available for the given application id", func() {
-					dps, err := GetDeviceProfilesForApplicationID(config.C.PostgreSQL.DB, app1.ID, 10, 0)
-					So(err, ShouldBeNil)
-					So(dps, ShouldHaveLength, 1)
-					So(dps[0].DeviceProfileID, ShouldEqual, dpID)
-
-					dps, err = GetDeviceProfilesForApplicationID(config.C.PostgreSQL.DB, app2.ID, 10, 0)
-					So(err, ShouldBeNil)
-					So(dps, ShouldHaveLength, 0)
-				})
-			})
+			assert.NoError(DeleteDeviceProfile(ts.Tx(), dpID))
+			delReq := <-nsClient.DeleteDeviceProfileChan
+			assert.Equal(dp.DeviceProfile.Id, delReq.Id)
 		})
 	})
 }

@@ -37,6 +37,9 @@ type DeviceProfileMeta struct {
 
 // Validate validates the device-profile data.
 func (dp DeviceProfile) Validate() error {
+	if dp.Name == "" {
+		return ErrDeviceProfileInvalidName
+	}
 	return nil
 }
 

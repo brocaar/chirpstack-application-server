@@ -48,7 +48,6 @@ fi
 
 # create example configuration file
 if [[ ! -f /etc/$NAME/$NAME.toml ]]; then
-	HTTP_TLS_CERT=/etc/$NAME/certs/http.pem HTTP_TLS_KEY=/etc/$NAME/certs/http-key.pem $NAME configfile > /etc/$NAME/$NAME.toml
 	$NAME configfile > /etc/$NAME/$NAME.toml
 	chown $DAEMON_USER:$DAEMON_GROUP /etc/$NAME/$NAME.toml
 	chmod 640 /etc/$NAME/$NAME.toml
@@ -67,20 +66,6 @@ if [[ ! -f /etc/$NAME/$NAME.toml ]]; then
 	echo -e "\n\n\n"
 fi
 
-# create self-signed certificate if no certificate file exists
-if [[ ! -r /etc/$NAME/certs/http-key.pem ]] && [[ ! -r /etc/$NAME/certs/http.pem ]]; then
-	mkdir -p /etc/$NAME/certs
-	openssl req -x509 -newkey rsa:4096 -keyout /etc/$NAME/certs/http-key.pem -out /etc/$NAME/certs/http.pem -days 365 -nodes -batch -subj "/CN=localhost"
-	chown -R $DAEMON_USER:$DAEMON_GROUP /etc/$NAME
-	chmod 640 /etc/$NAME/certs/*.pem
-	echo -e "\n\n\n"
-	echo "-------------------------------------------------------------------------------------------"
-	echo "A self-signed TLS certificate has been generated and written to: /etc/$NAME/certs"
-	echo ""
-	echo "This is convenient for testing, but should be replaced with a proper certificate!" 
-	echo "-------------------------------------------------------------------------------------------"
-	echo -e "\n\n\n"
-fi
 
 # add start script
 which systemctl &>/dev/null

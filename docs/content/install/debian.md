@@ -150,14 +150,19 @@ INFO[0005] grpc: addrConn.resetTransport failed to create client transport: conn
 
 ### Accessing LoRa App Server
 
-To access the web-interface, point your browser to
-[https://localhost:8080](https://localhost:8080). Note that it is normal that
-this will raise a security warning, as a self-signed certificate is being used.
-To login, use *admin* / *admin* (don't forget to reset this password!).
+If a TLS certificate has been configured (optional), use http**s://**
+else use the http:// option (default).
 
-To access the REST API endpoint, point your browser to
-[https://localhost:8080/api](https://localhost:8080/api).
-G
+#### HTTP
+
+* **Web-interface** [http://localhost:8080/](http://localhost:8080/)
+* **API** [http://localhost:8080/api](http://localhost:8080/api)
+
+#### HTTPS
+
+* **Web-interface** [https://localhost:8080/](https://localhost:8080/)
+* **API** [https://localhost:8080/api](https://localhost:8080/api)
+
 ## Configuration
 
 In the example above, we've just touched a few configuration variables.

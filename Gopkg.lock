@@ -487,13 +487,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:427fa1ff4e8f67a8ebfd57b634b5099b98a7323a8c133ed8071bdb3ed6361f4a"
+  digest = "1:1e22cb80315d84392581961fe7270ca84fb40be844901af22d10e9dd0e18e0e2"
   name = "golang.org/x/net"
   packages = [
     "context",
     "context/ctxhttp",
     "http/httpguts",
     "http2",
+    "http2/h2c",
     "http2/hpack",
     "idna",
     "internal/socks",
@@ -503,7 +504,7 @@
     "websocket",
   ]
   pruneopts = "NUT"
-  revision = "26e67e76b6c3f6ce91f7c52def5af501b4e0f3a2"
+  revision = "49bb7cea24b1df9410e1712aa6433dae904ff66a"
 
 [[projects]]
   branch = "master"
@@ -722,6 +723,8 @@
     "github.com/tmc/grpc-websocket-proxy/wsproxy",
     "golang.org/x/crypto/pbkdf2",
     "golang.org/x/net/context",
+    "golang.org/x/net/http2",
+    "golang.org/x/net/http2/h2c",
     "google.golang.org/api/option",
     "google.golang.org/genproto/googleapis/api/annotations",
     "google.golang.org/grpc",

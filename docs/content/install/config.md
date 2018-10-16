@@ -278,10 +278,10 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # ip:port to bind the (user facing) http server to (web-interface and REST / gRPC api)
   bind="0.0.0.0:8080"
 
-  # http server TLS certificate
+  # http server TLS certificate (optional)
   tls_cert=""
 
-  # http server TLS key
+  # http server TLS key (optional)
   tls_key=""
 
   # JWT secret used for api authentication / authorization
@@ -381,11 +381,11 @@ Please note that you also need to configure LoRa Server so that it uses a
 client certificate for its join-server API client. See
 [LoRa Server configuration](https://docs.loraserver.io/loraserver/install/config/).
 
-## Web-interface and public API
+## Securing the web-interface and public API
 
-The web-interface and public api (`[application_server.public_api]`) must be
-secured by a TLS certificate and key, as this allows to run the gRPC and RESTful
-JSON api together on one port.
+The web-interface and public api (`[application_server.public_api]`) can be
+secured using a TLS certificate and key. Once the `tls_cert` and `tls_key`
+are set (`[application_server.external_api]`), TLS will be activated.
 
 ### Self-signed certificate
 

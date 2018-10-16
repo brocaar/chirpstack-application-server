@@ -225,10 +225,10 @@ id="{{ .ApplicationServer.ID }}"
   # ip:port to bind the (user facing) http server to (web-interface and REST / gRPC api)
   bind="{{ .ApplicationServer.ExternalAPI.Bind }}"
 
-  # http server TLS certificate
+  # http server TLS certificate (optional)
   tls_cert="{{ .ApplicationServer.ExternalAPI.TLSCert }}"
 
-  # http server TLS key
+  # http server TLS key (optional)
   tls_key="{{ .ApplicationServer.ExternalAPI.TLSKey }}"
 
   # JWT secret used for api authentication / authorization

@@ -162,8 +162,28 @@ func (h *Handler) SendDataUp(pl handler.DataUpPayload) error {
 		},
 		Values: map[string]interface{}{
 			"value": 1,
+			"f_cnt": pl.FCnt,
 		},
 	})
+
+	if len(pl.RXInfo) != 0 {
+		var rssi int
+		for i, rxInfo := range pl.RXInfo {
+			if i == 0 || rxInfo.RSSI > rssi {
+				rssi = rxInfo.RSSI
+			}
+		}
+
+		var snr float64
+		for i, rxInfo := range pl.RXInfo {
+			if i == 0 || rxInfo.LoRaSNR > snr {
+				snr = rxInfo.LoRaSNR
+			}
+		}
+
+		measurements[0].Values["rssi"] = rssi
+		measurements[0].Values["snr"] = snr
+	}
 
 	// parse object to measurements
 	measurements = append(measurements, objectToMeasurements(pl, "device_frmpayload_data", pl.Object)...)

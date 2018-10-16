@@ -20,6 +20,14 @@ It is no longer required to configure a TLS certificate for securing the
 LoRa App Server web-interface and API. This configuration is now optional
 and unset by default.
 
+#### InfluxDB uplink meta-data
+
+The following values have been added:
+
+* RSSI
+* SNR
+* Uplink frame-counter
+
 ## v2.3.0
 
 ### Features

@@ -83,7 +83,8 @@ For aggregation, each measurement will have the following tags:
 
 For analyzing and monitoring the usage of spreading-factors, channels, etc.
 the InfluxDB integration will also write a measurement named `device_uplink`
-with a counter value `1`, with the following tags for aggregation:
+with as values a counter `value` 1, `rssi`, `snr` and `f_cnt`. For Aggregation,
+the following tags are available:
 
 * `application_name`
 * `device_name`

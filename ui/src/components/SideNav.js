@@ -7,8 +7,17 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+
 import Divider from '@material-ui/core/Divider';
-import { Domain, Account, Server, Apps, RadioTower, Tune, AccountSettingsVariant, Settings, Rss } from 'mdi-material-ui';
+import Domain from "mdi-material-ui/Domain";
+import Account from "mdi-material-ui/Account";
+import Server from "mdi-material-ui/Server";
+import Apps from "mdi-material-ui/Apps";
+import RadioTower from "mdi-material-ui/RadioTower";
+import Tune from "mdi-material-ui/Tune";
+import Settings from "mdi-material-ui/Settings";
+import Rss from "mdi-material-ui/Rss";
+import AccountDetails from "mdi-material-ui/AccountDetails";
 
 import AutocompleteSelect from "./AutocompleteSelect";
 import SessionStore from "../stores/SessionStore";
@@ -204,7 +213,7 @@ class SideNav extends Component {
           </Admin>
           <ListItem button component={Link} to={`/organizations/${this.state.organization.id}/service-profiles`}>
             <ListItemIcon>
-              <AccountSettingsVariant />
+              <AccountDetails />
             </ListItemIcon>
             <ListItemText primary="Service-profiles" />
           </ListItem>

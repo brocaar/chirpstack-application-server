@@ -6,8 +6,6 @@ import IconButton from '@material-ui/core/IconButton';
 import Button from "@material-ui/core/Button";
 import Tooltip from '@material-ui/core/Tooltip';
 
-import Eye from "mdi-material-ui/Eye";
-import EyeOff from "mdi-material-ui/EyeOff";
 import Refresh from "mdi-material-ui/Refresh";
 
 import MaskedInput from "react-text-mask";

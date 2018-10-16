@@ -21,6 +21,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/hkwi/h2c"
 	"github.com/pkg/errors"
 	migrate "github.com/rubenv/sql-migrate"
 	log "github.com/sirupsen/logrus"
@@ -310,14 +311,20 @@ func startClientAPI(ctx context.Context) func() error {
 		// start the API server
 		go func() {
 			if config.C.ApplicationServer.ExternalAPI.TLSCert == "" || config.C.ApplicationServer.ExternalAPI.TLSKey == "" {
-				log.Fatal("tls cert and tls key must be set for the external api")
+				log.WithFields(log.Fields{
+					"bind":     config.C.ApplicationServer.ExternalAPI.Bind,
+				}).Info("starting client api server without TLS")
+				log.Fatal(http.ListenAndServe(config.C.ApplicationServer.ExternalAPI.Bind, &h2c.Server{
+					Handler: handler,
+				}))
+			} else {
+				log.WithFields(log.Fields{
+					"bind":     config.C.ApplicationServer.ExternalAPI.Bind,
+					"tls-cert": config.C.ApplicationServer.ExternalAPI.TLSCert,
+					"tls-key":  config.C.ApplicationServer.ExternalAPI.TLSKey,
+				}).Info("starting client api server with TLS")
+				log.Fatal(http.ListenAndServeTLS(config.C.ApplicationServer.ExternalAPI.Bind, config.C.ApplicationServer.ExternalAPI.TLSCert, config.C.ApplicationServer.ExternalAPI.TLSKey, handler))
 			}
-			log.WithFields(log.Fields{
-				"bind":     config.C.ApplicationServer.ExternalAPI.Bind,
-				"tls-cert": config.C.ApplicationServer.ExternalAPI.TLSCert,
-				"tls-key":  config.C.ApplicationServer.ExternalAPI.TLSKey,
-			}).Info("starting client api server")
-			log.Fatal(http.ListenAndServeTLS(config.C.ApplicationServer.ExternalAPI.Bind, config.C.ApplicationServer.ExternalAPI.TLSCert, config.C.ApplicationServer.ExternalAPI.TLSKey, handler))
 		}()
 
 		// give the http server some time to start
@@ -396,21 +403,28 @@ func getHTTPHandler(ctx context.Context) (http.Handler, error) {
 }
 
 func getJSONGateway(ctx context.Context) (http.Handler, error) {
-	// dial options for the grpc-gateway
-	b, err := ioutil.ReadFile(config.C.ApplicationServer.ExternalAPI.TLSCert)
-	if err != nil {
-		return nil, errors.Wrap(err, "read external api tls cert error")
+	var grpcDialOpts []grpc.DialOption
+
+
+	if config.C.ApplicationServer.ExternalAPI.TLSCert == "" || config.C.ApplicationServer.ExternalAPI.TLSKey == "" {
+		grpcDialOpts = append(grpcDialOpts, grpc.WithInsecure())
+	} else {
+		// dial options for the grpc-gateway
+		b, err := ioutil.ReadFile(config.C.ApplicationServer.ExternalAPI.TLSCert)
+		if err != nil {
+			return nil, errors.Wrap(err, "read external api tls cert error")
+		}
+		cp := x509.NewCertPool()
+		if !cp.AppendCertsFromPEM(b) {
+			return nil, errors.Wrap(err, "failed to append certificate")
+		}
+		grpcDialOpts = []grpc.DialOption{grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
+			// given the grpc-gateway is always connecting to localhost, does
+			// InsecureSkipVerify=true cause any security issues?
+			InsecureSkipVerify: true,
+			RootCAs:            cp,
+		}))}
 	}
-	cp := x509.NewCertPool()
-	if !cp.AppendCertsFromPEM(b) {
-		return nil, errors.Wrap(err, "failed to append certificate")
-	}
-	grpcDialOpts := []grpc.DialOption{grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
-		// given the grpc-gateway is always connecting to localhost, does
-		// InsecureSkipVerify=true cause any security issues?
-		InsecureSkipVerify: true,
-		RootCAs:            cp,
-	}))}
 
 	bindParts := strings.SplitN(config.C.ApplicationServer.ExternalAPI.Bind, ":", 2)
 	if len(bindParts) != 2 {

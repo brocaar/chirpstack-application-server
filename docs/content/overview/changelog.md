@@ -30,7 +30,7 @@ The following values have been added:
 
 #### EUI and key input fields (web-interface)
 
-The device EUI and (session)key input fields have been inproved for easier
+The device EUI and (session)key input fields have been improved for easier
 input, supporting both MSB and LSB byte order. Also only the required fields
 (based on LoRaWAN 1.0.x or 1.1.x) are displayed in the forms.
 

@@ -10,7 +10,7 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
-## v2.4.0 (in development)
+## v2.4.0
 
 ### Improvements
 
@@ -27,6 +27,12 @@ The following values have been added:
 * RSSI
 * SNR
 * Uplink frame-counter
+
+#### EUI and key input fields (web-interface)
+
+The device EUI and (session)key input fields have been inproved for easier
+input, supporting both MSB and LSB byte order. Also only the required fields
+(based on LoRaWAN 1.0.x or 1.1.x) are displayed in the forms.
 
 ## v2.3.0
 

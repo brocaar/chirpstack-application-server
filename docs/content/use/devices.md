@@ -30,32 +30,33 @@ to the [application]({{<relref "applications.md">}}) above the device.
 
 ### OTAA devices
 
-After creating a device, you can manage the application-key under
-the *Device keys (OTAA)* tab. Under the *Device activation* you will see the
-current device activation (if activated).
+After creating a device, you can manage the application-key (and network-key
+for LoRaWAN 1.1 devices) under the *Keys (OTAA)* tab. Under the *Activation*
+you will see the current device activation (if activated).
 
 ### ABP devices
 
 After creating a device, you can ABP activate this device under the
-*Activate device (ABP)* tab. You can either enter the *device address*,
+*Activation* tab. You can either enter the *device address*,
 *network session key* and *application session key* or generate these.
+For LoRaWAN 1.1 devices, the network session key is replaced by
+*network session encryption key*, *serving network session integrity key*
+and *forwarding network session integrity key*.
 
-After the ABP device has been activated, the current activation can be seen
-under the *Device activation* tab.
+## Device provisioning examples
 
-## Device provisioning
-
-After setting up a device in LoRa App Server, you need to
-provision your device with the chosen AppEUI, DevEUI and AppKey.
-This document will describe this process for different types of devices.
+Below you will find provision examples for different devices.
 
 The following example data is used:
 
 {{<highlight text>}}
 DevEUI: 0102030405060708
-AppEUI: 0807060504030201
 AppKey: 01020304050607080910111213141516
 {{< /highlight >}}
+
+In case an App EUI / Join EUI is required, you can set this to a blank value
+(`0000000000000000`). This value only becomes relevant when an external
+join-server is being used.
 
 ### RN2483 / RN2903
 
@@ -63,7 +64,7 @@ Through a serial terminal, use the following commands (terminated by `CR + LF`):
 
 {{<highlight text>}}
 mac set deveui 0102030405060708
-mac set appeui 0807060504030201
+mac set appeui 0000000000000000
 mac set appkey 01020304050607080910111213141516
 mac join otaa
 {{< /highlight >}}
@@ -89,21 +90,21 @@ for the following actions:
 
 1. Go to **Extras** -> **Factory Settings**
 2. Click **Set Customer Mode**
-3. Enter the **Device EUI** as ``0807060504030201``. **Note**: this field
-   must be entered as LSBF (meaning it is the reverse value as created in
-   LoRa Server)!
+3. Enter the **Device EUI** as `0807060504030201`. **Note**: this field
+   must be entered as LSB (meaning it is the reverse value as created in
+   LoRa App Server)!
 4. Click **Set Device EUI**
 5. Click **Set Application Mode**
 
 #### To set the AppEUI and AppKey
 
 1. Go back to **LoRaWAN Device**
-2. Enter the **Application EUI** as ``0102030405060708``. **Note**: this field
+2. Enter the **Application EUI** as `0000000000000000`. **Note**: this field
    must be entered as LSBF (meaning it is the reverse value as created in
-   LoRa Server)!
-3. Enter the **Application Key** as ``01020304050607080910111213141516``.
+   LoRa App Server)!
+3. Enter the **Application Key** as `01020304050607080910111213141516`.
    **Note:** Opposite to the *Device / Application EUI*, this field must be
-   entered as-is (the same value as set in LoRa Server).
+   entered as MSB (the same value as set in LoRa App Server).
 4. Click **Set Join Parameter**
 5. Click **Join Network**
 
@@ -114,7 +115,7 @@ Through a serial terminal, use the following commands:
 {{<highlight text>}}
 AT
 AT+NJM=1
-AT+NI=0,0807060504030201
+AT+NI=0,0000000000000000
 AT+NK=0,01020304050607080910111213141516
 AT&W
 
@@ -132,19 +133,21 @@ AT+DI?
 
 ### Generic Arduino LMIC-based devices
 
-1. Make sure that your **Device Profile** has `LoRaWAN MAC version` set to `1.0.2`, and `LoRaWAN Regional Parameters revision` set to `A`
+1. Make sure that your **Device Profile** has **LoRaWAN MAC version** set to `1.0.2`,
+   and **LoRaWAN Regional Parameters revision** set to `A`
 2. Install the Arduino LMIC library using the Library Manager in the Arduino IDE
-3. Open the example sketch from `Examples -> LMIC-Arduino -> ttn-otaa.ino`
-4. Update the sketch with the **Device EUI** as ``0807060504030201``. **Note**: this field
-   must be entered as LSBF (meaning it is the reverse value as created in
-   LoRa Server)!
-5. Update the sketch with the **Application EUI** as ``0102030405060708``. **Note**: this field
-   must be entered as LSBF (meaning it is the reverse value as created in
-   LoRa Server)!
-6. Update the sketch with the **Application Key** as ``01020304050607080910111213141516``.
+3. Open the example sketch from **Examples -> LMIC-Arduino -> ttn-otaa.ino**
+4. Update the sketch with the **Device EUI** as `0807060504030201`. **Note**: this field
+   must be entered as LSB (meaning it is the reverse value as created in
+   LoRa App Server)!
+5. Update the sketch with the **Application EUI** as `0000000000000000`. **Note**: this field
+   must be entered as LSB (meaning it is the reverse value as created in
+   LoRa App Server)!
+6. Update the sketch with the **Application Key** as `01020304050607080910111213141516`.
    **Note:** Opposite to the *Device / Application EUI*, this field must be
-   entered as-is (the same value as set in LoRa Server).
-7. Flash the sketch to your device and confirm that the device has been activated in the LoraServer console and on the Arduino Serial Monitor
+   entered as-is (the same value as set in LoRa App Server).
+7. Flash the sketch to your device and confirm that the device has been
+   activated in the LoraServer console and on the Arduino Serial Monitor
 
 ### Your device not here?
 

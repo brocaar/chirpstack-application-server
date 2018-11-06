@@ -848,8 +848,8 @@ func ValidateMulticastGroupQueueAccess(flag Flag, multicastGroupID uuid.UUID) Va
 	var where = [][]string{}
 
 	switch flag {
-	case Create, List, Delete:
-		// global admi
+	case Create, Read, List, Delete:
+		// global admin
 		// organization user
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},

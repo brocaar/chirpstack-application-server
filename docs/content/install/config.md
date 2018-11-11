@@ -182,6 +182,15 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   status_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status"
   location_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location"
 
+  # Retained Messages
+  # For more information: https://www.hivemq.com/blog/mqtt-essentials-part-8-retained-messages
+  uplink_retained_message=false
+  join_retained_message=false
+  ack_retained_message=false
+  error_retained_message=false
+  status_retained_message=false
+  location_retained_message=false
+
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="tcp://localhost:1883"
 

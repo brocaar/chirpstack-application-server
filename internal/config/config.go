@@ -51,14 +51,14 @@ type Config struct {
 		} `mapstructure:"api"`
 
 		ExternalAPI struct {
-			Bind      string
-			TLSCert   string `mapstructure:"tls_cert"`
-			TLSKey    string `mapstructure:"tls_key"`
-			JWTSecret string `mapstructure:"jwt_secret"`
-			CORS      struct {
+			Bind                       string
+			TLSCert                    string `mapstructure:"tls_cert"`
+			TLSKey                     string `mapstructure:"tls_key"`
+			JWTSecret                  string `mapstructure:"jwt_secret"`
+			DisableAssignExistingUsers bool   `mapstructure:"disable_assign_existing_users"`
+			CORS                       struct {
 				AllowOrigin string `mapstructure:"allow_origin"`
 			} `mapstructure:"cors"`
-			DisableAssignExistingUsers bool `mapstructure:"disable_assign_existing_users"`
 		} `mapstructure:"external_api"`
 
 		Branding struct {

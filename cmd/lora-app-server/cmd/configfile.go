@@ -238,6 +238,10 @@ id="{{ .ApplicationServer.ID }}"
   # when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)"
   disable_assign_existing_users={{ .ApplicationServer.ExternalAPI.DisableAssignExistingUsers }}
 
+  [application_server.external_api.cors]
+	# Allow Origin header, when set enable headers needed for CORS
+  allow_origin=""
+
 {{ if ne .ApplicationServer.Branding.Header  "" }}
   # Branding configuration.
   [application_server.branding]
@@ -281,7 +285,7 @@ tls_key="{{ .JoinServer.TLSKey }}"
 # Key Encryption Key (KEK) configuration.
 #
 # The KEK meganism is used to encrypt the session-keys sent from the
-# join-server to the network-server. 
+# join-server to the network-server.
 #
 # The LoRa App Server join-server will use the NetID of the requesting
 # network-server as the KEK label. When no such label exists in the set,

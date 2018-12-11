@@ -10,7 +10,7 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 
 import L from 'leaflet';
-import { Map, Marker, Polyline, Popup, MapControl } from 'react-leaflet';
+import { Map, Marker, Polyline, Popup, MapControl, withLeaflet } from 'react-leaflet';
 
 import MapTileLayer from "../../components/MapTileLayer";
 import GatewayStore from "../../stores/GatewayStore";
@@ -199,6 +199,11 @@ class LegendControl extends MapControl {
 
     this.leafletElement = legend;
   }
+
+  createLeafletElement () {}
 }
 
+LegendControl = withLeaflet(LegendControl);
+
 export default withStyles(styles)(GatewayDiscovery);
+

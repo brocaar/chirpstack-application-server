@@ -1,6 +1,6 @@
 {
   "name": "lora-app-server-ui",
-  "version": "2.3.0",
+  "version": "2.4.1",
   "private": true,
   "dependencies": {
     "@material-ui/core": "^3.2.2",

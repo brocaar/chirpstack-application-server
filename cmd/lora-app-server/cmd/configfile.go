@@ -129,14 +129,17 @@ id="{{ .ApplicationServer.ID }}"
   status_topic_template="{{ .ApplicationServer.Integration.MQTT.StatusTopicTemplate }}"
   location_topic_template="{{ .ApplicationServer.Integration.MQTT.LocationTopicTemplate }}"
 
-  # Retained Messages
-  # For more information: https://www.hivemq.com/blog/mqtt-essentials-part-8-retained-messages
-  uplink_retained_message=false
-  join_retained_message=false
-  ack_retained_message=false
-  error_retained_message=false
-  status_retained_message=false
-  location_retained_message=false
+  # Retained messages configuration.
+  #
+  # The MQTT broker will store the last publised message, when retained message is set
+  # to true. When a client subscribes to a topic with retained message set to true, it will
+  # always receive the last published message.
+  uplink_retained_message={{ .ApplicationServer.Integration.MQTT.UplinkRetainedMessage }}
+  join_retained_message={{ .ApplicationServer.Integration.MQTT.JoinRetainedMessage }}
+  ack_retained_message={{ .ApplicationServer.Integration.MQTT.AckRetainedMessage }}
+  error_retained_message={{ .ApplicationServer.Integration.MQTT.ErrorRetainedMessage }}
+  status_retained_message={{ .ApplicationServer.Integration.MQTT.StatusRetainedMessage }}
+  location_retained_message={{ .ApplicationServer.Integration.MQTT.LocationRetainedMessage }}
 
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="{{ .ApplicationServer.Integration.MQTT.Server }}"

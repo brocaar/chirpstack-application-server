@@ -53,13 +53,6 @@ func init() {
 	viper.SetDefault("application_server.integration.mqtt.error_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error")
 	viper.SetDefault("application_server.integration.mqtt.status_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status")
 	viper.SetDefault("application_server.integration.mqtt.location_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location")
-	viper.SetDefault("application_server.integration.mqtt.uplink_retained_message", false)
-	viper.SetDefault("application_server.integration.mqtt.join_retained_message", false)
-	viper.SetDefault("application_server.integration.mqtt.ack_retained_message", false)
-	viper.SetDefault("application_server.integration.mqtt.error_retained_message", false)
-	viper.SetDefault("application_server.integration.mqtt.status_retained_message", false)
-	viper.SetDefault("application_server.integration.mqtt.location_retained_message", false)
-	viper.SetDefault("application_server.integration.mqtt.clean_session", true)
 
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(configCmd)

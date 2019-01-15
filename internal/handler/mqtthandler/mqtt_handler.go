@@ -43,6 +43,12 @@ type Config struct {
 	ErrorTopicTemplate    string `mapstructure:"error_topic_template"`
 	StatusTopicTemplate   string `mapstructure:"status_topic_template"`
 	LocationTopicTemplate string `mapstructure:"location_topic_template"`
+	UplinkRetainedMessage bool   `mapstructure:"uplink_retained_message"`
+	JoinRetainedMessage   bool   `mapstructure:"join_retained_message"`
+	AckRetainedMessage    bool   `mapstructure:"ack_retained_message"`
+	ErrorRetainedMessage  bool   `mapstructure:"error_retained_message"`
+	StatusRetainedMessage bool   `mapstructure:"status_retained_message"`
+	LocationRetainedMessage bool `mapstructure:"location_retained_message"`
 }
 
 // MQTTHandler implements a MQTT handler for sending and receiving data by
@@ -62,6 +68,12 @@ type MQTTHandler struct {
 	locationTemplate *template.Template
 	downlinkTopic    string
 	downlinkRegexp   *regexp.Regexp
+	uplinkRetained    bool
+	joinRetained      bool
+	ackRetained       bool
+	errorRetained     bool
+	statusRetained    bool
+	locationRetained  bool
 }
 
 // NewHandler creates a new MQTT handler.
@@ -101,6 +113,12 @@ func NewHandler(p *redis.Pool, c Config) (handler.Handler, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "parse location template error")
 	}
+	h.uplinkRetained = h.config.UplinkRetainedMessage
+	h.joinRetained = h.config.JoinRetainedMessage
+	h.ackRetained = h.config.AckRetainedMessage
+	h.errorRetained = h.config.ErrorRetainedMessage
+	h.statusRetained = h.config.StatusRetainedMessage
+	h.locationRetained = h.config.LocationRetainedMessage
 
 	// generate downlink topic matching all applications and devices
 	topic := bytes.NewBuffer(nil)
@@ -215,35 +233,35 @@ func (h *MQTTHandler) Close() error {
 
 // SendDataUp sends a DataUpPayload.
 func (h *MQTTHandler) SendDataUp(payload handler.DataUpPayload) error {
-	return h.publish(payload.ApplicationID, payload.DevEUI, h.uplinkTemplate, payload)
+	return h.publish(payload.ApplicationID, payload.DevEUI, h.uplinkTemplate, h.uplinkRetained, payload)
 }
 
 // SendJoinNotification sends a JoinNotification.
 func (h *MQTTHandler) SendJoinNotification(payload handler.JoinNotification) error {
-	return h.publish(payload.ApplicationID, payload.DevEUI, h.joinTemplate, payload)
+	return h.publish(payload.ApplicationID, payload.DevEUI, h.joinTemplate, h.joinRetained, payload)
 }
 
 // SendACKNotification sends an ACKNotification.
 func (h *MQTTHandler) SendACKNotification(payload handler.ACKNotification) error {
-	return h.publish(payload.ApplicationID, payload.DevEUI, h.ackTemplate, payload)
+	return h.publish(payload.ApplicationID, payload.DevEUI, h.ackTemplate, h.ackRetained, payload)
 }
 
 // SendErrorNotification sends an ErrorNotification.
 func (h *MQTTHandler) SendErrorNotification(payload handler.ErrorNotification) error {
-	return h.publish(payload.ApplicationID, payload.DevEUI, h.errorTemplate, payload)
+	return h.publish(payload.ApplicationID, payload.DevEUI, h.errorTemplate, h.errorRetained, payload)
 }
 
 // SendStatusNotification sends a StatusNotification.
 func (h *MQTTHandler) SendStatusNotification(payload handler.StatusNotification) error {
-	return h.publish(payload.ApplicationID, payload.DevEUI, h.statusTemplate, payload)
+	return h.publish(payload.ApplicationID, payload.DevEUI, h.statusTemplate, h.statusRetained, payload)
 }
 
 // SendLocationNotification sends a LocationNotification.
 func (h *MQTTHandler) SendLocationNotification(payload handler.LocationNotification) error {
-	return h.publish(payload.ApplicationID, payload.DevEUI, h.locationTemplate, payload)
+	return h.publish(payload.ApplicationID, payload.DevEUI, h.locationTemplate, h.locationRetained, payload)
 }
 
-func (h *MQTTHandler) publish(applicationID int64, devEUI lorawan.EUI64, topicTemplate *template.Template, v interface{}) error {
+func (h *MQTTHandler) publish(applicationID int64, devEUI lorawan.EUI64, topicTemplate *template.Template, retained bool, v interface{}) error {
 	topic := bytes.NewBuffer(nil)
 	err := topicTemplate.Execute(topic, struct {
 		ApplicationID int64
@@ -262,7 +280,7 @@ func (h *MQTTHandler) publish(applicationID int64, devEUI lorawan.EUI64, topicTe
 		"topic": topic.String(),
 		"qos":   h.config.QOS,
 	}).Info("handler/mqtt: publishing message")
-	if token := h.conn.Publish(topic.String(), h.config.QOS, false, jsonB); token.Wait() && token.Error() != nil {
+	if token := h.conn.Publish(topic.String(), h.config.QOS, retained, jsonB); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 

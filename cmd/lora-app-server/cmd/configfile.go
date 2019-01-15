@@ -129,6 +129,15 @@ id="{{ .ApplicationServer.ID }}"
   status_topic_template="{{ .ApplicationServer.Integration.MQTT.StatusTopicTemplate }}"
   location_topic_template="{{ .ApplicationServer.Integration.MQTT.LocationTopicTemplate }}"
 
+  # Retained Messages
+  # For more information: https://www.hivemq.com/blog/mqtt-essentials-part-8-retained-messages
+  uplink_retained_message=false
+  join_retained_message=false
+  ack_retained_message=false
+  error_retained_message=false
+  status_retained_message=false
+  location_retained_message=false
+
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="{{ .ApplicationServer.Integration.MQTT.Server }}"
 

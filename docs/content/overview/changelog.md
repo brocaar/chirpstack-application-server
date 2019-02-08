@@ -10,6 +10,12 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
+## v2.4.1
+
+### Bugfixes
+
+* Fix `createLeafletElement` implementation error (introduced by v2.4.0 leaflet upgrade).
+
 ## v2.4.0
 
 ### Improvements

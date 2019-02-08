@@ -127,7 +127,6 @@ class MulticastGroupLayout extends Component {
             onChange={this.onChangeTab}
             indicatorColor="primary"
             className={this.props.classes.tabs}
-            fullWidth
           >
             <Tab label="Devices" component={Link} to={`/organizations/${this.props.match.params.organizationID}/multicast-groups/${this.props.match.params.multicastGroupID}`} />
             {this.state.admin && <Tab label="Configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/multicast-groups/${this.props.match.params.multicastGroupID}/edit`} />}

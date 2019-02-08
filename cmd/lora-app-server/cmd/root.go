@@ -3,6 +3,8 @@ package cmd
 import (
 	"bytes"
 	"io/ioutil"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/brocaar/lora-app-server/internal/config"
@@ -92,7 +94,33 @@ func initConfig() {
 		}
 	}
 
+	viperBindEnvs(config.C)
+
 	if err := viper.Unmarshal(&config.C); err != nil {
 		log.WithError(err).Fatal("unmarshal config error")
+	}
+}
+
+func viperBindEnvs(iface interface{}, parts ...string) {
+	ifv := reflect.ValueOf(iface)
+	ift := reflect.TypeOf(iface)
+	for i := 0; i < ift.NumField(); i++ {
+		v := ifv.Field(i)
+		t := ift.Field(i)
+		tv, ok := t.Tag.Lookup("mapstructure")
+		if !ok {
+			tv = strings.ToLower(t.Name)
+		}
+		if tv == "-" {
+			continue
+		}
+
+		switch v.Kind() {
+		case reflect.Struct:
+			viperBindEnvs(v.Interface(), append(parts, tv)...)
+		default:
+			key := strings.Join(append(parts, tv), ".")
+			viper.BindEnv(key)
+		}
 	}
 }

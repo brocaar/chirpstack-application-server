@@ -157,7 +157,6 @@ class DeviceLayout extends Component {
             onChange={this.onChangeTab}
             indicatorColor="primary"
             className={this.props.classes.tabs}
-            fullWidth
           >
             <Tab label="Configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}`} />
             {this.state.admin && <Tab label="Keys (OTAA)" disabled={!this.state.deviceProfile.deviceProfile.supportsJoin} component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/keys`} />}

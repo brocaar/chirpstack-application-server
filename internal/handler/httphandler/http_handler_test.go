@@ -3,13 +3,13 @@ package httphandler
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lorawan"
@@ -27,166 +27,200 @@ func (h *testHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandlerConfig(t *testing.T) {
-	Convey("Given a set of tests", t, func() {
-		testTable := []struct {
-			Name          string
-			HandlerConfig HandlerConfig
-			Valid         bool
-		}{
-			{
-				Name: "Valid headers",
-				HandlerConfig: HandlerConfig{
-					Headers: map[string]string{
-						"Foo":     "Bar",
-						"Foo-Bar": "Test",
-					},
+	testTable := []struct {
+		Name          string
+		HandlerConfig HandlerConfig
+		Valid         bool
+	}{
+		{
+			Name: "Valid headers",
+			HandlerConfig: HandlerConfig{
+				Headers: map[string]string{
+					"Foo":     "Bar",
+					"Foo-Bar": "Test",
 				},
-				Valid: true,
 			},
-			{
-				Name: "Invalid space in header name",
-				HandlerConfig: HandlerConfig{
-					Headers: map[string]string{
-						"Invalid Header": "Test",
-					},
+			Valid: true,
+		},
+		{
+			Name: "Invalid space in header name",
+			HandlerConfig: HandlerConfig{
+				Headers: map[string]string{
+					"Invalid Header": "Test",
 				},
-				Valid: false,
 			},
-		}
+			Valid: false,
+		},
+	}
 
-		for i, test := range testTable {
-			Convey(fmt.Sprintf("Testing: %s [%d]", test.Name, i), func() {
-				err := test.HandlerConfig.Validate()
-				if test.Valid {
-					So(err, ShouldBeNil)
-				} else {
-					So(err, ShouldNotBeNil)
-				}
-			})
-		}
-	})
+	for _, test := range testTable {
+		t.Run(test.Name, func(t *testing.T) {
+			assert := require.New(t)
+			err := test.HandlerConfig.Validate()
+			if test.Valid {
+				assert.NoError(err)
+			} else {
+				assert.NotNil(err)
+			}
+		})
+	}
+}
+
+type HandlerTestSuite struct {
+	suite.Suite
+
+	handler     *Handler
+	httpHandler *testHTTPHandler
+	server      *httptest.Server
+}
+
+func (ts *HandlerTestSuite) SetupSuite() {
+	assert := require.New(ts.T())
+
+	ts.httpHandler = &testHTTPHandler{
+		requests: make(chan *http.Request, 100),
+	}
+
+	ts.server = httptest.NewServer(ts.httpHandler)
+
+	conf := HandlerConfig{
+		Headers: map[string]string{
+			"Foo": "Bar",
+		},
+		DataUpURL:               ts.server.URL + "/dataup",
+		JoinNotificationURL:     ts.server.URL + "/join",
+		ACKNotificationURL:      ts.server.URL + "/ack",
+		ErrorNotificationURL:    ts.server.URL + "/error",
+		StatusNotificationURL:   ts.server.URL + "/status",
+		LocationNotificationURL: ts.server.URL + "/location",
+	}
+
+	var err error
+	ts.handler, err = NewHandler(conf)
+	assert.NoError(err)
+}
+
+func (ts *HandlerTestSuite) TearDownSuite() {
+	ts.server.Close()
+}
+
+func (ts *HandlerTestSuite) TestUplink() {
+	assert := require.New(ts.T())
+
+	reqPL := handler.DataUpPayload{
+		Data: []byte{1, 2, 3, 4},
+	}
+	assert.NoError(ts.handler.SendDataUp(reqPL))
+
+	req := <-ts.httpHandler.requests
+	assert.Equal("/dataup", req.URL.Path)
+
+	var pl handler.DataUpPayload
+	assert.NoError(json.NewDecoder(req.Body).Decode(&pl))
+	assert.Equal(reqPL, pl)
+	assert.Equal("Bar", req.Header.Get("Foo"))
+	assert.Equal("application/json", req.Header.Get("Content-Type"))
+}
+
+func (ts *HandlerTestSuite) TestJoin() {
+	assert := require.New(ts.T())
+
+	reqPL := handler.JoinNotification{
+		DevAddr: lorawan.DevAddr{1, 2, 3, 4},
+	}
+	assert.NoError(ts.handler.SendJoinNotification(reqPL))
+
+	req := <-ts.httpHandler.requests
+	assert.Equal("/join", req.URL.Path)
+
+	var pl handler.JoinNotification
+	assert.NoError(json.NewDecoder(req.Body).Decode(&pl))
+	assert.Equal(reqPL, pl)
+	assert.Equal(reqPL, pl)
+	assert.Equal("Bar", req.Header.Get("Foo"))
+	assert.Equal("application/json", req.Header.Get("Content-Type"))
+}
+
+func (ts *HandlerTestSuite) TestAck() {
+	assert := require.New(ts.T())
+
+	reqPL := handler.ACKNotification{
+		DevEUI: lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	}
+	assert.NoError(ts.handler.SendACKNotification(reqPL))
+
+	req := <-ts.httpHandler.requests
+	assert.Equal("/ack", req.URL.Path)
+
+	var pl handler.ACKNotification
+	assert.NoError(json.NewDecoder(req.Body).Decode(&pl))
+	assert.Equal(reqPL, pl)
+	assert.Equal(reqPL, pl)
+	assert.Equal("Bar", req.Header.Get("Foo"))
+	assert.Equal("application/json", req.Header.Get("Content-Type"))
+}
+
+func (ts *HandlerTestSuite) TestError() {
+	assert := require.New(ts.T())
+
+	reqPL := handler.ErrorNotification{
+		Error: "boom!",
+	}
+	assert.NoError(ts.handler.SendErrorNotification(reqPL))
+
+	req := <-ts.httpHandler.requests
+	assert.Equal("/error", req.URL.Path)
+
+	var pl handler.ErrorNotification
+	assert.NoError(json.NewDecoder(req.Body).Decode(&pl))
+	assert.Equal(reqPL, pl)
+	assert.Equal(reqPL, pl)
+	assert.Equal("Bar", req.Header.Get("Foo"))
+	assert.Equal("application/json", req.Header.Get("Content-Type"))
+}
+
+func (ts *HandlerTestSuite) TestStatus() {
+	assert := require.New(ts.T())
+
+	reqPL := handler.StatusNotification{
+		Battery: 123,
+	}
+	assert.NoError(ts.handler.SendStatusNotification(reqPL))
+
+	req := <-ts.httpHandler.requests
+	assert.Equal("/status", req.URL.Path)
+
+	var pl handler.StatusNotification
+	assert.NoError(json.NewDecoder(req.Body).Decode(&pl))
+	assert.Equal(reqPL, pl)
+	assert.Equal(reqPL, pl)
+	assert.Equal("Bar", req.Header.Get("Foo"))
+	assert.Equal("application/json", req.Header.Get("Content-Type"))
+}
+
+func (ts *HandlerTestSuite) TestLocation() {
+	assert := require.New(ts.T())
+
+	reqPL := handler.LocationNotification{
+		Location: handler.Location{
+			Latitude:  1.123,
+			Longitude: 2.123,
+			Altitude:  3.123,
+		},
+	}
+	assert.NoError(ts.handler.SendLocationNotification(reqPL))
+
+	req := <-ts.httpHandler.requests
+	assert.Equal("/location", req.URL.Path)
+
+	var pl handler.LocationNotification
+	assert.NoError(json.NewDecoder(req.Body).Decode(&pl))
+	assert.Equal(reqPL, pl)
+	assert.Equal(reqPL, pl)
+	assert.Equal("Bar", req.Header.Get("Foo"))
+	assert.Equal("application/json", req.Header.Get("Content-Type"))
 }
 
 func TestHandler(t *testing.T) {
-	Convey("Given a test HTTP server and a Handler instance", t, func() {
-		httpHandler := testHTTPHandler{
-			requests: make(chan *http.Request, 100),
-		}
-		server := httptest.NewServer(&httpHandler)
-		defer server.Close()
-
-		conf := HandlerConfig{
-			Headers: map[string]string{
-				"Foo": "Bar",
-			},
-			DataUpURL:               server.URL + "/dataup",
-			JoinNotificationURL:     server.URL + "/join",
-			ACKNotificationURL:      server.URL + "/ack",
-			ErrorNotificationURL:    server.URL + "/error",
-			StatusNotificationURL:   server.URL + "/status",
-			LocationNotificationURL: server.URL + "/location",
-		}
-		h, err := NewHandler(conf)
-		So(err, ShouldBeNil)
-
-		Convey("Then SendDataUp sends the correct notification", func() {
-			reqPL := handler.DataUpPayload{
-				Data: []byte{1, 2, 3, 4},
-			}
-			So(h.SendDataUp(reqPL), ShouldBeNil)
-
-			req := <-httpHandler.requests
-			So(req.URL.Path, ShouldEqual, "/dataup")
-
-			var pl handler.DataUpPayload
-			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
-			So(pl, ShouldResemble, reqPL)
-			So(req.Header.Get("Foo"), ShouldEqual, "Bar")
-			So(req.Header.Get("Content-Type"), ShouldEqual, "application/json")
-		})
-
-		Convey("Then SendJoinNotification sends the correct notification", func() {
-			reqPL := handler.JoinNotification{
-				DevAddr: lorawan.DevAddr{1, 2, 3, 4},
-			}
-			So(h.SendJoinNotification(reqPL), ShouldBeNil)
-
-			req := <-httpHandler.requests
-			So(req.URL.Path, ShouldEqual, "/join")
-
-			var pl handler.JoinNotification
-			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
-			So(pl, ShouldResemble, reqPL)
-			So(req.Header.Get("Foo"), ShouldEqual, "Bar")
-			So(req.Header.Get("Content-Type"), ShouldEqual, "application/json")
-		})
-
-		Convey("Then SendACKNotification sends the correct notification", func() {
-			reqPL := handler.ACKNotification{
-				DevEUI: lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
-			}
-			So(h.SendACKNotification(reqPL), ShouldBeNil)
-
-			req := <-httpHandler.requests
-			So(req.URL.Path, ShouldEqual, "/ack")
-
-			var pl handler.ACKNotification
-			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
-			So(pl, ShouldResemble, reqPL)
-			So(req.Header.Get("Foo"), ShouldEqual, "Bar")
-			So(req.Header.Get("Content-Type"), ShouldEqual, "application/json")
-		})
-
-		Convey("Then SendErrorNotification sends the correct notification", func() {
-			reqPL := handler.ErrorNotification{
-				Error: "boom!",
-			}
-			So(h.SendErrorNotification(reqPL), ShouldBeNil)
-
-			req := <-httpHandler.requests
-			So(req.URL.Path, ShouldEqual, "/error")
-
-			var pl handler.ErrorNotification
-			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
-			So(pl, ShouldResemble, reqPL)
-			So(req.Header.Get("Foo"), ShouldEqual, "Bar")
-			So(req.Header.Get("Content-Type"), ShouldEqual, "application/json")
-		})
-
-		Convey("Then SendStatusNotification sends the correct notification", func() {
-			reqPL := handler.StatusNotification{
-				Battery: 123,
-			}
-			So(h.SendStatusNotification(reqPL), ShouldBeNil)
-
-			req := <-httpHandler.requests
-			So(req.URL.Path, ShouldEqual, "/status")
-
-			var pl handler.StatusNotification
-			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
-			So(pl, ShouldResemble, reqPL)
-			So(req.Header.Get("Foo"), ShouldEqual, "Bar")
-			So(req.Header.Get("Content-Type"), ShouldEqual, "application/json")
-		})
-
-		Convey("Then SendLocationNotification sends the correct notification", func() {
-			reqPL := handler.LocationNotification{
-				Location: handler.Location{
-					Latitude:  1.123,
-					Longitude: 2.123,
-					Altitude:  3.123,
-				},
-			}
-			So(h.SendLocationNotification(reqPL), ShouldBeNil)
-
-			req := <-httpHandler.requests
-			So(req.URL.Path, ShouldEqual, "/location")
-
-			var pl handler.LocationNotification
-			So(json.NewDecoder(req.Body).Decode(&pl), ShouldBeNil)
-			So(pl, ShouldResemble, reqPL)
-			So(req.Header.Get("Foo"), ShouldEqual, "Bar")
-			So(req.Header.Get("Content-Type"), ShouldEqual, "application/json")
-		})
-	})
+	suite.Run(t, new(HandlerTestSuite))
 }

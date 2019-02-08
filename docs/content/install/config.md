@@ -182,6 +182,18 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   status_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status"
   location_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location"
 
+  # Retained messages configuration.
+  #
+  # The MQTT broker will store the last publised message, when retained message is set
+  # to true. When a client subscribes to a topic with retained message set to true, it will
+  # always receive the last published message.
+  uplink_retained_message=false
+  join_retained_message=false
+  ack_retained_message=false
+  error_retained_message=false
+  status_retained_message=false
+  location_retained_message=false
+
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="tcp://localhost:1883"
 

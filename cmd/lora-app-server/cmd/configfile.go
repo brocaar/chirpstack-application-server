@@ -129,6 +129,18 @@ id="{{ .ApplicationServer.ID }}"
   status_topic_template="{{ .ApplicationServer.Integration.MQTT.StatusTopicTemplate }}"
   location_topic_template="{{ .ApplicationServer.Integration.MQTT.LocationTopicTemplate }}"
 
+  # Retained messages configuration.
+  #
+  # The MQTT broker will store the last publised message, when retained message is set
+  # to true. When a client subscribes to a topic with retained message set to true, it will
+  # always receive the last published message.
+  uplink_retained_message={{ .ApplicationServer.Integration.MQTT.UplinkRetainedMessage }}
+  join_retained_message={{ .ApplicationServer.Integration.MQTT.JoinRetainedMessage }}
+  ack_retained_message={{ .ApplicationServer.Integration.MQTT.AckRetainedMessage }}
+  error_retained_message={{ .ApplicationServer.Integration.MQTT.ErrorRetainedMessage }}
+  status_retained_message={{ .ApplicationServer.Integration.MQTT.StatusRetainedMessage }}
+  location_retained_message={{ .ApplicationServer.Integration.MQTT.LocationRetainedMessage }}
+
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="{{ .ApplicationServer.Integration.MQTT.Server }}"
 

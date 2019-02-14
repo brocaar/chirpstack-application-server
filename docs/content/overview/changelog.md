@@ -10,6 +10,30 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
+## v2.5.0
+
+### Features
+
+#### Support for retained messages
+
+It is now possible to [configure](https://www.loraserver.io/lora-app-server/install/config/) the retained flag for the MQTT integration.
+When set, the MQTT broker will retain the last message and send this
+immediately when a MQTT client connects. ([#272](https://github.com/brocaar/lora-app-server/pull/272))
+
+#### Environment variable based configuration
+
+Environment variable based [configuration](https://www.loraserver.io/lora-app-server/install/config/) has been re-implemented.
+
+### Improvements
+
+* Calls made by the HTTP integration are now made async.
+* The alignment of the UI tabs has been improved.
+
+### Bugfixes
+
+* Fix potential deadlock on MQTT re-connect ([#103](https://github.com/brocaar/lora-gateway-bridge/issues/103))
+* Fix logrotate issue (init based systems) ([#282](https://github.com/brocaar/lora-app-server/pull/282)
+
 ## v2.4.1
 
 ### Bugfixes

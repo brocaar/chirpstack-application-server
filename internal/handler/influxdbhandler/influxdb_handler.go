@@ -279,6 +279,10 @@ func (h *Handler) SendLocationNotification(pl handler.LocationNotification) erro
 func objectToMeasurements(pl handler.DataUpPayload, prefix string, obj interface{}) []measurement {
 	var out []measurement
 
+	if obj == nil {
+		return out
+	}
+
 	switch o := obj.(type) {
 	case int, uint, float32, float64, uint8, int8, uint16, int16, uint32, int32, uint64, int64, string, bool:
 		out = append(out, measurement{

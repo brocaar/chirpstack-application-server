@@ -10,6 +10,12 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
+## v2.5.1
+
+### Bugfixes
+
+* Fix panic in InfluxDB handler on `null` values in object ([#295](https://github.com/brocaar/lora-app-server/issues/295))
+
 ## v2.5.0
 
 ### Features

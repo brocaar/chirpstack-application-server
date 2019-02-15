@@ -146,6 +146,30 @@ device_frmpayload_data_temperature,application_name=test-app,dev_eui=01020304050
 device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 f_cnt=10i,value=1i`,
 		},
 		{
+			Name: "One level depth with nil value",
+			Payload: handler.DataUpPayload{
+				ApplicationName: "test-app",
+				DeviceName:      "test-dev",
+				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+				FCnt:            10,
+				FPort:           20,
+				TXInfo: handler.TXInfo{
+					Frequency: 868100000,
+					DR:        2,
+				},
+				Object: map[string]interface{}{
+					"temperature": nil,
+					"humidity":    20,
+					"active":      true,
+					"status":      "on",
+				},
+			},
+			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=true
+device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=20i
+device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value="on"
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 f_cnt=10i,value=1i`,
+		},
+		{
 			Name: "One level depth + RXInfo",
 			Payload: handler.DataUpPayload{
 				ApplicationName: "test-app",

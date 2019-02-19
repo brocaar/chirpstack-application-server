@@ -32,9 +32,8 @@ pre-compiled packages available):
 
 #### Go
 
-Make sure you have [Go](https://golang.org/) installed (1.10+) and that the LoRa
-App Server repository has been cloned to 
-`$GOPATH/src/github.com/brocaar/lora-app-server`.
+Make sure you have [Go](https://golang.org/) installed (1.11+). As LoRa App Server
+uses Go modules, the repository must be cloned outside the `$GOPATH`.
 
 #### Node.js
 
@@ -52,7 +51,7 @@ A few example commands that you can run:
 
 {{<highlight bash>}}
 # install all requirements
-make dev-requirements requirements ui-requirements
+make dev-requirements ui-requirements
 
 # cleanup workspace
 make clean

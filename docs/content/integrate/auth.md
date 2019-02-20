@@ -22,6 +22,15 @@ openssl rand -base64 32
 
 Example claim:
 
+`HEADER:ALGORITHM & TOKEN TYPE`
+{{<highlight json>}}
+{
+	"alg": "HS256",
+	"typ": "JWT"
+}
+{{< /highlight >}}
+
+`PAYLOAD:DATA`
 {{<highlight json>}}
 {
 	"iss": "lora-app-server",      // issuer of the claim
@@ -32,6 +41,21 @@ Example claim:
 	"username": "admin"            // username the client claims to be
 }
 {{< /highlight >}}
+
+`VERIFY SIGNATURE`
+{{<highlight html>}}
+HMACSHA256(
+	base64UrlEncode(header) + "." +
+	base64UrlEncode(payload),
+	your-256-bit-secret
+) []secret base64 encoded
+{{< /highlight >}}
+
+**Notes:**
+
+* Update `nbf` and `exp`
+* Enter `your-256-bit-secret`
+* Uncheck `secret base64 encoded`
 
 ## Setting the authentication token
 

@@ -38,7 +38,7 @@ and devices.
 
 ## API
 
-For intgration with external services, LoRa App server provides a [RESTFul]({{<ref "integrate/rest.md">}})
+For integration with external services, LoRa App server provides a [RESTFul]({{<ref "integrate/rest.md">}})
 and [gRPC]({{<ref "integrate/grpc.md">}}) API which exposes the same
 functionality as the web-interface. [Authentication and authorization]({{<ref "integrate/auth.md">}})
 is implemented using JWT tokens.

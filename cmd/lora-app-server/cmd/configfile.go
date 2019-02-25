@@ -100,12 +100,15 @@ id="{{ .ApplicationServer.ID }}"
   # besides the extra integrations that can be added on a per-application
   # basis.
   [application_server.integration]
-  # The integration backend.
+  # Enabled integrations.
   #
-  # This defines the backend to use for the data integration. Use the section
-  # name of one of the following integration backend.
-  # E.g. "mqtt" or "gcp_pub_sub".
-  backend="{{ .ApplicationServer.Integration.Backend }}"
+  # Enabled integrations are enabled for all applications. Multiple
+  # integrations can be configured.
+  # Do not forget to configure the related configuration section below for
+  # the enabled integrations. Integrations that can be enabled are:
+  # * mqtt        - MQTT broker
+  # * gcp_pub_sub - Google Cloud Pub/Sub
+  enabled=[{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}{{ range $index, $elm := .ApplicationServer.Integration.Enabled }}{{ if $index }}", "{{ end }}{{ $elm }}{{ end }}{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}]
 
 
   # MQTT integration backend.

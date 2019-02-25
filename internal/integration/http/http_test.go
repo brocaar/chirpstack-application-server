@@ -1,4 +1,4 @@
-package httphandler
+package http
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/integration"
 	"github.com/brocaar/lorawan"
 )
 
@@ -29,12 +29,12 @@ func (h *testHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func TestHandlerConfig(t *testing.T) {
 	testTable := []struct {
 		Name          string
-		HandlerConfig HandlerConfig
+		HandlerConfig Config
 		Valid         bool
 	}{
 		{
 			Name: "Valid headers",
-			HandlerConfig: HandlerConfig{
+			HandlerConfig: Config{
 				Headers: map[string]string{
 					"Foo":     "Bar",
 					"Foo-Bar": "Test",
@@ -44,7 +44,7 @@ func TestHandlerConfig(t *testing.T) {
 		},
 		{
 			Name: "Invalid space in header name",
-			HandlerConfig: HandlerConfig{
+			HandlerConfig: Config{
 				Headers: map[string]string{
 					"Invalid Header": "Test",
 				},
@@ -69,7 +69,7 @@ func TestHandlerConfig(t *testing.T) {
 type HandlerTestSuite struct {
 	suite.Suite
 
-	handler     *Handler
+	integration integration.Integrator
 	httpHandler *testHTTPHandler
 	server      *httptest.Server
 }
@@ -83,7 +83,7 @@ func (ts *HandlerTestSuite) SetupSuite() {
 
 	ts.server = httptest.NewServer(ts.httpHandler)
 
-	conf := HandlerConfig{
+	conf := Config{
 		Headers: map[string]string{
 			"Foo": "Bar",
 		},
@@ -96,7 +96,7 @@ func (ts *HandlerTestSuite) SetupSuite() {
 	}
 
 	var err error
-	ts.handler, err = NewHandler(conf)
+	ts.integration, err = New(conf)
 	assert.NoError(err)
 }
 
@@ -107,15 +107,15 @@ func (ts *HandlerTestSuite) TearDownSuite() {
 func (ts *HandlerTestSuite) TestUplink() {
 	assert := require.New(ts.T())
 
-	reqPL := handler.DataUpPayload{
+	reqPL := integration.DataUpPayload{
 		Data: []byte{1, 2, 3, 4},
 	}
-	assert.NoError(ts.handler.SendDataUp(reqPL))
+	assert.NoError(ts.integration.SendDataUp(reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/dataup", req.URL.Path)
 
-	var pl handler.DataUpPayload
+	var pl integration.DataUpPayload
 	assert.NoError(json.NewDecoder(req.Body).Decode(&pl))
 	assert.Equal(reqPL, pl)
 	assert.Equal("Bar", req.Header.Get("Foo"))
@@ -125,15 +125,15 @@ func (ts *HandlerTestSuite) TestUplink() {
 func (ts *HandlerTestSuite) TestJoin() {
 	assert := require.New(ts.T())
 
-	reqPL := handler.JoinNotification{
+	reqPL := integration.JoinNotification{
 		DevAddr: lorawan.DevAddr{1, 2, 3, 4},
 	}
-	assert.NoError(ts.handler.SendJoinNotification(reqPL))
+	assert.NoError(ts.integration.SendJoinNotification(reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/join", req.URL.Path)
 
-	var pl handler.JoinNotification
+	var pl integration.JoinNotification
 	assert.NoError(json.NewDecoder(req.Body).Decode(&pl))
 	assert.Equal(reqPL, pl)
 	assert.Equal(reqPL, pl)
@@ -144,15 +144,15 @@ func (ts *HandlerTestSuite) TestJoin() {
 func (ts *HandlerTestSuite) TestAck() {
 	assert := require.New(ts.T())
 
-	reqPL := handler.ACKNotification{
+	reqPL := integration.ACKNotification{
 		DevEUI: lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.handler.SendACKNotification(reqPL))
+	assert.NoError(ts.integration.SendACKNotification(reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/ack", req.URL.Path)
 
-	var pl handler.ACKNotification
+	var pl integration.ACKNotification
 	assert.NoError(json.NewDecoder(req.Body).Decode(&pl))
 	assert.Equal(reqPL, pl)
 	assert.Equal(reqPL, pl)
@@ -163,15 +163,15 @@ func (ts *HandlerTestSuite) TestAck() {
 func (ts *HandlerTestSuite) TestError() {
 	assert := require.New(ts.T())
 
-	reqPL := handler.ErrorNotification{
+	reqPL := integration.ErrorNotification{
 		Error: "boom!",
 	}
-	assert.NoError(ts.handler.SendErrorNotification(reqPL))
+	assert.NoError(ts.integration.SendErrorNotification(reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/error", req.URL.Path)
 
-	var pl handler.ErrorNotification
+	var pl integration.ErrorNotification
 	assert.NoError(json.NewDecoder(req.Body).Decode(&pl))
 	assert.Equal(reqPL, pl)
 	assert.Equal(reqPL, pl)
@@ -182,15 +182,15 @@ func (ts *HandlerTestSuite) TestError() {
 func (ts *HandlerTestSuite) TestStatus() {
 	assert := require.New(ts.T())
 
-	reqPL := handler.StatusNotification{
+	reqPL := integration.StatusNotification{
 		Battery: 123,
 	}
-	assert.NoError(ts.handler.SendStatusNotification(reqPL))
+	assert.NoError(ts.integration.SendStatusNotification(reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/status", req.URL.Path)
 
-	var pl handler.StatusNotification
+	var pl integration.StatusNotification
 	assert.NoError(json.NewDecoder(req.Body).Decode(&pl))
 	assert.Equal(reqPL, pl)
 	assert.Equal(reqPL, pl)
@@ -201,19 +201,19 @@ func (ts *HandlerTestSuite) TestStatus() {
 func (ts *HandlerTestSuite) TestLocation() {
 	assert := require.New(ts.T())
 
-	reqPL := handler.LocationNotification{
-		Location: handler.Location{
+	reqPL := integration.LocationNotification{
+		Location: integration.Location{
 			Latitude:  1.123,
 			Longitude: 2.123,
 			Altitude:  3.123,
 		},
 	}
-	assert.NoError(ts.handler.SendLocationNotification(reqPL))
+	assert.NoError(ts.integration.SendLocationNotification(reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/location", req.URL.Path)
 
-	var pl handler.LocationNotification
+	var pl integration.LocationNotification
 	assert.NoError(json.NewDecoder(req.Body).Decode(&pl))
 	assert.Equal(reqPL, pl)
 	assert.Equal(reqPL, pl)

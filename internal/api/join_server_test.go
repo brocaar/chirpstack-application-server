@@ -10,7 +10,8 @@ import (
 	"github.com/gofrs/uuid"
 
 	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/test/testhandler"
+	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/integration/mock"
 
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
@@ -35,8 +36,8 @@ func TestJoinServerAPI(t *testing.T) {
 		nsClient := test.NewNetworkServerClient()
 		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
-		h := testhandler.NewTestHandler()
-		config.C.ApplicationServer.Integration.Handler = h
+		h := mock.New()
+		integration.SetIntegration(h)
 
 		org := storage.Organization{
 			Name: "test-org",

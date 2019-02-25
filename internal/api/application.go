@@ -16,9 +16,9 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/auth"
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/handler"
-	"github.com/brocaar/lora-app-server/internal/handler/httphandler"
-	"github.com/brocaar/lora-app-server/internal/handler/influxdbhandler"
+	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/integration/http"
+	"github.com/brocaar/lora-app-server/internal/integration/influxdb"
 	"github.com/brocaar/lora-app-server/internal/storage"
 )
 
@@ -257,7 +257,7 @@ func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.Creat
 		headers[h.Key] = h.Value
 	}
 
-	conf := httphandler.HandlerConfig{
+	conf := http.Config{
 		Headers:                 headers,
 		DataUpURL:               in.Integration.UplinkDataUrl,
 		JoinNotificationURL:     in.Integration.JoinNotificationUrl,
@@ -277,7 +277,7 @@ func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.Creat
 
 	integration := storage.Integration{
 		ApplicationID: in.Integration.ApplicationId,
-		Kind:          handler.HTTPHandlerKind,
+		Kind:          integration.HTTP,
 		Settings:      confJSON,
 	}
 	if err = storage.CreateIntegration(config.C.PostgreSQL.DB, &integration); err != nil {
@@ -295,12 +295,12 @@ func (a *ApplicationAPI) GetHTTPIntegration(ctx context.Context, in *pb.GetHTTPI
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, handler.HTTPHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, integration.HTTP)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	var conf httphandler.HandlerConfig
+	var conf http.Config
 	if err = json.Unmarshal(integration.Settings, &conf); err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -340,7 +340,7 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.Updat
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.Integration.ApplicationId, handler.HTTPHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.Integration.ApplicationId, integration.HTTP)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -350,7 +350,7 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.Updat
 		headers[h.Key] = h.Value
 	}
 
-	conf := httphandler.HandlerConfig{
+	conf := http.Config{
 		Headers:                 headers,
 		DataUpURL:               in.Integration.UplinkDataUrl,
 		JoinNotificationURL:     in.Integration.JoinNotificationUrl,
@@ -384,7 +384,7 @@ func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.Delet
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, handler.HTTPHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, integration.HTTP)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -408,7 +408,7 @@ func (a *ApplicationAPI) CreateInfluxDBIntegration(ctx context.Context, in *pb.C
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	conf := influxdbhandler.HandlerConfig{
+	conf := influxdb.Config{
 		Endpoint:            in.Integration.Endpoint,
 		DB:                  in.Integration.Db,
 		Username:            in.Integration.Username,
@@ -427,7 +427,7 @@ func (a *ApplicationAPI) CreateInfluxDBIntegration(ctx context.Context, in *pb.C
 
 	integration := storage.Integration{
 		ApplicationID: in.Integration.ApplicationId,
-		Kind:          handler.InfluxDBHandlerKind,
+		Kind:          integration.InfluxDB,
 		Settings:      confJSON,
 	}
 	if err := storage.CreateIntegration(config.C.PostgreSQL.DB, &integration); err != nil {
@@ -445,12 +445,12 @@ func (a *ApplicationAPI) GetInfluxDBIntegration(ctx context.Context, in *pb.GetI
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, handler.InfluxDBHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, integration.InfluxDB)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	var conf influxdbhandler.HandlerConfig
+	var conf influxdb.Config
 	if err = json.Unmarshal(integration.Settings, &conf); err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -482,12 +482,12 @@ func (a *ApplicationAPI) UpdateInfluxDBIntegration(ctx context.Context, in *pb.U
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.Integration.ApplicationId, handler.InfluxDBHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.Integration.ApplicationId, integration.InfluxDB)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
 
-	conf := influxdbhandler.HandlerConfig{
+	conf := influxdb.Config{
 		Endpoint:            in.Integration.Endpoint,
 		DB:                  in.Integration.Db,
 		Username:            in.Integration.Username,
@@ -520,7 +520,7 @@ func (a *ApplicationAPI) DeleteInfluxDBIntegration(ctx context.Context, in *pb.D
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, handler.InfluxDBHandlerKind)
+	integration, err := storage.GetIntegrationByApplicationID(config.C.PostgreSQL.DB, in.ApplicationId, integration.InfluxDB)
 	if err != nil {
 		return nil, errToRPCError(err)
 	}
@@ -549,14 +549,14 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 		TotalCount: int64(len(integrations)),
 	}
 
-	for _, integration := range integrations {
-		switch integration.Kind {
-		case handler.HTTPHandlerKind:
+	for _, intgr := range integrations {
+		switch intgr.Kind {
+		case integration.HTTP:
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_HTTP})
-		case handler.InfluxDBHandlerKind:
+		case integration.InfluxDB:
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_INFLUXDB})
 		default:
-			return nil, grpc.Errorf(codes.Internal, "unknown integration kind: %s", integration.Kind)
+			return nil, grpc.Errorf(codes.Internal, "unknown integration kind: %s", intgr.Kind)
 		}
 	}
 

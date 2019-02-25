@@ -1,4 +1,4 @@
-package influxdbhandler
+package influxdb
 
 import "errors"
 

@@ -129,6 +129,8 @@ func setupIntegration() error {
 
 	for _, name := range config.C.ApplicationServer.Integration.Enabled {
 		switch name {
+		case "azure_service_bus":
+			confs = append(confs, config.C.ApplicationServer.Integration.AzureServiceBus)
 		case "mqtt":
 			confs = append(confs, config.C.ApplicationServer.Integration.MQTT)
 		case "gcp_pub_sub":

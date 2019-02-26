@@ -153,12 +153,16 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # besides the extra integrations that can be added on a per-application
   # basis.
   [application_server.integration]
-  # The integration backend.
+  # Enabled integrations.
   #
-  # This defines the backend to use for the data integration. Use the section
-  # name of one of the following integration backend.
-  # E.g. "mqtt" or "gcp_pub_sub".
-  backend="mqtt"
+  # Enabled integrations are enabled for all applications. Multiple
+  # integrations can be configured.
+  # Do not forget to configure the related configuration section below for
+  # the enabled integrations. Integrations that can be enabled are:
+  # * mqtt              - MQTT broker
+  # * azure_service_bus - Azure Service-Bus
+  # * gcp_pub_sub       - Google Cloud Pub/Sub
+  enabled=["mqtt"]
 
 
   # MQTT integration backend.
@@ -241,7 +245,26 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   tls_key=""
 
 
-  # Google Cloud Pub/Sub backend.
+  # Azure Service-Bus integration.
+  [application_server.integration.azure_service_bus]
+  # Connection string.
+  #
+  # The connection string can be found / created in the Azure console under
+  # Settings -> Shared access policies. The policy must contain Manage & Send.
+  connection_string=""
+
+  # Publish mode.
+  #
+  # Select either "topic", or "queue".
+  publish_mode=""
+
+  # Publish name.
+  #
+  # The name of the topic or queue.
+  publish_name=""
+
+
+  # Google Cloud Pub/Sub integration.
   [application_server.integration.gcp_pub_sub]
   # Path to the IAM service-account credentials file.
   #
@@ -334,7 +357,7 @@ tls_key=""
 # Key Encryption Key (KEK) configuration.
 #
 # The KEK meganism is used to encrypt the session-keys sent from the
-# join-server to the network-server.
+# join-server to the network-server. 
 #
 # The LoRa App Server join-server will use the NetID of the requesting
 # network-server as the KEK label. When no such label exists in the set,

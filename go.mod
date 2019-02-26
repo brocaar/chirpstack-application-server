@@ -2,6 +2,7 @@ module github.com/brocaar/lora-app-server
 
 require (
 	cloud.google.com/go v0.34.0
+	github.com/Azure/azure-service-bus-go v0.2.0
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
 	github.com/brocaar/loraserver v0.0.0-20190116145810-3cdb0c99d7e3
 	github.com/brocaar/lorawan v0.0.0-20190115134457-5f417c8cb7a7

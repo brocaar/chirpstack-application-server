@@ -106,8 +106,9 @@ id="{{ .ApplicationServer.ID }}"
   # integrations can be configured.
   # Do not forget to configure the related configuration section below for
   # the enabled integrations. Integrations that can be enabled are:
-  # * mqtt        - MQTT broker
-  # * gcp_pub_sub - Google Cloud Pub/Sub
+  # * mqtt              - MQTT broker
+  # * azure_service_bus - Azure Service-Bus
+  # * gcp_pub_sub       - Google Cloud Pub/Sub
   enabled=[{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}{{ range $index, $elm := .ApplicationServer.Integration.Enabled }}{{ if $index }}", "{{ end }}{{ $elm }}{{ end }}{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}]
 
 
@@ -191,7 +192,26 @@ id="{{ .ApplicationServer.ID }}"
   tls_key="{{ .ApplicationServer.Integration.MQTT.TLSKey }}"
 
 
-  # Google Cloud Pub/Sub backend.
+  # Azure Service-Bus integration.
+  [application_server.integration.azure_service_bus]
+  # Connection string.
+  #
+  # The connection string can be found / created in the Azure console under
+  # Settings -> Shared access policies. The policy must contain Manage & Send.
+  connection_string="{{ .ApplicationServer.Integration.AzureServiceBus.ConnectionString }}"
+
+  # Publish mode.
+  #
+  # Select either "topic", or "queue".
+  publish_mode="{{ .ApplicationServer.Integration.AzureServiceBus.PublishMode }}"
+
+  # Publish name.
+  #
+  # The name of the topic or queue.
+  publish_name="{{ .ApplicationServer.Integration.AzureServiceBus.PublishName }}"
+
+
+  # Google Cloud Pub/Sub integration.
   [application_server.integration.gcp_pub_sub]
   # Path to the IAM service-account credentials file.
   #

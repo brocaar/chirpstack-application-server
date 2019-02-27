@@ -17,9 +17,9 @@ The Azure Service Bus integration exposes all events as documented by [Event typ
 
 ## User properties
 
-The following user properties are added to Event Bus message:
+The following user properties are added to each published message:
 
-* `event` the event type
-* `application_id` the ID of the LoRa App Server application
-* `devEUI` the device EUI to which the event relates
+* `event` - the event type
+* `dev_eui` - the device EUI
+* `application_id` - the LoRa App Server application ID
 

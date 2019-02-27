@@ -6,6 +6,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 
 	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/integration/awssns"
 	"github.com/brocaar/lora-app-server/internal/integration/azureservicebus"
 	"github.com/brocaar/lora-app-server/internal/integration/gcppubsub"
 	"github.com/brocaar/lora-app-server/internal/integration/mqtt"
@@ -38,6 +39,7 @@ type Config struct {
 		Integration struct {
 			Backend         string                 `mapstructure:"backend"` // deprecated
 			Enabled         []string               `mapstructure:"enabled"`
+			AWSSNS          awssns.Config          `mapstructure:"aws_sns"`
 			AzureServiceBus azureservicebus.Config `mapstructure:"azure_service_bus"`
 			MQTT            mqtt.Config            `mapstructure:"mqtt"`
 			GCPPubSub       gcppubsub.Config       `mapstructure:"gcp_pub_sub"`

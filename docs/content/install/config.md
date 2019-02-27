@@ -160,6 +160,7 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # Do not forget to configure the related configuration section below for
   # the enabled integrations. Integrations that can be enabled are:
   # * mqtt              - MQTT broker
+  # * aws_sns           - AWS Simple Notification Service (SNS)
   # * azure_service_bus - Azure Service-Bus
   # * gcp_pub_sub       - Google Cloud Pub/Sub
   enabled=["mqtt"]
@@ -243,6 +244,24 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
   # TLS key file (optional)
   tls_key=""
+
+
+  # AWS Simple Notification Service (SNS)
+  [application_server.integration.aws_sns]
+  # AWS region.
+  #
+  # Example: "eu-west-1".
+  # See also: https://docs.aws.amazon.com/general/latest/gr/rande.html.
+  aws_region=""
+
+  # AWS Access Key ID.
+  aws_access_key_id=""
+
+  # AWS Secret Access Key.
+  aws_secret_access_key=""
+
+  # Topic ARN (SNS).
+  topic_arn=""
 
 
   # Azure Service-Bus integration.

@@ -10,6 +10,7 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/integration/awssns"
 	"github.com/brocaar/lora-app-server/internal/integration/azureservicebus"
 	"github.com/brocaar/lora-app-server/internal/integration/gcppubsub"
 	"github.com/brocaar/lora-app-server/internal/integration/http"
@@ -34,6 +35,8 @@ func New(confs []interface{}) (*Integration, error) {
 		var err error
 
 		switch v := conf.(type) {
+		case awssns.Config:
+			ii, err = awssns.New(v)
 		case azureservicebus.Config:
 			ii, err = azureservicebus.New(v)
 		case gcppubsub.Config:

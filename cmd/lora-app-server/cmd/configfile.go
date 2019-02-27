@@ -107,6 +107,7 @@ id="{{ .ApplicationServer.ID }}"
   # Do not forget to configure the related configuration section below for
   # the enabled integrations. Integrations that can be enabled are:
   # * mqtt              - MQTT broker
+  # * aws_sns           - AWS Simple Notification Service (SNS)
   # * azure_service_bus - Azure Service-Bus
   # * gcp_pub_sub       - Google Cloud Pub/Sub
   enabled=[{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}{{ range $index, $elm := .ApplicationServer.Integration.Enabled }}{{ if $index }}", "{{ end }}{{ $elm }}{{ end }}{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}]
@@ -190,6 +191,24 @@ id="{{ .ApplicationServer.ID }}"
 
   # TLS key file (optional)
   tls_key="{{ .ApplicationServer.Integration.MQTT.TLSKey }}"
+
+
+  # AWS Simple Notification Service (SNS)
+  [application_server.integration.aws_sns]
+  # AWS region.
+  #
+  # Example: "eu-west-1".
+  # See also: https://docs.aws.amazon.com/general/latest/gr/rande.html.
+  aws_region="{{ .ApplicationServer.Integration.AWSSNS.AWSRegion }}"
+
+  # AWS Access Key ID.
+  aws_access_key_id="{{ .ApplicationServer.Integration.AWSSNS.AWSAccessKeyID }}"
+
+  # AWS Secret Access Key.
+  aws_secret_access_key="{{ .ApplicationServer.Integration.AWSSNS.AWSSecretAccessKey }}"
+
+  # Topic ARN (SNS).
+  topic_arn="{{ .ApplicationServer.Integration.AWSSNS.TopicARN }}"
 
 
   # Azure Service-Bus integration.

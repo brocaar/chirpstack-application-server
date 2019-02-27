@@ -6,9 +6,10 @@ import (
 	"github.com/gomodule/redigo/redis"
 
 	"github.com/brocaar/lora-app-server/internal/common"
-	"github.com/brocaar/lora-app-server/internal/handler"
-	"github.com/brocaar/lora-app-server/internal/handler/gcppubsub"
-	"github.com/brocaar/lora-app-server/internal/handler/mqtthandler"
+	"github.com/brocaar/lora-app-server/internal/integration/awssns"
+	"github.com/brocaar/lora-app-server/internal/integration/azureservicebus"
+	"github.com/brocaar/lora-app-server/internal/integration/gcppubsub"
+	"github.com/brocaar/lora-app-server/internal/integration/mqtt"
 	"github.com/brocaar/lora-app-server/internal/nsclient"
 )
 
@@ -36,10 +37,12 @@ type Config struct {
 		ID string `mapstructure:"id"`
 
 		Integration struct {
-			Backend   string
-			Handler   handler.Handler
-			MQTT      mqtthandler.Config `mapstructure:"mqtt"`
-			GCPPubSub gcppubsub.Config   `mapstructure:"gcp_pub_sub"`
+			Backend         string                 `mapstructure:"backend"` // deprecated
+			Enabled         []string               `mapstructure:"enabled"`
+			AWSSNS          awssns.Config          `mapstructure:"aws_sns"`
+			AzureServiceBus azureservicebus.Config `mapstructure:"azure_service_bus"`
+			MQTT            mqtt.Config            `mapstructure:"mqtt"`
+			GCPPubSub       gcppubsub.Config       `mapstructure:"gcp_pub_sub"`
 		}
 
 		API struct {

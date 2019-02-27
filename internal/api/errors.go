@@ -1,8 +1,8 @@
 package api
 
 import (
-	"github.com/brocaar/lora-app-server/internal/handler/httphandler"
-	"github.com/brocaar/lora-app-server/internal/handler/influxdbhandler"
+	"github.com/brocaar/lora-app-server/internal/integration/http"
+	"github.com/brocaar/lora-app-server/internal/integration/influxdb"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -23,8 +23,8 @@ var errToCode = map[error]codes.Code{
 	storage.ErrInvalidEmail:                    codes.InvalidArgument,
 	storage.ErrInvalidGatewayDiscoveryInterval: codes.InvalidArgument,
 	storage.ErrDeviceProfileInvalidName:        codes.InvalidArgument,
-	httphandler.ErrInvalidHeaderName:           codes.InvalidArgument,
-	influxdbhandler.ErrInvalidPrecision:        codes.InvalidArgument,
+	http.ErrInvalidHeaderName:                  codes.InvalidArgument,
+	influxdb.ErrInvalidPrecision:               codes.InvalidArgument,
 }
 
 func errToRPCError(err error) error {

@@ -1,4 +1,4 @@
-package influxdbhandler
+package influxdb
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/integration"
 	"github.com/brocaar/lorawan"
 )
 
@@ -35,7 +35,7 @@ func (h *testHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type HandlerTestSuite struct {
 	suite.Suite
 
-	Handler  *Handler
+	Handler  integration.Integrator
 	Requests chan *http.Request
 	Server   *httptest.Server
 }
@@ -49,7 +49,7 @@ func (ts *HandlerTestSuite) SetupSuite() {
 	}
 	ts.Server = httptest.NewServer(&httpHandler)
 
-	conf := HandlerConfig{
+	conf := Config{
 		Endpoint:            ts.Server.URL + "/write",
 		DB:                  "loraserver",
 		Username:            "user",
@@ -58,7 +58,7 @@ func (ts *HandlerTestSuite) SetupSuite() {
 		Precision:           "s",
 	}
 	var err error
-	ts.Handler, err = NewHandler(conf)
+	ts.Handler, err = New(conf)
 	assert.NoError(err)
 }
 
@@ -69,12 +69,12 @@ func (ts *HandlerTestSuite) TearDownSuite() {
 func (ts *HandlerTestSuite) TestStatus() {
 	tests := []struct {
 		Name         string
-		Payload      handler.StatusNotification
+		Payload      integration.StatusNotification
 		ExpectedBody string
 	}{
 		{
 			Name: "margin and battery status",
-			Payload: handler.StatusNotification{
+			Payload: integration.StatusNotification{
 				ApplicationName: "test-app",
 				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 				DeviceName:      "test-device",
@@ -117,18 +117,18 @@ device_status_margin,application_name=test-app,dev_eui=0102030405060708,device_n
 func (ts *HandlerTestSuite) TestUplink() {
 	tests := []struct {
 		Name         string
-		Payload      handler.DataUpPayload
+		Payload      integration.DataUpPayload
 		ExpectedBody string
 	}{
 		{
 			Name: "One level depth",
-			Payload: handler.DataUpPayload{
+			Payload: integration.DataUpPayload{
 				ApplicationName: "test-app",
 				DeviceName:      "test-dev",
 				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 				FCnt:            10,
 				FPort:           20,
-				TXInfo: handler.TXInfo{
+				TXInfo: integration.TXInfo{
 					Frequency: 868100000,
 					DR:        2,
 				},
@@ -146,18 +146,42 @@ device_frmpayload_data_temperature,application_name=test-app,dev_eui=01020304050
 device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 f_cnt=10i,value=1i`,
 		},
 		{
-			Name: "One level depth + RXInfo",
-			Payload: handler.DataUpPayload{
+			Name: "One level depth with nil value",
+			Payload: integration.DataUpPayload{
 				ApplicationName: "test-app",
 				DeviceName:      "test-dev",
 				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 				FCnt:            10,
 				FPort:           20,
-				TXInfo: handler.TXInfo{
+				TXInfo: integration.TXInfo{
 					Frequency: 868100000,
 					DR:        2,
 				},
-				RXInfo: []handler.RXInfo{
+				Object: map[string]interface{}{
+					"temperature": nil,
+					"humidity":    20,
+					"active":      true,
+					"status":      "on",
+				},
+			},
+			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=true
+device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=20i
+device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value="on"
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 f_cnt=10i,value=1i`,
+		},
+		{
+			Name: "One level depth + RXInfo",
+			Payload: integration.DataUpPayload{
+				ApplicationName: "test-app",
+				DeviceName:      "test-dev",
+				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+				FCnt:            10,
+				FPort:           20,
+				TXInfo: integration.TXInfo{
+					Frequency: 868100000,
+					DR:        2,
+				},
+				RXInfo: []integration.RXInfo{
 					{
 						LoRaSNR: 1,
 						RSSI:    -60,
@@ -186,13 +210,13 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 		},
 		{
 			Name: "Mixed level depth",
-			Payload: handler.DataUpPayload{
+			Payload: integration.DataUpPayload{
 				ApplicationName: "test-app",
 				DeviceName:      "test-dev",
 				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 				FCnt:            10,
 				FPort:           20,
-				TXInfo: handler.TXInfo{
+				TXInfo: integration.TXInfo{
 					Frequency: 868100000,
 					DR:        2,
 				},
@@ -215,13 +239,13 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 		},
 		{
 			Name: "One level depth + device status fields",
-			Payload: handler.DataUpPayload{
+			Payload: integration.DataUpPayload{
 				ApplicationName: "test-app",
 				DeviceName:      "test-dev",
 				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 				FCnt:            10,
 				FPort:           20,
-				TXInfo: handler.TXInfo{
+				TXInfo: integration.TXInfo{
 					Frequency: 868100000,
 					DR:        2,
 				},
@@ -240,13 +264,13 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 		},
 		{
 			Name: "Latitude and longitude",
-			Payload: handler.DataUpPayload{
+			Payload: integration.DataUpPayload{
 				ApplicationName: "test-app",
 				DeviceName:      "test-dev",
 				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 				FCnt:            10,
 				FPort:           20,
-				TXInfo: handler.TXInfo{
+				TXInfo: integration.TXInfo{
 					Frequency: 868100000,
 					DR:        2,
 				},
@@ -264,13 +288,13 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 		},
 		{
 			Name: "Cayenne LPP with latitude and longitude",
-			Payload: handler.DataUpPayload{
+			Payload: integration.DataUpPayload{
 				ApplicationName: "test-app",
 				DeviceName:      "test-dev",
 				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 				FCnt:            10,
 				FPort:           20,
-				TXInfo: handler.TXInfo{
+				TXInfo: integration.TXInfo{
 					Frequency: 868100000,
 					DR:        2,
 				},

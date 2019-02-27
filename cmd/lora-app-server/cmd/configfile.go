@@ -100,12 +100,17 @@ id="{{ .ApplicationServer.ID }}"
   # besides the extra integrations that can be added on a per-application
   # basis.
   [application_server.integration]
-  # The integration backend.
+  # Enabled integrations.
   #
-  # This defines the backend to use for the data integration. Use the section
-  # name of one of the following integration backend.
-  # E.g. "mqtt" or "gcp_pub_sub".
-  backend="{{ .ApplicationServer.Integration.Backend }}"
+  # Enabled integrations are enabled for all applications. Multiple
+  # integrations can be configured.
+  # Do not forget to configure the related configuration section below for
+  # the enabled integrations. Integrations that can be enabled are:
+  # * mqtt              - MQTT broker
+  # * aws_sns           - AWS Simple Notification Service (SNS)
+  # * azure_service_bus - Azure Service-Bus
+  # * gcp_pub_sub       - Google Cloud Pub/Sub
+  enabled=[{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}{{ range $index, $elm := .ApplicationServer.Integration.Enabled }}{{ if $index }}", "{{ end }}{{ $elm }}{{ end }}{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}]
 
 
   # MQTT integration backend.
@@ -128,6 +133,18 @@ id="{{ .ApplicationServer.ID }}"
   error_topic_template="{{ .ApplicationServer.Integration.MQTT.ErrorTopicTemplate }}"
   status_topic_template="{{ .ApplicationServer.Integration.MQTT.StatusTopicTemplate }}"
   location_topic_template="{{ .ApplicationServer.Integration.MQTT.LocationTopicTemplate }}"
+
+  # Retained messages configuration.
+  #
+  # The MQTT broker will store the last publised message, when retained message is set
+  # to true. When a client subscribes to a topic with retained message set to true, it will
+  # always receive the last published message.
+  uplink_retained_message={{ .ApplicationServer.Integration.MQTT.UplinkRetainedMessage }}
+  join_retained_message={{ .ApplicationServer.Integration.MQTT.JoinRetainedMessage }}
+  ack_retained_message={{ .ApplicationServer.Integration.MQTT.AckRetainedMessage }}
+  error_retained_message={{ .ApplicationServer.Integration.MQTT.ErrorRetainedMessage }}
+  status_retained_message={{ .ApplicationServer.Integration.MQTT.StatusRetainedMessage }}
+  location_retained_message={{ .ApplicationServer.Integration.MQTT.LocationRetainedMessage }}
 
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="{{ .ApplicationServer.Integration.MQTT.Server }}"
@@ -176,7 +193,44 @@ id="{{ .ApplicationServer.ID }}"
   tls_key="{{ .ApplicationServer.Integration.MQTT.TLSKey }}"
 
 
-  # Google Cloud Pub/Sub backend.
+  # AWS Simple Notification Service (SNS)
+  [application_server.integration.aws_sns]
+  # AWS region.
+  #
+  # Example: "eu-west-1".
+  # See also: https://docs.aws.amazon.com/general/latest/gr/rande.html.
+  aws_region="{{ .ApplicationServer.Integration.AWSSNS.AWSRegion }}"
+
+  # AWS Access Key ID.
+  aws_access_key_id="{{ .ApplicationServer.Integration.AWSSNS.AWSAccessKeyID }}"
+
+  # AWS Secret Access Key.
+  aws_secret_access_key="{{ .ApplicationServer.Integration.AWSSNS.AWSSecretAccessKey }}"
+
+  # Topic ARN (SNS).
+  topic_arn="{{ .ApplicationServer.Integration.AWSSNS.TopicARN }}"
+
+
+  # Azure Service-Bus integration.
+  [application_server.integration.azure_service_bus]
+  # Connection string.
+  #
+  # The connection string can be found / created in the Azure console under
+  # Settings -> Shared access policies. The policy must contain Manage & Send.
+  connection_string="{{ .ApplicationServer.Integration.AzureServiceBus.ConnectionString }}"
+
+  # Publish mode.
+  #
+  # Select either "topic", or "queue".
+  publish_mode="{{ .ApplicationServer.Integration.AzureServiceBus.PublishMode }}"
+
+  # Publish name.
+  #
+  # The name of the topic or queue.
+  publish_name="{{ .ApplicationServer.Integration.AzureServiceBus.PublishName }}"
+
+
+  # Google Cloud Pub/Sub integration.
   [application_server.integration.gcp_pub_sub]
   # Path to the IAM service-account credentials file.
   #

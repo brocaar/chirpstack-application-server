@@ -3,6 +3,8 @@ package cmd
 import (
 	"bytes"
 	"io/ioutil"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/brocaar/lora-app-server/internal/config"
@@ -39,7 +41,6 @@ func init() {
 	viper.SetDefault("redis.url", "redis://localhost:6379")
 	viper.SetDefault("redis.max_idle", 10)
 	viper.SetDefault("redis.idle_timeout", 5*time.Minute)
-	viper.SetDefault("application_server.integration.backend", "mqtt")
 	viper.SetDefault("application_server.integration.mqtt.server", "tcp://localhost:1883")
 	viper.SetDefault("application_server.api.public_host", "localhost:8001")
 	viper.SetDefault("application_server.id", "6d5db27e-4ce2-4b2b-b5d7-91f069397978")
@@ -54,6 +55,7 @@ func init() {
 	viper.SetDefault("application_server.integration.mqtt.status_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status")
 	viper.SetDefault("application_server.integration.mqtt.location_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location")
 	viper.SetDefault("application_server.integration.mqtt.clean_session", true)
+	viper.SetDefault("application_server.integration.enabled", []string{"mqtt"})
 
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(configCmd)
@@ -92,7 +94,38 @@ func initConfig() {
 		}
 	}
 
+	viperBindEnvs(config.C)
+
 	if err := viper.Unmarshal(&config.C); err != nil {
 		log.WithError(err).Fatal("unmarshal config error")
+	}
+
+	// backwards compatibility
+	if config.C.ApplicationServer.Integration.Backend != "" {
+		config.C.ApplicationServer.Integration.Enabled = []string{config.C.ApplicationServer.Integration.Backend}
+	}
+}
+
+func viperBindEnvs(iface interface{}, parts ...string) {
+	ifv := reflect.ValueOf(iface)
+	ift := reflect.TypeOf(iface)
+	for i := 0; i < ift.NumField(); i++ {
+		v := ifv.Field(i)
+		t := ift.Field(i)
+		tv, ok := t.Tag.Lookup("mapstructure")
+		if !ok {
+			tv = strings.ToLower(t.Name)
+		}
+		if tv == "-" {
+			continue
+		}
+
+		switch v.Kind() {
+		case reflect.Struct:
+			viperBindEnvs(v.Interface(), append(parts, tv)...)
+		default:
+			key := strings.Join(append(parts, tv), ".")
+			viper.BindEnv(key)
+		}
 	}
 }

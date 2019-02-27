@@ -29,6 +29,8 @@ the application will be published using this / these integration(s).
 The following integrations are available:
 
 * [MQTT]({{<relref "mqtt.md">}})
+* [AWS Simple Notification Service]({{<relref "aws-sns.md"}})
+* [Azure Service Bus]({{<relref "azure-service-bus.md">}})
 * [Google Cloud Platform Pub/Sub]({{<relref "gcp-pub-sub.md">}})
 
 

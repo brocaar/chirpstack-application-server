@@ -8,7 +8,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/NickBall/go-aes-key-wrap"
+	keywrap "github.com/NickBall/go-aes-key-wrap"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
@@ -22,7 +22,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/eventlog"
 	"github.com/brocaar/lora-app-server/internal/gwping"
-	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/integration"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
 	"github.com/brocaar/loraserver/api/common"
@@ -111,7 +111,7 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 				"dev_eui":        d.DevEUI,
 			}).WithError(err).Error("decode payload error")
 
-			errNotification := handler.ErrorNotification{
+			errNotification := integration.ErrorNotification{
 				ApplicationID:   d.ApplicationID,
 				ApplicationName: app.Name,
 				DeviceName:      d.Name,
@@ -128,21 +128,21 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 				log.WithError(err).Error("log event for device error")
 			}
 
-			if err := config.C.ApplicationServer.Integration.Handler.SendErrorNotification(errNotification); err != nil {
-				log.WithError(err).Error("send error notification to handler error")
+			if err := integration.Integration().SendErrorNotification(errNotification); err != nil {
+				log.WithError(err).Error("send error notification to integration error")
 			}
 		} else {
 			object = codecPL.Object()
 		}
 	}
 
-	pl := handler.DataUpPayload{
+	pl := integration.DataUpPayload{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,
 		DevEUI:          devEUI,
-		RXInfo:          []handler.RXInfo{},
-		TXInfo: handler.TXInfo{
+		RXInfo:          []integration.RXInfo{},
+		TXInfo: integration.TXInfo{
 			Frequency: int(req.TxInfo.Frequency),
 			DR:        int(req.Dr),
 		},
@@ -169,14 +169,14 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		var mac lorawan.EUI64
 		copy(mac[:], rxInfo.GatewayId)
 
-		row := handler.RXInfo{
+		row := integration.RXInfo{
 			GatewayID: mac,
 			RSSI:      int(rxInfo.Rssi),
 			LoRaSNR:   rxInfo.LoraSnr,
 		}
 
 		if rxInfo.Location != nil {
-			row.Location = &handler.Location{
+			row.Location = &integration.Location{
 				Latitude:  rxInfo.Location.Latitude,
 				Longitude: rxInfo.Location.Longitude,
 				Altitude:  rxInfo.Location.Altitude,
@@ -207,9 +207,9 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		log.WithError(err).Error("log event for device error")
 	}
 
-	err = config.C.ApplicationServer.Integration.Handler.SendDataUp(pl)
+	err = integration.Integration().SendDataUp(pl)
 	if err != nil {
-		log.WithError(err).Error("send uplink data to handler error")
+		log.WithError(err).Error("send uplink data to integration error")
 		return nil, grpc.Errorf(codes.Internal, err.Error())
 	}
 
@@ -238,7 +238,7 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		"dev_eui": devEUI,
 	}).Info("downlink device-queue item acknowledged")
 
-	pl := handler.ACKNotification{
+	pl := integration.ACKNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,
@@ -255,9 +255,9 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		log.WithError(err).Error("log event for device error")
 	}
 
-	err = config.C.ApplicationServer.Integration.Handler.SendACKNotification(pl)
+	err = integration.Integration().SendACKNotification(pl)
 	if err != nil {
-		log.Errorf("send ack notification to handler error: %s", err)
+		log.Errorf("send ack notification to integration error: %s", err)
 	}
 
 	return &empty.Empty{}, nil
@@ -286,7 +286,7 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		"dev_eui": devEUI,
 	}).Error(req.Error)
 
-	pl := handler.ErrorNotification{
+	pl := integration.ErrorNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,
@@ -304,9 +304,9 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		log.WithError(err).Error("log event for device error")
 	}
 
-	err = config.C.ApplicationServer.Integration.Handler.SendErrorNotification(pl)
+	err = integration.Integration().SendErrorNotification(pl)
 	if err != nil {
-		errStr := fmt.Sprintf("send error notification to handler error: %s", err)
+		errStr := fmt.Sprintf("send error notification to integration error: %s", err)
 		log.Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
@@ -373,7 +373,7 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 		return nil, errToRPCError(errors.Wrap(err, "get application error"))
 	}
 
-	pl := handler.StatusNotification{
+	pl := integration.StatusNotification{
 		ApplicationID:           app.ID,
 		ApplicationName:         app.Name,
 		DeviceName:              d.Name,
@@ -392,9 +392,9 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 		log.WithError(err).Error("log event for device error")
 	}
 
-	err = config.C.ApplicationServer.Integration.Handler.SendStatusNotification(pl)
+	err = integration.Integration().SendStatusNotification(pl)
 	if err != nil {
-		return nil, errToRPCError(errors.Wrap(err, "send status notification to handler error"))
+		return nil, errToRPCError(errors.Wrap(err, "send status notification to integration error"))
 	}
 
 	return &empty.Empty{}, nil
@@ -437,12 +437,12 @@ func (a *ApplicationServerAPI) SetDeviceLocation(ctx context.Context, req *as.Se
 		return nil, errToRPCError(errors.Wrap(err, "get application error"))
 	}
 
-	pl := handler.LocationNotification{
+	pl := integration.LocationNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,
 		DevEUI:          d.DevEUI,
-		Location: handler.Location{
+		Location: integration.Location{
 			Latitude:  req.Location.Latitude,
 			Longitude: req.Location.Longitude,
 			Altitude:  req.Location.Altitude,
@@ -457,9 +457,9 @@ func (a *ApplicationServerAPI) SetDeviceLocation(ctx context.Context, req *as.Se
 		log.WithError(err).Error("log event for device error")
 	}
 
-	err = config.C.ApplicationServer.Integration.Handler.SendLocationNotification(pl)
+	err = integration.Integration().SendLocationNotification(pl)
 	if err != nil {
-		return nil, errToRPCError(errors.Wrap(err, "send location notification to handler error"))
+		return nil, errToRPCError(errors.Wrap(err, "send location notification to integration error"))
 	}
 
 	return &empty.Empty{}, nil
@@ -533,7 +533,7 @@ func handleDeviceActivation(d storage.Device, app storage.Application, daCtx *as
 		return errors.Wrap(err, "create device-activation error")
 	}
 
-	pl := handler.JoinNotification{
+	pl := integration.JoinNotification{
 		ApplicationID:   app.ID,
 		ApplicationName: app.Name,
 		DevEUI:          d.DevEUI,
@@ -549,7 +549,7 @@ func handleDeviceActivation(d storage.Device, app storage.Application, daCtx *as
 		log.WithError(err).Error("log event for device error")
 	}
 
-	err = config.C.ApplicationServer.Integration.Handler.SendJoinNotification(pl)
+	err = integration.Integration().SendJoinNotification(pl)
 	if err != nil {
 		return errors.Wrap(err, "send join notification error")
 	}

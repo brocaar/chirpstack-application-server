@@ -1,4 +1,4 @@
-package mqtthandler
+package mqtt
 
 import (
 	"encoding/json"
@@ -13,16 +13,16 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/integration"
 	"github.com/brocaar/lorawan"
 )
 
 type MQTTHandlerTestSuite struct {
 	suite.Suite
 
-	mqttClient paho.Client
-	handler    handler.Handler
-	redisPool  *redis.Pool
+	mqttClient  paho.Client
+	integration integration.Integrator
+	redisPool   *redis.Pool
 }
 
 func (ts *MQTTHandlerTestSuite) SetupSuite() {
@@ -67,7 +67,7 @@ func (ts *MQTTHandlerTestSuite) SetupSuite() {
 	}
 
 	var err error
-	ts.handler, err = NewHandler(
+	ts.integration, err = New(
 		ts.redisPool,
 		Config{
 			Server:                mqttServer,
@@ -89,7 +89,7 @@ func (ts *MQTTHandlerTestSuite) SetupSuite() {
 
 func (ts *MQTTHandlerTestSuite) TearDownSuite() {
 	ts.mqttClient.Disconnect(0)
-	ts.handler.Close()
+	ts.integration.Close()
 }
 
 func (ts *MQTTHandlerTestSuite) SetupTest() {
@@ -105,81 +105,81 @@ func (ts *MQTTHandlerTestSuite) SetupTest() {
 func (ts *MQTTHandlerTestSuite) TestUplink() {
 	assert := require.New(ts.T())
 
-	uplinkChan := make(chan handler.DataUpPayload, 1)
+	uplinkChan := make(chan integration.DataUpPayload, 1)
 	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/rx", 0, func(c paho.Client, msg paho.Message) {
-		var pl handler.DataUpPayload
+		var pl integration.DataUpPayload
 		assert.NoError(json.Unmarshal(msg.Payload(), &pl))
 		uplinkChan <- pl
 	})
 	token.Wait()
 	assert.NoError(token.Error())
 
-	pl := handler.DataUpPayload{
+	pl := integration.DataUpPayload{
 		ApplicationID: 123,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.handler.SendDataUp(pl))
+	assert.NoError(ts.integration.SendDataUp(pl))
 	assert.Equal(pl, <-uplinkChan)
 }
 
 func (ts *MQTTHandlerTestSuite) TestJoin() {
 	assert := require.New(ts.T())
 
-	joinChan := make(chan handler.JoinNotification, 1)
+	joinChan := make(chan integration.JoinNotification, 1)
 	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/join", 0, func(c paho.Client, msg paho.Message) {
-		var pl handler.JoinNotification
+		var pl integration.JoinNotification
 		assert.NoError(json.Unmarshal(msg.Payload(), &pl))
 		joinChan <- pl
 	})
 	token.Wait()
 	assert.NoError(token.Error())
 
-	pl := handler.JoinNotification{
+	pl := integration.JoinNotification{
 		ApplicationID:   123,
 		ApplicationName: "test-app",
 		DeviceName:      "test-node",
 		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 		DevAddr:         [4]byte{1, 2, 3, 4},
 	}
-	assert.NoError(ts.handler.SendJoinNotification(pl))
+	assert.NoError(ts.integration.SendJoinNotification(pl))
 	assert.Equal(pl, <-joinChan)
 }
 
 func (ts *MQTTHandlerTestSuite) TestAck() {
 	assert := require.New(ts.T())
 
-	ackChan := make(chan handler.ACKNotification, 1)
+	ackChan := make(chan integration.ACKNotification, 1)
 	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/ack", 0, func(c paho.Client, msg paho.Message) {
-		var pl handler.ACKNotification
+		var pl integration.ACKNotification
 		assert.NoError(json.Unmarshal(msg.Payload(), &pl))
 		ackChan <- pl
 	})
 	token.Wait()
 	assert.NoError(token.Error())
 
-	pl := handler.ACKNotification{
+	pl := integration.ACKNotification{
 		ApplicationID:   123,
 		ApplicationName: "test-app",
 		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 		DeviceName:      "test-node",
 	}
-	assert.NoError(ts.handler.SendACKNotification(pl))
+	assert.NoError(ts.integration.SendACKNotification(pl))
 	assert.Equal(pl, <-ackChan)
 }
 
 func (ts *MQTTHandlerTestSuite) TestError() {
 	assert := require.New(ts.T())
 
-	errChan := make(chan handler.ErrorNotification, 1)
+	errChan := make(chan integration.ErrorNotification, 1)
 	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/error", 0, func(c paho.Client, msg paho.Message) {
-		var pl handler.ErrorNotification
+		var pl integration.ErrorNotification
 		assert.NoError(json.Unmarshal(msg.Payload(), &pl))
 		errChan <- pl
 	})
 	token.Wait()
 	assert.NoError(token.Error())
 
-	pl := handler.ErrorNotification{
+	pl := integration.ErrorNotification{
 		ApplicationID:   123,
 		ApplicationName: "test-app",
 		DeviceName:      "test-node",
@@ -187,23 +187,23 @@ func (ts *MQTTHandlerTestSuite) TestError() {
 		Type:            "BOOM",
 		Error:           "boom boom boom",
 	}
-	assert.NoError(ts.handler.SendErrorNotification(pl))
+	assert.NoError(ts.integration.SendErrorNotification(pl))
 	assert.Equal(pl, <-errChan)
 }
 
 func (ts *MQTTHandlerTestSuite) TestStatus() {
 	assert := require.New(ts.T())
 
-	statusChan := make(chan handler.StatusNotification, 1)
+	statusChan := make(chan integration.StatusNotification, 1)
 	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/status", 0, func(c paho.Client, msg paho.Message) {
-		var pl handler.StatusNotification
+		var pl integration.StatusNotification
 		assert.NoError(json.Unmarshal(msg.Payload(), &pl))
 		statusChan <- pl
 	})
 	token.Wait()
 	assert.NoError(token.Error())
 
-	pl := handler.StatusNotification{
+	pl := integration.StatusNotification{
 		ApplicationID:   123,
 		ApplicationName: "test-app",
 		DeviceName:      "test-device",
@@ -211,41 +211,41 @@ func (ts *MQTTHandlerTestSuite) TestStatus() {
 		Margin:          123,
 		Battery:         234,
 	}
-	assert.NoError(ts.handler.SendStatusNotification(pl))
+	assert.NoError(ts.integration.SendStatusNotification(pl))
 	assert.Equal(pl, <-statusChan)
 }
 
 func (ts *MQTTHandlerTestSuite) TestLocation() {
 	assert := require.New(ts.T())
 
-	locationChan := make(chan handler.LocationNotification, 1)
+	locationChan := make(chan integration.LocationNotification, 1)
 	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/location", 0, func(c paho.Client, msg paho.Message) {
-		var pl handler.LocationNotification
+		var pl integration.LocationNotification
 		assert.NoError(json.Unmarshal(msg.Payload(), &pl))
 		locationChan <- pl
 	})
 	token.Wait()
 	assert.NoError(token.Error())
 
-	pl := handler.LocationNotification{
+	pl := integration.LocationNotification{
 		ApplicationID:   123,
 		ApplicationName: "test-app",
 		DeviceName:      "test-device",
 		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
-		Location: handler.Location{
+		Location: integration.Location{
 			Latitude:  1.123,
 			Longitude: 2.123,
 			Altitude:  3.123,
 		},
 	}
-	assert.NoError(ts.handler.SendLocationNotification(pl))
+	assert.NoError(ts.integration.SendLocationNotification(pl))
 	assert.Equal(pl, <-locationChan)
 }
 
 func (ts *MQTTHandlerTestSuite) TestDownlink() {
 	assert := require.New(ts.T())
 
-	pl := handler.DataDownPayload{
+	pl := integration.DataDownPayload{
 		Confirmed: false,
 		FPort:     1,
 		Data:      []byte("hello"),
@@ -257,14 +257,14 @@ func (ts *MQTTHandlerTestSuite) TestDownlink() {
 	token := ts.mqttClient.Publish("application/123/device/0102030405060708/tx", 0, false, b)
 	token.Wait()
 	assert.NoError(token.Error())
-	assert.Equal(handler.DataDownPayload{
+	assert.Equal(integration.DataDownPayload{
 		ApplicationID: 123,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 		Confirmed:     false,
 		FPort:         1,
 		Data:          []byte("hello"),
 		Object:        json.RawMessage("null"),
-	}, <-ts.handler.DataDownChan())
+	}, <-ts.integration.DataDownChan())
 
 	ts.T().Run("invalid fport", func(t *testing.T) {
 		assert := require.New(t)
@@ -277,7 +277,7 @@ func (ts *MQTTHandlerTestSuite) TestDownlink() {
 			token := ts.mqttClient.Publish("application/123/device/0102030405060708/tx", 0, false, b)
 			token.Wait()
 			assert.NoError(token.Error())
-			assert.Len(ts.handler.DataDownChan(), 0)
+			assert.Len(ts.integration.DataDownChan(), 0)
 		}
 	})
 }

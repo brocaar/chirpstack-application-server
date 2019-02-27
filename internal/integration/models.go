@@ -1,4 +1,4 @@
-package handler
+package integration
 
 import (
 	"encoding/gob"

@@ -17,9 +17,9 @@ import (
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
-	"github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
-	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
+	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
 	migrate "github.com/rubenv/sql-migrate"
@@ -37,10 +37,9 @@ import (
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/downlink"
 	"github.com/brocaar/lora-app-server/internal/gwping"
-	"github.com/brocaar/lora-app-server/internal/handler"
-	"github.com/brocaar/lora-app-server/internal/handler/gcppubsub"
-	"github.com/brocaar/lora-app-server/internal/handler/mqtthandler"
-	"github.com/brocaar/lora-app-server/internal/handler/multihandler"
+	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/integration/application"
+	"github.com/brocaar/lora-app-server/internal/integration/multi"
 	"github.com/brocaar/lora-app-server/internal/migrations"
 	"github.com/brocaar/lora-app-server/internal/nsclient"
 	"github.com/brocaar/lora-app-server/internal/static"
@@ -58,7 +57,7 @@ func run(cmd *cobra.Command, args []string) error {
 		printStartMessage,
 		setPostgreSQLConnection,
 		setRedisPool,
-		setHandler,
+		setupIntegration,
 		setNetworkServerClient,
 		runDatabaseMigrations,
 		setJWTSecret,
@@ -125,26 +124,30 @@ func setRedisPool() error {
 	return nil
 }
 
-func setHandler() error {
-	var h handler.Handler
-	var err error
+func setupIntegration() error {
+	var confs []interface{}
 
-	switch config.C.ApplicationServer.Integration.Backend {
-	case "mqtt":
-		h, err = mqtthandler.NewHandler(
-			config.C.Redis.Pool,
-			config.C.ApplicationServer.Integration.MQTT,
-		)
-	case "gcp_pub_sub":
-		h, err = gcppubsub.NewHandler(config.C.ApplicationServer.Integration.GCPPubSub)
-	default:
-		return fmt.Errorf("invalid integration backend: %s", config.C.ApplicationServer.Integration.Backend)
+	for _, name := range config.C.ApplicationServer.Integration.Enabled {
+		switch name {
+		case "aws_sns":
+			confs = append(confs, config.C.ApplicationServer.Integration.AWSSNS)
+		case "azure_service_bus":
+			confs = append(confs, config.C.ApplicationServer.Integration.AzureServiceBus)
+		case "mqtt":
+			confs = append(confs, config.C.ApplicationServer.Integration.MQTT)
+		case "gcp_pub_sub":
+			confs = append(confs, config.C.ApplicationServer.Integration.GCPPubSub)
+		default:
+			return fmt.Errorf("unknown integration type: %s", name)
+		}
 	}
 
+	mi, err := multi.New(confs)
 	if err != nil {
-		return errors.Wrap(err, "setup integration backend error")
+		return errors.Wrap(err, "setup integrations error")
 	}
-	config.C.ApplicationServer.Integration.Handler = multihandler.NewHandler(h)
+	mi.Add(application.New())
+	integration.SetIntegration(mi)
 
 	return nil
 }

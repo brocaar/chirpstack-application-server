@@ -12,10 +12,10 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/integration/mock"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
-	"github.com/brocaar/lora-app-server/internal/test/testhandler"
 	"github.com/brocaar/loraserver/api/as"
 	"github.com/brocaar/loraserver/api/common"
 	gwPB "github.com/brocaar/loraserver/api/gw"
@@ -93,8 +93,8 @@ func (ts *APITestSuite) TestApplicationServer() {
 	}
 	assert.NoError(storage.CreateGateway(ts.DB(), &gw))
 
-	h := testhandler.NewTestHandler()
-	config.C.ApplicationServer.Integration.Handler = h
+	h := mock.New()
+	integration.SetIntegration(h)
 
 	ctx := context.Background()
 	api := NewApplicationServerAPI()
@@ -110,7 +110,7 @@ func (ts *APITestSuite) TestApplicationServer() {
 		})
 		assert.NoError(err)
 
-		assert.Equal(handler.ErrorNotification{
+		assert.Equal(integration.ErrorNotification{
 			ApplicationID:   app.ID,
 			ApplicationName: "test-app",
 			DeviceName:      "test-node",
@@ -232,16 +232,16 @@ func (ts *APITestSuite) TestApplicationServer() {
 				assert.NoError(err)
 				assert.InDelta(time.Now().UnixNano(), d.LastSeenAt.UnixNano(), float64(time.Second))
 
-				assert.Equal(handler.DataUpPayload{
+				assert.Equal(integration.DataUpPayload{
 					ApplicationID:   app.ID,
 					ApplicationName: "test-app",
 					DeviceName:      "test-node",
 					DevEUI:          d.DevEUI,
-					RXInfo: []handler.RXInfo{
+					RXInfo: []integration.RXInfo{
 						{
 							GatewayID: mac,
 							Name:      "test-gw",
-							Location: &handler.Location{
+							Location: &integration.Location{
 								Latitude:  52.3740364,
 								Longitude: 4.9144401,
 								Altitude:  10,
@@ -251,7 +251,7 @@ func (ts *APITestSuite) TestApplicationServer() {
 							LoRaSNR: 5,
 						},
 					},
-					TXInfo: handler.TXInfo{
+					TXInfo: integration.TXInfo{
 						Frequency: 868100000,
 						DR:        6,
 					},
@@ -292,7 +292,7 @@ func (ts *APITestSuite) TestApplicationServer() {
 		tests := []struct {
 			Name                   string
 			SetDeviceStatusRequest as.SetDeviceStatusRequest
-			StatusNotification     handler.StatusNotification
+			StatusNotification     integration.StatusNotification
 		}{
 			{
 				Name: "battery and margin",
@@ -302,7 +302,7 @@ func (ts *APITestSuite) TestApplicationServer() {
 					Battery:      123,
 					BatteryLevel: 25.50,
 				},
-				StatusNotification: handler.StatusNotification{
+				StatusNotification: integration.StatusNotification{
 					ApplicationID:   app.ID,
 					ApplicationName: app.Name,
 					DeviceName:      d.Name,
@@ -319,7 +319,7 @@ func (ts *APITestSuite) TestApplicationServer() {
 					Margin:                  10,
 					BatteryLevelUnavailable: true,
 				},
-				StatusNotification: handler.StatusNotification{
+				StatusNotification: integration.StatusNotification{
 					ApplicationID:           app.ID,
 					ApplicationName:         app.Name,
 					DeviceName:              d.Name,
@@ -335,7 +335,7 @@ func (ts *APITestSuite) TestApplicationServer() {
 					Margin:              10,
 					ExternalPowerSource: true,
 				},
-				StatusNotification: handler.StatusNotification{
+				StatusNotification: integration.StatusNotification{
 					ApplicationID:       app.ID,
 					ApplicationName:     app.Name,
 					DeviceName:          d.Name,
@@ -383,12 +383,12 @@ func (ts *APITestSuite) TestApplicationServer() {
 		})
 		assert.NoError(err)
 
-		assert.Equal(handler.LocationNotification{
+		assert.Equal(integration.LocationNotification{
 			ApplicationID:   app.ID,
 			ApplicationName: app.Name,
 			DeviceName:      d.Name,
 			DevEUI:          d.DevEUI,
-			Location: handler.Location{
+			Location: integration.Location{
 				Latitude:  1.123,
 				Longitude: 2.123,
 				Altitude:  3.123,
@@ -410,7 +410,7 @@ func (ts *APITestSuite) TestApplicationServer() {
 		})
 		assert.NoError(err)
 
-		assert.Equal(handler.ACKNotification{
+		assert.Equal(integration.ACKNotification{
 			ApplicationID:   app.ID,
 			ApplicationName: app.Name,
 			DeviceName:      d.Name,

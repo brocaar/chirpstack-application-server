@@ -1,5 +1,5 @@
-// Package influxdbhandler implements a InfluxDB handler
-package influxdbhandler
+// Package influxdb implements a InfluxDB integration.
+package influxdb
 
 import (
 	"bytes"
@@ -17,19 +17,27 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/integration"
 )
 
 var precisionValidator = regexp.MustCompile(`^(ns|u|ms|s|m|h)$`)
 
-// HandlerConfig contains the configuration for a InfluxDB handler.
-type HandlerConfig struct {
+// Config contains the configuration for the InfluxDB integration.
+type Config struct {
 	Endpoint            string `json:"endpoint"`
 	DB                  string `json:"db"`
 	Username            string `json:"username"`
 	Password            string `json:"password"`
 	RetentionPolicyName string `json:"retentionPolicyName"`
 	Precision           string `json:"precision"`
+}
+
+// Validate validates the HandlerConfig data.
+func (c Config) Validate() error {
+	if !precisionValidator.MatchString(c.Precision) {
+		return ErrInvalidPrecision
+	}
+	return nil
 }
 
 type measurement struct {
@@ -76,28 +84,19 @@ func formatInfluxValue(v interface{}, quote bool) string {
 	}
 }
 
-// Validate validates the HandlerConfig data.
-func (c HandlerConfig) Validate() error {
-	if !precisionValidator.MatchString(c.Precision) {
-		return ErrInvalidPrecision
-	}
-	return nil
+// Integration implements an InfluxDB integration.
+type Integration struct {
+	config Config
 }
 
-// Handler implements an InfluxDB handler for writing received sensor-data into
-// an InfluxDB database.
-type Handler struct {
-	config HandlerConfig
-}
-
-// NewHandler creates a new InfluxDBHandler.
-func NewHandler(conf HandlerConfig) (*Handler, error) {
-	return &Handler{
+// New creates a new InfluxDB integration.
+func New(conf Config) (*Integration, error) {
+	return &Integration{
 		config: conf,
 	}, nil
 }
 
-func (h *Handler) send(measurements []measurement) error {
+func (i *Integration) send(measurements []measurement) error {
 	var measStr []string
 	for _, m := range measurements {
 		measStr = append(measStr, m.String())
@@ -107,19 +106,19 @@ func (h *Handler) send(measurements []measurement) error {
 	b := []byte(strings.Join(measStr, "\n"))
 
 	args := url.Values{}
-	args.Set("db", h.config.DB)
-	args.Set("precision", h.config.Precision)
-	args.Set("rp", h.config.RetentionPolicyName)
+	args.Set("db", i.config.DB)
+	args.Set("precision", i.config.Precision)
+	args.Set("rp", i.config.RetentionPolicyName)
 
-	req, err := http.NewRequest("POST", h.config.Endpoint+"?"+args.Encode(), bytes.NewReader(b))
+	req, err := http.NewRequest("POST", i.config.Endpoint+"?"+args.Encode(), bytes.NewReader(b))
 	if err != nil {
 		return errors.Wrap(err, "new request error")
 	}
 
 	req.Header.Set("Content-Type", "text/plain")
 
-	if h.config.Username != "" || h.config.Password != "" {
-		req.SetBasicAuth(h.config.Username, h.config.Password)
+	if i.config.Username != "" || i.config.Password != "" {
+		req.SetBasicAuth(i.config.Username, i.config.Password)
 	}
 
 	resp, err := http.DefaultClient.Do(req)
@@ -138,12 +137,12 @@ func (h *Handler) send(measurements []measurement) error {
 }
 
 // Close closes the handler.
-func (h *Handler) Close() error {
+func (i *Integration) Close() error {
 	return nil
 }
 
 // SendDataUp stores the uplink data into InfluxDB.
-func (h *Handler) SendDataUp(pl handler.DataUpPayload) error {
+func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 	if pl.Object == nil {
 		return nil
 	}
@@ -192,19 +191,19 @@ func (h *Handler) SendDataUp(pl handler.DataUpPayload) error {
 		return nil
 	}
 
-	if err := h.send(measurements); err != nil {
+	if err := i.send(measurements); err != nil {
 		return errors.Wrap(err, "sending measurements error")
 	}
 
 	log.WithFields(log.Fields{
 		"dev_eui": pl.DevEUI,
-	}).Info("handler/influxdb: uplink measurements written")
+	}).Info("integration/influxdb: uplink measurements written")
 
 	return nil
 }
 
 // SendStatusNotification writes the device-status.
-func (h *Handler) SendStatusNotification(pl handler.StatusNotification) error {
+func (i *Integration) SendStatusNotification(pl integration.StatusNotification) error {
 	var measurements []measurement
 
 	measurements = append(measurements, measurement{
@@ -245,39 +244,48 @@ func (h *Handler) SendStatusNotification(pl handler.StatusNotification) error {
 		},
 	})
 
-	if err := h.send(measurements); err != nil {
+	if err := i.send(measurements); err != nil {
 		return errors.Wrap(err, "sending measurements error")
 	}
 
 	log.WithFields(log.Fields{
 		"dev_eui": pl.DevEUI,
-	}).Info("handler/influxdb: status measurements written")
+	}).Info("integration/influxdb: status measurements written")
 
 	return nil
 }
 
 // SendJoinNotification is not implemented.
-func (h *Handler) SendJoinNotification(pl handler.JoinNotification) error {
+func (i *Integration) SendJoinNotification(pl integration.JoinNotification) error {
 	return nil
 }
 
 // SendACKNotification is not implemented.
-func (h *Handler) SendACKNotification(pl handler.ACKNotification) error {
+func (i *Integration) SendACKNotification(pl integration.ACKNotification) error {
 	return nil
 }
 
 // SendErrorNotification is not implemented.
-func (h *Handler) SendErrorNotification(pl handler.ErrorNotification) error {
+func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) error {
 	return nil
 }
 
 // SendLocationNotification is not implemented.
-func (h *Handler) SendLocationNotification(pl handler.LocationNotification) error {
+func (i *Integration) SendLocationNotification(pl integration.LocationNotification) error {
 	return nil
 }
 
-func objectToMeasurements(pl handler.DataUpPayload, prefix string, obj interface{}) []measurement {
+// DataDownChan return nil.
+func (i *Integration) DataDownChan() chan integration.DataDownPayload {
+	return nil
+}
+
+func objectToMeasurements(pl integration.DataUpPayload, prefix string, obj interface{}) []measurement {
 	var out []measurement
+
+	if obj == nil {
+		return out
+	}
 
 	switch o := obj.(type) {
 	case int, uint, float32, float64, uint8, int8, uint16, int16, uint32, int32, uint64, int64, string, bool:
@@ -345,7 +353,7 @@ func objectToMeasurements(pl handler.DataUpPayload, prefix string, obj interface
 			out = append(out, objectToMeasurements(pl, prefix, v.Interface())...)
 
 		default:
-			log.WithField("type_name", fmt.Sprintf("%T", o)).Warning("influxdb handler: unhandled type!")
+			log.WithField("type_name", fmt.Sprintf("%T", o)).Warning("influxdb integration: unhandled type!")
 		}
 
 	}
@@ -353,7 +361,7 @@ func objectToMeasurements(pl handler.DataUpPayload, prefix string, obj interface
 	return out
 }
 
-func mapToLocation(pl handler.DataUpPayload, prefix string, obj reflect.Value) []measurement {
+func mapToLocation(pl integration.DataUpPayload, prefix string, obj reflect.Value) []measurement {
 	var latFloat, longFloat float64
 
 	keys := obj.MapKeys()
@@ -399,7 +407,7 @@ func mapToLocation(pl handler.DataUpPayload, prefix string, obj reflect.Value) [
 	}
 }
 
-func structToLocation(pl handler.DataUpPayload, prefix string, obj reflect.Value) []measurement {
+func structToLocation(pl integration.DataUpPayload, prefix string, obj reflect.Value) []measurement {
 	var latFloat, longFloat float64
 
 	l := obj.NumField()

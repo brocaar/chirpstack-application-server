@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile-devel
     volumes:
-      - ./:/go/src/github.com/brocaar/lora-app-server
+      - ./:/lora-app-server
     links:
       - postgres
       - redis

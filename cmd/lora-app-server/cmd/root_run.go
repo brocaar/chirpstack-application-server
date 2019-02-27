@@ -314,7 +314,7 @@ func startClientAPI(ctx context.Context) func() error {
 					w.WriteHeader(http.StatusNotImplemented)
 					return
 				}
-				if config.C.ApplicationServer.ExternalAPI.CORS.AllowOrigin != "" {
+				if config.C.ApplicationServer.ExternalAPI.CORSAllowOrigin != "" {
 					setupCorsHeaders(w, r)
 					if r.Method == "OPTIONS" {
 						return

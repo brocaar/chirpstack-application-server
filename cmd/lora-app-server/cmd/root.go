@@ -45,7 +45,6 @@ func init() {
 	viper.SetDefault("application_server.id", "6d5db27e-4ce2-4b2b-b5d7-91f069397978")
 	viper.SetDefault("application_server.api.bind", "0.0.0.0:8001")
 	viper.SetDefault("application_server.external_api.bind", "0.0.0.0:8080")
-	viper.SetDefault("application_server.external_api.cors.allow_origin", "")
 	viper.SetDefault("join_server.bind", "0.0.0.0:8003")
 	viper.SetDefault("application_server.integration.mqtt.uplink_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/rx")
 	viper.SetDefault("application_server.integration.mqtt.downlink_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/tx")

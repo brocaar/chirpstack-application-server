@@ -235,12 +235,16 @@ id="{{ .ApplicationServer.ID }}"
   # You could generate this by executing 'openssl rand -base64 32' for example
   jwt_secret="{{ .ApplicationServer.ExternalAPI.JWTSecret }}"
 
+	[application_server.external_api.cors]
+	# Allow origin header (CORS).
+  #
+  # Set this to allows cross-domain communication from the browser (CORS).
+  # Example value: https://example.com.
+  # When left blank (default), CORS will not be used.
+  cors_allow_origin="{{ .ApplicationServer.ExternalAPI.CORSAllowOrigin }}"
+
   # when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)"
   disable_assign_existing_users={{ .ApplicationServer.ExternalAPI.DisableAssignExistingUsers }}
-
-  [application_server.external_api.cors]
-	# Allow Origin header, when set enable headers needed for CORS
-  allow_origin=""
 
 {{ if ne .ApplicationServer.Branding.Header  "" }}
   # Branding configuration.

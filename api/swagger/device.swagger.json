@@ -45,7 +45,7 @@
             "format": "int64"
           },
           {
-            "name": "application_id",
+            "name": "applicationID",
             "description": "Application ID to filter on.",
             "in": "query",
             "required": false,
@@ -60,14 +60,14 @@
             "type": "string"
           },
           {
-            "name": "multicast_group_id",
+            "name": "multicastGroupID",
             "description": "Multicast-group ID to filter on (string formatted UUID).",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "service_profile_id",
+            "name": "serviceProfileID",
             "description": "Service-profile ID to filter on (string formatted UUID).",
             "in": "query",
             "required": false,
@@ -212,7 +212,7 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "$ref": "#/definitions/apiStreamDeviceEventLogsResponse"
+              "$ref": "#/x-stream-definitions/apiStreamDeviceEventLogsResponse"
             }
           }
         },
@@ -238,7 +238,7 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "$ref": "#/definitions/apiStreamDeviceFrameLogsResponse"
+              "$ref": "#/x-stream-definitions/apiStreamDeviceFrameLogsResponse"
             }
           }
         },
@@ -1075,6 +1075,69 @@
           "description": "FSK modulation information."
         }
       }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeStreamError": {
+      "type": "object",
+      "properties": {
+        "grpcCode": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "httpCode": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "httpStatus": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  },
+  "x-stream-definitions": {
+    "apiStreamDeviceEventLogsResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/apiStreamDeviceEventLogsResponse"
+        },
+        "error": {
+          "$ref": "#/definitions/runtimeStreamError"
+        }
+      },
+      "title": "Stream result of apiStreamDeviceEventLogsResponse"
+    },
+    "apiStreamDeviceFrameLogsResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/apiStreamDeviceFrameLogsResponse"
+        },
+        "error": {
+          "$ref": "#/definitions/runtimeStreamError"
+        }
+      },
+      "title": "Stream result of apiStreamDeviceFrameLogsResponse"
     }
   }
 }

@@ -45,7 +45,7 @@
             "format": "int64"
           },
           {
-            "name": "organization_id",
+            "name": "organizationID",
             "description": "Organization id to filter on.",
             "in": "query",
             "required": false,
@@ -53,14 +53,14 @@
             "format": "int64"
           },
           {
-            "name": "dev_eui",
+            "name": "devEUI",
             "description": "Device EUI (HEX encoded string) to filter on.",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "service_profile_id",
+            "name": "serviceProfileID",
             "description": "Service-profile ID to filter on.",
             "in": "query",
             "required": false,

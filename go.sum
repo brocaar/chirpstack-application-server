@@ -33,6 +33,8 @@ github.com/aws/aws-sdk-go v1.17.5/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/blakesmith/ar v0.0.0-20150311145944-8bd4349a67f2 h1:oMCHnXa6CCCafdPDbMh/lWRhRByN0VFLvv+g+ayx1SI=
 github.com/blakesmith/ar v0.0.0-20150311145944-8bd4349a67f2/go.mod h1:PkYb9DJNAwrSvRx5DYA+gUcOIgTGVMNkfSCbZM8cWpI=
+github.com/brocaar/grpc-gateway v1.7.0-patched h1:Tf9bSbCPwmkudyaSSmX0cfDB8x9u3BhTxIGaxmlxn5Q=
+github.com/brocaar/grpc-gateway v1.7.0-patched/go.mod h1:44e1PkeuCxJJ+HNC48n8QWx+uU0JSgkLM1kmNzJoCt0=
 github.com/brocaar/loraserver v0.0.0-20190116145810-3cdb0c99d7e3 h1:1mVdFVZy+luAVOx2hj2BIKCgVk9EHASt08CMadhuNGU=
 github.com/brocaar/loraserver v0.0.0-20190116145810-3cdb0c99d7e3/go.mod h1:VBTim0YtfWAKehjJ6k17jCnG44DzXVdL4iu+hwxg2ik=
 github.com/brocaar/lorawan v0.0.0-20190115134457-5f417c8cb7a7 h1:EpGoNS72vsryRgHzuvwl8QfeuxagGsnJmzvJ7UaUZjc=
@@ -286,9 +288,8 @@ github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoA
 github.com/grpc-ecosystem/go-grpc-middleware v0.0.0-20190104160321-4832df01553a h1:87EBkARfeqvciY/Y1auQaWFQUK8/pNzp6GgRAr9CQb0=
 github.com/grpc-ecosystem/go-grpc-middleware v0.0.0-20190104160321-4832df01553a/go.mod h1:FiyG127CGDf3tlThmgyCl78X/SZQqEOJBCDaAfeWzPs=
 github.com/grpc-ecosystem/grpc-gateway v1.5.0/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
-github.com/grpc-ecosystem/grpc-gateway v1.6.4 h1:xlu6C2WU6gvXt3XLyVpsgweaIL4VCmTjEsEAIt7qFqQ=
-github.com/grpc-ecosystem/grpc-gateway v1.6.4/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
 github.com/grpc-ecosystem/grpc-gateway v1.7.0 h1:tPFY/SM+d656aSgLWO2Eckc3ExwpwwybwdN5Ph20h1A=
+github.com/grpc-ecosystem/grpc-gateway v1.7.0/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
 github.com/hashicorp/hcl v1.0.0 h1:0Anlzjpi4vEasTeNFn2mLJgTSwt0+6sfsiTG8qcWGx4=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=

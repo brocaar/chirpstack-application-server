@@ -23,7 +23,7 @@ require (
 	github.com/gorilla/mux v1.6.2
 	github.com/gorilla/websocket v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v0.0.0-20190104160321-4832df01553a
-	github.com/grpc-ecosystem/grpc-gateway v1.6.4
+	github.com/grpc-ecosystem/grpc-gateway v1.7.0
 	github.com/jacobsa/crypto v0.0.0-20180924003735-d95898ceee07 // indirect
 	github.com/jacobsa/oglematchers v0.0.0-20150720000706-141901ea67cd // indirect
 	github.com/jacobsa/oglemock v0.0.0-20150831005832-e94d794d06ff // indirect
@@ -57,3 +57,5 @@ require (
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 )
+
+replace github.com/grpc-ecosystem/grpc-gateway => github.com/brocaar/grpc-gateway v1.7.0-patched

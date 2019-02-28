@@ -45,7 +45,7 @@
             "format": "int64"
           },
           {
-            "name": "network_server_id",
+            "name": "networkServerID",
             "description": "Network-server ID to filter on (optional).",
             "in": "query",
             "required": false,

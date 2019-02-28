@@ -45,7 +45,7 @@
             "format": "int32"
           },
           {
-            "name": "organization_id",
+            "name": "organizationID",
             "description": "ID of the organization for which to filter on, when left blank the\nresponse will return all gateways to which the user has access to.",
             "in": "query",
             "required": false,
@@ -132,7 +132,7 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "$ref": "#/definitions/apiStreamGatewayFrameLogsResponse"
+              "$ref": "#/x-stream-definitions/apiStreamGatewayFrameLogsResponse"
             }
           }
         },
@@ -204,7 +204,7 @@
             "type": "string"
           },
           {
-            "name": "start_timestamp",
+            "name": "startTimestamp",
             "description": "Timestamp to start from.",
             "in": "query",
             "required": false,
@@ -212,7 +212,7 @@
             "format": "date-time"
           },
           {
-            "name": "end_timestamp",
+            "name": "endTimestamp",
             "description": "Timestamp until to get from.",
             "in": "query",
             "required": false,
@@ -861,6 +861,57 @@
           "description": "FSK modulation information."
         }
       }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeStreamError": {
+      "type": "object",
+      "properties": {
+        "grpcCode": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "httpCode": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "httpStatus": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  },
+  "x-stream-definitions": {
+    "apiStreamGatewayFrameLogsResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/apiStreamGatewayFrameLogsResponse"
+        },
+        "error": {
+          "$ref": "#/definitions/runtimeStreamError"
+        }
+      },
+      "title": "Stream result of apiStreamGatewayFrameLogsResponse"
     }
   }
 }

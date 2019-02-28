@@ -21,7 +21,7 @@
         "operationId": "List",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiListOrganizationResponse"
             }
@@ -61,7 +61,7 @@
         "operationId": "Create",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiCreateOrganizationResponse"
             }
@@ -88,7 +88,7 @@
         "operationId": "Get",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiGetOrganizationResponse"
             }
@@ -113,9 +113,9 @@
         "operationId": "Delete",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -140,9 +140,9 @@
         "operationId": "Update",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -175,7 +175,7 @@
         "operationId": "ListUsers",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiListOrganizationUsersResponse"
             }
@@ -218,7 +218,7 @@
         "operationId": "GetUser",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiGetOrganizationUserResponse"
             }
@@ -251,9 +251,9 @@
         "operationId": "DeleteUser",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -286,9 +286,9 @@
         "operationId": "AddUser",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -321,9 +321,9 @@
         "operationId": "UpdateUser",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -585,11 +585,6 @@
           "description": "Organization-user object to update."
         }
       }
-    },
-    "protobufEmpty": {
-      "type": "object",
-      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
-      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
     }
   }
 }

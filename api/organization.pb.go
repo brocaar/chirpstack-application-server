@@ -44,7 +44,7 @@ func (m *Organization) Reset()         { *m = Organization{} }
 func (m *Organization) String() string { return proto.CompactTextString(m) }
 func (*Organization) ProtoMessage()    {}
 func (*Organization) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{0}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{0}
 }
 func (m *Organization) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Organization.Unmarshal(m, b)
@@ -114,7 +114,7 @@ func (m *OrganizationListItem) Reset()         { *m = OrganizationListItem{} }
 func (m *OrganizationListItem) String() string { return proto.CompactTextString(m) }
 func (*OrganizationListItem) ProtoMessage()    {}
 func (*OrganizationListItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{1}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{1}
 }
 func (m *OrganizationListItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_OrganizationListItem.Unmarshal(m, b)
@@ -188,7 +188,7 @@ func (m *GetOrganizationRequest) Reset()         { *m = GetOrganizationRequest{}
 func (m *GetOrganizationRequest) String() string { return proto.CompactTextString(m) }
 func (*GetOrganizationRequest) ProtoMessage()    {}
 func (*GetOrganizationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{2}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{2}
 }
 func (m *GetOrganizationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetOrganizationRequest.Unmarshal(m, b)
@@ -231,7 +231,7 @@ func (m *GetOrganizationResponse) Reset()         { *m = GetOrganizationResponse
 func (m *GetOrganizationResponse) String() string { return proto.CompactTextString(m) }
 func (*GetOrganizationResponse) ProtoMessage()    {}
 func (*GetOrganizationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{3}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{3}
 }
 func (m *GetOrganizationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetOrganizationResponse.Unmarshal(m, b)
@@ -284,7 +284,7 @@ func (m *CreateOrganizationRequest) Reset()         { *m = CreateOrganizationReq
 func (m *CreateOrganizationRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateOrganizationRequest) ProtoMessage()    {}
 func (*CreateOrganizationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{4}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{4}
 }
 func (m *CreateOrganizationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateOrganizationRequest.Unmarshal(m, b)
@@ -323,7 +323,7 @@ func (m *CreateOrganizationResponse) Reset()         { *m = CreateOrganizationRe
 func (m *CreateOrganizationResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateOrganizationResponse) ProtoMessage()    {}
 func (*CreateOrganizationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{5}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{5}
 }
 func (m *CreateOrganizationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateOrganizationResponse.Unmarshal(m, b)
@@ -362,7 +362,7 @@ func (m *UpdateOrganizationRequest) Reset()         { *m = UpdateOrganizationReq
 func (m *UpdateOrganizationRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateOrganizationRequest) ProtoMessage()    {}
 func (*UpdateOrganizationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{6}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{6}
 }
 func (m *UpdateOrganizationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateOrganizationRequest.Unmarshal(m, b)
@@ -401,7 +401,7 @@ func (m *DeleteOrganizationRequest) Reset()         { *m = DeleteOrganizationReq
 func (m *DeleteOrganizationRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteOrganizationRequest) ProtoMessage()    {}
 func (*DeleteOrganizationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{7}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{7}
 }
 func (m *DeleteOrganizationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteOrganizationRequest.Unmarshal(m, b)
@@ -445,7 +445,7 @@ func (m *ListOrganizationRequest) Reset()         { *m = ListOrganizationRequest
 func (m *ListOrganizationRequest) String() string { return proto.CompactTextString(m) }
 func (*ListOrganizationRequest) ProtoMessage()    {}
 func (*ListOrganizationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{8}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{8}
 }
 func (m *ListOrganizationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListOrganizationRequest.Unmarshal(m, b)
@@ -499,7 +499,7 @@ func (m *ListOrganizationResponse) Reset()         { *m = ListOrganizationRespon
 func (m *ListOrganizationResponse) String() string { return proto.CompactTextString(m) }
 func (*ListOrganizationResponse) ProtoMessage()    {}
 func (*ListOrganizationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{9}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{9}
 }
 func (m *ListOrganizationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListOrganizationResponse.Unmarshal(m, b)
@@ -551,7 +551,7 @@ func (m *OrganizationUser) Reset()         { *m = OrganizationUser{} }
 func (m *OrganizationUser) String() string { return proto.CompactTextString(m) }
 func (*OrganizationUser) ProtoMessage()    {}
 func (*OrganizationUser) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{10}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{10}
 }
 func (m *OrganizationUser) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_OrganizationUser.Unmarshal(m, b)
@@ -619,7 +619,7 @@ func (m *OrganizationUserListItem) Reset()         { *m = OrganizationUserListIt
 func (m *OrganizationUserListItem) String() string { return proto.CompactTextString(m) }
 func (*OrganizationUserListItem) ProtoMessage()    {}
 func (*OrganizationUserListItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{11}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{11}
 }
 func (m *OrganizationUserListItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_OrganizationUserListItem.Unmarshal(m, b)
@@ -686,7 +686,7 @@ func (m *AddOrganizationUserRequest) Reset()         { *m = AddOrganizationUserR
 func (m *AddOrganizationUserRequest) String() string { return proto.CompactTextString(m) }
 func (*AddOrganizationUserRequest) ProtoMessage()    {}
 func (*AddOrganizationUserRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{12}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{12}
 }
 func (m *AddOrganizationUserRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AddOrganizationUserRequest.Unmarshal(m, b)
@@ -725,7 +725,7 @@ func (m *UpdateOrganizationUserRequest) Reset()         { *m = UpdateOrganizatio
 func (m *UpdateOrganizationUserRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateOrganizationUserRequest) ProtoMessage()    {}
 func (*UpdateOrganizationUserRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{13}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{13}
 }
 func (m *UpdateOrganizationUserRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateOrganizationUserRequest.Unmarshal(m, b)
@@ -766,7 +766,7 @@ func (m *DeleteOrganizationUserRequest) Reset()         { *m = DeleteOrganizatio
 func (m *DeleteOrganizationUserRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteOrganizationUserRequest) ProtoMessage()    {}
 func (*DeleteOrganizationUserRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{14}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{14}
 }
 func (m *DeleteOrganizationUserRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteOrganizationUserRequest.Unmarshal(m, b)
@@ -816,7 +816,7 @@ func (m *ListOrganizationUsersRequest) Reset()         { *m = ListOrganizationUs
 func (m *ListOrganizationUsersRequest) String() string { return proto.CompactTextString(m) }
 func (*ListOrganizationUsersRequest) ProtoMessage()    {}
 func (*ListOrganizationUsersRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{15}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{15}
 }
 func (m *ListOrganizationUsersRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListOrganizationUsersRequest.Unmarshal(m, b)
@@ -870,7 +870,7 @@ func (m *ListOrganizationUsersResponse) Reset()         { *m = ListOrganizationU
 func (m *ListOrganizationUsersResponse) String() string { return proto.CompactTextString(m) }
 func (*ListOrganizationUsersResponse) ProtoMessage()    {}
 func (*ListOrganizationUsersResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{16}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{16}
 }
 func (m *ListOrganizationUsersResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListOrganizationUsersResponse.Unmarshal(m, b)
@@ -918,7 +918,7 @@ func (m *GetOrganizationUserRequest) Reset()         { *m = GetOrganizationUserR
 func (m *GetOrganizationUserRequest) String() string { return proto.CompactTextString(m) }
 func (*GetOrganizationUserRequest) ProtoMessage()    {}
 func (*GetOrganizationUserRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{17}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{17}
 }
 func (m *GetOrganizationUserRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetOrganizationUserRequest.Unmarshal(m, b)
@@ -969,7 +969,7 @@ func (m *GetOrganizationUserResponse) Reset()         { *m = GetOrganizationUser
 func (m *GetOrganizationUserResponse) String() string { return proto.CompactTextString(m) }
 func (*GetOrganizationUserResponse) ProtoMessage()    {}
 func (*GetOrganizationUserResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8d10c68ef159b9ed, []int{18}
+	return fileDescriptor_organization_f7d28f2f8c3cdcd6, []int{18}
 }
 func (m *GetOrganizationUserResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetOrganizationUserResponse.Unmarshal(m, b)
@@ -1421,9 +1421,9 @@ var _OrganizationService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "organization.proto",
 }
 
-func init() { proto.RegisterFile("organization.proto", fileDescriptor_8d10c68ef159b9ed) }
+func init() { proto.RegisterFile("organization.proto", fileDescriptor_organization_f7d28f2f8c3cdcd6) }
 
-var fileDescriptor_8d10c68ef159b9ed = []byte{
+var fileDescriptor_organization_f7d28f2f8c3cdcd6 = []byte{
 	// 971 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x56, 0x4d, 0x6f, 0x23, 0x35,
 	0x18, 0x96, 0x93, 0x34, 0x6d, 0xdf, 0x54, 0xbb, 0x5b, 0x53, 0x9a, 0x64, 0xda, 0x90, 0xac, 0x85,

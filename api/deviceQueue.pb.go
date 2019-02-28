@@ -52,7 +52,7 @@ func (m *DeviceQueueItem) Reset()         { *m = DeviceQueueItem{} }
 func (m *DeviceQueueItem) String() string { return proto.CompactTextString(m) }
 func (*DeviceQueueItem) ProtoMessage()    {}
 func (*DeviceQueueItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ae6ff84951d6e0cf, []int{0}
+	return fileDescriptor_deviceQueue_36df4b0b4d3182e0, []int{0}
 }
 func (m *DeviceQueueItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeviceQueueItem.Unmarshal(m, b)
@@ -126,7 +126,7 @@ func (m *EnqueueDeviceQueueItemRequest) Reset()         { *m = EnqueueDeviceQueu
 func (m *EnqueueDeviceQueueItemRequest) String() string { return proto.CompactTextString(m) }
 func (*EnqueueDeviceQueueItemRequest) ProtoMessage()    {}
 func (*EnqueueDeviceQueueItemRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ae6ff84951d6e0cf, []int{1}
+	return fileDescriptor_deviceQueue_36df4b0b4d3182e0, []int{1}
 }
 func (m *EnqueueDeviceQueueItemRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EnqueueDeviceQueueItemRequest.Unmarshal(m, b)
@@ -165,7 +165,7 @@ func (m *EnqueueDeviceQueueItemResponse) Reset()         { *m = EnqueueDeviceQue
 func (m *EnqueueDeviceQueueItemResponse) String() string { return proto.CompactTextString(m) }
 func (*EnqueueDeviceQueueItemResponse) ProtoMessage()    {}
 func (*EnqueueDeviceQueueItemResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ae6ff84951d6e0cf, []int{2}
+	return fileDescriptor_deviceQueue_36df4b0b4d3182e0, []int{2}
 }
 func (m *EnqueueDeviceQueueItemResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EnqueueDeviceQueueItemResponse.Unmarshal(m, b)
@@ -204,7 +204,7 @@ func (m *FlushDeviceQueueRequest) Reset()         { *m = FlushDeviceQueueRequest
 func (m *FlushDeviceQueueRequest) String() string { return proto.CompactTextString(m) }
 func (*FlushDeviceQueueRequest) ProtoMessage()    {}
 func (*FlushDeviceQueueRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ae6ff84951d6e0cf, []int{3}
+	return fileDescriptor_deviceQueue_36df4b0b4d3182e0, []int{3}
 }
 func (m *FlushDeviceQueueRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_FlushDeviceQueueRequest.Unmarshal(m, b)
@@ -243,7 +243,7 @@ func (m *ListDeviceQueueItemsRequest) Reset()         { *m = ListDeviceQueueItem
 func (m *ListDeviceQueueItemsRequest) String() string { return proto.CompactTextString(m) }
 func (*ListDeviceQueueItemsRequest) ProtoMessage()    {}
 func (*ListDeviceQueueItemsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ae6ff84951d6e0cf, []int{4}
+	return fileDescriptor_deviceQueue_36df4b0b4d3182e0, []int{4}
 }
 func (m *ListDeviceQueueItemsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListDeviceQueueItemsRequest.Unmarshal(m, b)
@@ -281,7 +281,7 @@ func (m *ListDeviceQueueItemsResponse) Reset()         { *m = ListDeviceQueueIte
 func (m *ListDeviceQueueItemsResponse) String() string { return proto.CompactTextString(m) }
 func (*ListDeviceQueueItemsResponse) ProtoMessage()    {}
 func (*ListDeviceQueueItemsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ae6ff84951d6e0cf, []int{5}
+	return fileDescriptor_deviceQueue_36df4b0b4d3182e0, []int{5}
 }
 func (m *ListDeviceQueueItemsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListDeviceQueueItemsResponse.Unmarshal(m, b)
@@ -461,9 +461,9 @@ var _DeviceQueueService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "deviceQueue.proto",
 }
 
-func init() { proto.RegisterFile("deviceQueue.proto", fileDescriptor_ae6ff84951d6e0cf) }
+func init() { proto.RegisterFile("deviceQueue.proto", fileDescriptor_deviceQueue_36df4b0b4d3182e0) }
 
-var fileDescriptor_ae6ff84951d6e0cf = []byte{
+var fileDescriptor_deviceQueue_36df4b0b4d3182e0 = []byte{
 	// 462 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x53, 0xcd, 0x6e, 0xd3, 0x40,
 	0x10, 0xd6, 0xe6, 0xaf, 0x74, 0x0a, 0x2a, 0x0c, 0x3f, 0xb5, 0x5c, 0x53, 0x8c, 0xe1, 0x10, 0xf5,

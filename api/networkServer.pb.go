@@ -67,7 +67,7 @@ func (m *NetworkServer) Reset()         { *m = NetworkServer{} }
 func (m *NetworkServer) String() string { return proto.CompactTextString(m) }
 func (*NetworkServer) ProtoMessage()    {}
 func (*NetworkServer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e41d9454685e7fd9, []int{0}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{0}
 }
 func (m *NetworkServer) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkServer.Unmarshal(m, b)
@@ -199,7 +199,7 @@ func (m *NetworkServerListItem) Reset()         { *m = NetworkServerListItem{} }
 func (m *NetworkServerListItem) String() string { return proto.CompactTextString(m) }
 func (*NetworkServerListItem) ProtoMessage()    {}
 func (*NetworkServerListItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e41d9454685e7fd9, []int{1}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{1}
 }
 func (m *NetworkServerListItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkServerListItem.Unmarshal(m, b)
@@ -266,7 +266,7 @@ func (m *CreateNetworkServerRequest) Reset()         { *m = CreateNetworkServerR
 func (m *CreateNetworkServerRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateNetworkServerRequest) ProtoMessage()    {}
 func (*CreateNetworkServerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e41d9454685e7fd9, []int{2}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{2}
 }
 func (m *CreateNetworkServerRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateNetworkServerRequest.Unmarshal(m, b)
@@ -305,7 +305,7 @@ func (m *CreateNetworkServerResponse) Reset()         { *m = CreateNetworkServer
 func (m *CreateNetworkServerResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateNetworkServerResponse) ProtoMessage()    {}
 func (*CreateNetworkServerResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e41d9454685e7fd9, []int{3}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{3}
 }
 func (m *CreateNetworkServerResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateNetworkServerResponse.Unmarshal(m, b)
@@ -344,7 +344,7 @@ func (m *GetNetworkServerRequest) Reset()         { *m = GetNetworkServerRequest
 func (m *GetNetworkServerRequest) String() string { return proto.CompactTextString(m) }
 func (*GetNetworkServerRequest) ProtoMessage()    {}
 func (*GetNetworkServerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e41d9454685e7fd9, []int{4}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{4}
 }
 func (m *GetNetworkServerRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetNetworkServerRequest.Unmarshal(m, b)
@@ -391,7 +391,7 @@ func (m *GetNetworkServerResponse) Reset()         { *m = GetNetworkServerRespon
 func (m *GetNetworkServerResponse) String() string { return proto.CompactTextString(m) }
 func (*GetNetworkServerResponse) ProtoMessage()    {}
 func (*GetNetworkServerResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e41d9454685e7fd9, []int{5}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{5}
 }
 func (m *GetNetworkServerResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetNetworkServerResponse.Unmarshal(m, b)
@@ -458,7 +458,7 @@ func (m *UpdateNetworkServerRequest) Reset()         { *m = UpdateNetworkServerR
 func (m *UpdateNetworkServerRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateNetworkServerRequest) ProtoMessage()    {}
 func (*UpdateNetworkServerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e41d9454685e7fd9, []int{6}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{6}
 }
 func (m *UpdateNetworkServerRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateNetworkServerRequest.Unmarshal(m, b)
@@ -497,7 +497,7 @@ func (m *DeleteNetworkServerRequest) Reset()         { *m = DeleteNetworkServerR
 func (m *DeleteNetworkServerRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteNetworkServerRequest) ProtoMessage()    {}
 func (*DeleteNetworkServerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e41d9454685e7fd9, []int{7}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{7}
 }
 func (m *DeleteNetworkServerRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteNetworkServerRequest.Unmarshal(m, b)
@@ -540,7 +540,7 @@ func (m *ListNetworkServerRequest) Reset()         { *m = ListNetworkServerReque
 func (m *ListNetworkServerRequest) String() string { return proto.CompactTextString(m) }
 func (*ListNetworkServerRequest) ProtoMessage()    {}
 func (*ListNetworkServerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e41d9454685e7fd9, []int{8}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{8}
 }
 func (m *ListNetworkServerRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListNetworkServerRequest.Unmarshal(m, b)
@@ -595,7 +595,7 @@ func (m *ListNetworkServerResponse) Reset()         { *m = ListNetworkServerResp
 func (m *ListNetworkServerResponse) String() string { return proto.CompactTextString(m) }
 func (*ListNetworkServerResponse) ProtoMessage()    {}
 func (*ListNetworkServerResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e41d9454685e7fd9, []int{9}
+	return fileDescriptor_networkServer_c5636b3563702496, []int{9}
 }
 func (m *ListNetworkServerResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListNetworkServerResponse.Unmarshal(m, b)
@@ -856,9 +856,9 @@ var _NetworkServerService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "networkServer.proto",
 }
 
-func init() { proto.RegisterFile("networkServer.proto", fileDescriptor_e41d9454685e7fd9) }
+func init() { proto.RegisterFile("networkServer.proto", fileDescriptor_networkServer_c5636b3563702496) }
 
-var fileDescriptor_e41d9454685e7fd9 = []byte{
+var fileDescriptor_networkServer_c5636b3563702496 = []byte{
 	// 810 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xdd, 0x6e, 0xe3, 0x44,
 	0x14, 0x96, 0xe3, 0x34, 0x6d, 0x4f, 0x69, 0x91, 0x86, 0x6c, 0xe3, 0xb8, 0x65, 0x1b, 0x7c, 0x43,

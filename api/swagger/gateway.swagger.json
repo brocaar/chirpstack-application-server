@@ -21,7 +21,7 @@
         "operationId": "List",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiListGatewayResponse"
             }
@@ -45,7 +45,7 @@
             "format": "int32"
           },
           {
-            "name": "organizationID",
+            "name": "organization_id",
             "description": "ID of the organization for which to filter on, when left blank the\nresponse will return all gateways to which the user has access to.",
             "in": "query",
             "required": false,
@@ -69,9 +69,9 @@
         "operationId": "Create",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -96,9 +96,9 @@
         "operationId": "Update",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -130,7 +130,7 @@
         "operationId": "StreamFrameLogs",
         "responses": {
           "200": {
-            "description": "(streaming responses)",
+            "description": "A successful response.(streaming responses)",
             "schema": {
               "$ref": "#/definitions/apiStreamGatewayFrameLogsResponse"
             }
@@ -156,7 +156,7 @@
         "operationId": "GetLastPing",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiGetLastPingResponse"
             }
@@ -182,7 +182,7 @@
         "operationId": "GetStats",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiGetGatewayStatsResponse"
             }
@@ -204,7 +204,7 @@
             "type": "string"
           },
           {
-            "name": "startTimestamp",
+            "name": "start_timestamp",
             "description": "Timestamp to start from.",
             "in": "query",
             "required": false,
@@ -212,7 +212,7 @@
             "format": "date-time"
           },
           {
-            "name": "endTimestamp",
+            "name": "end_timestamp",
             "description": "Timestamp until to get from.",
             "in": "query",
             "required": false,
@@ -231,7 +231,7 @@
         "operationId": "Get",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiGetGatewayResponse"
             }
@@ -255,9 +255,9 @@
         "operationId": "Delete",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -861,11 +861,6 @@
           "description": "FSK modulation information."
         }
       }
-    },
-    "protobufEmpty": {
-      "type": "object",
-      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
-      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
     }
   }
 }

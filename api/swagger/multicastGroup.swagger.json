@@ -21,7 +21,7 @@
         "operationId": "List",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiListMulticastGroupResponse"
             }
@@ -45,7 +45,7 @@
             "format": "int64"
           },
           {
-            "name": "organizationID",
+            "name": "organization_id",
             "description": "Organization id to filter on.",
             "in": "query",
             "required": false,
@@ -53,14 +53,14 @@
             "format": "int64"
           },
           {
-            "name": "devEUI",
+            "name": "dev_eui",
             "description": "Device EUI (HEX encoded string) to filter on.",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "serviceProfileID",
+            "name": "service_profile_id",
             "description": "Service-profile ID to filter on.",
             "in": "query",
             "required": false,
@@ -83,7 +83,7 @@
         "operationId": "Create",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiCreateMulticastGroupResponse"
             }
@@ -110,7 +110,7 @@
         "operationId": "Get",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiGetMulticastGroupResponse"
             }
@@ -134,9 +134,9 @@
         "operationId": "Delete",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -160,9 +160,9 @@
         "operationId": "Update",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -194,9 +194,9 @@
         "operationId": "AddDevice",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -228,9 +228,9 @@
         "operationId": "RemoveDevice",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -261,7 +261,7 @@
         "operationId": "ListQueue",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiListMulticastGroupQueueItemsResponse"
             }
@@ -285,9 +285,9 @@
         "operationId": "FlushQueue",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -311,7 +311,7 @@
         "operationId": "Enqueue",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiEnqueueMulticastQueueItemResponse"
             }
@@ -552,11 +552,6 @@
           "description": "Multicast-group object to update."
         }
       }
-    },
-    "protobufEmpty": {
-      "type": "object",
-      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
-      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
     }
   }
 }

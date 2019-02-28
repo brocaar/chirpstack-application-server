@@ -36,7 +36,6 @@ var IntegrationKind_name = map[int32]string{
 	0: "HTTP",
 	1: "INFLUXDB",
 }
-
 var IntegrationKind_value = map[string]int32{
 	"HTTP":     0,
 	"INFLUXDB": 1,
@@ -45,9 +44,8 @@ var IntegrationKind_value = map[string]int32{
 func (x IntegrationKind) String() string {
 	return proto.EnumName(IntegrationKind_name, int32(x))
 }
-
 func (IntegrationKind) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{0}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{0}
 }
 
 type InfluxDBPrecision int32
@@ -69,7 +67,6 @@ var InfluxDBPrecision_name = map[int32]string{
 	4: "M",
 	5: "H",
 }
-
 var InfluxDBPrecision_value = map[string]int32{
 	"NS": 0,
 	"U":  1,
@@ -82,9 +79,8 @@ var InfluxDBPrecision_value = map[string]int32{
 func (x InfluxDBPrecision) String() string {
 	return proto.EnumName(InfluxDBPrecision_name, int32(x))
 }
-
 func (InfluxDBPrecision) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{1}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{1}
 }
 
 type Application struct {
@@ -114,7 +110,7 @@ func (m *Application) Reset()         { *m = Application{} }
 func (m *Application) String() string { return proto.CompactTextString(m) }
 func (*Application) ProtoMessage()    {}
 func (*Application) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{0}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{0}
 }
 func (m *Application) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Application.Unmarshal(m, b)
@@ -212,7 +208,7 @@ func (m *ApplicationListItem) Reset()         { *m = ApplicationListItem{} }
 func (m *ApplicationListItem) String() string { return proto.CompactTextString(m) }
 func (*ApplicationListItem) ProtoMessage()    {}
 func (*ApplicationListItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{1}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{1}
 }
 func (m *ApplicationListItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApplicationListItem.Unmarshal(m, b)
@@ -286,7 +282,7 @@ func (m *CreateApplicationRequest) Reset()         { *m = CreateApplicationReque
 func (m *CreateApplicationRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateApplicationRequest) ProtoMessage()    {}
 func (*CreateApplicationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{2}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{2}
 }
 func (m *CreateApplicationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateApplicationRequest.Unmarshal(m, b)
@@ -325,7 +321,7 @@ func (m *CreateApplicationResponse) Reset()         { *m = CreateApplicationResp
 func (m *CreateApplicationResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateApplicationResponse) ProtoMessage()    {}
 func (*CreateApplicationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{3}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{3}
 }
 func (m *CreateApplicationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateApplicationResponse.Unmarshal(m, b)
@@ -364,7 +360,7 @@ func (m *GetApplicationRequest) Reset()         { *m = GetApplicationRequest{} }
 func (m *GetApplicationRequest) String() string { return proto.CompactTextString(m) }
 func (*GetApplicationRequest) ProtoMessage()    {}
 func (*GetApplicationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{4}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{4}
 }
 func (m *GetApplicationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetApplicationRequest.Unmarshal(m, b)
@@ -403,7 +399,7 @@ func (m *GetApplicationResponse) Reset()         { *m = GetApplicationResponse{}
 func (m *GetApplicationResponse) String() string { return proto.CompactTextString(m) }
 func (*GetApplicationResponse) ProtoMessage()    {}
 func (*GetApplicationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{5}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{5}
 }
 func (m *GetApplicationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetApplicationResponse.Unmarshal(m, b)
@@ -442,7 +438,7 @@ func (m *UpdateApplicationRequest) Reset()         { *m = UpdateApplicationReque
 func (m *UpdateApplicationRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateApplicationRequest) ProtoMessage()    {}
 func (*UpdateApplicationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{6}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{6}
 }
 func (m *UpdateApplicationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateApplicationRequest.Unmarshal(m, b)
@@ -481,7 +477,7 @@ func (m *DeleteApplicationRequest) Reset()         { *m = DeleteApplicationReque
 func (m *DeleteApplicationRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteApplicationRequest) ProtoMessage()    {}
 func (*DeleteApplicationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{7}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{7}
 }
 func (m *DeleteApplicationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteApplicationRequest.Unmarshal(m, b)
@@ -526,7 +522,7 @@ func (m *ListApplicationRequest) Reset()         { *m = ListApplicationRequest{}
 func (m *ListApplicationRequest) String() string { return proto.CompactTextString(m) }
 func (*ListApplicationRequest) ProtoMessage()    {}
 func (*ListApplicationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{8}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{8}
 }
 func (m *ListApplicationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListApplicationRequest.Unmarshal(m, b)
@@ -588,7 +584,7 @@ func (m *ListApplicationResponse) Reset()         { *m = ListApplicationResponse
 func (m *ListApplicationResponse) String() string { return proto.CompactTextString(m) }
 func (*ListApplicationResponse) ProtoMessage()    {}
 func (*ListApplicationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{9}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{9}
 }
 func (m *ListApplicationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListApplicationResponse.Unmarshal(m, b)
@@ -636,7 +632,7 @@ func (m *HTTPIntegrationHeader) Reset()         { *m = HTTPIntegrationHeader{} }
 func (m *HTTPIntegrationHeader) String() string { return proto.CompactTextString(m) }
 func (*HTTPIntegrationHeader) ProtoMessage()    {}
 func (*HTTPIntegrationHeader) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{10}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{10}
 }
 func (m *HTTPIntegrationHeader) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HTTPIntegrationHeader.Unmarshal(m, b)
@@ -696,7 +692,7 @@ func (m *HTTPIntegration) Reset()         { *m = HTTPIntegration{} }
 func (m *HTTPIntegration) String() string { return proto.CompactTextString(m) }
 func (*HTTPIntegration) ProtoMessage()    {}
 func (*HTTPIntegration) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{11}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{11}
 }
 func (m *HTTPIntegration) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HTTPIntegration.Unmarshal(m, b)
@@ -784,7 +780,7 @@ func (m *CreateHTTPIntegrationRequest) Reset()         { *m = CreateHTTPIntegrat
 func (m *CreateHTTPIntegrationRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateHTTPIntegrationRequest) ProtoMessage()    {}
 func (*CreateHTTPIntegrationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{12}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{12}
 }
 func (m *CreateHTTPIntegrationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateHTTPIntegrationRequest.Unmarshal(m, b)
@@ -823,7 +819,7 @@ func (m *GetHTTPIntegrationRequest) Reset()         { *m = GetHTTPIntegrationReq
 func (m *GetHTTPIntegrationRequest) String() string { return proto.CompactTextString(m) }
 func (*GetHTTPIntegrationRequest) ProtoMessage()    {}
 func (*GetHTTPIntegrationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{13}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{13}
 }
 func (m *GetHTTPIntegrationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetHTTPIntegrationRequest.Unmarshal(m, b)
@@ -862,7 +858,7 @@ func (m *GetHTTPIntegrationResponse) Reset()         { *m = GetHTTPIntegrationRe
 func (m *GetHTTPIntegrationResponse) String() string { return proto.CompactTextString(m) }
 func (*GetHTTPIntegrationResponse) ProtoMessage()    {}
 func (*GetHTTPIntegrationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{14}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{14}
 }
 func (m *GetHTTPIntegrationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetHTTPIntegrationResponse.Unmarshal(m, b)
@@ -901,7 +897,7 @@ func (m *UpdateHTTPIntegrationRequest) Reset()         { *m = UpdateHTTPIntegrat
 func (m *UpdateHTTPIntegrationRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateHTTPIntegrationRequest) ProtoMessage()    {}
 func (*UpdateHTTPIntegrationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{15}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{15}
 }
 func (m *UpdateHTTPIntegrationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateHTTPIntegrationRequest.Unmarshal(m, b)
@@ -940,7 +936,7 @@ func (m *DeleteHTTPIntegrationRequest) Reset()         { *m = DeleteHTTPIntegrat
 func (m *DeleteHTTPIntegrationRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteHTTPIntegrationRequest) ProtoMessage()    {}
 func (*DeleteHTTPIntegrationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{16}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{16}
 }
 func (m *DeleteHTTPIntegrationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteHTTPIntegrationRequest.Unmarshal(m, b)
@@ -979,7 +975,7 @@ func (m *ListIntegrationRequest) Reset()         { *m = ListIntegrationRequest{}
 func (m *ListIntegrationRequest) String() string { return proto.CompactTextString(m) }
 func (*ListIntegrationRequest) ProtoMessage()    {}
 func (*ListIntegrationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{17}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{17}
 }
 func (m *ListIntegrationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListIntegrationRequest.Unmarshal(m, b)
@@ -1018,7 +1014,7 @@ func (m *IntegrationListItem) Reset()         { *m = IntegrationListItem{} }
 func (m *IntegrationListItem) String() string { return proto.CompactTextString(m) }
 func (*IntegrationListItem) ProtoMessage()    {}
 func (*IntegrationListItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{18}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{18}
 }
 func (m *IntegrationListItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_IntegrationListItem.Unmarshal(m, b)
@@ -1059,7 +1055,7 @@ func (m *ListIntegrationResponse) Reset()         { *m = ListIntegrationResponse
 func (m *ListIntegrationResponse) String() string { return proto.CompactTextString(m) }
 func (*ListIntegrationResponse) ProtoMessage()    {}
 func (*ListIntegrationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{19}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{19}
 }
 func (m *ListIntegrationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListIntegrationResponse.Unmarshal(m, b)
@@ -1117,7 +1113,7 @@ func (m *InfluxDBIntegration) Reset()         { *m = InfluxDBIntegration{} }
 func (m *InfluxDBIntegration) String() string { return proto.CompactTextString(m) }
 func (*InfluxDBIntegration) ProtoMessage()    {}
 func (*InfluxDBIntegration) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{20}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{20}
 }
 func (m *InfluxDBIntegration) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_InfluxDBIntegration.Unmarshal(m, b)
@@ -1198,7 +1194,7 @@ func (m *CreateInfluxDBIntegrationRequest) Reset()         { *m = CreateInfluxDB
 func (m *CreateInfluxDBIntegrationRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateInfluxDBIntegrationRequest) ProtoMessage()    {}
 func (*CreateInfluxDBIntegrationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{21}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{21}
 }
 func (m *CreateInfluxDBIntegrationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateInfluxDBIntegrationRequest.Unmarshal(m, b)
@@ -1237,7 +1233,7 @@ func (m *GetInfluxDBIntegrationRequest) Reset()         { *m = GetInfluxDBIntegr
 func (m *GetInfluxDBIntegrationRequest) String() string { return proto.CompactTextString(m) }
 func (*GetInfluxDBIntegrationRequest) ProtoMessage()    {}
 func (*GetInfluxDBIntegrationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{22}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{22}
 }
 func (m *GetInfluxDBIntegrationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetInfluxDBIntegrationRequest.Unmarshal(m, b)
@@ -1276,7 +1272,7 @@ func (m *GetInfluxDBIntegrationResponse) Reset()         { *m = GetInfluxDBInteg
 func (m *GetInfluxDBIntegrationResponse) String() string { return proto.CompactTextString(m) }
 func (*GetInfluxDBIntegrationResponse) ProtoMessage()    {}
 func (*GetInfluxDBIntegrationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{23}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{23}
 }
 func (m *GetInfluxDBIntegrationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetInfluxDBIntegrationResponse.Unmarshal(m, b)
@@ -1315,7 +1311,7 @@ func (m *UpdateInfluxDBIntegrationRequest) Reset()         { *m = UpdateInfluxDB
 func (m *UpdateInfluxDBIntegrationRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateInfluxDBIntegrationRequest) ProtoMessage()    {}
 func (*UpdateInfluxDBIntegrationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{24}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{24}
 }
 func (m *UpdateInfluxDBIntegrationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateInfluxDBIntegrationRequest.Unmarshal(m, b)
@@ -1354,7 +1350,7 @@ func (m *DeleteInfluxDBIntegrationRequest) Reset()         { *m = DeleteInfluxDB
 func (m *DeleteInfluxDBIntegrationRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteInfluxDBIntegrationRequest) ProtoMessage()    {}
 func (*DeleteInfluxDBIntegrationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fc846aced8fe6ea6, []int{25}
+	return fileDescriptor_application_ca969d90c31e88a7, []int{25}
 }
 func (m *DeleteInfluxDBIntegrationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteInfluxDBIntegrationRequest.Unmarshal(m, b)
@@ -1941,9 +1937,9 @@ var _ApplicationService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "application.proto",
 }
 
-func init() { proto.RegisterFile("application.proto", fileDescriptor_fc846aced8fe6ea6) }
+func init() { proto.RegisterFile("application.proto", fileDescriptor_application_ca969d90c31e88a7) }
 
-var fileDescriptor_fc846aced8fe6ea6 = []byte{
+var fileDescriptor_application_ca969d90c31e88a7 = []byte{
 	// 1389 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x57, 0xdf, 0x6e, 0x1b, 0xc5,
 	0x17, 0xee, 0xda, 0x89, 0x9b, 0x1c, 0xb7, 0x89, 0x3b, 0x49, 0xdc, 0xcd, 0xd6, 0x4d, 0xf3, 0xdb,

@@ -51,7 +51,7 @@ func (m *User) Reset()         { *m = User{} }
 func (m *User) String() string { return proto.CompactTextString(m) }
 func (*User) ProtoMessage()    {}
 func (*User) Descriptor() ([]byte, []int) {
-	return fileDescriptor_116e343673f7ffaf, []int{0}
+	return fileDescriptor_user_7b296d0ef3f50fa9, []int{0}
 }
 func (m *User) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_User.Unmarshal(m, b)
@@ -149,7 +149,7 @@ func (m *UserListItem) Reset()         { *m = UserListItem{} }
 func (m *UserListItem) String() string { return proto.CompactTextString(m) }
 func (*UserListItem) ProtoMessage()    {}
 func (*UserListItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_116e343673f7ffaf, []int{1}
+	return fileDescriptor_user_7b296d0ef3f50fa9, []int{1}
 }
 func (m *UserListItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UserListItem.Unmarshal(m, b)
@@ -246,7 +246,7 @@ func (m *UserOrganization) Reset()         { *m = UserOrganization{} }
 func (m *UserOrganization) String() string { return proto.CompactTextString(m) }
 func (*UserOrganization) ProtoMessage()    {}
 func (*UserOrganization) Descriptor() ([]byte, []int) {
-	return fileDescriptor_116e343673f7ffaf, []int{2}
+	return fileDescriptor_user_7b296d0ef3f50fa9, []int{2}
 }
 func (m *UserOrganization) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UserOrganization.Unmarshal(m, b)
@@ -296,7 +296,7 @@ func (m *CreateUserRequest) Reset()         { *m = CreateUserRequest{} }
 func (m *CreateUserRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateUserRequest) ProtoMessage()    {}
 func (*CreateUserRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_116e343673f7ffaf, []int{3}
+	return fileDescriptor_user_7b296d0ef3f50fa9, []int{3}
 }
 func (m *CreateUserRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateUserRequest.Unmarshal(m, b)
@@ -349,7 +349,7 @@ func (m *CreateUserResponse) Reset()         { *m = CreateUserResponse{} }
 func (m *CreateUserResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateUserResponse) ProtoMessage()    {}
 func (*CreateUserResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_116e343673f7ffaf, []int{4}
+	return fileDescriptor_user_7b296d0ef3f50fa9, []int{4}
 }
 func (m *CreateUserResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateUserResponse.Unmarshal(m, b)
@@ -388,7 +388,7 @@ func (m *GetUserRequest) Reset()         { *m = GetUserRequest{} }
 func (m *GetUserRequest) String() string { return proto.CompactTextString(m) }
 func (*GetUserRequest) ProtoMessage()    {}
 func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_116e343673f7ffaf, []int{5}
+	return fileDescriptor_user_7b296d0ef3f50fa9, []int{5}
 }
 func (m *GetUserRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetUserRequest.Unmarshal(m, b)
@@ -431,7 +431,7 @@ func (m *GetUserResponse) Reset()         { *m = GetUserResponse{} }
 func (m *GetUserResponse) String() string { return proto.CompactTextString(m) }
 func (*GetUserResponse) ProtoMessage()    {}
 func (*GetUserResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_116e343673f7ffaf, []int{6}
+	return fileDescriptor_user_7b296d0ef3f50fa9, []int{6}
 }
 func (m *GetUserResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetUserResponse.Unmarshal(m, b)
@@ -484,7 +484,7 @@ func (m *UpdateUserRequest) Reset()         { *m = UpdateUserRequest{} }
 func (m *UpdateUserRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateUserRequest) ProtoMessage()    {}
 func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_116e343673f7ffaf, []int{7}
+	return fileDescriptor_user_7b296d0ef3f50fa9, []int{7}
 }
 func (m *UpdateUserRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateUserRequest.Unmarshal(m, b)
@@ -523,7 +523,7 @@ func (m *DeleteUserRequest) Reset()         { *m = DeleteUserRequest{} }
 func (m *DeleteUserRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteUserRequest) ProtoMessage()    {}
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_116e343673f7ffaf, []int{8}
+	return fileDescriptor_user_7b296d0ef3f50fa9, []int{8}
 }
 func (m *DeleteUserRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteUserRequest.Unmarshal(m, b)
@@ -566,7 +566,7 @@ func (m *ListUserRequest) Reset()         { *m = ListUserRequest{} }
 func (m *ListUserRequest) String() string { return proto.CompactTextString(m) }
 func (*ListUserRequest) ProtoMessage()    {}
 func (*ListUserRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_116e343673f7ffaf, []int{9}
+	return fileDescriptor_user_7b296d0ef3f50fa9, []int{9}
 }
 func (m *ListUserRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListUserRequest.Unmarshal(m, b)
@@ -621,7 +621,7 @@ func (m *ListUserResponse) Reset()         { *m = ListUserResponse{} }
 func (m *ListUserResponse) String() string { return proto.CompactTextString(m) }
 func (*ListUserResponse) ProtoMessage()    {}
 func (*ListUserResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_116e343673f7ffaf, []int{10}
+	return fileDescriptor_user_7b296d0ef3f50fa9, []int{10}
 }
 func (m *ListUserResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListUserResponse.Unmarshal(m, b)
@@ -669,7 +669,7 @@ func (m *UpdateUserPasswordRequest) Reset()         { *m = UpdateUserPasswordReq
 func (m *UpdateUserPasswordRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateUserPasswordRequest) ProtoMessage()    {}
 func (*UpdateUserPasswordRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_116e343673f7ffaf, []int{11}
+	return fileDescriptor_user_7b296d0ef3f50fa9, []int{11}
 }
 func (m *UpdateUserPasswordRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateUserPasswordRequest.Unmarshal(m, b)
@@ -967,9 +967,9 @@ var _UserService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "user.proto",
 }
 
-func init() { proto.RegisterFile("user.proto", fileDescriptor_116e343673f7ffaf) }
+func init() { proto.RegisterFile("user.proto", fileDescriptor_user_7b296d0ef3f50fa9) }
 
-var fileDescriptor_116e343673f7ffaf = []byte{
+var fileDescriptor_user_7b296d0ef3f50fa9 = []byte{
 	// 760 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x55, 0xc1, 0x6e, 0xd3, 0x4c,
 	0x10, 0x96, 0xe3, 0xc4, 0x4d, 0x26, 0xfd, 0x93, 0x66, 0xff, 0xb4, 0x75, 0xdd, 0xbf, 0x7f, 0x22,

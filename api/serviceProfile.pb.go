@@ -38,7 +38,7 @@ func (m *CreateServiceProfileRequest) Reset()         { *m = CreateServiceProfil
 func (m *CreateServiceProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateServiceProfileRequest) ProtoMessage()    {}
 func (*CreateServiceProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d9e9e4e25c67f7cd, []int{0}
+	return fileDescriptor_serviceProfile_6e143bb04d548394, []int{0}
 }
 func (m *CreateServiceProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateServiceProfileRequest.Unmarshal(m, b)
@@ -77,7 +77,7 @@ func (m *CreateServiceProfileResponse) Reset()         { *m = CreateServiceProfi
 func (m *CreateServiceProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateServiceProfileResponse) ProtoMessage()    {}
 func (*CreateServiceProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d9e9e4e25c67f7cd, []int{1}
+	return fileDescriptor_serviceProfile_6e143bb04d548394, []int{1}
 }
 func (m *CreateServiceProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateServiceProfileResponse.Unmarshal(m, b)
@@ -116,7 +116,7 @@ func (m *GetServiceProfileRequest) Reset()         { *m = GetServiceProfileReque
 func (m *GetServiceProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*GetServiceProfileRequest) ProtoMessage()    {}
 func (*GetServiceProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d9e9e4e25c67f7cd, []int{2}
+	return fileDescriptor_serviceProfile_6e143bb04d548394, []int{2}
 }
 func (m *GetServiceProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetServiceProfileRequest.Unmarshal(m, b)
@@ -159,7 +159,7 @@ func (m *GetServiceProfileResponse) Reset()         { *m = GetServiceProfileResp
 func (m *GetServiceProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*GetServiceProfileResponse) ProtoMessage()    {}
 func (*GetServiceProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d9e9e4e25c67f7cd, []int{3}
+	return fileDescriptor_serviceProfile_6e143bb04d548394, []int{3}
 }
 func (m *GetServiceProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetServiceProfileResponse.Unmarshal(m, b)
@@ -212,7 +212,7 @@ func (m *UpdateServiceProfileRequest) Reset()         { *m = UpdateServiceProfil
 func (m *UpdateServiceProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateServiceProfileRequest) ProtoMessage()    {}
 func (*UpdateServiceProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d9e9e4e25c67f7cd, []int{4}
+	return fileDescriptor_serviceProfile_6e143bb04d548394, []int{4}
 }
 func (m *UpdateServiceProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateServiceProfileRequest.Unmarshal(m, b)
@@ -251,7 +251,7 @@ func (m *DeleteServiceProfileRequest) Reset()         { *m = DeleteServiceProfil
 func (m *DeleteServiceProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteServiceProfileRequest) ProtoMessage()    {}
 func (*DeleteServiceProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d9e9e4e25c67f7cd, []int{5}
+	return fileDescriptor_serviceProfile_6e143bb04d548394, []int{5}
 }
 func (m *DeleteServiceProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteServiceProfileRequest.Unmarshal(m, b)
@@ -294,7 +294,7 @@ func (m *ListServiceProfileRequest) Reset()         { *m = ListServiceProfileReq
 func (m *ListServiceProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*ListServiceProfileRequest) ProtoMessage()    {}
 func (*ListServiceProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d9e9e4e25c67f7cd, []int{6}
+	return fileDescriptor_serviceProfile_6e143bb04d548394, []int{6}
 }
 func (m *ListServiceProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListServiceProfileRequest.Unmarshal(m, b)
@@ -357,7 +357,7 @@ func (m *ServiceProfileListItem) Reset()         { *m = ServiceProfileListItem{}
 func (m *ServiceProfileListItem) String() string { return proto.CompactTextString(m) }
 func (*ServiceProfileListItem) ProtoMessage()    {}
 func (*ServiceProfileListItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d9e9e4e25c67f7cd, []int{7}
+	return fileDescriptor_serviceProfile_6e143bb04d548394, []int{7}
 }
 func (m *ServiceProfileListItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ServiceProfileListItem.Unmarshal(m, b)
@@ -432,7 +432,7 @@ func (m *ListServiceProfileResponse) Reset()         { *m = ListServiceProfileRe
 func (m *ListServiceProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*ListServiceProfileResponse) ProtoMessage()    {}
 func (*ListServiceProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d9e9e4e25c67f7cd, []int{8}
+	return fileDescriptor_serviceProfile_6e143bb04d548394, []int{8}
 }
 func (m *ListServiceProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListServiceProfileResponse.Unmarshal(m, b)
@@ -692,9 +692,11 @@ var _ServiceProfileService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "serviceProfile.proto",
 }
 
-func init() { proto.RegisterFile("serviceProfile.proto", fileDescriptor_d9e9e4e25c67f7cd) }
+func init() {
+	proto.RegisterFile("serviceProfile.proto", fileDescriptor_serviceProfile_6e143bb04d548394)
+}
 
-var fileDescriptor_d9e9e4e25c67f7cd = []byte{
+var fileDescriptor_serviceProfile_6e143bb04d548394 = []byte{
 	// 599 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x54, 0xcf, 0x6e, 0xd3, 0x4e,
 	0x10, 0x56, 0xe2, 0xd4, 0x52, 0x26, 0x52, 0xa2, 0xdf, 0xfe, 0xda, 0x90, 0x6e, 0x52, 0x12, 0x7c,

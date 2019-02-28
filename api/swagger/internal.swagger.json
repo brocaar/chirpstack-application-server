@@ -21,7 +21,7 @@
         "operationId": "Branding",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiBrandingResponse"
             }
@@ -38,7 +38,7 @@
         "operationId": "Login",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiLoginResponse"
             }
@@ -65,7 +65,7 @@
         "operationId": "Profile",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiProfileResponse"
             }
@@ -82,7 +82,7 @@
         "operationId": "GlobalSearch",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiGlobalSearchResponse"
             }

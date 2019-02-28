@@ -31,7 +31,6 @@ var RatePolicy_name = map[int32]string{
 	0: "DROP",
 	1: "MARK",
 }
-
 var RatePolicy_value = map[string]int32{
 	"DROP": 0,
 	"MARK": 1,
@@ -40,9 +39,8 @@ var RatePolicy_value = map[string]int32{
 func (x RatePolicy) String() string {
 	return proto.EnumName(RatePolicy_name, int32(x))
 }
-
 func (RatePolicy) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_9610db3cccb08234, []int{0}
+	return fileDescriptor_profiles_f841b2f038c61935, []int{0}
 }
 
 type ServiceProfile struct {
@@ -102,7 +100,7 @@ func (m *ServiceProfile) Reset()         { *m = ServiceProfile{} }
 func (m *ServiceProfile) String() string { return proto.CompactTextString(m) }
 func (*ServiceProfile) ProtoMessage()    {}
 func (*ServiceProfile) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9610db3cccb08234, []int{0}
+	return fileDescriptor_profiles_f841b2f038c61935, []int{0}
 }
 func (m *ServiceProfile) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ServiceProfile.Unmarshal(m, b)
@@ -339,7 +337,7 @@ func (m *DeviceProfile) Reset()         { *m = DeviceProfile{} }
 func (m *DeviceProfile) String() string { return proto.CompactTextString(m) }
 func (*DeviceProfile) ProtoMessage()    {}
 func (*DeviceProfile) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9610db3cccb08234, []int{1}
+	return fileDescriptor_profiles_f841b2f038c61935, []int{1}
 }
 func (m *DeviceProfile) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeviceProfile.Unmarshal(m, b)
@@ -526,9 +524,9 @@ func init() {
 	proto.RegisterEnum("api.RatePolicy", RatePolicy_name, RatePolicy_value)
 }
 
-func init() { proto.RegisterFile("profiles.proto", fileDescriptor_9610db3cccb08234) }
+func init() { proto.RegisterFile("profiles.proto", fileDescriptor_profiles_f841b2f038c61935) }
 
-var fileDescriptor_9610db3cccb08234 = []byte{
+var fileDescriptor_profiles_f841b2f038c61935 = []byte{
 	// 917 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x55, 0x5d, 0x6f, 0xdb, 0x36,
 	0x14, 0x9d, 0x9b, 0xd4, 0xb1, 0x19, 0x4b, 0x76, 0x98, 0xa4, 0x55, 0xf7, 0xe9, 0xa5, 0xc3, 0x66,

@@ -39,7 +39,6 @@ var MulticastGroupType_name = map[int32]string{
 	0: "CLASS_C",
 	1: "CLASS_B",
 }
-
 var MulticastGroupType_value = map[string]int32{
 	"CLASS_C": 0,
 	"CLASS_B": 1,
@@ -48,9 +47,8 @@ var MulticastGroupType_value = map[string]int32{
 func (x MulticastGroupType) String() string {
 	return proto.EnumName(MulticastGroupType_name, int32(x))
 }
-
 func (MulticastGroupType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{0}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{0}
 }
 
 type MulticastGroup struct {
@@ -88,7 +86,7 @@ func (m *MulticastGroup) Reset()         { *m = MulticastGroup{} }
 func (m *MulticastGroup) String() string { return proto.CompactTextString(m) }
 func (*MulticastGroup) ProtoMessage()    {}
 func (*MulticastGroup) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{0}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{0}
 }
 func (m *MulticastGroup) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MulticastGroup.Unmarshal(m, b)
@@ -203,7 +201,7 @@ func (m *MulticastGroupListItem) Reset()         { *m = MulticastGroupListItem{}
 func (m *MulticastGroupListItem) String() string { return proto.CompactTextString(m) }
 func (*MulticastGroupListItem) ProtoMessage()    {}
 func (*MulticastGroupListItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{1}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{1}
 }
 func (m *MulticastGroupListItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MulticastGroupListItem.Unmarshal(m, b)
@@ -263,7 +261,7 @@ func (m *CreateMulticastGroupRequest) Reset()         { *m = CreateMulticastGrou
 func (m *CreateMulticastGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateMulticastGroupRequest) ProtoMessage()    {}
 func (*CreateMulticastGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{2}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{2}
 }
 func (m *CreateMulticastGroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateMulticastGroupRequest.Unmarshal(m, b)
@@ -302,7 +300,7 @@ func (m *CreateMulticastGroupResponse) Reset()         { *m = CreateMulticastGro
 func (m *CreateMulticastGroupResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateMulticastGroupResponse) ProtoMessage()    {}
 func (*CreateMulticastGroupResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{3}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{3}
 }
 func (m *CreateMulticastGroupResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateMulticastGroupResponse.Unmarshal(m, b)
@@ -341,7 +339,7 @@ func (m *GetMulticastGroupRequest) Reset()         { *m = GetMulticastGroupReque
 func (m *GetMulticastGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*GetMulticastGroupRequest) ProtoMessage()    {}
 func (*GetMulticastGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{4}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{4}
 }
 func (m *GetMulticastGroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetMulticastGroupRequest.Unmarshal(m, b)
@@ -384,7 +382,7 @@ func (m *GetMulticastGroupResponse) Reset()         { *m = GetMulticastGroupResp
 func (m *GetMulticastGroupResponse) String() string { return proto.CompactTextString(m) }
 func (*GetMulticastGroupResponse) ProtoMessage()    {}
 func (*GetMulticastGroupResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{5}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{5}
 }
 func (m *GetMulticastGroupResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetMulticastGroupResponse.Unmarshal(m, b)
@@ -437,7 +435,7 @@ func (m *UpdateMulticastGroupRequest) Reset()         { *m = UpdateMulticastGrou
 func (m *UpdateMulticastGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateMulticastGroupRequest) ProtoMessage()    {}
 func (*UpdateMulticastGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{6}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{6}
 }
 func (m *UpdateMulticastGroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateMulticastGroupRequest.Unmarshal(m, b)
@@ -476,7 +474,7 @@ func (m *DeleteMulticastGroupRequest) Reset()         { *m = DeleteMulticastGrou
 func (m *DeleteMulticastGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteMulticastGroupRequest) ProtoMessage()    {}
 func (*DeleteMulticastGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{7}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{7}
 }
 func (m *DeleteMulticastGroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteMulticastGroupRequest.Unmarshal(m, b)
@@ -519,7 +517,7 @@ func (m *AddDeviceToMulticastGroupRequest) Reset()         { *m = AddDeviceToMul
 func (m *AddDeviceToMulticastGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*AddDeviceToMulticastGroupRequest) ProtoMessage()    {}
 func (*AddDeviceToMulticastGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{8}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{8}
 }
 func (m *AddDeviceToMulticastGroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AddDeviceToMulticastGroupRequest.Unmarshal(m, b)
@@ -567,7 +565,7 @@ func (m *RemoveDeviceFromMulticastGroupRequest) Reset()         { *m = RemoveDev
 func (m *RemoveDeviceFromMulticastGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*RemoveDeviceFromMulticastGroupRequest) ProtoMessage()    {}
 func (*RemoveDeviceFromMulticastGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{9}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{9}
 }
 func (m *RemoveDeviceFromMulticastGroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RemoveDeviceFromMulticastGroupRequest.Unmarshal(m, b)
@@ -623,7 +621,7 @@ func (m *ListMulticastGroupRequest) Reset()         { *m = ListMulticastGroupReq
 func (m *ListMulticastGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*ListMulticastGroupRequest) ProtoMessage()    {}
 func (*ListMulticastGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{10}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{10}
 }
 func (m *ListMulticastGroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListMulticastGroupRequest.Unmarshal(m, b)
@@ -698,7 +696,7 @@ func (m *ListMulticastGroupResponse) Reset()         { *m = ListMulticastGroupRe
 func (m *ListMulticastGroupResponse) String() string { return proto.CompactTextString(m) }
 func (*ListMulticastGroupResponse) ProtoMessage()    {}
 func (*ListMulticastGroupResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{11}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{11}
 }
 func (m *ListMulticastGroupResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListMulticastGroupResponse.Unmarshal(m, b)
@@ -751,7 +749,7 @@ func (m *MulticastQueueItem) Reset()         { *m = MulticastQueueItem{} }
 func (m *MulticastQueueItem) String() string { return proto.CompactTextString(m) }
 func (*MulticastQueueItem) ProtoMessage()    {}
 func (*MulticastQueueItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{12}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{12}
 }
 func (m *MulticastQueueItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MulticastQueueItem.Unmarshal(m, b)
@@ -811,7 +809,7 @@ func (m *EnqueueMulticastQueueItemRequest) Reset()         { *m = EnqueueMultica
 func (m *EnqueueMulticastQueueItemRequest) String() string { return proto.CompactTextString(m) }
 func (*EnqueueMulticastQueueItemRequest) ProtoMessage()    {}
 func (*EnqueueMulticastQueueItemRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{13}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{13}
 }
 func (m *EnqueueMulticastQueueItemRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EnqueueMulticastQueueItemRequest.Unmarshal(m, b)
@@ -850,7 +848,7 @@ func (m *EnqueueMulticastQueueItemResponse) Reset()         { *m = EnqueueMultic
 func (m *EnqueueMulticastQueueItemResponse) String() string { return proto.CompactTextString(m) }
 func (*EnqueueMulticastQueueItemResponse) ProtoMessage()    {}
 func (*EnqueueMulticastQueueItemResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{14}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{14}
 }
 func (m *EnqueueMulticastQueueItemResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EnqueueMulticastQueueItemResponse.Unmarshal(m, b)
@@ -889,7 +887,7 @@ func (m *FlushMulticastGroupQueueItemsRequest) Reset()         { *m = FlushMulti
 func (m *FlushMulticastGroupQueueItemsRequest) String() string { return proto.CompactTextString(m) }
 func (*FlushMulticastGroupQueueItemsRequest) ProtoMessage()    {}
 func (*FlushMulticastGroupQueueItemsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{15}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{15}
 }
 func (m *FlushMulticastGroupQueueItemsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_FlushMulticastGroupQueueItemsRequest.Unmarshal(m, b)
@@ -928,7 +926,7 @@ func (m *ListMulticastGroupQueueItemsRequest) Reset()         { *m = ListMultica
 func (m *ListMulticastGroupQueueItemsRequest) String() string { return proto.CompactTextString(m) }
 func (*ListMulticastGroupQueueItemsRequest) ProtoMessage()    {}
 func (*ListMulticastGroupQueueItemsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{16}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{16}
 }
 func (m *ListMulticastGroupQueueItemsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListMulticastGroupQueueItemsRequest.Unmarshal(m, b)
@@ -966,7 +964,7 @@ func (m *ListMulticastGroupQueueItemsResponse) Reset()         { *m = ListMultic
 func (m *ListMulticastGroupQueueItemsResponse) String() string { return proto.CompactTextString(m) }
 func (*ListMulticastGroupQueueItemsResponse) ProtoMessage()    {}
 func (*ListMulticastGroupQueueItemsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cdc9b44b08fa59a4, []int{17}
+	return fileDescriptor_multicastGroup_6c303266faad4a6b, []int{17}
 }
 func (m *ListMulticastGroupQueueItemsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListMulticastGroupQueueItemsResponse.Unmarshal(m, b)
@@ -1404,9 +1402,11 @@ var _MulticastGroupService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "multicastGroup.proto",
 }
 
-func init() { proto.RegisterFile("multicastGroup.proto", fileDescriptor_cdc9b44b08fa59a4) }
+func init() {
+	proto.RegisterFile("multicastGroup.proto", fileDescriptor_multicastGroup_6c303266faad4a6b)
+}
 
-var fileDescriptor_cdc9b44b08fa59a4 = []byte{
+var fileDescriptor_multicastGroup_6c303266faad4a6b = []byte{
 	// 1170 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xdd, 0x6e, 0xdc, 0x44,
 	0x14, 0xc6, 0xbb, 0xc9, 0x86, 0x3d, 0xdb, 0x6e, 0xa3, 0x69, 0x93, 0xb8, 0x4e, 0x4a, 0xb6, 0xa6,

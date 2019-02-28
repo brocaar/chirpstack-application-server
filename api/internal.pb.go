@@ -39,7 +39,7 @@ func (m *ProfileSettings) Reset()         { *m = ProfileSettings{} }
 func (m *ProfileSettings) String() string { return proto.CompactTextString(m) }
 func (*ProfileSettings) ProtoMessage()    {}
 func (*ProfileSettings) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41f4a519b878ee3b, []int{0}
+	return fileDescriptor_internal_47d8d8871dbbf124, []int{0}
 }
 func (m *ProfileSettings) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ProfileSettings.Unmarshal(m, b)
@@ -87,7 +87,7 @@ func (m *OrganizationLink) Reset()         { *m = OrganizationLink{} }
 func (m *OrganizationLink) String() string { return proto.CompactTextString(m) }
 func (*OrganizationLink) ProtoMessage()    {}
 func (*OrganizationLink) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41f4a519b878ee3b, []int{1}
+	return fileDescriptor_internal_47d8d8871dbbf124, []int{1}
 }
 func (m *OrganizationLink) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_OrganizationLink.Unmarshal(m, b)
@@ -156,7 +156,7 @@ func (m *LoginRequest) Reset()         { *m = LoginRequest{} }
 func (m *LoginRequest) String() string { return proto.CompactTextString(m) }
 func (*LoginRequest) ProtoMessage()    {}
 func (*LoginRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41f4a519b878ee3b, []int{2}
+	return fileDescriptor_internal_47d8d8871dbbf124, []int{2}
 }
 func (m *LoginRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_LoginRequest.Unmarshal(m, b)
@@ -202,7 +202,7 @@ func (m *LoginResponse) Reset()         { *m = LoginResponse{} }
 func (m *LoginResponse) String() string { return proto.CompactTextString(m) }
 func (*LoginResponse) ProtoMessage()    {}
 func (*LoginResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41f4a519b878ee3b, []int{3}
+	return fileDescriptor_internal_47d8d8871dbbf124, []int{3}
 }
 func (m *LoginResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_LoginResponse.Unmarshal(m, b)
@@ -245,7 +245,7 @@ func (m *ProfileResponse) Reset()         { *m = ProfileResponse{} }
 func (m *ProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*ProfileResponse) ProtoMessage()    {}
 func (*ProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41f4a519b878ee3b, []int{4}
+	return fileDescriptor_internal_47d8d8871dbbf124, []int{4}
 }
 func (m *ProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ProfileResponse.Unmarshal(m, b)
@@ -302,7 +302,7 @@ func (m *GlobalSearchRequest) Reset()         { *m = GlobalSearchRequest{} }
 func (m *GlobalSearchRequest) String() string { return proto.CompactTextString(m) }
 func (*GlobalSearchRequest) ProtoMessage()    {}
 func (*GlobalSearchRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41f4a519b878ee3b, []int{5}
+	return fileDescriptor_internal_47d8d8871dbbf124, []int{5}
 }
 func (m *GlobalSearchRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GlobalSearchRequest.Unmarshal(m, b)
@@ -354,7 +354,7 @@ func (m *GlobalSearchResponse) Reset()         { *m = GlobalSearchResponse{} }
 func (m *GlobalSearchResponse) String() string { return proto.CompactTextString(m) }
 func (*GlobalSearchResponse) ProtoMessage()    {}
 func (*GlobalSearchResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41f4a519b878ee3b, []int{6}
+	return fileDescriptor_internal_47d8d8871dbbf124, []int{6}
 }
 func (m *GlobalSearchResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GlobalSearchResponse.Unmarshal(m, b)
@@ -411,7 +411,7 @@ func (m *GlobalSearchResult) Reset()         { *m = GlobalSearchResult{} }
 func (m *GlobalSearchResult) String() string { return proto.CompactTextString(m) }
 func (*GlobalSearchResult) ProtoMessage()    {}
 func (*GlobalSearchResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41f4a519b878ee3b, []int{7}
+	return fileDescriptor_internal_47d8d8871dbbf124, []int{7}
 }
 func (m *GlobalSearchResult) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GlobalSearchResult.Unmarshal(m, b)
@@ -517,7 +517,7 @@ func (m *BrandingResponse) Reset()         { *m = BrandingResponse{} }
 func (m *BrandingResponse) String() string { return proto.CompactTextString(m) }
 func (*BrandingResponse) ProtoMessage()    {}
 func (*BrandingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41f4a519b878ee3b, []int{8}
+	return fileDescriptor_internal_47d8d8871dbbf124, []int{8}
 }
 func (m *BrandingResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_BrandingResponse.Unmarshal(m, b)
@@ -749,9 +749,9 @@ var _InternalService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "internal.proto",
 }
 
-func init() { proto.RegisterFile("internal.proto", fileDescriptor_41f4a519b878ee3b) }
+func init() { proto.RegisterFile("internal.proto", fileDescriptor_internal_47d8d8871dbbf124) }
 
-var fileDescriptor_41f4a519b878ee3b = []byte{
+var fileDescriptor_internal_47d8d8871dbbf124 = []byte{
 	// 810 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x94, 0xd1, 0x8e, 0xdb, 0x44,
 	0x14, 0x86, 0xe5, 0x38, 0xbb, 0x9b, 0x9c, 0x64, 0x77, 0xd3, 0x69, 0x9a, 0xba, 0xa1, 0xcb, 0xa6,

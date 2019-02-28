@@ -38,7 +38,7 @@ func (m *CreateDeviceProfileRequest) Reset()         { *m = CreateDeviceProfileR
 func (m *CreateDeviceProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateDeviceProfileRequest) ProtoMessage()    {}
 func (*CreateDeviceProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ed478be08b3cbfaf, []int{0}
+	return fileDescriptor_deviceProfile_b4dd410e0cee7d90, []int{0}
 }
 func (m *CreateDeviceProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateDeviceProfileRequest.Unmarshal(m, b)
@@ -77,7 +77,7 @@ func (m *CreateDeviceProfileResponse) Reset()         { *m = CreateDeviceProfile
 func (m *CreateDeviceProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateDeviceProfileResponse) ProtoMessage()    {}
 func (*CreateDeviceProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ed478be08b3cbfaf, []int{1}
+	return fileDescriptor_deviceProfile_b4dd410e0cee7d90, []int{1}
 }
 func (m *CreateDeviceProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateDeviceProfileResponse.Unmarshal(m, b)
@@ -116,7 +116,7 @@ func (m *GetDeviceProfileRequest) Reset()         { *m = GetDeviceProfileRequest
 func (m *GetDeviceProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*GetDeviceProfileRequest) ProtoMessage()    {}
 func (*GetDeviceProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ed478be08b3cbfaf, []int{2}
+	return fileDescriptor_deviceProfile_b4dd410e0cee7d90, []int{2}
 }
 func (m *GetDeviceProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetDeviceProfileRequest.Unmarshal(m, b)
@@ -159,7 +159,7 @@ func (m *GetDeviceProfileResponse) Reset()         { *m = GetDeviceProfileRespon
 func (m *GetDeviceProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*GetDeviceProfileResponse) ProtoMessage()    {}
 func (*GetDeviceProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ed478be08b3cbfaf, []int{3}
+	return fileDescriptor_deviceProfile_b4dd410e0cee7d90, []int{3}
 }
 func (m *GetDeviceProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetDeviceProfileResponse.Unmarshal(m, b)
@@ -212,7 +212,7 @@ func (m *UpdateDeviceProfileRequest) Reset()         { *m = UpdateDeviceProfileR
 func (m *UpdateDeviceProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateDeviceProfileRequest) ProtoMessage()    {}
 func (*UpdateDeviceProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ed478be08b3cbfaf, []int{4}
+	return fileDescriptor_deviceProfile_b4dd410e0cee7d90, []int{4}
 }
 func (m *UpdateDeviceProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateDeviceProfileRequest.Unmarshal(m, b)
@@ -251,7 +251,7 @@ func (m *DeleteDeviceProfileRequest) Reset()         { *m = DeleteDeviceProfileR
 func (m *DeleteDeviceProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteDeviceProfileRequest) ProtoMessage()    {}
 func (*DeleteDeviceProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ed478be08b3cbfaf, []int{5}
+	return fileDescriptor_deviceProfile_b4dd410e0cee7d90, []int{5}
 }
 func (m *DeleteDeviceProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteDeviceProfileRequest.Unmarshal(m, b)
@@ -300,7 +300,7 @@ func (m *DeviceProfileListItem) Reset()         { *m = DeviceProfileListItem{} }
 func (m *DeviceProfileListItem) String() string { return proto.CompactTextString(m) }
 func (*DeviceProfileListItem) ProtoMessage()    {}
 func (*DeviceProfileListItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ed478be08b3cbfaf, []int{6}
+	return fileDescriptor_deviceProfile_b4dd410e0cee7d90, []int{6}
 }
 func (m *DeviceProfileListItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeviceProfileListItem.Unmarshal(m, b)
@@ -380,7 +380,7 @@ func (m *ListDeviceProfileRequest) Reset()         { *m = ListDeviceProfileReque
 func (m *ListDeviceProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*ListDeviceProfileRequest) ProtoMessage()    {}
 func (*ListDeviceProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ed478be08b3cbfaf, []int{7}
+	return fileDescriptor_deviceProfile_b4dd410e0cee7d90, []int{7}
 }
 func (m *ListDeviceProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListDeviceProfileRequest.Unmarshal(m, b)
@@ -441,7 +441,7 @@ func (m *ListDeviceProfileResponse) Reset()         { *m = ListDeviceProfileResp
 func (m *ListDeviceProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*ListDeviceProfileResponse) ProtoMessage()    {}
 func (*ListDeviceProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ed478be08b3cbfaf, []int{8}
+	return fileDescriptor_deviceProfile_b4dd410e0cee7d90, []int{8}
 }
 func (m *ListDeviceProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListDeviceProfileResponse.Unmarshal(m, b)
@@ -701,9 +701,9 @@ var _DeviceProfileService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "deviceProfile.proto",
 }
 
-func init() { proto.RegisterFile("deviceProfile.proto", fileDescriptor_ed478be08b3cbfaf) }
+func init() { proto.RegisterFile("deviceProfile.proto", fileDescriptor_deviceProfile_b4dd410e0cee7d90) }
 
-var fileDescriptor_ed478be08b3cbfaf = []byte{
+var fileDescriptor_deviceProfile_b4dd410e0cee7d90 = []byte{
 	// 616 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xcd, 0x6e, 0xd3, 0x40,
 	0x10, 0x56, 0xe2, 0xd4, 0x52, 0xa7, 0x6a, 0x2a, 0x96, 0x52, 0x52, 0x27, 0x90, 0x62, 0x09, 0x51,

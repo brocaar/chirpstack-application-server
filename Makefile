@@ -39,7 +39,9 @@ ui/build:
 
 api:
 	@echo "Generating API code from .proto files"
+	@go mod vendor
 	@go generate api/api.go
+	@rm -rf vendor/
 
 internal/statics internal/migrations: static/swagger/api.swagger.json
 	@echo "Generating static files"

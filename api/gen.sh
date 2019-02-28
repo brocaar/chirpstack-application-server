@@ -1,22 +1,10 @@
 #!/usr/bin/env bash
 
-# Since GOPATH can be a path, we can't just use it as a variable.  Split it up 
-# to the various paths, and append the subpaths.
-GOSUBPATHS="/src:/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis"
-GOPATHLIST=""
-OIFS=$IFS
-IFS=':' 
-for GOBASEPATH in $GOPATH; do
-    for GOSUBPATH in $GOSUBPATHS; do
-    	if [ -e ${GOBASEPATH}${GOSUBPATH} ]; then
-        	GOPATHLIST="${GOPATHLIST} -I${GOBASEPATH}${GOSUBPATH}"
-        fi
-    done
-done
-IFS=$OIFS
+GRPC_GW_PATH=`go list -f '{{ .Dir }}' github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway`
+GRPC_GW_PATH="${GRPC_GW_PATH}/../third_party/googleapis"
 
 # generate the gRPC code
-protoc -I../vendor -I/usr/local/include -I. ${GOPATHLIST} --go_out=plugins=grpc:. \
+protoc -I../vendor -I${GRPC_GW_PATH} -I. --go_out=plugins=grpc:. \
     device.proto \
     application.proto \
     deviceQueue.proto \
@@ -33,7 +21,7 @@ protoc -I../vendor -I/usr/local/include -I. ${GOPATHLIST} --go_out=plugins=grpc:
     internal.proto
 
 # generate the JSON interface code
-protoc -I../vendor -I/usr/local/include -I. ${GOPATHLIST} --grpc-gateway_out=logtostderr=true:. \
+protoc -I../vendor -I${GRPC_GW_PATH} -I. --grpc-gateway_out=logtostderr=true:. \
     device.proto \
     application.proto \
     deviceQueue.proto \
@@ -50,7 +38,7 @@ protoc -I../vendor -I/usr/local/include -I. ${GOPATHLIST} --grpc-gateway_out=log
     internal.proto
 
 # generate the swagger definitions
-protoc -I../vendor -I/usr/local/include -I. ${GOPATHLIST} --swagger_out=logtostderr=true:./swagger \
+protoc -I../vendor -I${GRPC_GW_PATH} -I. --swagger_out=json_names_for_fields=true:./swagger \
     device.proto \
     application.proto \
     deviceQueue.proto \

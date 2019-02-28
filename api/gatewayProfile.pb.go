@@ -49,7 +49,7 @@ func (m *GatewayProfile) Reset()         { *m = GatewayProfile{} }
 func (m *GatewayProfile) String() string { return proto.CompactTextString(m) }
 func (*GatewayProfile) ProtoMessage()    {}
 func (*GatewayProfile) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b20ad161b6cd9337, []int{0}
+	return fileDescriptor_gatewayProfile_e8883c7fd97af9ab, []int{0}
 }
 func (m *GatewayProfile) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GatewayProfile.Unmarshal(m, b)
@@ -126,7 +126,7 @@ func (m *GatewayProfileListItem) Reset()         { *m = GatewayProfileListItem{}
 func (m *GatewayProfileListItem) String() string { return proto.CompactTextString(m) }
 func (*GatewayProfileListItem) ProtoMessage()    {}
 func (*GatewayProfileListItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b20ad161b6cd9337, []int{1}
+	return fileDescriptor_gatewayProfile_e8883c7fd97af9ab, []int{1}
 }
 func (m *GatewayProfileListItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GatewayProfileListItem.Unmarshal(m, b)
@@ -208,7 +208,7 @@ func (m *GatewayProfileExtraChannel) Reset()         { *m = GatewayProfileExtraC
 func (m *GatewayProfileExtraChannel) String() string { return proto.CompactTextString(m) }
 func (*GatewayProfileExtraChannel) ProtoMessage()    {}
 func (*GatewayProfileExtraChannel) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b20ad161b6cd9337, []int{2}
+	return fileDescriptor_gatewayProfile_e8883c7fd97af9ab, []int{2}
 }
 func (m *GatewayProfileExtraChannel) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GatewayProfileExtraChannel.Unmarshal(m, b)
@@ -275,7 +275,7 @@ func (m *CreateGatewayProfileRequest) Reset()         { *m = CreateGatewayProfil
 func (m *CreateGatewayProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateGatewayProfileRequest) ProtoMessage()    {}
 func (*CreateGatewayProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b20ad161b6cd9337, []int{3}
+	return fileDescriptor_gatewayProfile_e8883c7fd97af9ab, []int{3}
 }
 func (m *CreateGatewayProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateGatewayProfileRequest.Unmarshal(m, b)
@@ -314,7 +314,7 @@ func (m *CreateGatewayProfileResponse) Reset()         { *m = CreateGatewayProfi
 func (m *CreateGatewayProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateGatewayProfileResponse) ProtoMessage()    {}
 func (*CreateGatewayProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b20ad161b6cd9337, []int{4}
+	return fileDescriptor_gatewayProfile_e8883c7fd97af9ab, []int{4}
 }
 func (m *CreateGatewayProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateGatewayProfileResponse.Unmarshal(m, b)
@@ -353,7 +353,7 @@ func (m *GetGatewayProfileRequest) Reset()         { *m = GetGatewayProfileReque
 func (m *GetGatewayProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*GetGatewayProfileRequest) ProtoMessage()    {}
 func (*GetGatewayProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b20ad161b6cd9337, []int{5}
+	return fileDescriptor_gatewayProfile_e8883c7fd97af9ab, []int{5}
 }
 func (m *GetGatewayProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetGatewayProfileRequest.Unmarshal(m, b)
@@ -396,7 +396,7 @@ func (m *GetGatewayProfileResponse) Reset()         { *m = GetGatewayProfileResp
 func (m *GetGatewayProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*GetGatewayProfileResponse) ProtoMessage()    {}
 func (*GetGatewayProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b20ad161b6cd9337, []int{6}
+	return fileDescriptor_gatewayProfile_e8883c7fd97af9ab, []int{6}
 }
 func (m *GetGatewayProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetGatewayProfileResponse.Unmarshal(m, b)
@@ -449,7 +449,7 @@ func (m *UpdateGatewayProfileRequest) Reset()         { *m = UpdateGatewayProfil
 func (m *UpdateGatewayProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateGatewayProfileRequest) ProtoMessage()    {}
 func (*UpdateGatewayProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b20ad161b6cd9337, []int{7}
+	return fileDescriptor_gatewayProfile_e8883c7fd97af9ab, []int{7}
 }
 func (m *UpdateGatewayProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateGatewayProfileRequest.Unmarshal(m, b)
@@ -488,7 +488,7 @@ func (m *DeleteGatewayProfileRequest) Reset()         { *m = DeleteGatewayProfil
 func (m *DeleteGatewayProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteGatewayProfileRequest) ProtoMessage()    {}
 func (*DeleteGatewayProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b20ad161b6cd9337, []int{8}
+	return fileDescriptor_gatewayProfile_e8883c7fd97af9ab, []int{8}
 }
 func (m *DeleteGatewayProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteGatewayProfileRequest.Unmarshal(m, b)
@@ -531,7 +531,7 @@ func (m *ListGatewayProfilesRequest) Reset()         { *m = ListGatewayProfilesR
 func (m *ListGatewayProfilesRequest) String() string { return proto.CompactTextString(m) }
 func (*ListGatewayProfilesRequest) ProtoMessage()    {}
 func (*ListGatewayProfilesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b20ad161b6cd9337, []int{9}
+	return fileDescriptor_gatewayProfile_e8883c7fd97af9ab, []int{9}
 }
 func (m *ListGatewayProfilesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListGatewayProfilesRequest.Unmarshal(m, b)
@@ -585,7 +585,7 @@ func (m *ListGatewayProfilesResponse) Reset()         { *m = ListGatewayProfiles
 func (m *ListGatewayProfilesResponse) String() string { return proto.CompactTextString(m) }
 func (*ListGatewayProfilesResponse) ProtoMessage()    {}
 func (*ListGatewayProfilesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b20ad161b6cd9337, []int{10}
+	return fileDescriptor_gatewayProfile_e8883c7fd97af9ab, []int{10}
 }
 func (m *ListGatewayProfilesResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListGatewayProfilesResponse.Unmarshal(m, b)
@@ -847,9 +847,11 @@ var _GatewayProfileService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "gatewayProfile.proto",
 }
 
-func init() { proto.RegisterFile("gatewayProfile.proto", fileDescriptor_b20ad161b6cd9337) }
+func init() {
+	proto.RegisterFile("gatewayProfile.proto", fileDescriptor_gatewayProfile_e8883c7fd97af9ab)
+}
 
-var fileDescriptor_b20ad161b6cd9337 = []byte{
+var fileDescriptor_gatewayProfile_e8883c7fd97af9ab = []byte{
 	// 786 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x55, 0xcb, 0x6e, 0xe3, 0x36,
 	0x14, 0x85, 0x2c, 0xc7, 0x69, 0xae, 0x61, 0xa7, 0x61, 0x1e, 0x55, 0x65, 0xa7, 0x51, 0xb5, 0x32,

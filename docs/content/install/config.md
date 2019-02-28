@@ -342,6 +342,13 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # You could generate this by executing 'openssl rand -base64 32' for example
   jwt_secret=""
 
+  # Allow origin header (CORS).
+  #
+  # Set this to allows cross-domain communication from the browser (CORS).
+  # Example value: https://example.com.
+  # When left blank (default), CORS will not be used.
+  cors_allow_origin=""
+
   # when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)"
   disable_assign_existing_users=false
 
@@ -376,7 +383,7 @@ tls_key=""
 # Key Encryption Key (KEK) configuration.
 #
 # The KEK meganism is used to encrypt the session-keys sent from the
-# join-server to the network-server. 
+# join-server to the network-server.
 #
 # The LoRa App Server join-server will use the NetID of the requesting
 # network-server as the KEK label. When no such label exists in the set,

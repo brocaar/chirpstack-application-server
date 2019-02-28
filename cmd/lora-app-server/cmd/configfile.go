@@ -289,7 +289,7 @@ id="{{ .ApplicationServer.ID }}"
   # You could generate this by executing 'openssl rand -base64 32' for example
   jwt_secret="{{ .ApplicationServer.ExternalAPI.JWTSecret }}"
 
-	# Allow origin header (CORS).
+  # Allow origin header (CORS).
   #
   # Set this to allows cross-domain communication from the browser (CORS).
   # Example value: https://example.com.

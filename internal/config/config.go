@@ -3,14 +3,10 @@ package config
 import (
 	"time"
 
-	"github.com/gomodule/redigo/redis"
-
-	"github.com/brocaar/lora-app-server/internal/common"
 	"github.com/brocaar/lora-app-server/internal/integration/awssns"
 	"github.com/brocaar/lora-app-server/internal/integration/azureservicebus"
 	"github.com/brocaar/lora-app-server/internal/integration/gcppubsub"
 	"github.com/brocaar/lora-app-server/internal/integration/mqtt"
-	"github.com/brocaar/lora-app-server/internal/nsclient"
 )
 
 // Config defines the configuration structure.
@@ -23,14 +19,12 @@ type Config struct {
 	PostgreSQL struct {
 		DSN         string `mapstructure:"dsn"`
 		Automigrate bool
-		DB          *common.DBLogger `mapstructure:"db"`
 	} `mapstructure:"postgresql"`
 
 	Redis struct {
 		URL         string        `mapstructure:"url"`
 		MaxIdle     int           `mapstructure:"max_idle"`
 		IdleTimeout time.Duration `mapstructure:"idle_timeout"`
-		Pool        *redis.Pool
 	}
 
 	ApplicationServer struct {
@@ -59,7 +53,7 @@ type Config struct {
 			TLSKey                     string `mapstructure:"tls_key"`
 			JWTSecret                  string `mapstructure:"jwt_secret"`
 			DisableAssignExistingUsers bool   `mapstructure:"disable_assign_existing_users"`
-			CORSAllowOrigin string `mapstructure:"cors_allow_origin"`
+			CORSAllowOrigin            string `mapstructure:"cors_allow_origin"`
 		} `mapstructure:"external_api"`
 
 		Branding struct {
@@ -84,10 +78,6 @@ type Config struct {
 			}
 		} `mapstructure:"kek"`
 	} `mapstructure:"join_server"`
-
-	NetworkServer struct {
-		Pool nsclient.Pool
-	} `mapstructure:"network_server"`
 }
 
 // C holds the global configuration.

@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/loraserver/api/ns"
 )
 
@@ -87,7 +87,7 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -136,7 +136,7 @@ func GetDeviceProfile(db sqlx.Queryer, id uuid.UUID) (DeviceProfile, error) {
 		return dp, errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return dp, errors.Wrap(err, "get network-server client error")
 	}
@@ -172,7 +172,7 @@ func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -221,7 +221,7 @@ func DeleteDeviceProfile(db sqlx.Ext, id uuid.UUID) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}

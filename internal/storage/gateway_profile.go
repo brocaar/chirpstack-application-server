@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/loraserver/api/ns"
 )
 
@@ -86,7 +86,7 @@ func CreateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -128,7 +128,7 @@ func GetGatewayProfile(db sqlx.Queryer, id uuid.UUID) (GatewayProfile, error) {
 		return gp, errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return gp, errors.Wrap(err, "get network-server client error")
 	}
@@ -187,7 +187,7 @@ func UpdateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -227,7 +227,7 @@ func DeleteGatewayProfile(db sqlx.Ext, id uuid.UUID) error {
 		return ErrDoesNotExist
 	}
 
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}

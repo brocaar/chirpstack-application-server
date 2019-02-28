@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/integration"
 	"github.com/brocaar/lora-app-server/internal/integration/awssns"
 	"github.com/brocaar/lora-app-server/internal/integration/azureservicebus"
@@ -16,6 +15,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/integration/http"
 	"github.com/brocaar/lora-app-server/internal/integration/influxdb"
 	"github.com/brocaar/lora-app-server/internal/integration/mqtt"
+	"github.com/brocaar/lora-app-server/internal/storage"
 )
 
 // Integration implements the multi integration.
@@ -46,7 +46,7 @@ func New(confs []interface{}) (*Integration, error) {
 		case influxdb.Config:
 			ii, err = influxdb.New(v)
 		case mqtt.Config:
-			ii, err = mqtt.New(config.C.Redis.Pool, v)
+			ii, err = mqtt.New(storage.RedisPool(), v)
 		default:
 			return nil, fmt.Errorf("unknown configuration type %T", conf)
 		}

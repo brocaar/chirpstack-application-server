@@ -8,7 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/integration"
 	httpint "github.com/brocaar/lora-app-server/internal/integration/http"
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -45,14 +46,12 @@ func (ts *ApplicationTestSuite) SetupSuite() {
 	ts.integration = New()
 
 	conf := test.GetConfig()
-	db, err := storage.OpenDatabase(conf.PostgresDSN)
-	assert.NoError(err)
-	config.C.PostgreSQL.DB = db
-	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL, 10, 0)
-	config.C.NetworkServer.Pool = test.NewNetworkServerPool(test.NewNetworkServerClient())
+	assert.NoError(storage.Setup(conf))
 
-	test.MustFlushRedis(config.C.Redis.Pool)
-	test.MustResetDB(config.C.PostgreSQL.DB)
+	networkserver.SetPool(mock.NewPool(mock.NewClient()))
+
+	test.MustFlushRedis(storage.RedisPool())
+	test.MustResetDB(storage.DB().DB)
 
 	ts.httpServer = httptest.NewServer(&testHTTPHandler{
 		requests: ts.httpRequests,
@@ -62,20 +61,20 @@ func (ts *ApplicationTestSuite) SetupSuite() {
 	org := storage.Organization{
 		Name: "test-org",
 	}
-	assert.NoError(storage.CreateOrganization(config.C.PostgreSQL.DB, &org))
+	assert.NoError(storage.CreateOrganization(storage.DB(), &org))
 
 	ns := storage.NetworkServer{
 		Name:   "test-ns",
 		Server: "test:1234",
 	}
-	assert.NoError(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &ns))
+	assert.NoError(storage.CreateNetworkServer(storage.DB(), &ns))
 
 	sp := storage.ServiceProfile{
 		Name:            "test-sp",
 		OrganizationID:  org.ID,
 		NetworkServerID: ns.ID,
 	}
-	assert.NoError(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp))
+	assert.NoError(storage.CreateServiceProfile(storage.DB(), &sp))
 	spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
 	assert.NoError(err)
 
@@ -84,7 +83,7 @@ func (ts *ApplicationTestSuite) SetupSuite() {
 		Name:             "test-app",
 		ServiceProfileID: spID,
 	}
-	assert.NoError(storage.CreateApplication(config.C.PostgreSQL.DB, &app))
+	assert.NoError(storage.CreateApplication(storage.DB(), &app))
 
 	httpConfig := httpint.Config{
 		DataUpURL:               ts.httpServer.URL + "/rx",
@@ -97,7 +96,7 @@ func (ts *ApplicationTestSuite) SetupSuite() {
 	configJSON, err := json.Marshal(httpConfig)
 	assert.NoError(err)
 
-	assert.NoError(storage.CreateIntegration(config.C.PostgreSQL.DB, &storage.Integration{
+	assert.NoError(storage.CreateIntegration(storage.DB(), &storage.Integration{
 		ApplicationID: app.ID,
 		Kind:          integration.HTTP,
 		Settings:      configJSON,

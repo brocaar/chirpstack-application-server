@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/loraserver/api/ns"
 )
 
@@ -82,7 +82,7 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -131,7 +131,7 @@ func GetServiceProfile(db sqlx.Queryer, id uuid.UUID, localOnly bool) (ServicePr
 		return sp, errors.Wrap(err, "get network-server errror")
 	}
 
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return sp, errors.Wrap(err, "get network-server client error")
 	}
@@ -190,7 +190,7 @@ func UpdateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -214,7 +214,7 @@ func DeleteServiceProfile(db sqlx.Ext, id uuid.UUID) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}

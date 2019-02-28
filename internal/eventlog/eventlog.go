@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
@@ -36,7 +36,7 @@ type EventLog struct {
 
 // LogEventForDevice logs an event for the given device.
 func LogEventForDevice(devEUI lorawan.EUI64, el EventLog) error {
-	c := config.C.Redis.Pool.Get()
+	c := storage.RedisPool().Get()
 	defer c.Close()
 
 	key := fmt.Sprintf(deviceEventUplinkPubSubKeyTempl, devEUI)
@@ -55,7 +55,7 @@ func LogEventForDevice(devEUI lorawan.EUI64, el EventLog) error {
 // GetEventLogForDevice subscribes to the device events for the given DevEUI
 // and sends this to the given channel.
 func GetEventLogForDevice(ctx context.Context, devEUI lorawan.EUI64, eventsChan chan EventLog) error {
-	c := config.C.Redis.Pool.Get()
+	c := storage.RedisPool().Get()
 	defer c.Close()
 
 	key := fmt.Sprintf(deviceEventUplinkPubSubKeyTempl, devEUI)

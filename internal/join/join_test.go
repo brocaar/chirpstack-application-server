@@ -5,7 +5,10 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid"
+	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
+	nsmock "github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/integration"
 	"github.com/brocaar/lora-app-server/internal/integration/mock"
@@ -13,27 +16,20 @@ import (
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/backend"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestJoin(t *testing.T) {
 	conf := test.GetConfig()
-	db, err := storage.OpenDatabase(conf.PostgresDSN)
-	if err != nil {
+	if err := storage.Setup(conf); err != nil {
 		t.Fatal(err)
 	}
 
-	p := storage.NewRedisPool(conf.RedisURL, 10, 0)
-
-	config.C.PostgreSQL.DB = db
-	config.C.Redis.Pool = p
-
 	Convey("Given a clean database with node", t, func() {
-		test.MustResetDB(config.C.PostgreSQL.DB)
-		test.MustFlushRedis(p)
+		test.MustResetDB(storage.DB().DB)
+		test.MustFlushRedis(storage.RedisPool())
 
-		nsClient := test.NewNetworkServerClient()
-		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
+		nsClient := nsmock.NewClient()
+		networkserver.SetPool(nsmock.NewPool(nsClient))
 
 		h := mock.New()
 		integration.SetIntegration(h)
@@ -41,20 +37,20 @@ func TestJoin(t *testing.T) {
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
+		So(storage.CreateOrganization(storage.DB(), &org), ShouldBeNil)
 
 		n := storage.NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(storage.DB(), &n), ShouldBeNil)
 
 		sp := storage.ServiceProfile{
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 			Name:            "test-sp",
 		}
-		So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
+		So(storage.CreateServiceProfile(storage.DB(), &sp), ShouldBeNil)
 		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
 		So(err, ShouldBeNil)
 
@@ -63,7 +59,7 @@ func TestJoin(t *testing.T) {
 			NetworkServerID: n.ID,
 			Name:            "test-dp",
 		}
-		So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
+		So(storage.CreateDeviceProfile(storage.DB(), &dp), ShouldBeNil)
 		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
 		So(err, ShouldBeNil)
 
@@ -72,7 +68,7 @@ func TestJoin(t *testing.T) {
 			ServiceProfileID: spID,
 			Name:             "test-app",
 		}
-		So(storage.CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
+		So(storage.CreateApplication(storage.DB(), &app), ShouldBeNil)
 
 		d := storage.Device{
 			ApplicationID:   app.ID,
@@ -80,14 +76,14 @@ func TestJoin(t *testing.T) {
 			DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 			DeviceProfileID: dpID,
 		}
-		So(storage.CreateDevice(config.C.PostgreSQL.DB, &d), ShouldBeNil)
+		So(storage.CreateDevice(storage.DB(), &d), ShouldBeNil)
 
 		dk := storage.DeviceKeys{
 			DevEUI:    d.DevEUI,
 			NwkKey:    lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 			JoinNonce: 65535,
 		}
-		So(storage.CreateDeviceKeys(config.C.PostgreSQL.DB, &dk), ShouldBeNil)
+		So(storage.CreateDeviceKeys(storage.DB(), &dk), ShouldBeNil)
 
 		cFList := lorawan.CFList{
 			CFListType: lorawan.CFListChannel,
@@ -436,7 +432,7 @@ func TestJoin(t *testing.T) {
 				{
 					Name: "join-request for device without keys",
 					PreRun: func() error {
-						return storage.DeleteDeviceKeys(config.C.PostgreSQL.DB, d.DevEUI)
+						return storage.DeleteDeviceKeys(storage.DB(), d.DevEUI)
 					},
 					RequestPayload: backend.JoinReqPayload{
 						BasePayload: backend.BasePayload{

@@ -9,8 +9,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/eventlog"
 	"github.com/brocaar/lora-app-server/internal/integration"
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -34,7 +34,7 @@ func HandleDataDownPayloads() {
 }
 
 func handleDataDownPayload(pl integration.DataDownPayload) error {
-	return storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
+	return storage.Transaction(func(tx sqlx.Ext) error {
 		// lock the device so that a concurrent Enqueue action will block
 		// until this transaction has been completed
 		d, err := storage.GetDevice(tx, pl.DevEUI, true, true)
@@ -93,7 +93,7 @@ func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, confirmed bool, f
 	if err != nil {
 		return 0, errors.Wrap(err, "get network-server error")
 	}
-	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return 0, errors.Wrap(err, "get network-server client error")
 	}

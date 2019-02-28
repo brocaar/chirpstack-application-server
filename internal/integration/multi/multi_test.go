@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/integration"
 	httpint "github.com/brocaar/lora-app-server/internal/integration/http"
 	mqttint "github.com/brocaar/lora-app-server/internal/integration/mqtt"
@@ -50,9 +49,9 @@ func (ts *IntegrationTestSuite) SetupSuite() {
 	ts.mqttMessages = make(chan mqtt.Message, 100)
 
 	conf := test.GetConfig()
-	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL, 10, 0)
+	assert.NoError(storage.Setup(conf))
 
-	opts := mqtt.NewClientOptions().AddBroker(conf.MQTTServer).SetUsername(conf.MQTTUsername).SetPassword(conf.MQTTPassword)
+	opts := mqtt.NewClientOptions().AddBroker(conf.ApplicationServer.Integration.MQTT.Server).SetUsername(conf.ApplicationServer.Integration.MQTT.Username).SetPassword(conf.ApplicationServer.Integration.MQTT.Password)
 	ts.mqttClient = mqtt.NewClient(opts)
 	token := ts.mqttClient.Connect()
 	token.Wait()
@@ -71,9 +70,9 @@ func (ts *IntegrationTestSuite) SetupSuite() {
 	var err error
 	ts.integration, err = New([]interface{}{
 		mqttint.Config{
-			Server:                conf.MQTTServer,
-			Username:              conf.MQTTUsername,
-			Password:              conf.MQTTPassword,
+			Server:                conf.ApplicationServer.Integration.MQTT.Server,
+			Username:              conf.ApplicationServer.Integration.MQTT.Username,
+			Password:              conf.ApplicationServer.Integration.MQTT.Password,
 			CleanSession:          true,
 			UplinkTopicTemplate:   "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/rx",
 			DownlinkTopicTemplate: "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/tx",

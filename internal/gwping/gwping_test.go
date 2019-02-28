@@ -4,7 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/as"
@@ -17,23 +18,20 @@ import (
 
 func TestGatewayPing(t *testing.T) {
 	conf := test.GetConfig()
-	db, err := storage.OpenDatabase(conf.PostgresDSN)
-	if err != nil {
+	if err := storage.Setup(conf); err != nil {
 		t.Fatal(err)
 	}
-	config.C.PostgreSQL.DB = db
-	config.C.Redis.Pool = storage.NewRedisPool(conf.RedisURL, 10, 0)
 
 	Convey("Given a clean database and a gateway", t, func() {
-		nsClient := test.NewNetworkServerClient()
-		test.MustResetDB(db)
-		test.MustFlushRedis(config.C.Redis.Pool)
-		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
+		nsClient := mock.NewClient()
+		test.MustResetDB(storage.DB().DB)
+		test.MustFlushRedis(storage.RedisPool())
+		networkserver.SetPool(mock.NewPool(nsClient))
 
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
+		So(storage.CreateOrganization(storage.DB(), &org), ShouldBeNil)
 
 		n := storage.NetworkServer{
 			Name:                        "test-ns",
@@ -43,7 +41,7 @@ func TestGatewayPing(t *testing.T) {
 			GatewayDiscoveryTXFrequency: 868100000,
 			GatewayDiscoveryInterval:    1,
 		}
-		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(storage.DB(), &n), ShouldBeNil)
 
 		gw1 := storage.Gateway{
 			MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
@@ -53,18 +51,18 @@ func TestGatewayPing(t *testing.T) {
 			Ping:            true,
 			NetworkServerID: n.ID,
 		}
-		So(storage.CreateGateway(config.C.PostgreSQL.DB, &gw1), ShouldBeNil)
+		So(storage.CreateGateway(storage.DB(), &gw1), ShouldBeNil)
 
 		Convey("When gateway discovery is disabled on the network-server", func() {
 			n.GatewayDiscoveryEnabled = false
-			So(storage.UpdateNetworkServer(db, &n), ShouldBeNil)
+			So(storage.UpdateNetworkServer(storage.DB(), &n), ShouldBeNil)
 
 			Convey("When calling sendGatewayPing", func() {
 				So(sendGatewayPing(), ShouldBeNil)
 			})
 
 			Convey("Then no ping was sent", func() {
-				gwGet, err := storage.GetGateway(db, gw1.MAC, false)
+				gwGet, err := storage.GetGateway(storage.DB(), gw1.MAC, false)
 				So(err, ShouldBeNil)
 				So(gwGet.LastPingID, ShouldBeNil)
 				So(gwGet.LastPingSentAt, ShouldBeNil)
@@ -75,13 +73,13 @@ func TestGatewayPing(t *testing.T) {
 			So(sendGatewayPing(), ShouldBeNil)
 
 			Convey("Then the gateway ping fields have been set", func() {
-				gwGet, err := storage.GetGateway(config.C.PostgreSQL.DB, gw1.MAC, false)
+				gwGet, err := storage.GetGateway(storage.DB(), gw1.MAC, false)
 				So(err, ShouldBeNil)
 				So(gwGet.LastPingID, ShouldNotBeNil)
 				So(gwGet.LastPingSentAt, ShouldNotBeNil)
 
 				Convey("Then a gateway ping records has been created", func() {
-					gwPing, err := storage.GetGatewayPing(config.C.PostgreSQL.DB, *gwGet.LastPingID)
+					gwPing, err := storage.GetGatewayPing(storage.DB(), *gwGet.LastPingID)
 					So(err, ShouldBeNil)
 					So(gwPing.GatewayMAC, ShouldEqual, gwGet.MAC)
 					So(gwPing.DR, ShouldEqual, n.GatewayDiscoveryDR)
@@ -114,7 +112,7 @@ func TestGatewayPing(t *testing.T) {
 							OrganizationID:  org.ID,
 							NetworkServerID: n.ID,
 						}
-						So(storage.CreateGateway(config.C.PostgreSQL.DB, &gw2), ShouldBeNil)
+						So(storage.CreateGateway(storage.DB(), &gw2), ShouldBeNil)
 
 						now := time.Now().UTC().Truncate(time.Millisecond)
 
@@ -142,7 +140,7 @@ func TestGatewayPing(t *testing.T) {
 						})
 
 						Convey("Then the received ping has been stored to the database", func() {
-							ping, rx, err := storage.GetLastGatewayPingAndRX(config.C.PostgreSQL.DB, gw1.MAC)
+							ping, rx, err := storage.GetLastGatewayPingAndRX(storage.DB(), gw1.MAC)
 							So(err, ShouldBeNil)
 
 							So(ping.ID, ShouldEqual, *gwGet.LastPingID)

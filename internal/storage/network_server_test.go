@@ -7,6 +7,8 @@ import (
 
 	"github.com/gofrs/uuid"
 
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
@@ -15,11 +17,9 @@ import (
 
 func TestNetworkServer(t *testing.T) {
 	conf := test.GetConfig()
-	db, err := OpenDatabase(conf.PostgresDSN)
-	if err != nil {
+	if err := Setup(conf); err != nil {
 		t.Fatal(err)
 	}
-	config.C.PostgreSQL.DB = db
 
 	Convey("Testing the Validate function", t, func() {
 		testTable := []struct {
@@ -50,10 +50,10 @@ func TestNetworkServer(t *testing.T) {
 	})
 
 	Convey("Given a clean database with an organization", t, func() {
-		test.MustResetDB(db)
+		test.MustResetDB(DB().DB)
 
-		nsClient := test.NewNetworkServerClient()
-		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
+		nsClient := mock.NewClient()
+		networkserver.SetPool(mock.NewPool(nsClient))
 
 		org := Organization{
 			Name: "test-org",
@@ -117,31 +117,31 @@ func TestNetworkServer(t *testing.T) {
 				org2 := Organization{
 					Name: "test-org-2",
 				}
-				So(CreateOrganization(config.C.PostgreSQL.DB, &org2), ShouldBeNil)
+				So(CreateOrganization(DB(), &org2), ShouldBeNil)
 
 				sp := ServiceProfile{
 					NetworkServerID: n.ID,
 					OrganizationID:  org.ID,
 					Name:            "test-service-profile",
 				}
-				So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
+				So(CreateServiceProfile(DB(), &sp), ShouldBeNil)
 
 				Convey("Then GetNetworkServerCountForOrganizationID returns the number of network-servers for the given organization", func() {
-					count, err := GetNetworkServerCountForOrganizationID(config.C.PostgreSQL.DB, org.ID)
+					count, err := GetNetworkServerCountForOrganizationID(DB(), org.ID)
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 1)
 
-					count, err = GetNetworkServerCountForOrganizationID(config.C.PostgreSQL.DB, org2.ID)
+					count, err = GetNetworkServerCountForOrganizationID(DB(), org2.ID)
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 0)
 				})
 
 				Convey("Then GetNetworkServersForOrganizationID returns the network-servers for the given organization", func() {
-					items, err := GetNetworkServersForOrganizationID(config.C.PostgreSQL.DB, org.ID, 10, 0)
+					items, err := GetNetworkServersForOrganizationID(DB(), org.ID, 10, 0)
 					So(err, ShouldBeNil)
 					So(items, ShouldHaveLength, 1)
 
-					items, err = GetNetworkServersForOrganizationID(config.C.PostgreSQL.DB, org2.ID, 10, 0)
+					items, err = GetNetworkServersForOrganizationID(DB(), org2.ID, 10, 0)
 					So(err, ShouldBeNil)
 					So(items, ShouldHaveLength, 0)
 				})

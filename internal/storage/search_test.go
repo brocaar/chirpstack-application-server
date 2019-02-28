@@ -7,48 +7,48 @@ import (
 
 	"github.com/brocaar/lorawan"
 
-	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/test"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestSearch(t *testing.T) {
 	conf := test.GetConfig()
-	db, err := OpenDatabase(conf.PostgresDSN)
-	if err != nil {
+	if err := Setup(conf); err != nil {
 		t.Fatal(err)
 	}
-	config.C.PostgreSQL.DB = db
-	nsClient := test.NewNetworkServerClient()
-	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
+
+	nsClient := mock.NewClient()
+	networkserver.SetPool(mock.NewPool(nsClient))
 
 	Convey("Given a clean database with test-data", t, func() {
-		test.MustResetDB(db)
+		test.MustResetDB(DB().DB)
 
 		u := User{
 			Username: "testuser",
 			Email:    "test@example.com",
 		}
-		_, err := CreateUser(db, &u, "testpw")
+		_, err := CreateUser(DB(), &u, "testpw")
 		So(err, ShouldBeNil)
 
 		n := NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(CreateNetworkServer(db, &n), ShouldBeNil)
+		So(CreateNetworkServer(DB(), &n), ShouldBeNil)
 
 		org := Organization{
 			Name: "test-org",
 		}
-		So(CreateOrganization(db, &org), ShouldBeNil)
+		So(CreateOrganization(DB(), &org), ShouldBeNil)
 
 		sp := ServiceProfile{
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 			Name:            "test-sp",
 		}
-		So(CreateServiceProfile(db, &sp), ShouldBeNil)
+		So(CreateServiceProfile(DB(), &sp), ShouldBeNil)
 		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
 		So(err, ShouldBeNil)
 
@@ -57,7 +57,7 @@ func TestSearch(t *testing.T) {
 			NetworkServerID: n.ID,
 			Name:            "test-dp",
 		}
-		So(CreateDeviceProfile(db, &dp), ShouldBeNil)
+		So(CreateDeviceProfile(DB(), &dp), ShouldBeNil)
 		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
 		So(err, ShouldBeNil)
 
@@ -66,7 +66,7 @@ func TestSearch(t *testing.T) {
 			OrganizationID:   org.ID,
 			ServiceProfileID: spID,
 		}
-		So(CreateApplication(db, &a), ShouldBeNil)
+		So(CreateApplication(DB(), &a), ShouldBeNil)
 
 		gw := Gateway{
 			MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
@@ -74,7 +74,7 @@ func TestSearch(t *testing.T) {
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 		}
-		So(CreateGateway(db, &gw), ShouldBeNil)
+		So(CreateGateway(DB(), &gw), ShouldBeNil)
 
 		d := Device{
 			DevEUI:          lorawan.EUI64{2, 3, 4, 5, 6, 7, 8, 9},
@@ -82,7 +82,7 @@ func TestSearch(t *testing.T) {
 			ApplicationID:   a.ID,
 			DeviceProfileID: dpID,
 		}
-		So(CreateDevice(db, &d), ShouldBeNil)
+		So(CreateDevice(DB(), &d), ShouldBeNil)
 
 		Convey("When the user is not global admin, this does not return any results", func() {
 			queries := []string{
@@ -95,7 +95,7 @@ func TestSearch(t *testing.T) {
 			}
 
 			for _, q := range queries {
-				res, err := GlobalSearch(db, u.Username, false, q, 10, 0)
+				res, err := GlobalSearch(DB(), u.Username, false, q, 10, 0)
 				So(err, ShouldBeNil)
 				So(res, ShouldHaveLength, 0)
 			}
@@ -114,14 +114,14 @@ func TestSearch(t *testing.T) {
 			}
 
 			for q, c := range queries {
-				res, err := GlobalSearch(db, u.Username, true, q, 10, 0)
+				res, err := GlobalSearch(DB(), u.Username, true, q, 10, 0)
 				So(err, ShouldBeNil)
 				So(res, ShouldHaveLength, c)
 			}
 		})
 
 		Convey("When the user is part of the organization, this returns results", func() {
-			So(CreateOrganizationUser(db, org.ID, u.ID, false), ShouldBeNil)
+			So(CreateOrganizationUser(DB(), org.ID, u.ID, false), ShouldBeNil)
 
 			queries := map[string]int{
 				"test":   4,
@@ -135,7 +135,7 @@ func TestSearch(t *testing.T) {
 			}
 
 			for q, c := range queries {
-				res, err := GlobalSearch(db, u.Username, false, q, 10, 0)
+				res, err := GlobalSearch(DB(), u.Username, false, q, 10, 0)
 				So(err, ShouldBeNil)
 				So(res, ShouldHaveLength, c)
 			}

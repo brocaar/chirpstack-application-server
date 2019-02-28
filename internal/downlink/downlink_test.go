@@ -9,8 +9,9 @@ import (
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/integration"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
@@ -20,38 +21,36 @@ import (
 
 func TestHandleDownlinkQueueItem(t *testing.T) {
 	conf := test.GetConfig()
-	db, err := storage.OpenDatabase(conf.PostgresDSN)
-	if err != nil {
+	if err := storage.Setup(conf); err != nil {
 		t.Fatal(err)
 	}
-	config.C.PostgreSQL.DB = db
 
 	Convey("Given a clean database an organization, application + node", t, func() {
-		test.MustResetDB(config.C.PostgreSQL.DB)
+		test.MustResetDB(storage.DB().DB)
 
-		nsClient := test.NewNetworkServerClient()
+		nsClient := mock.NewClient()
 		nsClient.GetNextDownlinkFCntForDevEUIResponse = ns.GetNextDownlinkFCntForDevEUIResponse{
 			FCnt: 12,
 		}
-		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
+		networkserver.SetPool(mock.NewPool(nsClient))
 
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
+		So(storage.CreateOrganization(storage.DB(), &org), ShouldBeNil)
 
 		n := storage.NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(storage.DB(), &n), ShouldBeNil)
 
 		sp := storage.ServiceProfile{
 			Name:            "test-sp",
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 		}
-		So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
+		So(storage.CreateServiceProfile(storage.DB(), &sp), ShouldBeNil)
 		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
 		So(err, ShouldBeNil)
 
@@ -60,7 +59,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 		}
-		So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
+		So(storage.CreateDeviceProfile(storage.DB(), &dp), ShouldBeNil)
 		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
 		So(err, ShouldBeNil)
 
@@ -69,7 +68,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			Name:             "test-app",
 			ServiceProfileID: spID,
 		}
-		So(storage.CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
+		So(storage.CreateApplication(storage.DB(), &app), ShouldBeNil)
 
 		device := storage.Device{
 			ApplicationID:   app.ID,
@@ -77,14 +76,14 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			Name:            "test-node",
 			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		}
-		So(storage.CreateDevice(config.C.PostgreSQL.DB, &device), ShouldBeNil)
+		So(storage.CreateDevice(storage.DB(), &device), ShouldBeNil)
 
 		da := storage.DeviceActivation{
 			DevEUI:  [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 			DevAddr: [4]byte{1, 2, 3, 4},
 			AppSKey: [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
 		}
-		So(storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &da), ShouldBeNil)
+		So(storage.CreateDeviceActivation(storage.DB(), &da), ShouldBeNil)
 
 		b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 12, []byte{1, 2, 3, 4})
 		So(err, ShouldBeNil)
@@ -187,7 +186,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 					// update application
 					app.PayloadCodec = test.PayloadCodec
 					app.PayloadEncoderScript = test.PayloadEncoderScript
-					So(storage.UpdateApplication(config.C.PostgreSQL.DB, app), ShouldBeNil)
+					So(storage.UpdateApplication(storage.DB(), app), ShouldBeNil)
 
 					err := handleDataDownPayload(test.Payload)
 					if test.ExpectedError != nil {

@@ -6,7 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/backend"
@@ -207,7 +206,7 @@ func setRejoinContext(ctx *context) error {
 }
 
 func getDeviceKeys(ctx *context) error {
-	dk, err := storage.GetDeviceKeys(config.C.PostgreSQL.DB, ctx.devEUI)
+	dk, err := storage.GetDeviceKeys(storage.DB(), ctx.devEUI)
 	if err != nil {
 		return errors.Wrap(err, "get device-keys error")
 	}
@@ -233,7 +232,7 @@ func setJoinNonce(ctx *context) error {
 	}
 	ctx.joinNonce = lorawan.JoinNonce(ctx.deviceKeys.JoinNonce)
 
-	if err := storage.UpdateDeviceKeys(config.C.PostgreSQL.DB, &ctx.deviceKeys); err != nil {
+	if err := storage.UpdateDeviceKeys(storage.DB(), &ctx.deviceKeys); err != nil {
 		return errors.Wrap(err, "update device-keys error")
 	}
 

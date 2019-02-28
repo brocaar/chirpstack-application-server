@@ -7,8 +7,9 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
+	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/backend"
@@ -17,11 +18,11 @@ import (
 func (ts *StorageTestSuite) TestDevice() {
 	assert := require.New(ts.T())
 
-	nsClient := test.NewNetworkServerClient()
-	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
+	nsClient := mock.NewClient()
+	networkserver.SetPool(mock.NewPool(nsClient))
 
 	org := Organization{
-		Name: "test-org",
+		Name: "test-org-123",
 	}
 	assert.NoError(CreateOrganization(ts.Tx(), &org))
 

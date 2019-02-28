@@ -8,7 +8,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/integration"
 	"github.com/brocaar/lora-app-server/internal/integration/http"
 	"github.com/brocaar/lora-app-server/internal/integration/influxdb"
@@ -106,7 +105,7 @@ func (i *Integration) getApplicationIntegration(id int64) (integration.Integrato
 	var configs []interface{}
 
 	// read integrations
-	appints, err := storage.GetIntegrationsForApplicationID(config.C.PostgreSQL.DB, id)
+	appints, err := storage.GetIntegrationsForApplicationID(storage.DB(), id)
 	if err != nil {
 		return nil, errors.Wrap(err, "get integrations for application id error")
 	}

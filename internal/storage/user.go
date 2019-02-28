@@ -21,9 +21,6 @@ import (
 // saltSize defines the salt size
 const saltSize = 16
 
-// HashIterations defines the number of hash iterations.
-var HashIterations = 100000
-
 // defaultSessionTTL defines the default session TTL
 const defaultSessionTTL = time.Hour * 24
 
@@ -114,13 +111,6 @@ type userInternal struct {
 	UpdatedAt    time.Time `db:"updated_at"`
 	Email        string    `db:"email"`
 	Note         string    `db:"note"`
-}
-
-var jwtsecret []byte
-
-//SetUserSecret sets the JWT secret.
-func SetUserSecret(s string) {
-	jwtsecret = []byte(s)
 }
 
 // ValidateUsername validates the given username.

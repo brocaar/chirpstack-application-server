@@ -265,6 +265,12 @@ func startJoinServerAPI() error {
 	return nil
 }
 
+func setupCorsHeaders(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", config.C.ApplicationServer.ExternalAPI.CORSAllowOrigin)
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Grpc-Metadata-Authorization")
+}
+
 func startClientAPI(ctx context.Context) func() error {
 	return func() error {
 		// setup the client API interface
@@ -307,6 +313,12 @@ func startClientAPI(ctx context.Context) func() error {
 				if clientHTTPHandler == nil {
 					w.WriteHeader(http.StatusNotImplemented)
 					return
+				}
+				if config.C.ApplicationServer.ExternalAPI.CORSAllowOrigin != "" {
+					setupCorsHeaders(w, r)
+					if r.Method == "OPTIONS" {
+						return
+					}
 				}
 				clientHTTPHandler.ServeHTTP(w, r)
 			}

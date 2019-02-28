@@ -289,6 +289,13 @@ id="{{ .ApplicationServer.ID }}"
   # You could generate this by executing 'openssl rand -base64 32' for example
   jwt_secret="{{ .ApplicationServer.ExternalAPI.JWTSecret }}"
 
+	# Allow origin header (CORS).
+  #
+  # Set this to allows cross-domain communication from the browser (CORS).
+  # Example value: https://example.com.
+  # When left blank (default), CORS will not be used.
+  cors_allow_origin="{{ .ApplicationServer.ExternalAPI.CORSAllowOrigin }}"
+
   # when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)"
   disable_assign_existing_users={{ .ApplicationServer.ExternalAPI.DisableAssignExistingUsers }}
 
@@ -335,7 +342,7 @@ tls_key="{{ .JoinServer.TLSKey }}"
 # Key Encryption Key (KEK) configuration.
 #
 # The KEK meganism is used to encrypt the session-keys sent from the
-# join-server to the network-server. 
+# join-server to the network-server.
 #
 # The LoRa App Server join-server will use the NetID of the requesting
 # network-server as the KEK label. When no such label exists in the set,

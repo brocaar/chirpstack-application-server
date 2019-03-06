@@ -30,7 +30,7 @@ const (
 )
 
 const userQuery = `
-	select count(*)
+	select 1
 	from "user" u
 	left join organization_user ou
 		on u.id = ou.user_id
@@ -868,7 +868,7 @@ func executeQuery(db sqlx.Queryer, query string, where [][]string, args ...inter
 		ors = append(ors, "(("+strings.Join(ands, ") and (")+"))")
 	}
 	whereStr := strings.Join(ors, " or ")
-	query = query + " where " + whereStr
+	query = query + " where " + whereStr + " limit 1"
 
 	var count int64
 	if err := sqlx.Get(db, &count, query, args...); err != nil {

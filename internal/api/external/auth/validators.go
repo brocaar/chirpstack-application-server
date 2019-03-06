@@ -868,7 +868,7 @@ func executeQuery(db sqlx.Queryer, query string, where [][]string, args ...inter
 		ors = append(ors, "(("+strings.Join(ands, ") and (")+"))")
 	}
 	whereStr := strings.Join(ors, " or ")
-	query = query + " where " + whereStr + " limit 1"
+	query = "select count(*) from (" + query + " where " + whereStr + " limit 1) count_only"
 
 	var count int64
 	if err := sqlx.Get(db, &count, query, args...); err != nil {

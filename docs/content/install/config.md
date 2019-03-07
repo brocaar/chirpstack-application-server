@@ -147,6 +147,12 @@ idle_timeout="5m0s"
 id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
 
+  # JavaScript codec settings.
+  [application_server.codec.js]
+  # Maximum execution time.
+  max_execution_time="100ms"
+
+
   # Integration configures the data integration.
   #
   # This is the data integration which is available for all applications,

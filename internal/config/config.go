@@ -30,6 +30,12 @@ type Config struct {
 	ApplicationServer struct {
 		ID string `mapstructure:"id"`
 
+		Codec struct {
+			JS struct {
+				MaxExecutionTime time.Duration `mapstructure:"max_execution_time"`
+			} `mapstructure:"js"`
+		} `mapstructure:"codec"`
+
 		Integration struct {
 			Backend         string                 `mapstructure:"backend"` // deprecated
 			Enabled         []string               `mapstructure:"enabled"`

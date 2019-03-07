@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/pkg/errors"
 	"github.com/robertkrimen/otto"
 )
@@ -15,9 +16,14 @@ func init() {
 	gob.Register(CustomJS{})
 }
 
-// CodecMaxExecTime holds the max. time the (custom) codec is allowed to
-// run.
-var CodecMaxExecTime = 10 * time.Millisecond
+var (
+	maxExecutionTime = 10 * time.Millisecond
+)
+
+func Setup(conf config.Config) error {
+	maxExecutionTime = conf.ApplicationServer.Codec.JS.MaxExecutionTime
+	return nil
+}
 
 // CustomJS is a scriptable JS codec.
 type CustomJS struct {
@@ -68,7 +74,7 @@ func (c *CustomJS) DecodeBytes(data []byte) (err error) {
 	vm.Set("fPort", c.fPort)
 
 	go func() {
-		time.Sleep(CodecMaxExecTime)
+		time.Sleep(maxExecutionTime)
 		vm.Interrupt <- func() {
 			panic(errors.New("execution timeout"))
 		}
@@ -109,7 +115,7 @@ func (c CustomJS) EncodeToBytes() (b []byte, err error) {
 	vm.Set("fPort", c.fPort)
 
 	go func() {
-		time.Sleep(CodecMaxExecTime)
+		time.Sleep(maxExecutionTime)
 		vm.Interrupt <- func() {
 			panic(errors.New("execution timeout"))
 		}

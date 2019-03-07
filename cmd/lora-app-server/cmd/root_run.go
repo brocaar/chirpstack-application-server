@@ -13,6 +13,7 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/api"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
+	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/downlink"
 	"github.com/brocaar/lora-app-server/internal/gwping"
@@ -33,6 +34,7 @@ func run(cmd *cobra.Command, args []string) error {
 		setupStorage,
 		setupNetworkServer,
 		setupIntegration,
+		setupCodec,
 		handleDataDownPayloads,
 		startGatewayPing,
 		setupAPI,
@@ -108,6 +110,13 @@ func setupIntegration() error {
 	mi.Add(application.New())
 	integration.SetIntegration(mi)
 
+	return nil
+}
+
+func setupCodec() error {
+	if err := codec.Setup(config.C); err != nil {
+		return errors.Wrap(err, "setup codec error")
+	}
 	return nil
 }
 

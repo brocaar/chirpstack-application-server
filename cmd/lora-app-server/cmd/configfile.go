@@ -94,6 +94,12 @@ idle_timeout="{{ .Redis.IdleTimeout }}"
 id="{{ .ApplicationServer.ID }}"
 
 
+  # JavaScript codec settings.
+  [application_server.codec.js]
+  # Maximum execution time.
+  max_execution_time="{{ .ApplicationServer.Codec.JS.MaxExecutionTime }}"
+
+
   # Integration configures the data integration.
   #
   # This is the data integration which is available for all applications,

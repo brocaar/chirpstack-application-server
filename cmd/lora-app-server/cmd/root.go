@@ -56,6 +56,7 @@ func init() {
 	viper.SetDefault("application_server.integration.mqtt.location_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location")
 	viper.SetDefault("application_server.integration.mqtt.clean_session", true)
 	viper.SetDefault("application_server.integration.enabled", []string{"mqtt"})
+	viper.SetDefault("application_server.codec.js.max_execution_time", 100*time.Millisecond)
 
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(configCmd)

@@ -34,7 +34,8 @@ specification.
 
 When selecting the Custom JavaScript codec functions option, you can write your
 own (JavaScript) functions to decode an array of bytes to a JavaScript object
-and encode a JavaScript object to an array of bytes.
+and encode a JavaScript object to an array of bytes. Package [otto](https://github.com/robertkrimen/otto), 
+which targets ES5, is used as a JavaScript interpreter, so ES6 features (e.g. Typed Arrays) are not supported.
 
 #### Decoder function skeleton
 

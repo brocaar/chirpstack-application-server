@@ -84,6 +84,21 @@ class DeviceStore extends EventEmitter {
     });
   }
 
+  deactivate(id, callbackFunc){
+    this.swagger.then(client => {
+      client.apis.DeviceService.Deactivate({
+        dev_eui: id,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.notify("deactivated");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+
   list(filters, callbackFunc) {
     this.swagger.then(client => {
       client.apis.DeviceService.List(filters)

@@ -232,6 +232,7 @@ class DeviceActivation extends Component {
     super();
     this.state = {};
     this.onSubmit = this.onSubmit.bind(this);
+    this.deactivateDevice = this.deactivateDevice.bind(this);
   }
   
   componentDidMount() {
@@ -263,6 +264,12 @@ class DeviceActivation extends Component {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
     });
   }
+  
+  deactivateDevice(){
+    DeviceStore.deactivate(this.props.match.params.devEUI, resp => {
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
+    });
+  }
 
   render() {
     if (this.state.deviceActivation === undefined) {
@@ -290,6 +297,25 @@ class DeviceActivation extends Component {
             match={this.props.match}
             deviceProfile={this.props.deviceProfile}
           />}
+
+	  {showForm && !this.props.deviceProfile.supportsJoin && this.props.deviceProfile.macVersion.startsWith("1.0") && <LW10DeviceActivationForm
+            submitLabel={submitLabel}
+            object={this.state.deviceActivation.deviceActivation}
+            onSubmit={this.onSubmit}
+            disabled={this.props.deviceProfile.supportsJoin}
+            match={this.props.match}
+            deviceProfile={this.props.deviceProfile}
+          />}
+	  
+	  {showForm && !this.props.deviceProfile.supportsJoin && this.props.deviceProfile.macVersion.startsWith("1.1") && <LW11DeviceActivationForm
+            submitLabel={submitLabel}
+            object={this.state.deviceActivation.deviceActivation}
+            onSubmit={this.onSubmit}
+            disabled={this.props.deviceProfile.supportsJoin}
+            match={this.props.match}
+            deviceProfile={this.props.deviceProfile}
+          />}
+
           {showForm && this.props.deviceProfile.macVersion.startsWith("1.1") && <LW11DeviceActivationForm
             submitLabel={submitLabel}
             object={this.state.deviceActivation.deviceActivation}

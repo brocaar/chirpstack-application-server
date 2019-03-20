@@ -78,7 +78,7 @@ class ApplicationLayout extends Component {
   }
 
   deleteApplication() {
-    if (window.confirm("Are you sure you want to delete this application?")) {
+    if (window.confirm("Are you sure you want to delete this application? This will also delete all devices part of this application.")) {
       ApplicationStore.delete(this.props.match.params.applicationID, resp => {
         this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications`);
       });

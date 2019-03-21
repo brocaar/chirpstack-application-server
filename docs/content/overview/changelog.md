@@ -10,6 +10,25 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
+## v2.6.0
+
+### Features
+
+#### New integrations
+
+Support has been added to forward events to an [Azure service-bus](https://azure.microsoft.com/en-us/services/service-bus/)
+or to [AWS SNS](https://aws.amazon.com/sns/). See [Configuration](https://www.loraserver.io/lora-app-server/install/config/).
+
+### Improvements
+
+* Make JS codec maximum execution-time configurable and increase default value to 100ms.
+* Add configuration option for CORS headers. ([#275](https://github.com/brocaar/lora-app-server/pull/275))
+* Internal code-cleanup with regards to passing configuration and objects.
+* Internal migration from Dep to [Go modules](https://github.com/golang/go/wiki/Modules).
+* Improve authentication validator SQL query for speed. ([#302](https://github.com/brocaar/lora-app-server/pull/302))
+* Add codec execution time for decoding. ([#307](https://github.com/brocaar/lora-app-server/pull/307))
+* UI: Make delete application confirmation more explicit. ([#306](https://github.com/brocaar/lora-app-server/pull/306))
+
 ## v2.5.1
 
 ### Bugfixes

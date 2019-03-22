@@ -289,7 +289,7 @@ class DeviceActivation extends Component {
     return(
       <Card>
         <CardContent>
-          {showForm && this.props.deviceProfile.macVersion.startsWith("1.0") && <LW10DeviceActivationForm
+          {showForm && !this.props.deviceProfile.supportsJoin && this.props.deviceProfile.macVersion.startsWith("1.0") && <LW10DeviceActivationForm
             submitLabel={submitLabel}
             object={this.state.deviceActivation.deviceActivation}
             onSubmit={this.onSubmit}
@@ -298,25 +298,25 @@ class DeviceActivation extends Component {
             deviceProfile={this.props.deviceProfile}
           />}
 
-	  {showForm && !this.props.deviceProfile.supportsJoin && this.props.deviceProfile.macVersion.startsWith("1.0") && <LW10DeviceActivationForm
-            submitLabel={submitLabel}
+	  {showForm && this.props.deviceProfile.supportsJoin && this.props.deviceProfile.macVersion.startsWith("1.0") && <LW10DeviceActivationForm
+            submitLabel="(De)activate device"
             object={this.state.deviceActivation.deviceActivation}
-            onSubmit={this.onSubmit}
-            disabled={this.props.deviceProfile.supportsJoin}
+            onSubmit={this.deactivateDevice}
+            disabled={!this.props.deviceProfile.supportsJoin}
             match={this.props.match}
             deviceProfile={this.props.deviceProfile}
           />}
 	  
-	  {showForm && !this.props.deviceProfile.supportsJoin && this.props.deviceProfile.macVersion.startsWith("1.1") && <LW11DeviceActivationForm
-            submitLabel={submitLabel}
+	  {showForm && this.props.deviceProfile.supportsJoin && this.props.deviceProfile.macVersion.startsWith("1.1") && <LW11DeviceActivationForm
+            submitLabel="(De)activate device"
             object={this.state.deviceActivation.deviceActivation}
-            onSubmit={this.onSubmit}
-            disabled={this.props.deviceProfile.supportsJoin}
+            onSubmit={this.deactivateDevice}
+            disabled={!this.props.deviceProfile.supportsJoin}
             match={this.props.match}
             deviceProfile={this.props.deviceProfile}
           />}
 
-          {showForm && this.props.deviceProfile.macVersion.startsWith("1.1") && <LW11DeviceActivationForm
+          {showForm && !this.props.deviceProfile.supportsJoin && this.props.deviceProfile.macVersion.startsWith("1.1") && <LW11DeviceActivationForm
             submitLabel={submitLabel}
             object={this.state.deviceActivation.deviceActivation}
             onSubmit={this.onSubmit}

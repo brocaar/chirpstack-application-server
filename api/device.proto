@@ -267,6 +267,12 @@ message ListDeviceRequest {
 
     // Service-profile ID to filter on (string formatted UUID).
     string service_profile_id = 6 [json_name = "serviceProfileID"];
+    
+    // Order by asc or desc.
+    string order = 7;
+
+    // Order By coloumn.
+    string orderBy = 8;
 }
 
 message ListDeviceResponse {

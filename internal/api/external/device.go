@@ -151,6 +151,8 @@ func (a *DeviceAPI) List(ctx context.Context, req *pb.ListDeviceRequest) (*pb.Li
 	filters := storage.DeviceFilters{
 		ApplicationID: req.ApplicationId,
 		Search:        req.Search,
+		Order:         req.Order,
+		OrderBy:       req.OrderBy,
 		Limit:         int(req.Limit),
 		Offset:        int(req.Offset),
 	}

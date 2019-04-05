@@ -211,6 +211,8 @@ type DeviceFilters struct {
 
 	// Limit and Offset are added for convenience so that this struct can
 	// be given as the arguments.
+	OrderBy string `db:"orderBy"`
+	Order  string `db:"order"`
 	Limit  int `db:"limit"`
 	Offset int `db:"offset"`
 }
@@ -290,7 +292,7 @@ func GetDevices(db sqlx.Queryer, filters DeviceFilters) ([]DeviceListItem, error
 			on d.dev_eui = dmg.dev_eui
 		`+filters.SQL()+`
 		order by
-			d.name
+		        `+filters.OrderBy+` `+filters.Order+`
 		limit :limit
 		offset :offset
 	`, filters)

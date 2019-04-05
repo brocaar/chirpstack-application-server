@@ -72,6 +72,20 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "order",
+            "description": "Order by asc or desc.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orderBy",
+            "description": "Order By coloumn.",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [

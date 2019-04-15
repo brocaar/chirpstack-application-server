@@ -5,8 +5,9 @@ type Type string
 
 // Available codec types.
 const (
-	CayenneLPPType Type = "CAYENNE_LPP"
-	CustomJSType   Type = "CUSTOM_JS"
+	CayenneLPPType         Type = "CAYENNE_LPP"
+	ExtendedCayenneLPPType Type = "EXTENDED_CAYENNE_LPP"
+	CustomJSType           Type = "CUSTOM_JS"
 )
 
 // Payload defines a codec payload.
@@ -22,6 +23,8 @@ func NewPayload(t Type, fPort uint8, encodeScript, decodeScript string) Payload 
 	switch t {
 	case CayenneLPPType:
 		return &CayenneLPP{}
+	case ExtendedCayenneLPPType:
+		return &ExtendedCayenneLPP{}
 	case CustomJSType:
 		return NewCustomJS(fPort, encodeScript, decodeScript)
 	default:

@@ -312,6 +312,31 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 device_frmpayload_data_gps_location_10_location,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 geohash="s01w2k3vvqre",latitude=1.123000,longitude=2.123000
 device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 f_cnt=10i,value=1i`,
 		},
+		{
+			Name: "Cayenne LPP Extended types",
+			Payload: integration.DataUpPayload{
+				ApplicationName: "test-app",
+				DeviceName:      "test-dev",
+				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+				FCnt:            10,
+				FPort:           20,
+				TXInfo: integration.TXInfo{
+					Frequency: 868100000,
+					DR:        2,
+				},
+				Object: &codec.ExtendedCayenneLPP{
+					CounterInput: map[byte]uint16{
+						10: 101,
+					},
+					BatteryVoltage: map[byte]float64{
+						11: 3.60,
+					},
+				},
+			},
+			ExpectedBody: `device_frmpayload_data_battery_voltage_11,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=3.600000
+device_frmpayload_data_counter_input_10,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=101i
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 f_cnt=10i,value=1i`,
+		},
 	}
 
 	for _, tst := range tests {

@@ -2,11 +2,13 @@ syntax = "proto3";
 
 package api;
 
-import "github.com/brocaar/loraserver/api/common/common.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "common.proto";
+
+// from loraserver
+import "api/common/common.proto";
 
 
 // DeviceService is the service managing the devices.
@@ -134,6 +136,9 @@ message Device {
     string name = 2;
 
     // ID of the application to which the device must be added.
+    // It is possible to move a device to a different application on update,
+    // given that both the old and the new application share the same
+    // service-profile.
     int64 application_id = 3 [json_name = "applicationID"];
 
     // Description of the device.

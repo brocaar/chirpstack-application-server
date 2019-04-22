@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -16,254 +17,287 @@ import (
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/eventlog"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 )
 
-func TestNodeAPI(t *testing.T) {
-	conf := test.GetConfig()
-	if err := storage.Setup(conf); err != nil {
-		t.Fatal(err)
+func (ts *APITestSuite) TestDevice() {
+	assert := require.New(ts.T())
+
+	nsClient := mock.NewClient()
+	networkserver.SetPool(mock.NewPool(nsClient))
+
+	validator := &TestValidator{}
+
+	grpcServer := grpc.NewServer()
+	apiServer := NewDeviceAPI(validator)
+	pb.RegisterDeviceServiceServer(grpcServer, apiServer)
+
+	ln, err := net.Listen("tcp", "localhost:0")
+	assert.NoError(err)
+	go grpcServer.Serve(ln)
+	defer func() {
+		grpcServer.Stop()
+		ln.Close()
+	}()
+
+	apiClient, err := grpc.Dial(ln.Addr().String(), grpc.WithInsecure(), grpc.WithBlock())
+	assert.NoError(err)
+	defer apiClient.Close()
+
+	api := pb.NewDeviceServiceClient(apiClient)
+
+	org := storage.Organization{
+		Name: "test-org",
 	}
+	assert.NoError(storage.CreateOrganization(storage.DB(), &org))
 
-	Convey("Given a clean database with an organization, application and api instance", t, func() {
-		test.MustResetDB(storage.DB().DB)
-		test.MustFlushRedis(storage.RedisPool())
+	n := storage.NetworkServer{
+		Name:   "test-ns",
+		Server: "test-ns:1234",
+	}
+	assert.NoError(storage.CreateNetworkServer(storage.DB(), &n))
 
-		nsClient := mock.NewClient()
-		nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
-			DeviceProfile: &ns.DeviceProfile{},
-		}
-		networkserver.SetPool(mock.NewPool(nsClient))
+	sp := storage.ServiceProfile{
+		Name:            "test-sp",
+		OrganizationID:  org.ID,
+		NetworkServerID: n.ID,
+	}
+	assert.NoError(storage.CreateServiceProfile(storage.DB(), &sp))
+	spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+	assert.NoError(err)
 
-		ctx := context.Background()
-		validator := &TestValidator{}
+	sp2 := storage.ServiceProfile{
+		Name:            "test-sp",
+		OrganizationID:  org.ID,
+		NetworkServerID: n.ID,
+	}
+	assert.NoError(storage.CreateServiceProfile(storage.DB(), &sp2))
+	sp2ID, err := uuid.FromBytes(sp2.ServiceProfile.Id)
+	assert.NoError(err)
 
-		grpcServer := grpc.NewServer()
-		apiServer := NewDeviceAPI(validator)
-		pb.RegisterDeviceServiceServer(grpcServer, apiServer)
+	app := storage.Application{
+		OrganizationID:   org.ID,
+		Name:             "test-app",
+		ServiceProfileID: spID,
+	}
+	assert.NoError(storage.CreateApplication(storage.DB(), &app))
 
-		ln, err := net.Listen("tcp", "localhost:0")
-		So(err, ShouldBeNil)
-		go grpcServer.Serve(ln)
-		defer func() {
-			grpcServer.Stop()
-			ln.Close()
-		}()
+	app2 := storage.Application{
+		OrganizationID:   org.ID,
+		Name:             "test-app-2",
+		ServiceProfileID: spID,
+	}
+	assert.NoError(storage.CreateApplication(storage.DB(), &app2))
 
-		apiClient, err := grpc.Dial(ln.Addr().String(), grpc.WithInsecure(), grpc.WithBlock())
-		So(err, ShouldBeNil)
-		defer apiClient.Close()
+	app3 := storage.Application{
+		OrganizationID:   org.ID,
+		Name:             "test-app-3",
+		ServiceProfileID: sp2ID,
+	}
+	assert.NoError(storage.CreateApplication(storage.DB(), &app3))
 
-		api := pb.NewDeviceServiceClient(apiClient)
+	dp := storage.DeviceProfile{
+		Name:            "test-dp",
+		OrganizationID:  org.ID,
+		NetworkServerID: n.ID,
+	}
+	assert.NoError(storage.CreateDeviceProfile(storage.DB(), &dp))
+	dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
+	assert.NoError(err)
 
-		org := storage.Organization{
-			Name: "test-org",
-		}
-		So(storage.CreateOrganization(storage.DB(), &org), ShouldBeNil)
+	ts.T().Run("Create without name", func(t *testing.T) {
+		assert := require.New(t)
 
-		n := storage.NetworkServer{
-			Name:   "test-ns",
-			Server: "test-ns:1234",
-		}
-		So(storage.CreateNetworkServer(storage.DB(), &n), ShouldBeNil)
-
-		sp := storage.ServiceProfile{
-			Name:            "test-sp",
-			OrganizationID:  org.ID,
-			NetworkServerID: n.ID,
-		}
-		So(storage.CreateServiceProfile(storage.DB(), &sp), ShouldBeNil)
-		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
-		So(err, ShouldBeNil)
-
-		app := storage.Application{
-			OrganizationID:   org.ID,
-			Name:             "test-app",
-			ServiceProfileID: spID,
-		}
-		So(storage.CreateApplication(storage.DB(), &app), ShouldBeNil)
-
-		dp := storage.DeviceProfile{
-			Name:            "test-dp",
-			OrganizationID:  org.ID,
-			NetworkServerID: n.ID,
-		}
-		So(storage.CreateDeviceProfile(storage.DB(), &dp), ShouldBeNil)
-		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
-		So(err, ShouldBeNil)
-
-		Convey("When creating a device without a name set", func() {
-			_, err := api.Create(ctx, &pb.CreateDeviceRequest{
-				Device: &pb.Device{
-					DevEui:          "0807060504030201",
-					ApplicationId:   app.ID,
-					Description:     "test device description",
-					DeviceProfileId: dpID.String(),
-				},
-			})
-			So(err, ShouldBeNil)
-			So(validator.validatorFuncs, ShouldHaveLength, 1)
-
-			Convey("Then the DevEUI is used as name", func() {
-				d, err := api.Get(ctx, &pb.GetDeviceRequest{
-					DevEui: "0807060504030201",
-				})
-				So(err, ShouldBeNil)
-				So(d.Device.Name, ShouldEqual, "0807060504030201")
-			})
+		_, err := api.Create(context.Background(), &pb.CreateDeviceRequest{
+			Device: &pb.Device{
+				DevEui:          "0807060504030202",
+				ApplicationId:   app.ID,
+				Description:     "test device description",
+				DeviceProfileId: dpID.String(),
+			},
 		})
+		assert.NoError(err)
 
-		Convey("When creating a device", func() {
-			createReq := pb.CreateDeviceRequest{
-				Device: &pb.Device{
-					ApplicationId:     app.ID,
-					Name:              "test-device",
-					Description:       "test device description",
-					DevEui:            "0807060504030201",
-					DeviceProfileId:   dpID.String(),
-					SkipFCntCheck:     true,
-					ReferenceAltitude: 5.6,
-				},
-			}
+		nsReq := <-nsClient.CreateDeviceChan
+		nsClient.GetDeviceResponse = ns.GetDeviceResponse{
+			Device: nsReq.Device,
+		}
 
-			_, err := api.Create(ctx, &createReq)
-			So(err, ShouldBeNil)
-			So(validator.validatorFuncs, ShouldHaveLength, 1)
-			createReq.Device.XXX_sizecache = 0
+		dGet, err := api.Get(context.Background(), &pb.GetDeviceRequest{
+			DevEui: "0807060504030202",
+		})
+		assert.NoError(err)
+		assert.Equal("0807060504030202", dGet.Device.Name)
 
-			nsReq := <-nsClient.CreateDeviceChan
-			nsClient.GetDeviceResponse = ns.GetDeviceResponse{
-				Device: nsReq.Device,
-			}
+		_, err = api.Delete(context.Background(), &pb.DeleteDeviceRequest{
+			DevEui: "0807060504030202",
+		})
+		assert.NoError(err)
+	})
 
-			Convey("The device has been created", func() {
-				d, err := api.Get(ctx, &pb.GetDeviceRequest{
-					DevEui: "0807060504030201",
-				})
-				So(err, ShouldBeNil)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
-				So(d.Device, ShouldResemble, createReq.Device)
-				So(d.LastSeenAt, ShouldBeNil)
-				So(d.DeviceStatusBattery, ShouldEqual, 256)
-				So(d.DeviceStatusMargin, ShouldEqual, 256)
+	ts.T().Run("Create", func(t *testing.T) {
+		assert := require.New(t)
 
-				Convey("When setting the device-status battery and margin", func() {
-					ten := float32(10)
-					eleven := 11
+		createReq := pb.CreateDeviceRequest{
+			Device: &pb.Device{
+				ApplicationId:     app.ID,
+				Name:              "test-device",
+				Description:       "test device description",
+				DevEui:            "0807060504030201",
+				DeviceProfileId:   dpID.String(),
+				SkipFCntCheck:     true,
+				ReferenceAltitude: 5.6,
+			},
+		}
+		_, err := api.Create(context.Background(), &createReq)
+		assert.NoError(err)
 
-					d, err := storage.GetDevice(storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
-					So(err, ShouldBeNil)
-					d.DeviceStatusBattery = &ten
-					d.DeviceStatusMargin = &eleven
-					So(storage.UpdateDevice(storage.DB(), &d, true), ShouldBeNil)
+		nsReq := <-nsClient.CreateDeviceChan
+		nsClient.GetDeviceResponse = ns.GetDeviceResponse{
+			Device: nsReq.Device,
+		}
 
-					Convey("Then Get returns the battery and margin status", func() {
-						d, err := api.Get(ctx, &pb.GetDeviceRequest{
-							DevEui: "0807060504030201",
-						})
-						So(err, ShouldBeNil)
-						So(d.DeviceStatusBattery, ShouldEqual, 10)
-						So(d.DeviceStatusMargin, ShouldEqual, 11)
+		t.Run("Get", func(t *testing.T) {
+			assert := require.New(t)
+
+			d, err := api.Get(context.Background(), &pb.GetDeviceRequest{
+				DevEui: "0807060504030201",
+			})
+			assert.NoError(err)
+			assert.True(proto.Equal(createReq.Device, d.Device))
+			assert.True(proto.Equal(createReq.Device, d.Device))
+			assert.Nil(d.LastSeenAt)
+			assert.EqualValues(256, d.DeviceStatusBattery)
+			assert.EqualValues(256, d.DeviceStatusMargin)
+
+			t.Run("Set battery and margin status", func(t *testing.T) {
+				assert := require.New(t)
+
+				ten := float32(10)
+				eleven := 11
+
+				d, err := storage.GetDevice(storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
+				assert.NoError(err)
+
+				d.DeviceStatusBattery = &ten
+				d.DeviceStatusMargin = &eleven
+				assert.NoError(storage.UpdateDevice(storage.DB(), &d, true))
+
+				t.Run("Get", func(t *testing.T) {
+					assert := require.New(t)
+
+					d, err := api.Get(context.Background(), &pb.GetDeviceRequest{
+						DevEui: "0807060504030201",
 					})
-				})
-
-				Convey("When setting the LastSeenAt timestamp", func() {
-					now := time.Now().Truncate(time.Millisecond)
-
-					d, err := storage.GetDevice(storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
-					So(err, ShouldBeNil)
-					d.LastSeenAt = &now
-					So(storage.UpdateDevice(storage.DB(), &d, true), ShouldBeNil)
-
-					Convey("Then Get returns the last-seen timestamp", func() {
-						d, err := api.Get(ctx, &pb.GetDeviceRequest{
-							DevEui: "0807060504030201",
-						})
-						So(err, ShouldBeNil)
-						So(d.LastSeenAt, ShouldNotBeNil)
-					})
-				})
-
-				Convey("When setting the device location", func() {
-					lat := 1.123
-					long := 2.123
-					alt := 3.123
-
-					d, err := storage.GetDevice(storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
-					So(err, ShouldBeNil)
-					d.Latitude = &lat
-					d.Longitude = &long
-					d.Altitude = &alt
-					So(storage.UpdateDevice(storage.DB(), &d, true), ShouldBeNil)
-
-					Convey("Then Get returns the location", func() {
-						d, err := api.Get(ctx, &pb.GetDeviceRequest{
-							DevEui: "0807060504030201",
-						})
-						So(err, ShouldBeNil)
-						So(d.Location, ShouldResemble, &common.Location{
-							Latitude:  1.123,
-							Longitude: 2.123,
-							Altitude:  3.123,
-							Source:    common.LocationSource_GEO_RESOLVER,
-						})
-					})
+					assert.NoError(err)
+					assert.EqualValues(10, d.DeviceStatusBattery)
+					assert.EqualValues(11, d.DeviceStatusMargin)
 				})
 			})
 
-			Convey("Testing the List method", func() {
-				Convey("Then a global admin user can list all devices", func() {
+			t.Run("Set LastSeenAt", func(t *testing.T) {
+				assert := require.New(t)
+
+				now := time.Now().Truncate(time.Millisecond)
+
+				d, err := storage.GetDevice(storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
+				assert.NoError(err)
+				d.LastSeenAt = &now
+				assert.NoError(storage.UpdateDevice(storage.DB(), &d, true))
+
+				t.Run("Get", func(t *testing.T) {
+					d, err := api.Get(context.Background(), &pb.GetDeviceRequest{
+						DevEui: "0807060504030201",
+					})
+					assert.NoError(err)
+					assert.NotNil(d.LastSeenAt)
+				})
+			})
+
+			t.Run("Set location", func(t *testing.T) {
+				assert := require.New(t)
+
+				lat := 1.123
+				long := 2.123
+				alt := 3.123
+
+				d, err := storage.GetDevice(storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
+				assert.NoError(err)
+				d.Latitude = &lat
+				d.Longitude = &long
+				d.Altitude = &alt
+				assert.NoError(storage.UpdateDevice(storage.DB(), &d, true))
+
+				t.Run("Get", func(t *testing.T) {
+					assert := require.New(t)
+
+					d, err := api.Get(context.Background(), &pb.GetDeviceRequest{
+						DevEui: "0807060504030201",
+					})
+					assert.NoError(err)
+					assert.Equal(&common.Location{
+						Latitude:  1.123,
+						Longitude: 2.123,
+						Altitude:  3.123,
+						Source:    common.LocationSource_GEO_RESOLVER,
+					}, d.Location)
+				})
+			})
+
+			t.Run("List", func(t *testing.T) {
+				t.Run("Global admin can list all devices", func(t *testing.T) {
+					assert := require.New(t)
 					validator.returnIsAdmin = true
-					devices, err := api.List(ctx, &pb.ListDeviceRequest{
+
+					devices, err := api.List(context.Background(), &pb.ListDeviceRequest{
 						Limit:  10,
 						Offset: 0,
 					})
-					So(err, ShouldBeNil)
-					So(validator.validatorFuncs, ShouldHaveLength, 1)
-					So(devices.TotalCount, ShouldEqual, 1)
-					So(devices.Result, ShouldHaveLength, 1)
+					assert.NoError(err)
+					assert.EqualValues(1, devices.TotalCount)
+					assert.Len(devices.Result, 1)
 
-					devices, err = api.List(ctx, &pb.ListDeviceRequest{
+					devices, err = api.List(context.Background(), &pb.ListDeviceRequest{
 						Limit:         10,
 						Offset:        0,
 						ApplicationId: app.ID,
 					})
-					So(err, ShouldBeNil)
-					So(validator.validatorFuncs, ShouldHaveLength, 1)
-					So(devices.TotalCount, ShouldEqual, 1)
-					So(devices.Result, ShouldHaveLength, 1)
+					assert.NoError(err)
+					assert.EqualValues(1, devices.TotalCount)
+					assert.Len(devices.Result, 1)
 				})
 
-				Convey("Then a non-admin can not list the devices", func() {
+				t.Run("Non-admin can not list the devices", func(t *testing.T) {
+					assert := require.New(t)
 					validator.returnIsAdmin = false
 
-					_, err := api.List(ctx, &pb.ListDeviceRequest{
+					_, err := api.List(context.Background(), &pb.ListDeviceRequest{
 						Limit:  10,
 						Offset: 0,
 					})
-					So(err, ShouldNotBeNil)
+					assert.NotNil(err)
 				})
 
-				Convey("When the application id is given", func() {
-					Convey("Then it can list the devices", func() {
-						validator.returnIsAdmin = false
+				t.Run("Non-admin can list devices by application id", func(t *testing.T) {
+					assert := require.New(t)
+					validator.returnIsAdmin = false
 
-						devices, err := api.List(ctx, &pb.ListDeviceRequest{
-							Limit:         10,
-							Offset:        0,
-							ApplicationId: app.ID,
-						})
-						So(err, ShouldBeNil)
-						So(devices.TotalCount, ShouldEqual, 1)
-						So(devices.Result, ShouldHaveLength, 1)
+					devices, err := api.List(context.Background(), &pb.ListDeviceRequest{
+						Limit:         10,
+						Offset:        0,
+						ApplicationId: app.ID,
 					})
+					assert.NoError(err)
+					assert.EqualValues(1, devices.TotalCount)
+					assert.Len(devices.Result, 1)
 				})
 			})
 
-			Convey("When updating the device", func() {
+			t.Run("Update", func(t *testing.T) {
+				assert := require.New(t)
+
 				updateReq := pb.UpdateDeviceRequest{
 					Device: &pb.Device{
 						ApplicationId:     app.ID,
@@ -276,66 +310,99 @@ func TestNodeAPI(t *testing.T) {
 					},
 				}
 
-				_, err := api.Update(ctx, &updateReq)
-				So(err, ShouldBeNil)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
-				updateReq.Device.XXX_sizecache = 0
+				_, err := api.Update(context.Background(), &updateReq)
+				assert.NoError(err)
+
 				nsUpdateReq := <-nsClient.UpdateDeviceChan
 				nsClient.GetDeviceResponse = ns.GetDeviceResponse{
 					Device: nsUpdateReq.Device,
 				}
 
-				Convey("Then the device has been updated", func() {
-					d, err := api.Get(ctx, &pb.GetDeviceRequest{
-						DevEui: "0807060504030201",
-					})
-					So(err, ShouldBeNil)
-					So(d.Device, ShouldResemble, updateReq.Device)
-				})
-			})
-
-			Convey("After deleting the device", func() {
-				_, err := api.Delete(ctx, &pb.DeleteDeviceRequest{
+				d, err := api.Get(context.Background(), &pb.GetDeviceRequest{
 					DevEui: "0807060504030201",
 				})
-				So(err, ShouldBeNil)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
+				assert.NoError(err)
+				assert.True(proto.Equal(updateReq.Device, d.Device))
+			})
 
-				Convey("Then listing the devices returns zero devices", func() {
-					devices, err := api.List(ctx, &pb.ListDeviceRequest{
-						ApplicationId: app.ID,
-						Limit:         10,
+			t.Run("Update and move to different application", func(t *testing.T) {
+				t.Run("Same service-profile", func(t *testing.T) {
+					assert := require.New(t)
+
+					updateReq := pb.UpdateDeviceRequest{
+						Device: &pb.Device{
+							ApplicationId:     app2.ID,
+							DevEui:            "0807060504030201",
+							Name:              "test-device-updated",
+							Description:       "test device description updated",
+							DeviceProfileId:   dpID.String(),
+							SkipFCntCheck:     true,
+							ReferenceAltitude: 6.7,
+						},
+					}
+
+					_, err := api.Update(context.Background(), &updateReq)
+					assert.NoError(err)
+
+					<-nsClient.UpdateDeviceChan
+
+					d, err := api.Get(context.Background(), &pb.GetDeviceRequest{
+						DevEui: "0807060504030201",
 					})
-					So(err, ShouldBeNil)
-					So(devices.TotalCount, ShouldEqual, 0)
-					So(devices.Result, ShouldHaveLength, 0)
+					assert.NoError(err)
+					assert.Equal(app2.ID, d.Device.ApplicationId)
+				})
+
+				t.Run("Different service-profile", func(t *testing.T) {
+					assert := require.New(t)
+
+					updateReq := pb.UpdateDeviceRequest{
+						Device: &pb.Device{
+							ApplicationId:     app3.ID,
+							DevEui:            "0807060504030201",
+							Name:              "test-device-updated",
+							Description:       "test device description updated",
+							DeviceProfileId:   dpID.String(),
+							SkipFCntCheck:     true,
+							ReferenceAltitude: 6.7,
+						},
+					}
+
+					_, err := api.Update(context.Background(), &updateReq)
+					assert.Equal(codes.InvalidArgument, grpc.Code(err))
+					assert.Error(err, "rpc error: code = InvalidArgument desc = when moving a device from application A to B, both A and B must share the same service-profile")
 				})
 			})
 
-			Convey("Then CreateKeys creates device-keys", func() {
+			t.Run("CreateKeys", func(t *testing.T) {
+				assert := require.New(t)
+
 				createReq := pb.CreateDeviceKeysRequest{
 					DeviceKeys: &pb.DeviceKeys{
 						DevEui: "0807060504030201",
 						NwkKey: "01020304050607080807060504030201",
 					},
 				}
+				_, err := api.CreateKeys(context.Background(), &createReq)
+				assert.NoError(err)
 
-				_, err := api.CreateKeys(ctx, &createReq)
-				So(err, ShouldBeNil)
+				t.Run("GetKeys", func(t *testing.T) {
+					assert := require.New(t)
 
-				Convey("Then GetKeys returns the device-keys", func() {
-					dk, err := api.GetKeys(ctx, &pb.GetDeviceKeysRequest{
+					dk, err := api.GetKeys(context.Background(), &pb.GetDeviceKeysRequest{
 						DevEui: "0807060504030201",
 					})
-					So(err, ShouldBeNil)
-					So(dk.DeviceKeys, ShouldResemble, &pb.DeviceKeys{
+					assert.NoError(err)
+					assert.Equal(&pb.DeviceKeys{
 						DevEui: "0807060504030201",
 						NwkKey: "01020304050607080807060504030201",
 						AppKey: "00000000000000000000000000000000",
-					})
+					}, dk.DeviceKeys)
 				})
 
-				Convey("Then UpdateKeys updates the device-keys", func() {
+				t.Run("UpdateKeys", func(t *testing.T) {
+					assert := require.New(t)
+
 					updateReq := pb.UpdateDeviceKeysRequest{
 						DeviceKeys: &pb.DeviceKeys{
 							DevEui: "0807060504030201",
@@ -343,51 +410,61 @@ func TestNodeAPI(t *testing.T) {
 						},
 					}
 
-					_, err := api.UpdateKeys(ctx, &updateReq)
-					So(err, ShouldBeNil)
+					_, err := api.UpdateKeys(context.Background(), &updateReq)
+					assert.NoError(err)
 
-					dk, err := api.GetKeys(ctx, &pb.GetDeviceKeysRequest{
+					dk, err := api.GetKeys(context.Background(), &pb.GetDeviceKeysRequest{
 						DevEui: "0807060504030201",
 					})
-					So(err, ShouldBeNil)
-					So(dk.DeviceKeys, ShouldResemble, &pb.DeviceKeys{
+					assert.NoError(err)
+
+					assert.Equal(&pb.DeviceKeys{
 						DevEui: "0807060504030201",
 						NwkKey: "08070605040302010102030405060708",
 						AppKey: "00000000000000000000000000000000",
-					})
+					}, dk.DeviceKeys)
 				})
 
-				Convey("Then DeleteKeys deletes the device-keys", func() {
-					_, err := api.DeleteKeys(ctx, &pb.DeleteDeviceKeysRequest{
-						DevEui: "0807060504030201",
-					})
-					So(err, ShouldBeNil)
+				t.Run("DeleteKeys", func(t *testing.T) {
+					assert := require.New(t)
 
-					_, err = api.DeleteKeys(ctx, &pb.DeleteDeviceKeysRequest{
+					_, err := api.DeleteKeys(context.Background(), &pb.DeleteDeviceKeysRequest{
 						DevEui: "0807060504030201",
 					})
-					So(err, ShouldNotBeNil)
-					So(grpc.Code(err), ShouldEqual, codes.NotFound)
+					assert.NoError(err)
+
+					_, err = api.GetKeys(context.Background(), &pb.GetDeviceKeysRequest{
+						DevEui: "0807060504030201",
+					})
+					assert.Equal(codes.NotFound, grpc.Code(err))
 				})
 			})
 
-			Convey("When de-activating the device", func() {
+			t.Run("Deactivate", func(t *testing.T) {
+				assert := require.New(t)
+
 				deactivateReq := pb.DeactivateDeviceRequest{
 					DevEui: "0807060504030201",
 				}
 
-				_, err := api.Deactivate(ctx, &deactivateReq)
-				So(err, ShouldBeNil)
+				_, err := api.Deactivate(context.Background(), &deactivateReq)
+				assert.NoError(err)
 
-				Convey("Then an attempt was made to deactivate the device-session", func() {
-					So(nsClient.DeactivateDeviceChan, ShouldHaveLength, 1)
-					So(<-nsClient.DeactivateDeviceChan, ShouldResemble, ns.DeactivateDeviceRequest{
-						DevEui: []byte{8, 7, 6, 5, 4, 3, 2, 1},
-					})
-				})
+				// test that the device was de-activated in the NS
+				assert.Equal(ns.DeactivateDeviceRequest{
+					DevEui: []byte{8, 7, 6, 5, 4, 3, 2, 1},
+				}, <-nsClient.DeactivateDeviceChan)
 			})
 
-			Convey("When activating the device (ABP)", func() {
+			t.Run("ABP activate", func(t *testing.T) {
+				assert := require.New(t)
+
+				nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
+					DeviceProfile: &ns.DeviceProfile{
+						SupportsJoin: false,
+					},
+				}
+
 				activateReq := pb.ActivateDeviceRequest{
 					DeviceActivation: &pb.DeviceActivation{
 						DevEui:      "0807060504030201",
@@ -402,48 +479,44 @@ func TestNodeAPI(t *testing.T) {
 					},
 				}
 
-				_, err := api.Activate(ctx, &activateReq)
-				So(err, ShouldBeNil)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
+				_, err := api.Activate(context.Background(), &activateReq)
+				assert.NoError(err)
 
-				Convey("Then an attempt was made to deactivate the device-session", func() {
-					So(nsClient.DeactivateDeviceChan, ShouldHaveLength, 1)
-					So(<-nsClient.DeactivateDeviceChan, ShouldResemble, ns.DeactivateDeviceRequest{
-						DevEui: []byte{8, 7, 6, 5, 4, 3, 2, 1},
-					})
-				})
+				// the device was first de-activated
+				assert.Equal(ns.DeactivateDeviceRequest{
+					DevEui: []byte{8, 7, 6, 5, 4, 3, 2, 1},
+				}, <-nsClient.DeactivateDeviceChan)
 
-				Convey("Then a device-session was created", func() {
-					So(nsClient.ActivateDeviceChan, ShouldHaveLength, 1)
-					So(<-nsClient.ActivateDeviceChan, ShouldResemble, ns.ActivateDeviceRequest{
-						DeviceActivation: &ns.DeviceActivation{
-							DevEui:      []uint8{8, 7, 6, 5, 4, 3, 2, 1},
-							DevAddr:     []uint8{1, 2, 3, 4},
-							NwkSEncKey:  []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
-							SNwkSIntKey: []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 2},
-							FNwkSIntKey: []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 3},
-							FCntUp:      10,
-							NFCntDown:   11,
-							AFCntDown:   12,
-						},
-					})
-				})
+				// device was activated
+				assert.Equal(ns.ActivateDeviceRequest{
+					DeviceActivation: &ns.DeviceActivation{
+						DevEui:      []uint8{8, 7, 6, 5, 4, 3, 2, 1},
+						DevAddr:     []uint8{1, 2, 3, 4},
+						NwkSEncKey:  []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
+						SNwkSIntKey: []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 2},
+						FNwkSIntKey: []uint8{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 3},
+						FCntUp:      10,
+						NFCntDown:   11,
+						AFCntDown:   12,
+					},
+				}, <-nsClient.ActivateDeviceChan)
 
-				Convey("Then the activation was stored", func() {
-					da, err := storage.GetLastDeviceActivationForDevEUI(storage.DB(), [8]byte{8, 7, 6, 5, 4, 3, 2, 1})
-					So(err, ShouldBeNil)
-					So(da.AppSKey, ShouldEqual, lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8})
-					So(da.DevAddr, ShouldEqual, lorawan.DevAddr{1, 2, 3, 4})
-				})
+				// activation was stored
+				da, err := storage.GetLastDeviceActivationForDevEUI(storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
+				assert.NoError(err)
+				assert.Equal(lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}, da.AppSKey)
+				assert.Equal(lorawan.DevAddr{1, 2, 3, 4}, da.DevAddr)
 			})
 
-			Convey("When calling StreamEventLogs", func() {
+			t.Run("StreamEventLogs", func(t *testing.T) {
+				assert := require.New(t)
+
 				respChan := make(chan *pb.StreamDeviceEventLogsResponse)
 
-				client, err := api.StreamEventLogs(ctx, &pb.StreamDeviceEventLogsRequest{
+				client, err := api.StreamEventLogs(context.Background(), &pb.StreamDeviceEventLogsRequest{
 					DevEui: "0807060504030201",
 				})
-				So(err, ShouldBeNil)
+				assert.NoError(err)
 
 				// some time for subscribing
 				time.Sleep(100 * time.Millisecond)
@@ -458,16 +531,26 @@ func TestNodeAPI(t *testing.T) {
 					}
 				}()
 
-				Convey("When logging an event", func() {
-					So(eventlog.LogEventForDevice(lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, eventlog.EventLog{
-						Type: eventlog.Join,
-					}), ShouldBeNil)
+				assert.NoError(eventlog.LogEventForDevice(lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, eventlog.EventLog{
+					Type: eventlog.Join,
+				}))
 
-					Convey("Then the event was received by the client", func() {
-						resp := <-respChan
-						So(resp.Type, ShouldEqual, eventlog.Join)
-					})
+				resp := <-respChan
+				assert.Equal(eventlog.Join, resp.Type)
+			})
+
+			t.Run("Delete", func(t *testing.T) {
+				assert := require.New(t)
+
+				_, err := api.Delete(context.Background(), &pb.DeleteDeviceRequest{
+					DevEui: "0807060504030201",
 				})
+				assert.NoError(err)
+
+				_, err = api.Get(context.Background(), &pb.GetDeviceRequest{
+					DevEui: "0807060504030201",
+				})
+				assert.Equal(codes.NotFound, grpc.Code(err))
 			})
 		})
 	})

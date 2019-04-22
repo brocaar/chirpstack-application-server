@@ -3,8 +3,11 @@
 GRPC_GW_PATH=`go list -f '{{ .Dir }}' github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway`
 GRPC_GW_PATH="${GRPC_GW_PATH}/../third_party/googleapis"
 
+LS_PATH=`go list -f '{{ .Dir }}' github.com/brocaar/loraserver/api/ns`
+LS_PATH="${LS_PATH}/../.."
+
 # generate the gRPC code
-protoc -I../vendor -I${GRPC_GW_PATH} -I. --go_out=plugins=grpc:. \
+protoc -I. -I${LS_PATH} -I${GRPC_GW_PATH} --go_out=plugins=grpc:. \
     device.proto \
     application.proto \
     deviceQueue.proto \
@@ -21,7 +24,7 @@ protoc -I../vendor -I${GRPC_GW_PATH} -I. --go_out=plugins=grpc:. \
     internal.proto
 
 # generate the JSON interface code
-protoc -I../vendor -I${GRPC_GW_PATH} -I. --grpc-gateway_out=logtostderr=true:. \
+protoc -I. -I${LS_PATH} -I${GRPC_GW_PATH} --grpc-gateway_out=logtostderr=true:. \
     device.proto \
     application.proto \
     deviceQueue.proto \
@@ -38,7 +41,7 @@ protoc -I../vendor -I${GRPC_GW_PATH} -I. --grpc-gateway_out=logtostderr=true:. \
     internal.proto
 
 # generate the swagger definitions
-protoc -I../vendor -I${GRPC_GW_PATH} -I. --swagger_out=json_names_for_fields=true:./swagger \
+protoc -I. -I${LS_PATH} -I${GRPC_GW_PATH} --swagger_out=json_names_for_fields=true:./swagger \
     device.proto \
     application.proto \
     deviceQueue.proto \

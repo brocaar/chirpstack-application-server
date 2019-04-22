@@ -3,9 +3,11 @@
 
 package api
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -16,7 +18,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type RatePolicy int32
 
@@ -31,6 +33,7 @@ var RatePolicy_name = map[int32]string{
 	0: "DROP",
 	1: "MARK",
 }
+
 var RatePolicy_value = map[string]int32{
 	"DROP": 0,
 	"MARK": 1,
@@ -39,8 +42,9 @@ var RatePolicy_value = map[string]int32{
 func (x RatePolicy) String() string {
 	return proto.EnumName(RatePolicy_name, int32(x))
 }
+
 func (RatePolicy) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_profiles_f841b2f038c61935, []int{0}
+	return fileDescriptor_9610db3cccb08234, []int{0}
 }
 
 type ServiceProfile struct {
@@ -100,16 +104,17 @@ func (m *ServiceProfile) Reset()         { *m = ServiceProfile{} }
 func (m *ServiceProfile) String() string { return proto.CompactTextString(m) }
 func (*ServiceProfile) ProtoMessage()    {}
 func (*ServiceProfile) Descriptor() ([]byte, []int) {
-	return fileDescriptor_profiles_f841b2f038c61935, []int{0}
+	return fileDescriptor_9610db3cccb08234, []int{0}
 }
+
 func (m *ServiceProfile) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ServiceProfile.Unmarshal(m, b)
 }
 func (m *ServiceProfile) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ServiceProfile.Marshal(b, m, deterministic)
 }
-func (dst *ServiceProfile) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ServiceProfile.Merge(dst, src)
+func (m *ServiceProfile) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ServiceProfile.Merge(m, src)
 }
 func (m *ServiceProfile) XXX_Size() int {
 	return xxx_messageInfo_ServiceProfile.Size(m)
@@ -337,16 +342,17 @@ func (m *DeviceProfile) Reset()         { *m = DeviceProfile{} }
 func (m *DeviceProfile) String() string { return proto.CompactTextString(m) }
 func (*DeviceProfile) ProtoMessage()    {}
 func (*DeviceProfile) Descriptor() ([]byte, []int) {
-	return fileDescriptor_profiles_f841b2f038c61935, []int{1}
+	return fileDescriptor_9610db3cccb08234, []int{1}
 }
+
 func (m *DeviceProfile) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeviceProfile.Unmarshal(m, b)
 }
 func (m *DeviceProfile) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DeviceProfile.Marshal(b, m, deterministic)
 }
-func (dst *DeviceProfile) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeviceProfile.Merge(dst, src)
+func (m *DeviceProfile) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeviceProfile.Merge(m, src)
 }
 func (m *DeviceProfile) XXX_Size() int {
 	return xxx_messageInfo_DeviceProfile.Size(m)
@@ -519,14 +525,14 @@ func (m *DeviceProfile) GetSupports_32BitFCnt() bool {
 }
 
 func init() {
+	proto.RegisterEnum("api.RatePolicy", RatePolicy_name, RatePolicy_value)
 	proto.RegisterType((*ServiceProfile)(nil), "api.ServiceProfile")
 	proto.RegisterType((*DeviceProfile)(nil), "api.DeviceProfile")
-	proto.RegisterEnum("api.RatePolicy", RatePolicy_name, RatePolicy_value)
 }
 
-func init() { proto.RegisterFile("profiles.proto", fileDescriptor_profiles_f841b2f038c61935) }
+func init() { proto.RegisterFile("profiles.proto", fileDescriptor_9610db3cccb08234) }
 
-var fileDescriptor_profiles_f841b2f038c61935 = []byte{
+var fileDescriptor_9610db3cccb08234 = []byte{
 	// 917 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x55, 0x5d, 0x6f, 0xdb, 0x36,
 	0x14, 0x9d, 0x9b, 0xd4, 0xb1, 0x19, 0x4b, 0x76, 0x98, 0xa4, 0x55, 0xf7, 0xe9, 0xa5, 0xc3, 0x66,

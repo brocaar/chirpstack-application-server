@@ -5,8 +5,10 @@ package api;
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
-import "github.com/brocaar/loraserver/api/common/common.proto";
 import "common.proto";
+
+// from loraserver
+import "api/common/common.proto";
 
 
 // GatewayService is the service managing the gateways.

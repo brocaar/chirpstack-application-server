@@ -4,8 +4,10 @@ package api;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
-import "github.com/brocaar/loraserver/api/common/common.proto";
-import "github.com/brocaar/loraserver/api/gw/gw.proto";
+
+// from loraserver
+import "api/common/common.proto";
+import "api/gw/gw.proto";
 
 
 enum RXWindow {

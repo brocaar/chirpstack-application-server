@@ -306,20 +306,6 @@
           "type": "string",
           "description": "Gateway ID."
         },
-        "immediately": {
-          "type": "boolean",
-          "format": "boolean",
-          "description": "Frame must be sent immediately."
-        },
-        "timeSinceGpsEpoch": {
-          "type": "string",
-          "description": "Emit frame at the given time since GPS epoch."
-        },
-        "timestamp": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Emit the frame at the given gateway internal timestamp."
-        },
         "frequency": {
           "type": "integer",
           "format": "int64",
@@ -351,6 +337,27 @@
           "type": "integer",
           "format": "int64",
           "description": "The antenna identifier for emitting the frame."
+        },
+        "timing": {
+          "$ref": "#/definitions/gwDownlinkTiming",
+          "description": "Timing defines the downlink timing to use."
+        },
+        "immediatelyTimingInfo": {
+          "$ref": "#/definitions/gwImmediatelyTimingInfo",
+          "description": "Immediately timing information."
+        },
+        "delayTimingInfo": {
+          "$ref": "#/definitions/gwDelayTimingInfo",
+          "description": "Context based delay timing information."
+        },
+        "gpsEpochTimingInfo": {
+          "$ref": "#/definitions/gwGPSEpochTimingInfo",
+          "description": "GPS Epoch timing information."
+        },
+        "context": {
+          "type": "string",
+          "format": "byte",
+          "description": "Gateway specific context.\nIn case of a Class-A downlink, this contains a copy of the uplink context."
         }
       },
       "description": "Same comment as above applies to this message."
@@ -728,6 +735,11 @@
         "plainFineTimestamp": {
           "$ref": "#/definitions/gwPlainFineTimestamp",
           "description": "Plain fine-timestamp data."
+        },
+        "context": {
+          "type": "string",
+          "format": "byte",
+          "description": "Gateway specific context."
         }
       },
       "description": "This is a copy of gw.UplinkRXInfo with the only change that the\ngateway_id is of type string so that we can return it as HEX encoded\ninstead of base64."
@@ -781,6 +793,25 @@
       "default": "LORA",
       "title": "- LORA: LoRa\n - FSK: FSK"
     },
+    "gwDelayTimingInfo": {
+      "type": "object",
+      "properties": {
+        "delay": {
+          "type": "string",
+          "description": "Delay (duration).\nThe delay will be added to the gateway internal timing, provided by the context object."
+        }
+      }
+    },
+    "gwDownlinkTiming": {
+      "type": "string",
+      "enum": [
+        "IMMEDIATELY",
+        "DELAY",
+        "GPS_EPOCH"
+      ],
+      "default": "IMMEDIATELY",
+      "description": " - IMMEDIATELY: Send the downlink immediately.\n - DELAY: Send downlink at the given delay (based on provided context).\n - GPS_EPOCH: Send at given GPS epoch value."
+    },
     "gwFSKModulationInfo": {
       "type": "object",
       "properties": {
@@ -805,6 +836,18 @@
       ],
       "default": "NONE",
       "description": " - NONE: No fine-timestamp available.\n - ENCRYPTED: Encrypted fine-timestamp.\n - PLAIN: Plain fine-timestamp."
+    },
+    "gwGPSEpochTimingInfo": {
+      "type": "object",
+      "properties": {
+        "timeSinceGPSEpoch": {
+          "type": "string",
+          "description": "Duration since GPS Epoch."
+        }
+      }
+    },
+    "gwImmediatelyTimingInfo": {
+      "type": "object"
     },
     "gwLoRaModulationInfo": {
       "type": "object",

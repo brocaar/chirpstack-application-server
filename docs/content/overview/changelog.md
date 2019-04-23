@@ -10,6 +10,22 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
+## v3.0.0
+
+### Features
+
+#### Updated rxInfo / txInfo (live frame-logs)
+
+The LoRa Server <> LoRa Gateway Bridge messages have been updated to make the
+downlink scheduling more flexible and generic. This change exposes these fields
+in the live gateway and device frame-logs.
+
+### Upgrading
+
+Please upgrade LoRa Server first to v3 (see [Changelog](https://www.loraserver.io/loraserver/overview/changelog/)),
+then upgrade LoRa App Server to v3. This LoRa App Server release is fully
+backwards compatible.
+
 ## v2.6.0
 
 ### Features

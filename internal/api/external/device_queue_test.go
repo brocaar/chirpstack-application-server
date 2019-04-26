@@ -120,6 +120,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 					So(nsClient.CreateDeviceQueueItemChan, ShouldHaveLength, 1)
 					So(<-nsClient.CreateDeviceQueueItemChan, ShouldResemble, ns.CreateDeviceQueueItemRequest{
 						Item: &ns.DeviceQueueItem{
+							DevAddr:    da.DevAddr[:],
 							DevEui:     d.DevEUI[:],
 							FrmPayload: b,
 							FCnt:       12,
@@ -152,6 +153,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 				So(nsClient.CreateDeviceQueueItemChan, ShouldHaveLength, 1)
 				So(<-nsClient.CreateDeviceQueueItemChan, ShouldResemble, ns.CreateDeviceQueueItemRequest{
 					Item: &ns.DeviceQueueItem{
+						DevAddr:    da.DevAddr[:],
 						DevEui:     d.DevEUI[:],
 						FrmPayload: b,
 						FCnt:       12,
@@ -171,6 +173,7 @@ func TestDownlinkQueueAPI(t *testing.T) {
 			nsClient.GetDeviceQueueItemsForDevEUIResponse = ns.GetDeviceQueueItemsForDevEUIResponse{
 				Items: []*ns.DeviceQueueItem{
 					{
+						DevAddr:    da.DevAddr[:],
 						DevEui:     d.DevEUI[:],
 						FrmPayload: b,
 						FCnt:       12,

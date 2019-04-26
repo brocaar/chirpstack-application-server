@@ -310,6 +310,18 @@
           "type": "boolean",
           "format": "boolean",
           "description": "End-Device uses 32bit FCnt (mandatory for LoRaWAN 1.0 End-Device)."
+        },
+        "payloadCodec": {
+          "type": "string",
+          "description": "Payload codec.\nLeave blank to disable the codec feature."
+        },
+        "payloadEncoderScript": {
+          "type": "string",
+          "description": "Payload encoder script.\nDepending the codec, it is possible to provide a script which implements\nthe encoder function."
+        },
+        "payloadDecoderScript": {
+          "type": "string",
+          "description": "Payload decoder script.\nDepending the codec, it is possible to provide a script which implements\nthe decoder function."
         }
       }
     },

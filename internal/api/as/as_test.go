@@ -298,6 +298,30 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				assert.NoError(err)
 				assert.Equal(`{"fPort":3,"firstByte":67}`, string(b))
 			})
+
+			t.Run("JS codec on device-profile", func(t *testing.T) {
+				assert := require.New(t)
+
+				dp.PayloadCodec = codec.CustomJSType
+				dp.PayloadDecoderScript = `
+					function Decode(fPort, bytes) {
+						return {
+							"fPort": fPort + 1,
+							"firstByte": bytes[0] + 1
+						}
+					}
+				`
+				assert.NoError(storage.UpdateDeviceProfile(storage.DB(), &dp))
+
+				_, err := api.HandleUplinkData(ctx, &req)
+				assert.NoError(err)
+
+				pl := <-h.SendDataUpChan
+				assert.NotNil(pl.Object)
+				b, err := json.Marshal(pl.Object)
+				assert.NoError(err)
+				assert.Equal(`{"fPort":4,"firstByte":68}`, string(b))
+			})
 		})
 	})
 

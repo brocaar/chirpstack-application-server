@@ -5,6 +5,7 @@ import TextField from '@material-ui/core/TextField';
 import FormControl from "@material-ui/core/FormControl";
 import FormLabel from "@material-ui/core/FormLabel";
 import FormHelperText from "@material-ui/core/FormHelperText";
+import Typography from '@material-ui/core/Typography';
 
 import {Controlled as CodeMirror} from "react-codemirror2";
 import "codemirror/mode/javascript/javascript";
@@ -73,7 +74,7 @@ class ApplicationForm extends FormComponent {
     const codeMirrorOptions = {
       lineNumbers: true,
       mode: "javascript",
-      theme: "base16-light",
+      theme: "default",
     };
     
     let payloadEncoderScript = this.state.object.payloadEncoderScript;
@@ -137,42 +138,51 @@ function Decode(fPort, bytes) {
             The service-profile to which this application will be attached. Note that you can't change this value after the application has been created.
           </FormHelperText>
         </FormControl>}
-        <FormControl fullWidth margin="normal">
-          <FormLabel className={this.props.classes.formLabel}>Payload codec</FormLabel>
-          <AutocompleteSelect
-            id="payloadCodec"
-            label="Select payload codec"
-            value={this.state.object.payloadCodec || ""}
-            onChange={this.onChange}
-            getOptions={this.getPayloadCodecOptions}
-          />
-          <FormHelperText>
-            By defining a payload codec, LoRa App Server can encode and decode the binary device payload for you.
-          </FormHelperText>
-        </FormControl>
-        {this.state.object.payloadCodec === "CUSTOM_JS" && <FormControl fullWidth margin="normal">
-          <CodeMirror
-            value={payloadDecoderScript}
-            options={codeMirrorOptions}
-            onBeforeChange={this.onCodeChange.bind(this, 'payloadDecoderScript')}
-            className={this.props.classes.codeMirror}
-          />
-          <FormHelperText>
-            The function must have the signature <strong>function Decode(fPort, bytes)</strong> and must return an object.
-            LoRa App Server will convert this object to JSON.
-          </FormHelperText>
-        </FormControl>}
-        {this.state.object.payloadCodec === "CUSTOM_JS" && <FormControl fullWidth margin="normal">
-          <CodeMirror
-            value={payloadEncoderScript}
-            options={codeMirrorOptions}
-            onBeforeChange={this.onCodeChange.bind(this, 'payloadEncoderScript')}
-            className={this.props.classes.codeMirror}
-          />
-          <FormHelperText>
-            The function must have the signature <strong>function Encode(fPort, obj)</strong> and must return an array
-            of bytes.
-          </FormHelperText>
+        {this.state.object.payloadCodec !== "" && <div>
+          <FormControl fullWidth margin="normal">
+            <FormLabel className={this.props.classes.formLabel}>Payload codec</FormLabel>
+            <AutocompleteSelect
+              id="payloadCodec"
+              label="Select payload codec"
+              value={this.state.object.payloadCodec || ""}
+              onChange={this.onChange}
+              getOptions={this.getPayloadCodecOptions}
+            />
+            <FormHelperText>
+              By defining a payload codec, LoRa App Server can encode and decode the binary device payload for you. 
+              <strong>Important note</strong>: they payload fields have moved to the device-profile. For backward-compatibility and migration, existing codec settings are still visible.
+              Codec settings on the device-profile have priority over the application codec settings.
+            </FormHelperText>
+          </FormControl>
+          {this.state.object.payloadCodec === "CUSTOM_JS" && <FormControl fullWidth margin="normal">
+            <CodeMirror
+              value={payloadDecoderScript}
+              options={codeMirrorOptions}
+              onBeforeChange={this.onCodeChange.bind(this, 'payloadDecoderScript')}
+              className={this.props.classes.codeMirror}
+            />
+            <FormHelperText>
+              The function must have the signature <strong>function Decode(fPort, bytes)</strong> and must return an object.
+              LoRa App Server will convert this object to JSON.
+            </FormHelperText>
+          </FormControl>}
+          {this.state.object.payloadCodec === "CUSTOM_JS" && <FormControl fullWidth margin="normal">
+            <CodeMirror
+              value={payloadEncoderScript}
+              options={codeMirrorOptions}
+              onBeforeChange={this.onCodeChange.bind(this, 'payloadEncoderScript')}
+              className={this.props.classes.codeMirror}
+            />
+            <FormHelperText>
+              The function must have the signature <strong>function Encode(fPort, obj)</strong> and must return an array
+              of bytes.
+            </FormHelperText>
+          </FormControl>}
+        </div>}
+        {this.state.object.payloadCodec === "" && <FormControl fullWidth margin="normal">
+          <Typography variant="body1">
+            Note: The payload codec fields have moved to the device-profile.
+          </Typography>
         </FormControl>}
       </Form>
     );

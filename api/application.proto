@@ -135,12 +135,21 @@ message Application {
 	string service_profile_id = 5 [json_name = "serviceProfileID"];
 
 	// Payload codec.
+    // NOTE: These field have moved to the device-profile and will be removed
+    // in the next major release. When set, the device-profile payload_ fields
+    // have priority over the application payload_ fields.
 	string payload_codec = 6;
 
 	// Payload encoder script.
+    // NOTE: These field have moved to the device-profile and will be removed
+    // in the next major release. When set, the device-profile payload_ fields
+    // have priority over the application payload_ fields.
 	string payload_encoder_script = 7;
 
 	// Payload decoder script.
+    // NOTE: These field have moved to the device-profile and will be removed
+    // in the next major release. When set, the device-profile payload_ fields
+    // have priority over the application payload_ fields.
 	string payload_decoder_script = 8;
 }
 

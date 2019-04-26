@@ -529,7 +529,7 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	dp, err := storage.GetDeviceProfile(storage.DB(), d.DeviceProfileID)
+	dp, err := storage.GetDeviceProfile(storage.DB(), d.DeviceProfileID, false, false)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}

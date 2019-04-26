@@ -9,6 +9,9 @@ import FormHelperText from "@material-ui/core/FormHelperText";
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 
+import {Controlled as CodeMirror} from "react-codemirror2";
+import "codemirror/mode/javascript/javascript";
+
 import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
@@ -19,6 +22,9 @@ import { FormLabel } from "../../../node_modules/@material-ui/core";
 const styles = {
   formLabel: {
     fontSize: 12,
+  },
+  codeMirror: {
+    zIndex: 1,
   },
 };
 
@@ -35,6 +41,8 @@ class DeviceProfileForm extends FormComponent {
     this.getMACVersionOptions = this.getMACVersionOptions.bind(this);
     this.getRegParamsOptions = this.getRegParamsOptions.bind(this);
     this.getPingSlotPeriodOptions = this.getPingSlotPeriodOptions.bind(this);
+    this.getPayloadCodecOptions = this.getPayloadCodecOptions.bind(this);
+    this.onCodeChange = this.onCodeChange.bind(this);
   }
 
   getNetworkServerOptions(search, callbackFunc) {
@@ -80,6 +88,24 @@ class DeviceProfileForm extends FormComponent {
     callbackFunc(pingSlotPeriodOptions);
   }
 
+  getPayloadCodecOptions(search, callbackFunc) {
+    const payloadCodecOptions = [
+      {value: "", label: "None"},
+      {value: "CAYENNE_LPP", label: "Cayenne LPP"},
+      {value: "CUSTOM_JS", label: "Custom JavaScript codec functions"},
+    ];
+
+    callbackFunc(payloadCodecOptions);
+  }
+
+  onCodeChange(field, editor, data, newCode) {
+    let object = this.state.object;
+    object[field] = newCode;
+    this.setState({
+      object: object,
+    });
+  }
+
   onTabChange(e, v) {
     this.setState({
       tab: v,
@@ -100,7 +126,7 @@ class DeviceProfileForm extends FormComponent {
 
   render() {
     if (this.state.object === undefined) {
-      return(<div></div>);
+      return null;
     }
 
     let factoryPresetFreqsStr = "";
@@ -109,6 +135,36 @@ class DeviceProfileForm extends FormComponent {
     } else if (this.state.object.factoryPresetFreqs !== undefined) {
       factoryPresetFreqsStr = this.state.object.factoryPresetFreqs.join(", ");
     }
+
+    const codeMirrorOptions = {
+      lineNumbers: true,
+      mode: "javascript",
+      theme: "default",
+    };
+    
+    let payloadEncoderScript = this.state.object.payloadEncoderScript;
+    let payloadDecoderScript = this.state.object.payloadDecoderScript;
+
+    if (payloadEncoderScript === "" || payloadEncoderScript === undefined) {
+      payloadEncoderScript = `// Encode encodes the given object into an array of bytes.
+//  - fPort contains the LoRaWAN fPort number
+//  - obj is an object, e.g. {"temperature": 22.5}
+// The function must return an array of bytes, e.g. [225, 230, 255, 0]
+function Encode(fPort, obj) {
+  return [];
+}`;
+    }
+
+    if (payloadDecoderScript === "" || payloadDecoderScript === undefined) {
+      payloadDecoderScript = `// Decode decodes an array of bytes into an object.
+//  - fPort contains the LoRaWAN fPort number
+//  - bytes is an array of bytes, e.g. [225, 230, 255, 0]
+// The function must return an object, e.g. {"temperature": 22.5}
+function Decode(fPort, bytes) {
+  return {};
+}`;
+    }
+
 
     return(
       <Form
@@ -121,6 +177,7 @@ class DeviceProfileForm extends FormComponent {
           <Tab label="Join (OTAA / ABP)" />
           <Tab label="Class-B" />
           <Tab label="Class-C" />
+          <Tab label="Codec" />
         </Tabs>
 
         {this.state.tab === 0 && <div>
@@ -343,6 +400,47 @@ class DeviceProfileForm extends FormComponent {
             required
             fullWidth
           />}
+        </div>}
+
+        {this.state.tab === 4 && <div>
+          <FormControl fullWidth margin="normal">
+            <FormLabel className={this.props.classes.formLabel}>Payload codec</FormLabel>
+            <AutocompleteSelect
+              id="payloadCodec"
+              label="Select payload codec"
+              value={this.state.object.payloadCodec || ""}
+              onChange={this.onChange}
+              getOptions={this.getPayloadCodecOptions}
+            />
+            <FormHelperText>
+              By defining a payload codec, LoRa App Server can encode and decode the binary device payload for you.
+            </FormHelperText>
+          </FormControl>
+
+          {this.state.object.payloadCodec === "CUSTOM_JS" && <FormControl fullWidth margin="normal">
+            <CodeMirror
+              value={payloadDecoderScript}
+              options={codeMirrorOptions}
+              onBeforeChange={this.onCodeChange.bind(this, 'payloadDecoderScript')}
+              className={this.props.classes.codeMirror}
+            />
+            <FormHelperText>
+              The function must have the signature <strong>function Decode(fPort, bytes)</strong> and must return an object.
+              LoRa App Server will convert this object to JSON.
+            </FormHelperText>
+          </FormControl>}
+          {this.state.object.payloadCodec === "CUSTOM_JS" && <FormControl fullWidth margin="normal">
+            <CodeMirror
+              value={payloadEncoderScript}
+              options={codeMirrorOptions}
+              onBeforeChange={this.onCodeChange.bind(this, 'payloadEncoderScript')}
+              className={this.props.classes.codeMirror}
+            />
+            <FormHelperText>
+              The function must have the signature <strong>function Encode(fPort, obj)</strong> and must return an array
+              of bytes.
+            </FormHelperText>
+          </FormControl>}
         </div>}
       </Form>
     );

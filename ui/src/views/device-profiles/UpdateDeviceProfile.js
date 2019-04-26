@@ -1,12 +1,20 @@
 import React, { Component } from "react";
 import { withRouter } from 'react-router-dom';
 
+import { withStyles } from "@material-ui/core/styles";
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
 import CardContent from "@material-ui/core/CardContent";
 
 import DeviceProfileStore from "../../stores/DeviceProfileStore";
 import DeviceProfileForm from "./DeviceProfileForm";
+
+
+const styles = {
+  card: {
+    overflow: "visible",
+  },
+};
 
 
 class UpdateDeviceProfile extends Component {
@@ -25,7 +33,7 @@ class UpdateDeviceProfile extends Component {
     return(
       <Grid container spacing={24}>
         <Grid item xs={12}>
-          <Card>
+          <Card className={this.props.classes.card}>
             <CardContent>
               <DeviceProfileForm
                 submitLabel="Update device-profile"
@@ -43,4 +51,4 @@ class UpdateDeviceProfile extends Component {
   }
 }
 
-export default withRouter(UpdateDeviceProfile);
+export default withStyles(styles)(withRouter(UpdateDeviceProfile));

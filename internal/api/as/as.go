@@ -120,6 +120,12 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
+	dp, err := storage.GetDeviceProfile(storage.DB(), d.DeviceProfileID, false, true)
+	if err != nil {
+		log.WithError(err).WithField("id", d.DeviceProfileID).Error("get device-profile error")
+		return nil, grpc.Errorf(codes.Internal, "get device-profile error: %s", err)
+	}
+
 	if req.DeviceActivationContext != nil {
 		if err := handleDeviceActivation(d, app, req.DeviceActivationContext); err != nil {
 			return nil, helpers.ErrToRPCError(err)
@@ -143,7 +149,20 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 	}
 
 	var object interface{}
-	codecPL := codec.NewPayload(app.PayloadCodec, uint8(req.FPort), app.PayloadEncoderScript, app.PayloadDecoderScript)
+
+	// TODO: in the next major release, remove this and always use the
+	// device-profile codec fields.
+	payloadCodec := app.PayloadCodec
+	payloadEncoderScript := app.PayloadEncoderScript
+	payloadDecoderScript := app.PayloadDecoderScript
+
+	if dp.PayloadCodec != "" {
+		payloadCodec = dp.PayloadCodec
+		payloadEncoderScript = dp.PayloadEncoderScript
+		payloadDecoderScript = dp.PayloadDecoderScript
+	}
+
+	codecPL := codec.NewPayload(payloadCodec, uint8(req.FPort), payloadEncoderScript, payloadDecoderScript)
 	if codecPL != nil {
 		start := time.Now()
 		if err := codecPL.DecodeBytes(b); err != nil {

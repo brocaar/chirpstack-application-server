@@ -25,7 +25,7 @@ class UpdateDevice extends Component {
 
   onSubmit(device) {
     DeviceStore.update(device, resp => {
-      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}`);
     });
   }
 

@@ -63,11 +63,13 @@ class DeviceStore extends EventEmitter {
       })
       .then(checkStatus)
       .then(resp => {
+        this.emit("update");
         this.notify("updated");
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
     });
+
   }
 
   delete(id, callbackFunc) {

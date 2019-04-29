@@ -122,6 +122,7 @@ func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, confirmed bool, f
 	// enqueue device-queue item
 	_, err = nsClient.CreateDeviceQueueItem(context.Background(), &ns.CreateDeviceQueueItemRequest{
 		Item: &ns.DeviceQueueItem{
+			DevAddr:    da.DevAddr[:],
 			DevEui:     devEUI[:],
 			FrmPayload: b,
 			FCnt:       resp.FCnt,

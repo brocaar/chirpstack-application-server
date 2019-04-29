@@ -115,6 +115,7 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 
 			assert.Equal(ns.CreateDeviceQueueItemRequest{
 				Item: &ns.DeviceQueueItem{
+					DevAddr:    da.DevAddr[:],
 					DevEui:     d.DevEUI[:],
 					FrmPayload: b,
 					FCnt:       12,
@@ -157,6 +158,7 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 
 			assert.Equal(ns.CreateDeviceQueueItemRequest{
 				Item: &ns.DeviceQueueItem{
+					DevAddr:    da.DevAddr[:],
 					DevEui:     d.DevEUI[:],
 					FrmPayload: []byte{0xa3, 0x9c, 0x42, 0xca},
 					FCnt:       12,
@@ -172,6 +174,7 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 		nsClient.GetDeviceQueueItemsForDevEUIResponse = ns.GetDeviceQueueItemsForDevEUIResponse{
 			Items: []*ns.DeviceQueueItem{
 				{
+					DevAddr:    da.DevAddr[:],
 					DevEui:     d.DevEUI[:],
 					FrmPayload: b,
 					FCnt:       12,

@@ -887,7 +887,6 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 				GatewayId:         mac.String(),
 				Time:              rxInfo.Time,
 				TimeSinceGpsEpoch: rxInfo.TimeSinceGpsEpoch,
-				Timestamp:         rxInfo.Timestamp,
 				Rssi:              rxInfo.Rssi,
 				LoraSnr:           rxInfo.LoraSnr,
 				Channel:           rxInfo.Channel,

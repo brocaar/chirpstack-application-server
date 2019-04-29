@@ -201,7 +201,6 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 
 					ExpectedCreateDeviceQueueItemRequest: ns.CreateDeviceQueueItemRequest{
 						Item: &ns.DeviceQueueItem{
-							DevAddr:   da.DevAddr[:],
 							DevEui:    device.DevEUI[:],
 							FCnt:      12,
 							FPort:     2,

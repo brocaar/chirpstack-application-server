@@ -51,7 +51,8 @@ func handleDataDownPayload(pl integration.DataDownPayload) error {
 		}
 
 		// if Object is set, try to encode it to bytes using the application codec
-		if pl.Object != nil {
+		//if pl.Object != nil && string(pl.Object) != "null" {
+		if pl.Object != nil && string(pl.Object) != "null" {
 			app, err := storage.GetApplication(tx, d.ApplicationID)
 			if err != nil {
 				return errors.Wrap(err, "get application error")

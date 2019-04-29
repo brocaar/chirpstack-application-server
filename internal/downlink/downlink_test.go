@@ -179,6 +179,36 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 						},
 					},
 				},
+				{
+					Name:         "custom payload encoder - payload is null",
+					PayloadCodec: codec.CustomJSType,
+					PayloadEncoderScript: `
+						function Encode(fPort, obj) {
+							return [
+								obj.Bytes[3],
+								obj.Bytes[2],
+								obj.Bytes[1],
+								obj.Bytes[0]
+							];
+						}
+					`,
+					Payload: integration.DataDownPayload{
+						ApplicationID: app.ID,
+						DevEUI:        device.DevEUI,
+						FPort:         2,
+						Object:        json.RawMessage(`null`),
+					},
+
+					ExpectedCreateDeviceQueueItemRequest: ns.CreateDeviceQueueItemRequest{
+						Item: &ns.DeviceQueueItem{
+							DevAddr:   da.DevAddr[:],
+							DevEui:    device.DevEUI[:],
+							FCnt:      12,
+							FPort:     2,
+							Confirmed: false,
+						},
+					},
+				},
 			}
 
 			for i, test := range tests {

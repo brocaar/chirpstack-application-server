@@ -99,10 +99,19 @@ type Application struct {
 	// ID of the service profile.
 	ServiceProfileId string `protobuf:"bytes,5,opt,name=service_profile_id,json=serviceProfileID,proto3" json:"service_profile_id,omitempty"`
 	// Payload codec.
+	// NOTE: These field have moved to the device-profile and will be removed
+	// in the next major release. When set, the device-profile payload_ fields
+	// have priority over the application payload_ fields.
 	PayloadCodec string `protobuf:"bytes,6,opt,name=payload_codec,json=payloadCodec,proto3" json:"payload_codec,omitempty"`
 	// Payload encoder script.
+	// NOTE: These field have moved to the device-profile and will be removed
+	// in the next major release. When set, the device-profile payload_ fields
+	// have priority over the application payload_ fields.
 	PayloadEncoderScript string `protobuf:"bytes,7,opt,name=payload_encoder_script,json=payloadEncoderScript,proto3" json:"payload_encoder_script,omitempty"`
 	// Payload decoder script.
+	// NOTE: These field have moved to the device-profile and will be removed
+	// in the next major release. When set, the device-profile payload_ fields
+	// have priority over the application payload_ fields.
 	PayloadDecoderScript string   `protobuf:"bytes,8,opt,name=payload_decoder_script,json=payloadDecoderScript,proto3" json:"payload_decoder_script,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`

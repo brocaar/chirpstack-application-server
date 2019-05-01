@@ -899,11 +899,6 @@
           "type": "string",
           "description": "RX time since GPS epoch (only set when the gateway has a GPS module)."
         },
-        "timestamp": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Gateway internal timestamp."
-        },
         "rssi": {
           "type": "integer",
           "format": "int32",

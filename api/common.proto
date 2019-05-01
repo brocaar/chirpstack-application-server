@@ -47,9 +47,6 @@ message UplinkRXInfo {
     // RX time since GPS epoch (only set when the gateway has a GPS module).
     google.protobuf.Duration time_since_gps_epoch = 3;
 
-    // Gateway internal timestamp.
-    uint32 timestamp = 4;
-
     // RSSI.
     int32 rssi = 5;
 

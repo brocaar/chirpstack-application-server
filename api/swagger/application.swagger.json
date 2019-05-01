@@ -473,15 +473,15 @@
         },
         "payloadCodec": {
           "type": "string",
-          "description": "Payload codec."
+          "description": "Payload codec.\nNOTE: These field have moved to the device-profile and will be removed\nin the next major release. When set, the device-profile payload_ fields\nhave priority over the application payload_ fields."
         },
         "payloadEncoderScript": {
           "type": "string",
-          "description": "Payload encoder script."
+          "description": "Payload encoder script.\nNOTE: These field have moved to the device-profile and will be removed\nin the next major release. When set, the device-profile payload_ fields\nhave priority over the application payload_ fields."
         },
         "payloadDecoderScript": {
           "type": "string",
-          "description": "Payload decoder script."
+          "description": "Payload decoder script.\nNOTE: These field have moved to the device-profile and will be removed\nin the next major release. When set, the device-profile payload_ fields\nhave priority over the application payload_ fields."
         }
       }
     },

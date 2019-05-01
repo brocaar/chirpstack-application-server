@@ -10,7 +10,7 @@
 # builds
 /dist
 /build
-/internal/static
+/internal/static/static_gen.go
 /internal/migrations/migrations_gen.go
 /static/logo
 /static/static

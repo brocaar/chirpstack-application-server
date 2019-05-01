@@ -8,7 +8,7 @@ build: ui/build internal/statics internal/migrations
 
 clean:
 	@echo "Cleaning up workspace"
-	@rm -rf build dist internal/migrations internal/static ui/build static/static
+	@rm -rf build dist internal/migrations/migrations_gen.go internal/static/static_gen.go ui/build static/static
 	@rm -f static/index.html static/icon.png static/manifest.json static/asset-manifest.json static/service-worker.js
 	@rm -rf static/logo
 	@rm -rf docs/public
@@ -45,7 +45,8 @@ api:
 
 internal/statics internal/migrations: static/swagger/api.swagger.json
 	@echo "Generating static files"
-	@go generate cmd/lora-app-server/main.go
+	@go generate internal/migrations/migrations.go
+	@go generate internal/static/static.go
 
 
 static/swagger/api.swagger.json:

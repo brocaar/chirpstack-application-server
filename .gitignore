@@ -11,7 +11,7 @@
 /dist
 /build
 /internal/static
-/internal/migrations
+/internal/migrations/migrations_gen.go
 /static/logo
 /static/static
 /static/swagger/*.json

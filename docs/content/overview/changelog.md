@@ -10,6 +10,18 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
+## v2.6.1
+
+### Improvements
+
+* Make it possible in the API to move devices between applications.
+* Add `DevAddr` to enqueue API call to LoRa Server so that LoRa Server can validate the session-keys are in sync.
+* Add device details overview (UI).
+
+### Bugfixes
+
+* Fix `panic` when JOSN object is set but contains `null`. ([#314](https://github.com/brocaar/lora-app-server/issues/314))
+
 ## v2.6.0
 
 ### Features

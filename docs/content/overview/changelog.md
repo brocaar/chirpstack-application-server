@@ -20,11 +20,29 @@ The LoRa Server <> LoRa Gateway Bridge messages have been updated to make the
 downlink scheduling more flexible and generic. This change exposes these fields
 in the live gateway and device frame-logs.
 
+### Payload codec
+
+The payload codec settings have been moved to the Device Profile. Codec settings set
+in the application configuration still remain functional, but new codec settings must be
+configured in the Device Profile.
+
 ### Upgrading
 
 Please upgrade LoRa Server first to v3 (see [Changelog](https://www.loraserver.io/loraserver/overview/changelog/)),
 then upgrade LoRa App Server to v3. This LoRa App Server release is fully
 backwards compatible.
+
+## v2.6.1
+
+### Improvements
+
+* Make it possible in the API to move devices between applications.
+* Add `DevAddr` to enqueue API call to LoRa Server so that LoRa Server can validate the session-keys are in sync.
+* Add device details overview (UI).
+
+### Bugfixes
+
+* Fix `panic` when JOSN object is set but contains `null`. ([#314](https://github.com/brocaar/lora-app-server/issues/314))
 
 ## v2.6.0
 

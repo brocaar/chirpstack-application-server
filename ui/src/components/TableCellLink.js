@@ -11,6 +11,7 @@ const styles = {
   link: {
     textDecoration: "none",
     color: theme.palette.primary.main,
+    cursor: "pointer",
   },
 };
 
@@ -19,7 +20,8 @@ class TableCellLink extends Component {
   render() {
     return(
       <TableCell>
-        <Link className={this.props.classes.link} to={this.props.to}>{this.props.children}</Link>
+        {this.props.to && <Link className={this.props.classes.link} to={this.props.to}>{this.props.children}</Link>}
+        {this.props.onClick && <span className={this.props.classes.link} onClick={this.props.onClick}>{this.props.children}</span>}
       </TableCell>
     );
   }

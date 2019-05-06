@@ -18,6 +18,7 @@ import SessionStore from "../../stores/SessionStore";
 import ListDevices from "../devices/ListDevices";
 import UpdateApplication from "./UpdateApplication";
 import ListIntegrations from "./ListIntegrations";
+import ListFUOTADeploymentsForApplication from "../fuota/ListFUOTADeploymentsForApplication";
 
 
 import theme from "../../theme";
@@ -92,6 +93,8 @@ class ApplicationLayout extends Component {
       tab = 1;
     } else if (window.location.href.endsWith("/integrations")) {
       tab = 2;
+    } else if (window.location.href.endsWith("/fuota-deployments")) {
+      tab = 3;
     }
 
     this.setState({
@@ -139,6 +142,7 @@ class ApplicationLayout extends Component {
             <Tab label="Devices" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`} />
             {this.state.admin && <Tab label="Application configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/edit`} />}
             {this.state.admin && <Tab label="Integrations" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`} />}
+            {this.state.admin && <Tab label="FUOTA" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/fuota-deployments`} />}
           </Tabs>
         </Grid>
 
@@ -147,6 +151,7 @@ class ApplicationLayout extends Component {
             <Route exact path={`${this.props.match.path}/edit`} render={props => <UpdateApplication application={this.state.application.application} {...props} />} />
             <Route exact path={`${this.props.match.path}/integrations`} render={props => <ListIntegrations application={this.state.application.application} {...props} />} />
             <Route exact path={`${this.props.match.path}`} render={props => <ListDevices application={this.state.application.application} {...props} />} />
+            <Route exact path={`${this.props.match.path}/fuota-deployments`} render={props => <ListFUOTADeploymentsForApplication application={this.state.application.application} {...props} /> } />
           </Switch>
         </Grid>
       </Grid>

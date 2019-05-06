@@ -186,12 +186,14 @@ func (ts *StorageTestSuite) TestDevice() {
 			lat := float64(1.123)
 			long := float64(2.123)
 			alt := float64(3.123)
+			dr := 3
 
 			d.Name = "updated-test-device"
 			d.DeviceProfileID = dp2ID
 			d.Latitude = &lat
 			d.Longitude = &long
 			d.Altitude = &alt
+			d.DR = &dr
 
 			assert.NoError(UpdateDevice(ts.Tx(), &d, false))
 			d.UpdatedAt = d.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -226,6 +228,7 @@ func (ts *StorageTestSuite) TestDevice() {
 				DevEUI:    d.DevEUI,
 				NwkKey:    lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
 				AppKey:    lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+				GenAppKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 8, 7, 6, 5, 4, 3, 2, 1},
 				JoinNonce: 1234,
 			}
 			assert.NoError(CreateDeviceKeys(ts.Tx(), &dk))
@@ -248,6 +251,7 @@ func (ts *StorageTestSuite) TestDevice() {
 
 				dk.NwkKey = lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
 				dk.AppKey = lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1}
+				dk.GenAppKey = lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 1, 2, 3, 4, 5, 6, 7, 8}
 				dk.JoinNonce = 1235
 				assert.NoError(UpdateDeviceKeys(ts.Tx(), &dk))
 				dk.UpdatedAt = dk.UpdatedAt.UTC().Truncate(time.Millisecond)

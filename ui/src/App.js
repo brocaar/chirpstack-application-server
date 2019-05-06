@@ -77,6 +77,10 @@ import DeviceLayout from "./views/devices/DeviceLayout";
 // search
 import Search from "./views/search/Search";
 
+// FUOTA
+import CreateFUOTADeploymentForDevice from "./views/fuota/CreateFUOTADeploymentForDevice";
+import FUOTADeploymentLayout from "./views/fuota/FUOTADeploymentLayout";
+
 
 const drawerWidth = 270;
 
@@ -192,6 +196,8 @@ class App extends Component {
                     <Route exact path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/integrations/create" component={CreateIntegration} />
                     <Route exact path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/integrations/:kind" component={UpdateIntegration} />
                     <Route exact path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/devices/create" component={CreateDevice} />
+                    <Route exact path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/devices/:devEUI([\w]{16})/fuota-deployments/create" component={CreateFUOTADeploymentForDevice} />
+                    <Route path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/fuota-deployments/:fuotaDeploymentID([\w-]{36})" component={FUOTADeploymentLayout} />
                     <Route path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/devices/:devEUI([\w]{16})" component={DeviceLayout} />
                     <Route path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)" component={ApplicationLayout} />
 

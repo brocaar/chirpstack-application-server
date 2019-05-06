@@ -3,16 +3,17 @@ package auth
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/jmoiron/sqlx"
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan"
-	"github.com/jmoiron/sqlx"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 type validatorTest struct {
@@ -58,6 +59,10 @@ func TestValidators(t *testing.T) {
 	   Gateways:
 	   0101010101010101: organization 1 gw
 	   0202020202020202: organization 2 gw
+
+	   FUOTA deployment:
+	   1: created for device 0101010101010101
+
 	*/
 	networkServers := []storage.NetworkServer{
 		{Name: "test-ns", Server: "test-ns:1234"},
@@ -135,6 +140,15 @@ func TestValidators(t *testing.T) {
 	}
 	for _, d := range devices {
 		if err := storage.CreateDevice(storage.DB(), &d); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	fuotaDeployments := []storage.FUOTADeployment{
+		{Name: "test-fuota", GroupType: storage.FUOTADeploymentGroupTypeC, DR: 5, Frequency: 868100000, Payload: []byte{1, 2, 3, 4}, FragSize: 20, MulticastTimeout: 1, UnicastTimeout: time.Second},
+	}
+	for i := range fuotaDeployments {
+		if err := storage.CreateFUOTADeploymentForDevice(storage.DB(), &fuotaDeployments[i], devices[0].DevEUI); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -1178,6 +1192,68 @@ func TestValidators(t *testing.T) {
 				{
 					Name:       "non-organization users can not create, list and delete",
 					Validators: []ValidatorFunc{ValidateMulticastGroupQueueAccess(Create, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(List, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(Delete, multicastGroupsIDs[0])},
+					Claims:     Claims{Username: "user12"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, storage.DB())
+		})
+
+		Convey("When testing ValidateFUOTADeploymentAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin user can read",
+					Validators: []ValidatorFunc{ValidateFUOTADeploymentAccess(Read, fuotaDeployments[0].ID)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin can read",
+					Validators: []ValidatorFunc{ValidateFUOTADeploymentAccess(Read, fuotaDeployments[0].ID)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization user can read",
+					Validators: []ValidatorFunc{ValidateFUOTADeploymentAccess(Read, fuotaDeployments[0].ID)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "non-organization user can not read",
+					Validators: []ValidatorFunc{ValidateFUOTADeploymentAccess(Read, fuotaDeployments[0].ID)},
+					Claims:     Claims{Username: "user12"},
+					ExpectedOK: false,
+				},
+			}
+
+			runTests(tests, storage.DB())
+		})
+
+		Convey("When testing ValidateFUOTADeploymentsAccess", func() {
+			tests := []validatorTest{
+				{
+					Name:       "global admin user can create",
+					Validators: []ValidatorFunc{ValidateFUOTADeploymentsAccess(Create, applications[0].ID, lorawan.EUI64{}), ValidateFUOTADeploymentsAccess(Create, 0, devices[0].DevEUI)},
+					Claims:     Claims{Username: "user1"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization admin user can create",
+					Validators: []ValidatorFunc{ValidateFUOTADeploymentsAccess(Create, applications[0].ID, lorawan.EUI64{}), ValidateFUOTADeploymentsAccess(Create, 0, devices[0].DevEUI)},
+					Claims:     Claims{Username: "user10"},
+					ExpectedOK: true,
+				},
+				{
+					Name:       "organization user can not create",
+					Validators: []ValidatorFunc{ValidateFUOTADeploymentsAccess(Create, applications[0].ID, lorawan.EUI64{}), ValidateFUOTADeploymentsAccess(Create, 0, devices[0].DevEUI)},
+					Claims:     Claims{Username: "user9"},
+					ExpectedOK: false,
+				},
+				{
+					Name:       "non-organization user can not create",
+					Validators: []ValidatorFunc{ValidateFUOTADeploymentsAccess(Create, applications[0].ID, lorawan.EUI64{}), ValidateFUOTADeploymentsAccess(Create, 0, devices[0].DevEUI)},
 					Claims:     Claims{Username: "user12"},
 					ExpectedOK: false,
 				},

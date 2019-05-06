@@ -1,0 +1,225 @@
+syntax = "proto3";
+
+package api;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "multicastGroup.proto";
+
+// FUOTADeploymentService is the service managing FUOTA deployments.
+service FUOTADeploymentService {
+    // CreateForDevice creates a deployment for the given DevEUI.
+    rpc CreateForDevice(CreateFUOTADeploymentForDeviceRequest) returns (CreateFUOTADeploymentForDeviceResponse) {
+        option(google.api.http) = {
+            post: "/api/devices/{dev_eui}/fuota-deployments"
+            body: "*"
+        };
+    }
+
+    // Get returns the fuota deployment for the given id.
+    rpc Get(GetFUOTADeploymentRequest) returns (GetFUOTADeploymentResponse) {
+        option(google.api.http) = {
+            get: "/api/fuota-deployments/{id}"
+        };
+    }
+
+    // List lists the fuota deployments.
+    rpc List(ListFUOTADeploymentRequest) returns (ListFUOTADeploymentResponse) {
+        option(google.api.http) = {
+            get: "/api/fuota-deployments"
+        };
+    }
+
+    // GetDeploymentDevice returns the deployment device.
+    rpc GetDeploymentDevice(GetFUOTADeploymentDeviceRequest) returns (GetFUOTADeploymentDeviceResponse) {
+        option(google.api.http) = {
+            get: "/api/fuota-deployments/{fuota_deployment_id}/devices/{dev_eui}"
+        };
+    }
+
+    // ListDeploymentDevices lists the devices (and status) for the given fuota deployment ID.
+    rpc ListDeploymentDevices(ListFUOTADeploymentDevicesRequest) returns (ListFUOTADeploymentDevicesResponse) {
+        option(google.api.http) = {
+            get: "/api/fuota-deployments/{fuota_deployment_id}/devices"
+        };
+    }
+}
+
+enum FUOTADeploymentDeviceState {
+    // Pending.
+    PENDING = 0;
+
+    // Success.
+    SUCCESS = 1;
+
+    // Error.
+    ERROR = 2;
+}
+
+message FUOTADeployment {
+    // ID of the deployment (string formatted UUID).
+    // This value will be automatically assigned on create.
+    string id = 1;
+
+    // Name of the deployment.
+    string name = 2;
+
+    // Multicast type.
+    // Currently only Class-C is supported!
+    MulticastGroupType group_type = 3;
+
+    // Data-rate.
+    uint32 dr = 4;
+
+    // Frequency (Hz).
+    uint32 frequency = 5;
+
+    // Payload.
+    bytes payload = 6;
+
+    // Redundancy (number of packages).
+    uint32 redundancy = 7;
+
+    // Multicast time-out.
+    // Please refer to the Remote Multicast Setup specification as this field
+    // has a different meaning for Class-B and Class-C groups.
+    uint32 multicast_timeout = 8;
+
+    // Unicast time-out.
+    // Set this to the value in which you at least expect an uplink frame from the
+    // device. The FUOTA deployment engine will wait at least for the given time
+    // before proceeding with the next steps.
+    google.protobuf.Duration unicast_timeout = 9;
+
+    // Deployment state.
+    // This value will be automatically set on create.
+    string state = 10;
+
+    // Next step after.
+    // This value will be automatically set on create.
+    google.protobuf.Timestamp next_step_after = 11;
+}
+
+message FUOTADeploymentListItem {
+    // ID of the deployment (string formatted UUID).
+    string id = 1;
+
+    // Created at timestamp.
+    google.protobuf.Timestamp created_at = 2;
+
+    // Last update timestamp.
+    google.protobuf.Timestamp updated_at = 3;
+
+    // Name of the deployment.
+    string name = 4;
+
+    // Deployment state.
+    string state = 5;
+
+    // Next step after.
+    google.protobuf.Timestamp next_step_after = 6;
+}
+
+message CreateFUOTADeploymentForDeviceRequest {
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
+
+    // FUOTA deployment.
+    FUOTADeployment fuota_deployment = 2;
+}
+
+message CreateFUOTADeploymentForDeviceResponse {
+    // ID of the created deployment (string formatted UUID).
+    string id = 1;
+}
+
+message GetFUOTADeploymentRequest {
+    // ID of the deployment (string formatted UUID).
+    // This value will be automatically assigned on create.
+    string id = 1;
+}
+
+message GetFUOTADeploymentResponse {
+    FUOTADeployment fuota_deployment = 1;
+
+    // Created at timestamp.
+    google.protobuf.Timestamp created_at = 2;
+
+    // Last update timestamp.
+    google.protobuf.Timestamp updated_at = 3;
+}
+
+message ListFUOTADeploymentRequest {
+    // Max number of deployments to return in the result-set.
+    int64 limit = 1;
+
+    // Offset in the result-set (for pagination).
+    int64 offset = 2;
+
+    // Application ID to filter on (optional).
+    int64 application_id = 3 [json_name = "applicationID"];
+    
+    // Device EUI (HEX encoded) (optional).
+    string dev_eui = 4 [json_name = "devEUI"];
+}
+
+message ListFUOTADeploymentResponse {
+    // Total number of deployments available within the result-set.
+    int64 total_count = 1;
+
+    // Deployments within this result-set.
+    repeated FUOTADeploymentListItem result = 2;
+}
+
+message ListFUOTADeploymentDevicesRequest {
+    // ID of the deployment (string formatted UUID).
+    // This value will be automatically assigned on create.
+    string fuota_deployment_id = 1 [json_name = "fuotaDeploymentID"];
+
+    // Max number of items to return.
+    int64 limit = 2;
+
+    // Offset in the result-set (for pagination).
+    int64 offset = 3;
+}
+
+message GetFUOTADeploymentDeviceRequest {
+    // ID of the deployment (string formatted UUID).
+    // This value will be automatically assigned on create.
+    string fuota_deployment_id = 1 [json_name = "fuotaDeploymentID"];
+
+    // Device EUI (HEX encoded).
+    string dev_eui = 2 [json_name = "devEUI"];
+}
+
+message GetFUOTADeploymentDeviceResponse {
+    FUOTADeploymentDeviceListItem deployment_device = 1;
+}
+
+message ListFUOTADeploymentDevicesResponse {
+    // Total number of devices for the FUOTA deployment.
+    int64 total_count = 1;
+
+    repeated FUOTADeploymentDeviceListItem result = 2;
+}
+
+message FUOTADeploymentDeviceListItem {
+    // Device EUI (HEX encoded).
+    string dev_eui = 1 [json_name = "devEUI"];
+
+    // Device name.
+    string device_name = 2;
+
+    // Device state.
+    FUOTADeploymentDeviceState state = 3;
+
+    // Error message (in case of error state).
+    string error_message = 4;
+
+    // Created at timestamp.
+    google.protobuf.Timestamp created_at = 5;
+
+    // Updated at timestamp.
+    google.protobuf.Timestamp updated_at = 6;
+}

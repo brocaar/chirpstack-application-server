@@ -12,3 +12,5 @@ COPY . $PROJECT_PATH
 WORKDIR $PROJECT_PATH
 
 RUN make dev-requirements
+RUN go get ./...
+

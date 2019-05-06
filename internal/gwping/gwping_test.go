@@ -4,6 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -12,8 +15,6 @@ import (
 	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/loraserver/api/gw"
 	"github.com/brocaar/lorawan"
-	"github.com/golang/protobuf/ptypes"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGatewayPing(t *testing.T) {

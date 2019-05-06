@@ -213,6 +213,11 @@ message DeviceKeys {
     // Application root key (HEX encoded).
     // Note: This field only needs to be set for LoRaWAN 1.1.x devices!
     string app_key = 3;
+
+    // Gen application key (HEX encoded).
+    // This is an optional key that only must be set for LORaWAN 1.0.x devices
+    // that implement the remote multicast setup specification.
+    string gen_app_key = 4;
 }
 
 message CreateDeviceRequest {

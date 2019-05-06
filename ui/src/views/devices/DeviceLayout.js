@@ -22,6 +22,7 @@ import DeviceKeys from "./DeviceKeys";
 import DeviceActivation from "./DeviceActivation"
 import DeviceData from "./DeviceData";
 import DeviceFrames from "./DeviceFrames";
+import ListFUOTADeploymentsForDevice from "../../views/fuota/ListFUOTADeploymentsForDevice";
 import DeviceDetails from "./DeviceDetails";
 
 import theme from "../../theme";
@@ -30,8 +31,7 @@ import theme from "../../theme";
 const styles = {
   tabs: {
     borderBottom: "1px solid " + theme.palette.divider,
-    height: "48px",
-    overflow: "visible",
+    height: "49px",
   },
 };
 
@@ -122,6 +122,8 @@ class DeviceLayout extends Component {
       tab = 4;
     } else if (window.location.href.endsWith("/frames")) {
       tab = 5;
+    } else if (window.location.href.endsWith("/fuota-deployments")) {
+      tab = 6;
     }
 
     if (tab > 1 && !this.state.admin) {
@@ -175,13 +177,16 @@ class DeviceLayout extends Component {
             onChange={this.onChangeTab}
             indicatorColor="primary"
             className={this.props.classes.tabs}
+                        variant="scrollable"
+            scrollButtons="auto"
           >
             <Tab label="Details" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}`} />
             <Tab label="Configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/edit`} />
             {this.state.admin && <Tab label="Keys (OTAA)" disabled={!this.state.deviceProfile.deviceProfile.supportsJoin} component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/keys`} />}
             <Tab label="Activation" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/activation`} />
-            <Tab label="Live device data" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/data`} />
-            <Tab label="Live LoRaWAN Frames" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/frames`} />
+            <Tab label="Device data" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/data`} />
+            <Tab label="LoRaWAN Frames" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/frames`} />
+            <Tab label="Firmware" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/fuota-deployments`} />
           </Tabs>
         </Grid>
 
@@ -193,6 +198,7 @@ class DeviceLayout extends Component {
             <Route exact path={`${this.props.match.path}/activation`} render={props => <DeviceActivation device={this.state.device.device} admin={this.state.admin} deviceProfile={this.state.deviceProfile.deviceProfile} {...props} />} />
             <Route exact path={`${this.props.match.path}/data`} render={props => <DeviceData device={this.state.device.device} admin={this.state.admin} {...props} />} />
             <Route exact path={`${this.props.match.path}/frames`} render={props => <DeviceFrames device={this.state.device.device} admin={this.state.admin} {...props} />} />
+            <Route exact path={`${this.props.match.path}/fuota-deployments`} render={props => <ListFUOTADeploymentsForDevice device={this.state.device.device} admin={this.state.admin} {...props} /> } />
           </Switch>
         </Grid>
       </Grid>

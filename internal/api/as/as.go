@@ -20,6 +20,9 @@ import (
 	"google.golang.org/grpc/codes"
 
 	"github.com/brocaar/lora-app-server/internal/api/helpers"
+	"github.com/brocaar/lora-app-server/internal/applayer/clocksync"
+	"github.com/brocaar/lora-app-server/internal/applayer/fragmentation"
+	"github.com/brocaar/lora-app-server/internal/applayer/multicastsetup"
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/eventlog"
@@ -29,6 +32,7 @@ import (
 	"github.com/brocaar/loraserver/api/as"
 	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/lorawan"
+	"github.com/brocaar/lorawan/gps"
 )
 
 var (
@@ -100,8 +104,10 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		}
 
 		now := time.Now()
+		dr := int(req.Dr)
 
 		d.LastSeenAt = &now
+		d.DR = &dr
 		err = storage.UpdateDevice(tx, &d, true)
 		if err != nil {
 			return grpc.Errorf(codes.Internal, "update device error: %s", err)
@@ -146,6 +152,65 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 			"f_cnt":   req.FCnt,
 		}).Errorf("decrypt payload error: %s", err)
 		return nil, grpc.Errorf(codes.Internal, "decrypt payload error: %s", err)
+	}
+
+	// payload is handled by the LoRa App Server internal applayer
+	var internalApplayer bool
+
+	if err := storage.Transaction(func(db sqlx.Ext) error {
+		switch req.FPort {
+		case 200:
+			internalApplayer = true
+			if err := multicastsetup.HandleRemoteMulticastSetupCommand(db, d.DevEUI, b); err != nil {
+				return grpc.Errorf(codes.Internal, "handle remote multicast setup command error: %s", err)
+			}
+		case 201:
+			internalApplayer = true
+			if err := fragmentation.HandleRemoteFragmentationSessionCommand(db, d.DevEUI, b); err != nil {
+				return grpc.Errorf(codes.Internal, "handle remote fragmentation session command error: %s", err)
+			}
+		case 202:
+			internalApplayer = true
+
+			var timeSinceGPSEpoch time.Duration
+			var timeField time.Time
+
+			for _, rxInfo := range req.RxInfo {
+				if rxInfo.TimeSinceGpsEpoch != nil {
+					timeSinceGPSEpoch, err = ptypes.Duration(rxInfo.TimeSinceGpsEpoch)
+					if err != nil {
+						log.WithError(err).Error("time since gps epoch to duration error")
+						continue
+					}
+				} else if rxInfo.Time != nil {
+					timeField, err = ptypes.Timestamp(rxInfo.Time)
+					if err != nil {
+						log.WithError(err).Error("time to timestamp error")
+						continue
+					}
+				}
+			}
+
+			// fallback on time field when time since GPS epoch is not available
+			if timeSinceGPSEpoch == 0 {
+				// fallback on current server time when time field is not available
+				if timeField.IsZero() {
+					timeField = time.Now()
+				}
+				timeSinceGPSEpoch = gps.Time(timeField).TimeSinceGPSEpoch()
+			}
+
+			if err := clocksync.HandleClockSyncCommand(db, d.DevEUI, timeSinceGPSEpoch, b); err != nil {
+				return grpc.Errorf(codes.Internal, "handle clocksync command error: %s", err)
+			}
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	if internalApplayer {
+		return &empty.Empty{}, nil
 	}
 
 	var object interface{}

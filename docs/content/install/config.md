@@ -359,6 +359,30 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   disable_assign_existing_users=false
 
 
+  # Settings for the remote multicast setup.
+  [application_server.remote_multicast_setup]
+  # Synchronization interval.
+  sync_interval="1s"
+
+  # Synchronization retries.
+  sync_retries=3
+
+  # Synchronization batch-size.
+  sync_batch_size=100
+
+
+  # Settings for the fragmentation-session setup.
+  [application_server.fragmentation_session]
+  # Synchronization interval.
+  sync_interval="1s"
+
+  # Synchronization retries.
+  sync_retries=3
+
+  # Synchronization batch-size.
+  sync_batch_size=100
+
+
 
 # Join-server configuration.
 #

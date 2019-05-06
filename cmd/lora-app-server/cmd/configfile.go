@@ -305,6 +305,30 @@ id="{{ .ApplicationServer.ID }}"
   # when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)"
   disable_assign_existing_users={{ .ApplicationServer.ExternalAPI.DisableAssignExistingUsers }}
 
+
+  # Settings for the remote multicast setup.
+  [application_server.remote_multicast_setup]
+  # Synchronization interval.
+  sync_interval="{{ .ApplicationServer.RemoteMulticastSetup.SyncInterval }}"
+
+  # Synchronization retries.
+  sync_retries={{ .ApplicationServer.RemoteMulticastSetup.SyncRetries }}
+
+  # Synchronization batch-size.
+  sync_batch_size={{ .ApplicationServer.RemoteMulticastSetup.SyncBatchSize }}
+
+
+  # Settings for the fragmentation-session setup.
+  [application_server.fragmentation_session]
+  # Synchronization interval.
+  sync_interval="{{ .ApplicationServer.FragmentationSession.SyncInterval }}"
+
+  # Synchronization retries.
+  sync_retries={{ .ApplicationServer.FragmentationSession.SyncRetries }}
+
+  # Synchronization batch-size.
+  sync_batch_size={{ .ApplicationServer.FragmentationSession.SyncBatchSize }}
+
 {{ if ne .ApplicationServer.Branding.Header  "" }}
   # Branding configuration.
   [application_server.branding]

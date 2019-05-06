@@ -5,14 +5,13 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-
-	"github.com/brocaar/loraserver/api/common"
-	"github.com/brocaar/loraserver/api/ns"
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/test"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/brocaar/loraserver/api/common"
+	"github.com/brocaar/loraserver/api/ns"
 )
 
 func TestGatewayProfile(t *testing.T) {

@@ -588,6 +588,10 @@
         "appKey": {
           "type": "string",
           "title": "Application root key (HEX encoded).\nNote: This field only needs to be set for LoRaWAN 1.1.x devices!"
+        },
+        "genAppKey": {
+          "type": "string",
+          "description": "Gen application key (HEX encoded).\nThis is an optional key that only must be set for LORaWAN 1.0.x devices\nthat implement the remote multicast setup specification."
         }
       }
     },

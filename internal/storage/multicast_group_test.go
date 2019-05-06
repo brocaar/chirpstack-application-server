@@ -60,10 +60,11 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 		mg := MulticastGroup{
 			Name:      "test-mg",
 			MCAppSKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+			MCKey:     lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
+			FCnt:      10,
 			MulticastGroup: ns.MulticastGroup{
 				McAddr:           []byte{1, 2, 3, 4},
 				McNwkSKey:        []byte{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
-				FCnt:             0,
 				GroupType:        ns.MulticastGroupType_CLASS_B,
 				Dr:               3,
 				Frequency:        868300000,
@@ -105,11 +106,12 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 
 			mg.Name = "test-mg-updated"
 			mg.MCAppSKey = lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+			mg.MCKey = lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1}
+			mg.FCnt = 20
 			mg.MulticastGroup = ns.MulticastGroup{
 				Id:               mg.MulticastGroup.Id,
 				McAddr:           []byte{4, 3, 2, 1},
 				McNwkSKey:        []byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
-				FCnt:             10,
 				GroupType:        ns.MulticastGroupType_CLASS_C,
 				Dr:               2,
 				Frequency:        868500000,

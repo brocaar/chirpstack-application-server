@@ -49,12 +49,6 @@ class AssignUserForm extends FormComponent {
     this.getUserOptions = this.getUserOptions.bind(this);
   }
 
-  getUserOption(id, callbackFunc) {
-    UserStore.get(id, resp => {
-      callbackFunc({label: resp.user.username, value: resp.user.id});
-    });
-  }
-
   getUserOptions(search, callbackFunc) {
     UserStore.list(search, 10, 0, resp => {
       const options = resp.result.map((u, i) => {return {label: u.username, value: u.id}});
@@ -79,7 +73,6 @@ class AssignUserForm extends FormComponent {
             label="Select username"
             value={this.state.object.userID || null}
             onChange={this.onChange}
-            getOption={this.getUserOption}
             getOptions={this.getUserOptions}
           />
         </FormControl>

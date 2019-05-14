@@ -306,6 +306,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentFragmentationSessionSetup() {
 
 	items[0].CreatedAt = time.Time{}
 	items[0].UpdatedAt = time.Time{}
+	items[0].RetryAfter = time.Time{}
 
 	assert.Equal(storage.RemoteFragmentationSession{
 		DevEUI:              ts.Device.DevEUI,
@@ -424,6 +425,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentMulticastSessCSetup() {
 
 	items[0].CreatedAt = time.Time{}
 	items[0].UpdatedAt = time.Time{}
+	items[0].RetryAfter = time.Time{}
 
 	assert.True(items[0].SessionTime.After(time.Now()))
 	items[0].SessionTime = time.Time{}

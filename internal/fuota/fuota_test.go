@@ -186,6 +186,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentMulticastSetupLW10() {
 
 	items[0].CreatedAt = time.Time{}
 	items[0].UpdatedAt = time.Time{}
+	items[0].RetryAfter = time.Time{}
 
 	assert.Equal(storage.RemoteMulticastSetup{
 		DevEUI:           ts.Device.DevEUI,
@@ -243,6 +244,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentMulticastSetupLW11() {
 
 	items[0].CreatedAt = time.Time{}
 	items[0].UpdatedAt = time.Time{}
+	items[0].RetryAfter = time.Time{}
 
 	assert.Equal(storage.RemoteMulticastSetup{
 		DevEUI:           ts.Device.DevEUI,

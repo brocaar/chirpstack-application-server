@@ -5,6 +5,7 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/integration/awssns"
 	"github.com/brocaar/lora-app-server/internal/integration/azureservicebus"
+	"github.com/brocaar/lora-app-server/internal/integration/blockchain"
 	"github.com/brocaar/lora-app-server/internal/integration/gcppubsub"
 	"github.com/brocaar/lora-app-server/internal/integration/mqtt"
 )
@@ -43,6 +44,7 @@ type Config struct {
 			AzureServiceBus azureservicebus.Config `mapstructure:"azure_service_bus"`
 			MQTT            mqtt.Config            `mapstructure:"mqtt"`
 			GCPPubSub       gcppubsub.Config       `mapstructure:"gcp_pub_sub"`
+			Blockchan       blockchain.Config      `mapstructure:"blockchain"`
 		}
 
 		API struct {

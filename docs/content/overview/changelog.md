@@ -28,11 +28,15 @@ The LoRa Server <> LoRa Gateway Bridge messages have been updated to make the
 downlink scheduling more flexible and generic. This change exposes these fields
 in the live gateway and device frame-logs.
 
-### Payload codec
+#### Payload codec
 
 The payload codec settings have been moved to the Device Profile. Codec settings set
 in the application configuration still remain functional, but new codec settings must be
 configured in the Device Profile.
+
+### Bugfixes
+
+* Fix organization admin cannot add existing users. ([#315](https://github.com/brocaar/lora-app-server/issues/315))
 
 ### Upgrading
 

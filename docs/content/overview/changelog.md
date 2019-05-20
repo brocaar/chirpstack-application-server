@@ -16,7 +16,7 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 #### Firmware Update Over The Air (FUOTA)
 
-This release provides an implementation of the FUOTA specifcation.
+This release provides an implementation of the FUOTA specification.
 Currently the deployment is limited to one device as we would like to gather
 feedback on this implementation first. However, in this implementation the deployment
 to groups of devices is taken into account.

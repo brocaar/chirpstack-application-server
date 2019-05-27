@@ -44,7 +44,7 @@ type Config struct {
 			AzureServiceBus azureservicebus.Config `mapstructure:"azure_service_bus"`
 			MQTT            mqtt.Config            `mapstructure:"mqtt"`
 			GCPPubSub       gcppubsub.Config       `mapstructure:"gcp_pub_sub"`
-			Blockchan       blockchain.Config      `mapstructure:"blockchain"`
+			Blockchain      blockchain.Config      `mapstructure:"blockchain"`
 		}
 
 		API struct {

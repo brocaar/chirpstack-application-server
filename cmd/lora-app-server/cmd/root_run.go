@@ -105,7 +105,7 @@ func setupIntegration() error {
 		case "gcp_pub_sub":
 			confs = append(confs, config.C.ApplicationServer.Integration.GCPPubSub)
 		case "blockchain":
-			confs = append(confs, config.C.ApplicationServer.Integration.Blockchan)
+			confs = append(confs, config.C.ApplicationServer.Integration.Blockchain)
 		default:
 			return fmt.Errorf("unknown integration type: %s", name)
 		}

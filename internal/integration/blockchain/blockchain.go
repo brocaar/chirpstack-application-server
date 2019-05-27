@@ -59,69 +59,74 @@ func New(conf Config) (*Integration, error) {
 	i := Integration{
 		Difficulty: conf.Difficulty,
 	}
-	listenF := conf.ListenPort
-	target := conf.DialConnection
-	seed := conf.Seed
-
-	if listenF == 0 {
-		log.Fatal("Please provide a port to bind with on -l")
-	}
-
-	//Make a host that listens on the multiaddress
-	ha, err := makeBasicHost(listenF, seed)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if target == "" {
-		log.Println("listening for connections")
-		//Set the stream on host A, where we are using a user defined protocol name
-		ha.SetStreamHandler("/p2p/1.0.0", i.handleStream)
-
-		select {}
-	} else {
-		ha.SetStreamHandler("/p2p/1.0.0", i.handleStream)
-		ipfsaddr, err := ma.NewMultiaddr(target)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		pid, err := ipfsaddr.ValueForProtocol(ma.P_IPFS)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		peerid, err := peer.IDB58Decode(pid)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		// Decapsulate the /ipfs/<peerID> part from the target
-		// /ip4/<a.b.c.d>/ipfs/<peer> becomes /ip4/<a.b.c.d>
-		targetPeerAddr, _ := ma.NewMultiaddr(
-			fmt.Sprintf("/ipfs/%s", peer.IDB58Encode(peerid)))
-		targetAddr := ipfsaddr.Decapsulate(targetPeerAddr)
-
-		// We have a peer ID and a targetAddr so we add it to the peerstore
-		// so LibP2P knows how to contact it
-		ha.Peerstore().AddAddr(peerid, targetAddr, pstore.PermanentAddrTTL)
-
-		log.Println("opening stream")
-		// make a new stream from host B to host A
-		// it should be handled on host A by the handler we set above because
-		// we use the same /p2p/1.0.0 protocol
-		s, err := ha.NewStream(context.Background(), peerid, "/p2p/1.0.0")
-		if err != nil {
-			log.Fatalln(err)
-		}
-		// Create a buffered stream so that read and writes are non blocking.
-		rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
-
-		// Create a thread to read and write data.
-		go i.writeData(rw)
-		go i.readData(rw)
-
-		select {} // hang forever
-	}
+	go i.Running(conf)
 	return &i, nil
+}
+
+func (i *Integration) Running(conf Config) {
+	go func() {
+		listenF := conf.ListenPort
+		target := conf.DialConnection
+		seed := conf.Seed
+		if listenF == 0 {
+			log.Fatal("Please provide a port to bind with on -l")
+		}
+
+		//Make a host that listens on the multiaddress
+		ha, err := makeBasicHost(listenF, seed)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if conf.DialConnection == "" {
+			log.Println("listening for connections")
+			//Set the stream on host A, where we are using a user defined protocol name
+			ha.SetStreamHandler("/p2p/1.0.0", i.handleStream)
+
+			select {}
+		} else {
+			ha.SetStreamHandler("/p2p/1.0.0", i.handleStream)
+			ipfsaddr, err := ma.NewMultiaddr(target)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			pid, err := ipfsaddr.ValueForProtocol(ma.P_IPFS)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			peerid, err := peer.IDB58Decode(pid)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			// Decapsulate the /ipfs/<peerID> part from the target
+			// /ip4/<a.b.c.d>/ipfs/<peer> becomes /ip4/<a.b.c.d>
+			targetPeerAddr, _ := ma.NewMultiaddr(
+				fmt.Sprintf("/ipfs/%s", peer.IDB58Encode(peerid)))
+			targetAddr := ipfsaddr.Decapsulate(targetPeerAddr)
+
+			// We have a peer ID and a targetAddr so we add it to the peerstore
+			// so LibP2P knows how to contact it
+			ha.Peerstore().AddAddr(peerid, targetAddr, pstore.PermanentAddrTTL)
+
+			log.Println("opening stream")
+			// make a new stream from host B to host A
+			// it should be handled on host A by the handler we set above because
+			// we use the same /p2p/1.0.0 protocol
+			s, err := ha.NewStream(context.Background(), peerid, "/p2p/1.0.0")
+			if err != nil {
+				log.Fatalln(err)
+			}
+			// Create a buffered stream so that read and writes are non blocking.
+			rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
+
+			// Create a thread to read and write data.
+			go i.writeData(rw)
+			go i.readData(rw)
+
+			select {} // hang forever
+		}
+	}()
 }
 
 // SendDataUp sends an uplink data payload.

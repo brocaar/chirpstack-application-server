@@ -472,9 +472,9 @@ Please note that you also need to configure LoRa Server so that it uses a
 client certificate for its join-server API client. See
 [LoRa Server configuration](https://docs.loraserver.io/loraserver/install/config/).
 
-## Securing the web-interface and public API
+## Securing the web-interface and external API
 
-The web-interface and public api (`[application_server.public_api]`) can be
+The web-interface and public api (`[application_server.external_api]`) can be
 secured using a TLS certificate and key. Once the `tls_cert` and `tls_key`
 are set (`[application_server.external_api]`), TLS will be activated.
 

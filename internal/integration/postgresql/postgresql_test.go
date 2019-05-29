@@ -1,0 +1,628 @@
+package postgresql
+
+import (
+	"encoding/json"
+	"testing"
+	"time"
+
+	"github.com/gofrs/uuid"
+	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/lorawan"
+)
+
+type deviceUp struct {
+	ID              uuid.UUID       `db:"id"`
+	ReceivedAt      time.Time       `db:"received_at"`
+	DevEUI          lorawan.EUI64   `db:"dev_eui"`
+	DeviceName      string          `db:"device_name"`
+	ApplicationID   int64           `db:"application_id"`
+	ApplicationName string          `db:"application_name"`
+	Frequency       int             `db:"frequency"`
+	DR              int             `db:"dr"`
+	ADR             bool            `db:"adr"`
+	FCnt            int             `db:"f_cnt"`
+	FPort           int             `db:"f_port"`
+	Data            []byte          `db:"data"`
+	RXInfo          json.RawMessage `db:"rx_info"`
+	Object          json.RawMessage `db:"object"`
+}
+
+type deviceStatus struct {
+	ID                      uuid.UUID     `db:"id"`
+	ReceivedAt              time.Time     `db:"received_at"`
+	DevEUI                  lorawan.EUI64 `db:"dev_eui"`
+	DeviceName              string        `db:"device_name"`
+	ApplicationID           int64         `db:"application_id"`
+	ApplicationName         string        `db:"application_name"`
+	Margin                  int           `db:"margin"`
+	ExternalPowerSource     bool          `db:"external_power_source"`
+	BatteryLevelUnavailable bool          `db:"battery_level_unavailable"`
+	BatteryLevel            float32       `db:"battery_level"`
+}
+
+type deviceJoin struct {
+	ID              uuid.UUID       `db:"id"`
+	ReceivedAt      time.Time       `db:"received_at"`
+	DevEUI          lorawan.EUI64   `db:"dev_eui"`
+	DeviceName      string          `db:"device_name"`
+	ApplicationID   int64           `db:"application_id"`
+	ApplicationName string          `db:"application_name"`
+	DevAddr         lorawan.DevAddr `db:"dev_addr"`
+}
+
+type deviceAck struct {
+	ID              uuid.UUID     `db:"id"`
+	ReceivedAt      time.Time     `db:"received_at"`
+	DevEUI          lorawan.EUI64 `db:"dev_eui"`
+	DeviceName      string        `db:"device_name"`
+	ApplicationID   int64         `db:"application_id"`
+	ApplicationName string        `db:"application_name"`
+	Acknowledged    bool          `db:"acknowledged"`
+	FCnt            int           `db:"f_cnt"`
+}
+
+type deviceError struct {
+	ID              uuid.UUID     `db:"id"`
+	ReceivedAt      time.Time     `db:"received_at"`
+	DevEUI          lorawan.EUI64 `db:"dev_eui"`
+	DeviceName      string        `db:"device_name"`
+	ApplicationID   int64         `db:"application_id"`
+	ApplicationName string        `db:"application_name"`
+	Type            string        `db:"type"`
+	Error           string        `db:"error"`
+	FCnt            int           `db:"f_cnt"`
+}
+
+type deviceLocation struct {
+	ID              uuid.UUID     `db:"id"`
+	ReceivedAt      time.Time     `db:"received_at"`
+	DevEUI          lorawan.EUI64 `db:"dev_eui"`
+	DeviceName      string        `db:"device_name"`
+	ApplicationID   int64         `db:"application_id"`
+	ApplicationName string        `db:"application_name"`
+	Altitude        float64       `db:"altitude"`
+	Latitude        float64       `db:"latitude"`
+	Longitude       float64       `db:"longitude"`
+	Geohash         string        `db:"geohash"`
+	Accuracy        int           `db:"accuracy"`
+}
+
+func init() {
+	log.SetLevel(log.ErrorLevel)
+}
+
+type PostgreSQLTestSuite struct {
+	suite.Suite
+
+	integration *Integration
+}
+
+func (ts *PostgreSQLTestSuite) SetupSuite() {
+	conf := test.GetConfig()
+	err := storage.Setup(conf)
+	if err != nil {
+		panic(err)
+	}
+
+	ts.integration, err = New(Config{
+		DSN: conf.PostgreSQL.DSN,
+	})
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (ts *PostgreSQLTestSuite) TearDownSuite() {
+	if err := ts.integration.Close(); err != nil {
+		panic(err)
+	}
+}
+
+func (ts *PostgreSQLTestSuite) SetupTest() {
+	_, err := storage.DB().Exec("drop table if exists device_up")
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = storage.DB().Exec("drop table if exists device_status")
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = storage.DB().Exec("drop table if exists device_join")
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = storage.DB().Exec("drop table if exists device_ack")
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = storage.DB().Exec("drop table if exists device_error")
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = storage.DB().Exec("drop table if exists device_location")
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = storage.DB().Exec(`
+		create table device_up (
+			id uuid primary key,
+			received_at timestamp with time zone not null,
+			dev_eui bytea not null,
+			device_name varchar(100) not null,
+			application_id bigint not null,
+			application_name varchar(100) not null,
+			frequency bigint not null,
+			dr smallint not null,
+			adr boolean not null,
+			f_cnt bigint not null,
+			f_port smallint not null,
+			data bytea not null,
+			rx_info jsonb not null,
+			object jsonb not null
+		)
+	`)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = storage.DB().Exec(`
+		create table device_status (
+			id uuid primary key,
+			received_at timestamp with time zone not null,
+			dev_eui bytea not null,
+			device_name varchar(100) not null,
+			application_id bigint not null,
+			application_name varchar(100) not null,
+			margin smallint not null,
+			external_power_source boolean not null,
+			battery_level_unavailable boolean not null,
+			battery_level numeric(5, 2) not null
+		)
+	`)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = storage.DB().Exec(`
+		create table device_join (
+			id uuid primary key,
+			received_at timestamp with time zone not null,
+			dev_eui bytea not null,
+			device_name varchar(100) not null,
+			application_id bigint not null,
+			application_name varchar(100) not null,
+			dev_addr bytea not null
+		)
+	`)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = storage.DB().Exec(`
+		create table device_ack (
+			id uuid primary key,
+			received_at timestamp with time zone not null,
+			dev_eui bytea not null,
+			device_name varchar(100) not null,
+			application_id bigint not null,
+			application_name varchar(100) not null,
+			acknowledged boolean not null,
+			f_cnt bigint not null
+		)
+	`)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = storage.DB().Exec(`
+		create table device_error (
+			id uuid primary key,
+			received_at timestamp with time zone not null,
+			dev_eui bytea not null,
+			device_name varchar(100) not null,
+			application_id bigint not null,
+			application_name varchar(100) not null,
+			type varchar(100) not null,
+			error text not null,
+			f_cnt bigint not null
+		)
+	`)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = storage.DB().Exec(`
+		create table device_location (
+			id uuid primary key,
+			received_at timestamp with time zone not null,
+			dev_eui bytea not null,
+			device_name varchar(100) not null,
+			application_id bigint not null,
+			application_name varchar(100) not null,
+			altitude double precision not null,
+			latitude double precision not null,
+			longitude double precision not null,
+			geohash varchar(12) not null,
+			accuracy smallint not null
+		)
+	`)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (ts *PostgreSQLTestSuite) TestSendDataUp() {
+	timestamp := time.Now().Round(time.Second).UTC()
+	assert := require.New(ts.T())
+
+	pl := integration.DataUpPayload{
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		RXInfo: []integration.RXInfo{
+			{
+				GatewayID: lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
+				Name:      "test-gateway",
+				Time:      &timestamp,
+				RSSI:      20,
+				LoRaSNR:   10,
+			},
+		},
+		TXInfo: integration.TXInfo{
+			Frequency: 868100000,
+			DR:        4,
+		},
+		ADR:   true,
+		FCnt:  2,
+		FPort: 3,
+		Data:  []byte{1, 2, 3, 4},
+		Object: map[string]interface{}{
+			"temp": 21.5,
+			"hum":  44.3,
+		},
+	}
+
+	assert.NoError(ts.integration.SendDataUp(pl))
+
+	var up deviceUp
+	assert.NoError(storage.DB().Get(&up, "select * from device_up"))
+
+	up.ReceivedAt = up.ReceivedAt.UTC()
+
+	assert.NotEqual(json.RawMessage("null"), up.RXInfo)
+	assert.NotEqual(json.RawMessage("null"), up.Object)
+	up.RXInfo = nil
+	up.Object = nil
+
+	assert.NotEqual(uuid.Nil, up.ID)
+	up.ID = uuid.Nil
+
+	assert.Equal(deviceUp{
+		ReceivedAt:      timestamp,
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		Frequency:       868100000,
+		DR:              4,
+		ADR:             true,
+		FCnt:            2,
+		FPort:           3,
+		Data:            []byte{1, 2, 3, 4},
+	}, up)
+}
+
+func (ts *PostgreSQLTestSuite) TestSendDataUpNoObject() {
+	timestamp := time.Now().Round(time.Second).UTC()
+	assert := require.New(ts.T())
+
+	pl := integration.DataUpPayload{
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		RXInfo: []integration.RXInfo{
+			{
+				GatewayID: lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
+				Name:      "test-gateway",
+				Time:      &timestamp,
+				RSSI:      20,
+				LoRaSNR:   10,
+			},
+		},
+		TXInfo: integration.TXInfo{
+			Frequency: 868100000,
+			DR:        4,
+		},
+		ADR:   true,
+		FCnt:  2,
+		FPort: 3,
+		Data:  []byte{1, 2, 3, 4},
+	}
+
+	assert.NoError(ts.integration.SendDataUp(pl))
+
+	var up deviceUp
+	assert.NoError(storage.DB().Get(&up, "select * from device_up"))
+
+	up.ReceivedAt = up.ReceivedAt.UTC()
+
+	assert.NotEqual(json.RawMessage("null"), up.RXInfo)
+	up.RXInfo = nil
+
+	assert.NotEqual(uuid.Nil, up.ID)
+	up.ID = uuid.Nil
+
+	assert.Equal(deviceUp{
+		ReceivedAt:      timestamp,
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		Frequency:       868100000,
+		DR:              4,
+		ADR:             true,
+		FCnt:            2,
+		FPort:           3,
+		Data:            []byte{1, 2, 3, 4},
+		Object:          json.RawMessage("null"),
+	}, up)
+}
+
+func (ts *PostgreSQLTestSuite) TestSendDataUpNoData() {
+	timestamp := time.Now().Round(time.Second).UTC()
+	assert := require.New(ts.T())
+
+	pl := integration.DataUpPayload{
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		RXInfo: []integration.RXInfo{
+			{
+				GatewayID: lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
+				Name:      "test-gateway",
+				Time:      &timestamp,
+				RSSI:      20,
+				LoRaSNR:   10,
+			},
+		},
+		TXInfo: integration.TXInfo{
+			Frequency: 868100000,
+			DR:        4,
+		},
+		ADR:   true,
+		FCnt:  2,
+		FPort: 3,
+	}
+
+	assert.NoError(ts.integration.SendDataUp(pl))
+
+	var up deviceUp
+	assert.NoError(storage.DB().Get(&up, "select * from device_up"))
+
+	up.ReceivedAt = up.ReceivedAt.UTC()
+
+	assert.NotEqual(json.RawMessage("null"), up.RXInfo)
+	up.RXInfo = nil
+
+	assert.NotEqual(uuid.Nil, up.ID)
+	up.ID = uuid.Nil
+
+	assert.Equal(deviceUp{
+		ReceivedAt:      timestamp,
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		Frequency:       868100000,
+		DR:              4,
+		ADR:             true,
+		FCnt:            2,
+		FPort:           3,
+		Data:            []byte{},
+		Object:          json.RawMessage("null"),
+	}, up)
+}
+
+func (ts *PostgreSQLTestSuite) TestSendStatusNotification() {
+	timestamp := time.Now()
+	assert := require.New(ts.T())
+
+	pl := integration.StatusNotification{
+		ApplicationID:           1,
+		ApplicationName:         "test-app",
+		DeviceName:              "test-device",
+		DevEUI:                  lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		Margin:                  10,
+		ExternalPowerSource:     true,
+		BatteryLevelUnavailable: true,
+		BatteryLevel:            75.5,
+	}
+
+	assert.NoError(ts.integration.SendStatusNotification(pl))
+
+	var status deviceStatus
+	assert.NoError(storage.DB().Get(&status, "select * from device_status"))
+
+	assert.True(status.ReceivedAt.After(timestamp))
+	status.ReceivedAt = timestamp
+
+	assert.NotEqual(uuid.Nil, status.ID)
+	status.ID = uuid.Nil
+
+	assert.Equal(deviceStatus{
+		ReceivedAt:              timestamp,
+		ApplicationID:           1,
+		ApplicationName:         "test-app",
+		DeviceName:              "test-device",
+		DevEUI:                  lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		Margin:                  10,
+		ExternalPowerSource:     true,
+		BatteryLevelUnavailable: true,
+		BatteryLevel:            75.5,
+	}, status)
+
+}
+
+func (ts *PostgreSQLTestSuite) TestJoinNotification() {
+	timestamp := time.Now()
+	assert := require.New(ts.T())
+
+	pl := integration.JoinNotification{
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
+	}
+
+	assert.NoError(ts.integration.SendJoinNotification(pl))
+
+	var join deviceJoin
+	assert.NoError(storage.DB().Get(&join, "select * from device_join"))
+
+	assert.True(join.ReceivedAt.After(timestamp))
+	join.ReceivedAt = timestamp
+
+	assert.NotEqual(uuid.Nil, join.ID)
+	join.ID = uuid.Nil
+
+	assert.Equal(deviceJoin{
+		ReceivedAt:      timestamp,
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
+	}, join)
+}
+
+func (ts *PostgreSQLTestSuite) TestAckNotification() {
+	timestamp := time.Now()
+	assert := require.New(ts.T())
+
+	pl := integration.ACKNotification{
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		Acknowledged:    true,
+		FCnt:            10,
+	}
+
+	assert.NoError(ts.integration.SendACKNotification(pl))
+
+	var ack deviceAck
+	assert.NoError(storage.DB().Get(&ack, "select * from device_ack"))
+
+	assert.True(ack.ReceivedAt.After(timestamp))
+	ack.ReceivedAt = timestamp
+
+	assert.NotEqual(uuid.Nil, ack.ID)
+	ack.ID = uuid.Nil
+
+	assert.Equal(deviceAck{
+		ReceivedAt:      timestamp,
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		Acknowledged:    true,
+		FCnt:            10,
+	}, ack)
+}
+
+func (ts *PostgreSQLTestSuite) TestErrorNotification() {
+	timestamp := time.Now()
+	assert := require.New(ts.T())
+
+	pl := integration.ErrorNotification{
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		Type:            "BOOM",
+		Error:           "Everything blew up!",
+		FCnt:            10,
+	}
+
+	assert.NoError(ts.integration.SendErrorNotification(pl))
+
+	var e deviceError
+	assert.NoError(storage.DB().Get(&e, "select * from device_error"))
+
+	assert.True(e.ReceivedAt.After(timestamp))
+	e.ReceivedAt = timestamp
+
+	assert.NotEqual(uuid.Nil, e.ID)
+	e.ID = uuid.Nil
+
+	assert.Equal(deviceError{
+		ReceivedAt:      timestamp,
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		Type:            "BOOM",
+		Error:           "Everything blew up!",
+		FCnt:            10,
+	}, e)
+}
+
+func (ts *PostgreSQLTestSuite) TestLocationNotification() {
+	timestamp := time.Now()
+	assert := require.New(ts.T())
+
+	pl := integration.LocationNotification{
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		Location: integration.Location{
+			Altitude:  1.123,
+			Latitude:  2.123,
+			Longitude: 3.123,
+		},
+	}
+
+	assert.NoError(ts.integration.SendLocationNotification(pl))
+
+	var loc deviceLocation
+	assert.NoError(storage.DB().Get(&loc, "select * from device_location"))
+
+	assert.True(loc.ReceivedAt.After(timestamp))
+	loc.ReceivedAt = timestamp
+
+	assert.NotEqual(uuid.Nil, loc.ID)
+	loc.ID = uuid.Nil
+
+	assert.Equal(deviceLocation{
+		ReceivedAt:      timestamp,
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		Altitude:        1.123,
+		Latitude:        2.123,
+		Longitude:       3.123,
+		Geohash:         "s06hp46p75vs",
+	}, loc)
+}
+
+func TestPostgreSQL(t *testing.T) {
+	suite.Run(t, new(PostgreSQLTestSuite))
+}

@@ -104,6 +104,8 @@ func setupIntegration() error {
 			confs = append(confs, config.C.ApplicationServer.Integration.MQTT)
 		case "gcp_pub_sub":
 			confs = append(confs, config.C.ApplicationServer.Integration.GCPPubSub)
+		case "postgresql":
+			confs = append(confs, config.C.ApplicationServer.Integration.PostgreSQL)
 		default:
 			return fmt.Errorf("unknown integration type: %s", name)
 		}

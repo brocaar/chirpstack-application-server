@@ -76,12 +76,11 @@ class LW10DeviceKeysForm extends FormComponent {
         <AESKeyField
           id="genAppKey"
           label="Gen Application key"
-          helperText="For LoRaWAN 1.0 devices. This key must only be set when the device implements the remote multicast setup specification / firmware updates over the air (FUOTA)."
+          helperText="For LoRaWAN 1.0 devices. This key must only be set when the device implements the remote multicast setup specification / firmware updates over the air (FUOTA). Else leave this field blank."
           onChange={this.onChange}
           value={object.genAppKey || ""}
           margin="normal"
           fullWidth
-          required
           random
         />
       </Form>

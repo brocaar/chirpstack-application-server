@@ -1,6 +1,7 @@
 package external
 
 import (
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -72,6 +74,20 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*e
 		Description:       req.Device.Description,
 		SkipFCntCheck:     req.Device.SkipFCntCheck,
 		ReferenceAltitude: req.Device.ReferenceAltitude,
+		Variables: hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		},
+		Tags: hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		},
+	}
+
+	for k, v := range req.Device.Variables {
+		d.Variables.Map[k] = sql.NullString{String: v, Valid: true}
+	}
+
+	for k, v := range req.Device.Tags {
+		d.Tags.Map[k] = sql.NullString{String: v, Valid: true}
 	}
 
 	// as this also performs a remote call to create the node on the
@@ -112,6 +128,8 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 			DeviceProfileId:   d.DeviceProfileID.String(),
 			SkipFCntCheck:     d.SkipFCntCheck,
 			ReferenceAltitude: d.ReferenceAltitude,
+			Variables:         make(map[string]string),
+			Tags:              make(map[string]string),
 		},
 
 		DeviceStatusBattery: 256,
@@ -137,6 +155,18 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 			Longitude: *d.Longitude,
 			Altitude:  *d.Altitude,
 			Source:    common.LocationSource_GEO_RESOLVER,
+		}
+	}
+
+	for k, v := range d.Variables.Map {
+		if v.Valid {
+			resp.Device.Variables[k] = v.String
+		}
+	}
+
+	for k, v := range d.Tags.Map {
+		if v.Valid {
+			resp.Device.Tags[k] = v.String
 		}
 	}
 
@@ -280,6 +310,20 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*e
 		d.Description = req.Device.Description
 		d.SkipFCntCheck = req.Device.SkipFCntCheck
 		d.ReferenceAltitude = req.Device.ReferenceAltitude
+		d.Variables = hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		}
+		d.Tags = hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		}
+
+		for k, v := range req.Device.Variables {
+			d.Variables.Map[k] = sql.NullString{String: v, Valid: true}
+		}
+
+		for k, v := range req.Device.Tags {
+			d.Tags.Map[k] = sql.NullString{String: v, Valid: true}
+		}
 
 		if err := storage.UpdateDevice(tx, &d, false); err != nil {
 			return helpers.ErrToRPCError(err)

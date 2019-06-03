@@ -33,9 +33,10 @@ create role loraserver_as with login password 'dbpassword';
 -- create the loraserver_as database
 create database loraserver_as with owner loraserver_as;
 
--- enable the trigram extension
+-- enable the trigram and hstore extensions
 \c loraserver_as
 create extension pg_trgm;
+create extension hstore;
 
 -- exit the prompt
 \q

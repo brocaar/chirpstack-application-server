@@ -7,6 +7,7 @@ import (
 
 	uuid "github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -37,6 +38,8 @@ type Device struct {
 	Latitude                  *float64      `db:"latitude"`
 	Longitude                 *float64      `db:"longitude"`
 	Altitude                  *float64      `db:"altitude"`
+	Variables                 hstore.Hstore `db:"variables"`
+	Tags                      hstore.Hstore `db:"tags"`
 }
 
 // DeviceListItem defines the Device as list item.
@@ -96,8 +99,10 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 			latitude,
 			longitude,
 			altitude,
-			dr
-        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+			dr,
+			variables,
+			tags
+        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
 		d.DevEUI[:],
 		d.CreatedAt,
 		d.UpdatedAt,
@@ -113,6 +118,8 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 		d.Longitude,
 		d.Altitude,
 		d.DR,
+		d.Variables,
+		d.Tags,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -335,7 +342,9 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 			longitude = $11,
 			altitude = $12,
 			device_status_external_power_source = $13,
-			dr = $14
+			dr = $14,
+			variables = $15,
+			tags = $16
         where
             dev_eui = $1`,
 		d.DevEUI[:],
@@ -352,6 +361,8 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 		d.Altitude,
 		d.DeviceStatusExternalPower,
 		d.DR,
+		d.Variables,
+		d.Tags,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

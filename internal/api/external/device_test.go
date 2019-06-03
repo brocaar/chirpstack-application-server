@@ -149,6 +149,12 @@ func (ts *APITestSuite) TestDevice() {
 				DeviceProfileId:   dpID.String(),
 				SkipFCntCheck:     true,
 				ReferenceAltitude: 5.6,
+				Variables: map[string]string{
+					"var_1": "test var 1",
+				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
 			},
 		}
 		_, err := api.Create(context.Background(), &createReq)
@@ -307,6 +313,12 @@ func (ts *APITestSuite) TestDevice() {
 						DeviceProfileId:   dpID.String(),
 						SkipFCntCheck:     true,
 						ReferenceAltitude: 6.7,
+						Variables: map[string]string{
+							"var_2": "test var 2",
+						},
+						Tags: map[string]string{
+							"bar": "foo",
+						},
 					},
 				}
 

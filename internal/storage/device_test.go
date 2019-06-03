@@ -1,10 +1,12 @@
 package storage
 
 import (
+	"database/sql"
 	"testing"
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/lib/pq/hstore"
 	"github.com/stretchr/testify/require"
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
@@ -117,6 +119,16 @@ func (ts *StorageTestSuite) TestDevice() {
 			DeviceStatusMargin:  &eleven,
 			SkipFCntCheck:       true,
 			ReferenceAltitude:   5.6,
+			Variables: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"var_1": sql.NullString{String: "test value", Valid: true},
+				},
+			},
+			Tags: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{String: "bar", Valid: true},
+				},
+			},
 		}
 		assert.NoError(CreateDevice(ts.Tx(), &d))
 		d.CreatedAt = d.CreatedAt.UTC().Truncate(time.Millisecond)
@@ -194,6 +206,8 @@ func (ts *StorageTestSuite) TestDevice() {
 			d.Longitude = &long
 			d.Altitude = &alt
 			d.DR = &dr
+			d.Variables.Map["var_2"] = sql.NullString{String: "test var 2", Valid: true}
+			d.Tags.Map["bar"] = sql.NullString{String: "foo", Valid: true}
 
 			assert.NoError(UpdateDevice(ts.Tx(), &d, false))
 			d.UpdatedAt = d.UpdatedAt.UTC().Truncate(time.Millisecond)

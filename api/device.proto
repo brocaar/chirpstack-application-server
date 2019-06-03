@@ -155,6 +155,17 @@ message Device {
     // (when supported by the geolocation-server) to increase geolocation
     // accuracy.
     double reference_altitude = 7;
+
+    // Variables (user defined).
+    // These variables can be used together with integrations to store tokens /
+    // secrets that must be configured per device. These variables are not
+    // exposed in the event payloads.
+    map<string, string> variables = 8;
+
+    // Tags (user defined).
+    // These tags are exposed in the event payloads or to integration. Tags are
+    // intended for aggregation and filtering.
+    map<string, string> tags = 9;
 }
 
 message DeviceListItem {

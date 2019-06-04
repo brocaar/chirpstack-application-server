@@ -1,11 +1,13 @@
 package postgresql
 
 import (
+	"database/sql"
 	"encoding/json"
 	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq/hstore"
 	"github.com/mmcloughlin/geohash"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -93,8 +95,9 @@ func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 			f_port,
 			data,
 			rx_info,
-			object
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+			object,
+			tags
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
 		id,
 		rxTime,
 		pl.DevEUI,
@@ -109,6 +112,7 @@ func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 		pl.Data,
 		json.RawMessage(rxInfoB),
 		json.RawMessage(objectB),
+		tagsToHstore(pl.Tags),
 	)
 	if err != nil {
 		return errors.Wrap(err, "insert error")
@@ -145,8 +149,9 @@ func (i *Integration) SendStatusNotification(pl integration.StatusNotification) 
 			margin,
 			external_power_source,
 			battery_level_unavailable,
-			battery_level
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+			battery_level,
+			tags
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
 		id,
 		rxTime,
 		pl.DevEUI,
@@ -157,6 +162,7 @@ func (i *Integration) SendStatusNotification(pl integration.StatusNotification) 
 		pl.ExternalPowerSource,
 		pl.BatteryLevelUnavailable,
 		pl.BatteryLevel,
+		tagsToHstore(pl.Tags),
 	)
 	if err != nil {
 		return errors.Wrap(err, "insert error")
@@ -190,8 +196,9 @@ func (i *Integration) SendJoinNotification(pl integration.JoinNotification) erro
 			device_name,
 			application_id,
 			application_name,
-			dev_addr
-		) values ($1, $2, $3, $4, $5, $6, $7)`,
+			dev_addr,
+			tags
+		) values ($1, $2, $3, $4, $5, $6, $7, $8)`,
 		id,
 		rxTime,
 		pl.DevEUI,
@@ -199,6 +206,7 @@ func (i *Integration) SendJoinNotification(pl integration.JoinNotification) erro
 		pl.ApplicationID,
 		pl.ApplicationName,
 		pl.DevAddr[:],
+		tagsToHstore(pl.Tags),
 	)
 	if err != nil {
 		return errors.Wrap(err, "insert error")
@@ -233,8 +241,9 @@ func (i *Integration) SendACKNotification(pl integration.ACKNotification) error 
 			application_id,
 			application_name,
 			acknowledged,
-			f_cnt
-		) values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+			f_cnt,
+			tags
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 		id,
 		rxTime,
 		pl.DevEUI,
@@ -243,6 +252,7 @@ func (i *Integration) SendACKNotification(pl integration.ACKNotification) error 
 		pl.ApplicationName,
 		pl.Acknowledged,
 		pl.FCnt,
+		tagsToHstore(pl.Tags),
 	)
 	if err != nil {
 		return errors.Wrap(err, "insert error")
@@ -278,8 +288,9 @@ func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) er
 			application_name,
 			type,
 			error,
-			f_cnt
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+			f_cnt,
+			tags
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
 		id,
 		rxTime,
 		pl.DevEUI,
@@ -289,6 +300,7 @@ func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) er
 		pl.Type,
 		pl.Error,
 		pl.FCnt,
+		tagsToHstore(pl.Tags),
 	)
 	if err != nil {
 		return errors.Wrap(err, "insert error")
@@ -326,8 +338,9 @@ func (i *Integration) SendLocationNotification(pl integration.LocationNotificati
 			latitude,
 			longitude,
 			geohash,
-			accuracy
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+			accuracy,
+			tags
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
 		id,
 		rxTime,
 		pl.DevEUI,
@@ -339,6 +352,7 @@ func (i *Integration) SendLocationNotification(pl integration.LocationNotificati
 		pl.Location.Longitude,
 		geohash.Encode(pl.Location.Latitude, pl.Location.Longitude),
 		0,
+		tagsToHstore(pl.Tags),
 	)
 	if err != nil {
 		return errors.Wrap(err, "insert error")
@@ -355,4 +369,16 @@ func (i *Integration) SendLocationNotification(pl integration.LocationNotificati
 // DataDownChan return nil.
 func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	return nil
+}
+
+func tagsToHstore(tags map[string]string) hstore.Hstore {
+	out := hstore.Hstore{
+		Map: make(map[string]sql.NullString),
+	}
+
+	for k, v := range tags {
+		out.Map[k] = sql.NullString{String: v, Valid: true}
+	}
+
+	return out
 }

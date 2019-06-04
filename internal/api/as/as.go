@@ -284,6 +284,16 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		FPort:  uint8(req.FPort),
 		Data:   b,
 		Object: object,
+		Tags:   make(map[string]string),
+	}
+
+	// set tags
+	for k, v := range d.Tags.Map {
+		if !v.Valid {
+			continue
+		}
+
+		pl.Tags[k] = v.String
 	}
 
 	// collect gateway data of receiving gateways (e.g. gateway name)
@@ -378,6 +388,16 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		DevEUI:          devEUI,
 		Acknowledged:    req.Acknowledged,
 		FCnt:            req.FCnt,
+		Tags:            make(map[string]string),
+	}
+
+	// set tags
+	for k, v := range d.Tags.Map {
+		if !v.Valid {
+			continue
+		}
+
+		pl.Tags[k] = v.String
 	}
 
 	err = eventlog.LogEventForDevice(devEUI, eventlog.EventLog{
@@ -427,6 +447,16 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		Type:            req.Type.String(),
 		Error:           req.Error,
 		FCnt:            req.FCnt,
+		Tags:            make(map[string]string),
+	}
+
+	// set tags
+	for k, v := range d.Tags.Map {
+		if !v.Valid {
+			continue
+		}
+
+		pl.Tags[k] = v.String
 	}
 
 	err = eventlog.LogEventForDevice(devEUI, eventlog.EventLog{
@@ -516,7 +546,18 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 		ExternalPowerSource:     req.ExternalPowerSource,
 		BatteryLevel:            float32(math.Round(float64(req.BatteryLevel*100))) / 100,
 		BatteryLevelUnavailable: req.BatteryLevelUnavailable,
+		Tags:                    make(map[string]string),
 	}
+
+	// set tags
+	for k, v := range d.Tags.Map {
+		if !v.Valid {
+			continue
+		}
+
+		pl.Tags[k] = v.String
+	}
+
 	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
 		Type:    eventlog.Status,
 		Payload: pl,
@@ -580,6 +621,16 @@ func (a *ApplicationServerAPI) SetDeviceLocation(ctx context.Context, req *as.Se
 			Longitude: req.Location.Longitude,
 			Altitude:  req.Location.Altitude,
 		},
+		Tags: make(map[string]string),
+	}
+
+	// set tags
+	for k, v := range d.Tags.Map {
+		if !v.Valid {
+			continue
+		}
+
+		pl.Tags[k] = v.String
 	}
 
 	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
@@ -672,6 +723,16 @@ func handleDeviceActivation(d storage.Device, app storage.Application, daCtx *as
 		DevEUI:          d.DevEUI,
 		DeviceName:      d.Name,
 		DevAddr:         da.DevAddr,
+		Tags:            make(map[string]string),
+	}
+
+	// set tags
+	for k, v := range d.Tags.Map {
+		if !v.Valid {
+			continue
+		}
+
+		pl.Tags[k] = v.String
 	}
 
 	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{

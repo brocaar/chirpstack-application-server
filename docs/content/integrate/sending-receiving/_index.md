@@ -59,7 +59,7 @@ Example:
     "devEUI": "0202020202020202",
     "rxInfo": [
         {
-            "gatewayID": "0303030303030303",          // ID of the receiving gateway
+            "gatewayID": "0303030303030303",           // ID of the receiving gateway
             "name": "rooftop-gateway",                 // name of the receiving gateway
             "time": "2016-11-25T16:24:37.295915988Z",  // time when the package was received (GPS time of gateway, only set when available)
             "rssi": -57,                               // signal strength (dBm)
@@ -82,6 +82,9 @@ Example:
     "object": {                    // decoded object (when application coded has been configured)
         "temperatureSensor": {"1": 25},
         "humiditySensor": {"1": 32}
+    },
+    "tags": {                      // User-provided tags (optional)
+        "key": "value"
     }
 }
 ```
@@ -100,7 +103,10 @@ Event for battery and margin status received from devices. Example payload:
     "margin": 6,
     "externalPowerSource": false,
     "batteryLevelUnavailable": false,
-    "batteryLevel": 75.5
+    "batteryLevel": 75.5,
+    "tags": {                      // User-provided tags (optional)
+        "key": "value"
+    }
 }
 ```
 
@@ -130,7 +136,10 @@ after the first received uplink (data) frame. Example payload:
     "applicationName": "temperature-sensor",
     "deviceName": "garden-sensor",
     "devAddr": "06682ea2",                    // assigned device address
-    "devEUI": "0202020202020202"              // device EUI
+    "devEUI": "0202020202020202",             // device EUI
+    "tags": {                                 // User-provided tags (optional)
+        "key": "value"
+    }
 }
 ```
 
@@ -145,7 +154,10 @@ Event published on downlink frame acknowledgements. Example payload:
     "deviceName": "garden-sensor",
     "devEUI": "0202020202020202",             // device EUI
     "acknowledged": true,                     // whether the frame was acknowledged or not (e.g. timeout)
-    "fCnt": 12                                // downlink frame-counter
+    "fCnt": 12,                               // downlink frame-counter
+    "tags": {                                 // User-provided tags (optional)
+        "key": "value"
+    }
 }
 ```
 
@@ -163,6 +175,9 @@ payload-size. Example payload:
     "devEUI": "0202020202020202"              // device EUI
     "type": "DATA_UP_FCNT",
     "error": "...",
-    "fCnt": 123                               // fCnt related to the error (if applicable)
+    "fCnt": 123,                              // fCnt related to the error (if applicable)
+    "tags": {                                 // User-provided tags (optional)
+        "key": "value"
+    }
 }
 ```

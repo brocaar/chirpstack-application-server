@@ -42,17 +42,18 @@ type TXInfo struct {
 
 // DataUpPayload represents a data-up payload.
 type DataUpPayload struct {
-	ApplicationID   int64         `json:"applicationID,string"`
-	ApplicationName string        `json:"applicationName"`
-	DeviceName      string        `json:"deviceName"`
-	DevEUI          lorawan.EUI64 `json:"devEUI"`
-	RXInfo          []RXInfo      `json:"rxInfo,omitempty"`
-	TXInfo          TXInfo        `json:"txInfo"`
-	ADR             bool          `json:"adr"`
-	FCnt            uint32        `json:"fCnt"`
-	FPort           uint8         `json:"fPort"`
-	Data            []byte        `json:"data"`
-	Object          interface{}   `json:"object,omitempty"`
+	ApplicationID   int64             `json:"applicationID,string"`
+	ApplicationName string            `json:"applicationName"`
+	DeviceName      string            `json:"deviceName"`
+	DevEUI          lorawan.EUI64     `json:"devEUI"`
+	RXInfo          []RXInfo          `json:"rxInfo,omitempty"`
+	TXInfo          TXInfo            `json:"txInfo"`
+	ADR             bool              `json:"adr"`
+	FCnt            uint32            `json:"fCnt"`
+	FPort           uint8             `json:"fPort"`
+	Data            []byte            `json:"data"`
+	Object          interface{}       `json:"object,omitempty"`
+	Tags            map[string]string `json:"tags,omitempty"`
 }
 
 // DataDownPayload represents a data-down payload.
@@ -68,56 +69,61 @@ type DataDownPayload struct {
 // JoinNotification defines the payload sent to the application on
 // a JoinNotificationType event.
 type JoinNotification struct {
-	ApplicationID   int64           `json:"applicationID,string"`
-	ApplicationName string          `json:"applicationName"`
-	DeviceName      string          `json:"deviceName"`
-	DevEUI          lorawan.EUI64   `json:"devEUI"`
-	DevAddr         lorawan.DevAddr `json:"devAddr"`
+	ApplicationID   int64             `json:"applicationID,string"`
+	ApplicationName string            `json:"applicationName"`
+	DeviceName      string            `json:"deviceName"`
+	DevEUI          lorawan.EUI64     `json:"devEUI"`
+	DevAddr         lorawan.DevAddr   `json:"devAddr"`
+	Tags            map[string]string `json:"tags,omitempty"`
 }
 
 // ACKNotification defines the payload sent to the application
 // on an ACK event.
 type ACKNotification struct {
-	ApplicationID   int64         `json:"applicationID,string"`
-	ApplicationName string        `json:"applicationName"`
-	DeviceName      string        `json:"deviceName"`
-	DevEUI          lorawan.EUI64 `json:"devEUI"`
-	Acknowledged    bool          `json:"acknowledged"`
-	FCnt            uint32        `json:"fCnt"`
+	ApplicationID   int64             `json:"applicationID,string"`
+	ApplicationName string            `json:"applicationName"`
+	DeviceName      string            `json:"deviceName"`
+	DevEUI          lorawan.EUI64     `json:"devEUI"`
+	Acknowledged    bool              `json:"acknowledged"`
+	FCnt            uint32            `json:"fCnt"`
+	Tags            map[string]string `json:"tags,omitempty"`
 }
 
 // ErrorNotification defines the payload sent to the application
 // on an error event.
 type ErrorNotification struct {
-	ApplicationID   int64         `json:"applicationID,string"`
-	ApplicationName string        `json:"applicationName"`
-	DeviceName      string        `json:"deviceName"`
-	DevEUI          lorawan.EUI64 `json:"devEUI"`
-	Type            string        `json:"type"`
-	Error           string        `json:"error"`
-	FCnt            uint32        `json:"fCnt,omitempty"`
+	ApplicationID   int64             `json:"applicationID,string"`
+	ApplicationName string            `json:"applicationName"`
+	DeviceName      string            `json:"deviceName"`
+	DevEUI          lorawan.EUI64     `json:"devEUI"`
+	Type            string            `json:"type"`
+	Error           string            `json:"error"`
+	FCnt            uint32            `json:"fCnt,omitempty"`
+	Tags            map[string]string `json:"tags,omitempty"`
 }
 
 // StatusNotification defines the payload sent to the application
 // on a device-status reporting.
 type StatusNotification struct {
-	ApplicationID           int64         `json:"applicationID,string"`
-	ApplicationName         string        `json:"applicationName"`
-	DeviceName              string        `json:"deviceName"`
-	DevEUI                  lorawan.EUI64 `json:"devEUI"`
-	Battery                 int           `json:"battery"`
-	Margin                  int           `json:"margin"`
-	ExternalPowerSource     bool          `json:"externalPowerSource"`
-	BatteryLevel            float32       `json:"batteryLevel"`
-	BatteryLevelUnavailable bool          `json:"batteryLevelUnavailable"`
+	ApplicationID           int64             `json:"applicationID,string"`
+	ApplicationName         string            `json:"applicationName"`
+	DeviceName              string            `json:"deviceName"`
+	DevEUI                  lorawan.EUI64     `json:"devEUI"`
+	Battery                 int               `json:"battery"`
+	Margin                  int               `json:"margin"`
+	ExternalPowerSource     bool              `json:"externalPowerSource"`
+	BatteryLevel            float32           `json:"batteryLevel"`
+	BatteryLevelUnavailable bool              `json:"batteryLevelUnavailable"`
+	Tags                    map[string]string `json:"tags,omitempty"`
 }
 
 // LocationNotification defines the payload sent to the application after
 // the device location has been resolved by a geolocation-server.
 type LocationNotification struct {
-	ApplicationID   int64         `json:"applicationID,string"`
-	ApplicationName string        `json:"applicationName"`
-	DeviceName      string        `json:"deviceName"`
-	DevEUI          lorawan.EUI64 `json:"devEUI"`
-	Location        Location      `json:"location"`
+	ApplicationID   int64             `json:"applicationID,string"`
+	ApplicationName string            `json:"applicationName"`
+	DeviceName      string            `json:"deviceName"`
+	DevEUI          lorawan.EUI64     `json:"devEUI"`
+	Location        Location          `json:"location"`
+	Tags            map[string]string `json:"tags,omitempty"`
 }

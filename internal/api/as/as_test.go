@@ -2,12 +2,14 @@ package as
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/lib/pq/hstore"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -88,6 +90,11 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		Name:            "test-node",
 		DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		DeviceProfileID: dpID,
+		Tags: hstore.Hstore{
+			Map: map[string]sql.NullString{
+				"foo": sql.NullString{String: "bar", Valid: true},
+			},
+		},
 	}
 	assert.NoError(storage.CreateDevice(storage.DB(), &d))
 
@@ -131,6 +138,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			Type:            "DATA_UP_FCNT",
 			Error:           "BOOM!",
 			FCnt:            123,
+			Tags: map[string]string{
+				"foo": "bar",
+			},
 		}, <-h.SendErrorNotificationChan)
 	})
 
@@ -272,6 +282,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					FCnt:  10,
 					FPort: 3,
 					Data:  []byte{67, 216, 236, 205},
+					Tags: map[string]string{
+						"foo": "bar",
+					},
 				}, <-h.SendDataUpChan)
 			})
 
@@ -347,6 +360,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					Margin:          10,
 					Battery:         123,
 					BatteryLevel:    25.50,
+					Tags: map[string]string{
+						"foo": "bar",
+					},
 				},
 			},
 			{
@@ -363,6 +379,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					DevEUI:                  d.DevEUI,
 					Margin:                  10,
 					BatteryLevelUnavailable: true,
+					Tags: map[string]string{
+						"foo": "bar",
+					},
 				},
 			},
 			{
@@ -379,6 +398,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					DevEUI:              d.DevEUI,
 					Margin:              10,
 					ExternalPowerSource: true,
+					Tags: map[string]string{
+						"foo": "bar",
+					},
 				},
 			},
 		}
@@ -430,6 +452,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				Longitude: 2.123,
 				Altitude:  3.123,
 			},
+			Tags: map[string]string{
+				"foo": "bar",
+			},
 		}, <-h.SendLocationNotificationChan)
 
 		d, err := storage.GetDevice(storage.DB(), d.DevEUI, false, true)
@@ -454,6 +479,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			DevEUI:          d.DevEUI,
 			Acknowledged:    true,
 			FCnt:            10,
+			Tags: map[string]string{
+				"foo": "bar",
+			},
 		}, <-h.SendACKNotificationChan)
 	})
 }

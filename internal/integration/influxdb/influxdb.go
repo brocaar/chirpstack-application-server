@@ -51,7 +51,7 @@ func (m measurement) String() string {
 	var values []string
 
 	for k, v := range m.Tags {
-		tags = append(tags, fmt.Sprintf("%s=%v", k, formatInfluxValue(v, false)))
+		tags = append(tags, fmt.Sprintf("%s=%v", escapeInfluxTag(k), formatInfluxValue(escapeInfluxTag(v), false)))
 	}
 
 	for k, v := range m.Values {
@@ -82,6 +82,21 @@ func formatInfluxValue(v interface{}, quote bool) string {
 	default:
 		return fmt.Sprintf("%v", v)
 	}
+}
+
+// see https://docs.influxdata.com/influxdb/v1.7/write_protocols/line_protocol_tutorial/#special-characters
+func escapeInfluxTag(str string) string {
+	replace := map[string]string{
+		",": `\,`,
+		"=": `\=`,
+		" ": `\ `,
+	}
+
+	for k, v := range replace {
+		str = strings.ReplaceAll(str, k, v)
+	}
+
+	return str
 }
 
 // Integration implements an InfluxDB integration.
@@ -147,18 +162,23 @@ func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 		return nil
 	}
 
+	tags := map[string]string{
+		"application_name": pl.ApplicationName,
+		"device_name":      pl.DeviceName,
+		"dev_eui":          pl.DevEUI.String(),
+		"dr":               strconv.FormatInt(int64(pl.TXInfo.DR), 10),
+		"frequency":        strconv.FormatInt(int64(pl.TXInfo.Frequency), 10),
+	}
+	for k, v := range pl.Tags {
+		tags[k] = v
+	}
+
 	var measurements []measurement
 
 	// add data-rate measurement
 	measurements = append(measurements, measurement{
 		Name: "device_uplink",
-		Tags: map[string]string{
-			"application_name": pl.ApplicationName,
-			"device_name":      pl.DeviceName,
-			"dev_eui":          pl.DevEUI.String(),
-			"dr":               strconv.FormatInt(int64(pl.TXInfo.DR), 10),
-			"frequency":        strconv.FormatInt(int64(pl.TXInfo.Frequency), 10),
-		},
+		Tags: tags,
 		Values: map[string]interface{}{
 			"value": 1,
 			"f_cnt": pl.FCnt,
@@ -204,15 +224,21 @@ func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 
 // SendStatusNotification writes the device-status.
 func (i *Integration) SendStatusNotification(pl integration.StatusNotification) error {
+
+	tags := map[string]string{
+		"application_name": pl.ApplicationName,
+		"device_name":      pl.DeviceName,
+		"dev_eui":          pl.DevEUI.String(),
+	}
+	for k, v := range pl.Tags {
+		tags[k] = v
+	}
+
 	var measurements []measurement
 
 	measurements = append(measurements, measurement{
 		Name: "device_status_battery",
-		Tags: map[string]string{
-			"application_name": pl.ApplicationName,
-			"device_name":      pl.DeviceName,
-			"dev_eui":          pl.DevEUI.String(),
-		},
+		Tags: tags,
 		Values: map[string]interface{}{
 			"value": pl.Battery,
 		},
@@ -221,11 +247,7 @@ func (i *Integration) SendStatusNotification(pl integration.StatusNotification) 
 	if !pl.ExternalPowerSource && !pl.BatteryLevelUnavailable {
 		measurements = append(measurements, measurement{
 			Name: "device_status_battery_level",
-			Tags: map[string]string{
-				"application_name": pl.ApplicationName,
-				"device_name":      pl.DeviceName,
-				"dev_eui":          pl.DevEUI.String(),
-			},
+			Tags: tags,
 			Values: map[string]interface{}{
 				"value": pl.BatteryLevel,
 			},
@@ -234,11 +256,7 @@ func (i *Integration) SendStatusNotification(pl integration.StatusNotification) 
 
 	measurements = append(measurements, measurement{
 		Name: "device_status_margin",
-		Tags: map[string]string{
-			"application_name": pl.ApplicationName,
-			"device_name":      pl.DeviceName,
-			"dev_eui":          pl.DevEUI.String(),
-		},
+		Tags: tags,
 		Values: map[string]interface{}{
 			"value": pl.Margin,
 		},
@@ -289,14 +307,19 @@ func objectToMeasurements(pl integration.DataUpPayload, prefix string, obj inter
 
 	switch o := obj.(type) {
 	case int, uint, float32, float64, uint8, int8, uint16, int16, uint32, int32, uint64, int64, string, bool:
+		tags := map[string]string{
+			"application_name": pl.ApplicationName,
+			"device_name":      pl.DeviceName,
+			"dev_eui":          pl.DevEUI.String(),
+			"f_port":           strconv.FormatInt(int64(pl.FPort), 10),
+		}
+		for k, v := range pl.Tags {
+			tags[k] = v
+		}
+
 		out = append(out, measurement{
 			Name: prefix,
-			Tags: map[string]string{
-				"application_name": pl.ApplicationName,
-				"device_name":      pl.DeviceName,
-				"dev_eui":          pl.DevEUI.String(),
-				"f_port":           strconv.FormatInt(int64(pl.FPort), 10),
-			},
+			Tags: tags,
 			Values: map[string]interface{}{
 				"value": o,
 			},
@@ -389,15 +412,20 @@ func mapToLocation(pl integration.DataUpPayload, prefix string, obj reflect.Valu
 		return nil
 	}
 
+	tags := map[string]string{
+		"application_name": pl.ApplicationName,
+		"device_name":      pl.DeviceName,
+		"dev_eui":          pl.DevEUI.String(),
+		"f_port":           strconv.FormatInt(int64(pl.FPort), 10),
+	}
+	for k, v := range pl.Tags {
+		tags[k] = v
+	}
+
 	return []measurement{
 		{
 			Name: prefix + "_location",
-			Tags: map[string]string{
-				"application_name": pl.ApplicationName,
-				"device_name":      pl.DeviceName,
-				"dev_eui":          pl.DevEUI.String(),
-				"f_port":           strconv.FormatInt(int64(pl.FPort), 10),
-			},
+			Tags: tags,
 			Values: map[string]interface{}{
 				"latitude":  latFloat,
 				"longitude": longFloat,
@@ -436,15 +464,20 @@ func structToLocation(pl integration.DataUpPayload, prefix string, obj reflect.V
 		return nil
 	}
 
+	tags := map[string]string{
+		"application_name": pl.ApplicationName,
+		"device_name":      pl.DeviceName,
+		"dev_eui":          pl.DevEUI.String(),
+		"f_port":           strconv.FormatInt(int64(pl.FPort), 10),
+	}
+	for k, v := range pl.Tags {
+		tags[k] = v
+	}
+
 	return []measurement{
 		{
 			Name: prefix + "_location",
-			Tags: map[string]string{
-				"application_name": pl.ApplicationName,
-				"device_name":      pl.DeviceName,
-				"dev_eui":          pl.DevEUI.String(),
-				"f_port":           strconv.FormatInt(int64(pl.FPort), 10),
-			},
+			Tags: tags,
 			Values: map[string]interface{}{
 				"latitude":  latFloat,
 				"longitude": longFloat,

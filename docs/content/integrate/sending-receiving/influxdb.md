@@ -72,7 +72,8 @@ with values `latitude`, `longitude` and `geohash` (see also [Geohash](https://en
 
 ## Tags
 
-For aggregation, each measurement will have the following tags:
+For aggregation, each measurement will have the following tags (additional to
+the device tags):
 
 * `application_name`
 * `device_name`
@@ -84,7 +85,7 @@ For aggregation, each measurement will have the following tags:
 For analyzing and monitoring the usage of spreading-factors, channels, etc.
 the InfluxDB integration will also write a measurement named `device_uplink`
 with as values a counter `value` 1, `rssi`, `snr` and `f_cnt`. For Aggregation,
-the following tags are available:
+the following tags are available (additional to the device tags):
 
 * `application_name`
 * `device_name`
@@ -96,7 +97,7 @@ the following tags are available:
 
 When this information is available, the device battery status will be written
 to the measurement name `device_status_battery`. For aggregation, the following
-tags are available:
+tags are available (additional to the device tags):
 
 * `application_name`
 * `device_name`
@@ -106,7 +107,7 @@ tags are available:
 
 When this information is available, the device battery level (percentage)
 will be written to the measurement name `device_status_battery_level`. For
-aggregation, the following tags are available:
+aggregation, the following tags are available (additional to the device tags):
 
 * `application_name`
 * `device_name`
@@ -116,7 +117,7 @@ aggregation, the following tags are available:
 
 When this information is available, the device margin status will be written
 to the measurement name `device_status_margin`. For aggregation, the following
-tags are available:
+tags are available (additional to the device tags):
 
 * `application_name`
 * `device_name`

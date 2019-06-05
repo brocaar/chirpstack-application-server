@@ -116,9 +116,14 @@ id="{{ .ApplicationServer.ID }}"
   # * aws_sns           - AWS Simple Notification Service (SNS)
   # * azure_service_bus - Azure Service-Bus
   # * gcp_pub_sub       - Google Cloud Pub/Sub
+  # * blockchain        - Block Chain
   enabled=[{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}{{ range $index, $elm := .ApplicationServer.Integration.Enabled }}{{ if $index }}", "{{ end }}{{ $elm }}{{ end }}{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}]
 
-
+  [application_server.integration.blockchain]
+  ListenPort = "{{ .ApplicationServer.Integration.Blockchain.ListenPort }}"
+  DialConnection = "{{ .ApplicationServer.Integration.Blockchain.DialConnection }}"
+  Seed = "{{ .ApplicationServer.Integration.Blockchain.Seed }}"
+  Difficulty = "{{ .ApplicationServer.Integration.Blockchain.Difficulty }}"
   # MQTT integration backend.
   [application_server.integration.mqtt]
   # MQTT topic templates for the different MQTT topics.

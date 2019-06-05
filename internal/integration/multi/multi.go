@@ -75,6 +75,7 @@ func (i *Integration) Add(intg integration.Integrator) {
 func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
+			log.Printf("integration/multi: %T", i)
 			if err := i.SendDataUp(pl); err != nil {
 				log.WithError(err).Errorf("integration/multi: integration %T error", i)
 			}
@@ -88,6 +89,7 @@ func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 func (i *Integration) SendJoinNotification(pl integration.JoinNotification) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
+			log.Printf("integration/multi: %T", i)
 			if err := i.SendJoinNotification(pl); err != nil {
 				log.WithError(err).Errorf("integration/multi: integration %T error", i)
 			}
@@ -101,6 +103,7 @@ func (i *Integration) SendJoinNotification(pl integration.JoinNotification) erro
 func (i *Integration) SendACKNotification(pl integration.ACKNotification) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
+			log.Printf("integration/multi: %T", i)
 			if err := i.SendACKNotification(pl); err != nil {
 				log.WithError(err).Errorf("integration/multi: integration %T error", i)
 			}
@@ -114,6 +117,7 @@ func (i *Integration) SendACKNotification(pl integration.ACKNotification) error 
 func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
+			log.Printf("integration/multi: %T", i)
 			if err := i.SendErrorNotification(pl); err != nil {
 				log.WithError(err).Errorf("integration/multi: integration %T error", i)
 			}
@@ -127,6 +131,7 @@ func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) er
 func (i *Integration) SendStatusNotification(pl integration.StatusNotification) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
+			log.Printf("integration/multi: %T", i)
 			if err := i.SendStatusNotification(pl); err != nil {
 				log.WithError(err).Errorf("integration/multi: integration %T error", i)
 			}
@@ -140,6 +145,7 @@ func (i *Integration) SendStatusNotification(pl integration.StatusNotification) 
 func (i *Integration) SendLocationNotification(pl integration.LocationNotification) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
+			log.Printf("integration/multi: %T", i)
 			if err := i.SendLocationNotification(pl); err != nil {
 				log.WithError(err).Errorf("integration/multi: integration %T error", i)
 			}
@@ -152,6 +158,7 @@ func (i *Integration) SendLocationNotification(pl integration.LocationNotificati
 // DataDownChan returns the channel containing the received DataDownPayload.
 func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	for _, ii := range i.integrations {
+		log.Printf("integration/multi: %T", i)
 		if c := ii.DataDownChan(); c != nil {
 			return c
 		}

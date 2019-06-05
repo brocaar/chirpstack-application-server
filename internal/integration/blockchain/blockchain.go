@@ -10,13 +10,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	mrand "math/rand"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/brocaar/lora-app-server/internal/integration"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/davecgh/go-spew/spew"
 	libp2p "github.com/libp2p/go-libp2p"
@@ -131,6 +131,9 @@ func (i *Integration) Running(conf Config) {
 
 // SendDataUp sends an uplink data payload.
 func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
+	log.WithFields(log.Fields{
+		"dev_eui": pl.DevEUI,
+	}).Info("integration/blockchain: publishing data-up payload")
 	data, err := json.Marshal(pl)
 	if err != nil {
 		log.Fatal(err)
@@ -140,6 +143,9 @@ func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 
 // SendJoinNotification sends a join notification.
 func (i *Integration) SendJoinNotification(pl integration.JoinNotification) error {
+	log.WithFields(log.Fields{
+		"dev_eui": pl.DevEUI,
+	}).Info("integration/blockchain: publishing data-up payload")
 	data, err := json.Marshal(pl)
 	if err != nil {
 		log.Fatal(err)
@@ -149,6 +155,9 @@ func (i *Integration) SendJoinNotification(pl integration.JoinNotification) erro
 
 // SendACKNotification sends an ack notification.
 func (i *Integration) SendACKNotification(pl integration.ACKNotification) error {
+	log.WithFields(log.Fields{
+		"dev_eui": pl.DevEUI,
+	}).Info("integration/blockchain: publishing data-up payload")
 	data, err := json.Marshal(pl)
 	if err != nil {
 		log.Fatal(err)
@@ -158,6 +167,9 @@ func (i *Integration) SendACKNotification(pl integration.ACKNotification) error 
 
 // SendErrorNotification sends an error notification.
 func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) error {
+	log.WithFields(log.Fields{
+		"dev_eui": pl.DevEUI,
+	}).Info("integration/blockchain: publishing data-up payload")
 	data, err := json.Marshal(pl)
 	if err != nil {
 		log.Fatal(err)
@@ -176,6 +188,9 @@ func (i *Integration) SendStatusNotification(pl integration.StatusNotification) 
 
 // SendLocationNotification sends a location notification.
 func (i *Integration) SendLocationNotification(pl integration.LocationNotification) error {
+	log.WithFields(log.Fields{
+		"dev_eui": pl.DevEUI,
+	}).Info("integration/blockchain: publishing data-up payload")
 	data, err := json.Marshal(pl)
 	if err != nil {
 		log.Fatal(err)

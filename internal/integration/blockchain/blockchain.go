@@ -28,7 +28,7 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 )
 
-// Config holds the AWS SNS integration configuration.
+// Config holds the Blockchain integration configuration.
 type Config struct {
 	ListenPort     int    `mapstructure:"ListenPort"`
 	DialConnection string `mapstructure:"DialConnectiom"`
@@ -327,7 +327,6 @@ func (i *Integration) readData(rw *bufio.ReadWriter) {
 				log.Fatal(err)
 			}
 			i.mutex.Lock()
-			// This is where consesnus is to be added
 			if len(chain) > len(i.Blockchain) {
 				i.Blockchain = chain
 				i.Difficulty = chain[len(chain)-1].Difficulty

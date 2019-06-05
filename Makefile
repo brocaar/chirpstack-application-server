@@ -16,11 +16,12 @@ clean:
 
 test: internal/statics internal/migrations
 	@echo "Running tests"
+	@rm -f coverage.out
 	@for pkg in $(PKGS) ; do \
 		golint $$pkg ; \
 	done
 	@go vet $(PKGS)
-	@go test -p 1 -v $(PKGS)
+	@go test -p 1 -v $(PKGS) -cover -coverprofile coverage.out
 
 dist: ui/build internal/statics internal/migrations
 	@goreleaser
@@ -58,6 +59,7 @@ static/swagger/api.swagger.json:
 # shortcuts for development
 
 dev-requirements:
+	go mod download
 	go install golang.org/x/lint/golint
 	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger

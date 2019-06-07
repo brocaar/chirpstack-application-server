@@ -3,242 +3,230 @@ package external
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lora-app-server/internal/test"
 )
 
-func TestOrganizationAPI(t *testing.T) {
-	conf := test.GetConfig()
+func (ts *APITestSuite) TestOrganization() {
+	validator := &TestValidator{}
+	api := NewOrganizationAPI(validator)
+	userAPI := NewUserAPI(validator)
 
-	Convey("Given a clean database and api instance", t, func() {
-		if err := storage.Setup(conf); err != nil {
-			t.Fatal(err)
+	ts.T().Run("Create with invalid name", func(t *testing.T) {
+		assert := require.New(t)
+
+		validator.returnIsAdmin = true
+		createReq := &pb.CreateOrganizationRequest{
+			Organization: &pb.Organization{
+				Name:            "organization name",
+				DisplayName:     "Display Name",
+				CanHaveGateways: true,
+			},
 		}
-		test.MustResetDB(storage.DB().DB)
+		_, err := api.Create(context.Background(), createReq)
+		assert.NotNil(err)
+	})
 
-		ctx := context.Background()
-		validator := &TestValidator{}
-		api := NewOrganizationAPI(validator)
-		userAPI := NewUserAPI(validator)
+	ts.T().Run("Create as global admin", func(t *testing.T) {
+		assert := require.New(t)
 
-		Convey("When creating an organization with a bad name (spaces)", func() {
-			validator.returnIsAdmin = true
-			createReq := &pb.CreateOrganizationRequest{
-				Organization: &pb.Organization{
-					Name:            "organization name",
-					DisplayName:     "Display Name",
-					CanHaveGateways: true,
-				},
-			}
-			createResp, err := api.Create(ctx, createReq)
-			So(err, ShouldNotBeNil)
-			So(validator.validatorFuncs, ShouldHaveLength, 1)
-			So(createResp, ShouldBeNil)
+		validator.returnIsAdmin = true
+		createReq := pb.CreateOrganizationRequest{
+			Organization: &pb.Organization{
+				Name:            "orgName",
+				DisplayName:     "Display Name",
+				CanHaveGateways: true,
+			},
+		}
+		createResp, err := api.Create(context.Background(), &createReq)
+		assert.Nil(err)
+
+		t.Run("Get", func(t *testing.T) {
+			assert := require.New(t)
+
+			org, err := api.Get(context.Background(), &pb.GetOrganizationRequest{
+				Id: createResp.Id,
+			})
+			assert.NoError(err)
+
+			createReq.Organization.Id = createResp.Id
+			assert.Equal(createReq.Organization, org.Organization)
 		})
 
-		Convey("When creating an organization as a global admin with a valid name", func() {
-			validator.returnIsAdmin = true
-			createReq := pb.CreateOrganizationRequest{
-				Organization: &pb.Organization{
-					Name:            "orgName",
-					DisplayName:     "Display Name",
-					CanHaveGateways: true,
+		t.Run("List", func(t *testing.T) {
+			assert := require.New(t)
+
+			orgs, err := api.List(context.Background(), &pb.ListOrganizationRequest{
+				Limit:  10,
+				Offset: 0,
+			})
+			assert.NoError(err)
+
+			// Default org is already in the database.
+			assert.Len(orgs.Result, 2)
+
+			assert.Equal(createReq.Organization.Name, orgs.Result[0].Name)
+			assert.Equal(createReq.Organization.DisplayName, orgs.Result[0].DisplayName)
+			assert.Equal(createReq.Organization.CanHaveGateways, orgs.Result[0].CanHaveGateways)
+		})
+
+		t.Run("As user", func(t *testing.T) {
+			assert := require.New(t)
+
+			userReq := &pb.CreateUserRequest{
+				User: &pb.User{
+					Username:   "username",
+					IsActive:   true,
+					SessionTtl: 180,
+					Email:      "foo@bar.com",
 				},
+				Password: "pass^^ord",
 			}
-			createResp, err := api.Create(ctx, &createReq)
-			So(err, ShouldBeNil)
-			So(validator.validatorFuncs, ShouldHaveLength, 1)
-			So(createResp, ShouldNotBeNil)
+			userResp, err := userAPI.Create(context.Background(), userReq)
+			assert.NoError(err)
 
-			Convey("Then the organization has been created", func() {
-				org, err := api.Get(ctx, &pb.GetOrganizationRequest{
-					Id: createResp.Id,
-				})
-				So(err, ShouldBeNil)
+			validator.returnIsAdmin = false
+			validator.returnUsername = userReq.User.Username
 
-				createReq.Organization.Id = createResp.Id
-				So(org.Organization, ShouldResemble, createReq.Organization)
+			t.Run("User can not list organizations", func(t *testing.T) {
+				assert := require.New(t)
 
-				orgs, err := api.List(ctx, &pb.ListOrganizationRequest{
+				orgs, err := api.List(context.Background(), &pb.ListOrganizationRequest{
 					Limit:  10,
 					Offset: 0,
 				})
-				So(err, ShouldBeNil)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
-				So(orgs, ShouldNotBeNil)
-				// Default org is already in the database.
-				So(orgs.Result, ShouldHaveLength, 2)
+				assert.NoError(err)
 
-				So(orgs.Result[0].Name, ShouldEqual, createReq.Organization.Name)
-				So(orgs.Result[0].DisplayName, ShouldEqual, createReq.Organization.DisplayName)
-				So(orgs.Result[0].CanHaveGateways, ShouldEqual, createReq.Organization.CanHaveGateways)
+				assert.EqualValues(0, orgs.TotalCount)
+				assert.Len(orgs.Result, 0)
+			})
 
-				Convey("When updating the organization", func() {
-					updateOrg := &pb.UpdateOrganizationRequest{
-						Organization: &pb.Organization{
-							Id:              createResp.Id,
-							Name:            "anotherorg",
-							DisplayName:     "Display Name 2",
-							CanHaveGateways: false,
-						},
-					}
-					_, err := api.Update(ctx, updateOrg)
-					So(err, ShouldBeNil)
-					So(validator.validatorFuncs, ShouldHaveLength, 1)
+			t.Run("Add user to organization", func(t *testing.T) {
+				addOrgUser := &pb.AddOrganizationUserRequest{
+					OrganizationUser: &pb.OrganizationUser{
+						OrganizationId: createResp.Id,
+						UserId:         userResp.Id,
+						IsAdmin:        false,
+					},
+				}
+				_, err := api.AddUser(context.Background(), addOrgUser)
+				assert.NoError(err)
 
-					Convey("Then the organization has been updated", func() {
-						orgUpd, err := api.Get(ctx, &pb.GetOrganizationRequest{
-							Id: createResp.Id,
-						})
-						So(err, ShouldBeNil)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
-
-						createReq.Organization.Id = createResp.Id
-						So(orgUpd.Organization, ShouldResemble, updateOrg.Organization)
-					})
-
-				})
-
-				// Add a new user for adding to the organization.
-				Convey("When adding a user", func() {
-					userReq := &pb.CreateUserRequest{
-						User: &pb.User{
-							Username:   "username",
-							IsActive:   true,
-							SessionTtl: 180,
-							Email:      "foo@bar.com",
-						},
-						Password: "pass^^ord",
-					}
-					userResp, err := userAPI.Create(ctx, userReq)
-					So(err, ShouldBeNil)
+				t.Run("List organizations for user", func(t *testing.T) {
+					assert := require.New(t)
 
 					validator.returnIsAdmin = false
 					validator.returnUsername = userReq.User.Username
 
-					Convey("When listing the organizations for the user", func() {
-						orgs, err := api.List(ctx, &pb.ListOrganizationRequest{
-							Limit:  10,
-							Offset: 0,
-						})
-						So(err, ShouldBeNil)
-
-						Convey("Then the user should not see any organizations", func() {
-							So(orgs.TotalCount, ShouldEqual, 0)
-							So(orgs.Result, ShouldHaveLength, 0)
-						})
+					orgs, err := api.List(context.Background(), &pb.ListOrganizationRequest{
+						Limit:  10,
+						Offset: 0,
 					})
+					assert.NoError(err)
 
-					Convey("When adding the user to the organization", func() {
-						addOrgUser := &pb.AddOrganizationUserRequest{
-							OrganizationUser: &pb.OrganizationUser{
-								OrganizationId: createResp.Id,
-								UserId:         userResp.Id,
-								IsAdmin:        false,
-							},
-						}
-						_, err := api.AddUser(ctx, addOrgUser)
-						So(err, ShouldBeNil)
+					assert.EqualValues(1, orgs.TotalCount)
+					assert.Len(orgs.Result, 1)
+				})
 
-						Convey("When listing the organizations for the user", func() {
-							orgs, err := api.List(ctx, &pb.ListOrganizationRequest{
-								Limit:  10,
-								Offset: 0,
-							})
-							So(err, ShouldBeNil)
+				t.Run("User is part of organization", func(t *testing.T) {
+					assert := require.New(t)
 
-							Convey("Then the user should see the organization", func() {
-								So(orgs.TotalCount, ShouldEqual, 1)
-								So(orgs.Result, ShouldHaveLength, 1)
-							})
-						})
-
-						Convey("Then the user should be part of the organization", func() {
-							orgUsers, err := api.ListUsers(ctx, &pb.ListOrganizationUsersRequest{
-								OrganizationId: createResp.Id,
-								Limit:          10,
-								Offset:         0,
-							})
-							So(err, ShouldBeNil)
-							So(orgUsers.Result, ShouldHaveLength, 1)
-							So(orgUsers.Result[0].UserId, ShouldEqual, userResp.Id)
-							So(orgUsers.Result[0].Username, ShouldEqual, userReq.User.Username)
-							So(orgUsers.Result[0].IsAdmin, ShouldEqual, addOrgUser.OrganizationUser.IsAdmin)
-						})
-
-						Convey("When updating the user in the organization", func() {
-							updOrgUser := &pb.UpdateOrganizationUserRequest{
-								OrganizationUser: &pb.OrganizationUser{
-									OrganizationId: createResp.Id,
-									UserId:         addOrgUser.OrganizationUser.UserId,
-									IsAdmin:        !addOrgUser.OrganizationUser.IsAdmin,
-								},
-							}
-							_, err := api.UpdateUser(ctx, updOrgUser)
-							So(err, ShouldBeNil)
-
-							Convey("Then the user should be changed", func() {
-								orgUsers, err := api.ListUsers(ctx, &pb.ListOrganizationUsersRequest{
-									OrganizationId: createResp.Id,
-									Limit:          10,
-									Offset:         0,
-								})
-								So(err, ShouldBeNil)
-								So(orgUsers, ShouldNotBeNil)
-								So(orgUsers.Result, ShouldHaveLength, 1)
-								So(orgUsers.Result[0].UserId, ShouldEqual, userResp.Id)
-								So(orgUsers.Result[0].Username, ShouldEqual, userReq.User.Username)
-								So(orgUsers.Result[0].IsAdmin, ShouldEqual, updOrgUser.OrganizationUser.IsAdmin)
-							})
-
-						})
-
-						Convey("When removing the user from the organization", func() {
-							delOrgUser := &pb.DeleteOrganizationUserRequest{
-								OrganizationId: createResp.Id,
-								UserId:         addOrgUser.OrganizationUser.UserId,
-							}
-							_, err := api.DeleteUser(ctx, delOrgUser)
-							So(err, ShouldBeNil)
-
-							Convey("Then the user should be removed", func() {
-								orgUsers, err := api.ListUsers(ctx, &pb.ListOrganizationUsersRequest{
-									OrganizationId: createResp.Id,
-									Limit:          10,
-									Offset:         0,
-								})
-								So(err, ShouldBeNil)
-								So(orgUsers, ShouldNotBeNil)
-								So(orgUsers.Result, ShouldHaveLength, 0)
-							})
-						})
+					orgUsers, err := api.ListUsers(context.Background(), &pb.ListOrganizationUsersRequest{
+						OrganizationId: createResp.Id,
+						Limit:          10,
+						Offset:         0,
 					})
+					assert.NoError(err)
 
-					Convey("When deleting the organization", func() {
-						validator.returnIsAdmin = true
+					assert.Len(orgUsers.Result, 1)
+					assert.Equal(userResp.Id, orgUsers.Result[0].UserId)
+					assert.Equal(userReq.User.Username, orgUsers.Result[0].Username)
+					assert.Equal(addOrgUser.OrganizationUser.IsAdmin, orgUsers.Result[0].IsAdmin)
+				})
 
-						_, err := api.Delete(ctx, &pb.DeleteOrganizationRequest{
-							Id: createResp.Id,
-						})
-						So(err, ShouldBeNil)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
+				t.Run("Update user", func(t *testing.T) {
+					assert := require.New(t)
 
-						Convey("Then the organization has been deleted", func() {
-							orgs, err := api.List(ctx, &pb.ListOrganizationRequest{
-								Limit:  10,
-								Offset: 0,
-							})
-							So(err, ShouldBeNil)
-							So(orgs.Result, ShouldHaveLength, 1)
-							So(orgs.TotalCount, ShouldEqual, 1)
-						})
+					updOrgUser := &pb.UpdateOrganizationUserRequest{
+						OrganizationUser: &pb.OrganizationUser{
+							OrganizationId: createResp.Id,
+							UserId:         addOrgUser.OrganizationUser.UserId,
+							IsAdmin:        !addOrgUser.OrganizationUser.IsAdmin,
+						},
+					}
+					_, err := api.UpdateUser(context.Background(), updOrgUser)
+					assert.NoError(err)
+
+					orgUsers, err := api.ListUsers(context.Background(), &pb.ListOrganizationUsersRequest{
+						OrganizationId: createResp.Id,
+						Limit:          10,
+						Offset:         0,
 					})
+					assert.NoError(err)
+
+					assert.Len(orgUsers.Result, 1)
+					assert.Equal(userResp.Id, orgUsers.Result[0].UserId)
+					assert.Equal(userReq.User.Username, orgUsers.Result[0].Username)
+					assert.Equal(updOrgUser.OrganizationUser.IsAdmin, orgUsers.Result[0].IsAdmin)
+				})
+
+				t.Run("Remove user from organization", func(t *testing.T) {
+					assert := require.New(t)
+
+					delOrgUser := &pb.DeleteOrganizationUserRequest{
+						OrganizationId: createResp.Id,
+						UserId:         addOrgUser.OrganizationUser.UserId,
+					}
+					_, err := api.DeleteUser(context.Background(), delOrgUser)
+					assert.NoError(err)
+
+					_, err = api.DeleteUser(context.Background(), delOrgUser)
+					assert.Equal(codes.NotFound, grpc.Code(err))
 				})
 			})
+		})
+
+		t.Run("Update", func(t *testing.T) {
+			assert := require.New(t)
+			validator.returnIsAdmin = true
+
+			updateOrg := &pb.UpdateOrganizationRequest{
+				Organization: &pb.Organization{
+					Id:              createResp.Id,
+					Name:            "anotherorg",
+					DisplayName:     "Display Name 2",
+					CanHaveGateways: false,
+				},
+			}
+			_, err := api.Update(context.Background(), updateOrg)
+			assert.NoError(err)
+
+			orgUpd, err := api.Get(context.Background(), &pb.GetOrganizationRequest{
+				Id: createResp.Id,
+			})
+			assert.NoError(err)
+
+			createReq.Organization.Id = createResp.Id
+			assert.Equal(updateOrg.Organization, orgUpd.Organization)
+		})
+
+		t.Run("Delete", func(t *testing.T) {
+			assert := require.New(t)
+			validator.returnIsAdmin = true
+
+			_, err := api.Delete(context.Background(), &pb.DeleteOrganizationRequest{
+				Id: createResp.Id,
+			})
+			assert.NoError(err)
+
+			_, err = api.Delete(context.Background(), &pb.DeleteOrganizationRequest{
+				Id: createResp.Id,
+			})
+			assert.Equal(codes.NotFound, grpc.Code(err))
 		})
 	})
 }

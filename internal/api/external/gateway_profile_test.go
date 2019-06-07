@@ -6,162 +6,165 @@ import (
 	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/loraserver/api/ns"
 	uuid "github.com/gofrs/uuid"
+	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-
-	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/net/context"
 
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lora-app-server/internal/test"
 )
 
-func TestGatewayProfileTest(t *testing.T) {
-	conf := test.GetConfig()
-	if err := storage.Setup(conf); err != nil {
-		t.Fatal(err)
+func (ts *APITestSuite) TestGatewayProfile() {
+	assert := require.New(ts.T())
+
+	nsClient := mock.NewClient()
+	networkserver.SetPool(mock.NewPool(nsClient))
+
+	validator := &TestValidator{}
+	api := NewGatewayProfileAPI(validator)
+
+	n := storage.NetworkServer{
+		Name:   "test-ns",
+		Server: "test-ns:1234",
 	}
+	assert.NoError(storage.CreateNetworkServer(storage.DB(), &n))
 
-	Convey("Given a clean database and api instance", t, func() {
-		test.MustResetDB(storage.DB().DB)
+	ts.T().Run("Create", func(t *testing.T) {
+		assert := require.New(t)
 
-		nsClient := mock.NewClient()
-		networkserver.SetPool(mock.NewPool(nsClient))
-
-		ctx := context.Background()
-		validator := &TestValidator{}
-		api := NewGatewayProfileAPI(validator)
-
-		n := storage.NetworkServer{
-			Name:   "test-ns",
-			Server: "test-ns:1234",
+		createReq := pb.CreateGatewayProfileRequest{
+			GatewayProfile: &pb.GatewayProfile{
+				Name:            "test-gp",
+				NetworkServerId: n.ID,
+				Channels:        []uint32{0, 1, 2},
+				ExtraChannels: []*pb.GatewayProfileExtraChannel{
+					{
+						Modulation:       common.Modulation_LORA,
+						Frequency:        867100000,
+						Bandwidth:        125,
+						SpreadingFactors: []uint32{10, 11, 12},
+					},
+					{
+						Modulation: common.Modulation_FSK,
+						Frequency:  867300000,
+						Bitrate:    50000,
+					},
+				},
+			},
 		}
-		So(storage.CreateNetworkServer(storage.DB(), &n), ShouldBeNil)
 
-		Convey("Then Create creates the gateway-profile", func() {
-			createReq := pb.CreateGatewayProfileRequest{
+		createResp, err := api.Create(context.Background(), &createReq)
+		assert.NoError(err)
+
+		assert.NotEqual("", createResp.Id)
+		assert.NotEqual(uuid.Nil.String(), createResp.Id)
+
+		// set mock
+		nsCreate := <-nsClient.CreateGatewayProfileChan
+		nsClient.GetGatewayProfileResponse = ns.GetGatewayProfileResponse{
+			GatewayProfile: nsCreate.GatewayProfile,
+		}
+
+		t.Run("Get", func(t *testing.T) {
+			assert := require.New(t)
+
+			getResp, err := api.Get(context.Background(), &pb.GetGatewayProfileRequest{
+				Id: createResp.Id,
+			})
+			assert.NoError(err)
+
+			createReq.GatewayProfile.Id = createResp.Id
+			assert.Equal(createReq.GatewayProfile, getResp.GatewayProfile)
+		})
+
+		t.Run("List with network-server id", func(t *testing.T) {
+			assert := require.New(t)
+
+			listResp, err := api.List(context.Background(), &pb.ListGatewayProfilesRequest{
+				NetworkServerId: n.ID,
+				Limit:           10,
+			})
+			assert.NoError(err)
+
+			assert.EqualValues(1, listResp.TotalCount)
+			assert.Len(listResp.Result, 1)
+			assert.Equal(createResp.Id, listResp.Result[0].Id)
+			assert.Equal(createReq.GatewayProfile.Name, listResp.Result[0].Name)
+			assert.Equal(n.ID, listResp.Result[0].NetworkServerId)
+		})
+
+		t.Run("List", func(t *testing.T) {
+			assert := require.New(t)
+
+			listResp, err := api.List(context.Background(), &pb.ListGatewayProfilesRequest{
+				Limit: 10,
+			})
+			assert.NoError(err)
+
+			assert.EqualValues(1, listResp.TotalCount)
+			assert.Len(listResp.Result, 1)
+			assert.Equal(createResp.Id, listResp.Result[0].Id)
+			assert.Equal(createReq.GatewayProfile.Name, listResp.Result[0].Name)
+			assert.Equal(n.ID, listResp.Result[0].NetworkServerId)
+		})
+
+		t.Run("Update", func(t *testing.T) {
+			assert := require.New(t)
+
+			updateReq := pb.UpdateGatewayProfileRequest{
 				GatewayProfile: &pb.GatewayProfile{
-					Name:            "test-gp",
+					Id:              createResp.Id,
 					NetworkServerId: n.ID,
-					Channels:        []uint32{0, 1, 2},
+					Name:            "updated-gp",
+					Channels:        []uint32{1, 2},
 					ExtraChannels: []*pb.GatewayProfileExtraChannel{
+						{
+							Modulation: common.Modulation_FSK,
+							Frequency:  867300000,
+							Bitrate:    50000,
+						},
 						{
 							Modulation:       common.Modulation_LORA,
 							Frequency:        867100000,
 							Bandwidth:        125,
 							SpreadingFactors: []uint32{10, 11, 12},
 						},
-						{
-							Modulation: common.Modulation_FSK,
-							Frequency:  867300000,
-							Bitrate:    50000,
-						},
 					},
 				},
 			}
 
-			createResp, err := api.Create(ctx, &createReq)
-			So(err, ShouldBeNil)
-			So(createResp.Id, ShouldNotEqual, "")
-			So(createResp.Id, ShouldNotEqual, uuid.Nil.String())
-			So(nsClient.CreateGatewayProfileChan, ShouldHaveLength, 1)
+			_, err := api.Update(context.Background(), &updateReq)
+			assert.NoError(err)
 
 			// set mock
-			nsCreate := <-nsClient.CreateGatewayProfileChan
+			nsUpdate := <-nsClient.UpdateGatewayProfileChan
 			nsClient.GetGatewayProfileResponse = ns.GetGatewayProfileResponse{
-				GatewayProfile: nsCreate.GatewayProfile,
+				GatewayProfile: nsUpdate.GatewayProfile,
 			}
 
-			Convey("Then Get returns the gateway-profile", func() {
-				getResp, err := api.Get(ctx, &pb.GetGatewayProfileRequest{
-					Id: createResp.Id,
-				})
-				So(err, ShouldBeNil)
-
-				createReq.GatewayProfile.Id = createResp.Id
-				So(getResp.GatewayProfile, ShouldResemble, createReq.GatewayProfile)
+			getResp, err := api.Get(context.Background(), &pb.GetGatewayProfileRequest{
+				Id: createResp.Id,
 			})
+			assert.NoError(err)
 
-			Convey("Then Update updates the gateway-profile", func() {
-				updateReq := pb.UpdateGatewayProfileRequest{
-					GatewayProfile: &pb.GatewayProfile{
-						Id:              createResp.Id,
-						NetworkServerId: n.ID,
-						Name:            "updated-gp",
-						Channels:        []uint32{1, 2},
-						ExtraChannels: []*pb.GatewayProfileExtraChannel{
-							{
-								Modulation: common.Modulation_FSK,
-								Frequency:  867300000,
-								Bitrate:    50000,
-							},
-							{
-								Modulation:       common.Modulation_LORA,
-								Frequency:        867100000,
-								Bandwidth:        125,
-								SpreadingFactors: []uint32{10, 11, 12},
-							},
-						},
-					},
-				}
+			assert.Equal(updateReq.GatewayProfile, getResp.GatewayProfile)
+		})
 
-				_, err := api.Update(ctx, &updateReq)
-				So(err, ShouldBeNil)
-				So(nsClient.UpdateGatewayProfileChan, ShouldHaveLength, 1)
+		t.Run("Delete", func(t *testing.T) {
+			assert := require.New(t)
 
-				// set mock
-				nsUpdate := <-nsClient.UpdateGatewayProfileChan
-				nsClient.GetGatewayProfileResponse = ns.GetGatewayProfileResponse{
-					GatewayProfile: nsUpdate.GatewayProfile,
-				}
-
-				getResp, err := api.Get(ctx, &pb.GetGatewayProfileRequest{
-					Id: createResp.Id,
-				})
-				So(err, ShouldBeNil)
-				So(getResp.GatewayProfile, ShouldResemble, updateReq.GatewayProfile)
+			_, err := api.Delete(context.Background(), &pb.DeleteGatewayProfileRequest{
+				Id: createResp.Id,
 			})
+			assert.NoError(err)
 
-			Convey("Then Delete deletes the gateway-profile", func() {
-				_, err := api.Delete(ctx, &pb.DeleteGatewayProfileRequest{
-					Id: createResp.Id,
-				})
-				So(err, ShouldBeNil)
-
-				_, err = api.Get(ctx, &pb.GetGatewayProfileRequest{
-					Id: createResp.Id,
-				})
-				So(err, ShouldNotBeNil)
-				So(grpc.Code(err), ShouldEqual, codes.NotFound)
+			_, err = api.Get(context.Background(), &pb.GetGatewayProfileRequest{
+				Id: createResp.Id,
 			})
-
-			Convey("Then List given a network-server ID lists the gateway-profiles", func() {
-				listResp, err := api.List(ctx, &pb.ListGatewayProfilesRequest{
-					NetworkServerId: n.ID,
-					Limit:           10,
-				})
-				So(err, ShouldBeNil)
-				So(listResp.TotalCount, ShouldEqual, 1)
-				So(listResp.Result, ShouldHaveLength, 1)
-				So(listResp.Result[0].Id, ShouldEqual, createResp.Id)
-				So(listResp.Result[0].Name, ShouldEqual, createReq.GatewayProfile.Name)
-				So(listResp.Result[0].NetworkServerId, ShouldEqual, n.ID)
-			})
-
-			Convey("Then List given no network-server ID lists all the gateway-profiles", func() {
-				listResp, err := api.List(ctx, &pb.ListGatewayProfilesRequest{
-					Limit: 10,
-				})
-				So(err, ShouldBeNil)
-				So(listResp.TotalCount, ShouldEqual, 1)
-				So(listResp.Result, ShouldHaveLength, 1)
-				So(listResp.Result[0].Id, ShouldEqual, createResp.Id)
-				So(listResp.Result[0].Name, ShouldEqual, createReq.GatewayProfile.Name)
-				So(listResp.Result[0].NetworkServerId, ShouldEqual, n.ID)
-			})
+			assert.Equal(codes.NotFound, grpc.Code(err))
 		})
 	})
 }

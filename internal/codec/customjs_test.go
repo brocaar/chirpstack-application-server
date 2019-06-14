@@ -1,27 +1,25 @@
 package codec
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/pkg/errors"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCustomJSDecode(t *testing.T) {
-	Convey("Given a set of tests", t, func() {
-		tests := []struct {
-			Name           string
-			Script         string
-			Payload        []byte
-			FPort          uint8
-			ExpectedObject map[string]interface{}
-			ExpectedJSON   string
-			ExpectedError  error
-		}{
-			{
-				Name: "valid function",
-				Script: `
+	tests := []struct {
+		Name           string
+		Script         string
+		Payload        []byte
+		FPort          uint8
+		ExpectedObject map[string]interface{}
+		ExpectedJSON   string
+		ExpectedError  error
+	}{
+		{
+			Name: "valid function",
+			Script: `
 					function Decode(port, bytes) {
 						return {
 							"port": port,
@@ -29,70 +27,70 @@ func TestCustomJSDecode(t *testing.T) {
 						};
 					}
 				`,
-				Payload: []byte{1},
-				FPort:   3,
-				ExpectedObject: map[string]interface{}{
-					"port": 3,
-					"on":   true,
-				},
-				ExpectedJSON: `{"on":true,"port":3}`,
+			Payload: []byte{1},
+			FPort:   3,
+			ExpectedObject: map[string]interface{}{
+				"port": 3,
+				"on":   true,
 			},
-			{
-				Name:          "function error",
-				Script:        ``,
-				Payload:       []byte{1},
-				FPort:         3,
-				ExpectedError: errors.New("js vm error: ReferenceError: 'Decode' is not defined"),
-			},
-			{
-				Name: "function timeout",
-				Script: `
+			ExpectedJSON: `{"on":true,"port":3}`,
+		},
+		{
+			Name:          "function error",
+			Script:        ``,
+			Payload:       []byte{1},
+			FPort:         3,
+			ExpectedError: errors.New("js vm error: ReferenceError: 'Decode' is not defined"),
+		},
+		{
+			Name: "function timeout",
+			Script: `
 					function Decode(fPort, bytes) {
 						while(true) {}
 					}
 				`,
-				Payload:       []byte{1},
-				FPort:         3,
-				ExpectedError: errors.New("execution timeout"),
-			},
-		}
+			Payload:       []byte{1},
+			FPort:         3,
+			ExpectedError: errors.New("execution timeout"),
+		},
+	}
 
-		for i, test := range tests {
-			Convey(fmt.Sprintf("Testing: %s [%d]", test.Name, i), func() {
-				js := NewCustomJS(test.FPort, "", test.Script)
-				err := js.DecodeBytes(test.Payload)
-				if test.ExpectedError != nil {
-					So(err, ShouldNotBeNil)
-					So(err.Error(), ShouldEqual, test.ExpectedError.Error())
-					return
-				}
+	for _, tst := range tests {
+		t.Run(tst.Name, func(t *testing.T) {
+			assert := require.New(t)
 
-				So(err, ShouldEqual, nil)
-				for k, v := range test.ExpectedObject {
-					So(js.Data.(map[string]interface{})[k], ShouldEqual, v)
-				}
+			js := NewCustomJS(tst.FPort, "", tst.Script)
+			err := js.DecodeBytes(tst.Payload)
+			if tst.ExpectedError != nil {
+				assert.Equal(tst.ExpectedError.Error(), err.Error())
+				return
+			}
 
-				b, err := js.MarshalJSON()
-				So(err, ShouldBeNil)
-				So(string(b), ShouldEqual, test.ExpectedJSON)
-			})
-		}
-	})
+			assert.NoError(err)
+
+			for k, v := range tst.ExpectedObject {
+				assert.EqualValues(v, js.Data.(map[string]interface{})[k])
+			}
+
+			b, err := js.MarshalJSON()
+			assert.NoError(err)
+			assert.Equal(tst.ExpectedJSON, string(b))
+		})
+	}
 }
 
 func TestCustomEncodeJS(t *testing.T) {
-	Convey("Given a set of tests", t, func() {
-		tests := []struct {
-			Name          string
-			Script        string
-			JSON          string
-			FPort         uint8
-			ExpectedBytes []byte
-			ExpectedError error
-		}{
-			{
-				Name: "valid function",
-				Script: `
+	tests := []struct {
+		Name          string
+		Script        string
+		JSON          string
+		FPort         uint8
+		ExpectedBytes []byte
+		ExpectedError error
+	}{
+		{
+			Name: "valid function",
+			Script: `
 					function Encode(fPort, obj) {
 						var bytes = [];
 						bytes[0] = obj.Temp;
@@ -100,78 +98,78 @@ func TestCustomEncodeJS(t *testing.T) {
 						return bytes;
 					}
 				`,
-				FPort:         10,
-				JSON:          `{"Temp": 20}`,
-				ExpectedBytes: []byte{20, 10},
-			},
-			{
-				Name: "return []int64",
-				Script: `
+			FPort:         10,
+			JSON:          `{"Temp": 20}`,
+			ExpectedBytes: []byte{20, 10},
+		},
+		{
+			Name: "return []int64",
+			Script: `
 					function Encode(fPort, obj) {
 						return [1,2,3];
 					}
 				`,
-				FPort:         10,
-				JSON:          `{"Temp": 20}`,
-				ExpectedBytes: []byte{1, 2, 3},
-			},
-			{
-				Name: "return float array",
-				Script: `
+			FPort:         10,
+			JSON:          `{"Temp": 20}`,
+			ExpectedBytes: []byte{1, 2, 3},
+		},
+		{
+			Name: "return float array",
+			Script: `
 					function Encode(fPort, obj) {
 						return [1.123, 2.234];
 					}
 				`,
-				FPort:         10,
-				JSON:          `{"Temp": 20}`,
-				ExpectedError: errors.New("array value must be in byte range (0 - 255), got: 1.123000"),
-			},
-			{
-				Name: "return invalid bytes",
-				Script: `
+			FPort:         10,
+			JSON:          `{"Temp": 20}`,
+			ExpectedError: errors.New("array value must be in byte range (0 - 255), got: 1.123000"),
+		},
+		{
+			Name: "return invalid bytes",
+			Script: `
 					function Encode(fPort, obj) {
 						return [256, 123];
 					}
 				`,
-				FPort:         10,
-				JSON:          `{"Temp": 20}`,
-				ExpectedError: errors.New("array value must be in byte range (0 - 255), got: 256"),
-			},
-			{
-				Name:          "invalid function",
-				Script:        ``,
-				FPort:         10,
-				JSON:          `{"Temp": 20}`,
-				ExpectedError: errors.New("js vm error: ReferenceError: 'Encode' is not defined"),
-			},
-			{
-				Name: "function timeout",
-				Script: `
+			FPort:         10,
+			JSON:          `{"Temp": 20}`,
+			ExpectedError: errors.New("array value must be in byte range (0 - 255), got: 256"),
+		},
+		{
+			Name:          "invalid function",
+			Script:        ``,
+			FPort:         10,
+			JSON:          `{"Temp": 20}`,
+			ExpectedError: errors.New("js vm error: ReferenceError: 'Encode' is not defined"),
+		},
+		{
+			Name: "function timeout",
+			Script: `
 					function Encode(fPort, obj) {
 						while(true) {}
 					}
 				`,
-				FPort:         10,
-				JSON:          `{"Temp": 20}`,
-				ExpectedError: errors.New("execution timeout"),
-			},
-		}
+			FPort:         10,
+			JSON:          `{"Temp": 20}`,
+			ExpectedError: errors.New("execution timeout"),
+		},
+	}
 
-		for i, test := range tests {
-			Convey(fmt.Sprintf("Testing: %s [%d]", test.Name, i), func() {
-				js := NewCustomJS(test.FPort, test.Script, "")
-				So(js.UnmarshalJSON([]byte(test.JSON)), ShouldBeNil)
+	for _, tst := range tests {
+		t.Run(tst.Name, func(t *testing.T) {
+			assert := require.New(t)
 
-				b, err := js.EncodeToBytes()
-				if test.ExpectedError != nil {
-					So(err, ShouldNotBeNil)
-					So(err.Error(), ShouldEqual, test.ExpectedError.Error())
-					return
-				}
+			js := NewCustomJS(tst.FPort, tst.Script, "")
+			assert.NoError(js.UnmarshalJSON([]byte(tst.JSON)))
 
-				So(err, ShouldEqual, nil)
-				So(b, ShouldResemble, test.ExpectedBytes)
-			})
-		}
-	})
+			b, err := js.EncodeToBytes()
+			if tst.ExpectedError != nil {
+				assert.Equal(tst.ExpectedError.Error(), err.Error())
+				return
+			}
+
+			assert.NoError(err)
+			assert.Equal(tst.ExpectedBytes, b)
+		})
+	}
 }

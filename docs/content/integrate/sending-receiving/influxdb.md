@@ -19,7 +19,7 @@ This makes it possible to directly visualize all device data using for example
 
 Before this integration is able to write data into InfluxDB, the uplink
 payloads must be decoded. The payload codec can be configured per
-[application]({{<ref "use/applications.md">}}). To validate that the uplink
+[device-profile]({{<ref "use/device-profiles.md">}}). To validate that the uplink
 payloads are decoded, you can use the [live device event-log]({{<ref "use/event-logging.md">}})
 feature. Decoded payload data will be available under the `object` key in
 the JSON object.

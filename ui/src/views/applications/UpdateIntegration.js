@@ -48,6 +48,16 @@ class UpdateIntegration extends Component {
           });
         });
         break;
+      case "thingsboard":
+        ApplicationStore.getThingsBoardIntegration(this.props.match.params.applicationID, resp => {
+          let integration = resp.integration;
+          integration.kind = "thingsboard";
+
+          this.setState({
+            integration: integration,
+          });
+        });
+        break;
       default:
         break;
     }
@@ -62,6 +72,11 @@ class UpdateIntegration extends Component {
         break;
       case "influxdb":
         ApplicationStore.updateInfluxDBIntegration(integration, resp => {
+          this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
+        });
+        break;
+      case "thingsboard":
+        ApplicationStore.updateThingsBoardIntegration(integration, resp => {
           this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
         });
         break;
@@ -80,6 +95,11 @@ class UpdateIntegration extends Component {
           break;
         case "influxdb":
           ApplicationStore.deleteInfluxDBIntegration(this.props.match.params.applicationID, resp => {
+            this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
+          });
+          break;
+        case "thingsboard":
+          ApplicationStore.deleteThingsBoardIntegration(this.props.match.params.applicationID, resp => {
             this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
           });
           break;

@@ -16,6 +16,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/integration/influxdb"
 	"github.com/brocaar/lora-app-server/internal/integration/mqtt"
 	"github.com/brocaar/lora-app-server/internal/integration/postgresql"
+	"github.com/brocaar/lora-app-server/internal/integration/thingsboard"
 	"github.com/brocaar/lora-app-server/internal/storage"
 )
 
@@ -50,6 +51,8 @@ func New(confs []interface{}) (*Integration, error) {
 			ii, err = mqtt.New(storage.RedisPool(), v)
 		case postgresql.Config:
 			ii, err = postgresql.New(v)
+		case thingsboard.Config:
+			ii, err = thingsboard.New(v)
 		default:
 			return nil, fmt.Errorf("unknown configuration type %T", conf)
 		}

@@ -54,6 +54,7 @@ type DataUpPayload struct {
 	Data            []byte            `json:"data"`
 	Object          interface{}       `json:"object,omitempty"`
 	Tags            map[string]string `json:"tags,omitempty"`
+	Variables       map[string]string `json:"-"`
 }
 
 // DataDownPayload represents a data-down payload.
@@ -75,6 +76,7 @@ type JoinNotification struct {
 	DevEUI          lorawan.EUI64     `json:"devEUI"`
 	DevAddr         lorawan.DevAddr   `json:"devAddr"`
 	Tags            map[string]string `json:"tags,omitempty"`
+	Variables       map[string]string `json:"-"`
 }
 
 // ACKNotification defines the payload sent to the application
@@ -87,6 +89,7 @@ type ACKNotification struct {
 	Acknowledged    bool              `json:"acknowledged"`
 	FCnt            uint32            `json:"fCnt"`
 	Tags            map[string]string `json:"tags,omitempty"`
+	Variables       map[string]string `json:"-"`
 }
 
 // ErrorNotification defines the payload sent to the application
@@ -100,6 +103,7 @@ type ErrorNotification struct {
 	Error           string            `json:"error"`
 	FCnt            uint32            `json:"fCnt,omitempty"`
 	Tags            map[string]string `json:"tags,omitempty"`
+	Variables       map[string]string `json:"-"`
 }
 
 // StatusNotification defines the payload sent to the application
@@ -115,6 +119,7 @@ type StatusNotification struct {
 	BatteryLevel            float32           `json:"batteryLevel"`
 	BatteryLevelUnavailable bool              `json:"batteryLevelUnavailable"`
 	Tags                    map[string]string `json:"tags,omitempty"`
+	Variables               map[string]string `json:"-"`
 }
 
 // LocationNotification defines the payload sent to the application after
@@ -126,4 +131,5 @@ type LocationNotification struct {
 	DevEUI          lorawan.EUI64     `json:"devEUI"`
 	Location        Location          `json:"location"`
 	Tags            map[string]string `json:"tags,omitempty"`
+	Variables       map[string]string `json:"-"`
 }

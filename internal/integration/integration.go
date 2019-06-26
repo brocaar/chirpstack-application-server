@@ -2,20 +2,21 @@ package integration
 
 // Handler kinds
 const (
-	HTTP     = "HTTP"
-	InfluxDB = "INFLUXDB"
+	HTTP        = "HTTP"
+	InfluxDB    = "INFLUXDB"
+	ThingsBoard = "THINGSBOARD"
 )
 
 // Integrator defines the interface that an intergration must implement.
 type Integrator interface {
-	SendDataUp(payload DataUpPayload) error                      // send data-up payload
-	SendJoinNotification(payload JoinNotification) error         // send join notification
-	SendACKNotification(payload ACKNotification) error           // send ack notification
-	SendErrorNotification(payload ErrorNotification) error       // send error notification
-	SendStatusNotification(payload StatusNotification) error     // send status notification
-	SendLocationNotification(payload LocationNotification) error // send location notofication
-	DataDownChan() chan DataDownPayload                          // returns DataDownPayload channel
-	Close() error                                                // closes the handler
+	SendDataUp(pl DataUpPayload) error                      // send data-up payload
+	SendJoinNotification(pl JoinNotification) error         // send join notification
+	SendACKNotification(pl ACKNotification) error           // send ack notification
+	SendErrorNotification(pl ErrorNotification) error       // send error notification
+	SendStatusNotification(pl StatusNotification) error     // send status notification
+	SendLocationNotification(pl LocationNotification) error // send location notofication
+	DataDownChan() chan DataDownPayload                     // returns DataDownPayload channel
+	Close() error                                           // closes the handler
 }
 
 var integration Integrator

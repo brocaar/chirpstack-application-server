@@ -95,6 +95,11 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				"foo": sql.NullString{String: "bar", Valid: true},
 			},
 		},
+		Variables: hstore.Hstore{
+			Map: map[string]sql.NullString{
+				"secret_token": sql.NullString{String: "secret value", Valid: true},
+			},
+		},
 	}
 	assert.NoError(storage.CreateDevice(storage.DB(), &d))
 
@@ -140,6 +145,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			FCnt:            123,
 			Tags: map[string]string{
 				"foo": "bar",
+			},
+			Variables: map[string]string{
+				"secret_token": "secret value",
 			},
 		}, <-h.SendErrorNotificationChan)
 	})
@@ -285,6 +293,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					Tags: map[string]string{
 						"foo": "bar",
 					},
+					Variables: map[string]string{
+						"secret_token": "secret value",
+					},
 				}, <-h.SendDataUpChan)
 			})
 
@@ -363,6 +374,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					Tags: map[string]string{
 						"foo": "bar",
 					},
+					Variables: map[string]string{
+						"secret_token": "secret value",
+					},
 				},
 			},
 			{
@@ -382,6 +396,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					Tags: map[string]string{
 						"foo": "bar",
 					},
+					Variables: map[string]string{
+						"secret_token": "secret value",
+					},
 				},
 			},
 			{
@@ -400,6 +417,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					ExternalPowerSource: true,
 					Tags: map[string]string{
 						"foo": "bar",
+					},
+					Variables: map[string]string{
+						"secret_token": "secret value",
 					},
 				},
 			},
@@ -455,6 +475,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			Tags: map[string]string{
 				"foo": "bar",
 			},
+			Variables: map[string]string{
+				"secret_token": "secret value",
+			},
 		}, <-h.SendLocationNotificationChan)
 
 		d, err := storage.GetDevice(storage.DB(), d.DevEUI, false, true)
@@ -481,6 +504,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			FCnt:            10,
 			Tags: map[string]string{
 				"foo": "bar",
+			},
+			Variables: map[string]string{
+				"secret_token": "secret value",
 			},
 		}, <-h.SendACKNotificationChan)
 	})

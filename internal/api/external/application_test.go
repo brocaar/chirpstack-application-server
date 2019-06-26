@@ -328,6 +328,70 @@ func (ts *APITestSuite) TestApplication() {
 			})
 		})
 
+		t.Run("ThingsBoardIntegration", func(t *testing.T) {
+			t.Run("Create", func(t *testing.T) {
+				assert := require.New(t)
+
+				createReq := pb.CreateThingsBoardIntegrationRequest{
+					Integration: &pb.ThingsBoardIntegration{
+						ApplicationId: createResp.Id,
+						Server:        "http://localhost:1234",
+					},
+				}
+				_, err := api.CreateThingsBoardIntegration(context.Background(), &createReq)
+				assert.NoError(err)
+
+				t.Run("Get", func(t *testing.T) {
+					assert := require.New(t)
+
+					i, err := api.GetThingsBoardIntegration(context.Background(), &pb.GetThingsBoardIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(createReq.Integration, i.Integration)
+				})
+
+				t.Run("List", func(t *testing.T) {
+					assert := require.New(t)
+
+					resp, err := api.ListIntegrations(context.Background(), &pb.ListIntegrationRequest{ApplicationId: createResp.Id})
+					assert.NoError(err)
+
+					assert.EqualValues(1, resp.TotalCount)
+					assert.Equal(pb.IntegrationKind_THINGSBOARD, resp.Result[0].Kind)
+				})
+
+				t.Run("Update", func(t *testing.T) {
+					assert := require.New(t)
+
+					updateReq := pb.UpdateThingsBoardIntegrationRequest{
+						Integration: &pb.ThingsBoardIntegration{
+							ApplicationId: createResp.Id,
+							Server:        "https://localhost:12345",
+						},
+					}
+					_, err := api.UpdateThingsBoardIntegration(context.Background(), &updateReq)
+					assert.NoError(err)
+
+					i, err := api.GetThingsBoardIntegration(context.Background(), &pb.GetThingsBoardIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(updateReq.Integration, i.Integration)
+				})
+
+				t.Run("Delete", func(t *testing.T) {
+					assert := require.New(t)
+
+					_, err := api.DeleteThingsBoardIntegration(context.Background(), &pb.DeleteThingsBoardIntegrationRequest{ApplicationId: createResp.Id})
+					assert.NoError(err)
+
+					_, err = api.GetThingsBoardIntegration(context.Background(), &pb.GetThingsBoardIntegrationRequest{ApplicationId: createResp.Id})
+					assert.Equal(codes.NotFound, grpc.Code(err))
+				})
+			})
+		})
+
 		t.Run("Delete", func(t *testing.T) {
 			assert := require.New(t)
 

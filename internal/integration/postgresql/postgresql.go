@@ -15,10 +15,12 @@ import (
 	"github.com/brocaar/lora-app-server/internal/integration"
 )
 
+// Config holds the PostgreSQL integration configuration.
 type Config struct {
 	DSN string `json:"dsn"`
 }
 
+// Integration implements a PostgreSQL integration.
 type Integration struct {
 	db *sqlx.DB
 }

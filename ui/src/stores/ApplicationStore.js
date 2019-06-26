@@ -222,7 +222,67 @@ class ApplicationStore extends EventEmitter {
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
-      ;
+    });
+  }
+
+  createThingsBoardIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.CreateThingsBoardIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+        .then(checkStatus)
+        .then(resp =>  {
+          this.integrationNotification("ThingsBoard.io", "created");
+          callbackFunc(resp.obj);
+        })
+      .catch(errorHandler);
+    });
+  }
+
+  getThingsBoardIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.GetThingsBoardIntegration({
+        application_id: applicationID, 
+      })
+        .then(checkStatus)
+        .then(resp => {
+          callbackFunc(resp.obj);
+        })
+      .catch(errorHandler);
+    });
+  }
+
+  updateThingsBoardIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.UpdateThingsBoardIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("ThingsBoard.io", "updated");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  deleteThingsBoardIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.DeleteThingsBoardIntegration({
+        application_id: applicationID,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("ThingsBoard.io", "deleted");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
     });
   }
 

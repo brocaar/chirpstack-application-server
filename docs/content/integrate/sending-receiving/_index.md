@@ -43,6 +43,7 @@ THe following integrations are available:
 
 * [HTTP]({{<relref "http.md">}})
 * [InfluxDB]({{<relref "influxdb.md">}})
+* [ThingsBoard]({{<relref "thingsboard.md">}})
 
 ### Event types
 

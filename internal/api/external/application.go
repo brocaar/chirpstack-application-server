@@ -19,6 +19,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/integration"
 	"github.com/brocaar/lora-app-server/internal/integration/http"
 	"github.com/brocaar/lora-app-server/internal/integration/influxdb"
+	"github.com/brocaar/lora-app-server/internal/integration/thingsboard"
 	"github.com/brocaar/lora-app-server/internal/storage"
 )
 
@@ -532,6 +533,125 @@ func (a *ApplicationAPI) DeleteInfluxDBIntegration(ctx context.Context, in *pb.D
 	return &empty.Empty{}, nil
 }
 
+// CreateThingsBoardIntegration creates a ThingsBoard application-integration.
+func (a *ApplicationAPI) CreateThingsBoardIntegration(ctx context.Context, in *pb.CreateThingsBoardIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Integration.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	conf := thingsboard.Config{
+		Server: in.Integration.Server,
+	}
+	if err := conf.Validate(); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	integration := storage.Integration{
+		ApplicationID: in.Integration.ApplicationId,
+		Kind:          integration.ThingsBoard,
+		Settings:      confJSON,
+	}
+	if err := storage.CreateIntegration(storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// GetThingsBoardIntegration returns the ThingsBoard application-integration.
+func (a *ApplicationAPI) GetThingsBoardIntegration(ctx context.Context, in *pb.GetThingsBoardIntegrationRequest) (*pb.GetThingsBoardIntegrationResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(storage.DB(), in.ApplicationId, integration.ThingsBoard)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	var conf thingsboard.Config
+	if err = json.Unmarshal(integration.Settings, &conf); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &pb.GetThingsBoardIntegrationResponse{
+		Integration: &pb.ThingsBoardIntegration{
+			ApplicationId: in.ApplicationId,
+			Server:        conf.Server,
+		},
+	}, nil
+}
+
+// UpdateThingsBoardIntegration updates the ThingsBoard application-integration.
+func (a *ApplicationAPI) UpdateThingsBoardIntegration(ctx context.Context, in *pb.UpdateThingsBoardIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Integration.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(storage.DB(), in.Integration.ApplicationId, integration.ThingsBoard)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	conf := thingsboard.Config{
+		Server: in.Integration.Server,
+	}
+	if err := conf.Validate(); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	integration.Settings = confJSON
+	if err = storage.UpdateIntegration(storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// DeleteThingsBoardIntegration deletes the ThingsBoard application-integration.
+func (a *ApplicationAPI) DeleteThingsBoardIntegration(ctx context.Context, in *pb.DeleteThingsBoardIntegrationRequest) (*empty.Empty, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(storage.DB(), in.ApplicationId, integration.ThingsBoard)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if err = storage.DeleteIntegration(storage.DB(), integration.ID); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
 // ListIntegrations lists all configured integrations.
 func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegrationRequest) (*pb.ListIntegrationResponse, error) {
 	if err := a.validator.Validate(ctx,
@@ -555,6 +675,8 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_HTTP})
 		case integration.InfluxDB:
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_INFLUXDB})
+		case integration.ThingsBoard:
+			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_THINGSBOARD})
 		default:
 			return nil, grpc.Errorf(codes.Internal, "unknown integration kind: %s", intgr.Kind)
 		}

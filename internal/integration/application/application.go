@@ -12,6 +12,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/integration/http"
 	"github.com/brocaar/lora-app-server/internal/integration/influxdb"
 	"github.com/brocaar/lora-app-server/internal/integration/multi"
+	"github.com/brocaar/lora-app-server/internal/integration/thingsboard"
 	"github.com/brocaar/lora-app-server/internal/storage"
 )
 
@@ -123,6 +124,12 @@ func (i *Integration) getApplicationIntegration(id int64) (integration.Integrato
 			var conf influxdb.Config
 			if err := json.NewDecoder(bytes.NewReader(appint.Settings)).Decode(&conf); err != nil {
 				return nil, errors.Wrap(err, "decode http integration config error")
+			}
+			configs = append(configs, conf)
+		case integration.ThingsBoard:
+			var conf thingsboard.Config
+			if err := json.NewDecoder(bytes.NewReader(appint.Settings)).Decode(&conf); err != nil {
+				return nil, errors.Wrap(err, "decode thingsboard integration config error")
 			}
 			configs = append(configs, conf)
 		default:

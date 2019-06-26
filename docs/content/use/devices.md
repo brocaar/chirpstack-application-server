@@ -26,6 +26,13 @@ are provisioned on the same [network-server]({{<relref "network-servers.md">}})
 as the [service-profile]({{<relref "service-profiles.md">}}) which is assigned
 to the [application]({{<relref "applications.md">}}) above the device.
 
+### Tags and variables
+
+Each device can have multiple user-defined tags and variables assigned.
+Variables are used for integrations and can for example contain API tokens.
+Tags are exposed when LoRa App Server published device events and can be used
+to add additional meta-data, e.g. for aggregation.
+
 ## Activation
 
 ### OTAA devices

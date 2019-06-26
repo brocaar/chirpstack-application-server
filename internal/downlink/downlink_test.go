@@ -1,11 +1,13 @@
 package downlink
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"testing"
 
 	"github.com/gofrs/uuid"
+	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -75,6 +77,16 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			DeviceProfileID: dpID,
 			Name:            "test-node",
 			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
+			Tags: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{String: "bar", Valid: true},
+				},
+			},
+			Variables: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"secret_token": sql.NullString{String: "secret value", Valid: true},
+				},
+			},
 		}
 		So(storage.CreateDevice(storage.DB(), &device), ShouldBeNil)
 

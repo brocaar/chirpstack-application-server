@@ -151,6 +151,20 @@ func logCodecError(a storage.Application, d storage.Device, err error) {
 		DevEUI:          d.DevEUI,
 		Type:            "CODEC",
 		Error:           err.Error(),
+		Tags:            make(map[string]string),
+		Variables:       make(map[string]string),
+	}
+
+	for k, v := range d.Tags.Map {
+		if v.Valid {
+			errNotification.Tags[k] = v.String
+		}
+	}
+
+	for k, v := range d.Variables.Map {
+		if v.Valid {
+			errNotification.Variables[k] = v.String
+		}
 	}
 
 	if err := eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{

@@ -256,6 +256,58 @@
         ]
       }
     },
+    "/api/applications/{application_id}/integrations/thingsboard": {
+      "get": {
+        "summary": "GetThingsBoardIntegration returns the ThingsBoard application-integration.",
+        "operationId": "GetThingsBoardIntegration",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetThingsBoardIntegrationResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "application_id",
+            "description": "Application ID.",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "ApplicationService"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteThingsBoardIntegration deletes the ThingsBoard application-integration.",
+        "operationId": "DeleteThingsBoardIntegration",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "application_id",
+            "description": "Application ID.",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "ApplicationService"
+        ]
+      }
+    },
     "/api/applications/{id}": {
       "get": {
         "summary": "Get returns the requested application.",
@@ -443,6 +495,74 @@
           "ApplicationService"
         ]
       }
+    },
+    "/api/applications/{integration.application_id}/integrations/thingsboard": {
+      "post": {
+        "summary": "CreateThingsBoardIntegration creates a ThingsBoard application-integration.",
+        "operationId": "CreateThingsBoardIntegration",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "integration.application_id",
+            "description": "Application ID.",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateThingsBoardIntegrationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ApplicationService"
+        ]
+      },
+      "put": {
+        "summary": "UpdateThingsBoardIntegration updates the ThingsBoard application-integration.",
+        "operationId": "UpdateThingsBoardIntegration",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "integration.application_id",
+            "description": "Application ID.",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateThingsBoardIntegrationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ApplicationService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -553,6 +673,15 @@
         }
       }
     },
+    "apiCreateThingsBoardIntegrationRequest": {
+      "type": "object",
+      "properties": {
+        "integration": {
+          "$ref": "#/definitions/apiThingsBoardIntegration",
+          "description": "Integration object to create."
+        }
+      }
+    },
     "apiGetApplicationResponse": {
       "type": "object",
       "properties": {
@@ -576,6 +705,15 @@
       "properties": {
         "integration": {
           "$ref": "#/definitions/apiInfluxDBIntegration",
+          "description": "Integration object."
+        }
+      }
+    },
+    "apiGetThingsBoardIntegrationResponse": {
+      "type": "object",
+      "properties": {
+        "integration": {
+          "$ref": "#/definitions/apiThingsBoardIntegration",
           "description": "Integration object."
         }
       }
@@ -684,7 +822,8 @@
       "type": "string",
       "enum": [
         "HTTP",
-        "INFLUXDB"
+        "INFLUXDB",
+        "THINGSBOARD"
       ],
       "default": "HTTP"
     },
@@ -731,6 +870,20 @@
         }
       }
     },
+    "apiThingsBoardIntegration": {
+      "type": "object",
+      "properties": {
+        "applicationID": {
+          "type": "string",
+          "format": "int64",
+          "description": "Application ID."
+        },
+        "server": {
+          "type": "string",
+          "title": "ThingsBoard server endpoint, e.g. https://example.com"
+        }
+      }
+    },
     "apiUpdateApplicationRequest": {
       "type": "object",
       "properties": {
@@ -754,6 +907,15 @@
       "properties": {
         "integration": {
           "$ref": "#/definitions/apiInfluxDBIntegration",
+          "description": "Integration object."
+        }
+      }
+    },
+    "apiUpdateThingsBoardIntegrationRequest": {
+      "type": "object",
+      "properties": {
+        "integration": {
+          "$ref": "#/definitions/apiThingsBoardIntegration",
           "description": "Integration object."
         }
       }

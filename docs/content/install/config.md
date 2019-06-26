@@ -169,6 +169,7 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # * aws_sns           - AWS Simple Notification Service (SNS)
   # * azure_service_bus - Azure Service-Bus
   # * gcp_pub_sub       - Google Cloud Pub/Sub
+  # * postgresql        - PostgreSQL database
   enabled=["mqtt"]
 
 
@@ -302,6 +303,12 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
   # Pub/Sub topic name.
   topic_name=""
+
+
+  # PostgreSQL database integration.
+  [application_server.integration.postgresql]
+  # PostgreSQL dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable).
+  dsn=""
 
 
   # Settings for the "internal api"

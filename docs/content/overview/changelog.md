@@ -10,6 +10,61 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
+## v3.1.0
+
+### Features
+
+#### Device variables and tags
+
+Device variables and tags are user-defined key/value values that can be
+assigned to devices. Tags can be used to add additional meta-data to devices
+and variables can be used for configured integrations (e.g. ThingsBoard
+requires a per-device Access Token).
+
+#### PostgreSQL integration
+
+When configured in the `lora-app-server.toml` configuration file, this
+integration will write events into a PostgreSQL database. See the
+[PostgreSQL Integration](https://www.loraserver.io/lora-app-server/integrate/sending-receiving/postgresql/)
+documentation for more information.
+
+#### ThingsBoard integration
+
+When configured as Application integration, this integration will write
+attributes and telemetry to the configured ThingsBoard instance. See the
+[ThingsBoard Integration](https://www.loraserver.io/lora-app-server/integrate/sending-receiving/thingsboard/)
+documentation for more information.
+
+### Improvements
+
+* Speedup login with default admin / admin credentials (for low CPU power devices). ([#320](https://github.com/brocaar/lora-app-server/issues/320))
+* Gateway ID, FPGA ID and AES-key widgets have been updated.
+
+### Bugfixes
+
+* Fix Gen Application Key is no longer a mandatory field. ([#322](https://github.com/brocaar/lora-app-server/issues/322))
+* Fix create organization user. ([#323](https://github.com/brocaar/lora-app-server/issues/323))
+
+### Upgrading
+
+Before upgrading, you must enable the `hstore` extension for the LoRa App Server
+PostgreSQL database. Example commands assuming the database is named `loraserver_as`:
+
+{{<highlight bash>}}
+sudo -u postgres psql
+{{< /highlight >}}
+
+Within the PostgreSQL prompt, enter the following queries:
+
+{{<highlight sql>}}
+-- change to loraserver_as database and enable extension
+\c loraserver_as
+create extension hstore;
+
+-- exit the prompt
+\q
+{{< /highlight >}}
+
 ## v3.0.0
 
 ### Features

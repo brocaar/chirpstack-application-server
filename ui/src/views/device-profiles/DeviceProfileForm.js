@@ -387,9 +387,10 @@ function Decode(fPort, bytes) {
                 />
               }
             />
+            <FormHelperText>Select this option when the device will operate as Class-C device immediately after activation. In case it sends a DeviceModeInd mac-command when it changes to Class-C, do not select this option.</FormHelperText>
           </FormControl>
 
-          {this.state.object.supportsClassC && <TextField
+          <TextField
             id="classCTimeout"
             label="Class-C confirmed downlink timeout"
             type="number"
@@ -399,7 +400,7 @@ function Decode(fPort, bytes) {
             helperText="Class-C timeout (in seconds) for confirmed downlink transmissions."
             required
             fullWidth
-          />}
+          />
         </div>}
 
         {this.state.tab === 4 && <div>

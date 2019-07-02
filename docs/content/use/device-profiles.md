@@ -19,6 +19,9 @@ When creating a device-profile, LoRa App Server will create the actual
 profile on the selected network-server, and will keep a reference record
 so it knows to which organization it belongs.
 
+**Note:** changes made to some of the fields will require the reactivation
+of the device.
+
 ## Payload codecs
 
 **Note:** the raw `base64` encoded payload will always be available, even when

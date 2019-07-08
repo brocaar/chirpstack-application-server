@@ -39,6 +39,7 @@ documentation for more information.
 
 * Speedup login with default admin / admin credentials (for low CPU power devices). ([#320](https://github.com/brocaar/lora-app-server/issues/320))
 * Gateway ID, FPGA ID and AES-key widgets have been updated.
+* Always display Class-C timeout field in Device Profile.
 
 ### Bugfixes
 

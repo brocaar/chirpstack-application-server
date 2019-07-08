@@ -21,6 +21,41 @@ using the [PostgreSQL Data Source](https://grafana.com/docs/features/datasources
 * This may generate a lot of data depending the number of devices and number
   of messages sent per device.
 
+## Create database example
+
+Please see below an example for creating the PostgreSQL database. Depending
+your PostgreSQL installation, these commands might be different.
+
+Enter the PostgreSQL as the `postgres` user:
+
+{{<highlight bash>}}
+sudo -u postgres psql
+{{< /highlight >}}
+
+Within the PostgreSQL prompt, enter the following queries:
+
+{{<highlight sql>}}
+-- create the loraserver_as_events user
+create role loraserver_as_events with login password 'dbpassword';
+
+-- create the loraserver_as_events database
+create database loraserver_as_events with owner loraserver_as_events;
+
+-- enable the hstore extension
+\c loraserver_as_events
+create extension hstore;
+
+-- exit the prompt
+\q
+{{< /highlight >}}
+
+To verify if the user and database have been setup correctly, try to connect
+to it:
+
+{{<highlight bash>}}
+psql -h localhost -U loraserver_as_events -W loraserver_as_events
+{{< /highlight >}}
+
 ## Events
 
 ### Uplink data
@@ -47,7 +82,7 @@ create table device_up (
 	object jsonb not null
 );
 
--- NOTE: These are recommended indices, depending on how this table is being
+-- NOTE: These are example indices, depending on how this table is being
 -- used, you might want to change these.
 create index idx_device_up_received_at on device_up(received_at);
 create index idx_device_up_dev_eui on device_up(dev_eui);
@@ -77,7 +112,7 @@ create table device_status (
 	tags hstore not null
 );
 
--- NOTE: These are recommended indices, depending on how this table is being
+-- NOTE: These are example indices, depending on how this table is being
 -- used, you might want to change these.
 create index idx_device_status_received_at on device_status(received_at);
 create index idx_device_status_dev_eui on device_status(dev_eui);
@@ -102,7 +137,7 @@ create table device_join (
 	tags hstore not null
 );
 
--- NOTE: These are recommended indices, depending on how this table is being
+-- NOTE: These are example indices, depending on how this table is being
 -- used, you might want to change these.
 create index idx_device_join_received_at on device_join(received_at);
 create index idx_device_join_dev_eui on device_join(dev_eui);
@@ -128,7 +163,7 @@ create table device_ack (
 	tags hstore not null
 );
 
--- NOTE: These are recommended indices, depending on how this table is being
+-- NOTE: These are example indices, depending on how this table is being
 -- used, you might want to change these.
 create index idx_device_ack_received_at on device_ack(received_at);
 create index idx_device_ack_dev_eui on device_ack(dev_eui);
@@ -155,7 +190,7 @@ create table device_error (
 	tags hstore not null
 );
 
--- NOTE: These are recommended indices, depending on how this table is being
+-- NOTE: These are example indices, depending on how this table is being
 -- used, you might want to change these.
 create index idx_device_error_received_at on device_error(received_at);
 create index idx_device_error_dev_eui on device_error(dev_eui);
@@ -186,7 +221,7 @@ create table device_location (
 	accuracy smallint not null
 );
 
--- NOTE: These are recommended indices, depending on how this table is being
+-- NOTE: These are example indices, depending on how this table is being
 -- used, you might want to change these.
 create index idx_device_location_received_at on device_location(received_at);
 create index idx_device_location_dev_eui on device_location(dev_eui);

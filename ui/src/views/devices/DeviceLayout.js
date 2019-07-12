@@ -22,6 +22,8 @@ import DeviceKeys from "./DeviceKeys";
 import DeviceActivation from "./DeviceActivation"
 import DeviceData from "./DeviceData";
 import DeviceFrames from "./DeviceFrames";
+import ListFUOTADeploymentsForDevice from "../../views/fuota/ListFUOTADeploymentsForDevice";
+import DeviceDetails from "./DeviceDetails";
 
 import theme from "../../theme";
 
@@ -29,8 +31,7 @@ import theme from "../../theme";
 const styles = {
   tabs: {
     borderBottom: "1px solid " + theme.palette.divider,
-    height: "48px",
-    overflow: "visible",
+    height: "49px",
   },
 };
 
@@ -47,6 +48,7 @@ class DeviceLayout extends Component {
     this.deleteDevice = this.deleteDevice.bind(this);
     this.locationToTab = this.locationToTab.bind(this);
     this.setIsAdmin = this.setIsAdmin.bind(this);
+    this.getDevice = this.getDevice.bind(this);
   }
 
   componentDidMount() {
@@ -56,6 +58,29 @@ class DeviceLayout extends Component {
       });
     });
 
+
+    DeviceStore.on("update", this.getDevice);
+    SessionStore.on("change", this.setIsAdmin);
+
+    this.locationToTab();
+    this.setIsAdmin();
+    this.getDevice();
+  }
+
+  componentWillUnmount() {
+    SessionStore.removeListener("change", this.setIsAdmin);
+    DeviceStore.removeListener("update", this.getDevice);
+  }
+
+  componentDidUpdate(oldProps) {
+    if (this.props === oldProps) {
+      return;
+    }
+
+    this.locationToTab();
+  }
+
+  getDevice() {
     DeviceStore.get(this.props.match.params.devEUI, resp => {
       this.setState({
         device: resp,
@@ -67,15 +92,6 @@ class DeviceLayout extends Component {
         });
       });
     });
-
-    SessionStore.on("change", this.setIsAdmin);
-
-    this.locationToTab();
-    this.setIsAdmin();
-  }
-
-  componentWillUnmount() {
-    SessionStore.removeListener("change", this.setIsAdmin);
   }
 
   setIsAdmin() {
@@ -96,17 +112,21 @@ class DeviceLayout extends Component {
   locationToTab() {
     let tab = 0;
 
-    if (window.location.href.endsWith("/keys")) {
+    if (window.location.href.endsWith("/edit")) {
       tab = 1;
-    } else if (window.location.href.endsWith("/activation")) {
+    } else if (window.location.href.endsWith("/keys")) {
       tab = 2;
-    } else if (window.location.href.endsWith("/data")) {
+    } else if (window.location.href.endsWith("/activation")) {
       tab = 3;
-    } else if (window.location.href.endsWith("/frames")) {
+    } else if (window.location.href.endsWith("/data")) {
       tab = 4;
+    } else if (window.location.href.endsWith("/frames")) {
+      tab = 5;
+    } else if (window.location.href.endsWith("/fuota-deployments")) {
+      tab = 6;
     }
 
-    if (tab > 0 && !this.state.admin) {
+    if (tab > 1 && !this.state.admin) {
       tab = tab - 1;
     }
 
@@ -157,22 +177,28 @@ class DeviceLayout extends Component {
             onChange={this.onChangeTab}
             indicatorColor="primary"
             className={this.props.classes.tabs}
+                        variant="scrollable"
+            scrollButtons="auto"
           >
-            <Tab label="Configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}`} />
+            <Tab label="Details" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}`} />
+            <Tab label="Configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/edit`} />
             {this.state.admin && <Tab label="Keys (OTAA)" disabled={!this.state.deviceProfile.deviceProfile.supportsJoin} component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/keys`} />}
             <Tab label="Activation" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/activation`} />
-            <Tab label="Live device data" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/data`} />
-            <Tab label="Live LoRaWAN Frames" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/frames`} />
+            <Tab label="Device data" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/data`} />
+            <Tab label="LoRaWAN Frames" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/frames`} />
+            <Tab label="Firmware" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/fuota-deployments`} />
           </Tabs>
         </Grid>
 
         <Grid item xs={12}>
           <Switch>
-            <Route exact path={`${this.props.match.path}`} render={props => <UpdateDevice device={this.state.device.device} admin={this.state.admin} {...props} />} />
+            <Route exact path={`${this.props.match.path}`} render={props => <DeviceDetails device={this.state.device} deviceProfile={this.state.deviceProfile} admin={this.state.admin} {...props} />} />
+            <Route exact path={`${this.props.match.path}/edit`} render={props => <UpdateDevice device={this.state.device.device} admin={this.state.admin} {...props} />} />
             <Route exact path={`${this.props.match.path}/keys`} render={props => <DeviceKeys device={this.state.device.device} admin={this.state.admin} deviceProfile={this.state.deviceProfile.deviceProfile} {...props} />} />
             <Route exact path={`${this.props.match.path}/activation`} render={props => <DeviceActivation device={this.state.device.device} admin={this.state.admin} deviceProfile={this.state.deviceProfile.deviceProfile} {...props} />} />
             <Route exact path={`${this.props.match.path}/data`} render={props => <DeviceData device={this.state.device.device} admin={this.state.admin} {...props} />} />
             <Route exact path={`${this.props.match.path}/frames`} render={props => <DeviceFrames device={this.state.device.device} admin={this.state.admin} {...props} />} />
+            <Route exact path={`${this.props.match.path}/fuota-deployments`} render={props => <ListFUOTADeploymentsForDevice device={this.state.device.device} admin={this.state.admin} {...props} /> } />
           </Switch>
         </Grid>
       </Grid>

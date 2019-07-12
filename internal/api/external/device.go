@@ -1,6 +1,7 @@
 package external
 
 import (
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -72,6 +74,20 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*e
 		Description:       req.Device.Description,
 		SkipFCntCheck:     req.Device.SkipFCntCheck,
 		ReferenceAltitude: req.Device.ReferenceAltitude,
+		Variables: hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		},
+		Tags: hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		},
+	}
+
+	for k, v := range req.Device.Variables {
+		d.Variables.Map[k] = sql.NullString{String: v, Valid: true}
+	}
+
+	for k, v := range req.Device.Tags {
+		d.Tags.Map[k] = sql.NullString{String: v, Valid: true}
 	}
 
 	// as this also performs a remote call to create the node on the
@@ -112,6 +128,8 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 			DeviceProfileId:   d.DeviceProfileID.String(),
 			SkipFCntCheck:     d.SkipFCntCheck,
 			ReferenceAltitude: d.ReferenceAltitude,
+			Variables:         make(map[string]string),
+			Tags:              make(map[string]string),
 		},
 
 		DeviceStatusBattery: 256,
@@ -137,6 +155,18 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 			Longitude: *d.Longitude,
 			Altitude:  *d.Altitude,
 			Source:    common.LocationSource_GEO_RESOLVER,
+		}
+	}
+
+	for k, v := range d.Variables.Map {
+		if v.Valid {
+			resp.Device.Variables[k] = v.String
+		}
+	}
+
+	for k, v := range d.Tags.Map {
+		if v.Valid {
+			resp.Device.Tags[k] = v.String
 		}
 	}
 
@@ -249,16 +279,51 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*e
 	}
 
 	err = storage.Transaction(func(tx sqlx.Ext) error {
-		d, err := storage.GetDevice(storage.DB(), devEUI, true, false)
+		d, err := storage.GetDevice(tx, devEUI, true, false)
 		if err != nil {
 			return helpers.ErrToRPCError(err)
 		}
 
+		// If the device is moved to a different application, validate that
+		// the new application is assigned to the same service-profile.
+		// This to guarantee that the new application is still on the same
+		// network-server and is not assigned to a different organization.
+		if req.Device.ApplicationId != d.ApplicationID {
+			appOld, err := storage.GetApplication(tx, d.ApplicationID)
+			if err != nil {
+				return helpers.ErrToRPCError(err)
+			}
+
+			appNew, err := storage.GetApplication(tx, req.Device.ApplicationId)
+			if err != nil {
+				return helpers.ErrToRPCError(err)
+			}
+
+			if appOld.ServiceProfileID != appNew.ServiceProfileID {
+				return grpc.Errorf(codes.InvalidArgument, "when moving a device from application A to B, both A and B must share the same service-profile")
+			}
+		}
+
+		d.ApplicationID = req.Device.ApplicationId
 		d.DeviceProfileID = dpID
 		d.Name = req.Device.Name
 		d.Description = req.Device.Description
 		d.SkipFCntCheck = req.Device.SkipFCntCheck
 		d.ReferenceAltitude = req.Device.ReferenceAltitude
+		d.Variables = hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		}
+		d.Tags = hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		}
+
+		for k, v := range req.Device.Variables {
+			d.Variables.Map[k] = sql.NullString{String: v, Valid: true}
+		}
+
+		for k, v := range req.Device.Tags {
+			d.Tags.Map[k] = sql.NullString{String: v, Valid: true}
+		}
 
 		if err := storage.UpdateDevice(tx, &d, false); err != nil {
 			return helpers.ErrToRPCError(err)
@@ -311,11 +376,22 @@ func (a *DeviceAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequ
 		}
 	}
 
+	// genAppKey is only for LoRaWAN 1.0 devices that implement the
+	// remote multicast setup specification.
+	var genAppKey lorawan.AES128Key
+	if req.DeviceKeys.GenAppKey != "" {
+		if err := genAppKey.UnmarshalText([]byte(req.DeviceKeys.GenAppKey)); err != nil {
+			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+		}
+	}
+
+	// nwkKey
 	var nwkKey lorawan.AES128Key
 	if err := nwkKey.UnmarshalText([]byte(req.DeviceKeys.NwkKey)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
+	// devEUI
 	var eui lorawan.EUI64
 	if err := eui.UnmarshalText([]byte(req.DeviceKeys.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
@@ -328,9 +404,10 @@ func (a *DeviceAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequ
 	}
 
 	err := storage.CreateDeviceKeys(storage.DB(), &storage.DeviceKeys{
-		DevEUI: eui,
-		NwkKey: nwkKey,
-		AppKey: appKey,
+		DevEUI:    eui,
+		NwkKey:    nwkKey,
+		AppKey:    appKey,
+		GenAppKey: genAppKey,
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -359,9 +436,10 @@ func (a *DeviceAPI) GetKeys(ctx context.Context, req *pb.GetDeviceKeysRequest) (
 
 	return &pb.GetDeviceKeysResponse{
 		DeviceKeys: &pb.DeviceKeys{
-			DevEui: eui.String(),
-			AppKey: dk.AppKey.String(),
-			NwkKey: dk.NwkKey.String(),
+			DevEui:    eui.String(),
+			AppKey:    dk.AppKey.String(),
+			NwkKey:    dk.NwkKey.String(),
+			GenAppKey: dk.GenAppKey.String(),
 		},
 	}, nil
 }
@@ -376,6 +454,15 @@ func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequ
 	// appKey is not used for LoRaWAN 1.0
 	if req.DeviceKeys.AppKey != "" {
 		if err := appKey.UnmarshalText([]byte(req.DeviceKeys.AppKey)); err != nil {
+			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+		}
+	}
+
+	// genAppKey is only for LoRaWAN 1.0 devices that implement the
+	// remote multicast setup specification.
+	var genAppKey lorawan.AES128Key
+	if req.DeviceKeys.GenAppKey != "" {
+		if err := genAppKey.UnmarshalText([]byte(req.DeviceKeys.GenAppKey)); err != nil {
 			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 		}
 	}
@@ -402,6 +489,7 @@ func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequ
 	}
 	dk.NwkKey = nwkKey
 	dk.AppKey = appKey
+	dk.GenAppKey = genAppKey
 
 	err = storage.UpdateDeviceKeys(storage.DB(), &dk)
 	if err != nil {
@@ -508,7 +596,7 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	dp, err := storage.GetDeviceProfile(storage.DB(), d.DeviceProfileID)
+	dp, err := storage.GetDeviceProfile(storage.DB(), d.DeviceProfileID, false, false)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -866,7 +954,6 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 				GatewayId:         mac.String(),
 				Time:              rxInfo.Time,
 				TimeSinceGpsEpoch: rxInfo.TimeSinceGpsEpoch,
-				Timestamp:         rxInfo.Timestamp,
 				Rssi:              rxInfo.Rssi,
 				LoraSnr:           rxInfo.LoraSnr,
 				Channel:           rxInfo.Channel,
@@ -875,6 +962,7 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 				Antenna:           rxInfo.Antenna,
 				Location:          rxInfo.Location,
 				FineTimestampType: rxInfo.FineTimestampType,
+				Context:           rxInfo.Context,
 			}
 
 			switch rxInfo.FineTimestampType {
@@ -914,15 +1002,14 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 			copy(mac[:], down.TxInfo.GatewayId[:])
 
 			downlinkFrameLog.TxInfo = &pb.DownlinkTXInfo{
-				GatewayId:         mac.String(),
-				Immediately:       down.TxInfo.Immediately,
-				TimeSinceGpsEpoch: down.TxInfo.TimeSinceGpsEpoch,
-				Timestamp:         down.TxInfo.Timestamp,
-				Frequency:         down.TxInfo.Frequency,
-				Power:             down.TxInfo.Power,
-				Modulation:        down.TxInfo.Modulation,
-				Board:             down.TxInfo.Board,
-				Antenna:           down.TxInfo.Antenna,
+				GatewayId:  mac.String(),
+				Frequency:  down.TxInfo.Frequency,
+				Power:      down.TxInfo.Power,
+				Modulation: down.TxInfo.Modulation,
+				Board:      down.TxInfo.Board,
+				Antenna:    down.TxInfo.Antenna,
+				Timing:     down.TxInfo.Timing,
+				Context:    down.TxInfo.Context,
 			}
 
 			if lora := down.TxInfo.GetLoraModulationInfo(); lora != nil {
@@ -934,6 +1021,24 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 			if fsk := down.TxInfo.GetFskModulationInfo(); fsk != nil {
 				downlinkFrameLog.TxInfo.ModulationInfo = &pb.DownlinkTXInfo_FskModulationInfo{
 					FskModulationInfo: fsk,
+				}
+			}
+
+			if ti := down.TxInfo.GetImmediatelyTimingInfo(); ti != nil {
+				downlinkFrameLog.TxInfo.TimingInfo = &pb.DownlinkTXInfo_ImmediatelyTimingInfo{
+					ImmediatelyTimingInfo: ti,
+				}
+			}
+
+			if ti := down.TxInfo.GetDelayTimingInfo(); ti != nil {
+				downlinkFrameLog.TxInfo.TimingInfo = &pb.DownlinkTXInfo_DelayTimingInfo{
+					DelayTimingInfo: ti,
+				}
+			}
+
+			if ti := down.TxInfo.GetGpsEpochTimingInfo(); ti != nil {
+				downlinkFrameLog.TxInfo.TimingInfo = &pb.DownlinkTXInfo_GpsEpochTimingInfo{
+					GpsEpochTimingInfo: ti,
 				}
 			}
 		}

@@ -7,6 +7,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/integration/azureservicebus"
 	"github.com/brocaar/lora-app-server/internal/integration/gcppubsub"
 	"github.com/brocaar/lora-app-server/internal/integration/mqtt"
+	"github.com/brocaar/lora-app-server/internal/integration/postgresql"
 )
 
 // Config defines the configuration structure.
@@ -43,6 +44,7 @@ type Config struct {
 			AzureServiceBus azureservicebus.Config `mapstructure:"azure_service_bus"`
 			MQTT            mqtt.Config            `mapstructure:"mqtt"`
 			GCPPubSub       gcppubsub.Config       `mapstructure:"gcp_pub_sub"`
+			PostgreSQL      postgresql.Config      `mapstructure:"postgresql"`
 		}
 
 		API struct {
@@ -61,6 +63,23 @@ type Config struct {
 			DisableAssignExistingUsers bool   `mapstructure:"disable_assign_existing_users"`
 			CORSAllowOrigin            string `mapstructure:"cors_allow_origin"`
 		} `mapstructure:"external_api"`
+
+		RemoteMulticastSetup struct {
+			SyncInterval  time.Duration `mapstructure:"sync_interval"`
+			SyncRetries   int           `mapstructure:"sync_retries"`
+			SyncBatchSize int           `mapstructure:"sync_batch_size"`
+		} `mapstructure:"remote_multicast_setup"`
+
+		FragmentationSession struct {
+			SyncInterval  time.Duration `mapstructure:"sync_interval"`
+			SyncRetries   int           `mapstructure:"sync_retries"`
+			SyncBatchSize int           `mapstructure:"sync_batch_size"`
+		} `mapstructure:"fragmentation_session"`
+
+		FUOTADeployment struct {
+			McGroupID int `mapstructure:"mc_group_id"`
+			FragIndex int `mapstructure:"frag_index"`
+		} `mapstructure:"fuota_deployment"`
 
 		Branding struct {
 			Header       string

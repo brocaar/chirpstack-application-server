@@ -1,10 +1,12 @@
 package storage
 
 import (
+	"database/sql"
 	"testing"
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/lib/pq/hstore"
 	"github.com/stretchr/testify/require"
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
@@ -117,6 +119,16 @@ func (ts *StorageTestSuite) TestDevice() {
 			DeviceStatusMargin:  &eleven,
 			SkipFCntCheck:       true,
 			ReferenceAltitude:   5.6,
+			Variables: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"var_1": sql.NullString{String: "test value", Valid: true},
+				},
+			},
+			Tags: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{String: "bar", Valid: true},
+				},
+			},
 		}
 		assert.NoError(CreateDevice(ts.Tx(), &d))
 		d.CreatedAt = d.CreatedAt.UTC().Truncate(time.Millisecond)
@@ -186,12 +198,16 @@ func (ts *StorageTestSuite) TestDevice() {
 			lat := float64(1.123)
 			long := float64(2.123)
 			alt := float64(3.123)
+			dr := 3
 
 			d.Name = "updated-test-device"
 			d.DeviceProfileID = dp2ID
 			d.Latitude = &lat
 			d.Longitude = &long
 			d.Altitude = &alt
+			d.DR = &dr
+			d.Variables.Map["var_2"] = sql.NullString{String: "test var 2", Valid: true}
+			d.Tags.Map["bar"] = sql.NullString{String: "foo", Valid: true}
 
 			assert.NoError(UpdateDevice(ts.Tx(), &d, false))
 			d.UpdatedAt = d.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -226,6 +242,7 @@ func (ts *StorageTestSuite) TestDevice() {
 				DevEUI:    d.DevEUI,
 				NwkKey:    lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
 				AppKey:    lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
+				GenAppKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 8, 7, 6, 5, 4, 3, 2, 1},
 				JoinNonce: 1234,
 			}
 			assert.NoError(CreateDeviceKeys(ts.Tx(), &dk))
@@ -248,6 +265,7 @@ func (ts *StorageTestSuite) TestDevice() {
 
 				dk.NwkKey = lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
 				dk.AppKey = lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1}
+				dk.GenAppKey = lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 1, 2, 3, 4, 5, 6, 7, 8}
 				dk.JoinNonce = 1235
 				assert.NoError(UpdateDeviceKeys(ts.Tx(), &dk))
 				dk.UpdatedAt = dk.UpdatedAt.UTC().Truncate(time.Millisecond)

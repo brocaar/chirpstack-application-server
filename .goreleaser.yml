@@ -36,6 +36,8 @@ nfpm:
     "packaging/files/lora-app-server.rotate": "/etc/logrotate.d/lora-app-server"
     "packaging/files/lora-app-server.init": "/usr/lib/lora-app-server/scripts/lora-app-server.init"
     "packaging/files/lora-app-server.service": "/usr/lib/lora-app-server/scripts/lora-app-server.service"
+  config_files:
+    "packaging/files/lora-app-server.toml": "/etc/lora-app-server/lora-app-server.toml"
   scripts:
     postinstall: "packaging/scripts/post-install.sh"
     postremove: "packaging/scripts/post-remove.sh"

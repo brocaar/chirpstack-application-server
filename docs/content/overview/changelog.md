@@ -10,6 +10,108 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
+## v3.1.0
+
+### Features
+
+#### Device variables and tags
+
+Device variables and tags are user-defined key/value values that can be
+assigned to devices. Tags can be used to add additional meta-data to devices
+and variables can be used for configured integrations (e.g. ThingsBoard
+requires a per-device Access Token).
+
+#### PostgreSQL integration
+
+When configured in the `lora-app-server.toml` configuration file, this
+integration will write events into a PostgreSQL database. See the
+[PostgreSQL Integration](https://www.loraserver.io/lora-app-server/integrate/sending-receiving/postgresql/)
+documentation for more information.
+
+#### ThingsBoard integration
+
+When configured as Application integration, this integration will write
+attributes and telemetry to the configured ThingsBoard instance. See the
+[ThingsBoard Integration](https://www.loraserver.io/lora-app-server/integrate/sending-receiving/thingsboard/)
+documentation for more information.
+
+### Improvements
+
+* Speedup login with default admin / admin credentials (for low CPU power devices). ([#320](https://github.com/brocaar/lora-app-server/issues/320))
+* Gateway ID, FPGA ID and AES-key widgets have been updated.
+* Always display Class-C timeout field in Device Profile.
+
+### Bugfixes
+
+* Fix Gen Application Key is no longer a mandatory field. ([#322](https://github.com/brocaar/lora-app-server/issues/322))
+* Fix create organization user. ([#323](https://github.com/brocaar/lora-app-server/issues/323))
+
+### Upgrading
+
+Before upgrading, you must enable the `hstore` extension for the LoRa App Server
+PostgreSQL database. Example commands assuming the database is named `loraserver_as`:
+
+{{<highlight bash>}}
+sudo -u postgres psql
+{{< /highlight >}}
+
+Within the PostgreSQL prompt, enter the following queries:
+
+{{<highlight sql>}}
+-- change to loraserver_as database and enable extension
+\c loraserver_as
+create extension hstore;
+
+-- exit the prompt
+\q
+{{< /highlight >}}
+
+## v3.0.0
+
+### Features
+
+#### Firmware Update Over The Air (FUOTA)
+
+This release provides an implementation of the FUOTA specification.
+Currently the deployment is limited to one device as we would like to gather
+feedback on this implementation first. However, in this implementation the deployment
+to groups of devices is taken into account.
+**Note:** this feature is experimental and the API might change.
+
+#### Updated rxInfo / txInfo (live frame-logs)
+
+The LoRa Server <> LoRa Gateway Bridge messages have been updated to make the
+downlink scheduling more flexible and generic. This change exposes these fields
+in the live gateway and device frame-logs.
+
+#### Payload codec
+
+The payload codec settings have been moved to the Device Profile. Codec settings set
+in the application configuration still remain functional, but new codec settings must be
+configured in the Device Profile.
+
+### Bugfixes
+
+* Fix organization admin cannot add existing users. ([#315](https://github.com/brocaar/lora-app-server/issues/315))
+
+### Upgrading
+
+Please upgrade LoRa Server first to v3 (see [Changelog](https://www.loraserver.io/loraserver/overview/changelog/)),
+then upgrade LoRa App Server to v3. This LoRa App Server release is fully
+backwards compatible.
+
+## v2.6.1
+
+### Improvements
+
+* Make it possible in the API to move devices between applications.
+* Add `DevAddr` to enqueue API call to LoRa Server so that LoRa Server can validate the session-keys are in sync.
+* Add device details overview (UI).
+
+### Bugfixes
+
+* Fix `panic` when JOSN object is set but contains `null`. ([#314](https://github.com/brocaar/lora-app-server/issues/314))
+
 ## v2.6.0
 
 ### Features

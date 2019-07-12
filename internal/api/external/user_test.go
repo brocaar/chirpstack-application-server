@@ -4,171 +4,164 @@ import (
 	"testing"
 
 	"github.com/brocaar/loraserver/api/ns"
-
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
 	pb "github.com/brocaar/lora-app-server/api"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lora-app-server/internal/test"
 )
 
-func TestUserAPI(t *testing.T) {
-	conf := test.GetConfig()
-	if err := storage.Setup(conf); err != nil {
-		t.Fatal(err)
+func (ts *APITestSuite) TestUser() {
+	nsClient := mock.NewClient()
+	nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
+		DeviceProfile: &ns.DeviceProfile{},
 	}
+	networkserver.SetPool(mock.NewPool(nsClient))
 
-	Convey("Given a clean database and api instance", t, func() {
-		test.MustResetDB(storage.DB().DB)
+	ctx := context.Background()
+	validator := &TestValidator{}
+	api := NewUserAPI(validator)
+	apiInternal := NewInternalUserAPI(validator)
 
-		nsClient := mock.NewClient()
-		nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
-			DeviceProfile: &ns.DeviceProfile{},
+	ts.T().Run("Create user assigned to organization", func(t *testing.T) {
+		assert := require.New(t)
+		validator.returnIsAdmin = true
+
+		org := storage.Organization{
+			Name: "test-org",
 		}
-		networkserver.SetPool(mock.NewPool(nsClient))
+		assert.NoError(storage.CreateOrganization(storage.DB(), &org))
 
-		ctx := context.Background()
-		validator := &TestValidator{}
-		api := NewUserAPI(validator)
-		apiInternal := NewInternalUserAPI(validator)
+		createReq := pb.CreateUserRequest{
+			User: &pb.User{
+				Username: "testuser",
+				Email:    "foo@bar.com",
+			},
+			Password: "testpasswd",
+			Organizations: []*pb.UserOrganization{
+				{OrganizationId: org.ID, IsAdmin: true},
+			},
+		}
+		createResp, err := api.Create(ctx, &createReq)
+		assert.NoError(err)
+		assert.True(createResp.Id > 0)
 
-		Convey("When creating an user assigned to an organization", func() {
-			org := storage.Organization{
-				Name: "test-org",
-			}
-			So(storage.CreateOrganization(storage.DB(), &org), ShouldBeNil)
+		users, err := storage.GetOrganizationUsers(storage.DB(), org.ID, 10, 0)
+		assert.NoError(err)
+		assert.Len(users, 1)
+		assert.Equal(createResp.Id, users[0].UserID)
+		assert.True(users[0].IsAdmin)
+	})
 
-			createReq := pb.CreateUserRequest{
-				User: &pb.User{
-					Username: "testuser",
-					Email:    "foo@bar.com",
-				},
-				Password: "testpasswd",
-				Organizations: []*pb.UserOrganization{
-					{OrganizationId: org.ID, IsAdmin: true},
-				},
-			}
-			createResp, err := api.Create(ctx, &createReq)
-			So(err, ShouldBeNil)
-			So(createResp.Id, ShouldBeGreaterThan, 0)
+	ts.T().Run("Create", func(t *testing.T) {
+		assert := require.New(t)
+		validator.returnIsAdmin = true
 
-			users, err := storage.GetOrganizationUsers(storage.DB(), org.ID, 10, 0)
-			So(err, ShouldBeNil)
-			So(users, ShouldHaveLength, 1)
-			So(users[0].UserID, ShouldEqual, createResp.Id)
-			So(users[0].IsAdmin, ShouldBeTrue)
+		createReq := &pb.CreateUserRequest{
+			User: &pb.User{
+				Username:   "username",
+				IsAdmin:    true,
+				SessionTtl: 180,
+				Email:      "foo@bar.com",
+			},
+			Password: "pass^^ord",
+		}
+		createResp, err := api.Create(context.Background(), createReq)
+		assert.NoError(err)
+		assert.True(createResp.Id > 0)
+		createReq.User.Id = createResp.Id
+
+		t.Run("Get", func(t *testing.T) {
+			assert := require.New(t)
+
+			user, err := api.Get(ctx, &pb.GetUserRequest{
+				Id: createResp.Id,
+			})
+			assert.NoError(err)
+			assert.Equal(createReq.User, user.User)
 		})
 
-		Convey("When creating an user", func() {
-			validator.returnIsAdmin = true
-			createReq := &pb.CreateUserRequest{
-				User: &pb.User{
-					Username:   "username",
-					IsAdmin:    true,
-					SessionTtl: 180,
-					Email:      "foo@bar.com",
-				},
-				Password: "pass^^ord",
-			}
-			createResp, err := api.Create(ctx, createReq)
-			So(err, ShouldBeNil)
-			So(validator.validatorFuncs, ShouldHaveLength, 1)
-			So(createResp.Id, ShouldBeGreaterThan, 0)
+		t.Run("List", func(t *testing.T) {
+			assert := require.New(t)
 
-			Convey("Then the user has been created", func() {
-				user, err := api.Get(ctx, &pb.GetUserRequest{
-					Id: createResp.Id,
-				})
-				So(err, ShouldBeNil)
-				So(validator.validatorFuncs, ShouldHaveLength, 1)
-
-				createReq.User.Id = createResp.Id
-				So(user.User, ShouldResemble, createReq.User)
-
-				Convey("Then get all users returns 2 items (admin user already there)", func() {
-					users, err := api.List(ctx, &pb.ListUserRequest{
-						Limit:  10,
-						Offset: 0,
-					})
-					So(err, ShouldBeNil)
-					So(validator.validatorFuncs, ShouldHaveLength, 1)
-					So(users.Result, ShouldHaveLength, 2)
-					So(users.TotalCount, ShouldEqual, 2)
-				})
-
-				Convey("Then login in succeeds", func() {
-					jwt, err := apiInternal.Login(ctx, &pb.LoginRequest{
-						Username: createReq.User.Username,
-						Password: createReq.Password,
-					})
-					So(err, ShouldBeNil)
-					So(jwt, ShouldNotBeNil)
-				})
-
-				Convey("When updating the user", func() {
-					updateReq := pb.UpdateUserRequest{
-						User: &pb.User{
-							Id:         createResp.Id,
-							Username:   "anotheruser",
-							SessionTtl: 300,
-							IsAdmin:    false,
-							Email:      "bar@foo.com",
-						},
-					}
-					_, err := api.Update(ctx, &updateReq)
-					So(err, ShouldBeNil)
-					So(validator.validatorFuncs, ShouldHaveLength, 1)
-
-					Convey("Then the user has been updated", func() {
-						userUpd, err := api.Get(ctx, &pb.GetUserRequest{
-							Id: createResp.Id,
-						})
-						So(err, ShouldBeNil)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
-						So(userUpd.User, ShouldResemble, updateReq.User)
-					})
-
-					Convey("When updating the user's password", func() {
-						updatePass := &pb.UpdateUserPasswordRequest{
-							UserId:   createResp.Id,
-							Password: "newpasstest",
-						}
-						_, err := api.UpdatePassword(ctx, updatePass)
-						So(err, ShouldBeNil)
-						So(validator.validatorFuncs, ShouldHaveLength, 1)
-
-						Convey("Then the user can log in with the new password", func() {
-							jwt, err := apiInternal.Login(ctx, &pb.LoginRequest{
-								Username: updateReq.User.Username,
-								Password: updatePass.Password,
-							})
-							So(err, ShouldBeNil)
-							So(jwt, ShouldNotBeNil)
-						})
-					})
-				})
-
-				Convey("When deleting the user", func() {
-					_, err := api.Delete(ctx, &pb.DeleteUserRequest{
-						Id: createResp.Id,
-					})
-					So(err, ShouldBeNil)
-					So(validator.validatorFuncs, ShouldHaveLength, 1)
-
-					Convey("Then the user has been deleted", func() {
-						users, err := api.List(ctx, &pb.ListUserRequest{
-							Limit:  10,
-							Offset: 0,
-						})
-						So(err, ShouldBeNil)
-						So(users.Result, ShouldHaveLength, 1)
-						So(users.TotalCount, ShouldEqual, 1)
-					})
-				})
+			users, err := api.List(ctx, &pb.ListUserRequest{
+				Limit:  10,
+				Offset: 0,
 			})
+			assert.NoError(err)
+			assert.Len(users.Result, 3) // 2 created users + admin user
+			assert.EqualValues(3, users.TotalCount)
+		})
+
+		t.Run("Login", func(t *testing.T) {
+			assert := require.New(t)
+
+			jwt, err := apiInternal.Login(ctx, &pb.LoginRequest{
+				Username: createReq.User.Username,
+				Password: createReq.Password,
+			})
+			assert.NoError(err)
+			assert.NotEqual("", jwt)
+		})
+
+		t.Run("Update", func(t *testing.T) {
+			assert := require.New(t)
+
+			updateReq := pb.UpdateUserRequest{
+				User: &pb.User{
+					Id:         createResp.Id,
+					Username:   "anotheruser",
+					SessionTtl: 300,
+					IsAdmin:    false,
+					Email:      "bar@foo.com",
+				},
+			}
+			_, err := api.Update(context.Background(), &updateReq)
+			assert.NoError(err)
+
+			userUpd, err := api.Get(ctx, &pb.GetUserRequest{
+				Id: createResp.Id,
+			})
+			assert.NoError(err)
+			assert.Equal(updateReq.User, userUpd.User)
+		})
+
+		t.Run("UpdatePassword", func(t *testing.T) {
+			assert := require.New(t)
+
+			updatePass := &pb.UpdateUserPasswordRequest{
+				UserId:   createResp.Id,
+				Password: "newpasstest",
+			}
+			_, err := api.UpdatePassword(ctx, updatePass)
+			assert.NoError(err)
+
+			jwt, err := apiInternal.Login(ctx, &pb.LoginRequest{
+				Username: "anotheruser",
+				Password: updatePass.Password,
+			})
+			assert.NoError(err)
+			assert.NotEqual("", jwt)
+		})
+
+		t.Run("Delete", func(t *testing.T) {
+			assert := require.New(t)
+
+			_, err := api.Delete(ctx, &pb.DeleteUserRequest{
+				Id: createResp.Id,
+			})
+			assert.NoError(err)
+
+			users, err := api.List(ctx, &pb.ListUserRequest{
+				Limit:  10,
+				Offset: 0,
+			})
+			assert.NoError(err)
+			assert.Len(users.Result, 2)
+			assert.EqualValues(2, users.TotalCount)
 		})
 	})
+
 }

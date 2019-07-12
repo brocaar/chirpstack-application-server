@@ -12,10 +12,13 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/brocaar/lora-app-server/internal/api"
+	"github.com/brocaar/lora-app-server/internal/applayer/fragmentation"
+	"github.com/brocaar/lora-app-server/internal/applayer/multicastsetup"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/downlink"
+	"github.com/brocaar/lora-app-server/internal/fuota"
 	"github.com/brocaar/lora-app-server/internal/gwping"
 	"github.com/brocaar/lora-app-server/internal/integration"
 	"github.com/brocaar/lora-app-server/internal/integration/application"
@@ -37,6 +40,9 @@ func run(cmd *cobra.Command, args []string) error {
 		setupCodec,
 		handleDataDownPayloads,
 		startGatewayPing,
+		setupMulticastSetup,
+		setupFragmentation,
+		setupFUOTA,
 		setupAPI,
 	}
 
@@ -98,6 +104,8 @@ func setupIntegration() error {
 			confs = append(confs, config.C.ApplicationServer.Integration.MQTT)
 		case "gcp_pub_sub":
 			confs = append(confs, config.C.ApplicationServer.Integration.GCPPubSub)
+		case "postgresql":
+			confs = append(confs, config.C.ApplicationServer.Integration.PostgreSQL)
 		default:
 			return fmt.Errorf("unknown integration type: %s", name)
 		}
@@ -142,5 +150,26 @@ func setupAPI() error {
 func startGatewayPing() error {
 	go gwping.SendPingLoop()
 
+	return nil
+}
+
+func setupMulticastSetup() error {
+	if err := multicastsetup.Setup(config.C); err != nil {
+		return errors.Wrap(err, "multicastsetup setup error")
+	}
+	return nil
+}
+
+func setupFragmentation() error {
+	if err := fragmentation.Setup(config.C); err != nil {
+		return errors.Wrap(err, "fragmentation setup error")
+	}
+	return nil
+}
+
+func setupFUOTA() error {
+	if err := fuota.Setup(config.C); err != nil {
+		return errors.Wrap(err, "fuota setup error")
+	}
 	return nil
 }

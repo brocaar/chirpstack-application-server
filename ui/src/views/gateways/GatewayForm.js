@@ -19,6 +19,8 @@ import NetworkServerStore from "../../stores/NetworkServerStore";
 import GatewayProfileStore from "../../stores/GatewayProfileStore";
 import LocationStore from "../../stores/LocationStore";
 import MapTileLayer from "../../components/MapTileLayer";
+import EUI64Field from "../../components/EUI64Field";
+import AESKeyField from "../../components/AESKeyField";
 import theme from "../../theme";
 
 
@@ -56,29 +58,21 @@ class GatewayBoardForm extends Component {
     return(
       <FormControl fullWidth margin="normal">
         <FormLabel className={this.props.classes.formLabel}>Board #{this.props.i} configuration (<a href="#delete" onClick={this.onDelete} className={this.props.classes.a}>delete</a>)</FormLabel>
-        <TextField
+        <EUI64Field
           id="fpgaID"
           label="FPGA ID"
           margin="normal"
           value={this.props.board.fpgaID || ""}
           onChange={this.onChange}
-          inputProps={{
-            pattern: "[A-Fa-f0-9]{16}",
-          }}
-          placeholder="0000000000000000"
           helperText="The FPGA ID of the geoloc concentrator board. This is only available for v2 gateways with geolocation capabilities. (optional)"
           fullWidth
         />
-        <TextField
+        <AESKeyField
           id="fineTimestampKey"
           label="Fine-timestamp decryption key"
           margin="normal"
           value={this.props.board.fineTimestampKey || ""}
           onChange={this.onChange}
-          inputProps={{
-            pattern: "[A-Fa-f0-9]{32}",
-          }}
-          placeholder="000000000000000000000000000000000"
           helperText="The fine-timestamp AES decryption key. When set, LoRa Server will decrypt the fine-timestamp. This is only available for v2 gateways with geolocation capabilities. (optional)"
           fullWidth
         />
@@ -286,18 +280,15 @@ class GatewayForm extends FormComponent {
           required
           fullWidth
         />
-        {!this.props.update && <TextField
+        {!this.props.update && <EUI64Field
           id="id"
           label="Gateway ID"
           margin="normal"
           value={this.state.object.id || ""}
           onChange={this.onChange}
-          inputProps={{
-            pattern: "[A-Fa-f0-9]{16}",
-          }}
-          placeholder="0000000000000000"
           required
           fullWidth
+          random
         />}
         {!this.props.update && <FormControl fullWidth margin="normal">
           <FormLabel className={this.props.classes.formLabel} required>Network-server</FormLabel>

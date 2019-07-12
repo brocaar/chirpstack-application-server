@@ -20,6 +20,9 @@ import (
 	"google.golang.org/grpc/codes"
 
 	"github.com/brocaar/lora-app-server/internal/api/helpers"
+	"github.com/brocaar/lora-app-server/internal/applayer/clocksync"
+	"github.com/brocaar/lora-app-server/internal/applayer/fragmentation"
+	"github.com/brocaar/lora-app-server/internal/applayer/multicastsetup"
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/eventlog"
@@ -29,6 +32,7 @@ import (
 	"github.com/brocaar/loraserver/api/as"
 	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/lorawan"
+	"github.com/brocaar/lorawan/gps"
 )
 
 var (
@@ -100,8 +104,10 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		}
 
 		now := time.Now()
+		dr := int(req.Dr)
 
 		d.LastSeenAt = &now
+		d.DR = &dr
 		err = storage.UpdateDevice(tx, &d, true)
 		if err != nil {
 			return grpc.Errorf(codes.Internal, "update device error: %s", err)
@@ -118,6 +124,12 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		errStr := fmt.Sprintf("get application error: %s", err)
 		log.WithField("id", d.ApplicationID).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
+	dp, err := storage.GetDeviceProfile(storage.DB(), d.DeviceProfileID, false, true)
+	if err != nil {
+		log.WithError(err).WithField("id", d.DeviceProfileID).Error("get device-profile error")
+		return nil, grpc.Errorf(codes.Internal, "get device-profile error: %s", err)
 	}
 
 	if req.DeviceActivationContext != nil {
@@ -142,8 +154,80 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		return nil, grpc.Errorf(codes.Internal, "decrypt payload error: %s", err)
 	}
 
+	// payload is handled by the LoRa App Server internal applayer
+	var internalApplayer bool
+
+	if err := storage.Transaction(func(db sqlx.Ext) error {
+		switch req.FPort {
+		case 200:
+			internalApplayer = true
+			if err := multicastsetup.HandleRemoteMulticastSetupCommand(db, d.DevEUI, b); err != nil {
+				return grpc.Errorf(codes.Internal, "handle remote multicast setup command error: %s", err)
+			}
+		case 201:
+			internalApplayer = true
+			if err := fragmentation.HandleRemoteFragmentationSessionCommand(db, d.DevEUI, b); err != nil {
+				return grpc.Errorf(codes.Internal, "handle remote fragmentation session command error: %s", err)
+			}
+		case 202:
+			internalApplayer = true
+
+			var timeSinceGPSEpoch time.Duration
+			var timeField time.Time
+
+			for _, rxInfo := range req.RxInfo {
+				if rxInfo.TimeSinceGpsEpoch != nil {
+					timeSinceGPSEpoch, err = ptypes.Duration(rxInfo.TimeSinceGpsEpoch)
+					if err != nil {
+						log.WithError(err).Error("time since gps epoch to duration error")
+						continue
+					}
+				} else if rxInfo.Time != nil {
+					timeField, err = ptypes.Timestamp(rxInfo.Time)
+					if err != nil {
+						log.WithError(err).Error("time to timestamp error")
+						continue
+					}
+				}
+			}
+
+			// fallback on time field when time since GPS epoch is not available
+			if timeSinceGPSEpoch == 0 {
+				// fallback on current server time when time field is not available
+				if timeField.IsZero() {
+					timeField = time.Now()
+				}
+				timeSinceGPSEpoch = gps.Time(timeField).TimeSinceGPSEpoch()
+			}
+
+			if err := clocksync.HandleClockSyncCommand(db, d.DevEUI, timeSinceGPSEpoch, b); err != nil {
+				return grpc.Errorf(codes.Internal, "handle clocksync command error: %s", err)
+			}
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	if internalApplayer {
+		return &empty.Empty{}, nil
+	}
+
 	var object interface{}
-	codecPL := codec.NewPayload(app.PayloadCodec, uint8(req.FPort), app.PayloadEncoderScript, app.PayloadDecoderScript)
+
+	// TODO: in the next major release, remove this and always use the
+	// device-profile codec fields.
+	payloadCodec := app.PayloadCodec
+	payloadEncoderScript := app.PayloadEncoderScript
+	payloadDecoderScript := app.PayloadDecoderScript
+
+	if dp.PayloadCodec != "" {
+		payloadCodec = dp.PayloadCodec
+		payloadEncoderScript = dp.PayloadEncoderScript
+		payloadDecoderScript = dp.PayloadDecoderScript
+	}
+
+	codecPL := codec.NewPayload(payloadCodec, uint8(req.FPort), payloadEncoderScript, payloadDecoderScript)
 	if codecPL != nil {
 		start := time.Now()
 		if err := codecPL.DecodeBytes(b); err != nil {
@@ -163,6 +247,20 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 				Type:            "CODEC",
 				Error:           err.Error(),
 				FCnt:            req.FCnt,
+				Tags:            make(map[string]string),
+				Variables:       make(map[string]string),
+			}
+
+			for k, v := range d.Tags.Map {
+				if v.Valid {
+					errNotification.Tags[k] = v.String
+				}
+			}
+
+			for k, v := range d.Variables.Map {
+				if v.Valid {
+					errNotification.Variables[k] = v.String
+				}
 			}
 
 			if err := eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
@@ -195,11 +293,26 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 			Frequency: int(req.TxInfo.Frequency),
 			DR:        int(req.Dr),
 		},
-		ADR:    req.Adr,
-		FCnt:   req.FCnt,
-		FPort:  uint8(req.FPort),
-		Data:   b,
-		Object: object,
+		ADR:       req.Adr,
+		FCnt:      req.FCnt,
+		FPort:     uint8(req.FPort),
+		Data:      b,
+		Object:    object,
+		Tags:      make(map[string]string),
+		Variables: make(map[string]string),
+	}
+
+	// set tags and variables
+	for k, v := range d.Tags.Map {
+		if v.Valid {
+			pl.Tags[k] = v.String
+		}
+	}
+
+	for k, v := range d.Variables.Map {
+		if v.Valid {
+			pl.Variables[k] = v.String
+		}
 	}
 
 	// collect gateway data of receiving gateways (e.g. gateway name)
@@ -294,6 +407,20 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		DevEUI:          devEUI,
 		Acknowledged:    req.Acknowledged,
 		FCnt:            req.FCnt,
+		Tags:            make(map[string]string),
+		Variables:       make(map[string]string),
+	}
+
+	// set tags and variables
+	for k, v := range d.Tags.Map {
+		if v.Valid {
+			pl.Tags[k] = v.String
+		}
+	}
+	for k, v := range d.Variables.Map {
+		if v.Valid {
+			pl.Variables[k] = v.String
+		}
 	}
 
 	err = eventlog.LogEventForDevice(devEUI, eventlog.EventLog{
@@ -343,6 +470,21 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		Type:            req.Type.String(),
 		Error:           req.Error,
 		FCnt:            req.FCnt,
+		Tags:            make(map[string]string),
+		Variables:       make(map[string]string),
+	}
+
+	// set tags and variables
+	for k, v := range d.Tags.Map {
+		if v.Valid {
+			pl.Tags[k] = v.String
+		}
+	}
+
+	for k, v := range d.Variables.Map {
+		if v.Valid {
+			pl.Variables[k] = v.String
+		}
 	}
 
 	err = eventlog.LogEventForDevice(devEUI, eventlog.EventLog{
@@ -432,7 +574,22 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 		ExternalPowerSource:     req.ExternalPowerSource,
 		BatteryLevel:            float32(math.Round(float64(req.BatteryLevel*100))) / 100,
 		BatteryLevelUnavailable: req.BatteryLevelUnavailable,
+		Tags:                    make(map[string]string),
+		Variables:               make(map[string]string),
 	}
+
+	// set tags and variables
+	for k, v := range d.Tags.Map {
+		if v.Valid {
+			pl.Tags[k] = v.String
+		}
+	}
+	for k, v := range d.Variables.Map {
+		if v.Valid {
+			pl.Variables[k] = v.String
+		}
+	}
+
 	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
 		Type:    eventlog.Status,
 		Payload: pl,
@@ -496,6 +653,20 @@ func (a *ApplicationServerAPI) SetDeviceLocation(ctx context.Context, req *as.Se
 			Longitude: req.Location.Longitude,
 			Altitude:  req.Location.Altitude,
 		},
+		Tags:      make(map[string]string),
+		Variables: make(map[string]string),
+	}
+
+	// set tags and variables
+	for k, v := range d.Tags.Map {
+		if v.Valid {
+			pl.Tags[k] = v.String
+		}
+	}
+	for k, v := range d.Variables.Map {
+		if v.Valid {
+			pl.Variables[k] = v.String
+		}
 	}
 
 	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
@@ -588,6 +759,20 @@ func handleDeviceActivation(d storage.Device, app storage.Application, daCtx *as
 		DevEUI:          d.DevEUI,
 		DeviceName:      d.Name,
 		DevAddr:         da.DevAddr,
+		Tags:            make(map[string]string),
+		Variables:       make(map[string]string),
+	}
+
+	// set tags and variables
+	for k, v := range d.Tags.Map {
+		if v.Valid {
+			pl.Tags[k] = v.String
+		}
+	}
+	for k, v := range d.Variables.Map {
+		if v.Valid {
+			pl.Variables[k] = v.String
+		}
 	}
 
 	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{

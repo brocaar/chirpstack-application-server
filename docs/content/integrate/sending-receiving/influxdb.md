@@ -19,7 +19,7 @@ This makes it possible to directly visualize all device data using for example
 
 Before this integration is able to write data into InfluxDB, the uplink
 payloads must be decoded. The payload codec can be configured per
-[application]({{<ref "use/applications.md">}}). To validate that the uplink
+[device-profile]({{<ref "use/device-profiles.md">}}). To validate that the uplink
 payloads are decoded, you can use the [live device event-log]({{<ref "use/event-logging.md">}})
 feature. Decoded payload data will be available under the `object` key in
 the JSON object.
@@ -46,7 +46,7 @@ Example:
 
 The above will translate to the measurement `device_frmpayload_data_temperature_sensor_1`.
 
-**Note:** When using the [CayenneLPP codec]({{<ref "use/applications.md">}})
+**Note:** When using the [CayenneLPP codec]({{<ref "use/device-profiles.md">}})
 `camelCasing` is used when the data is presented as JSON. However, for the InfluxDB
 naming, `snake_casing` is used. Thus `temperatureSensor` in JSON translates to
 `temperature_sensor` as measurement name in InfluxDB.
@@ -72,7 +72,8 @@ with values `latitude`, `longitude` and `geohash` (see also [Geohash](https://en
 
 ## Tags
 
-For aggregation, each measurement will have the following tags:
+For aggregation, each measurement will have the following tags (additional to
+the device tags):
 
 * `application_name`
 * `device_name`
@@ -84,7 +85,7 @@ For aggregation, each measurement will have the following tags:
 For analyzing and monitoring the usage of spreading-factors, channels, etc.
 the InfluxDB integration will also write a measurement named `device_uplink`
 with as values a counter `value` 1, `rssi`, `snr` and `f_cnt`. For Aggregation,
-the following tags are available:
+the following tags are available (additional to the device tags):
 
 * `application_name`
 * `device_name`
@@ -96,7 +97,7 @@ the following tags are available:
 
 When this information is available, the device battery status will be written
 to the measurement name `device_status_battery`. For aggregation, the following
-tags are available:
+tags are available (additional to the device tags):
 
 * `application_name`
 * `device_name`
@@ -106,7 +107,7 @@ tags are available:
 
 When this information is available, the device battery level (percentage)
 will be written to the measurement name `device_status_battery_level`. For
-aggregation, the following tags are available:
+aggregation, the following tags are available (additional to the device tags):
 
 * `application_name`
 * `device_name`
@@ -116,7 +117,7 @@ aggregation, the following tags are available:
 
 When this information is available, the device margin status will be written
 to the measurement name `device_status_margin`. For aggregation, the following
-tags are available:
+tags are available (additional to the device tags):
 
 * `application_name`
 * `device_name`

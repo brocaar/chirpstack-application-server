@@ -152,4 +152,18 @@ message DeviceProfile {
     
     // End-Device uses 32bit FCnt (mandatory for LoRaWAN 1.0 End-Device).
     bool supports_32bit_f_cnt = 20 [json_name = "supports32BitFCnt"];
+
+    // Payload codec.
+    // Leave blank to disable the codec feature.
+    string payload_codec = 24;
+
+    // Payload encoder script.
+    // Depending the codec, it is possible to provide a script which implements
+    // the encoder function.
+    string payload_encoder_script = 25;
+
+    // Payload decoder script.
+    // Depending the codec, it is possible to provide a script which implements
+    // the decoder function.
+    string payload_decoder_script = 26;
 }

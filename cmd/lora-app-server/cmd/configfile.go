@@ -116,6 +116,7 @@ id="{{ .ApplicationServer.ID }}"
   # * aws_sns           - AWS Simple Notification Service (SNS)
   # * azure_service_bus - Azure Service-Bus
   # * gcp_pub_sub       - Google Cloud Pub/Sub
+  # * postgresql        - PostgreSQL database
   enabled=[{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}{{ range $index, $elm := .ApplicationServer.Integration.Enabled }}{{ if $index }}", "{{ end }}{{ $elm }}{{ end }}{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}]
 
 
@@ -251,6 +252,12 @@ id="{{ .ApplicationServer.ID }}"
   topic_name="{{ .ApplicationServer.Integration.GCPPubSub.TopicName }}"
 
 
+  # PostgreSQL database integration.
+  [application_server.integration.postgresql]
+  # PostgreSQL dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable).
+  dsn="{{ .ApplicationServer.Integration.PostgreSQL.DSN }}"
+
+
   # Settings for the "internal api"
   #
   # This is the API used by LoRa Server to communicate with LoRa App Server
@@ -304,6 +311,30 @@ id="{{ .ApplicationServer.ID }}"
 
   # when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)"
   disable_assign_existing_users={{ .ApplicationServer.ExternalAPI.DisableAssignExistingUsers }}
+
+
+  # Settings for the remote multicast setup.
+  [application_server.remote_multicast_setup]
+  # Synchronization interval.
+  sync_interval="{{ .ApplicationServer.RemoteMulticastSetup.SyncInterval }}"
+
+  # Synchronization retries.
+  sync_retries={{ .ApplicationServer.RemoteMulticastSetup.SyncRetries }}
+
+  # Synchronization batch-size.
+  sync_batch_size={{ .ApplicationServer.RemoteMulticastSetup.SyncBatchSize }}
+
+
+  # Settings for the fragmentation-session setup.
+  [application_server.fragmentation_session]
+  # Synchronization interval.
+  sync_interval="{{ .ApplicationServer.FragmentationSession.SyncInterval }}"
+
+  # Synchronization retries.
+  sync_retries={{ .ApplicationServer.FragmentationSession.SyncRetries }}
+
+  # Synchronization batch-size.
+  sync_batch_size={{ .ApplicationServer.FragmentationSession.SyncBatchSize }}
 
 {{ if ne .ApplicationServer.Branding.Header  "" }}
   # Branding configuration.

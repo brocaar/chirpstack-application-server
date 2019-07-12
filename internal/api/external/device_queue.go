@@ -5,6 +5,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -69,8 +70,26 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 				return helpers.ErrToRPCError(err)
 			}
 
+			dp, err := storage.GetDeviceProfile(storage.DB(), dev.DeviceProfileID, false, true)
+			if err != nil {
+				log.WithError(err).WithField("id", dev.DeviceProfileID).Error("get device-profile error")
+				return grpc.Errorf(codes.Internal, "get device-profile error: %s", err)
+			}
+
+			// TODO: in the next major release, remove this and always use the
+			// device-profile codec fields.
+			payloadCodec := app.PayloadCodec
+			payloadEncoderScript := app.PayloadEncoderScript
+			payloadDecoderScript := app.PayloadDecoderScript
+
+			if dp.PayloadCodec != "" {
+				payloadCodec = dp.PayloadCodec
+				payloadEncoderScript = dp.PayloadEncoderScript
+				payloadDecoderScript = dp.PayloadDecoderScript
+			}
+
 			// get codec payload configured for the application
-			codecPL := codec.NewPayload(app.PayloadCodec, uint8(req.DeviceQueueItem.FPort), app.PayloadEncoderScript, app.PayloadDecoderScript)
+			codecPL := codec.NewPayload(payloadCodec, uint8(req.DeviceQueueItem.FPort), payloadEncoderScript, payloadDecoderScript)
 			if codecPL == nil {
 				return grpc.Errorf(codes.FailedPrecondition, "no or invalid codec configured for application")
 			}

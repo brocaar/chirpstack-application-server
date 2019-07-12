@@ -7,6 +7,7 @@ import (
 
 	uuid "github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -33,9 +34,12 @@ type Device struct {
 	DeviceStatusBattery       *float32      `db:"device_status_battery"`
 	DeviceStatusMargin        *int          `db:"device_status_margin"`
 	DeviceStatusExternalPower bool          `db:"device_status_external_power_source"`
+	DR                        *int          `db:"dr"`
 	Latitude                  *float64      `db:"latitude"`
 	Longitude                 *float64      `db:"longitude"`
 	Altitude                  *float64      `db:"altitude"`
+	Variables                 hstore.Hstore `db:"variables"`
+	Tags                      hstore.Hstore `db:"tags"`
 }
 
 // DeviceListItem defines the Device as list item.
@@ -56,6 +60,7 @@ type DeviceKeys struct {
 	DevEUI    lorawan.EUI64     `db:"dev_eui"`
 	NwkKey    lorawan.AES128Key `db:"nwk_key"`
 	AppKey    lorawan.AES128Key `db:"app_key"`
+	GenAppKey lorawan.AES128Key `db:"gen_app_key"`
 	JoinNonce int               `db:"join_nonce"`
 }
 
@@ -93,8 +98,11 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 			last_seen_at,
 			latitude,
 			longitude,
-			altitude
-        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+			altitude,
+			dr,
+			variables,
+			tags
+        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
 		d.DevEUI[:],
 		d.CreatedAt,
 		d.UpdatedAt,
@@ -109,6 +117,9 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 		d.Latitude,
 		d.Longitude,
 		d.Altitude,
+		d.DR,
+		d.Variables,
+		d.Tags,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -330,7 +341,10 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 			latitude = $10,
 			longitude = $11,
 			altitude = $12,
-			device_status_external_power_source = $13
+			device_status_external_power_source = $13,
+			dr = $14,
+			variables = $15,
+			tags = $16
         where
             dev_eui = $1`,
 		d.DevEUI[:],
@@ -346,6 +360,9 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 		d.Longitude,
 		d.Altitude,
 		d.DeviceStatusExternalPower,
+		d.DR,
+		d.Variables,
+		d.Tags,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")
@@ -455,14 +472,16 @@ func CreateDeviceKeys(db sqlx.Execer, dc *DeviceKeys) error {
             dev_eui,
 			nwk_key,
 			app_key,
-			join_nonce
-        ) values ($1, $2, $3, $4, $5, $6)`,
+			join_nonce,
+			gen_app_key
+        ) values ($1, $2, $3, $4, $5, $6, $7)`,
 		dc.CreatedAt,
 		dc.UpdatedAt,
 		dc.DevEUI[:],
 		dc.NwkKey[:],
 		dc.AppKey[:],
 		dc.JoinNonce,
+		dc.GenAppKey[:],
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -497,7 +516,8 @@ func UpdateDeviceKeys(db sqlx.Execer, dc *DeviceKeys) error {
             updated_at = $2,
 			nwk_key = $3,
 			app_key = $4,
-			join_nonce = $5
+			join_nonce = $5,
+			gen_app_key = $6
         where
             dev_eui = $1`,
 		dc.DevEUI[:],
@@ -505,6 +525,7 @@ func UpdateDeviceKeys(db sqlx.Execer, dc *DeviceKeys) error {
 		dc.NwkKey[:],
 		dc.AppKey[:],
 		dc.JoinNonce,
+		dc.GenAppKey[:],
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

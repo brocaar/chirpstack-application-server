@@ -8,7 +8,7 @@ build: ui/build internal/statics internal/migrations
 
 clean:
 	@echo "Cleaning up workspace"
-	@rm -rf build dist internal/migrations internal/static ui/build static/static
+	@rm -rf build dist internal/migrations/migrations_gen.go internal/static/static_gen.go ui/build static/static
 	@rm -f static/index.html static/icon.png static/manifest.json static/asset-manifest.json static/service-worker.js
 	@rm -rf static/logo
 	@rm -rf docs/public
@@ -16,11 +16,12 @@ clean:
 
 test: internal/statics internal/migrations
 	@echo "Running tests"
+	@rm -f coverage.out
 	@for pkg in $(PKGS) ; do \
 		golint $$pkg ; \
 	done
 	@go vet $(PKGS)
-	@go test -p 1 -v $(PKGS)
+	@go test -p 1 -v $(PKGS) -cover -coverprofile coverage.out
 
 dist: ui/build internal/statics internal/migrations
 	@goreleaser
@@ -45,7 +46,8 @@ api:
 
 internal/statics internal/migrations: static/swagger/api.swagger.json
 	@echo "Generating static files"
-	@go generate cmd/lora-app-server/main.go
+	@go generate internal/migrations/migrations.go
+	@go generate internal/static/static.go
 
 
 static/swagger/api.swagger.json:
@@ -57,6 +59,7 @@ static/swagger/api.swagger.json:
 # shortcuts for development
 
 dev-requirements:
+	go mod download
 	go install golang.org/x/lint/golint
 	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger

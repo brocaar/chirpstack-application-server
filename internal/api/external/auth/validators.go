@@ -50,6 +50,10 @@ const userQuery = `
 		on a.id = d.application_id
 	left join multicast_group mg
 		on sp.service_profile_id = mg.service_profile_id
+	left join fuota_deployment_device fdd
+		on d.dev_eui = fdd.dev_eui
+	left join fuota_deployment fd
+		on fdd.fuota_deployment_id = fd.id
 `
 
 // ValidateActiveUser validates if the user in the JWT claim is active.
@@ -859,6 +863,47 @@ func ValidateMulticastGroupQueueAccess(flag Flag, multicastGroupID uuid.UUID) Va
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		return executeQuery(db, userQuery, where, claims.Username, multicastGroupID)
+	}
+}
+
+// ValidateFUOTADeploymentAccess validates if the client has access to the
+// given fuota deployment.
+func ValidateFUOTADeploymentAccess(flag Flag, id uuid.UUID) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Read:
+		// global admin
+		// organization user
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "fd.id = $2"},
+		}
+	}
+
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, id)
+	}
+}
+
+// ValidateFUOTADeploymentsAccess validates if the client has access to the
+// fuota deployments.
+func ValidateFUOTADeploymentsAccess(flag Flag, applicationID int64, devEUI lorawan.EUI64) ValidatorFunc {
+	var where = [][]string{}
+
+	switch flag {
+	case Create:
+		// global admin
+		// organization admin
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "$2 > 0", "a.id = $2"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "$2 = 0", "d.dev_eui = $3"},
+		}
+	}
+
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
+		return executeQuery(db, userQuery, where, claims.Username, applicationID, devEUI)
 	}
 }
 

@@ -45,14 +45,7 @@ class AssignUserForm extends FormComponent {
   constructor() {
     super();
 
-    this.getUserOption = this.getUserOption.bind(this);
     this.getUserOptions = this.getUserOptions.bind(this);
-  }
-
-  getUserOption(id, callbackFunc) {
-    UserStore.get(id, resp => {
-      callbackFunc({label: resp.user.username, value: resp.user.id});
-    });
   }
 
   getUserOptions(search, callbackFunc) {
@@ -79,7 +72,6 @@ class AssignUserForm extends FormComponent {
             label="Select username"
             value={this.state.object.userID || null}
             onChange={this.onChange}
-            getOption={this.getUserOption}
             getOptions={this.getUserOptions}
           />
         </FormControl>

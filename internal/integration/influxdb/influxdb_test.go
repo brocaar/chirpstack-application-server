@@ -81,10 +81,13 @@ func (ts *HandlerTestSuite) TestStatus() {
 				Battery:         123,
 				BatteryLevel:    48.43,
 				Margin:          10,
+				Tags: map[string]string{
+					"foo": "bar",
+				},
 			},
-			ExpectedBody: `device_status_battery,application_name=test-app,dev_eui=0102030405060708,device_name=test-device value=123i
-device_status_battery_level,application_name=test-app,dev_eui=0102030405060708,device_name=test-device value=48.430000
-device_status_margin,application_name=test-app,dev_eui=0102030405060708,device_name=test-device value=10i`,
+			ExpectedBody: `device_status_battery,application_name=test-app,dev_eui=0102030405060708,device_name=test-device,foo=bar value=123i
+device_status_battery_level,application_name=test-app,dev_eui=0102030405060708,device_name=test-device,foo=bar value=48.430000
+device_status_margin,application_name=test-app,dev_eui=0102030405060708,device_name=test-device,foo=bar value=10i`,
 		},
 	}
 
@@ -138,12 +141,15 @@ func (ts *HandlerTestSuite) TestUplink() {
 					"active":      true,
 					"status":      "on",
 				},
+				Tags: map[string]string{
+					"fo o": "ba,r",
+				},
 			},
-			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=true
-device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=20i
-device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value="on"
-device_frmpayload_data_temperature,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=25.400000
-device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 f_cnt=10i,value=1i`,
+			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,fo\ o=ba\,r value=true
+device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,fo\ o=ba\,r value=20i
+device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,fo\ o=ba\,r value="on"
+device_frmpayload_data_temperature,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,fo\ o=ba\,r value=25.400000
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,fo\ o=ba\,r,frequency=868100000 f_cnt=10i,value=1i`,
 		},
 		{
 			Name: "One level depth with nil value",
@@ -163,11 +169,14 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 					"active":      true,
 					"status":      "on",
 				},
+				Tags: map[string]string{
+					"fo=o": "bar",
+				},
 			},
-			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=true
-device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=20i
-device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value="on"
-device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 f_cnt=10i,value=1i`,
+			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,fo\=o=bar value=true
+device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,fo\=o=bar value=20i
+device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,fo\=o=bar value="on"
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,fo\=o=bar,frequency=868100000 f_cnt=10i,value=1i`,
 		},
 		{
 			Name: "One level depth + RXInfo",
@@ -201,12 +210,15 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 					"active":      true,
 					"status":      "on",
 				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
 			},
-			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=true
-device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=20i
-device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value="on"
-device_frmpayload_data_temperature,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=25.400000
-device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 f_cnt=10i,rssi=-55i,snr=2.500000,value=1i`,
+			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value=true
+device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value=20i
+device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value="on"
+device_frmpayload_data_temperature,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value=25.400000
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,foo=bar,frequency=868100000 f_cnt=10i,rssi=-55i,snr=2.500000,value=1i`,
 		},
 		{
 			Name: "Mixed level depth",
@@ -229,13 +241,16 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 					"active":   true,
 					"status":   "on",
 				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
 			},
-			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=true
-device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=20i
-device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value="on"
-device_frmpayload_data_temperature_a,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=20.500000
-device_frmpayload_data_temperature_b,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=33.300000
-device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 f_cnt=10i,value=1i`,
+			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value=true
+device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value=20i
+device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value="on"
+device_frmpayload_data_temperature_a,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value=20.500000
+device_frmpayload_data_temperature_b,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value=33.300000
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,foo=bar,frequency=868100000 f_cnt=10i,value=1i`,
 		},
 		{
 			Name: "One level depth + device status fields",
@@ -255,12 +270,15 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 					"active":      true,
 					"status":      "on",
 				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
 			},
-			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=true
-device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=20i
-device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value="on"
-device_frmpayload_data_temperature,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=25.400000
-device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 f_cnt=10i,value=1i`,
+			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value=true
+device_frmpayload_data_humidity,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value=20i
+device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value="on"
+device_frmpayload_data_temperature,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value=25.400000
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,foo=bar,frequency=868100000 f_cnt=10i,value=1i`,
 		},
 		{
 			Name: "Latitude and longitude",
@@ -280,11 +298,14 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 					"active":    true,
 					"status":    "on",
 				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
 			},
-			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=true
-device_frmpayload_data_location,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 geohash="s01w2k3vvqre",latitude=1.123000,longitude=2.123000
-device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value="on"
-device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 f_cnt=10i,value=1i`,
+			ExpectedBody: `device_frmpayload_data_active,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value=true
+device_frmpayload_data_location,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar geohash="s01w2k3vvqre",latitude=1.123000,longitude=2.123000
+device_frmpayload_data_status,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value="on"
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,foo=bar,frequency=868100000 f_cnt=10i,value=1i`,
 		},
 		{
 			Name: "Cayenne LPP with latitude and longitude",
@@ -307,10 +328,13 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 						},
 					},
 				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
 			},
-			ExpectedBody: `device_frmpayload_data_gps_location_10_altitude,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 value=3.123000
-device_frmpayload_data_gps_location_10_location,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20 geohash="s01w2k3vvqre",latitude=1.123000,longitude=2.123000
-device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,frequency=868100000 f_cnt=10i,value=1i`,
+			ExpectedBody: `device_frmpayload_data_gps_location_10_altitude,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar value=3.123000
+device_frmpayload_data_gps_location_10_location,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,f_port=20,foo=bar geohash="s01w2k3vvqre",latitude=1.123000,longitude=2.123000
+device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=test-dev,dr=2,foo=bar,frequency=868100000 f_cnt=10i,value=1i`,
 		},
 		{
 			Name: "Cayenne LPP Extended types",

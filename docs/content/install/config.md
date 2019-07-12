@@ -169,6 +169,7 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # * aws_sns           - AWS Simple Notification Service (SNS)
   # * azure_service_bus - Azure Service-Bus
   # * gcp_pub_sub       - Google Cloud Pub/Sub
+  # * postgresql        - PostgreSQL database
   enabled=["mqtt"]
 
 
@@ -304,6 +305,12 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   topic_name=""
 
 
+  # PostgreSQL database integration.
+  [application_server.integration.postgresql]
+  # PostgreSQL dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable).
+  dsn=""
+
+
   # Settings for the "internal api"
   #
   # This is the API used by LoRa Server to communicate with LoRa App Server
@@ -357,6 +364,30 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
   # when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)"
   disable_assign_existing_users=false
+
+
+  # Settings for the remote multicast setup.
+  [application_server.remote_multicast_setup]
+  # Synchronization interval.
+  sync_interval="1s"
+
+  # Synchronization retries.
+  sync_retries=3
+
+  # Synchronization batch-size.
+  sync_batch_size=100
+
+
+  # Settings for the fragmentation-session setup.
+  [application_server.fragmentation_session]
+  # Synchronization interval.
+  sync_interval="1s"
+
+  # Synchronization retries.
+  sync_retries=3
+
+  # Synchronization batch-size.
+  sync_batch_size=100
 
 
 
@@ -448,9 +479,9 @@ Please note that you also need to configure LoRa Server so that it uses a
 client certificate for its join-server API client. See
 [LoRa Server configuration](https://docs.loraserver.io/loraserver/install/config/).
 
-## Securing the web-interface and public API
+## Securing the web-interface and external API
 
-The web-interface and public api (`[application_server.public_api]`) can be
+The web-interface and public api (`[application_server.external_api]`) can be
 secured using a TLS certificate and key. Once the `tls_cert` and `tls_key`
 are set (`[application_server.external_api]`), TLS will be activated.
 

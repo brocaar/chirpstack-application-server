@@ -1,11 +1,13 @@
 package downlink
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"testing"
 
 	"github.com/gofrs/uuid"
+	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -75,6 +77,16 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			DeviceProfileID: dpID,
 			Name:            "test-node",
 			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
+			Tags: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{String: "bar", Valid: true},
+				},
+			},
+			Variables: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"secret_token": sql.NullString{String: "secret value", Valid: true},
+				},
+			},
 		}
 		So(storage.CreateDevice(storage.DB(), &device), ShouldBeNil)
 
@@ -110,6 +122,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 
 					ExpectedCreateDeviceQueueItemRequest: ns.CreateDeviceQueueItemRequest{
 						Item: &ns.DeviceQueueItem{
+							DevAddr:    da.DevAddr[:],
 							DevEui:     device.DevEUI[:],
 							FrmPayload: b,
 							FCnt:       12,
@@ -130,6 +143,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 
 					ExpectedCreateDeviceQueueItemRequest: ns.CreateDeviceQueueItemRequest{
 						Item: &ns.DeviceQueueItem{
+							DevAddr:    da.DevAddr[:],
 							DevEui:     device.DevEUI[:],
 							FrmPayload: b,
 							FCnt:       12,
@@ -171,6 +185,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 
 					ExpectedCreateDeviceQueueItemRequest: ns.CreateDeviceQueueItemRequest{
 						Item: &ns.DeviceQueueItem{
+							DevAddr:    da.DevAddr[:],
 							DevEui:     device.DevEUI[:],
 							FrmPayload: b,
 							FCnt:       12,
@@ -179,14 +194,44 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 						},
 					},
 				},
+				{
+					Name:         "custom payload encoder - payload is null",
+					PayloadCodec: codec.CustomJSType,
+					PayloadEncoderScript: `
+						function Encode(fPort, obj) {
+							return [
+								obj.Bytes[3],
+								obj.Bytes[2],
+								obj.Bytes[1],
+								obj.Bytes[0]
+							];
+						}
+					`,
+					Payload: integration.DataDownPayload{
+						ApplicationID: app.ID,
+						DevEUI:        device.DevEUI,
+						FPort:         2,
+						Object:        json.RawMessage(`null`),
+					},
+
+					ExpectedCreateDeviceQueueItemRequest: ns.CreateDeviceQueueItemRequest{
+						Item: &ns.DeviceQueueItem{
+							DevAddr:   da.DevAddr[:],
+							DevEui:    device.DevEUI[:],
+							FCnt:      12,
+							FPort:     2,
+							Confirmed: false,
+						},
+					},
+				},
 			}
 
 			for i, test := range tests {
 				Convey(fmt.Sprintf("Testing: %s [%d]", test.Name, i), func() {
-					// update application
-					app.PayloadCodec = test.PayloadCodec
-					app.PayloadEncoderScript = test.PayloadEncoderScript
-					So(storage.UpdateApplication(storage.DB(), app), ShouldBeNil)
+					// update device-profile
+					dp.PayloadCodec = test.PayloadCodec
+					dp.PayloadEncoderScript = test.PayloadEncoderScript
+					So(storage.UpdateDeviceProfile(storage.DB(), &dp), ShouldBeNil)
 
 					err := handleDataDownPayload(test.Payload)
 					if test.ExpectedError != nil {

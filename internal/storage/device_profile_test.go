@@ -70,9 +70,12 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 		assert := require.New(t)
 
 		dp := DeviceProfile{
-			NetworkServerID: n.ID,
-			OrganizationID:  org.ID,
-			Name:            "device-profile",
+			NetworkServerID:      n.ID,
+			OrganizationID:       org.ID,
+			Name:                 "device-profile",
+			PayloadCodec:         "CUSTOM_JS",
+			PayloadEncoderScript: "Encode() {}",
+			PayloadDecoderScript: "Decode() {}",
 			DeviceProfile: ns.DeviceProfile{
 				SupportsClassB:     true,
 				ClassBTimeout:      10,
@@ -111,7 +114,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 		t.Run("Get", func(t *testing.T) {
 			assert := require.New(t)
 
-			dpGet, err := GetDeviceProfile(ts.Tx(), dpID)
+			dpGet, err := GetDeviceProfile(ts.Tx(), dpID, true, false)
 			assert.NoError(err)
 			dpGet.CreatedAt = dpGet.CreatedAt.UTC().Truncate(time.Millisecond)
 			dpGet.UpdatedAt = dpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -275,7 +278,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 			}
 
 			nsClient.GetDeviceProfileResponse.DeviceProfile = updateReq.DeviceProfile
-			dpGet, err := GetDeviceProfile(ts.Tx(), dpID)
+			dpGet, err := GetDeviceProfile(ts.Tx(), dpID, true, false)
 			assert.NoError(err)
 			dpGet.UpdatedAt = dpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
 			assert.Equal("updated-device-profile", dpGet.Name)

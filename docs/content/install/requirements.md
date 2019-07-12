@@ -38,11 +38,12 @@ LoRa App Server persists the gateway data into a
 [PostgreSQL](https://www.postgresql.org) database. Note that PostgreSQL 9.5+
 is required.
 
-### pq_trgm extension
+### pq_trgm and hstore extension
 
-You also need to enable the [`pg_trgm`](https://www.postgresql.org/docs/current/static/pgtrgm.html)
-(trigram) extension. Example to enable this extension (assuming your
-LoRa App Server database is named `loraserver_as`):
+You also need to enable the [pg_trgm](https://www.postgresql.org/docs/current/static/pgtrgm.html)
+(trigram) and [hstore](https://www.postgresql.org/docs/current/hstore.html)
+extensions. Example to enable this extension (assuming your LoRa App Server
+database is named `loraserver_as`):
 
 Start the PostgreSQL prompt as the `postgres` user:
 
@@ -56,8 +57,9 @@ Within the PostgreSQL prompt, enter the following queries:
 -- change to the LoRa App Server database
 \c loraserver_as
 
--- enable the extension
+-- enable the extensions
 create extension pg_trgm;
+create extension hstore;
 
 -- exit the prompt
 \q

@@ -12,17 +12,21 @@ import (
 	"google.golang.org/grpc/codes"
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
+	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/loraserver/api/ns"
 )
 
 // DeviceProfile defines the device-profile.
 type DeviceProfile struct {
-	NetworkServerID int64            `db:"network_server_id"`
-	OrganizationID  int64            `db:"organization_id"`
-	CreatedAt       time.Time        `db:"created_at"`
-	UpdatedAt       time.Time        `db:"updated_at"`
-	Name            string           `db:"name"`
-	DeviceProfile   ns.DeviceProfile `db:"-"`
+	NetworkServerID      int64            `db:"network_server_id"`
+	OrganizationID       int64            `db:"organization_id"`
+	CreatedAt            time.Time        `db:"created_at"`
+	UpdatedAt            time.Time        `db:"updated_at"`
+	Name                 string           `db:"name"`
+	PayloadCodec         codec.Type       `db:"payload_codec"`
+	PayloadEncoderScript string           `db:"payload_encoder_script"`
+	PayloadDecoderScript string           `db:"payload_decoder_script"`
+	DeviceProfile        ns.DeviceProfile `db:"-"`
 }
 
 // DeviceProfileMeta defines the device-profile meta record.
@@ -68,14 +72,20 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
             organization_id,
             created_at,
             updated_at,
-            name
-		) values ($1, $2, $3, $4, $5, $6)`,
+            name,
+			payload_codec,
+			payload_encoder_script,
+			payload_decoder_script
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 		dpID,
 		dp.NetworkServerID,
 		dp.OrganizationID,
 		dp.CreatedAt,
 		dp.UpdatedAt,
 		dp.Name,
+		dp.PayloadCodec,
+		dp.PayloadEncoderScript,
+		dp.PayloadDecoderScript,
 	)
 	if err != nil {
 		log.WithField("id", dpID).Errorf("create device-profile error: %s", err)
@@ -107,7 +117,15 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 }
 
 // GetDeviceProfile returns the device-profile matching the given id.
-func GetDeviceProfile(db sqlx.Queryer, id uuid.UUID) (DeviceProfile, error) {
+// When forUpdate is set to true, then db must be a db transaction.
+// When localOnly is set to true, no call to the network-server is made to
+// retrieve additional device data.
+func GetDeviceProfile(db sqlx.Queryer, id uuid.UUID, forUpdate, localOnly bool) (DeviceProfile, error) {
+	var fu string
+	if forUpdate {
+		fu = " for update"
+	}
+
 	var dp DeviceProfile
 
 	row := db.QueryRowx(`
@@ -116,19 +134,35 @@ func GetDeviceProfile(db sqlx.Queryer, id uuid.UUID) (DeviceProfile, error) {
 			organization_id,
 			created_at,
 			updated_at,
-			name
+			name,
+			payload_codec,
+			payload_encoder_script,
+			payload_decoder_script
 		from device_profile
 		where
-			device_profile_id = $1`,
+			device_profile_id = $1`+fu,
 		id,
 	)
 	if err := row.Err(); err != nil {
 		return dp, handlePSQLError(Select, err, "select error")
 	}
 
-	err := row.Scan(&dp.NetworkServerID, &dp.OrganizationID, &dp.CreatedAt, &dp.UpdatedAt, &dp.Name)
+	err := row.Scan(
+		&dp.NetworkServerID,
+		&dp.OrganizationID,
+		&dp.CreatedAt,
+		&dp.UpdatedAt,
+		&dp.Name,
+		&dp.PayloadCodec,
+		&dp.PayloadEncoderScript,
+		&dp.PayloadDecoderScript,
+	)
 	if err != nil {
 		return dp, handlePSQLError(Scan, err, "scan error")
+	}
+
+	if localOnly {
+		return dp, nil
 	}
 
 	n, err := GetNetworkServer(db, dp.NetworkServerID)
@@ -190,11 +224,17 @@ func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
         update device_profile
         set
             updated_at = $2,
-            name = $3
+            name = $3,
+			payload_codec = $4,
+			payload_encoder_script = $5,
+			payload_decoder_script = $6
 		where device_profile_id = $1`,
 		dpID,
 		dp.UpdatedAt,
 		dp.Name,
+		dp.PayloadCodec,
+		dp.PayloadEncoderScript,
+		dp.PayloadDecoderScript,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")
@@ -326,7 +366,13 @@ func GetDeviceProfileCountForApplicationID(db sqlx.Queryer, applicationID int64)
 func GetDeviceProfiles(db sqlx.Queryer, limit, offset int) ([]DeviceProfileMeta, error) {
 	var dps []DeviceProfileMeta
 	err := sqlx.Select(db, &dps, `
-		select *
+		select
+			device_profile_id,
+			network_server_id,
+			organization_id,
+			created_at,
+			updated_at,
+			name
 		from device_profile
 		order by name
 		limit $1 offset $2`,
@@ -344,7 +390,13 @@ func GetDeviceProfiles(db sqlx.Queryer, limit, offset int) ([]DeviceProfileMeta,
 func GetDeviceProfilesForOrganizationID(db sqlx.Queryer, organizationID int64, limit, offset int) ([]DeviceProfileMeta, error) {
 	var dps []DeviceProfileMeta
 	err := sqlx.Select(db, &dps, `
-		select *
+		select
+			device_profile_id,
+			network_server_id,
+			organization_id,
+			created_at,
+			updated_at,
+			name
 		from device_profile
 		where
 			organization_id = $1
@@ -365,8 +417,15 @@ func GetDeviceProfilesForOrganizationID(db sqlx.Queryer, organizationID int64, l
 func GetDeviceProfilesForUser(db sqlx.Queryer, username string, limit, offset int) ([]DeviceProfileMeta, error) {
 	var dps []DeviceProfileMeta
 	err := sqlx.Select(db, &dps, `
-		select dp.*
-		from device_profile dp
+		select
+			dp.device_profile_id,
+			dp.network_server_id,
+			dp.organization_id,
+			dp.created_at,
+			dp.updated_at,
+			dp.name
+		from
+			device_profile dp
 		inner join organization o
 			on o.id = dp.organization_id
 		inner join organization_user ou
@@ -395,8 +454,14 @@ func GetDeviceProfilesForApplicationID(db sqlx.Queryer, applicationID int64, lim
 	var dps []DeviceProfileMeta
 	err := sqlx.Select(db, &dps, `
 		select
-			dp.*
-		from device_profile dp
+			dp.device_profile_id,
+			dp.network_server_id,
+			dp.organization_id,
+			dp.created_at,
+			dp.updated_at,
+			dp.name
+		from
+			device_profile dp
 		inner join network_server ns
 			on ns.id = dp.network_server_id
 		inner join service_profile sp
@@ -422,7 +487,19 @@ func GetDeviceProfilesForApplicationID(db sqlx.Queryer, applicationID int64, lim
 // given an organization id.
 func DeleteAllDeviceProfilesForOrganizationID(db sqlx.Ext, organizationID int64) error {
 	var dps []DeviceProfileMeta
-	err := sqlx.Select(db, &dps, "select * from device_profile where organization_id = $1", organizationID)
+	err := sqlx.Select(db, &dps, `
+		select
+			device_profile_id,
+			network_server_id,
+			organization_id,
+			created_at,
+			updated_at,
+			name
+		from
+			device_profile
+		where
+			organization_id = $1`,
+		organizationID)
 	if err != nil {
 		return handlePSQLError(Select, err, "select error")
 	}

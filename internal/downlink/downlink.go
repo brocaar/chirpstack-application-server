@@ -51,14 +51,32 @@ func handleDataDownPayload(pl integration.DataDownPayload) error {
 		}
 
 		// if Object is set, try to encode it to bytes using the application codec
-		if pl.Object != nil {
+		//if pl.Object != nil && string(pl.Object) != "null" {
+		if pl.Object != nil && string(pl.Object) != "null" {
 			app, err := storage.GetApplication(tx, d.ApplicationID)
 			if err != nil {
 				return errors.Wrap(err, "get application error")
 			}
 
+			dp, err := storage.GetDeviceProfile(storage.DB(), d.DeviceProfileID, false, true)
+			if err != nil {
+				return errors.Wrap(err, "get device-profile error")
+			}
+
+			// TODO: in the next major release, remove this and always use the
+			// device-profile codec fields.
+			payloadCodec := app.PayloadCodec
+			payloadEncoderScript := app.PayloadEncoderScript
+			payloadDecoderScript := app.PayloadDecoderScript
+
+			if dp.PayloadCodec != "" {
+				payloadCodec = dp.PayloadCodec
+				payloadEncoderScript = dp.PayloadEncoderScript
+				payloadDecoderScript = dp.PayloadDecoderScript
+			}
+
 			// get the codec payload configured for the application
-			codecPL := codec.NewPayload(app.PayloadCodec, pl.FPort, app.PayloadEncoderScript, app.PayloadDecoderScript)
+			codecPL := codec.NewPayload(payloadCodec, pl.FPort, payloadEncoderScript, payloadDecoderScript)
 			if codecPL == nil {
 				logCodecError(app, d, errors.New("no or invalid codec configured for application"))
 				return errors.New("no or invalid codec configured for application")
@@ -121,6 +139,7 @@ func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, confirmed bool, f
 	// enqueue device-queue item
 	_, err = nsClient.CreateDeviceQueueItem(context.Background(), &ns.CreateDeviceQueueItemRequest{
 		Item: &ns.DeviceQueueItem{
+			DevAddr:    da.DevAddr[:],
 			DevEui:     devEUI[:],
 			FrmPayload: b,
 			FCnt:       resp.FCnt,
@@ -149,6 +168,20 @@ func logCodecError(a storage.Application, d storage.Device, err error) {
 		DevEUI:          d.DevEUI,
 		Type:            "CODEC",
 		Error:           err.Error(),
+		Tags:            make(map[string]string),
+		Variables:       make(map[string]string),
+	}
+
+	for k, v := range d.Tags.Map {
+		if v.Valid {
+			errNotification.Tags[k] = v.String
+		}
+	}
+
+	for k, v := range d.Variables.Map {
+		if v.Valid {
+			errNotification.Variables[k] = v.String
+		}
 	}
 
 	if err := eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{

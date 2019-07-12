@@ -5,13 +5,16 @@
 *.log
 
 # config files
-*.toml
+/*.toml
+
+# coverage file
+/coverage.out
 
 # builds
 /dist
 /build
-/internal/static
-/internal/migrations
+/internal/static/static_gen.go
+/internal/migrations/migrations_gen.go
 /static/logo
 /static/static
 /static/swagger/*.json

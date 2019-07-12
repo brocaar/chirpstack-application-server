@@ -104,6 +104,36 @@ service ApplicationService {
 		};
 	}
 
+    // CreateThingsBoardIntegration creates a ThingsBoard application-integration.
+    rpc CreateThingsBoardIntegration(CreateThingsBoardIntegrationRequest) returns (google.protobuf.Empty) {
+        option(google.api.http) = {
+            post: "/api/applications/{integration.application_id}/integrations/thingsboard"
+            body: "*"
+        };
+    }
+
+    // GetThingsBoardIntegration returns the ThingsBoard application-integration.
+    rpc GetThingsBoardIntegration(GetThingsBoardIntegrationRequest) returns (GetThingsBoardIntegrationResponse) {
+        option(google.api.http) = {
+            get: "/api/applications/{application_id}/integrations/thingsboard"
+        };
+    }
+
+    // UpdateThingsBoardIntegration updates the ThingsBoard application-integration.
+    rpc UpdateThingsBoardIntegration(UpdateThingsBoardIntegrationRequest) returns (google.protobuf.Empty) {
+        option(google.api.http) = {
+            put: "/api/applications/{integration.application_id}/integrations/thingsboard"
+            body: "*"
+        };
+    }
+
+    // DeleteThingsBoardIntegration deletes the ThingsBoard application-integration.
+    rpc DeleteThingsBoardIntegration(DeleteThingsBoardIntegrationRequest) returns (google.protobuf.Empty) {
+        option(google.api.http) = {
+            delete: "/api/applications/{application_id}/integrations/thingsboard"
+        };
+    }
+
 	// ListIntegrations lists all configured integrations.
 	rpc ListIntegrations(ListIntegrationRequest) returns (ListIntegrationResponse) {
 		option(google.api.http) = {
@@ -115,6 +145,7 @@ service ApplicationService {
 enum IntegrationKind {
 	HTTP = 0;
 	INFLUXDB = 1;
+    THINGSBOARD = 2;
 }
 
 message Application {
@@ -135,12 +166,21 @@ message Application {
 	string service_profile_id = 5 [json_name = "serviceProfileID"];
 
 	// Payload codec.
+    // NOTE: These field have moved to the device-profile and will be removed
+    // in the next major release. When set, the device-profile payload_ fields
+    // have priority over the application payload_ fields.
 	string payload_codec = 6;
 
 	// Payload encoder script.
+    // NOTE: These field have moved to the device-profile and will be removed
+    // in the next major release. When set, the device-profile payload_ fields
+    // have priority over the application payload_ fields.
 	string payload_encoder_script = 7;
 
 	// Payload decoder script.
+    // NOTE: These field have moved to the device-profile and will be removed
+    // in the next major release. When set, the device-profile payload_ fields
+    // have priority over the application payload_ fields.
 	string payload_decoder_script = 8;
 }
 
@@ -347,6 +387,39 @@ message UpdateInfluxDBIntegrationRequest {
 }
 
 message DeleteInfluxDBIntegrationRequest {
+	// Application ID.
+	int64 application_id = 1 [json_name = "applicationID"];
+}
+
+message ThingsBoardIntegration {
+	// Application ID.
+	int64 application_id = 1 [json_name = "applicationID"];
+
+    // ThingsBoard server endpoint, e.g. https://example.com
+    string server = 2;
+}
+
+message CreateThingsBoardIntegrationRequest {
+    // Integration object to create.
+    ThingsBoardIntegration integration = 1;
+}
+
+message GetThingsBoardIntegrationRequest {
+	// Application ID.
+	int64 application_id = 1 [json_name = "applicationID"];
+}
+
+message GetThingsBoardIntegrationResponse {
+    // Integration object.
+    ThingsBoardIntegration integration = 1;
+}
+
+message UpdateThingsBoardIntegrationRequest {
+    // Integration object.
+    ThingsBoardIntegration integration = 1;
+}
+
+message DeleteThingsBoardIntegrationRequest {
 	// Application ID.
 	int64 application_id = 1 [json_name = "applicationID"];
 }

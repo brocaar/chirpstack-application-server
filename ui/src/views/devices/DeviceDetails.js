@@ -5,10 +5,16 @@ import Grid from "@material-ui/core/Grid";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import CardContent from "@material-ui/core/CardContent";
+import CardActions from "@material-ui/core/CardActions";
 import Table from "@material-ui/core/Table";
+import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
+import Button from '@material-ui/core/Button';
+
+import Refresh from "mdi-material-ui/Refresh";
+import Delete from "mdi-material-ui/Delete";
 
 import moment from "moment";
 
@@ -112,6 +118,94 @@ class EnqueueCard extends Component {
 EnqueueCard = withRouter(EnqueueCard);
 
 
+class QueueCardRow extends Component {
+  render() {
+    let confirmed = "no";
+    if (this.props.item.confirmed) {
+      confirmed = "yes";
+    }
+
+    return(
+      <TableRow>
+        <TableCell>{this.props.item.fCnt}</TableCell>
+        <TableCell>{this.props.item.fPort}</TableCell>
+        <TableCell>{confirmed}</TableCell>
+        <TableCell>{this.props.item.data}</TableCell>
+      </TableRow>
+    );
+  }
+}
+
+
+class QueueCard extends Component {
+  constructor() {
+    super();
+
+    this.state = {
+      deviceQueueItems: [],
+    };
+  }
+
+  componentDidMount() {
+    this.getQueue();
+
+    DeviceQueueStore.on("enqueue", this.getQueue);
+  }
+
+  componentWillUnmount() {
+    DeviceQueueStore.removeListener("enqueue", this.getQueue);
+  }
+
+  getQueue = () => {
+    DeviceQueueStore.list(this.props.match.params.devEUI, resp => {
+      this.setState({
+        deviceQueueItems: resp.deviceQueueItems,
+      });
+    });
+  }
+
+  flushQueue = () => {
+    if (window.confirm("Are you sure you want to flush the device queue?")) {
+      DeviceQueueStore.flush(this.props.match.params.devEUI, resp => {
+        this.getQueue();
+      });
+    }
+  }
+
+  render() {
+    const rows = this.state.deviceQueueItems.map((item, i) => <QueueCardRow key={i} item={item}/>);
+
+    return(
+      <Card>
+        <CardHeader title="Downlink queue" action={
+          <div>
+            <Button onClick={this.getQueue}><Refresh /></Button>
+            <Button onClick={this.flushQueue} color="secondary"><Delete /></Button>
+          </div>
+        } />
+        <CardContent>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>FCnt</TableCell>
+                <TableCell>FPort</TableCell>
+                <TableCell>Confirmed</TableCell>
+                <TableCell>Base64 encoded payload</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    );
+  }
+}
+
+QueueCard = withRouter(QueueCard);
+
+
 class DeviceDetails extends Component {
   render() {
 
@@ -125,6 +219,9 @@ class DeviceDetails extends Component {
         </Grid>
         <Grid item xs={12}>
           <EnqueueCard />
+        </Grid>
+        <Grid item xs={12}>
+          <QueueCard />
         </Grid>
       </Grid>
     );

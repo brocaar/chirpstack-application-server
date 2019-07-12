@@ -51,6 +51,7 @@ class DeviceQueueStore extends EventEmitter {
         .then(checkStatus)
         .then(resp => {
           this.notify("device-queue item has bee created");
+          this.emit("enqueue");
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);

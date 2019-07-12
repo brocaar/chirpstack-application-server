@@ -92,6 +92,7 @@ class DeviceProfileForm extends FormComponent {
     const payloadCodecOptions = [
       {value: "", label: "None"},
       {value: "CAYENNE_LPP", label: "Cayenne LPP"},
+      {value: "EXTENDED_CAYENNE_LPP", label: "Cayenne LPP Extended (Tektelic)"},
       {value: "CUSTOM_JS", label: "Custom JavaScript codec functions"},
     ];
 

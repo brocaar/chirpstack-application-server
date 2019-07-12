@@ -228,10 +228,10 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 
 			for i, test := range tests {
 				Convey(fmt.Sprintf("Testing: %s [%d]", test.Name, i), func() {
-					// update application
-					app.PayloadCodec = test.PayloadCodec
-					app.PayloadEncoderScript = test.PayloadEncoderScript
-					So(storage.UpdateApplication(storage.DB(), app), ShouldBeNil)
+					// update device-profile
+					dp.PayloadCodec = test.PayloadCodec
+					dp.PayloadEncoderScript = test.PayloadEncoderScript
+					So(storage.UpdateDeviceProfile(storage.DB(), &dp), ShouldBeNil)
 
 					err := handleDataDownPayload(test.Payload)
 					if test.ExpectedError != nil {

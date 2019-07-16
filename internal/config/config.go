@@ -103,6 +103,14 @@ type Config struct {
 			}
 		} `mapstructure:"kek"`
 	} `mapstructure:"join_server"`
+
+	Metrics struct {
+		Prometheus struct {
+			EndpointEnabled    bool   `mapstructure:"endpoint_enabled"`
+			Bind               string `mapstructure:"bind"`
+			APITimingHistogram bool   `mapstructure:"api_timing_histogram"`
+		}
+	} `mapstructure:"metrics"`
 }
 
 // C holds the global configuration.

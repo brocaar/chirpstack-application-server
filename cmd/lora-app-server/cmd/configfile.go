@@ -414,6 +414,26 @@ tls_key="{{ .JoinServer.TLSKey }}"
   label="{{ $element.Label }}"
   kek="{{ $element.KEK }}"
 {{ end }}
+
+# Metrics collection settings.
+[metrics]
+  # Metrics stored in Prometheus.
+  #
+  # These metrics expose information about the state of the LoRa Server
+  # instance.
+  [metrics.prometheus]
+  # Enable Prometheus metrics endpoint.
+  endpoint_enabled={{ .Metrics.Prometheus.EndpointEnabled }}
+
+  # The ip:port to bind the Prometheus metrics server to for serving the
+  # metrics endpoint.
+  bind="{{ .Metrics.Prometheus.Bind }}"
+
+  # API timing histogram.
+  #
+  # By setting this to true, the API request timing histogram will be enabled.
+  # See also: https://github.com/grpc-ecosystem/go-grpc-prometheus#histograms
+  api_timing_histogram={{ .Metrics.Prometheus.APITimingHistogram }}
 `
 
 var configCmd = &cobra.Command{

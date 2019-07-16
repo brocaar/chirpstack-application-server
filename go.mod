@@ -20,12 +20,14 @@ require (
 	github.com/gorilla/mux v1.7.1
 	github.com/gorilla/websocket v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
+	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.8.5
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/jteeuwen/go-bindata v3.0.8-0.20180305030458-6025e8de665b+incompatible
 	github.com/lib/pq v1.1.0
 	github.com/mmcloughlin/geohash v0.9.0
 	github.com/pkg/errors v0.8.1
+	github.com/prometheus/client_golang v1.0.0
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
 	github.com/rubenv/sql-migrate v0.0.0-20181213081019-5a8808c14925
 	github.com/sirupsen/logrus v1.4.1

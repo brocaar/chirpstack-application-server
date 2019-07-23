@@ -69,6 +69,9 @@ func EnqueueMultiple(db sqlx.Ext, multicastGroupID uuid.UUID, fPort uint8, paylo
 				FPort:            uint32(fPort),
 			},
 		})
+		if err != nil {
+			return nil, errors.Wrap(err, "enqueue multicast-queue item error")
+		}
 
 		out = append(out, fCnt)
 		fCnt++

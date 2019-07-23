@@ -77,6 +77,7 @@ func (a *MulticastGroupAPI) Create(ctx context.Context, req *pb.CreateMulticastG
 			PingSlotPeriod:   req.MulticastGroup.PingSlotPeriod,
 			ServiceProfileId: spID.Bytes(),
 			RoutingProfileId: a.routingProfileID.Bytes(),
+			FCnt:             req.MulticastGroup.FCnt,
 		},
 	}
 
@@ -131,7 +132,7 @@ func (a *MulticastGroupAPI) Get(ctx context.Context, req *pb.GetMulticastGroupRe
 			McAddr:           mcAddr.String(),
 			McNwkSKey:        mcNwkSKey.String(),
 			McAppSKey:        mg.MCAppSKey.String(),
-			FCnt:             mg.FCnt,
+			FCnt:             mg.MulticastGroup.FCnt,
 			GroupType:        pb.MulticastGroupType(mg.MulticastGroup.GroupType),
 			Dr:               mg.MulticastGroup.Dr,
 			Frequency:        mg.MulticastGroup.Frequency,
@@ -196,6 +197,7 @@ func (a *MulticastGroupAPI) Update(ctx context.Context, req *pb.UpdateMulticastG
 		PingSlotPeriod:   req.MulticastGroup.PingSlotPeriod,
 		ServiceProfileId: mg.MulticastGroup.ServiceProfileId,
 		RoutingProfileId: mg.MulticastGroup.RoutingProfileId,
+		FCnt:             req.MulticastGroup.FCnt,
 	}
 
 	if err = mg.MCAppSKey.UnmarshalText([]byte(req.MulticastGroup.McAppSKey)); err != nil {

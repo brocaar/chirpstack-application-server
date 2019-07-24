@@ -143,7 +143,6 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentMulticastCreate() {
 	assert.NotEqual("", mg.Name)
 	assert.NotEqual(lorawan.AES128Key{}, mg.MCAppSKey)
 	assert.NotEqual(lorawan.AES128Key{}, mg.MCKey)
-	assert.EqualValues(0, mg.FCnt)
 	assert.EqualValues(ts.ServiceProfile.ServiceProfile.Id, mg.ServiceProfileID.Bytes())
 }
 

@@ -130,7 +130,6 @@ func stepMulticastCreate(db sqlx.Ext, item storage.FUOTADeployment) error {
 		Name:             fmt.Sprintf("fuota-%s", item.ID),
 		MCAppSKey:        mcAppSKey,
 		MCKey:            mcKey,
-		FCnt:             0,
 		ServiceProfileID: spID,
 		MulticastGroup: ns.MulticastGroup{
 			McAddr:           devAddr[:],

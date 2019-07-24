@@ -67,7 +67,6 @@ func (a *MulticastGroupAPI) Create(ctx context.Context, req *pb.CreateMulticastG
 	mg := storage.MulticastGroup{
 		Name:             req.MulticastGroup.Name,
 		ServiceProfileID: spID,
-		FCnt:             req.MulticastGroup.FCnt,
 		MulticastGroup: ns.MulticastGroup{
 			McAddr:           mcAddr[:],
 			McNwkSKey:        mcNwkSKey[:],
@@ -186,7 +185,6 @@ func (a *MulticastGroupAPI) Update(ctx context.Context, req *pb.UpdateMulticastG
 	}
 
 	mg.Name = req.MulticastGroup.Name
-	mg.FCnt = req.MulticastGroup.FCnt
 	mg.MulticastGroup = ns.MulticastGroup{
 		Id:               mg.MulticastGroup.Id,
 		McAddr:           mcAddr[:],

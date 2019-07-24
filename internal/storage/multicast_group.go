@@ -23,7 +23,6 @@ type MulticastGroup struct {
 	Name             string            `db:"name"`
 	MCAppSKey        lorawan.AES128Key `db:"mc_app_s_key"`
 	MCKey            lorawan.AES128Key `db:"mc_key"`
-	FCnt             uint32            `db:"f_cnt"`
 	ServiceProfileID uuid.UUID         `db:"service_profile_id"`
 	MulticastGroup   ns.MulticastGroup `db:"-"`
 }
@@ -58,9 +57,8 @@ func CreateMulticastGroup(db sqlx.Ext, mg *MulticastGroup) error {
 			name,
 			service_profile_id,
 			mc_app_s_key,
-			mc_key,
-			f_cnt
-		) values ($1, $2, $3, $4, $5, $6, $7, $8)
+			mc_key
+		) values ($1, $2, $3, $4, $5, $6, $7)
 	`,
 		mgID,
 		mg.CreatedAt,
@@ -69,7 +67,6 @@ func CreateMulticastGroup(db sqlx.Ext, mg *MulticastGroup) error {
 		mg.ServiceProfileID,
 		mg.MCAppSKey,
 		mg.MCKey,
-		mg.FCnt,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -110,8 +107,7 @@ func GetMulticastGroup(db sqlx.Queryer, id uuid.UUID, forUpdate, localOnly bool)
 			name,
 			service_profile_id,
 			mc_app_s_key,
-			mc_key,
-			f_cnt
+			mc_key
 		from
 			multicast_group
 		where
@@ -161,8 +157,7 @@ func UpdateMulticastGroup(db sqlx.Ext, mg *MulticastGroup) error {
 			updated_at = $2,
 			name = $3,
 			mc_app_s_key = $4,
-			mc_key = $5,
-			f_cnt = $6
+			mc_key = $5
 		where
 			id = $1
 	`,
@@ -171,7 +166,6 @@ func UpdateMulticastGroup(db sqlx.Ext, mg *MulticastGroup) error {
 		mg.Name,
 		mg.MCAppSKey,
 		mg.MCKey,
-		mg.FCnt,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

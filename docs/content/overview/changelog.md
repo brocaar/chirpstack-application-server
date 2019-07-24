@@ -10,6 +10,31 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
+## v3.2.0
+
+### Features
+
+#### Device queue
+
+The LoRa App Server web-interface has now the option to:
+
+* Enqueue payloads
+* List pending queue items
+* Flush the device queue
+
+#### Prometheus metrics
+
+gRPC API metrics can now be exposed using a [Prometheus](https://prometheus.io/) metrics endpoint.
+In future releases, more metrics will be exposed using this endpoint.
+
+### Improvements
+
+* Multicast-group frame-counter cleanup (there was a column in both the LoRa App Server and LoRa Server database). ([#339](https://github.com/brocaar/lora-app-server/issues/339))
+
+### Bugfixes
+
+* Fix missing multicast enqueue error handler (this caused the enqueue endpoint to return a 200 even in case of error).
+
 ## v3.1.0
 
 ### Features

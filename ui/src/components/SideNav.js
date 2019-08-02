@@ -79,6 +79,10 @@ class SideNav extends Component {
           organization: org,
         });
       }
+
+      this.setState({
+        cacheCounter: this.state.cacheCounter + 1,
+      });
     });
 
     OrganizationStore.on("delete", id => {

@@ -359,14 +359,6 @@
           "format": "boolean",
           "description": "Set to false to disable the user."
         },
-        "email": {
-          "type": "string",
-          "description": "E-mail of the user."
-        },
-        "note": {
-          "type": "string",
-          "description": "Optional note to store with the user."
-        },
         "createdAt": {
           "type": "string",
           "format": "date-time",

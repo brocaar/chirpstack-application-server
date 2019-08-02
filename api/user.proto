@@ -96,12 +96,6 @@ message UserListItem {
 	// Set to false to disable the user.
 	bool is_active = 5;
 
-	// E-mail of the user.
-	string email = 6;
-
-	// Optional note to store with the user.
-	string note = 7;
-
 	// Created at timestamp.
 	google.protobuf.Timestamp created_at = 8;
 

@@ -23,7 +23,7 @@ const ITEM_HEIGHT = 48;
 
 const styles = theme => ({
   chip: {
-    margin: theme.spacing.unit / 4,
+    margin: theme.spacing(1) / 4,
   },
   '@global': {
     '.Select-control': {
@@ -48,7 +48,7 @@ const styles = theme => ({
       padding: 0,
     },
     '.Select-noresults': {
-      padding: theme.spacing.unit * 2,
+      padding: theme.spacing(2),
     },
     '.Select-input': {
       display: 'inline-flex !important',
@@ -91,7 +91,7 @@ const styles = theme => ({
       boxShadow: theme.shadows[2],
       position: 'absolute',
       left: 0,
-      top: `calc(100% + ${theme.spacing.unit}px)`,
+      top: `calc(100% + ${theme.spacing(1)}px)`,
       width: '100%',
       zIndex: 2,
       maxHeight: ITEM_HEIGHT * 4.5,
@@ -152,7 +152,13 @@ class Option extends Component {
 }
 
 function SelectWrapped(props) {
-  const { classes, ...other } = props;
+  const { classes, inputRef, ...other } = props;
+
+  // implement `InputElement` interface.
+  React.useImperativeHandle(inputRef, () => ({
+    focus: () => {
+    },
+  }));
 
   return (
     <Select.Async
@@ -289,7 +295,7 @@ class AutocompleteSelect extends Component {
   render() {
     const inputProps = this.props.inputProps || {};
     return(
-      <FormControl margin={this.props.margin || ""}  fullWidth={true} className={this.props.className}>
+      <FormControl margin={this.props.margin || "none"}  fullWidth={true} className={this.props.className}>
         <Input
           fullWidth
           inputComponent={SelectWrapped}

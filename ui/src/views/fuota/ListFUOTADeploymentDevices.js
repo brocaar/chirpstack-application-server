@@ -78,7 +78,7 @@ class FUOTADeploymentDevices extends Component {
     }
 
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         {this.state.deploymentDevice && <Dialog
           open={this.state.detailDialog}
           onClose={this.onCloseDialog}

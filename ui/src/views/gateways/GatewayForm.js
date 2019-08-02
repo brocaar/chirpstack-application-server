@@ -86,7 +86,7 @@ GatewayBoardForm = withStyles(boardStyles)(GatewayBoardForm);
 
 const styles = {
   mapLabel: {
-    marginBottom: theme.spacing.unit,
+    marginBottom: theme.spacing(1),
   },
   link: {
     color: theme.palette.primary.main,

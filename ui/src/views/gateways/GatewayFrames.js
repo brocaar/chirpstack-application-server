@@ -31,16 +31,16 @@ const styles = {
     textAlign: "right",
   },
   button: {
-    marginLeft: 2 * theme.spacing.unit,
+    marginLeft: 2 * theme.spacing(1),
   },
   icon: {
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing(1),
   },
   center: {
     textAlign: "center",
   },
   progress: {
-    marginTop: 4 * theme.spacing.unit,
+    marginTop: 4 * theme.spacing(1),
   },
 };
 
@@ -157,7 +157,7 @@ class GatewayFrames extends Component {
     const frames = this.state.frames.map((frame, i) => <LoRaWANFrameLog key={frame.id} frame={frame} />);
 
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <Grid item xs={12} className={this.props.classes.buttons}>
           <Dialog
             open={this.state.dialogOpen}

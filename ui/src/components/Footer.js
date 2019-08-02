@@ -8,7 +8,7 @@ import theme from "../theme";
 
 const styles = {
   footer: {
-    paddingBottom: theme.spacing.unit,
+    paddingBottom: theme.spacing(1),
     "& a": {
       color: theme.palette.primary.main,
       textDecoration: "none",

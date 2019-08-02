@@ -89,7 +89,7 @@ class FUOTADeploymentLayout extends Component {
     }
 
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <TitleBar>
           <TitleBarTitle to={`/organizations/${this.props.match.params.organizationID}/applications`} title="Applications" />
           <TitleBarTitle title="/" />

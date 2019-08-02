@@ -31,13 +31,13 @@ const styles = {
   drawerPaper: {
     position: "fixed",
     width: 270,
-    paddingTop: theme.spacing.unit * 9,
+    paddingTop: theme.spacing(9),
   },
   select: {
-    paddingTop: theme.spacing.unit,
-    paddingLeft: theme.spacing.unit * 3,
-    paddingRight: theme.spacing.unit * 3,
-    paddingBottom: theme.spacing.unit * 1,
+    paddingTop: theme.spacing(1),
+    paddingLeft: theme.spacing(3),
+    paddingRight: theme.spacing(3),
+    paddingBottom: theme.spacing(1),
   },
 };
 

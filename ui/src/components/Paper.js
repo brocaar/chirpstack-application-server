@@ -8,7 +8,7 @@ import theme from "../theme";
 
 const styles = {
   root: {
-    padding: theme.spacing.unit * 2,
+    padding: theme.spacing(2),
   },
 };
 

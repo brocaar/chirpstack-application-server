@@ -114,7 +114,7 @@ class FUOTADeploymentDetails extends Component {
     const nextStepAfter = moment(this.props.fuotaDeployment.fuotaDeployment.nextStepAfter).format('lll');
 
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <Grid item xs={6}>
           <Card>
             <CardHeader title="Details" />

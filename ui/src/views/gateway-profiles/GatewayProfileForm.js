@@ -82,7 +82,7 @@ class ExtraChannel extends Component {
           </span>
         }
       >
-        <Grid container spacing={24}>
+        <Grid container spacing={4}>
           <Grid item xs={6}>
             <FormControl>
               <InputLabel htmlFor="modulation" required>Modulation</InputLabel>

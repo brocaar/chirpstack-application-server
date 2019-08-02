@@ -209,7 +209,7 @@ class DeviceDetails extends Component {
   render() {
 
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <Grid item xs={6}>
           <DetailsCard device={this.props.device} deviceProfile={this.props.deviceProfile} match={this.props.match} />
         </Grid>

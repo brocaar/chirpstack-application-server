@@ -28,10 +28,10 @@ const styles = {
     textAlign: "right",
   },
   button: {
-    marginLeft: 2 * theme.spacing.unit,
+    marginLeft: 2 * theme.spacing(1),
   },
   icon: {
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing(1),
   },
 };
 
@@ -96,7 +96,7 @@ class ListFUOTADeploymentsForDevice extends Component {
     }
 
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         {this.state.deploymentDevice && <Dialog
           open={this.state.detailDialog}
           onClose={this.onCloseDialog}

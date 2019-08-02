@@ -26,7 +26,7 @@ class CreateUser extends Component {
 
   render() {
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <TitleBar>
           <TitleBarTitle title="Users" to="/Users" />
           <TitleBarTitle title="/" />

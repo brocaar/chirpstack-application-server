@@ -92,7 +92,7 @@ const styles = {
     flexDirection: "column",
   },
   paper: {
-    padding: theme.spacing.unit * 2,
+    padding: theme.spacing(2),
     textAlign: 'center',
     color: theme.palette.text.secondary,
   },
@@ -162,7 +162,7 @@ class App extends Component {
               {topNav}
               {sideNav}
               <div className={classNames(this.props.classes.main, this.state.drawerOpen && this.props.classes.mainDrawerOpen)}>
-                <Grid container spacing={24}>
+                <Grid container spacing={4}>
                   <Switch>
                     <Route exact path="/" component={OrganizationRedirect} />
                     <Route exact path="/login" component={Login} />

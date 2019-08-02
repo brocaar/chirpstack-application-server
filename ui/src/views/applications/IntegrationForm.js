@@ -19,7 +19,7 @@ import theme from "../../theme";
 
 const styles = {
   delete: {
-    marginTop: 3 * theme.spacing.unit,
+    marginTop: 3 * theme.spacing(1),
   },
   formLabel: {
     fontSize: 12,
@@ -50,7 +50,7 @@ class HTTPIntegrationHeaderForm extends FormComponent {
     }
 
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <Grid item xs={4}>
           <TextField
             id="key"

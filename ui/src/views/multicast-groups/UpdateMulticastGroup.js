@@ -31,7 +31,7 @@ class UpdateMulticastGroup extends Component {
 
   render() {
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <Grid item xs={12}>
           <Card className={this.props.classes.card}>
             <CardContent>

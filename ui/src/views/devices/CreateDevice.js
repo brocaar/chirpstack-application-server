@@ -83,7 +83,7 @@ class CreateDevice extends Component {
     }
 
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <Dialog
           open={this.state.dpDialog}
           onClose={this.closeDialog}

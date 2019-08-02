@@ -9,7 +9,7 @@ import theme from "../theme";
 
 const styles = {
   formControl: {
-    marginTop: theme.spacing.unit * 4,
+    marginTop: theme.spacing(4),
   },
   formLabel: {
     color: theme.palette.primary.main,

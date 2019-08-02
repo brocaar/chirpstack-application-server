@@ -68,7 +68,7 @@ class ChangeUserPassword extends Component {
     }
 
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <TitleBar>
           <TitleBarTitle title="Users" />
           <TitleBarTitle title="/" />

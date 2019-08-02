@@ -9,10 +9,10 @@ import theme from "../theme";
 
 const styles = {
   button: {
-    marginLeft: theme.spacing.unit,
+    marginLeft: theme.spacing(1),
   },
   icon: {
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing(1),
   },
 };
 

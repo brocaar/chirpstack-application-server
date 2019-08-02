@@ -110,32 +110,32 @@ class GatewayDetails extends Component {
     }
 
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <Grid item xs={6}>
           <Card>
             <CardHeader
               title="Gateway details"
             />
             <CardContent>
-              <Typography variant="subheading" color="primary">
+              <Typography variant="subtitle1" color="primary">
                 Gateway ID
               </Typography>
               <Typography variant="body1" gutterBottom>
                 {this.props.gateway.id}
               </Typography>
-              <Typography variant="subheading" color="primary">
+              <Typography variant="subtitle1" color="primary">
                 Altitude
               </Typography>
               <Typography variant="body1" gutterBottom>
                 {this.props.gateway.location.altitude} meters
               </Typography>
-              <Typography variant="subheading" color="primary">
+              <Typography variant="subtitle1" color="primary">
                 GPS coordinates
               </Typography>
               <Typography variant="body1" gutterBottom>
                 {this.props.gateway.location.latitude}, {this.props.gateway.location.longitude}
               </Typography>
-              <Typography variant="subheading" color="primary">
+              <Typography variant="subtitle1" color="primary">
                 Last seen
               </Typography>
               <Typography variant="body1" gutterBottom>

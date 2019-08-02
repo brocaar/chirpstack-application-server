@@ -26,7 +26,7 @@ class CreateNetworkServer extends Component {
 
   render() {
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <TitleBar>
           <TitleBarTitle title="Network-servers" to="/network-servers" />
           <TitleBarTitle title="/" />

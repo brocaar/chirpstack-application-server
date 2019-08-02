@@ -115,7 +115,7 @@ class UpdateIntegration extends Component {
     }
 
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <TitleBar
           buttons={[
             <TitleBarButton

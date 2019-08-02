@@ -19,7 +19,7 @@ import theme from "../../theme";
 
 const styles = {
   idColumn: {
-    width: theme.spacing.unit * 45,
+    width: theme.spacing(45),
     whiteSpace: "nowrap",
   },
 };
@@ -48,7 +48,7 @@ class ListMulticastGroups extends Component {
 
   render() {
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <TitleBar
           buttons={
             <Admin organizationID={this.props.match.params.organizationID}>

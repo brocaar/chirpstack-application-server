@@ -225,7 +225,7 @@ class CreateOrganizationUser extends Component {
 
   render() {
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <TitleBar>
           <TitleBarTitle title="Organization users" to={`/organizations/${this.props.match.params.organizationID}/users`} />
           <TitleBarTitle title="/" />

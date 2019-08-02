@@ -31,7 +31,7 @@ const styles = {
     fontSize: 12,
   },
   delete: {
-    marginTop: 3 * theme.spacing.unit,
+    marginTop: 3 * theme.spacing(1),
   },
 };
 
@@ -53,7 +53,7 @@ class DeviceKVForm extends FormComponent {
     }
 
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <Grid item xs={4}>
           <TextField
             id="key"

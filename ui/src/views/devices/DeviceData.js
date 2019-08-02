@@ -37,19 +37,19 @@ const styles = {
     textAlign: "right",
   },
   button: {
-    marginLeft: 2 * theme.spacing.unit,
+    marginLeft: 2 * theme.spacing(1),
   },
   icon: {
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing(1),
   },
   center: {
     textAlign: "center",
   },
   progress: {
-    marginTop: 4 * theme.spacing.unit,
+    marginTop: 4 * theme.spacing(1),
   },
   headerColumn: {
-    marginRight: 6 * theme.spacing.unit,
+    marginRight: 6 * theme.spacing(1),
   },
   headerColumnFixedSmall: {
     width: 145,
@@ -77,7 +77,7 @@ class DeviceDataItem extends Component {
           <div className={this.props.classes.headerColumnFixedSmall}><Typography variant="body2">{this.props.data.type}</Typography></div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <Grid container spacing={24}>
+          <Grid container spacing={4}>
             <Grid item xs className={this.props.classes.treeStyle}>
               <JSONTree data={this.props.data.payload} />
             </Grid>
@@ -184,7 +184,7 @@ class DeviceData extends Component {
     const data = this.state.data.map((d, i) => <DeviceDataItem key={d.id} data={d} />);
 
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <Dialog
           open={this.state.dialogOpen}
           onClose={this.toggleHelpDialog}

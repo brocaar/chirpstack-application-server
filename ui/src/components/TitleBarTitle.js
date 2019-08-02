@@ -10,9 +10,9 @@ import theme from "../theme";
 
 const styles = {
   title: {
-    marginTop: theme.spacing.unit,
-    marginBottom: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    marginRight: theme.spacing(1),
     float: "left",
   },
 
@@ -37,7 +37,7 @@ class TitleBarTitle extends Component {
 
 
     return(
-      <Typography variant="title" className={combinedStyles} to={this.props.to} component={component}>
+      <Typography variant="h6" className={combinedStyles} to={this.props.to} component={component}>
         {this.props.title}
       </Typography>
     );

@@ -17,7 +17,7 @@ import theme from "../theme";
 
 const styles = {
   headerColumn: {
-    marginRight: 6 * theme.spacing.unit,
+    marginRight: 6 * theme.spacing(1),
   },
   headerColumnFixedSmall: {
     width: 145,
@@ -67,7 +67,7 @@ class LoRaWANFrameLog extends Component {
           <div className={this.props.classes.headerColumn}><Typography variant="body2">{devID}</Typography></div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <Grid container spacing={24}>
+          <Grid container spacing={4}>
             <Grid item xs className={this.props.classes.treeStyle}>
               {this.props.frame.uplinkMetaData && <JSONTree data={this.props.frame.uplinkMetaData} />}
               {this.props.frame.downlinkMetaData && <JSONTree data={this.props.frame.downlinkMetaData} />}

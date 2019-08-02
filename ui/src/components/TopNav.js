@@ -41,7 +41,7 @@ const styles = {
     height: 32,
   },
   search: {
-    marginRight: 3 * theme.spacing.unit,
+    marginRight: 3 * theme.spacing(1),
     color: theme.palette.common.white,
     background: blue[400],
     width: 450,
@@ -55,7 +55,7 @@ const styles = {
   chip: {
     background: blue[600],
     color: theme.palette.common.white,
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing(1),
     "&:hover": {
       background: blue[400],
     },
@@ -65,7 +65,7 @@ const styles = {
   },
   iconButton: {
     color: theme.palette.common.white,
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing(1),
   },
 };
 

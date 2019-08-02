@@ -56,7 +56,7 @@ class CreateServiceProfile extends Component {
 
   render() {
     return(
-      <Grid container spacing={24}>
+      <Grid container spacing={4}>
         <Dialog
           open={this.state.nsDialog}
           onClose={this.closeDialog}

@@ -7,6 +7,8 @@ import FormLabel from "@material-ui/core/FormLabel";
 import FormHelperText from "@material-ui/core/FormHelperText";
 
 import FormComponent from "../../classes/FormComponent";
+import AESKeyField from "../../components/AESKeyField";
+import DevAddrField from "../../components/DevAddrField";
 import Form from "../../components/Form";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import ServiceProfileStore from "../../stores/ServiceProfileStore";
@@ -43,10 +45,7 @@ class MulticastGroupForm extends FormComponent {
     });
   }
 
-  getRandomKey(field, len, e) {
-    e.preventDefault();
-
-    let object = this.state.object;
+  getRandomKey(len) {
     let key = "";
     const possible = 'abcdef0123456789';
 
@@ -54,12 +53,17 @@ class MulticastGroupForm extends FormComponent {
       key += possible.charAt(Math.floor(Math.random() * possible.length));
     }
 
-    object[field] = key;
-
-    this.setState({
-      object: object,
-    });
+    return key;
   }
+
+  getRandomMcAddr = (cb) => {
+    cb(this.getRandomKey(8));
+  }
+
+  getRandomSessionKey = (cb) => {
+    cb(this.getRandomKey(32));
+  }
+
 
   getGroupTypeOptions(search, callbackFunc) {
     const options = [
@@ -120,47 +124,39 @@ class MulticastGroupForm extends FormComponent {
             The service-profile to which this application will be attached. Note that you can't change this value after the application has been created.
           </FormHelperText>
         </FormControl>}
-        <TextField
+        <DevAddrField
           id="mcAddr"
           label="Multicast address"
-          helperText={<span><a href="#random" onClick={this.getRandomKey.bind(this, "mcAddr", 8)} className={this.props.classes.link}>Generate random address</a>.</span>}
           margin="normal"
           value={this.state.object.mcAddr || ""}
-          placeholder="00000000"
           onChange={this.onChange}
-          inputProps={{
-            pattern: "[A-Fa-f0-9]{8}",
-          }}
+          disabled={this.props.disabled}
+          randomFunc={this.getRandomMcAddr}
           fullWidth
           required
+          random
         />
-        <TextField
+        <AESKeyField
           id="mcNwkSKey"
           label="Multicast network session key"
-          helperText={<span><a href="#random" onClick={this.getRandomKey.bind(this, "mcNwkSKey", 32)} className={this.props.classes.link}>Generate random key</a>.</span>}
           margin="normal"
           value={this.state.object.mcNwkSKey || ""}
-          placeholder="00000000000000000000000000000000"
           onChange={this.onChange}
-          inputProps={{
-            pattern: "[A-Fa-f0-9]{32}",
-          }}
+          disabled={this.props.disabled}
           fullWidth
           required
+          random
         />
-        <TextField
+        <AESKeyField
           id="mcAppSKey"
           label="Multicast application session key"
-          helperText={<span><a href="#random" onClick={this.getRandomKey.bind(this, "mcAppSKey", 32)} className={this.props.classes.link}>Generate random key</a>.</span>}
           margin="normal"
           value={this.state.object.mcAppSKey || ""}
-          placeholder="00000000000000000000000000000000"
           onChange={this.onChange}
-          inputProps={{
-            pattern: "[A-Fa-f0-9]{32}",
-          }}
+          disabled={this.props.disabled}
           fullWidth
           required
+          random
         />
         <TextField
           id="fCnt"

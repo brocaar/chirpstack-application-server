@@ -95,6 +95,13 @@ class GatewayDetails extends Component {
         display: false,
       },
       maintainAspectRatio: false,
+      scales: {
+        yAxes: [{
+          ticks: {
+            beginAtZero: true,
+          },
+        }],
+      },
     }
 
     let position = [];

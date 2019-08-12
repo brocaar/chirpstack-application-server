@@ -585,7 +585,7 @@
         "organizationID": {
           "type": "string",
           "format": "int64",
-          "description": "ID of the organization to which the application belongs."
+          "description": "ID of the organization to which the application belongs.\nAfter create, this can not be modified."
         },
         "serviceProfileID": {
           "type": "string",

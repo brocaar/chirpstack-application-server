@@ -98,6 +98,7 @@ type Application struct {
 	// Description of the application.
 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	// ID of the organization to which the application belongs.
+	// After create, this can not be modified.
 	OrganizationId int64 `protobuf:"varint,4,opt,name=organization_id,json=organizationID,proto3" json:"organization_id,omitempty"`
 	// ID of the service profile.
 	ServiceProfileId string `protobuf:"bytes,5,opt,name=service_profile_id,json=serviceProfileID,proto3" json:"service_profile_id,omitempty"`

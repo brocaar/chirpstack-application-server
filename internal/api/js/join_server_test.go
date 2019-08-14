@@ -12,6 +12,7 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	nsmock "github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/integration"
 	"github.com/brocaar/lora-app-server/internal/integration/mock"
 	"github.com/brocaar/lora-app-server/internal/storage"
@@ -88,8 +89,9 @@ func TestJoinServerAPI(t *testing.T) {
 		So(storage.CreateDeviceKeys(storage.DB(), &dk), ShouldBeNil)
 
 		Convey("Given a test-server", func() {
-			api := JoinServerAPI{}
-			server := httptest.NewServer(&api)
+			api, err := getHandler(config.Config{})
+			So(err, ShouldBeNil)
+			server := httptest.NewServer(api)
 			defer server.Close()
 
 			cFList := lorawan.CFList{

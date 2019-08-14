@@ -322,6 +322,16 @@
         "payloadDecoderScript": {
           "type": "string",
           "description": "Payload decoder script.\nDepending the codec, it is possible to provide a script which implements\nthe decoder function."
+        },
+        "geolocBufferTTL": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Geolocation buffer TTL (in seconds).\nWhen \u003e 0, uplink RX meta-data will be stored in a buffer so that\nthe meta-data of multiple uplinks can be used for geolocation."
+        },
+        "geolocMinBufferSize": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Geolocation minimum buffer size.\nWhen \u003e 0, geolocation will only be performed when the buffer has\nat least the given size."
         }
       }
     },

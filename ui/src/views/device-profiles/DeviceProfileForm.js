@@ -241,6 +241,26 @@ function Decode(fPort, bytes) {
             required
             fullWidth
           />
+          <TextField
+            id="geolocBufferTTL"
+            label="Geolocation buffer TTL (seconds)"
+            type="number"
+            margin="normal"
+            value={this.state.object.geolocBufferTTL || 0}
+            onChange={this.onChange}
+            helperText="The time in seconds that historical uplinks will be stored in the geolocation buffer."
+            fullWidth
+          />
+          <TextField
+            id="geolocMinBufferSize"
+            label="Geolocation minimum buffer size"
+            type="number"
+            margin="normal"
+            value={this.state.object.geolocMinBufferSize || 0}
+            onChange={this.onChange}
+            helperText="The minimum buffer size required before using geolocation (when enabled in the Service Profile). Using multiple uplinks for geolocation can increase the accuracy of the geolocation results."
+            fullWidth
+          />
         </div>}
 
         {this.state.tab === 1 && <div>

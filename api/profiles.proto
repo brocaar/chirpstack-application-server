@@ -166,4 +166,14 @@ message DeviceProfile {
     // Depending the codec, it is possible to provide a script which implements
     // the decoder function.
     string payload_decoder_script = 26;
+
+    // Geolocation buffer TTL (in seconds).
+    // When > 0, uplink RX meta-data will be stored in a buffer so that
+    // the meta-data of multiple uplinks can be used for geolocation.
+    uint32 geoloc_buffer_ttl = 27 [json_name = "geolocBufferTTL"];
+
+    // Geolocation minimum buffer size.
+    // When > 0, geolocation will only be performed when the buffer has
+    // at least the given size.
+    uint32 geoloc_min_buffer_size = 28;
 }

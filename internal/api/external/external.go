@@ -12,7 +12,6 @@ import (
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -87,7 +86,6 @@ func setupAPI(conf config.Config) error {
 	api.RegisterDeviceProfileServiceServer(grpcServer, NewDeviceProfileServiceAPI(validator))
 	api.RegisterMulticastGroupServiceServer(grpcServer, NewMulticastGroupAPI(validator, rpID))
 	api.RegisterFUOTADeploymentServiceServer(grpcServer, NewFUOTADeploymentAPI(validator))
-	grpc_prometheus.Register(grpcServer)
 
 	// setup the client http interface variable
 	// we need to start the gRPC service first, as it is used by the

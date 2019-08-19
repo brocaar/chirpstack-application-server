@@ -12,7 +12,6 @@ import (
 	keywrap "github.com/NickBall/go-aes-key-wrap"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -67,7 +66,6 @@ func Setup(conf config.Config) error {
 	}
 	server := grpc.NewServer(grpcOpts...)
 	as.RegisterApplicationServerServiceServer(server, NewApplicationServerAPI())
-	grpc_prometheus.Register(server)
 
 	ln, err := net.Listen("tcp", bind)
 	if err != nil {

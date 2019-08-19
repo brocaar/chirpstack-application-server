@@ -124,5 +124,13 @@ func getHandler(conf config.Config) (http.Handler, error) {
 		},
 	}
 
-	return joinserver.NewHandler(jsConf)
+	handler, err := joinserver.NewHandler(jsConf)
+	if err != nil {
+		return nil, errors.Wrap(err, "new join-server handler error")
+	}
+
+	return &prometheusMiddleware{
+		handler:         handler,
+		timingHistogram: conf.Metrics.Prometheus.APITimingHistogram,
+	}, nil
 }

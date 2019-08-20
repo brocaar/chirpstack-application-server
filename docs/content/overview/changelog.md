@@ -10,6 +10,31 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
+## v3.3.0
+
+### Features
+
+#### Multi-frame geolocation
+
+The multi-frame geolocation (implemented by LoRa Server v3.2.0) fields have
+been added to the Device Profile form in the web-interface.
+
+#### Prometheus metrics
+
+Prometheus metics have been implemented for the Join Server API interface.
+
+### Improvements
+
+* Update UI dependencies to their latest versions.
+* Show popup on gateway create when no Service Profile exists. ([#345](https://github.com/brocaar/lora-app-server/issues/345))
+* Remove unused fields when listing users. ([#328](https://github.com/brocaar/lora-app-server/issues/345))
+* Update multicast address and session-key input field widgets.
+* Mention in API description that the organization ID of an application can not be updated after create. ([#343](https://github.com/brocaar/lora-app-server/issues/343))
+
+### Bugfixes
+
+* Trigger organization dropdown reload on organization change. ([#342](https://github.com/brocaar/lora-app-server/issues/342))
+
 ## v3.2.0
 
 ### Features

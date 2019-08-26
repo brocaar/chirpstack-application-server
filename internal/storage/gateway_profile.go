@@ -95,7 +95,7 @@ func CreateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 		GatewayProfile: &gp.GatewayProfile,
 	})
 	if err != nil {
-		return handleGrpcError(err, "create gateway-profile error")
+		return errors.Wrap(err, "create gateway-profile error")
 	}
 
 	log.WithFields(log.Fields{
@@ -137,7 +137,7 @@ func GetGatewayProfile(db sqlx.Queryer, id uuid.UUID) (GatewayProfile, error) {
 		Id: id.Bytes(),
 	})
 	if err != nil {
-		return gp, handleGrpcError(err, "get gateway-profile error")
+		return gp, errors.Wrap(err, "get gateway-profile error")
 	}
 
 	if resp.GatewayProfile == nil {
@@ -196,7 +196,7 @@ func UpdateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 		GatewayProfile: &gp.GatewayProfile,
 	})
 	if err != nil {
-		handleGrpcError(err, "update gateway-profile error")
+		return errors.Wrap(err, "update gateway-profile error")
 	}
 
 	return nil
@@ -236,7 +236,7 @@ func DeleteGatewayProfile(db sqlx.Ext, id uuid.UUID) error {
 		Id: id.Bytes(),
 	})
 	if err != nil {
-		return handleGrpcError(err, "delete gateway-profile error")
+		return errors.Wrap(err, "delete gateway-profile error")
 	}
 
 	return nil

@@ -91,7 +91,7 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		ServiceProfile: &sp.ServiceProfile,
 	})
 	if err != nil {
-		return handleGrpcError(err, "create service-profile error")
+		return errors.Wrap(err, "create service-profile error")
 	}
 
 	log.WithField("id", spID).Info("service-profile created")
@@ -140,7 +140,7 @@ func GetServiceProfile(db sqlx.Queryer, id uuid.UUID, localOnly bool) (ServicePr
 		Id: id.Bytes(),
 	})
 	if err != nil {
-		return sp, handleGrpcError(err, "get service-profile error")
+		return sp, errors.Wrap(err, "get service-profile error")
 	}
 
 	if resp.ServiceProfile == nil {
@@ -199,7 +199,7 @@ func UpdateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		ServiceProfile: &sp.ServiceProfile,
 	})
 	if err != nil {
-		return handleGrpcError(err, "update service-profile error")
+		return errors.Wrap(err, "update service-profile error")
 	}
 
 	log.WithField("id", spID).Info("service-profile updated")
@@ -235,7 +235,7 @@ func DeleteServiceProfile(db sqlx.Ext, id uuid.UUID) error {
 		Id: id.Bytes(),
 	})
 	if err != nil && grpc.Code(err) != codes.NotFound {
-		return handleGrpcError(err, "delete service-profile error")
+		return errors.Wrap(err, "delete service-profile error")
 	}
 
 	log.WithField("id", id).Info("service-profile deleted")

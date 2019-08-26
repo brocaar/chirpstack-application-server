@@ -110,8 +110,7 @@ func CreateNetworkServer(db sqlx.Queryer, n *NetworkServer) error {
 		},
 	})
 	if err != nil {
-		log.WithError(err).Error("network-server create routing-profile api error")
-		return handleGrpcError(err, "create routing-profile error")
+		return errors.Wrap(err, "create routing-profile error")
 	}
 
 	log.WithFields(log.Fields{
@@ -205,8 +204,7 @@ func UpdateNetworkServer(db sqlx.Execer, n *NetworkServer) error {
 		},
 	})
 	if err != nil {
-		log.WithError(err).Error("network-server update routing-profile api error")
-		return handleGrpcError(err, "update routing-profile error")
+		return errors.Wrap(err, "update routing-profile error")
 	}
 
 	log.WithFields(log.Fields{
@@ -250,8 +248,7 @@ func DeleteNetworkServer(db sqlx.Ext, id int64) error {
 		Id: rpID.Bytes(),
 	})
 	if err != nil {
-		log.WithError(err).Error("network-server delete routing-profile api error")
-		return handleGrpcError(err, "delete routing-profile error")
+		return errors.Wrap(err, "delete routing-profile error")
 	}
 
 	log.WithField("id", id).Info("network-server deleted")

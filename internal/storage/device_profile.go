@@ -106,7 +106,7 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		DeviceProfile: &dp.DeviceProfile,
 	})
 	if err != nil {
-		return handleGrpcError(err, "create device-profile error")
+		return errors.Wrap(err, "create device-profile errror")
 	}
 
 	log.WithFields(log.Fields{
@@ -179,7 +179,7 @@ func GetDeviceProfile(db sqlx.Queryer, id uuid.UUID, forUpdate, localOnly bool) 
 		Id: id.Bytes(),
 	})
 	if err != nil {
-		return dp, handleGrpcError(err, "get device-profile error")
+		return dp, errors.Wrap(err, "get device-profile error")
 	}
 	if resp.DeviceProfile == nil {
 		return dp, errors.New("device_profile must not be nil")
@@ -215,7 +215,7 @@ func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		DeviceProfile: &dp.DeviceProfile,
 	})
 	if err != nil {
-		return handleGrpcError(err, "update device-profile error")
+		return errors.Wrap(err, "update device-profile error")
 	}
 
 	dp.UpdatedAt = time.Now()
@@ -282,7 +282,7 @@ func DeleteDeviceProfile(db sqlx.Ext, id uuid.UUID) error {
 		Id: id.Bytes(),
 	})
 	if err != nil && grpc.Code(err) != codes.NotFound {
-		return handleGrpcError(err, "delete device-profile error")
+		return errors.Wrap(err, "delete device-profile error")
 	}
 
 	log.WithField("id", id).Info("device-profile deleted")

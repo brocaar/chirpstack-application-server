@@ -81,7 +81,7 @@ func CreateMulticastGroup(db sqlx.Ext, mg *MulticastGroup) error {
 		MulticastGroup: &mg.MulticastGroup,
 	})
 	if err != nil {
-		return handleGrpcError(err, "create multicast-group error")
+		return errors.Wrap(err, "create multicast-group error")
 	}
 
 	log.WithFields(log.Fields{
@@ -130,7 +130,7 @@ func GetMulticastGroup(db sqlx.Queryer, id uuid.UUID, forUpdate, localOnly bool)
 		Id: id.Bytes(),
 	})
 	if err != nil {
-		return mg, handleGrpcError(err, "get multicast-group error")
+		return mg, errors.Wrap(err, "get multicast-group error")
 	}
 
 	if resp.MulticastGroup == nil {
@@ -187,7 +187,7 @@ func UpdateMulticastGroup(db sqlx.Ext, mg *MulticastGroup) error {
 		MulticastGroup: &mg.MulticastGroup,
 	})
 	if err != nil {
-		return handleGrpcError(err, "update multicast-group error")
+		return errors.Wrap(err, "update multicast-group error")
 	}
 
 	log.WithFields(log.Fields{
@@ -226,7 +226,7 @@ func DeleteMulticastGroup(db sqlx.Ext, id uuid.UUID) error {
 		Id: id.Bytes(),
 	})
 	if err != nil && grpc.Code(err) != codes.NotFound {
-		return handleGrpcError(err, "delete multicast-group error")
+		return errors.Wrap(err, "delete multicast-group error")
 	}
 
 	log.WithFields(log.Fields{
@@ -373,7 +373,7 @@ func AddDeviceToMulticastGroup(db sqlx.Ext, multicastGroupID uuid.UUID, devEUI l
 		MulticastGroupId: multicastGroupID.Bytes(),
 	})
 	if err != nil {
-		return handleGrpcError(err, "add device to multicast-group error")
+		return errors.Wrap(err, "add device to multicast-group error")
 	}
 
 	log.WithFields(log.Fields{
@@ -416,7 +416,7 @@ func RemoveDeviceFromMulticastGroup(db sqlx.Ext, multicastGroupID uuid.UUID, dev
 		MulticastGroupId: multicastGroupID.Bytes(),
 	})
 	if err != nil && grpc.Code(err) != codes.NotFound {
-		return handleGrpcError(err, "remove device from multicast-group error")
+		return errors.Wrap(err, "remove device from multicast-group error")
 	}
 
 	log.WithFields(log.Fields{

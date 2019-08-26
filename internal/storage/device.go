@@ -156,8 +156,7 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 		},
 	})
 	if err != nil {
-		log.WithError(err).Error("network-server create device api error")
-		return handleGrpcError(err, "create device error")
+		return errors.Wrap(err, "create device error")
 	}
 
 	log.WithFields(log.Fields{
@@ -408,8 +407,7 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 			},
 		})
 		if err != nil {
-			log.WithError(err).Error("network-server update device api error")
-			return handleGrpcError(err, "update device error")
+			return errors.Wrap(err, "update device error")
 		}
 	}
 
@@ -448,8 +446,7 @@ func DeleteDevice(db sqlx.Ext, devEUI lorawan.EUI64) error {
 		DevEui: devEUI[:],
 	})
 	if err != nil && grpc.Code(err) != codes.NotFound {
-		log.WithError(err).Error("network-server delete device api error")
-		return handleGrpcError(err, "delete device error")
+		return errors.Wrap(err, "delete device error")
 	}
 
 	log.WithFields(log.Fields{

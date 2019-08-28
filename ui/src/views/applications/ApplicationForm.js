@@ -150,7 +150,7 @@ function Decode(fPort, bytes) {
             />
             <FormHelperText>
               By defining a payload codec, LoRa App Server can encode and decode the binary device payload for you. 
-              <strong>Important note</strong>: they payload fields have moved to the device-profile. For backward-compatibility and migration, existing codec settings are still visible.
+              <strong>Important note</strong>: the payload fields have moved to the device-profile. For backward-compatibility and migration, existing codec settings are still visible.
               Codec settings on the device-profile have priority over the application codec settings.
             </FormHelperText>
           </FormControl>

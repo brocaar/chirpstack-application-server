@@ -291,7 +291,7 @@ class GatewayProfileForm extends FormComponent {
           margin="normal"
           value={this.state.object.channelsStr || ""}
           onChange={this.onChange}
-          helperText="The channels active in this gateway-profile as specified in the LoRaWAN Regional Parameters sepecification. Separate channels by comma, e.g. 0, 1, 2. Extra channels must not be included in this list."
+          helperText="The channels active in this gateway-profile as specified in the LoRaWAN Regional Parameters specification. Separate channels by comma, e.g. 0, 1, 2. Extra channels must not be included in this list."
           placeholder="0, 1, 2"
           inputProps={{
             pattern: "[0-9]+(,[\\s]*[0-9]+)*",

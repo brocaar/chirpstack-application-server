@@ -121,7 +121,7 @@ class MulticastGroupForm extends FormComponent {
             margin="none"
           />
           <FormHelperText>
-            The service-profile to which this application will be attached. Note that you can't change this value after the application has been created.
+            The service-profile to which this multicast-group will be attached. Note that you can't change this value after the multicast-group has been created.
           </FormHelperText>
         </FormControl>}
         <DevAddrField

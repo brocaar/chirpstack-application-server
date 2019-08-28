@@ -346,7 +346,7 @@ class GatewayForm extends FormComponent {
           type="number"
           value={this.state.object.location.altitude || 0}
           onChange={this.onChange}
-          helperText="When the gateway has an on-board GPS, this value will be set automatically when the network received statistics from the gateway."
+          helperText="When the gateway has an on-board GPS, this value will be set automatically when the network has received statistics from the gateway."
           required
           fullWidth
         />

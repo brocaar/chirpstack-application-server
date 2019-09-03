@@ -20,6 +20,8 @@ type Config struct {
 	PostgreSQL struct {
 		DSN         string `mapstructure:"dsn"`
 		Automigrate bool
+		MaxOpen int               `mapstructure:"max_open"`
+		MaxIdle int               `mapstructure:"max_idle"`
 	} `mapstructure:"postgresql"`
 
 	Redis struct {

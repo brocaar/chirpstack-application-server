@@ -75,6 +75,8 @@ type JoinNotification struct {
 	DeviceName      string            `json:"deviceName"`
 	DevEUI          lorawan.EUI64     `json:"devEUI"`
 	DevAddr         lorawan.DevAddr   `json:"devAddr"`
+	RXInfo          []RXInfo          `json:"rxInfo,omitempty"`
+	TXInfo          TXInfo            `json:"txInfo"`
 	Tags            map[string]string `json:"tags,omitempty"`
 	Variables       map[string]string `json:"-"`
 }

@@ -133,7 +133,7 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 	}
 
 	if req.DeviceActivationContext != nil {
-		if err := handleDeviceActivation(d, app, req.DeviceActivationContext); err != nil {
+		if err := handleDeviceActivation(d, app, req); err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 	}
@@ -733,7 +733,9 @@ func getSKey(typ byte, appkey lorawan.AES128Key, netID lorawan.NetID, appNonce [
 	return key, nil
 }
 
-func handleDeviceActivation(d storage.Device, app storage.Application, daCtx *as.DeviceActivationContext) error {
+func handleDeviceActivation(d storage.Device, app storage.Application, req *as.HandleUplinkDataRequest) error {
+	daCtx := req.DeviceActivationContext
+
 	if daCtx.AppSKey == nil {
 		return errors.New("AppSKey must not be nil")
 	}
@@ -759,6 +761,11 @@ func handleDeviceActivation(d storage.Device, app storage.Application, daCtx *as
 		DevEUI:          d.DevEUI,
 		DeviceName:      d.Name,
 		DevAddr:         da.DevAddr,
+		RXInfo:          []integration.RXInfo{},
+		TXInfo: integration.TXInfo{
+			Frequency: int(req.TxInfo.Frequency),
+			DR:        int(req.Dr),
+		},
 		Tags:            make(map[string]string),
 		Variables:       make(map[string]string),
 	}
@@ -773,6 +780,52 @@ func handleDeviceActivation(d storage.Device, app storage.Application, daCtx *as
 		if v.Valid {
 			pl.Variables[k] = v.String
 		}
+	}
+
+	// collect gateway data of receiving gateways (e.g. gateway name)
+	var macs []lorawan.EUI64
+	for _, rxInfo := range req.RxInfo {
+		var mac lorawan.EUI64
+		copy(mac[:], rxInfo.GatewayId)
+		macs = append(macs, mac)
+	}
+	gws, err := storage.GetGatewaysForMACs(storage.DB(), macs)
+	if err != nil {
+		return errors.Wrap(err, "get gateways for macs error")
+	}
+
+	for _, rxInfo := range req.RxInfo {
+		var mac lorawan.EUI64
+		copy(mac[:], rxInfo.GatewayId)
+
+		row := integration.RXInfo{
+			GatewayID: mac,
+			RSSI:      int(rxInfo.Rssi),
+			LoRaSNR:   rxInfo.LoraSnr,
+		}
+
+		if rxInfo.Location != nil {
+			row.Location = &integration.Location{
+				Latitude:  rxInfo.Location.Latitude,
+				Longitude: rxInfo.Location.Longitude,
+				Altitude:  rxInfo.Location.Altitude,
+			}
+		}
+
+		if gw, ok := gws[mac]; ok {
+			row.Name = gw.Name
+		}
+
+		if rxInfo.Time != nil {
+			ts, err := ptypes.Timestamp(rxInfo.Time)
+			if err != nil {
+				log.WithField("dev_eui", d.DevEUI).WithError(err).Error("parse timestamp error")
+			} else {
+				row.Time = &ts
+			}
+		}
+
+		pl.RXInfo = append(pl.RXInfo, row)
 	}
 
 	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{

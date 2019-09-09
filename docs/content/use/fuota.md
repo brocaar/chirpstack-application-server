@@ -9,7 +9,7 @@ description: Starting firmware update over the air (FUOTA) jobs.
 
 # Firmware update over the air
 
-**Note:** this is an experimental feature, the implmentation including
+**Note:** this is an experimental feature, the implementation including
 the API might change!
 
 Firmware update over the air (sometimes called FUOTA) makes it possible to
@@ -34,7 +34,7 @@ The following information needs to be provided:
 
 * **Name**: a descriptive name for the update job.
 * **Firmware file**: this is the file containing the update (vendor specific).
-* **Redundant frames**: the number of extra redundant frames to add to the transmission (more redundancy means that it is more likely a device can recover from packetloss).
+* **Redundant frames**: the number of extra redundant frames to add to the transmission (more redundancy means that it is more likely a device can recover from packet loss).
 * **Unicast timeout**: this is the number of seconds that LoRa App Server will wait for the device to respond to downlink commands.
 * **Data-rate**: the used data-rate for the multicast transmission.
 * **Frequency**: the frequency used for the multicast transmission.
@@ -48,7 +48,7 @@ The following information needs to be provided:
 An example ARM Mbed FUOTA implementation can be found at:
 [https://github.com/ARMmbed/mbed-os-example-lorawan-fuota](https://github.com/ARMmbed/mbed-os-example-lorawan-fuota).
 
-To obtain the _Firmware file_ (`xdot-blinky-signed.bin`), you must use the folling command:
+To obtain the _Firmware file_ (`xdot-blinky-signed.bin`), you must use the following command:
 
 {{<highlight bash>}}
 lorawan-fota-signing-tool sign-binary -b example-firmware/xdot-blinky.bin -o xdot-blinky-signed.bin --output-format bin --override-version

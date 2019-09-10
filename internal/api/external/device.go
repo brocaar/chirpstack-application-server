@@ -948,10 +948,13 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 
 		for _, rxInfo := range up.RxInfo {
 			var mac lorawan.EUI64
+			var uplinkID uuid.UUID
 			copy(mac[:], rxInfo.GatewayId)
+			copy(uplinkID[:], rxInfo.UplinkId)
 
 			upRXInfo := pb.UplinkRXInfo{
 				GatewayId:         mac.String(),
+				UplinkId:          uplinkID.String(),
 				Time:              rxInfo.Time,
 				TimeSinceGpsEpoch: rxInfo.TimeSinceGpsEpoch,
 				Rssi:              rxInfo.Rssi,
@@ -999,10 +1002,13 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 
 		if down.TxInfo != nil {
 			var mac lorawan.EUI64
+			var downlinkID uuid.UUID
 			copy(mac[:], down.TxInfo.GatewayId[:])
+			copy(downlinkID[:], down.DownlinkId)
 
 			downlinkFrameLog.TxInfo = &pb.DownlinkTXInfo{
 				GatewayId:  mac.String(),
+				DownlinkId: downlinkID.String(),
 				Frequency:  down.TxInfo.Frequency,
 				Power:      down.TxInfo.Power,
 				Modulation: down.TxInfo.Modulation,

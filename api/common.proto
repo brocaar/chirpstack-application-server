@@ -39,7 +39,10 @@ message DownlinkFrameLog {
 // instead of base64.
 message UplinkRXInfo {
     // Gateway ID.
-    string gateway_id = 1;
+    string gateway_id = 1 [json_name = "gatewayID"];
+
+    // Uplink ID (UUID).
+    string uplink_id = 16 [json_name = "uplinkID"];
 
     // RX time (only set when the gateway has a GPS module).
     google.protobuf.Timestamp time = 2;
@@ -101,7 +104,10 @@ message EncryptedFineTimestamp {
 // Same comment as above applies to this message.
 message DownlinkTXInfo {
     // Gateway ID.
-    string gateway_id = 1;
+    string gateway_id = 1 [json_name = "gatewayID"];
+
+    // Downlink ID (UUID).
+    string downlink_id = 17 [json_name = "downlinkID"];
 
     // TX frequency (in Hz).
     uint32 frequency = 5;

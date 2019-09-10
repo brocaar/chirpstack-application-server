@@ -10,6 +10,7 @@ import (
 	"time"
 
 	keywrap "github.com/NickBall/go-aes-key-wrap"
+	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
@@ -331,8 +332,12 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		var mac lorawan.EUI64
 		copy(mac[:], rxInfo.GatewayId)
 
+		var uplinkID uuid.UUID
+		copy(uplinkID[:], rxInfo.UplinkId)
+
 		row := integration.RXInfo{
 			GatewayID: mac,
+			UplinkID:  uplinkID,
 			RSSI:      int(rxInfo.Rssi),
 			LoRaSNR:   rxInfo.LoraSnr,
 		}
@@ -766,8 +771,8 @@ func handleDeviceActivation(d storage.Device, app storage.Application, req *as.H
 			Frequency: int(req.TxInfo.Frequency),
 			DR:        int(req.Dr),
 		},
-		Tags:            make(map[string]string),
-		Variables:       make(map[string]string),
+		Tags:      make(map[string]string),
+		Variables: make(map[string]string),
 	}
 
 	// set tags and variables
@@ -796,10 +801,13 @@ func handleDeviceActivation(d storage.Device, app storage.Application, req *as.H
 
 	for _, rxInfo := range req.RxInfo {
 		var mac lorawan.EUI64
+		var uplinkID uuid.UUID
 		copy(mac[:], rxInfo.GatewayId)
+		copy(uplinkID[:], rxInfo.UplinkId)
 
 		row := integration.RXInfo{
 			GatewayID: mac,
+			UplinkID:  uplinkID,
 			RSSI:      int(rxInfo.Rssi),
 			LoRaSNR:   rxInfo.LoraSnr,
 		}

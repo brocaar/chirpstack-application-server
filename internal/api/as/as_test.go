@@ -157,6 +157,8 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			assert := require.New(t)
 
 			now := time.Now().UTC()
+			uplinkID, err := uuid.NewV4()
+			assert.NoError(err)
 
 			req := as.HandleUplinkDataRequest{
 				DevEui: d.DevEUI[:],
@@ -168,6 +170,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				RxInfo: []*gwPB.UplinkRXInfo{
 					{
 						GatewayId: gw.MAC[:],
+						UplinkId:  uplinkID[:],
 						Rssi:      -60,
 						LoraSnr:   5,
 						Location: &common.Location{
@@ -197,18 +200,22 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			}
 			req.RxInfo[0].Time, _ = ptypes.TimestampProto(now)
 
-			_, err := api.HandleUplinkData(ctx, &req)
+			_, err = api.HandleUplinkData(ctx, &req)
 			assert.NoError(err)
 
 			plData := <-h.SendDataUpChan
 			assert.Equal([]byte{33, 99, 53, 13}, plData.Data)
+			assert.Equal(uplinkID, plData.RXInfo[0].UplinkID)
 
 			plJoin := <-h.SendJoinNotificationChan
 			assert.Equal(lorawan.DevAddr{1, 2, 3, 4}, plJoin.DevAddr)
+			assert.Equal(uplinkID, plData.RXInfo[0].UplinkID)
 		})
 
 		t.Run("Activated device", func(t *testing.T) {
 			assert := require.New(t)
+			uplinkID, err := uuid.NewV4()
+			assert.NoError(err)
 
 			da := storage.DeviceActivation{
 				DevEUI:  d.DevEUI,
@@ -230,6 +237,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				RxInfo: []*gwPB.UplinkRXInfo{
 					{
 						GatewayId: gw.MAC[:],
+						UplinkId:  uplinkID[:],
 						Rssi:      -60,
 						LoraSnr:   5,
 						Location: &common.Location{
@@ -271,6 +279,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					RXInfo: []integration.RXInfo{
 						{
 							GatewayID: mac,
+							UplinkID:  uplinkID,
 							Name:      "test-gw",
 							Location: &integration.Location{
 								Latitude:  52.3740364,

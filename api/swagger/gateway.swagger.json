@@ -302,9 +302,13 @@
     "apiDownlinkTXInfo": {
       "type": "object",
       "properties": {
-        "gatewayId": {
+        "gatewayID": {
           "type": "string",
           "description": "Gateway ID."
+        },
+        "downlinkID": {
+          "type": "string",
+          "description": "Downlink ID (UUID)."
         },
         "frequency": {
           "type": "integer",
@@ -672,9 +676,13 @@
     "apiUplinkRXInfo": {
       "type": "object",
       "properties": {
-        "gatewayId": {
+        "gatewayID": {
           "type": "string",
           "description": "Gateway ID."
+        },
+        "uplinkID": {
+          "type": "string",
+          "description": "Uplink ID (UUID)."
         },
         "time": {
           "type": "string",

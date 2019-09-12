@@ -8,7 +8,6 @@ import Delete from "mdi-material-ui/Delete";
 import TitleBar from "../../components/TitleBar";
 import TitleBarTitle from "../../components/TitleBarTitle";
 import TitleBarButton from "../../components/TitleBarButton";
-import Admin from "../../components/Admin";
 import DeviceProfileStore from "../../stores/DeviceProfileStore";
 import SessionStore from "../../stores/SessionStore";
 import UpdateDeviceProfile from "./UpdateDeviceProfile";
@@ -41,7 +40,7 @@ class DeviceProfileLayout extends Component {
 
   setIsAdmin() {
     this.setState({
-      admin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID),
+      admin: SessionStore.isAdmin() || SessionStore.isOrganizationDeviceAdmin(this.props.match.params.organizationID),
     });
   }
 
@@ -58,19 +57,22 @@ class DeviceProfileLayout extends Component {
       return(<div></div>);
     }
 
+    let buttons = [];
+    if (this.state.admin) {
+      buttons = [
+          <TitleBarButton
+            label="Delete"
+            icon={<Delete />}
+            color="secondary"
+            onClick={this.deleteDeviceProfile}
+          />,
+      ];
+    }
+
     return(
       <Grid container spacing={4}>
         <TitleBar
-          buttons={
-            <Admin organizationID={this.props.match.params.organizationID}>
-              <TitleBarButton
-                label="Delete"
-                icon={<Delete />}
-                color="secondary"
-                onClick={this.deleteDeviceProfile}
-              />
-            </Admin>
-          }
+          buttons={buttons}
         >
           <TitleBarTitle to={`/organizations/${this.props.match.params.organizationID}/device-profiles`} title="Device-profiles" />
           <TitleBarTitle title="/" />

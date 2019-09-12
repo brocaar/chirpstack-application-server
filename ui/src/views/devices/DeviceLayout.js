@@ -15,7 +15,7 @@ import TitleBarButton from "../../components/TitleBarButton";
 import ApplicationStore from "../../stores/ApplicationStore";
 import DeviceProfileStore from "../../stores/DeviceProfileStore";
 import SessionStore from "../../stores/SessionStore";
-import Admin from "../../components/Admin";
+import DeviceAdmin from "../../components/DeviceAdmin";
 import DeviceStore from "../../stores/DeviceStore";
 import UpdateDevice from "./UpdateDevice";
 import DeviceKeys from "./DeviceKeys";
@@ -96,7 +96,7 @@ class DeviceLayout extends Component {
 
   setIsAdmin() {
     this.setState({
-      admin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID),
+      admin: SessionStore.isAdmin() || SessionStore.isOrganizationDeviceAdmin(this.props.match.params.organizationID),
     }, () => {
       // we need to update the tab index, as for non-admins, some tabs are hidden
       this.locationToTab();
@@ -152,14 +152,14 @@ class DeviceLayout extends Component {
       <Grid container spacing={4}>
         <TitleBar
           buttons={
-            <Admin organizationID={this.props.match.params.organizationID}>
+            <DeviceAdmin organizationID={this.props.match.params.organizationID}>
               <TitleBarButton
                 label="Delete"
                 icon={<Delete />}
                 color="secondary"
                 onClick={this.deleteDevice}
               />
-            </Admin>
+            </DeviceAdmin>
           }
         >
           <TitleBarTitle to={`/organizations/${this.props.match.params.organizationID}/applications`} title="Applications" />

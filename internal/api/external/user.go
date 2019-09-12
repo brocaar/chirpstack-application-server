@@ -81,7 +81,7 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.Cr
 		}
 
 		for _, org := range req.Organizations {
-			if err := storage.CreateOrganizationUser(tx, org.OrganizationId, userID, org.IsAdmin); err != nil {
+			if err := storage.CreateOrganizationUser(tx, org.OrganizationId, userID, org.IsAdmin, org.IsDeviceAdmin, org.IsGatewayAdmin); err != nil {
 				return err
 			}
 		}
@@ -297,6 +297,8 @@ func (a *InternalUserAPI) Profile(ctx context.Context, req *empty.Empty) (*pb.Pr
 			OrganizationId:   org.ID,
 			OrganizationName: org.Name,
 			IsAdmin:          org.IsAdmin,
+			IsDeviceAdmin:    org.IsDeviceAdmin,
+			IsGatewayAdmin:   org.IsGatewayAdmin,
 		}
 
 		row.CreatedAt, err = ptypes.TimestampProto(org.CreatedAt)

@@ -11,7 +11,7 @@ import TitleBarTitle from "../../components/TitleBarTitle";
 import TableCellLink from "../../components/TableCellLink";
 import TitleBarButton from "../../components/TitleBarButton";
 import DataTable from "../../components/DataTable";
-import Admin from "../../components/Admin";
+import DeviceAdmin from "../../components/DeviceAdmin";
 import DeviceProfileStore from "../../stores/DeviceProfileStore";
 
 
@@ -40,13 +40,13 @@ class ListDeviceProfiles extends Component {
       <Grid container spacing={4}>
         <TitleBar
           buttons={
-            <Admin organizationID={this.props.match.params.organizationID}>
+            <DeviceAdmin organizationID={this.props.match.params.organizationID}>
               <TitleBarButton
                 label="Create"
                 icon={<Plus />}
                 to={`/organizations/${this.props.match.params.organizationID}/device-profiles/create`}
               />
-            </Admin>
+            </DeviceAdmin>
           }
         >
           <TitleBarTitle title="Device-profiles" />

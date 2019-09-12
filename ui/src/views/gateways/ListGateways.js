@@ -15,7 +15,7 @@ import TitleBarTitle from "../../components/TitleBarTitle";
 import TableCellLink from "../../components/TableCellLink";
 import TitleBarButton from "../../components/TitleBarButton";
 import DataTable from "../../components/DataTable";
-import Admin from "../../components/Admin";
+import GatewayAdmin from "../../components/GatewayAdmin";
 import GatewayStore from "../../stores/GatewayStore";
 
 
@@ -118,14 +118,14 @@ class ListGateways extends Component {
       <Grid container spacing={4}>
         <TitleBar
           buttons={
-            <Admin organizationID={this.props.match.params.organizationID}>
+            <GatewayAdmin organizationID={this.props.match.params.organizationID}>
               <TitleBarButton
                 key={1}
                 label="Create"
                 icon={<Plus />}
                 to={`/organizations/${this.props.match.params.organizationID}/gateways/create`}
               />
-            </Admin>
+            </GatewayAdmin>
           }
         >
           <TitleBarTitle title="Gateways" />

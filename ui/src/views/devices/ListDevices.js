@@ -13,7 +13,7 @@ import PowerPlug from "mdi-material-ui/PowerPlug";
 
 import TableCellLink from "../../components/TableCellLink";
 import DataTable from "../../components/DataTable";
-import Admin from "../../components/Admin";
+import DeviceAdmin from "../../components/DeviceAdmin";
 import DeviceStore from "../../stores/DeviceStore";
 import theme from "../../theme";
 
@@ -81,14 +81,14 @@ class ListDevices extends Component {
   render() {
     return(
       <Grid container spacing={4}>
-        <Admin organizationID={this.props.match.params.organizationID}>
+        <DeviceAdmin organizationID={this.props.match.params.organizationID}>
           <Grid item xs={12} className={this.props.classes.buttons}>
             <Button variant="outlined" className={this.props.classes.button} component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/create`}>
               <Plus className={this.props.classes.icon} />
               Create
             </Button>
           </Grid>
-        </Admin>
+        </DeviceAdmin>
         <Grid item xs={12}>
           <DataTable
             header={

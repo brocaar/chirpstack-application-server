@@ -250,7 +250,7 @@ func (ts *APITestSuite) TestDeviceProfile() {
 			}, "testpassword")
 			assert.NoError(err)
 
-			assert.NoError(storage.CreateOrganizationUser(storage.DB(), org.ID, userID, false))
+			assert.NoError(storage.CreateOrganizationUser(storage.DB(), org.ID, userID, false, false, false))
 
 			t.Run("List without org id returns all device-profiles for user", func(t *testing.T) {
 				assert := require.New(t)

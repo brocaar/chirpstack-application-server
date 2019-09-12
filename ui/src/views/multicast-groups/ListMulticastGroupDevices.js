@@ -11,7 +11,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Plus from "mdi-material-ui/Plus";
 import Delete from "mdi-material-ui/Delete";
 
-import Admin from "../../components/Admin";
+import DeviceAdmin from "../../components/DeviceAdmin";
 import TableCellLink from "../../components/TableCellLink";
 import DataTable from "../../components/DataTable";
 import DeviceStore from "../../stores/DeviceStore";
@@ -62,7 +62,9 @@ class ListMulticastGroupDevices extends Component {
         <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/applications/${obj.applicationID}/devices/${obj.devEUI}`}>{obj.name}</TableCellLink>
         <TableCell>{obj.devEUI}</TableCell>
         <TableCell className={this.props.classes.buttons}>
-          <IconButton onClick={this.onDelete.bind(this, obj.devEUI)}><Delete /></IconButton>
+          <DeviceAdmin organizationID={this.props.match.params.organizationID}>
+            <IconButton onClick={this.onDelete.bind(this, obj.devEUI)}><Delete /></IconButton>
+          </DeviceAdmin>
         </TableCell>
       </TableRow>
     );
@@ -71,14 +73,14 @@ class ListMulticastGroupDevices extends Component {
   render() {
     return(
       <Grid container spacing={4}>
-        <Admin organizationID={this.props.match.params.organizationID}>
+        <DeviceAdmin organizationID={this.props.match.params.organizationID}>
           <Grid item xs={12} className={this.props.classes.buttons}>
             <Button variant="outlined" className={this.props.classes.button} component={Link} to={`/organizations/${this.props.match.params.organizationID}/multicast-groups/${this.props.match.params.multicastGroupID}/devices/create`}>
               <Plus className={this.props.classes.icon} />
               Add
             </Button>
           </Grid>
-        </Admin>
+        </DeviceAdmin>
         <Grid item xs={12}>
           <DataTable
             header={

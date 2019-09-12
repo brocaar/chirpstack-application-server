@@ -11,7 +11,7 @@ import Delete from "mdi-material-ui/Delete";
 import TitleBar from "../../components/TitleBar";
 import TitleBarTitle from "../../components/TitleBarTitle";
 import TitleBarButton from "../../components/TitleBarButton";
-import Admin from "../../components/Admin";
+import DeviceAdmin from "../../components/DeviceAdmin";
 
 import MulticastGroupStore from "../../stores/MulticastGroupStore";
 import SessionStore from "../../stores/SessionStore";
@@ -67,7 +67,7 @@ class MulticastGroupLayout extends Component {
 
   setIsAdmin() {
     this.setState({
-      admin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID),
+      admin: SessionStore.isAdmin() || SessionStore.isOrganizationDeviceAdmin(this.props.match.params.organizationID),
     });
   }
 
@@ -106,14 +106,14 @@ class MulticastGroupLayout extends Component {
       <Grid container spacing={4}>
         <TitleBar
           buttons={
-            <Admin organizationID={this.props.match.params.organizationID}>
+            <DeviceAdmin organizationID={this.props.match.params.organizationID}>
               <TitleBarButton
                 label="Delete"
                 icon={<Delete />}
                 color="secondary"
                 onClick={this.deleteMulticastGroup}
               />
-            </Admin>
+            </DeviceAdmin>
           }
         >
           <TitleBarTitle to={`/organizations/${this.props.match.params.organizationID}/multicast-groups`} title="Multicast-groups" />

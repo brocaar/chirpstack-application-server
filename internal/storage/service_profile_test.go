@@ -38,7 +38,7 @@ func TestServiceProfile(t *testing.T) {
 		}
 		uID, err := CreateUser(DB(), &u, "testpassword")
 		So(err, ShouldBeNil)
-		So(CreateOrganizationUser(DB(), org.ID, uID, false), ShouldBeNil)
+		So(CreateOrganizationUser(DB(), org.ID, uID, false, false, false), ShouldBeNil)
 
 		n := NetworkServer{
 			Name:   "test-ns",

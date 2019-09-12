@@ -180,7 +180,15 @@ message OrganizationUser {
 	int64 user_id = 2 [json_name = "userID"];
 
 	// User is admin within the context of the organization.
+    // There is no need to set the is_device_admin and is_gateway_admin flags.
 	bool is_admin = 3;
+
+    // User is able to modify device related resources (applications,
+    // device-profiles, devices, multicast-groups).
+    bool is_device_admin = 5;
+
+    // User is able to modify gateways.
+    bool is_gateway_admin = 6;
 
 	// Username (only used on get).
 	string username = 4;
@@ -194,7 +202,15 @@ message OrganizationUserListItem {
 	string username = 2;
 
 	// User is admin within the context of the organization.
+    // There is no need to set the is_device_admin and is_gateway_admin flags.
 	bool is_admin = 3;
+
+    // User is able to modify device related resources (applications,
+    // device-profiles, devices, multicast-groups).
+    bool is_device_admin = 6;
+
+    // User is able to modify gateways.
+    bool is_gateway_admin = 7;
 
 	// Created at timestamp.
 	google.protobuf.Timestamp created_at = 4;

@@ -31,11 +31,13 @@ func (o Organization) Validate() error {
 
 // OrganizationUser represents an organization user.
 type OrganizationUser struct {
-	UserID    int64     `db:"user_id"`
-	Username  string    `db:"username"`
-	IsAdmin   bool      `db:"is_admin"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	UserID         int64     `db:"user_id"`
+	Username       string    `db:"username"`
+	IsAdmin        bool      `db:"is_admin"`
+	IsDeviceAdmin  bool      `db:"is_device_admin"`
+	IsGatewayAdmin bool      `db:"is_gateway_admin"`
+	CreatedAt      time.Time `db:"created_at"`
+	UpdatedAt      time.Time `db:"updated_at"`
 }
 
 // CreateOrganization creates the given Organization.
@@ -270,41 +272,49 @@ func DeleteOrganization(db sqlx.Ext, id int64) error {
 }
 
 // CreateOrganizationUser adds the given user to the organization.
-func CreateOrganizationUser(db sqlx.Execer, organizationID, userID int64, isAdmin bool) error {
+func CreateOrganizationUser(db sqlx.Execer, organizationID, userID int64, isAdmin, isDeviceAdmin, isGatewayAdmin bool) error {
 	_, err := db.Exec(`
 		insert into organization_user (
 			organization_id,
 			user_id,
 			is_admin,
+			is_device_admin,
+			is_gateway_admin,
 			created_at,
 			updated_at
-		) values ($1, $2, $3, now(), now())`,
+		) values ($1, $2, $3, $4, $5, now(), now())`,
 		organizationID,
 		userID,
 		isAdmin,
+		isDeviceAdmin,
+		isGatewayAdmin,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
 	}
 
 	log.WithFields(log.Fields{
-		"user_id":         userID,
-		"organization_id": organizationID,
-		"is_admin":        isAdmin,
+		"user_id":          userID,
+		"organization_id":  organizationID,
+		"is_admin":         isAdmin,
+		"is_device_admin":  isDeviceAdmin,
+		"is_gateway_admin": isGatewayAdmin,
 	}).Info("user added to organization")
 	return nil
 }
 
 // UpdateOrganizationUser updates the given user of the organization.
-func UpdateOrganizationUser(db sqlx.Execer, organizationID, userID int64, isAdmin bool) error {
+func UpdateOrganizationUser(db sqlx.Execer, organizationID, userID int64, isAdmin, isDeviceAdmin, isGatewayAdmin bool) error {
 	res, err := db.Exec(`
 		update organization_user
 		set
-			is_admin = $3
+			is_admin = $3,
+			is_device_admin = $4,
+			is_gateway_admin = $5
 		where
 			organization_id = $1
 			and user_id = $2
-	`, organizationID, userID, isAdmin)
+	`, organizationID, userID, isAdmin, isDeviceAdmin, isGatewayAdmin)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")
 	}
@@ -317,9 +327,11 @@ func UpdateOrganizationUser(db sqlx.Execer, organizationID, userID int64, isAdmi
 	}
 
 	log.WithFields(log.Fields{
-		"user_id":         userID,
-		"organization_id": organizationID,
-		"is_admin":        isAdmin,
+		"user_id":          userID,
+		"organization_id":  organizationID,
+		"is_admin":         isAdmin,
+		"is_device_admin":  isDeviceAdmin,
+		"is_gateway_admin": isGatewayAdmin,
 	}).Info("organization user updated")
 	return nil
 }
@@ -354,7 +366,9 @@ func GetOrganizationUser(db sqlx.Queryer, organizationID, userID int64) (Organiz
 			u.username as username,
 			ou.created_at as created_at,
 			ou.updated_at as updated_at,
-			ou.is_admin as is_admin
+			ou.is_admin as is_admin,
+			ou.is_device_admin as is_device_admin,
+			ou.is_gateway_admin as is_gateway_admin
 		from organization_user ou
 		inner join "user" u
 			on u.id = ou.user_id
@@ -395,7 +409,9 @@ func GetOrganizationUsers(db sqlx.Queryer, organizationID int64, limit, offset i
 			u.username as username,
 			ou.created_at as created_at,
 			ou.updated_at as updated_at,
-			ou.is_admin as is_admin
+			ou.is_admin as is_admin,
+			ou.is_device_admin as is_device_admin,
+			ou.is_gateway_admin as is_gateway_admin
 		from organization_user ou
 		inner join "user" u
 			on u.id = ou.user_id

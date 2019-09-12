@@ -18,7 +18,7 @@ import CloudUpload from "mdi-material-ui/CloudUpload";
 
 import TableCellLink from "../../components/TableCellLink";
 import DataTable from "../../components/DataTable";
-import Admin from "../../components/Admin";
+import DeviceAdmin from "../../components/DeviceAdmin";
 import FUOTADeploymentStore from "../../stores/FUOTADeploymentStore";
 import theme from "../../theme";
 
@@ -125,14 +125,14 @@ class ListFUOTADeploymentsForDevice extends Component {
           </DialogActions>
         </Dialog>}
 
-        <Admin organizationID={this.props.match.params.organizationID}>
+        <DeviceAdmin organizationID={this.props.match.params.organizationID}>
           <Grid item xs={12} className={this.props.classes.buttons}>
             <Button variant="outlined" className={this.props.classes.button} component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/fuota-deployments/create`}>
               <CloudUpload className={this.props.classes.icon} />
               Create Firmware Update Job
             </Button>
           </Grid>
-        </Admin>
+        </DeviceAdmin>
 
         <Grid item xs={12}>
           <DataTable

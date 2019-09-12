@@ -111,6 +111,8 @@ func (ts *APITestSuite) TestOrganization() {
 						OrganizationId: createResp.Id,
 						UserId:         userResp.Id,
 						IsAdmin:        false,
+						IsDeviceAdmin:  false,
+						IsGatewayAdmin: false,
 					},
 				}
 				_, err := api.AddUser(context.Background(), addOrgUser)
@@ -156,6 +158,8 @@ func (ts *APITestSuite) TestOrganization() {
 							OrganizationId: createResp.Id,
 							UserId:         addOrgUser.OrganizationUser.UserId,
 							IsAdmin:        !addOrgUser.OrganizationUser.IsAdmin,
+							IsDeviceAdmin:  !addOrgUser.OrganizationUser.IsDeviceAdmin,
+							IsGatewayAdmin: !addOrgUser.OrganizationUser.IsGatewayAdmin,
 						},
 					}
 					_, err := api.UpdateUser(context.Background(), updOrgUser)
@@ -172,6 +176,8 @@ func (ts *APITestSuite) TestOrganization() {
 					assert.Equal(userResp.Id, orgUsers.Result[0].UserId)
 					assert.Equal(userReq.User.Username, orgUsers.Result[0].Username)
 					assert.Equal(updOrgUser.OrganizationUser.IsAdmin, orgUsers.Result[0].IsAdmin)
+					assert.Equal(updOrgUser.OrganizationUser.IsDeviceAdmin, orgUsers.Result[0].IsDeviceAdmin)
+					assert.Equal(updOrgUser.OrganizationUser.IsGatewayAdmin, orgUsers.Result[0].IsGatewayAdmin)
 				})
 
 				t.Run("Remove user from organization", func(t *testing.T) {

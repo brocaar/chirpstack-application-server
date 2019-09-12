@@ -5,176 +5,200 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/require"
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/test"
 )
 
-func TestOrganization(t *testing.T) {
+func (ts *StorageTestSuite) TestOrganization() {
+	assert := require.New(ts.T())
+
 	conf := test.GetConfig()
-	if err := Setup(conf); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(Setup(conf))
 
 	nsClient := mock.NewClient()
 	networkserver.SetPool(mock.NewPool(nsClient))
 
-	Convey("Given a clean database", t, func() {
-		test.MustResetDB(DB().DB)
+	ts.T().Run("Create organization with invalid name", func(t *testing.T) {
+		assert := require.New(t)
+		org := Organization{
+			Name:        "invalid name",
+			DisplayName: "invalid organization",
+		}
+		err := CreateOrganization(DB(), &org)
+		assert.Equal(ErrOrganizationInvalidName, errors.Cause(err))
+	})
 
-		Convey("When creating an organization with an invalid name", func() {
-			org := Organization{
-				Name:        "invalid name",
-				DisplayName: "invalid organization",
-			}
-			err := CreateOrganization(DB(), &org)
+	ts.T().Run("Create", func(t *testing.T) {
+		assert := require.New(t)
 
-			Convey("Then an error is returned", func() {
-				So(err, ShouldNotBeNil)
-				So(errors.Cause(err), ShouldResemble, ErrOrganizationInvalidName)
+		org := Organization{
+			Name:        "test-organization",
+			DisplayName: "test organization",
+		}
+		assert.NoError(CreateOrganization(DB(), &org))
+		org.CreatedAt = org.CreatedAt.Truncate(time.Millisecond).UTC()
+		org.UpdatedAt = org.UpdatedAt.Truncate(time.Millisecond).UTC()
+
+		t.Run("Get", func(t *testing.T) {
+			assert := require.New(t)
+
+			o, err := GetOrganization(DB(), org.ID)
+			assert.NoError(err)
+			o.CreatedAt = o.CreatedAt.Truncate(time.Millisecond).UTC()
+			o.UpdatedAt = o.UpdatedAt.Truncate(time.Millisecond).UTC()
+			assert.Equal(org, o)
+		})
+
+		t.Run("GetCount", func(t *testing.T) {
+			assert := require.New(t)
+
+			count, err := GetOrganizationCount(DB(), "")
+			assert.NoError(err)
+			assert.Equal(2, count) // first org is created by migration
+		})
+
+		t.Run("GetOrganizations", func(t *testing.T) {
+			assert := require.New(t)
+
+			items, err := GetOrganizations(DB(), 10, 0, "")
+			assert.NoError(err)
+
+			assert.Len(items, 2)
+
+			items[1].CreatedAt = items[1].CreatedAt.Truncate(time.Millisecond).UTC()
+			items[1].UpdatedAt = items[1].UpdatedAt.Truncate(time.Millisecond).UTC()
+			assert.Equal(org, items[1])
+		})
+
+		t.Run("GetUserCount", func(t *testing.T) {
+			assert := require.New(t)
+
+			count, err := GetOrganizationUserCount(DB(), org.ID)
+			assert.NoError(err)
+			assert.Equal(0, count)
+		})
+
+		t.Run("CreateUser - admin", func(t *testing.T) {
+			assert := require.New(t)
+
+			assert.NoError(CreateOrganizationUser(DB(), org.ID, 1, false, false, false)) // admin user
+
+			t.Run("GetUser", func(t *testing.T) {
+				assert := require.New(t)
+
+				u, err := GetOrganizationUser(DB(), org.ID, 1)
+				assert.NoError(err)
+				assert.EqualValues(1, u.UserID)
+				assert.Equal("admin", u.Username)
+				assert.False(u.IsAdmin)
+				assert.False(u.IsDeviceAdmin)
+				assert.False(u.IsGatewayAdmin)
+			})
+
+			t.Run("GetUserCount", func(t *testing.T) {
+				assert := require.New(t)
+
+				c, err := GetOrganizationUserCount(DB(), org.ID)
+				assert.NoError(err)
+				assert.Equal(1, c)
+
+				users, err := GetOrganizationUsers(DB(), org.ID, 10, 0)
+				assert.NoError(err)
+				assert.Len(users, 1)
+			})
+
+			t.Run("UpdateUser", func(t *testing.T) {
+				assert := require.New(t)
+
+				assert.NoError(UpdateOrganizationUser(DB(), org.ID, 1, true, true, true)) // admin user, dev and gateway user
+
+				u, err := GetOrganizationUser(DB(), org.ID, 1)
+				assert.NoError(err)
+
+				assert.EqualValues(1, u.UserID)
+				assert.Equal("admin", u.Username)
+				assert.True(u.IsAdmin)
+				assert.True(u.IsDeviceAdmin)
+				assert.True(u.IsGatewayAdmin)
+			})
+
+			t.Run("DeleteUser", func(t *testing.T) {
+				assert := require.New(t)
+
+				assert.NoError(DeleteOrganizationUser(DB(), org.ID, 1)) // admin user
+				c, err := GetOrganizationUserCount(DB(), org.ID)
+				assert.NoError(err)
+				assert.Equal(0, c)
 			})
 		})
 
-		Convey("When creating an organization", func() {
-			org := Organization{
-				Name:        "test-organization",
-				DisplayName: "test organization",
+		t.Run("CreateUser - new user", func(t *testing.T) {
+			assert := require.New(t)
+
+			user := User{
+				Username: "testuser",
+				IsActive: true,
+				Email:    "foo@bar.com",
 			}
-			So(CreateOrganization(DB(), &org), ShouldBeNil)
+			_, err := CreateUser(DB(), &user, "password123")
+			assert.NoError(err)
+
+			t.Run("GetCountForUser", func(t *testing.T) {
+				assert := require.New(t)
+
+				c, err := GetOrganizationCountForUser(DB(), user.Username, "")
+				assert.NoError(err)
+				assert.Equal(0, c)
+
+				orgs, err := GetOrganizationsForUser(DB(), user.Username, 10, 0, "")
+				assert.NoError(err)
+				assert.Len(orgs, 0)
+			})
+
+			t.Run("CreateUser", func(t *testing.T) {
+				assert := require.New(t)
+
+				assert.NoError(CreateOrganizationUser(DB(), org.ID, user.ID, false, true, true))
+
+				c, err := GetOrganizationCountForUser(DB(), user.Username, "")
+				assert.NoError(err)
+				assert.Equal(1, c)
+
+				orgs, err := GetOrganizationsForUser(DB(), user.Username, 10, 0, "")
+				assert.NoError(err)
+				assert.Len(orgs, 1)
+				assert.Equal(org.ID, orgs[0].ID)
+			})
+		})
+
+		t.Run("Update", func(t *testing.T) {
+			assert := require.New(t)
+
+			org.Name = "test-organization-updated"
+			org.DisplayName = "test organization updated"
+			org.CanHaveGateways = true
+			assert.NoError(UpdateOrganization(DB(), &org))
+
 			org.CreatedAt = org.CreatedAt.Truncate(time.Millisecond).UTC()
 			org.UpdatedAt = org.UpdatedAt.Truncate(time.Millisecond).UTC()
 
-			Convey("Then it can be retrieved by its id", func() {
-				o, err := GetOrganization(DB(), org.ID)
-				So(err, ShouldBeNil)
-				o.CreatedAt = o.CreatedAt.Truncate(time.Millisecond).UTC()
-				o.UpdatedAt = o.UpdatedAt.Truncate(time.Millisecond).UTC()
-				So(o, ShouldResemble, org)
-			})
+			o, err := GetOrganization(DB(), org.ID)
+			assert.NoError(err)
+			o.CreatedAt = o.CreatedAt.Truncate(time.Millisecond).UTC()
+			o.UpdatedAt = o.UpdatedAt.Truncate(time.Millisecond).UTC()
+			assert.Equal(org, o)
+		})
 
-			Convey("When updating the organization", func() {
-				org.Name = "test-organization-updated"
-				org.DisplayName = "test organization updated"
-				org.CanHaveGateways = true
-				So(UpdateOrganization(DB(), &org), ShouldBeNil)
-				org.CreatedAt = org.CreatedAt.Truncate(time.Millisecond).UTC()
-				org.UpdatedAt = org.UpdatedAt.Truncate(time.Millisecond).UTC()
+		t.Run("Delete", func(t *testing.T) {
+			assert := require.New(t)
 
-				Convey("Then it has been updated", func() {
-					o, err := GetOrganization(DB(), org.ID)
-					So(err, ShouldBeNil)
-					o.CreatedAt = o.CreatedAt.Truncate(time.Millisecond).UTC()
-					o.UpdatedAt = o.UpdatedAt.Truncate(time.Millisecond).UTC()
-					So(o, ShouldResemble, org)
-				})
-			})
+			assert.NoError(DeleteOrganization(DB(), org.ID))
 
-			// first org is created in the migrations
-			Convey("Then get organization count returns 2", func() {
-				count, err := GetOrganizationCount(DB(), "")
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 2)
-			})
-
-			Convey("Then get organizations returns the expected items", func() {
-				items, err := GetOrganizations(DB(), 10, 0, "")
-				So(err, ShouldBeNil)
-				So(items, ShouldHaveLength, 2)
-				items[1].CreatedAt = items[1].CreatedAt.Truncate(time.Millisecond).UTC()
-				items[1].UpdatedAt = items[1].UpdatedAt.Truncate(time.Millisecond).UTC()
-				So(items[1], ShouldResemble, org)
-			})
-
-			Convey("When deleting the organization", func() {
-				So(DeleteOrganization(DB(), org.ID), ShouldBeNil)
-
-				Convey("Then it has been deleted", func() {
-					_, err := GetOrganization(DB(), org.ID)
-					So(errors.Cause(err), ShouldResemble, ErrDoesNotExist)
-				})
-			})
-
-			Convey("Then the organization has 0 users", func() {
-				count, err := GetOrganizationUserCount(DB(), org.ID)
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 0)
-			})
-
-			Convey("When adding an user to the organization", func() {
-				So(CreateOrganizationUser(DB(), org.ID, 1, false), ShouldBeNil) // admin user
-
-				Convey("Then it can be retrieved", func() {
-					u, err := GetOrganizationUser(DB(), org.ID, 1)
-					So(err, ShouldBeNil)
-					So(u.UserID, ShouldEqual, 1)
-					So(u.Username, ShouldEqual, "admin")
-					So(u.IsAdmin, ShouldBeFalse)
-				})
-
-				Convey("Then the organization has 1 user", func() {
-					c, err := GetOrganizationUserCount(DB(), org.ID)
-					So(err, ShouldBeNil)
-					So(c, ShouldEqual, 1)
-
-					users, err := GetOrganizationUsers(DB(), org.ID, 10, 0)
-					So(err, ShouldBeNil)
-					So(users, ShouldHaveLength, 1)
-				})
-
-				Convey("Then it can be updated", func() {
-					So(UpdateOrganizationUser(DB(), org.ID, 1, true), ShouldBeNil) // admin user
-
-					u, err := GetOrganizationUser(DB(), org.ID, 1)
-					So(err, ShouldBeNil)
-					So(u.UserID, ShouldEqual, 1)
-					So(u.Username, ShouldEqual, "admin")
-					So(u.IsAdmin, ShouldBeTrue)
-				})
-
-				Convey("Then it can be deleted", func() {
-					So(DeleteOrganizationUser(DB(), org.ID, 1), ShouldBeNil) // admin user
-					c, err := GetOrganizationUserCount(DB(), org.ID)
-					So(err, ShouldBeNil)
-					So(c, ShouldEqual, 0)
-				})
-			})
-
-			Convey("Given an user", func() {
-				user := User{
-					Username: "testuser",
-					IsActive: true,
-					Email:    "foo@bar.com",
-				}
-				_, err := CreateUser(DB(), &user, "password123")
-				So(err, ShouldBeNil)
-
-				Convey("Then no organizations are related to this user", func() {
-					c, err := GetOrganizationCountForUser(DB(), user.Username, "")
-					So(err, ShouldBeNil)
-					So(c, ShouldEqual, 0)
-
-					orgs, err := GetOrganizationsForUser(DB(), user.Username, 10, 0, "")
-					So(err, ShouldBeNil)
-					So(orgs, ShouldHaveLength, 0)
-				})
-
-				Convey("When the user is linked to the organization", func() {
-					So(CreateOrganizationUser(DB(), org.ID, user.ID, false), ShouldBeNil)
-
-					Convey("Then the test organization is returned for the user", func() {
-						c, err := GetOrganizationCountForUser(DB(), user.Username, "")
-						So(err, ShouldBeNil)
-						So(c, ShouldEqual, 1)
-
-						orgs, err := GetOrganizationsForUser(DB(), user.Username, 10, 0, "")
-						So(err, ShouldBeNil)
-						So(orgs, ShouldHaveLength, 1)
-						So(orgs[0].ID, ShouldEqual, org.ID)
-					})
-				})
-			})
+			_, err := GetOrganization(DB(), org.ID)
+			assert.Equal(ErrDoesNotExist, errors.Cause(err))
 		})
 	})
 }

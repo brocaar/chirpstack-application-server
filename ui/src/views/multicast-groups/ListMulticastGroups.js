@@ -12,7 +12,7 @@ import TitleBarTitle from "../../components/TitleBarTitle";
 import TableCellLink from "../../components/TableCellLink";
 import TitleBarButton from "../../components/TitleBarButton";
 import DataTable from "../../components/DataTable";
-import Admin from "../../components/Admin";
+import DeviceAdmin from "../../components/DeviceAdmin";
 import MulticastGroupStore from "../../stores/MulticastGroupStore";
 import theme from "../../theme";
 
@@ -51,13 +51,13 @@ class ListMulticastGroups extends Component {
       <Grid container spacing={4}>
         <TitleBar
           buttons={
-            <Admin organizationID={this.props.match.params.organizationID}>
+            <DeviceAdmin organizationID={this.props.match.params.organizationID}>
               <TitleBarButton
                 label="Create"
                 icon={<Plus />}
                 to={`/organizations/${this.props.match.params.organizationID}/multicast-groups/create`}
               />
-            </Admin>
+            </DeviceAdmin>
           }
         >
           <TitleBarTitle title="Multicast-groups" />

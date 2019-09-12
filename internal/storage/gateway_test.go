@@ -138,7 +138,7 @@ func TestGateway(t *testing.T) {
 				})
 
 				Convey("When assigning the user to the organization", func() {
-					So(CreateOrganizationUser(DB(), org.ID, user.ID, false), ShouldBeNil)
+					So(CreateOrganizationUser(DB(), org.ID, user.ID, false, false, false), ShouldBeNil)
 
 					Convey("Getting the gateway count for this user returns 1", func() {
 						c, err := GetGatewayCountForUser(DB(), user.Username, "")

@@ -236,9 +236,11 @@ func (a *OrganizationAPI) ListUsers(ctx context.Context, req *pb.ListOrganizatio
 
 	for _, u := range users {
 		row := pb.OrganizationUserListItem{
-			UserId:   u.UserID,
-			Username: u.Username,
-			IsAdmin:  u.IsAdmin,
+			UserId:         u.UserID,
+			Username:       u.Username,
+			IsAdmin:        u.IsAdmin,
+			IsDeviceAdmin:  u.IsDeviceAdmin,
+			IsGatewayAdmin: u.IsGatewayAdmin,
 		}
 
 		row.CreatedAt, err = ptypes.TimestampProto(u.CreatedAt)
@@ -267,7 +269,14 @@ func (a *OrganizationAPI) AddUser(ctx context.Context, req *pb.AddOrganizationUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.CreateOrganizationUser(storage.DB(), req.OrganizationUser.OrganizationId, req.OrganizationUser.UserId, req.OrganizationUser.IsAdmin)
+	err := storage.CreateOrganizationUser(
+		storage.DB(),
+		req.OrganizationUser.OrganizationId,
+		req.OrganizationUser.UserId,
+		req.OrganizationUser.IsAdmin,
+		req.OrganizationUser.IsDeviceAdmin,
+		req.OrganizationUser.IsGatewayAdmin,
+	)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -286,7 +295,14 @@ func (a *OrganizationAPI) UpdateUser(ctx context.Context, req *pb.UpdateOrganiza
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.UpdateOrganizationUser(storage.DB(), req.OrganizationUser.OrganizationId, req.OrganizationUser.UserId, req.OrganizationUser.IsAdmin)
+	err := storage.UpdateOrganizationUser(
+		storage.DB(),
+		req.OrganizationUser.OrganizationId,
+		req.OrganizationUser.UserId,
+		req.OrganizationUser.IsAdmin,
+		req.OrganizationUser.IsDeviceAdmin,
+		req.OrganizationUser.IsGatewayAdmin,
+	)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -326,6 +342,8 @@ func (a *OrganizationAPI) GetUser(ctx context.Context, req *pb.GetOrganizationUs
 			OrganizationId: req.OrganizationId,
 			UserId:         req.UserId,
 			IsAdmin:        user.IsAdmin,
+			IsDeviceAdmin:  user.IsDeviceAdmin,
+			IsGatewayAdmin: user.IsGatewayAdmin,
 			Username:       user.Username,
 		},
 	}

@@ -107,8 +107,16 @@ message UserOrganization {
 	// Organization ID.
 	int64 organization_id = 1 [json_name = "organizationID"];
 
-	// User has admin rights within the organization.
+	// User is admin within the context of the organization.
+    // There is no need to set the is_device_admin and is_gateway_admin flags.
 	bool is_admin = 2;
+
+    // User is able to modify device related resources (applications,
+    // device-profiles, devices, multicast-groups).
+    bool is_device_admin = 3;
+
+    // User is able to modify gateways.
+    bool is_gateway_admin = 4;
 }
 
 message CreateUserRequest {

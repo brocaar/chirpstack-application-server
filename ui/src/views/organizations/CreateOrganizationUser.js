@@ -13,6 +13,8 @@ import FormGroup from "@material-ui/core/FormGroup";
 import Checkbox from '@material-ui/core/Checkbox';
 import TextField from "@material-ui/core/TextField";
 import CardContent from "@material-ui/core/CardContent";
+import Typography from "@material-ui/core/Typography";
+import FormHelperText from "@material-ui/core/FormHelperText";
 
 import TitleBar from "../../components/TitleBar";
 import TitleBarTitle from "../../components/TitleBarTitle";
@@ -75,9 +77,14 @@ class AssignUserForm extends FormComponent {
             getOptions={this.getUserOptions}
           />
         </FormControl>
-        <FormGroup>
+        <Typography variant="body1">
+          An user without additional permissions will be able to see all
+          resources under this organization and will be able to send and
+          receive device payloads.
+        </Typography>
+        <FormControl fullWidth margin="normal">
           <FormControlLabel
-            label="Is organization admin"
+            label="User is organization admin"
             control={
               <Checkbox
                 id="isAdmin"
@@ -87,7 +94,36 @@ class AssignUserForm extends FormComponent {
               />
             }
           />
-        </FormGroup>
+          <FormHelperText>An organization admin user is able to add and modify resources part of the organization.</FormHelperText>
+        </FormControl>
+        {!!!this.state.object.isAdmin && <FormControl fullWidth margin="normal">
+          <FormControlLabel
+            label="User is device admin"
+            control={
+              <Checkbox
+                id="isDeviceAdmin"
+                checked={!!this.state.object.isDeviceAdmin}
+                onChange={this.onChange}
+                color="primary"
+              />
+            }
+          />
+          <FormHelperText>A device admin user is able to add and modify resources part of the organization that are related to devices.</FormHelperText>
+        </FormControl>}
+        {!!!this.state.object.isAdmin && <FormControl fullWidth margin="normal">
+          <FormControlLabel
+            label="User is gateway admin"
+            control={
+              <Checkbox
+                id="isGatewayAdmin"
+                checked={!!this.state.object.isGatewayAdmin}
+                onChange={this.onChange}
+                color="primary"
+              />
+            }
+          />
+          <FormHelperText>A gateway admin user is able to add and modify gateways part of the organization.</FormHelperText>
+        </FormControl>}
       </Form>
     );
   };
@@ -146,9 +182,14 @@ class CreateUserForm extends FormComponent {
           required
           fullWidth
         />
-        <FormGroup>
+        <Typography variant="body1">
+          An user without additional permissions will be able to see all
+          resources under this organization and will be able to send and
+          receive device payloads.
+        </Typography>
+        <FormControl fullWidth margin="normal">
           <FormControlLabel
-            label="Is organization admin"
+            label="User is organization admin"
             control={
               <Checkbox
                 id="isAdmin"
@@ -158,7 +199,36 @@ class CreateUserForm extends FormComponent {
               />
             }
           />
-        </FormGroup>
+          <FormHelperText>An organization admin user is able to add and modify resources part of the organization.</FormHelperText>
+        </FormControl>
+        {!!!this.state.object.isAdmin && <FormControl fullWidth margin="normal">
+          <FormControlLabel
+            label="User is device admin"
+            control={
+              <Checkbox
+                id="isDeviceAdmin"
+                checked={!!this.state.object.isDeviceAdmin}
+                onChange={this.onChange}
+                color="primary"
+              />
+            }
+          />
+          <FormHelperText>A device admin user is able to add and modify resources part of the organization that are related to devices.</FormHelperText>
+        </FormControl>}
+        {!!!this.state.object.isAdmin && <FormControl fullWidth margin="normal">
+          <FormControlLabel
+            label="User is gateway admin"
+            control={
+              <Checkbox
+                id="isGatewayAdmin"
+                checked={!!this.state.object.isGatewayAdmin}
+                onChange={this.onChange}
+                color="primary"
+              />
+            }
+          />
+          <FormHelperText>A gateway admin user is able to add and modify gateways part of the organization.</FormHelperText>
+        </FormControl>}
       </Form>
     );
   }
@@ -211,12 +281,15 @@ class CreateOrganizationUser extends Component {
 
   onCreateUser(user) {
     const orgs = [
-      {isAdmin: user.isAdmin, organizationID: this.props.match.params.organizationID},
+      {isAdmin: user.isAdmin, isDeviceAdmin: user.isDeviceAdmin, isGatewayAdmin: user.isGatewayAdmin, organizationID: this.props.match.params.organizationID},
     ];
 
     let u = user;
-    u.isAdmin = false;
     u.isActive = true;
+
+    delete u.isAdmin;
+    delete u.isDeviceAdmin;
+    delete u.isGatewayAdmin;
 
     UserStore.create(u, user.password, orgs, resp => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/users`);

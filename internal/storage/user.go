@@ -79,24 +79,16 @@ type UserProfileUser struct {
 	UpdatedAt  time.Time `db:"updated_at"`
 }
 
-// UserProfileApplication contains the applications to which the user
-// is linked.
-type UserProfileApplication struct {
-	ID        int64     `db:"application_id"`
-	Name      string    `db:"application_name"`
-	IsAdmin   bool      `db:"is_admin"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
-}
-
 // UserProfileOrganization contains the organizations to which the user
 // is linked.
 type UserProfileOrganization struct {
-	ID        int64     `db:"organization_id"`
-	Name      string    `db:"organization_name"`
-	IsAdmin   bool      `db:"is_admin"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID             int64     `db:"organization_id"`
+	Name           string    `db:"organization_name"`
+	IsAdmin        bool      `db:"is_admin"`
+	IsDeviceAdmin  bool      `db:"is_device_admin"`
+	IsGatewayAdmin bool      `db:"is_gateway_admin"`
+	CreatedAt      time.Time `db:"created_at"`
+	UpdatedAt      time.Time `db:"updated_at"`
 }
 
 // userInternal represents a user as known by the database.
@@ -472,6 +464,8 @@ func GetProfile(db sqlx.Queryer, id int64) (UserProfile, error) {
 			ou.organization_id as organization_id,
 			o.name as organization_name,
 			ou.is_admin as is_admin,
+			ou.is_device_admin as is_device_admin,
+			ou.is_gateway_admin as is_gateway_admin,
 			ou.created_at as created_at,
 			ou.updated_at as updated_at
 		from

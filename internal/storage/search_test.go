@@ -120,7 +120,7 @@ func TestSearch(t *testing.T) {
 		})
 
 		Convey("When the user is part of the organization, this returns results", func() {
-			So(CreateOrganizationUser(DB(), org.ID, u.ID, false), ShouldBeNil)
+			So(CreateOrganizationUser(DB(), org.ID, u.ID, false, false, false), ShouldBeNil)
 
 			queries := map[string]int{
 				"test":   4,

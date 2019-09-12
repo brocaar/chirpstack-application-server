@@ -131,7 +131,7 @@ func (ts *APITestSuite) TestGateway() {
 				assert.EqualValues(0, gws.TotalCount)
 				assert.Len(gws.Result, 0)
 
-				assert.NoError(storage.CreateOrganizationUser(storage.DB(), org.ID, user.ID, false))
+				assert.NoError(storage.CreateOrganizationUser(storage.DB(), org.ID, user.ID, false, false, false))
 
 				gws, err = api.List(ctx, &pb.ListGatewayRequest{
 					Limit: 10,

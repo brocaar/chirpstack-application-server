@@ -11,7 +11,7 @@ import Delete from "mdi-material-ui/Delete";
 import TitleBar from "../../components/TitleBar";
 import TitleBarTitle from "../../components/TitleBarTitle";
 import TitleBarButton from "../../components/TitleBarButton";
-import Admin from "../../components/Admin";
+import GatewayAdmin from "../../components/GatewayAdmin";
 import GatewayStore from "../../stores/GatewayStore";
 import SessionStore from "../../stores/SessionStore";
 import GatewayDetails from "./GatewayDetails";
@@ -71,7 +71,7 @@ class GatewayLayout extends Component {
 
   setIsAdmin() {
     this.setState({
-      admin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID),
+      admin: SessionStore.isAdmin() || SessionStore.isOrganizationGatewayAdmin(this.props.match.params.organizationID),
     });
   }
 
@@ -118,7 +118,7 @@ class GatewayLayout extends Component {
       <Grid container spacing={4}>
         <TitleBar
           buttons={
-            <Admin organizationID={this.props.match.params.organizationID}>
+            <GatewayAdmin organizationID={this.props.match.params.organizationID}>
               <TitleBarButton
                 key={1}
                 label="Delete"
@@ -126,7 +126,7 @@ class GatewayLayout extends Component {
                 color="secondary"
                 onClick={this.deleteGateway}
               />
-            </Admin>
+            </GatewayAdmin>
           }
         >
           <TitleBarTitle to={`/organizations/${this.props.match.params.organizationID}/gateways`} title="Gateways" />

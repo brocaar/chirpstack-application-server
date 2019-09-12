@@ -135,7 +135,7 @@ func (ts *APITestSuite) TestServiceProfile() {
 					Email:    "foo@bar.com",
 				}, "testpassword")
 				assert.NoError(err)
-				assert.NoError(storage.CreateOrganizationUser(storage.DB(), org.ID, userID, false))
+				assert.NoError(storage.CreateOrganizationUser(storage.DB(), org.ID, userID, false, false, false))
 
 				t.Run("No filters", func(t *testing.T) {
 					assert := require.New(t)

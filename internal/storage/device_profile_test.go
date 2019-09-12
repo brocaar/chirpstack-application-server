@@ -58,7 +58,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 	}
 	uID, err := CreateUser(ts.Tx(), &u, "testpassword")
 	assert.NoError(err)
-	assert.NoError(CreateOrganizationUser(ts.Tx(), org.ID, uID, false))
+	assert.NoError(CreateOrganizationUser(ts.Tx(), org.ID, uID, false, false, false))
 
 	n := NetworkServer{
 		Name:   "test-ns",

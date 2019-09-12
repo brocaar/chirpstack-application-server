@@ -80,6 +80,22 @@ class SessionStore extends EventEmitter {
     }
   }
 
+  isOrganizationDeviceAdmin(organizationID) {
+    for (let i = 0; i < this.organizations.length; i++) {
+      if (this.organizations[i].organizationID === organizationID) {
+        return this.organizations[i].isAdmin || this.organizations[i].isDeviceAdmin;
+      }
+    }
+  }
+
+  isOrganizationGatewayAdmin(organizationID) {
+    for (let i = 0; i < this.organizations.length; i++) {
+      if (this.organizations[i].organizationID === organizationID) {
+        return this.organizations[i].isAdmin || this.organizations[i].isGatewayAdmin;
+      }
+    }
+  }
+
   login(login, callBackFunc) {
     this.swagger.then(client => {
       client.apis.InternalService.Login({body: login})

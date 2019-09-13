@@ -642,15 +642,32 @@ func ValidateNetworkServersAccess(flag Flag, organizationID int64) ValidatorFunc
 // ValidateNetworkServerAccess validates if the client has access to the
 // given network-server.
 func ValidateNetworkServerAccess(flag Flag, id int64) ValidatorFunc {
+	query := `
+		select
+			1
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join organization o
+			on o.id = ou.organization_id
+		left join service_profile sp
+			on sp.organization_id = o.id
+		left join network_server ns
+			on ns.id = sp.network_server_id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
 	case Read:
 		// global admin
-		// org. admin
+		// organization admin
+		// organization gateway admin
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "ns.id = $2"},
+			{"u.username = $1", "u.is_active = true", "ou.is_gateway_admin = true", "ns.id = $2"},
 		}
 	case Update, Delete:
 		// global admin
@@ -660,7 +677,7 @@ func ValidateNetworkServerAccess(flag Flag, id int64) ValidatorFunc {
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, id)
+		return executeQuery(db, query, where, claims.Username, id)
 	}
 }
 

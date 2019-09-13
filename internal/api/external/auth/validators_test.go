@@ -571,37 +571,6 @@ func TestValidators(t *testing.T) {
 			runTests(tests, storage.DB())
 		})
 
-		Convey("When testing ValidateNetworkServerAccess", func() {
-			tests := []validatorTest{
-				{
-					Name:       "global admin users can read, update and delete",
-					Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, networkServers[0].ID), ValidateNetworkServerAccess(Update, networkServers[0].ID), ValidateNetworkServerAccess(Delete, networkServers[0].ID)},
-					Claims:     Claims{Username: "user1"},
-					ExpectedOK: true,
-				},
-				{
-					Name:       "organization admin users can read",
-					Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, networkServers[0].ID)},
-					Claims:     Claims{Username: "user10"},
-					ExpectedOK: true,
-				},
-				{
-					Name:       "organization admin users can not update and delete",
-					Validators: []ValidatorFunc{ValidateNetworkServerAccess(Update, networkServers[0].ID), ValidateNetworkServerAccess(Delete, networkServers[0].ID)},
-					Claims:     Claims{Username: "user10"},
-					ExpectedOK: false,
-				},
-				{
-					Name:       "regular users can not read, update and delete",
-					Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, networkServers[0].ID), ValidateNetworkServerAccess(Update, networkServers[0].ID), ValidateNetworkServerAccess(Delete, networkServers[0].ID)},
-					Claims:     Claims{Username: "user4"},
-					ExpectedOK: false,
-				},
-			}
-
-			runTests(tests, storage.DB())
-		})
-
 		Convey("When testing ValidateOrganizationNetworkServerAccess", func() {
 			tests := []validatorTest{
 				{

@@ -751,6 +751,98 @@ func (ts *ValidatorTestSuite) TestDeviceProfile() {
 	})
 }
 
+func (ts *ValidatorTestSuite) TestNetworkServer() {
+	assert := require.New(ts.T())
+
+	users := []struct {
+		username string
+		isActive bool
+		isAdmin  bool
+	}{
+		{username: "activeAdmin", isActive: true, isAdmin: true},
+		{username: "inactiveAdmin", isActive: false, isAdmin: true},
+		{username: "activeUser", isActive: true, isAdmin: false},
+		{username: "inactiveUser", isActive: false, isAdmin: false},
+	}
+
+	for _, user := range users {
+		_, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
+		assert.NoError(err)
+	}
+
+	orgUsers := []struct {
+		organizationID int64
+		username       string
+		isAdmin        bool
+		isDeviceAdmin  bool
+		isGatewayAdmin bool
+	}{
+		{organizationID: ts.organizations[0].ID, username: "org0ActiveUser", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: false},
+		{organizationID: ts.organizations[0].ID, username: "org0ActiveUserAdmin", isAdmin: true, isDeviceAdmin: false, isGatewayAdmin: false},
+		{organizationID: ts.organizations[0].ID, username: "org0ActiveUserDeviceAdmin", isAdmin: false, isDeviceAdmin: true, isGatewayAdmin: false},
+		{organizationID: ts.organizations[0].ID, username: "org0ActiveUserGatewayAdmin", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: true},
+		{organizationID: ts.organizations[1].ID, username: "org1ActiveUser", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: false},
+		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserAdmin", isAdmin: true, isDeviceAdmin: false, isGatewayAdmin: false},
+		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserDeviceAdmin", isAdmin: false, isDeviceAdmin: true, isGatewayAdmin: false},
+		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserGatewayAdmin", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: true},
+	}
+
+	for _, orgUser := range orgUsers {
+		id, err := ts.CreateUser(orgUser.username, true, false)
+		assert.NoError(err)
+
+		err = storage.CreateOrganizationUser(storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
+		assert.NoError(err)
+	}
+
+	var serviceProfileIDs []uuid.UUID
+	serviceProfiles := []storage.ServiceProfile{
+		{Name: "test-sp-1", NetworkServerID: ts.networkServers[0].ID, OrganizationID: ts.organizations[0].ID},
+	}
+	for i := range serviceProfiles {
+		assert.NoError(storage.CreateServiceProfile(storage.DB(), &serviceProfiles[i]))
+		id, _ := uuid.FromBytes(serviceProfiles[i].ServiceProfile.Id)
+		serviceProfileIDs = append(serviceProfileIDs, id)
+	}
+
+	ts.T().Run("NetworkServerAccess", func(t *testing.T) {
+		tests := []validatorTest{
+			{
+				Name:       "global admin users can read, update and delete",
+				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID), ValidateNetworkServerAccess(Update, ts.networkServers[0].ID), ValidateNetworkServerAccess(Delete, ts.networkServers[0].ID)},
+				Claims:     Claims{Username: "activeAdmin"},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "organization admin users can read",
+				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID)},
+				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "organization gateway admin users can read",
+				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID)},
+				Claims:     Claims{Username: "org0ActiveUserGatewayAdmin"},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "organization admin users can not update and delete",
+				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Update, ts.networkServers[0].ID), ValidateNetworkServerAccess(Delete, ts.networkServers[0].ID)},
+				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				ExpectedOK: false,
+			},
+			{
+				Name:       "regular users can not read, update and delete",
+				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID), ValidateNetworkServerAccess(Update, ts.networkServers[0].ID), ValidateNetworkServerAccess(Delete, ts.networkServers[0].ID)},
+				Claims:     Claims{Username: "activeUser"},
+				ExpectedOK: false,
+			},
+		}
+
+		ts.RunTests(t, tests)
+	})
+}
+
 func TestValidatorsNew(t *testing.T) {
 	suite.Run(t, new(ValidatorTestSuite))
 }

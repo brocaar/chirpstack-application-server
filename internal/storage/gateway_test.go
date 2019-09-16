@@ -49,13 +49,20 @@ func TestGateway(t *testing.T) {
 		})
 
 		Convey("When creating a gateway", func() {
+			now := time.Now().Round(time.Second)
+
 			gw := Gateway{
 				MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+				FirstSeenAt:     &now,
+				LastSeenAt:      &now,
 				Name:            "test-gw",
 				Description:     "test gateway",
 				OrganizationID:  org.ID,
 				Ping:            true,
 				NetworkServerID: n.ID,
+				Latitude:        1,
+				Longitude:       2,
+				Altitude:        3,
 			}
 			So(CreateGateway(DB(), &gw), ShouldBeNil)
 			gw.CreatedAt = gw.CreatedAt.Truncate(time.Millisecond).UTC()
@@ -66,6 +73,11 @@ func TestGateway(t *testing.T) {
 				So(err, ShouldBeNil)
 				gw2.CreatedAt = gw2.CreatedAt.Truncate(time.Millisecond).UTC()
 				gw2.UpdatedAt = gw2.UpdatedAt.Truncate(time.Millisecond).UTC()
+				firstSeen := gw2.FirstSeenAt.Truncate(time.Millisecond).UTC()
+				lastSeen := gw2.LastSeenAt.Truncate(time.Millisecond).UTC()
+				gw.FirstSeenAt = &firstSeen
+				gw.LastSeenAt = &lastSeen
+
 				So(gw2, ShouldResemble, gw)
 			})
 
@@ -81,6 +93,11 @@ func TestGateway(t *testing.T) {
 				So(err, ShouldBeNil)
 				gw2.CreatedAt = gw2.CreatedAt.Truncate(time.Millisecond).UTC()
 				gw2.UpdatedAt = gw2.UpdatedAt.Truncate(time.Millisecond).UTC()
+				firstSeen := gw2.FirstSeenAt.Truncate(time.Millisecond).UTC()
+				lastSeen := gw2.LastSeenAt.Truncate(time.Millisecond).UTC()
+				gw.FirstSeenAt = &firstSeen
+				gw.LastSeenAt = &lastSeen
+
 				So(gw2, ShouldResemble, gw)
 			})
 

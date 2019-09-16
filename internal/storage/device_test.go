@@ -11,7 +11,6 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/backend"
@@ -100,9 +99,6 @@ func (ts *StorageTestSuite) TestDevice() {
 	}
 	assert.NoError(CreateApplication(ts.Tx(), &app))
 
-	rpID, err := uuid.FromString(config.C.ApplicationServer.ID)
-	assert.NoError(err)
-
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
 
@@ -140,7 +136,7 @@ func (ts *StorageTestSuite) TestDevice() {
 				DevEui:            []byte{1, 2, 3, 4, 5, 6, 7, 8},
 				DeviceProfileId:   dp.DeviceProfile.Id,
 				ServiceProfileId:  sp.ServiceProfile.Id,
-				RoutingProfileId:  rpID.Bytes(),
+				RoutingProfileId:  applicationServerID.Bytes(),
 				SkipFCntCheck:     true,
 				ReferenceAltitude: 5.6,
 			},
@@ -218,7 +214,7 @@ func (ts *StorageTestSuite) TestDevice() {
 					DevEui:            []byte{1, 2, 3, 4, 5, 6, 7, 8},
 					DeviceProfileId:   dp2.DeviceProfile.Id,
 					ServiceProfileId:  sp.ServiceProfile.Id,
-					RoutingProfileId:  rpID.Bytes(),
+					RoutingProfileId:  applicationServerID.Bytes(),
 					SkipFCntCheck:     true,
 					ReferenceAltitude: 5.6,
 				},

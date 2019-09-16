@@ -41,6 +41,8 @@ var (
 	tlsKey          string
 	jwtSecret       string
 	corsAllowOrigin string
+
+	applicationServerID uuid.UUID
 )
 
 // Setup configures the API package.
@@ -60,6 +62,10 @@ func Setup(conf config.Config) error {
 	corsAllowOrigin = conf.ApplicationServer.ExternalAPI.CORSAllowOrigin
 
 	auth.DisableAssignExistingUsers = conf.ApplicationServer.ExternalAPI.DisableAssignExistingUsers
+
+	if err := applicationServerID.UnmarshalText([]byte(conf.ApplicationServer.ID)); err != nil {
+		return errors.Wrap(err, "decode application_server.id error")
+	}
 
 	return setupAPI(conf)
 }

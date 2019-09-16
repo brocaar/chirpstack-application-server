@@ -454,6 +454,31 @@ tls_key=""
 
 # Metrics collection settings.
 [metrics]
+# Timezone
+#
+# The timezone is used for correctly aggregating the metrics (e.g. per hour,
+# day or month).
+# Example: "Europe/Amsterdam" or "Local" for the the system's local time zone.
+timezone="Local"
+
+  # Metrics stored in Redis.
+  #
+  # The following metrics are stored in Redis:
+  # * gateway statistics
+  [metrics.redis]
+  # Aggregation intervals
+  #
+  # The intervals on which to aggregate. Available options are:
+  # 'MINUTE', 'HOUR', 'DAY', 'MONTH'.
+  aggregation_intervals=["MINUTE", "HOUR", "DAY", "MONTH"]
+
+  # Aggregated statistics storage duration.
+  minute_aggregation_ttl="2h0m0s"
+  hour_aggregation_ttl="48h0m0s"
+  day_aggregation_ttl="2160h0m0s"
+  month_aggregation_ttl="17520h0m0s"
+
+
   # Metrics stored in Prometheus.
   #
   # These metrics expose information about the state of the LoRa Server

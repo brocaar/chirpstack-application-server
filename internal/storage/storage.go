@@ -2,8 +2,10 @@ package storage
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
+	uuid "github.com/gofrs/uuid"
 	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -15,8 +17,9 @@ import (
 )
 
 var (
-	jwtsecret      []byte
-	HashIterations = 100000
+	jwtsecret           []byte
+	HashIterations      = 100000
+	applicationServerID uuid.UUID
 )
 
 // Setup configures the storage package.
@@ -25,6 +28,33 @@ func Setup(c config.Config) error {
 
 	jwtsecret = []byte(c.ApplicationServer.ExternalAPI.JWTSecret)
 	HashIterations = c.General.PasswordHashIterations
+
+	if err := applicationServerID.UnmarshalText([]byte(c.ApplicationServer.ID)); err != nil {
+		return errors.Wrap(err, "decode application_server.id error")
+	}
+
+	log.Info("storage: setup metrics")
+	// setup aggregation intervals
+	var intervals []AggregationInterval
+	for _, agg := range c.Metrics.Redis.AggregationIntervals {
+		intervals = append(intervals, AggregationInterval(strings.ToUpper(agg)))
+	}
+	if err := SetAggregationIntervals(intervals); err != nil {
+		return errors.Wrap(err, "set aggregation intervals error")
+	}
+
+	// setup timezone
+	if err := SetTimeLocation(c.Metrics.Timezone); err != nil {
+		return errors.Wrap(err, "set time location error")
+	}
+
+	// setup storage TTL
+	SetMetricsTTL(
+		c.Metrics.Redis.MinuteAggregationTTL,
+		c.Metrics.Redis.HourAggregationTTL,
+		c.Metrics.Redis.DayAggregationTTL,
+		c.Metrics.Redis.MonthAggregationTTL,
+	)
 
 	log.Info("storage: setting up Redis pool")
 	redisPool = &redis.Pool{

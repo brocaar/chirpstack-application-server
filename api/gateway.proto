@@ -179,11 +179,20 @@ message GatewayListItem {
 	// Last update timestamp.
 	google.protobuf.Timestamp updated_at = 5;
 
+    // First seen timestamp.
+    google.protobuf.Timestamp first_seen_at = 8;
+
+    // Last seen timestamp.
+    google.protobuf.Timestamp last_seen_at = 9;
+
 	// Organization ID.
 	int64 organization_id = 6 [json_name = "organizationID"];
 
 	// Network-server ID.
 	int64 network_server_id = 7 [json_name = "networkServerID"];
+
+    // Location.
+    common.Location location = 10;
 }
 
 message ListGatewayResponse {

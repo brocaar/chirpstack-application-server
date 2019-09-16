@@ -16,6 +16,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/helpers"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 )
@@ -60,8 +61,9 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 
 	createReq := ns.CreateGatewayRequest{
 		Gateway: &ns.Gateway{
-			Id:       mac[:],
-			Location: req.Gateway.Location,
+			Id:               mac[:],
+			Location:         req.Gateway.Location,
+			RoutingProfileId: applicationServerID.Bytes(),
 		},
 	}
 
@@ -103,6 +105,9 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			OrganizationID:  req.Gateway.OrganizationId,
 			Ping:            req.Gateway.DiscoveryEnabled,
 			NetworkServerID: req.Gateway.NetworkServerId,
+			Latitude:        req.Gateway.Location.Latitude,
+			Longitude:       req.Gateway.Location.Longitude,
+			Altitude:        req.Gateway.Location.Altitude,
 		})
 		if err != nil {
 			return helpers.ErrToRPCError(err)
@@ -173,11 +178,13 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 			Description:      gw.Description,
 			OrganizationId:   gw.OrganizationID,
 			DiscoveryEnabled: gw.Ping,
-			Location:         getResp.Gateway.Location,
-			NetworkServerId:  gw.NetworkServerID,
+			Location: &common.Location{
+				Latitude:  gw.Latitude,
+				Longitude: gw.Longitude,
+				Altitude:  gw.Altitude,
+			},
+			NetworkServerId: gw.NetworkServerID,
 		},
-		FirstSeenAt: getResp.FirstSeenAt,
-		LastSeenAt:  getResp.LastSeenAt,
 	}
 
 	resp.CreatedAt, err = ptypes.TimestampProto(gw.CreatedAt)
@@ -187,6 +194,20 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 	resp.UpdatedAt, err = ptypes.TimestampProto(gw.UpdatedAt)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if gw.FirstSeenAt != nil {
+		resp.FirstSeenAt, err = ptypes.TimestampProto(*gw.FirstSeenAt)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+	}
+
+	if gw.LastSeenAt != nil {
+		resp.LastSeenAt, err = ptypes.TimestampProto(*gw.LastSeenAt)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
 	}
 
 	if len(getResp.Gateway.GatewayProfileId) != 0 {
@@ -282,6 +303,11 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 			Description:     gw.Description,
 			OrganizationId:  gw.OrganizationID,
 			NetworkServerId: gw.NetworkServerID,
+			Location: &common.Location{
+				Latitude:  gw.Latitude,
+				Longitude: gw.Longitude,
+				Altitude:  gw.Altitude,
+			},
 		}
 
 		row.CreatedAt, err = ptypes.TimestampProto(gw.CreatedAt)
@@ -291,6 +317,19 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 		row.UpdatedAt, err = ptypes.TimestampProto(gw.UpdatedAt)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
+		}
+
+		if gw.FirstSeenAt != nil {
+			row.FirstSeenAt, err = ptypes.TimestampProto(*gw.FirstSeenAt)
+			if err != nil {
+				return nil, helpers.ErrToRPCError(err)
+			}
+		}
+		if gw.LastSeenAt != nil {
+			row.LastSeenAt, err = ptypes.TimestampProto(*gw.LastSeenAt)
+			if err != nil {
+				return nil, helpers.ErrToRPCError(err)
+			}
 		}
 
 		resp.Result = append(resp.Result, &row)
@@ -328,6 +367,9 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		gw.Name = req.Gateway.Name
 		gw.Description = req.Gateway.Description
 		gw.Ping = req.Gateway.DiscoveryEnabled
+		gw.Latitude = req.Gateway.Location.Latitude
+		gw.Longitude = req.Gateway.Location.Longitude
+		gw.Altitude = req.Gateway.Location.Altitude
 
 		err = storage.UpdateGateway(tx, &gw)
 		if err != nil {
@@ -423,55 +465,48 @@ func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (
 
 // GetStats gets the gateway statistics for the gateway with the given Mac.
 func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsRequest) (*pb.GetGatewayStatsResponse, error) {
-	var mac lorawan.EUI64
-	if err := mac.UnmarshalText([]byte(req.GatewayId)); err != nil {
+	var gatewayID lorawan.EUI64
+	if err := gatewayID.UnmarshalText([]byte(req.GatewayId)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
 	}
 
-	err := a.validator.Validate(ctx, auth.ValidateGatewayAccess(auth.Read, mac))
+	err := a.validator.Validate(ctx, auth.ValidateGatewayAccess(auth.Read, gatewayID))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	gw, err := storage.GetGateway(storage.DB(), mac, false)
+	start, err := ptypes.Timestamp(req.StartTimestamp)
 	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	n, err := storage.GetNetworkServer(storage.DB(), gw.NetworkServerID)
+	end, err := ptypes.Timestamp(req.EndTimestamp)
 	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	interval, ok := ns.AggregationInterval_value[strings.ToUpper(req.Interval)]
+	_, ok := ns.AggregationInterval_value[strings.ToUpper(req.Interval)]
 	if !ok {
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad interval: %s", req.Interval)
 	}
 
-	statsReq := ns.GetGatewayStatsRequest{
-		GatewayId:      mac[:],
-		Interval:       ns.AggregationInterval(interval),
-		StartTimestamp: req.StartTimestamp,
-		EndTimestamp:   req.EndTimestamp,
-	}
-	stats, err := nsClient.GetGatewayStats(ctx, &statsReq)
+	metrics, err := storage.GetMetrics(storage.RedisPool(), storage.AggregationInterval(strings.ToUpper(req.Interval)), "gw:"+gatewayID.String(), start, end)
 	if err != nil {
-		return nil, err
+		return nil, helpers.ErrToRPCError(err)
 	}
 
-	result := make([]*pb.GatewayStats, len(stats.Result))
-	for i, stat := range stats.Result {
+	result := make([]*pb.GatewayStats, len(metrics))
+	for i, m := range metrics {
 		result[i] = &pb.GatewayStats{
-			Timestamp:           stat.Timestamp,
-			RxPacketsReceived:   stat.RxPacketsReceived,
-			RxPacketsReceivedOk: stat.RxPacketsReceivedOk,
-			TxPacketsReceived:   stat.TxPacketsReceived,
-			TxPacketsEmitted:    stat.TxPacketsEmitted,
+			RxPacketsReceived:   int32(m.Metrics["rx_count"]),
+			RxPacketsReceivedOk: int32(m.Metrics["rx_ok_count"]),
+			TxPacketsReceived:   int32(m.Metrics["tx_count"]),
+			TxPacketsEmitted:    int32(m.Metrics["tx_ok_count"]),
+		}
+
+		result[i].Timestamp, err = ptypes.TimestampProto(m.Time)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
 		}
 	}
 

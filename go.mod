@@ -7,7 +7,7 @@ require (
 	github.com/Azure/azure-service-bus-go v0.9.1
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
 	github.com/aws/aws-sdk-go v1.19.19
-	github.com/brocaar/loraserver v0.0.0-20190910091230-5bed7a323e88
+	github.com/brocaar/loraserver v0.0.0-20190916071739-835fad3f2a9b
 	github.com/brocaar/lorawan v0.0.0-20190814113539-8eb2a8d6da09
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.2.0

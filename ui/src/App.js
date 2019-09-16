@@ -187,9 +187,9 @@ class App extends Component {
                     <Route exact path="/organizations/:organizationID(\d+)/device-profiles/create" component={CreateDeviceProfile} />
                     <Route path="/organizations/:organizationID(\d+)/device-profiles/:deviceProfileID([\w-]{36})" component={DeviceProfileLayout} />
 
-                    <Route exact path="/organizations/:organizationID(\d+)/gateways" component={ListGateways} />
                     <Route exact path="/organizations/:organizationID(\d+)/gateways/create" component={CreateGateway} />
                     <Route path="/organizations/:organizationID(\d+)/gateways/:gatewayID([\w]{16})" component={GatewayLayout} />
+                    <Route path="/organizations/:organizationID(\d+)/gateways" component={ListGateways} />
 
                     <Route exact path="/organizations/:organizationID(\d+)/applications" component={ListApplications} />
                     <Route exact path="/organizations/:organizationID(\d+)/applications/create" component={CreateApplication} />

@@ -140,17 +140,12 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
-	rpID, err := uuid.FromString(config.C.ApplicationServer.ID)
-	if err != nil {
-		return errors.Wrap(err, "uuid from string error")
-	}
-
 	_, err = nsClient.CreateDevice(context.Background(), &ns.CreateDeviceRequest{
 		Device: &ns.Device{
 			DevEui:            d.DevEUI[:],
 			DeviceProfileId:   d.DeviceProfileID.Bytes(),
 			ServiceProfileId:  app.ServiceProfileID.Bytes(),
-			RoutingProfileId:  rpID.Bytes(),
+			RoutingProfileId:  applicationServerID.Bytes(),
 			SkipFCntCheck:     d.SkipFCntCheck,
 			ReferenceAltitude: d.ReferenceAltitude,
 		},

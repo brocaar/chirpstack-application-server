@@ -690,6 +690,59 @@ func (a *ApplicationServerAPI) SetDeviceLocation(ctx context.Context, req *as.Se
 	return &empty.Empty{}, nil
 }
 
+// HandleGatewayStats handles the given gateway stats.
+func (a *ApplicationServerAPI) HandleGatewayStats(ctx context.Context, req *as.HandleGatewayStatsRequest) (*empty.Empty, error) {
+	var gatewayID lorawan.EUI64
+	copy(gatewayID[:], req.GatewayId)
+
+	ts, err := ptypes.Timestamp(req.Time)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(errors.Wrap(err, "time error"))
+	}
+
+	err = storage.Transaction(func(tx sqlx.Ext) error {
+		gw, err := storage.GetGateway(tx, gatewayID, true)
+		if err != nil {
+			return helpers.ErrToRPCError(errors.Wrap(err, "get gateway error"))
+		}
+
+		if gw.FirstSeenAt == nil {
+			gw.FirstSeenAt = &ts
+		}
+		gw.LastSeenAt = &ts
+
+		if loc := req.Location; loc != nil {
+			gw.Latitude = loc.Latitude
+			gw.Longitude = loc.Longitude
+			gw.Altitude = loc.Altitude
+		}
+
+		if err := storage.UpdateGateway(tx, &gw); err != nil {
+			return helpers.ErrToRPCError(errors.Wrap(err, "update gateway error"))
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	metrics := storage.MetricsRecord{
+		Time: ts,
+		Metrics: map[string]float64{
+			"rx_count":    float64(req.RxPacketsReceived),
+			"rx_ok_count": float64(req.RxPacketsReceivedOk),
+			"tx_count":    float64(req.TxPacketsReceived),
+			"tx_ok_count": float64(req.TxPacketsEmitted),
+		},
+	}
+	if err := storage.SaveMetrics(storage.RedisPool(), fmt.Sprintf("gw:%s", gatewayID), metrics); err != nil {
+		return nil, helpers.ErrToRPCError(errors.Wrap(err, "save metrics error"))
+	}
+
+	return &empty.Empty{}, nil
+}
+
 // getAppNonce returns a random application nonce (used for OTAA).
 func getAppNonce() ([3]byte, error) {
 	var b [3]byte

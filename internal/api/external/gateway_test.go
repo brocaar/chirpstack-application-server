@@ -73,6 +73,7 @@ func (ts *APITestSuite) TestGateway() {
 		nsClient.GetGatewayResponse = ns.GetGatewayResponse{
 			Gateway: nsReq.Gateway,
 		}
+		assert.Equal(applicationServerID.Bytes(), nsReq.Gateway.RoutingProfileId)
 
 		t.Run("Get", func(t *testing.T) {
 			assert := require.New(t)
@@ -200,49 +201,41 @@ func (ts *APITestSuite) TestGateway() {
 
 		t.Run("GetStats", func(t *testing.T) {
 			assert := require.New(t)
-			now := time.Now().UTC()
-			nowPB, _ := ptypes.TimestampProto(now)
-			now24hPB, _ := ptypes.TimestampProto(now.Add(24 * time.Hour))
+			assert.NoError(storage.SetAggregationIntervals([]storage.AggregationInterval{storage.AggregationMinute}))
+			storage.SetMetricsTTL(time.Minute, time.Minute, time.Minute, time.Minute)
 
-			nsClient.GetGatewayStatsResponse = ns.GetGatewayStatsResponse{
-				Result: []*ns.GatewayStats{
-					{
-						Timestamp:           nowPB,
-						RxPacketsReceived:   10,
-						RxPacketsReceivedOk: 9,
-						TxPacketsReceived:   8,
-						TxPacketsEmitted:    7,
-					},
+			now := time.Now().UTC()
+			metrics := storage.MetricsRecord{
+				Time: now,
+				Metrics: map[string]float64{
+					"rx_count":    10,
+					"rx_ok_count": 5,
+					"tx_count":    11,
+					"tx_ok_count": 10,
 				},
 			}
+			assert.NoError(storage.SaveMetricsForInterval(storage.RedisPool(), storage.AggregationMinute, "gw:0102030405060708", metrics))
 
-			statsResp, err := api.GetStats(ctx, &pb.GetGatewayStatsRequest{
-				GatewayId:      createReq.Gateway.Id,
-				Interval:       "DAY",
-				StartTimestamp: nowPB,
-				EndTimestamp:   now24hPB,
+			start, _ := ptypes.TimestampProto(now.Truncate(time.Minute))
+			end, _ := ptypes.TimestampProto(now)
+			nowTrunc, _ := ptypes.TimestampProto(now.Truncate(time.Minute))
+
+			resp, err := api.GetStats(ctx, &pb.GetGatewayStatsRequest{
+				GatewayId:      "0102030405060708",
+				Interval:       "MINUTE",
+				StartTimestamp: start,
+				EndTimestamp:   end,
 			})
 			assert.NoError(err)
 
-			assert.Equal(&pb.GetGatewayStatsResponse{
-				Result: []*pb.GatewayStats{
-					{
-						Timestamp:           nowPB,
-						RxPacketsReceived:   10,
-						RxPacketsReceivedOk: 9,
-						TxPacketsReceived:   8,
-						TxPacketsEmitted:    7,
-					},
-				},
-			}, statsResp)
-
-			nsReq := <-nsClient.GetGatewayStatsChan
-			assert.Equal(ns.GetGatewayStatsRequest{
-				GatewayId:      []byte{8, 7, 6, 5, 4, 3, 2, 1},
-				Interval:       ns.AggregationInterval_DAY,
-				StartTimestamp: nowPB,
-				EndTimestamp:   now24hPB,
-			}, nsReq)
+			assert.Len(resp.Result, 1)
+			assert.Equal(pb.GatewayStats{
+				Timestamp:           nowTrunc,
+				RxPacketsReceived:   10,
+				RxPacketsReceivedOk: 5,
+				TxPacketsReceived:   11,
+				TxPacketsEmitted:    10,
+			}, *resp.Result[0])
 		})
 
 		t.Run("GetLastPing", func(t *testing.T) {

@@ -36,6 +36,7 @@ func (ts *ASTestSuite) SetupSuite() {
 	conf := test.GetConfig()
 	assert.NoError(storage.Setup(conf))
 	test.MustResetDB(storage.DB().DB)
+	test.MustFlushRedis(storage.RedisPool())
 }
 
 func (ts *ASTestSuite) TestApplicationServer() {
@@ -356,6 +357,48 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				assert.Equal(`{"fPort":4,"firstByte":68}`, string(b))
 			})
 		})
+	})
+
+	ts.T().Run("HandleGatewayStats", func(t *testing.T) {
+		assert := require.New(t)
+
+		now := time.Now()
+		nowPB, err := ptypes.TimestampProto(now)
+		assert.NoError(err)
+
+		assert.NoError(storage.SetAggregationIntervals([]storage.AggregationInterval{storage.AggregationMinute}))
+		storage.SetMetricsTTL(time.Minute, time.Minute, time.Minute, time.Minute)
+
+		stats := as.HandleGatewayStatsRequest{
+			GatewayId: gw.MAC[:],
+			Time:      nowPB,
+			Location: &common.Location{
+				Latitude:  1.1234,
+				Longitude: 2.1234,
+				Altitude:  3,
+			},
+			RxPacketsReceived:   10,
+			RxPacketsReceivedOk: 9,
+			TxPacketsReceived:   8,
+			TxPacketsEmitted:    7,
+		}
+		_, err = api.HandleGatewayStats(ctx, &stats)
+		assert.NoError(err)
+
+		start := time.Now().Truncate(time.Minute)
+		end := time.Now()
+
+		metrics, err := storage.GetMetrics(storage.RedisPool(), storage.AggregationMinute, "gw:"+gw.MAC.String(), start, end)
+		assert.NoError(err)
+		assert.Len(metrics, 1)
+
+		assert.Equal(map[string]float64{
+			"rx_count":    10,
+			"rx_ok_count": 9,
+			"tx_count":    8,
+			"tx_ok_count": 7,
+		}, metrics[0].Metrics)
+		assert.Equal(start.UTC(), metrics[0].Time.UTC())
 	})
 
 	ts.T().Run("SetDeviceStatus", func(t *testing.T) {

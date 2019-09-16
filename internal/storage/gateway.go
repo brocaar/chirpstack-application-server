@@ -29,6 +29,8 @@ type Gateway struct {
 	MAC              lorawan.EUI64 `db:"mac"`
 	CreatedAt        time.Time     `db:"created_at"`
 	UpdatedAt        time.Time     `db:"updated_at"`
+	FirstSeenAt      *time.Time    `db:"first_seen_at"`
+	LastSeenAt       *time.Time    `db:"last_seen_at"`
 	Name             string        `db:"name"`
 	Description      string        `db:"description"`
 	OrganizationID   int64         `db:"organization_id"`
@@ -37,6 +39,9 @@ type Gateway struct {
 	LastPingSentAt   *time.Time    `db:"last_ping_sent_at"`
 	NetworkServerID  int64         `db:"network_server_id"`
 	GatewayProfileID *string       `db:"gateway_profile_id"`
+	Latitude         float64       `db:"latitude"`
+	Longitude        float64       `db:"longitude"`
+	Altitude         float64       `db:"altitude"`
 }
 
 // GatewayPing represents a gateway ping.
@@ -113,8 +118,13 @@ func CreateGateway(db sqlx.Execer, gw *Gateway) error {
 			last_ping_id,
 			last_ping_sent_at,
 			network_server_id,
-			gateway_profile_id
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+			gateway_profile_id,
+			first_seen_at,
+			last_seen_at,
+			latitude,
+			longitude,
+			altitude
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
 		gw.MAC[:],
 		gw.CreatedAt,
 		gw.UpdatedAt,
@@ -126,6 +136,11 @@ func CreateGateway(db sqlx.Execer, gw *Gateway) error {
 		gw.LastPingSentAt,
 		gw.NetworkServerID,
 		gw.GatewayProfileID,
+		gw.FirstSeenAt,
+		gw.LastSeenAt,
+		gw.Latitude,
+		gw.Longitude,
+		gw.Altitude,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -156,7 +171,12 @@ func UpdateGateway(db sqlx.Execer, gw *Gateway) error {
 			last_ping_id = $7,
 			last_ping_sent_at = $8,
 			network_server_id = $9,
-			gateway_profile_id = $10
+			gateway_profile_id = $10,
+			first_seen_at = $11,
+			last_seen_at = $12,
+			latitude = $13,
+			longitude = $14,
+			altitude = $15
 		where
 			mac = $1`,
 		gw.MAC[:],
@@ -169,6 +189,11 @@ func UpdateGateway(db sqlx.Execer, gw *Gateway) error {
 		gw.LastPingSentAt,
 		gw.NetworkServerID,
 		gw.GatewayProfileID,
+		gw.FirstSeenAt,
+		gw.LastSeenAt,
+		gw.Latitude,
+		gw.Longitude,
+		gw.Altitude,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

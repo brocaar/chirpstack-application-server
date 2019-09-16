@@ -471,6 +471,16 @@
           "format": "date-time",
           "description": "Last update timestamp."
         },
+        "firstSeenAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "First seen timestamp."
+        },
+        "lastSeenAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last seen timestamp."
+        },
         "organizationID": {
           "type": "string",
           "format": "int64",
@@ -480,6 +490,10 @@
           "type": "string",
           "format": "int64",
           "description": "Network-server ID."
+        },
+        "location": {
+          "$ref": "#/definitions/commonLocation",
+          "description": "Location."
         }
       }
     },

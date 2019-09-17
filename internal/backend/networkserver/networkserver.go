@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/brocaar/loraserver/api/ns"
 )
 
@@ -102,7 +103,7 @@ func (p *pool) createClient(hostname string, caCert, tlsCert, tlsKey []byte) (*g
 	nsOpts := []grpc.DialOption{
 		grpc.WithBlock(),
 		grpc.WithUnaryInterceptor(
-			grpc_logrus.UnaryClientInterceptor(logrusEntry, logrusOpts...),
+			logging.UnaryClientCtxIDInterceptor,
 		),
 		grpc.WithStreamInterceptor(
 			grpc_logrus.StreamClientInterceptor(logrusEntry, logrusOpts...),

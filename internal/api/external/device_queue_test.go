@@ -31,20 +31,20 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 	org := storage.Organization{
 		Name: "test-org",
 	}
-	assert.NoError(storage.CreateOrganization(storage.DB(), &org))
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 
 	n := storage.NetworkServer{
 		Name:   "test-ns",
 		Server: "test-ns:1234",
 	}
-	assert.NoError(storage.CreateNetworkServer(storage.DB(), &n))
+	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &n))
 
 	sp := storage.ServiceProfile{
 		Name:            "test-sp",
 		NetworkServerID: n.ID,
 		OrganizationID:  org.ID,
 	}
-	assert.NoError(storage.CreateServiceProfile(storage.DB(), &sp))
+	assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp))
 	spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
 	assert.NoError(err)
 
@@ -53,7 +53,7 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 		NetworkServerID: n.ID,
 		OrganizationID:  org.ID,
 	}
-	assert.NoError(storage.CreateDeviceProfile(storage.DB(), &dp))
+	assert.NoError(storage.CreateDeviceProfile(context.Background(), storage.DB(), &dp))
 	dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
 	assert.NoError(err)
 
@@ -62,7 +62,7 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 		ServiceProfileID: spID,
 		Name:             "test-app",
 	}
-	assert.NoError(storage.CreateApplication(storage.DB(), &app))
+	assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &app))
 
 	d := storage.Device{
 		ApplicationID:   app.ID,
@@ -70,14 +70,14 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 		Name:            "test-node",
 		DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(storage.CreateDevice(storage.DB(), &d))
+	assert.NoError(storage.CreateDevice(context.Background(), storage.DB(), &d))
 
 	da := storage.DeviceActivation{
 		DevEUI:  d.DevEUI,
 		DevAddr: lorawan.DevAddr{1, 2, 3, 4},
 		AppSKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(storage.CreateDeviceActivation(storage.DB(), &da))
+	assert.NoError(storage.CreateDeviceActivation(context.Background(), storage.DB(), &da))
 
 	b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 12, []byte{1, 2, 3, 4})
 	assert.NoError(err)
@@ -96,7 +96,7 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 					];
 				}
 			`
-		assert.NoError(storage.UpdateApplication(storage.DB(), app))
+		assert.NoError(storage.UpdateApplication(context.Background(), storage.DB(), app))
 
 		t.Run("Enqueue with raw JSON", func(t *testing.T) {
 			assert := require.New(t)
@@ -139,7 +139,7 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 					];
 				}
 			`
-		assert.NoError(storage.UpdateDeviceProfile(storage.DB(), &dp))
+		assert.NoError(storage.UpdateDeviceProfile(context.Background(), storage.DB(), &dp))
 
 		t.Run("Enqueue with raw JSON", func(t *testing.T) {
 			assert := require.New(t)

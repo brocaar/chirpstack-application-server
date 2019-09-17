@@ -13,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/brocaar/loraserver/api/ns"
 )
 
@@ -42,7 +43,7 @@ func (sp ServiceProfile) Validate() error {
 }
 
 // CreateServiceProfile creates the given service-profile.
-func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
+func CreateServiceProfile(ctx context.Context, db sqlx.Ext, sp *ServiceProfile) error {
 	if err := sp.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
@@ -77,7 +78,7 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		return handlePSQLError(Insert, err, "insert error")
 	}
 
-	n, err := GetNetworkServer(db, sp.NetworkServerID)
+	n, err := GetNetworkServer(ctx, db, sp.NetworkServerID)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
 	}
@@ -87,19 +88,22 @@ func CreateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
-	_, err = nsClient.CreateServiceProfile(context.Background(), &ns.CreateServiceProfileRequest{
+	_, err = nsClient.CreateServiceProfile(ctx, &ns.CreateServiceProfileRequest{
 		ServiceProfile: &sp.ServiceProfile,
 	})
 	if err != nil {
 		return errors.Wrap(err, "create service-profile error")
 	}
 
-	log.WithField("id", spID).Info("service-profile created")
+	log.WithFields(log.Fields{
+		"id":     spID,
+		"ctx_id": ctx.Value(logging.ContextIDKey),
+	}).Info("service-profile created")
 	return nil
 }
 
 // GetServiceProfile returns the service-profile matching the given id.
-func GetServiceProfile(db sqlx.Queryer, id uuid.UUID, localOnly bool) (ServiceProfile, error) {
+func GetServiceProfile(ctx context.Context, db sqlx.Queryer, id uuid.UUID, localOnly bool) (ServiceProfile, error) {
 	var sp ServiceProfile
 	row := db.QueryRowx(`
 		select
@@ -126,7 +130,7 @@ func GetServiceProfile(db sqlx.Queryer, id uuid.UUID, localOnly bool) (ServicePr
 		return sp, nil
 	}
 
-	n, err := GetNetworkServer(db, sp.NetworkServerID)
+	n, err := GetNetworkServer(ctx, db, sp.NetworkServerID)
 	if err != nil {
 		return sp, errors.Wrap(err, "get network-server errror")
 	}
@@ -136,7 +140,7 @@ func GetServiceProfile(db sqlx.Queryer, id uuid.UUID, localOnly bool) (ServicePr
 		return sp, errors.Wrap(err, "get network-server client error")
 	}
 
-	resp, err := nsClient.GetServiceProfile(context.Background(), &ns.GetServiceProfileRequest{
+	resp, err := nsClient.GetServiceProfile(ctx, &ns.GetServiceProfileRequest{
 		Id: id.Bytes(),
 	})
 	if err != nil {
@@ -153,7 +157,7 @@ func GetServiceProfile(db sqlx.Queryer, id uuid.UUID, localOnly bool) (ServicePr
 }
 
 // UpdateServiceProfile updates the given service-profile.
-func UpdateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
+func UpdateServiceProfile(ctx context.Context, db sqlx.Ext, sp *ServiceProfile) error {
 	if err := sp.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
@@ -185,7 +189,7 @@ func UpdateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		return ErrDoesNotExist
 	}
 
-	n, err := GetNetworkServer(db, sp.NetworkServerID)
+	n, err := GetNetworkServer(ctx, db, sp.NetworkServerID)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
 	}
@@ -195,21 +199,24 @@ func UpdateServiceProfile(db sqlx.Ext, sp *ServiceProfile) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
-	_, err = nsClient.UpdateServiceProfile(context.Background(), &ns.UpdateServiceProfileRequest{
+	_, err = nsClient.UpdateServiceProfile(ctx, &ns.UpdateServiceProfileRequest{
 		ServiceProfile: &sp.ServiceProfile,
 	})
 	if err != nil {
 		return errors.Wrap(err, "update service-profile error")
 	}
 
-	log.WithField("id", spID).Info("service-profile updated")
+	log.WithFields(log.Fields{
+		"id":     spID,
+		"ctx_id": ctx.Value(logging.ContextIDKey),
+	}).Info("service-profile updated")
 
 	return nil
 }
 
 // DeleteServiceProfile deletes the service-profile matching the given id.
-func DeleteServiceProfile(db sqlx.Ext, id uuid.UUID) error {
-	n, err := GetNetworkServerForServiceProfileID(db, id)
+func DeleteServiceProfile(ctx context.Context, db sqlx.Ext, id uuid.UUID) error {
+	n, err := GetNetworkServerForServiceProfileID(ctx, db, id)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
 	}
@@ -231,20 +238,23 @@ func DeleteServiceProfile(db sqlx.Ext, id uuid.UUID) error {
 		return ErrDoesNotExist
 	}
 
-	_, err = nsClient.DeleteServiceProfile(context.Background(), &ns.DeleteServiceProfileRequest{
+	_, err = nsClient.DeleteServiceProfile(ctx, &ns.DeleteServiceProfileRequest{
 		Id: id.Bytes(),
 	})
 	if err != nil && grpc.Code(err) != codes.NotFound {
 		return errors.Wrap(err, "delete service-profile error")
 	}
 
-	log.WithField("id", id).Info("service-profile deleted")
+	log.WithFields(log.Fields{
+		"id":     id,
+		"ctx_id": ctx.Value(logging.ContextIDKey),
+	}).Info("service-profile deleted")
 
 	return nil
 }
 
 // GetServiceProfileCount returns the total number of service-profiles.
-func GetServiceProfileCount(db sqlx.Queryer) (int, error) {
+func GetServiceProfileCount(ctx context.Context, db sqlx.Queryer) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, "select count(*) from service_profile")
 	if err != nil {
@@ -255,7 +265,7 @@ func GetServiceProfileCount(db sqlx.Queryer) (int, error) {
 
 // GetServiceProfileCountForOrganizationID returns the total number of
 // service-profiles for the given organization id.
-func GetServiceProfileCountForOrganizationID(db sqlx.Queryer, organizationID int64) (int, error) {
+func GetServiceProfileCountForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, "select count(*) from service_profile where organization_id = $1", organizationID)
 	if err != nil {
@@ -266,7 +276,7 @@ func GetServiceProfileCountForOrganizationID(db sqlx.Queryer, organizationID int
 
 // GetServiceProfileCountForUser returns the total number of service-profiles
 // for the given username.
-func GetServiceProfileCountForUser(db sqlx.Queryer, username string) (int, error) {
+func GetServiceProfileCountForUser(ctx context.Context, db sqlx.Queryer, username string) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, `
 		select
@@ -289,7 +299,7 @@ func GetServiceProfileCountForUser(db sqlx.Queryer, username string) (int, error
 }
 
 // GetServiceProfiles returns a slice of service-profiles.
-func GetServiceProfiles(db sqlx.Queryer, limit, offset int) ([]ServiceProfileMeta, error) {
+func GetServiceProfiles(ctx context.Context, db sqlx.Queryer, limit, offset int) ([]ServiceProfileMeta, error) {
 	var sps []ServiceProfileMeta
 	err := sqlx.Select(db, &sps, `
 		select *
@@ -308,7 +318,7 @@ func GetServiceProfiles(db sqlx.Queryer, limit, offset int) ([]ServiceProfileMet
 
 // GetServiceProfilesForOrganizationID returns a slice of service-profiles
 // for the given organization id.
-func GetServiceProfilesForOrganizationID(db sqlx.Queryer, organizationID int64, limit, offset int) ([]ServiceProfileMeta, error) {
+func GetServiceProfilesForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, limit, offset int) ([]ServiceProfileMeta, error) {
 	var sps []ServiceProfileMeta
 	err := sqlx.Select(db, &sps, `
 		select *
@@ -330,7 +340,7 @@ func GetServiceProfilesForOrganizationID(db sqlx.Queryer, organizationID int64, 
 
 // GetServiceProfilesForUser returns a slice of service-profile for the given
 // username.
-func GetServiceProfilesForUser(db sqlx.Queryer, username string, limit, offset int) ([]ServiceProfileMeta, error) {
+func GetServiceProfilesForUser(ctx context.Context, db sqlx.Queryer, username string, limit, offset int) ([]ServiceProfileMeta, error) {
 	var sps []ServiceProfileMeta
 	err := sqlx.Select(db, &sps, `
 		select
@@ -359,7 +369,7 @@ func GetServiceProfilesForUser(db sqlx.Queryer, username string, limit, offset i
 
 // DeleteAllServiceProfilesForOrganizationID deletes all service-profiles
 // given an organization id.
-func DeleteAllServiceProfilesForOrganizationID(db sqlx.Ext, organizationID int64) error {
+func DeleteAllServiceProfilesForOrganizationID(ctx context.Context, db sqlx.Ext, organizationID int64) error {
 	var sps []ServiceProfileMeta
 	err := sqlx.Select(db, &sps, "select * from service_profile where organization_id = $1", organizationID)
 	if err != nil {
@@ -367,7 +377,7 @@ func DeleteAllServiceProfilesForOrganizationID(db sqlx.Ext, organizationID int64
 	}
 
 	for _, sp := range sps {
-		err = DeleteServiceProfile(db, sp.ServiceProfileID)
+		err = DeleteServiceProfile(ctx, db, sp.ServiceProfileID)
 		if err != nil {
 			return errors.Wrap(err, "delete service-profile error")
 		}

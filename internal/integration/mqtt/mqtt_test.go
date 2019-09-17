@@ -1,6 +1,7 @@
 package mqtt
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -118,7 +119,7 @@ func (ts *MQTTHandlerTestSuite) TestUplink() {
 		ApplicationID: 123,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.integration.SendDataUp(pl))
+	assert.NoError(ts.integration.SendDataUp(context.Background(), pl))
 	assert.Equal(pl, <-uplinkChan)
 }
 
@@ -141,7 +142,7 @@ func (ts *MQTTHandlerTestSuite) TestJoin() {
 		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 		DevAddr:         [4]byte{1, 2, 3, 4},
 	}
-	assert.NoError(ts.integration.SendJoinNotification(pl))
+	assert.NoError(ts.integration.SendJoinNotification(context.Background(), pl))
 	assert.Equal(pl, <-joinChan)
 }
 
@@ -163,7 +164,7 @@ func (ts *MQTTHandlerTestSuite) TestAck() {
 		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 		DeviceName:      "test-node",
 	}
-	assert.NoError(ts.integration.SendACKNotification(pl))
+	assert.NoError(ts.integration.SendACKNotification(context.Background(), pl))
 	assert.Equal(pl, <-ackChan)
 }
 
@@ -187,7 +188,7 @@ func (ts *MQTTHandlerTestSuite) TestError() {
 		Type:            "BOOM",
 		Error:           "boom boom boom",
 	}
-	assert.NoError(ts.integration.SendErrorNotification(pl))
+	assert.NoError(ts.integration.SendErrorNotification(context.Background(), pl))
 	assert.Equal(pl, <-errChan)
 }
 
@@ -211,7 +212,8 @@ func (ts *MQTTHandlerTestSuite) TestStatus() {
 		Margin:          123,
 		Battery:         234,
 	}
-	assert.NoError(ts.integration.SendStatusNotification(pl))
+
+	assert.NoError(ts.integration.SendStatusNotification(context.Background(), pl))
 	assert.Equal(pl, <-statusChan)
 }
 
@@ -238,7 +240,7 @@ func (ts *MQTTHandlerTestSuite) TestLocation() {
 			Altitude:  3.123,
 		},
 	}
-	assert.NoError(ts.integration.SendLocationNotification(pl))
+	assert.NoError(ts.integration.SendLocationNotification(context.Background(), pl))
 	assert.Equal(pl, <-locationChan)
 }
 

@@ -3,6 +3,7 @@
 package multi
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -17,6 +18,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/integration/mqtt"
 	"github.com/brocaar/lora-app-server/internal/integration/postgresql"
 	"github.com/brocaar/lora-app-server/internal/integration/thingsboard"
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/brocaar/lora-app-server/internal/storage"
 )
 
@@ -75,11 +77,14 @@ func (i *Integration) Add(intg integration.Integrator) {
 }
 
 // SendDataUp sends a data-up payload.
-func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
+func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPayload) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
-			if err := i.SendDataUp(pl); err != nil {
-				log.WithError(err).Errorf("integration/multi: integration %T error", i)
+			if err := i.SendDataUp(ctx, pl); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"integration": fmt.Sprintf("%T", i),
+					"ctx_id":      ctx.Value(logging.ContextIDKey),
+				}).Error("integration/multi: integration error")
 			}
 		}(ii)
 	}
@@ -88,11 +93,14 @@ func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 }
 
 // SendJoinNotification sends a join notification.
-func (i *Integration) SendJoinNotification(pl integration.JoinNotification) error {
+func (i *Integration) SendJoinNotification(ctx context.Context, pl integration.JoinNotification) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
-			if err := i.SendJoinNotification(pl); err != nil {
-				log.WithError(err).Errorf("integration/multi: integration %T error", i)
+			if err := i.SendJoinNotification(ctx, pl); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"integration": fmt.Sprintf("%T", i),
+					"ctx_id":      ctx.Value(logging.ContextIDKey),
+				}).Error("integration/multi: integration error")
 			}
 		}(ii)
 	}
@@ -101,11 +109,14 @@ func (i *Integration) SendJoinNotification(pl integration.JoinNotification) erro
 }
 
 // SendACKNotification sends an ACK notification.
-func (i *Integration) SendACKNotification(pl integration.ACKNotification) error {
+func (i *Integration) SendACKNotification(ctx context.Context, pl integration.ACKNotification) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
-			if err := i.SendACKNotification(pl); err != nil {
-				log.WithError(err).Errorf("integration/multi: integration %T error", i)
+			if err := i.SendACKNotification(ctx, pl); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"integration": fmt.Sprintf("%T", i),
+					"ctx_id":      ctx.Value(logging.ContextIDKey),
+				}).Error("integration/multi: integration error")
 			}
 		}(ii)
 	}
@@ -114,11 +125,14 @@ func (i *Integration) SendACKNotification(pl integration.ACKNotification) error 
 }
 
 // SendErrorNotification sends an error notification.
-func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) error {
+func (i *Integration) SendErrorNotification(ctx context.Context, pl integration.ErrorNotification) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
-			if err := i.SendErrorNotification(pl); err != nil {
-				log.WithError(err).Errorf("integration/multi: integration %T error", i)
+			if err := i.SendErrorNotification(ctx, pl); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"integration": fmt.Sprintf("%T", i),
+					"ctx_id":      ctx.Value(logging.ContextIDKey),
+				}).Error("integration/multi: integration error")
 			}
 		}(ii)
 	}
@@ -127,11 +141,14 @@ func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) er
 }
 
 // SendStatusNotification sends a status notification.
-func (i *Integration) SendStatusNotification(pl integration.StatusNotification) error {
+func (i *Integration) SendStatusNotification(ctx context.Context, pl integration.StatusNotification) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
-			if err := i.SendStatusNotification(pl); err != nil {
-				log.WithError(err).Errorf("integration/multi: integration %T error", i)
+			if err := i.SendStatusNotification(ctx, pl); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"integration": fmt.Sprintf("%T", i),
+					"ctx_id":      ctx.Value(logging.ContextIDKey),
+				}).Error("integration/multi: integration error")
 			}
 		}(ii)
 	}
@@ -140,11 +157,14 @@ func (i *Integration) SendStatusNotification(pl integration.StatusNotification) 
 }
 
 // SendLocationNotification sends a location notification.
-func (i *Integration) SendLocationNotification(pl integration.LocationNotification) error {
+func (i *Integration) SendLocationNotification(ctx context.Context, pl integration.LocationNotification) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
-			if err := i.SendLocationNotification(pl); err != nil {
-				log.WithError(err).Errorf("integration/multi: integration %T error", i)
+			if err := i.SendLocationNotification(ctx, pl); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"integration": fmt.Sprintf("%T", i),
+					"ctx_id":      ctx.Value(logging.ContextIDKey),
+				}).Error("integration/multi: integration error")
 			}
 		}(ii)
 	}

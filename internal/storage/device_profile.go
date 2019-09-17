@@ -13,6 +13,7 @@ import (
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/codec"
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/brocaar/loraserver/api/ns"
 )
 
@@ -50,7 +51,7 @@ func (dp DeviceProfile) Validate() error {
 // CreateDeviceProfile creates the given device-profile.
 // This will create the device-profile at the network-server side and will
 // create a local reference record.
-func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
+func CreateDeviceProfile(ctx context.Context, db sqlx.Ext, dp *DeviceProfile) error {
 	if err := dp.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
@@ -88,11 +89,10 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		dp.PayloadDecoderScript,
 	)
 	if err != nil {
-		log.WithField("id", dpID).Errorf("create device-profile error: %s", err)
 		return handlePSQLError(Insert, err, "insert error")
 	}
 
-	n, err := GetNetworkServer(db, dp.NetworkServerID)
+	n, err := GetNetworkServer(ctx, db, dp.NetworkServerID)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
 	}
@@ -102,7 +102,7 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
-	_, err = nsClient.CreateDeviceProfile(context.Background(), &ns.CreateDeviceProfileRequest{
+	_, err = nsClient.CreateDeviceProfile(ctx, &ns.CreateDeviceProfileRequest{
 		DeviceProfile: &dp.DeviceProfile,
 	})
 	if err != nil {
@@ -110,7 +110,8 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 	}
 
 	log.WithFields(log.Fields{
-		"id": dpID,
+		"id":     dpID,
+		"ctx_id": ctx.Value(logging.ContextIDKey),
 	}).Info("device-profile created")
 
 	return nil
@@ -120,7 +121,7 @@ func CreateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 // When forUpdate is set to true, then db must be a db transaction.
 // When localOnly is set to true, no call to the network-server is made to
 // retrieve additional device data.
-func GetDeviceProfile(db sqlx.Queryer, id uuid.UUID, forUpdate, localOnly bool) (DeviceProfile, error) {
+func GetDeviceProfile(ctx context.Context, db sqlx.Queryer, id uuid.UUID, forUpdate, localOnly bool) (DeviceProfile, error) {
 	var fu string
 	if forUpdate {
 		fu = " for update"
@@ -165,7 +166,7 @@ func GetDeviceProfile(db sqlx.Queryer, id uuid.UUID, forUpdate, localOnly bool) 
 		return dp, nil
 	}
 
-	n, err := GetNetworkServer(db, dp.NetworkServerID)
+	n, err := GetNetworkServer(ctx, db, dp.NetworkServerID)
 	if err != nil {
 		return dp, errors.Wrap(err, "get network-server error")
 	}
@@ -175,7 +176,7 @@ func GetDeviceProfile(db sqlx.Queryer, id uuid.UUID, forUpdate, localOnly bool) 
 		return dp, errors.Wrap(err, "get network-server client error")
 	}
 
-	resp, err := nsClient.GetDeviceProfile(context.Background(), &ns.GetDeviceProfileRequest{
+	resp, err := nsClient.GetDeviceProfile(ctx, &ns.GetDeviceProfileRequest{
 		Id: id.Bytes(),
 	})
 	if err != nil {
@@ -191,7 +192,7 @@ func GetDeviceProfile(db sqlx.Queryer, id uuid.UUID, forUpdate, localOnly bool) 
 }
 
 // UpdateDeviceProfile updates the given device-profile.
-func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
+func UpdateDeviceProfile(ctx context.Context, db sqlx.Ext, dp *DeviceProfile) error {
 	if err := dp.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
@@ -201,7 +202,7 @@ func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		return errors.Wrap(err, "uuid from bytes error")
 	}
 
-	n, err := GetNetworkServer(db, dp.NetworkServerID)
+	n, err := GetNetworkServer(ctx, db, dp.NetworkServerID)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
 	}
@@ -211,7 +212,7 @@ func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
-	_, err = nsClient.UpdateDeviceProfile(context.Background(), &ns.UpdateDeviceProfileRequest{
+	_, err = nsClient.UpdateDeviceProfile(ctx, &ns.UpdateDeviceProfileRequest{
 		DeviceProfile: &dp.DeviceProfile,
 	})
 	if err != nil {
@@ -248,15 +249,16 @@ func UpdateDeviceProfile(db sqlx.Ext, dp *DeviceProfile) error {
 	}
 
 	log.WithFields(log.Fields{
-		"id": dpID,
+		"id":     dpID,
+		"ctx_id": ctx.Value(logging.ContextIDKey),
 	}).Info("device-profile updated")
 
 	return nil
 }
 
 // DeleteDeviceProfile deletes the device-profile matching the given id.
-func DeleteDeviceProfile(db sqlx.Ext, id uuid.UUID) error {
-	n, err := GetNetworkServerForDeviceProfileID(db, id)
+func DeleteDeviceProfile(ctx context.Context, db sqlx.Ext, id uuid.UUID) error {
+	n, err := GetNetworkServerForDeviceProfileID(ctx, db, id)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
 	}
@@ -278,20 +280,23 @@ func DeleteDeviceProfile(db sqlx.Ext, id uuid.UUID) error {
 		return ErrDoesNotExist
 	}
 
-	_, err = nsClient.DeleteDeviceProfile(context.Background(), &ns.DeleteDeviceProfileRequest{
+	_, err = nsClient.DeleteDeviceProfile(ctx, &ns.DeleteDeviceProfileRequest{
 		Id: id.Bytes(),
 	})
 	if err != nil && grpc.Code(err) != codes.NotFound {
 		return errors.Wrap(err, "delete device-profile error")
 	}
 
-	log.WithField("id", id).Info("device-profile deleted")
+	log.WithFields(log.Fields{
+		"id":     id,
+		"ctx_id": ctx.Value(logging.ContextIDKey),
+	}).Info("device-profile deleted")
 
 	return nil
 }
 
 // GetDeviceProfileCount returns the total number of device-profiles.
-func GetDeviceProfileCount(db sqlx.Queryer) (int, error) {
+func GetDeviceProfileCount(ctx context.Context, db sqlx.Queryer) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, "select count(*) from device_profile")
 	if err != nil {
@@ -303,7 +308,7 @@ func GetDeviceProfileCount(db sqlx.Queryer) (int, error) {
 
 // GetDeviceProfileCountForOrganizationID returns the total number of
 // device-profiles for the given organization id.
-func GetDeviceProfileCountForOrganizationID(db sqlx.Queryer, organizationID int64) (int, error) {
+func GetDeviceProfileCountForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, "select count(*) from device_profile where organization_id = $1", organizationID)
 	if err != nil {
@@ -314,7 +319,7 @@ func GetDeviceProfileCountForOrganizationID(db sqlx.Queryer, organizationID int6
 
 // GetDeviceProfileCountForUser returns the total number of device-profiles
 // for the given username.
-func GetDeviceProfileCountForUser(db sqlx.Queryer, username string) (int, error) {
+func GetDeviceProfileCountForUser(ctx context.Context, db sqlx.Queryer, username string) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, `
 		select
@@ -339,7 +344,7 @@ func GetDeviceProfileCountForUser(db sqlx.Queryer, username string) (int, error)
 // GetDeviceProfileCountForApplicationID returns the total number of
 // device-profiles that can be used for the given application id (based
 // on the service-profile of the application).
-func GetDeviceProfileCountForApplicationID(db sqlx.Queryer, applicationID int64) (int, error) {
+func GetDeviceProfileCountForApplicationID(ctx context.Context, db sqlx.Queryer, applicationID int64) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, `
 		select
@@ -363,7 +368,7 @@ func GetDeviceProfileCountForApplicationID(db sqlx.Queryer, applicationID int64)
 }
 
 // GetDeviceProfiles returns a slice of device-profiles.
-func GetDeviceProfiles(db sqlx.Queryer, limit, offset int) ([]DeviceProfileMeta, error) {
+func GetDeviceProfiles(ctx context.Context, db sqlx.Queryer, limit, offset int) ([]DeviceProfileMeta, error) {
 	var dps []DeviceProfileMeta
 	err := sqlx.Select(db, &dps, `
 		select
@@ -387,7 +392,7 @@ func GetDeviceProfiles(db sqlx.Queryer, limit, offset int) ([]DeviceProfileMeta,
 
 // GetDeviceProfilesForOrganizationID returns a slice of device-profiles
 // for the given organization id.
-func GetDeviceProfilesForOrganizationID(db sqlx.Queryer, organizationID int64, limit, offset int) ([]DeviceProfileMeta, error) {
+func GetDeviceProfilesForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, limit, offset int) ([]DeviceProfileMeta, error) {
 	var dps []DeviceProfileMeta
 	err := sqlx.Select(db, &dps, `
 		select
@@ -414,7 +419,7 @@ func GetDeviceProfilesForOrganizationID(db sqlx.Queryer, organizationID int64, l
 
 // GetDeviceProfilesForUser returns a slice of device-profiles for the given
 // username.
-func GetDeviceProfilesForUser(db sqlx.Queryer, username string, limit, offset int) ([]DeviceProfileMeta, error) {
+func GetDeviceProfilesForUser(ctx context.Context, db sqlx.Queryer, username string, limit, offset int) ([]DeviceProfileMeta, error) {
 	var dps []DeviceProfileMeta
 	err := sqlx.Select(db, &dps, `
 		select
@@ -450,7 +455,7 @@ func GetDeviceProfilesForUser(db sqlx.Queryer, username string, limit, offset in
 // GetDeviceProfilesForApplicationID returns a slice of device-profiles that
 // can be used for the given application id (based on the service-profile
 // of the application).
-func GetDeviceProfilesForApplicationID(db sqlx.Queryer, applicationID int64, limit, offset int) ([]DeviceProfileMeta, error) {
+func GetDeviceProfilesForApplicationID(ctx context.Context, db sqlx.Queryer, applicationID int64, limit, offset int) ([]DeviceProfileMeta, error) {
 	var dps []DeviceProfileMeta
 	err := sqlx.Select(db, &dps, `
 		select
@@ -485,7 +490,7 @@ func GetDeviceProfilesForApplicationID(db sqlx.Queryer, applicationID int64, lim
 
 // DeleteAllDeviceProfilesForOrganizationID deletes all device-profiles
 // given an organization id.
-func DeleteAllDeviceProfilesForOrganizationID(db sqlx.Ext, organizationID int64) error {
+func DeleteAllDeviceProfilesForOrganizationID(ctx context.Context, db sqlx.Ext, organizationID int64) error {
 	var dps []DeviceProfileMeta
 	err := sqlx.Select(db, &dps, `
 		select
@@ -505,7 +510,7 @@ func DeleteAllDeviceProfilesForOrganizationID(db sqlx.Ext, organizationID int64)
 	}
 
 	for _, dp := range dps {
-		err = DeleteDeviceProfile(db, dp.DeviceProfileID)
+		err = DeleteDeviceProfile(ctx, db, dp.DeviceProfileID)
 		if err != nil {
 			return errors.Wrap(err, "delete device-profile error")
 		}

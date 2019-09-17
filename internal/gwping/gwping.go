@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
@@ -14,6 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
 	"github.com/brocaar/loraserver/api/ns"
@@ -28,7 +30,15 @@ const (
 // SendPingLoop is a never returning function sending the gateway pings.
 func SendPingLoop() {
 	for {
-		if err := sendGatewayPing(); err != nil {
+		ctxID, err := uuid.NewV4()
+		if err != nil {
+			log.WithError(err).Error("new uuid error")
+		}
+
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, logging.ContextIDKey, ctxID)
+
+		if err := sendGatewayPing(ctx); err != nil {
 			log.Errorf("send gateway ping error: %s", err)
 		}
 		time.Sleep(time.Second)
@@ -36,7 +46,7 @@ func SendPingLoop() {
 }
 
 // HandleReceivedPing handles a ping received by one or multiple gateways.
-func HandleReceivedPing(req *as.HandleProprietaryUplinkRequest) error {
+func HandleReceivedPing(ctx context.Context, req *as.HandleProprietaryUplinkRequest) error {
 	var mic lorawan.MIC
 	copy(mic[:], req.Mic)
 
@@ -49,7 +59,7 @@ func HandleReceivedPing(req *as.HandleProprietaryUplinkRequest) error {
 		log.Errorf("delete ping lookup error: %s", err)
 	}
 
-	ping, err := storage.GetGatewayPing(storage.DB(), id)
+	ping, err := storage.GetGatewayPing(ctx, storage.DB(), id)
 	if err != nil {
 		return errors.Wrap(err, "get gateway ping error")
 	}
@@ -89,7 +99,7 @@ func HandleReceivedPing(req *as.HandleProprietaryUplinkRequest) error {
 				pingRX.Altitude = rx.Location.Altitude
 			}
 
-			err := storage.CreateGatewayPingRX(tx, &pingRX)
+			err := storage.CreateGatewayPingRX(ctx, tx, &pingRX)
 			if err != nil {
 				return errors.Wrap(err, "create gateway ping rx error")
 			}
@@ -105,7 +115,7 @@ func HandleReceivedPing(req *as.HandleProprietaryUplinkRequest) error {
 
 // sendGatewayPing selects the next gateway to ping, creates the "ping"
 // frame and sends this frame to the network-server for transmission.
-func sendGatewayPing() error {
+func sendGatewayPing(ctx context.Context) error {
 	return storage.Transaction(func(tx sqlx.Ext) error {
 		gw, err := getGatewayForPing(tx)
 		if err != nil {
@@ -115,7 +125,7 @@ func sendGatewayPing() error {
 			return nil
 		}
 
-		n, err := storage.GetNetworkServer(storage.DB(), gw.NetworkServerID)
+		n, err := storage.GetNetworkServer(ctx, storage.DB(), gw.NetworkServerID)
 		if err != nil {
 			return errors.Wrap(err, "get network-server error")
 		}
@@ -125,7 +135,7 @@ func sendGatewayPing() error {
 			Frequency:  n.GatewayDiscoveryTXFrequency,
 			DR:         n.GatewayDiscoveryDR,
 		}
-		err = storage.CreateGatewayPing(tx, &ping)
+		err = storage.CreateGatewayPing(ctx, tx, &ping)
 		if err != nil {
 			return errors.Wrap(err, "create gateway ping error")
 		}
@@ -148,7 +158,7 @@ func sendGatewayPing() error {
 		gw.LastPingID = &ping.ID
 		gw.LastPingSentAt = &ping.CreatedAt
 
-		err = storage.UpdateGateway(tx, gw)
+		err = storage.UpdateGateway(ctx, tx, gw)
 		if err != nil {
 			return errors.Wrap(err, "update gateway error")
 		}

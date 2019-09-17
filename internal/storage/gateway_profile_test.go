@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -29,7 +30,7 @@ func TestGatewayProfile(t *testing.T) {
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(CreateNetworkServer(DB(), &n), ShouldBeNil)
+		So(CreateNetworkServer(context.Background(), DB(), &n), ShouldBeNil)
 
 		Convey("Then CreateGatewayProfile creates the gateway-profile", func() {
 			gp := GatewayProfile{
@@ -47,7 +48,7 @@ func TestGatewayProfile(t *testing.T) {
 					},
 				},
 			}
-			So(CreateGatewayProfile(DB(), &gp), ShouldBeNil)
+			So(CreateGatewayProfile(context.Background(), DB(), &gp), ShouldBeNil)
 			gp.CreatedAt = gp.CreatedAt.UTC().Truncate(time.Millisecond)
 			gp.UpdatedAt = gp.UpdatedAt.UTC().Truncate(time.Millisecond)
 			gpID, err := uuid.FromBytes(gp.GatewayProfile.Id)
@@ -63,7 +64,7 @@ func TestGatewayProfile(t *testing.T) {
 					GatewayProfile: &gp.GatewayProfile,
 				}
 
-				gpGet, err := GetGatewayProfile(DB(), gpID)
+				gpGet, err := GetGatewayProfile(context.Background(), DB(), gpID)
 				So(err, ShouldBeNil)
 				gpGet.CreatedAt = gpGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				gpGet.UpdatedAt = gpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -86,7 +87,7 @@ func TestGatewayProfile(t *testing.T) {
 					},
 				}
 
-				So(UpdateGatewayProfile(DB(), &gp), ShouldBeNil)
+				So(UpdateGatewayProfile(context.Background(), DB(), &gp), ShouldBeNil)
 				gp.UpdatedAt = gp.UpdatedAt.UTC().Truncate(time.Millisecond)
 
 				So(nsClient.UpdateGatewayProfileChan, ShouldHaveLength, 1)
@@ -94,30 +95,30 @@ func TestGatewayProfile(t *testing.T) {
 					GatewayProfile: &gp.GatewayProfile,
 				})
 
-				gpGet, err := GetGatewayProfile(DB(), gpID)
+				gpGet, err := GetGatewayProfile(context.Background(), DB(), gpID)
 				So(err, ShouldBeNil)
 				So(gpGet.Name, ShouldEqual, "updated-gateway-profile")
 			})
 
 			Convey("Then DeleteGatewayProfile deletes the gateway-profile", func() {
-				So(DeleteGatewayProfile(DB(), gpID), ShouldBeNil)
+				So(DeleteGatewayProfile(context.Background(), DB(), gpID), ShouldBeNil)
 				So(nsClient.DeleteGatewayProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.DeleteGatewayProfileChan, ShouldResemble, ns.DeleteGatewayProfileRequest{
 					Id: gp.GatewayProfile.Id,
 				})
 
-				_, err := GetGatewayProfile(DB(), gpID)
+				_, err := GetGatewayProfile(context.Background(), DB(), gpID)
 				So(err, ShouldEqual, ErrDoesNotExist)
 			})
 
 			Convey("Then GetGatewayProfileCount returns the number of gateway profiles", func() {
-				count, err := GetGatewayProfileCount(db)
+				count, err := GetGatewayProfileCount(context.Background(), db)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 			})
 
 			Convey("Then GetGatewayProfiles returns the gateway profiles", func() {
-				gps, err := GetGatewayProfiles(DB(), 10, 0)
+				gps, err := GetGatewayProfiles(context.Background(), DB(), 10, 0)
 				So(err, ShouldBeNil)
 				So(gps, ShouldHaveLength, 1)
 				So(gps[0].GatewayProfileID, ShouldEqual, gpID)
@@ -127,13 +128,13 @@ func TestGatewayProfile(t *testing.T) {
 			})
 
 			Convey("Then GetGatewayProfileCountForNetworkServerID returns the number of gateway profiles", func() {
-				count, err := GetGatewayProfileCountForNetworkServerID(DB(), n.ID)
+				count, err := GetGatewayProfileCountForNetworkServerID(context.Background(), DB(), n.ID)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 			})
 
 			Convey("Then GetGatewayProfilesForNetworkServerID returns the gateway profiles", func() {
-				gps, err := GetGatewayProfilesForNetworkServerID(DB(), n.ID, 10, 0)
+				gps, err := GetGatewayProfilesForNetworkServerID(context.Background(), DB(), n.ID, 10, 0)
 				So(err, ShouldBeNil)
 				So(gps, ShouldHaveLength, 1)
 				So(gps[0].GatewayProfileID, ShouldEqual, gpID)

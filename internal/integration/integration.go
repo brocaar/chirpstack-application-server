@@ -1,5 +1,7 @@
 package integration
 
+import "context"
+
 // Handler kinds
 const (
 	HTTP        = "HTTP"
@@ -9,14 +11,14 @@ const (
 
 // Integrator defines the interface that an intergration must implement.
 type Integrator interface {
-	SendDataUp(pl DataUpPayload) error                      // send data-up payload
-	SendJoinNotification(pl JoinNotification) error         // send join notification
-	SendACKNotification(pl ACKNotification) error           // send ack notification
-	SendErrorNotification(pl ErrorNotification) error       // send error notification
-	SendStatusNotification(pl StatusNotification) error     // send status notification
-	SendLocationNotification(pl LocationNotification) error // send location notofication
-	DataDownChan() chan DataDownPayload                     // returns DataDownPayload channel
-	Close() error                                           // closes the handler
+	SendDataUp(ctx context.Context, pl DataUpPayload) error                      // send data-up payload
+	SendJoinNotification(ctx context.Context, pl JoinNotification) error         // send join notification
+	SendACKNotification(ctx context.Context, pl ACKNotification) error           // send ack notification
+	SendErrorNotification(ctx context.Context, pl ErrorNotification) error       // send error notification
+	SendStatusNotification(ctx context.Context, pl StatusNotification) error     // send status notification
+	SendLocationNotification(ctx context.Context, pl LocationNotification) error // send location notofication
+	DataDownChan() chan DataDownPayload                                          // returns DataDownPayload channel
+	Close() error                                                                // closes the handler
 }
 
 var integration Integrator

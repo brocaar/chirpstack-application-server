@@ -43,7 +43,7 @@ func (a *OrganizationAPI) Create(ctx context.Context, req *pb.CreateOrganization
 		CanHaveGateways: req.Organization.CanHaveGateways,
 	}
 
-	err := storage.CreateOrganization(storage.DB(), &org)
+	err := storage.CreateOrganization(ctx, storage.DB(), &org)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -60,7 +60,7 @@ func (a *OrganizationAPI) Get(ctx context.Context, req *pb.GetOrganizationReques
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	org, err := storage.GetOrganization(storage.DB(), req.Id)
+	org, err := storage.GetOrganization(ctx, storage.DB(), req.Id)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -102,12 +102,12 @@ func (a *OrganizationAPI) List(ctx context.Context, req *pb.ListOrganizationRequ
 	var orgs []storage.Organization
 
 	if isAdmin {
-		count, err = storage.GetOrganizationCount(storage.DB(), req.Search)
+		count, err = storage.GetOrganizationCount(ctx, storage.DB(), req.Search)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		orgs, err = storage.GetOrganizations(storage.DB(), int(req.Limit), int(req.Offset), req.Search)
+		orgs, err = storage.GetOrganizations(ctx, storage.DB(), int(req.Limit), int(req.Offset), req.Search)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
@@ -116,11 +116,11 @@ func (a *OrganizationAPI) List(ctx context.Context, req *pb.ListOrganizationRequ
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
-		count, err = storage.GetOrganizationCountForUser(storage.DB(), username, req.Search)
+		count, err = storage.GetOrganizationCountForUser(ctx, storage.DB(), username, req.Search)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
-		orgs, err = storage.GetOrganizationsForUser(storage.DB(), username, int(req.Limit), int(req.Offset), req.Search)
+		orgs, err = storage.GetOrganizationsForUser(ctx, storage.DB(), username, int(req.Limit), int(req.Offset), req.Search)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
@@ -169,7 +169,7 @@ func (a *OrganizationAPI) Update(ctx context.Context, req *pb.UpdateOrganization
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	org, err := storage.GetOrganization(storage.DB(), req.Organization.Id)
+	org, err := storage.GetOrganization(ctx, storage.DB(), req.Organization.Id)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -180,7 +180,7 @@ func (a *OrganizationAPI) Update(ctx context.Context, req *pb.UpdateOrganization
 		org.CanHaveGateways = req.Organization.CanHaveGateways
 	}
 
-	err = storage.UpdateOrganization(storage.DB(), &org)
+	err = storage.UpdateOrganization(ctx, storage.DB(), &org)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -196,11 +196,11 @@ func (a *OrganizationAPI) Delete(ctx context.Context, req *pb.DeleteOrganization
 	}
 
 	err := storage.Transaction(func(tx sqlx.Ext) error {
-		if err := storage.DeleteAllGatewaysForOrganizationID(tx, req.Id); err != nil {
+		if err := storage.DeleteAllGatewaysForOrganizationID(ctx, tx, req.Id); err != nil {
 			return helpers.ErrToRPCError(err)
 		}
 
-		if err := storage.DeleteOrganization(tx, req.Id); err != nil {
+		if err := storage.DeleteOrganization(ctx, tx, req.Id); err != nil {
 			return helpers.ErrToRPCError(err)
 		}
 
@@ -220,12 +220,12 @@ func (a *OrganizationAPI) ListUsers(ctx context.Context, req *pb.ListOrganizatio
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	users, err := storage.GetOrganizationUsers(storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
+	users, err := storage.GetOrganizationUsers(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	userCount, err := storage.GetOrganizationUserCount(storage.DB(), req.OrganizationId)
+	userCount, err := storage.GetOrganizationUserCount(ctx, storage.DB(), req.OrganizationId)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -269,7 +269,7 @@ func (a *OrganizationAPI) AddUser(ctx context.Context, req *pb.AddOrganizationUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.CreateOrganizationUser(
+	err := storage.CreateOrganizationUser(ctx,
 		storage.DB(),
 		req.OrganizationUser.OrganizationId,
 		req.OrganizationUser.UserId,
@@ -295,7 +295,7 @@ func (a *OrganizationAPI) UpdateUser(ctx context.Context, req *pb.UpdateOrganiza
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.UpdateOrganizationUser(
+	err := storage.UpdateOrganizationUser(ctx,
 		storage.DB(),
 		req.OrganizationUser.OrganizationId,
 		req.OrganizationUser.UserId,
@@ -317,7 +317,7 @@ func (a *OrganizationAPI) DeleteUser(ctx context.Context, req *pb.DeleteOrganiza
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteOrganizationUser(storage.DB(), req.OrganizationId, req.UserId)
+	err := storage.DeleteOrganizationUser(ctx, storage.DB(), req.OrganizationId, req.UserId)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -332,7 +332,7 @@ func (a *OrganizationAPI) GetUser(ctx context.Context, req *pb.GetOrganizationUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	user, err := storage.GetOrganizationUser(storage.DB(), req.OrganizationId, req.UserId)
+	user, err := storage.GetOrganizationUser(ctx, storage.DB(), req.OrganizationId, req.UserId)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}

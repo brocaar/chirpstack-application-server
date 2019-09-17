@@ -54,20 +54,20 @@ func (ts *ASTestSuite) TestApplicationServer() {
 	org := storage.Organization{
 		Name: "test-as-org",
 	}
-	assert.NoError(storage.CreateOrganization(storage.DB(), &org))
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 
 	n := storage.NetworkServer{
 		Name:   "test-ns",
 		Server: "test-ns:1234",
 	}
-	assert.NoError(storage.CreateNetworkServer(storage.DB(), &n))
+	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &n))
 
 	sp := storage.ServiceProfile{
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 		Name:            "test-sp",
 	}
-	assert.NoError(storage.CreateServiceProfile(storage.DB(), &sp))
+	assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp))
 	spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
 	assert.NoError(err)
 
@@ -76,7 +76,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		NetworkServerID: n.ID,
 		Name:            "test-dp",
 	}
-	assert.NoError(storage.CreateDeviceProfile(storage.DB(), &dp))
+	assert.NoError(storage.CreateDeviceProfile(context.Background(), storage.DB(), &dp))
 	dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
 
 	app := storage.Application{
@@ -84,7 +84,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		ServiceProfileID: spID,
 		Name:             "test-app",
 	}
-	assert.NoError(storage.CreateApplication(storage.DB(), &app))
+	assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &app))
 
 	d := storage.Device{
 		ApplicationID:   app.ID,
@@ -102,13 +102,13 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			},
 		},
 	}
-	assert.NoError(storage.CreateDevice(storage.DB(), &d))
+	assert.NoError(storage.CreateDevice(context.Background(), storage.DB(), &d))
 
 	dc := storage.DeviceKeys{
 		DevEUI: d.DevEUI,
 		NwkKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(storage.CreateDeviceKeys(storage.DB(), &dc))
+	assert.NoError(storage.CreateDeviceKeys(context.Background(), storage.DB(), &dc))
 
 	gw := storage.Gateway{
 		MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
@@ -117,7 +117,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}
-	assert.NoError(storage.CreateGateway(storage.DB(), &gw))
+	assert.NoError(storage.CreateGateway(context.Background(), storage.DB(), &gw))
 
 	h := mock.New()
 	integration.SetIntegration(h)
@@ -223,7 +223,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				DevAddr: lorawan.DevAddr{},
 				AppSKey: lorawan.AES128Key{},
 			}
-			assert.NoError(storage.CreateDeviceActivation(storage.DB(), &da))
+			assert.NoError(storage.CreateDeviceActivation(context.Background(), storage.DB(), &da))
 
 			now := time.Now().UTC()
 			mac := lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}
@@ -268,7 +268,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				_, err := api.HandleUplinkData(ctx, &req)
 				assert.NoError(err)
 
-				d, err := storage.GetDevice(storage.DB(), d.DevEUI, false, false)
+				d, err := storage.GetDevice(context.Background(), storage.DB(), d.DevEUI, false, false)
 				assert.NoError(err)
 				assert.InDelta(time.Now().UnixNano(), d.LastSeenAt.UnixNano(), float64(time.Second))
 
@@ -321,7 +321,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 						}
 					}
 				`
-				assert.NoError(storage.UpdateApplication(storage.DB(), app))
+				assert.NoError(storage.UpdateApplication(context.Background(), storage.DB(), app))
 
 				_, err := api.HandleUplinkData(ctx, &req)
 				assert.NoError(err)
@@ -345,7 +345,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 						}
 					}
 				`
-				assert.NoError(storage.UpdateDeviceProfile(storage.DB(), &dp))
+				assert.NoError(storage.UpdateDeviceProfile(context.Background(), storage.DB(), &dp))
 
 				_, err := api.HandleUplinkData(ctx, &req)
 				assert.NoError(err)
@@ -388,7 +388,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		start := time.Now().Truncate(time.Minute)
 		end := time.Now()
 
-		metrics, err := storage.GetMetrics(storage.RedisPool(), storage.AggregationMinute, "gw:"+gw.MAC.String(), start, end)
+		metrics, err := storage.GetMetrics(context.Background(), storage.RedisPool(), storage.AggregationMinute, "gw:"+gw.MAC.String(), start, end)
 		assert.NoError(err)
 		assert.Len(metrics, 1)
 
@@ -485,7 +485,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				assert.NoError(err)
 				assert.Equal(tst.StatusNotification, <-h.SendStatusNotificationChan)
 
-				d, err := storage.GetDevice(storage.DB(), d.DevEUI, false, false)
+				d, err := storage.GetDevice(context.Background(), storage.DB(), d.DevEUI, false, false)
 				assert.NoError(err)
 
 				assert.Equal(tst.StatusNotification.Margin, *d.DeviceStatusMargin)
@@ -532,7 +532,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			},
 		}, <-h.SendLocationNotificationChan)
 
-		d, err := storage.GetDevice(storage.DB(), d.DevEUI, false, true)
+		d, err := storage.GetDevice(context.Background(), storage.DB(), d.DevEUI, false, true)
 		assert.NoError(err)
 		assert.Equal(1.123, *d.Latitude)
 		assert.Equal(2.123, *d.Longitude)

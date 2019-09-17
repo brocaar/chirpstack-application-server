@@ -13,6 +13,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	"github.com/brocaar/lora-app-server/internal/logging"
 )
 
 // GetgRPCServerOptions returns a []grpc.ServerOption with logging and metrics.
@@ -26,6 +28,7 @@ func GetgRPCServerOptions() []grpc.ServerOption {
 		grpc_middleware.WithUnaryServerChain(
 			grpc_ctxtags.UnaryServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor)),
 			grpc_logrus.UnaryServerInterceptor(logrusEntry, logrusOpts...),
+			logging.UnaryServerCtxIDInterceptor,
 			grpc_prometheus.UnaryServerInterceptor,
 		),
 		grpc_middleware.WithStreamServerChain(

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -27,7 +28,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 			Name:        "invalid name",
 			DisplayName: "invalid organization",
 		}
-		err := CreateOrganization(DB(), &org)
+		err := CreateOrganization(context.Background(), DB(), &org)
 		assert.Equal(ErrOrganizationInvalidName, errors.Cause(err))
 	})
 
@@ -38,14 +39,14 @@ func (ts *StorageTestSuite) TestOrganization() {
 			Name:        "test-organization",
 			DisplayName: "test organization",
 		}
-		assert.NoError(CreateOrganization(DB(), &org))
+		assert.NoError(CreateOrganization(context.Background(), DB(), &org))
 		org.CreatedAt = org.CreatedAt.Truncate(time.Millisecond).UTC()
 		org.UpdatedAt = org.UpdatedAt.Truncate(time.Millisecond).UTC()
 
 		t.Run("Get", func(t *testing.T) {
 			assert := require.New(t)
 
-			o, err := GetOrganization(DB(), org.ID)
+			o, err := GetOrganization(context.Background(), DB(), org.ID)
 			assert.NoError(err)
 			o.CreatedAt = o.CreatedAt.Truncate(time.Millisecond).UTC()
 			o.UpdatedAt = o.UpdatedAt.Truncate(time.Millisecond).UTC()
@@ -55,7 +56,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 		t.Run("GetCount", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetOrganizationCount(DB(), "")
+			count, err := GetOrganizationCount(context.Background(), DB(), "")
 			assert.NoError(err)
 			assert.Equal(2, count) // first org is created by migration
 		})
@@ -63,7 +64,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 		t.Run("GetOrganizations", func(t *testing.T) {
 			assert := require.New(t)
 
-			items, err := GetOrganizations(DB(), 10, 0, "")
+			items, err := GetOrganizations(context.Background(), DB(), 10, 0, "")
 			assert.NoError(err)
 
 			assert.Len(items, 2)
@@ -76,7 +77,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 		t.Run("GetUserCount", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetOrganizationUserCount(DB(), org.ID)
+			count, err := GetOrganizationUserCount(context.Background(), DB(), org.ID)
 			assert.NoError(err)
 			assert.Equal(0, count)
 		})
@@ -84,12 +85,12 @@ func (ts *StorageTestSuite) TestOrganization() {
 		t.Run("CreateUser - admin", func(t *testing.T) {
 			assert := require.New(t)
 
-			assert.NoError(CreateOrganizationUser(DB(), org.ID, 1, false, false, false)) // admin user
+			assert.NoError(CreateOrganizationUser(context.Background(), DB(), org.ID, 1, false, false, false)) // admin user
 
 			t.Run("GetUser", func(t *testing.T) {
 				assert := require.New(t)
 
-				u, err := GetOrganizationUser(DB(), org.ID, 1)
+				u, err := GetOrganizationUser(context.Background(), DB(), org.ID, 1)
 				assert.NoError(err)
 				assert.EqualValues(1, u.UserID)
 				assert.Equal("admin", u.Username)
@@ -101,11 +102,11 @@ func (ts *StorageTestSuite) TestOrganization() {
 			t.Run("GetUserCount", func(t *testing.T) {
 				assert := require.New(t)
 
-				c, err := GetOrganizationUserCount(DB(), org.ID)
+				c, err := GetOrganizationUserCount(context.Background(), DB(), org.ID)
 				assert.NoError(err)
 				assert.Equal(1, c)
 
-				users, err := GetOrganizationUsers(DB(), org.ID, 10, 0)
+				users, err := GetOrganizationUsers(context.Background(), DB(), org.ID, 10, 0)
 				assert.NoError(err)
 				assert.Len(users, 1)
 			})
@@ -113,9 +114,9 @@ func (ts *StorageTestSuite) TestOrganization() {
 			t.Run("UpdateUser", func(t *testing.T) {
 				assert := require.New(t)
 
-				assert.NoError(UpdateOrganizationUser(DB(), org.ID, 1, true, true, true)) // admin user, dev and gateway user
+				assert.NoError(UpdateOrganizationUser(context.Background(), DB(), org.ID, 1, true, true, true)) // admin user, dev and gateway user
 
-				u, err := GetOrganizationUser(DB(), org.ID, 1)
+				u, err := GetOrganizationUser(context.Background(), DB(), org.ID, 1)
 				assert.NoError(err)
 
 				assert.EqualValues(1, u.UserID)
@@ -128,8 +129,8 @@ func (ts *StorageTestSuite) TestOrganization() {
 			t.Run("DeleteUser", func(t *testing.T) {
 				assert := require.New(t)
 
-				assert.NoError(DeleteOrganizationUser(DB(), org.ID, 1)) // admin user
-				c, err := GetOrganizationUserCount(DB(), org.ID)
+				assert.NoError(DeleteOrganizationUser(context.Background(), DB(), org.ID, 1)) // admin user
+				c, err := GetOrganizationUserCount(context.Background(), DB(), org.ID)
 				assert.NoError(err)
 				assert.Equal(0, c)
 			})
@@ -143,17 +144,17 @@ func (ts *StorageTestSuite) TestOrganization() {
 				IsActive: true,
 				Email:    "foo@bar.com",
 			}
-			_, err := CreateUser(DB(), &user, "password123")
+			_, err := CreateUser(context.Background(), DB(), &user, "password123")
 			assert.NoError(err)
 
 			t.Run("GetCountForUser", func(t *testing.T) {
 				assert := require.New(t)
 
-				c, err := GetOrganizationCountForUser(DB(), user.Username, "")
+				c, err := GetOrganizationCountForUser(context.Background(), DB(), user.Username, "")
 				assert.NoError(err)
 				assert.Equal(0, c)
 
-				orgs, err := GetOrganizationsForUser(DB(), user.Username, 10, 0, "")
+				orgs, err := GetOrganizationsForUser(context.Background(), DB(), user.Username, 10, 0, "")
 				assert.NoError(err)
 				assert.Len(orgs, 0)
 			})
@@ -161,13 +162,13 @@ func (ts *StorageTestSuite) TestOrganization() {
 			t.Run("CreateUser", func(t *testing.T) {
 				assert := require.New(t)
 
-				assert.NoError(CreateOrganizationUser(DB(), org.ID, user.ID, false, true, true))
+				assert.NoError(CreateOrganizationUser(context.Background(), DB(), org.ID, user.ID, false, true, true))
 
-				c, err := GetOrganizationCountForUser(DB(), user.Username, "")
+				c, err := GetOrganizationCountForUser(context.Background(), DB(), user.Username, "")
 				assert.NoError(err)
 				assert.Equal(1, c)
 
-				orgs, err := GetOrganizationsForUser(DB(), user.Username, 10, 0, "")
+				orgs, err := GetOrganizationsForUser(context.Background(), DB(), user.Username, 10, 0, "")
 				assert.NoError(err)
 				assert.Len(orgs, 1)
 				assert.Equal(org.ID, orgs[0].ID)
@@ -180,12 +181,12 @@ func (ts *StorageTestSuite) TestOrganization() {
 			org.Name = "test-organization-updated"
 			org.DisplayName = "test organization updated"
 			org.CanHaveGateways = true
-			assert.NoError(UpdateOrganization(DB(), &org))
+			assert.NoError(UpdateOrganization(context.Background(), DB(), &org))
 
 			org.CreatedAt = org.CreatedAt.Truncate(time.Millisecond).UTC()
 			org.UpdatedAt = org.UpdatedAt.Truncate(time.Millisecond).UTC()
 
-			o, err := GetOrganization(DB(), org.ID)
+			o, err := GetOrganization(context.Background(), DB(), org.ID)
 			assert.NoError(err)
 			o.CreatedAt = o.CreatedAt.Truncate(time.Millisecond).UTC()
 			o.UpdatedAt = o.UpdatedAt.Truncate(time.Millisecond).UTC()
@@ -195,9 +196,9 @@ func (ts *StorageTestSuite) TestOrganization() {
 		t.Run("Delete", func(t *testing.T) {
 			assert := require.New(t)
 
-			assert.NoError(DeleteOrganization(DB(), org.ID))
+			assert.NoError(DeleteOrganization(context.Background(), DB(), org.ID))
 
-			_, err := GetOrganization(DB(), org.ID)
+			_, err := GetOrganization(context.Background(), DB(), org.ID)
 			assert.Equal(ErrDoesNotExist, errors.Cause(err))
 		})
 	})

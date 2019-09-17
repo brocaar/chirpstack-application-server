@@ -1,6 +1,7 @@
 package gwping
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -32,7 +33,7 @@ func TestGatewayPing(t *testing.T) {
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(storage.DB(), &org), ShouldBeNil)
+		So(storage.CreateOrganization(context.Background(), storage.DB(), &org), ShouldBeNil)
 
 		n := storage.NetworkServer{
 			Name:                        "test-ns",
@@ -42,7 +43,7 @@ func TestGatewayPing(t *testing.T) {
 			GatewayDiscoveryTXFrequency: 868100000,
 			GatewayDiscoveryInterval:    1,
 		}
-		So(storage.CreateNetworkServer(storage.DB(), &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(context.Background(), storage.DB(), &n), ShouldBeNil)
 
 		gw1 := storage.Gateway{
 			MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
@@ -52,18 +53,18 @@ func TestGatewayPing(t *testing.T) {
 			Ping:            true,
 			NetworkServerID: n.ID,
 		}
-		So(storage.CreateGateway(storage.DB(), &gw1), ShouldBeNil)
+		So(storage.CreateGateway(context.Background(), storage.DB(), &gw1), ShouldBeNil)
 
 		Convey("When gateway discovery is disabled on the network-server", func() {
 			n.GatewayDiscoveryEnabled = false
-			So(storage.UpdateNetworkServer(storage.DB(), &n), ShouldBeNil)
+			So(storage.UpdateNetworkServer(context.Background(), storage.DB(), &n), ShouldBeNil)
 
 			Convey("When calling sendGatewayPing", func() {
-				So(sendGatewayPing(), ShouldBeNil)
+				So(sendGatewayPing(context.Background()), ShouldBeNil)
 			})
 
 			Convey("Then no ping was sent", func() {
-				gwGet, err := storage.GetGateway(storage.DB(), gw1.MAC, false)
+				gwGet, err := storage.GetGateway(context.Background(), storage.DB(), gw1.MAC, false)
 				So(err, ShouldBeNil)
 				So(gwGet.LastPingID, ShouldBeNil)
 				So(gwGet.LastPingSentAt, ShouldBeNil)
@@ -71,16 +72,16 @@ func TestGatewayPing(t *testing.T) {
 		})
 
 		Convey("When calling sendGatewayPing", func() {
-			So(sendGatewayPing(), ShouldBeNil)
+			So(sendGatewayPing(context.Background()), ShouldBeNil)
 
 			Convey("Then the gateway ping fields have been set", func() {
-				gwGet, err := storage.GetGateway(storage.DB(), gw1.MAC, false)
+				gwGet, err := storage.GetGateway(context.Background(), storage.DB(), gw1.MAC, false)
 				So(err, ShouldBeNil)
 				So(gwGet.LastPingID, ShouldNotBeNil)
 				So(gwGet.LastPingSentAt, ShouldNotBeNil)
 
 				Convey("Then a gateway ping records has been created", func() {
-					gwPing, err := storage.GetGatewayPing(storage.DB(), *gwGet.LastPingID)
+					gwPing, err := storage.GetGatewayPing(context.Background(), storage.DB(), *gwGet.LastPingID)
 					So(err, ShouldBeNil)
 					So(gwPing.GatewayMAC, ShouldEqual, gwGet.MAC)
 					So(gwPing.DR, ShouldEqual, n.GatewayDiscoveryDR)
@@ -113,7 +114,7 @@ func TestGatewayPing(t *testing.T) {
 							OrganizationID:  org.ID,
 							NetworkServerID: n.ID,
 						}
-						So(storage.CreateGateway(storage.DB(), &gw2), ShouldBeNil)
+						So(storage.CreateGateway(context.Background(), storage.DB(), &gw2), ShouldBeNil)
 
 						now := time.Now().UTC().Truncate(time.Millisecond)
 
@@ -133,7 +134,7 @@ func TestGatewayPing(t *testing.T) {
 							},
 						}
 						pong.RxInfo[0].Time, _ = ptypes.TimestampProto(now)
-						So(HandleReceivedPing(&pong), ShouldBeNil)
+						So(HandleReceivedPing(context.Background(), &pong), ShouldBeNil)
 
 						Convey("Then the ping lookup has been deleted", func() {
 							_, err := getPingLookup(mic)
@@ -141,7 +142,7 @@ func TestGatewayPing(t *testing.T) {
 						})
 
 						Convey("Then the received ping has been stored to the database", func() {
-							ping, rx, err := storage.GetLastGatewayPingAndRX(storage.DB(), gw1.MAC)
+							ping, rx, err := storage.GetLastGatewayPingAndRX(context.Background(), storage.DB(), gw1.MAC)
 							So(err, ShouldBeNil)
 
 							So(ping.ID, ShouldEqual, *gwGet.LastPingID)

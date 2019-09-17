@@ -2,6 +2,7 @@ package multi
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -102,7 +103,7 @@ func (ts *IntegrationTestSuite) TearDownSuite() {
 
 func (ts *IntegrationTestSuite) TestSendDataUp() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendDataUp(integration.DataUpPayload{
+	assert.NoError(ts.integration.SendDataUp(context.Background(), integration.DataUpPayload{
 		ApplicationID: 1,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
@@ -116,7 +117,7 @@ func (ts *IntegrationTestSuite) TestSendDataUp() {
 
 func (ts *IntegrationTestSuite) TestSendJoinNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendJoinNotification(integration.JoinNotification{
+	assert.NoError(ts.integration.SendJoinNotification(context.Background(), integration.JoinNotification{
 		ApplicationID: 1,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
@@ -130,7 +131,7 @@ func (ts *IntegrationTestSuite) TestSendJoinNotification() {
 
 func (ts *IntegrationTestSuite) TestSendACKNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendACKNotification(integration.ACKNotification{
+	assert.NoError(ts.integration.SendACKNotification(context.Background(), integration.ACKNotification{
 		ApplicationID: 1,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
@@ -144,7 +145,7 @@ func (ts *IntegrationTestSuite) TestSendACKNotification() {
 
 func (ts *IntegrationTestSuite) TestErrorNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendErrorNotification(integration.ErrorNotification{
+	assert.NoError(ts.integration.SendErrorNotification(context.Background(), integration.ErrorNotification{
 		ApplicationID: 1,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
@@ -158,7 +159,7 @@ func (ts *IntegrationTestSuite) TestErrorNotification() {
 
 func (ts *IntegrationTestSuite) TestStatusNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendStatusNotification(integration.StatusNotification{
+	assert.NoError(ts.integration.SendStatusNotification(context.Background(), integration.StatusNotification{
 		ApplicationID: 1,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
@@ -172,7 +173,7 @@ func (ts *IntegrationTestSuite) TestStatusNotification() {
 
 func (ts *IntegrationTestSuite) TestLocationNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendLocationNotification(integration.LocationNotification{
+	assert.NoError(ts.integration.SendLocationNotification(context.Background(), integration.LocationNotification{
 		ApplicationID: 1,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}))

@@ -8,6 +8,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/net/context"
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
@@ -69,7 +70,7 @@ func TestValidators(t *testing.T) {
 		{Name: "test-ns-2", Server: "test-ns-2:1234"},
 	}
 	for i := range networkServers {
-		if err := storage.CreateNetworkServer(storage.DB(), &networkServers[i]); err != nil {
+		if err := storage.CreateNetworkServer(context.Background(), storage.DB(), &networkServers[i]); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -84,12 +85,12 @@ func TestValidators(t *testing.T) {
 	}
 	var serviceProfilesIDs []uuid.UUID
 	for i := range organizations {
-		if err := storage.CreateOrganization(storage.DB(), &organizations[i]); err != nil {
+		if err := storage.CreateOrganization(context.Background(), storage.DB(), &organizations[i]); err != nil {
 			t.Fatal(err)
 		}
 
 		serviceProfiles[i].OrganizationID = organizations[i].ID
-		if err := storage.CreateServiceProfile(storage.DB(), &serviceProfiles[i]); err != nil {
+		if err := storage.CreateServiceProfile(context.Background(), storage.DB(), &serviceProfiles[i]); err != nil {
 			t.Fatal(err)
 		}
 
@@ -103,7 +104,7 @@ func TestValidators(t *testing.T) {
 	}
 	var multicastGroupsIDs []uuid.UUID
 	for i := range multicastGroups {
-		if err := storage.CreateMulticastGroup(storage.DB(), &multicastGroups[i]); err != nil {
+		if err := storage.CreateMulticastGroup(context.Background(), storage.DB(), &multicastGroups[i]); err != nil {
 			t.Fatal(err)
 		}
 
@@ -117,7 +118,7 @@ func TestValidators(t *testing.T) {
 	}
 	var deviceProfilesIDs []uuid.UUID
 	for i := range deviceProfiles {
-		if err := storage.CreateDeviceProfile(storage.DB(), &deviceProfiles[i]); err != nil {
+		if err := storage.CreateDeviceProfile(context.Background(), storage.DB(), &deviceProfiles[i]); err != nil {
 			t.Fatal(err)
 		}
 		dpID, _ := uuid.FromBytes(deviceProfiles[i].DeviceProfile.Id)
@@ -129,7 +130,7 @@ func TestValidators(t *testing.T) {
 		{OrganizationID: organizations[1].ID, Name: "application-2", ServiceProfileID: serviceProfilesIDs[0]},
 	}
 	for i := range applications {
-		if err := storage.CreateApplication(storage.DB(), &applications[i]); err != nil {
+		if err := storage.CreateApplication(context.Background(), storage.DB(), &applications[i]); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -139,7 +140,7 @@ func TestValidators(t *testing.T) {
 		{DevEUI: lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2}, Name: "test-2", ApplicationID: applications[1].ID, DeviceProfileID: deviceProfilesIDs[1]},
 	}
 	for _, d := range devices {
-		if err := storage.CreateDevice(storage.DB(), &d); err != nil {
+		if err := storage.CreateDevice(context.Background(), storage.DB(), &d); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -148,7 +149,7 @@ func TestValidators(t *testing.T) {
 		{Name: "test-fuota", GroupType: storage.FUOTADeploymentGroupTypeC, DR: 5, Frequency: 868100000, Payload: []byte{1, 2, 3, 4}, FragSize: 20, MulticastTimeout: 1, UnicastTimeout: time.Second},
 	}
 	for i := range fuotaDeployments {
-		if err := storage.CreateFUOTADeploymentForDevice(storage.DB(), &fuotaDeployments[i], devices[0].DevEUI); err != nil {
+		if err := storage.CreateFUOTADeploymentForDevice(context.Background(), storage.DB(), &fuotaDeployments[i], devices[0].DevEUI); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -193,7 +194,7 @@ func TestValidators(t *testing.T) {
 		{UserID: users[11].ID, OrganizationID: organizations[1].ID, IsAdmin: true},
 	}
 	for _, orgUser := range orgUsers {
-		if err := storage.CreateOrganizationUser(storage.DB(), orgUser.OrganizationID, orgUser.UserID, orgUser.IsAdmin, orgUser.IsDeviceAdmin, orgUser.IsGatewayAdmin); err != nil {
+		if err := storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.OrganizationID, orgUser.UserID, orgUser.IsAdmin, orgUser.IsDeviceAdmin, orgUser.IsGatewayAdmin); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -203,7 +204,7 @@ func TestValidators(t *testing.T) {
 		{MAC: lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2}, Name: "gateway2", OrganizationID: organizations[1].ID, NetworkServerID: networkServers[0].ID},
 	}
 	for i := range gateways {
-		if err := storage.CreateGateway(storage.DB(), &gateways[i]); err != nil {
+		if err := storage.CreateGateway(context.Background(), storage.DB(), &gateways[i]); err != nil {
 			t.Fatal(err)
 		}
 	}

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"time"
 
 	uuid "github.com/gofrs/uuid"
@@ -8,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/brocaar/lorawan"
 )
 
@@ -39,7 +41,7 @@ type RemoteMulticastSetup struct {
 }
 
 // CreateRemoteMulticastSetup creates the given multicast-setup.
-func CreateRemoteMulticastSetup(db sqlx.Ext, dms *RemoteMulticastSetup) error {
+func CreateRemoteMulticastSetup(ctx context.Context, db sqlx.Ext, dms *RemoteMulticastSetup) error {
 	now := time.Now()
 	dms.CreatedAt = now
 	dms.UpdatedAt = now
@@ -83,12 +85,13 @@ func CreateRemoteMulticastSetup(db sqlx.Ext, dms *RemoteMulticastSetup) error {
 	log.WithFields(log.Fields{
 		"dev_eui":            dms.DevEUI,
 		"multicast_group_id": dms.MulticastGroupID,
+		"ctx_id":             ctx.Value(logging.ContextIDKey),
 	}).Info("remote multicast-setup created")
 	return nil
 }
 
 // GetRemoteMulticastSetup returns the multicast-setup given a multicast-group ID and DevEUI.
-func GetRemoteMulticastSetup(db sqlx.Queryer, devEUI lorawan.EUI64, multicastGroupID uuid.UUID, forUpdate bool) (RemoteMulticastSetup, error) {
+func GetRemoteMulticastSetup(ctx context.Context, db sqlx.Queryer, devEUI lorawan.EUI64, multicastGroupID uuid.UUID, forUpdate bool) (RemoteMulticastSetup, error) {
 	var fu string
 	if forUpdate {
 		fu = " for update"
@@ -113,7 +116,7 @@ func GetRemoteMulticastSetup(db sqlx.Queryer, devEUI lorawan.EUI64, multicastGro
 }
 
 // GetRemoteMulticastSetupByGroupID returns the multicast-setup given a DevEUI and McGroupID.
-func GetRemoteMulticastSetupByGroupID(db sqlx.Queryer, devEUI lorawan.EUI64, mcGroupID int, forUpdate bool) (RemoteMulticastSetup, error) {
+func GetRemoteMulticastSetupByGroupID(ctx context.Context, db sqlx.Queryer, devEUI lorawan.EUI64, mcGroupID int, forUpdate bool) (RemoteMulticastSetup, error) {
 	var fu string
 	if forUpdate {
 		fu = " for update"
@@ -139,7 +142,7 @@ func GetRemoteMulticastSetupByGroupID(db sqlx.Queryer, devEUI lorawan.EUI64, mcG
 
 // GetPendingRemoteMulticastSetupItems returns a slice of pending remote multicast-setup items.
 // The selected items will be locked.
-func GetPendingRemoteMulticastSetupItems(db sqlx.Queryer, limit, maxRetryCount int) ([]RemoteMulticastSetup, error) {
+func GetPendingRemoteMulticastSetupItems(ctx context.Context, db sqlx.Queryer, limit, maxRetryCount int) ([]RemoteMulticastSetup, error) {
 	var items []RemoteMulticastSetup
 
 	if err := sqlx.Select(db, &items, `
@@ -165,7 +168,7 @@ func GetPendingRemoteMulticastSetupItems(db sqlx.Queryer, limit, maxRetryCount i
 }
 
 // UpdateRemoteMulticastSetup updates the given update multicast-group setup.
-func UpdateRemoteMulticastSetup(db sqlx.Ext, dmg *RemoteMulticastSetup) error {
+func UpdateRemoteMulticastSetup(ctx context.Context, db sqlx.Ext, dmg *RemoteMulticastSetup) error {
 	dmg.UpdatedAt = time.Now()
 
 	res, err := db.Exec(`
@@ -214,12 +217,13 @@ func UpdateRemoteMulticastSetup(db sqlx.Ext, dmg *RemoteMulticastSetup) error {
 	log.WithFields(log.Fields{
 		"dev_eui":            dmg.DevEUI,
 		"multicast_group_id": dmg.MulticastGroupID,
+		"ctx_id":             ctx.Value(logging.ContextIDKey),
 	}).Info("remote multicast-setup updated")
 	return nil
 }
 
 // DeleteRemoteMulticastSetup deletes the multicast-setup given a multicast-group ID and DevEUI.
-func DeleteRemoteMulticastSetup(db sqlx.Ext, devEUI lorawan.EUI64, multicastGroupID uuid.UUID) error {
+func DeleteRemoteMulticastSetup(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI64, multicastGroupID uuid.UUID) error {
 	res, err := db.Exec(`
 		delete from remote_multicast_setup
 		where
@@ -242,6 +246,7 @@ func DeleteRemoteMulticastSetup(db sqlx.Ext, devEUI lorawan.EUI64, multicastGrou
 	log.WithFields(log.Fields{
 		"dev_eui":            devEUI,
 		"multicast_group_id": multicastGroupID,
+		"ctx_id":             ctx.Value(logging.ContextIDKey),
 	}).Info("remote multicast-setup deleted")
 	return nil
 }

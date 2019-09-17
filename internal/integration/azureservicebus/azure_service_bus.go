@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/brocaar/lorawan"
 )
 
@@ -73,33 +74,33 @@ func New(conf Config) (*Integration, error) {
 }
 
 // SendDataUp sends an uplink data payload.
-func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
-	return i.publish("up", pl.ApplicationID, pl.DevEUI, pl)
+func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPayload) error {
+	return i.publish(ctx, "up", pl.ApplicationID, pl.DevEUI, pl)
 }
 
 // SendJoinNotification sends a join notification.
-func (i *Integration) SendJoinNotification(pl integration.JoinNotification) error {
-	return i.publish("join", pl.ApplicationID, pl.DevEUI, pl)
+func (i *Integration) SendJoinNotification(ctx context.Context, pl integration.JoinNotification) error {
+	return i.publish(ctx, "join", pl.ApplicationID, pl.DevEUI, pl)
 }
 
 // SendACKNotification sends an ack notification.
-func (i *Integration) SendACKNotification(pl integration.ACKNotification) error {
-	return i.publish("ack", pl.ApplicationID, pl.DevEUI, pl)
+func (i *Integration) SendACKNotification(ctx context.Context, pl integration.ACKNotification) error {
+	return i.publish(ctx, "ack", pl.ApplicationID, pl.DevEUI, pl)
 }
 
 // SendErrorNotification sends an error notification.
-func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) error {
-	return i.publish("error", pl.ApplicationID, pl.DevEUI, pl)
+func (i *Integration) SendErrorNotification(ctx context.Context, pl integration.ErrorNotification) error {
+	return i.publish(ctx, "error", pl.ApplicationID, pl.DevEUI, pl)
 }
 
 // SendStatusNotification sends a status notification.
-func (i *Integration) SendStatusNotification(pl integration.StatusNotification) error {
-	return i.publish("status", pl.ApplicationID, pl.DevEUI, pl)
+func (i *Integration) SendStatusNotification(ctx context.Context, pl integration.StatusNotification) error {
+	return i.publish(ctx, "status", pl.ApplicationID, pl.DevEUI, pl)
 }
 
 // SendLocationNotification sends a location notification.
-func (i *Integration) SendLocationNotification(pl integration.LocationNotification) error {
-	return i.publish("location", pl.ApplicationID, pl.DevEUI, pl)
+func (i *Integration) SendLocationNotification(ctx context.Context, pl integration.LocationNotification) error {
+	return i.publish(ctx, "location", pl.ApplicationID, pl.DevEUI, pl)
 }
 
 // DataDownChan return nil.
@@ -169,7 +170,7 @@ func (i *Integration) Close() error {
 	return nil
 }
 
-func (i *Integration) publish(event string, applicationID int64, devEUI lorawan.EUI64, v interface{}) error {
+func (i *Integration) publish(ctx context.Context, event string, applicationID int64, devEUI lorawan.EUI64, v interface{}) error {
 	jsonB, err := json.Marshal(v)
 	if err != nil {
 		return errors.Wrap(err, "marshal json error")
@@ -198,6 +199,7 @@ func (i *Integration) publish(event string, applicationID int64, devEUI lorawan.
 	log.WithFields(log.Fields{
 		"dev_eui": devEUI,
 		"event":   event,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/azureservicebus: event published")
 
 	return nil

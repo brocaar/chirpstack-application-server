@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -28,7 +29,7 @@ func TestServiceProfile(t *testing.T) {
 		org := Organization{
 			Name: "test-org",
 		}
-		So(CreateOrganization(DB(), &org), ShouldBeNil)
+		So(CreateOrganization(context.Background(), DB(), &org), ShouldBeNil)
 
 		u := User{
 			Username: "testuser",
@@ -36,15 +37,15 @@ func TestServiceProfile(t *testing.T) {
 			IsActive: true,
 			Email:    "foo@bar.com",
 		}
-		uID, err := CreateUser(DB(), &u, "testpassword")
+		uID, err := CreateUser(context.Background(), DB(), &u, "testpassword")
 		So(err, ShouldBeNil)
-		So(CreateOrganizationUser(DB(), org.ID, uID, false, false, false), ShouldBeNil)
+		So(CreateOrganizationUser(context.Background(), DB(), org.ID, uID, false, false, false), ShouldBeNil)
 
 		n := NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(CreateNetworkServer(DB(), &n), ShouldBeNil)
+		So(CreateNetworkServer(context.Background(), DB(), &n), ShouldBeNil)
 
 		Convey("Then CreateServiceProfile creates the service-profile", func() {
 			sp := ServiceProfile{
@@ -72,7 +73,7 @@ func TestServiceProfile(t *testing.T) {
 					MinGwDiversity:         3,
 				},
 			}
-			So(CreateServiceProfile(DB(), &sp), ShouldBeNil)
+			So(CreateServiceProfile(context.Background(), DB(), &sp), ShouldBeNil)
 			So(nsClient.CreateServiceProfileChan, ShouldHaveLength, 1)
 			So(<-nsClient.CreateServiceProfileChan, ShouldResemble, ns.CreateServiceProfileRequest{
 				ServiceProfile: &sp.ServiceProfile,
@@ -87,7 +88,7 @@ func TestServiceProfile(t *testing.T) {
 					ServiceProfile: &sp.ServiceProfile,
 				}
 
-				spGet, err := GetServiceProfile(DB(), spID, false)
+				spGet, err := GetServiceProfile(context.Background(), DB(), spID, false)
 				So(err, ShouldBeNil)
 				spGet.CreatedAt = spGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				spGet.UpdatedAt = spGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -117,14 +118,14 @@ func TestServiceProfile(t *testing.T) {
 					TargetPer:              11,
 					MinGwDiversity:         4,
 				}
-				So(UpdateServiceProfile(DB(), &sp), ShouldBeNil)
+				So(UpdateServiceProfile(context.Background(), DB(), &sp), ShouldBeNil)
 				sp.UpdatedAt = sp.UpdatedAt.UTC().Truncate(time.Millisecond)
 				So(nsClient.UpdateServiceProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.UpdateServiceProfileChan, ShouldResemble, ns.UpdateServiceProfileRequest{
 					ServiceProfile: &sp.ServiceProfile,
 				})
 
-				spGet, err := GetServiceProfile(DB(), spID, false)
+				spGet, err := GetServiceProfile(context.Background(), DB(), spID, false)
 				So(err, ShouldBeNil)
 				spGet.UpdatedAt = spGet.UpdatedAt.UTC().Truncate(time.Millisecond)
 				So(spGet.Name, ShouldEqual, "updated-service-profile")
@@ -132,65 +133,65 @@ func TestServiceProfile(t *testing.T) {
 			})
 
 			Convey("Then DeleteServiceProfile deletes the service-profile", func() {
-				So(DeleteServiceProfile(DB(), spID), ShouldBeNil)
+				So(DeleteServiceProfile(context.Background(), DB(), spID), ShouldBeNil)
 				So(nsClient.DeleteServiceProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.DeleteServiceProfileChan, ShouldResemble, ns.DeleteServiceProfileRequest{
 					Id: sp.ServiceProfile.Id,
 				})
 
-				_, err := GetServiceProfile(DB(), spID, false)
+				_, err := GetServiceProfile(context.Background(), DB(), spID, false)
 				So(err, ShouldEqual, ErrDoesNotExist)
 			})
 
 			Convey("Then GetServiceProfileCount returns 1", func() {
-				count, err := GetServiceProfileCount(DB())
+				count, err := GetServiceProfileCount(context.Background(), DB())
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 			})
 
 			Convey("Then GetServiceProfileCountForOrganizationID returns the number of service-profiles for the given organization", func() {
-				count, err := GetServiceProfileCountForOrganizationID(DB(), org.ID)
+				count, err := GetServiceProfileCountForOrganizationID(context.Background(), DB(), org.ID)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 
-				count, err = GetServiceProfileCountForOrganizationID(DB(), org.ID+1)
+				count, err = GetServiceProfileCountForOrganizationID(context.Background(), DB(), org.ID+1)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 0)
 			})
 
 			Convey("Then GetServiceProfileCountForUser returns the service-profile count accessible by the given user", func() {
-				count, err := GetServiceProfileCountForUser(DB(), u.Username)
+				count, err := GetServiceProfileCountForUser(context.Background(), DB(), u.Username)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 
-				count, err = GetServiceProfileCountForUser(DB(), "fakeuser")
+				count, err = GetServiceProfileCountForUser(context.Background(), DB(), "fakeuser")
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 0)
 			})
 
 			Convey("Then GetServiceProfiles includes the created service-profile", func() {
-				profiles, err := GetServiceProfiles(DB(), 10, 0)
+				profiles, err := GetServiceProfiles(context.Background(), DB(), 10, 0)
 				So(err, ShouldBeNil)
 				So(profiles, ShouldHaveLength, 1)
 				So(profiles[0].Name, ShouldEqual, sp.Name)
 			})
 
 			Convey("Then GetServiceProfilesForOrganizationID returns the service-profiles for the given organization", func() {
-				sps, err := GetServiceProfilesForOrganizationID(DB(), org.ID, 10, 0)
+				sps, err := GetServiceProfilesForOrganizationID(context.Background(), DB(), org.ID, 10, 0)
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 1)
 
-				sps, err = GetServiceProfilesForOrganizationID(DB(), org.ID+1, 10, 0)
+				sps, err = GetServiceProfilesForOrganizationID(context.Background(), DB(), org.ID+1, 10, 0)
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 0)
 			})
 
 			Convey("Then GetServiceProfilesForUser returns the service-profiles accessible by a given user", func() {
-				sps, err := GetServiceProfilesForUser(DB(), u.Username, 10, 0)
+				sps, err := GetServiceProfilesForUser(context.Background(), DB(), u.Username, 10, 0)
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 1)
 
-				sps, err = GetServiceProfilesForUser(DB(), "fakeuser", 10, 0)
+				sps, err = GetServiceProfilesForUser(context.Background(), DB(), "fakeuser", 10, 0)
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 0)
 			})

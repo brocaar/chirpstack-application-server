@@ -21,6 +21,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/api/helpers"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/eventlog"
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/loraserver/api/gw"
@@ -93,7 +94,7 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*e
 	// as this also performs a remote call to create the node on the
 	// network-server, wrap it in a transaction
 	err = storage.Transaction(func(tx sqlx.Ext) error {
-		return storage.CreateDevice(tx, &d)
+		return storage.CreateDevice(ctx, tx, &d)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -114,7 +115,7 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(storage.DB(), eui, false, false)
+	d, err := storage.GetDevice(ctx, storage.DB(), eui, false, false)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -244,12 +245,12 @@ func (a *DeviceAPI) List(ctx context.Context, req *pb.ListDeviceRequest) (*pb.Li
 		}
 	}
 
-	count, err := storage.GetDeviceCount(storage.DB(), filters)
+	count, err := storage.GetDeviceCount(ctx, storage.DB(), filters)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	devices, err := storage.GetDevices(storage.DB(), filters)
+	devices, err := storage.GetDevices(ctx, storage.DB(), filters)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -279,7 +280,7 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*e
 	}
 
 	err = storage.Transaction(func(tx sqlx.Ext) error {
-		d, err := storage.GetDevice(tx, devEUI, true, false)
+		d, err := storage.GetDevice(ctx, tx, devEUI, true, false)
 		if err != nil {
 			return helpers.ErrToRPCError(err)
 		}
@@ -289,12 +290,12 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*e
 		// This to guarantee that the new application is still on the same
 		// network-server and is not assigned to a different organization.
 		if req.Device.ApplicationId != d.ApplicationID {
-			appOld, err := storage.GetApplication(tx, d.ApplicationID)
+			appOld, err := storage.GetApplication(ctx, tx, d.ApplicationID)
 			if err != nil {
 				return helpers.ErrToRPCError(err)
 			}
 
-			appNew, err := storage.GetApplication(tx, req.Device.ApplicationId)
+			appNew, err := storage.GetApplication(ctx, tx, req.Device.ApplicationId)
 			if err != nil {
 				return helpers.ErrToRPCError(err)
 			}
@@ -325,7 +326,7 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*e
 			d.Tags.Map[k] = sql.NullString{String: v, Valid: true}
 		}
 
-		if err := storage.UpdateDevice(tx, &d, false); err != nil {
+		if err := storage.UpdateDevice(ctx, tx, &d, false); err != nil {
 			return helpers.ErrToRPCError(err)
 		}
 
@@ -353,7 +354,7 @@ func (a *DeviceAPI) Delete(ctx context.Context, req *pb.DeleteDeviceRequest) (*e
 	// as this also performs a remote call to delete the node from the
 	// network-server, wrap it in a transaction
 	err := storage.Transaction(func(tx sqlx.Ext) error {
-		return storage.DeleteDevice(tx, eui)
+		return storage.DeleteDevice(ctx, tx, eui)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -403,7 +404,7 @@ func (a *DeviceAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.CreateDeviceKeys(storage.DB(), &storage.DeviceKeys{
+	err := storage.CreateDeviceKeys(ctx, storage.DB(), &storage.DeviceKeys{
 		DevEUI:    eui,
 		NwkKey:    nwkKey,
 		AppKey:    appKey,
@@ -429,7 +430,7 @@ func (a *DeviceAPI) GetKeys(ctx context.Context, req *pb.GetDeviceKeysRequest) (
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	dk, err := storage.GetDeviceKeys(storage.DB(), eui)
+	dk, err := storage.GetDeviceKeys(ctx, storage.DB(), eui)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -483,7 +484,7 @@ func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	dk, err := storage.GetDeviceKeys(storage.DB(), eui)
+	dk, err := storage.GetDeviceKeys(ctx, storage.DB(), eui)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -491,7 +492,7 @@ func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequ
 	dk.AppKey = appKey
 	dk.GenAppKey = genAppKey
 
-	err = storage.UpdateDeviceKeys(storage.DB(), &dk)
+	err = storage.UpdateDeviceKeys(ctx, storage.DB(), &dk)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -512,7 +513,7 @@ func (a *DeviceAPI) DeleteKeys(ctx context.Context, req *pb.DeleteDeviceKeysRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	if err := storage.DeleteDeviceKeys(storage.DB(), eui); err != nil {
+	if err := storage.DeleteDeviceKeys(ctx, storage.DB(), eui); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
@@ -532,12 +533,12 @@ func (a *DeviceAPI) Deactivate(ctx context.Context, req *pb.DeactivateDeviceRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(storage.DB(), devEUI, false, true)
+	d, err := storage.GetDevice(ctx, storage.DB(), devEUI, false, true)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	n, err := storage.GetNetworkServerForDevEUI(storage.DB(), d.DevEUI)
+	n, err := storage.GetNetworkServerForDevEUI(ctx, storage.DB(), d.DevEUI)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -547,7 +548,7 @@ func (a *DeviceAPI) Deactivate(ctx context.Context, req *pb.DeactivateDeviceRequ
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	_, _ = nsClient.DeactivateDevice(context.Background(), &ns.DeactivateDeviceRequest{
+	_, _ = nsClient.DeactivateDevice(ctx, &ns.DeactivateDeviceRequest{
 		DevEui: d.DevEUI[:],
 	})
 
@@ -591,12 +592,12 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(storage.DB(), devEUI, false, true)
+	d, err := storage.GetDevice(ctx, storage.DB(), devEUI, false, true)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	dp, err := storage.GetDeviceProfile(storage.DB(), d.DeviceProfileID, false, false)
+	dp, err := storage.GetDeviceProfile(ctx, storage.DB(), d.DeviceProfileID, false, false)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -605,7 +606,7 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, grpc.Errorf(codes.FailedPrecondition, "node must be an ABP node")
 	}
 
-	n, err := storage.GetNetworkServerForDevEUI(storage.DB(), devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(ctx, storage.DB(), devEUI)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -615,7 +616,7 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	_, _ = nsClient.DeactivateDevice(context.Background(), &ns.DeactivateDeviceRequest{
+	_, _ = nsClient.DeactivateDevice(ctx, &ns.DeactivateDeviceRequest{
 		DevEui: d.DevEUI[:],
 	})
 
@@ -632,12 +633,12 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		},
 	}
 
-	_, err = nsClient.ActivateDevice(context.Background(), &actReq)
+	_, err = nsClient.ActivateDevice(ctx, &actReq)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	err = storage.CreateDeviceActivation(storage.DB(), &storage.DeviceActivation{
+	err = storage.CreateDeviceActivation(ctx, storage.DB(), &storage.DeviceActivation{
 		DevEUI:  d.DevEUI,
 		DevAddr: devAddr,
 		AppSKey: appSKey,
@@ -649,6 +650,7 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 	log.WithFields(log.Fields{
 		"dev_addr": devAddr,
 		"dev_eui":  d.DevEUI,
+		"ctx_id":   ctx.Value(logging.ContextIDKey),
 	}).Info("device activated")
 
 	return &empty.Empty{}, nil
@@ -671,17 +673,17 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(storage.DB(), devEUI, false, true)
+	d, err := storage.GetDevice(ctx, storage.DB(), devEUI, false, true)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	da, err := storage.GetLastDeviceActivationForDevEUI(storage.DB(), devEUI)
+	da, err := storage.GetLastDeviceActivationForDevEUI(ctx, storage.DB(), devEUI)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	n, err := storage.GetNetworkServerForDevEUI(storage.DB(), devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(ctx, storage.DB(), devEUI)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -691,7 +693,7 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	devAct, err := nsClient.GetDeviceActivation(context.Background(), &ns.GetDeviceActivationRequest{
+	devAct, err := nsClient.GetDeviceActivation(ctx, &ns.GetDeviceActivationRequest{
 		DevEui: d.DevEUI[:],
 	})
 	if err != nil {
@@ -732,7 +734,7 @@ func (a *DeviceAPI) StreamFrameLogs(req *pb.StreamDeviceFrameLogsRequest, srv pb
 		return grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServerForDevEUI(storage.DB(), devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(srv.Context(), storage.DB(), devEUI)
 	if err != nil {
 		return helpers.ErrToRPCError(err)
 	}
@@ -832,7 +834,7 @@ func (a *DeviceAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAd
 		return nil, grpc.Errorf(codes.InvalidArgument, "devEUI: %s", err)
 	}
 
-	n, err := storage.GetNetworkServerForDevEUI(storage.DB(), devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(ctx, storage.DB(), devEUI)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -842,7 +844,7 @@ func (a *DeviceAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAd
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	resp, err := nsClient.GetRandomDevAddr(context.Background(), &empty.Empty{})
+	resp, err := nsClient.GetRandomDevAddr(ctx, &empty.Empty{})
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package thingsboard
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -14,6 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/logging"
 )
 
 // Config holds the Thingsboard integration configuration.
@@ -39,10 +41,13 @@ func New(conf Config) (*Integration, error) {
 }
 
 // SendDataUp sends the (decoded) uplink payload to the Thingsboard endpoint.
-func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
+func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPayload) error {
 	accessToken, ok := pl.Variables["ThingsBoardAccessToken"]
 	if !ok {
-		log.WithField("dev_eui", pl.DevEUI).Warning("integration/thingsboard: device does not have a 'ThingsBoardAccessToken' variable")
+		log.WithFields(log.Fields{
+			"dev_eui": pl.DevEUI,
+			"ctx_id":  ctx.Value(logging.ContextIDKey),
+		}).Warning("integration/thingsboard: device does not have a 'ThingsBoardAccessToken' variable")
 		return nil
 	}
 
@@ -64,31 +69,35 @@ func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 	log.WithFields(log.Fields{
 		"event":   "up",
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/thingsboard: attributes and telemetry uploaded")
 
 	return nil
 }
 
 // SendJoinNotification returns nil.
-func (i *Integration) SendJoinNotification(pl integration.JoinNotification) error {
+func (i *Integration) SendJoinNotification(ctx context.Context, pl integration.JoinNotification) error {
 	return nil
 }
 
 // SendACKNotification returns nil.
-func (i *Integration) SendACKNotification(pl integration.ACKNotification) error {
+func (i *Integration) SendACKNotification(ctx context.Context, pl integration.ACKNotification) error {
 	return nil
 }
 
 // SendErrorNotification returns nil.
-func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) error {
+func (i *Integration) SendErrorNotification(ctx context.Context, pl integration.ErrorNotification) error {
 	return nil
 }
 
 // SendStatusNotification sends the device-status fields to the Thingsboard endpoint.
-func (i *Integration) SendStatusNotification(pl integration.StatusNotification) error {
+func (i *Integration) SendStatusNotification(ctx context.Context, pl integration.StatusNotification) error {
 	accessToken, ok := pl.Variables["ThingsBoardAccessToken"]
 	if !ok {
-		log.WithField("dev_eui", pl.DevEUI).Warning("integration/thingsboard: device does not have a 'ThingsBoardAccessToken' variable")
+		log.WithFields(log.Fields{
+			"dev_eui": pl.DevEUI,
+			"ctx_id":  ctx.Value(logging.ContextIDKey),
+		}).Warning("integration/thingsboard: device does not have a 'ThingsBoardAccessToken' variable")
 		return nil
 	}
 
@@ -115,16 +124,20 @@ func (i *Integration) SendStatusNotification(pl integration.StatusNotification) 
 	log.WithFields(log.Fields{
 		"event":   "status",
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/thingsboard: attributes and telemetry uploaded")
 
 	return nil
 }
 
 // SendLocationNotification sends the device location to the Thingsboard endpoint.
-func (i *Integration) SendLocationNotification(pl integration.LocationNotification) error {
+func (i *Integration) SendLocationNotification(ctx context.Context, pl integration.LocationNotification) error {
 	accessToken, ok := pl.Variables["ThingsBoardAccessToken"]
 	if !ok {
-		log.WithField("dev_eui", pl.DevEUI).Warning("integration/thingsboard: device does not have a 'ThingsBoardAccessToken' variable")
+		log.WithFields(log.Fields{
+			"dev_eui": pl.DevEUI,
+			"ctx_id":  ctx.Value(logging.ContextIDKey),
+		}).Warning("integration/thingsboard: device does not have a 'ThingsBoardAccessToken' variable")
 		return nil
 	}
 
@@ -150,6 +163,7 @@ func (i *Integration) SendLocationNotification(pl integration.LocationNotificati
 	log.WithFields(log.Fields{
 		"event":   "location",
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/thingsboard: attributes and telemetry uploaded")
 
 	return nil

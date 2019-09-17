@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"time"
 
 	uuid "github.com/gofrs/uuid"
@@ -8,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/brocaar/lorawan"
 )
 
@@ -29,7 +31,7 @@ type RemoteMulticastClassCSession struct {
 }
 
 // CreateRemoteMulticastClassCSession creates the given multicast Class-C session.
-func CreateRemoteMulticastClassCSession(db sqlx.Ext, sess *RemoteMulticastClassCSession) error {
+func CreateRemoteMulticastClassCSession(ctx context.Context, db sqlx.Ext, sess *RemoteMulticastClassCSession) error {
 	now := time.Now()
 	sess.CreatedAt = now
 	sess.UpdatedAt = now
@@ -71,6 +73,7 @@ func CreateRemoteMulticastClassCSession(db sqlx.Ext, sess *RemoteMulticastClassC
 	log.WithFields(log.Fields{
 		"dev_eui":            sess.DevEUI,
 		"multicast_group_id": sess.MulticastGroupID,
+		"ctx_id":             ctx.Value(logging.ContextIDKey),
 	}).Info("remote multicast class-c session created")
 
 	return nil
@@ -78,7 +81,7 @@ func CreateRemoteMulticastClassCSession(db sqlx.Ext, sess *RemoteMulticastClassC
 
 // GetRemoteMulticastClassCSession returns the multicast Class-C session given
 // a DevEUI and multicast-group ID.
-func GetRemoteMulticastClassCSession(db sqlx.Queryer, devEUI lorawan.EUI64, multicastGroupID uuid.UUID, forUpdate bool) (RemoteMulticastClassCSession, error) {
+func GetRemoteMulticastClassCSession(ctx context.Context, db sqlx.Queryer, devEUI lorawan.EUI64, multicastGroupID uuid.UUID, forUpdate bool) (RemoteMulticastClassCSession, error) {
 	var fu string
 	if forUpdate {
 		fu = " for update"
@@ -104,7 +107,7 @@ func GetRemoteMulticastClassCSession(db sqlx.Queryer, devEUI lorawan.EUI64, mult
 
 // GetRemoteMulticastClassCSessionByGroupID returns the multicast Class-C session given
 // a DevEUI and McGroupID.
-func GetRemoteMulticastClassCSessionByGroupID(db sqlx.Queryer, devEUI lorawan.EUI64, mcGroupID int, forUpdate bool) (RemoteMulticastClassCSession, error) {
+func GetRemoteMulticastClassCSessionByGroupID(ctx context.Context, db sqlx.Queryer, devEUI lorawan.EUI64, mcGroupID int, forUpdate bool) (RemoteMulticastClassCSession, error) {
 	var fu string
 	if forUpdate {
 		fu = " for update"
@@ -130,7 +133,7 @@ func GetRemoteMulticastClassCSessionByGroupID(db sqlx.Queryer, devEUI lorawan.EU
 
 // GetPendingRemoteMulticastClassCSessions returns a slice of pending remote
 // multicast Class-C sessions.
-func GetPendingRemoteMulticastClassCSessions(db sqlx.Queryer, limit, maxRetryCount int) ([]RemoteMulticastClassCSession, error) {
+func GetPendingRemoteMulticastClassCSessions(ctx context.Context, db sqlx.Queryer, limit, maxRetryCount int) ([]RemoteMulticastClassCSession, error) {
 	var items []RemoteMulticastClassCSession
 
 	if err := sqlx.Select(db, &items, `
@@ -166,7 +169,7 @@ func GetPendingRemoteMulticastClassCSessions(db sqlx.Queryer, limit, maxRetryCou
 
 // UpdateRemoteMulticastClassCSession updates the given remote multicast
 // Class-C session.
-func UpdateRemoteMulticastClassCSession(db sqlx.Ext, sess *RemoteMulticastClassCSession) error {
+func UpdateRemoteMulticastClassCSession(ctx context.Context, db sqlx.Ext, sess *RemoteMulticastClassCSession) error {
 	sess.UpdatedAt = time.Now()
 
 	res, err := db.Exec(`
@@ -213,13 +216,14 @@ func UpdateRemoteMulticastClassCSession(db sqlx.Ext, sess *RemoteMulticastClassC
 	log.WithFields(log.Fields{
 		"dev_eui":            sess.DevEUI,
 		"multicast_group_id": sess.MulticastGroupID,
+		"ctx_id":             ctx.Value(logging.ContextIDKey),
 	}).Info("remote multicast class-c session updated")
 	return nil
 }
 
 // DeleteRemoteMulticastClassCSession deletes the multicast Class-C session
 // given a DevEUI and multicast-group ID.
-func DeleteRemoteMulticastClassCSession(db sqlx.Ext, devEUI lorawan.EUI64, multicastGroupID uuid.UUID) error {
+func DeleteRemoteMulticastClassCSession(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI64, multicastGroupID uuid.UUID) error {
 	res, err := db.Exec(`
 		delete from remote_multicast_class_c_session
 		where
@@ -241,6 +245,7 @@ func DeleteRemoteMulticastClassCSession(db sqlx.Ext, devEUI lorawan.EUI64, multi
 	log.WithFields(log.Fields{
 		"dev_eui":            devEUI,
 		"multicast_group_id": multicastGroupID,
+		"ctx_id":             ctx.Value(logging.ContextIDKey),
 	}).Info("remote multicast class-c session deleted")
 	return nil
 }

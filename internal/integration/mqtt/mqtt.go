@@ -2,6 +2,7 @@ package mqtt
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
@@ -20,6 +21,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/brocaar/lorawan"
 )
 
@@ -231,36 +233,36 @@ func (i *Integration) Close() error {
 }
 
 // SendDataUp sends a DataUpPayload.
-func (i *Integration) SendDataUp(payload integration.DataUpPayload) error {
-	return i.publish(payload.ApplicationID, payload.DevEUI, i.uplinkTemplate, i.uplinkRetained, payload)
+func (i *Integration) SendDataUp(ctx context.Context, payload integration.DataUpPayload) error {
+	return i.publish(ctx, payload.ApplicationID, payload.DevEUI, i.uplinkTemplate, i.uplinkRetained, payload)
 }
 
 // SendJoinNotification sends a JoinNotification.
-func (i *Integration) SendJoinNotification(payload integration.JoinNotification) error {
-	return i.publish(payload.ApplicationID, payload.DevEUI, i.joinTemplate, i.joinRetained, payload)
+func (i *Integration) SendJoinNotification(ctx context.Context, payload integration.JoinNotification) error {
+	return i.publish(ctx, payload.ApplicationID, payload.DevEUI, i.joinTemplate, i.joinRetained, payload)
 }
 
 // SendACKNotification sends an ACKNotification.
-func (i *Integration) SendACKNotification(payload integration.ACKNotification) error {
-	return i.publish(payload.ApplicationID, payload.DevEUI, i.ackTemplate, i.ackRetained, payload)
+func (i *Integration) SendACKNotification(ctx context.Context, payload integration.ACKNotification) error {
+	return i.publish(ctx, payload.ApplicationID, payload.DevEUI, i.ackTemplate, i.ackRetained, payload)
 }
 
 // SendErrorNotification sends an ErrorNotification.
-func (i *Integration) SendErrorNotification(payload integration.ErrorNotification) error {
-	return i.publish(payload.ApplicationID, payload.DevEUI, i.errorTemplate, i.errorRetained, payload)
+func (i *Integration) SendErrorNotification(ctx context.Context, payload integration.ErrorNotification) error {
+	return i.publish(ctx, payload.ApplicationID, payload.DevEUI, i.errorTemplate, i.errorRetained, payload)
 }
 
 // SendStatusNotification sends a StatusNotification.
-func (i *Integration) SendStatusNotification(payload integration.StatusNotification) error {
-	return i.publish(payload.ApplicationID, payload.DevEUI, i.statusTemplate, i.statusRetained, payload)
+func (i *Integration) SendStatusNotification(ctx context.Context, payload integration.StatusNotification) error {
+	return i.publish(ctx, payload.ApplicationID, payload.DevEUI, i.statusTemplate, i.statusRetained, payload)
 }
 
 // SendLocationNotification sends a LocationNotification.
-func (i *Integration) SendLocationNotification(payload integration.LocationNotification) error {
-	return i.publish(payload.ApplicationID, payload.DevEUI, i.locationTemplate, i.locationRetained, payload)
+func (i *Integration) SendLocationNotification(ctx context.Context, payload integration.LocationNotification) error {
+	return i.publish(ctx, payload.ApplicationID, payload.DevEUI, i.locationTemplate, i.locationRetained, payload)
 }
 
-func (i *Integration) publish(applicationID int64, devEUI lorawan.EUI64, topicTemplate *template.Template, retained bool, v interface{}) error {
+func (i *Integration) publish(ctx context.Context, applicationID int64, devEUI lorawan.EUI64, topicTemplate *template.Template, retained bool, v interface{}) error {
 	topic := bytes.NewBuffer(nil)
 	err := topicTemplate.Execute(topic, struct {
 		ApplicationID int64
@@ -276,8 +278,9 @@ func (i *Integration) publish(applicationID int64, devEUI lorawan.EUI64, topicTe
 	}
 
 	log.WithFields(log.Fields{
-		"topic": topic.String(),
-		"qos":   i.config.QOS,
+		"topic":  topic.String(),
+		"qos":    i.config.QOS,
+		"ctx_id": ctx.Value(logging.ContextIDKey),
 	}).Info("integration/mqtt: publishing message")
 	if token := i.conn.Publish(topic.String(), i.config.QOS, retained, jsonB); token.Wait() && token.Error() != nil {
 		return token.Error()

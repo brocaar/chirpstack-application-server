@@ -33,12 +33,12 @@ func (ts *APITestSuite) TestGateway() {
 		Name:   "test-ns-gw",
 		Server: "test:12345",
 	}
-	assert.NoError(storage.CreateNetworkServer(storage.DB(), &n))
+	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &n))
 
 	org := storage.Organization{
 		Name: "test-org-gw",
 	}
-	assert.NoError(storage.CreateOrganization(storage.DB(), &org))
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
@@ -93,7 +93,7 @@ func (ts *APITestSuite) TestGateway() {
 			org2 := storage.Organization{
 				Name: "test-org-gw-2",
 			}
-			assert.NoError(storage.CreateOrganization(storage.DB(), &org2))
+			assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org2))
 
 			gw2 := storage.Gateway{
 				Name:            "test-gw-2",
@@ -101,7 +101,7 @@ func (ts *APITestSuite) TestGateway() {
 				OrganizationID:  org2.ID,
 				NetworkServerID: n.ID,
 			}
-			assert.NoError(storage.CreateGateway(storage.DB(), &gw2))
+			assert.NoError(storage.CreateGateway(context.Background(), storage.DB(), &gw2))
 
 			t.Run("List all", func(t *testing.T) {
 				assert := require.New(t)
@@ -120,7 +120,7 @@ func (ts *APITestSuite) TestGateway() {
 					Username: "testuser",
 					Email:    "foo@bar.com",
 				}
-				_, err := storage.CreateUser(storage.DB(), &user, "password123")
+				_, err := storage.CreateUser(context.Background(), storage.DB(), &user, "password123")
 				assert.NoError(err)
 				validator.returnIsAdmin = false
 				validator.returnUsername = user.Username
@@ -132,7 +132,7 @@ func (ts *APITestSuite) TestGateway() {
 				assert.EqualValues(0, gws.TotalCount)
 				assert.Len(gws.Result, 0)
 
-				assert.NoError(storage.CreateOrganizationUser(storage.DB(), org.ID, user.ID, false, false, false))
+				assert.NoError(storage.CreateOrganizationUser(context.Background(), storage.DB(), org.ID, user.ID, false, false, false))
 
 				gws, err = api.List(ctx, &pb.ListGatewayRequest{
 					Limit: 10,
@@ -214,7 +214,7 @@ func (ts *APITestSuite) TestGateway() {
 					"tx_ok_count": 10,
 				},
 			}
-			assert.NoError(storage.SaveMetricsForInterval(storage.RedisPool(), storage.AggregationMinute, "gw:0102030405060708", metrics))
+			assert.NoError(storage.SaveMetricsForInterval(context.Background(), storage.RedisPool(), storage.AggregationMinute, "gw:0102030405060708", metrics))
 
 			start, _ := ptypes.TimestampProto(now.Truncate(time.Minute))
 			end, _ := ptypes.TimestampProto(now)
@@ -241,7 +241,7 @@ func (ts *APITestSuite) TestGateway() {
 		t.Run("GetLastPing", func(t *testing.T) {
 			assert := require.New(t)
 
-			gw, err := storage.GetGateway(storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false)
+			gw, err := storage.GetGateway(context.Background(), storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false)
 			assert.NoError(err)
 
 			gw2 := storage.Gateway{
@@ -251,7 +251,7 @@ func (ts *APITestSuite) TestGateway() {
 				Description:     "test gw 2",
 				NetworkServerID: n.ID,
 			}
-			assert.NoError(storage.CreateGateway(storage.DB(), &gw2))
+			assert.NoError(storage.CreateGateway(context.Background(), storage.DB(), &gw2))
 
 			gw3 := storage.Gateway{
 				OrganizationID:  org.ID,
@@ -260,18 +260,18 @@ func (ts *APITestSuite) TestGateway() {
 				Description:     "test gw 3",
 				NetworkServerID: n.ID,
 			}
-			assert.NoError(storage.CreateGateway(storage.DB(), &gw3))
+			assert.NoError(storage.CreateGateway(context.Background(), storage.DB(), &gw3))
 
 			ping := storage.GatewayPing{
 				GatewayMAC: lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
 				Frequency:  868100000,
 				DR:         5,
 			}
-			assert.NoError(storage.CreateGatewayPing(storage.DB(), &ping))
+			assert.NoError(storage.CreateGatewayPing(context.Background(), storage.DB(), &ping))
 			ping.CreatedAt = ping.CreatedAt.Truncate(time.Millisecond)
 
 			gw.LastPingID = &ping.ID
-			assert.NoError(storage.UpdateGateway(storage.DB(), &gw))
+			assert.NoError(storage.UpdateGateway(context.Background(), storage.DB(), &gw))
 
 			pingRX := []storage.GatewayPingRX{
 				{
@@ -298,7 +298,7 @@ func (ts *APITestSuite) TestGateway() {
 				},
 			}
 			for i := range pingRX {
-				assert.NoError(storage.CreateGatewayPingRX(storage.DB(), &pingRX[i]))
+				assert.NoError(storage.CreateGatewayPingRX(context.Background(), storage.DB(), &pingRX[i]))
 			}
 
 			pingResp, err := api.GetLastPing(ctx, &pb.GetLastPingRequest{

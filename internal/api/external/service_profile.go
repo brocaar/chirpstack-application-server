@@ -71,7 +71,7 @@ func (a *ServiceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateSer
 	// as this also performs a remote call to create the service-profile
 	// on the network-server, wrap it in a transaction
 	err := storage.Transaction(func(tx sqlx.Ext) error {
-		return storage.CreateServiceProfile(tx, &sp)
+		return storage.CreateServiceProfile(ctx, tx, &sp)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -100,7 +100,7 @@ func (a *ServiceProfileServiceAPI) Get(ctx context.Context, req *pb.GetServicePr
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	sp, err := storage.GetServiceProfile(storage.DB(), spID, false)
+	sp, err := storage.GetServiceProfile(ctx, storage.DB(), spID, false)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -162,7 +162,7 @@ func (a *ServiceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateSer
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	sp, err := storage.GetServiceProfile(storage.DB(), spID, false)
+	sp, err := storage.GetServiceProfile(ctx, storage.DB(), spID, false)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -194,7 +194,7 @@ func (a *ServiceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateSer
 	// as this also performs a remote call to create the service-profile
 	// on the network-server, wrap it in a transaction
 	err = storage.Transaction(func(tx sqlx.Ext) error {
-		return storage.UpdateServiceProfile(tx, &sp)
+		return storage.UpdateServiceProfile(ctx, tx, &sp)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -217,7 +217,7 @@ func (a *ServiceProfileServiceAPI) Delete(ctx context.Context, req *pb.DeleteSer
 	}
 
 	err = storage.Transaction(func(tx sqlx.Ext) error {
-		return storage.DeleteServiceProfile(tx, spID)
+		return storage.DeleteServiceProfile(ctx, tx, spID)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -249,33 +249,33 @@ func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListService
 
 	if req.OrganizationId == 0 {
 		if isAdmin {
-			sps, err = storage.GetServiceProfiles(storage.DB(), int(req.Limit), int(req.Offset))
+			sps, err = storage.GetServiceProfiles(ctx, storage.DB(), int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 
-			count, err = storage.GetServiceProfileCount(storage.DB())
+			count, err = storage.GetServiceProfileCount(ctx, storage.DB())
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 		} else {
-			sps, err = storage.GetServiceProfilesForUser(storage.DB(), username, int(req.Limit), int(req.Offset))
+			sps, err = storage.GetServiceProfilesForUser(ctx, storage.DB(), username, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 
-			count, err = storage.GetServiceProfileCountForUser(storage.DB(), username)
+			count, err = storage.GetServiceProfileCountForUser(ctx, storage.DB(), username)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 		}
 	} else {
-		sps, err = storage.GetServiceProfilesForOrganizationID(storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
+		sps, err = storage.GetServiceProfilesForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		count, err = storage.GetServiceProfileCountForOrganizationID(storage.DB(), req.OrganizationId)
+		count, err = storage.GetServiceProfileCountForOrganizationID(ctx, storage.DB(), req.OrganizationId)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}

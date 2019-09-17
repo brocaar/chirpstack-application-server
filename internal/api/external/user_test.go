@@ -32,7 +32,7 @@ func (ts *APITestSuite) TestUser() {
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		assert.NoError(storage.CreateOrganization(storage.DB(), &org))
+		assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 
 		createReq := pb.CreateUserRequest{
 			User: &pb.User{
@@ -48,7 +48,7 @@ func (ts *APITestSuite) TestUser() {
 		assert.NoError(err)
 		assert.True(createResp.Id > 0)
 
-		users, err := storage.GetOrganizationUsers(storage.DB(), org.ID, 10, 0)
+		users, err := storage.GetOrganizationUsers(context.Background(), storage.DB(), org.ID, 10, 0)
 		assert.NoError(err)
 		assert.Len(users, 1)
 		assert.Equal(createResp.Id, users[0].UserID)

@@ -29,12 +29,12 @@ func (ts *APITestSuite) TestDeviceProfile() {
 		Name:   "test",
 		Server: "test:1234",
 	}
-	assert.NoError(storage.CreateNetworkServer(storage.DB(), &n))
+	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &n))
 
 	org := storage.Organization{
 		Name: "test-org",
 	}
-	assert.NoError(storage.CreateOrganization(storage.DB(), &org))
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
@@ -185,14 +185,14 @@ func (ts *APITestSuite) TestDeviceProfile() {
 					Name:   "ns-server-2",
 					Server: "ns-server-2:1234",
 				}
-				assert.NoError(storage.CreateNetworkServer(storage.DB(), &n2))
+				assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &n2))
 
 				sp1 := storage.ServiceProfile{
 					Name:            "test-sp",
 					NetworkServerID: n.ID,
 					OrganizationID:  org.ID,
 				}
-				assert.NoError(storage.CreateServiceProfile(storage.DB(), &sp1))
+				assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp1))
 				sp1ID, err := uuid.FromBytes(sp1.ServiceProfile.Id)
 				assert.NoError(err)
 
@@ -201,7 +201,7 @@ func (ts *APITestSuite) TestDeviceProfile() {
 					NetworkServerID: n2.ID,
 					OrganizationID:  org.ID,
 				}
-				assert.NoError(storage.CreateServiceProfile(storage.DB(), &sp2))
+				assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp2))
 				sp2ID, err := uuid.FromBytes(sp2.ServiceProfile.Id)
 				assert.NoError(err)
 
@@ -211,7 +211,7 @@ func (ts *APITestSuite) TestDeviceProfile() {
 					OrganizationID:   org.ID,
 					ServiceProfileID: sp1ID,
 				}
-				assert.NoError(storage.CreateApplication(storage.DB(), &app1))
+				assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &app1))
 
 				app2 := storage.Application{
 					Name:             "test-app-2",
@@ -219,7 +219,7 @@ func (ts *APITestSuite) TestDeviceProfile() {
 					OrganizationID:   org.ID,
 					ServiceProfileID: sp2ID,
 				}
-				assert.NoError(storage.CreateApplication(storage.DB(), &app2))
+				assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &app2))
 
 				listResp, err := api.List(context.Background(), &pb.ListDeviceProfileRequest{
 					Limit:         10,
@@ -243,14 +243,14 @@ func (ts *APITestSuite) TestDeviceProfile() {
 		t.Run("Organization user", func(t *testing.T) {
 			assert := require.New(t)
 
-			userID, err := storage.CreateUser(storage.DB(), &storage.User{
+			userID, err := storage.CreateUser(context.Background(), storage.DB(), &storage.User{
 				Username: "testuser",
 				IsActive: true,
 				Email:    "foo@bar.com",
 			}, "testpassword")
 			assert.NoError(err)
 
-			assert.NoError(storage.CreateOrganizationUser(storage.DB(), org.ID, userID, false, false, false))
+			assert.NoError(storage.CreateOrganizationUser(context.Background(), storage.DB(), org.ID, userID, false, false, false))
 
 			t.Run("List without org id returns all device-profiles for user", func(t *testing.T) {
 				assert := require.New(t)

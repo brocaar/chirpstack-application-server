@@ -1,6 +1,7 @@
 package clocksync
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -56,19 +57,19 @@ func (ts *ClockSyncTestSuite) SetupTest() {
 		Name:   "test",
 		Server: "test:1234",
 	}
-	assert.NoError(storage.CreateNetworkServer(ts.tx, &ts.NetworkServer))
+	assert.NoError(storage.CreateNetworkServer(context.Background(), ts.tx, &ts.NetworkServer))
 
 	ts.Organization = storage.Organization{
 		Name: "test-org",
 	}
-	assert.NoError(storage.CreateOrganization(ts.tx, &ts.Organization))
+	assert.NoError(storage.CreateOrganization(context.Background(), ts.tx, &ts.Organization))
 
 	ts.ServiceProfile = storage.ServiceProfile{
 		Name:            "test-sp",
 		OrganizationID:  ts.Organization.ID,
 		NetworkServerID: ts.NetworkServer.ID,
 	}
-	assert.NoError(storage.CreateServiceProfile(ts.tx, &ts.ServiceProfile))
+	assert.NoError(storage.CreateServiceProfile(context.Background(), ts.tx, &ts.ServiceProfile))
 	var spID uuid.UUID
 	copy(spID[:], ts.ServiceProfile.ServiceProfile.Id)
 
@@ -77,14 +78,14 @@ func (ts *ClockSyncTestSuite) SetupTest() {
 		OrganizationID:   ts.Organization.ID,
 		ServiceProfileID: spID,
 	}
-	assert.NoError(storage.CreateApplication(ts.tx, &ts.Application))
+	assert.NoError(storage.CreateApplication(context.Background(), ts.tx, &ts.Application))
 
 	ts.DeviceProfile = storage.DeviceProfile{
 		Name:            "test-dp",
 		OrganizationID:  ts.Organization.ID,
 		NetworkServerID: ts.NetworkServer.ID,
 	}
-	assert.NoError(storage.CreateDeviceProfile(ts.tx, &ts.DeviceProfile))
+	assert.NoError(storage.CreateDeviceProfile(context.Background(), ts.tx, &ts.DeviceProfile))
 	var dpID uuid.UUID
 	copy(dpID[:], ts.DeviceProfile.DeviceProfile.Id)
 
@@ -95,12 +96,12 @@ func (ts *ClockSyncTestSuite) SetupTest() {
 		Name:            "test-device",
 		Description:     "test device",
 	}
-	assert.NoError(storage.CreateDevice(ts.tx, &ts.Device))
+	assert.NoError(storage.CreateDevice(context.Background(), ts.tx, &ts.Device))
 
 	ts.DeviceActivation = storage.DeviceActivation{
 		DevEUI: ts.Device.DevEUI,
 	}
-	assert.NoError(storage.CreateDeviceActivation(ts.tx, &ts.DeviceActivation))
+	assert.NoError(storage.CreateDeviceActivation(context.Background(), ts.tx, &ts.DeviceActivation))
 }
 
 func (ts *ClockSyncTestSuite) TestAppTimeReq() {
@@ -125,7 +126,7 @@ func (ts *ClockSyncTestSuite) TestAppTimeReq() {
 		}
 		b, err := cmd.MarshalBinary()
 		assert.NoError(err)
-		assert.NoError(HandleClockSyncCommand(ts.tx, ts.Device.DevEUI, serverGPSTime, b))
+		assert.NoError(HandleClockSyncCommand(context.Background(), ts.tx, ts.Device.DevEUI, serverGPSTime, b))
 
 		queueReq := <-ts.NSClient.CreateDeviceQueueItemChan
 

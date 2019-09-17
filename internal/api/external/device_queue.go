@@ -58,19 +58,19 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 	if err := storage.Transaction(func(tx sqlx.Ext) error {
 		// Lock the device to avoid concurrent enqueue actions for the same
 		// device as this would result in re-use of the same frame-counter.
-		dev, err := storage.GetDevice(storage.DB(), devEUI, true, true)
+		dev, err := storage.GetDevice(ctx, storage.DB(), devEUI, true, true)
 		if err != nil {
 			return helpers.ErrToRPCError(err)
 		}
 
 		// if JSON object is set, try to encode it to bytes
 		if req.DeviceQueueItem.JsonObject != "" {
-			app, err := storage.GetApplication(storage.DB(), dev.ApplicationID)
+			app, err := storage.GetApplication(ctx, storage.DB(), dev.ApplicationID)
 			if err != nil {
 				return helpers.ErrToRPCError(err)
 			}
 
-			dp, err := storage.GetDeviceProfile(storage.DB(), dev.DeviceProfileID, false, true)
+			dp, err := storage.GetDeviceProfile(ctx, storage.DB(), dev.DeviceProfileID, false, true)
 			if err != nil {
 				log.WithError(err).WithField("id", dev.DeviceProfileID).Error("get device-profile error")
 				return grpc.Errorf(codes.Internal, "get device-profile error: %s", err)
@@ -105,7 +105,7 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 			}
 		}
 
-		fCnt, err = downlink.EnqueueDownlinkPayload(tx, devEUI, req.DeviceQueueItem.Confirmed, uint8(req.DeviceQueueItem.FPort), req.DeviceQueueItem.Data)
+		fCnt, err = downlink.EnqueueDownlinkPayload(ctx, tx, devEUI, req.DeviceQueueItem.Confirmed, uint8(req.DeviceQueueItem.FPort), req.DeviceQueueItem.Data)
 		if err != nil {
 			return grpc.Errorf(codes.Internal, "enqueue downlink payload error: %s", err)
 		}
@@ -132,7 +132,7 @@ func (d *DeviceQueueAPI) Flush(ctx context.Context, req *pb.FlushDeviceQueueRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServerForDevEUI(storage.DB(), devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(ctx, storage.DB(), devEUI)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -164,12 +164,12 @@ func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsR
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	da, err := storage.GetLastDeviceActivationForDevEUI(storage.DB(), devEUI)
+	da, err := storage.GetLastDeviceActivationForDevEUI(ctx, storage.DB(), devEUI)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	n, err := storage.GetNetworkServerForDevEUI(storage.DB(), devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(ctx, storage.DB(), devEUI)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}

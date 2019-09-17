@@ -60,7 +60,7 @@ func (a *GatewayProfileAPI) Create(ctx context.Context, req *pb.CreateGatewayPro
 	}
 
 	err := storage.Transaction(func(tx sqlx.Ext) error {
-		return storage.CreateGatewayProfile(tx, &gp)
+		return storage.CreateGatewayProfile(ctx, tx, &gp)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -89,7 +89,7 @@ func (a *GatewayProfileAPI) Get(ctx context.Context, req *pb.GetGatewayProfileRe
 		return nil, grpc.Errorf(codes.InvalidArgument, "uuid error: %s", err)
 	}
 
-	gp, err := storage.GetGatewayProfile(storage.DB(), gpID)
+	gp, err := storage.GetGatewayProfile(ctx, storage.DB(), gpID)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -142,7 +142,7 @@ func (a *GatewayProfileAPI) Update(ctx context.Context, req *pb.UpdateGatewayPro
 		return nil, grpc.Errorf(codes.InvalidArgument, "uuid error: %s", err)
 	}
 
-	gp, err := storage.GetGatewayProfile(storage.DB(), gpID)
+	gp, err := storage.GetGatewayProfile(ctx, storage.DB(), gpID)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -162,7 +162,7 @@ func (a *GatewayProfileAPI) Update(ctx context.Context, req *pb.UpdateGatewayPro
 	}
 
 	err = storage.Transaction(func(tx sqlx.Ext) error {
-		return storage.UpdateGatewayProfile(tx, &gp)
+		return storage.UpdateGatewayProfile(ctx, tx, &gp)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -184,7 +184,7 @@ func (a *GatewayProfileAPI) Delete(ctx context.Context, req *pb.DeleteGatewayPro
 		return nil, grpc.Errorf(codes.InvalidArgument, "uuid error: %s", err)
 	}
 
-	err = storage.DeleteGatewayProfile(storage.DB(), gpID)
+	err = storage.DeleteGatewayProfile(ctx, storage.DB(), gpID)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -205,22 +205,22 @@ func (a *GatewayProfileAPI) List(ctx context.Context, req *pb.ListGatewayProfile
 	var gps []storage.GatewayProfileMeta
 
 	if req.NetworkServerId == 0 {
-		count, err = storage.GetGatewayProfileCount(storage.DB())
+		count, err = storage.GetGatewayProfileCount(ctx, storage.DB())
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		gps, err = storage.GetGatewayProfiles(storage.DB(), int(req.Limit), int(req.Offset))
+		gps, err = storage.GetGatewayProfiles(ctx, storage.DB(), int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 	} else {
-		count, err = storage.GetGatewayProfileCountForNetworkServerID(storage.DB(), req.NetworkServerId)
+		count, err = storage.GetGatewayProfileCountForNetworkServerID(ctx, storage.DB(), req.NetworkServerId)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		gps, err = storage.GetGatewayProfilesForNetworkServerID(storage.DB(), req.NetworkServerId, int(req.Limit), int(req.Offset))
+		gps, err = storage.GetGatewayProfilesForNetworkServerID(ctx, storage.DB(), req.NetworkServerId, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}

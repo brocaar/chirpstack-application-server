@@ -31,19 +31,19 @@ func (ts *APITestSuite) TestFUOTADeployment() {
 		Name:   "test",
 		Server: "test:1234",
 	}
-	assert.NoError(storage.CreateNetworkServer(storage.DB(), &n))
+	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &n))
 
 	org := storage.Organization{
 		Name: "test-org",
 	}
-	assert.NoError(storage.CreateOrganization(storage.DB(), &org))
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 
 	sp := storage.ServiceProfile{
 		Name:            "test-sp",
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}
-	assert.NoError(storage.CreateServiceProfile(storage.DB(), &sp))
+	assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp))
 	var spID uuid.UUID
 	copy(spID[:], sp.ServiceProfile.Id)
 
@@ -52,14 +52,14 @@ func (ts *APITestSuite) TestFUOTADeployment() {
 		OrganizationID: org.ID,
 	}
 	copy(app.ServiceProfileID[:], sp.ServiceProfile.Id)
-	assert.NoError(storage.CreateApplication(storage.DB(), &app))
+	assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &app))
 
 	dp := storage.DeviceProfile{
 		Name:            "test-dp",
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}
-	assert.NoError(storage.CreateDeviceProfile(storage.DB(), &dp))
+	assert.NoError(storage.CreateDeviceProfile(context.Background(), storage.DB(), &dp))
 	var dpID uuid.UUID
 	copy(dpID[:], dp.DeviceProfile.Id)
 
@@ -69,7 +69,7 @@ func (ts *APITestSuite) TestFUOTADeployment() {
 		DeviceProfileID: dpID,
 		Name:            "test-device",
 	}
-	assert.NoError(storage.CreateDevice(storage.DB(), &d))
+	assert.NoError(storage.CreateDevice(context.Background(), storage.DB(), &d))
 
 	ts.T().Run("CreateForDevice", func(t *testing.T) {
 		assert := require.New(t)

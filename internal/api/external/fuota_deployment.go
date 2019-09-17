@@ -47,7 +47,7 @@ func (f *FUOTADeploymentAPI) CreateForDevice(ctx context.Context, req *api.Creat
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServerForDevEUI(storage.DB(), devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(ctx, storage.DB(), devEUI)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -147,7 +147,7 @@ func (f *FUOTADeploymentAPI) CreateForDevice(ctx context.Context, req *api.Creat
 	}
 
 	err = storage.Transaction(func(db sqlx.Ext) error {
-		return storage.CreateFUOTADeploymentForDevice(db, &fd, devEUI)
+		return storage.CreateFUOTADeploymentForDevice(ctx, db, &fd, devEUI)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -172,7 +172,7 @@ func (f *FUOTADeploymentAPI) Get(ctx context.Context, req *api.GetFUOTADeploymen
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	fd, err := storage.GetFUOTADeployment(storage.DB(), id, false)
+	fd, err := storage.GetFUOTADeployment(ctx, storage.DB(), id, false)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -263,12 +263,12 @@ func (f *FUOTADeploymentAPI) List(ctx context.Context, req *api.ListFUOTADeploym
 		}
 	}
 
-	count, err := storage.GetFUOTADeploymentCount(storage.DB(), filters)
+	count, err := storage.GetFUOTADeploymentCount(ctx, storage.DB(), filters)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	deployments, err := storage.GetFUOTADeployments(storage.DB(), filters)
+	deployments, err := storage.GetFUOTADeployments(ctx, storage.DB(), filters)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -296,12 +296,12 @@ func (f *FUOTADeploymentAPI) GetDeploymentDevice(ctx context.Context, req *api.G
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	d, err := storage.GetDevice(storage.DB(), devEUI, false, true)
+	d, err := storage.GetDevice(ctx, storage.DB(), devEUI, false, true)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	fdd, err := storage.GetFUOTADeploymentDevice(storage.DB(), fuotaDeploymentID, devEUI)
+	fdd, err := storage.GetFUOTADeploymentDevice(ctx, storage.DB(), fuotaDeploymentID, devEUI)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -351,12 +351,12 @@ func (f *FUOTADeploymentAPI) ListDeploymentDevices(ctx context.Context, req *api
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	count, err := storage.GetFUOTADeploymentDeviceCount(storage.DB(), fuotaDeploymentID)
+	count, err := storage.GetFUOTADeploymentDeviceCount(ctx, storage.DB(), fuotaDeploymentID)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	devices, err := storage.GetFUOTADeploymentDevices(storage.DB(), fuotaDeploymentID, int(req.Limit), int(req.Offset))
+	devices, err := storage.GetFUOTADeploymentDevices(ctx, storage.DB(), fuotaDeploymentID, int(req.Limit), int(req.Offset))
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}

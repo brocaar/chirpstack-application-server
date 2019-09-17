@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -22,19 +23,19 @@ func (ts *StorageTestSuite) TestRemoteFragmentationSession() {
 		Name:   "test",
 		Server: "test:1234",
 	}
-	assert.NoError(CreateNetworkServer(ts.tx, &n))
+	assert.NoError(CreateNetworkServer(context.Background(), ts.tx, &n))
 
 	org := Organization{
 		Name: "test-org",
 	}
-	assert.NoError(CreateOrganization(ts.tx, &org))
+	assert.NoError(CreateOrganization(context.Background(), ts.tx, &org))
 
 	sp := ServiceProfile{
 		Name:            "test-sp",
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}
-	assert.NoError(CreateServiceProfile(ts.tx, &sp))
+	assert.NoError(CreateServiceProfile(context.Background(), ts.tx, &sp))
 	var spID uuid.UUID
 	copy(spID[:], sp.ServiceProfile.Id)
 
@@ -43,14 +44,14 @@ func (ts *StorageTestSuite) TestRemoteFragmentationSession() {
 		OrganizationID:   org.ID,
 		ServiceProfileID: spID,
 	}
-	assert.NoError(CreateApplication(ts.tx, &app))
+	assert.NoError(CreateApplication(context.Background(), ts.tx, &app))
 
 	dp := DeviceProfile{
 		Name:            "test-dp",
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}
-	assert.NoError(CreateDeviceProfile(ts.tx, &dp))
+	assert.NoError(CreateDeviceProfile(context.Background(), ts.tx, &dp))
 	var dpID uuid.UUID
 	copy(dpID[:], dp.DeviceProfile.Id)
 
@@ -61,7 +62,7 @@ func (ts *StorageTestSuite) TestRemoteFragmentationSession() {
 		Name:            "test-device",
 		Description:     "test device",
 	}
-	assert.NoError(CreateDevice(ts.tx, &d))
+	assert.NoError(CreateDevice(context.Background(), ts.tx, &d))
 
 	mg := MulticastGroup{
 		Name:             "test-mg",
@@ -69,7 +70,7 @@ func (ts *StorageTestSuite) TestRemoteFragmentationSession() {
 		MCKey:            lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 		ServiceProfileID: spID,
 	}
-	assert.NoError(CreateMulticastGroup(ts.tx, &mg))
+	assert.NoError(CreateMulticastGroup(context.Background(), ts.tx, &mg))
 	var mgID uuid.UUID
 	copy(mgID[:], mg.MulticastGroup.Id)
 
@@ -79,7 +80,7 @@ func (ts *StorageTestSuite) TestRemoteFragmentationSession() {
 		McGroupID:        2,
 		State:            RemoteMulticastSetupSetup,
 	}
-	assert.NoError(CreateRemoteMulticastSetup(ts.tx, &rmg))
+	assert.NoError(CreateRemoteMulticastSetup(context.Background(), ts.tx, &rmg))
 
 	now := time.Now().Round(time.Second).UTC().Add(-time.Second)
 
@@ -101,14 +102,14 @@ func (ts *StorageTestSuite) TestRemoteFragmentationSession() {
 			RetryCount:          1,
 			RetryInterval:       time.Minute,
 		}
-		assert.NoError(CreateRemoteFragmentationSession(ts.tx, &rfs))
+		assert.NoError(CreateRemoteFragmentationSession(context.Background(), ts.tx, &rfs))
 		rfs.CreatedAt = rfs.CreatedAt.UTC().Round(time.Millisecond)
 		rfs.UpdatedAt = rfs.UpdatedAt.UTC().Round(time.Millisecond)
 
 		t.Run("Get", func(t *testing.T) {
 			assert := require.New(t)
 
-			rfsGet, err := GetRemoteFragmentationSession(ts.tx, d.DevEUI, rfs.FragIndex, false)
+			rfsGet, err := GetRemoteFragmentationSession(context.Background(), ts.tx, d.DevEUI, rfs.FragIndex, false)
 			assert.NoError(err)
 			rfsGet.CreatedAt = rfsGet.CreatedAt.UTC().Round(time.Millisecond)
 			rfsGet.UpdatedAt = rfsGet.UpdatedAt.UTC().Round(time.Millisecond)
@@ -119,7 +120,7 @@ func (ts *StorageTestSuite) TestRemoteFragmentationSession() {
 		t.Run("GetPending no setup", func(t *testing.T) {
 			assert := require.New(t)
 
-			items, err := GetPendingRemoteFragmentationSessions(ts.tx, 10, 2)
+			items, err := GetPendingRemoteFragmentationSessions(context.Background(), ts.tx, 10, 2)
 			assert.NoError(err)
 			assert.Len(items, 0)
 		})
@@ -127,23 +128,23 @@ func (ts *StorageTestSuite) TestRemoteFragmentationSession() {
 		t.Run("GetPending unicast", func(t *testing.T) {
 			assert := require.New(t)
 			rfs.MCGroupIDs = []int{}
-			assert.NoError(UpdateRemoteFragmentationSession(ts.tx, &rfs))
+			assert.NoError(UpdateRemoteFragmentationSession(context.Background(), ts.tx, &rfs))
 
-			items, err := GetPendingRemoteFragmentationSessions(ts.tx, 10, 2)
+			items, err := GetPendingRemoteFragmentationSessions(context.Background(), ts.tx, 10, 2)
 			assert.NoError(err)
 			assert.Len(items, 1)
 
 			rfs.MCGroupIDs = []int{rmg.McGroupID}
-			assert.NoError(UpdateRemoteFragmentationSession(ts.tx, &rfs))
+			assert.NoError(UpdateRemoteFragmentationSession(context.Background(), ts.tx, &rfs))
 		})
 
 		t.Run("GetPending", func(t *testing.T) {
 			assert := require.New(t)
 
 			rmg.StateProvisioned = true
-			assert.NoError(UpdateRemoteMulticastSetup(ts.tx, &rmg))
+			assert.NoError(UpdateRemoteMulticastSetup(context.Background(), ts.tx, &rmg))
 
-			items, err := GetPendingRemoteFragmentationSessions(ts.tx, 10, 2)
+			items, err := GetPendingRemoteFragmentationSessions(context.Background(), ts.tx, 10, 2)
 			assert.NoError(err)
 			assert.Len(items, 1)
 
@@ -152,7 +153,7 @@ func (ts *StorageTestSuite) TestRemoteFragmentationSession() {
 			newTX, err := DB().Beginx()
 			assert.NoError(err)
 
-			items, err = GetPendingRemoteFragmentationSessions(newTX, 10, 2)
+			items, err = GetPendingRemoteFragmentationSessions(context.Background(), newTX, 10, 2)
 			assert.NoError(err)
 			assert.Len(items, 0)
 
@@ -176,10 +177,10 @@ func (ts *StorageTestSuite) TestRemoteFragmentationSession() {
 			rfs.RetryCount = 2
 			rfs.RetryInterval = time.Minute * 2
 
-			assert.NoError(UpdateRemoteFragmentationSession(ts.tx, &rfs))
+			assert.NoError(UpdateRemoteFragmentationSession(context.Background(), ts.tx, &rfs))
 			rfs.UpdatedAt = rfs.UpdatedAt.UTC().Round(time.Millisecond)
 
-			rfsGet, err := GetRemoteFragmentationSession(ts.tx, d.DevEUI, rfs.FragIndex, false)
+			rfsGet, err := GetRemoteFragmentationSession(context.Background(), ts.tx, d.DevEUI, rfs.FragIndex, false)
 			assert.NoError(err)
 			rfsGet.CreatedAt = rfsGet.CreatedAt.UTC().Round(time.Millisecond)
 			rfsGet.UpdatedAt = rfsGet.UpdatedAt.UTC().Round(time.Millisecond)
@@ -188,7 +189,7 @@ func (ts *StorageTestSuite) TestRemoteFragmentationSession() {
 
 			t.Run("GetPending", func(t *testing.T) {
 				assert := require.New(t)
-				items, err := GetPendingRemoteFragmentationSessions(ts.tx, 10, 2)
+				items, err := GetPendingRemoteFragmentationSessions(context.Background(), ts.tx, 10, 2)
 				assert.NoError(err)
 				assert.Len(items, 0)
 			})
@@ -196,8 +197,8 @@ func (ts *StorageTestSuite) TestRemoteFragmentationSession() {
 			t.Run("Delete", func(t *testing.T) {
 				assert := require.New(t)
 
-				assert.NoError(DeleteRemoteFragmentationSession(ts.tx, d.DevEUI, rfs.FragIndex))
-				_, err := GetRemoteFragmentationSession(ts.tx, d.DevEUI, rfs.FragIndex, false)
+				assert.NoError(DeleteRemoteFragmentationSession(context.Background(), ts.tx, d.DevEUI, rfs.FragIndex))
+				_, err := GetRemoteFragmentationSession(context.Background(), ts.tx, d.DevEUI, rfs.FragIndex, false)
 				assert.Equal(ErrDoesNotExist, err)
 			})
 		})

@@ -100,7 +100,7 @@ func (v JWTValidator) GetIsAdmin(ctx context.Context) (bool, error) {
 		return false, err
 	}
 
-	user, err := storage.GetUserByUsername(v.db, claims.Username)
+	user, err := storage.GetUserByUsername(ctx, v.db, claims.Username)
 	if err != nil {
 		return false, errors.Wrap(err, "get user by username error")
 	}

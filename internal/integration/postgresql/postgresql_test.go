@@ -1,6 +1,7 @@
 package postgresql
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"os"
@@ -320,7 +321,7 @@ func (ts *PostgreSQLTestSuite) TestSendDataUp() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendDataUp(pl))
+	assert.NoError(ts.integration.SendDataUp(context.Background(), pl))
 
 	var up deviceUp
 	assert.NoError(ts.db.Get(&up, "select * from device_up"))
@@ -386,7 +387,7 @@ func (ts *PostgreSQLTestSuite) TestSendDataUpNoObject() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendDataUp(pl))
+	assert.NoError(ts.integration.SendDataUp(context.Background(), pl))
 
 	var up deviceUp
 	assert.NoError(ts.db.Get(&up, "select * from device_up"))
@@ -450,7 +451,7 @@ func (ts *PostgreSQLTestSuite) TestSendDataUpNoData() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendDataUp(pl))
+	assert.NoError(ts.integration.SendDataUp(context.Background(), pl))
 
 	var up deviceUp
 	assert.NoError(ts.db.Get(&up, "select * from device_up"))
@@ -502,7 +503,7 @@ func (ts *PostgreSQLTestSuite) TestSendStatusNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendStatusNotification(pl))
+	assert.NoError(ts.integration.SendStatusNotification(context.Background(), pl))
 
 	var status deviceStatus
 	assert.NoError(ts.db.Get(&status, "select * from device_status"))
@@ -547,7 +548,7 @@ func (ts *PostgreSQLTestSuite) TestJoinNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendJoinNotification(pl))
+	assert.NoError(ts.integration.SendJoinNotification(context.Background(), pl))
 
 	var join deviceJoin
 	assert.NoError(ts.db.Get(&join, "select * from device_join"))
@@ -589,7 +590,7 @@ func (ts *PostgreSQLTestSuite) TestAckNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendACKNotification(pl))
+	assert.NoError(ts.integration.SendACKNotification(context.Background(), pl))
 
 	var ack deviceAck
 	assert.NoError(ts.db.Get(&ack, "select * from device_ack"))
@@ -633,7 +634,7 @@ func (ts *PostgreSQLTestSuite) TestErrorNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendErrorNotification(pl))
+	assert.NoError(ts.integration.SendErrorNotification(context.Background(), pl))
 
 	var e deviceError
 	assert.NoError(ts.db.Get(&e, "select * from device_error"))
@@ -680,7 +681,7 @@ func (ts *PostgreSQLTestSuite) TestLocationNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendLocationNotification(pl))
+	assert.NoError(ts.integration.SendLocationNotification(context.Background(), pl))
 
 	var loc deviceLocation
 	assert.NoError(ts.db.Get(&loc, "select * from device_location"))

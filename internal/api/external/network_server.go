@@ -55,7 +55,7 @@ func (a *NetworkServerAPI) Create(ctx context.Context, req *pb.CreateNetworkServ
 	}
 
 	err := storage.Transaction(func(tx sqlx.Ext) error {
-		return storage.CreateNetworkServer(tx, &ns)
+		return storage.CreateNetworkServer(ctx, tx, &ns)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -74,7 +74,7 @@ func (a *NetworkServerAPI) Get(ctx context.Context, req *pb.GetNetworkServerRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServer(storage.DB(), req.Id)
+	n, err := storage.GetNetworkServer(ctx, storage.DB(), req.Id)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -84,7 +84,7 @@ func (a *NetworkServerAPI) Get(ctx context.Context, req *pb.GetNetworkServerRequ
 
 	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err == nil {
-		resp, err := nsClient.GetVersion(context.Background(), &empty.Empty{})
+		resp, err := nsClient.GetVersion(ctx, &empty.Empty{})
 		if err == nil {
 			region = resp.Region.String()
 			version = resp.Version
@@ -133,7 +133,7 @@ func (a *NetworkServerAPI) Update(ctx context.Context, req *pb.UpdateNetworkServ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	ns, err := storage.GetNetworkServer(storage.DB(), req.NetworkServer.Id)
+	ns, err := storage.GetNetworkServer(ctx, storage.DB(), req.NetworkServer.Id)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -164,7 +164,7 @@ func (a *NetworkServerAPI) Update(ctx context.Context, req *pb.UpdateNetworkServ
 	}
 
 	err = storage.Transaction(func(tx sqlx.Ext) error {
-		return storage.UpdateNetworkServer(tx, &ns)
+		return storage.UpdateNetworkServer(ctx, tx, &ns)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -182,7 +182,7 @@ func (a *NetworkServerAPI) Delete(ctx context.Context, req *pb.DeleteNetworkServ
 	}
 
 	err := storage.Transaction(func(tx sqlx.Ext) error {
-		return storage.DeleteNetworkServer(tx, req.Id)
+		return storage.DeleteNetworkServer(ctx, tx, req.Id)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -209,21 +209,21 @@ func (a *NetworkServerAPI) List(ctx context.Context, req *pb.ListNetworkServerRe
 
 	if req.OrganizationId == 0 {
 		if isAdmin {
-			count, err = storage.GetNetworkServerCount(storage.DB())
+			count, err = storage.GetNetworkServerCount(ctx, storage.DB())
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
-			nss, err = storage.GetNetworkServers(storage.DB(), int(req.Limit), int(req.Offset))
+			nss, err = storage.GetNetworkServers(ctx, storage.DB(), int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 		}
 	} else {
-		count, err = storage.GetNetworkServerCountForOrganizationID(storage.DB(), req.OrganizationId)
+		count, err = storage.GetNetworkServerCountForOrganizationID(ctx, storage.DB(), req.OrganizationId)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
-		nss, err = storage.GetNetworkServersForOrganizationID(storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
+		nss, err = storage.GetNetworkServersForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}

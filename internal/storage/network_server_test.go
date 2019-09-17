@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -58,7 +59,7 @@ func TestNetworkServer(t *testing.T) {
 		org := Organization{
 			Name: "test-org",
 		}
-		So(CreateOrganization(db, &org), ShouldBeNil)
+		So(CreateOrganization(context.Background(), db, &org), ShouldBeNil)
 
 		rpID, err := uuid.FromString(config.C.ApplicationServer.ID)
 		So(err, ShouldBeNil)
@@ -78,7 +79,7 @@ func TestNetworkServer(t *testing.T) {
 				GatewayDiscoveryTXFrequency: 868100000,
 				GatewayDiscoveryDR:          5,
 			}
-			So(CreateNetworkServer(db, &n), ShouldBeNil)
+			So(CreateNetworkServer(context.Background(), db, &n), ShouldBeNil)
 			n.CreatedAt = n.CreatedAt.UTC().Truncate(time.Millisecond)
 			n.UpdatedAt = n.UpdatedAt.UTC().Truncate(time.Millisecond)
 			So(nsClient.CreateRoutingProfileChan, ShouldHaveLength, 1)
@@ -93,7 +94,7 @@ func TestNetworkServer(t *testing.T) {
 			})
 
 			Convey("Then GetNetworkServer returns the network-server", func() {
-				nsGet, err := GetNetworkServer(db, n.ID)
+				nsGet, err := GetNetworkServer(context.Background(), db, n.ID)
 				So(err, ShouldBeNil)
 				nsGet.CreatedAt = nsGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				nsGet.UpdatedAt = nsGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -102,13 +103,13 @@ func TestNetworkServer(t *testing.T) {
 			})
 
 			Convey("Then GetNetworkServerCount returns 1", func() {
-				count, err := GetNetworkServerCount(db)
+				count, err := GetNetworkServerCount(context.Background(), db)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 			})
 
 			Convey("Then GetNetworkServers returns a single item", func() {
-				items, err := GetNetworkServers(db, 10, 0)
+				items, err := GetNetworkServers(context.Background(), db, 10, 0)
 				So(err, ShouldBeNil)
 				So(items, ShouldHaveLength, 1)
 			})
@@ -117,31 +118,31 @@ func TestNetworkServer(t *testing.T) {
 				org2 := Organization{
 					Name: "test-org-2",
 				}
-				So(CreateOrganization(DB(), &org2), ShouldBeNil)
+				So(CreateOrganization(context.Background(), DB(), &org2), ShouldBeNil)
 
 				sp := ServiceProfile{
 					NetworkServerID: n.ID,
 					OrganizationID:  org.ID,
 					Name:            "test-service-profile",
 				}
-				So(CreateServiceProfile(DB(), &sp), ShouldBeNil)
+				So(CreateServiceProfile(context.Background(), DB(), &sp), ShouldBeNil)
 
 				Convey("Then GetNetworkServerCountForOrganizationID returns the number of network-servers for the given organization", func() {
-					count, err := GetNetworkServerCountForOrganizationID(DB(), org.ID)
+					count, err := GetNetworkServerCountForOrganizationID(context.Background(), DB(), org.ID)
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 1)
 
-					count, err = GetNetworkServerCountForOrganizationID(DB(), org2.ID)
+					count, err = GetNetworkServerCountForOrganizationID(context.Background(), DB(), org2.ID)
 					So(err, ShouldBeNil)
 					So(count, ShouldEqual, 0)
 				})
 
 				Convey("Then GetNetworkServersForOrganizationID returns the network-servers for the given organization", func() {
-					items, err := GetNetworkServersForOrganizationID(DB(), org.ID, 10, 0)
+					items, err := GetNetworkServersForOrganizationID(context.Background(), DB(), org.ID, 10, 0)
 					So(err, ShouldBeNil)
 					So(items, ShouldHaveLength, 1)
 
-					items, err = GetNetworkServersForOrganizationID(DB(), org2.ID, 10, 0)
+					items, err = GetNetworkServersForOrganizationID(context.Background(), DB(), org2.ID, 10, 0)
 					So(err, ShouldBeNil)
 					So(items, ShouldHaveLength, 0)
 				})
@@ -160,7 +161,7 @@ func TestNetworkServer(t *testing.T) {
 				n.GatewayDiscoveryInterval = 1
 				n.GatewayDiscoveryTXFrequency = 868300000
 				n.GatewayDiscoveryDR = 4
-				So(UpdateNetworkServer(db, &n), ShouldBeNil)
+				So(UpdateNetworkServer(context.Background(), db, &n), ShouldBeNil)
 				So(nsClient.UpdateRoutingProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.UpdateRoutingProfileChan, ShouldResemble, ns.UpdateRoutingProfileRequest{
 					RoutingProfile: &ns.RoutingProfile{
@@ -174,7 +175,7 @@ func TestNetworkServer(t *testing.T) {
 
 				n.UpdatedAt = n.UpdatedAt.UTC().Truncate(time.Millisecond)
 
-				nsGet, err := GetNetworkServer(db, n.ID)
+				nsGet, err := GetNetworkServer(context.Background(), db, n.ID)
 				So(err, ShouldBeNil)
 				nsGet.CreatedAt = nsGet.CreatedAt.UTC().Truncate(time.Millisecond)
 				nsGet.UpdatedAt = nsGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -183,13 +184,13 @@ func TestNetworkServer(t *testing.T) {
 			})
 
 			Convey("Then DeleteNetworkServer deletes the network-server", func() {
-				So(DeleteNetworkServer(db, n.ID), ShouldBeNil)
+				So(DeleteNetworkServer(context.Background(), db, n.ID), ShouldBeNil)
 				So(nsClient.DeleteRoutingProfileChan, ShouldHaveLength, 1)
 				So(<-nsClient.DeleteRoutingProfileChan, ShouldResemble, ns.DeleteRoutingProfileRequest{
 					Id: rpID.Bytes(),
 				})
 
-				_, err := GetNetworkServer(db, n.ID)
+				_, err := GetNetworkServer(context.Background(), db, n.ID)
 				So(err, ShouldNotBeNil)
 				So(err, ShouldEqual, ErrDoesNotExist)
 			})

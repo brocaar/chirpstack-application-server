@@ -1,6 +1,7 @@
 package js
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/hex"
@@ -86,7 +87,7 @@ func getHandler(conf config.Config) (http.Handler, error) {
 	jsConf := joinserver.HandlerConfig{
 		Logger: log.StandardLogger(),
 		GetDeviceKeysByDevEUIFunc: func(devEUI lorawan.EUI64) (joinserver.DeviceKeys, error) {
-			dk, err := storage.GetDeviceKeys(storage.DB(), devEUI)
+			dk, err := storage.GetDeviceKeys(context.TODO(), storage.DB(), devEUI)
 			if err != nil {
 				return joinserver.DeviceKeys{}, errors.Wrap(err, "get device-keys error")
 			}
@@ -95,7 +96,7 @@ func getHandler(conf config.Config) (http.Handler, error) {
 				return joinserver.DeviceKeys{}, errors.New("join-nonce overflow")
 			}
 			dk.JoinNonce++
-			if err := storage.UpdateDeviceKeys(storage.DB(), &dk); err != nil {
+			if err := storage.UpdateDeviceKeys(context.TODO(), storage.DB(), &dk); err != nil {
 				return joinserver.DeviceKeys{}, errors.Wrap(err, "update device-keys error")
 			}
 

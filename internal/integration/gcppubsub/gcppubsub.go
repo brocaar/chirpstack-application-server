@@ -12,6 +12,7 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/brocaar/lorawan"
 )
 
@@ -73,33 +74,33 @@ func (i *Integration) Close() error {
 }
 
 // SendDataUp sends an uplink data payload.
-func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
-	return i.publish("up", pl.DevEUI, pl)
+func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPayload) error {
+	return i.publish(ctx, "up", pl.DevEUI, pl)
 }
 
 // SendJoinNotification sends a join notification.
-func (i *Integration) SendJoinNotification(pl integration.JoinNotification) error {
-	return i.publish("join", pl.DevEUI, pl)
+func (i *Integration) SendJoinNotification(ctx context.Context, pl integration.JoinNotification) error {
+	return i.publish(ctx, "join", pl.DevEUI, pl)
 }
 
 // SendACKNotification sends an ack notification.
-func (i *Integration) SendACKNotification(pl integration.ACKNotification) error {
-	return i.publish("ack", pl.DevEUI, pl)
+func (i *Integration) SendACKNotification(ctx context.Context, pl integration.ACKNotification) error {
+	return i.publish(ctx, "ack", pl.DevEUI, pl)
 }
 
 // SendErrorNotification sends an error notification.
-func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) error {
-	return i.publish("error", pl.DevEUI, pl)
+func (i *Integration) SendErrorNotification(ctx context.Context, pl integration.ErrorNotification) error {
+	return i.publish(ctx, "error", pl.DevEUI, pl)
 }
 
 // SendStatusNotification sends a status notification.
-func (i *Integration) SendStatusNotification(pl integration.StatusNotification) error {
-	return i.publish("status", pl.DevEUI, pl)
+func (i *Integration) SendStatusNotification(ctx context.Context, pl integration.StatusNotification) error {
+	return i.publish(ctx, "status", pl.DevEUI, pl)
 }
 
 // SendLocationNotification sends a location notification.
-func (i *Integration) SendLocationNotification(pl integration.LocationNotification) error {
-	return i.publish("location", pl.DevEUI, pl)
+func (i *Integration) SendLocationNotification(ctx context.Context, pl integration.LocationNotification) error {
+	return i.publish(ctx, "location", pl.DevEUI, pl)
 }
 
 // DataDownChan return nil.
@@ -107,13 +108,13 @@ func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	return nil
 }
 
-func (i *Integration) publish(event string, devEUI lorawan.EUI64, v interface{}) error {
+func (i *Integration) publish(ctx context.Context, event string, devEUI lorawan.EUI64, v interface{}) error {
 	jsonB, err := json.Marshal(v)
 	if err != nil {
 		return errors.Wrap(err, "marshal json error")
 	}
 
-	res := i.topic.Publish(i.ctx, &pubsub.Message{
+	res := i.topic.Publish(ctx, &pubsub.Message{
 		Data: jsonB,
 		Attributes: map[string]string{
 			"event":  event,
@@ -127,6 +128,7 @@ func (i *Integration) publish(event string, devEUI lorawan.EUI64, v interface{})
 	log.WithFields(log.Fields{
 		"dev_eui": devEUI,
 		"event":   event,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/gcppubsub: event published")
 
 	return nil

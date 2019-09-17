@@ -1,6 +1,7 @@
 package postgresql
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"time"
@@ -13,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/logging"
 )
 
 // Config holds the PostgreSQL integration configuration.
@@ -55,7 +57,7 @@ func (i *Integration) Close() error {
 }
 
 // SendDataUp stores the uplink data into the device_up table.
-func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
+func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPayload) error {
 	// use an UUID here so that we can later refactor this for correlation
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -123,13 +125,14 @@ func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 	log.WithFields(log.Fields{
 		"event":   "up",
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/postgresql: event stored")
 
 	return nil
 }
 
 // SendStatusNotification stores the device-status in the device_status table.
-func (i *Integration) SendStatusNotification(pl integration.StatusNotification) error {
+func (i *Integration) SendStatusNotification(ctx context.Context, pl integration.StatusNotification) error {
 	// use an UUID here so that we can later refactor this for correlation
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -173,13 +176,14 @@ func (i *Integration) SendStatusNotification(pl integration.StatusNotification) 
 	log.WithFields(log.Fields{
 		"event":   "status",
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/postgresql: event stored")
 
 	return nil
 }
 
 // SendJoinNotification stores the join in the device_join table.
-func (i *Integration) SendJoinNotification(pl integration.JoinNotification) error {
+func (i *Integration) SendJoinNotification(ctx context.Context, pl integration.JoinNotification) error {
 	// use an UUID here so that we can later refactor this for correlation
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -217,13 +221,14 @@ func (i *Integration) SendJoinNotification(pl integration.JoinNotification) erro
 	log.WithFields(log.Fields{
 		"event":   "join",
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/postgresql: event stored")
 
 	return nil
 }
 
 // SendACKNotification stores the ACK in the device_ack table.
-func (i *Integration) SendACKNotification(pl integration.ACKNotification) error {
+func (i *Integration) SendACKNotification(ctx context.Context, pl integration.ACKNotification) error {
 	// use an UUID here so that we can later refactor this for correlation
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -263,13 +268,14 @@ func (i *Integration) SendACKNotification(pl integration.ACKNotification) error 
 	log.WithFields(log.Fields{
 		"event":   "ack",
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/postgresql: event stored")
 
 	return nil
 }
 
 // SendErrorNotification stores the error in the device_error table.
-func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) error {
+func (i *Integration) SendErrorNotification(ctx context.Context, pl integration.ErrorNotification) error {
 	// use an UUID here so that we can later refactor this for correlation
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -311,13 +317,14 @@ func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) er
 	log.WithFields(log.Fields{
 		"event":   "error",
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/postgresql: event stored")
 
 	return nil
 }
 
 // SendLocationNotification stores the location in the device_location table.
-func (i *Integration) SendLocationNotification(pl integration.LocationNotification) error {
+func (i *Integration) SendLocationNotification(ctx context.Context, pl integration.LocationNotification) error {
 	// use an UUID here so that we can later refactor this for correlation
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -363,6 +370,7 @@ func (i *Integration) SendLocationNotification(pl integration.LocationNotificati
 	log.WithFields(log.Fields{
 		"event":   "location",
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/postgresql: event stored")
 
 	return nil

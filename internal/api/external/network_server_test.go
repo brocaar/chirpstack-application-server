@@ -27,7 +27,7 @@ func (ts *APITestSuite) TestNetworkServer() {
 	org := storage.Organization{
 		Name: "test-org",
 	}
-	assert.NoError(storage.CreateOrganization(storage.DB(), &org))
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
@@ -71,7 +71,7 @@ func (ts *APITestSuite) TestNetworkServer() {
 		t.Run("CA and TLS fields are populated", func(t *testing.T) {
 			assert := require.New(t)
 
-			n, err := storage.GetNetworkServer(storage.DB(), resp.Id)
+			n, err := storage.GetNetworkServer(context.Background(), storage.DB(), resp.Id)
 			assert.NoError(err)
 
 			assert.Equal("CACERT", n.CACert)
@@ -117,14 +117,14 @@ func (ts *APITestSuite) TestNetworkServer() {
 			org2 := storage.Organization{
 				Name: "test-org-2",
 			}
-			assert.NoError(storage.CreateOrganization(storage.DB(), &org2))
+			assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org2))
 
 			sp := storage.ServiceProfile{
 				NetworkServerID: resp.Id,
 				OrganizationID:  org.ID,
 				Name:            "test-sp",
 			}
-			assert.NoError(storage.CreateServiceProfile(storage.DB(), &sp))
+			assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp))
 
 			t.Run("List with organization id filter", func(t *testing.T) {
 				assert := require.New(t)
@@ -148,10 +148,10 @@ func (ts *APITestSuite) TestNetworkServer() {
 				assert.Len(listResp.Result, 0)
 			})
 
-			assert.NoError(storage.DeleteOrganization(storage.DB(), org2.ID))
+			assert.NoError(storage.DeleteOrganization(context.Background(), storage.DB(), org2.ID))
 			var spID uuid.UUID
 			copy(spID[:], sp.ServiceProfile.Id)
-			assert.NoError(storage.DeleteServiceProfile(storage.DB(), spID))
+			assert.NoError(storage.DeleteServiceProfile(context.Background(), storage.DB(), spID))
 		})
 
 		t.Run("Update", func(t *testing.T) {
@@ -187,7 +187,7 @@ func (ts *APITestSuite) TestNetworkServer() {
 			updateReq.NetworkServer.RoutingProfileTlsKey = ""
 			assert.Equal(updateReq.NetworkServer, getResp.NetworkServer)
 
-			n, err := storage.GetNetworkServer(storage.DB(), resp.Id)
+			n, err := storage.GetNetworkServer(context.Background(), storage.DB(), resp.Id)
 			assert.NoError(err)
 
 			assert.Equal("CACERT2", n.CACert)

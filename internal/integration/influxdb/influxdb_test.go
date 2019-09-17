@@ -2,6 +2,7 @@ package influxdb
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -94,7 +95,7 @@ device_status_margin,application_name=test-app,dev_eui=0102030405060708,device_n
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.Handler.SendStatusNotification(tst.Payload))
+			assert.NoError(ts.Handler.SendStatusNotification(context.Background(), tst.Payload))
 			req := <-ts.Requests
 			assert.Equal("/write", req.URL.Path)
 			assert.Equal(url.Values{
@@ -341,7 +342,7 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.Handler.SendDataUp(tst.Payload))
+			assert.NoError(ts.Handler.SendDataUp(context.Background(), tst.Payload))
 			req := <-ts.Requests
 			assert.Equal("/write", req.URL.Path)
 			assert.Equal(url.Values{

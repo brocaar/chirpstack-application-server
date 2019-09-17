@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/brocaar/loraserver/api/ns"
 )
 
@@ -50,7 +51,7 @@ type GatewayProfileMeta struct {
 // CreateGatewayProfile creates the given gateway-profile.
 // This will create the gateway-profile at the network-server side and will
 // create a local reference record.
-func CreateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
+func CreateGatewayProfile(ctx context.Context, db sqlx.Ext, gp *GatewayProfile) error {
 	gpID, err := uuid.NewV4()
 	if err != nil {
 		return errors.Wrap(err, "new uuid v4 error")
@@ -81,7 +82,7 @@ func CreateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 		return handlePSQLError(Insert, err, "insert error")
 	}
 
-	n, err := GetNetworkServer(db, gp.NetworkServerID)
+	n, err := GetNetworkServer(ctx, db, gp.NetworkServerID)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
 	}
@@ -91,7 +92,7 @@ func CreateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
-	_, err = nsClient.CreateGatewayProfile(context.Background(), &ns.CreateGatewayProfileRequest{
+	_, err = nsClient.CreateGatewayProfile(ctx, &ns.CreateGatewayProfileRequest{
 		GatewayProfile: &gp.GatewayProfile,
 	})
 	if err != nil {
@@ -99,14 +100,15 @@ func CreateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 	}
 
 	log.WithFields(log.Fields{
-		"id": gpID,
+		"id":     gpID,
+		"ctx_id": ctx.Value(logging.ContextIDKey),
 	}).Info("gateway-profile created")
 
 	return nil
 }
 
 // GetGatewayProfile returns the gateway-profile matching the given id.
-func GetGatewayProfile(db sqlx.Queryer, id uuid.UUID) (GatewayProfile, error) {
+func GetGatewayProfile(ctx context.Context, db sqlx.Queryer, id uuid.UUID) (GatewayProfile, error) {
 	var gp GatewayProfile
 	err := sqlx.Get(db, &gp, `
 		select
@@ -123,7 +125,7 @@ func GetGatewayProfile(db sqlx.Queryer, id uuid.UUID) (GatewayProfile, error) {
 		return gp, handlePSQLError(Select, err, "select error")
 	}
 
-	n, err := GetNetworkServer(db, gp.NetworkServerID)
+	n, err := GetNetworkServer(ctx, db, gp.NetworkServerID)
 	if err != nil {
 		return gp, errors.Wrap(err, "get network-server error")
 	}
@@ -133,7 +135,7 @@ func GetGatewayProfile(db sqlx.Queryer, id uuid.UUID) (GatewayProfile, error) {
 		return gp, errors.Wrap(err, "get network-server client error")
 	}
 
-	resp, err := nsClient.GetGatewayProfile(context.Background(), &ns.GetGatewayProfileRequest{
+	resp, err := nsClient.GetGatewayProfile(ctx, &ns.GetGatewayProfileRequest{
 		Id: id.Bytes(),
 	})
 	if err != nil {
@@ -150,7 +152,7 @@ func GetGatewayProfile(db sqlx.Queryer, id uuid.UUID) (GatewayProfile, error) {
 }
 
 // UpdateGatewayProfile updates the given gateway-profile.
-func UpdateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
+func UpdateGatewayProfile(ctx context.Context, db sqlx.Ext, gp *GatewayProfile) error {
 	gp.UpdatedAt = time.Now()
 	gpID, err := uuid.FromBytes(gp.GatewayProfile.Id)
 	if err != nil {
@@ -182,7 +184,7 @@ func UpdateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 		return ErrDoesNotExist
 	}
 
-	n, err := GetNetworkServer(db, gp.NetworkServerID)
+	n, err := GetNetworkServer(ctx, db, gp.NetworkServerID)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
 	}
@@ -203,8 +205,8 @@ func UpdateGatewayProfile(db sqlx.Ext, gp *GatewayProfile) error {
 }
 
 // DeleteGatewayProfile deletes the gateway-profile matching the given id.
-func DeleteGatewayProfile(db sqlx.Ext, id uuid.UUID) error {
-	n, err := GetNetworkServerForGatewayProfileID(db, id)
+func DeleteGatewayProfile(ctx context.Context, db sqlx.Ext, id uuid.UUID) error {
+	n, err := GetNetworkServerForGatewayProfileID(ctx, db, id)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
 	}
@@ -232,7 +234,7 @@ func DeleteGatewayProfile(db sqlx.Ext, id uuid.UUID) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
-	_, err = nsClient.DeleteGatewayProfile(context.Background(), &ns.DeleteGatewayProfileRequest{
+	_, err = nsClient.DeleteGatewayProfile(ctx, &ns.DeleteGatewayProfileRequest{
 		Id: id.Bytes(),
 	})
 	if err != nil {
@@ -243,7 +245,7 @@ func DeleteGatewayProfile(db sqlx.Ext, id uuid.UUID) error {
 }
 
 // GetGatewayProfileCount returns the total number of gateway-profiles.
-func GetGatewayProfileCount(db sqlx.Queryer) (int, error) {
+func GetGatewayProfileCount(ctx context.Context, db sqlx.Queryer) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, `
 		select
@@ -258,7 +260,7 @@ func GetGatewayProfileCount(db sqlx.Queryer) (int, error) {
 
 // GetGatewayProfileCountForNetworkServerID returns the total number of
 // gateway-profiles given a network-server ID.
-func GetGatewayProfileCountForNetworkServerID(db sqlx.Queryer, networkServerID int64) (int, error) {
+func GetGatewayProfileCountForNetworkServerID(ctx context.Context, db sqlx.Queryer, networkServerID int64) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, `
 		select
@@ -276,7 +278,7 @@ func GetGatewayProfileCountForNetworkServerID(db sqlx.Queryer, networkServerID i
 }
 
 // GetGatewayProfiles returns a slice of gateway-profiles.
-func GetGatewayProfiles(db sqlx.Queryer, limit, offset int) ([]GatewayProfileMeta, error) {
+func GetGatewayProfiles(ctx context.Context, db sqlx.Queryer, limit, offset int) ([]GatewayProfileMeta, error) {
 	var gps []GatewayProfileMeta
 	err := sqlx.Select(db, &gps, `
 		select
@@ -303,7 +305,7 @@ func GetGatewayProfiles(db sqlx.Queryer, limit, offset int) ([]GatewayProfileMet
 
 // GetGatewayProfilesForNetworkServerID returns a slice of gateway-profiles
 // for the given network-server ID.
-func GetGatewayProfilesForNetworkServerID(db sqlx.Queryer, networkServerID int64, limit, offset int) ([]GatewayProfileMeta, error) {
+func GetGatewayProfilesForNetworkServerID(ctx context.Context, db sqlx.Queryer, networkServerID int64, limit, offset int) ([]GatewayProfileMeta, error) {
 	var gps []GatewayProfileMeta
 	err := sqlx.Select(db, &gps, `
 		select

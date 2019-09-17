@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"context"
+
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -9,8 +11,8 @@ import (
 	"github.com/brocaar/loraserver/api/ns"
 )
 
-func getNSClientForServiceProfile(db sqlx.Queryer, id uuid.UUID) (ns.NetworkServerServiceClient, error) {
-	n, err := GetNetworkServerForServiceProfileID(db, id)
+func getNSClientForServiceProfile(ctx context.Context, db sqlx.Queryer, id uuid.UUID) (ns.NetworkServerServiceClient, error) {
+	n, err := GetNetworkServerForServiceProfileID(ctx, db, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "get network-server error")
 	}
@@ -18,8 +20,8 @@ func getNSClientForServiceProfile(db sqlx.Queryer, id uuid.UUID) (ns.NetworkServ
 	return getNSClient(n)
 }
 
-func getNSClientForMulticastGroup(db sqlx.Queryer, id uuid.UUID) (ns.NetworkServerServiceClient, error) {
-	n, err := GetNetworkServerForMulticastGroupID(db, id)
+func getNSClientForMulticastGroup(ctx context.Context, db sqlx.Queryer, id uuid.UUID) (ns.NetworkServerServiceClient, error) {
+	n, err := GetNetworkServerForMulticastGroupID(ctx, db, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "get network-server error")
 	}

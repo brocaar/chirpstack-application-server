@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -22,19 +23,19 @@ func (ts *StorageTestSuite) TestRemoteMulticastSetup() {
 		Name:   "test",
 		Server: "test:1234",
 	}
-	assert.NoError(CreateNetworkServer(ts.tx, &n))
+	assert.NoError(CreateNetworkServer(context.Background(), ts.tx, &n))
 
 	org := Organization{
 		Name: "test-org",
 	}
-	assert.NoError(CreateOrganization(ts.tx, &org))
+	assert.NoError(CreateOrganization(context.Background(), ts.tx, &org))
 
 	sp := ServiceProfile{
 		Name:            "test-sp",
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}
-	assert.NoError(CreateServiceProfile(ts.tx, &sp))
+	assert.NoError(CreateServiceProfile(context.Background(), ts.tx, &sp))
 	var spID uuid.UUID
 	copy(spID[:], sp.ServiceProfile.Id)
 
@@ -43,14 +44,14 @@ func (ts *StorageTestSuite) TestRemoteMulticastSetup() {
 		OrganizationID:   org.ID,
 		ServiceProfileID: spID,
 	}
-	assert.NoError(CreateApplication(ts.tx, &app))
+	assert.NoError(CreateApplication(context.Background(), ts.tx, &app))
 
 	dp := DeviceProfile{
 		Name:            "test-dp",
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}
-	assert.NoError(CreateDeviceProfile(ts.tx, &dp))
+	assert.NoError(CreateDeviceProfile(context.Background(), ts.tx, &dp))
 	var dpID uuid.UUID
 	copy(dpID[:], dp.DeviceProfile.Id)
 
@@ -61,7 +62,7 @@ func (ts *StorageTestSuite) TestRemoteMulticastSetup() {
 		Name:            "test-device",
 		Description:     "test device",
 	}
-	assert.NoError(CreateDevice(ts.tx, &d))
+	assert.NoError(CreateDevice(context.Background(), ts.tx, &d))
 
 	mg := MulticastGroup{
 		Name:             "test-mg",
@@ -69,7 +70,7 @@ func (ts *StorageTestSuite) TestRemoteMulticastSetup() {
 		MCKey:            lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 		ServiceProfileID: spID,
 	}
-	assert.NoError(CreateMulticastGroup(ts.tx, &mg))
+	assert.NoError(CreateMulticastGroup(context.Background(), ts.tx, &mg))
 	var mgID uuid.UUID
 	copy(mgID[:], mg.MulticastGroup.Id)
 
@@ -91,14 +92,14 @@ func (ts *StorageTestSuite) TestRemoteMulticastSetup() {
 			RetryCount:       1,
 			RetryInterval:    time.Minute,
 		}
-		assert.NoError(CreateRemoteMulticastSetup(ts.tx, &dmg))
+		assert.NoError(CreateRemoteMulticastSetup(context.Background(), ts.tx, &dmg))
 		dmg.CreatedAt = dmg.CreatedAt.UTC().Round(time.Millisecond)
 		dmg.UpdatedAt = dmg.UpdatedAt.UTC().Round(time.Millisecond)
 
 		t.Run("Get", func(t *testing.T) {
 			assert := require.New(t)
 
-			dmgGet, err := GetRemoteMulticastSetup(ts.tx, d.DevEUI, mgID, false)
+			dmgGet, err := GetRemoteMulticastSetup(context.Background(), ts.tx, d.DevEUI, mgID, false)
 			assert.NoError(err)
 			dmgGet.CreatedAt = dmgGet.CreatedAt.UTC().Round(time.Millisecond)
 			dmgGet.UpdatedAt = dmgGet.UpdatedAt.UTC().Round(time.Millisecond)
@@ -109,7 +110,7 @@ func (ts *StorageTestSuite) TestRemoteMulticastSetup() {
 		t.Run("GetPending", func(t *testing.T) {
 			assert := require.New(t)
 
-			items, err := GetPendingRemoteMulticastSetupItems(ts.tx, 10, 2)
+			items, err := GetPendingRemoteMulticastSetupItems(context.Background(), ts.tx, 10, 2)
 			assert.NoError(err)
 			assert.Len(items, 1)
 
@@ -118,7 +119,7 @@ func (ts *StorageTestSuite) TestRemoteMulticastSetup() {
 			newTX, err := DB().Beginx()
 			assert.NoError(err)
 
-			items, err = GetPendingRemoteMulticastSetupItems(newTX, 10, 2)
+			items, err = GetPendingRemoteMulticastSetupItems(context.Background(), newTX, 10, 2)
 			assert.NoError(err)
 			assert.Len(items, 0)
 
@@ -138,10 +139,10 @@ func (ts *StorageTestSuite) TestRemoteMulticastSetup() {
 			dmg.StateProvisioned = true
 			dmg.RetryAfter = now
 			dmg.RetryInterval = time.Minute * 2
-			assert.NoError(UpdateRemoteMulticastSetup(ts.tx, &dmg))
+			assert.NoError(UpdateRemoteMulticastSetup(context.Background(), ts.tx, &dmg))
 			dmg.UpdatedAt = dmg.UpdatedAt.UTC().Round(time.Millisecond)
 
-			dmgGet, err := GetRemoteMulticastSetup(ts.tx, d.DevEUI, mgID, false)
+			dmgGet, err := GetRemoteMulticastSetup(context.Background(), ts.tx, d.DevEUI, mgID, false)
 			assert.NoError(err)
 			dmgGet.CreatedAt = dmgGet.CreatedAt.UTC().Round(time.Millisecond)
 			dmgGet.UpdatedAt = dmgGet.UpdatedAt.UTC().Round(time.Millisecond)
@@ -151,7 +152,7 @@ func (ts *StorageTestSuite) TestRemoteMulticastSetup() {
 			t.Run("GetPending", func(t *testing.T) {
 				assert := require.New(t)
 
-				items, err := GetPendingRemoteMulticastSetupItems(ts.tx, 10, 2)
+				items, err := GetPendingRemoteMulticastSetupItems(context.Background(), ts.tx, 10, 2)
 				assert.NoError(err)
 				assert.Len(items, 0)
 			})
@@ -160,8 +161,8 @@ func (ts *StorageTestSuite) TestRemoteMulticastSetup() {
 		t.Run("Delete", func(t *testing.T) {
 			assert := require.New(t)
 
-			assert.NoError(DeleteRemoteMulticastSetup(ts.tx, d.DevEUI, mgID))
-			_, err := GetRemoteMulticastSetup(ts.tx, d.DevEUI, mgID, false)
+			assert.NoError(DeleteRemoteMulticastSetup(context.Background(), ts.tx, d.DevEUI, mgID))
+			_, err := GetRemoteMulticastSetup(context.Background(), ts.tx, d.DevEUI, mgID, false)
 			assert.Equal(err, ErrDoesNotExist)
 		})
 	})

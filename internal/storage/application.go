@@ -1,13 +1,15 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 
 	"github.com/brocaar/lora-app-server/internal/codec"
+	"github.com/brocaar/lora-app-server/internal/logging"
+	uuid "github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	uuid "github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -41,7 +43,7 @@ func (a Application) Validate() error {
 }
 
 // CreateApplication creates the given Application.
-func CreateApplication(db sqlx.Queryer, item *Application) error {
+func CreateApplication(ctx context.Context, db sqlx.Queryer, item *Application) error {
 	if err := item.Validate(); err != nil {
 		return errors.Wrap(err, "validate error")
 	}
@@ -69,15 +71,16 @@ func CreateApplication(db sqlx.Queryer, item *Application) error {
 	}
 
 	log.WithFields(log.Fields{
-		"id":   item.ID,
-		"name": item.Name,
+		"id":     item.ID,
+		"name":   item.Name,
+		"ctx_id": ctx.Value(logging.ContextIDKey),
 	}).Info("application created")
 
 	return nil
 }
 
 // GetApplication returns the Application for the given id.
-func GetApplication(db sqlx.Queryer, id int64) (Application, error) {
+func GetApplication(ctx context.Context, db sqlx.Queryer, id int64) (Application, error) {
 	var app Application
 	err := sqlx.Get(db, &app, "select * from application where id = $1", id)
 	if err != nil {
@@ -88,7 +91,7 @@ func GetApplication(db sqlx.Queryer, id int64) (Application, error) {
 }
 
 // GetApplicationCount returns the total number of applications.
-func GetApplicationCount(db sqlx.Queryer, search string) (int, error) {
+func GetApplicationCount(ctx context.Context, db sqlx.Queryer, search string) (int, error) {
 	var count int
 	if search != "" {
 		search = "%" + search + "%"
@@ -113,7 +116,7 @@ func GetApplicationCount(db sqlx.Queryer, search string) (int, error) {
 // available for the given user.
 // When an organizationID is given, the results will be filtered by this
 // organization ID.
-func GetApplicationCountForUser(db sqlx.Queryer, username string, organizationID int64, search string) (int, error) {
+func GetApplicationCountForUser(ctx context.Context, db sqlx.Queryer, username string, organizationID int64, search string) (int, error) {
 	var count int
 	if search != "" {
 		search = "%" + search + "%"
@@ -147,7 +150,7 @@ func GetApplicationCountForUser(db sqlx.Queryer, username string, organizationID
 
 // GetApplicationCountForOrganizationID returns the total number of
 // applications for the given organization.
-func GetApplicationCountForOrganizationID(db sqlx.Queryer, organizationID int64, search string) (int, error) {
+func GetApplicationCountForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, search string) (int, error) {
 	var count int
 	if search != "" {
 		search = "%" + search + "%"
@@ -174,7 +177,7 @@ func GetApplicationCountForOrganizationID(db sqlx.Queryer, organizationID int64,
 
 // GetApplications returns a slice of applications, sorted by name and
 // respecting the given limit and offset.
-func GetApplications(db sqlx.Queryer, limit, offset int, search string) ([]ApplicationListItem, error) {
+func GetApplications(ctx context.Context, db sqlx.Queryer, limit, offset int, search string) ([]ApplicationListItem, error) {
 	var apps []ApplicationListItem
 	if search != "" {
 		search = "%" + search + "%"
@@ -206,7 +209,7 @@ func GetApplications(db sqlx.Queryer, limit, offset int, search string) ([]Appli
 
 // GetApplicationsForUser returns a slice of application of which the given
 // user is a member of.
-func GetApplicationsForUser(db sqlx.Queryer, username string, organizationID int64, limit, offset int, search string) ([]ApplicationListItem, error) {
+func GetApplicationsForUser(ctx context.Context, db sqlx.Queryer, username string, organizationID int64, limit, offset int, search string) ([]ApplicationListItem, error) {
 	var apps []ApplicationListItem
 	if search != "" {
 		search = "%" + search + "%"
@@ -246,7 +249,7 @@ func GetApplicationsForUser(db sqlx.Queryer, username string, organizationID int
 
 // GetApplicationsForOrganizationID returns a slice of applications for the given
 // organization.
-func GetApplicationsForOrganizationID(db sqlx.Queryer, organizationID int64, limit, offset int, search string) ([]ApplicationListItem, error) {
+func GetApplicationsForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, limit, offset int, search string) ([]ApplicationListItem, error) {
 	var apps []ApplicationListItem
 	if search != "" {
 		search = "%" + search + "%"
@@ -280,7 +283,7 @@ func GetApplicationsForOrganizationID(db sqlx.Queryer, organizationID int64, lim
 }
 
 // UpdateApplication updates the given Application.
-func UpdateApplication(db sqlx.Execer, item Application) error {
+func UpdateApplication(ctx context.Context, db sqlx.Execer, item Application) error {
 	if err := item.Validate(); err != nil {
 		return fmt.Errorf("validate application error: %s", err)
 	}
@@ -317,16 +320,17 @@ func UpdateApplication(db sqlx.Execer, item Application) error {
 	}
 
 	log.WithFields(log.Fields{
-		"id":   item.ID,
-		"name": item.Name,
+		"id":     item.ID,
+		"name":   item.Name,
+		"ctx_id": ctx.Value(logging.ContextIDKey),
 	}).Info("application updated")
 
 	return nil
 }
 
 // DeleteApplication deletes the Application matching the given ID.
-func DeleteApplication(db sqlx.Ext, id int64) error {
-	err := DeleteAllDevicesForApplicationID(db, id)
+func DeleteApplication(ctx context.Context, db sqlx.Ext, id int64) error {
+	err := DeleteAllDevicesForApplicationID(ctx, db, id)
 	if err != nil {
 		return errors.Wrap(err, "delete all nodes error")
 	}
@@ -344,7 +348,8 @@ func DeleteApplication(db sqlx.Ext, id int64) error {
 	}
 
 	log.WithFields(log.Fields{
-		"id": id,
+		"id":     id,
+		"ctx_id": ctx.Value(logging.ContextIDKey),
 	}).Info("application deleted")
 
 	return nil
@@ -352,7 +357,7 @@ func DeleteApplication(db sqlx.Ext, id int64) error {
 
 // DeleteAllApplicationsForOrganizationID deletes all applications
 // given an organization id.
-func DeleteAllApplicationsForOrganizationID(db sqlx.Ext, organizationID int64) error {
+func DeleteAllApplicationsForOrganizationID(ctx context.Context, db sqlx.Ext, organizationID int64) error {
 	var apps []Application
 	err := sqlx.Select(db, &apps, "select * from application where organization_id = $1", organizationID)
 	if err != nil {
@@ -360,7 +365,7 @@ func DeleteAllApplicationsForOrganizationID(db sqlx.Ext, organizationID int64) e
 	}
 
 	for _, app := range apps {
-		err = DeleteApplication(db, app.ID)
+		err = DeleteApplication(ctx, db, app.ID)
 		if err != nil {
 			return errors.Wrap(err, "delete application error")
 		}

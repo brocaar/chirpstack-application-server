@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -365,10 +366,10 @@ func (ts *StorageTestSuite) TestMetrics() {
 			test.MustFlushRedis(RedisPool())
 
 			for _, metrics := range tst.SaveMetrics {
-				assert.NoError(SaveMetricsForInterval(RedisPool(), tst.Interval, "metrics_test", metrics))
+				assert.NoError(SaveMetricsForInterval(context.Background(), RedisPool(), tst.Interval, "metrics_test", metrics))
 			}
 
-			metrics, err := GetMetrics(RedisPool(), tst.Interval, "metrics_test", tst.GetStart, tst.GetEnd)
+			metrics, err := GetMetrics(context.Background(), RedisPool(), tst.Interval, "metrics_test", tst.GetStart, tst.GetEnd)
 			assert.NoError(err)
 			assert.EqualValues(tst.GetMetrics, metrics)
 		})

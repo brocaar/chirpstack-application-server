@@ -2,6 +2,7 @@ package application
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -61,20 +62,20 @@ func (ts *ApplicationTestSuite) SetupSuite() {
 	org := storage.Organization{
 		Name: "test-org",
 	}
-	assert.NoError(storage.CreateOrganization(storage.DB(), &org))
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 
 	ns := storage.NetworkServer{
 		Name:   "test-ns",
 		Server: "test:1234",
 	}
-	assert.NoError(storage.CreateNetworkServer(storage.DB(), &ns))
+	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &ns))
 
 	sp := storage.ServiceProfile{
 		Name:            "test-sp",
 		OrganizationID:  org.ID,
 		NetworkServerID: ns.ID,
 	}
-	assert.NoError(storage.CreateServiceProfile(storage.DB(), &sp))
+	assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp))
 	spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
 	assert.NoError(err)
 
@@ -83,7 +84,7 @@ func (ts *ApplicationTestSuite) SetupSuite() {
 		Name:             "test-app",
 		ServiceProfileID: spID,
 	}
-	assert.NoError(storage.CreateApplication(storage.DB(), &app))
+	assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &app))
 
 	httpConfig := httpint.Config{
 		DataUpURL:               ts.httpServer.URL + "/rx",
@@ -96,7 +97,7 @@ func (ts *ApplicationTestSuite) SetupSuite() {
 	configJSON, err := json.Marshal(httpConfig)
 	assert.NoError(err)
 
-	assert.NoError(storage.CreateIntegration(storage.DB(), &storage.Integration{
+	assert.NoError(storage.CreateIntegration(context.Background(), storage.DB(), &storage.Integration{
 		ApplicationID: app.ID,
 		Kind:          integration.HTTP,
 		Settings:      configJSON,
@@ -110,7 +111,7 @@ func (ts *ApplicationTestSuite) TearDownSuite() {
 
 func (ts *ApplicationTestSuite) TestSendDataUp() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendDataUp(integration.DataUpPayload{
+	assert.NoError(ts.integration.SendDataUp(context.Background(), integration.DataUpPayload{
 		ApplicationID: 1,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
@@ -121,7 +122,7 @@ func (ts *ApplicationTestSuite) TestSendDataUp() {
 
 func (ts *ApplicationTestSuite) TestSendJoinNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendJoinNotification(integration.JoinNotification{
+	assert.NoError(ts.integration.SendJoinNotification(context.Background(), integration.JoinNotification{
 		ApplicationID: 1,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
@@ -132,7 +133,7 @@ func (ts *ApplicationTestSuite) TestSendJoinNotification() {
 
 func (ts *ApplicationTestSuite) TestSendACKNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendACKNotification(integration.ACKNotification{
+	assert.NoError(ts.integration.SendACKNotification(context.Background(), integration.ACKNotification{
 		ApplicationID: 1,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
@@ -143,7 +144,7 @@ func (ts *ApplicationTestSuite) TestSendACKNotification() {
 
 func (ts *ApplicationTestSuite) TestErrorNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendErrorNotification(integration.ErrorNotification{
+	assert.NoError(ts.integration.SendErrorNotification(context.Background(), integration.ErrorNotification{
 		ApplicationID: 1,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
@@ -154,7 +155,7 @@ func (ts *ApplicationTestSuite) TestErrorNotification() {
 
 func (ts *ApplicationTestSuite) TestStatusNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendStatusNotification(integration.StatusNotification{
+	assert.NoError(ts.integration.SendStatusNotification(context.Background(), integration.StatusNotification{
 		ApplicationID: 1,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
@@ -165,7 +166,7 @@ func (ts *ApplicationTestSuite) TestStatusNotification() {
 
 func (ts *ApplicationTestSuite) TestLocationNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendLocationNotification(integration.LocationNotification{
+	assert.NoError(ts.integration.SendLocationNotification(context.Background(), integration.LocationNotification{
 		ApplicationID: 1,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}))

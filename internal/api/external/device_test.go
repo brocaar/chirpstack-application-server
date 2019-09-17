@@ -51,20 +51,20 @@ func (ts *APITestSuite) TestDevice() {
 	org := storage.Organization{
 		Name: "test-org",
 	}
-	assert.NoError(storage.CreateOrganization(storage.DB(), &org))
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 
 	n := storage.NetworkServer{
 		Name:   "test-ns",
 		Server: "test-ns:1234",
 	}
-	assert.NoError(storage.CreateNetworkServer(storage.DB(), &n))
+	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &n))
 
 	sp := storage.ServiceProfile{
 		Name:            "test-sp",
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}
-	assert.NoError(storage.CreateServiceProfile(storage.DB(), &sp))
+	assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp))
 	spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
 	assert.NoError(err)
 
@@ -73,7 +73,7 @@ func (ts *APITestSuite) TestDevice() {
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}
-	assert.NoError(storage.CreateServiceProfile(storage.DB(), &sp2))
+	assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp2))
 	sp2ID, err := uuid.FromBytes(sp2.ServiceProfile.Id)
 	assert.NoError(err)
 
@@ -82,28 +82,28 @@ func (ts *APITestSuite) TestDevice() {
 		Name:             "test-app",
 		ServiceProfileID: spID,
 	}
-	assert.NoError(storage.CreateApplication(storage.DB(), &app))
+	assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &app))
 
 	app2 := storage.Application{
 		OrganizationID:   org.ID,
 		Name:             "test-app-2",
 		ServiceProfileID: spID,
 	}
-	assert.NoError(storage.CreateApplication(storage.DB(), &app2))
+	assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &app2))
 
 	app3 := storage.Application{
 		OrganizationID:   org.ID,
 		Name:             "test-app-3",
 		ServiceProfileID: sp2ID,
 	}
-	assert.NoError(storage.CreateApplication(storage.DB(), &app3))
+	assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &app3))
 
 	dp := storage.DeviceProfile{
 		Name:            "test-dp",
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}
-	assert.NoError(storage.CreateDeviceProfile(storage.DB(), &dp))
+	assert.NoError(storage.CreateDeviceProfile(context.Background(), storage.DB(), &dp))
 	dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
 	assert.NoError(err)
 
@@ -184,12 +184,12 @@ func (ts *APITestSuite) TestDevice() {
 				ten := float32(10)
 				eleven := 11
 
-				d, err := storage.GetDevice(storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
+				d, err := storage.GetDevice(context.Background(), storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
 				assert.NoError(err)
 
 				d.DeviceStatusBattery = &ten
 				d.DeviceStatusMargin = &eleven
-				assert.NoError(storage.UpdateDevice(storage.DB(), &d, true))
+				assert.NoError(storage.UpdateDevice(context.Background(), storage.DB(), &d, true))
 
 				t.Run("Get", func(t *testing.T) {
 					assert := require.New(t)
@@ -208,10 +208,10 @@ func (ts *APITestSuite) TestDevice() {
 
 				now := time.Now().Truncate(time.Millisecond)
 
-				d, err := storage.GetDevice(storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
+				d, err := storage.GetDevice(context.Background(), storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
 				assert.NoError(err)
 				d.LastSeenAt = &now
-				assert.NoError(storage.UpdateDevice(storage.DB(), &d, true))
+				assert.NoError(storage.UpdateDevice(context.Background(), storage.DB(), &d, true))
 
 				t.Run("Get", func(t *testing.T) {
 					d, err := api.Get(context.Background(), &pb.GetDeviceRequest{
@@ -229,12 +229,12 @@ func (ts *APITestSuite) TestDevice() {
 				long := 2.123
 				alt := 3.123
 
-				d, err := storage.GetDevice(storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
+				d, err := storage.GetDevice(context.Background(), storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, false, true)
 				assert.NoError(err)
 				d.Latitude = &lat
 				d.Longitude = &long
 				d.Altitude = &alt
-				assert.NoError(storage.UpdateDevice(storage.DB(), &d, true))
+				assert.NoError(storage.UpdateDevice(context.Background(), storage.DB(), &d, true))
 
 				t.Run("Get", func(t *testing.T) {
 					assert := require.New(t)
@@ -516,7 +516,7 @@ func (ts *APITestSuite) TestDevice() {
 				}, <-nsClient.ActivateDeviceChan)
 
 				// activation was stored
-				da, err := storage.GetLastDeviceActivationForDevEUI(storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
+				da, err := storage.GetLastDeviceActivationForDevEUI(context.Background(), storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
 				assert.NoError(err)
 				assert.Equal(lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}, da.AppSKey)
 				assert.Equal(lorawan.DevAddr{1, 2, 3, 4}, da.DevAddr)

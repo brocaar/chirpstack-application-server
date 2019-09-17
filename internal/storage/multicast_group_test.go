@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -23,33 +24,33 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 		Name:   "test",
 		Server: "test:1234",
 	}
-	assert.NoError(CreateNetworkServer(ts.Tx(), &n))
+	assert.NoError(CreateNetworkServer(context.Background(), ts.Tx(), &n))
 
 	org := Organization{
 		Name: "test-org-123",
 	}
-	assert.NoError(CreateOrganization(ts.Tx(), &org))
+	assert.NoError(CreateOrganization(context.Background(), ts.Tx(), &org))
 
 	sp := ServiceProfile{
 		Name:            "test-sp",
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}
-	assert.NoError(CreateServiceProfile(ts.Tx(), &sp))
+	assert.NoError(CreateServiceProfile(context.Background(), ts.Tx(), &sp))
 
 	app := Application{
 		Name:           "test-app",
 		OrganizationID: org.ID,
 	}
 	copy(app.ServiceProfileID[:], sp.ServiceProfile.Id)
-	assert.NoError(CreateApplication(ts.Tx(), &app))
+	assert.NoError(CreateApplication(context.Background(), ts.Tx(), &app))
 
 	dp := DeviceProfile{
 		Name:            "test-dp",
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}
-	assert.NoError(CreateDeviceProfile(ts.Tx(), &dp))
+	assert.NoError(CreateDeviceProfile(context.Background(), ts.Tx(), &dp))
 	var dpID uuid.UUID
 	copy(dpID[:], dp.DeviceProfile.Id)
 
@@ -72,7 +73,7 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 			},
 		}
 		copy(mg.ServiceProfileID[:], sp.ServiceProfile.Id)
-		assert.NoError(CreateMulticastGroup(ts.Tx(), &mg))
+		assert.NoError(CreateMulticastGroup(context.Background(), ts.Tx(), &mg))
 		mg.CreatedAt = mg.CreatedAt.Round(time.Second).UTC()
 		mg.UpdatedAt = mg.UpdatedAt.Round(time.Second).UTC()
 
@@ -87,7 +88,7 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 		t.Run("Get", func(t *testing.T) {
 			assert := require.New(t)
 
-			mgGet, err := GetMulticastGroup(ts.Tx(), mgID, false, false)
+			mgGet, err := GetMulticastGroup(context.Background(), ts.Tx(), mgID, false, false)
 			assert.NoError(err)
 
 			mgGet.CreatedAt = mgGet.CreatedAt.Round(time.Second).UTC()
@@ -117,14 +118,14 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 				ServiceProfileId: sp.ServiceProfile.Id,
 			}
 
-			assert.NoError(UpdateMulticastGroup(ts.Tx(), &mg))
+			assert.NoError(UpdateMulticastGroup(context.Background(), ts.Tx(), &mg))
 			mg.UpdatedAt = mg.UpdatedAt.Round(time.Second).UTC()
 
 			updateReq := <-nsClient.UpdateMulticastGroupChan
 			assert.Equal(mg.MulticastGroup, *updateReq.MulticastGroup)
 			nsClient.GetMulticastGroupResponse.MulticastGroup = updateReq.MulticastGroup
 
-			mgGet, err := GetMulticastGroup(ts.Tx(), mgID, false, false)
+			mgGet, err := GetMulticastGroup(context.Background(), ts.Tx(), mgID, false, false)
 			assert.NoError(err)
 
 			mgGet.CreatedAt = mgGet.CreatedAt.Round(time.Second).UTC()
@@ -135,7 +136,7 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 		t.Run("Add device", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetDeviceCountForMulticastGroup(ts.Tx(), mgID)
+			count, err := GetDeviceCountForMulticastGroup(context.Background(), ts.Tx(), mgID)
 			assert.NoError(err)
 			assert.Equal(0, count)
 
@@ -145,25 +146,25 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 				DeviceProfileID: dpID,
 				ApplicationID:   app.ID,
 			}
-			assert.NoError(CreateDevice(ts.Tx(), &d))
-			assert.NoError(AddDeviceToMulticastGroup(ts.Tx(), mgID, d.DevEUI))
+			assert.NoError(CreateDevice(context.Background(), ts.Tx(), &d))
+			assert.NoError(AddDeviceToMulticastGroup(context.Background(), ts.Tx(), mgID, d.DevEUI))
 
 			t.Run("List devices", func(t *testing.T) {
 				assert := require.New(t)
 
-				count, err := GetDeviceCountForMulticastGroup(ts.Tx(), mgID)
+				count, err := GetDeviceCountForMulticastGroup(context.Background(), ts.Tx(), mgID)
 				assert.NoError(err)
 				assert.Equal(1, count)
 
-				devices, err := GetDevicesForMulticastGroup(ts.Tx(), mgID, 10, 0)
+				devices, err := GetDevicesForMulticastGroup(context.Background(), ts.Tx(), mgID, 10, 0)
 				assert.NoError(err)
 				assert.Len(devices, 1)
 			})
 
 			t.Run("Remove device", func(t *testing.T) {
 				assert := require.New(t)
-				assert.NoError(RemoveDeviceFromMulticastGroup(ts.Tx(), mgID, d.DevEUI))
-				count, err := GetDeviceCountForMulticastGroup(ts.Tx(), mgID)
+				assert.NoError(RemoveDeviceFromMulticastGroup(context.Background(), ts.Tx(), mgID, d.DevEUI))
+				count, err := GetDeviceCountForMulticastGroup(context.Background(), ts.Tx(), mgID)
 				assert.NoError(err)
 				assert.Equal(0, count)
 			})
@@ -190,8 +191,8 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 			}
 
 			for i := range devices {
-				assert.NoError(CreateDevice(ts.Tx(), &devices[i]))
-				assert.NoError(AddDeviceToMulticastGroup(ts.Tx(), mgID, devices[i].DevEUI))
+				assert.NoError(CreateDevice(context.Background(), ts.Tx(), &devices[i]))
+				assert.NoError(AddDeviceToMulticastGroup(context.Background(), ts.Tx(), mgID, devices[i].DevEUI))
 			}
 
 			testTable := []struct {
@@ -306,11 +307,11 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 				t.Run(test.Name, func(t *testing.T) {
 					assert := require.New(t)
 
-					count, err := GetMulticastGroupCount(ts.Tx(), test.Filters)
+					count, err := GetMulticastGroupCount(context.Background(), ts.Tx(), test.Filters)
 					assert.NoError(err)
 					assert.Equal(len(test.Expected), count)
 
-					items, err := GetMulticastGroups(ts.Tx(), test.Filters)
+					items, err := GetMulticastGroups(context.Background(), ts.Tx(), test.Filters)
 					assert.NoError(err)
 					for i, item := range items {
 						assert.False(item.CreatedAt.IsZero())
@@ -326,14 +327,14 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 		t.Run("Delete", func(t *testing.T) {
 			assert := require.New(t)
 
-			assert.NoError(DeleteMulticastGroup(ts.Tx(), mgID))
+			assert.NoError(DeleteMulticastGroup(context.Background(), ts.Tx(), mgID))
 
 			delReq := <-nsClient.DeleteMulticastGroupChan
 			assert.Equal(ns.DeleteMulticastGroupRequest{
 				Id: mgID[:],
 			}, delReq)
 
-			assert.Error(DeleteMulticastGroup(ts.Tx(), mgID))
+			assert.Error(DeleteMulticastGroup(context.Background(), ts.Tx(), mgID))
 		})
 	})
 }

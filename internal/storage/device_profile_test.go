@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -48,7 +49,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 	org := Organization{
 		Name: "test-org-123",
 	}
-	assert.NoError(CreateOrganization(ts.Tx(), &org))
+	assert.NoError(CreateOrganization(context.Background(), ts.Tx(), &org))
 
 	u := User{
 		Username: "testuser",
@@ -56,15 +57,15 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 		IsActive: true,
 		Email:    "foo@bar.com",
 	}
-	uID, err := CreateUser(ts.Tx(), &u, "testpassword")
+	uID, err := CreateUser(context.Background(), ts.Tx(), &u, "testpassword")
 	assert.NoError(err)
-	assert.NoError(CreateOrganizationUser(ts.Tx(), org.ID, uID, false, false, false))
+	assert.NoError(CreateOrganizationUser(context.Background(), ts.Tx(), org.ID, uID, false, false, false))
 
 	n := NetworkServer{
 		Name:   "test-ns",
 		Server: "test-ns:1234",
 	}
-	assert.NoError(CreateNetworkServer(DB(), &n))
+	assert.NoError(CreateNetworkServer(context.Background(), DB(), &n))
 
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
@@ -98,7 +99,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 				Supports_32BitFCnt: true,
 			},
 		}
-		assert.NoError(CreateDeviceProfile(ts.Tx(), &dp))
+		assert.NoError(CreateDeviceProfile(context.Background(), ts.Tx(), &dp))
 
 		dp.CreatedAt = dp.CreatedAt.UTC().Truncate(time.Millisecond)
 		dp.UpdatedAt = dp.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -114,7 +115,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 		t.Run("Get", func(t *testing.T) {
 			assert := require.New(t)
 
-			dpGet, err := GetDeviceProfile(ts.Tx(), dpID, true, false)
+			dpGet, err := GetDeviceProfile(context.Background(), ts.Tx(), dpID, true, false)
 			assert.NoError(err)
 			dpGet.CreatedAt = dpGet.CreatedAt.UTC().Truncate(time.Millisecond)
 			dpGet.UpdatedAt = dpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -125,11 +126,11 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 		t.Run("GetDeviceProfiles", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetDeviceProfileCount(ts.Tx())
+			count, err := GetDeviceProfileCount(context.Background(), ts.Tx())
 			assert.NoError(err)
 			assert.Equal(1, count)
 
-			dps, err := GetDeviceProfiles(ts.Tx(), 10, 0)
+			dps, err := GetDeviceProfiles(context.Background(), ts.Tx(), 10, 0)
 			assert.NoError(err)
 			assert.Len(dps, 1)
 			assert.Equal(dp.Name, dps[0].Name)
@@ -141,19 +142,19 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 		t.Run("GetDeviceProfilesForOrganizationID", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetDeviceProfileCountForOrganizationID(ts.Tx(), org.ID)
+			count, err := GetDeviceProfileCountForOrganizationID(context.Background(), ts.Tx(), org.ID)
 			assert.NoError(err)
 			assert.Equal(1, count)
 
-			count, err = GetDeviceProfileCountForOrganizationID(ts.Tx(), org.ID+1)
+			count, err = GetDeviceProfileCountForOrganizationID(context.Background(), ts.Tx(), org.ID+1)
 			assert.NoError(err)
 			assert.Equal(0, count)
 
-			dps, err := GetDeviceProfilesForOrganizationID(ts.Tx(), org.ID, 10, 0)
+			dps, err := GetDeviceProfilesForOrganizationID(context.Background(), ts.Tx(), org.ID, 10, 0)
 			assert.NoError(err)
 			assert.Len(dps, 1)
 
-			dps, err = GetDeviceProfilesForOrganizationID(ts.Tx(), org.ID+1, 10, 0)
+			dps, err = GetDeviceProfilesForOrganizationID(context.Background(), ts.Tx(), org.ID+1, 10, 0)
 			assert.NoError(err)
 			assert.Len(dps, 0)
 		})
@@ -161,19 +162,19 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 		t.Run("GetDeviceProfilesForUser", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetDeviceProfileCountForUser(ts.Tx(), u.Username)
+			count, err := GetDeviceProfileCountForUser(context.Background(), ts.Tx(), u.Username)
 			assert.NoError(err)
 			assert.Equal(1, count)
 
-			count, err = GetDeviceProfileCountForUser(ts.Tx(), "fakeuser")
+			count, err = GetDeviceProfileCountForUser(context.Background(), ts.Tx(), "fakeuser")
 			assert.NoError(err)
 			assert.Equal(0, count)
 
-			dps, err := GetDeviceProfilesForUser(ts.Tx(), u.Username, 10, 0)
+			dps, err := GetDeviceProfilesForUser(context.Background(), ts.Tx(), u.Username, 10, 0)
 			assert.NoError(err)
 			assert.Len(dps, 1)
 
-			dps, err = GetDeviceProfilesForUser(ts.Tx(), "fakeuser", 10, 0)
+			dps, err = GetDeviceProfilesForUser(context.Background(), ts.Tx(), "fakeuser", 10, 0)
 			assert.NoError(err)
 			assert.Len(dps, 0)
 		})
@@ -185,14 +186,14 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 				Name:   "ns-server-2",
 				Server: "ns-server-2:1234",
 			}
-			assert.NoError(CreateNetworkServer(ts.Tx(), &n2))
+			assert.NoError(CreateNetworkServer(context.Background(), ts.Tx(), &n2))
 
 			sp1 := ServiceProfile{
 				Name:            "test-sp",
 				NetworkServerID: n.ID,
 				OrganizationID:  org.ID,
 			}
-			assert.NoError(CreateServiceProfile(ts.Tx(), &sp1))
+			assert.NoError(CreateServiceProfile(context.Background(), ts.Tx(), &sp1))
 			sp1ID, err := uuid.FromBytes(sp1.ServiceProfile.Id)
 			assert.NoError(err)
 
@@ -201,7 +202,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 				NetworkServerID: n2.ID,
 				OrganizationID:  org.ID,
 			}
-			assert.NoError(CreateServiceProfile(ts.Tx(), &sp2))
+			assert.NoError(CreateServiceProfile(context.Background(), ts.Tx(), &sp2))
 			sp2ID, err := uuid.FromBytes(sp2.ServiceProfile.Id)
 			assert.NoError(err)
 
@@ -211,7 +212,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 				OrganizationID:   org.ID,
 				ServiceProfileID: sp1ID,
 			}
-			assert.NoError(CreateApplication(ts.Tx(), &app1))
+			assert.NoError(CreateApplication(context.Background(), ts.Tx(), &app1))
 
 			app2 := Application{
 				Name:             "test-app-2",
@@ -219,25 +220,25 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 				OrganizationID:   org.ID,
 				ServiceProfileID: sp2ID,
 			}
-			assert.NoError(CreateApplication(ts.Tx(), &app2))
+			assert.NoError(CreateApplication(context.Background(), ts.Tx(), &app2))
 
 			t.Run("GetDeviceProfilesForApplicationID", func(t *testing.T) {
 				assert := require.New(t)
 
-				count, err := GetDeviceProfileCountForApplicationID(ts.Tx(), app1.ID)
+				count, err := GetDeviceProfileCountForApplicationID(context.Background(), ts.Tx(), app1.ID)
 				assert.NoError(err)
 				assert.Equal(1, count)
 
-				count, err = GetDeviceProfileCountForApplicationID(ts.Tx(), app2.ID)
+				count, err = GetDeviceProfileCountForApplicationID(context.Background(), ts.Tx(), app2.ID)
 				assert.NoError(err)
 				assert.Equal(0, count)
 
-				dps, err := GetDeviceProfilesForApplicationID(ts.Tx(), app1.ID, 10, 0)
+				dps, err := GetDeviceProfilesForApplicationID(context.Background(), ts.Tx(), app1.ID, 10, 0)
 				assert.NoError(err)
 				assert.Len(dps, 1)
 				assert.Equal(dpID, dps[0].DeviceProfileID)
 
-				dps, err = GetDeviceProfilesForApplicationID(ts.Tx(), app2.ID, 10, 0)
+				dps, err = GetDeviceProfilesForApplicationID(context.Background(), ts.Tx(), app2.ID, 10, 0)
 				assert.NoError(err)
 				assert.Len(dps, 0)
 			})
@@ -269,7 +270,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 				RfRegion:           string(backend.EU868),
 				Supports_32BitFCnt: true,
 			}
-			assert.NoError(UpdateDeviceProfile(ts.Tx(), &dp))
+			assert.NoError(UpdateDeviceProfile(context.Background(), ts.Tx(), &dp))
 			dp.UpdatedAt = dp.UpdatedAt.UTC().Truncate(time.Millisecond)
 
 			updateReq := <-nsClient.UpdateDeviceProfileChan
@@ -278,7 +279,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 			}
 
 			nsClient.GetDeviceProfileResponse.DeviceProfile = updateReq.DeviceProfile
-			dpGet, err := GetDeviceProfile(ts.Tx(), dpID, true, false)
+			dpGet, err := GetDeviceProfile(context.Background(), ts.Tx(), dpID, true, false)
 			assert.NoError(err)
 			dpGet.UpdatedAt = dpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
 			assert.Equal("updated-device-profile", dpGet.Name)
@@ -288,7 +289,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 		t.Run("Delete", func(t *testing.T) {
 			assert := require.New(t)
 
-			assert.NoError(DeleteDeviceProfile(ts.Tx(), dpID))
+			assert.NoError(DeleteDeviceProfile(context.Background(), ts.Tx(), dpID))
 			delReq := <-nsClient.DeleteDeviceProfileChan
 			assert.Equal(dp.DeviceProfile.Id, delReq.Id)
 		})

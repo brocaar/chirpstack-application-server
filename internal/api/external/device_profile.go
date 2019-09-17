@@ -78,7 +78,7 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 	// as this also performs a remote call to create the device-profile
 	// on the network-server, wrap it in a transaction
 	err := storage.Transaction(func(tx sqlx.Ext) error {
-		return storage.CreateDeviceProfile(tx, &dp)
+		return storage.CreateDeviceProfile(ctx, tx, &dp)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -107,7 +107,7 @@ func (a *DeviceProfileServiceAPI) Get(ctx context.Context, req *pb.GetDeviceProf
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	dp, err := storage.GetDeviceProfile(storage.DB(), dpID, false, false)
+	dp, err := storage.GetDeviceProfile(ctx, storage.DB(), dpID, false, false)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -178,7 +178,7 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 	// on the network-server, wrap it in a transaction.
 	// This also locks the local device-profile record in the database.
 	err = storage.Transaction(func(tx sqlx.Ext) error {
-		dp, err := storage.GetDeviceProfile(tx, dpID, true, false)
+		dp, err := storage.GetDeviceProfile(ctx, tx, dpID, true, false)
 		if err != nil {
 			return err
 		}
@@ -212,7 +212,7 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 			GeolocMinBufferSize: req.DeviceProfile.GeolocMinBufferSize,
 		}
 
-		return storage.UpdateDeviceProfile(tx, &dp)
+		return storage.UpdateDeviceProfile(ctx, tx, &dp)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -237,7 +237,7 @@ func (a *DeviceProfileServiceAPI) Delete(ctx context.Context, req *pb.DeleteDevi
 	// as this also performs a remote call to delete the device-profile
 	// on the network-server, wrap it in a transaction
 	err = storage.Transaction(func(tx sqlx.Ext) error {
-		return storage.DeleteDeviceProfile(tx, dpID)
+		return storage.DeleteDeviceProfile(ctx, tx, dpID)
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -276,43 +276,43 @@ func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDevicePr
 	var dps []storage.DeviceProfileMeta
 
 	if req.ApplicationId != 0 {
-		dps, err = storage.GetDeviceProfilesForApplicationID(storage.DB(), req.ApplicationId, int(req.Limit), int(req.Offset))
+		dps, err = storage.GetDeviceProfilesForApplicationID(ctx, storage.DB(), req.ApplicationId, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		count, err = storage.GetDeviceProfileCountForApplicationID(storage.DB(), req.ApplicationId)
+		count, err = storage.GetDeviceProfileCountForApplicationID(ctx, storage.DB(), req.ApplicationId)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 	} else if req.OrganizationId != 0 {
-		dps, err = storage.GetDeviceProfilesForOrganizationID(storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
+		dps, err = storage.GetDeviceProfilesForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		count, err = storage.GetDeviceProfileCountForOrganizationID(storage.DB(), req.OrganizationId)
+		count, err = storage.GetDeviceProfileCountForOrganizationID(ctx, storage.DB(), req.OrganizationId)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 	} else {
 		if isAdmin {
-			dps, err = storage.GetDeviceProfiles(storage.DB(), int(req.Limit), int(req.Offset))
+			dps, err = storage.GetDeviceProfiles(ctx, storage.DB(), int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 
-			count, err = storage.GetDeviceProfileCount(storage.DB())
+			count, err = storage.GetDeviceProfileCount(ctx, storage.DB())
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 		} else {
-			dps, err = storage.GetDeviceProfilesForUser(storage.DB(), username, int(req.Limit), int(req.Offset))
+			dps, err = storage.GetDeviceProfilesForUser(ctx, storage.DB(), username, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 
-			count, err = storage.GetDeviceProfileCountForUser(storage.DB(), username)
+			count, err = storage.GetDeviceProfileCountForUser(ctx, storage.DB(), username)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}

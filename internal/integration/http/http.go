@@ -3,6 +3,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/logging"
 )
 
 var headerNameValidator = regexp.MustCompile(`^[A-Za-z0-9-]+$`)
@@ -85,7 +87,7 @@ func (i *Integration) Close() error {
 }
 
 // SendDataUp sends a data-up payload.
-func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
+func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPayload) error {
 	if i.config.DataUpURL == "" {
 		return nil
 	}
@@ -93,6 +95,7 @@ func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 	log.WithFields(log.Fields{
 		"url":     i.config.DataUpURL,
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/http: publishing data-up payload")
 	if err := i.send(i.config.DataUpURL, pl); err != nil {
 		return errors.Wrap(err, "send error")
@@ -101,7 +104,7 @@ func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 }
 
 // SendJoinNotification sends a join notification.
-func (i *Integration) SendJoinNotification(pl integration.JoinNotification) error {
+func (i *Integration) SendJoinNotification(ctx context.Context, pl integration.JoinNotification) error {
 	if i.config.JoinNotificationURL == "" {
 		return nil
 	}
@@ -109,6 +112,7 @@ func (i *Integration) SendJoinNotification(pl integration.JoinNotification) erro
 	log.WithFields(log.Fields{
 		"url":     i.config.JoinNotificationURL,
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/http: publishing join notification")
 	if err := i.send(i.config.JoinNotificationURL, pl); err != nil {
 		return errors.Wrap(err, "send error")
@@ -117,7 +121,7 @@ func (i *Integration) SendJoinNotification(pl integration.JoinNotification) erro
 }
 
 // SendACKNotification sends an ACK notification.
-func (i *Integration) SendACKNotification(pl integration.ACKNotification) error {
+func (i *Integration) SendACKNotification(ctx context.Context, pl integration.ACKNotification) error {
 	if i.config.ACKNotificationURL == "" {
 		return nil
 	}
@@ -125,6 +129,7 @@ func (i *Integration) SendACKNotification(pl integration.ACKNotification) error 
 	log.WithFields(log.Fields{
 		"url":     i.config.ACKNotificationURL,
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/http: publishing ack notification")
 	if err := i.send(i.config.ACKNotificationURL, pl); err != nil {
 		return errors.Wrap(err, "send error")
@@ -133,7 +138,7 @@ func (i *Integration) SendACKNotification(pl integration.ACKNotification) error 
 }
 
 // SendErrorNotification sends an error notification.
-func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) error {
+func (i *Integration) SendErrorNotification(ctx context.Context, pl integration.ErrorNotification) error {
 	if i.config.ErrorNotificationURL == "" {
 		return nil
 	}
@@ -141,6 +146,7 @@ func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) er
 	log.WithFields(log.Fields{
 		"url":     i.config.ErrorNotificationURL,
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/http: publishing error notification")
 	if err := i.send(i.config.ErrorNotificationURL, pl); err != nil {
 		return errors.Wrap(err, "send error")
@@ -149,7 +155,7 @@ func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) er
 }
 
 // SendStatusNotification sends a status notification.
-func (i *Integration) SendStatusNotification(pl integration.StatusNotification) error {
+func (i *Integration) SendStatusNotification(ctx context.Context, pl integration.StatusNotification) error {
 	if i.config.StatusNotificationURL == "" {
 		return nil
 	}
@@ -157,6 +163,7 @@ func (i *Integration) SendStatusNotification(pl integration.StatusNotification) 
 	log.WithFields(log.Fields{
 		"url":     i.config.StatusNotificationURL,
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/http: publishing status notification")
 	if err := i.send(i.config.StatusNotificationURL, pl); err != nil {
 		return errors.Wrap(err, "send error")
@@ -165,7 +172,7 @@ func (i *Integration) SendStatusNotification(pl integration.StatusNotification) 
 }
 
 // SendLocationNotification sends a location notification.
-func (i *Integration) SendLocationNotification(pl integration.LocationNotification) error {
+func (i *Integration) SendLocationNotification(ctx context.Context, pl integration.LocationNotification) error {
 	if i.config.LocationNotificationURL == "" {
 		return nil
 	}
@@ -173,6 +180,7 @@ func (i *Integration) SendLocationNotification(pl integration.LocationNotificati
 	log.WithFields(log.Fields{
 		"url":     i.config.LocationNotificationURL,
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/http: publishing location notification")
 	if err := i.send(i.config.LocationNotificationURL, pl); err != nil {
 		return errors.Wrap(err, "send error")

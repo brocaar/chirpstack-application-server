@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -110,7 +111,7 @@ func (ts *HandlerTestSuite) TestUplink() {
 	reqPL := integration.DataUpPayload{
 		Data: []byte{1, 2, 3, 4},
 	}
-	assert.NoError(ts.integration.SendDataUp(reqPL))
+	assert.NoError(ts.integration.SendDataUp(context.Background(), reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/dataup", req.URL.Path)
@@ -128,7 +129,7 @@ func (ts *HandlerTestSuite) TestJoin() {
 	reqPL := integration.JoinNotification{
 		DevAddr: lorawan.DevAddr{1, 2, 3, 4},
 	}
-	assert.NoError(ts.integration.SendJoinNotification(reqPL))
+	assert.NoError(ts.integration.SendJoinNotification(context.Background(), reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/join", req.URL.Path)
@@ -147,7 +148,7 @@ func (ts *HandlerTestSuite) TestAck() {
 	reqPL := integration.ACKNotification{
 		DevEUI: lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.integration.SendACKNotification(reqPL))
+	assert.NoError(ts.integration.SendACKNotification(context.Background(), reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/ack", req.URL.Path)
@@ -166,7 +167,7 @@ func (ts *HandlerTestSuite) TestError() {
 	reqPL := integration.ErrorNotification{
 		Error: "boom!",
 	}
-	assert.NoError(ts.integration.SendErrorNotification(reqPL))
+	assert.NoError(ts.integration.SendErrorNotification(context.Background(), reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/error", req.URL.Path)
@@ -185,7 +186,7 @@ func (ts *HandlerTestSuite) TestStatus() {
 	reqPL := integration.StatusNotification{
 		Battery: 123,
 	}
-	assert.NoError(ts.integration.SendStatusNotification(reqPL))
+	assert.NoError(ts.integration.SendStatusNotification(context.Background(), reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/status", req.URL.Path)
@@ -208,7 +209,7 @@ func (ts *HandlerTestSuite) TestLocation() {
 			Altitude:  3.123,
 		},
 	}
-	assert.NoError(ts.integration.SendLocationNotification(reqPL))
+	assert.NoError(ts.integration.SendLocationNotification(context.Background(), reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/location", req.URL.Path)

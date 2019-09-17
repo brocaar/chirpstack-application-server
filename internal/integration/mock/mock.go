@@ -1,6 +1,10 @@
 package mock
 
-import "github.com/brocaar/lora-app-server/internal/integration"
+import (
+	"context"
+
+	"github.com/brocaar/lora-app-server/internal/integration"
+)
 
 // Integration implements a mock integration.
 type Integration struct {
@@ -32,25 +36,25 @@ func (i *Integration) Close() error {
 }
 
 // SendDataUp method.
-func (i *Integration) SendDataUp(payload integration.DataUpPayload) error {
+func (i *Integration) SendDataUp(ctx context.Context, payload integration.DataUpPayload) error {
 	i.SendDataUpChan <- payload
 	return nil
 }
 
 // SendJoinNotification Method.
-func (i *Integration) SendJoinNotification(payload integration.JoinNotification) error {
+func (i *Integration) SendJoinNotification(ctx context.Context, payload integration.JoinNotification) error {
 	i.SendJoinNotificationChan <- payload
 	return nil
 }
 
 // SendACKNotification method.
-func (i *Integration) SendACKNotification(payload integration.ACKNotification) error {
+func (i *Integration) SendACKNotification(ctx context.Context, payload integration.ACKNotification) error {
 	i.SendACKNotificationChan <- payload
 	return nil
 }
 
 // SendErrorNotification method.
-func (i *Integration) SendErrorNotification(payload integration.ErrorNotification) error {
+func (i *Integration) SendErrorNotification(ctx context.Context, payload integration.ErrorNotification) error {
 	i.SendErrorNotificationChan <- payload
 	return nil
 }
@@ -61,13 +65,13 @@ func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 }
 
 // SendStatusNotification method.
-func (i *Integration) SendStatusNotification(payload integration.StatusNotification) error {
+func (i *Integration) SendStatusNotification(ctx context.Context, payload integration.StatusNotification) error {
 	i.SendStatusNotificationChan <- payload
 	return nil
 }
 
 // SendLocationNotification method.
-func (i *Integration) SendLocationNotification(payload integration.LocationNotification) error {
+func (i *Integration) SendLocationNotification(ctx context.Context, payload integration.LocationNotification) error {
 	i.SendLocationNotificationChan <- payload
 	return nil
 }

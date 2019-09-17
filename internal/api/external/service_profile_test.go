@@ -29,12 +29,12 @@ func (ts *APITestSuite) TestServiceProfile() {
 		Name:   "test-ns",
 		Server: "test-ns:1234",
 	}
-	assert.NoError(storage.CreateNetworkServer(storage.DB(), &n))
+	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &n))
 
 	org := storage.Organization{
 		Name: "test-org",
 	}
-	assert.NoError(storage.CreateOrganization(storage.DB(), &org))
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
@@ -129,13 +129,13 @@ func (ts *APITestSuite) TestServiceProfile() {
 				assert := require.New(t)
 				validator.returnIsAdmin = false
 
-				userID, err := storage.CreateUser(storage.DB(), &storage.User{
+				userID, err := storage.CreateUser(context.Background(), storage.DB(), &storage.User{
 					Username: "testuser",
 					IsActive: true,
 					Email:    "foo@bar.com",
 				}, "testpassword")
 				assert.NoError(err)
-				assert.NoError(storage.CreateOrganizationUser(storage.DB(), org.ID, userID, false, false, false))
+				assert.NoError(storage.CreateOrganizationUser(context.Background(), storage.DB(), org.ID, userID, false, false, false))
 
 				t.Run("No filters", func(t *testing.T) {
 					assert := require.New(t)

@@ -10,6 +10,7 @@ import (
 	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/net/context"
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
@@ -39,20 +40,20 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(storage.DB(), &org), ShouldBeNil)
+		So(storage.CreateOrganization(context.Background(), storage.DB(), &org), ShouldBeNil)
 
 		n := storage.NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(storage.CreateNetworkServer(storage.DB(), &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(context.Background(), storage.DB(), &n), ShouldBeNil)
 
 		sp := storage.ServiceProfile{
 			Name:            "test-sp",
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 		}
-		So(storage.CreateServiceProfile(storage.DB(), &sp), ShouldBeNil)
+		So(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp), ShouldBeNil)
 		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
 		So(err, ShouldBeNil)
 
@@ -61,7 +62,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 		}
-		So(storage.CreateDeviceProfile(storage.DB(), &dp), ShouldBeNil)
+		So(storage.CreateDeviceProfile(context.Background(), storage.DB(), &dp), ShouldBeNil)
 		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
 		So(err, ShouldBeNil)
 
@@ -70,7 +71,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			Name:             "test-app",
 			ServiceProfileID: spID,
 		}
-		So(storage.CreateApplication(storage.DB(), &app), ShouldBeNil)
+		So(storage.CreateApplication(context.Background(), storage.DB(), &app), ShouldBeNil)
 
 		device := storage.Device{
 			ApplicationID:   app.ID,
@@ -88,14 +89,14 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 				},
 			},
 		}
-		So(storage.CreateDevice(storage.DB(), &device), ShouldBeNil)
+		So(storage.CreateDevice(context.Background(), storage.DB(), &device), ShouldBeNil)
 
 		da := storage.DeviceActivation{
 			DevEUI:  [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 			DevAddr: [4]byte{1, 2, 3, 4},
 			AppSKey: [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
 		}
-		So(storage.CreateDeviceActivation(storage.DB(), &da), ShouldBeNil)
+		So(storage.CreateDeviceActivation(context.Background(), storage.DB(), &da), ShouldBeNil)
 
 		b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 12, []byte{1, 2, 3, 4})
 		So(err, ShouldBeNil)
@@ -231,9 +232,9 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 					// update device-profile
 					dp.PayloadCodec = test.PayloadCodec
 					dp.PayloadEncoderScript = test.PayloadEncoderScript
-					So(storage.UpdateDeviceProfile(storage.DB(), &dp), ShouldBeNil)
+					So(storage.UpdateDeviceProfile(context.Background(), storage.DB(), &dp), ShouldBeNil)
 
-					err := handleDataDownPayload(test.Payload)
+					err := handleDataDownPayload(context.Background(), test.Payload)
 					if test.ExpectedError != nil {
 						So(err, ShouldNotBeNil)
 						So(err.Error(), ShouldEqual, test.ExpectedError.Error())

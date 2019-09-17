@@ -30,7 +30,7 @@ func (ts *APITestSuite) TestGatewayProfile() {
 		Name:   "test-ns",
 		Server: "test-ns:1234",
 	}
-	assert.NoError(storage.CreateNetworkServer(storage.DB(), &n))
+	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &n))
 
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)

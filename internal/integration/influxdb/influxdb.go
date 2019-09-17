@@ -3,6 +3,7 @@ package influxdb
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/logging"
 )
 
 var precisionValidator = regexp.MustCompile(`^(ns|u|ms|s|m|h)$`)
@@ -157,7 +159,7 @@ func (i *Integration) Close() error {
 }
 
 // SendDataUp stores the uplink data into InfluxDB.
-func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
+func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPayload) error {
 	if pl.Object == nil {
 		return nil
 	}
@@ -217,13 +219,14 @@ func (i *Integration) SendDataUp(pl integration.DataUpPayload) error {
 
 	log.WithFields(log.Fields{
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/influxdb: uplink measurements written")
 
 	return nil
 }
 
 // SendStatusNotification writes the device-status.
-func (i *Integration) SendStatusNotification(pl integration.StatusNotification) error {
+func (i *Integration) SendStatusNotification(ctx context.Context, pl integration.StatusNotification) error {
 
 	tags := map[string]string{
 		"application_name": pl.ApplicationName,
@@ -268,28 +271,29 @@ func (i *Integration) SendStatusNotification(pl integration.StatusNotification) 
 
 	log.WithFields(log.Fields{
 		"dev_eui": pl.DevEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/influxdb: status measurements written")
 
 	return nil
 }
 
 // SendJoinNotification is not implemented.
-func (i *Integration) SendJoinNotification(pl integration.JoinNotification) error {
+func (i *Integration) SendJoinNotification(ctx context.Context, pl integration.JoinNotification) error {
 	return nil
 }
 
 // SendACKNotification is not implemented.
-func (i *Integration) SendACKNotification(pl integration.ACKNotification) error {
+func (i *Integration) SendACKNotification(ctx context.Context, pl integration.ACKNotification) error {
 	return nil
 }
 
 // SendErrorNotification is not implemented.
-func (i *Integration) SendErrorNotification(pl integration.ErrorNotification) error {
+func (i *Integration) SendErrorNotification(ctx context.Context, pl integration.ErrorNotification) error {
 	return nil
 }
 
 // SendLocationNotification is not implemented.
-func (i *Integration) SendLocationNotification(pl integration.LocationNotification) error {
+func (i *Integration) SendLocationNotification(ctx context.Context, pl integration.LocationNotification) error {
 	return nil
 }
 

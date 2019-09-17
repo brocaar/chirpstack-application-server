@@ -44,7 +44,7 @@ func (a *MulticastGroupAPI) Create(ctx context.Context, req *pb.CreateMulticastG
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	sp, err := storage.GetServiceProfile(storage.DB(), spID, true) // local-only, as we only want to fetch the org. id
+	sp, err := storage.GetServiceProfile(ctx, storage.DB(), spID, true) // local-only, as we only want to fetch the org. id
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -85,7 +85,7 @@ func (a *MulticastGroupAPI) Create(ctx context.Context, req *pb.CreateMulticastG
 	}
 
 	if err = storage.Transaction(func(tx sqlx.Ext) error {
-		if err := storage.CreateMulticastGroup(tx, &mg); err != nil {
+		if err := storage.CreateMulticastGroup(ctx, tx, &mg); err != nil {
 			return helpers.ErrToRPCError(err)
 		}
 
@@ -114,7 +114,7 @@ func (a *MulticastGroupAPI) Get(ctx context.Context, req *pb.GetMulticastGroupRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	mg, err := storage.GetMulticastGroup(storage.DB(), mgID, false, false)
+	mg, err := storage.GetMulticastGroup(ctx, storage.DB(), mgID, false, false)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -169,7 +169,7 @@ func (a *MulticastGroupAPI) Update(ctx context.Context, req *pb.UpdateMulticastG
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	mg, err := storage.GetMulticastGroup(storage.DB(), mgID, false, false)
+	mg, err := storage.GetMulticastGroup(ctx, storage.DB(), mgID, false, false)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -203,7 +203,7 @@ func (a *MulticastGroupAPI) Update(ctx context.Context, req *pb.UpdateMulticastG
 	}
 
 	if err = storage.Transaction(func(tx sqlx.Ext) error {
-		if err := storage.UpdateMulticastGroup(tx, &mg); err != nil {
+		if err := storage.UpdateMulticastGroup(ctx, tx, &mg); err != nil {
 			return helpers.ErrToRPCError(err)
 		}
 
@@ -223,7 +223,7 @@ func (a *MulticastGroupAPI) Delete(ctx context.Context, req *pb.DeleteMulticastG
 	}
 
 	if err = storage.Transaction(func(tx sqlx.Ext) error {
-		if err := storage.DeleteMulticastGroup(tx, mgID); err != nil {
+		if err := storage.DeleteMulticastGroup(ctx, tx, mgID); err != nil {
 			return helpers.ErrToRPCError(err)
 		}
 		return nil
@@ -297,12 +297,12 @@ func (a *MulticastGroupAPI) List(ctx context.Context, req *pb.ListMulticastGroup
 		}
 	}
 
-	count, err := storage.GetMulticastGroupCount(storage.DB(), filters)
+	count, err := storage.GetMulticastGroupCount(ctx, storage.DB(), filters)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	items, err := storage.GetMulticastGroups(storage.DB(), filters)
+	items, err := storage.GetMulticastGroups(ctx, storage.DB(), filters)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -341,17 +341,17 @@ func (a *MulticastGroupAPI) AddDevice(ctx context.Context, req *pb.AddDeviceToMu
 	}
 
 	// validate that the device is under the same service-profile as the multicast-group
-	dev, err := storage.GetDevice(storage.DB(), devEUI, false, true)
+	dev, err := storage.GetDevice(ctx, storage.DB(), devEUI, false, true)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	app, err := storage.GetApplication(storage.DB(), dev.ApplicationID)
+	app, err := storage.GetApplication(ctx, storage.DB(), dev.ApplicationID)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	mg, err := storage.GetMulticastGroup(storage.DB(), mgID, false, true)
+	mg, err := storage.GetMulticastGroup(ctx, storage.DB(), mgID, false, true)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -361,7 +361,7 @@ func (a *MulticastGroupAPI) AddDevice(ctx context.Context, req *pb.AddDeviceToMu
 	}
 
 	if err = storage.Transaction(func(tx sqlx.Ext) error {
-		if err := storage.AddDeviceToMulticastGroup(tx, mgID, devEUI); err != nil {
+		if err := storage.AddDeviceToMulticastGroup(ctx, tx, mgID, devEUI); err != nil {
 			return helpers.ErrToRPCError(err)
 		}
 		return nil
@@ -390,7 +390,7 @@ func (a *MulticastGroupAPI) RemoveDevice(ctx context.Context, req *pb.RemoveDevi
 	}
 
 	if err = storage.Transaction(func(tx sqlx.Ext) error {
-		if err := storage.RemoveDeviceFromMulticastGroup(tx, mgID, devEUI); err != nil {
+		if err := storage.RemoveDeviceFromMulticastGroup(ctx, tx, mgID, devEUI); err != nil {
 			return helpers.ErrToRPCError(err)
 		}
 		return nil
@@ -425,7 +425,7 @@ func (a *MulticastGroupAPI) Enqueue(ctx context.Context, req *pb.EnqueueMulticas
 
 	if err = storage.Transaction(func(tx sqlx.Ext) error {
 		var err error
-		fCnt, err = multicast.Enqueue(tx, mgID, uint8(req.MulticastQueueItem.FPort), req.MulticastQueueItem.Data)
+		fCnt, err = multicast.Enqueue(ctx, tx, mgID, uint8(req.MulticastQueueItem.FPort), req.MulticastQueueItem.Data)
 		if err != nil {
 			return grpc.Errorf(codes.Internal, "enqueue multicast-group queue-item error: %s", err)
 		}
@@ -452,7 +452,7 @@ func (a *MulticastGroupAPI) FlushQueue(ctx context.Context, req *pb.FlushMultica
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServerForMulticastGroupID(storage.DB(), mgID)
+	n, err := storage.GetNetworkServerForMulticastGroupID(ctx, storage.DB(), mgID)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -484,7 +484,7 @@ func (a *MulticastGroupAPI) ListQueue(ctx context.Context, req *pb.ListMulticast
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	queueItems, err := multicast.ListQueue(storage.DB(), mgID)
+	queueItems, err := multicast.ListQueue(ctx, storage.DB(), mgID)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}

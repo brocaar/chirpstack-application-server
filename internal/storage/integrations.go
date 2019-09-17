@@ -1,10 +1,12 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"time"
 
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
@@ -22,7 +24,7 @@ type Integration struct {
 }
 
 // CreateIntegration creates the given Integration.
-func CreateIntegration(db sqlx.Queryer, i *Integration) error {
+func CreateIntegration(ctx context.Context, db sqlx.Queryer, i *Integration) error {
 	now := time.Now()
 	err := sqlx.Get(db, &i.ID, `
 		insert into integration (
@@ -58,12 +60,13 @@ func CreateIntegration(db sqlx.Queryer, i *Integration) error {
 		"id":             i.ID,
 		"kind":           i.Kind,
 		"application_id": i.ApplicationID,
+		"ctx_id":         ctx.Value(logging.ContextIDKey),
 	}).Info("integration created")
 	return nil
 }
 
 // GetIntegration returns the Integration for the given id.
-func GetIntegration(db sqlx.Queryer, id int64) (Integration, error) {
+func GetIntegration(ctx context.Context, db sqlx.Queryer, id int64) (Integration, error) {
 	var i Integration
 	err := sqlx.Get(db, &i, "select * from integration where id = $1", id)
 	if err != nil {
@@ -77,7 +80,7 @@ func GetIntegration(db sqlx.Queryer, id int64) (Integration, error) {
 
 // GetIntegrationByApplicationID returns the Integration for the given
 // application id and kind.
-func GetIntegrationByApplicationID(db sqlx.Queryer, applicationID int64, kind string) (Integration, error) {
+func GetIntegrationByApplicationID(ctx context.Context, db sqlx.Queryer, applicationID int64, kind string) (Integration, error) {
 	var i Integration
 	err := sqlx.Get(db, &i, "select * from integration where application_id = $1 and kind = $2", applicationID, kind)
 	if err != nil {
@@ -91,7 +94,7 @@ func GetIntegrationByApplicationID(db sqlx.Queryer, applicationID int64, kind st
 
 // GetIntegrationsForApplicationID returns the integrations for the given
 // application id.
-func GetIntegrationsForApplicationID(db sqlx.Queryer, applicationID int64) ([]Integration, error) {
+func GetIntegrationsForApplicationID(ctx context.Context, db sqlx.Queryer, applicationID int64) ([]Integration, error) {
 	var is []Integration
 	err := sqlx.Select(db, &is, `
 		select *
@@ -107,7 +110,7 @@ func GetIntegrationsForApplicationID(db sqlx.Queryer, applicationID int64) ([]In
 }
 
 // UpdateIntegration updates the given Integration.
-func UpdateIntegration(db sqlx.Execer, i *Integration) error {
+func UpdateIntegration(ctx context.Context, db sqlx.Execer, i *Integration) error {
 	now := time.Now()
 	res, err := db.Exec(`
 		update integration
@@ -152,12 +155,13 @@ func UpdateIntegration(db sqlx.Execer, i *Integration) error {
 		"id":             i.ID,
 		"kind":           i.Kind,
 		"application_id": i.ApplicationID,
+		"ctx_id":         ctx.Value(logging.ContextIDKey),
 	}).Info("integration updated")
 	return nil
 }
 
 // DeleteIntegration deletes the integration matching the given id.
-func DeleteIntegration(db sqlx.Execer, id int64) error {
+func DeleteIntegration(ctx context.Context, db sqlx.Execer, id int64) error {
 	res, err := db.Exec("delete from integration where id = $1", id)
 	if err != nil {
 		return errors.Wrap(err, "delete error")
@@ -170,6 +174,9 @@ func DeleteIntegration(db sqlx.Execer, id int64) error {
 		return ErrDoesNotExist
 	}
 
-	log.WithField("id", id).Info("integration deleted")
+	log.WithFields(log.Fields{
+		"id":     id,
+		"ctx_id": ctx.Value(logging.ContextIDKey),
+	}).Info("integration deleted")
 	return nil
 }

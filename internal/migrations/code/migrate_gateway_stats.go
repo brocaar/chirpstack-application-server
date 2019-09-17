@@ -42,12 +42,12 @@ func MigrateGatewayStats(db sqlx.Ext) error {
 }
 
 func migrateGatewayStatsForGatewayID(db sqlx.Ext, gatewayID lorawan.EUI64) error {
-	gw, err := storage.GetGateway(db, gatewayID, true)
+	gw, err := storage.GetGateway(context.Background(), db, gatewayID, true)
 	if err != nil {
 		return errors.Wrap(err, "get gateway error")
 	}
 
-	n, err := storage.GetNetworkServer(db, gw.NetworkServerID)
+	n, err := storage.GetNetworkServer(context.Background(), db, gw.NetworkServerID)
 	if err != nil {
 		return errors.Wrap(err, "get network-server error")
 	}
@@ -70,7 +70,7 @@ func migrateGatewayStatsForGatewayID(db sqlx.Ext, gatewayID lorawan.EUI64) error
 		gw.Altitude = nsGw.Gateway.Location.Altitude
 	}
 
-	if err := storage.UpdateGateway(db, &gw); err != nil {
+	if err := storage.UpdateGateway(context.Background(), db, &gw); err != nil {
 		return errors.Wrap(err, "update gateway error")
 	}
 
@@ -120,7 +120,7 @@ func migrateGatewayStatsForGatewayIDInterval(nsClient ns.NetworkServerServiceCli
 			return err
 		}
 
-		err = storage.SaveMetricsForInterval(storage.RedisPool(), storage.AggregationInterval(interval.String()), fmt.Sprintf("gw:%s", gatewayID), storage.MetricsRecord{
+		err = storage.SaveMetricsForInterval(context.Background(), storage.RedisPool(), storage.AggregationInterval(interval.String()), fmt.Sprintf("gw:%s", gatewayID), storage.MetricsRecord{
 			Time: ts,
 			Metrics: map[string]float64{
 				"rx_count":    float64(m.RxPacketsReceived),

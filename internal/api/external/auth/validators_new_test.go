@@ -6,6 +6,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/net/context"
 
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
@@ -41,7 +42,7 @@ func (ts *ValidatorTestSuite) SetupTest() {
 		{Name: "test-ns-2", Server: "test-ns-2:1234"},
 	}
 	for i := range ts.networkServers {
-		assert.NoError(storage.CreateNetworkServer(storage.DB(), &ts.networkServers[i]))
+		assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &ts.networkServers[i]))
 	}
 
 	ts.organizations = []storage.Organization{
@@ -49,7 +50,7 @@ func (ts *ValidatorTestSuite) SetupTest() {
 		{Name: "organization-2", CanHaveGateways: false},
 	}
 	for i := range ts.organizations {
-		assert.NoError(storage.CreateOrganization(storage.DB(), &ts.organizations[i]))
+		assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &ts.organizations[i]))
 	}
 }
 
@@ -61,7 +62,7 @@ func (ts *ValidatorTestSuite) CreateUser(username string, isActive, isAdmin bool
 		Email:    username + "@example.com",
 	}
 
-	return storage.CreateUser(storage.DB(), &u, "v3rys3cr3t!")
+	return storage.CreateUser(context.Background(), storage.DB(), &u, "v3rys3cr3t!")
 }
 
 func (ts *ValidatorTestSuite) RunTests(t *testing.T, tests []validatorTest) {
@@ -118,7 +119,7 @@ func (ts *ValidatorTestSuite) TestGateway() {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
 
-		err = storage.CreateOrganizationUser(storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
+		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
 	}
 
@@ -190,7 +191,7 @@ func (ts *ValidatorTestSuite) TestGateway() {
 			{MAC: lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1}, Name: "gateway1", OrganizationID: ts.organizations[0].ID, NetworkServerID: ts.networkServers[0].ID},
 		}
 		for i := range gateways {
-			assert.NoError(storage.CreateGateway(storage.DB(), &gateways[i]))
+			assert.NoError(storage.CreateGateway(context.Background(), storage.DB(), &gateways[i]))
 		}
 
 		tests := []validatorTest{
@@ -276,7 +277,7 @@ func (ts *ValidatorTestSuite) TestApplication() {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
 
-		err = storage.CreateOrganizationUser(storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
+		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
 	}
 
@@ -285,7 +286,7 @@ func (ts *ValidatorTestSuite) TestApplication() {
 		{Name: "test-sp-1", NetworkServerID: ts.networkServers[0].ID, OrganizationID: ts.organizations[0].ID},
 	}
 	for i := range serviceProfiles {
-		assert.NoError(storage.CreateServiceProfile(storage.DB(), &serviceProfiles[i]))
+		assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &serviceProfiles[i]))
 		id, _ := uuid.FromBytes(serviceProfiles[i].ServiceProfile.Id)
 		serviceProfileIDs = append(serviceProfileIDs, id)
 	}
@@ -344,7 +345,7 @@ func (ts *ValidatorTestSuite) TestApplication() {
 			{OrganizationID: ts.organizations[0].ID, Name: "application-1", ServiceProfileID: serviceProfileIDs[0]},
 		}
 		for i := range applications {
-			assert.NoError(storage.CreateApplication(storage.DB(), &applications[i]))
+			assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &applications[i]))
 		}
 
 		tests := []validatorTest{
@@ -424,7 +425,7 @@ func (ts *ValidatorTestSuite) TestDevice() {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
 
-		err = storage.CreateOrganizationUser(storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
+		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
 	}
 
@@ -433,7 +434,7 @@ func (ts *ValidatorTestSuite) TestDevice() {
 		{Name: "test-sp-1", NetworkServerID: ts.networkServers[0].ID, OrganizationID: ts.organizations[0].ID},
 	}
 	for i := range serviceProfiles {
-		assert.NoError(storage.CreateServiceProfile(storage.DB(), &serviceProfiles[i]))
+		assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &serviceProfiles[i]))
 		id, _ := uuid.FromBytes(serviceProfiles[i].ServiceProfile.Id)
 		serviceProfileIDs = append(serviceProfileIDs, id)
 	}
@@ -442,7 +443,7 @@ func (ts *ValidatorTestSuite) TestDevice() {
 		{OrganizationID: ts.organizations[0].ID, Name: "application-1", ServiceProfileID: serviceProfileIDs[0]},
 	}
 	for i := range applications {
-		assert.NoError(storage.CreateApplication(storage.DB(), &applications[i]))
+		assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &applications[i]))
 	}
 
 	deviceProfiles := []storage.DeviceProfile{
@@ -450,7 +451,7 @@ func (ts *ValidatorTestSuite) TestDevice() {
 	}
 	var deviceProfilesIDs []uuid.UUID
 	for i := range deviceProfiles {
-		assert.NoError(storage.CreateDeviceProfile(storage.DB(), &deviceProfiles[i]))
+		assert.NoError(storage.CreateDeviceProfile(context.Background(), storage.DB(), &deviceProfiles[i]))
 		dpID, _ := uuid.FromBytes(deviceProfiles[i].DeviceProfile.Id)
 		deviceProfilesIDs = append(deviceProfilesIDs, dpID)
 	}
@@ -459,7 +460,7 @@ func (ts *ValidatorTestSuite) TestDevice() {
 		{DevEUI: lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1}, Name: "test-1", ApplicationID: applications[0].ID, DeviceProfileID: deviceProfilesIDs[0]},
 	}
 	for i := range devices {
-		assert.NoError(storage.CreateDevice(storage.DB(), &devices[i]))
+		assert.NoError(storage.CreateDevice(context.Background(), storage.DB(), &devices[i]))
 	}
 
 	ts.T().Run("DevicesAccess", func(t *testing.T) {
@@ -614,7 +615,7 @@ func (ts *ValidatorTestSuite) TestDeviceProfile() {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
 
-		err = storage.CreateOrganizationUser(storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
+		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
 	}
 
@@ -623,7 +624,7 @@ func (ts *ValidatorTestSuite) TestDeviceProfile() {
 		{Name: "test-sp-1", NetworkServerID: ts.networkServers[0].ID, OrganizationID: ts.organizations[0].ID},
 	}
 	for i := range serviceProfiles {
-		assert.NoError(storage.CreateServiceProfile(storage.DB(), &serviceProfiles[i]))
+		assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &serviceProfiles[i]))
 		id, _ := uuid.FromBytes(serviceProfiles[i].ServiceProfile.Id)
 		serviceProfileIDs = append(serviceProfileIDs, id)
 	}
@@ -633,7 +634,7 @@ func (ts *ValidatorTestSuite) TestDeviceProfile() {
 		{OrganizationID: ts.organizations[1].ID, Name: "application-2", ServiceProfileID: serviceProfileIDs[0]},
 	}
 	for i := range applications {
-		assert.NoError(storage.CreateApplication(storage.DB(), &applications[i]))
+		assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &applications[i]))
 	}
 
 	deviceProfiles := []storage.DeviceProfile{
@@ -641,7 +642,7 @@ func (ts *ValidatorTestSuite) TestDeviceProfile() {
 	}
 	var deviceProfilesIDs []uuid.UUID
 	for i := range deviceProfiles {
-		assert.NoError(storage.CreateDeviceProfile(storage.DB(), &deviceProfiles[i]))
+		assert.NoError(storage.CreateDeviceProfile(context.Background(), storage.DB(), &deviceProfiles[i]))
 		dpID, _ := uuid.FromBytes(deviceProfiles[i].DeviceProfile.Id)
 		deviceProfilesIDs = append(deviceProfilesIDs, dpID)
 	}
@@ -791,7 +792,7 @@ func (ts *ValidatorTestSuite) TestNetworkServer() {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
 
-		err = storage.CreateOrganizationUser(storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
+		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
 	}
 
@@ -800,7 +801,7 @@ func (ts *ValidatorTestSuite) TestNetworkServer() {
 		{Name: "test-sp-1", NetworkServerID: ts.networkServers[0].ID, OrganizationID: ts.organizations[0].ID},
 	}
 	for i := range serviceProfiles {
-		assert.NoError(storage.CreateServiceProfile(storage.DB(), &serviceProfiles[i]))
+		assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &serviceProfiles[i]))
 		id, _ := uuid.FromBytes(serviceProfiles[i].ServiceProfile.Id)
 		serviceProfileIDs = append(serviceProfileIDs, id)
 	}

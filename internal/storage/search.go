@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"context"
+
 	"github.com/brocaar/lorawan"
 	"github.com/jmoiron/sqlx"
 )
@@ -21,7 +23,7 @@ type SearchResult struct {
 
 // GlobalSearch performs a search on organizations, applications, gateways
 // and devices.
-func GlobalSearch(db sqlx.Queryer, username string, globalAdmin bool, search string, limit, offset int) ([]SearchResult, error) {
+func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalAdmin bool, search string, limit, offset int) ([]SearchResult, error) {
 	var result []SearchResult
 	query := "%" + search + "%"
 

@@ -62,7 +62,7 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 		PayloadDecoderScript: req.Application.PayloadDecoderScript,
 	}
 
-	if err := storage.CreateApplication(storage.DB(), &app); err != nil {
+	if err := storage.CreateApplication(ctx, storage.DB(), &app); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
@@ -79,7 +79,7 @@ func (a *ApplicationAPI) Get(ctx context.Context, req *pb.GetApplicationRequest)
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplication(storage.DB(), req.Id)
+	app, err := storage.GetApplication(ctx, storage.DB(), req.Id)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -111,7 +111,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	app, err := storage.GetApplication(storage.DB(), req.Application.Id)
+	app, err := storage.GetApplication(ctx, storage.DB(), req.Application.Id)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -129,7 +129,7 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	app.PayloadEncoderScript = req.Application.PayloadEncoderScript
 	app.PayloadDecoderScript = req.Application.PayloadDecoderScript
 
-	err = storage.UpdateApplication(storage.DB(), app)
+	err = storage.UpdateApplication(ctx, storage.DB(), app)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -146,7 +146,7 @@ func (a *ApplicationAPI) Delete(ctx context.Context, req *pb.DeleteApplicationRe
 	}
 
 	err := storage.Transaction(func(tx sqlx.Ext) error {
-		err := storage.DeleteApplication(tx, req.Id)
+		err := storage.DeleteApplication(ctx, tx, req.Id)
 		if err != nil {
 			return helpers.ErrToRPCError(err)
 		}
@@ -182,40 +182,40 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 
 	if req.OrganizationId == 0 {
 		if isAdmin {
-			apps, err = storage.GetApplications(storage.DB(), int(req.Limit), int(req.Offset), req.Search)
+			apps, err = storage.GetApplications(ctx, storage.DB(), int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
-			count, err = storage.GetApplicationCount(storage.DB(), req.Search)
+			count, err = storage.GetApplicationCount(ctx, storage.DB(), req.Search)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 		} else {
-			apps, err = storage.GetApplicationsForUser(storage.DB(), username, 0, int(req.Limit), int(req.Offset), req.Search)
+			apps, err = storage.GetApplicationsForUser(ctx, storage.DB(), username, 0, int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForUser(storage.DB(), username, 0, req.Search)
+			count, err = storage.GetApplicationCountForUser(ctx, storage.DB(), username, 0, req.Search)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 		}
 	} else {
 		if isAdmin {
-			apps, err = storage.GetApplicationsForOrganizationID(storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset), req.Search)
+			apps, err = storage.GetApplicationsForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForOrganizationID(storage.DB(), req.OrganizationId, req.Search)
+			count, err = storage.GetApplicationCountForOrganizationID(ctx, storage.DB(), req.OrganizationId, req.Search)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 		} else {
-			apps, err = storage.GetApplicationsForUser(storage.DB(), username, req.OrganizationId, int(req.Limit), int(req.Offset), req.Search)
+			apps, err = storage.GetApplicationsForUser(ctx, storage.DB(), username, req.OrganizationId, int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
-			count, err = storage.GetApplicationCountForUser(storage.DB(), username, req.OrganizationId, req.Search)
+			count, err = storage.GetApplicationCountForUser(ctx, storage.DB(), username, req.OrganizationId, req.Search)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
@@ -281,7 +281,7 @@ func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.Creat
 		Kind:          integration.HTTP,
 		Settings:      confJSON,
 	}
-	if err = storage.CreateIntegration(storage.DB(), &integration); err != nil {
+	if err = storage.CreateIntegration(ctx, storage.DB(), &integration); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
@@ -296,7 +296,7 @@ func (a *ApplicationAPI) GetHTTPIntegration(ctx context.Context, in *pb.GetHTTPI
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(storage.DB(), in.ApplicationId, integration.HTTP)
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.HTTP)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -341,7 +341,7 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.Updat
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(storage.DB(), in.Integration.ApplicationId, integration.HTTP)
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.Integration.ApplicationId, integration.HTTP)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -370,7 +370,7 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.Updat
 	}
 	integration.Settings = confJSON
 
-	if err = storage.UpdateIntegration(storage.DB(), &integration); err != nil {
+	if err = storage.UpdateIntegration(ctx, storage.DB(), &integration); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
@@ -385,12 +385,12 @@ func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.Delet
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(storage.DB(), in.ApplicationId, integration.HTTP)
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.HTTP)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	if err = storage.DeleteIntegration(storage.DB(), integration.ID); err != nil {
+	if err = storage.DeleteIntegration(ctx, storage.DB(), integration.ID); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
@@ -431,7 +431,7 @@ func (a *ApplicationAPI) CreateInfluxDBIntegration(ctx context.Context, in *pb.C
 		Kind:          integration.InfluxDB,
 		Settings:      confJSON,
 	}
-	if err := storage.CreateIntegration(storage.DB(), &integration); err != nil {
+	if err := storage.CreateIntegration(ctx, storage.DB(), &integration); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
@@ -446,7 +446,7 @@ func (a *ApplicationAPI) GetInfluxDBIntegration(ctx context.Context, in *pb.GetI
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(storage.DB(), in.ApplicationId, integration.InfluxDB)
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.InfluxDB)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -483,7 +483,7 @@ func (a *ApplicationAPI) UpdateInfluxDBIntegration(ctx context.Context, in *pb.U
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(storage.DB(), in.Integration.ApplicationId, integration.InfluxDB)
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.Integration.ApplicationId, integration.InfluxDB)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -506,7 +506,7 @@ func (a *ApplicationAPI) UpdateInfluxDBIntegration(ctx context.Context, in *pb.U
 	}
 
 	integration.Settings = confJSON
-	if err = storage.UpdateIntegration(storage.DB(), &integration); err != nil {
+	if err = storage.UpdateIntegration(ctx, storage.DB(), &integration); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
@@ -521,12 +521,12 @@ func (a *ApplicationAPI) DeleteInfluxDBIntegration(ctx context.Context, in *pb.D
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(storage.DB(), in.ApplicationId, integration.InfluxDB)
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.InfluxDB)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	if err = storage.DeleteIntegration(storage.DB(), integration.ID); err != nil {
+	if err = storage.DeleteIntegration(ctx, storage.DB(), integration.ID); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
@@ -562,7 +562,7 @@ func (a *ApplicationAPI) CreateThingsBoardIntegration(ctx context.Context, in *p
 		Kind:          integration.ThingsBoard,
 		Settings:      confJSON,
 	}
-	if err := storage.CreateIntegration(storage.DB(), &integration); err != nil {
+	if err := storage.CreateIntegration(ctx, storage.DB(), &integration); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
@@ -577,7 +577,7 @@ func (a *ApplicationAPI) GetThingsBoardIntegration(ctx context.Context, in *pb.G
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(storage.DB(), in.ApplicationId, integration.ThingsBoard)
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.ThingsBoard)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -607,7 +607,7 @@ func (a *ApplicationAPI) UpdateThingsBoardIntegration(ctx context.Context, in *p
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(storage.DB(), in.Integration.ApplicationId, integration.ThingsBoard)
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.Integration.ApplicationId, integration.ThingsBoard)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -625,7 +625,7 @@ func (a *ApplicationAPI) UpdateThingsBoardIntegration(ctx context.Context, in *p
 	}
 
 	integration.Settings = confJSON
-	if err = storage.UpdateIntegration(storage.DB(), &integration); err != nil {
+	if err = storage.UpdateIntegration(ctx, storage.DB(), &integration); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
@@ -640,12 +640,12 @@ func (a *ApplicationAPI) DeleteThingsBoardIntegration(ctx context.Context, in *p
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integration, err := storage.GetIntegrationByApplicationID(storage.DB(), in.ApplicationId, integration.ThingsBoard)
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.ThingsBoard)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	if err = storage.DeleteIntegration(storage.DB(), integration.ID); err != nil {
+	if err = storage.DeleteIntegration(ctx, storage.DB(), integration.ID); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
@@ -660,7 +660,7 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	integrations, err := storage.GetIntegrationsForApplicationID(storage.DB(), in.ApplicationId)
+	integrations, err := storage.GetIntegrationsForApplicationID(ctx, storage.DB(), in.ApplicationId)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}

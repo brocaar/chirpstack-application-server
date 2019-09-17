@@ -2,6 +2,7 @@ package thingsboard
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -158,7 +159,7 @@ func (ts *IntegrationTestSuite) TestUplink() {
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.integration.SendDataUp(tst.Payload))
+			assert.NoError(ts.integration.SendDataUp(context.Background(), tst.Payload))
 
 			for _, _ = range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests
@@ -204,7 +205,7 @@ func (ts *IntegrationTestSuite) TestDeviceStatus() {
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.integration.SendStatusNotification(tst.Payload))
+			assert.NoError(ts.integration.SendStatusNotification(context.Background(), tst.Payload))
 
 			for _, _ = range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests
@@ -252,7 +253,7 @@ func (ts *IntegrationTestSuite) TestLocation() {
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.integration.SendLocationNotification(tst.Payload))
+			assert.NoError(ts.integration.SendLocationNotification(context.Background(), tst.Payload))
 
 			for _, _ = range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests

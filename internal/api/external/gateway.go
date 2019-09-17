@@ -98,7 +98,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 	}
 
 	err = storage.Transaction(func(tx sqlx.Ext) error {
-		err = storage.CreateGateway(tx, &storage.Gateway{
+		err = storage.CreateGateway(ctx, tx, &storage.Gateway{
 			MAC:             mac,
 			Name:            req.Gateway.Name,
 			Description:     req.Gateway.Description,
@@ -113,7 +113,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			return helpers.ErrToRPCError(err)
 		}
 
-		n, err := storage.GetNetworkServer(tx, req.Gateway.NetworkServerId)
+		n, err := storage.GetNetworkServer(ctx, tx, req.Gateway.NetworkServerId)
 		if err != nil {
 			return helpers.ErrToRPCError(err)
 		}
@@ -149,12 +149,12 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	gw, err := storage.GetGateway(storage.DB(), mac, false)
+	gw, err := storage.GetGateway(ctx, storage.DB(), mac, false)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	n, err := storage.GetNetworkServer(storage.DB(), gw.NetworkServerID)
+	n, err := storage.GetNetworkServer(ctx, storage.DB(), gw.NetworkServerID)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -257,12 +257,12 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 
 		if isAdmin {
 			// in case of admin user list all gateways
-			count, err = storage.GetGatewayCount(storage.DB(), req.Search)
+			count, err = storage.GetGatewayCount(ctx, storage.DB(), req.Search)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 
-			gws, err = storage.GetGateways(storage.DB(), int(req.Limit), int(req.Offset), req.Search)
+			gws, err = storage.GetGateways(ctx, storage.DB(), int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
@@ -272,21 +272,21 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
-			count, err = storage.GetGatewayCountForUser(storage.DB(), username, req.Search)
+			count, err = storage.GetGatewayCountForUser(ctx, storage.DB(), username, req.Search)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
-			gws, err = storage.GetGatewaysForUser(storage.DB(), username, int(req.Limit), int(req.Offset), req.Search)
+			gws, err = storage.GetGatewaysForUser(ctx, storage.DB(), username, int(req.Limit), int(req.Offset), req.Search)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 		}
 	} else {
-		count, err = storage.GetGatewayCountForOrganizationID(storage.DB(), req.OrganizationId, req.Search)
+		count, err = storage.GetGatewayCountForOrganizationID(ctx, storage.DB(), req.OrganizationId, req.Search)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
-		gws, err = storage.GetGatewaysForOrganizationID(storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset), req.Search)
+		gws, err = storage.GetGatewaysForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset), req.Search)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
@@ -359,7 +359,7 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 	}
 
 	err = storage.Transaction(func(tx sqlx.Ext) error {
-		gw, err := storage.GetGateway(tx, mac, true)
+		gw, err := storage.GetGateway(ctx, tx, mac, true)
 		if err != nil {
 			return helpers.ErrToRPCError(err)
 		}
@@ -371,7 +371,7 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		gw.Longitude = req.Gateway.Location.Longitude
 		gw.Altitude = req.Gateway.Location.Altitude
 
-		err = storage.UpdateGateway(tx, &gw)
+		err = storage.UpdateGateway(ctx, tx, &gw)
 		if err != nil {
 			return helpers.ErrToRPCError(err)
 		}
@@ -413,7 +413,7 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 			updateReq.Gateway.Boards = append(updateReq.Gateway.Boards, &gwBoard)
 		}
 
-		n, err := storage.GetNetworkServer(tx, gw.NetworkServerID)
+		n, err := storage.GetNetworkServer(ctx, tx, gw.NetworkServerID)
 		if err != nil {
 			return helpers.ErrToRPCError(err)
 		}
@@ -449,7 +449,7 @@ func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (
 	}
 
 	err = storage.Transaction(func(tx sqlx.Ext) error {
-		err = storage.DeleteGateway(tx, mac)
+		err = storage.DeleteGateway(ctx, tx, mac)
 		if err != nil {
 			return helpers.ErrToRPCError(err)
 		}
@@ -490,7 +490,7 @@ func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsReques
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad interval: %s", req.Interval)
 	}
 
-	metrics, err := storage.GetMetrics(storage.RedisPool(), storage.AggregationInterval(strings.ToUpper(req.Interval)), "gw:"+gatewayID.String(), start, end)
+	metrics, err := storage.GetMetrics(ctx, storage.RedisPool(), storage.AggregationInterval(strings.ToUpper(req.Interval)), "gw:"+gatewayID.String(), start, end)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -527,7 +527,7 @@ func (a *GatewayAPI) GetLastPing(ctx context.Context, req *pb.GetLastPingRequest
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	ping, pingRX, err := storage.GetLastGatewayPingAndRX(storage.DB(), mac)
+	ping, pingRX, err := storage.GetLastGatewayPingAndRX(ctx, storage.DB(), mac)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -570,7 +570,7 @@ func (a *GatewayAPI) StreamFrameLogs(req *pb.StreamGatewayFrameLogsRequest, srv 
 		return grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	n, err := storage.GetNetworkServerForGatewayMAC(storage.DB(), mac)
+	n, err := storage.GetNetworkServerForGatewayMAC(srv.Context(), storage.DB(), mac)
 	if err != nil {
 		return helpers.ErrToRPCError(err)
 	}

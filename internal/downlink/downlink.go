@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -13,6 +14,7 @@ import (
 	"github.com/brocaar/lora-app-server/internal/codec"
 	"github.com/brocaar/lora-app-server/internal/eventlog"
 	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
@@ -23,7 +25,16 @@ import (
 func HandleDataDownPayloads() {
 	for pl := range integration.Integration().DataDownChan() {
 		go func(pl integration.DataDownPayload) {
-			if err := handleDataDownPayload(pl); err != nil {
+			ctxID, err := uuid.NewV4()
+			if err != nil {
+				log.WithError(err).Error("new uuid error")
+				return
+			}
+
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, logging.ContextIDKey, ctxID)
+
+			if err := handleDataDownPayload(ctx, pl); err != nil {
 				log.WithFields(log.Fields{
 					"dev_eui":        pl.DevEUI,
 					"application_id": pl.ApplicationID,
@@ -33,11 +44,11 @@ func HandleDataDownPayloads() {
 	}
 }
 
-func handleDataDownPayload(pl integration.DataDownPayload) error {
+func handleDataDownPayload(ctx context.Context, pl integration.DataDownPayload) error {
 	return storage.Transaction(func(tx sqlx.Ext) error {
 		// lock the device so that a concurrent Enqueue action will block
 		// until this transaction has been completed
-		d, err := storage.GetDevice(tx, pl.DevEUI, true, true)
+		d, err := storage.GetDevice(ctx, tx, pl.DevEUI, true, true)
 		if err != nil {
 			return fmt.Errorf("get device error: %s", err)
 		}
@@ -53,12 +64,12 @@ func handleDataDownPayload(pl integration.DataDownPayload) error {
 		// if Object is set, try to encode it to bytes using the application codec
 		//if pl.Object != nil && string(pl.Object) != "null" {
 		if pl.Object != nil && string(pl.Object) != "null" {
-			app, err := storage.GetApplication(tx, d.ApplicationID)
+			app, err := storage.GetApplication(ctx, tx, d.ApplicationID)
 			if err != nil {
 				return errors.Wrap(err, "get application error")
 			}
 
-			dp, err := storage.GetDeviceProfile(storage.DB(), d.DeviceProfileID, false, true)
+			dp, err := storage.GetDeviceProfile(ctx, storage.DB(), d.DeviceProfileID, false, true)
 			if err != nil {
 				return errors.Wrap(err, "get device-profile error")
 			}
@@ -78,24 +89,24 @@ func handleDataDownPayload(pl integration.DataDownPayload) error {
 			// get the codec payload configured for the application
 			codecPL := codec.NewPayload(payloadCodec, pl.FPort, payloadEncoderScript, payloadDecoderScript)
 			if codecPL == nil {
-				logCodecError(app, d, errors.New("no or invalid codec configured for application"))
+				logCodecError(ctx, app, d, errors.New("no or invalid codec configured for application"))
 				return errors.New("no or invalid codec configured for application")
 			}
 
 			err = json.Unmarshal(pl.Object, &codecPL)
 			if err != nil {
-				logCodecError(app, d, err)
+				logCodecError(ctx, app, d, err)
 				return errors.Wrap(err, "unmarshal to codec payload error")
 			}
 
 			pl.Data, err = codecPL.EncodeToBytes()
 			if err != nil {
-				logCodecError(app, d, err)
+				logCodecError(ctx, app, d, err)
 				return errors.Wrap(err, "marshal codec payload to binary error")
 			}
 		}
 
-		if _, err := EnqueueDownlinkPayload(tx, pl.DevEUI, pl.Confirmed, pl.FPort, pl.Data); err != nil {
+		if _, err := EnqueueDownlinkPayload(ctx, tx, pl.DevEUI, pl.Confirmed, pl.FPort, pl.Data); err != nil {
 			return errors.Wrap(err, "enqueue downlink device-queue item error")
 		}
 
@@ -105,9 +116,9 @@ func handleDataDownPayload(pl integration.DataDownPayload) error {
 
 // EnqueueDownlinkPayload adds the downlink payload to the network-server
 // device-queue.
-func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, confirmed bool, fPort uint8, data []byte) (uint32, error) {
+func EnqueueDownlinkPayload(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI64, confirmed bool, fPort uint8, data []byte) (uint32, error) {
 	// get network-server and network-server api client
-	n, err := storage.GetNetworkServerForDevEUI(db, devEUI)
+	n, err := storage.GetNetworkServerForDevEUI(ctx, db, devEUI)
 	if err != nil {
 		return 0, errors.Wrap(err, "get network-server error")
 	}
@@ -125,7 +136,7 @@ func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, confirmed bool, f
 	}
 
 	// get current device-activation for AppSKey
-	da, err := storage.GetLastDeviceActivationForDevEUI(db, devEUI)
+	da, err := storage.GetLastDeviceActivationForDevEUI(ctx, db, devEUI)
 	if err != nil {
 		return 0, errors.Wrap(err, "get last device-activation error")
 	}
@@ -137,7 +148,7 @@ func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, confirmed bool, f
 	}
 
 	// enqueue device-queue item
-	_, err = nsClient.CreateDeviceQueueItem(context.Background(), &ns.CreateDeviceQueueItemRequest{
+	_, err = nsClient.CreateDeviceQueueItem(ctx, &ns.CreateDeviceQueueItemRequest{
 		Item: &ns.DeviceQueueItem{
 			DevAddr:    da.DevAddr[:],
 			DevEui:     devEUI[:],
@@ -160,7 +171,7 @@ func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, confirmed bool, f
 	return resp.FCnt, nil
 }
 
-func logCodecError(a storage.Application, d storage.Device, err error) {
+func logCodecError(ctx context.Context, a storage.Application, d storage.Device, err error) {
 	errNotification := integration.ErrorNotification{
 		ApplicationID:   a.ID,
 		ApplicationName: a.Name,
@@ -188,10 +199,10 @@ func logCodecError(a storage.Application, d storage.Device, err error) {
 		Type:    eventlog.Error,
 		Payload: errNotification,
 	}); err != nil {
-		log.WithError(err).Error("log event for device error")
+		log.WithError(err).WithField("ctx_id", ctx.Value(logging.ContextIDKey)).Error("log event for device error")
 	}
 
-	if err := integration.Integration().SendErrorNotification(errNotification); err != nil {
-		log.WithError(err).Error("send error notification to integration error")
+	if err := integration.Integration().SendErrorNotification(ctx, errNotification); err != nil {
+		log.WithError(err).WithField("ctx_id", ctx.Value(logging.ContextIDKey)).Error("send error notification to integration error")
 	}
 }

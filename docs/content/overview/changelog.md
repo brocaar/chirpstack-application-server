@@ -10,6 +10,17 @@ description: Lists the changes per LoRa App Server release, including steps how 
 
 # Changelog
 
+## v3.3.1
+
+### Improvements
+
+* Add RXInfo and TXInfo to join-notifications. ([#235](https://github.com/brocaar/lora-app-server/pull/347))
+
+### Bugfixes
+
+* Propagate gRPC errors to that the correct HTTP status is returned. ([#349](https://github.com/brocaar/lora-app-server/issues/349))
+* Fix not found UI error when device is inactive. ([#359](https://github.com/brocaar/lora-app-server/issues/359))
+
 ## v3.3.0
 
 ### Features

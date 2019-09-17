@@ -20,6 +20,7 @@ import moment from "moment";
 import TableCellLink from "../../components/TableCellLink";
 import DeviceQueueItemForm from "./DeviceQueueItemForm";
 import DeviceQueueStore from "../../stores/DeviceQueueStore";
+import DeviceStore from "../../stores/DeviceStore";
 
 
 class DetailsCard extends Component {
@@ -206,8 +207,42 @@ QueueCard = withRouter(QueueCard);
 
 
 class DeviceDetails extends Component {
-  render() {
+  constructor() {
+    super();
+    this.state = {
+      activated: false,
+    };
+  }
 
+  componentDidMount() {
+    this.setDeviceActivation();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.device !== this.props.device) {
+      this.setDeviceActivation();
+    }
+  }
+
+  setDeviceActivation = () => {
+    if (this.props.device === undefined) {
+      return;
+    }
+
+    DeviceStore.getActivation(this.props.device.device.devEUI, resp => {
+      if (resp === null) {
+        this.setState({
+          activated: false,
+        });
+      } else {
+        this.setState({
+          activated: true,
+        });
+      }
+    });
+  };
+
+  render() {
     return(
       <Grid container spacing={4}>
         <Grid item xs={6}>
@@ -216,12 +251,12 @@ class DeviceDetails extends Component {
         <Grid item xs={6}>
           <StatusCard device={this.props.device} />
         </Grid>
-        <Grid item xs={12}>
+        {this.state.activated && <Grid item xs={12}>
           <EnqueueCard />
-        </Grid>
-        <Grid item xs={12}>
+        </Grid>}
+        {this.state.activated &&<Grid item xs={12}>
           <QueueCard />
-        </Grid>
+        </Grid>}
       </Grid>
     );
   }

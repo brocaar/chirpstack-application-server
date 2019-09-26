@@ -277,7 +277,7 @@ class ListGateways extends Component {
       <Grid container spacing={4}>
         <TitleBar
           buttons={
-            <GatewayAdmin organizationID={this.props.match.organizationID}>
+            <GatewayAdmin organizationID={this.props.match.params.organizationID}>
               <TitleBarButton
                 key={1}
                 label="Create"

@@ -385,7 +385,7 @@ tls_key="{{ .JoinServer.TLSKey }}"
 
 # Key Encryption Key (KEK) configuration.
 #
-# The KEK meganism is used to encrypt the session-keys sent from the
+# The KEK mechanism is used to encrypt the session-keys sent from the
 # join-server to the network-server.
 #
 # The LoRa App Server join-server will use the NetID of the requesting

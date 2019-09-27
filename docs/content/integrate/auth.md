@@ -10,7 +10,7 @@ description: Information on API tokens for authentication and authorization.
 # Authentication / authorization
 
 Both the gRPC and the JSON REST interface are protected by an authentication
-and authorization meganism. For this [JSON web-tokens](https://jwt.io) are
+and authorization mechanism. For this [JSON web-tokens](https://jwt.io) are
 used, using the `--jwt-secret` / `JWT_SECRET` value for signing. Therefore
 it is important to choose an unique and strong secret.
 

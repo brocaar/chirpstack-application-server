@@ -37,6 +37,10 @@ the timezone for aggregation and metrics retention.
 In the gateway list page, it is now possible to show a map showing all the
 gateways and their states.
 
+### Improvements
+
+* Add PostgreSQL max open / idle connections settings. ([#360](https://github.com/brocaar/lora-app-server/pull/360)
+
 ### Upgrading
 
 This release requires LoRa Server v3.3.0 or later (which will forward the

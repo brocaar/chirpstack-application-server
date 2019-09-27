@@ -26,7 +26,7 @@ class DataTable extends Component {
         rows: false,
       },
     };
-
+    
     this.onChangePage = this.onChangePage.bind(this);
     this.onChangeRowsPerPage = this.onChangeRowsPerPage.bind(this);
   }
@@ -45,6 +45,7 @@ class DataTable extends Component {
 
   onChangePage(event, page) {
     this.props.getPage(this.state.rowsPerPage, (page) * this.state.rowsPerPage, (result) => {
+      result.result.sort(this.props.compareBy())
       this.setState({
         page: page,
         count: parseInt(result.totalCount, 10),
@@ -94,5 +95,10 @@ class DataTable extends Component {
     );
   }
 }
+
+// Set default props
+DataTable.defaultProps = {
+  compareBy: () => {},
+};
 
 export default withStyles(styles)(DataTable);

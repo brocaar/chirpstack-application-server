@@ -5,6 +5,7 @@ import { withStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
+import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Button from '@material-ui/core/Button';
 
 import moment from "moment";
@@ -30,14 +31,61 @@ const styles = {
   },
 };
 
+const headCells = [
+  {id:'lastSeenAt', label:'Last seen'},
+  {id:'name', label:'Device name'},
+  {id:'devEUI', label:'Device EUI'},
+  {id:'deviceStatusMargin', label:'Link margin'},
+  {id:'deviceStatusBatteryLevel', label:'Battery'} ]
 
 class ListDevices extends Component {
   constructor() {
     super();
     this.getPage = this.getPage.bind(this);
     this.getRow = this.getRow.bind(this);
+    this.state = {
+      compare: "",
+      sort: 'desc'
+    };
+  }
+  compareBy = () => {
+    let {compare} = this.state;
+    if (this.state.sort === 'desc'){
+      return function (a, b) {
+        if (a[compare] < b[compare]) return -1;
+        if (a[compare] > b[compare]) return 1;
+        return 0;
+      };
+    } else {
+      return function (a, b) {
+        if (a[compare] < b[compare]) return 1;
+        if (a[compare] > b[compare]) return -1;
+        return 0;
+      };
+    }
   }
 
+  toogleSort = () => {
+    const {sort} = this.state;
+    if (sort === 'desc') {
+      this.setState({
+        sort: 'asc'
+      })
+    }else {
+      this.setState({
+        sort: 'desc'
+      })
+    }
+  }
+  onClickHeader = (compare) => {
+    if (compare === this.state.compare) {
+      this.toogleSort();
+    }else {
+      this.setState({
+        compare
+      })
+    }
+  }
   getPage(limit, offset, callbackFunc) {
     DeviceStore.list({
       applicationID: this.props.match.params.applicationID,
@@ -79,6 +127,7 @@ class ListDevices extends Component {
   }
 
   render() {
+    const {compare, sort} = this.state
     return(
       <Grid container spacing={4}>
         <Admin organizationID={this.props.match.params.organizationID}>
@@ -93,15 +142,22 @@ class ListDevices extends Component {
           <DataTable
             header={
               <TableRow>
-                <TableCell>Last seen</TableCell>
-                <TableCell>Device name</TableCell>
-                <TableCell>Device EUI</TableCell>
-                <TableCell>Link margin</TableCell>
-                <TableCell>Battery</TableCell>
+              {headCells.map(headCell =>( 
+                  <TableCell 
+                    onClick={() => this.onClickHeader(headCell.id)}
+                    key={headCell.id}>
+                  <TableSortLabel 
+                    active={compare === headCell.id}
+                    direction={sort}>
+                      {headCell.label}
+                  </TableSortLabel>
+                </TableCell>
+                ))}
               </TableRow>
             }
             getPage={this.getPage}
             getRow={this.getRow}
+            compareBy={this.compareBy}
           />
         </Grid>
       </Grid>

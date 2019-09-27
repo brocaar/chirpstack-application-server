@@ -62,12 +62,8 @@ function CopyMenu(props) {
         onClose={handleClose}
         TransitionComponent={Fade}
       >
-        <Tooltip title="Copy without space">
-          <MenuItem onClick={copyToClipboard}>Clean</MenuItem>
-        </Tooltip>
-        <Tooltip title="Copy 0x*, format">
-          <MenuItem onClick={copyToClipboardHexArray}>Hex Array</MenuItem>
-        </Tooltip>
+        <MenuItem onClick={copyToClipboard}>Hex String</MenuItem>
+        <MenuItem onClick={copyToClipboardHexArray}>Hex Array</MenuItem>
       </Menu>
     </div>
   );

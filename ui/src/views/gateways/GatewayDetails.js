@@ -111,8 +111,8 @@ class GatewayDetails extends Component {
       position = [0,0];
     }
 
-    let lastseen = "";
-    if (this.props.lastSeenAt !== undefined) {
+    let lastseen = "Never";
+    if (this.props.lastSeenAt !== null) {
       lastseen = moment(this.props.lastSeenAt).fromNow();
     }
 

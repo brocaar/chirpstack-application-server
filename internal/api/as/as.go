@@ -355,7 +355,12 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 			row.Name = gw.Name
 		}
 
-		if rxInfo.Time != nil {
+		if fts := rxInfo.GetPlainFineTimestamp(); fts != nil {
+			row.FineTimestamp = fts.Time
+			ns64 := int64(fts.Time.Nanos)
+			ts := time.Unix(fts.Time.Seconds, ns64)
+			row.Time = &ts
+		} else if rxInfo.Time != nil {
 			ts, err := ptypes.Timestamp(rxInfo.Time)
 			if err != nil {
 				log.WithField("dev_eui", devEUI).WithError(err).Error("parse timestamp error")

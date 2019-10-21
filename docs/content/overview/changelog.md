@@ -40,6 +40,11 @@ gateways and their states.
 ### Improvements
 
 * Add PostgreSQL max open / idle connections settings. ([#360](https://github.com/brocaar/lora-app-server/pull/360)
+* Cleanup old freegeoip.net code for gateway location.
+
+### Bugfixes
+
+* Fix gateway last-seen in web-interface.
 
 ### Upgrading
 

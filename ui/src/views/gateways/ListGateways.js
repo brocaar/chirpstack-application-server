@@ -166,7 +166,7 @@ class ListGatewaysMap extends Component {
   }
 
   render() {
-    if (this.state.items === null) {
+    if (this.state.items === null || this.state.items.length === 0) {
       return null;
     }
 

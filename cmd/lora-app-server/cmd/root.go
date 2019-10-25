@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
+	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -111,6 +113,19 @@ func initConfig() {
 		}
 	}
 
+	for _, pair := range os.Environ() {
+		d := strings.SplitN(pair, "=", 2)
+		fmt.Println(d[0])
+		if strings.Contains(d[0], ".") {
+			log.Warning("Using dots in env variable is illegal and deprecated. Please use double underscore `__` for: ", d[0])
+			underscoreName := strings.ReplaceAll(d[0], ".", "__")
+			// Set only when the underscore version doesn't already exist.
+			if _, exists := os.LookupEnv(underscoreName); !exists {
+				os.Setenv(underscoreName, d[1])
+			}
+		}
+	}
+
 	viperBindEnvs(config.C)
 
 	if err := viper.Unmarshal(&config.C); err != nil {
@@ -141,8 +156,11 @@ func viperBindEnvs(iface interface{}, parts ...string) {
 		case reflect.Struct:
 			viperBindEnvs(v.Interface(), append(parts, tv)...)
 		default:
-			key := strings.Join(append(parts, tv), ".")
-			viper.BindEnv(key)
+			// Bash doesn't allow env variable names with a dot so
+			// bind the double underscore version.
+			keyDot := strings.Join(append(parts, tv), ".")
+			keyUnderscore := strings.Join(append(parts, tv), "__")
+			viper.BindEnv(keyDot, strings.ToUpper(keyUnderscore))
 		}
 	}
 }

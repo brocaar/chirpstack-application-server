@@ -57,6 +57,19 @@ class SessionStore extends EventEmitter {
     this.emit("organization.change");
   }
 
+  getRowsPerPage() {
+    const rowsPerPage = localStorage.getItem("rowsPerPage");
+    if (rowsPerPage === "" || rowsPerPage === null) {
+      return 10;
+    }
+
+    return JSON.parse(rowsPerPage);
+  }
+
+  setRowsPerPage(rowsPerPage) {
+    localStorage.setItem("rowsPerPage", JSON.stringify(rowsPerPage));
+  }
+
   getUser() {
     return this.user;
   }

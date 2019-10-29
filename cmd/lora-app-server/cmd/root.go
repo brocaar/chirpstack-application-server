@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -115,7 +114,6 @@ func initConfig() {
 
 	for _, pair := range os.Environ() {
 		d := strings.SplitN(pair, "=", 2)
-		fmt.Println(d[0])
 		if strings.Contains(d[0], ".") {
 			log.Warning("Using dots in env variable is illegal and deprecated. Please use double underscore `__` for: ", d[0])
 			underscoreName := strings.ReplaceAll(d[0], ".", "__")

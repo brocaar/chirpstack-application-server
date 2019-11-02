@@ -1,5 +1,5 @@
 ---
-title: Integrate LoRa App Server
+title: Integrate ChirpStack Application Server
 ---
 
-# Integrate LoRa App Server
+# Integrate ChirpStack Application Server

@@ -22,5 +22,5 @@ The following message attributes are added to each published message:
 
 * `event` - the event type
 * `dev_eui` - the device EUI
-* `application_id` - the LoRa App Server application ID
+* `application_id` - the ChirpStack Application Server application ID
 

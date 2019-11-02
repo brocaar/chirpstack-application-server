@@ -5,10 +5,24 @@ menu:
         parent: overview
         weight: 4
 toc: false
-description: Lists the changes per LoRa App Server release, including steps how to upgrade.
+description: Lists the changes per ChirpStack Application Server release, including steps how to upgrade.
 ---
 
 # Changelog
+
+## v3.5.0
+
+This release renames LoRa App Server to ChirpStack Application Server.
+See the [Rename Announcement](https://www.chirpstack.io/r/rename-announcement) for more information.
+
+### Improvements
+
+* Add copy to clipboard for hex heys. ([#364](https://github.com/brocaar/chirpstack-applocation-server/issues/364))
+* Persist selected number of table rows per page in localStorage. ([#351](https://github.com/brocaar/chirpstack-application-server/issues/351))
+
+### Bugfixes
+
+* Fix rendering empty gateway map.
 
 ## v3.4.0
 
@@ -58,12 +72,12 @@ during the upgrade of LoRa App Server.
 
 ### Improvements
 
-* Add RXInfo and TXInfo to join-notifications. ([#235](https://github.com/brocaar/lora-app-server/pull/347))
+* Add RXInfo and TXInfo to join-notifications. ([#235](https://github.com/brocaar/chirpstack-application-server/pull/347))
 
 ### Bugfixes
 
-* Propagate gRPC errors to that the correct HTTP status is returned. ([#349](https://github.com/brocaar/lora-app-server/issues/349))
-* Fix not found UI error when device is inactive. ([#359](https://github.com/brocaar/lora-app-server/issues/359))
+* Propagate gRPC errors to that the correct HTTP status is returned. ([#349](https://github.com/brocaar/chirpstack-application-server/issues/349))
+* Fix not found UI error when device is inactive. ([#359](https://github.com/brocaar/chirpstack-application-server/issues/359))
 
 ## v3.3.0
 
@@ -81,14 +95,14 @@ Prometheus metics have been implemented for the Join Server API interface.
 ### Improvements
 
 * Update UI dependencies to their latest versions.
-* Show popup on gateway create when no Service Profile exists. ([#345](https://github.com/brocaar/lora-app-server/issues/345))
-* Remove unused fields when listing users. ([#328](https://github.com/brocaar/lora-app-server/issues/345))
+* Show popup on gateway create when no Service Profile exists. ([#345](https://github.com/brocaar/chirpstack-application-server/issues/345))
+* Remove unused fields when listing users. ([#328](https://github.com/brocaar/chirpstack-application-server/issues/345))
 * Update multicast address and session-key input field widgets.
-* Mention in API description that the organization ID of an application can not be updated after create. ([#343](https://github.com/brocaar/lora-app-server/issues/343))
+* Mention in API description that the organization ID of an application can not be updated after create. ([#343](https://github.com/brocaar/chirpstack-application-server/issues/343))
 
 ### Bugfixes
 
-* Trigger organization dropdown reload on organization change. ([#342](https://github.com/brocaar/lora-app-server/issues/342))
+* Trigger organization dropdown reload on organization change. ([#342](https://github.com/brocaar/chirpstack-application-server/issues/342))
 
 ## v3.2.0
 
@@ -109,7 +123,7 @@ In future releases, more metrics will be exposed using this endpoint.
 
 ### Improvements
 
-* Multicast-group frame-counter cleanup (there was a column in both the LoRa App Server and LoRa Server database). ([#339](https://github.com/brocaar/lora-app-server/issues/339))
+* Multicast-group frame-counter cleanup (there was a column in both the LoRa App Server and LoRa Server database). ([#339](https://github.com/brocaar/chirpstack-application-server/issues/339))
 
 ### Bugfixes
 
@@ -130,31 +144,31 @@ requires a per-device Access Token).
 
 When configured in the `lora-app-server.toml` configuration file, this
 integration will write events into a PostgreSQL database. See the
-[PostgreSQL Integration](https://www.loraserver.io/lora-app-server/integrate/sending-receiving/postgresql/)
+[PostgreSQL Integration](https://www.chirpstack.io/application-server/integrate/sending-receiving/postgresql/)
 documentation for more information.
 
 #### ThingsBoard integration
 
 When configured as Application integration, this integration will write
 attributes and telemetry to the configured ThingsBoard instance. See the
-[ThingsBoard Integration](https://www.loraserver.io/lora-app-server/integrate/sending-receiving/thingsboard/)
+[ThingsBoard Integration](https://www.chirpstack.io/application-server/integrate/sending-receiving/thingsboard/)
 documentation for more information.
 
 ### Improvements
 
-* Speedup login with default admin / admin credentials (for low CPU power devices). ([#320](https://github.com/brocaar/lora-app-server/issues/320))
+* Speedup login with default admin / admin credentials (for low CPU power devices). ([#320](https://github.com/brocaar/chirpstack-application-server/issues/320))
 * Gateway ID, FPGA ID and AES-key widgets have been updated.
 * Always display Class-C timeout field in Device Profile.
 
 ### Bugfixes
 
-* Fix Gen Application Key is no longer a mandatory field. ([#322](https://github.com/brocaar/lora-app-server/issues/322))
-* Fix create organization user. ([#323](https://github.com/brocaar/lora-app-server/issues/323))
+* Fix Gen Application Key is no longer a mandatory field. ([#322](https://github.com/brocaar/chirpstack-application-server/issues/322))
+* Fix create organization user. ([#323](https://github.com/brocaar/chirpstack-application-server/issues/323))
 
 ### Upgrading
 
 Before upgrading, you must enable the `hstore` extension for the LoRa App Server
-PostgreSQL database. Example commands assuming the database is named `loraserver_as`:
+PostgreSQL database. Example commands assuming the database is named `chirpstack_as`:
 
 {{<highlight bash>}}
 sudo -u postgres psql
@@ -163,8 +177,8 @@ sudo -u postgres psql
 Within the PostgreSQL prompt, enter the following queries:
 
 {{<highlight sql>}}
--- change to loraserver_as database and enable extension
-\c loraserver_as
+-- change to chirpstack_as database and enable extension
+\c chirpstack_as
 create extension hstore;
 
 -- exit the prompt
@@ -197,11 +211,11 @@ configured in the Device Profile.
 
 ### Bugfixes
 
-* Fix organization admin cannot add existing users. ([#315](https://github.com/brocaar/lora-app-server/issues/315))
+* Fix organization admin cannot add existing users. ([#315](https://github.com/brocaar/chirpstack-application-server/issues/315))
 
 ### Upgrading
 
-Please upgrade LoRa Server first to v3 (see [Changelog](https://www.loraserver.io/loraserver/overview/changelog/)),
+Please upgrade LoRa Server first to v3 (see [Changelog](https://www.chirpstack.io/application-server/overview/changelog/)),
 then upgrade LoRa App Server to v3. This LoRa App Server release is fully
 backwards compatible.
 
@@ -215,7 +229,7 @@ backwards compatible.
 
 ### Bugfixes
 
-* Fix `panic` when JOSN object is set but contains `null`. ([#314](https://github.com/brocaar/lora-app-server/issues/314))
+* Fix `panic` when JOSN object is set but contains `null`. ([#314](https://github.com/brocaar/chirpstack-application-server/issues/314))
 
 ## v2.6.0
 
@@ -224,23 +238,23 @@ backwards compatible.
 #### New integrations
 
 Support has been added to forward events to an [Azure service-bus](https://azure.microsoft.com/en-us/services/service-bus/)
-or to [AWS SNS](https://aws.amazon.com/sns/). See [Configuration](https://www.loraserver.io/lora-app-server/install/config/).
+or to [AWS SNS](https://aws.amazon.com/sns/). See [Configuration](https://www.chirpstack.io/application-server/install/config/).
 
 ### Improvements
 
 * Make JS codec maximum execution-time configurable and increase default value to 100ms.
-* Add configuration option for CORS headers. ([#275](https://github.com/brocaar/lora-app-server/pull/275))
+* Add configuration option for CORS headers. ([#275](https://github.com/brocaar/chirpstack-application-server/pull/275))
 * Internal code-cleanup with regards to passing configuration and objects.
 * Internal migration from Dep to [Go modules](https://github.com/golang/go/wiki/Modules).
-* Improve authentication validator SQL query for speed. ([#302](https://github.com/brocaar/lora-app-server/pull/302))
-* Add codec execution time for decoding. ([#307](https://github.com/brocaar/lora-app-server/pull/307))
-* UI: Make delete application confirmation more explicit. ([#306](https://github.com/brocaar/lora-app-server/pull/306))
+* Improve authentication validator SQL query for speed. ([#302](https://github.com/brocaar/chirpstack-application-server/pull/302))
+* Add codec execution time for decoding. ([#307](https://github.com/brocaar/chirpstack-application-server/pull/307))
+* UI: Make delete application confirmation more explicit. ([#306](https://github.com/brocaar/chirpstack-application-server/pull/306))
 
 ## v2.5.1
 
 ### Bugfixes
 
-* Fix panic in InfluxDB handler on `null` values in object ([#295](https://github.com/brocaar/lora-app-server/issues/295))
+* Fix panic in InfluxDB handler on `null` values in object ([#295](https://github.com/brocaar/chirpstack-application-server/issues/295))
 
 ## v2.5.0
 
@@ -248,13 +262,13 @@ or to [AWS SNS](https://aws.amazon.com/sns/). See [Configuration](https://www.lo
 
 #### Support for retained messages
 
-It is now possible to [configure](https://www.loraserver.io/lora-app-server/install/config/) the retained flag for the MQTT integration.
+It is now possible to [configure](https://www.chirpstack.io/application-server/install/config/) the retained flag for the MQTT integration.
 When set, the MQTT broker will retain the last message and send this
-immediately when a MQTT client connects. ([#272](https://github.com/brocaar/lora-app-server/pull/272))
+immediately when a MQTT client connects. ([#272](https://github.com/brocaar/chirpstack-application-server/pull/272))
 
 #### Environment variable based configuration
 
-Environment variable based [configuration](https://www.loraserver.io/lora-app-server/install/config/) has been re-implemented.
+Environment variable based [configuration](https://www.chirpstack.io/application-server/install/config/) has been re-implemented.
 
 ### Improvements
 
@@ -263,8 +277,8 @@ Environment variable based [configuration](https://www.loraserver.io/lora-app-se
 
 ### Bugfixes
 
-* Fix potential deadlock on MQTT re-connect ([#103](https://github.com/brocaar/lora-gateway-bridge/issues/103))
-* Fix logrotate issue (init based systems) ([#282](https://github.com/brocaar/lora-app-server/pull/282)
+* Fix potential deadlock on MQTT re-connect ([#103](https://github.com/brocaar/chirpstack-gateway-bridge/issues/103))
+* Fix logrotate issue (init based systems) ([#282](https://github.com/brocaar/chirpstack-application-server/pull/282)
 
 ## v2.4.1
 
@@ -304,7 +318,7 @@ input, supporting both MSB and LSB byte order. Also only the required fields
 
 LoRa App Server is now able to publish application data to
 [Cloud Pub/Sub](https://cloud.google.com/pubsub/) as an alternative to a MQTT
-broker. Please refer to the [Configuration](https://www.loraserver.io/lora-app-server/install/config/)
+broker. Please refer to the [Configuration](https://www.chirpstack.io/application-server/install/config/)
 for more information.
 
 ### Deactivate device API
@@ -376,7 +390,7 @@ This update adds LoRaWAN 1.0.3 in MAC version dropdown.
 
 ### Bugfixes
 
-* Use `gofrs/uuid` UUID library as `satori/go.uuid` is not truly random. ([#253](https://github.com/brocaar/lora-app-server/pull/253))
+* Use `gofrs/uuid` UUID library as `satori/go.uuid` is not truly random. ([#253](https://github.com/brocaar/chirpstack-application-server/pull/253))
 * Fix web-interface login form (sometimes a double login was required).
 
 ## v2.0.0
@@ -417,7 +431,7 @@ navigation. All main components are now accessible from a sidebar.
 The device-status has been removed from the uplink payload and is sent over
 a separate MQTT topic (or HTTP integration). This to make sure that the
 the device-status is only published when an update is available.
-See also [Sending and receiving data](https://www.loraserver.io/lora-app-server/integrate/sending-receiving/).
+See also [Sending and receiving data](https://www.chirpstack.io/application-server/integrate/sending-receiving/).
 
 #### API changes
 
@@ -481,7 +495,7 @@ downlink payload.
 
 ### Bugfixes
 
-* Lock device row on downlink enqueue to avoid duplicated frame-counter values ([#245](https://github.com/brocaar/lora-app-server/issues/245))
+* Lock device row on downlink enqueue to avoid duplicated frame-counter values ([#245](https://github.com/brocaar/chirpstack-application-server/issues/245))
 
 ## v1.0.1
 
@@ -504,7 +518,7 @@ This marks the first stable release!
   {{< /highlight >}}
 * You are now ready to upgrade to v1.0.0!
 
-See [Downloads](https://www.loraserver.io/lora-app-server/overview/downloads/)
+See [Downloads](https://www.chirpstack.io/application-server/overview/downloads/)
 for pre-compiled binaries or instructions how to setup the Debian / Ubuntu
 repository for v1.x.
 
@@ -531,7 +545,7 @@ repository for v1.x.
 **Features:**
 
 * LoRa App Server can now export decoded payload data directly to InfluxDB.
-  See [Sending and receiving device data](https://www.loraserver.io/lora-app-server/integrate/sending-receiving/) for more information.
+  See [Sending and receiving device data](https://www.chirpstack.io/application-server/integrate/sending-receiving/) for more information.
 
 **Bugfixes:**
 
@@ -559,14 +573,14 @@ repository for v1.x.
 **Features:**
 
 * (Gateway) channel-configuration has been refactored into gateway-profiles.
-  * This requires [LoRa Server](https://www.loraserver.io/loraserver/) 0.26.0 or up.
+  * This requires [LoRa Server](https://www.chirpstack.io/application-server/) 0.26.0 or up.
   * This removes the channel-configuration related gateway API methods.
   * This adds gateway-profile API methods.
 
 **Bugfixes:**
 
-* Fix leaking Redis connections on pubsub subscriber ([#313](https://github.com/brocaar/loraserver/issues/313).
-* Fix discovery interval validation ([#226](https://github.com/brocaar/lora-app-server/issues/226)).
+* Fix leaking Redis connections on pubsub subscriber ([#313](https://github.com/brocaar/chirpstack-network-server/issues/313).
+* Fix discovery interval validation ([#226](https://github.com/brocaar/chirpstack-application-server/issues/226)).
 
 **Upgrade notes:**
 
@@ -582,7 +596,7 @@ of your (PostgreSQL) database.
 
 * Global search on organizations, applications, devices and gateways.
 * Display live device events (the same data as publised over MQTT).
-  See also [Event logging](https://www.loraserver.io/lora-app-server/use/event-logging/).
+  See also [Event logging](https://www.chirpstack.io/application-server/use/event-logging/).
 
 **Improvements:**
 
@@ -598,7 +612,7 @@ of your (PostgreSQL) database.
 **Upgrade notes:**
 
 Before upgrading, the PostgreSQL `pg_trgm` extension needs to be enabled.
-Assuming the LoRa App Server database is configured as `loraserver_as` this
+Assuming the LoRa App Server database is configured as `chirpstack_as` this
 extension could be enabled using the commands below.
 
 Start the PostgreSQL prompt as the `postgres` user:
@@ -611,7 +625,7 @@ Within the PostgreSQL prompt, enter the following queries:
 
 {{<highlight sql>}}
 -- change to the LoRa App Server database
-\c loraserver_as
+\c chirpstack_as
 
 -- enable the extension
 create extension pg_trgm;
@@ -634,7 +648,7 @@ create extension pg_trgm;
   * Clean session on connect
 * Expose LoRa Server version and configured region through the network-server
   API endpoint.
-* Websocket client automatically re-connects on connection error ([#221](https://github.com/brocaar/lora-app-server/pull/221))
+* Websocket client automatically re-connects on connection error ([#221](https://github.com/brocaar/chirpstack-application-server/pull/221))
 
 **Bugfixes:**
 
@@ -646,7 +660,7 @@ create extension pg_trgm;
 **Features:**
 
 * Expose Class-B fields in device-profile web-interface form.
-  * **Note:** Class-B support is implemented since [LoRa Server](https://docs.loraserver.io/loraserver/) 0.25.0.
+  * **Note:** Class-B support is implemented since [LoRa Server](https://www.chirpstack.io/network-server/) 0.25.0.
 
 **Bugfixes:**
 
@@ -657,27 +671,27 @@ create extension pg_trgm;
 **Features:**
 
 * LoRa App Server uses a new configuration file format.
-  See [configuration](https://docs.loraserver.io/lora-app-server/install/config/) for more information.
+  See [configuration](https://www.chirpstack.io/application-server/install/config/) for more information.
 * Frame-logs for device are now streaming and can be downloaded as JSON file.
   * **Note:** the `/api/devices/{devEUI}/frames` (formerly `Device.GetFrameLogs`)
   endpoint has changed (and the gRPC method has been renamed to `Device.StreamFrameLogs`).
   * You need LoRa Server 0.24+ in order to use this feature.
 * Added streaming frame-logs for gateways (which also can be downloaded as JSON file).
   * You need LoRa Server 0.24+ in order to use this feature.
-* Support MQTT client certificate authentication ([#201](https://github.com/brocaar/lora-app-server/pull/201)).
+* Support MQTT client certificate authentication ([#201](https://github.com/brocaar/chirpstack-application-server/pull/201)).
 
 **Upgrade notes:**
 
 When upgrading using the `.deb` package / using `apt` or `apt-get`, your
 configuration will be automatically migrated for you. In any other case,
-please see [configuration](https://docs.loraserver.io/lora-app-server/install/config/).
+please see [configuration](https://www.chirpstack.io/application-server/install/config/).
 
 ## 0.17.1
 
 **Bugfixes:**
 
 * Fix missing `/` prefix in two UI links causing a redirect to the login page.
-* Fix typo in TLS certificate loading causing error *failed to find certificate PEM data in certificate input* (thanks [@Francisco_Rivas](https://forum.loraserver.io/u/Francisco_Rivas/summary))
+* Fix typo in TLS certificate loading causing error *failed to find certificate PEM data in certificate input* (thanks [@Francisco_Rivas](https://forum.chirpstack.io/u/Francisco_Rivas/summary))
 
 ## 0.17.0
 
@@ -713,7 +727,7 @@ please see [configuration](https://docs.loraserver.io/lora-app-server/install/co
 
 **Bugfixes:**
 
-* `--gw-ping-dr 0` is now handled correctly ([#204](https://github.com/brocaar/lora-app-server/pull/204))
+* `--gw-ping-dr 0` is now handled correctly ([#204](https://github.com/brocaar/chirpstack-application-server/pull/204))
 
 
 ## 0.16.1
@@ -733,10 +747,10 @@ This removes the following CLI options:
 
 See for more information:
 
-* [LoRa Server configuration](https://docs.loraserver.io/loraserver/install/config/)
-* [LoRa App Server configuration](https://docs.loraserver.io/lora-app-server/install/config/)
-* [LoRa App Server network-server management](https://docs.loraserver.io/lora-app-server/use/network-servers/)
-* [https://github.com/brocaar/loraserver-certificates](https://github.com/brocaar/loraserver-certificates)
+* [LoRa Server configuration](https://www.chirpstack.io/network-server/install/config/)
+* [LoRa App Server configuration](https://www.chirpstack.io/application-server/install/config/)
+* [LoRa App Server network-server management](https://www.chirpstack.io/application-server/use/network-servers/)
+* [https://github.com/brocaar/chirpstack-network-server-certificates](https://github.com/brocaar/chirpstack-network-server-certificates)
 
 **Improvements:**
 
@@ -763,7 +777,7 @@ See for more information:
   * Custom JavaScript codec functions (you can provide your own encoding /
     decoding functions in JavaScript)
 
-See [Applications](https://docs.loraserver.io/lora-app-server/use/applications/)
+See [Applications](https://www.chirpstack.io/application-server/use/applications/)
 documentation for instructions how to configure this option.
 
 ## 0.15.0
@@ -775,7 +789,7 @@ documentation for instructions how to configure this option.
   * Downlink device-queue has been moved from the LoRa App Server database to
     the LoRa Server database.
   * LoRa App Server sends nACK when no confirmation has been received on
-    confirmed downlink transmission. See [ACK notifications](https://docs.loraserver.io/lora-app-server/integrate/data/).
+    confirmed downlink transmission. See [ACK notifications](https://www.chirpstack.io/application-server/integrate/data/).
   * LoRa App Server will not re-try transmitting a confirmed downlink anymore.
   * ACK and error notifications now contain the `fCnt` to which the notification is related.
   * The downlink-queue is now flushed on a (re)activation.
@@ -786,7 +800,7 @@ documentation for instructions how to configure this option.
   * Added `DELETE /api/devices/{devEUI}/queue` to flush the whole device-queue.
 
 * Class-C
-  * Class-C timeout (see [device-profiles](https://docs.loraserver.io/lora-app-server/use/device-profiles/))
+  * Class-C timeout (see [device-profiles](https://www.chirpstack.io/application-server/use/device-profiles/))
     has been implemented for confirmed downlink transmissions. **Make sure to
     update this value for existing Class-C device-profiles to a sane value**.
 
@@ -816,7 +830,7 @@ device-queue items to the LoRa Server database.
 
 * Remove `RxInfo` length validation as this slice is empty when
   *Add gateway meta-data* is disabled in the service-profile
-  (thanks [@pni-jmattison](https://forum.loraserver.io/u/pni-jmattison/summary)).
+  (thanks [@pni-jmattison](https://forum.chirpstack.io/u/pni-jmattison/summary)).
 * Rename `/api/node/...` prefix of downlink queue into `/api/device/...`
   (thanks [@iegomez](https://github.com/iegomez)).
 * Rename `DownlinkQueue...` gRPC methods and structs into `DeviceQueue...`.
@@ -835,7 +849,7 @@ backup of your PostgreSQL and Redis database before upgrading.
 * Application users have been removed to avoid complexity in the API
   authorization. Users can still be assigned to organizations.
 
-* LoRa App Server can now connect to multiple [LoRa Server](https://docs.loraserver.io/loraserver/)
+* LoRa App Server can now connect to multiple [LoRa Server](https://www.chirpstack.io/network-server/)
   instances.
 
 * LoRa App Server exposes a Join-Server API (as defined in the LoRaWAN backend
@@ -877,7 +891,7 @@ make sure to set the `--as-public-server` / `AS_PUBLIC_SERVER`
 
 This release depends on the latest LoRa Server release (0.22).
 Start with updating LoRa Server first. See also the
-[LoRa Server changelog](https://docs.loraserver.io/loraserver/overview/changelog/).
+[LoRa Server changelog](https://www.chirpstack.io/network-server/overview/changelog/).
 
 LoRa App Server will perform the data-migration when the `--db-automigrate` / 
 `DB_AUTOMIGRATE` config flag is set. It will:
@@ -942,9 +956,9 @@ depends on the 'Proprietary' LoRaWAN message-type.
 
 * Implement support for channel-configuration management. This makes it
   possible to assign channel-plans to gateways, which then can be used by
-  [LoRa Gateway Config](https://docs.loraserver.io/lora-gateway-config/).
+  [LoRa Gateway Config](https://docs.chirpstack.io/lora-gateway-config/).
 
-**Note:** This feature is dependent on [LoRa Server](https://docs.loraserver.io/loraserver/)
+**Note:** This feature is dependent on [LoRa Server](https://www.chirpstack.io/network-server/)
 version 0.20.0+.
 
 ## 0.10.1
@@ -967,7 +981,7 @@ version 0.20.0+.
 
 * Added frame logs tab to node to display all uplink and downlink
   frames of a given node. Note: This requires
-  [LoRa Server](https://docs.loraserver.io/loraserver/) 0.18.0.
+  [LoRa Server](https://www.chirpstack.io/network-server/) 0.18.0.
 * Updated organization, application and node navigation in UI.
 
 ## 0.9.1
@@ -975,7 +989,7 @@ version 0.20.0+.
 **Bugfixes:**
 
 * Fix ABP sesstings not editable by organization admin
-  ([#85](https://github.com/brocaar/lora-app-server/issues/85))
+  ([#85](https://github.com/brocaar/chirpstack-application-server/issues/85))
 
 ## 0.9.0
 
@@ -988,7 +1002,7 @@ version 0.20.0+.
 
 * On editing a gateway, disable the MAC input field (as this is the unique
   identifier of the gateway).
-* A pagination regression has been fixed ([#82](https://github.com/brocaar/lora-app-server/issues/82)).
+* A pagination regression has been fixed ([#82](https://github.com/brocaar/chirpstack-application-server/issues/82)).
 
 **Note:** when upgrading to this version with `--db-automigrate` /
 `DB_AUTOMIGRATE` set, channel-list data will be removed.
@@ -1123,10 +1137,10 @@ and [@VirTERM](https://twitter.com/VirTERM) for their input on the API changes.
 
 **Features:**
 
-* Adaptive data-rate support. See [loraserver/features](https://docs.loraserver.io/loraserver/features/)
+* Adaptive data-rate support. See [loraserver/features](https://www.chirpstack.io/network-server/features/)
   for more information about ADR. Note:
 
-    * [LoRa Server](https://docs.loraserver.io/loraserver/) 0.13.0 or higher
+    * [LoRa Server](https://www.chirpstack.io/network-server/) 0.13.0 or higher
       is required
     * ADR is currently only implemented for the EU 863-870 ISM band
     * This is an experimental feature

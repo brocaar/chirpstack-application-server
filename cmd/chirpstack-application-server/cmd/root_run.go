@@ -11,21 +11,21 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/brocaar/lora-app-server/internal/api"
-	"github.com/brocaar/lora-app-server/internal/applayer/fragmentation"
-	"github.com/brocaar/lora-app-server/internal/applayer/multicastsetup"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/downlink"
-	"github.com/brocaar/lora-app-server/internal/fuota"
-	"github.com/brocaar/lora-app-server/internal/gwping"
-	"github.com/brocaar/lora-app-server/internal/integration"
-	"github.com/brocaar/lora-app-server/internal/integration/application"
-	"github.com/brocaar/lora-app-server/internal/integration/multi"
-	"github.com/brocaar/lora-app-server/internal/metrics"
-	"github.com/brocaar/lora-app-server/internal/migrations/code"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/chirpstack-application-server/internal/api"
+	"github.com/brocaar/chirpstack-application-server/internal/applayer/fragmentation"
+	"github.com/brocaar/chirpstack-application-server/internal/applayer/multicastsetup"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/codec"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/downlink"
+	"github.com/brocaar/chirpstack-application-server/internal/fuota"
+	"github.com/brocaar/chirpstack-application-server/internal/gwping"
+	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/application"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/multi"
+	"github.com/brocaar/chirpstack-application-server/internal/metrics"
+	"github.com/brocaar/chirpstack-application-server/internal/migrations/code"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
 func run(cmd *cobra.Command, args []string) error {
@@ -61,7 +61,7 @@ func run(cmd *cobra.Command, args []string) error {
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 	log.WithField("signal", <-sigChan).Info("signal received")
 	go func() {
-		log.Warning("stopping lora-app-server")
+		log.Warning("stopping chirpstack-application-server")
 		// todo: handle graceful shutdown?
 		exitChan <- struct{}{}
 	}()
@@ -82,8 +82,8 @@ func setLogLevel() error {
 func printStartMessage() error {
 	log.WithFields(log.Fields{
 		"version": version,
-		"docs":    "https://www.loraserver.io/",
-	}).Info("starting LoRa App Server")
+		"docs":    "https://www.chirpstack.io/",
+	}).Info("starting ChirpStack Application Server")
 	return nil
 }
 

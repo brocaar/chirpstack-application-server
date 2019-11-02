@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/lora-app-server/api"
+	pb "github.com/brocaar/chirpstack-application-server/api"
 )
 
 func (ts *APITestSuite) TestOrganization() {

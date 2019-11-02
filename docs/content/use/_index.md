@@ -2,4 +2,4 @@
 title: Use
 ---
 
-# Using LoRa App Server
+# Using ChirpStack Application Server

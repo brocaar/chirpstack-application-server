@@ -9,16 +9,16 @@ description: Show live LoRaWAN frames for debugging device and gateway behavior.
 
 # Frame logging
 
-LoRa App Server makes it possible to log frames sent and received by a gateway
+ChirpStack Application Server makes it possible to log frames sent and received by a gateway
 or device in realtime. To use this feature, you first need to go to the gateway
-or device detail page. Once you are on this page, open the **Live LoRaWAN frame logs**
+or device detail page. Once you are on this page, open the **LoRaWAN frames**
 tab.
 
 **Note:** This is a feature for debugging the communication between the
 network-server and your devices. Do not use this for integration with your
 applications.
 
-As soon as you open this page, LoRa App Server will subscribe to the frames
+As soon as you open this page, ChirpStack Application Server will subscribe to the frames
 sent / received by the selected gateway or device. Once a frame is sent or
 received, it will be displayed without the need to refresh the page.
 

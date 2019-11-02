@@ -9,7 +9,7 @@ description: Manage users, make them global administrators and configure credent
 
 # User management
 
-For authentication and authorization, users can be created in LoRa App Server.
+For authentication and authorization, users can be created in ChirpStack Application Server.
 An user itself can be a global admin or a regular user.
 
 ## Global admin user

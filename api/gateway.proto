@@ -104,7 +104,7 @@ message Gateway {
 	// Gateway boards configuration (optional).
     // This is (currently) only needed when the gateway supports the fine-timestamp
     // and you you would like to add the FPGA ID to the gateway meta-data or would
-	// like LoRa Server to decrypt the fine-timestamp.
+	// like ChirpStack Network Server to decrypt the fine-timestamp.
 	repeated GatewayBoard boards = 9;
 }
 

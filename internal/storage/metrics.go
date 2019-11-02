@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/gomodule/redigo/redis"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 
-NAME=lora-app-server
+OLD_NAME=lora-app-server
+NAME=chirpstack-application-server
 BIN_DIR=/usr/bin
-SCRIPT_DIR=/usr/lib/lora-app-server/scripts
-LOG_DIR=/var/log/lora-app-server
+SCRIPT_DIR=/usr/lib/chirpstack-application-server/scripts
+LOG_DIR=/var/log/chirpstack-application-server
 DAEMON_USER=appserver
 DAEMON_GROUP=appserver
 
 function install_init {
 	cp -f $SCRIPT_DIR/$NAME.init /etc/init.d/$NAME
 	chmod +x /etc/init.d/$NAME
+	ln -s /etc/init.d/$NAME /etc/init.d/$OLD_NAME
 	update-rc.d $NAME defaults
 }
 

@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/codec"
+	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/lorawan"
 )
 
@@ -52,7 +52,7 @@ func (ts *HandlerTestSuite) SetupSuite() {
 
 	conf := Config{
 		Endpoint:            ts.Server.URL + "/write",
-		DB:                  "loraserver",
+		DB:                  "chirpstack",
 		Username:            "user",
 		Password:            "password",
 		RetentionPolicyName: "DEFAULT",
@@ -99,7 +99,7 @@ device_status_margin,application_name=test-app,dev_eui=0102030405060708,device_n
 			req := <-ts.Requests
 			assert.Equal("/write", req.URL.Path)
 			assert.Equal(url.Values{
-				"db":        []string{"loraserver"},
+				"db":        []string{"chirpstack"},
 				"precision": []string{"s"},
 				"rp":        []string{"DEFAULT"},
 			}, req.URL.Query())
@@ -346,7 +346,7 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 			req := <-ts.Requests
 			assert.Equal("/write", req.URL.Path)
 			assert.Equal(url.Values{
-				"db":        []string{"loraserver"},
+				"db":        []string{"chirpstack"},
 				"precision": []string{"s"},
 				"rp":        []string{"DEFAULT"},
 			}, req.URL.Query())

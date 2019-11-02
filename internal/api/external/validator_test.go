@@ -1,7 +1,7 @@
 package external
 
 import (
-	"github.com/brocaar/lora-app-server/internal/api/external/auth"
+	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
 	"golang.org/x/net/context"
 )
 

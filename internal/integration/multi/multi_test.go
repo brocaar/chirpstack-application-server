@@ -12,11 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/brocaar/lora-app-server/internal/integration"
-	httpint "github.com/brocaar/lora-app-server/internal/integration/http"
-	mqttint "github.com/brocaar/lora-app-server/internal/integration/mqtt"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	httpint "github.com/brocaar/chirpstack-application-server/internal/integration/http"
+	mqttint "github.com/brocaar/chirpstack-application-server/internal/integration/mqtt"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
+	"github.com/brocaar/chirpstack-application-server/internal/test"
 	"github.com/brocaar/lorawan"
 )
 

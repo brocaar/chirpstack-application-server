@@ -20,17 +20,17 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/brocaar/lora-app-server/internal/api/helpers"
-	"github.com/brocaar/lora-app-server/internal/applayer/clocksync"
-	"github.com/brocaar/lora-app-server/internal/applayer/fragmentation"
-	"github.com/brocaar/lora-app-server/internal/applayer/multicastsetup"
-	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/eventlog"
-	"github.com/brocaar/lora-app-server/internal/gwping"
-	"github.com/brocaar/lora-app-server/internal/integration"
-	"github.com/brocaar/lora-app-server/internal/logging"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
+	"github.com/brocaar/chirpstack-application-server/internal/applayer/clocksync"
+	"github.com/brocaar/chirpstack-application-server/internal/applayer/fragmentation"
+	"github.com/brocaar/chirpstack-application-server/internal/applayer/multicastsetup"
+	"github.com/brocaar/chirpstack-application-server/internal/codec"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/eventlog"
+	"github.com/brocaar/chirpstack-application-server/internal/gwping"
+	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/loraserver/api/as"
 	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/lorawan"
@@ -156,7 +156,7 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		return nil, grpc.Errorf(codes.Internal, "decrypt payload error: %s", err)
 	}
 
-	// payload is handled by the LoRa App Server internal applayer
+	// payload is handled by the ChirpStack Application Server internal applayer
 	var internalApplayer bool
 
 	if err := storage.Transaction(func(db sqlx.Ext) error {

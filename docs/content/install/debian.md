@@ -4,20 +4,19 @@ menu:
     main:
         parent: install
         weight: 3
-description: Instructions how to install LoRa App Server on a Debian or Ubuntu based Linux installation.
+description: Instructions how to install ChirpStack Application Server on a Debian or Ubuntu based Linux installation.
 ---
 
 # Debian / Ubuntu installation
 
 These steps have been tested with:
 
-* Ubuntu 16.04 (LTS)
 * Ubuntu 18.04 (LTS)
-* Debian 9 (Stretch)
+* Debian 10.0 (Buster)
 
 ### Creating an user and database
 
-LoRa App Server needs its **own** database. To create a new database,
+ChirpStack Application Server needs its **own** database. To create a new database,
 start the PostgreSQL prompt as the `postgres` user:
 
 {{<highlight bash>}}
@@ -27,14 +26,14 @@ sudo -u postgres psql
 Within the PostgreSQL prompt, enter the following queries:
 
 {{<highlight sql>}}
--- create the loraserver_as user
-create role loraserver_as with login password 'dbpassword';
+-- create the chirpstack_as user
+create role chirpstack_as with login password 'dbpassword';
 
--- create the loraserver_as database
-create database loraserver_as with owner loraserver_as;
+-- create the chirpstack_as database
+create database chirpstack_as with owner chirpstack_as;
 
 -- enable the trigram and hstore extensions
-\c loraserver_as
+\c chirpstack_as
 create extension pg_trgm;
 create extension hstore;
 
@@ -46,59 +45,59 @@ To verify if the user and database have been setup correctly, try to connect
 to it:
 
 {{<highlight bash>}}
-psql -h localhost -U loraserver_as -W loraserver_as
+psql -h localhost -U chirpstack_as -W chirpstack_as
 {{< /highlight >}}
 
-## LoRa Server Debian repository
+## ChirpStack Network Server Debian repository
 
-The LoRa Server project provides pre-compiled binaries packaged as Debian (.deb)
+ChirpStack provides pre-compiled binaries packaged as Debian (.deb)
 packages. In order to activate this repository, execute the following
 commands:
 
 {{<highlight bash>}}
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1CE2AFD36DBCCA00
 
-sudo echo "deb https://artifacts.loraserver.io/packages/3.x/deb stable main" | sudo tee /etc/apt/sources.list.d/loraserver.list
+sudo echo "deb https://artifacts.chirpstack.io/packages/3.x/deb stable main" | sudo tee /etc/apt/sources.list.d/chirpstack.list
 sudo apt-get update
 {{< /highlight >}}
 
-## Install LoRa App Server
+## Install ChirpStack Application Server
 
-In order to install LoRa App Server, execute the follwing command:
+In order to install ChirpStack Application Server, execute the follwing command:
 
 {{<highlight bash>}}
-sudo apt-get install lora-app-server
+sudo apt-get install chirpstack-application-server
 {{< /highlight >}}
 
 After installation, modify the configuration file which is located at
-`/etc/lora-app-server/lora-app-server.toml`. Given you used the password `dbpassword` when
+`/etc/chirpstack-application-server/chirpstack-application-server.toml`. Given you used the password `dbpassword` when
 creating the PostgreSQL database, you want to change the config variable
 `postgresql.dsn` into:
 
-`postgres://loraserver_as:dbpassword@localhost/loraserver_as?sslmode=disable`
+`postgres://chirpstack_as:dbpassword@localhost/chirpstack_as?sslmode=disable`
 
 An other required setting you must change is `application_server.external_api.jwt_secret`.
 
-### Starting LoRa App Server
+### Starting ChirpStack Application Server
 
-How you need to (re)start and stop LoRa App Server depends on if your
+How you need to (re)start and stop ChirpStack Application Server depends on if your
 distribution uses init.d or systemd.
 
 #### init.d
 
 {{<highlight bash>}}
-sudo /etc/init.d/lora-app-server [start|stop|restart|status]
+sudo /etc/init.d/chirpstack-application-server [start|stop|restart|status]
 {{< /highlight >}}
 
 #### systemd
 
 {{<highlight bash>}}
-sudo systemctl [start|stop|restart|status] lora-app-server
+sudo systemctl [start|stop|restart|status] chirpstack-application-server
 {{< /highlight >}}
 
-### LoRa App Server log output
+### ChirpStack Application Server log output
 
-Now you've setup LoRa App Server, it is a good time to verify that LoRa App
+Now you've setup ChirpStack Application Server, it is a good time to verify that LoRa App
 Server is actually up-and-running. This can be done by looking at the LoRa
 App Server log output.
 
@@ -107,41 +106,42 @@ log output depends on if your distribution uses init.d or systemd.
 
 #### init.d
 
-All logs are written to `/var/log/lora-app-server/lora-app-server.log`.
+All logs are written to `/var/log/chirpstack-application-server/chirpstack-application-server.log`.
 To view and follow this logfile:
 
 {{<highlight bash>}}
-tail -f /var/log/lora-app-server/lora-app-server.log
+tail -f /var/log/chirpstack-application-server/chirpstack-application-server.log
 {{< /highlight >}}
 
 #### systemd
 
 {{<highlight bash>}}
-journalctl -u lora-app-server -f -n 50
+journalctl -u chirpstack-application-server -f -n 50
 {{< /highlight >}}
 
 Example output:
 
 {{<highlight text>}}
-Sep 25 12:44:59 ubuntu-xenial systemd[1]: Started lora-app-server.
-level=info msg="starting LoRa App Server" docs="https://docs.loraserver.io/" version=0c5ba3f
-level=info msg="connecting to postgresql"
-level=info msg="setup redis connection pool"
-level=info msg="handler/mqtt: connecting to mqtt broker" server="tcp://localhost:1883"
-level=info msg="connecting to network-server api" ca-cert= server="127.0.0.1:8000" tls-cert= tls-key=
-level=info msg="handler/mqtt: connected to mqtt broker"
-level=info msg="handler/mqtt: subscribling to tx topic" topic="application/+/node/+/tx"
-level=info msg="applying database migrations"
-level=info msg="migrations applied" count=0
-level=info msg="migrating node-session data from Redis"
-level=info msg="starting application-server api" bind="127.0.0.1:8001" ca-cert= tls-cert= tls-key=
-level=warning msg="client api authentication and authorization is disabled (set jwt-secret to enable)"
-level=info msg="starting client api server" bind="0.0.0.0:8080" tls-cert="/opt/lora-app-server/certs/http.pem" tls-key="/opt/lora-app-server/certs/http-key.pem"
-level=info msg="registering rest api handler and documentation endpoint" path="/api"
+level=info msg="starting ChirpStack Application Server" docs="https://www.chirpstack.io/" version=3.3.0
+level=info msg="storage: setting up storage package"
+level=info msg="storage: setting up Redis pool"
+level=info msg="storage: connecting to PostgreSQL database"
+level=info msg="storage: applying PostgreSQL data migrations"
+level=info msg="storage: PostgreSQL data migrations applied" count=0
+level=info msg="integration/mqtt: TLS config is empty"
+level=info msg="integration/mqtt: connecting to mqtt broker" server="tcp://localhost:1883"
+level=info msg="integration/postgresql: connecting to PostgreSQL database"
+level=info msg="integration/mqtt: connected to mqtt broker"
+level=info msg="integration/mqtt: subscribing to tx topic" qos=0 topic=application/+/device/+/tx
+level=info msg="api/as: starting application-server api" bind="0.0.0.0:8001" ca_cert= tls_cert= tls_key=
+level=info msg="api/external: starting api server" bind="0.0.0.0:8080" tls-cert= tls-key=
+level=info msg="api/external: registering rest api handler and documentation endpoint" path=/api
+level=info msg="api/js: starting join-server api" bind="0.0.0.0:8003" ca_cert= tls_cert= tls_key=
+level=info msg="metrics: starting prometheus metrics server" bind="127.0.0.1:7002"
 {{< /highlight >}}
 
-In case you see the following log messages, it means that LoRa App Server
-can't connect to [LoRa Server](https://docs.loraserver.io/loraserver/).
+In case you see the following log messages, it means that ChirpStack Application Server
+can't connect to [ChirpStack Network Server](https://www.chirpstack.io/network-server/).
 
 {{<highlight text>}}
 INFO[0001] grpc: addrConn.resetTransport failed to create client transport: connection error: desc = "transport: dial tcp 127.0.0.1:8000: getsockopt: connection refused"; Reconnecting to {"127.0.0.1:8000" <nil>}
@@ -149,7 +149,7 @@ INFO[0002] grpc: addrConn.resetTransport failed to create client transport: conn
 INFO[0005] grpc: addrConn.resetTransport failed to create client transport: connection error: desc = "transport: dial tcp 127.0.0.1:8000: getsockopt: connection refused"; Reconnecting to {"127.0.0.1:8000" <nil>}
 {{< /highlight >}}
 
-### Accessing LoRa App Server
+### Accessing ChirpStack Application Server
 
 If a TLS certificate has been configured (optional), use http**s://**
 else use the http:// option (default).
@@ -167,7 +167,7 @@ else use the http:// option (default).
 ## Configuration
 
 In the example above, we've just touched a few configuration variables.
-Run `lora-app-server --help` for an overview of all available variables. Note
+Run `chirpstack-application-server --help` for an overview of all available variables. Note
 that configuration variables can be passed as cli arguments and / or environment
 variables (which we did in the above example).
 

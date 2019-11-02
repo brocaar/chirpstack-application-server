@@ -1,28 +1,28 @@
 ---
-title: Service-profiles
+title: Service Profiles
 menu:
     main:
         parent: use
         weight: 5
 toc: false
-description: Manage service-profile, defining the features that organizations are allowed to use on a connected network-server.
+description: Manage Service Profile, defining the features that organizations are allowed to use on a connected network-server.
 ---
 
 # Service-profile management
 
-The service-profile can be seen as the "contract" between an user and the
+The Service Profile can be seen as the "contract" between an user and the
 network. It describes the features that are enabled for the user(s) of the
-service-profile and the rate of messages that can be sent over the network.
+Service Profile and the rate of messages that can be sent over the network.
 
-When creating a service-profile, LoRa App Server will create the actual
-profile on the selected network-server, and will keep a reference record
+When creating a Service Profile, ChirpStack Application Server will create the actual
+profile on the selected Network Server, and will keep a reference record
 so it knows to which organization it belongs.
 
 ## Fields / options
 
 The following fields are described by the
-[LoRaWAN Backend Interfaces specification](https://www.lora-alliance.org/lorawan-for-developers).
-Fields marked with an **X** are implemented by LoRa (App) Server.
+[LoRaWAN<sup>&reg;</sup> Backend Interfaces specification](https://www.lora-alliance.org/lorawan-for-developers).
+Fields marked with an **X** are implemented by ChirpStack Application Server.
 
 - [ ] **ULRate** Token bucket filling rate, including ACKs (packet/h)
 - [ ] **ULBucketSize** Token bucket burst size

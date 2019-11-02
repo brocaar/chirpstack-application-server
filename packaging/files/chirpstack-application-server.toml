@@ -2,7 +2,7 @@
 # with a MQTT broker. Many options and defaults have been omitted for
 # simplicity.
 #
-# See https://www.loraserver.io/lora-app-server/install/config/ for a full
+# See https://www.chirpstack.io/application-server/install/config/ for a full
 # configuration example and documentation.
 
 
@@ -14,7 +14,7 @@
 #
 # Besides using an URL (e.g. 'postgres://user:password@hostname/database?sslmode=disable')
 # it is also possible to use the following format:
-# 'user=loraserver dbname=loraserver sslmode=disable'.
+# 'user=chirpstack_as dbname=chirpstack_as sslmode=disable'.
 #
 # The following connection parameters are supported:
 #
@@ -36,7 +36,7 @@
 # * require - Always SSL (skip verification)
 # * verify-ca - Always SSL (verify that the certificate presented by the server was signed by a trusted CA)
 # * verify-full - Always SSL (verify that the certification presented by the server was signed by a trusted CA and the server host name matches the one in the certificate)
-dsn="postgres://localhost/loraserver_as?sslmode=disable"
+dsn="postgres://localhost/chirpstack_as?sslmode=disable"
 
 
 # Redis settings
@@ -67,7 +67,7 @@ url="redis://localhost:6379"
     # MQTT topic templates for the different MQTT topics.
     #
     # The meaning of these topics are documented at:
-    # https://www.loraserver.io/lora-app-server/integrate/data/
+    # https://www.chirpstack.io/application-server/integrate/data/
     #
     # The following substitutions can be used:
     # * "{{ .ApplicationID }}" for the application id.
@@ -95,7 +95,7 @@ url="redis://localhost:6379"
 
     # Settings for the "internal api"
     #
-    # This is the API used by LoRa Server to communicate with LoRa App Server
+    # This is the API used by ChirpStack Network Server to communicate with ChirpStack Application Server
     # and should not be exposed to the end-user.
     [application_server.api]
     # ip:port to bind the api server
@@ -103,9 +103,9 @@ url="redis://localhost:6379"
 
     # Public ip:port of the application-server API.
     #
-    # This is used by LoRa Server to connect to LoRa App Server. When running
-    # LoRa App Server on a different host than LoRa Server, make sure to set
-    # this to the host:ip on which LoRa Server can reach LoRa App Server.
+    # This is used by ChirpStack Network Server to connect to ChirpStack Application Server. When running
+    # ChirpStack Application Server on a different host than ChirpStack Network Server, make sure to set
+    # this to the host:ip on which ChirpStack Network Server can reach ChirpStack Application Server.
     # The port must be equal to the port configured by the 'bind' flag
     # above.
     public_host="localhost:8001"
@@ -131,8 +131,8 @@ url="redis://localhost:6379"
 
 # Join-server configuration.
 #
-# LoRa App Server implements a (subset) of the join-api specified by the
-# LoRaWAN Backend Interfaces specification. This API is used by LoRa Server
+# ChirpStack Application Server implements a (subset) of the join-api specified by the
+# LoRaWAN Backend Interfaces specification. This API is used by ChirpStack Network Server
 # to handle join-requests.
 [join_server]
 # ip:port to bind the join-server api interface to

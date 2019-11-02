@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

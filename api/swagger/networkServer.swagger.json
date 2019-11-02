@@ -210,11 +210,11 @@
         },
         "version": {
           "type": "string",
-          "description": "The LoRa Server version."
+          "description": "The ChirpStack Network Server version."
         },
         "region": {
           "type": "string",
-          "description": "The LoRa Server region configured."
+          "description": "The ChirpStack Network Server region configured."
         }
       }
     },

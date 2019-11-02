@@ -143,7 +143,7 @@ class TopNav extends Component {
           </IconButton>
 
           <div className={this.props.classes.flex}>
-            <img src="/logo/logo.png" className={this.props.classes.logo} alt="LoRa Server" />
+            <img src="/logo/logo.png" className={this.props.classes.logo} alt="ChirpStack.io" />
           </div>
 
           <form onSubmit={this.onSearchSubmit}>
@@ -161,7 +161,7 @@ class TopNav extends Component {
             />
           </form>
 
-          <a href="https://www.loraserver.io/lora-app-server/" target="loraserver-doc">
+          <a href="https://www.chirpstack.io/application-server/" target="chirpstack-doc">
             <IconButton className={this.props.classes.iconButton}>
               <HelpCicle />
             </IconButton>

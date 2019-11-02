@@ -47,7 +47,7 @@ type Gateway struct {
 	// Gateway boards configuration (optional).
 	// This is (currently) only needed when the gateway supports the fine-timestamp
 	// and you you would like to add the FPGA ID to the gateway meta-data or would
-	// like LoRa Server to decrypt the fine-timestamp.
+	// like ChirpStack Network Server to decrypt the fine-timestamp.
 	Boards               []*GatewayBoard `protobuf:"bytes,9,rep,name=boards,proto3" json:"boards,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
 	XXX_unrecognized     []byte          `json:"-"`

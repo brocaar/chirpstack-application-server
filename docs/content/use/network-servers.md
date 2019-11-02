@@ -1,97 +1,57 @@
 ---
-title: Network-servers
+title: Network Servers
 menu:
     main:
         parent: use
         weight: 3
-description: Manage the connected network-servers (LoRa Server instances), supporting multiple regions.
+description: Manage the connected Network Servers (ChirpStack Network Server instances), supporting multiple regions.
 ---
 
-# Network-server management
+# Network Server management
 
-## Network-servers
+## Network Servers
 
-LoRa App Server is able to connect to one or multiple [LoRa Server](/loraserver/)
-network-server instances. Global admin users are able to add new
-network-servers to the LoRa App Server installation.
+ChirpStack Application Server is able to connect to one or multiple [ChirpStack Network Server](/Network Server/)
+instances. Global admin users are able to add new
+Network Servers to the ChirpStack Application Server installation.
 
-**Note:** once a network-server is assigned to a
-[service-profile]({{<relref "service-profiles.md">}}) or
-[device-profile]({{<relref "device-profiles.md">}}), a network-server can't
+**Note:** once a Network Server is assigned to a
+[Service Profile]({{<relref "service-profiles.md">}}) or
+[Device Profile]({{<relref "device-profiles.md">}}), a Network Server can't
 be removed before deleting these entities, it will return an error.
 
 ## Routing-profile
 
-When creating a new network-server, LoRa App Server will create a
-routing-profile on the given network-server, containing the `hostname:ip`
-of the LoRa App Server installation. In case your LoRa App Server installation
+When creating a new Network Server, ChirpStack Application Server will create a
+Routing Profile on the given Network Server, containing the `hostname:ip`
+of the ChirpStack Application Server installation. In case your ChirpStack Application Server installation
 is not reachable on `localhost`, make sure this `hostname:ip` is configured
-correctly in your [configuration]({{<ref "install/config.md">}}).
-This routing-profile is updated on network-server updates and deleted on
-network-server deletes.
+correctly in your [Configuration]({{<ref "install/config.md">}}).
+This Routing Profile is updated on Network Server updates and deleted on
+Network Server deletes.
 
 ## TLS certificates
 
-Depending the configuration of LoRa Server and LoRa App Server, you must enter
-the CA and client certificates in order to let LoRa App Server connect to
-LoRa Server and in order to let LoRa Server connect to LoRa App Server
+Depending the configuration of ChirpStack Network Server and ChirpStack Application Server, you must enter
+the CA and client certificates in order to let ChirpStack Application Server connect to
+ChirpStack Network Server and in order to let ChirpStack Network Server connect to ChirpStack Application Server
 (see *Routing-profile* above).
 
 Note that for security reasons, the *TLS key* content is not displayed
-when editing an existing network-server. Re-submitting does not clear the
+when editing an existing Network Server. Re-submitting does not clear the
 stored TLS key when left blank! The *TLS key* content will only be cleared
 internally when submitting a form with an empty *TLS certificate* value.
 
-### LoRa Server API is using TLS
+### ChirpStack Network Server API is using TLS
 
 You must enter the CA and TLS certificate fields under
-**Certificates for LoRa App Server to LoRa Server connection**.
+**Certificates for ChirpStack Application Server to ChirpStack Network Server connection**.
 
-See also [LoRa Server configuration](https://docs.loraserver.io/loraserver/install/config/).
+See also [ChirpStack Network Server configuration](https://www.chirpstack.io/network-server/install/config/).
 
-### LoRa App Server API is using TLS
+### ChirpStack Application Server API is using TLS
 
 You must enter the CA and TLS certificate fields under
-**Certificates for LoRa Server to LoRa App Server connection**.
+**Certificates for ChirpStack Network Server to ChirpStack Application Server connection**.
 
-See also [LoRa App Server configuration]({{<ref "install/config.md">}}).
-
-## Gateway-profiles
-
-Once a network-server has been created, it is possible to provision one or more
-gateway-profiles on this network-server (available under the *Gateway-profiles*
-tab). When adding a gateway, it is then possible to select one of these
-gateway-profiles to make sure the gateway configuration is in sync with the
-channels used by the network.
-
-Please note that this must also be configured
-in your [LoRa Gateway Bridge configuration](/lora-gateway-bridge/install/config/).
-
-**Important:** changing the channel-plan of the gateway does not change the
-channels used by the devices. For a correct setup, the gateway-profile(s)
-must at least support the channels used by your devices. The channels that must
-be used by your devices must be configured in your
-[LoRa Server configuration](/loraserver/install/config/).
-
-### Enabled channels
-
-Enter the list of default channels that you would like to use for this
-gateway-profile. Note that these are the channels that are specified by the
-[LoRaWAN Regional Parameters](https://www.lora-alliance.org/lorawan-for-developers).
-
-### Extra channels
-
-If allowed by your LoRaWAN region, you can use *Add extra channel* to configure
-additional channels that are not defined by the LoRaWAN Regional Parameters.
-
-### Hardware limitations
-
-This feature is limited to 8-channel gateways (currently) and assumes that
-channels can be distributed over two radios. When defining a channel-plan,
-please keep in mind that the channels fit within the bandwidth of two radios.
-
-The bandwidth of each radio depends on the bandwidth of the assigned channels:
-
-* 500kHz channel = 1.1MHz radio bandwidth
-* 250kHz channel = 1Mhz radio bandwidth
-* 125kHz channel = 0.925MHz radio bandwidth
+See also [ChirpStack Application Server configuration]({{<ref "install/config.md">}}).

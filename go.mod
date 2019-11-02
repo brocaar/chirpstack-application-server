@@ -1,4 +1,4 @@
-module github.com/brocaar/lora-app-server
+module github.com/brocaar/chirpstack-application-server
 
 go 1.12
 

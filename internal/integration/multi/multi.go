@@ -9,17 +9,17 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/integration"
-	"github.com/brocaar/lora-app-server/internal/integration/awssns"
-	"github.com/brocaar/lora-app-server/internal/integration/azureservicebus"
-	"github.com/brocaar/lora-app-server/internal/integration/gcppubsub"
-	"github.com/brocaar/lora-app-server/internal/integration/http"
-	"github.com/brocaar/lora-app-server/internal/integration/influxdb"
-	"github.com/brocaar/lora-app-server/internal/integration/mqtt"
-	"github.com/brocaar/lora-app-server/internal/integration/postgresql"
-	"github.com/brocaar/lora-app-server/internal/integration/thingsboard"
-	"github.com/brocaar/lora-app-server/internal/logging"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/awssns"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/azureservicebus"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/gcppubsub"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/http"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/influxdb"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/mqtt"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/postgresql"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/thingsboard"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
 // Integration implements the multi integration.

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/lorawan"
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"

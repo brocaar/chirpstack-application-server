@@ -9,10 +9,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	pb "github.com/brocaar/chirpstack-application-server/api"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
 func (ts *APITestSuite) TestApplication() {
@@ -262,7 +262,7 @@ func (ts *APITestSuite) TestApplication() {
 					Integration: &pb.InfluxDBIntegration{
 						ApplicationId:       createResp.Id,
 						Endpoint:            "http://localhost:8086/write",
-						Db:                  "loraserver",
+						Db:                  "chirpstack",
 						Username:            "username",
 						Password:            "password",
 						RetentionPolicyName: "DEFAULT",
@@ -299,7 +299,7 @@ func (ts *APITestSuite) TestApplication() {
 						Integration: &pb.InfluxDBIntegration{
 							ApplicationId:       createResp.Id,
 							Endpoint:            "http://localhost:8086/write2",
-							Db:                  "loraserver2",
+							Db:                  "chirpstack2",
 							Username:            "username2",
 							Password:            "password2",
 							RetentionPolicyName: "CUSTOM",

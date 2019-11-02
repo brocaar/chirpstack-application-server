@@ -12,12 +12,12 @@ into a PostgreSQL database. This database can then be used by other
 applications or visualized using for example [Grafana](https://grafana.com/)
 using the [PostgreSQL Data Source](https://grafana.com/docs/features/datasources/postgres/#using-postgresql-in-grafana).
 
-* LoRa App Server will not create these tables for you. Create statements are
+* ChirpStack Application Server will not create these tables for you. Create statements are
   given below.
 * You must enable the `hstore` extension for this database table, this can be
   done with the SQL statement: `create extension hstore;`.
 * This database does not have to be the same database as used by
-  LoRa App Server.
+  ChirpStack Application Server.
 * This may generate a lot of data depending the number of devices and number
   of messages sent per device.
 
@@ -35,14 +35,14 @@ sudo -u postgres psql
 Within the PostgreSQL prompt, enter the following queries:
 
 {{<highlight sql>}}
--- create the loraserver_as_events user
-create role loraserver_as_events with login password 'dbpassword';
+-- create the chirpstack_as_events user
+create role chirpstack_as_events with login password 'dbpassword';
 
--- create the loraserver_as_events database
-create database loraserver_as_events with owner loraserver_as_events;
+-- create the chirpstack_as_events database
+create database chirpstack_as_events with owner chirpstack_as_events;
 
 -- enable the hstore extension
-\c loraserver_as_events
+\c chirpstack_as_events
 create extension hstore;
 
 -- exit the prompt
@@ -53,7 +53,7 @@ To verify if the user and database have been setup correctly, try to connect
 to it:
 
 {{<highlight bash>}}
-psql -h localhost -U loraserver_as_events -W loraserver_as_events
+psql -h localhost -U chirpstack_as_events -W chirpstack_as_events
 {{< /highlight >}}
 
 ## Events

@@ -81,7 +81,7 @@ message LoginRequest {
 }
 
 message LoginResponse {
-	// The JWT tag to be used to access lora-app-server interfaces.
+	// The JWT tag to be used to access chirpstack-application-server interfaces.
 	string jwt = 1;
 }
 

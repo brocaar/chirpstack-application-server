@@ -8,8 +8,8 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/migrations"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/migrations"
 )
 
 func init() {
@@ -23,7 +23,7 @@ func GetConfig() config.Config {
 
 	var c config.Config
 
-	c.PostgreSQL.DSN = "postgres://localhost/loraserver_as_test?sslmode=disable"
+	c.PostgreSQL.DSN = "postgres://localhost/chirpstack_as_test?sslmode=disable"
 	c.Redis.URL = "redis://localhost:6379"
 	c.ApplicationServer.Integration.MQTT.Server = "tcp://localhost:1883"
 	c.ApplicationServer.ID = "6d5db27e-4ce2-4b2b-b5d7-91f069397978"

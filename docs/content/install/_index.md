@@ -1,5 +1,5 @@
 ---
-title: Install LoRa App Server
+title: Install ChirpStack Application Server
 menu:
     main:
         parent: install
@@ -7,4 +7,4 @@ menu:
 hidden: true
 ---
 
-# Install LoRa App Server
+# Install ChirpStack Application Server

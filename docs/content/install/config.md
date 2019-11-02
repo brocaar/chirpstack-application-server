@@ -5,50 +5,50 @@ menu:
         parent: install
         weight: 4
 toc: false
-description: Instructions and examples how to configure the LoRa App Server service.
+description: Instructions and examples how to configure the ChirpStack Application Server service.
 ---
 
 # Configuration
 
-The `lora-app-server` binary has the following command-line flags:
+The `chirpstack-application-server` binary has the following command-line flags:
 
 {{<highlight text>}}
-LoRa App Server is an open-source application-server, part of the LoRa Server project
-	> documentation & support: https://www.loraserver.io/lora-app-server
-	> source & copyright information: https://github.com/brocaar/lora-app-server
+ChirpStack Application Server is an open-source application-server, part of the ChirpStack Network Server project
+	> documentation & support: https://www.chirpstack.io/application-server/
+	> source & copyright information: https://github.com/brocaar/chirpstack-application-server
 
 Usage:
-  lora-app-server [flags]
-  lora-app-server [command]
+  chirpstack-application-server [flags]
+  chirpstack-application-server [command]
 
 Available Commands:
   configfile  Print the LoRa Application Server configuration file
   help        Help about any command
-  version     Print the LoRa App Server version
+  version     Print the ChirpStack Application Server version
 
 Flags:
   -c, --config string   path to configuration file (optional)
-  -h, --help            help for lora-app-server
+  -h, --help            help for chirpstack-application-server
       --log-level int   debug=5, info=4, error=2, fatal=1, panic=0 (default 4)
 
-Use "lora-app-server [command] --help" for more information about a command.
+Use "chirpstack-application-server [command] --help" for more information about a command.
 {{< /highlight >}}
 
 ## Configuration file
 
-By default `lora-app-server` will look in the following order for a
+By default `chirpstack-application-server` will look in the following order for a
 configuration file at the following paths when `--config` is not set:
 
-* `lora-app-server.toml` (current working directory)
-* `$HOME/.config/lora-app-server/lora-app-server.toml`
-* `/etc/lora-app-server/lora-app-server.toml`
+* `chirpstack-application-server.toml` (current working directory)
+* `$HOME/.config/chirpstack-application-server/chirpstack-application-server.toml`
+* `/etc/chirpstack-application-server/chirpstack-application-server.toml`
 
 To load configuration from a different location, use the `--config` flag.
 
-To generate a new configuration file `lora-app-server.toml`, execute the following command:
+To generate a new configuration file `chirpstack-application-server.toml`, execute the following command:
 
 {{<highlight bash>}}
-lora-app-server configfile > lora-app-server.toml
+chirpstack-application-server configfile > chirpstack-application-server.toml
 {{< /highlight >}}
 
 Note that this configuration file will be pre-filled with the current configuration
@@ -57,7 +57,7 @@ This makes it possible when new fields get added to upgrade your configuration f
 while preserving your old configuration. Example:
 
 {{<highlight bash>}}
-lora-app-server configfile --config lora-app-server-old.toml > lora-app-server-new.toml
+chirpstack-application-server configfile --config chirpstack-application-server-old.toml > chirpstack-application-server-new.toml
 {{< /highlight >}}
 
 Example configuration file:
@@ -82,7 +82,7 @@ password_hash_iterations=100000
 #
 # Besides using an URL (e.g. 'postgres://user:password@hostname/database?sslmode=disable')
 # it is also possible to use the following format:
-# 'user=loraserver dbname=loraserver sslmode=disable'.
+# 'user=chirpstack_as dbname=chirpstack_as sslmode=disable'.
 #
 # The following connection parameters are supported:
 #
@@ -104,13 +104,13 @@ password_hash_iterations=100000
 # * require - Always SSL (skip verification)
 # * verify-ca - Always SSL (verify that the certificate presented by the server was signed by a trusted CA)
 # * verify-full - Always SSL (verify that the certification presented by the server was signed by a trusted CA and the server host name matches the one in the certificate)
-dsn="postgres://localhost/loraserver_as?sslmode=disable"
+dsn="postgres://localhost/chirpstack_as?sslmode=disable"
 
 # Automatically apply database migrations.
 #
 # It is possible to apply the database-migrations by hand
-# (see https://github.com/brocaar/lora-app-server/tree/master/migrations)
-# or let LoRa App Server migrate to the latest state automatically, by using
+# (see https://github.com/brocaar/chirpstack-application-server/tree/master/migrations)
+# or let ChirpStack Application Server migrate to the latest state automatically, by using
 # this setting. Make sure that you always make a backup when upgrading Lora
 # App Server and / or applying migrations.
 automigrate=true
@@ -154,7 +154,7 @@ idle_timeout="5m0s"
 # Application-server identifier.
 #
 # Random UUID defining the id of the application-server installation (used by
-# LoRa Server as routing-profile id).
+# ChirpStack Network Server as routing-profile id).
 # For now it is recommended to not change this id.
 id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
@@ -190,7 +190,7 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # MQTT topic templates for the different MQTT topics.
   #
   # The meaning of these topics are documented at:
-  # https://www.loraserver.io/lora-app-server/integrate/data/
+  # https://www.chirpstack.io/application-server/integrate/data/
   #
   # The following substitutions can be used:
   # * "{{ .ApplicationID }}" for the application id.
@@ -325,7 +325,7 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
   # Settings for the "internal api"
   #
-  # This is the API used by LoRa Server to communicate with LoRa App Server
+  # This is the API used by ChirpStack Network Server to communicate with ChirpStack Application Server
   # and should not be exposed to the end-user.
   [application_server.api]
   # ip:port to bind the api server
@@ -342,9 +342,9 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
   # Public ip:port of the application-server API.
   #
-  # This is used by LoRa Server to connect to LoRa App Server. When running
-  # LoRa App Server on a different host than LoRa Server, make sure to set
-  # this to the host:ip on which LoRa Server can reach LoRa App Server.
+  # This is used by ChirpStack Network Server to connect to ChirpStack Application Server. When running
+  # ChirpStack Application Server on a different host than ChirpStack Network Server, make sure to set
+  # this to the host:ip on which ChirpStack Network Server can reach ChirpStack Application Server.
   # The port must be equal to the port configured by the 'bind' flag
   # above.
   public_host="localhost:8001"
@@ -405,8 +405,8 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
 # Join-server configuration.
 #
-# LoRa App Server implements a (subset) of the join-api specified by the
-# LoRaWAN Backend Interfaces specification. This API is used by LoRa Server
+# ChirpStack Application Server implements a (subset) of the join-api specified by the
+# LoRaWAN Backend Interfaces specification. This API is used by ChirpStack Network Server
 # to handle join-requests.
 [join_server]
 # ip:port to bind the join-server api interface to
@@ -434,7 +434,7 @@ tls_key=""
 # The KEK mechanism is used to encrypt the session-keys sent from the
 # join-server to the network-server.
 #
-# The LoRa App Server join-server will use the NetID of the requesting
+# The ChirpStack Application Server join-server will use the NetID of the requesting
 # network-server as the KEK label. When no such label exists in the set,
 # the session-keys will be sent unencrypted (which can be fine for
 # private networks).
@@ -493,7 +493,7 @@ timezone="Local"
 
   # Metrics stored in Prometheus.
   #
-  # These metrics expose information about the state of the LoRa Server
+  # These metrics expose information about the state of the ChirpStack Network Server
   # instance.
   [metrics.prometheus]
   # Enable Prometheus metrics endpoint.
@@ -516,12 +516,12 @@ In order to protect the application-server internal API (`[application_server.in
 unauthorized access and to encrypt all communication, it is advised to use TLS
 certificates. Once the `ca_cert`, `tls_cert` and `tls_key` are set, the
 API will enforce client certificate validation on all incoming connections.
-This means that when configuring a network-server instance in LoRa App Server,
+This means that when configuring a network-server instance in ChirpStack Application Server,
 you must provide the CA and TLS client certificate in order to let the
-network-server to connect to LoRa App Server. See also
+network-server to connect to ChirpStack Application Server. See also
 [network-server management]({{< ref "use/network-servers.md" >}}).
 
-See [https://github.com/brocaar/loraserver-certificates](https://github.com/brocaar/loraserver-certificates)
+See [https://github.com/brocaar/chirpstack-certificates](https://github.com/brocaar/chirpstack-certificates)
 for a set of script to generate such certificates.
 
 ## Securing the join-server API
@@ -533,9 +533,9 @@ set, the API will enforce client certificate validation on all incoming connecti
 When the `ca_cert` is left blank, TLS will still be configured, but the server
 will not require and validate the client-certificate.
 
-Please note that you also need to configure LoRa Server so that it uses a
+Please note that you also need to configure ChirpStack Network Server so that it uses a
 client certificate for its join-server API client. See
-[LoRa Server configuration](https://docs.loraserver.io/loraserver/install/config/).
+[ChirpStack Network Server configuration](https://www.chirpstack.io/network-server/install/config/).
 
 ## Securing the web-interface and external API
 

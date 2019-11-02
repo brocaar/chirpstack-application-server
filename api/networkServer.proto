@@ -135,10 +135,10 @@ message GetNetworkServerResponse {
     // Last update timestamp.
     google.protobuf.Timestamp updated_at = 3;
 
-    // The LoRa Server version.
+    // The ChirpStack Network Server version.
     string version = 4;
 
-    // The LoRa Server region configured.
+    // The ChirpStack Network Server region configured.
     string region = 5;
 }
 

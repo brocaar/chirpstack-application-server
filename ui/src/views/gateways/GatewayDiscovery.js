@@ -89,7 +89,7 @@ class GatewayDiscovery extends Component {
               </ListItem>
               <ListItem dense>
                 <Typography variant="body1">
-                  the gateway ping feature has been disabled in LoRa App Server
+                  the gateway ping feature has been disabled in ChirpStack Application Server
                 </Typography>
               </ListItem>
               <ListItem dense>

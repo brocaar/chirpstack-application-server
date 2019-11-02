@@ -3,11 +3,11 @@ package config
 import (
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/integration/awssns"
-	"github.com/brocaar/lora-app-server/internal/integration/azureservicebus"
-	"github.com/brocaar/lora-app-server/internal/integration/gcppubsub"
-	"github.com/brocaar/lora-app-server/internal/integration/mqtt"
-	"github.com/brocaar/lora-app-server/internal/integration/postgresql"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/awssns"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/azureservicebus"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/gcppubsub"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/mqtt"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/postgresql"
 )
 
 // Config defines the configuration structure.

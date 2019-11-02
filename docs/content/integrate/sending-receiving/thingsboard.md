@@ -22,12 +22,12 @@ feature. Decoded payload data will be available under the `object` key in
 the JSON object.
 
 ThingsBoard will generate a _Access Token_ per device. This token must be
-configured as a [device variable]({{<ref "use/devices.md">}}) in LoRa App Server. 
+configured as a [device variable]({{<ref "use/devices.md">}}) in ChirpStack Application Server. 
 The variable must be named **ThingsBoardAccessToken**.
 
 ## Attributes
 
-For each event, LoRa App Server will update the ThingsBoard device with the
+For each event, ChirpStack Application Server will update the ThingsBoard device with the
 following attributes:
 
 * application_id
@@ -36,7 +36,7 @@ following attributes:
 * device_name
 
 In case any [device tags]({{<ref "use/devices.md">}}) are configured for the
-device in LoRa App Server, these will also be added to the attributes.
+device in ChirpStack Application Server, these will also be added to the attributes.
 
 ## Telemetry
 
@@ -54,4 +54,4 @@ device-status requests can be configured through the [Service Profile]({{<ref "u
 
 Location data is prefixed with the **location_** prefix. Please note that this
 is **only** available in case geolocation capable gateways are being used and
-LoRa Server is configured with geolocation support.
+ChirpStack Network Server is configured with geolocation support.

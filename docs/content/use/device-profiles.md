@@ -1,21 +1,21 @@
 ---
-title: Device-profiles
+title: Device Profiles
 menu:
     main:
         parent: use
         weight: 6
 toc: false
-description: Manage device-profiles, containing the device capabilities and boot parameters.
+description: Manage Device Profiles, containing the device capabilities and boot parameters.
 ---
 
-# Device-profile management
+# Device Profile management
 
-A device-profile defines the device capabilities and boot parameters
-that are needed by the network-server for setting the LoRaWAN radio
+A Device Profile defines the device capabilities and boot parameters
+that are needed by the Network Server for setting the LoRaWAN<sup>&reg;</sup> radio
 access service. These information elements shall be provided by the
 end-device manufacturer.
 
-When creating a device-profile, LoRa App Server will create the actual
+When creating a Device Profile, ChirpStack Application Server will create the actual
 profile on the selected network-server, and will keep a reference record
 so it knows to which organization it belongs.
 
@@ -29,7 +29,7 @@ a codec has been configured.
 
 ### Cayenne LPP
 
-When selecting the Cayenne LPP codec, LoRa App Server will decode and encode
+When selecting the Cayenne LPP codec, ChirpStack Application Server will decode and encode
 following the [Cayenne Low Power Payload](https://mydevices.com/cayenne/docs/lora/)
 specification.
 
@@ -68,7 +68,7 @@ function Encode(fPort, obj) {
 
 The following fields are described by the
 [LoRaWAN Backend Interfaces specification](https://www.lora-alliance.org/lorawan-for-developers).
-Fields marked with an **X** are implemented by LoRa (App) Server.
+Fields marked with an **X** are implemented by ChirpStack Application and Network Server.
 
 - [X] **SupportsClassB** End-Device supports Class B
 - [X] **ClassBTimeout** Maximum delay for the End-Device to answer a MAC request or a confirmed DL frame (mandatory if class B mode supported)
@@ -87,6 +87,6 @@ Fields marked with an **X** are implemented by LoRa (App) Server.
 - [X] **FactoryPresetFreqs** List of factory-preset frequencies (mandatory for ABP)
 - [X] **MaxEIRP** Maximum EIRP supported by the End-Device
 - [ ] **MaxDutyCycle** Maximum duty cycle supported by the End-Device
-- [X] **RFRegion** RF region name (automatically set by LoRa Server)
+- [X] **RFRegion** RF region name (automatically set by ChirpStack Network Server)
 - [ ] **Supports32bitFCnt** End-Device uses 32bit FCnt (mandatory for LoRaWAN 1.0 End-Device) (always set to `true`)
 

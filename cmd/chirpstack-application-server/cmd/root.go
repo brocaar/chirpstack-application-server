@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/spf13/viper"
 
 	log "github.com/sirupsen/logrus"
@@ -19,11 +19,11 @@ var cfgFile string
 var version string
 
 var rootCmd = &cobra.Command{
-	Use:   "lora-app-server",
-	Short: "LoRa Server project application-server",
-	Long: `LoRa App Server is an open-source application-server, part of the LoRa Server project
-	> documentation & support: https://www.loraserver.io/lora-app-server
-	> source & copyright information: https://github.com/brocaar/lora-app-server`,
+	Use:   "chirpstack-application-server",
+	Short: "ChirpStack Application Server",
+	Long: `ChirpStack Application Server is an open-source Application Server, part of the ChirpStack LoRaWAN Network Server stack.
+	> documentation & support: https://www.chirpstack.io/application-server
+	> source & copyright information: https://github.com/brocaar/chirpstack-application-server`,
 	RunE: run,
 }
 
@@ -37,7 +37,7 @@ func init() {
 
 	// defaults
 	viper.SetDefault("general.password_hash_iterations", 100000)
-	viper.SetDefault("postgresql.dsn", "postgres://localhost/loraserver_as?sslmode=disable")
+	viper.SetDefault("postgresql.dsn", "postgres://localhost/chirpstack_as?sslmode=disable")
 	viper.SetDefault("postgresql.automigrate", true)
 	viper.SetDefault("postgresql.max_idle_connections", 2)
 	viper.SetDefault("redis.url", "redis://localhost:6379")
@@ -98,14 +98,14 @@ func initConfig() {
 			log.WithError(err).WithField("config", cfgFile).Fatal("error loading config file")
 		}
 	} else {
-		viper.SetConfigName("lora-app-server")
+		viper.SetConfigName("chirpstack-application-server")
 		viper.AddConfigPath(".")
-		viper.AddConfigPath("$HOME/.config/lora-app-server")
-		viper.AddConfigPath("/etc/lora-app-server")
+		viper.AddConfigPath("$HOME/.config/chirpstack-application-server")
+		viper.AddConfigPath("/etc/chirpstack-application-server")
 		if err := viper.ReadInConfig(); err != nil {
 			switch err.(type) {
 			case viper.ConfigFileNotFoundError:
-				log.Warning("No configuration file found, using defaults. See: https://www.loraserver.io/lora-app-server/install/config/")
+				log.Warning("No configuration file found, using defaults. See: https://www.chirpstack.io/application-server/install/config/")
 			default:
 				log.WithError(err).Fatal("read configuration file error")
 			}

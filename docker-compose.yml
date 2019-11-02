@@ -1,17 +1,17 @@
 version: "2"
 services:
-  appserver:
+  chirpstack-application-server:
     build: 
       context: .
       dockerfile: Dockerfile-devel
     volumes:
-      - ./:/lora-app-server
+      - ./:/chirpstack-application-server
     links:
       - postgres
       - redis
       - mosquitto
     environment:
-      - TEST_POSTGRES_DSN=postgres://loraserver_as:loraserver_as@postgres/loraserver_as?sslmode=disable
+      - TEST_POSTGRES_DSN=postgres://chirpstack_as:chirpstack_as@postgres/chirpstack_as?sslmode=disable
       - TEST_REDIS_URL=redis://redis:6379
       - TEST_MQTT_SERVER=tcp://mosquitto:1883
 

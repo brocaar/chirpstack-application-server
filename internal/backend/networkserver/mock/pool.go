@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/loraserver/api/ns"
 )
 

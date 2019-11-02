@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/lora-app-server/api"
+	pb "github.com/brocaar/chirpstack-application-server/api"
 )
 
 func (ts *APITestSuite) TestOrganization() {
@@ -69,9 +69,9 @@ func (ts *APITestSuite) TestOrganization() {
 			// Default org is already in the database.
 			assert.Len(orgs.Result, 2)
 
-			assert.Equal(createReq.Organization.Name, orgs.Result[0].Name)
-			assert.Equal(createReq.Organization.DisplayName, orgs.Result[0].DisplayName)
-			assert.Equal(createReq.Organization.CanHaveGateways, orgs.Result[0].CanHaveGateways)
+			assert.Equal(createReq.Organization.Name, orgs.Result[1].Name)
+			assert.Equal(createReq.Organization.DisplayName, orgs.Result[1].DisplayName)
+			assert.Equal(createReq.Organization.CanHaveGateways, orgs.Result[1].CanHaveGateways)
 		})
 
 		t.Run("As user", func(t *testing.T) {

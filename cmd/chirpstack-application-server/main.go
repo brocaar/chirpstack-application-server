@@ -4,7 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc/grpclog"
 
-	"github.com/brocaar/lora-app-server/cmd/lora-app-server/cmd"
+	"github.com/brocaar/chirpstack-application-server/cmd/chirpstack-application-server/cmd"
 )
 
 // grpcLogger implements a wrapper around the logrus Logger to make it

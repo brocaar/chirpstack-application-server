@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/pkg/errors"
 	"github.com/robertkrimen/otto"
 )

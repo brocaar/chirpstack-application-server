@@ -60,7 +60,7 @@ Example payload:
 {
     "confirmed": true,                        // whether the payload must be sent as confirmed data down or not
     "fPort": 10,                              // FPort to use (must be > 0)
-    "data": "...."                            // base64 encoded data (plaintext, will be encrypted by LoRa Server)
+    "data": "...."                            // base64 encoded data (plaintext, will be encrypted by ChirpStack Network Server)
     "object": {                               // decoded object (when application coded has been configured)
         "temperatureSensor": {"1": 25},       // when providing the 'object', you can omit 'data'
         "humiditySensor": {"1": 32}

@@ -6,6 +6,8 @@ import TableBody from '@material-ui/core/TableBody';
 import TableHead from '@material-ui/core/TableHead';
 import { withStyles } from '@material-ui/core/styles';
 
+import SessionStore from "../stores/SessionStore";
+
 import Paper from "./Paper";
 
 
@@ -20,7 +22,7 @@ class DataTable extends Component {
 
     this.state = {
       count: 0,
-      rowsPerPage: 10,
+      rowsPerPage: SessionStore.getRowsPerPage(),
       page: 0,
       loaded: {
         rows: false,
@@ -57,6 +59,8 @@ class DataTable extends Component {
     this.setState({
       rowsPerPage: event.target.value,
     });
+
+    SessionStore.setRowsPerPage(event.target.value);
 
     this.props.getPage(event.target.value, 0, (result) => {
       this.setState({

@@ -429,7 +429,7 @@
           "items": {
             "$ref": "#/definitions/apiGatewayBoard"
           },
-          "description": "Gateway boards configuration (optional).\nThis is (currently) only needed when the gateway supports the fine-timestamp\nand you you would like to add the FPGA ID to the gateway meta-data or would\nlike LoRa Server to decrypt the fine-timestamp."
+          "description": "Gateway boards configuration (optional).\nThis is (currently) only needed when the gateway supports the fine-timestamp\nand you you would like to add the FPGA ID to the gateway meta-data or would\nlike ChirpStack Network Server to decrypt the fine-timestamp."
         }
       }
     },

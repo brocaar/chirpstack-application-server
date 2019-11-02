@@ -22,7 +22,7 @@ of a confirmed-downlink.
 
 ### Global integrations
 
-Global integrations are configured throught the [lora-app-server.toml]({{<ref "install/config.md">}})
+Global integrations are configured throught the [chirpstack-application-server.toml]({{<ref "install/config.md">}})
 configuration file and are globally enabled. This means that for every application configured,
 the application will be published using this / these integration(s).
 

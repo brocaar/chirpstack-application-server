@@ -38,11 +38,11 @@ func main() {
 		Paths:       make(map[string]interface{}),
 		Definitions: make(map[string]interface{}),
 	}
-	swagger.Info.Title = "LoRa App Server REST API"
+	swagger.Info.Title = "ChirpStack Application Server REST API"
 	swagger.Info.Version = apiVersion
 	swagger.Info.Description = `
-For more information about the usage of the LoRa App Server (REST) API, see
-[https://docs.loraserver.io/lora-app-server/api/](https://docs.loraserver.io/lora-app-server/api/).
+For more information about the usage of the ChirpStack Application Server (REST) API, see
+[https://www.chirpstack.io/application-server/api/](https://www.chirpstack.io/application-server/api/).
 `
 
 	fileInfos, err := ioutil.ReadDir(os.Args[1])

@@ -214,7 +214,7 @@
       "properties": {
         "jwt": {
           "type": "string",
-          "description": "The JWT tag to be used to access lora-app-server interfaces."
+          "description": "The JWT tag to be used to access chirpstack-application-server interfaces."
         }
       }
     },

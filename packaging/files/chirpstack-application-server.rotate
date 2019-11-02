@@ -1,4 +1,4 @@
-/var/log/lora-app-server/lora-app-server.log {
+/var/log/chirpstack-application-server/chirpstack-application-server.log {
     daily
     rotate 7
     missingok

@@ -4,7 +4,7 @@ menu:
     main:
         parent: install
         weight: 1
-description: Instructions how to setup the LoRa App Server requirements.
+description: Instructions how to setup the ChirpStack Application Server requirements.
 ---
 
 # Requirements
@@ -12,7 +12,7 @@ description: Instructions how to setup the LoRa App Server requirements.
 
 ## MQTT broker
 
-LoRa App Server makes use of MQTT for publishing and receivng application
+ChirpStack Application Server makes use of MQTT for publishing and receivng application
 payloads. [Mosquitto](http://mosquitto.org/) is a popular open-source MQTT
 server, but any MQTT broker implementing MQTT 3.1.1 should work.
 In case you install Mosquitto, make sure you install a **recent** version.
@@ -34,7 +34,7 @@ for information about how to setup Mosquitto for your platform.
 
 ## PostgreSQL database
 
-LoRa App Server persists the gateway data into a
+ChirpStack Application Server persists the gateway data into a
 [PostgreSQL](https://www.postgresql.org) database. Note that PostgreSQL 9.5+
 is required.
 
@@ -42,8 +42,8 @@ is required.
 
 You also need to enable the [pg_trgm](https://www.postgresql.org/docs/current/static/pgtrgm.html)
 (trigram) and [hstore](https://www.postgresql.org/docs/current/hstore.html)
-extensions. Example to enable this extension (assuming your LoRa App Server
-database is named `loraserver_as`):
+extensions. Example to enable this extension (assuming your ChirpStack Application Server
+database is named `chirpstack_as`):
 
 Start the PostgreSQL prompt as the `postgres` user:
 
@@ -54,8 +54,8 @@ sudo -u postgres psql
 Within the PostgreSQL prompt, enter the following queries:
 
 {{<highlight sql>}}
--- change to the LoRa App Server database
-\c loraserver_as
+-- change to the ChirpStack Application Server database
+\c chirpstack_as
 
 -- enable the extensions
 create extension pg_trgm;
@@ -82,7 +82,7 @@ page for information how to setup PostgreSQL on your platform.
 
 ## Redis database
 
-LoRa App Server stores all non-persistent data into a
+ChirpStack Application Server stores all non-persistent data into a
 [Redis](http://redis.io/) datastore. Note that at least Redis 2.6.0
 is required.
 

@@ -14,11 +14,11 @@ the API might change!
 
 Firmware update over the air (sometimes called FUOTA) makes it possible to
 push firmware updates to one or multiple devices, making use of multicast.
-It it standardized by the following LoRa Alliance specifications:
+It it standardized by the following LoRa<sup>&reg</sup> Alliance specifications:
 
-* LoRaWAN Application Layer Clock Synchronization
-* LoRaWAN Fragmented Data Block Transport
-* LoRaWAN Remote Multicast Setup
+* LoRaWAN<sup>&reg;</sup> Application Layer Clock Synchronization
+* LoRaWAN<sup>&reg;</sup> Fragmented Data Block Transport
+* LoRaWAN<sup>&reg;</sup> Remote Multicast Setup
 
 It is important to note that the implementation of this feature by devices
 is optional and therefore, unless your device explicitly states that it
@@ -26,7 +26,7 @@ implements FUOTA it is safe to assume it does not!
 
 ## Starting a firmware update job
 
-Currently LoRa App Server only supports firmware update jobs to single devices.
+Currently ChirpStack Application Server only supports firmware update jobs to single devices.
 When navigating to [Devices]({{<relref "devices.md">}}), you will find a
 _Firmware_ tab, where you will find the _Create Firmware Update Job_ button.
 
@@ -35,7 +35,7 @@ The following information needs to be provided:
 * **Name**: a descriptive name for the update job.
 * **Firmware file**: this is the file containing the update (vendor specific).
 * **Redundant frames**: the number of extra redundant frames to add to the transmission (more redundancy means that it is more likely a device can recover from packet loss).
-* **Unicast timeout**: this is the number of seconds that LoRa App Server will wait for the device to respond to downlink commands.
+* **Unicast timeout**: this is the number of seconds that ChirpStack Application Server will wait for the device to respond to downlink commands.
 * **Data-rate**: the used data-rate for the multicast transmission.
 * **Frequency**: the frequency used for the multicast transmission.
 * **Multicast-group type**: the multicast-group type used.

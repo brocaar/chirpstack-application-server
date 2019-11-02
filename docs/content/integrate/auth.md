@@ -24,12 +24,12 @@ Example claim:
 
 {{<highlight json>}}
 {
-	"iss": "lora-app-server",      // issuer of the claim
-	"aud": "lora-app-server",      // audience for which the claim is intended
-	"nbf": 1489566958,             // unix time from which the token is valid
-	"exp": 1489653358,             // unix time when the token expires
-	"sub": "user",                 // subject of the claim (an user)
-	"username": "admin"            // username the client claims to be
+	"iss": "chirpstack-application-server", // issuer of the claim
+	"aud": "chirpstack-application-server", // audience for which the claim is intended
+	"nbf": 1489566958,                  // unix time from which the token is valid
+	"exp": 1489653358,                  // unix time when the token expires
+	"sub": "user",                      // subject of the claim (an user)
+	"username": "admin"                 // username the client claims to be
 }
 {{< /highlight >}}
 

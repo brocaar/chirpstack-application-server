@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/lorawan"
 )
 
@@ -115,7 +115,7 @@ type PostgreSQLTestSuite struct {
 }
 
 func (ts *PostgreSQLTestSuite) SetupSuite() {
-	dsn := "postgres://localhost/loraserver_as_test?sslmode=disable"
+	dsn := "postgres://localhost/chirpstack_as_test?sslmode=disable"
 	if v := os.Getenv("TEST_POSTGRES_DSN"); v != "" {
 		dsn = v
 	}

@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 ### BEGIN INIT INFO
-# Provides:          lora-app-server
+# Provides:          chirpstack-application-server
 # Required-Start:    $all
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: LoRa App Server
+# Short-Description: ChirpStack Application Server
 ### END INIT INFO
 
 
-NAME=lora-app-server
-DESC="LoRa App Server"
+NAME=chirpstack-application-server
+DESC="ChirpStack Application Server"
 DAEMON_USER=appserver
 DAEMON_GROUP=appserver
 DAEMON=/usr/bin/$NAME

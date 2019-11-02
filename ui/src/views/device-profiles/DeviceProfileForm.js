@@ -434,7 +434,7 @@ function Decode(fPort, bytes) {
               getOptions={this.getPayloadCodecOptions}
             />
             <FormHelperText>
-              By defining a payload codec, LoRa App Server can encode and decode the binary device payload for you.
+              By defining a payload codec, ChirpStack Application Server can encode and decode the binary device payload for you.
             </FormHelperText>
           </FormControl>
 
@@ -447,7 +447,7 @@ function Decode(fPort, bytes) {
             />
             <FormHelperText>
               The function must have the signature <strong>function Decode(fPort, bytes)</strong> and must return an object.
-              LoRa App Server will convert this object to JSON.
+              ChirpStack Application Server will convert this object to JSON.
             </FormHelperText>
           </FormControl>}
           {this.state.object.payloadCodec === "CUSTOM_JS" && <FormControl fullWidth margin="normal">

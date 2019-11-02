@@ -1,5 +1,5 @@
 ---
-title: Multicast-groups
+title: Multicast Groups
 menu:
     main:
         parent: use
@@ -7,15 +7,15 @@ menu:
 description: Manage multicast-groups for sending downlink frames to a group of devices (the multicast-group).
 ---
 
-# Multicast-groups
+# Multicast Groups
 
 By creating a multicast-group, it is possible to send a single downlink payload
 to a group of devices (the multicast-group). All these devices share the same
 multicast-address, session-keys and frame-counter.
 
 After creating a multicast-group, it is possible to assign devices to the group.
-Please note that the device must already created (see [devices]({{<relref "devices.md">}})).
-Only devices that share the same [service-profile]({{<relref "service-profiles.md">}})
+Please note that the device must already created (see [Devices]({{<relref "devices.md">}})).
+Only devices that share the same [Service Profile]({{<relref "service-profiles.md">}})
 as the multicast-group can be added.
 
 ## Provisioning of the device

@@ -10,6 +10,16 @@ description: Lists the changes per ChirpStack Application Server release, includ
 
 # Changelog
 
+## v3.5.1
+
+### Improvements
+
+* Deprecate use of dots (`.`) in environment variable names, use double understore (`__`) instead. ([#369](https://github.com/brocaar/chirpstack-application-server/issues/369))
+
+### Bugfixes
+
+* Fixes init stop script which could cause the ChirpStack Gateway Bridge to not properly stop or restart. ([#379](https://github.com/brocaar/chirpstack-application-server/issues/379))
+
 ## v3.5.0
 
 This release renames LoRa App Server to ChirpStack Application Server.

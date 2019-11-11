@@ -9,12 +9,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/brocaar/chirpstack-application-server/api"
+	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/common"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/band"
 )
@@ -32,7 +32,7 @@ func NewFUOTADeploymentAPI(validator auth.Validator) *FUOTADeploymentAPI {
 }
 
 // CreateForDevice creates a deployment for the given DevEUI.
-func (f *FUOTADeploymentAPI) CreateForDevice(ctx context.Context, req *api.CreateFUOTADeploymentForDeviceRequest) (*api.CreateFUOTADeploymentForDeviceResponse, error) {
+func (f *FUOTADeploymentAPI) CreateForDevice(ctx context.Context, req *pb.CreateFUOTADeploymentForDeviceRequest) (*pb.CreateFUOTADeploymentForDeviceResponse, error) {
 	if req.FuotaDeployment == nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "fuota_deployment must not be nil")
 	}
@@ -135,7 +135,7 @@ func (f *FUOTADeploymentAPI) CreateForDevice(ctx context.Context, req *api.Creat
 	}
 
 	switch req.FuotaDeployment.GroupType {
-	case api.MulticastGroupType_CLASS_C:
+	case pb.MulticastGroupType_CLASS_C:
 		fd.GroupType = storage.FUOTADeploymentGroupTypeC
 	default:
 		return nil, grpc.Errorf(codes.InvalidArgument, "group_type %s is not supported", req.FuotaDeployment.GroupType)
@@ -153,13 +153,13 @@ func (f *FUOTADeploymentAPI) CreateForDevice(ctx context.Context, req *api.Creat
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	return &api.CreateFUOTADeploymentForDeviceResponse{
+	return &pb.CreateFUOTADeploymentForDeviceResponse{
 		Id: fd.ID.String(),
 	}, nil
 }
 
 // Get returns the fuota deployment for the given id.
-func (f *FUOTADeploymentAPI) Get(ctx context.Context, req *api.GetFUOTADeploymentRequest) (*api.GetFUOTADeploymentResponse, error) {
+func (f *FUOTADeploymentAPI) Get(ctx context.Context, req *pb.GetFUOTADeploymentRequest) (*pb.GetFUOTADeploymentResponse, error) {
 	id, err := uuid.FromString(req.Id)
 	if err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "id: %s", err)
@@ -177,8 +177,8 @@ func (f *FUOTADeploymentAPI) Get(ctx context.Context, req *api.GetFUOTADeploymen
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	resp := api.GetFUOTADeploymentResponse{
-		FuotaDeployment: &api.FUOTADeployment{
+	resp := pb.GetFUOTADeploymentResponse{
+		FuotaDeployment: &pb.FUOTADeployment{
 			Id:               fd.ID.String(),
 			Name:             fd.Name,
 			Dr:               uint32(fd.DR),
@@ -206,9 +206,9 @@ func (f *FUOTADeploymentAPI) Get(ctx context.Context, req *api.GetFUOTADeploymen
 
 	switch fd.GroupType {
 	case storage.FUOTADeploymentGroupTypeB:
-		resp.FuotaDeployment.GroupType = api.MulticastGroupType_CLASS_B
+		resp.FuotaDeployment.GroupType = pb.MulticastGroupType_CLASS_B
 	case storage.FUOTADeploymentGroupTypeC:
-		resp.FuotaDeployment.GroupType = api.MulticastGroupType_CLASS_C
+		resp.FuotaDeployment.GroupType = pb.MulticastGroupType_CLASS_C
 	default:
 		return nil, grpc.Errorf(codes.Internal, "unexpected group-type: %s", fd.GroupType)
 	}
@@ -217,7 +217,7 @@ func (f *FUOTADeploymentAPI) Get(ctx context.Context, req *api.GetFUOTADeploymen
 }
 
 // List lists the fuota deployments.
-func (f *FUOTADeploymentAPI) List(ctx context.Context, req *api.ListFUOTADeploymentRequest) (*api.ListFUOTADeploymentResponse, error) {
+func (f *FUOTADeploymentAPI) List(ctx context.Context, req *pb.ListFUOTADeploymentRequest) (*pb.ListFUOTADeploymentResponse, error) {
 	var err error
 	var idFilter bool
 
@@ -277,7 +277,7 @@ func (f *FUOTADeploymentAPI) List(ctx context.Context, req *api.ListFUOTADeploym
 }
 
 // GetDeploymentDevice returns the deployment device.
-func (f *FUOTADeploymentAPI) GetDeploymentDevice(ctx context.Context, req *api.GetFUOTADeploymentDeviceRequest) (*api.GetFUOTADeploymentDeviceResponse, error) {
+func (f *FUOTADeploymentAPI) GetDeploymentDevice(ctx context.Context, req *pb.GetFUOTADeploymentDeviceRequest) (*pb.GetFUOTADeploymentDeviceResponse, error) {
 	fuotaDeploymentID, err := uuid.FromString(req.FuotaDeploymentId)
 	if err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "fuota_deployment_id: %s", err)
@@ -306,8 +306,8 @@ func (f *FUOTADeploymentAPI) GetDeploymentDevice(ctx context.Context, req *api.G
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	resp := api.GetFUOTADeploymentDeviceResponse{
-		DeploymentDevice: &api.FUOTADeploymentDeviceListItem{
+	resp := pb.GetFUOTADeploymentDeviceResponse{
+		DeploymentDevice: &pb.FUOTADeploymentDeviceListItem{
 			DevEui:       d.DevEUI.String(),
 			DeviceName:   d.Name,
 			ErrorMessage: fdd.ErrorMessage,
@@ -316,11 +316,11 @@ func (f *FUOTADeploymentAPI) GetDeploymentDevice(ctx context.Context, req *api.G
 
 	switch fdd.State {
 	case storage.FUOTADeploymentDevicePending:
-		resp.DeploymentDevice.State = api.FUOTADeploymentDeviceState_PENDING
+		resp.DeploymentDevice.State = pb.FUOTADeploymentDeviceState_PENDING
 	case storage.FUOTADeploymentDeviceSuccess:
-		resp.DeploymentDevice.State = api.FUOTADeploymentDeviceState_SUCCESS
+		resp.DeploymentDevice.State = pb.FUOTADeploymentDeviceState_SUCCESS
 	case storage.FUOTADeploymentDeviceError:
-		resp.DeploymentDevice.State = api.FUOTADeploymentDeviceState_ERROR
+		resp.DeploymentDevice.State = pb.FUOTADeploymentDeviceState_ERROR
 	default:
 		return nil, grpc.Errorf(codes.Internal, "unexpected state: %s", fdd.State)
 	}
@@ -338,7 +338,7 @@ func (f *FUOTADeploymentAPI) GetDeploymentDevice(ctx context.Context, req *api.G
 }
 
 // ListDevices lists the devices (and status) for the given fuota deployment ID.
-func (f *FUOTADeploymentAPI) ListDeploymentDevices(ctx context.Context, req *api.ListFUOTADeploymentDevicesRequest) (*api.ListFUOTADeploymentDevicesResponse, error) {
+func (f *FUOTADeploymentAPI) ListDeploymentDevices(ctx context.Context, req *pb.ListFUOTADeploymentDevicesRequest) (*pb.ListFUOTADeploymentDevicesResponse, error) {
 	fuotaDeploymentID, err := uuid.FromString(req.FuotaDeploymentId)
 	if err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "fuota_deployment_id %s", err)
@@ -361,15 +361,15 @@ func (f *FUOTADeploymentAPI) ListDeploymentDevices(ctx context.Context, req *api
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	out := api.ListFUOTADeploymentDevicesResponse{
+	out := pb.ListFUOTADeploymentDevicesResponse{
 		TotalCount: int64(count),
-		Result:     make([]*api.FUOTADeploymentDeviceListItem, len(devices)),
+		Result:     make([]*pb.FUOTADeploymentDeviceListItem, len(devices)),
 	}
 
 	for i := range devices {
 		var err error
 
-		dd := api.FUOTADeploymentDeviceListItem{
+		dd := pb.FUOTADeploymentDeviceListItem{
 			DevEui:       devices[i].DevEUI.String(),
 			DeviceName:   devices[i].DeviceName,
 			ErrorMessage: devices[i].ErrorMessage,
@@ -377,11 +377,11 @@ func (f *FUOTADeploymentAPI) ListDeploymentDevices(ctx context.Context, req *api
 
 		switch devices[i].State {
 		case storage.FUOTADeploymentDevicePending:
-			dd.State = api.FUOTADeploymentDeviceState_PENDING
+			dd.State = pb.FUOTADeploymentDeviceState_PENDING
 		case storage.FUOTADeploymentDeviceSuccess:
-			dd.State = api.FUOTADeploymentDeviceState_SUCCESS
+			dd.State = pb.FUOTADeploymentDeviceState_SUCCESS
 		case storage.FUOTADeploymentDeviceError:
-			dd.State = api.FUOTADeploymentDeviceState_ERROR
+			dd.State = pb.FUOTADeploymentDeviceState_ERROR
 		default:
 			return nil, grpc.Errorf(codes.Internal, "unexpected state: %s", devices[i].State)
 		}
@@ -402,15 +402,15 @@ func (f *FUOTADeploymentAPI) ListDeploymentDevices(ctx context.Context, req *api
 	return &out, nil
 }
 
-func (f *FUOTADeploymentAPI) returnList(count int, deployments []storage.FUOTADeploymentListItem) (*api.ListFUOTADeploymentResponse, error) {
+func (f *FUOTADeploymentAPI) returnList(count int, deployments []storage.FUOTADeploymentListItem) (*pb.ListFUOTADeploymentResponse, error) {
 	var err error
 
-	resp := api.ListFUOTADeploymentResponse{
+	resp := pb.ListFUOTADeploymentResponse{
 		TotalCount: int64(count),
 	}
 
 	for _, fd := range deployments {
-		item := api.FUOTADeploymentListItem{
+		item := pb.FUOTADeploymentListItem{
 			Id:    fd.ID.String(),
 			Name:  fd.Name,
 			State: string(fd.State),

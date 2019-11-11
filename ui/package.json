@@ -30,6 +30,7 @@
     "source-map-explorer": "^2.0.1",
     "swagger-client": "^3.9.1",
     "typeface-roboto": "0.0.75",
+    "uuid-parse": "^1.1.0",
     "whatwg-fetch": "^3.0.0"
   },
   "scripts": {

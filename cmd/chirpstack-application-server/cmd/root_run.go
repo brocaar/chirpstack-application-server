@@ -22,6 +22,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/gwping"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/application"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/multi"
 	"github.com/brocaar/chirpstack-application-server/internal/metrics"
 	"github.com/brocaar/chirpstack-application-server/internal/migrations/code"
@@ -115,11 +116,21 @@ func setupIntegration() error {
 		}
 	}
 
-	mi, err := multi.New(confs)
+	var m marshaler.Type
+	switch config.C.ApplicationServer.Integration.Marshaler {
+	case "protobuf":
+		m = marshaler.Protobuf
+	case "json":
+		m = marshaler.ProtobufJSON
+	case "json_v3":
+		m = marshaler.JSONV3
+	}
+
+	mi, err := multi.New(m, confs)
 	if err != nil {
 		return errors.Wrap(err, "setup integrations error")
 	}
-	mi.Add(application.New())
+	mi.Add(application.New(m))
 	integration.SetIntegration(mi)
 
 	return nil

@@ -117,7 +117,6 @@ type StatusNotification struct {
 	ApplicationName         string            `json:"applicationName"`
 	DeviceName              string            `json:"deviceName"`
 	DevEUI                  lorawan.EUI64     `json:"devEUI"`
-	Battery                 int               `json:"battery"`
 	Margin                  int               `json:"margin"`
 	ExternalPowerSource     bool              `json:"externalPowerSource"`
 	BatteryLevel            float32           `json:"batteryLevel"`

@@ -4,13 +4,13 @@ import (
 	"crypto/aes"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math"
 	"net"
 	"time"
 
 	keywrap "github.com/NickBall/go-aes-key-wrap"
-	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
@@ -20,6 +20,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
+	"github.com/brocaar/chirpstack-api/go/as"
+	pb "github.com/brocaar/chirpstack-api/go/as/integration"
+	"github.com/brocaar/chirpstack-api/go/common"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/applayer/clocksync"
 	"github.com/brocaar/chirpstack-application-server/internal/applayer/fragmentation"
@@ -31,8 +34,6 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/loraserver/api/as"
-	"github.com/brocaar/loraserver/api/common"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/gps"
 )
@@ -215,7 +216,7 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		return &empty.Empty{}, nil
 	}
 
-	var object interface{}
+	objectJSON := ""
 
 	// TODO: in the next major release, remove this and always use the
 	// device-profile codec fields.
@@ -241,39 +242,36 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 				"dev_eui":        d.DevEUI,
 			}).WithError(err).Error("decode payload error")
 
-			errNotification := integration.ErrorNotification{
-				ApplicationID:   d.ApplicationID,
+			errEvent := pb.ErrorEvent{
+				ApplicationId:   uint64(d.ApplicationID),
 				ApplicationName: app.Name,
 				DeviceName:      d.Name,
-				DevEUI:          d.DevEUI,
-				Type:            "CODEC",
+				DevEui:          d.DevEUI[:],
+				Type:            pb.ErrorType_UPLINK_CODEC,
 				Error:           err.Error(),
 				FCnt:            req.FCnt,
 				Tags:            make(map[string]string),
-				Variables:       make(map[string]string),
 			}
 
 			for k, v := range d.Tags.Map {
 				if v.Valid {
-					errNotification.Tags[k] = v.String
+					errEvent.Tags[k] = v.String
 				}
 			}
 
+			vars := make(map[string]string)
 			for k, v := range d.Variables.Map {
 				if v.Valid {
-					errNotification.Variables[k] = v.String
+					vars[k] = v.String
 				}
 			}
 
-			if err := eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
-				Type:    eventlog.Error,
-				Payload: errNotification,
-			}); err != nil {
+			if err := eventlog.LogEventForDevice(d.DevEUI, eventlog.Error, &errEvent); err != nil {
 				log.WithError(err).Error("log event for device error")
 			}
 
-			if err := integration.Integration().SendErrorNotification(ctx, errNotification); err != nil {
-				log.WithError(err).Error("send error notification to integration error")
+			if err := integration.Integration().SendErrorNotification(ctx, vars, errEvent); err != nil {
+				log.WithError(err).Error("send error event to integration error")
 			}
 		} else {
 			log.WithFields(log.Fields{
@@ -281,27 +279,29 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 				"codec":          app.PayloadCodec,
 				"duration":       time.Since(start),
 			}).Debug("payload codec completed Decode execution")
-			object = codecPL.Object()
+
+			b, err := json.Marshal(codecPL.Object())
+			if err != nil {
+				log.WithError(err).Error("marshal codec output to json error")
+			}
+			objectJSON = string(b)
 		}
 	}
 
-	pl := integration.DataUpPayload{
-		ApplicationID:   app.ID,
+	pl := pb.UplinkEvent{
+		ApplicationId:   uint64(app.ID),
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,
-		DevEUI:          devEUI,
-		RXInfo:          []integration.RXInfo{},
-		TXInfo: integration.TXInfo{
-			Frequency: int(req.TxInfo.Frequency),
-			DR:        int(req.Dr),
-		},
-		ADR:       req.Adr,
-		FCnt:      req.FCnt,
-		FPort:     uint8(req.FPort),
-		Data:      b,
-		Object:    object,
-		Tags:      make(map[string]string),
-		Variables: make(map[string]string),
+		DevEui:          devEUI[:],
+		RxInfo:          req.RxInfo,
+		TxInfo:          req.TxInfo,
+		Dr:              req.Dr,
+		Adr:             req.Adr,
+		FCnt:            req.FCnt,
+		FPort:           req.FPort,
+		Data:            b,
+		ObjectJson:      objectJSON,
+		Tags:            make(map[string]string),
 	}
 
 	// set tags and variables
@@ -311,73 +311,21 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 		}
 	}
 
+	vars := make(map[string]string)
 	for k, v := range d.Variables.Map {
 		if v.Valid {
-			pl.Variables[k] = v.String
+			vars[k] = v.String
 		}
 	}
 
-	// collect gateway data of receiving gateways (e.g. gateway name)
-	var macs []lorawan.EUI64
-	for _, rxInfo := range req.RxInfo {
-		var mac lorawan.EUI64
-		copy(mac[:], rxInfo.GatewayId)
-		macs = append(macs, mac)
-	}
-	gws, err := storage.GetGatewaysForMACs(ctx, storage.DB(), macs)
-	if err != nil {
-		return nil, grpc.Errorf(codes.Internal, "get gateways for macs error: %s", err)
-	}
-
-	for _, rxInfo := range req.RxInfo {
-		var mac lorawan.EUI64
-		copy(mac[:], rxInfo.GatewayId)
-
-		var uplinkID uuid.UUID
-		copy(uplinkID[:], rxInfo.UplinkId)
-
-		row := integration.RXInfo{
-			GatewayID: mac,
-			UplinkID:  uplinkID,
-			RSSI:      int(rxInfo.Rssi),
-			LoRaSNR:   rxInfo.LoraSnr,
-		}
-
-		if rxInfo.Location != nil {
-			row.Location = &integration.Location{
-				Latitude:  rxInfo.Location.Latitude,
-				Longitude: rxInfo.Location.Longitude,
-				Altitude:  rxInfo.Location.Altitude,
-			}
-		}
-
-		if gw, ok := gws[mac]; ok {
-			row.Name = gw.Name
-		}
-
-		if rxInfo.Time != nil {
-			ts, err := ptypes.Timestamp(rxInfo.Time)
-			if err != nil {
-				log.WithField("dev_eui", devEUI).WithError(err).Error("parse timestamp error")
-			} else {
-				row.Time = &ts
-			}
-		}
-
-		pl.RXInfo = append(pl.RXInfo, row)
-	}
-
-	err = eventlog.LogEventForDevice(devEUI, eventlog.EventLog{
-		Type:    eventlog.Uplink,
-		Payload: pl,
-	})
+	err = eventlog.LogEventForDevice(devEUI, eventlog.Uplink, &pl)
 	if err != nil {
 		log.WithError(err).Error("log event for device error")
 	}
 
-	err = integration.Integration().SendDataUp(ctx, pl)
+	err = integration.Integration().SendDataUp(ctx, vars, pl)
 	if err != nil {
-		log.WithError(err).Error("send uplink data to integration error")
+		log.WithError(err).Error("send uplink event error")
 		return nil, grpc.Errorf(codes.Internal, err.Error())
 	}
 
@@ -406,40 +354,38 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		"dev_eui": devEUI,
 	}).Info("downlink device-queue item acknowledged")
 
-	pl := integration.ACKNotification{
-		ApplicationID:   app.ID,
+	pl := pb.AckEvent{
+		ApplicationId:   uint64(app.ID),
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,
-		DevEUI:          devEUI,
+		DevEui:          devEUI[:],
 		Acknowledged:    req.Acknowledged,
 		FCnt:            req.FCnt,
 		Tags:            make(map[string]string),
-		Variables:       make(map[string]string),
 	}
 
-	// set tags and variables
+	// set tags
 	for k, v := range d.Tags.Map {
 		if v.Valid {
 			pl.Tags[k] = v.String
 		}
 	}
+
+	vars := make(map[string]string)
 	for k, v := range d.Variables.Map {
 		if v.Valid {
-			pl.Variables[k] = v.String
+			vars[k] = v.String
 		}
 	}
 
-	err = eventlog.LogEventForDevice(devEUI, eventlog.EventLog{
-		Type:    eventlog.ACK,
-		Payload: pl,
-	})
+	err = eventlog.LogEventForDevice(devEUI, eventlog.ACK, &pl)
 	if err != nil {
 		log.WithError(err).Error("log event for device error")
 	}
 
-	err = integration.Integration().SendACKNotification(ctx, pl)
+	err = integration.Integration().SendACKNotification(ctx, vars, pl)
 	if err != nil {
-		log.Errorf("send ack notification to integration error: %s", err)
+		log.WithError(err).Error("send ack event error")
 	}
 
 	return &empty.Empty{}, nil
@@ -456,6 +402,7 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		log.WithField("dev_eui", devEUI).Error(errStr)
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
+
 	app, err := storage.GetApplication(ctx, storage.DB(), d.ApplicationID)
 	if err != nil {
 		errStr := fmt.Sprintf("get application error: %s", err)
@@ -468,40 +415,51 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		"dev_eui": devEUI,
 	}).Error(req.Error)
 
-	pl := integration.ErrorNotification{
-		ApplicationID:   app.ID,
+	var errType pb.ErrorType
+	switch req.Type {
+	case as.ErrorType_OTAA:
+		errType = pb.ErrorType_OTAA
+	case as.ErrorType_DATA_UP_FCNT:
+		errType = pb.ErrorType_UPLINK_FCNT
+	case as.ErrorType_DATA_UP_MIC:
+		errType = pb.ErrorType_UPLINK_MIC
+	case as.ErrorType_DEVICE_QUEUE_ITEM_SIZE:
+		errType = pb.ErrorType_DOWNLINK_PAYLOAD_SIZE
+	case as.ErrorType_DEVICE_QUEUE_ITEM_FCNT:
+		errType = pb.ErrorType_DOWNLINK_FCNT
+	}
+
+	pl := pb.ErrorEvent{
+		ApplicationId:   uint64(app.ID),
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,
-		DevEUI:          devEUI,
-		Type:            req.Type.String(),
+		DevEui:          devEUI[:],
+		Type:            errType,
 		Error:           req.Error,
 		FCnt:            req.FCnt,
 		Tags:            make(map[string]string),
-		Variables:       make(map[string]string),
 	}
 
-	// set tags and variables
+	// set tags
 	for k, v := range d.Tags.Map {
 		if v.Valid {
 			pl.Tags[k] = v.String
 		}
 	}
 
+	vars := make(map[string]string)
 	for k, v := range d.Variables.Map {
 		if v.Valid {
-			pl.Variables[k] = v.String
+			vars[k] = v.String
 		}
 	}
 
-	err = eventlog.LogEventForDevice(devEUI, eventlog.EventLog{
-		Type:    eventlog.Error,
-		Payload: pl,
-	})
+	err = eventlog.LogEventForDevice(devEUI, eventlog.Error, &pl)
 	if err != nil {
 		log.WithError(err).Error("log event for device error")
 	}
 
-	err = integration.Integration().SendErrorNotification(ctx, pl)
+	err = integration.Integration().SendErrorNotification(ctx, vars, pl)
 	if err != nil {
 		errStr := fmt.Sprintf("send error notification to integration error: %s", err)
 		log.Error(errStr)
@@ -570,41 +528,38 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 		return nil, helpers.ErrToRPCError(errors.Wrap(err, "get application error"))
 	}
 
-	pl := integration.StatusNotification{
-		ApplicationID:           app.ID,
+	pl := pb.StatusEvent{
+		ApplicationId:           uint64(app.ID),
 		ApplicationName:         app.Name,
 		DeviceName:              d.Name,
-		DevEUI:                  d.DevEUI,
-		Battery:                 int(req.Battery),
-		Margin:                  int(req.Margin),
+		DevEui:                  d.DevEUI[:],
+		Margin:                  uint32(req.Margin),
 		ExternalPowerSource:     req.ExternalPowerSource,
 		BatteryLevel:            float32(math.Round(float64(req.BatteryLevel*100))) / 100,
 		BatteryLevelUnavailable: req.BatteryLevelUnavailable,
 		Tags:                    make(map[string]string),
-		Variables:               make(map[string]string),
 	}
 
-	// set tags and variables
+	// set tags
 	for k, v := range d.Tags.Map {
 		if v.Valid {
 			pl.Tags[k] = v.String
 		}
 	}
+
+	vars := make(map[string]string)
 	for k, v := range d.Variables.Map {
 		if v.Valid {
-			pl.Variables[k] = v.String
+			vars[k] = v.String
 		}
 	}
 
-	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
-		Type:    eventlog.Status,
-		Payload: pl,
-	})
+	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.Status, &pl)
 	if err != nil {
 		log.WithError(err).Error("log event for device error")
 	}
 
-	err = integration.Integration().SendStatusNotification(ctx, pl)
+	err = integration.Integration().SendStatusNotification(ctx, vars, pl)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(errors.Wrap(err, "send status notification to handler error"))
 	}
@@ -649,41 +604,35 @@ func (a *ApplicationServerAPI) SetDeviceLocation(ctx context.Context, req *as.Se
 		return nil, helpers.ErrToRPCError(errors.Wrap(err, "get application error"))
 	}
 
-	pl := integration.LocationNotification{
-		ApplicationID:   app.ID,
+	pl := pb.LocationEvent{
+		ApplicationId:   uint64(app.ID),
 		ApplicationName: app.Name,
 		DeviceName:      d.Name,
-		DevEUI:          d.DevEUI,
-		Location: integration.Location{
-			Latitude:  req.Location.Latitude,
-			Longitude: req.Location.Longitude,
-			Altitude:  req.Location.Altitude,
-		},
-		Tags:      make(map[string]string),
-		Variables: make(map[string]string),
+		DevEui:          d.DevEUI[:],
+		Location:        req.Location,
+		Tags:            make(map[string]string),
 	}
 
-	// set tags and variables
+	// set tags
 	for k, v := range d.Tags.Map {
 		if v.Valid {
 			pl.Tags[k] = v.String
 		}
 	}
+
+	vars := make(map[string]string)
 	for k, v := range d.Variables.Map {
 		if v.Valid {
-			pl.Variables[k] = v.String
+			vars[k] = v.String
 		}
 	}
 
-	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
-		Type:    eventlog.Location,
-		Payload: pl,
-	})
+	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.Location, &pl)
 	if err != nil {
 		log.WithError(err).Error("log event for device error")
 	}
 
-	err = integration.Integration().SendLocationNotification(ctx, pl)
+	err = integration.Integration().SendLocationNotification(ctx, vars, pl)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(errors.Wrap(err, "send location notification to handler error"))
 	}
@@ -814,96 +763,40 @@ func handleDeviceActivation(ctx context.Context, d storage.Device, app storage.A
 		return errors.Wrap(err, "create device-activation error")
 	}
 
-	pl := integration.JoinNotification{
-		ApplicationID:   app.ID,
+	pl := pb.JoinEvent{
+		ApplicationId:   uint64(app.ID),
 		ApplicationName: app.Name,
-		DevEUI:          d.DevEUI,
+		DevEui:          d.DevEUI[:],
 		DeviceName:      d.Name,
-		DevAddr:         da.DevAddr,
-		RXInfo:          []integration.RXInfo{},
-		TXInfo: integration.TXInfo{
-			Frequency: int(req.TxInfo.Frequency),
-			DR:        int(req.Dr),
-		},
-		Tags:      make(map[string]string),
-		Variables: make(map[string]string),
+		DevAddr:         da.DevAddr[:],
+		RxInfo:          req.RxInfo,
+		TxInfo:          req.TxInfo,
+		Dr:              req.Dr,
+		Tags:            make(map[string]string),
 	}
 
-	// set tags and variables
+	// set tags
 	for k, v := range d.Tags.Map {
 		if v.Valid {
 			pl.Tags[k] = v.String
 		}
 	}
+
+	vars := make(map[string]string)
 	for k, v := range d.Variables.Map {
 		if v.Valid {
-			pl.Variables[k] = v.String
+			vars[k] = v.String
 		}
 	}
 
-	// collect gateway data of receiving gateways (e.g. gateway name)
-	var macs []lorawan.EUI64
-	for _, rxInfo := range req.RxInfo {
-		var mac lorawan.EUI64
-		copy(mac[:], rxInfo.GatewayId)
-		macs = append(macs, mac)
-	}
-	gws, err := storage.GetGatewaysForMACs(ctx, storage.DB(), macs)
-	if err != nil {
-		return errors.Wrap(err, "get gateways for macs error")
-	}
-
-	for _, rxInfo := range req.RxInfo {
-		var mac lorawan.EUI64
-		var uplinkID uuid.UUID
-		copy(mac[:], rxInfo.GatewayId)
-		copy(uplinkID[:], rxInfo.UplinkId)
-
-		row := integration.RXInfo{
-			GatewayID: mac,
-			UplinkID:  uplinkID,
-			RSSI:      int(rxInfo.Rssi),
-			LoRaSNR:   rxInfo.LoraSnr,
-		}
-
-		if rxInfo.Location != nil {
-			row.Location = &integration.Location{
-				Latitude:  rxInfo.Location.Latitude,
-				Longitude: rxInfo.Location.Longitude,
-				Altitude:  rxInfo.Location.Altitude,
-			}
-		}
-
-		if gw, ok := gws[mac]; ok {
-			row.Name = gw.Name
-		}
-
-		if rxInfo.Time != nil {
-			ts, err := ptypes.Timestamp(rxInfo.Time)
-			if err != nil {
-				log.WithFields(log.Fields{
-					"dev_eui": d.DevEUI,
-					"ctx_id":  ctx.Value(logging.ContextIDKey),
-				}).WithError(err).Error("parse timestamp error")
-			} else {
-				row.Time = &ts
-			}
-		}
-
-		pl.RXInfo = append(pl.RXInfo, row)
-	}
-
-	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
-		Type:    eventlog.Join,
-		Payload: pl,
-	})
+	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.Join, &pl)
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"ctx_id": ctx.Value(logging.ContextIDKey),
 		}).Error("log event for device error")
 	}
 
-	err = integration.Integration().SendJoinNotification(ctx, pl)
+	err = integration.Integration().SendJoinNotification(ctx, vars, pl)
 	if err != nil {
 		return errors.Wrap(err, "send join notification error")
 	}

@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 
+import { unparse } from "uuid-parse";
 import JSONTreeOriginal from "react-json-tree";
 
 
@@ -26,15 +27,49 @@ class JSONTree extends Component {
       base0F: '#3971ED',
     }
 
+    // :(
+    let data = JSON.parse(JSON.stringify(this.props.data));
+
+    if ("devEUI" in data) {
+      data.devEUI = base64ToHex(data.devEUI);
+    }
+
+    if ("devAddr" in data) {
+      data.devAddr = base64ToHex(data.devAddr);
+    }
+
+    if ("rxInfo" in data) {
+      for (let i = 0; i < data.rxInfo.length; i++) {
+        if ("gatewayID" in data.rxInfo[i]) {
+          data.rxInfo[i].gatewayID = base64ToHex(data.rxInfo[i].gatewayID);
+        }
+
+        if ("uplinkID" in data.rxInfo[i]) {
+          const id = Buffer.from(data.rxInfo[i].uplinkID, 'base64');
+          data.rxInfo[i].uplinkID = unparse(id);
+        }
+      }
+    }
+
+    if ("txInfo" in data) {
+      if ("gatewayID" in data.txInfo) {
+        data.txInfo.gatewayID = base64ToHex(data.txInfo.gatewayID);
+      }
+    }
+
     return(
       <JSONTreeOriginal
-        data={this.props.data}
+        data={data}
         theme={theme}
         hideRoot={true}
         shouldExpandNode={() => {return true}}
       />
     );
   }
+}
+
+function base64ToHex(str) {
+  return Buffer.from(str, 'base64').toString('hex');
 }
 
 export default JSONTree;

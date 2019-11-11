@@ -9,13 +9,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	pb "github.com/brocaar/chirpstack-api/go/as/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	httpint "github.com/brocaar/chirpstack-application-server/internal/integration/http"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
-	"github.com/brocaar/lorawan"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -44,7 +45,7 @@ func (ts *ApplicationTestSuite) SetupSuite() {
 	assert := require.New(ts.T())
 
 	ts.httpRequests = make(chan *http.Request, 100)
-	ts.integration = New()
+	ts.integration = New(marshaler.Protobuf)
 
 	conf := test.GetConfig()
 	assert.NoError(storage.Setup(conf))
@@ -111,9 +112,9 @@ func (ts *ApplicationTestSuite) TearDownSuite() {
 
 func (ts *ApplicationTestSuite) TestSendDataUp() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendDataUp(context.Background(), integration.DataUpPayload{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, pb.UplinkEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	req := <-ts.httpRequests
@@ -122,9 +123,9 @@ func (ts *ApplicationTestSuite) TestSendDataUp() {
 
 func (ts *ApplicationTestSuite) TestSendJoinNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendJoinNotification(context.Background(), integration.JoinNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendJoinNotification(context.Background(), nil, pb.JoinEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	req := <-ts.httpRequests
@@ -133,9 +134,9 @@ func (ts *ApplicationTestSuite) TestSendJoinNotification() {
 
 func (ts *ApplicationTestSuite) TestSendACKNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendACKNotification(context.Background(), integration.ACKNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendACKNotification(context.Background(), nil, pb.AckEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	req := <-ts.httpRequests
@@ -144,9 +145,9 @@ func (ts *ApplicationTestSuite) TestSendACKNotification() {
 
 func (ts *ApplicationTestSuite) TestErrorNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendErrorNotification(context.Background(), integration.ErrorNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendErrorNotification(context.Background(), nil, pb.ErrorEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	req := <-ts.httpRequests
@@ -155,9 +156,9 @@ func (ts *ApplicationTestSuite) TestErrorNotification() {
 
 func (ts *ApplicationTestSuite) TestStatusNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendStatusNotification(context.Background(), integration.StatusNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendStatusNotification(context.Background(), nil, pb.StatusEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	req := <-ts.httpRequests
@@ -166,9 +167,9 @@ func (ts *ApplicationTestSuite) TestStatusNotification() {
 
 func (ts *ApplicationTestSuite) TestLocationNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendLocationNotification(context.Background(), integration.LocationNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendLocationNotification(context.Background(), nil, pb.LocationEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	req := <-ts.httpRequests

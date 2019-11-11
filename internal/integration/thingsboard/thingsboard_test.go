@@ -11,8 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	pb "github.com/brocaar/chirpstack-api/go/as/integration"
+	"github.com/brocaar/chirpstack-api/go/common"
+	"github.com/brocaar/chirpstack-api/go/gw"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
-	"github.com/brocaar/lorawan"
 )
 
 type testHTTPHandler struct {
@@ -56,34 +58,35 @@ func (ts *IntegrationTestSuite) TearDownSuite() {
 }
 
 func (ts *IntegrationTestSuite) TestUplink() {
+	vars := map[string]string{
+		"ThingsBoardAccessToken": "verysecret",
+	}
+
 	tests := []struct {
 		Name           string
-		Payload        integration.DataUpPayload
+		Payload        pb.UplinkEvent
 		ExpectedBodies map[string]string
 	}{
 		{
 			Name: "One level depth",
-			Payload: integration.DataUpPayload{
+			Payload: pb.UplinkEvent{
 				ApplicationName: "test-app",
 				DeviceName:      "test-dev",
-				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+				DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
 				FCnt:            10,
 				FPort:           20,
-				TXInfo: integration.TXInfo{
+				Dr:              2,
+				TxInfo: &gw.UplinkTXInfo{
 					Frequency: 868100000,
-					DR:        2,
 				},
-				Object: map[string]interface{}{
+				ObjectJson: `{
 					"temperature": 25.4,
 					"humidity":    20,
 					"active":      true,
-					"status":      "on",
-				},
+					"status":      "on"
+				}`,
 				Tags: map[string]string{
 					"foo": "bar",
-				},
-				Variables: map[string]string{
-					"ThingsBoardAccessToken": "verysecret",
 				},
 			},
 			ExpectedBodies: map[string]string{
@@ -93,27 +96,24 @@ func (ts *IntegrationTestSuite) TestUplink() {
 		},
 		{
 			Name: "One level depth with nil value",
-			Payload: integration.DataUpPayload{
+			Payload: pb.UplinkEvent{
 				ApplicationName: "test-app",
 				DeviceName:      "test-dev",
-				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+				DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
 				FCnt:            10,
 				FPort:           20,
-				TXInfo: integration.TXInfo{
+				Dr:              2,
+				TxInfo: &gw.UplinkTXInfo{
 					Frequency: 868100000,
-					DR:        2,
 				},
-				Object: map[string]interface{}{
-					"temperature": nil,
+				ObjectJson: `{
+					"temperature": null,
 					"humidity":    20,
 					"active":      true,
-					"status":      "on",
-				},
+					"status":      "on"
+				}`,
 				Tags: map[string]string{
 					"foo": "bar",
-				},
-				Variables: map[string]string{
-					"ThingsBoardAccessToken": "verysecret",
 				},
 			},
 			ExpectedBodies: map[string]string{
@@ -123,30 +123,27 @@ func (ts *IntegrationTestSuite) TestUplink() {
 		},
 		{
 			Name: "Mixed level depth",
-			Payload: integration.DataUpPayload{
+			Payload: pb.UplinkEvent{
 				ApplicationName: "test-app",
 				DeviceName:      "test-dev",
-				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+				DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
 				FCnt:            10,
 				FPort:           20,
-				TXInfo: integration.TXInfo{
+				Dr:              2,
+				TxInfo: &gw.UplinkTXInfo{
 					Frequency: 868100000,
-					DR:        2,
 				},
-				Object: map[string]interface{}{
-					"temperature": map[string]interface{}{
+				ObjectJson: `{
+					"temperature": {
 						"a": 20.5,
-						"b": 33.3,
+						"b": 33.3
 					},
 					"humidity": 20,
 					"active":   true,
-					"status":   "on",
-				},
+					"status":   "on"
+				}`,
 				Tags: map[string]string{
 					"foo": "bar",
-				},
-				Variables: map[string]string{
-					"ThingsBoardAccessToken": "verysecret",
 				},
 			},
 			ExpectedBodies: map[string]string{
@@ -159,7 +156,7 @@ func (ts *IntegrationTestSuite) TestUplink() {
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.integration.SendDataUp(context.Background(), tst.Payload))
+			assert.NoError(ts.integration.SendDataUp(context.Background(), vars, tst.Payload))
 
 			for _, _ = range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests
@@ -174,30 +171,30 @@ func (ts *IntegrationTestSuite) TestUplink() {
 }
 
 func (ts *IntegrationTestSuite) TestDeviceStatus() {
+	vars := map[string]string{
+		"ThingsBoardAccessToken": "verysecret",
+	}
+
 	tests := []struct {
 		Name           string
-		Payload        integration.StatusNotification
+		Payload        pb.StatusEvent
 		ExpectedBodies map[string]string
 	}{
 		{
 			Name: "margin and battery status",
-			Payload: integration.StatusNotification{
+			Payload: pb.StatusEvent{
 				ApplicationName: "test-app",
-				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+				DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
 				DeviceName:      "test-dev",
-				Battery:         123,
 				BatteryLevel:    48.43,
 				Margin:          10,
 				Tags: map[string]string{
 					"foo": "bar",
 				},
-				Variables: map[string]string{
-					"ThingsBoardAccessToken": "verysecret",
-				},
 			},
 			ExpectedBodies: map[string]string{
 				"/api/v1/verysecret/attributes": `{"application_id":"0","application_name":"test-app","dev_eui":"0102030405060708","device_name":"test-dev","foo":"bar"}`,
-				"/api/v1/verysecret/telemetry":  `{"status_battery":123,"status_battery_level":48.43,"status_battery_level_unavailable":false,"status_external_power_source":false,"status_margin":10}`,
+				"/api/v1/verysecret/telemetry":  `{"status_battery_level":48.43,"status_battery_level_unavailable":false,"status_external_power_source":false,"status_margin":10}`,
 			},
 		},
 	}
@@ -205,7 +202,7 @@ func (ts *IntegrationTestSuite) TestDeviceStatus() {
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.integration.SendStatusNotification(context.Background(), tst.Payload))
+			assert.NoError(ts.integration.SendStatusNotification(context.Background(), vars, tst.Payload))
 
 			for _, _ = range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests
@@ -220,27 +217,28 @@ func (ts *IntegrationTestSuite) TestDeviceStatus() {
 }
 
 func (ts *IntegrationTestSuite) TestLocation() {
+	vars := map[string]string{
+		"ThingsBoardAccessToken": "verysecret",
+	}
+
 	tests := []struct {
 		Name           string
-		Payload        integration.LocationNotification
+		Payload        pb.LocationEvent
 		ExpectedBodies map[string]string
 	}{
 		{
 			Name: "location",
-			Payload: integration.LocationNotification{
+			Payload: pb.LocationEvent{
 				ApplicationName: "test-app",
-				DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+				DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
 				DeviceName:      "test-dev",
-				Location: integration.Location{
+				Location: &common.Location{
 					Latitude:  1.123,
 					Longitude: 2.123,
 					Altitude:  3.123,
 				},
 				Tags: map[string]string{
 					"foo": "bar",
-				},
-				Variables: map[string]string{
-					"ThingsBoardAccessToken": "verysecret",
 				},
 			},
 			ExpectedBodies: map[string]string{
@@ -253,7 +251,7 @@ func (ts *IntegrationTestSuite) TestLocation() {
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.integration.SendLocationNotification(context.Background(), tst.Payload))
+			assert.NoError(ts.integration.SendLocationNotification(context.Background(), vars, tst.Payload))
 
 			for _, _ = range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests

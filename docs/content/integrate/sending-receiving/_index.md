@@ -40,7 +40,7 @@ The following integrations are available:
 Additional to the global enabled integrations, it is also possible to setup
 integrations per [application]({{<ref "use/applications.md">}}).
 
-THe following integrations are available:
+The following integrations are available:
 
 * [HTTP]({{<relref "http.md">}})
 * [InfluxDB]({{<relref "influxdb.md">}})
@@ -48,12 +48,27 @@ THe following integrations are available:
 
 ### Event types
 
+Event payloads can be encoded into different payload encodings, using the
+`marshaler` configuration option under `[application_server.integrations]`
+in the [Configuration]({{<ref "install/config.md">}}) file. For the [Protobuf](https://developers.google.com/protocol-buffers/)
+message definitions, please refer to [integration.proto](https://github.com/brocaar/chirpstack-api/blob/master/protobuf/as/integration/integration.proto).
+
+* JSON (v3): ChirpStack Application Server v3 JSON format, will be removed in the next major ChirpStack Application Server version
+* JSON: Protobuf based JSON format
+* Protobuf: Protobuf binary encoding
+
+**Note:** The Protocol Buffers [JSON Mapping](https://developers.google.com/protocol-buffers/docs/proto3#json)
+defines that bytes must be encoded as base64 strings. This applies to the
+devEUI field for example. When re-encoding this filed to HEX encoding, you
+will find the expected devEUI string.
+
 #### Uplink
 
 Contains the data and meta-data for an uplink application payload.
-Example:
 
-```json
+##### JSON v3
+
+{{<highlight json>}}
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
@@ -61,41 +76,102 @@ Example:
     "devEUI": "0202020202020202",
     "rxInfo": [
         {
-            "gatewayID": "0303030303030303",           // ID of the receiving gateway
-            "name": "rooftop-gateway",                 // name of the receiving gateway
-            "time": "2016-11-25T16:24:37.295915988Z",  // time when the package was received (GPS time of gateway, only set when available)
-            "rssi": -57,                               // signal strength (dBm)
-            "loRaSNR": 10,                             // signal to noise ratio
+            "gatewayID": "0303030303030303",
+            "name": "rooftop-gateway",
+            "time": "2016-11-25T16:24:37.295915988Z",
+            "rssi": -57,
+            "loRaSNR": 10,
             "location": {
-                "latitude": 52.3740364,  // latitude of the receiving gateway
-                "longitude": 4.9144401,  // longitude of the receiving gateway
-                "altitude": 10.5,        // altitude of the receiving gateway
+                "latitude": 52.3740364,
+                "longitude": 4.9144401,
+                "altitude": 10.5
             }
         }
     ],
     "txInfo": {
-        "frequency": 868100000,  // frequency used for transmission
-        "dr": 5                  // data-rate used for transmission
+        "frequency": 868100000,
+        "dr": 5
     },
-    "adr": false,                  // device ADR status
-    "fCnt": 10,                    // frame-counter
-    "fPort": 5,                    // FPort
-    "data": "...",                 // base64 encoded payload (decrypted)
-    "object": {                    // decoded object (when application coded has been configured)
+    "adr": false,
+    "fCnt": 10,
+    "fPort": 5,
+    "data": "...",
+    "object": {
         "temperatureSensor": {"1": 25},
         "humiditySensor": {"1": 32}
     },
-    "tags": {                      // User-provided tags (optional)
+    "tags": {
         "key": "value"
     }
 }
-```
+{{</highlight>}}
+
+##### Protobuf JSON
+
+{{<highlight json>}}
+{
+    "applicationID": "123",
+    "applicationName": "temperature-sensor",
+    "deviceName": "garden-sensor",
+    "devEUI": "AgICAgICAgI=",
+    "rxInfo": [
+        {
+            "gatewayID": "AwMDAwMDAwM=",
+            "time": "2019-11-08T13:59:25.048445Z",
+            "timeSinceGPSEpoch": null,
+            "rssi": -48,
+            "loRaSNR": 9,
+            "channel": 5,
+            "rfChain": 0,
+            "board": 0,
+            "antenna": 0,
+            "location": {
+                "latitude": 52.3740364,
+                "longitude": 4.9144401,
+                "altitude": 10.5
+            },
+            "fineTimestampType": "NONE",
+            "context": "9u/uvA==",
+            "uplinkID": "jhMh8Gq6RAOChSKbi83RHQ=="
+        }
+    ],
+    "txInfo": {
+        "frequency": 868100000,
+        "modulation": "LORA",
+        "loRaModulationInfo": {
+            "bandwidth": 125,
+            "spreadingFactor": 11,
+            "codeRate": "4/5",
+            "polarizationInversion": false
+        }
+    },
+    "adr": true,
+    "dr": 1,
+    "fCnt": 10,
+    "fPort": 5,
+    "data": "...",
+    "objectJSON": "{\"temperatureSensor\":25,\"humiditySensor\":32}",
+    "tags": {
+        "key": "value"
+    }
+}
+{{</highlight>}}
+
+##### Protobuf
+
+This message is defined by the `UplinkEvent` Protobuf message.
 
 #### Status
 
-Event for battery and margin status received from devices. Example payload:
+Event for battery and margin status received from devices.
 
-```json
+The interval in which the Network Server will request the device-status is
+configured by the [service-profile]({{<ref "use/service-profiles.md">}}).
+
+##### JSON v3
+
+
+{{<highlight json>}}
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
@@ -106,80 +182,220 @@ Event for battery and margin status received from devices. Example payload:
     "externalPowerSource": false,
     "batteryLevelUnavailable": false,
     "batteryLevel": 75.5,
-    "tags": {                      // User-provided tags (optional)
+    "tags": {
         "key": "value"
     }
 }
-```
+{{</highlight>}}
 
-When configured by the [service-profile]({{<ref "use/service-profiles.md">}})
-and when published by the device, this payload contains the device status.
+##### Protobuf JSON
 
-##### battery (deprecated)
+{{<highlight json>}}
+{
+    "applicationID": "123",
+    "applicationName": "temperature-sensor",
+    "deviceName": "garden-sensor",
+    "devEUI": "AgICAgICAgI=",
+    "margin": 6,
+    "externalPowerSource": false,
+    "batteryLevelUnavailable": false,
+    "batteryLevel": 75.5,
+    "tags": {
+        "key": "value"
+    }
+}
+{{</highlight>}}
 
-* 0 - The end-device is connected to an external power source
-* 1...254 - The battery level, 1 being at minimum and 254 being at maximum
-* 255 - The end-device was not able to measure the battery level
+##### Protobuf
 
-##### margin
-
-The demodulation signal-to-noise ratio in dB rounded
-to the nearest integer valuefor the last successfully received device-status
-request by the network-server.
+This message is defined by the `StatusEvent` Protobuf message.
 
 #### Join
 
 Event published when a device joins the network. Please note that this is sent
-after the first received uplink (data) frame. Example payload:
+after the first received uplink (data) frame.
 
-```json
+##### JSON v3
+
+
+{{<highlight json>}}
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
     "deviceName": "garden-sensor",
-    "devAddr": "06682ea2",                    // assigned device address
-    "devEUI": "0202020202020202",             // device EUI
-    "tags": {                                 // User-provided tags (optional)
+    "devAddr": "06682ea2",
+    "devEUI": "0202020202020202",
+    "tags": {
         "key": "value"
     }
 }
-```
+{{</highlight>}}
+
+##### Protobuf JSON
+
+{{<highlight json>}}
+{
+    "applicationID": "123",
+    "applicationName": "temperature-sensor",
+    "deviceName": "garden-sensor",
+    "devEUI": "AgICAgICAgI=",
+    "devAddr": "AFE5Qg==",
+    "rxInfo": [
+        {
+            "gatewayID": "AwMDAwMDAwM=",
+            "time": "2019-11-08T13:59:25.048445Z",
+            "timeSinceGPSEpoch": null,
+            "rssi": -48,
+            "loRaSNR": 9,
+            "channel": 5,
+            "rfChain": 0,
+            "board": 0,
+            "antenna": 0,
+            "location": {
+                "latitude": 52.3740364,
+                "longitude": 4.9144401,
+                "altitude": 10.5
+            },
+            "fineTimestampType": "NONE",
+            "context": "9u/uvA==",
+            "uplinkID": "jhMh8Gq6RAOChSKbi83RHQ=="
+        }
+    ],
+    "txInfo": {
+        "frequency": 868100000,
+        "modulation": "LORA",
+        "loRaModulationInfo": {
+            "bandwidth": 125,
+            "spreadingFactor": 11,
+            "codeRate": "4/5",
+            "polarizationInversion": false
+        }
+    },
+    "dr": 1,
+    "tags": {
+        "key": "value"
+    }
+}
+{{</highlight>}}
+
+##### Protobuf
+
+This message is defined by the `JoinEvent` Protobuf message.
 
 #### Ack
 
-Event published on downlink frame acknowledgements. Example payload:
+Event published on downlink frame acknowledgements.
 
-```json
+##### JSON v3
+
+
+{{<highlight json>}}
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
     "deviceName": "garden-sensor",
-    "devEUI": "0202020202020202",             // device EUI
-    "acknowledged": true,                     // whether the frame was acknowledged or not (e.g. timeout)
-    "fCnt": 12,                               // downlink frame-counter
-    "tags": {                                 // User-provided tags (optional)
+    "devEUI": "0202020202020202",
+    "acknowledged": true,
+    "fCnt": 12,
+    "tags": {
         "key": "value"
     }
 }
-```
+{{</highlight>}}
+
+##### Protobuf JSON
+
+{{<highlight json>}}
+{
+
+    "applicationID": "123",
+    "applicationName": "temperature-sensor",
+    "deviceName": "garden-sensor",
+    "devEUI": "AgICAgICAgI=",
+    "rxInfo": [
+        {
+            "gatewayID": "AwMDAwMDAwM=",
+            "time": "2019-11-08T13:59:25.048445Z",
+            "timeSinceGPSEpoch": null,
+            "rssi": -48,
+            "loRaSNR": 9,
+            "channel": 5,
+            "rfChain": 0,
+            "board": 0,
+            "antenna": 0,
+            "location": {
+                "latitude": 52.3740364,
+                "longitude": 4.9144401,
+                "altitude": 10.5
+            },
+            "fineTimestampType": "NONE",
+            "context": "9u/uvA==",
+            "uplinkID": "jhMh8Gq6RAOChSKbi83RHQ=="
+        }
+    ],
+    "txInfo": {
+        "frequency": 868100000,
+        "modulation": "LORA",
+        "loRaModulationInfo": {
+            "bandwidth": 125,
+            "spreadingFactor": 11,
+            "codeRate": "4/5",
+            "polarizationInversion": false
+        }
+    },
+	"acknowledged": true,
+	"fCnt": 15,
+    "tags": {
+        "key": "value"
+    }
+}
+{{</highlight>}}
+
+##### Protobuf
+
+This message is defined by the `AckEvent` Protobuf message.
+
 
 #### Error
 
 Event published in case of an error related to payload scheduling or handling.
 E.g. in case when a payload could not be scheduled as it exceeds the maximum
-payload-size. Example payload:
+payload-size.
 
-```json
+##### JSON v3
+
+
+{{<highlight json>}}
 {
     "applicationID": "123",
     "applicationName": "temperature-sensor",
     "deviceName": "garden-sensor",
-    "devEUI": "0202020202020202"              // device EUI
+    "devEUI": "0202020202020202",
     "type": "DATA_UP_FCNT",
     "error": "...",
-    "fCnt": 123,                              // fCnt related to the error (if applicable)
-    "tags": {                                 // User-provided tags (optional)
+    "fCnt": 123,
+    "tags": {
         "key": "value"
     }
 }
-```
+{{</highlight>}}
+
+##### Protobuf JSON
+
+{{<highlight json>}}
+{
+    "applicationID": "123",
+    "applicationName": "temperature-sensor",
+    "deviceName": "garden-sensor",
+    "devEUI": "AgICAgICAgI=",
+	"type": "UPLINK_CODEC",
+	"error": "...",
+    "tags": {
+        "key": "value"
+    }
+}
+{{</highlight>}}
+
+##### Protobuf
+
+This message is defined by the `ErrorEvent` Protobuf message.

@@ -165,6 +165,8 @@ class DeviceData extends Component {
       return;
     }
 
+    console.log('data: ', d);
+
     let data = this.state.data;
     const now = new Date();
 
@@ -194,7 +196,8 @@ class DeviceData extends Component {
           <DialogTitle id="help-dialog-title">Help</DialogTitle>
           <DialogContent>
             <DialogContentText id="help-dialog-description">
-              These are the events as published to the application. Please refer to data integrations (documentation) for more information on integrating this with your application.
+              These are the events as published to the application (using the JSON marshaler). Please refer to data integrations (documentation) for more information on integrating this with your application.<br /><br />
+              ID values are converted from base64 to HEX for your convenience.
             </DialogContentText>
           </DialogContent>
           <DialogActions>

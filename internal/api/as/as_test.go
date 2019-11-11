@@ -3,7 +3,6 @@ package as
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -13,6 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/brocaar/chirpstack-api/go/as"
+	pb "github.com/brocaar/chirpstack-api/go/as/integration"
+	"github.com/brocaar/chirpstack-api/go/common"
+	gwPB "github.com/brocaar/chirpstack-api/go/gw"
+	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	nsmock "github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/codec"
@@ -20,10 +24,6 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/integration/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
-	"github.com/brocaar/loraserver/api/as"
-	"github.com/brocaar/loraserver/api/common"
-	gwPB "github.com/brocaar/loraserver/api/gw"
-	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 )
 
@@ -136,19 +136,16 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		})
 		assert.NoError(err)
 
-		assert.Equal(integration.ErrorNotification{
-			ApplicationID:   app.ID,
+		assert.Equal(pb.ErrorEvent{
+			ApplicationId:   uint64(app.ID),
 			ApplicationName: "test-app",
 			DeviceName:      "test-node",
-			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
-			Type:            "DATA_UP_FCNT",
+			DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
+			Type:            pb.ErrorType_UPLINK_FCNT,
 			Error:           "BOOM!",
 			FCnt:            123,
 			Tags: map[string]string{
 				"foo": "bar",
-			},
-			Variables: map[string]string{
-				"secret_token": "secret value",
 			},
 		}, <-h.SendErrorNotificationChan)
 	})
@@ -206,11 +203,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 
 			plData := <-h.SendDataUpChan
 			assert.Equal([]byte{33, 99, 53, 13}, plData.Data)
-			assert.Equal(uplinkID, plData.RXInfo[0].UplinkID)
 
 			plJoin := <-h.SendJoinNotificationChan
-			assert.Equal(lorawan.DevAddr{1, 2, 3, 4}, plJoin.DevAddr)
-			assert.Equal(uplinkID, plData.RXInfo[0].UplinkID)
+			assert.Equal([]byte{1, 2, 3, 4}, plJoin.DevAddr)
 		})
 
 		t.Run("Activated device", func(t *testing.T) {
@@ -226,7 +221,6 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			assert.NoError(storage.CreateDeviceActivation(context.Background(), storage.DB(), &da))
 
 			now := time.Now().UTC()
-			mac := lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}
 
 			req := as.HandleUplinkDataRequest{
 				DevEui: d.DevEUI[:],
@@ -272,39 +266,21 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				assert.NoError(err)
 				assert.InDelta(time.Now().UnixNano(), d.LastSeenAt.UnixNano(), float64(time.Second))
 
-				assert.Equal(integration.DataUpPayload{
-					ApplicationID:   app.ID,
+				assert.Equal(pb.UplinkEvent{
+					ApplicationId:   uint64(app.ID),
 					ApplicationName: "test-app",
+					DevEui:          d.DevEUI[:],
 					DeviceName:      "test-node",
-					DevEUI:          d.DevEUI,
-					RXInfo: []integration.RXInfo{
-						{
-							GatewayID: mac,
-							UplinkID:  uplinkID,
-							Name:      "test-gw",
-							Location: &integration.Location{
-								Latitude:  52.3740364,
-								Longitude: 4.9144401,
-								Altitude:  10,
-							},
-							Time:    &now,
-							RSSI:    -60,
-							LoRaSNR: 5,
-						},
-					},
-					TXInfo: integration.TXInfo{
-						Frequency: 868100000,
-						DR:        6,
-					},
-					ADR:   true,
-					FCnt:  10,
-					FPort: 3,
-					Data:  []byte{67, 216, 236, 205},
+					RxInfo:          req.RxInfo,
+					TxInfo:          req.TxInfo,
+					Dr:              6,
+					Adr:             true,
+					FCnt:            10,
+					FPort:           3,
+					Data:            []byte{67, 216, 236, 205},
+					ObjectJson:      "",
 					Tags: map[string]string{
 						"foo": "bar",
-					},
-					Variables: map[string]string{
-						"secret_token": "secret value",
 					},
 				}, <-h.SendDataUpChan)
 			})
@@ -327,10 +303,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				assert.NoError(err)
 
 				pl := <-h.SendDataUpChan
-				assert.NotNil(pl.Object)
-				b, err := json.Marshal(pl.Object)
-				assert.NoError(err)
-				assert.Equal(`{"fPort":3,"firstByte":67}`, string(b))
+				assert.Equal(`{"fPort":3,"firstByte":67}`, pl.ObjectJson)
 			})
 
 			t.Run("JS codec on device-profile", func(t *testing.T) {
@@ -351,10 +324,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				assert.NoError(err)
 
 				pl := <-h.SendDataUpChan
-				assert.NotNil(pl.Object)
-				b, err := json.Marshal(pl.Object)
-				assert.NoError(err)
-				assert.Equal(`{"fPort":4,"firstByte":68}`, string(b))
+				assert.Equal(`{"fPort":4,"firstByte":68}`, pl.ObjectJson)
 			})
 		})
 	})
@@ -405,7 +375,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		tests := []struct {
 			Name                   string
 			SetDeviceStatusRequest as.SetDeviceStatusRequest
-			StatusNotification     integration.StatusNotification
+			StatusNotification     pb.StatusEvent
 		}{
 			{
 				Name: "battery and margin",
@@ -415,19 +385,15 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					Battery:      123,
 					BatteryLevel: 25.50,
 				},
-				StatusNotification: integration.StatusNotification{
-					ApplicationID:   app.ID,
+				StatusNotification: pb.StatusEvent{
+					ApplicationId:   uint64(app.ID),
 					ApplicationName: app.Name,
 					DeviceName:      d.Name,
-					DevEUI:          d.DevEUI,
+					DevEui:          d.DevEUI[:],
 					Margin:          10,
-					Battery:         123,
 					BatteryLevel:    25.50,
 					Tags: map[string]string{
 						"foo": "bar",
-					},
-					Variables: map[string]string{
-						"secret_token": "secret value",
 					},
 				},
 			},
@@ -438,18 +404,15 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					Margin:                  10,
 					BatteryLevelUnavailable: true,
 				},
-				StatusNotification: integration.StatusNotification{
-					ApplicationID:           app.ID,
+				StatusNotification: pb.StatusEvent{
+					ApplicationId:           uint64(app.ID),
 					ApplicationName:         app.Name,
 					DeviceName:              d.Name,
-					DevEUI:                  d.DevEUI,
+					DevEui:                  d.DevEUI[:],
 					Margin:                  10,
 					BatteryLevelUnavailable: true,
 					Tags: map[string]string{
 						"foo": "bar",
-					},
-					Variables: map[string]string{
-						"secret_token": "secret value",
 					},
 				},
 			},
@@ -460,18 +423,15 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					Margin:              10,
 					ExternalPowerSource: true,
 				},
-				StatusNotification: integration.StatusNotification{
-					ApplicationID:       app.ID,
+				StatusNotification: pb.StatusEvent{
+					ApplicationId:       uint64(app.ID),
 					ApplicationName:     app.Name,
 					DeviceName:          d.Name,
-					DevEUI:              d.DevEUI,
+					DevEui:              d.DevEUI[:],
 					Margin:              10,
 					ExternalPowerSource: true,
 					Tags: map[string]string{
 						"foo": "bar",
-					},
-					Variables: map[string]string{
-						"secret_token": "secret value",
 					},
 				},
 			},
@@ -488,13 +448,13 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				d, err := storage.GetDevice(context.Background(), storage.DB(), d.DevEUI, false, false)
 				assert.NoError(err)
 
-				assert.Equal(tst.StatusNotification.Margin, *d.DeviceStatusMargin)
-				assert.Equal(tst.StatusNotification.ExternalPowerSource, d.DeviceStatusExternalPower)
+				assert.EqualValues(tst.StatusNotification.Margin, *d.DeviceStatusMargin)
+				assert.EqualValues(tst.StatusNotification.ExternalPowerSource, d.DeviceStatusExternalPower)
 
 				if tst.SetDeviceStatusRequest.BatteryLevelUnavailable || tst.SetDeviceStatusRequest.ExternalPowerSource {
 					assert.Nil(d.DeviceStatusBattery)
 				} else {
-					assert.Equal(tst.StatusNotification.BatteryLevel, *d.DeviceStatusBattery)
+					assert.EqualValues(tst.StatusNotification.BatteryLevel, *d.DeviceStatusBattery)
 				}
 			})
 		}
@@ -514,21 +474,19 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		})
 		assert.NoError(err)
 
-		assert.Equal(integration.LocationNotification{
-			ApplicationID:   app.ID,
+		assert.Equal(pb.LocationEvent{
+			ApplicationId:   uint64(app.ID),
 			ApplicationName: app.Name,
 			DeviceName:      d.Name,
-			DevEUI:          d.DevEUI,
-			Location: integration.Location{
+			DevEui:          d.DevEUI[:],
+			Location: &common.Location{
 				Latitude:  1.123,
 				Longitude: 2.123,
 				Altitude:  3.123,
+				Source:    common.LocationSource_GEO_RESOLVER,
 			},
 			Tags: map[string]string{
 				"foo": "bar",
-			},
-			Variables: map[string]string{
-				"secret_token": "secret value",
 			},
 		}, <-h.SendLocationNotificationChan)
 
@@ -547,18 +505,15 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		})
 		assert.NoError(err)
 
-		assert.Equal(integration.ACKNotification{
-			ApplicationID:   app.ID,
+		assert.Equal(pb.AckEvent{
+			ApplicationId:   uint64(app.ID),
 			ApplicationName: app.Name,
 			DeviceName:      d.Name,
-			DevEUI:          d.DevEUI,
+			DevEui:          d.DevEUI[:],
 			Acknowledged:    true,
 			FCnt:            10,
 			Tags: map[string]string{
 				"foo": "bar",
-			},
-			Variables: map[string]string{
-				"secret_token": "secret value",
 			},
 		}, <-h.SendACKNotificationChan)
 	})

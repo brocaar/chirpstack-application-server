@@ -1,6 +1,10 @@
 package integration
 
-import "context"
+import (
+	"context"
+
+	pb "github.com/brocaar/chirpstack-api/go/as/integration"
+)
 
 // Handler kinds
 const (
@@ -11,14 +15,14 @@ const (
 
 // Integrator defines the interface that an intergration must implement.
 type Integrator interface {
-	SendDataUp(ctx context.Context, pl DataUpPayload) error                      // send data-up payload
-	SendJoinNotification(ctx context.Context, pl JoinNotification) error         // send join notification
-	SendACKNotification(ctx context.Context, pl ACKNotification) error           // send ack notification
-	SendErrorNotification(ctx context.Context, pl ErrorNotification) error       // send error notification
-	SendStatusNotification(ctx context.Context, pl StatusNotification) error     // send status notification
-	SendLocationNotification(ctx context.Context, pl LocationNotification) error // send location notofication
-	DataDownChan() chan DataDownPayload                                          // returns DataDownPayload channel
-	Close() error                                                                // closes the handler
+	SendDataUp(ctx context.Context, vars map[string]string, pl pb.UplinkEvent) error                 // send data-up payload
+	SendJoinNotification(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error         // send join notification
+	SendACKNotification(ctx context.Context, vars map[string]string, pl pb.AckEvent) error           // send ack notification
+	SendErrorNotification(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error       // send error notification
+	SendStatusNotification(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error     // send status notification
+	SendLocationNotification(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error // send location notofication
+	DataDownChan() chan DataDownPayload                                                              // returns DataDownPayload channel
+	Close() error                                                                                    // closes the handler
 }
 
 var integration Integrator

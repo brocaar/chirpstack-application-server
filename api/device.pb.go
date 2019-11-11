@@ -6,7 +6,7 @@ package api
 import (
 	context "context"
 	fmt "fmt"
-	common "github.com/brocaar/loraserver/api/common"
+	common "github.com/brocaar/chirpstack-api/go/common"
 	proto "github.com/golang/protobuf/proto"
 	empty "github.com/golang/protobuf/ptypes/empty"
 	timestamp "github.com/golang/protobuf/ptypes/timestamp"

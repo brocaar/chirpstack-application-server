@@ -10,13 +10,14 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 
+	pb "github.com/brocaar/chirpstack-api/go/as/integration"
+	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/codec"
 	"github.com/brocaar/chirpstack-application-server/internal/eventlog"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 )
 
@@ -172,37 +173,34 @@ func EnqueueDownlinkPayload(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI
 }
 
 func logCodecError(ctx context.Context, a storage.Application, d storage.Device, err error) {
-	errNotification := integration.ErrorNotification{
-		ApplicationID:   a.ID,
+	errEvent := pb.ErrorEvent{
+		ApplicationId:   uint64(a.ID),
 		ApplicationName: a.Name,
 		DeviceName:      d.Name,
-		DevEUI:          d.DevEUI,
-		Type:            "CODEC",
+		DevEui:          d.DevEUI[:],
+		Type:            pb.ErrorType_DOWNLINK_CODEC,
 		Error:           err.Error(),
 		Tags:            make(map[string]string),
-		Variables:       make(map[string]string),
 	}
 
 	for k, v := range d.Tags.Map {
 		if v.Valid {
-			errNotification.Tags[k] = v.String
+			errEvent.Tags[k] = v.String
 		}
 	}
 
+	vars := make(map[string]string)
 	for k, v := range d.Variables.Map {
 		if v.Valid {
-			errNotification.Variables[k] = v.String
+			vars[k] = v.String
 		}
 	}
 
-	if err := eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
-		Type:    eventlog.Error,
-		Payload: errNotification,
-	}); err != nil {
+	if err := eventlog.LogEventForDevice(d.DevEUI, eventlog.Error, &errEvent); err != nil {
 		log.WithError(err).WithField("ctx_id", ctx.Value(logging.ContextIDKey)).Error("log event for device error")
 	}
 
-	if err := integration.Integration().SendErrorNotification(ctx, errNotification); err != nil {
-		log.WithError(err).WithField("ctx_id", ctx.Value(logging.ContextIDKey)).Error("send error notification to integration error")
+	if err := integration.Integration().SendErrorNotification(ctx, vars, errEvent); err != nil {
+		log.WithError(err).WithField("ctx_id", ctx.Value(logging.ContextIDKey)).Error("send error event to integration error")
 	}
 }

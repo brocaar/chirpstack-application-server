@@ -118,6 +118,15 @@ id="{{ .ApplicationServer.ID }}"
   # besides the extra integrations that can be added on a per-application
   # basis.
   [application_server.integration]
+  # Payload marshaler.
+  #
+  # This defines how the MQTT payloads are encoded. Valid options are:
+  # * protobuf:  Protobuf encoding
+  # * json:      JSON encoding (easier for debugging, but less compact than 'protobuf')
+  # * json_v3:   v3 JSON (will be removed in the next major release)
+  marshaler="{{ .ApplicationServer.Integration.Marshaler }}"
+
+
   # Enabled integrations.
   #
   # Enabled integrations are enabled for all applications. Multiple

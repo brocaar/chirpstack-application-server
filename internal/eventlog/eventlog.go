@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/gomodule/redigo/redis"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
@@ -31,18 +33,28 @@ const (
 // EventLog contains an event log.
 type EventLog struct {
 	Type    string
-	Payload interface{}
+	Payload json.RawMessage
 }
 
 // LogEventForDevice logs an event for the given device.
-func LogEventForDevice(devEUI lorawan.EUI64, el EventLog) error {
+func LogEventForDevice(devEUI lorawan.EUI64, t string, msg proto.Message) error {
 	c := storage.RedisPool().Get()
 	defer c.Close()
 
-	key := fmt.Sprintf(deviceEventUplinkPubSubKeyTempl, devEUI)
-	b, err := json.Marshal(el)
+	b, err := marshaler.Marshal(marshaler.ProtobufJSON, msg)
 	if err != nil {
-		return errors.Wrap(err, "gob encode error")
+		return errors.Wrap(err, "marshal protobuf json error")
+	}
+
+	el := EventLog{
+		Type:    t,
+		Payload: json.RawMessage(b),
+	}
+
+	key := fmt.Sprintf(deviceEventUplinkPubSubKeyTempl, devEUI)
+	b, err = json.Marshal(el)
+	if err != nil {
+		return errors.Wrap(err, "json encode error")
 	}
 
 	if _, err := c.Do("PUBLISH", key, b); err != nil {

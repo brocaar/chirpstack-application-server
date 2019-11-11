@@ -12,12 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	pb "github.com/brocaar/chirpstack-api/go/as/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	httpint "github.com/brocaar/chirpstack-application-server/internal/integration/http"
-	mqttint "github.com/brocaar/chirpstack-application-server/internal/integration/mqtt"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
-	"github.com/brocaar/lorawan"
 )
 
 type testHTTPHandler struct {
@@ -69,8 +70,8 @@ func (ts *IntegrationTestSuite) SetupSuite() {
 	assert.NoError(token.Error())
 
 	var err error
-	ts.integration, err = New([]interface{}{
-		mqttint.Config{
+	ts.integration, err = New(marshaler.Protobuf, []interface{}{
+		config.IntegrationMQTTConfig{
 			Server:                conf.ApplicationServer.Integration.MQTT.Server,
 			Username:              conf.ApplicationServer.Integration.MQTT.Username,
 			Password:              conf.ApplicationServer.Integration.MQTT.Password,
@@ -103,9 +104,9 @@ func (ts *IntegrationTestSuite) TearDownSuite() {
 
 func (ts *IntegrationTestSuite) TestSendDataUp() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendDataUp(context.Background(), integration.DataUpPayload{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, pb.UplinkEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	msg := <-ts.mqttMessages
@@ -117,9 +118,9 @@ func (ts *IntegrationTestSuite) TestSendDataUp() {
 
 func (ts *IntegrationTestSuite) TestSendJoinNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendJoinNotification(context.Background(), integration.JoinNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendJoinNotification(context.Background(), nil, pb.JoinEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	msg := <-ts.mqttMessages
@@ -131,9 +132,9 @@ func (ts *IntegrationTestSuite) TestSendJoinNotification() {
 
 func (ts *IntegrationTestSuite) TestSendACKNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendACKNotification(context.Background(), integration.ACKNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendACKNotification(context.Background(), nil, pb.AckEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	msg := <-ts.mqttMessages
@@ -145,9 +146,9 @@ func (ts *IntegrationTestSuite) TestSendACKNotification() {
 
 func (ts *IntegrationTestSuite) TestErrorNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendErrorNotification(context.Background(), integration.ErrorNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendErrorNotification(context.Background(), nil, pb.ErrorEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	msg := <-ts.mqttMessages
@@ -159,9 +160,9 @@ func (ts *IntegrationTestSuite) TestErrorNotification() {
 
 func (ts *IntegrationTestSuite) TestStatusNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendStatusNotification(context.Background(), integration.StatusNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendStatusNotification(context.Background(), nil, pb.StatusEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	msg := <-ts.mqttMessages
@@ -173,9 +174,9 @@ func (ts *IntegrationTestSuite) TestStatusNotification() {
 
 func (ts *IntegrationTestSuite) TestLocationNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendLocationNotification(context.Background(), integration.LocationNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendLocationNotification(context.Background(), nil, pb.LocationEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	msg := <-ts.mqttMessages

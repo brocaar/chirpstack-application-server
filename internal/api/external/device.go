@@ -2,7 +2,6 @@ package external
 
 import (
 	"database/sql"
-	"encoding/hex"
 	"encoding/json"
 
 	"github.com/gofrs/uuid"
@@ -16,16 +15,16 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/chirpstack-application-server/api"
+	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/common"
+	"github.com/brocaar/chirpstack-api/go/gw"
+	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/eventlog"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/loraserver/api/common"
-	"github.com/brocaar/loraserver/api/gw"
-	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
 )
 
@@ -945,53 +944,8 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 	if up != nil {
 		uplinkFrameLog := pb.UplinkFrameLog{
 			TxInfo:         up.TxInfo,
+			RxInfo:         up.RxInfo,
 			PhyPayloadJson: string(phyJSON),
-		}
-
-		for _, rxInfo := range up.RxInfo {
-			var mac lorawan.EUI64
-			var uplinkID uuid.UUID
-			copy(mac[:], rxInfo.GatewayId)
-			copy(uplinkID[:], rxInfo.UplinkId)
-
-			upRXInfo := pb.UplinkRXInfo{
-				GatewayId:         mac.String(),
-				UplinkId:          uplinkID.String(),
-				Time:              rxInfo.Time,
-				TimeSinceGpsEpoch: rxInfo.TimeSinceGpsEpoch,
-				Rssi:              rxInfo.Rssi,
-				LoraSnr:           rxInfo.LoraSnr,
-				Channel:           rxInfo.Channel,
-				RfChain:           rxInfo.RfChain,
-				Board:             rxInfo.Board,
-				Antenna:           rxInfo.Antenna,
-				Location:          rxInfo.Location,
-				FineTimestampType: rxInfo.FineTimestampType,
-				Context:           rxInfo.Context,
-			}
-
-			switch rxInfo.FineTimestampType {
-			case gw.FineTimestampType_ENCRYPTED:
-				fineTS := rxInfo.GetEncryptedFineTimestamp()
-				if fineTS != nil {
-					upRXInfo.FineTimestamp = &pb.UplinkRXInfo_EncryptedFineTimestamp{
-						EncryptedFineTimestamp: &pb.EncryptedFineTimestamp{
-							AesKeyIndex: fineTS.AesKeyIndex,
-							EncryptedNs: fineTS.EncryptedNs,
-							FpgaId:      hex.EncodeToString(fineTS.FpgaId),
-						},
-					}
-				}
-			case gw.FineTimestampType_PLAIN:
-				fineTS := rxInfo.GetPlainFineTimestamp()
-				if fineTS != nil {
-					upRXInfo.FineTimestamp = &pb.UplinkRXInfo_PlainFineTimestamp{
-						PlainFineTimestamp: fineTS,
-					}
-				}
-			}
-
-			uplinkFrameLog.RxInfo = append(uplinkFrameLog.RxInfo, &upRXInfo)
 		}
 
 		return &uplinkFrameLog, nil, nil
@@ -999,56 +953,8 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 
 	if down != nil {
 		downlinkFrameLog := pb.DownlinkFrameLog{
+			TxInfo:         down.TxInfo,
 			PhyPayloadJson: string(phyJSON),
-		}
-
-		if down.TxInfo != nil {
-			var mac lorawan.EUI64
-			var downlinkID uuid.UUID
-			copy(mac[:], down.TxInfo.GatewayId[:])
-			copy(downlinkID[:], down.DownlinkId)
-
-			downlinkFrameLog.TxInfo = &pb.DownlinkTXInfo{
-				GatewayId:  mac.String(),
-				DownlinkId: downlinkID.String(),
-				Frequency:  down.TxInfo.Frequency,
-				Power:      down.TxInfo.Power,
-				Modulation: down.TxInfo.Modulation,
-				Board:      down.TxInfo.Board,
-				Antenna:    down.TxInfo.Antenna,
-				Timing:     down.TxInfo.Timing,
-				Context:    down.TxInfo.Context,
-			}
-
-			if lora := down.TxInfo.GetLoraModulationInfo(); lora != nil {
-				downlinkFrameLog.TxInfo.ModulationInfo = &pb.DownlinkTXInfo_LoraModulationInfo{
-					LoraModulationInfo: lora,
-				}
-			}
-
-			if fsk := down.TxInfo.GetFskModulationInfo(); fsk != nil {
-				downlinkFrameLog.TxInfo.ModulationInfo = &pb.DownlinkTXInfo_FskModulationInfo{
-					FskModulationInfo: fsk,
-				}
-			}
-
-			if ti := down.TxInfo.GetImmediatelyTimingInfo(); ti != nil {
-				downlinkFrameLog.TxInfo.TimingInfo = &pb.DownlinkTXInfo_ImmediatelyTimingInfo{
-					ImmediatelyTimingInfo: ti,
-				}
-			}
-
-			if ti := down.TxInfo.GetDelayTimingInfo(); ti != nil {
-				downlinkFrameLog.TxInfo.TimingInfo = &pb.DownlinkTXInfo_DelayTimingInfo{
-					DelayTimingInfo: ti,
-				}
-			}
-
-			if ti := down.TxInfo.GetGpsEpochTimingInfo(); ti != nil {
-				downlinkFrameLog.TxInfo.TimingInfo = &pb.DownlinkTXInfo_GpsEpochTimingInfo{
-					GpsEpochTimingInfo: ti,
-				}
-			}
 		}
 
 		return nil, &downlinkFrameLog, nil

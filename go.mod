@@ -7,7 +7,7 @@ require (
 	github.com/Azure/azure-service-bus-go v0.9.1
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
 	github.com/aws/aws-sdk-go v1.19.19
-	github.com/brocaar/chirpstack-api/go v0.0.0-20191111103439-29e414489ebd
+	github.com/brocaar/chirpstack-api/go v0.0.0-20191111124944-8d28dba561ee
 	github.com/brocaar/lorawan v0.0.0-20190925120821-154a30dbdce2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.2.0
@@ -30,8 +30,6 @@ require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lib/pq v1.2.0
 	github.com/mmcloughlin/geohash v0.9.0
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.1.0
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
@@ -49,7 +47,6 @@ require (
 	golang.org/x/net v0.0.0-20190628185345-da137c7871d7
 	golang.org/x/tools v0.0.0-20190708203411-c8855242db9c
 	google.golang.org/api v0.9.0
-	google.golang.org/genproto v0.0.0-20190801165951-fa694d86fc64
 	google.golang.org/grpc v1.24.0
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect

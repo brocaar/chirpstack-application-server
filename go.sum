@@ -45,6 +45,8 @@ github.com/blakesmith/ar v0.0.0-20150311145944-8bd4349a67f2 h1:oMCHnXa6CCCafdPDb
 github.com/blakesmith/ar v0.0.0-20150311145944-8bd4349a67f2/go.mod h1:PkYb9DJNAwrSvRx5DYA+gUcOIgTGVMNkfSCbZM8cWpI=
 github.com/brocaar/chirpstack-api/go v0.0.0-20191111103439-29e414489ebd h1:bUkoMOs+0UJIngKgatgoPUK4kZMYOYNbuLx72Ex7kf0=
 github.com/brocaar/chirpstack-api/go v0.0.0-20191111103439-29e414489ebd/go.mod h1:/vsYWAB38/6TwFksIBuUGNADkvrsQYFznkFbzLfgrdk=
+github.com/brocaar/chirpstack-api/go v0.0.0-20191111124944-8d28dba561ee h1:XPZIh6x/pD3rXFAmy5Ix6vO2V7KSgxbHI8fOvpKzCF4=
+github.com/brocaar/chirpstack-api/go v0.0.0-20191111124944-8d28dba561ee/go.mod h1:i8y9q9B7DJ6RHKYeKOmnDHl2kPngMwigTmivoXFcKzQ=
 github.com/brocaar/lorawan v0.0.0-20190925120821-154a30dbdce2 h1:51WcQ+VAc/6jZ/8GBJiQ3B7FrT2aXI+YsUx2iG9tJlw=
 github.com/brocaar/lorawan v0.0.0-20190925120821-154a30dbdce2/go.mod h1:Fm+51pxK6mZoAQjIaWJqPmnRuXecozsM5Mf9c+kr/ko=
 github.com/caarlos0/ctrlc v1.0.0 h1:2DtF8GSIcajgffDFJzyG15vO+1PuBWOMUdFut7NnXhw=

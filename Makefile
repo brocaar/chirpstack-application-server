@@ -1,6 +1,7 @@
-.PHONY: build clean test package package-deb ui api statics requirements ui-requirements serve update-vendor internal/statics internal/migrations static/swagger/api.swagger.json
+.PHONY: build clean test package package-deb ui api statics requirements ui-requirements serve update-vendor internal/statics internal/migrations 
 PKGS := $(shell go list ./... | grep -v /vendor |grep -v chirpstack-application-server/api | grep -v /migrations | grep -v /static | grep -v /ui)
 VERSION := $(shell git describe --always |sed -e "s/^v//")
+API_VERSION := $(shell go list -m -f '{{ .Version }}' github.com/brocaar/chirpstack-api/go | awk '{n=split($$0, a, "-"); print a[n]}')
 
 build: ui/build internal/statics internal/migrations
 	mkdir -p build
@@ -11,6 +12,7 @@ clean:
 	@rm -rf build dist internal/migrations/migrations_gen.go internal/static/static_gen.go ui/build static/static
 	@rm -f static/index.html static/icon.png static/manifest.json static/asset-manifest.json static/service-worker.js
 	@rm -rf static/logo
+	@rm -rf static/swagger/*.json
 	@rm -rf docs/public
 	@rm -rf dist
 
@@ -51,17 +53,19 @@ internal/statics internal/migrations: static/swagger/api.swagger.json
 
 
 static/swagger/api.swagger.json:
-	@echo "Generating combined Swagger JSON"
-	@GOOS="" GOARCH="" go run api/swagger/main.go api/swagger > static/swagger/api.swagger.json
-	@cp api/swagger/*.json static/swagger
-
+	@echo "Fetching Swagger definitions and generate combined Swagger JSON"
+	@rm -rf /tmp/chirpstack-api
+	@git clone https://github.com/brocaar/chirpstack-api.git /tmp/chirpstack-api
+	@git --git-dir=/tmp/chirpstack-api/.git --work-tree=/tmp/chirpstack-api checkout $(API_VERSION)
+	@mkdir -p static/swagger
+	@cp /tmp/chirpstack-api/swagger/as/external/api/*.json static/swagger
+	@GOOS="" GOARCH="" go run internal/tools/swagger/main.go /tmp/chirpstack-api/swagger/as/external/api > static/swagger/api.swagger.json
 
 # shortcuts for development
 
 dev-requirements:
 	go mod download
 	go install golang.org/x/lint/golint
-	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 	go install github.com/elazarl/go-bindata-assetfs/go-bindata-assetfs
 	go install github.com/jteeuwen/go-bindata/go-bindata
 	go install golang.org/x/tools/cmd/stringer

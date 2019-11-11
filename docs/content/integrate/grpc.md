@@ -35,5 +35,5 @@ languages (officially suported by gRPC):
 ## Links
 
 * [gRPC documentation](http://www.grpc.io/)
-* [ChirpStack Application Server .proto files](https://github.com/brocaar/chirpstack-application-server/tree/master/api)
+* [ChirpStack Application Server .proto files](https://github.com/brocaar/chirpstack-api/tree/master/protobuf/as/external/api)
 * [ChirpStack Application Server Go client](https://godoc.org/github.com/brocaar/chirpstack-api/go/as/external/api)

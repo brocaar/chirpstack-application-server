@@ -144,8 +144,9 @@ class HTTPIntegrationForm extends FormComponent {
           <FormLabel>Endpoints</FormLabel>
           <TextField
             id="uplinkDataURL"
-            label="Uplink data URL"
+            label="Uplink data URL(s)"
             placeholder="http://example.com/uplink"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
             value={this.state.object.uplinkDataURL || ""}
             onChange={this.onChange}
             margin="normal"
@@ -153,8 +154,9 @@ class HTTPIntegrationForm extends FormComponent {
           />
           <TextField
             id="joinNotificationURL"
-            label="Join notification URL"
+            label="Join notification URL(s)"
             placeholder="http://example.com/join"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
             value={this.state.object.joinNotificationURL || ""}
             onChange={this.onChange}
             margin="normal"
@@ -162,8 +164,9 @@ class HTTPIntegrationForm extends FormComponent {
           />
           <TextField
             id="statusNotificationURL"
-            label="Device-status notification URL"
+            label="Device-status notification URL(s)"
             placeholder="http://example.com/status"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
             value={this.state.object.statusNotificationURL || ""}
             onChange={this.onChange}
             margin="normal"
@@ -171,8 +174,9 @@ class HTTPIntegrationForm extends FormComponent {
           />
           <TextField
             id="locationNotificationURL"
-            label="Location notification URL"
+            label="Location notification URL(s)"
             placeholder="http://example.com/location"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
             value={this.state.object.locationNotificationURL || ""}
             onChange={this.onChange}
             margin="normal"
@@ -180,8 +184,9 @@ class HTTPIntegrationForm extends FormComponent {
           />
           <TextField
             id="ackNotificationURL"
-            label="ACK notification URL"
+            label="ACK notification URL(s)"
             placeholder="http://example.com/ack"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
             value={this.state.object.ackNotificationURL || ""}
             onChange={this.onChange}
             margin="normal"
@@ -189,8 +194,9 @@ class HTTPIntegrationForm extends FormComponent {
           />
           <TextField
             id="errorNotificationURL"
-            label="Error notification url"
+            label="Error notification URL(s)"
             placeholder="http://example.com/error"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
             value={this.state.object.errorNotificationURL || ""}
             onChange={this.onChange}
             margin="normal"

@@ -193,8 +193,12 @@ func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 
 func getURLs(str string) []string {
 	urls := strings.Split(str, ",")
-	for i := range urls {
-		urls[i] = strings.TrimSpace(urls[i])
+	var out []string
+
+	for _, url := range urls {
+		if url := strings.TrimSpace(url); url != "" {
+			out = append(out, url)
+		}
 	}
-	return urls
+	return out
 }

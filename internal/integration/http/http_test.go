@@ -240,3 +240,53 @@ func (ts *HandlerTestSuite) TestLocation() {
 func TestHandler(t *testing.T) {
 	suite.Run(t, new(HandlerTestSuite))
 }
+
+func TestGetURLs(t *testing.T) {
+	assert := require.New(t)
+
+	tests := []struct {
+		In  string
+		Out []string
+	}{
+		{
+			In:  "",
+			Out: nil,
+		},
+		{
+			In:  ",",
+			Out: nil,
+		},
+		{
+			In:  "http://example.com",
+			Out: []string{"http://example.com"},
+		},
+		{
+			In:  "http://example.com,",
+			Out: []string{"http://example.com"},
+		},
+		{
+			In:  " http://example.com , ",
+			Out: []string{"http://example.com"},
+		},
+		{
+			In:  "http://example.com,http://example.nl",
+			Out: []string{"http://example.com", "http://example.nl"},
+		},
+		{
+			In:  "http://example.com, http://example.nl",
+			Out: []string{"http://example.com", "http://example.nl"},
+		},
+		{
+			In:  "http://example.com , http://example.nl",
+			Out: []string{"http://example.com", "http://example.nl"},
+		},
+		{
+			In:  "http://example.com , http://example.nl,",
+			Out: []string{"http://example.com", "http://example.nl"},
+		},
+	}
+
+	for _, tst := range tests {
+		assert.Equal(tst.Out, getURLs(tst.In))
+	}
+}

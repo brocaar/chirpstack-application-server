@@ -1,11 +1,11 @@
-FROM golang:1.12-alpine AS development
+FROM golang:1.13-alpine AS development
 
 ENV PROJECT_PATH=/chirpstack-application-server
 ENV PATH=$PATH:$PROJECT_PATH/build
 ENV CGO_ENABLED=0
 ENV GO_EXTRA_BUILD_ARGS="-a -installsuffix cgo"
 
-RUN apk add --no-cache ca-certificates make git bash protobuf alpine-sdk nodejs nodejs-npm
+RUN apk add --no-cache ca-certificates make git bash alpine-sdk nodejs nodejs-npm
 
 RUN mkdir -p $PROJECT_PATH
 COPY . $PROJECT_PATH

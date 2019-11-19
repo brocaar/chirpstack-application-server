@@ -10,6 +10,33 @@ description: Lists the changes per ChirpStack Application Server release, includ
 
 # Changelog
 
+## v3.6.0
+
+### Features
+
+#### Protobuf based integrations
+
+This feature adds a `marshaler` configuration option to the integration
+configuration. The default is backwards compatible with the current JSON
+format. New options are `protobuf` (Protobuf binary) and `json` (Protobuf based
+JSON).
+
+### Improvements
+
+#### gRPC / Protobuf cleanup
+
+All definitions are now imported from `github.com/brocaar/chirpstack-api/go`.
+When using the gRPC API, you must update your imports.
+
+#### Azure Service-Bus integration
+
+Implement re-connect in case of an Azure Service-Bus error. This to work
+partly around [azure-service-bus-go/issues/149](https://github.com/Azure/azure-service-bus-go/issues/149).
+
+#### Support multiple HTTP endpoints
+
+Implement support for configuring multiple endpoints in the HTTP integration.
+
 ## v3.5.1
 
 ### Improvements

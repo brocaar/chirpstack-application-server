@@ -88,7 +88,6 @@ class EnqueueCard extends Component {
   }
 
   onSubmit = (queueItem) => {
-    console.log("foo");
     let qi = queueItem;
     qi.devEUI = this.props.match.params.devEUI;
 

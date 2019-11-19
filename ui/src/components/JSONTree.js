@@ -38,7 +38,7 @@ class JSONTree extends Component {
       data.devAddr = base64ToHex(data.devAddr);
     }
 
-    if ("rxInfo" in data) {
+    if ("rxInfo" in data && data.rxInfo !== null) {
       for (let i = 0; i < data.rxInfo.length; i++) {
         if ("gatewayID" in data.rxInfo[i]) {
           data.rxInfo[i].gatewayID = base64ToHex(data.rxInfo[i].gatewayID);
@@ -51,7 +51,7 @@ class JSONTree extends Component {
       }
     }
 
-    if ("txInfo" in data) {
+    if ("txInfo" in data && data.txInfo !== null) {
       if ("gatewayID" in data.txInfo) {
         data.txInfo.gatewayID = base64ToHex(data.txInfo.gatewayID);
       }

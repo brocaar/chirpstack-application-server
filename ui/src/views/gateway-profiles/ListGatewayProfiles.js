@@ -3,6 +3,7 @@ import React, { Component } from "react";
 import Grid from '@material-ui/core/Grid';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
+import Typography from "@material-ui/core/Typography";
 
 import Plus from "mdi-material-ui/Plus";
 
@@ -44,6 +45,11 @@ class ListGatewayProfiles extends Component {
         >
           <TitleBarTitle title="Gateway-profiles" />
         </TitleBar>
+        <Grid item xs={12}>
+              <Typography variant="subtitle2">
+                Important: Gateway profiles are deprecated and will be removed in the next major release.
+              </Typography>
+        </Grid>
         <Grid item xs={12}>
           <DataTable
             header={

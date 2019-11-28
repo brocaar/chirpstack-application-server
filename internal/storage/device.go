@@ -13,10 +13,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
+	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/lorawan"
 )
 
@@ -412,6 +412,38 @@ func UpdateDevice(ctx context.Context, db sqlx.Ext, d *Device, localOnly bool) e
 		"dev_eui": d.DevEUI,
 		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("device updated")
+
+	return nil
+}
+
+// UpdateDeviceLastSeenAndDR updates the device last-seen timestamp and data-rate.
+func UpdateDeviceLastSeenAndDR(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI64, ts time.Time, dr int) error {
+	res, err := db.Exec(`
+		update device
+		set
+			last_seen_at = $2,
+			dr = $3
+		where
+			dev_eui = $1`,
+		devEUI[:],
+		ts,
+		dr,
+	)
+	if err != nil {
+		return handlePSQLError(Update, err, "update last-seen and dr error")
+	}
+	ra, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "get rows affected error")
+	}
+	if ra == 0 {
+		return ErrDoesNotExist
+	}
+
+	log.WithFields(log.Fields{
+		"dev_eui": devEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
+	}).Info("device last-seen and dr updated")
 
 	return nil
 }

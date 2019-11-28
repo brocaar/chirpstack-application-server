@@ -95,31 +95,17 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 	}
 
 	var err error
-	var d storage.Device
 	var appEUI, devEUI lorawan.EUI64
 	copy(appEUI[:], req.JoinEui)
 	copy(devEUI[:], req.DevEui)
 
-	err = storage.Transaction(func(tx sqlx.Ext) error {
-		d, err = storage.GetDevice(ctx, tx, devEUI, true, true)
-		if err != nil {
-			grpc.Errorf(codes.Internal, "get device error: %s", err)
-		}
+	if err := storage.UpdateDeviceLastSeenAndDR(ctx, storage.DB(), devEUI, time.Now(), int(req.Dr)); err != nil {
+		return nil, grpc.Errorf(codes.Internal, "update device last-seen and dr error: %s", err)
+	}
 
-		now := time.Now()
-		dr := int(req.Dr)
-
-		d.LastSeenAt = &now
-		d.DR = &dr
-		err = storage.UpdateDevice(ctx, tx, &d, true)
-		if err != nil {
-			return grpc.Errorf(codes.Internal, "update device error: %s", err)
-		}
-
-		return nil
-	})
+	d, err := storage.GetDevice(ctx, storage.DB(), devEUI, false, true)
 	if err != nil {
-		return nil, err
+		return nil, grpc.Errorf(codes.Internal, "get device error: %s", err)
 	}
 
 	app, err := storage.GetApplication(ctx, storage.DB(), d.ApplicationID)
@@ -160,56 +146,58 @@ func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.Han
 	// payload is handled by the ChirpStack Application Server internal applayer
 	var internalApplayer bool
 
-	if err := storage.Transaction(func(db sqlx.Ext) error {
-		switch req.FPort {
-		case 200:
-			internalApplayer = true
-			if err := multicastsetup.HandleRemoteMulticastSetupCommand(ctx, db, d.DevEUI, b); err != nil {
-				return grpc.Errorf(codes.Internal, "handle remote multicast setup command error: %s", err)
-			}
-		case 201:
-			internalApplayer = true
-			if err := fragmentation.HandleRemoteFragmentationSessionCommand(ctx, db, d.DevEUI, b); err != nil {
-				return grpc.Errorf(codes.Internal, "handle remote fragmentation session command error: %s", err)
-			}
-		case 202:
-			internalApplayer = true
+	if req.FPort == 200 || req.FPort == 201 || req.FPort == 202 {
+		if err := storage.Transaction(func(db sqlx.Ext) error {
+			switch req.FPort {
+			case 200:
+				internalApplayer = true
+				if err := multicastsetup.HandleRemoteMulticastSetupCommand(ctx, db, d.DevEUI, b); err != nil {
+					return grpc.Errorf(codes.Internal, "handle remote multicast setup command error: %s", err)
+				}
+			case 201:
+				internalApplayer = true
+				if err := fragmentation.HandleRemoteFragmentationSessionCommand(ctx, db, d.DevEUI, b); err != nil {
+					return grpc.Errorf(codes.Internal, "handle remote fragmentation session command error: %s", err)
+				}
+			case 202:
+				internalApplayer = true
 
-			var timeSinceGPSEpoch time.Duration
-			var timeField time.Time
+				var timeSinceGPSEpoch time.Duration
+				var timeField time.Time
 
-			for _, rxInfo := range req.RxInfo {
-				if rxInfo.TimeSinceGpsEpoch != nil {
-					timeSinceGPSEpoch, err = ptypes.Duration(rxInfo.TimeSinceGpsEpoch)
-					if err != nil {
-						log.WithError(err).Error("time since gps epoch to duration error")
-						continue
-					}
-				} else if rxInfo.Time != nil {
-					timeField, err = ptypes.Timestamp(rxInfo.Time)
-					if err != nil {
-						log.WithError(err).Error("time to timestamp error")
-						continue
+				for _, rxInfo := range req.RxInfo {
+					if rxInfo.TimeSinceGpsEpoch != nil {
+						timeSinceGPSEpoch, err = ptypes.Duration(rxInfo.TimeSinceGpsEpoch)
+						if err != nil {
+							log.WithError(err).Error("time since gps epoch to duration error")
+							continue
+						}
+					} else if rxInfo.Time != nil {
+						timeField, err = ptypes.Timestamp(rxInfo.Time)
+						if err != nil {
+							log.WithError(err).Error("time to timestamp error")
+							continue
+						}
 					}
 				}
-			}
 
-			// fallback on time field when time since GPS epoch is not available
-			if timeSinceGPSEpoch == 0 {
-				// fallback on current server time when time field is not available
-				if timeField.IsZero() {
-					timeField = time.Now()
+				// fallback on time field when time since GPS epoch is not available
+				if timeSinceGPSEpoch == 0 {
+					// fallback on current server time when time field is not available
+					if timeField.IsZero() {
+						timeField = time.Now()
+					}
+					timeSinceGPSEpoch = gps.Time(timeField).TimeSinceGPSEpoch()
 				}
-				timeSinceGPSEpoch = gps.Time(timeField).TimeSinceGPSEpoch()
-			}
 
-			if err := clocksync.HandleClockSyncCommand(ctx, db, d.DevEUI, timeSinceGPSEpoch, b); err != nil {
-				return grpc.Errorf(codes.Internal, "handle clocksync command error: %s", err)
+				if err := clocksync.HandleClockSyncCommand(ctx, db, d.DevEUI, timeSinceGPSEpoch, b); err != nil {
+					return grpc.Errorf(codes.Internal, "handle clocksync command error: %s", err)
+				}
 			}
+			return nil
+		}); err != nil {
+			return nil, err
 		}
-		return nil
-	}); err != nil {
-		return nil, err
 	}
 
 	if internalApplayer {

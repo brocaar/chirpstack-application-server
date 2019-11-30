@@ -138,7 +138,7 @@ function Decode(fPort, bytes) {
             The service-profile to which this application will be attached. Note that you can't change this value after the application has been created.
           </FormHelperText>
         </FormControl>}
-        {this.state.object.payloadCodec !== "" && <div>
+        {this.state.object.payloadCodec !== "" && this.state.object.payloadCodec !== undefined && <div>
           <FormControl fullWidth margin="normal">
             <FormLabel className={this.props.classes.formLabel}>Payload codec</FormLabel>
             <AutocompleteSelect

@@ -136,14 +136,14 @@ func EnqueueDownlinkPayload(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI
 		return 0, errors.Wrap(err, "get next downlink fcnt for deveui error")
 	}
 
-	// get current device-activation for AppSKey
-	da, err := storage.GetLastDeviceActivationForDevEUI(ctx, db, devEUI)
+	// get device
+	d, err := storage.GetDevice(ctx, db, devEUI, false, true)
 	if err != nil {
-		return 0, errors.Wrap(err, "get last device-activation error")
+		return 0, errors.Wrap(err, "get device error")
 	}
 
 	// encrypt payload
-	b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, resp.FCnt, data)
+	b, err := lorawan.EncryptFRMPayload(d.AppSKey, false, d.DevAddr, resp.FCnt, data)
 	if err != nil {
 		return 0, errors.Wrap(err, "encrypt frmpayload error")
 	}
@@ -151,7 +151,7 @@ func EnqueueDownlinkPayload(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI
 	// enqueue device-queue item
 	_, err = nsClient.CreateDeviceQueueItem(ctx, &ns.CreateDeviceQueueItemRequest{
 		Item: &ns.DeviceQueueItem{
-			DevAddr:    da.DevAddr[:],
+			DevAddr:    d.DevAddr[:],
 			DevEui:     devEUI[:],
 			FrmPayload: b,
 			FCnt:       resp.FCnt,

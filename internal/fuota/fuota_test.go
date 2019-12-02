@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	nsmock "github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
-	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/applayer/fragmentation"
 	"github.com/gofrs/uuid"
@@ -99,11 +99,6 @@ func (ts *FUOTATestSuite) SetupTest() {
 		Description:     "test device",
 	}
 	assert.NoError(storage.CreateDevice(context.Background(), ts.tx, &ts.Device))
-
-	ts.DeviceActivation = storage.DeviceActivation{
-		DevEUI: ts.Device.DevEUI,
-	}
-	assert.NoError(storage.CreateDeviceActivation(context.Background(), ts.tx, &ts.DeviceActivation))
 }
 
 func (ts *FUOTATestSuite) TestFUOTADeploymentMulticastCreate() {

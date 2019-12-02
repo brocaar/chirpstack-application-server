@@ -102,11 +102,6 @@ func (ts *FragmentationSessionTestSuite) SetupTest() {
 		Description:     "test device",
 	}
 	assert.NoError(storage.CreateDevice(context.Background(), ts.tx, &ts.Device))
-
-	ts.DeviceActivation = storage.DeviceActivation{
-		DevEUI: ts.Device.DevEUI,
-	}
-	assert.NoError(storage.CreateDeviceActivation(context.Background(), ts.tx, &ts.DeviceActivation))
 }
 
 func (ts *FragmentationSessionTestSuite) TestSyncFragSessionSetupReq() {

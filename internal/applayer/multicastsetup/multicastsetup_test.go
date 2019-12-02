@@ -103,11 +103,6 @@ func (ts *MulticastSetupTestSuite) SetupTest() {
 	}
 	assert.NoError(storage.CreateDevice(context.Background(), ts.tx, &ts.Device))
 
-	ts.DeviceActivation = storage.DeviceActivation{
-		DevEUI: ts.Device.DevEUI,
-	}
-	assert.NoError(storage.CreateDeviceActivation(context.Background(), ts.tx, &ts.DeviceActivation))
-
 	ts.MulticastGroup = storage.MulticastGroup{
 		Name:             "test-mg",
 		MCAppSKey:        lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},

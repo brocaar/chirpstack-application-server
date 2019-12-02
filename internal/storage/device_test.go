@@ -10,9 +10,9 @@ import (
 	"github.com/lib/pq/hstore"
 	"github.com/stretchr/testify/require"
 
+	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/backend"
 )
@@ -281,40 +281,6 @@ func (ts *StorageTestSuite) TestDevice() {
 				assert.NoError(DeleteDeviceKeys(context.Background(), ts.Tx(), d.DevEUI))
 				_, err := GetDeviceKeys(context.Background(), ts.Tx(), d.DevEUI)
 				assert.Equal(ErrDoesNotExist, err)
-			})
-		})
-
-		t.Run("CreateDeviceActivation", func(t *testing.T) {
-			assert := require.New(t)
-
-			da := DeviceActivation{
-				DevEUI:  d.DevEUI,
-				DevAddr: lorawan.DevAddr{1, 2, 3, 4},
-				AppSKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-			}
-			assert.NoError(CreateDeviceActivation(context.Background(), ts.Tx(), &da))
-			da.CreatedAt = da.CreatedAt.UTC().Truncate(time.Millisecond)
-
-			daGet, err := GetLastDeviceActivationForDevEUI(context.Background(), ts.Tx(), d.DevEUI)
-			assert.NoError(err)
-			daGet.CreatedAt = daGet.CreatedAt.UTC().Truncate(time.Millisecond)
-			assert.Equal(da, daGet)
-
-			t.Run("GetLastDeviceActivationForDevEUI", func(t *testing.T) {
-				assert := require.New(t)
-
-				da2 := DeviceActivation{
-					DevEUI:  d.DevEUI,
-					DevAddr: lorawan.DevAddr{4, 3, 2, 1},
-					AppSKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-				}
-				assert.NoError(CreateDeviceActivation(context.Background(), ts.Tx(), &da2))
-				da2.CreatedAt = da2.CreatedAt.UTC().Truncate(time.Millisecond)
-
-				daGet, err := GetLastDeviceActivationForDevEUI(context.Background(), ts.Tx(), d.DevEUI)
-				assert.NoError(err)
-				daGet.CreatedAt = daGet.CreatedAt.UTC().Truncate(time.Millisecond)
-				assert.Equal(da2, daGet)
 			})
 		})
 

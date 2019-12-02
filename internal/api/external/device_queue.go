@@ -11,13 +11,13 @@ import (
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/codec"
 	"github.com/brocaar/chirpstack-application-server/internal/downlink"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/lorawan"
 )
 
@@ -164,7 +164,7 @@ func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsR
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	da, err := storage.GetLastDeviceActivationForDevEUI(ctx, storage.DB(), devEUI)
+	device, err := storage.GetDevice(ctx, storage.DB(), devEUI, false, true)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -188,7 +188,7 @@ func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsR
 
 	var resp pb.ListDeviceQueueItemsResponse
 	for _, qi := range queueItemsResp.Items {
-		b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, qi.FCnt, qi.FrmPayload)
+		b, err := lorawan.EncryptFRMPayload(device.AppSKey, false, device.DevAddr, qi.FCnt, qi.FrmPayload)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}

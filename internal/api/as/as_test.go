@@ -206,6 +206,11 @@ func (ts *ASTestSuite) TestApplicationServer() {
 
 			plJoin := <-h.SendJoinNotificationChan
 			assert.Equal([]byte{1, 2, 3, 4}, plJoin.DevAddr)
+
+			d, err := storage.GetDevice(context.Background(), storage.DB(), d.DevEUI, false, true)
+			assert.NoError(err)
+			assert.Equal(lorawan.DevAddr{0x01, 0x02, 0x03, 0x04}, d.DevAddr)
+			assert.Equal(lorawan.AES128Key{0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8}, d.AppSKey)
 		})
 
 		t.Run("Activated device", func(t *testing.T) {
@@ -213,12 +218,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			uplinkID, err := uuid.NewV4()
 			assert.NoError(err)
 
-			da := storage.DeviceActivation{
-				DevEUI:  d.DevEUI,
-				DevAddr: lorawan.DevAddr{},
-				AppSKey: lorawan.AES128Key{},
-			}
-			assert.NoError(storage.CreateDeviceActivation(context.Background(), storage.DB(), &da))
+			d.DevAddr = lorawan.DevAddr{}
+			d.AppSKey = lorawan.AES128Key{}
+			assert.NoError(storage.UpdateDevice(context.Background(), storage.DB(), &d, true))
 
 			now := time.Now().UTC()
 
@@ -290,13 +292,13 @@ func (ts *ASTestSuite) TestApplicationServer() {
 
 				app.PayloadCodec = codec.CustomJSType
 				app.PayloadDecoderScript = `
-					function Decode(fPort, bytes) {
-						return {
-							"fPort": fPort,
-							"firstByte": bytes[0]
+						function Decode(fPort, bytes) {
+							return {
+								"fPort": fPort,
+								"firstByte": bytes[0]
+							}
 						}
-					}
-				`
+					`
 				assert.NoError(storage.UpdateApplication(context.Background(), storage.DB(), app))
 
 				_, err := api.HandleUplinkData(ctx, &req)
@@ -311,13 +313,13 @@ func (ts *ASTestSuite) TestApplicationServer() {
 
 				dp.PayloadCodec = codec.CustomJSType
 				dp.PayloadDecoderScript = `
-					function Decode(fPort, bytes) {
-						return {
-							"fPort": fPort + 1,
-							"firstByte": bytes[0] + 1
+						function Decode(fPort, bytes) {
+							return {
+								"fPort": fPort + 1,
+								"firstByte": bytes[0] + 1
+							}
 						}
-					}
-				`
+					`
 				assert.NoError(storage.UpdateDeviceProfile(context.Background(), storage.DB(), &dp))
 
 				_, err := api.HandleUplinkData(ctx, &req)

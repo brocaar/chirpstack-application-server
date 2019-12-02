@@ -632,18 +632,20 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		},
 	}
 
-	_, err = nsClient.ActivateDevice(ctx, &actReq)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
+	err = storage.Transaction(func(db sqlx.Ext) error {
+		if err := storage.UpdateDeviceActivation(ctx, db, d.DevEUI, devAddr, appSKey); err != nil {
+			return helpers.ErrToRPCError(err)
+		}
 
-	err = storage.CreateDeviceActivation(ctx, storage.DB(), &storage.DeviceActivation{
-		DevEUI:  d.DevEUI,
-		DevAddr: devAddr,
-		AppSKey: appSKey,
+		_, err := nsClient.ActivateDevice(ctx, &actReq)
+		if err != nil {
+			return helpers.ErrToRPCError(err)
+		}
+
+		return nil
 	})
 	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
+		return nil, err
 	}
 
 	log.WithFields(log.Fields{
@@ -677,11 +679,6 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	da, err := storage.GetLastDeviceActivationForDevEUI(ctx, storage.DB(), devEUI)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
 	n, err := storage.GetNetworkServerForDevEUI(ctx, storage.DB(), devEUI)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -706,9 +703,9 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 
 	return &pb.GetDeviceActivationResponse{
 		DeviceActivation: &pb.DeviceActivation{
-			DevEui:      da.DevEUI.String(),
+			DevEui:      d.DevEUI.String(),
 			DevAddr:     devAddr.String(),
-			AppSKey:     da.AppSKey.String(),
+			AppSKey:     d.AppSKey.String(),
 			NwkSEncKey:  nwkSEncKey.String(),
 			SNwkSIntKey: sNwkSIntKey.String(),
 			FNwkSIntKey: fNwkSIntKey.String(),

@@ -517,10 +517,10 @@ func (ts *APITestSuite) TestDevice() {
 				}, <-nsClient.ActivateDeviceChan)
 
 				// activation was stored
-				da, err := storage.GetLastDeviceActivationForDevEUI(context.Background(), storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
+				d, err := storage.GetDevice(context.Background(), storage.DB(), lorawan.EUI64{0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01}, false, true)
 				assert.NoError(err)
-				assert.Equal(lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}, da.AppSKey)
-				assert.Equal(lorawan.DevAddr{1, 2, 3, 4}, da.DevAddr)
+				assert.Equal(lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}, d.AppSKey)
+				assert.Equal(lorawan.DevAddr{1, 2, 3, 4}, d.DevAddr)
 			})
 
 			t.Run("StreamEventLogs", func(t *testing.T) {

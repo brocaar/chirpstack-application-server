@@ -45,8 +45,10 @@ github.com/blakesmith/ar v0.0.0-20150311145944-8bd4349a67f2 h1:oMCHnXa6CCCafdPDb
 github.com/blakesmith/ar v0.0.0-20150311145944-8bd4349a67f2/go.mod h1:PkYb9DJNAwrSvRx5DYA+gUcOIgTGVMNkfSCbZM8cWpI=
 github.com/brocaar/chirpstack-api/go v0.0.0-20191119153543-35c59165bf94 h1:pPbHC/lNZMHZdQ6Q1AHea3Yh5LS8wBe4t/Quj88zoNg=
 github.com/brocaar/chirpstack-api/go v0.0.0-20191119153543-35c59165bf94/go.mod h1:i8y9q9B7DJ6RHKYeKOmnDHl2kPngMwigTmivoXFcKzQ=
-github.com/brocaar/lorawan v0.0.0-20190925120821-154a30dbdce2 h1:51WcQ+VAc/6jZ/8GBJiQ3B7FrT2aXI+YsUx2iG9tJlw=
-github.com/brocaar/lorawan v0.0.0-20190925120821-154a30dbdce2/go.mod h1:Fm+51pxK6mZoAQjIaWJqPmnRuXecozsM5Mf9c+kr/ko=
+github.com/brocaar/loraserver v2.5.0+incompatible h1:Fna4CF0jW2Vl4UpjLIhR5ifW4g+oZD/w3Dq09TiJ8Z8=
+github.com/brocaar/loraserver v2.5.0+incompatible/go.mod h1:VBTim0YtfWAKehjJ6k17jCnG44DzXVdL4iu+hwxg2ik=
+github.com/brocaar/lorawan v0.0.0-20191115102621-6095d473cf60 h1:jecx8QFcsUAWZojNIqOZaoAWFwkBbd3VOHZ3kv6FQxE=
+github.com/brocaar/lorawan v0.0.0-20191115102621-6095d473cf60/go.mod h1:VgyRGAJ/wl1JfqZZmNlCTM8fyaIKF11YvYAGIVtedL8=
 github.com/caarlos0/ctrlc v1.0.0 h1:2DtF8GSIcajgffDFJzyG15vO+1PuBWOMUdFut7NnXhw=
 github.com/caarlos0/ctrlc v1.0.0/go.mod h1:CdXpj4rmq0q/1Eb44M9zi2nKB0QraNKuRGYGrrHhcQw=
 github.com/campoy/unique v0.0.0-20180121183637-88950e537e7e h1:V9a67dfYqPLAvzk5hMQOXYJlZ4SLIXgyKIE+ZiHzgGQ=

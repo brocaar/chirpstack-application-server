@@ -21,6 +21,10 @@ configuration. The default is backwards compatible with the current JSON
 format. New options are `protobuf` (Protobuf binary) and `json` (Protobuf based
 JSON).
 
+#### RPM packaging
+
+This is the first release providing .rpm packages for CentOS and RedHat. ([#383](https://github.com/brocaar/chirpstack-application-server/pull/383)
+
 ### Improvements
 
 #### gRPC / Protobuf cleanup
@@ -36,6 +40,15 @@ partly around [azure-service-bus-go/issues/149](https://github.com/Azure/azure-s
 #### Support multiple HTTP endpoints
 
 Implement support for configuring multiple endpoints in the HTTP integration.
+
+#### Internal improvements
+
+Handlink of the received uplinks has been improved to reduce the number of
+required database transactions.
+
+### Bugfixes
+
+* Payload codec is hidden on application create (it was already on edit).
 
 ## v3.5.1
 

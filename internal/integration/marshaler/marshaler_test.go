@@ -241,6 +241,10 @@ func (ts *MarshalerTestSuite) TestJSONV3() {
 		b, err := Marshal(JSONV3, &uplinkEvent)
 		assert.NoError(err)
 
+		uplinkTime, err := ptypes.Timestamp(uplinkEvent.RxInfo[0].Time)
+		assert.NoError(err)
+		uplinkTime = uplinkTime.UTC()
+
 		var pl models.DataUpPayload
 		assert.NoError(json.Unmarshal(b, &pl))
 
@@ -252,6 +256,7 @@ func (ts *MarshalerTestSuite) TestJSONV3() {
 			RXInfo: []models.RXInfo{
 				{
 					GatewayID: lorawan.EUI64{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+					Time:      &uplinkTime,
 					RSSI:      110,
 					LoRaSNR:   5.6,
 					Location: &models.Location{
@@ -285,6 +290,10 @@ func (ts *MarshalerTestSuite) TestJSONV3() {
 		b, err := Marshal(JSONV3, &joinEvent)
 		assert.NoError(err)
 
+		joinTime, err := ptypes.Timestamp(joinEvent.RxInfo[0].Time)
+		assert.NoError(err)
+		joinTime = joinTime.UTC()
+
 		var pl models.JoinNotification
 		assert.NoError(json.Unmarshal(b, &pl))
 
@@ -297,6 +306,7 @@ func (ts *MarshalerTestSuite) TestJSONV3() {
 			RXInfo: []models.RXInfo{
 				{
 					GatewayID: lorawan.EUI64{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+					Time:      &joinTime,
 					RSSI:      110,
 					LoRaSNR:   5.6,
 					Location: &models.Location{

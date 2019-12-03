@@ -121,7 +121,7 @@ func jsonv3MarshalUplinkEvent(msg *integration.UplinkEvent) ([]byte, error) {
 
 		if msg.RxInfo[i].Time != nil {
 			t, err := ptypes.Timestamp(msg.RxInfo[i].Time)
-			if err != nil {
+			if err == nil {
 				rxInfo.Time = &t
 			}
 		}
@@ -178,7 +178,7 @@ func jsonv3MarshalJoinEvent(msg *integration.JoinEvent) ([]byte, error) {
 
 		if msg.RxInfo[i].Time != nil {
 			t, err := ptypes.Timestamp(msg.RxInfo[i].Time)
-			if err != nil {
+			if err == nil {
 				rxInfo.Time = &t
 			}
 		}

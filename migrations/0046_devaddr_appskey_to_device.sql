@@ -1,7 +1,7 @@
 -- +migrate Up
 alter table device
-    add column dev_addr bytea,
-    add column app_s_key bytea;
+    add column dev_addr bytea not null default '\x00000000',
+    add column app_s_key bytea not null default '\x00000000000000000000000000000000';
 
 update device d
     set
@@ -19,6 +19,10 @@ update device d
         ) da
     where
         d.dev_eui = da.dev_eui;
+
+alter table device
+    alter column dev_addr drop default,
+    alter column app_s_key drop default;
 
 -- +migrate Down
 alter table device

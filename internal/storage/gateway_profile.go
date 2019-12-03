@@ -63,6 +63,11 @@ func CreateGatewayProfile(ctx context.Context, db sqlx.Ext, gp *GatewayProfile) 
 	gp.CreatedAt = now
 	gp.UpdatedAt = now
 
+	n, err := GetNetworkServer(ctx, db, gp.NetworkServerID)
+	if err != nil {
+		return errors.Wrap(err, "get network-server error")
+	}
+
 	_, err = db.Exec(`
 		insert into gateway_profile (
 			gateway_profile_id,
@@ -80,11 +85,6 @@ func CreateGatewayProfile(ctx context.Context, db sqlx.Ext, gp *GatewayProfile) 
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
-	}
-
-	n, err := GetNetworkServer(ctx, db, gp.NetworkServerID)
-	if err != nil {
-		return errors.Wrap(err, "get network-server error")
 	}
 
 	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))

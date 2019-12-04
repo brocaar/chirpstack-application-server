@@ -10,6 +10,13 @@ description: Lists the changes per ChirpStack Application Server release, includ
 
 # Changelog
 
+## v3.6.1
+
+### Bugfixes
+
+* Fix setting `time` in `rxInfo` for `json_v3` (default) integration marshaler.
+* Fix integrations break when codec function returns a NaN value. ([#390](https://github.com/brocaar/chirpstack-application-server/issues/390))
+
 ## v3.6.0
 
 ### Features

@@ -319,6 +319,7 @@ func handleCodec(ctx *uplinkContext) error {
 	b, err := json.Marshal(codecPL.Object())
 	if err != nil {
 		log.WithError(err).Error("marshal codec output to json error")
+		return nil
 	}
 	ctx.objectJSON = string(b)
 

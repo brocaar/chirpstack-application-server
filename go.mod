@@ -8,7 +8,6 @@ require (
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
 	github.com/aws/aws-sdk-go v1.19.19
 	github.com/brocaar/chirpstack-api/go v0.0.0-20191119153543-35c59165bf94
-	github.com/brocaar/loraserver v2.5.0+incompatible
 	github.com/brocaar/lorawan v0.0.0-20191115102621-6095d473cf60
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.2.0
@@ -40,6 +39,7 @@ require (
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0
+	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/stretchr/testify v1.4.0
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5
 	github.com/ziutek/mymysql v1.5.4 // indirect

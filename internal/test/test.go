@@ -27,6 +27,7 @@ func GetConfig() config.Config {
 	c.Redis.URL = "redis://localhost:6379"
 	c.ApplicationServer.Integration.MQTT.Server = "tcp://localhost:1883"
 	c.ApplicationServer.ID = "6d5db27e-4ce2-4b2b-b5d7-91f069397978"
+	c.ApplicationServer.Integration.AMQP.EventRoutingKeyTemplate = "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}"
 
 	if v := os.Getenv("TEST_POSTGRES_DSN"); v != "" {
 		c.PostgreSQL.DSN = v
@@ -46,6 +47,10 @@ func GetConfig() config.Config {
 
 	if v := os.Getenv("TEST_MQTT_PASSWORD"); v != "" {
 		c.ApplicationServer.Integration.MQTT.Password = v
+	}
+
+	if v := os.Getenv("TEST_RABBITMQ_URL"); v != "" {
+		c.ApplicationServer.Integration.AMQP.URL = v
 	}
 
 	return c

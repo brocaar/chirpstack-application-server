@@ -187,6 +187,7 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # Do not forget to configure the related configuration section below for
   # the enabled integrations. Integrations that can be enabled are:
   # * mqtt              - MQTT broker
+  # * amqp              - AMQP / RabbitMQ
   # * aws_sns           - AWS Simple Notification Service (SNS)
   # * azure_service_bus - Azure Service-Bus
   # * gcp_pub_sub       - Google Cloud Pub/Sub
@@ -272,6 +273,21 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
   # TLS key file (optional)
   tls_key=""
+
+
+  # AMQP / RabbitMQ.
+  [application_server.integration.amqp]
+  # Server URL.
+  #
+  # See for a specification of all the possible options:
+  # https://www.rabbitmq.com/uri-spec.html
+  url="amqp://guest:guest@localhost:5672"
+
+  # Event routing key template.
+  #
+  # This is the event routing-key template used when publishing device
+  # events.
+  event_routing_key_template="application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}"
 
 
   # AWS Simple Notification Service (SNS)

@@ -58,6 +58,8 @@ func init() {
 	viper.SetDefault("application_server.integration.mqtt.status_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status")
 	viper.SetDefault("application_server.integration.mqtt.location_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location")
 	viper.SetDefault("application_server.integration.mqtt.clean_session", true)
+	viper.SetDefault("application_server.integration.amqp.url", "amqp://guest:guest@localhost:5672")
+	viper.SetDefault("application_server.integration.amqp.event_routing_key_template", "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}")
 	viper.SetDefault("application_server.integration.enabled", []string{"mqtt"})
 	viper.SetDefault("application_server.codec.js.max_execution_time", 100*time.Millisecond)
 

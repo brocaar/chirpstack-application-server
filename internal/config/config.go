@@ -42,6 +42,7 @@ type Config struct {
 			MQTT            IntegrationMQTTConfig       `mapstructure:"mqtt"`
 			GCPPubSub       IntegrationGCPConfig        `mapstructure:"gcp_pub_sub"`
 			PostgreSQL      IntegrationPostgreSQLConfig `mapstructure:"postgresql"`
+			AMQP            IntegrationAMQPConfig       `mapstructure:"amqp"`
 		}
 
 		API struct {
@@ -169,6 +170,12 @@ type IntegrationGCPConfig struct {
 // IntegrationPostgreSQLConfig holds the PostgreSQL integration configuration.
 type IntegrationPostgreSQLConfig struct {
 	DSN string `json:"dsn"`
+}
+
+// IntegrationAMQPConfig holds the AMQP integration configuration.
+type IntegrationAMQPConfig struct {
+	URL                     string `mapstructure:"url"`
+	EventRoutingKeyTemplate string `mapstructure:"event_routing_key_template"`
 }
 
 // AzurePublishMode defines the publish-mode type.

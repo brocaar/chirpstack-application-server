@@ -111,6 +111,8 @@ func setupIntegration() error {
 			confs = append(confs, config.C.ApplicationServer.Integration.GCPPubSub)
 		case "postgresql":
 			confs = append(confs, config.C.ApplicationServer.Integration.PostgreSQL)
+		case "amqp":
+			confs = append(confs, config.C.ApplicationServer.Integration.AMQP)
 		default:
 			return fmt.Errorf("unknown integration type: %s", name)
 		}

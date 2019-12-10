@@ -12,7 +12,7 @@ description: Instructions how to setup the ChirpStack Application Server require
 
 ## MQTT broker
 
-ChirpStack Application Server makes use of MQTT for publishing and receivng application
+ChirpStack Application Server makes use of MQTT for publishing and receiving application
 payloads. [Mosquitto](http://mosquitto.org/) is a popular open-source MQTT
 server, but any MQTT broker implementing MQTT 3.1.1 should work.
 In case you install Mosquitto, make sure you install a **recent** version.

@@ -12,7 +12,7 @@ When configured, the InfluxDB integration will write device data into an
 This makes it possible to directly visualize all device data using for example
 [Grafana](https://grafana.com).
 
-* [Getting started with InfluxDB](https://docs.influxdata.com/influxdb/v1.5/)
+* [Getting started with InfluxDB](https://docs.influxdata.com/influxdb/latest/)
 * [Getting started with Grafana](http://docs.grafana.org)
 
 ## Requirements

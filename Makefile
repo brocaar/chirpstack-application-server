@@ -1,4 +1,4 @@
-.PHONY: build clean test package package-deb ui api statics requirements ui-requirements serve update-vendor internal/statics internal/migrations 
+.PHONY: build clean test ui-requirements serve internal/statics internal/migrations 
 PKGS := $(shell go list ./... | grep -v /vendor |grep -v chirpstack-application-server/api | grep -v /migrations | grep -v /static | grep -v /ui)
 VERSION := $(shell git describe --always |sed -e "s/^v//")
 API_VERSION := $(shell go list -m -f '{{ .Version }}' github.com/brocaar/chirpstack-api/go | awk '{n=split($$0, a, "-"); print a[n]}')
@@ -42,12 +42,6 @@ ui/build:
 	@cd ui && npm run build
 	@mv ui/build/* static
 
-api:
-	@echo "Generating API code from .proto files"
-	@go mod vendor
-	@go generate api/api.go
-	@rm -rf vendor/
-
 internal/statics internal/migrations: static/swagger/api.swagger.json
 	@echo "Generating static files"
 	@go generate internal/migrations/migrations.go
@@ -81,10 +75,3 @@ ui-requirements:
 serve: build
 	@echo "Starting ChirpStack Application Server"
 	./build/chirpstack-application-server
-
-update-vendor:
-	@echo "Updating vendored packages"
-	@govendor update +external
-
-run-compose-test:
-	docker-compose run --rm applicationserver make test

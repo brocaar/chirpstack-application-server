@@ -20,7 +20,7 @@ type Integrator interface {
 	SendACKNotification(ctx context.Context, vars map[string]string, pl pb.AckEvent) error           // send ack notification
 	SendErrorNotification(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error       // send error notification
 	SendStatusNotification(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error     // send status notification
-	SendLocationNotification(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error // send location notofication
+	SendLocationNotification(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error // send location notification
 	DataDownChan() chan DataDownPayload                                                              // returns DataDownPayload channel
 	Close() error                                                                                    // closes the handler
 }

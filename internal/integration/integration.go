@@ -3,7 +3,7 @@ package integration
 import (
 	"context"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/integration"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 )
 
 // Handler kinds

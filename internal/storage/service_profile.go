@@ -14,7 +14,7 @@ import (
 
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-api/go/ns"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 )
 
 // ServiceProfile defines the service-profile.

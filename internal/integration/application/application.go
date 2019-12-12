@@ -9,7 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/integration"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/http"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/influxdb"

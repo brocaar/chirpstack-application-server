@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/brocaar/chirpstack-api/go/ns"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 )
 
 // MulticastGroup defines the multicast-group.

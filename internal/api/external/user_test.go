@@ -3,11 +3,11 @@ package external
 import (
 	"testing"
 
-	"github.com/brocaar/chirpstack-api/go/ns"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"

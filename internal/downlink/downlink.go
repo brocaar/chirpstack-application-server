@@ -10,8 +10,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/integration"
-	"github.com/brocaar/chirpstack-api/go/ns"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/codec"
 	"github.com/brocaar/chirpstack-application-server/internal/eventlog"

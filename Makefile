@@ -1,7 +1,7 @@
 .PHONY: build clean test ui-requirements serve internal/statics internal/migrations 
 PKGS := $(shell go list ./... | grep -v /vendor |grep -v chirpstack-application-server/api | grep -v /migrations | grep -v /static | grep -v /ui)
 VERSION := $(shell git describe --always |sed -e "s/^v//")
-API_VERSION := $(shell go list -m -f '{{ .Version }}' github.com/brocaar/chirpstack-api/go | awk '{n=split($$0, a, "-"); print a[n]}')
+API_VERSION := $(shell go list -m -f '{{ .Version }}' github.com/brocaar/chirpstack-api/go/v3 | awk '{n=split($$0, a, "-"); print a[n]}')
 
 build: ui/build internal/statics internal/migrations
 	mkdir -p build

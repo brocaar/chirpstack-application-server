@@ -29,47 +29,36 @@ const (
 	UpdateProfile
 )
 
-const userQuery = `
-	select 1
-	from "user" u
-	left join organization_user ou
-		on u.id = ou.user_id
-	left join organization o
-		on o.id = ou.organization_id
-	left join gateway g
-		on o.id = g.organization_id
-	left join application a
-		on a.organization_id = o.id
-	left join service_profile sp
-		on sp.organization_id = o.id
-	left join device_profile dp
-		on dp.organization_id = o.id
-	left join network_server ns
-		on ns.id = sp.network_server_id or ns.id = dp.network_server_id
-	left join device d
-		on a.id = d.application_id
-	left join multicast_group mg
-		on sp.service_profile_id = mg.service_profile_id
-	left join fuota_deployment_device fdd
-		on d.dev_eui = fdd.dev_eui
-	left join fuota_deployment fd
-		on fdd.fuota_deployment_id = fd.id
-`
-
 // ValidateActiveUser validates if the user in the JWT claim is active.
 func ValidateActiveUser() ValidatorFunc {
+	query := `
+		select
+			1
+		from
+			"user" u
+	`
+
 	where := [][]string{
 		{"u.username = $1", "u.is_active = true"},
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username)
+		return executeQuery(db, query, where, claims.Username)
 	}
 }
 
 // ValidateUsersAccess validates if the client has access to the global users
 // resource.
 func ValidateUsersAccess(flag Flag) ValidatorFunc {
+	query := `
+		select
+			1
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+	`
+
 	var where [][]string
 
 	switch flag {
@@ -99,13 +88,20 @@ func ValidateUsersAccess(flag Flag) ValidatorFunc {
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username)
+		return executeQuery(db, query, where, claims.Username)
 	}
 }
 
 // ValidateUserAccess validates if the client has access to the given user
 // resource.
 func ValidateUserAccess(userID int64, flag Flag) ValidatorFunc {
+	query := `
+		select
+			*
+		from
+			"user" u
+	`
+
 	var where [][]string
 
 	switch flag {
@@ -133,7 +129,7 @@ func ValidateUserAccess(userID int64, flag Flag) ValidatorFunc {
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, userID)
+		return executeQuery(db, query, where, claims.Username, userID)
 	}
 }
 
@@ -337,6 +333,19 @@ func ValidateNodeAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 // ValidateDeviceQueueAccess validates if the client has access to the queue
 // of the given node.
 func ValidateDeviceQueueAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
+	query := `
+		select
+			1
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join application a
+			on a.organization_id = ou.organization_id
+		left join device d
+			on a.id = d.application_id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -352,7 +361,7 @@ func ValidateDeviceQueueAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, devEUI[:])
+		return executeQuery(db, query, where, claims.Username, devEUI[:])
 	}
 }
 
@@ -445,6 +454,17 @@ func ValidateGatewayAccess(flag Flag, mac lorawan.EUI64) ValidatorFunc {
 // ValidateIsOrganizationAdmin validates if the client has access to
 // administrate the given organization.
 func ValidateIsOrganizationAdmin(organizationID int64) ValidatorFunc {
+	query := `
+		select
+			1
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join organization o
+			on o.id = ou.organization_id
+	`
+
 	// global admin
 	// organization admin
 	where := [][]string{
@@ -453,13 +473,20 @@ func ValidateIsOrganizationAdmin(organizationID int64) ValidatorFunc {
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, organizationID)
+		return executeQuery(db, query, where, claims.Username, organizationID)
 	}
 }
 
 // ValidateOrganizationsAccess validates if the client has access to the
 // organizations.
 func ValidateOrganizationsAccess(flag Flag) ValidatorFunc {
+	query := `
+		select
+			1
+		from
+			"user" u
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -478,13 +505,24 @@ func ValidateOrganizationsAccess(flag Flag) ValidatorFunc {
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username)
+		return executeQuery(db, query, where, claims.Username)
 	}
 }
 
 // ValidateOrganizationAccess validates if the client has access to the
 // given organization.
 func ValidateOrganizationAccess(flag Flag, id int64) ValidatorFunc {
+	query := `
+		select
+			1
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join organization o
+			on o.id = ou.organization_id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -494,7 +532,6 @@ func ValidateOrganizationAccess(flag Flag, id int64) ValidatorFunc {
 		where = [][]string{
 			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
 			{"u.username = $1", "u.is_active = true", "o.id = $2"},
-			{"u.username = $1", "u.is_active = true", "a.organization_id = $2"},
 		}
 	case Update:
 		// global admin
@@ -513,13 +550,24 @@ func ValidateOrganizationAccess(flag Flag, id int64) ValidatorFunc {
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, id)
+		return executeQuery(db, query, where, claims.Username, id)
 	}
 }
 
 // ValidateOrganizationUsersAccess validates if the client has access to
 // the organization users.
 func ValidateOrganizationUsersAccess(flag Flag, id int64) ValidatorFunc {
+	query := `
+		select
+			1
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join organization o
+			on o.id = ou.organization_id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -549,13 +597,24 @@ func ValidateOrganizationUsersAccess(flag Flag, id int64) ValidatorFunc {
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, id)
+		return executeQuery(db, query, where, claims.Username, id)
 	}
 }
 
 // ValidateOrganizationUserAccess validates if the client has access to the
 // given user of the given organization.
 func ValidateOrganizationUserAccess(flag Flag, organizationID, userID int64) ValidatorFunc {
+	query := `
+		select
+			1
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join organization o
+			on o.id = ou.organization_id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -587,13 +646,20 @@ func ValidateOrganizationUserAccess(flag Flag, organizationID, userID int64) Val
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, organizationID, userID)
+		return executeQuery(db, query, where, claims.Username, organizationID, userID)
 	}
 }
 
 // ValidateGatewayProfileAccess validates if the client has access
 // to the gateway-profiles.
 func ValidateGatewayProfileAccess(flag Flag) ValidatorFunc {
+	query := `
+		select
+			1
+		from
+			"user" u
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -610,13 +676,24 @@ func ValidateGatewayProfileAccess(flag Flag) ValidatorFunc {
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username)
+		return executeQuery(db, query, where, claims.Username)
 	}
 }
 
 // ValidateNetworkServersAccess validates if the client has access to the
 // network-servers.
 func ValidateNetworkServersAccess(flag Flag, organizationID int64) ValidatorFunc {
+	query := `
+		select
+			*
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join organization o
+			on o.id = ou.organization_id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -635,7 +712,7 @@ func ValidateNetworkServersAccess(flag Flag, organizationID int64) ValidatorFunc
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, organizationID)
+		return executeQuery(db, query, where, claims.Username, organizationID)
 	}
 }
 
@@ -684,6 +761,23 @@ func ValidateNetworkServerAccess(flag Flag, id int64) ValidatorFunc {
 // ValidateOrganizationNetworkServerAccess validates if the given client has
 // access to the given organization id / network server id combination.
 func ValidateOrganizationNetworkServerAccess(flag Flag, organizationID, networkServerID int64) ValidatorFunc {
+	query := `
+		select
+			*
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join organization o
+			on o.id = ou.organization_id
+		left join service_profile sp
+			on sp.organization_id = o.id
+		left join device_profile dp
+			on dp.organization_id = o.id
+		left join network_server ns
+			on ns.id = sp.network_server_id or ns.id = dp.network_server_id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -699,13 +793,24 @@ func ValidateOrganizationNetworkServerAccess(flag Flag, organizationID, networkS
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, organizationID, networkServerID)
+		return executeQuery(db, query, where, claims.Username, organizationID, networkServerID)
 	}
 }
 
 // ValidateServiceProfilesAccess validates if the client has access to the
 // service-profiles.
 func ValidateServiceProfilesAccess(flag Flag, organizationID int64) ValidatorFunc {
+	query := `
+		select
+			*
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join organization o
+			on o.id = ou.organization_id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -726,13 +831,24 @@ func ValidateServiceProfilesAccess(flag Flag, organizationID int64) ValidatorFun
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, organizationID)
+		return executeQuery(db, query, where, claims.Username, organizationID)
 	}
 }
 
 // ValidateServiceProfileAccess validates if the client has access to the
 // given service-profile.
 func ValidateServiceProfileAccess(flag Flag, id uuid.UUID) ValidatorFunc {
+	query := `
+		select
+			*
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join service_profile sp
+			on sp.organization_id = ou.organization_id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -751,7 +867,7 @@ func ValidateServiceProfileAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, id)
+		return executeQuery(db, query, where, claims.Username, id)
 	}
 }
 
@@ -848,6 +964,17 @@ func ValidateDeviceProfileAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 // ValidateMulticastGroupsAccess validates if the client has access to the
 // multicast-groups.
 func ValidateMulticastGroupsAccess(flag Flag, organizationID int64) ValidatorFunc {
+	query := `
+		select
+			*
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join organization o
+			on o.id = ou.organization_id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -869,13 +996,26 @@ func ValidateMulticastGroupsAccess(flag Flag, organizationID int64) ValidatorFun
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, organizationID)
+		return executeQuery(db, query, where, claims.Username, organizationID)
 	}
 }
 
 // ValidateMulticastGroupAccess validates if the client has access to the given
 // multicast-group.
 func ValidateMulticastGroupAccess(flag Flag, multicastGroupID uuid.UUID) ValidatorFunc {
+	query := `
+		select
+			*
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join service_profile sp
+			on sp.organization_id = ou.organization_id
+		left join multicast_group mg
+			on sp.service_profile_id = mg.service_profile_id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -896,13 +1036,26 @@ func ValidateMulticastGroupAccess(flag Flag, multicastGroupID uuid.UUID) Validat
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, multicastGroupID)
+		return executeQuery(db, query, where, claims.Username, multicastGroupID)
 	}
 }
 
 // ValidateMulticastGroupQueueAccess validates if the client has access to
 // the given multicast-group queue.
 func ValidateMulticastGroupQueueAccess(flag Flag, multicastGroupID uuid.UUID) ValidatorFunc {
+	query := `
+		select
+			*
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join service_profile sp
+			on sp.organization_id = ou.organization_id
+		left join multicast_group mg
+			on sp.service_profile_id = mg.service_profile_id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -916,13 +1069,30 @@ func ValidateMulticastGroupQueueAccess(flag Flag, multicastGroupID uuid.UUID) Va
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, multicastGroupID)
+		return executeQuery(db, query, where, claims.Username, multicastGroupID)
 	}
 }
 
 // ValidateFUOTADeploymentAccess validates if the client has access to the
 // given fuota deployment.
 func ValidateFUOTADeploymentAccess(flag Flag, id uuid.UUID) ValidatorFunc {
+	query := `
+		select
+			*
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join application a
+			on a.organization_id = ou.organization_id
+		left join device d
+			on a.id = d.application_id
+		left join fuota_deployment_device fdd
+			on d.dev_eui = fdd.dev_eui
+		left join fuota_deployment fd
+			on fdd.fuota_deployment_id = fd.id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -936,13 +1106,26 @@ func ValidateFUOTADeploymentAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, id)
+		return executeQuery(db, query, where, claims.Username, id)
 	}
 }
 
 // ValidateFUOTADeploymentsAccess validates if the client has access to the
 // fuota deployments.
 func ValidateFUOTADeploymentsAccess(flag Flag, applicationID int64, devEUI lorawan.EUI64) ValidatorFunc {
+	query := `
+		select
+			1
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join application a
+			on a.organization_id = ou.organization_id
+		left join device d
+			on a.id = d.application_id
+	`
+
 	var where = [][]string{}
 
 	switch flag {
@@ -957,7 +1140,7 @@ func ValidateFUOTADeploymentsAccess(flag Flag, applicationID int64, devEUI loraw
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, userQuery, where, claims.Username, applicationID, devEUI)
+		return executeQuery(db, query, where, claims.Username, applicationID, devEUI)
 	}
 }
 

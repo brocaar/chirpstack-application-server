@@ -1,7 +1,6 @@
 package downlink
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/gofrs/uuid"
@@ -79,31 +78,16 @@ func handleDataDownPayload(ctx context.Context, pl integration.DataDownPayload) 
 			// device-profile codec fields.
 			payloadCodec := app.PayloadCodec
 			payloadEncoderScript := app.PayloadEncoderScript
-			payloadDecoderScript := app.PayloadDecoderScript
 
 			if dp.PayloadCodec != "" {
 				payloadCodec = dp.PayloadCodec
 				payloadEncoderScript = dp.PayloadEncoderScript
-				payloadDecoderScript = dp.PayloadDecoderScript
 			}
 
-			// get the codec payload configured for the application
-			codecPL := codec.NewPayload(payloadCodec, pl.FPort, payloadEncoderScript, payloadDecoderScript)
-			if codecPL == nil {
-				logCodecError(ctx, app, d, errors.New("no or invalid codec configured for application"))
-				return errors.New("no or invalid codec configured for application")
-			}
-
-			err = json.Unmarshal(pl.Object, &codecPL)
+			pl.Data, err = codec.JSONToBinary(payloadCodec, pl.FPort, d.Variables, payloadEncoderScript, []byte(pl.Object))
 			if err != nil {
 				logCodecError(ctx, app, d, err)
-				return errors.Wrap(err, "unmarshal to codec payload error")
-			}
-
-			pl.Data, err = codecPL.EncodeToBytes()
-			if err != nil {
-				logCodecError(ctx, app, d, err)
-				return errors.Wrap(err, "marshal codec payload to binary error")
+				return errors.Wrap(err, "encode object error")
 			}
 		}
 

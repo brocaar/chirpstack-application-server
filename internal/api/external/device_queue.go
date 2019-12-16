@@ -1,8 +1,6 @@
 package external
 
 import (
-	"encoding/json"
-
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
@@ -64,7 +62,7 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 		}
 
 		// if JSON object is set, try to encode it to bytes
-		if req.DeviceQueueItem.JsonObject != "" {
+		if req.DeviceQueueItem.JsonObject != "" && req.DeviceQueueItem.JsonObject != "null" {
 			app, err := storage.GetApplication(ctx, storage.DB(), dev.ApplicationID)
 			if err != nil {
 				return helpers.ErrToRPCError(err)
@@ -80,26 +78,13 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 			// device-profile codec fields.
 			payloadCodec := app.PayloadCodec
 			payloadEncoderScript := app.PayloadEncoderScript
-			payloadDecoderScript := app.PayloadDecoderScript
 
 			if dp.PayloadCodec != "" {
 				payloadCodec = dp.PayloadCodec
 				payloadEncoderScript = dp.PayloadEncoderScript
-				payloadDecoderScript = dp.PayloadDecoderScript
 			}
 
-			// get codec payload configured for the application
-			codecPL := codec.NewPayload(payloadCodec, uint8(req.DeviceQueueItem.FPort), payloadEncoderScript, payloadDecoderScript)
-			if codecPL == nil {
-				return grpc.Errorf(codes.FailedPrecondition, "no or invalid codec configured for application")
-			}
-
-			err = json.Unmarshal([]byte(req.DeviceQueueItem.JsonObject), &codecPL)
-			if err != nil {
-				return helpers.ErrToRPCError(err)
-			}
-
-			req.DeviceQueueItem.Data, err = codecPL.EncodeToBytes()
+			req.DeviceQueueItem.Data, err = codec.JSONToBinary(payloadCodec, uint8(req.DeviceQueueItem.FPort), dev.Variables, payloadEncoderScript, []byte(req.DeviceQueueItem.JsonObject))
 			if err != nil {
 				return helpers.ErrToRPCError(err)
 			}

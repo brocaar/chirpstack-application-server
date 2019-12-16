@@ -15,7 +15,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/applayer/fragmentation"
 	"github.com/brocaar/chirpstack-application-server/internal/applayer/multicastsetup"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
-	"github.com/brocaar/chirpstack-application-server/internal/codec"
+	jscodec "github.com/brocaar/chirpstack-application-server/internal/codec/js"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/downlink"
 	"github.com/brocaar/chirpstack-application-server/internal/fuota"
@@ -139,7 +139,7 @@ func setupIntegration() error {
 }
 
 func setupCodec() error {
-	if err := codec.Setup(config.C); err != nil {
+	if err := jscodec.Setup(config.C); err != nil {
 		return errors.Wrap(err, "setup codec error")
 	}
 	return nil

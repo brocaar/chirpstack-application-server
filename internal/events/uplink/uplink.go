@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/aes"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -253,22 +252,20 @@ func handleApplicationLayers(ctx *uplinkContext) error {
 
 func handleCodec(ctx *uplinkContext) error {
 	codecType := ctx.application.PayloadCodec
-	encoderScript := ctx.application.PayloadEncoderScript
 	decoderScript := ctx.application.PayloadDecoderScript
 
 	if ctx.deviceProfile.PayloadCodec != "" {
 		codecType = ctx.deviceProfile.PayloadCodec
-		encoderScript = ctx.deviceProfile.PayloadEncoderScript
 		decoderScript = ctx.deviceProfile.PayloadDecoderScript
 	}
 
-	codecPL := codec.NewPayload(codecType, uint8(ctx.uplinkDataReq.FPort), encoderScript, decoderScript)
-	if codecPL == nil {
+	if codecType == codec.None {
 		return nil
 	}
 
 	start := time.Now()
-	if err := codecPL.DecodeBytes(ctx.data); err != nil {
+	b, err := codec.BinaryToJSON(codecType, uint8(ctx.uplinkDataReq.FPort), ctx.device.Variables, decoderScript, ctx.data)
+	if err != nil {
 		log.WithFields(log.Fields{
 			"codec":          codecType,
 			"application_id": ctx.device.ApplicationID,
@@ -316,11 +313,6 @@ func handleCodec(ctx *uplinkContext) error {
 		"duration":       time.Since(start),
 	}).Debug("payload codec completed Decode execution")
 
-	b, err := json.Marshal(codecPL.Object())
-	if err != nil {
-		log.WithError(err).Error("marshal codec output to json error")
-		return nil
-	}
 	ctx.objectJSON = string(b)
 
 	return nil

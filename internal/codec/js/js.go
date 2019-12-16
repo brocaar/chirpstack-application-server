@@ -1,7 +1,6 @@
-package codec
+package js
 
 import (
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -12,66 +11,73 @@ import (
 	"github.com/robertkrimen/otto"
 )
 
-func init() {
-	gob.Register(CustomJS{})
-}
-
 var (
 	maxExecutionTime = 10 * time.Millisecond
 )
 
+// Setup configures the JS codec.
 func Setup(conf config.Config) error {
 	maxExecutionTime = conf.ApplicationServer.Codec.JS.MaxExecutionTime
 	return nil
 }
 
-// CustomJS is a scriptable JS codec.
-type CustomJS struct {
-	fPort        uint8
-	encodeScript string
-	decodeScript string
-	Data         interface{}
-}
+// BinaryToJSON encodes the given binary payload to JSON.
+func BinaryToJSON(fPort uint8, variables map[string]string, decodeScript string, b []byte) ([]byte, error) {
+	decodeScript = decodeScript + "\n\nDecode(fPort, bytes, variables);\n"
 
-// NewCustomJS creates a new custom JS codec.
-func NewCustomJS(fPort uint8, encodeScript, decodeScript string) *CustomJS {
-	return &CustomJS{
-		fPort:        fPort,
-		encodeScript: encodeScript,
-		decodeScript: decodeScript,
+	vars := make(map[string]interface{})
+
+	vars["fPort"] = fPort
+	vars["bytes"] = b
+	vars["variables"] = variables
+
+	v, err := executeJS(decodeScript, vars)
+	if err != nil {
+		return nil, errors.Wrap(err, "execute js error")
 	}
+
+	return json.Marshal(v)
 }
 
-// Object returns the object data.
-func (c CustomJS) Object() interface{} {
-	return c.Data
+// JSONToBinary encodes the given JSON payload to binary.
+func JSONToBinary(fPort uint8, variables map[string]string, encodeScript string, b []byte) ([]byte, error) {
+	var v interface{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return nil, errors.Wrap(err, "unmarshal json error")
+	}
+
+	encodeScript = encodeScript + "\n\nEncode(fPort, obj, variables);"
+
+	vars := make(map[string]interface{})
+
+	vars["fPort"] = fPort
+	vars["obj"] = v
+	vars["variables"] = variables
+
+	v, err := executeJS(encodeScript, vars)
+	if err != nil {
+		return nil, errors.Wrap(err, "execute js error")
+	}
+
+	return interfaceToByteSlice(v)
 }
 
-// MarshalJSON implements json.Marshaler.
-func (c CustomJS) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.Data)
-}
-
-// UnmarshalJSON implement json.Unmarshaler.
-func (c *CustomJS) UnmarshalJSON(text []byte) error {
-	return json.Unmarshal(text, &c.Data)
-}
-
-// DecodeBytes decodes the payload from a slice of bytes.
-func (c *CustomJS) DecodeBytes(data []byte) (err error) {
+func executeJS(script string, vars map[string]interface{}) (out interface{}, err error) {
 	defer func() {
 		if caught := recover(); caught != nil {
 			err = fmt.Errorf("%s", caught)
 		}
 	}()
 
-	script := c.decodeScript + "\n\nDecode(fPort, bytes);\n"
-
 	vm := otto.New()
 	vm.Interrupt = make(chan func(), 1)
 	vm.SetStackDepthLimit(32)
-	vm.Set("bytes", data)
-	vm.Set("fPort", c.fPort)
+
+	for k, v := range vars {
+		if err := vm.Set(k, v); err != nil {
+			return nil, errors.Wrap(err, "set variable error")
+		}
+	}
 
 	go func() {
 		time.Sleep(maxExecutionTime)
@@ -83,60 +89,11 @@ func (c *CustomJS) DecodeBytes(data []byte) (err error) {
 	var val otto.Value
 	val, err = vm.Run(script)
 	if err != nil {
-		return errors.Wrap(err, "js vm error")
-	}
-
-	if !val.IsObject() {
-		return errors.New("function must return object")
-	}
-
-	c.Data, err = val.Export()
-	if err != nil {
-		return errors.Wrap(err, "export error")
-	}
-
-	return nil
-}
-
-// EncodeToBytes encodes the payload to a slice of bytes.
-func (c CustomJS) EncodeToBytes() (b []byte, err error) {
-	defer func() {
-		if caught := recover(); caught != nil {
-			err = fmt.Errorf("%s", caught)
-		}
-	}()
-
-	script := c.encodeScript + "\n\nEncode(fPort, obj);\n"
-
-	vm := otto.New()
-	vm.Interrupt = make(chan func(), 1)
-	vm.SetStackDepthLimit(32)
-	vm.Set("obj", c.Data)
-	vm.Set("fPort", c.fPort)
-
-	go func() {
-		time.Sleep(maxExecutionTime)
-		vm.Interrupt <- func() {
-			panic(errors.New("execution timeout"))
-		}
-	}()
-
-	var val otto.Value
-	val, err = vm.Run(script)
-	if err != nil {
+		fmt.Println(err)
 		return nil, errors.Wrap(err, "js vm error")
 	}
-	if !val.IsObject() {
-		return nil, errors.New("function must return an array")
-	}
 
-	var out interface{}
-	out, err = val.Export()
-	if err != nil {
-		return nil, errors.Wrap(err, "export error")
-	}
-
-	return interfaceToByteSlice(out)
+	return val.Export()
 }
 
 func interfaceToByteSlice(obj interface{}) ([]byte, error) {

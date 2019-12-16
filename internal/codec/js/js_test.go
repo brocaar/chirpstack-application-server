@@ -1,4 +1,4 @@
-package codec
+package js
 
 import (
 	"testing"
@@ -7,12 +7,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCustomJSDecode(t *testing.T) {
+func TestJSDecode(t *testing.T) {
 	tests := []struct {
 		Name           string
 		Script         string
 		Payload        []byte
 		FPort          uint8
+		Variables      map[string]string
 		ExpectedObject map[string]interface{}
 		ExpectedJSON   string
 		ExpectedError  error
@@ -40,7 +41,7 @@ func TestCustomJSDecode(t *testing.T) {
 			Script:        ``,
 			Payload:       []byte{1},
 			FPort:         3,
-			ExpectedError: errors.New("js vm error: ReferenceError: 'Decode' is not defined"),
+			ExpectedError: errors.New("execute js error: js vm error: ReferenceError: 'Decode' is not defined"),
 		},
 		{
 			Name: "function timeout",
@@ -51,7 +52,29 @@ func TestCustomJSDecode(t *testing.T) {
 				`,
 			Payload:       []byte{1},
 			FPort:         3,
-			ExpectedError: errors.New("execution timeout"),
+			ExpectedError: errors.New("execute js error: execution timeout"),
+		},
+		{
+			Name: "variables",
+			Script: `
+					function Decode(port, bytes, variables) {
+						return {
+							"port": port,
+							"on": bytes[0] == 1,
+							"calibration": parseFloat(variables["calibration"])
+						};
+					}
+				`,
+			Payload: []byte{1},
+			FPort:   3,
+			Variables: map[string]string{
+				"calibration": "1.123",
+			},
+			ExpectedObject: map[string]interface{}{
+				"port": 3,
+				"on":   true,
+			},
+			ExpectedJSON: `{"calibration":1.123,"on":true,"port":3}`,
 		},
 	}
 
@@ -59,32 +82,25 @@ func TestCustomJSDecode(t *testing.T) {
 		t.Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
 
-			js := NewCustomJS(tst.FPort, "", tst.Script)
-			err := js.DecodeBytes(tst.Payload)
+			jsonB, err := BinaryToJSON(tst.FPort, tst.Variables, tst.Script, tst.Payload)
 			if tst.ExpectedError != nil {
 				assert.Equal(tst.ExpectedError.Error(), err.Error())
 				return
 			}
-
 			assert.NoError(err)
 
-			for k, v := range tst.ExpectedObject {
-				assert.EqualValues(v, js.Data.(map[string]interface{})[k])
-			}
-
-			b, err := js.MarshalJSON()
-			assert.NoError(err)
-			assert.Equal(tst.ExpectedJSON, string(b))
+			assert.Equal(tst.ExpectedJSON, string(jsonB))
 		})
 	}
 }
 
-func TestCustomEncodeJS(t *testing.T) {
+func TestJSEncode(t *testing.T) {
 	tests := []struct {
 		Name          string
 		Script        string
 		JSON          string
 		FPort         uint8
+		Variables     map[string]string
 		ExpectedBytes []byte
 		ExpectedError error
 	}{
@@ -140,7 +156,7 @@ func TestCustomEncodeJS(t *testing.T) {
 			Script:        ``,
 			FPort:         10,
 			JSON:          `{"Temp": 20}`,
-			ExpectedError: errors.New("js vm error: ReferenceError: 'Encode' is not defined"),
+			ExpectedError: errors.New("execute js error: js vm error: ReferenceError: 'Encode' is not defined"),
 		},
 		{
 			Name: "function timeout",
@@ -151,7 +167,24 @@ func TestCustomEncodeJS(t *testing.T) {
 				`,
 			FPort:         10,
 			JSON:          `{"Temp": 20}`,
-			ExpectedError: errors.New("execution timeout"),
+			ExpectedError: errors.New("execute js error: execution timeout"),
+		},
+		{
+			Name: "variables",
+			Script: `
+					function Encode(fPort, obj, variables) {
+						var bytes = [];
+						bytes[0] = obj.Temp - parseFloat(variables["calibration"]);
+						bytes[1] = fPort;
+						return bytes;
+					}
+				`,
+			FPort: 10,
+			Variables: map[string]string{
+				"calibration": "5",
+			},
+			JSON:          `{"Temp": 20}`,
+			ExpectedBytes: []byte{15, 10},
 		},
 	}
 
@@ -159,15 +192,11 @@ func TestCustomEncodeJS(t *testing.T) {
 		t.Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
 
-			js := NewCustomJS(tst.FPort, tst.Script, "")
-			assert.NoError(js.UnmarshalJSON([]byte(tst.JSON)))
-
-			b, err := js.EncodeToBytes()
+			b, err := JSONToBinary(tst.FPort, tst.Variables, tst.Script, []byte(tst.JSON))
 			if tst.ExpectedError != nil {
 				assert.Equal(tst.ExpectedError.Error(), err.Error())
 				return
 			}
-
 			assert.NoError(err)
 			assert.Equal(tst.ExpectedBytes, b)
 		})

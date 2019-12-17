@@ -356,6 +356,16 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # PostgreSQL dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable).
   dsn=""
 
+  # This sets the max. number of open connections that are allowed in the
+  # PostgreSQL connection pool (0 = unlimited).
+  max_open_connections=0
+
+  # Max idle connections.
+  #
+  # This sets the max. number of idle connections in the PostgreSQL connection
+  # pool (0 = no idle connections are retained).
+  max_idle_connections=2
+
 
   # Settings for the "internal api"
   #

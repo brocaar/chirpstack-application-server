@@ -303,6 +303,16 @@ id="{{ .ApplicationServer.ID }}"
   # PostgreSQL dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable).
   dsn="{{ .ApplicationServer.Integration.PostgreSQL.DSN }}"
 
+  # This sets the max. number of open connections that are allowed in the
+  # PostgreSQL connection pool (0 = unlimited).
+  max_open_connections={{ .ApplicationServer.Integration.PostgreSQL.MaxOpenConnections }}
+
+  # Max idle connections.
+  #
+  # This sets the max. number of idle connections in the PostgreSQL connection
+  # pool (0 = no idle connections are retained).
+  max_idle_connections={{ .ApplicationServer.Integration.PostgreSQL.MaxIdleConnections }}
+
 
   # Settings for the "internal api"
   #

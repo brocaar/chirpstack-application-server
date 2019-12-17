@@ -44,6 +44,9 @@ func New(conf config.IntegrationPostgreSQLConfig) (*Integration, error) {
 		}
 	}
 
+	d.SetMaxOpenConns(conf.MaxOpenConnections)
+	d.SetMaxIdleConns(conf.MaxIdleConnections)
+
 	return &Integration{
 		db: d,
 	}, nil

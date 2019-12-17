@@ -171,7 +171,9 @@ type IntegrationGCPConfig struct {
 
 // IntegrationPostgreSQLConfig holds the PostgreSQL integration configuration.
 type IntegrationPostgreSQLConfig struct {
-	DSN string `json:"dsn"`
+	DSN                string `json:"dsn"`
+	MaxOpenConnections int    `mapstructure:"max_open_connections"`
+	MaxIdleConnections int    `mapstructure:"max_idle_connections"`
 }
 
 // IntegrationAMQPConfig holds the AMQP integration configuration.

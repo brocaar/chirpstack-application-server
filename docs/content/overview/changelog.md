@@ -19,7 +19,7 @@ description: Lists the changes per ChirpStack Application Server release, includ
 This new integration publishes device events to an AMQP / [RabbitMQ](https://www.rabbitmq.com/)
 message broker.
 
-#### Share device variables in JS codec
+#### Device variables in JS codec
 
 This makes it possible to store (for example) calibration values as
 device variables and use this variable in the JavaScript codec.
@@ -29,7 +29,7 @@ device variables and use this variable in the JavaScript codec.
 #### API auth query cleanup
 
 This cleanup optimizes the API authorization functions by using a SQL query
-specific to each fuction, instead of a shared SQL query joining all tables.
+specific to each function, instead of a shared SQL query joining all tables.
 
 ## v3.6.1
 

@@ -37,7 +37,7 @@ class GatewayRow extends Component {
     this.state = {};
   }
 
-  componentWillMount() {
+  componentDidMount() {
     const start = moment().subtract(29, "days").toISOString();
     const end = moment().toISOString();
 

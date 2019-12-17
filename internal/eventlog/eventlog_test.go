@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/require"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"

@@ -50,6 +50,7 @@ func init() {
 	viper.SetDefault("join_server.bind", "0.0.0.0:8003")
 	viper.SetDefault("application_server.integration.marshaler", "json_v3")
 	viper.SetDefault("application_server.integration.mqtt.server", "tcp://localhost:1883")
+	viper.SetDefault("application_server.integration.mqtt.max_reconnect_interval", time.Minute)
 	viper.SetDefault("application_server.integration.mqtt.uplink_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/rx")
 	viper.SetDefault("application_server.integration.mqtt.downlink_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/tx")
 	viper.SetDefault("application_server.integration.mqtt.join_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/join")

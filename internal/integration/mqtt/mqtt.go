@@ -134,6 +134,7 @@ func New(m marshaler.Type, p *redis.Pool, conf config.IntegrationMQTTConfig) (*I
 	opts.SetClientID(i.config.ClientID)
 	opts.SetOnConnectHandler(i.onConnected)
 	opts.SetConnectionLostHandler(i.onConnectionLost)
+	opts.SetMaxReconnectInterval(i.config.MaxReconnectInterval)
 
 	tlsconfig, err := newTLSConfig(i.config.CACert, i.config.TLSCert, i.config.TLSKey)
 	if err != nil {

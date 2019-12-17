@@ -184,6 +184,10 @@ id="{{ .ApplicationServer.ID }}"
   # Connect with the given password (optional)
   password="{{ .ApplicationServer.Integration.MQTT.Password }}"
 
+  # Maximum interval that will be waited between reconnection attempts when connection is lost.
+  # Valid units are 'ms', 's', 'm', 'h'. Note that these values can be combined, e.g. '24h30m15s'.
+  max_reconnect_interval="{{ .ApplicationServer.Integration.MQTT.MaxReconnectInterval }}"
+
   # Quality of service level
   #
   # 0: at most once

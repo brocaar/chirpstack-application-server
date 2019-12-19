@@ -16,7 +16,6 @@ RUN make
 
 FROM alpine:latest AS production
 
-WORKDIR /root/
 RUN apk --no-cache add ca-certificates
-COPY --from=development /chirpstack-application-server/build/chirpstack-application-server .
-ENTRYPOINT ["./chirpstack-application-server"]
+COPY --from=development /chirpstack-application-server/build/chirpstack-application-server /usr/bin/chirpstack-application-server
+ENTRYPOINT ["/usr/bin/chirpstack-application-server"]

@@ -92,7 +92,7 @@ required database transactions.
 
 ### Improvements
 
-* Deprecate use of dots (`.`) in environment variable names, use double understore (`__`) instead. ([#369](https://github.com/brocaar/chirpstack-application-server/issues/369))
+* Deprecate use of dots (`.`) in environment variable names, use double underscore (`__`) instead. ([#369](https://github.com/brocaar/chirpstack-application-server/issues/369))
 
 ### Bugfixes
 

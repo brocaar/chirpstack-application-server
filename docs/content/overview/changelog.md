@@ -31,6 +31,16 @@ device variables and use this variable in the JavaScript codec.
 This cleanup optimizes the API authorization functions by using a SQL query
 specific to each function, instead of a shared SQL query joining all tables.
 
+#### Connection settings
+
+* Implement max. reconnect interval setting for MQTT integration.
+* Fix Redis max. idle configuration and add max. active connections configuration.
+* Implement max open and idle connections for PostgreSQL integration.
+
+### Bugfixes
+
+* Check for null values in JSONTree web-interface component. ([#398](https://github.com/brocaar/chirpstack-application-server/issues/398))
+
 ## v3.6.1
 
 ### Bugfixes

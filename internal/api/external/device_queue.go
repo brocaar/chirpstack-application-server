@@ -165,13 +165,16 @@ func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsR
 	}
 
 	queueItemsResp, err := nsClient.GetDeviceQueueItemsForDevEUI(ctx, &ns.GetDeviceQueueItemsForDevEUIRequest{
-		DevEui: devEUI[:],
+		DevEui:    devEUI[:],
+		CountOnly: req.CountOnly,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	var resp pb.ListDeviceQueueItemsResponse
+	resp := pb.ListDeviceQueueItemsResponse{
+		TotalCount: queueItemsResp.TotalCount,
+	}
 	for _, qi := range queueItemsResp.Items {
 		b, err := lorawan.EncryptFRMPayload(device.AppSKey, false, device.DevAddr, qi.FCnt, qi.FrmPayload)
 		if err != nil {

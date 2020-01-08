@@ -177,12 +177,21 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 					Confirmed:  true,
 				},
 			},
+			TotalCount: 1,
 		}
 
 		resp, err := api.List(context.Background(), &pb.ListDeviceQueueItemsRequest{
-			DevEui: d.DevEUI.String(),
+			DevEui:    d.DevEUI.String(),
+			CountOnly: true,
 		})
 		assert.NoError(err)
+
+		assert.Equal(ns.GetDeviceQueueItemsForDevEUIRequest{
+			DevEui:    d.DevEUI[:],
+			CountOnly: true,
+		}, <-nsClient.GetDeviceQueueItemsForDevEUIChan)
+
+		assert.EqualValues(1, resp.TotalCount)
 		assert.Len(resp.DeviceQueueItems, 1)
 		assert.Equal(&pb.DeviceQueueItem{
 			DevEui:    d.DevEUI.String(),

@@ -172,8 +172,10 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 	switch req.Type {
 	case as.ErrorType_OTAA:
 		errType = pb.ErrorType_OTAA
-	case as.ErrorType_DATA_UP_FCNT:
-		errType = pb.ErrorType_UPLINK_FCNT
+	case as.ErrorType_DATA_UP_FCNT_RESET:
+		errType = pb.ErrorType_UPLINK_FCNT_RESET
+	case as.ErrorType_DATA_UP_FCNT_RETRANSMISSION:
+		errType = pb.ErrorType_UPLINK_FCNT_RETRANSMISSION
 	case as.ErrorType_DATA_UP_MIC:
 		errType = pb.ErrorType_UPLINK_MIC
 	case as.ErrorType_DEVICE_QUEUE_ITEM_SIZE:

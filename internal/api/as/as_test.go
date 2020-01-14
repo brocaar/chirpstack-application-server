@@ -130,7 +130,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 
 		_, err := api.HandleError(ctx, &as.HandleErrorRequest{
 			DevEui: []byte{1, 2, 3, 4, 5, 6, 7, 8},
-			Type:   as.ErrorType_DATA_UP_FCNT,
+			Type:   as.ErrorType_DATA_UP_FCNT_RESET,
 			Error:  "BOOM!",
 			FCnt:   123,
 		})
@@ -141,7 +141,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			ApplicationName: "test-app",
 			DeviceName:      "test-node",
 			DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
-			Type:            pb.ErrorType_UPLINK_FCNT,
+			Type:            pb.ErrorType_UPLINK_FCNT_RESET,
 			Error:           "BOOM!",
 			FCnt:            123,
 			Tags: map[string]string{

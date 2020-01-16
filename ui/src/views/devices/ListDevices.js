@@ -72,6 +72,7 @@ class ListDevices extends Component {
         <TableCell>{lastseen}</TableCell>
         <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${obj.devEUI}`}>{obj.name}</TableCellLink>
         <TableCell>{obj.devEUI}</TableCell>
+          <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/device-profiles/${obj.deviceProfileID}`}>{obj.deviceProfileName}</TableCellLink>
         <TableCell>{margin}</TableCell>
         <TableCell>{battery}</TableCell>
       </TableRow>
@@ -96,6 +97,7 @@ class ListDevices extends Component {
                 <TableCell>Last seen</TableCell>
                 <TableCell>Device name</TableCell>
                 <TableCell>Device EUI</TableCell>
+                <TableCell>Device profile</TableCell>
                 <TableCell>Link margin</TableCell>
                 <TableCell>Battery</TableCell>
               </TableRow>

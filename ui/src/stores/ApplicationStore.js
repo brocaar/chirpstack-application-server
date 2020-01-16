@@ -286,6 +286,68 @@ class ApplicationStore extends EventEmitter {
     });
   }
 
+  createMyDevicesIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.CreateMyDevicesIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+        .then(checkStatus)
+        .then(resp =>  {
+          this.integrationNotification("MyDevices", "created");
+          callbackFunc(resp.obj);
+        })
+      .catch(errorHandler);
+    });
+  }
+
+  getMyDevicesIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.GetMyDevicesIntegration({
+        application_id: applicationID, 
+      })
+        .then(checkStatus)
+        .then(resp => {
+          callbackFunc(resp.obj);
+        })
+      .catch(errorHandler);
+    });
+  }
+
+  updateMyDevicesIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.UpdateMyDevicesIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("MyDevices", "updated");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  deleteMyDevicesIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.DeleteMyDevicesIntegration({
+        application_id: applicationID,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("MyDevices", "deleted");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+
   notify(action) {
     dispatcher.dispatch({
       type: "CREATE_NOTIFICATION",

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 
+import { withStyles } from "@material-ui/core/styles";
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
 import CardContent from "@material-ui/core/CardContent";
@@ -10,6 +11,14 @@ import TitleBarButton from "../../components/TitleBarButton";
 
 import ApplicationStore from "../../stores/ApplicationStore";
 import IntegrationForm from "./IntegrationForm";
+
+
+const styles = {
+  card: {
+    overflow: "visible",
+  },
+};
+
 
 
 class UpdateIntegration extends Component {
@@ -58,6 +67,16 @@ class UpdateIntegration extends Component {
           });
         });
         break;
+      case "mydevices":
+        ApplicationStore.getMyDevicesIntegration(this.props.match.params.applicationID, resp => {
+          let integration = resp.integration;
+          integration.kind = "mydevices";
+
+          this.setState({
+            integration: integration,
+          });
+        });
+        break;
       default:
         break;
     }
@@ -77,6 +96,11 @@ class UpdateIntegration extends Component {
         break;
       case "thingsboard":
         ApplicationStore.updateThingsBoardIntegration(integration, resp => {
+          this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
+        });
+        break;
+      case "mydevices":
+        ApplicationStore.updateMyDevicesIntegration(integration, resp => {
           this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
         });
         break;
@@ -100,6 +124,11 @@ class UpdateIntegration extends Component {
           break;
         case "thingsboard":
           ApplicationStore.deleteThingsBoardIntegration(this.props.match.params.applicationID, resp => {
+            this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
+          });
+          break;
+        case "mydevices":
+          ApplicationStore.deleteMyDevicesIntegration(this.props.match.params.applicationID, resp => {
             this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
           });
           break;
@@ -134,7 +163,7 @@ class UpdateIntegration extends Component {
           <TitleBarTitle title={this.props.match.params.kind} />
         </TitleBar>
         <Grid item xs={12}>
-          <Card>
+          <Card className={this.props.classes.card}>
             <CardContent>
               <IntegrationForm
                 submitLabel="Update integration"
@@ -150,4 +179,4 @@ class UpdateIntegration extends Component {
   }
 }
 
-export default UpdateIntegration;
+export default withStyles(styles)(UpdateIntegration);

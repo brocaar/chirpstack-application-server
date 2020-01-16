@@ -11,6 +11,7 @@ const (
 	HTTP        = "HTTP"
 	InfluxDB    = "INFLUXDB"
 	ThingsBoard = "THINGSBOARD"
+	MyDevices   = "MYDEVICES"
 )
 
 // Integrator defines the interface that an intergration must implement.

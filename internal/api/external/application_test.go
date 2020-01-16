@@ -392,6 +392,74 @@ func (ts *APITestSuite) TestApplication() {
 			})
 		})
 
+		t.Run("MyDevicesIntegration", func(t *testing.T) {
+			t.Run("Create", func(t *testing.T) {
+				assert := require.New(t)
+
+				createReq := pb.CreateMyDevicesIntegrationRequest{
+					Integration: &pb.MyDevicesIntegration{
+						ApplicationId: createResp.Id,
+						Endpoint:      "https://localhost:1234",
+					},
+				}
+				_, err := api.CreateMyDevicesIntegration(context.Background(), &createReq)
+				assert.NoError(err)
+
+				t.Run("Get", func(t *testing.T) {
+					assert := require.New(t)
+
+					i, err := api.GetMyDevicesIntegration(context.Background(), &pb.GetMyDevicesIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(createReq.Integration, i.Integration)
+				})
+
+				t.Run("List", func(t *testing.T) {
+					assert := require.New(t)
+
+					resp, err := api.ListIntegrations(context.Background(), &pb.ListIntegrationRequest{ApplicationId: createResp.Id})
+					assert.NoError(err)
+
+					assert.EqualValues(1, resp.TotalCount)
+					assert.Equal(pb.IntegrationKind_MYDEVICES, resp.Result[0].Kind)
+				})
+
+				t.Run("Update", func(t *testing.T) {
+					assert := require.New(t)
+
+					updateReq := pb.UpdateMyDevicesIntegrationRequest{
+						Integration: &pb.MyDevicesIntegration{
+							ApplicationId: createResp.Id,
+							Endpoint:      "http://localhost:12345",
+						},
+					}
+					_, err := api.UpdateMyDevicesIntegration(context.Background(), &updateReq)
+					assert.NoError(err)
+
+					i, err := api.GetMyDevicesIntegration(context.Background(), &pb.GetMyDevicesIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(updateReq.Integration, i.Integration)
+				})
+
+				t.Run("Delete", func(t *testing.T) {
+					assert := require.New(t)
+
+					_, err := api.DeleteMyDevicesIntegration(context.Background(), &pb.DeleteMyDevicesIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+
+					_, err = api.GetMyDevicesIntegration(context.Background(), &pb.GetMyDevicesIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.Equal(codes.NotFound, grpc.Code(err))
+				})
+			})
+		})
+
 		t.Run("Delete", func(t *testing.T) {
 			assert := require.New(t)
 

@@ -351,6 +351,7 @@ class MyDevicesIntegrationForm extends FormComponent {
   getEndpointOptions(search, callbackFunc) {
     const endpointOptions = [
       {value: "https://lora.mydevices.com/v1/networks/loraserverio/uplink", label: "Cayenne"},
+      {value: "https://lora.iotinabox.com/v1/networks/iotinabox.chirpstackio/uplink", label: "IoT in a Box"},
       {value: "custom", label: "Custom endpoint URL"},
     ];
 
@@ -392,20 +393,20 @@ class MyDevicesIntegrationForm extends FormComponent {
     return(
       <div>
         <FormControl fullWidth margin="normal">
-          <FormLabel>MyDevices endpoint</FormLabel>
+          <FormLabel>myDevices endpoint</FormLabel>
           <AutocompleteSelect
             id="_endpoint"
-            label="Select MyDevices endpoint"
+            label="Select myDevices endpoint"
             value={endpointSelect || ""}
             getOptions={this.getEndpointOptions}
             onChange={this.endpointChange}
           />
         </FormControl>
         {endpointSelect === "custom" && <FormControl fullWidth margin="normal">
-          <FormLabel>MyDevices.com integration configuration</FormLabel>
+          <FormLabel>myDevices integration configuration</FormLabel>
           <TextField
             id="endpoint"
-            label="MyDevices.com API endpoint"
+            label="myDevices API endpoint"
             placeholder="http://host:port"
             value={this.state.object.endpoint || ""}
             onChange={this.onChange}
@@ -437,7 +438,7 @@ class IntegrationForm extends FormComponent {
     const kindOptions = [
       {value: "http", label: "HTTP integration"},
       {value: "influxdb", label: "InfluxDB integration"},
-      {value: "mydevices", label:"MyDevices.com"},
+      {value: "mydevices", label:"myDevices.com"},
       {value: "thingsboard", label: "ThingsBoard.io"},
     ];
 

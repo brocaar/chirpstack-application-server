@@ -103,6 +103,7 @@ func getHandler(conf config.Config) (http.Handler, error) {
 			return joinserver.DeviceKeys{
 				DevEUI:    dk.DevEUI,
 				NwkKey:    dk.NwkKey,
+				AppKey:    dk.AppKey,
 				JoinNonce: dk.JoinNonce,
 			}, nil
 		},

@@ -12,11 +12,12 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/credentials"
 
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
 )
 
 var p Pool
@@ -108,6 +109,7 @@ func (p *pool) createClient(hostname string, caCert, tlsCert, tlsKey []byte) (*g
 		grpc.WithStreamInterceptor(
 			grpc_logrus.StreamClientInterceptor(logrusEntry, logrusOpts...),
 		),
+		grpc.WithBalancerName(roundrobin.Name),
 	}
 
 	if len(caCert) == 0 && len(tlsCert) == 0 && len(tlsKey) == 0 {

@@ -61,7 +61,7 @@ require (
 	golang.org/x/tools v0.0.0-20191217033636-bbbf87ae2631
 	google.golang.org/api v0.14.0
 	google.golang.org/genproto v0.0.0-20191216205247-b31c10ee225f // indirect
-	google.golang.org/grpc v1.25.1
+	google.golang.org/grpc v1.26.0
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
 )

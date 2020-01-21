@@ -239,6 +239,8 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		errType = pb.ErrorType_DOWNLINK_PAYLOAD_SIZE
 	case as.ErrorType_DEVICE_QUEUE_ITEM_FCNT:
 		errType = pb.ErrorType_DOWNLINK_FCNT
+	case as.ErrorType_DATA_DOWN_GATEWAY:
+		errType = pb.ErrorType_DOWNLINK_GATEWAY
 	}
 
 	pl := pb.ErrorEvent{

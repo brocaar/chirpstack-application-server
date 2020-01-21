@@ -94,6 +94,7 @@ func (ts *ApplicationTestSuite) SetupSuite() {
 		ErrorNotificationURL:    ts.httpServer.URL + "/error",
 		StatusNotificationURL:   ts.httpServer.URL + "/status",
 		LocationNotificationURL: ts.httpServer.URL + "/location",
+		TxAckNotificationURL:    ts.httpServer.URL + "/txack",
 	}
 	configJSON, err := json.Marshal(httpConfig)
 	assert.NoError(err)
@@ -174,6 +175,17 @@ func (ts *ApplicationTestSuite) TestLocationNotification() {
 
 	req := <-ts.httpRequests
 	assert.Equal("/location", req.URL.Path)
+}
+
+func (ts *ApplicationTestSuite) TestTxAckNotification() {
+	assert := require.New(ts.T())
+	assert.NoError(ts.integration.SendTxAckNotification(context.Background(), nil, pb.TxAckEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
+	}))
+
+	req := <-ts.httpRequests
+	assert.Equal("/txack", req.URL.Path)
 }
 
 func TestApplication(t *testing.T) {

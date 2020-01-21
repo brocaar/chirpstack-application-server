@@ -76,6 +76,8 @@ func marshalJSONV3(msg proto.Message) ([]byte, error) {
 		return jsonv3MarshalStatusEvent(v)
 	case *integration.LocationEvent:
 		return jsonv3MarshalLocationEvent(v)
+	case *integration.TxAckEvent:
+		return jsonv3MarshalTxAckEvent(v)
 	default:
 		return nil, fmt.Errorf("unknown message type: %T", msg)
 	}
@@ -274,5 +276,18 @@ func jsonv3MarshalLocationEvent(msg *integration.LocationEvent) ([]byte, error) 
 
 	copy(m.DevEUI[:], msg.DevEui)
 
+	return json.Marshal(m)
+}
+
+func jsonv3MarshalTxAckEvent(msg *integration.TxAckEvent) ([]byte, error) {
+	m := models.TxAckNotification{
+		ApplicationID:   int64(msg.ApplicationId),
+		ApplicationName: msg.ApplicationName,
+		DeviceName:      msg.DeviceName,
+		FCnt:            msg.FCnt,
+		Tags:            msg.Tags,
+	}
+
+	copy(m.DevEUI[:], msg.DevEui)
 	return json.Marshal(m)
 }

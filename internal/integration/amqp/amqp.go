@@ -77,6 +77,10 @@ func (i *Integration) SendLocationNotification(ctx context.Context, vars map[str
 	return i.publishEvent(ctx, pl.ApplicationId, pl.DevEui, "location", &pl)
 }
 
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
+	return i.publishEvent(ctx, pl.ApplicationId, pl.DevEui, "txack", &pl)
+}
+
 func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	return nil
 }

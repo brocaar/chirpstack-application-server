@@ -83,6 +83,7 @@ func (ts *IntegrationTestSuite) SetupSuite() {
 			ErrorTopicTemplate:    "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error",
 			StatusTopicTemplate:   "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status",
 			LocationTopicTemplate: "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location",
+			TxAckTopicTemplate:    "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/txack",
 		},
 		httpint.Config{
 			DataUpURL:               ts.httpServer.URL + "/rx",
@@ -91,6 +92,7 @@ func (ts *IntegrationTestSuite) SetupSuite() {
 			ErrorNotificationURL:    ts.httpServer.URL + "/error",
 			StatusNotificationURL:   ts.httpServer.URL + "/status",
 			LocationNotificationURL: ts.httpServer.URL + "/location",
+			TxAckNotificationURL:    ts.httpServer.URL + "/txack",
 		},
 	})
 	assert.NoError(err)
@@ -184,6 +186,20 @@ func (ts *IntegrationTestSuite) TestLocationNotification() {
 
 	req := <-ts.httpRequests
 	assert.Equal("/location", req.URL.Path)
+}
+
+func (ts *IntegrationTestSuite) TestTxAckNotification() {
+	assert := require.New(ts.T())
+	assert.NoError(ts.integration.SendTxAckNotification(context.Background(), nil, pb.TxAckEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
+	}))
+
+	msg := <-ts.mqttMessages
+	assert.Equal("application/1/device/0102030405060708/txack", msg.Topic())
+
+	req := <-ts.httpRequests
+	assert.Equal("/txack", req.URL.Path)
 }
 
 func TestIntegration(t *testing.T) {

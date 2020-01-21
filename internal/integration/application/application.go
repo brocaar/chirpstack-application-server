@@ -100,6 +100,16 @@ func (i *Integration) SendLocationNotification(ctx context.Context, vars map[str
 	return multi.SendLocationNotification(ctx, vars, pl)
 }
 
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
+	multi, err := i.getApplicationIntegration(ctx, pl.ApplicationId)
+	if err != nil {
+		return errors.Wrap(err, "get appplication integration error")
+	}
+	defer multi.Close()
+
+	return multi.SendTxAckNotification(ctx, vars, pl)
+}
+
 // DataDownChan return nil.
 func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	return nil

@@ -139,12 +139,14 @@ type IntegrationMQTTConfig struct {
 	ErrorTopicTemplate      string        `mapstructure:"error_topic_template"`
 	StatusTopicTemplate     string        `mapstructure:"status_topic_template"`
 	LocationTopicTemplate   string        `mapstructure:"location_topic_template"`
+	TxAckTopicTemplate      string        `mapstructure:"tx_ack_topic_template"`
 	UplinkRetainedMessage   bool          `mapstructure:"uplink_retained_message"`
 	JoinRetainedMessage     bool          `mapstructure:"join_retained_message"`
 	AckRetainedMessage      bool          `mapstructure:"ack_retained_message"`
 	ErrorRetainedMessage    bool          `mapstructure:"error_retained_message"`
 	StatusRetainedMessage   bool          `mapstructure:"status_retained_message"`
 	LocationRetainedMessage bool          `mapstructure:"location_retained_message"`
+	TxAckRetainedMessage    bool          `mapstructure:"tx_ack_retained_message"`
 }
 
 // IntegrationAWSConfig holds the AWS SNS integration configuration.

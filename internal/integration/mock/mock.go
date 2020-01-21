@@ -16,6 +16,7 @@ type Integration struct {
 	DataDownPayloadChan          chan integration.DataDownPayload
 	SendStatusNotificationChan   chan pb.StatusEvent
 	SendLocationNotificationChan chan pb.LocationEvent
+	SendTxAckNotificationChan    chan pb.TxAckEvent
 }
 
 // New creates a new mock integration.
@@ -28,6 +29,7 @@ func New() *Integration {
 		DataDownPayloadChan:          make(chan integration.DataDownPayload, 100),
 		SendStatusNotificationChan:   make(chan pb.StatusEvent, 100),
 		SendLocationNotificationChan: make(chan pb.LocationEvent, 100),
+		SendTxAckNotificationChan:    make(chan pb.TxAckEvent, 100),
 	}
 }
 
@@ -74,5 +76,11 @@ func (i *Integration) SendStatusNotification(ctx context.Context, vars map[strin
 // SendLocationNotification method.
 func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, payload pb.LocationEvent) error {
 	i.SendLocationNotificationChan <- payload
+	return nil
+}
+
+// SendTxAckNotification method.
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, payload pb.TxAckEvent) error {
+	i.SendTxAckNotificationChan <- payload
 	return nil
 }

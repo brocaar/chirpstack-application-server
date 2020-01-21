@@ -96,6 +96,7 @@ func (ts *HandlerTestSuite) SetupSuite() {
 		ErrorNotificationURL:    ts.server.URL + "/error",
 		StatusNotificationURL:   ts.server.URL + "/status",
 		LocationNotificationURL: ts.server.URL + "/location",
+		TxAckNotificationURL:    ts.server.URL + "/txack",
 	}
 
 	var err error
@@ -231,6 +232,27 @@ func (ts *HandlerTestSuite) TestLocation() {
 	assert.NoError(err)
 
 	var pl pb.LocationEvent
+	assert.NoError(proto.Unmarshal(b, &pl))
+	assert.True(proto.Equal(&reqPL, &pl))
+	assert.Equal("Bar", req.Header.Get("Foo"))
+	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
+}
+
+func (ts *HandlerTestSuite) TestTxAck() {
+	assert := require.New(ts.T())
+
+	reqPL := pb.TxAckEvent{
+		FCnt: 123,
+	}
+	assert.NoError(ts.integration.SendTxAckNotification(context.Background(), nil, reqPL))
+
+	req := <-ts.httpHandler.requests
+	assert.Equal("/txack", req.URL.Path)
+
+	b, err := ioutil.ReadAll(req.Body)
+	assert.NoError(err)
+
+	var pl pb.TxAckEvent
 	assert.NoError(proto.Unmarshal(b, &pl))
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))

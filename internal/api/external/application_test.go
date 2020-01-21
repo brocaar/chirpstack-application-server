@@ -194,6 +194,7 @@ func (ts *APITestSuite) TestApplication() {
 						ErrorNotificationUrl:    "http://error",
 						StatusNotificationUrl:   "http://status",
 						LocationNotificationUrl: "http://location",
+						TxAckNotificationUrl:    "http://txack",
 					},
 				}
 				_, err := api.CreateHTTPIntegration(context.Background(), &req)
@@ -232,6 +233,7 @@ func (ts *APITestSuite) TestApplication() {
 							ErrorNotificationUrl:    "http://error",
 							StatusNotificationUrl:   "http://status2",
 							LocationNotificationUrl: "http://location2",
+							TxAckNotificationUrl:    "http://txack2",
 						},
 					}
 					_, err := api.UpdateHTTPIntegration(context.Background(), &req)

@@ -135,32 +135,37 @@ func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl
 	return nil
 }
 
-// SendJoinNotification sends a join notification.
+// SendJoinNotification is not implemented.
 func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error {
 	return nil
 }
 
-// SendACKNotification sends an ACK notification.
+// SendACKNotification is not implemented.
 func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]string, pl pb.AckEvent) error {
 	return nil
 }
 
-// SendErrorNotification sends an error notification.
+// SendErrorNotification is not implemented.
 func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error {
 	return nil
 }
 
-// SendStatusNotification sends a status notification.
+// SendStatusNotification is not implemented.
 func (i *Integration) SendStatusNotification(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error {
 	return nil
 }
 
-// SendLocationNotification sends a location notification.
+// SendLocationNotification is not implemented.
 func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error {
 	return nil
 }
 
-// DataDownChan returns nil.
+// SendTxAckNotification is not implemented.
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
+	return nil
+}
+
+// DataDownChan is not implemented.
 func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	return nil
 }

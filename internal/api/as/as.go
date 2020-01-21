@@ -144,6 +144,63 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 	return &empty.Empty{}, nil
 }
 
+func (a *ApplicationServerAPI) HandleTxAck(ctx context.Context, req *as.HandleTxAckRequest) (*empty.Empty, error) {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], req.DevEui)
+
+	d, err := storage.GetDevice(ctx, storage.DB(), devEUI, false, true)
+	if err != nil {
+		errStr := fmt.Sprintf("get device error: %s", err)
+		log.WithField("dev_eui", devEUI).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+	app, err := storage.GetApplication(ctx, storage.DB(), d.ApplicationID)
+	if err != nil {
+		errStr := fmt.Sprintf("get application error: %s", err)
+		log.WithField("id", d.ApplicationID).Error(errStr)
+		return nil, grpc.Errorf(codes.Internal, errStr)
+	}
+
+	log.WithFields(log.Fields{
+		"dev_eui": devEUI,
+	}).Info("downlink tx acknowledged by gateway")
+
+	pl := pb.TxAckEvent{
+		ApplicationId:   uint64(app.ID),
+		ApplicationName: app.Name,
+		DeviceName:      d.Name,
+		DevEui:          devEUI[:],
+		FCnt:            req.FCnt,
+		Tags:            make(map[string]string),
+	}
+
+	// set tags
+	for k, v := range d.Tags.Map {
+		if v.Valid {
+			pl.Tags[k] = v.String
+		}
+	}
+
+	vars := make(map[string]string)
+	for k, v := range d.Variables.Map {
+		if v.Valid {
+			vars[k] = v.String
+		}
+	}
+
+	err = eventlog.LogEventForDevice(devEUI, eventlog.TxAck, &pl)
+	if err != nil {
+		log.WithError(err).Error("log event for device error")
+	}
+
+	err = integration.Integration().SendTxAckNotification(ctx, vars, pl)
+	if err != nil {
+		log.WithError(err).Error("send tx ack event error")
+	}
+
+	return &empty.Empty{}, nil
+}
+
 // HandleError handles an incoming error.
 func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleErrorRequest) (*empty.Empty, error) {
 	var devEUI lorawan.EUI64

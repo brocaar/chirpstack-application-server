@@ -302,6 +302,11 @@ func (i *Integration) SendLocationNotification(ctx context.Context, vars map[str
 	return nil
 }
 
+// SendTxAckNotification is not implemented.
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
+	return nil
+}
+
 // DataDownChan return nil.
 func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	return nil

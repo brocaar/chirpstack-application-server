@@ -205,6 +205,19 @@ func (ts *MarshalerTestSuite) GetLocationEvent() integration.LocationEvent {
 	}
 }
 
+func (ts *MarshalerTestSuite) GetTxAckEvent() integration.TxAckEvent {
+	return integration.TxAckEvent{
+		ApplicationId:   123,
+		ApplicationName: "test-application",
+		DeviceName:      "test-device",
+		DevEui:          []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+		FCnt:            123,
+		Tags: map[string]string{
+			"test": "tag",
+		},
+	}
+}
+
 func (ts *MarshalerTestSuite) TestProtobuf() {
 	uplinkEvent := ts.GetUplinkEvent()
 
@@ -418,6 +431,28 @@ func (ts *MarshalerTestSuite) TestJSONV3() {
 				Longitude: 2.123,
 				Altitude:  100,
 			},
+			Tags: map[string]string{
+				"test": "tag",
+			},
+		}, pl)
+	})
+
+	ts.T().Run("TxAckNotification", func(t *testing.T) {
+		txAckEvent := ts.GetTxAckEvent()
+
+		assert := require.New(t)
+		b, err := Marshal(JSONV3, &txAckEvent)
+		assert.NoError(err)
+
+		var pl models.TxAckNotification
+		assert.NoError(json.Unmarshal(b, &pl))
+
+		assert.Equal(models.TxAckNotification{
+			ApplicationID:   123,
+			ApplicationName: "test-application",
+			DeviceName:      "test-device",
+			DevEUI:          lorawan.EUI64{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+			FCnt:            123,
 			Tags: map[string]string{
 				"test": "tag",
 			},

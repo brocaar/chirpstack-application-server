@@ -28,6 +28,7 @@ const (
 	Error    = "error"
 	Status   = "status"
 	Location = "location"
+	TxAck    = "txack"
 )
 
 // EventLog contains an event log.

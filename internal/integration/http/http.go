@@ -31,6 +31,7 @@ type Config struct {
 	ErrorNotificationURL    string            `json:"errorNotificationURL"`
 	StatusNotificationURL   string            `json:"statusNotificationURL"`
 	LocationNotificationURL string            `json:"locationNotificationURL"`
+	TxAckNotificationURL    string            `json:"txAckNotificationURL"`
 }
 
 // Validate validates the HandlerConfig data.
@@ -181,6 +182,18 @@ func (i *Integration) SendLocationNotification(ctx context.Context, vars map[str
 
 	for _, url := range getURLs(i.config.LocationNotificationURL) {
 		i.sendEvent(ctx, "location", url, devEUI, &pl)
+	}
+
+	return nil
+}
+
+// SendTxAckNotification sends a tx ack notification.
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
+	for _, url := range getURLs(i.config.TxAckNotificationURL) {
+		i.sendEvent(ctx, "txack", url, devEUI, &pl)
 	}
 
 	return nil

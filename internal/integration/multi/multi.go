@@ -181,6 +181,22 @@ func (i *Integration) SendLocationNotification(ctx context.Context, vars map[str
 	return nil
 }
 
+// SendTxAckNotification sends a tx ack notification.
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
+	for _, ii := range i.integrations {
+		go func(i integration.Integrator) {
+			if err := i.SendTxAckNotification(ctx, vars, pl); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"integration": fmt.Sprintf("%T", i),
+					"ctx_id":      ctx.Value(logging.ContextIDKey),
+				}).Error("integration/multi: integration error")
+			}
+		}(ii)
+	}
+
+	return nil
+}
+
 // DataDownChan returns the channel containing the received DataDownPayload.
 func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	for _, ii := range i.integrations {

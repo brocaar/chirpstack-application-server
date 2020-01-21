@@ -403,6 +403,12 @@ func (i *Integration) SendLocationNotification(ctx context.Context, vars map[str
 	return nil
 }
 
+// SendAckNotification is currently not implemented.
+// TODO: implement this + schema migrations for the PostgreSQL database!
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
+	return nil
+}
+
 // DataDownChan return nil.
 func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	return nil

@@ -46,6 +46,7 @@ type Integration struct {
 	errorTemplate    *template.Template
 	statusTemplate   *template.Template
 	locationTemplate *template.Template
+	txAckTemplate    *template.Template
 	downlinkTopic    string
 	downlinkRegexp   *regexp.Regexp
 	uplinkRetained   bool
@@ -54,6 +55,7 @@ type Integration struct {
 	errorRetained    bool
 	statusRetained   bool
 	locationRetained bool
+	txAckRetained    bool
 }
 
 // New creates a new MQTT integration.
@@ -94,12 +96,17 @@ func New(m marshaler.Type, p *redis.Pool, conf config.IntegrationMQTTConfig) (*I
 	if err != nil {
 		return nil, errors.Wrap(err, "parse location template error")
 	}
+	i.txAckTemplate, err = template.New("txack").Parse(i.config.TxAckTopicTemplate)
+	if err != nil {
+		return nil, errors.Wrap(err, "parse tx ack template error")
+	}
 	i.uplinkRetained = i.config.UplinkRetainedMessage
 	i.joinRetained = i.config.JoinRetainedMessage
 	i.ackRetained = i.config.AckRetainedMessage
 	i.errorRetained = i.config.ErrorRetainedMessage
 	i.statusRetained = i.config.StatusRetainedMessage
 	i.locationRetained = i.config.LocationRetainedMessage
+	i.txAckRetained = i.config.TxAckRetainedMessage
 
 	// generate downlink topic matching all applications and devices
 	topic := bytes.NewBuffer(nil)
@@ -241,6 +248,11 @@ func (i *Integration) SendStatusNotification(ctx context.Context, vars map[strin
 // SendLocationNotification sends a LocationNotification.
 func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, payload pb.LocationEvent) error {
 	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.locationTemplate, i.locationRetained, &payload)
+}
+
+// SendTxAckNotification sends a TxAckNotification.
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, payload pb.TxAckEvent) error {
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.txAckTemplate, i.txAckRetained, &payload)
 }
 
 func (i *Integration) publish(ctx context.Context, applicationID uint64, devEUIB []byte, topicTemplate *template.Template, retained bool, msg proto.Message) error {

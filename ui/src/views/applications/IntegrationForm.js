@@ -193,6 +193,16 @@ class HTTPIntegrationForm extends FormComponent {
             fullWidth
           />
           <TextField
+            id="txAckNotificationURL"
+            label="TX ACK notification URL(s)"
+            placeholder="http://example.com/txack"
+            helperText="This notification is sent when the downlink was acknowledged by the LoRa gateway for transmission. Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
+            value={this.state.object.txAckNotificationURL || ""}
+            onChange={this.onChange}
+            margin="normal"
+            fullWidth
+          />
+          <TextField
             id="errorNotificationURL"
             label="Error notification URL(s)"
             placeholder="http://example.com/error"

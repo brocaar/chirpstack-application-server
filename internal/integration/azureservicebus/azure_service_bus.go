@@ -89,6 +89,11 @@ func (i *Integration) SendLocationNotification(ctx context.Context, vars map[str
 	return i.publishRetry(ctx, "location", pl.ApplicationId, pl.DevEui, &pl)
 }
 
+// SendTxAckNotification sends a tx ack notification.
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
+	return i.publishRetry(ctx, "txack", pl.ApplicationId, pl.DevEui, &pl)
+}
+
 // DataDownChan return nil.
 func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	return nil

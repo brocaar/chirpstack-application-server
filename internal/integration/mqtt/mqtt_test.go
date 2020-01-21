@@ -87,6 +87,7 @@ func (ts *MQTTHandlerTestSuite) SetupSuite() {
 			ErrorTopicTemplate:    "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error",
 			StatusTopicTemplate:   "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status",
 			LocationTopicTemplate: "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location",
+			TxAckTopicTemplate:    "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/txack",
 		},
 	)
 	assert.NoError(err)
@@ -228,6 +229,26 @@ func (ts *MQTTHandlerTestSuite) TestLocation() {
 	}
 	assert.NoError(ts.integration.SendLocationNotification(context.Background(), nil, pl))
 	assert.Equal(pl, <-locationChan)
+}
+
+func (ts *MQTTHandlerTestSuite) TestTxAck() {
+	assert := require.New(ts.T())
+
+	txAckChan := make(chan pb.TxAckEvent, 1)
+	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/txack", 0, func(c paho.Client, msg paho.Message) {
+		var pl pb.TxAckEvent
+		assert.NoError(proto.Unmarshal(msg.Payload(), &pl))
+		txAckChan <- pl
+	})
+	token.Wait()
+	assert.NoError(token.Error())
+
+	pl := pb.TxAckEvent{
+		ApplicationId: 123,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
+	}
+	assert.NoError(ts.integration.SendTxAckNotification(context.Background(), nil, pl))
+	assert.Equal(pl, <-txAckChan)
 }
 
 func (ts *MQTTHandlerTestSuite) TestDownlink() {

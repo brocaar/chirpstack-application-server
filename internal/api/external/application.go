@@ -267,6 +267,7 @@ func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.Creat
 		ErrorNotificationURL:    in.Integration.ErrorNotificationUrl,
 		StatusNotificationURL:   in.Integration.StatusNotificationUrl,
 		LocationNotificationURL: in.Integration.LocationNotificationUrl,
+		TxAckNotificationURL:    in.Integration.TxAckNotificationUrl,
 	}
 	if err := conf.Validate(); err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -326,6 +327,7 @@ func (a *ApplicationAPI) GetHTTPIntegration(ctx context.Context, in *pb.GetHTTPI
 			ErrorNotificationUrl:    conf.ErrorNotificationURL,
 			StatusNotificationUrl:   conf.StatusNotificationURL,
 			LocationNotificationUrl: conf.LocationNotificationURL,
+			TxAckNotificationUrl:    conf.TxAckNotificationURL,
 		},
 	}, nil
 }
@@ -360,6 +362,7 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.Updat
 		ErrorNotificationURL:    in.Integration.ErrorNotificationUrl,
 		StatusNotificationURL:   in.Integration.StatusNotificationUrl,
 		LocationNotificationURL: in.Integration.LocationNotificationUrl,
+		TxAckNotificationURL:    in.Integration.TxAckNotificationUrl,
 	}
 	if err := conf.Validate(); err != nil {
 		return nil, helpers.ErrToRPCError(err)

@@ -29,7 +29,7 @@ the JSON object.
 ### Naming
 
 All measurements are using the field names from the `object` element,
-joined by an underscode (`_`) in case the object element is nested.
+joined by an underscore (`_`) in case the object element is nested.
 Payload data is prefixed by `device_frmpayload_data`.
 
 Example:

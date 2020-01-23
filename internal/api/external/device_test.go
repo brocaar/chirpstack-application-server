@@ -53,6 +53,10 @@ func (ts *APITestSuite) TestDevice() {
 		Name: "test-org",
 	}
 	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
+	org2 := storage.Organization{
+		Name: "test-org-2",
+	}
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org2))
 
 	n := storage.NetworkServer{
 		Name:   "test-ns",
@@ -107,6 +111,14 @@ func (ts *APITestSuite) TestDevice() {
 	assert.NoError(storage.CreateDeviceProfile(context.Background(), storage.DB(), &dp))
 	dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
 	assert.NoError(err)
+	dp2 := storage.DeviceProfile{
+		Name:            "test-dp",
+		OrganizationID:  org2.ID,
+		NetworkServerID: n.ID,
+	}
+	assert.NoError(storage.CreateDeviceProfile(context.Background(), storage.DB(), &dp2))
+	dpID2, err := uuid.FromBytes(dp2.DeviceProfile.Id)
+	assert.NoError(err)
 
 	ts.T().Run("Create without name", func(t *testing.T) {
 		assert := require.New(t)
@@ -136,6 +148,30 @@ func (ts *APITestSuite) TestDevice() {
 			DevEui: "0807060504030202",
 		})
 		assert.NoError(err)
+	})
+
+	ts.T().Run("Create with device-profile under different organization", func(t *testing.T) {
+		assert := require.New(t)
+
+		createReq := pb.CreateDeviceRequest{
+			Device: &pb.Device{
+				ApplicationId:     app.ID,
+				Name:              "test-device",
+				Description:       "test device description",
+				DevEui:            "0807060504030201",
+				DeviceProfileId:   dpID2.String(),
+				SkipFCntCheck:     true,
+				ReferenceAltitude: 5.6,
+				Variables: map[string]string{
+					"var_1": "test var 1",
+				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
+			},
+		}
+		_, err := api.Create(context.Background(), &createReq)
+		assert.Equal(codes.InvalidArgument, grpc.Code(err))
 	})
 
 	ts.T().Run("Create", func(t *testing.T) {
@@ -300,6 +336,31 @@ func (ts *APITestSuite) TestDevice() {
 					assert.EqualValues(1, devices.TotalCount)
 					assert.Len(devices.Result, 1)
 				})
+			})
+
+			t.Run("Update with device-profile under different organization", func(t *testing.T) {
+				assert := require.New(t)
+
+				updateReq := pb.UpdateDeviceRequest{
+					Device: &pb.Device{
+						ApplicationId:     app.ID,
+						DevEui:            "0807060504030201",
+						Name:              "test-device-updated",
+						Description:       "test device description updated",
+						DeviceProfileId:   dpID2.String(),
+						SkipFCntCheck:     true,
+						ReferenceAltitude: 6.7,
+						Variables: map[string]string{
+							"var_2": "test var 2",
+						},
+						Tags: map[string]string{
+							"bar": "foo",
+						},
+					},
+				}
+
+				_, err := api.Update(context.Background(), &updateReq)
+				assert.Equal(codes.InvalidArgument, grpc.Code(err))
 			})
 
 			t.Run("Update", func(t *testing.T) {

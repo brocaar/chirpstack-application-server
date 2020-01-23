@@ -66,6 +66,20 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*e
 		req.Device.Name = req.Device.DevEui
 	}
 
+	app, err := storage.GetApplication(ctx, storage.DB(), req.Device.ApplicationId)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	dp, err := storage.GetDeviceProfile(ctx, storage.DB(), dpID, false, true)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if app.OrganizationID != dp.OrganizationID {
+		return nil, grpc.Errorf(codes.InvalidArgument, "device-profile and application must be under the same organization")
+	}
+
 	d := storage.Device{
 		DevEUI:            devEUI,
 		ApplicationID:     req.Device.ApplicationId,
@@ -276,6 +290,20 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*e
 	if err := a.validator.Validate(ctx,
 		auth.ValidateNodeAccess(devEUI, auth.Update)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	app, err := storage.GetApplication(ctx, storage.DB(), req.Device.ApplicationId)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	dp, err := storage.GetDeviceProfile(ctx, storage.DB(), dpID, false, true)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if app.OrganizationID != dp.OrganizationID {
+		return nil, grpc.Errorf(codes.InvalidArgument, "device-profile and application must be under the same organization")
 	}
 
 	err = storage.Transaction(func(tx sqlx.Ext) error {

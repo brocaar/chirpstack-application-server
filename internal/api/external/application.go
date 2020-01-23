@@ -53,6 +53,15 @@ func (a *ApplicationAPI) Create(ctx context.Context, req *pb.CreateApplicationRe
 		return nil, helpers.ErrToRPCError(err)
 	}
 
+	sp, err := storage.GetServiceProfile(ctx, storage.DB(), spID, true)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if sp.OrganizationID != req.Application.OrganizationId {
+		return nil, grpc.Errorf(codes.InvalidArgument, "application and service-profile must be under the same organization")
+	}
+
 	app := storage.Application{
 		Name:                 req.Application.Name,
 		Description:          req.Application.Description,
@@ -120,6 +129,15 @@ func (a *ApplicationAPI) Update(ctx context.Context, req *pb.UpdateApplicationRe
 	spID, err := uuid.FromString(req.Application.ServiceProfileId)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
+	}
+
+	sp, err := storage.GetServiceProfile(ctx, storage.DB(), spID, true)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if sp.OrganizationID != app.OrganizationID {
+		return nil, grpc.Errorf(codes.InvalidArgument, "application and service-profile must be under the same organization")
 	}
 
 	// update the fields

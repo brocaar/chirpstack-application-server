@@ -6,6 +6,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
@@ -42,6 +43,36 @@ func (ts *APITestSuite) TestApplication() {
 	assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp))
 	spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
 	assert.NoError(err)
+
+	org2 := storage.Organization{
+		Name: "test-org-2",
+	}
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org2))
+
+	sp2 := storage.ServiceProfile{
+		Name:            "test-sp2",
+		NetworkServerID: n.ID,
+		OrganizationID:  org2.ID,
+	}
+	assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp2))
+	spID2, err := uuid.FromBytes(sp2.ServiceProfile.Id)
+	assert.NoError(err)
+
+	ts.T().Run("Create with service-profile under different organization", func(t *testing.T) {
+		assert := require.New(t)
+		_, err := api.Create(context.Background(), &pb.CreateApplicationRequest{
+			Application: &pb.Application{
+				OrganizationId:       org.ID,
+				Name:                 "test-app",
+				Description:          "A test application",
+				ServiceProfileId:     spID2.String(),
+				PayloadCodec:         "CUSTOM_JS",
+				PayloadEncoderScript: "Encode() {}",
+				PayloadDecoderScript: "Decode() {}",
+			},
+		})
+		assert.Equal(codes.InvalidArgument, grpc.Code(err))
+	})
 
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
@@ -82,18 +113,6 @@ func (ts *APITestSuite) TestApplication() {
 
 		t.Run("Create application for different organization", func(t *testing.T) {
 			assert := require.New(t)
-
-			org2 := storage.Organization{
-				Name: "test-org-2",
-			}
-			assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org2))
-
-			sp2 := storage.ServiceProfile{
-				Name:            "test-sp2",
-				NetworkServerID: n.ID,
-				OrganizationID:  org.ID,
-			}
-			assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp2))
 
 			app2 := storage.Application{
 				OrganizationID:   org2.ID,
@@ -141,6 +160,23 @@ func (ts *APITestSuite) TestApplication() {
 					assert.Equal(org2.ID, apps.Result[0].OrganizationId)
 				})
 			})
+		})
+
+		t.Run("Update with service-profile under different organization", func(t *testing.T) {
+			assert := require.New(t)
+
+			_, err := api.Update(context.Background(), &pb.UpdateApplicationRequest{
+				Application: &pb.Application{
+					Id:                   createResp.Id,
+					Name:                 "test-app-updated",
+					Description:          "An updated test description",
+					ServiceProfileId:     spID2.String(),
+					PayloadCodec:         "CUSTOM_JS",
+					PayloadEncoderScript: "Encode2() {}",
+					PayloadDecoderScript: "Decode2() {}",
+				},
+			})
+			assert.Equal(codes.InvalidArgument, grpc.Code(err))
 		})
 
 		t.Run("Update", func(t *testing.T) {

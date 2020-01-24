@@ -57,6 +57,13 @@ class JSONTree extends Component {
       }
     }
 
+    if ("uplinkIDs" in data && data.uplinkIDs !== null) {
+      for (let i = 0; i < data.uplinkIDs.length; i++) {
+        const id = Buffer.from(data.uplinkIDs[i], 'base64');
+        data.uplinkIDs[i] = unparse(id);
+      }
+    }
+
     return(
       <JSONTreeOriginal
         data={data}

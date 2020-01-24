@@ -424,6 +424,7 @@ func (a *ApplicationServerAPI) SetDeviceLocation(ctx context.Context, req *as.Se
 		DeviceName:      d.Name,
 		DevEui:          d.DevEUI[:],
 		Location:        req.Location,
+		UplinkIds:       req.UplinkIds,
 		Tags:            make(map[string]string),
 	}
 

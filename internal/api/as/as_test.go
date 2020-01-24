@@ -471,7 +471,12 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				Latitude:  1.123,
 				Longitude: 2.123,
 				Altitude:  3.123,
-				Source:    common.LocationSource_GEO_RESOLVER,
+				UplinkIds: [][]byte{
+					{1},
+					{2},
+					{3},
+				},
+				Source: common.LocationSource_GEO_RESOLVER,
 			},
 		})
 		assert.NoError(err)
@@ -486,6 +491,11 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				Longitude: 2.123,
 				Altitude:  3.123,
 				Source:    common.LocationSource_GEO_RESOLVER,
+			},
+			UplinkIds: [][]byte{
+				{1},
+				{2},
+				{3},
 			},
 			Tags: map[string]string{
 				"foo": "bar",

@@ -69,6 +69,11 @@ Example configuration file:
 # debug=5, info=4, warning=3, error=2, fatal=1, panic=0
 log_level=4
 
+# Log to syslog.
+#
+# When set to true, log messages are being written to syslog.
+log_to_syslog=false
+
 # The number of times passwords must be hashed. A higher number is safer as
 # an attack takes more time to perform.
 password_hash_iterations=100000

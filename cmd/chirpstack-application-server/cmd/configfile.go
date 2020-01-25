@@ -16,6 +16,11 @@ const configTemplate = `[general]
 # debug=5, info=4, warning=3, error=2, fatal=1, panic=0
 log_level={{ .General.LogLevel }}
 
+# Log to syslog.
+#
+# When set to true, log messages are being written to syslog.
+log_to_syslog={{ .General.LogToSyslog }}
+
 # The number of times passwords must be hashed. A higher number is safer as
 # an attack takes more time to perform.
 password_hash_iterations={{ .General.PasswordHashIterations }}

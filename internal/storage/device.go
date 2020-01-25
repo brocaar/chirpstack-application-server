@@ -67,15 +67,6 @@ type DeviceKeys struct {
 	JoinNonce int               `db:"join_nonce"`
 }
 
-// DeviceActivation defines the device-activation for a LoRaWAN device.
-type DeviceActivation struct {
-	ID        int64             `db:"id"`
-	CreatedAt time.Time         `db:"created_at"`
-	DevEUI    lorawan.EUI64     `db:"dev_eui"`
-	DevAddr   lorawan.DevAddr   `db:"dev_addr"`
-	AppSKey   lorawan.AES128Key `db:"app_s_key"`
-}
-
 // CreateDevice creates the given device.
 func CreateDevice(ctx context.Context, db sqlx.Ext, d *Device) error {
 	if err := d.Validate(); err != nil {

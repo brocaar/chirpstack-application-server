@@ -22,15 +22,14 @@ type MulticastSetupTestSuite struct {
 	suite.Suite
 	tx *storage.TxLogger
 
-	NSClient         *nsmock.Client
-	NetworkServer    storage.NetworkServer
-	Organization     storage.Organization
-	ServiceProfile   storage.ServiceProfile
-	Application      storage.Application
-	DeviceProfile    storage.DeviceProfile
-	Device           storage.Device
-	DeviceActivation storage.DeviceActivation
-	MulticastGroup   storage.MulticastGroup
+	NSClient       *nsmock.Client
+	NetworkServer  storage.NetworkServer
+	Organization   storage.Organization
+	ServiceProfile storage.ServiceProfile
+	Application    storage.Application
+	DeviceProfile  storage.DeviceProfile
+	Device         storage.Device
+	MulticastGroup storage.MulticastGroup
 }
 
 func (ts *MulticastSetupTestSuite) SetupSuite() {
@@ -137,7 +136,7 @@ func (ts *MulticastSetupTestSuite) TestSyncRemoteMulticastSetupReq() {
 	req := <-ts.NSClient.CreateDeviceQueueItemChan
 	assert.Equal(multicastsetup.DefaultFPort, uint8(req.Item.FPort))
 
-	b, err := lorawan.EncryptFRMPayload(ts.DeviceActivation.AppSKey, false, ts.DeviceActivation.DevAddr, 0, req.Item.FrmPayload)
+	b, err := lorawan.EncryptFRMPayload(ts.Device.AppSKey, false, ts.Device.DevAddr, 0, req.Item.FrmPayload)
 	assert.NoError(err)
 
 	var cmd multicastsetup.Command
@@ -299,7 +298,7 @@ func (ts *MulticastSetupTestSuite) TestSyncRemoteMulticastDeleteReq() {
 	req := <-ts.NSClient.CreateDeviceQueueItemChan
 	assert.Equal(multicastsetup.DefaultFPort, uint8(req.Item.FPort))
 
-	b, err := lorawan.EncryptFRMPayload(ts.DeviceActivation.AppSKey, false, ts.DeviceActivation.DevAddr, 0, req.Item.FrmPayload)
+	b, err := lorawan.EncryptFRMPayload(ts.Device.AppSKey, false, ts.Device.DevAddr, 0, req.Item.FrmPayload)
 	assert.NoError(err)
 
 	var cmd multicastsetup.Command
@@ -349,7 +348,7 @@ func (ts *MulticastSetupTestSuite) TestSyncRemoteMulticastClassCSessionReq() {
 	req := <-ts.NSClient.CreateDeviceQueueItemChan
 	assert.Equal(multicastsetup.DefaultFPort, uint8(req.Item.FPort))
 
-	b, err := lorawan.EncryptFRMPayload(ts.DeviceActivation.AppSKey, false, ts.DeviceActivation.DevAddr, 0, req.Item.FrmPayload)
+	b, err := lorawan.EncryptFRMPayload(ts.Device.AppSKey, false, ts.Device.DevAddr, 0, req.Item.FrmPayload)
 	assert.NoError(err)
 
 	var cmd multicastsetup.Command

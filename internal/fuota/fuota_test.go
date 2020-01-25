@@ -23,13 +23,12 @@ type FUOTATestSuite struct {
 	tx       *storage.TxLogger
 	nsClient *nsmock.Client
 
-	NetworkServer    storage.NetworkServer
-	Organization     storage.Organization
-	ServiceProfile   storage.ServiceProfile
-	Application      storage.Application
-	DeviceProfile    storage.DeviceProfile
-	Device           storage.Device
-	DeviceActivation storage.DeviceActivation
+	NetworkServer  storage.NetworkServer
+	Organization   storage.Organization
+	ServiceProfile storage.ServiceProfile
+	Application    storage.Application
+	DeviceProfile  storage.DeviceProfile
+	Device         storage.Device
 }
 
 func (ts *FUOTATestSuite) SetupSuite() {
@@ -536,7 +535,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentStatusRequest() {
 	req := <-ts.nsClient.CreateDeviceQueueItemChan
 	assert.NotNil(req.Item)
 	assert.Equal(ns.DeviceQueueItem{
-		DevAddr:    ts.DeviceActivation.DevAddr[:],
+		DevAddr:    ts.Device.DevAddr[:],
 		DevEui:     ts.Device.DevEUI[:],
 		FrmPayload: []byte{0x73, 0xa5},
 		FPort:      uint32(fragmentation.DefaultFPort),

@@ -22,14 +22,13 @@ type ClockSyncTestSuite struct {
 	suite.Suite
 	tx *storage.TxLogger
 
-	NSClient         *nsmock.Client
-	NetworkServer    storage.NetworkServer
-	Organization     storage.Organization
-	ServiceProfile   storage.ServiceProfile
-	Application      storage.Application
-	DeviceProfile    storage.DeviceProfile
-	Device           storage.Device
-	DeviceActivation storage.DeviceActivation
+	NSClient       *nsmock.Client
+	NetworkServer  storage.NetworkServer
+	Organization   storage.Organization
+	ServiceProfile storage.ServiceProfile
+	Application    storage.Application
+	DeviceProfile  storage.DeviceProfile
+	Device         storage.Device
 }
 
 func (ts *ClockSyncTestSuite) SetupSuite() {
@@ -128,7 +127,7 @@ func (ts *ClockSyncTestSuite) TestAppTimeReq() {
 		var ans clocksync.Command
 		assert.Equal(clocksync.DefaultFPort, uint8(queueReq.Item.FPort))
 
-		b, err = lorawan.EncryptFRMPayload(ts.DeviceActivation.AppSKey, false, ts.DeviceActivation.DevAddr, 0, queueReq.Item.FrmPayload)
+		b, err = lorawan.EncryptFRMPayload(ts.Device.AppSKey, false, ts.Device.DevAddr, 0, queueReq.Item.FrmPayload)
 		assert.NoError(err)
 
 		assert.NoError(ans.UnmarshalBinary(false, b))

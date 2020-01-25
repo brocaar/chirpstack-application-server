@@ -21,14 +21,13 @@ type FragmentationSessionTestSuite struct {
 	suite.Suite
 	tx *storage.TxLogger
 
-	NSClient         *nsmock.Client
-	NetworkServer    storage.NetworkServer
-	Organization     storage.Organization
-	ServiceProfile   storage.ServiceProfile
-	Application      storage.Application
-	DeviceProfile    storage.DeviceProfile
-	Device           storage.Device
-	DeviceActivation storage.DeviceActivation
+	NSClient       *nsmock.Client
+	NetworkServer  storage.NetworkServer
+	Organization   storage.Organization
+	ServiceProfile storage.ServiceProfile
+	Application    storage.Application
+	DeviceProfile  storage.DeviceProfile
+	Device         storage.Device
 }
 
 func (ts *FragmentationSessionTestSuite) SetupSuite() {
@@ -129,7 +128,7 @@ func (ts *FragmentationSessionTestSuite) TestSyncFragSessionSetupReq() {
 	req := <-ts.NSClient.CreateDeviceQueueItemChan
 	assert.Equal(fragmentation.DefaultFPort, uint8(req.Item.FPort))
 
-	b, err := lorawan.EncryptFRMPayload(ts.DeviceActivation.AppSKey, false, ts.DeviceActivation.DevAddr, 0, req.Item.FrmPayload)
+	b, err := lorawan.EncryptFRMPayload(ts.Device.AppSKey, false, ts.Device.DevAddr, 0, req.Item.FrmPayload)
 	assert.NoError(err)
 
 	var cmd fragmentation.Command
@@ -179,7 +178,7 @@ func (ts *FragmentationSessionTestSuite) TestSyncFragSessionDeleteReq() {
 	req := <-ts.NSClient.CreateDeviceQueueItemChan
 	assert.Equal(fragmentation.DefaultFPort, uint8(req.Item.FPort))
 
-	b, err := lorawan.EncryptFRMPayload(ts.DeviceActivation.AppSKey, false, ts.DeviceActivation.DevAddr, 0, req.Item.FrmPayload)
+	b, err := lorawan.EncryptFRMPayload(ts.Device.AppSKey, false, ts.Device.DevAddr, 0, req.Item.FrmPayload)
 	assert.NoError(err)
 
 	var cmd fragmentation.Command

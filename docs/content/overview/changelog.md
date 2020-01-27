@@ -10,6 +10,46 @@ description: Lists the changes per ChirpStack Application Server release, includ
 
 # Changelog
 
+## v3.8.0
+
+### Features
+
+#### New error events
+
+This release provide new error events for OTAA errors, frame-counter resets and
+re-transactions / replay-attacks (requires ChirpStack Network Server v3.7+).
+It also adds new error events when the gateway reports an error on downlink
+scheduling (e.g. collision, invalid frequency, ...).
+
+#### Downlink tx ack event
+
+This publishes an acknowledgement when an item from the queue has been sent
+to the gateway for transmission and was accepted by the gateway.
+
+#### myDevices integration
+
+This new integration makes it possible to forward payload events to myDevices
+Cayenne and IoT in a Box.
+
+#### Syslog logger
+
+This adds a configuration option `log_to_syslog`. When enabled, log items will
+be forwarded to syslog.
+
+### Improvements
+
+* Add API option to fetch device queue size only.
+* Add device profile to device list in web-interface.
+* Enable DNS round-robin load-balancing for gRPC client (to NS).
+* Add uplink IDs used for gelocation to geolocation event. ([#413](https://github.com/brocaar/chirpstack-application-server/issues/413))
+* Internal cleanup of unused `device_activation` table and code.
+
+### Bugfixes
+
+* Fix LoRaWAN 1.1 OTAA bug (and update tests). ([#382](https://github.com/brocaar/chirpstack-application-server/issues/382))
+* Fix assigning device profile to device (validate they share the same organization). ([#415](https://github.com/brocaar/chirpstack-application-server/issues/415))
+* Fix assigning service profile to application (validate they share the same organization).
+
 ## v3.7.0
 
 ### Features

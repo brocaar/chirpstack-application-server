@@ -78,7 +78,9 @@ class DataTable extends Component {
 
     return(
       <Paper>
-        <Table className={this.props.classes.table}>
+        <Table 
+         className={this.props.classes.table}
+         rowsPerPageOptions=[10, 25, 50, 100, 200, 500]>
           <TableHead>
             {this.props.header}
           </TableHead>

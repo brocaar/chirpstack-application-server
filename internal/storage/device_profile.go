@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -11,10 +12,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/codec"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
 )
 
 // DeviceProfile defines the device-profile.
@@ -295,169 +296,79 @@ func DeleteDeviceProfile(ctx context.Context, db sqlx.Ext, id uuid.UUID) error {
 	return nil
 }
 
+// DeviceProfileFilters provide filders for filtering device-profiles.
+type DeviceProfileFilters struct {
+	ApplicationID  int64  `db:"application_id"`
+	OrganizationID int64  `db:"organization_id"`
+	Username       string `db:"username"`
+
+	// Limit and Offset are added for convenience so that this struct can
+	// be given as the arguments.
+	Limit  int `db:"limit"`
+	Offset int `db:"offset"`
+}
+
+// SQL returns the SQL filters.
+func (f DeviceProfileFilters) SQL() string {
+	var filters []string
+
+	if f.ApplicationID != 0 {
+		// Filter on organization_id too since dp > network-server > service-profile > application
+		// join.
+		filters = append(filters, "a.id = :application_id and dp.organization_id = a.organization_id")
+	}
+
+	if f.OrganizationID != 0 {
+		filters = append(filters, "o.id = :organization_id")
+	}
+
+	if f.Username != "" {
+		filters = append(filters, "u.username = :username")
+	}
+
+	if len(filters) == 0 {
+		return ""
+	}
+
+	return "where " + strings.Join(filters, " and ")
+}
+
 // GetDeviceProfileCount returns the total number of device-profiles.
-func GetDeviceProfileCount(ctx context.Context, db sqlx.Queryer) (int, error) {
-	var count int
-	err := sqlx.Get(db, &count, "select count(*) from device_profile")
-	if err != nil {
-		return 0, handlePSQLError(Select, err, "select error")
-	}
-
-	return count, nil
-}
-
-// GetDeviceProfileCountForOrganizationID returns the total number of
-// device-profiles for the given organization id.
-func GetDeviceProfileCountForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64) (int, error) {
-	var count int
-	err := sqlx.Get(db, &count, "select count(*) from device_profile where organization_id = $1", organizationID)
-	if err != nil {
-		return 0, handlePSQLError(Select, err, "select error")
-	}
-	return count, nil
-}
-
-// GetDeviceProfileCountForUser returns the total number of device-profiles
-// for the given username.
-func GetDeviceProfileCountForUser(ctx context.Context, db sqlx.Queryer, username string) (int, error) {
-	var count int
-	err := sqlx.Get(db, &count, `
+func GetDeviceProfileCount(ctx context.Context, db sqlx.Queryer, filters DeviceProfileFilters) (int, error) {
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
-			count(dp.*)
-		from device_profile dp
-		inner join organization o
-			on o.id = dp.organization_id
-		inner join organization_user ou
-			on ou.organization_id = o.id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.username = $1`,
-		username,
-	)
-	if err != nil {
-		return 0, handlePSQLError(Select, err, "select error")
-	}
-	return count, nil
-}
-
-// GetDeviceProfileCountForApplicationID returns the total number of
-// device-profiles that can be used for the given application id (based
-// on the service-profile of the application).
-func GetDeviceProfileCountForApplicationID(ctx context.Context, db sqlx.Queryer, applicationID int64) (int, error) {
-	var count int
-	err := sqlx.Get(db, &count, `
-		select
-			count(dp.*)
-		from device_profile dp
+			count(distinct dp.*)
+		from
+			device_profile dp
 		inner join network_server ns
-			on ns.id = dp.network_server_id
-		inner join service_profile sp
-			on sp.network_server_id = ns.id
-		inner join application a
-			on a.service_profile_id = sp.service_profile_id
-		where
-			a.id = $1
-			and dp.organization_id = a.organization_id`,
-		applicationID,
-	)
+			on dp.network_server_id = ns.id
+		inner join organization o
+			on dp.organization_id = o.id
+		left join service_profile sp
+			on ns.id = sp.network_server_id
+		left join application a
+			on sp.service_profile_id = a.service_profile_id
+		left join organization_user ou
+			on o.id = ou.organization_id
+		left join "user" u
+			on ou.user_id = u.id
+	`+filters.SQL(), filters)
+	if err != nil {
+		return 0, errors.Wrap(err, "named query error")
+	}
+
+	var count int
+	err = sqlx.Get(db, &count, query, args...)
 	if err != nil {
 		return 0, handlePSQLError(Select, err, "select error")
 	}
+
 	return count, nil
 }
 
 // GetDeviceProfiles returns a slice of device-profiles.
-func GetDeviceProfiles(ctx context.Context, db sqlx.Queryer, limit, offset int) ([]DeviceProfileMeta, error) {
-	var dps []DeviceProfileMeta
-	err := sqlx.Select(db, &dps, `
-		select
-			device_profile_id,
-			network_server_id,
-			organization_id,
-			created_at,
-			updated_at,
-			name
-		from device_profile
-		order by name
-		limit $1 offset $2`,
-		limit,
-		offset,
-	)
-	if err != nil {
-		return nil, handlePSQLError(Select, err, "select error")
-	}
-	return dps, nil
-}
-
-// GetDeviceProfilesForOrganizationID returns a slice of device-profiles
-// for the given organization id.
-func GetDeviceProfilesForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, limit, offset int) ([]DeviceProfileMeta, error) {
-	var dps []DeviceProfileMeta
-	err := sqlx.Select(db, &dps, `
-		select
-			device_profile_id,
-			network_server_id,
-			organization_id,
-			created_at,
-			updated_at,
-			name
-		from device_profile
-		where
-			organization_id = $1
-		order by name
-		limit $2 offset $3`,
-		organizationID,
-		limit,
-		offset,
-	)
-	if err != nil {
-		return nil, handlePSQLError(Select, err, "select error")
-	}
-	return dps, nil
-}
-
-// GetDeviceProfilesForUser returns a slice of device-profiles for the given
-// username.
-func GetDeviceProfilesForUser(ctx context.Context, db sqlx.Queryer, username string, limit, offset int) ([]DeviceProfileMeta, error) {
-	var dps []DeviceProfileMeta
-	err := sqlx.Select(db, &dps, `
-		select
-			dp.device_profile_id,
-			dp.network_server_id,
-			dp.organization_id,
-			dp.created_at,
-			dp.updated_at,
-			dp.name
-		from
-			device_profile dp
-		inner join organization o
-			on o.id = dp.organization_id
-		inner join organization_user ou
-			on ou.organization_id = o.id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.username = $1
-		order by dp.name
-		limit $2 offset $3`,
-		username,
-		limit,
-		offset,
-	)
-	if err != nil {
-		return nil, handlePSQLError(Select, err, "select error")
-	}
-
-	return dps, nil
-}
-
-// GetDeviceProfilesForApplicationID returns a slice of device-profiles that
-// can be used for the given application id (based on the service-profile
-// of the application).
-func GetDeviceProfilesForApplicationID(ctx context.Context, db sqlx.Queryer, applicationID int64, limit, offset int) ([]DeviceProfileMeta, error) {
-	var dps []DeviceProfileMeta
-	err := sqlx.Select(db, &dps, `
+func GetDeviceProfiles(ctx context.Context, db sqlx.Queryer, filters DeviceProfileFilters) ([]DeviceProfileMeta, error) {
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
 			dp.device_profile_id,
 			dp.network_server_id,
@@ -468,23 +379,35 @@ func GetDeviceProfilesForApplicationID(ctx context.Context, db sqlx.Queryer, app
 		from
 			device_profile dp
 		inner join network_server ns
-			on ns.id = dp.network_server_id
-		inner join service_profile sp
-			on sp.network_server_id = ns.id
-		inner join application a
-			on a.service_profile_id = sp.service_profile_id
-		where
-			a.id = $1
-			and dp.organization_id = a.organization_id
-		order by dp.name
-		limit $2 offset $3`,
-		applicationID,
-		limit,
-		offset,
-	)
+			on dp.network_server_id = ns.id
+		inner join organization o
+			on dp.organization_id = o.id
+		left join service_profile sp
+			on ns.id = sp.network_server_id
+		left join application a
+			on sp.service_profile_id = a.service_profile_id
+		left join organization_user ou
+			on o.id = ou.organization_id
+		left join "user" u
+			on ou.user_id = u.id
+	`+filters.SQL()+`
+		group by
+			dp.device_profile_id
+		order by
+			dp.name
+		limit :limit
+		offset :offset
+	`, filters)
+	if err != nil {
+		return nil, errors.Wrap(err, "named query error")
+	}
+
+	var dps []DeviceProfileMeta
+	err = sqlx.Select(db, &dps, query, args...)
 	if err != nil {
 		return nil, handlePSQLError(Select, err, "select error")
 	}
+
 	return dps, nil
 }
 

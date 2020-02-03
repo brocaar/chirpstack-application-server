@@ -414,7 +414,7 @@ func LoginUser(ctx context.Context, db sqlx.Queryer, username string, password s
 	})
 
 	jwt, err := token.SignedString(jwtsecret)
-	if nil != err {
+	if err != nil {
 		return jwt, errors.Wrap(err, "get jwt signed string error")
 	}
 	return jwt, err

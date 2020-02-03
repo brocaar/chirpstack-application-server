@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
-	"github.com/lib/pq"
-
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/lib/pq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
@@ -161,7 +161,7 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 		return errors.Wrap(err, "validate error")
 	}
 
-	now := time.Now()
+	gw.UpdatedAt = time.Now()
 
 	res, err := db.Exec(`
 		update gateway
@@ -182,7 +182,7 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 		where
 			mac = $1`,
 		gw.MAC[:],
-		now,
+		gw.UpdatedAt,
 		gw.Name,
 		gw.Description,
 		gw.OrganizationID,
@@ -208,7 +208,6 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 		return ErrDoesNotExist
 	}
 
-	gw.UpdatedAt = now
 	log.WithFields(log.Fields{
 		"id":     gw.MAC,
 		"name":   gw.Name,
@@ -272,65 +271,105 @@ func GetGateway(ctx context.Context, db sqlx.Queryer, mac lorawan.EUI64, forUpda
 	return gw, nil
 }
 
-// GetGatewayCount returns the total number of gateways.
-func GetGatewayCount(ctx context.Context, db sqlx.Queryer, search string) (int, error) {
-	var count int
-	if search != "" {
-		search = "%" + search + "%"
+// GatewayFilters provides filters for filtering gateways.
+type GatewayFilters struct {
+	OrganizationID int64  `db:"organization_id"`
+	Username       string `db:"username"`
+	Search         string `db:"search"`
+
+	// Limit and Offset are added for convenience so that this struct can
+	// be given as the arguments.
+	Limit  int `db:"limit"`
+	Offset int `db:"offset"`
+}
+
+// SQL returns the SQL filters.
+func (f GatewayFilters) SQL() string {
+	var filters []string
+
+	if f.OrganizationID != 0 {
+		filters = append(filters, "g.organization_id = :organization_id")
 	}
 
-	err := sqlx.Get(db, &count, `
-		select
-			count(*)
-		from gateway
-		where
-			$1 = ''
-			or (
-				$1 != ''
-				and (
-					name ilike $1
-					or encode(mac, 'hex') ilike $1
-				)
-			)
-		`,
-		search,
-	)
-	if err != nil {
-		return 0, errors.Wrap(err, "select error")
+	if f.Username != "" {
+		filters = append(filters, "u.username = :username")
 	}
+
+	if f.Search != "" {
+		filters = append(filters, "(g.name ilike :search or encode(g.mac, 'hex') ilike :search)")
+	}
+
+	if len(filters) == 0 {
+		return ""
+	}
+
+	return "where " + strings.Join(filters, " and ")
+}
+
+// GetGatewayCount returns the total number of gateways.
+func GetGatewayCount(ctx context.Context, db sqlx.Queryer, filters GatewayFilters) (int, error) {
+	if filters.Search != "" {
+		filters.Search = "%" + filters.Search + "%"
+	}
+
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
+		select
+			count(distinct g.*)
+		from
+			gateway g
+		inner join organization o
+			on o.id = g.organization_id
+		left join organization_user ou
+			on o.id = ou.organization_id
+		left join "user" u
+			on ou.user_id = u.id
+	`+filters.SQL(), filters)
+	if err != nil {
+		return 0, errors.Wrap(err, "named query error")
+	}
+
+	var count int
+	err = sqlx.Get(db, &count, query, args...)
+	if err != nil {
+
+		return 0, errors.Wrap(err, "named query error")
+	}
+
 	return count, nil
 }
 
 // GetGateways returns a slice of gateways sorted by name.
-func GetGateways(ctx context.Context, db sqlx.Queryer, limit, offset int, search string) ([]Gateway, error) {
-	var gws []Gateway
-	if search != "" {
-		search = "%" + search + "%"
+func GetGateways(ctx context.Context, db sqlx.Queryer, filters GatewayFilters) ([]Gateway, error) {
+	if filters.Search != "" {
+		filters.Search = "%" + filters.Search + "%"
 	}
 
-	err := sqlx.Select(db, &gws, `
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
-			*
-		from gateway
-		where
-			$3 = ''
-			or (
-				$3 != ''
-				and (
-					name ilike $3
-					or encode(mac, 'hex') ilike $3
-				)
-			)
+			g.*
+		from
+			gateway g
+		inner join organization o
+			on o.id = g.organization_id
+		left join organization_user ou
+			on o.id = ou.organization_id
+		left join "user" u
+			on ou.user_id = u.id
+	`+filters.SQL()+`
+		group by
+			g.mac
 		order by
-			name
-		limit $1 offset $2`,
-		limit,
-		offset,
-		search,
-	)
+			g.name
+		limit :limit
+		offset :offset
+	`, filters)
+
+	var gws []Gateway
+	err = sqlx.Select(db, &gws, query, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
+
 	return gws, nil
 }
 
@@ -361,160 +400,6 @@ func GetGatewaysForMACs(ctx context.Context, db sqlx.Queryer, macs []lorawan.EUI
 	}
 
 	return out, nil
-}
-
-// GetGatewayCountForOrganizationID returns the total number of gateways
-// given an organization ID.
-func GetGatewayCountForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, search string) (int, error) {
-	var count int
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Get(db, &count, `
-		select
-			count(*)
-		from gateway
-		where
-			organization_id = $1
-			and (
-				$2 = ''
-				or (
-					$2 != ''
-					and (
-						name ilike $2
-						or encode(mac, 'hex') ilike $2
-					)
-				)
-			)`,
-		organizationID,
-		search,
-	)
-	if err != nil {
-		return 0, errors.Wrap(err, "select error")
-	}
-	return count, nil
-}
-
-// GetGatewaysForOrganizationID returns a slice of gateways sorted by name
-// for the given organization ID.
-func GetGatewaysForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, limit, offset int, search string) ([]Gateway, error) {
-	var gws []Gateway
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Select(db, &gws, `
-		select
-			*
-		from gateway
-		where
-			organization_id = $1
-			and (
-				$4 = ''
-				or (
-					$4 != ''
-					and (
-						name ilike $4
-						or encode(mac, 'hex') ilike $4
-					)
-				)
-			)
-		order by
-			name
-		limit $2 offset $3`,
-		organizationID,
-		limit,
-		offset,
-		search,
-	)
-	if err != nil {
-		return nil, errors.Wrap(err, "select error")
-	}
-	return gws, nil
-}
-
-// GetGatewayCountForUser returns the total number of gateways to which the
-// given user has access.
-func GetGatewayCountForUser(ctx context.Context, db sqlx.Queryer, username string, search string) (int, error) {
-	var count int
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Get(db, &count, `
-		select
-			count(g.*)
-		from gateway g
-		inner join organization o
-			on o.id = g.organization_id
-		inner join organization_user ou
-			on ou.organization_id = o.id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.username = $1
-			and (
-				$2 = ''
-				or (
-					$2 != ''
-					and (
-						g.name ilike $2
-						or encode(g.mac, 'hex') ilike $2
-					)
-				)
-			)`,
-		username,
-		search,
-	)
-	if err != nil {
-		return 0, errors.Wrap(err, "select error")
-	}
-	return count, nil
-}
-
-// GetGatewaysForUser returns a slice of gateways sorted by name to which the
-// given user has access.
-func GetGatewaysForUser(ctx context.Context, db sqlx.Queryer, username string, limit, offset int, search string) ([]Gateway, error) {
-	var gws []Gateway
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Select(db, &gws, `
-		select
-			g.*
-		from gateway g
-		inner join organization o
-			on o.id = g.organization_id
-		inner join organization_user ou
-			on ou.organization_id = o.id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.username = $1
-			and (
-				$4 = ''
-				or (
-					$4 != ''
-					and (
-						g.name ilike $4
-						or encode(g.mac, 'hex') ilike $4
-					)
-				)
-			)
-		order by
-			g.name
-		limit $2 offset $3`,
-		username,
-		limit,
-		offset,
-		search,
-	)
-	if err != nil {
-		return nil, errors.Wrap(err, "select error")
-	}
-	return gws, nil
 }
 
 // CreateGatewayPing creates the given gateway ping.

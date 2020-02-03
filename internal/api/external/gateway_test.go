@@ -11,11 +11,11 @@ import (
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/chirpstack-api/go/v3/common"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/lorawan"
 )
 
@@ -26,7 +26,9 @@ func (ts *APITestSuite) TestGateway() {
 	networkserver.SetPool(mock.NewPool(nsClient))
 
 	ctx := context.Background()
-	validator := &TestValidator{}
+	validator := &TestValidator{
+		returnSubject: "user",
+	}
 	api := NewGatewayAPI(validator)
 
 	n := storage.NetworkServer{

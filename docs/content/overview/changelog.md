@@ -43,6 +43,7 @@ be forwarded to syslog.
 * Enable DNS round-robin load-balancing for gRPC client (to NS).
 * Add uplink IDs used for gelocation to geolocation event. ([#413](https://github.com/brocaar/chirpstack-application-server/issues/413))
 * Internal cleanup of unused `device_activation` table and code.
+* Add option for 200 and 500 items per page in web-interface. ([#418](https://github.com/brocaar/chirpstack-application-server/pull/418))
 
 ### Bugfixes
 

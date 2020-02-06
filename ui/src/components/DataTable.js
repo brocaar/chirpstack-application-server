@@ -78,9 +78,7 @@ class DataTable extends Component {
 
     return(
       <Paper>
-        <Table 
-         className={this.props.classes.table}
-         rowsPerPageOptions=[10, 25, 50, 100, 200, 500]>
+        <Table className={this.props.classes.table}>
           <TableHead>
             {this.props.header}
           </TableHead>
@@ -92,6 +90,7 @@ class DataTable extends Component {
           component="div"
           count={this.state.count}
           rowsPerPage={this.state.rowsPerPage}
+          rowsPerPageOptions={[10, 25, 50, 100, 200, 500]}
           page={this.state.page}
           onChangePage={this.onChangePage}
           onChangeRowsPerPage={this.onChangeRowsPerPage}

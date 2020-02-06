@@ -29,7 +29,7 @@ to the gateway for transmission and was accepted by the gateway.
 #### myDevices integration
 
 This new integration makes it possible to forward payload events to myDevices
-Cayenne and IoT in a Box.
+IoT in a Box. myDevices Cayenne integration will be made available soon.
 
 #### Syslog logger
 

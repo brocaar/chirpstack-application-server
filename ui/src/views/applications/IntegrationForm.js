@@ -360,7 +360,8 @@ class MyDevicesIntegrationForm extends FormComponent {
 
   getEndpointOptions(search, callbackFunc) {
     const endpointOptions = [
-      {value: "https://lora.mydevices.com/v1/networks/loraserverio/uplink", label: "Cayenne"},
+      // TODO: uncomment when ChirpStack is available as network in Cayenne
+      // {value: "https://lora.mydevices.com/v1/networks/loraserverio/uplink", label: "Cayenne"},
       {value: "https://lora.iotinabox.com/v1/networks/iotinabox.chirpstackio/uplink", label: "IoT in a Box"},
       {value: "custom", label: "Custom endpoint URL"},
     ];

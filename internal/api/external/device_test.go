@@ -290,6 +290,29 @@ func (ts *APITestSuite) TestDevice() {
 			})
 
 			t.Run("List", func(t *testing.T) {
+				t.Run("Filter by tag", func(t *testing.T) {
+					assert := require.New(t)
+					validator.returnIsAdmin = true
+
+					devices, err := api.List(context.Background(), &pb.ListDeviceRequest{
+						Limit:  10,
+						Offset: 0,
+						Tags:   map[string]string{"foo": "bar"},
+					})
+					assert.NoError(err)
+					assert.EqualValues(1, devices.TotalCount)
+					assert.Len(devices.Result, 1)
+
+					devices, err = api.List(context.Background(), &pb.ListDeviceRequest{
+						Limit:  10,
+						Offset: 0,
+						Tags:   map[string]string{"foo": "bas"},
+					})
+					assert.NoError(err)
+					assert.EqualValues(0, devices.TotalCount)
+					assert.Len(devices.Result, 0)
+				})
+
 				t.Run("Global admin can list all devices", func(t *testing.T) {
 					assert := require.New(t)
 					validator.returnIsAdmin = true

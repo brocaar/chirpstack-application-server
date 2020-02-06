@@ -195,8 +195,11 @@ func (a *DeviceAPI) List(ctx context.Context, req *pb.ListDeviceRequest) (*pb.Li
 	filters := storage.DeviceFilters{
 		ApplicationID: req.ApplicationId,
 		Search:        req.Search,
-		Limit:         int(req.Limit),
-		Offset:        int(req.Offset),
+		Tags: hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		},
+		Limit:  int(req.Limit),
+		Offset: int(req.Offset),
 	}
 
 	if req.MulticastGroupId != "" {
@@ -211,6 +214,10 @@ func (a *DeviceAPI) List(ctx context.Context, req *pb.ListDeviceRequest) (*pb.Li
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
+	}
+
+	for k, v := range req.Tags {
+		filters.Tags.Map[k] = sql.NullString{String: v, Valid: true}
 	}
 
 	if filters.ApplicationID != 0 {

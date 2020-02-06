@@ -208,10 +208,11 @@ func GetDevice(ctx context.Context, db sqlx.Queryer, devEUI lorawan.EUI64, forUp
 // DeviceFilters provide filters that can be used to filter on devices.
 // Note that empty values are not used as filter.
 type DeviceFilters struct {
-	ApplicationID    int64     `db:"application_id"`
-	MulticastGroupID uuid.UUID `db:"multicast_group_id"`
-	ServiceProfileID uuid.UUID `db:"service_profile_id"`
-	Search           string    `db:"search"`
+	ApplicationID    int64         `db:"application_id"`
+	MulticastGroupID uuid.UUID     `db:"multicast_group_id"`
+	ServiceProfileID uuid.UUID     `db:"service_profile_id"`
+	Search           string        `db:"search"`
+	Tags             hstore.Hstore `db:"tags"`
 
 	// Limit and Offset are added for convenience so that this struct can
 	// be given as the arguments.
@@ -237,6 +238,10 @@ func (f DeviceFilters) SQL() string {
 
 	if f.Search != "" {
 		filters = append(filters, "(d.name ilike :search or encode(d.dev_eui, 'hex') ilike :search)")
+	}
+
+	if len(f.Tags.Map) != 0 {
+		filters = append(filters, "tags @> :tags")
 	}
 
 	if len(filters) == 0 {

@@ -167,6 +167,26 @@ func (ts *StorageTestSuite) TestDevice() {
 			assert.Equal(1, count)
 		})
 
+		t.Run("List by Tags", func(t *testing.T) {
+			assert := require.New(t)
+
+			devices, err := GetDevices(context.Background(), ts.Tx(), DeviceFilters{Limit: 10, Tags: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{String: "bar", Valid: true},
+				},
+			}})
+			assert.NoError(err)
+			assert.Len(devices, 1)
+
+			devices, err = GetDevices(context.Background(), ts.Tx(), DeviceFilters{Limit: 10, Tags: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{String: "bas", Valid: true},
+				},
+			}})
+			assert.NoError(err)
+			assert.Len(devices, 0)
+		})
+
 		t.Run("Get", func(t *testing.T) {
 			nsClient.GetDeviceResponse = ns.GetDeviceResponse{
 				Device: createReq.Device,

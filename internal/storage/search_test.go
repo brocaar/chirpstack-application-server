@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/require"
 
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
@@ -141,4 +142,57 @@ func TestSearch(t *testing.T) {
 			}
 		})
 	})
+}
+
+func TestParseSearchQuery(t *testing.T) {
+	tests := []struct {
+		Input string
+		Query string
+		Tags  map[string]string
+	}{
+		{
+			Input: "foo bar",
+			Query: "foo bar",
+		},
+		{
+			Input: "foo: bar",
+			Query: "foo: bar",
+		},
+		{
+			Input: "foo:bar",
+			Tags: map[string]string{
+				"foo": "bar",
+			},
+		},
+		{
+			Input: "foo:bar test",
+			Query: "test",
+			Tags: map[string]string{
+				"foo": "bar",
+			},
+		},
+		{
+			Input: "test foo:bar",
+			Query: "test",
+			Tags: map[string]string{
+				"foo": "bar",
+			},
+		},
+		{
+			Input: "test foo:bar alice:bob",
+			Query: "test",
+			Tags: map[string]string{
+				"foo":   "bar",
+				"alice": "bob",
+			},
+		},
+	}
+
+	assert := require.New(t)
+
+	for _, tst := range tests {
+		query, tags := parseSearchQuery(tst.Input)
+		assert.Equal(tst.Query, query)
+		assert.Equal(tst.Tags, tags)
+	}
 }

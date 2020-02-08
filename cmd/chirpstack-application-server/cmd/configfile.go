@@ -520,6 +520,39 @@ timezone="{{ .Metrics.Timezone }}"
   # By setting this to true, the API request timing histogram will be enabled.
   # See also: https://github.com/grpc-ecosystem/go-grpc-prometheus#histograms
   api_timing_histogram={{ .Metrics.Prometheus.APITimingHistogram }}
+
+
+  # Monitoring settings.
+  #
+  # Note that this replaces the metrics.prometheus configuration. If a
+  # metrics.prometheus if found in the configuration then it will fall back
+  # to that and the monitoring section is ignored.
+  [monitoring]
+
+  # IP:port to bind the monitoring endpoint to.
+  #
+  # When left blank, the monitoring endpoint will be disabled.
+  bind="{{ .Monitoring.Bind }}"
+
+  # Prometheus metrics endpoint.
+  #
+  # When set to true, Prometheus metrics will be served at '/metrics'.
+  prometheus_endpoint={{ .Monitoring.PrometheusEndpoint }}
+
+  # Prometheus API timing histogram.
+  #
+  # By setting this to true, the API request timing histogram will be enabled.
+  # See also: https://github.com/grpc-ecosystem/go-grpc-prometheus#histograms
+  prometheus_api_timing_histogram={{ .Monitoring.PrometheusAPITimingHistogram }}
+
+  # Health check endpoint.
+  #
+  # When set to true, the healthcheck endpoint will be served at '/health'.
+  # When requesting, this endpoint will perform the following actions to
+  # determine the health of this service:
+  #   * Ping PostgreSQL database
+  #   * Ping Redis database
+  healthcheck_endpoint={{ .Monitoring.HealthcheckEndpoint }}
 `
 
 var configCmd = &cobra.Command{

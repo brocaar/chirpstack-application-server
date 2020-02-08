@@ -24,8 +24,8 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/integration/application"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/multi"
-	"github.com/brocaar/chirpstack-application-server/internal/metrics"
 	"github.com/brocaar/chirpstack-application-server/internal/migrations/code"
+	"github.com/brocaar/chirpstack-application-server/internal/monitoring"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
@@ -49,7 +49,7 @@ func run(cmd *cobra.Command, args []string) error {
 		setupFragmentation,
 		setupFUOTA,
 		setupAPI,
-		setupMetrics,
+		setupMonitoring,
 	}
 
 	for _, t := range tasks {
@@ -200,9 +200,9 @@ func setupFUOTA() error {
 	return nil
 }
 
-func setupMetrics() error {
-	if err := metrics.Setup(config.C); err != nil {
-		return errors.Wrap(err, "setup metrics error")
+func setupMonitoring() error {
+	if err := monitoring.Setup(config.C); err != nil {
+		return errors.Wrap(err, "setup monitoring error")
 	}
 	return nil
 }

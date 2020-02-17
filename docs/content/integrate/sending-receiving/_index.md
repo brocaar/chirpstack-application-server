@@ -51,7 +51,8 @@ The following integrations are available:
 Event payloads can be encoded into different payload encodings, using the
 `marshaler` configuration option under `[application_server.integrations]`
 in the [Configuration]({{<ref "install/config.md">}}) file. For the [Protobuf](https://developers.google.com/protocol-buffers/)
-message definitions, please refer to [integration.proto](https://github.com/brocaar/chirpstack-api/blob/master/protobuf/as/integration/integration.proto).
+message definitions, please refer to [proto/as/integration/integration.proto](https://github.com/brocaar/chirpstack-api/blob/master/protobuf/as/integration/integration.proto).
+in the [chirpstack-api](https://github.com/brocaar/chirpstack-api/) repository.
 
 * JSON (v3): ChirpStack Application Server v3 JSON format, will be removed in the next major ChirpStack Application Server version
 * JSON: Protobuf based JSON format
@@ -355,6 +356,44 @@ Event published on downlink frame acknowledgements.
 
 This message is defined by the `AckEvent` Protobuf message.
 
+#### TxAck
+
+Event published when a downlink frame has been acknowledged by the gateway
+for transmission.
+
+##### JSON v3
+
+{{<highlight json>}}
+{
+    "applicationID": "123",
+    "applicationName": "temperature-sensor",
+    "deviceName": "garden-sensor",
+    "devEUI": "0202020202020202",
+    "fCnt": 12,
+    "tags": {
+        "key": "value"
+    }
+}
+{{</highlight>}}
+
+##### Protobuf JSON
+
+{{<highlight json>}}
+{
+    "applicationID": "123",
+    "applicationName": "temperature-sensor",
+    "deviceName": "garden-sensor",
+    "devEUI": "0202020202020202",
+    "fCnt": 12,
+    "tags": {
+        "key": "value"
+    }
+}
+{{</highlight>}}
+
+##### Protobuf
+
+This message is defined by the `TxAckEvent` Protobuf message.
 
 #### Error
 

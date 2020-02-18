@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
 	"github.com/brocaar/lorawan"
+	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -64,6 +66,16 @@ func TestGateway(t *testing.T) {
 				Latitude:        1,
 				Longitude:       2,
 				Altitude:        3,
+				Tags: hstore.Hstore{
+					Map: map[string]sql.NullString{
+						"foo": sql.NullString{Valid: true, String: "bar"},
+					},
+				},
+				Metadata: hstore.Hstore{
+					Map: map[string]sql.NullString{
+						"foo": sql.NullString{Valid: true, String: "bar"},
+					},
+				},
 			}
 			So(CreateGateway(context.Background(), DB(), &gw), ShouldBeNil)
 			gw.CreatedAt = gw.CreatedAt.Truncate(time.Millisecond).UTC()

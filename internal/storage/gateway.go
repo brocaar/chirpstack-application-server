@@ -10,10 +10,11 @@ import (
 	"time"
 
 	"github.com/lib/pq"
+	"github.com/lib/pq/hstore"
 
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
@@ -43,6 +44,8 @@ type Gateway struct {
 	Latitude         float64       `db:"latitude"`
 	Longitude        float64       `db:"longitude"`
 	Altitude         float64       `db:"altitude"`
+	Tags             hstore.Hstore `db:"tags"`
+	Metadata         hstore.Hstore `db:"metadata"`
 }
 
 // GatewayPing represents a gateway ping.
@@ -124,8 +127,10 @@ func CreateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 			last_seen_at,
 			latitude,
 			longitude,
-			altitude
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+			altitude,
+			tags,
+			metadata
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
 		gw.MAC[:],
 		gw.CreatedAt,
 		gw.UpdatedAt,
@@ -142,6 +147,8 @@ func CreateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 		gw.Latitude,
 		gw.Longitude,
 		gw.Altitude,
+		gw.Tags,
+		gw.Metadata,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -178,7 +185,9 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 			last_seen_at = $12,
 			latitude = $13,
 			longitude = $14,
-			altitude = $15
+			altitude = $15,
+			tags = $16,
+			metadata = $17
 		where
 			mac = $1`,
 		gw.MAC[:],
@@ -196,6 +205,8 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 		gw.Latitude,
 		gw.Longitude,
 		gw.Altitude,
+		gw.Tags,
+		gw.Metadata,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

@@ -11,11 +11,11 @@ import (
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/chirpstack-api/go/v3/common"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/lorawan"
 )
 
@@ -64,6 +64,10 @@ func (ts *APITestSuite) TestGateway() {
 						FineTimestampKey: "01020304050607080102030405060708",
 					},
 				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
+				Metadata: make(map[string]string),
 			},
 		}
 		_, err := api.Create(ctx, &createReq)
@@ -180,6 +184,10 @@ func (ts *APITestSuite) TestGateway() {
 							FpgaId: "0202030405060708",
 						},
 					},
+					Tags: map[string]string{
+						"bar": "foo",
+					},
+					Metadata: make(map[string]string),
 				},
 			}
 			_, err := api.Update(ctx, &updateReq)

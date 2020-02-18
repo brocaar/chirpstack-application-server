@@ -1,23 +1,25 @@
 package external
 
 import (
+	"database/sql"
 	"strings"
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq/hstore"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/chirpstack-api/go/v3/common"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/lorawan"
 )
 
@@ -97,6 +99,14 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 		createReq.Gateway.Boards = append(createReq.Gateway.Boards, &gwBoard)
 	}
 
+	tags := hstore.Hstore{
+		Map: make(map[string]sql.NullString),
+	}
+
+	for k, v := range req.Gateway.Tags {
+		tags.Map[k] = sql.NullString{Valid: true, String: v}
+	}
+
 	err = storage.Transaction(func(tx sqlx.Ext) error {
 		err = storage.CreateGateway(ctx, tx, &storage.Gateway{
 			MAC:             mac,
@@ -108,6 +118,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			Latitude:        req.Gateway.Location.Latitude,
 			Longitude:       req.Gateway.Location.Longitude,
 			Altitude:        req.Gateway.Location.Altitude,
+			Tags:            tags,
 		})
 		if err != nil {
 			return helpers.ErrToRPCError(err)
@@ -184,6 +195,8 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 				Altitude:  gw.Altitude,
 			},
 			NetworkServerId: gw.NetworkServerID,
+			Tags:            make(map[string]string),
+			Metadata:        make(map[string]string),
 		},
 	}
 
@@ -234,6 +247,13 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 		}
 
 		resp.Gateway.Boards = append(resp.Gateway.Boards, &gwBoard)
+	}
+
+	for k, v := range gw.Tags.Map {
+		resp.Gateway.Tags[k] = v.String
+	}
+	for k, v := range gw.Metadata.Map {
+		resp.Gateway.Metadata[k] = v.String
 	}
 
 	return &resp, err
@@ -358,6 +378,13 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
+	tags := hstore.Hstore{
+		Map: make(map[string]sql.NullString),
+	}
+	for k, v := range req.Gateway.Tags {
+		tags.Map[k] = sql.NullString{Valid: true, String: v}
+	}
+
 	err = storage.Transaction(func(tx sqlx.Ext) error {
 		gw, err := storage.GetGateway(ctx, tx, mac, true)
 		if err != nil {
@@ -370,6 +397,7 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		gw.Latitude = req.Gateway.Location.Latitude
 		gw.Longitude = req.Gateway.Location.Longitude
 		gw.Altitude = req.Gateway.Location.Altitude
+		gw.Tags = tags
 
 		err = storage.UpdateGateway(ctx, tx, &gw)
 		if err != nil {

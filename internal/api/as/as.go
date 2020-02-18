@@ -1,6 +1,7 @@
 package as
 
 import (
+	"database/sql"
 	"fmt"
 	"math"
 	"net"
@@ -8,6 +9,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -480,6 +482,13 @@ func (a *ApplicationServerAPI) HandleGatewayStats(ctx context.Context, req *as.H
 			gw.Latitude = loc.Latitude
 			gw.Longitude = loc.Longitude
 			gw.Altitude = loc.Altitude
+		}
+
+		gw.Metadata = hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		}
+		for k, v := range req.Metadata {
+			gw.Metadata.Map[k] = sql.NullString{Valid: true, String: v}
 		}
 
 		if err := storage.UpdateGateway(ctx, tx, &gw); err != nil {

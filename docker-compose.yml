@@ -19,6 +19,8 @@ services:
 
   postgres:
     image: postgres:9.6-alpine
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - ./.docker-compose/postgresql/initdb:/docker-entrypoint-initdb.d
 

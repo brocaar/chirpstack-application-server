@@ -9,8 +9,14 @@ import FormGroup from "@material-ui/core/FormGroup";
 import FormLabel from "@material-ui/core/FormLabel";
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from "@material-ui/core/Button";
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import Grid from "@material-ui/core/Grid";
+import IconButton from '@material-ui/core/IconButton';
+import Typography from "@material-ui/core/Typography";
 
 import { Map, Marker } from 'react-leaflet';
+import Delete from "mdi-material-ui/Delete";
 
 import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
@@ -24,6 +30,15 @@ import AESKeyField from "../../components/AESKeyField";
 import theme from "../../theme";
 
 
+const kvStyles = {
+  formLabel: {
+    fontSize: 12,
+  },
+  delete: {
+    marginTop: 3 * theme.spacing(1),
+  },
+};
+
 const boardStyles = {
   formLabel: {
     color: theme.palette.primary.main,
@@ -32,6 +47,61 @@ const boardStyles = {
     color: theme.palette.primary.main,
   },
 };
+
+
+class GatewayKVForm extends FormComponent {
+  onChange(e) {
+    super.onChange(e);
+
+    this.props.onChange(this.props.index, this.state.object);
+  }
+
+  onDelete = (e) => {
+    e.preventDefault();
+    this.props.onDelete(this.props.index);
+  }
+
+  render() {
+    if (this.state.object === undefined) {
+      return null;
+    }
+
+    return(
+      <Grid container spacing={4}>
+        <Grid item xs={4}>
+          <TextField
+            id="key"
+            label="Name"
+            margin="normal"
+            value={this.state.object.key || ""}
+            onChange={this.onChange}
+            disabled={!!this.props.disabled}
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={7}>
+          <TextField
+            id="value"
+            label="Value"
+            margin="normal"
+            value={this.state.object.value || ""}
+            onChange={this.onChange}
+            disabled={!!this.props.disabled}
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={1} className={this.props.classes.delete}>
+          {!!!this.props.disabled && <IconButton aria-label="delete" onClick={this.onDelete}>
+            <Delete />
+          </IconButton>}
+        </Grid>
+      </Grid>
+    );
+  }
+}
+
+GatewayKVForm = withStyles(kvStyles)(GatewayKVForm);
+
 
 class GatewayBoardForm extends Component {
   constructor() {
@@ -102,6 +172,9 @@ class GatewayForm extends FormComponent {
     
     this.state = {
       mapZoom: 15,
+      tab: 0,
+      tags: [],
+      metadata: [],
     };
 
     this.getNetworkServerOption = this.getNetworkServerOption.bind(this);
@@ -116,9 +189,18 @@ class GatewayForm extends FormComponent {
 
   componentDidMount() {
     super.componentDidMount();
+    this.setKVArrays(this.props.object || {});
 
     if (!this.props.update) {
       this.setCurrentPosition();
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    super.componentDidUpdate(prevProps);
+
+    if (prevProps.object !== this.props.object) {
+      this.setKVArrays(this.props.object || {});
     }
   }
 
@@ -229,9 +311,95 @@ class GatewayForm extends FormComponent {
     });
   }
 
+  onTabChange = (e, v) => {
+    this.setState({
+      tab: v,
+    });
+  }
+
+  addKV = (name) => {
+    return (e) => {
+      e.preventDefault();
+
+      let kvs = this.state[name];
+      kvs.push({});
+
+      let obj = {};
+      obj[name] = kvs;
+
+      this.setState(obj);
+    };
+  }
+
+  onChangeKV = (name) => {
+    return (index, obj) => {
+      let kvs = this.state[name];
+      let object = this.state.object;
+
+      kvs[index] = obj;
+
+      object[name] = {};
+      kvs.forEach((obj, i) => {
+        object[name][obj.key] = obj.value;
+      });
+
+      let ss = {
+        object: object,
+      };
+      ss[name] = kvs;
+
+      console.log(ss);
+
+      this.setState(ss);
+    };
+  }
+
+  onDeleteKV = (name) => {
+    return (index) => {
+      let kvs = this.state[name];
+      let object = this.state.object;
+
+      kvs.splice(index, 1);
+
+      object[name] = {};
+      kvs.forEach((obj, i) => {
+        object[name][obj.key] = obj.value;
+      });
+
+      let ss = {
+        object: object,
+      };
+      ss[name] = kvs;
+
+      this.setState(ss);
+    };
+  }
+
+  setKVArrays = (props) => {
+    let tags = [];
+    let metadata = [];
+
+    if (props.tags !== undefined) {
+      for (let key in props.tags) {
+        tags.push({key: key, value: props.tags[key]});
+      }
+    }
+
+    if (props.metadata !== undefined) {
+      for (let key in props.metadata) {
+        metadata.push({key: key, value: props.metadata[key]});
+      }
+    }
+
+    this.setState({
+      tags: tags,
+      metadata: metadata,
+    });
+  }
+
   render() {
     if (this.state.object === undefined) {
-      return(<div></div>);
+      return null;
     }
 
     const style = {
@@ -250,124 +418,153 @@ class GatewayForm extends FormComponent {
       boards = this.state.object.boards.map((b, i) => <GatewayBoardForm key={i} i={i} board={b} onDelete={() => this.deleteGatewayBoard(i)} onChange={board => this.updateGatewayBoard(i, board)} />);
     }
 
+    const tags = this.state.tags.map((obj, i) => <GatewayKVForm key={i} index={i} object={obj} onChange={this.onChangeKV("tags")} onDelete={this.onDeleteKV("tags")} />);
+    const metadata = this.state.metadata.map((obj, i) => <GatewayKVForm disabled={true} key={i} index={i} object={obj} onChange={this.onChangeKV("metadata")} onDelete={this.onDeleteKV("metadata")} />);
+
     return(
       <Form
         submitLabel={this.props.submitLabel}
         onSubmit={this.onSubmit}
-        extraButtons={<Button onClick={this.addGatewayBoard}>Add board configuration</Button>}
+        extraButtons={this.state.tab === 0 && <Button onClick={this.addGatewayBoard}>Add board configuration</Button>}
       >
-        <TextField
-          id="name"
-          label="Gateway name"
-          margin="normal"
-          value={this.state.object.name || ""}
-          onChange={this.onChange}
-          inputProps={{
-            pattern: "[\\w-]+",
-          }}
-          helperText="The name may only contain words, numbers and dashes."
-          required
-          fullWidth
-        />
-        <TextField
-          id="description"
-          label="Gateway description"
-          margin="normal"
-          value={this.state.object.description || ""}
-          onChange={this.onChange}
-          rows={4}
-          multiline
-          required
-          fullWidth
-        />
-        {!this.props.update && <EUI64Field
-          id="id"
-          label="Gateway ID"
-          margin="normal"
-          value={this.state.object.id || ""}
-          onChange={this.onChange}
-          required
-          fullWidth
-          random
-        />}
-        {!this.props.update && <FormControl fullWidth margin="normal">
-          <FormLabel className={this.props.classes.formLabel} required>Network-server</FormLabel>
-          <AutocompleteSelect
-            id="networkServerID"
-            label="Select network-server"
-            value={this.state.object.networkServerID || ""}
+        <Tabs value={this.state.tab} onChange={this.onTabChange} indicatorColor="primary">
+          <Tab label="General" />
+          <Tab label="Tags" />
+          <Tab label="Metadata" />
+        </Tabs>
+
+        {this.state.tab === 0 && <div>
+          <TextField
+            id="name"
+            label="Gateway name"
+            margin="normal"
+            value={this.state.object.name || ""}
             onChange={this.onChange}
-            getOption={this.getNetworkServerOption}
-            getOptions={this.getNetworkServerOptions}
-          />
-          <FormHelperText>
-            Select the network-server to which the gateway will connect. When no network-servers are available in the dropdown, make sure a service-profile exists for this organization. 
-          </FormHelperText>
-        </FormControl>}
-        {this.state.object.gatewayProfileID && <FormControl fullWidth margin="normal">
-          <FormLabel className={this.props.classes.formLabel}>Gateway-profile</FormLabel>
-          <AutocompleteSelect
-            id="gatewayProfileID"
-            label="Select gateway-profile"
-            value={this.state.object.gatewayProfileID || ""}
-            triggerReload={this.state.object.networkServerID || ""}
-            onChange={this.onChange}
-            getOption={this.getGatewayProfileOption}
-            getOptions={this.getGatewayProfileOptions}
             inputProps={{
-              clearable: true,
-              cache: false,
+              pattern: "[\\w-]+",
             }}
+            helperText="The name may only contain words, numbers and dashes."
+            required
+            fullWidth
           />
-          <FormHelperText>
-            An optional gateway-profile which can be assigned to a gateway. This configuration can be used to automatically re-configure the gateway when ChirpStack Gateway Bridge is configured so that it manages the packet-forwarder configuration.
-          </FormHelperText>
-        </FormControl>}
-        <FormGroup>
-          <FormControlLabel
-            label="Gateway discovery enabled"
-            control={
-              <Checkbox
-                id="discoveryEnabled"
-                checked={!!this.state.object.discoveryEnabled}
-                onChange={this.onChange}
-                color="primary"
-              />
-            }
+          <TextField
+            id="description"
+            label="Gateway description"
+            margin="normal"
+            value={this.state.object.description || ""}
+            onChange={this.onChange}
+            rows={4}
+            multiline
+            required
+            fullWidth
           />
-          <FormHelperText>
-            When enabled (and ChirpStack Network Server is configured with the gateway discover feature enabled), the gateway will send out periodical pings to test its coverage by other gateways in the same network.
-          </FormHelperText>
-        </FormGroup>
-        <TextField
-          id="location.altitude"
-          label="Gateway altitude (meters)"
-          margin="normal"
-          type="number"
-          value={this.state.object.location.altitude || 0}
-          onChange={this.onChange}
-          helperText="When the gateway has an on-board GPS, this value will be set automatically when the network has received statistics from the gateway."
-          required
-          fullWidth
-        />
-        <FormControl fullWidth margin="normal">
-          <FormLabel className={this.props.classes.mapLabel}>Gateway location (<a onClick={this.setCurrentPosition} href="#getlocation" className={this.props.classes.link}>set to current location</a>)</FormLabel>
-          <Map
-            center={position}
-            zoom={this.state.mapZoom}
-            style={style}
-            animate={true}
-            scrollWheelZoom={false}
-            onZoomend={this.updateZoom}
-            >
-            <MapTileLayer />
-            <Marker position={position} draggable={true} onDragend={this.updatePosition} ref="marker" />
-          </Map>
-          <FormHelperText>
-            Drag the marker to the location of the gateway. When the gateway has an on-board GPS, this value will be set automatically when the network receives statistics from the gateway.
-          </FormHelperText>
-        </FormControl>
-        {boards}
+          {!this.props.update && <EUI64Field
+            id="id"
+            label="Gateway ID"
+            margin="normal"
+            value={this.state.object.id || ""}
+            onChange={this.onChange}
+            required
+            fullWidth
+            random
+          />}
+          {!this.props.update && <FormControl fullWidth margin="normal">
+            <FormLabel className={this.props.classes.formLabel} required>Network-server</FormLabel>
+            <AutocompleteSelect
+              id="networkServerID"
+              label="Select network-server"
+              value={this.state.object.networkServerID || ""}
+              onChange={this.onChange}
+              getOption={this.getNetworkServerOption}
+              getOptions={this.getNetworkServerOptions}
+            />
+            <FormHelperText>
+              Select the network-server to which the gateway will connect. When no network-servers are available in the dropdown, make sure a service-profile exists for this organization. 
+            </FormHelperText>
+          </FormControl>}
+          {this.state.object.gatewayProfileID && <FormControl fullWidth margin="normal">
+            <FormLabel className={this.props.classes.formLabel}>Gateway-profile</FormLabel>
+            <AutocompleteSelect
+              id="gatewayProfileID"
+              label="Select gateway-profile"
+              value={this.state.object.gatewayProfileID || ""}
+              triggerReload={this.state.object.networkServerID || ""}
+              onChange={this.onChange}
+              getOption={this.getGatewayProfileOption}
+              getOptions={this.getGatewayProfileOptions}
+              inputProps={{
+                clearable: true,
+                cache: false,
+              }}
+            />
+            <FormHelperText>
+              An optional gateway-profile which can be assigned to a gateway. This configuration can be used to automatically re-configure the gateway when ChirpStack Gateway Bridge is configured so that it manages the packet-forwarder configuration.
+            </FormHelperText>
+          </FormControl>}
+          <FormGroup>
+            <FormControlLabel
+              label="Gateway discovery enabled"
+              control={
+                <Checkbox
+                  id="discoveryEnabled"
+                  checked={!!this.state.object.discoveryEnabled}
+                  onChange={this.onChange}
+                  color="primary"
+                />
+              }
+            />
+            <FormHelperText>
+              When enabled (and ChirpStack Network Server is configured with the gateway discover feature enabled), the gateway will send out periodical pings to test its coverage by other gateways in the same network.
+            </FormHelperText>
+          </FormGroup>
+          <TextField
+            id="location.altitude"
+            label="Gateway altitude (meters)"
+            margin="normal"
+            type="number"
+            value={this.state.object.location.altitude || 0}
+            onChange={this.onChange}
+            helperText="When the gateway has an on-board GPS, this value will be set automatically when the network has received statistics from the gateway."
+            required
+            fullWidth
+          />
+          <FormControl fullWidth margin="normal">
+            <FormLabel className={this.props.classes.mapLabel}>Gateway location (<a onClick={this.setCurrentPosition} href="#getlocation" className={this.props.classes.link}>set to current location</a>)</FormLabel>
+            <Map
+              center={position}
+              zoom={this.state.mapZoom}
+              style={style}
+              animate={true}
+              scrollWheelZoom={false}
+              onZoomend={this.updateZoom}
+              >
+              <MapTileLayer />
+              <Marker position={position} draggable={true} onDragend={this.updatePosition} ref="marker" />
+            </Map>
+            <FormHelperText>
+              Drag the marker to the location of the gateway. When the gateway has an on-board GPS, this value will be set automatically when the network receives statistics from the gateway.
+            </FormHelperText>
+          </FormControl>
+          {boards}
+        </div>}
+        {this.state.tab === 1 && <div>
+          <FormControl fullWidth margin="normal">
+            <Typography variant="body1">
+              Tags can be used to store additional key/value data.
+            </Typography>
+            {tags}
+          </FormControl>
+          <Button variant="outlined" onClick={this.addKV("tags")}>Add tag</Button>
+        </div>}
+        {this.state.tab === 2 && <div>
+          <FormControl fullWidth margin="normal">
+            <Typography variant="body1">
+              Metadata can be used by the ChirpStack Gateway Bridge to push information about the gateway (e.g. ip / hostname, serial number, temperatures, ...).
+              This information is automatically updated when gateway statistics are received.
+            </Typography>
+            {metadata}
+          </FormControl>
+        </div>}
       </Form>
     );
   }

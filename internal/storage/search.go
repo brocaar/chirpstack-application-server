@@ -63,7 +63,7 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalA
 			on u.id = ou.user_id
 		where
 			($3 = true or u.username = $4)
-			and (d.name ilike $2 or encode(d.dev_eui, 'hex') ilike $2 or (d.tags != '' and d.tags @> $7))
+			and (d.name ilike $2 or encode(d.dev_eui, 'hex') ilike $2 or ($7 != hstore('') and d.tags @> $7))
 		union
 		select
 			'gateway' as kind,

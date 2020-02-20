@@ -86,7 +86,7 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalA
 			on u.id = ou.user_id
 		where
 			($3 = true or u.username = $4)
-			and (g.name ilike $2 or encode(g.mac, 'hex') ilike $2)
+			and (g.name ilike $2 or encode(g.mac, 'hex') ilike $2 or ($7 != hstore('') and g.tags @> $7))
 		union
 		select
 			'organization' as kind,

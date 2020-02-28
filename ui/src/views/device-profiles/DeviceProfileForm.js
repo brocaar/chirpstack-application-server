@@ -8,12 +8,15 @@ import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+import Typography from "@material-ui/core/Typography";
+import Button from "@material-ui/core/Button";
 
 import {Controlled as CodeMirror} from "react-codemirror2";
 import "codemirror/mode/javascript/javascript";
 
 import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
+import KVForm from "../../components/KVForm";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import NetworkServerStore from "../../stores/NetworkServerStore";
 import { FormLabel } from "../../../node_modules/@material-ui/core";
@@ -34,6 +37,7 @@ class DeviceProfileForm extends FormComponent {
     super();
     this.state = {
       tab: 0,
+      tags: [],
     };
 
     this.onTabChange = this.onTabChange.bind(this);
@@ -43,6 +47,19 @@ class DeviceProfileForm extends FormComponent {
     this.getPingSlotPeriodOptions = this.getPingSlotPeriodOptions.bind(this);
     this.getPayloadCodecOptions = this.getPayloadCodecOptions.bind(this);
     this.onCodeChange = this.onCodeChange.bind(this);
+  }
+
+  componentDidMount() {
+    super.componentDidMount();
+    this.setKVArray(this.props.object || {});
+  }
+
+  componentDidUpdate(prevProps) {
+    super.componentDidUpdate(prevProps);
+
+    if (prevProps.object !== this.props.object) {
+      this.setKVArray(this.props.object || {});
+    }
   }
 
   getNetworkServerOptions(search, callbackFunc) {
@@ -124,6 +141,20 @@ class DeviceProfileForm extends FormComponent {
     }
   }
 
+  setKVArray = (props) => {
+    let tags = [];
+
+    if (props.tags !== undefined) {
+      for (let key in props.tags) {
+        tags.push({key: key, value: props.tags[key]});
+      }
+    }
+
+    this.setState({
+      tags: tags,
+    });
+  }
+
   render() {
     if (this.state.object === undefined) {
       return null;
@@ -167,6 +198,8 @@ function Decode(fPort, bytes, variables) {
 }`;
     }
 
+    const tags = this.state.tags.map((obj, i) => <KVForm key={i} index={i} object={obj} onChange={this.onChangeKV("tags")} onDelete={this.onDeleteKV("tags")} />);
+
 
     return(
       <Form
@@ -180,6 +213,7 @@ function Decode(fPort, bytes, variables) {
           <Tab label="Class-B" />
           <Tab label="Class-C" />
           <Tab label="Codec" />
+          <Tab label="Tags" />
         </Tabs>
 
         {this.state.tab === 0 && <div>
@@ -464,6 +498,16 @@ function Decode(fPort, bytes, variables) {
               of bytes.
             </FormHelperText>
           </FormControl>}
+        </div>}
+
+        {this.state.tab === 5 && <div>
+          <FormControl fullWidth margin="normal">
+            <Typography variant="body1">
+              Tags can be used to store additional key/value data.
+            </Typography>
+            {tags}
+          </FormControl>
+          <Button variant="outlined" onClick={this.addKV("tags")}>Add tag</Button>
         </div>}
       </Form>
     );

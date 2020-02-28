@@ -11,15 +11,13 @@ import Checkbox from '@material-ui/core/Checkbox';
 import Button from "@material-ui/core/Button";
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import Grid from "@material-ui/core/Grid";
-import IconButton from '@material-ui/core/IconButton';
 import Typography from "@material-ui/core/Typography";
 
 import { Map, Marker } from 'react-leaflet';
-import Delete from "mdi-material-ui/Delete";
 
 import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
+import KVForm from "../../components/KVForm";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import NetworkServerStore from "../../stores/NetworkServerStore";
 import GatewayProfileStore from "../../stores/GatewayProfileStore";
@@ -30,15 +28,6 @@ import AESKeyField from "../../components/AESKeyField";
 import theme from "../../theme";
 
 
-const kvStyles = {
-  formLabel: {
-    fontSize: 12,
-  },
-  delete: {
-    marginTop: 3 * theme.spacing(1),
-  },
-};
-
 const boardStyles = {
   formLabel: {
     color: theme.palette.primary.main,
@@ -47,60 +36,6 @@ const boardStyles = {
     color: theme.palette.primary.main,
   },
 };
-
-
-class GatewayKVForm extends FormComponent {
-  onChange(e) {
-    super.onChange(e);
-
-    this.props.onChange(this.props.index, this.state.object);
-  }
-
-  onDelete = (e) => {
-    e.preventDefault();
-    this.props.onDelete(this.props.index);
-  }
-
-  render() {
-    if (this.state.object === undefined) {
-      return null;
-    }
-
-    return(
-      <Grid container spacing={4}>
-        <Grid item xs={4}>
-          <TextField
-            id="key"
-            label="Name"
-            margin="normal"
-            value={this.state.object.key || ""}
-            onChange={this.onChange}
-            disabled={!!this.props.disabled}
-            fullWidth
-          />
-        </Grid>
-        <Grid item xs={7}>
-          <TextField
-            id="value"
-            label="Value"
-            margin="normal"
-            value={this.state.object.value || ""}
-            onChange={this.onChange}
-            disabled={!!this.props.disabled}
-            fullWidth
-          />
-        </Grid>
-        <Grid item xs={1} className={this.props.classes.delete}>
-          {!!!this.props.disabled && <IconButton aria-label="delete" onClick={this.onDelete}>
-            <Delete />
-          </IconButton>}
-        </Grid>
-      </Grid>
-    );
-  }
-}
-
-GatewayKVForm = withStyles(kvStyles)(GatewayKVForm);
 
 
 class GatewayBoardForm extends Component {
@@ -317,64 +252,6 @@ class GatewayForm extends FormComponent {
     });
   }
 
-  addKV = (name) => {
-    return (e) => {
-      e.preventDefault();
-
-      let kvs = this.state[name];
-      kvs.push({});
-
-      let obj = {};
-      obj[name] = kvs;
-
-      this.setState(obj);
-    };
-  }
-
-  onChangeKV = (name) => {
-    return (index, obj) => {
-      let kvs = this.state[name];
-      let object = this.state.object;
-
-      kvs[index] = obj;
-
-      object[name] = {};
-      kvs.forEach((obj, i) => {
-        object[name][obj.key] = obj.value;
-      });
-
-      let ss = {
-        object: object,
-      };
-      ss[name] = kvs;
-
-      console.log(ss);
-
-      this.setState(ss);
-    };
-  }
-
-  onDeleteKV = (name) => {
-    return (index) => {
-      let kvs = this.state[name];
-      let object = this.state.object;
-
-      kvs.splice(index, 1);
-
-      object[name] = {};
-      kvs.forEach((obj, i) => {
-        object[name][obj.key] = obj.value;
-      });
-
-      let ss = {
-        object: object,
-      };
-      ss[name] = kvs;
-
-      this.setState(ss);
-    };
-  }
-
   setKVArrays = (props) => {
     let tags = [];
     let metadata = [];
@@ -418,8 +295,8 @@ class GatewayForm extends FormComponent {
       boards = this.state.object.boards.map((b, i) => <GatewayBoardForm key={i} i={i} board={b} onDelete={() => this.deleteGatewayBoard(i)} onChange={board => this.updateGatewayBoard(i, board)} />);
     }
 
-    const tags = this.state.tags.map((obj, i) => <GatewayKVForm key={i} index={i} object={obj} onChange={this.onChangeKV("tags")} onDelete={this.onDeleteKV("tags")} />);
-    const metadata = this.state.metadata.map((obj, i) => <GatewayKVForm disabled={true} key={i} index={i} object={obj} onChange={this.onChangeKV("metadata")} onDelete={this.onDeleteKV("metadata")} />);
+    const tags = this.state.tags.map((obj, i) => <KVForm key={i} index={i} object={obj} onChange={this.onChangeKV("tags")} onDelete={this.onDeleteKV("tags")} />);
+    const metadata = this.state.metadata.map((obj, i) => <KVForm disabled={true} key={i} index={i} object={obj} onChange={this.onChangeKV("metadata")} onDelete={this.onDeleteKV("metadata")} />);
 
     return(
       <Form

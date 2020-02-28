@@ -10,10 +10,10 @@ import (
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
 )
 
 func (ts *APITestSuite) TestDeviceProfile() {
@@ -68,6 +68,9 @@ func (ts *APITestSuite) TestDeviceProfile() {
 				PayloadDecoderScript: "Decode() {}",
 				GeolocBufferTtl:      60,
 				GeolocMinBufferSize:  3,
+				Tags: map[string]string{
+					"foo": "bar",
+				},
 			},
 		}
 
@@ -124,6 +127,9 @@ func (ts *APITestSuite) TestDeviceProfile() {
 					Supports_32BitFCnt:  true,
 					GeolocBufferTtl:     120,
 					GeolocMinBufferSize: 6,
+					Tags: map[string]string{
+						"alice": "bob",
+					},
 				},
 			}
 

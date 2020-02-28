@@ -241,7 +241,7 @@ func (f DeviceFilters) SQL() string {
 	}
 
 	if len(f.Tags.Map) != 0 {
-		filters = append(filters, "tags @> :tags")
+		filters = append(filters, "d.tags @> :tags")
 	}
 
 	if len(filters) == 0 {

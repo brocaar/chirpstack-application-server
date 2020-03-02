@@ -64,6 +64,10 @@ class JSONTree extends Component {
       }
     }
 
+    if ("objectJSON" in data && data.objectJSON !== null && data.objectJSON !== "") {
+      data.objectJSON = JSON.parse(data.objectJSON);
+    }
+
     return(
       <JSONTreeOriginal
         data={data}

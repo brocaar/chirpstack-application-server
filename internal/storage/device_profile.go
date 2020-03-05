@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -28,6 +29,7 @@ type DeviceProfile struct {
 	PayloadCodec         codec.Type       `db:"payload_codec"`
 	PayloadEncoderScript string           `db:"payload_encoder_script"`
 	PayloadDecoderScript string           `db:"payload_decoder_script"`
+	Tags                 hstore.Hstore    `db:"tags"`
 	DeviceProfile        ns.DeviceProfile `db:"-"`
 }
 
@@ -77,8 +79,9 @@ func CreateDeviceProfile(ctx context.Context, db sqlx.Ext, dp *DeviceProfile) er
             name,
 			payload_codec,
 			payload_encoder_script,
-			payload_decoder_script
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+			payload_decoder_script,
+			tags
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
 		dpID,
 		dp.NetworkServerID,
 		dp.OrganizationID,
@@ -88,6 +91,7 @@ func CreateDeviceProfile(ctx context.Context, db sqlx.Ext, dp *DeviceProfile) er
 		dp.PayloadCodec,
 		dp.PayloadEncoderScript,
 		dp.PayloadDecoderScript,
+		dp.Tags,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -139,7 +143,8 @@ func GetDeviceProfile(ctx context.Context, db sqlx.Queryer, id uuid.UUID, forUpd
 			name,
 			payload_codec,
 			payload_encoder_script,
-			payload_decoder_script
+			payload_decoder_script,
+			tags
 		from device_profile
 		where
 			device_profile_id = $1`+fu,
@@ -158,6 +163,7 @@ func GetDeviceProfile(ctx context.Context, db sqlx.Queryer, id uuid.UUID, forUpd
 		&dp.PayloadCodec,
 		&dp.PayloadEncoderScript,
 		&dp.PayloadDecoderScript,
+		&dp.Tags,
 	)
 	if err != nil {
 		return dp, handlePSQLError(Scan, err, "scan error")
@@ -229,7 +235,8 @@ func UpdateDeviceProfile(ctx context.Context, db sqlx.Ext, dp *DeviceProfile) er
             name = $3,
 			payload_codec = $4,
 			payload_encoder_script = $5,
-			payload_decoder_script = $6
+			payload_decoder_script = $6,
+			tags = $7
 		where device_profile_id = $1`,
 		dpID,
 		dp.UpdatedAt,
@@ -237,6 +244,7 @@ func UpdateDeviceProfile(ctx context.Context, db sqlx.Ext, dp *DeviceProfile) er
 		dp.PayloadCodec,
 		dp.PayloadEncoderScript,
 		dp.PayloadDecoderScript,
+		dp.Tags,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

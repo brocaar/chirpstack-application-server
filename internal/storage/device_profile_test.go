@@ -2,11 +2,13 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/proto"
+	"github.com/lib/pq/hstore"
 	"github.com/stretchr/testify/require"
 
 	"github.com/brocaar/chirpstack-api/go/v3/ns"
@@ -77,6 +79,11 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 			PayloadCodec:         "CUSTOM_JS",
 			PayloadEncoderScript: "Encode() {}",
 			PayloadDecoderScript: "Decode() {}",
+			Tags: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{Valid: true, String: "bar"},
+				},
+			},
 			DeviceProfile: ns.DeviceProfile{
 				SupportsClassB:     true,
 				ClassBTimeout:      10,

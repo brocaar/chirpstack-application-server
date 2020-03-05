@@ -353,6 +353,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			RxPacketsReceivedOk: 9,
 			TxPacketsReceived:   8,
 			TxPacketsEmitted:    7,
+			Metadata: map[string]string{
+				"foo": "bar",
+			},
 		}
 		_, err = api.HandleGatewayStats(ctx, &stats)
 		assert.NoError(err)
@@ -371,6 +374,15 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			"tx_ok_count": 7,
 		}, metrics[0].Metrics)
 		assert.Equal(start.UTC(), metrics[0].Time.UTC())
+
+		gw, err := storage.GetGateway(context.Background(), storage.DB(), gw.MAC, false)
+		assert.NoError(err)
+
+		assert.Equal(hstore.Hstore{
+			Map: map[string]sql.NullString{
+				"foo": sql.NullString{Valid: true, String: "bar"},
+			},
+		}, gw.Metadata)
 	})
 
 	ts.T().Run("SetDeviceStatus", func(t *testing.T) {

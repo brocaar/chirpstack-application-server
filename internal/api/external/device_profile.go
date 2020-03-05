@@ -1,9 +1,12 @@
 package external
 
 import (
+	"database/sql"
+
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/lib/pq/hstore"
 
 	"github.com/brocaar/chirpstack-api/go/v3/ns"
 
@@ -50,6 +53,9 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 		PayloadCodec:         codec.Type(req.DeviceProfile.PayloadCodec),
 		PayloadEncoderScript: req.DeviceProfile.PayloadEncoderScript,
 		PayloadDecoderScript: req.DeviceProfile.PayloadDecoderScript,
+		Tags: hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		},
 		DeviceProfile: ns.DeviceProfile{
 			SupportsClassB:      req.DeviceProfile.SupportsClassB,
 			ClassBTimeout:       req.DeviceProfile.ClassBTimeout,
@@ -73,6 +79,10 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 			GeolocBufferTtl:     req.DeviceProfile.GeolocBufferTtl,
 			GeolocMinBufferSize: req.DeviceProfile.GeolocMinBufferSize,
 		},
+	}
+
+	for k, v := range req.DeviceProfile.Tags {
+		dp.Tags.Map[k] = sql.NullString{Valid: true, String: v}
 	}
 
 	// as this also performs a remote call to create the device-profile
@@ -142,6 +152,7 @@ func (a *DeviceProfileServiceAPI) Get(ctx context.Context, req *pb.GetDeviceProf
 			FactoryPresetFreqs:   dp.DeviceProfile.FactoryPresetFreqs,
 			GeolocBufferTtl:      dp.DeviceProfile.GeolocBufferTtl,
 			GeolocMinBufferSize:  dp.DeviceProfile.GeolocMinBufferSize,
+			Tags:                 make(map[string]string),
 		},
 	}
 
@@ -152,6 +163,10 @@ func (a *DeviceProfileServiceAPI) Get(ctx context.Context, req *pb.GetDeviceProf
 	resp.UpdatedAt, err = ptypes.TimestampProto(dp.UpdatedAt)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
+	}
+
+	for k, v := range dp.Tags.Map {
+		resp.DeviceProfile.Tags[k] = v.String
 	}
 
 	return &resp, nil
@@ -187,6 +202,9 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 		dp.PayloadCodec = codec.Type(req.DeviceProfile.PayloadCodec)
 		dp.PayloadEncoderScript = req.DeviceProfile.PayloadEncoderScript
 		dp.PayloadDecoderScript = req.DeviceProfile.PayloadDecoderScript
+		dp.Tags = hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		}
 		dp.DeviceProfile = ns.DeviceProfile{
 			Id:                  dpID.Bytes(),
 			SupportsClassB:      req.DeviceProfile.SupportsClassB,
@@ -210,6 +228,10 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 			FactoryPresetFreqs:  req.DeviceProfile.FactoryPresetFreqs,
 			GeolocBufferTtl:     req.DeviceProfile.GeolocBufferTtl,
 			GeolocMinBufferSize: req.DeviceProfile.GeolocMinBufferSize,
+		}
+
+		for k, v := range req.DeviceProfile.Tags {
+			dp.Tags.Map[k] = sql.NullString{Valid: true, String: v}
 		}
 
 		return storage.UpdateDeviceProfile(ctx, tx, &dp)

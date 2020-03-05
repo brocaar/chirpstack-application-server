@@ -10,6 +10,42 @@ description: Lists the changes per ChirpStack Application Server release, includ
 
 # Changelog
 
+## v3.9.0
+
+### Features
+
+#### Monitoring
+
+The monitoring configuration has been updated so that it is possible to
+configure both a [Prometheus](https://prometheus.io/) endpoint at `/metrics`
+and healthcheck endpoint at `/health`. This change is backwards compatible,
+but to use the `/health` endpoint you must update your configuration.
+
+#### Gateway tags and metadata
+
+This makes it possible to store additional user-defined key/value configuration
+per gateway. Metadata pushed by the [ChirpStack Gateway Bridge](https://www.chirpstack.io/gateway-bridge/overview/)
+is now stored by the ChirpStack Application Server and visible under metadata.
+
+#### Device-profile tags
+
+This makes it possible to store additional user-defined key/value configuration
+per device-profile.
+
+#### myDevices Cayenne
+
+The [myDevices Cayenne](https://developers.mydevices.com/cayenne/features/)
+endpoint is now enabled for the myDevices integration.
+
+### Improvements
+
+* Implement searching devices by tags (e.g. `tagname:tagvalue`).
+* Refactor Prometheus endpoint and add `/health` endpoint.
+
+### Bugfixes
+
+* Update gRPC dependency to fix 'DNS name does not exist' error. ([#426](https://github.com/brocaar/chirpstack-application-server/issues/426))
+
 ## v3.8.0
 
 ### Features
@@ -29,7 +65,7 @@ to the gateway for transmission and was accepted by the gateway.
 #### myDevices integration
 
 This new integration makes it possible to forward payload events to myDevices
-Cayenne and IoT in a Box.
+IoT in a Box. myDevices Cayenne integration will be made available soon.
 
 #### Syslog logger
 
@@ -43,6 +79,7 @@ be forwarded to syslog.
 * Enable DNS round-robin load-balancing for gRPC client (to NS).
 * Add uplink IDs used for gelocation to geolocation event. ([#413](https://github.com/brocaar/chirpstack-application-server/issues/413))
 * Internal cleanup of unused `device_activation` table and code.
+* Add option for 200 and 500 items per page in web-interface. ([#418](https://github.com/brocaar/chirpstack-application-server/pull/418))
 
 ### Bugfixes
 
@@ -136,7 +173,7 @@ required database transactions.
 
 ### Bugfixes
 
-* Fixes init stop script which could cause the ChirpStack Gateway Bridge to not properly stop or restart. ([#379](https://github.com/brocaar/chirpstack-application-server/issues/379))
+* Fixes init stop script which could cause the ChirpStack Application Server to not properly stop or restart. ([#379](https://github.com/brocaar/chirpstack-application-server/issues/379))
 
 ## v3.5.0
 

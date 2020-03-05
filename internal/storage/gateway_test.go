@@ -2,9 +2,11 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
+	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
@@ -57,6 +59,16 @@ func (ts *StorageTestSuite) TestGateway() {
 			Latitude:        1,
 			Longitude:       2,
 			Altitude:        3,
+			Tags: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{Valid: true, String: "bar"},
+				},
+			},
+			Metadata: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{Valid: true, String: "bar"},
+				},
+			},
 		}
 		assert.NoError(CreateGateway(context.Background(), ts.Tx(), &gw))
 		gw.CreatedAt = gw.CreatedAt.Round(time.Millisecond).UTC()

@@ -159,7 +159,7 @@ func stepMulticastCreate(ctx context.Context, db sqlx.Ext, item storage.FUOTADep
 	case storage.FUOTADeploymentGroupTypeC:
 		mg.MulticastGroup.GroupType = ns.MulticastGroupType_CLASS_C
 	default:
-		return fmt.Errorf("unkonwn group-type: %s", item.GroupType)
+		return fmt.Errorf("unknown group-type: %s", item.GroupType)
 	}
 
 	err = storage.CreateMulticastGroup(ctx, db, &mg)

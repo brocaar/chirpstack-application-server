@@ -1976,6 +1976,89 @@ func ValidateFUOTADeploymentsAccess(flag Flag, applicationID int64, devEUI loraw
 	}
 }
 
+// ValidateAPIKeysAccess validates if the client has access to the global
+// API key resource.
+func ValidateAPIKeysAccess(flag Flag, organizationID int64, applicationID int64) ValidatorFunc {
+	query := `
+		select
+			1
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join organization o
+			on ou.organization_id = o.id
+		left join application a
+			on o.id = a.organization_id
+	`
+
+	var where [][]string
+
+	switch flag {
+	case Create:
+		// global admin
+		// organization admin of given org id
+		// organization admin of given app id
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "$2 > 0", "$3 = 0", "o.id = $2"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "$3 > 0", "$2 = 0", "a.id = $3"},
+		}
+
+	case List:
+		// global admin
+		// organization admin of given org id (api key filtered by org in api)
+		// organization admin of given app id (api key filtered by app in api)
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "$2 > 0", "$3 = 0", "o.id = $2"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "$3 > 0", "$2 = 0", "a.id = $3"},
+		}
+	default:
+		panic("unsupported flag")
+	}
+
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
+		return executeQuery(db, query, where, claims.Username, organizationID, applicationID)
+	}
+}
+
+// ValidateAPIKeyAccess validates if the client has access to the given API
+// key.
+func ValidateAPIKeyAccess(flag Flag, id uuid.UUID) ValidatorFunc {
+	query := `
+		select
+			1
+		from
+			"user" u
+		left join organization_user ou
+			on u.id = ou.user_id
+		left join organization o
+			on ou.organization_id = o.id
+		left join application a
+			on o.id = a.organization_id
+		left join api_key ak
+			on a.id = ak.application_id or o.id = ak.organization_id or u.is_admin
+	`
+
+	var where [][]string
+	switch flag {
+	case Delete:
+		// global admin
+		// organization admin
+		where = [][]string{
+			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "ak.id = $2"},
+		}
+	default:
+		panic("unsupported flag")
+	}
+
+	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
+		return executeQuery(db, query, where, claims.Username, id)
+	}
+}
+
 func executeQuery(db sqlx.Queryer, query string, where [][]string, args ...interface{}) (bool, error) {
 	var ors []string
 	for _, ands := range where {

@@ -2554,6 +2554,230 @@ func (ts *ValidatorTestSuite) TestFUOTA() {
 	})
 }
 
+func (ts *ValidatorTestSuite) TestAPIKeys() {
+	assert := require.New(ts.T())
+
+	users := []struct {
+		username string
+		isActive bool
+		isAdmin  bool
+	}{
+		{username: "activeAdmin", isActive: true, isAdmin: true},
+		{username: "inactiveAdmin", isActive: false, isAdmin: true},
+		{username: "activeUser", isActive: true, isAdmin: false},
+		{username: "inactiveUser", isActive: false, isAdmin: false},
+	}
+
+	for _, user := range users {
+		_, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
+		assert.NoError(err)
+	}
+
+	orgUsers := []struct {
+		organizationID int64
+		username       string
+		isAdmin        bool
+		isDeviceAdmin  bool
+		isGatewayAdmin bool
+	}{
+		{organizationID: ts.organizations[0].ID, username: "org0ActiveUser", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: false},
+		{organizationID: ts.organizations[0].ID, username: "org0ActiveUserAdmin", isAdmin: true, isDeviceAdmin: false, isGatewayAdmin: false},
+		{organizationID: ts.organizations[0].ID, username: "org0ActiveUserDeviceAdmin", isAdmin: false, isDeviceAdmin: true, isGatewayAdmin: false},
+		{organizationID: ts.organizations[0].ID, username: "org0ActiveUserGatewayAdmin", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: true},
+		{organizationID: ts.organizations[1].ID, username: "org1ActiveUser", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: false},
+		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserAdmin", isAdmin: true, isDeviceAdmin: false, isGatewayAdmin: false},
+		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserDeviceAdmin", isAdmin: false, isDeviceAdmin: true, isGatewayAdmin: false},
+		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserGatewayAdmin", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: true},
+	}
+
+	for _, orgUser := range orgUsers {
+		id, err := ts.CreateUser(orgUser.username, true, false)
+		assert.NoError(err)
+
+		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
+		assert.NoError(err)
+	}
+
+	var serviceProfileIDs []uuid.UUID
+	serviceProfiles := []storage.ServiceProfile{
+		{Name: "test-sp-1", NetworkServerID: ts.networkServers[0].ID, OrganizationID: ts.organizations[0].ID},
+	}
+	for i := range serviceProfiles {
+		assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &serviceProfiles[i]))
+		id, _ := uuid.FromBytes(serviceProfiles[i].ServiceProfile.Id)
+		serviceProfileIDs = append(serviceProfileIDs, id)
+	}
+
+	applications := []storage.Application{
+		{OrganizationID: ts.organizations[0].ID, Name: "application-1", ServiceProfileID: serviceProfileIDs[0]},
+	}
+	for i := range applications {
+		assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &applications[i]))
+	}
+
+	apiKeys := []storage.APIKey{
+		{Name: "admin key", IsAdmin: true},
+		{Name: "org key", OrganizationID: &ts.organizations[0].ID},
+		{Name: "app key", ApplicationID: &applications[0].ID},
+	}
+	for i := range apiKeys {
+		_, err := storage.CreateAPIKey(context.Background(), storage.DB(), &apiKeys[i])
+		assert.NoError(err)
+	}
+
+	ts.T().Run("APIKeysAccess", func(t *testing.T) {
+		tests := []validatorTest{
+			{
+				Name:       "global admin can create and list admin api keys",
+				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, 0), ValidateAPIKeysAccess(List, 0, 0)},
+				Claims:     Claims{Username: "activeAdmin"},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "global admin can create and list org api key",
+				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, ts.organizations[0].ID, 0), ValidateAPIKeysAccess(List, ts.organizations[0].ID, 0)},
+				Claims:     Claims{Username: "activeAdmin"},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "global admin can create and list app api key",
+				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, applications[0].ID), ValidateAPIKeysAccess(List, 0, applications[0].ID)},
+				Claims:     Claims{Username: "activeAdmin"},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "org admin can create and list org api key",
+				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, ts.organizations[0].ID, 0), ValidateAPIKeysAccess(List, ts.organizations[0].ID, 0)},
+				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "org admin can create and list app api key",
+				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, applications[0].ID), ValidateAPIKeysAccess(List, 0, applications[0].ID)},
+				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "org user can not create or list api key",
+				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, 0), ValidateAPIKeysAccess(List, 0, 0)},
+				Claims:     Claims{Username: "org0ActiveUser"},
+				ExpectedOK: false,
+			},
+			{
+				Name:       "org user can not create or list org api key",
+				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, ts.organizations[0].ID, 0), ValidateAPIKeysAccess(List, ts.organizations[0].ID, 0)},
+				Claims:     Claims{Username: "org0ActiveUser"},
+				ExpectedOK: false,
+			},
+			{
+				Name:       "org user can not create or list app api key",
+				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, applications[0].ID), ValidateAPIKeysAccess(List, 0, applications[0].ID)},
+				Claims:     Claims{Username: "org0ActiveUser"},
+				ExpectedOK: false,
+			},
+			{
+				Name:       "regular user can not create or list admin api key",
+				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, 0), ValidateAPIKeysAccess(List, 0, 0)},
+				Claims:     Claims{Username: "activeUser"},
+				ExpectedOK: false,
+			},
+			{
+				Name:       "regular user can not create or list org api key",
+				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, ts.organizations[0].ID, 0), ValidateAPIKeysAccess(List, ts.organizations[0].ID, 0)},
+				Claims:     Claims{Username: "activeUser"},
+				ExpectedOK: false,
+			},
+			{
+				Name:       "regular user can not create or list app api key",
+				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, applications[0].ID), ValidateAPIKeysAccess(List, 0, applications[0].ID)},
+				Claims:     Claims{Username: "activeUser"},
+				ExpectedOK: false,
+			},
+		}
+
+		ts.RunTests(t, tests)
+	})
+
+	ts.T().Run("APIKeyAccess", func(t *testing.T) {
+		tests := []validatorTest{
+			{
+				Name:       "global admin can delete admin api key",
+				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[0].ID)},
+				Claims:     Claims{Username: "activeAdmin"},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "global admin can delete org api key",
+				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[1].ID)},
+				Claims:     Claims{Username: "activeAdmin"},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "global admin can delete app api key",
+				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[2].ID)},
+				Claims:     Claims{Username: "activeAdmin"},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "org admin can delete org api key",
+				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[1].ID)},
+				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "org admin can delete app api key",
+				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[2].ID)},
+				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "org admin can not delete admin api key",
+				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[0].ID)},
+				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				ExpectedOK: false,
+			},
+			{
+				Name:       "org user can not delete admin api key",
+				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[0].ID)},
+				Claims:     Claims{Username: "org0ActiveUser"},
+				ExpectedOK: false,
+			},
+			{
+				Name:       "org user can not delete org api key",
+				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[1].ID)},
+				Claims:     Claims{Username: "org0ActiveUser"},
+				ExpectedOK: false,
+			},
+			{
+				Name:       "org user can not delete app api key",
+				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[2].ID)},
+				Claims:     Claims{Username: "org0ActiveUser"},
+				ExpectedOK: false,
+			},
+			{
+				Name:       "regular user can not delete admin api key",
+				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[0].ID)},
+				Claims:     Claims{Username: "activeUser"},
+				ExpectedOK: false,
+			},
+			{
+				Name:       "regular user can not delete org api key",
+				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[1].ID)},
+				Claims:     Claims{Username: "activeUser"},
+				ExpectedOK: false,
+			},
+			{
+				Name:       "regular user can not delete app api key",
+				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[2].ID)},
+				Claims:     Claims{Username: "activeUser"},
+				ExpectedOK: false,
+			},
+		}
+
+		ts.RunTests(t, tests)
+	})
+}
+
 func TestValidators(t *testing.T) {
 	suite.Run(t, new(ValidatorTestSuite))
 }

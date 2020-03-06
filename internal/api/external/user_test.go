@@ -23,7 +23,7 @@ func (ts *APITestSuite) TestUser() {
 	ctx := context.Background()
 	validator := &TestValidator{}
 	api := NewUserAPI(validator)
-	apiInternal := NewInternalUserAPI(validator)
+	apiInternal := NewInternalAPI(validator)
 
 	ts.T().Run("Create user assigned to organization", func(t *testing.T) {
 		assert := require.New(t)

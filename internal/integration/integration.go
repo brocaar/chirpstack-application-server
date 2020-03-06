@@ -14,7 +14,7 @@ const (
 	MyDevices   = "MYDEVICES"
 )
 
-// Integrator defines the interface that an intergration must implement.
+// Integrator defines the interface that an integration must implement.
 type Integrator interface {
 	SendDataUp(ctx context.Context, vars map[string]string, pl pb.UplinkEvent) error                 // send data-up payload
 	SendJoinNotification(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error         // send join notification

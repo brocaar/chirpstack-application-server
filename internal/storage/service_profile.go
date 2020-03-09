@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"time"
+	"regexp"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -16,6 +17,8 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/chirpstack-api/go/v3/ns"
 )
+
+var serviceProfileNameRegexp = regexp.MustCompile(`^[\w-]+$`)
 
 // ServiceProfile defines the service-profile.
 type ServiceProfile struct {
@@ -39,6 +42,9 @@ type ServiceProfileMeta struct {
 
 // Validate validates the service-profile data.
 func (sp ServiceProfile) Validate() error {
+	if !serviceProfileNameRegexp.MatchString(sp.Name) {
+		return ErrServiceProfileInvalidName
+	}
 	return nil
 }
 

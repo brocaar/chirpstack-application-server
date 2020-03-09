@@ -37,6 +37,7 @@ func (ts *APITestSuite) TestApplication() {
 	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &n))
 
 	sp := storage.ServiceProfile{
+		Name:            "test-sp",
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}

@@ -26,7 +26,7 @@ import MapTileLayer from "../../components/MapTileLayer";
 import EUI64Field from "../../components/EUI64Field";
 import AESKeyField from "../../components/AESKeyField";
 import theme from "../../theme";
-
+import MQTTKeyField from "../../components/MQTTKeyField";
 
 const boardStyles = {
   formLabel: {
@@ -345,6 +345,15 @@ class GatewayForm extends FormComponent {
             fullWidth
             random
           />}
+          <MQTTKeyField
+          margin="normal"
+          id="mqttKey"
+          label="MQTT key"
+          onChange={this.onChange}
+          value={this.state.object.mqttKey || ""}
+          fullWidth
+          random
+          />
           {!this.props.update && <FormControl fullWidth margin="normal">
             <FormLabel className={this.props.classes.formLabel} required>Network-server</FormLabel>
             <AutocompleteSelect

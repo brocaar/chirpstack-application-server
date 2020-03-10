@@ -46,6 +46,8 @@ type Gateway struct {
 	Altitude         float64       `db:"altitude"`
 	Tags             hstore.Hstore `db:"tags"`
 	Metadata         hstore.Hstore `db:"metadata"`
+	MqttKey          lorawan.AES128Key `db:"mqtt_key"`
+	MqttKeyHash      string        	   `db:"mqtt_key_hash"`
 }
 
 // GatewayPing represents a gateway ping.
@@ -110,7 +112,12 @@ func CreateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 	gw.CreatedAt = now
 	gw.UpdatedAt = now
 
-	_, err := db.Exec(`
+	mqttKeyHash, err := hash(gw.MqttKey.String(), saltSize, HashIterations)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(`
 		insert into gateway (
 			mac,
 			created_at,
@@ -129,8 +136,10 @@ func CreateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 			longitude,
 			altitude,
 			tags,
-			metadata
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+			metadata,
+			mqtt_key,
+			mqtt_key_hash
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
 		gw.MAC[:],
 		gw.CreatedAt,
 		gw.UpdatedAt,
@@ -149,6 +158,8 @@ func CreateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 		gw.Altitude,
 		gw.Tags,
 		gw.Metadata,
+		gw.MqttKey[:],
+		mqttKeyHash,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -170,6 +181,11 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 
 	now := time.Now()
 
+	mqttKeyHash, err := hash(gw.MqttKey.String(), saltSize, HashIterations)
+	if err != nil {
+		return err
+	}
+
 	res, err := db.Exec(`
 		update gateway
 			set updated_at = $2,
@@ -187,7 +203,9 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 			longitude = $14,
 			altitude = $15,
 			tags = $16,
-			metadata = $17
+			metadata = $17,
+			mqtt_key=$18,
+			mqtt_key_hash=$19
 		where
 			mac = $1`,
 		gw.MAC[:],
@@ -207,6 +225,8 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 		gw.Altitude,
 		gw.Tags,
 		gw.Metadata,
+		gw.MqttKey[:],
+		mqttKeyHash,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

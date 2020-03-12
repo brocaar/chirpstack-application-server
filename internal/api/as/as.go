@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"math"
 	"net"
+	"time"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq/hstore"
@@ -462,12 +462,9 @@ func (a *ApplicationServerAPI) HandleGatewayStats(ctx context.Context, req *as.H
 	var gatewayID lorawan.EUI64
 	copy(gatewayID[:], req.GatewayId)
 
-	ts, err := ptypes.Timestamp(req.Time)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(errors.Wrap(err, "time error"))
-	}
-
-	err = storage.Transaction(func(tx sqlx.Ext) error {
+	ts := time.Now()
+	
+	err := storage.Transaction(func(tx sqlx.Ext) error {
 		gw, err := storage.GetGateway(ctx, tx, gatewayID, true)
 		if err != nil {
 			return helpers.ErrToRPCError(errors.Wrap(err, "get gateway error"))

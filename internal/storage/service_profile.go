@@ -40,7 +40,7 @@ type ServiceProfileMeta struct {
 
 // Validate validates the service-profile data.
 func (sp ServiceProfile) Validate() error {
-	if strings.TrimSpace(sp.Name) != "" {
+	if strings.TrimSpace(sp.Name) == "" {
 		return ErrServiceProfileInvalidName
 	}
 	return nil

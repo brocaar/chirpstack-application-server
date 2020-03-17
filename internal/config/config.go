@@ -10,7 +10,7 @@ type Config struct {
 		LogLevel               int  `mapstructure:"log_level"`
 		LogToSyslog            bool `mapstructure:"log_to_syslog"`
 		PasswordHashIterations int  `mapstructure:"password_hash_iterations"`
-	}
+	}	`mapstructure:"general"`
 
 	PostgreSQL struct {
 		DSN                string `mapstructure:"dsn"`
@@ -24,7 +24,7 @@ type Config struct {
 		MaxIdle     int           `mapstructure:"max_idle"`
 		MaxActive   int           `mapstructure:"max_active"`
 		IdleTimeout time.Duration `mapstructure:"idle_timeout"`
-	}
+	} `mapstructure:"redis"`
 
 	ApplicationServer struct {
 		ID string `mapstructure:"id"`
@@ -45,7 +45,7 @@ type Config struct {
 			GCPPubSub       IntegrationGCPConfig        `mapstructure:"gcp_pub_sub"`
 			PostgreSQL      IntegrationPostgreSQLConfig `mapstructure:"postgresql"`
 			AMQP            IntegrationAMQPConfig       `mapstructure:"amqp"`
-		}
+		} `mapstructure:"integration"`
 
 		API struct {
 			Bind       string
@@ -85,7 +85,7 @@ type Config struct {
 			Header       string
 			Footer       string
 			Registration string
-		}
+		} `mapstructure:"branding"`
 	} `mapstructure:"application_server"`
 
 	JoinServer struct {
@@ -117,7 +117,7 @@ type Config struct {
 			EndpointEnabled    bool   `mapstructure:"endpoint_enabled"`
 			Bind               string `mapstructure:"bind"`
 			APITimingHistogram bool   `mapstructure:"api_timing_histogram"`
-		}
+		} `mapstructure:"prometheus"`
 	} `mapstructure:"metrics"`
 
 	Monitoring struct {

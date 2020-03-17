@@ -301,7 +301,8 @@ func UpdateOrganizationUser(ctx context.Context, db sqlx.Execer, organizationID,
 		set
 			is_admin = $3,
 			is_device_admin = $4,
-			is_gateway_admin = $5
+			is_gateway_admin = $5,
+			updated_at = now()
 		where
 			organization_id = $1
 			and user_id = $2

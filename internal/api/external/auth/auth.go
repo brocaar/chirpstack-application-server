@@ -54,7 +54,7 @@ type Validator interface {
 
 // ValidatorFunc defines the signature of a claim validator function.
 // It returns a bool indicating if the validation passed or failed and an
-// error in case an error occured (e.g. db connectivity).
+// error in case an error occurred (e.g. db connectivity).
 type ValidatorFunc func(sqlx.Queryer, *Claims) (bool, error)
 
 // JWTValidator validates JWT tokens.

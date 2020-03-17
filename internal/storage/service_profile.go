@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"time"
+	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -39,6 +40,9 @@ type ServiceProfileMeta struct {
 
 // Validate validates the service-profile data.
 func (sp ServiceProfile) Validate() error {
+	if strings.TrimSpace(sp.Name) == "" {
+		return ErrServiceProfileInvalidName
+	}
 	return nil
 }
 

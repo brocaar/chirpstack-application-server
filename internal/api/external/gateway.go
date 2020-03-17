@@ -266,50 +266,51 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	var count int
-	var gws []storage.Gateway
+	filters := storage.GatewayFilters{
+		Search:         req.Search,
+		Limit:          int(req.Limit),
+		Offset:         int(req.Offset),
+		OrganizationID: req.OrganizationId,
+	}
 
-	if req.OrganizationId == 0 {
+	sub, err := a.validator.GetSubject(ctx)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	switch sub {
+	case auth.SubjectUser:
 		isAdmin, err := a.validator.GetIsAdmin(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		if isAdmin {
-			// in case of admin user list all gateways
-			count, err = storage.GetGatewayCount(ctx, storage.DB(), req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
+		username, err := a.validator.GetUsername(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
 
-			gws, err = storage.GetGateways(ctx, storage.DB(), int(req.Limit), int(req.Offset), req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		} else {
-			// filter result based on user
-			username, err := a.validator.GetUsername(ctx)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-			count, err = storage.GetGatewayCountForUser(ctx, storage.DB(), username, req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-			gws, err = storage.GetGatewaysForUser(ctx, storage.DB(), username, int(req.Limit), int(req.Offset), req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
+		// Filter on username when OrganizationID is not set and the user is
+		// not a global admin.
+		if !isAdmin && filters.OrganizationID == 0 {
+			filters.Username = username
 		}
-	} else {
-		count, err = storage.GetGatewayCountForOrganizationID(ctx, storage.DB(), req.OrganizationId, req.Search)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-		gws, err = storage.GetGatewaysForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset), req.Search)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
+
+	case auth.SubjectAPIKey:
+		// Nothing to do as the validator function already validated that the
+		// API Key has access to the given OrganizationID.
+	default:
+		return nil, grpc.Errorf(codes.Unauthenticated, "invalid token subject: %s", err)
+	}
+
+	count, err := storage.GetGatewayCount(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	gws, err := storage.GetGateways(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
 	}
 
 	resp := pb.ListGatewayResponse{

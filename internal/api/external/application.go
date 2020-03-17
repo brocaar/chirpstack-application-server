@@ -186,59 +186,51 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	filters := storage.ApplicationFilters{
+		Search:         req.Search,
+		Limit:          int(req.Limit),
+		Offset:         int(req.Offset),
+		OrganizationID: req.OrganizationId,
+	}
+
+	sub, err := a.validator.GetSubject(ctx)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	username, err := a.validator.GetUsername(ctx)
+	switch sub {
+	case auth.SubjectUser:
+		isAdmin, err := a.validator.GetIsAdmin(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		username, err := a.validator.GetUsername(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		// Filter on username when OrganizationID is not set and the user is
+		// not a global admin.
+		if !isAdmin && filters.OrganizationID == 0 {
+			filters.Username = username
+		}
+
+	case auth.SubjectAPIKey:
+		// Nothing to do as the validator function already validated that the
+		// API Key has access to the given OrganizationID.
+	default:
+		return nil, grpc.Errorf(codes.Unauthenticated, "invalid token subject: %s", sub)
+	}
+
+	count, err := storage.GetApplicationCount(ctx, storage.DB(), filters)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	var count int
-	var apps []storage.ApplicationListItem
-
-	if req.OrganizationId == 0 {
-		if isAdmin {
-			apps, err = storage.GetApplications(ctx, storage.DB(), int(req.Limit), int(req.Offset), req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-			count, err = storage.GetApplicationCount(ctx, storage.DB(), req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		} else {
-			apps, err = storage.GetApplicationsForUser(ctx, storage.DB(), username, 0, int(req.Limit), int(req.Offset), req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-			count, err = storage.GetApplicationCountForUser(ctx, storage.DB(), username, 0, req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		}
-	} else {
-		if isAdmin {
-			apps, err = storage.GetApplicationsForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset), req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-			count, err = storage.GetApplicationCountForOrganizationID(ctx, storage.DB(), req.OrganizationId, req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		} else {
-			apps, err = storage.GetApplicationsForUser(ctx, storage.DB(), username, req.OrganizationId, int(req.Limit), int(req.Offset), req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-			count, err = storage.GetApplicationCountForUser(ctx, storage.DB(), username, req.OrganizationId, req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		}
+	apps, err := storage.GetApplications(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
 	}
 
 	resp := pb.ListApplicationResponse{

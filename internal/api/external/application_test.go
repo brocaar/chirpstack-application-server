@@ -22,7 +22,7 @@ func (ts *APITestSuite) TestApplication() {
 	nsClient := mock.NewClient()
 	networkserver.SetPool(mock.NewPool(nsClient))
 
-	validator := &TestValidator{}
+	validator := &TestValidator{returnSubject: "user"}
 	api := NewApplicationAPI(validator)
 
 	org := storage.Organization{

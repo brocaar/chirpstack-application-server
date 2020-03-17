@@ -26,7 +26,9 @@ func (ts *APITestSuite) TestGateway() {
 	networkserver.SetPool(mock.NewPool(nsClient))
 
 	ctx := context.Background()
-	validator := &TestValidator{}
+	validator := &TestValidator{
+		returnSubject: "user",
+	}
 	api := NewGatewayAPI(validator)
 
 	n := storage.NetworkServer{

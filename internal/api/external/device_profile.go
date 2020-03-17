@@ -284,61 +284,51 @@ func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDevicePr
 		}
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	filters := storage.DeviceProfileFilters{
+		Limit:          int(req.Limit),
+		Offset:         int(req.Offset),
+		OrganizationID: req.OrganizationId,
+		ApplicationID:  req.ApplicationId,
+	}
+
+	sub, err := a.validator.GetSubject(ctx)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	username, err := a.validator.GetUsername(ctx)
+	switch sub {
+	case auth.SubjectUser:
+		isAdmin, err := a.validator.GetIsAdmin(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		username, err := a.validator.GetUsername(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		// Filter on username when org and app ID are not set and user is not
+		// global admin.
+		if !isAdmin && filters.OrganizationID == 0 && filters.ApplicationID == 0 {
+			filters.Username = username
+		}
+	case auth.SubjectAPIKey:
+		// Nothing to do as the validator function already validated that the
+		// API key is either of type admin, org (for the req.OrganizationId) or
+		// app (for the req.ApplicationId).
+	default:
+		return nil, grpc.Errorf(codes.Unauthenticated, "invalid token subject: %s", sub)
+	}
+
+	count, err := storage.GetDeviceProfileCount(ctx, storage.DB(), filters)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	var count int
-	var dps []storage.DeviceProfileMeta
-
-	if req.ApplicationId != 0 {
-		dps, err = storage.GetDeviceProfilesForApplicationID(ctx, storage.DB(), req.ApplicationId, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-
-		count, err = storage.GetDeviceProfileCountForApplicationID(ctx, storage.DB(), req.ApplicationId)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-	} else if req.OrganizationId != 0 {
-		dps, err = storage.GetDeviceProfilesForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-
-		count, err = storage.GetDeviceProfileCountForOrganizationID(ctx, storage.DB(), req.OrganizationId)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-	} else {
-		if isAdmin {
-			dps, err = storage.GetDeviceProfiles(ctx, storage.DB(), int(req.Limit), int(req.Offset))
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-
-			count, err = storage.GetDeviceProfileCount(ctx, storage.DB())
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		} else {
-			dps, err = storage.GetDeviceProfilesForUser(ctx, storage.DB(), username, int(req.Limit), int(req.Offset))
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-
-			count, err = storage.GetDeviceProfileCountForUser(ctx, storage.DB(), username)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		}
+	dps, err := storage.GetDeviceProfiles(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
 	}
 
 	resp := pb.ListDeviceProfileResponse{

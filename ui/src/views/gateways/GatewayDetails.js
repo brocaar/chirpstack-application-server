@@ -111,9 +111,9 @@ class GatewayDetails extends Component {
       position = [0,0];
     }
 
-    let lastseen = "Never";
+    let lastSeenAt = "Never";
     if (this.props.lastSeenAt !== null) {
-      lastseen = moment(this.props.lastSeenAt).fromNow();
+      lastSeenAt = moment(this.props.lastSeenAt).format("lll");
     }
 
     return(
@@ -143,10 +143,10 @@ class GatewayDetails extends Component {
                 {this.props.gateway.location.latitude}, {this.props.gateway.location.longitude}
               </Typography>
               <Typography variant="subtitle1" color="primary">
-                Last seen
+                Last seen at
               </Typography>
               <Typography variant="body1" gutterBottom>
-                {lastseen}
+                {lastSeenAt}
               </Typography>
             </CardContent>
           </Card>

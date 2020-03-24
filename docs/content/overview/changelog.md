@@ -10,6 +10,27 @@ description: Lists the changes per ChirpStack Application Server release, includ
 
 # Changelog
 
+## v3.10.0
+
+### Features
+
+#### Generate API keys in web-interface
+
+This makes it possible to generate (and revoke) API keys directly from within
+the web-interface. Internally, a lot of authorization code has been cleaned up
+to remove duplication and make the code easier to maintain. ([#421](https://github.com/brocaar/chirpstack-application-server/pull/421))
+
+### Improvements
+
+* Use server time instead of gateway reported time in stats. ([#440](https://github.com/brocaar/chirpstack-application-server/pull/440/))
+
+### Bugfixes
+
+* Fix `objectJSON` formatting in web-interface.
+* Fix AMQP re-connect issue.
+* Fix setting `updated_at` field on organization user update. ([#430](https://github.com/brocaar/chirpstack-application-server/pull/430))
+* Fix create service-profile with empty name. ([#436](https://github.com/brocaar/chirpstack-application-server/pull/436/))
+
 ## v3.9.0
 
 ### Features

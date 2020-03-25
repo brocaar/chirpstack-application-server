@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestNetworkServer(t *testing.T) {

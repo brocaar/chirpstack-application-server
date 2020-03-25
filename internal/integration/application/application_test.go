@@ -52,7 +52,7 @@ func (ts *ApplicationTestSuite) SetupSuite() {
 
 	networkserver.SetPool(mock.NewPool(mock.NewClient()))
 
-	test.MustFlushRedis(storage.RedisPool())
+	storage.RedisClient().FlushAll()
 	test.MustResetDB(storage.DB().DB)
 
 	ts.httpServer = httptest.NewServer(&testHTTPHandler{

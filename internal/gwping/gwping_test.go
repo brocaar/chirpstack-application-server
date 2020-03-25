@@ -8,13 +8,13 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/brocaar/chirpstack-api/go/v3/as"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
+	"github.com/brocaar/chirpstack-api/go/v3/gw"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
-	"github.com/brocaar/chirpstack-api/go/v3/as"
-	"github.com/brocaar/chirpstack-api/go/v3/common"
-	"github.com/brocaar/chirpstack-api/go/v3/gw"
 	"github.com/brocaar/lorawan"
 )
 
@@ -27,7 +27,7 @@ func TestGatewayPing(t *testing.T) {
 	Convey("Given a clean database and a gateway", t, func() {
 		nsClient := mock.NewClient()
 		test.MustResetDB(storage.DB().DB)
-		test.MustFlushRedis(storage.RedisPool())
+		storage.RedisClient().FlushAll()
 		networkserver.SetPool(mock.NewPool(nsClient))
 
 		org := storage.Organization{

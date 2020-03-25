@@ -5,12 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	jwt "github.com/dgrijalva/jwt-go"
 	uuid "github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 )
 
 // APIKey represents an API key.

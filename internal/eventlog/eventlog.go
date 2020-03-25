@@ -90,7 +90,7 @@ func GetEventLogForDevice(ctx context.Context, devEUI lorawan.EUI64, eventsChan 
 			}
 		case <-ctx.Done():
 			sub.Close()
-			break
+			return nil
 		}
 	}
 }

@@ -785,6 +785,10 @@ func (a *DeviceAPI) StreamFrameLogs(req *pb.StreamDeviceFrameLogsRequest, srv pb
 	for {
 		resp, err := streamClient.Recv()
 		if err != nil {
+			if grpc.Code(err) == codes.Canceled {
+				return nil
+			}
+
 			return err
 		}
 

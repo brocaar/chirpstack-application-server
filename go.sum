@@ -83,6 +83,8 @@ github.com/blakesmith/ar v0.0.0-20150311145944-8bd4349a67f2 h1:oMCHnXa6CCCafdPDb
 github.com/blakesmith/ar v0.0.0-20150311145944-8bd4349a67f2/go.mod h1:PkYb9DJNAwrSvRx5DYA+gUcOIgTGVMNkfSCbZM8cWpI=
 github.com/brocaar/chirpstack-api/go/v3 v3.2.0 h1:nFI0n9zEcFYDmePrACE2g3VUM1or+/tBUHT+SNd09sg=
 github.com/brocaar/chirpstack-api/go/v3 v3.2.0/go.mod h1:2LHob6m0xqN6wSdHQCaTwgxOJqgjirqjtoDy2m85NYk=
+github.com/brocaar/grpc-websocket-proxy v1.0.0 h1:Z45a0W3y9jaYf/vcHL8961M104ZTDkrmR3bVbzdUjsw=
+github.com/brocaar/grpc-websocket-proxy v1.0.0/go.mod h1:MzueoeqOElZxUy6+jxbCrKqsLh/HSDlpKLIqmnx5aXo=
 github.com/brocaar/lorawan v0.0.0-20191115102621-6095d473cf60 h1:jecx8QFcsUAWZojNIqOZaoAWFwkBbd3VOHZ3kv6FQxE=
 github.com/brocaar/lorawan v0.0.0-20191115102621-6095d473cf60/go.mod h1:VgyRGAJ/wl1JfqZZmNlCTM8fyaIKF11YvYAGIVtedL8=
 github.com/caarlos0/ctrlc v1.0.0 h1:2DtF8GSIcajgffDFJzyG15vO+1PuBWOMUdFut7NnXhw=

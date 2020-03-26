@@ -65,3 +65,7 @@ require (
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
 )
+
+// remove when https://github.com/tmc/grpc-websocket-proxy/pull/23 has been merged
+// and grpc-websocket-proxy dependency has been updated to version including this fix.
+replace github.com/tmc/grpc-websocket-proxy => github.com/brocaar/grpc-websocket-proxy v1.0.0

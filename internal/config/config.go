@@ -10,7 +10,7 @@ type Config struct {
 		LogLevel               int  `mapstructure:"log_level"`
 		LogToSyslog            bool `mapstructure:"log_to_syslog"`
 		PasswordHashIterations int  `mapstructure:"password_hash_iterations"`
-	} `mapstructure:"general"`
+	}	`mapstructure:"general"`
 
 	PostgreSQL struct {
 		DSN                string `mapstructure:"dsn"`
@@ -20,8 +20,10 @@ type Config struct {
 	} `mapstructure:"postgresql"`
 
 	Redis struct {
-		URL      string `mapstructure:"url"`
-		PoolSize int    `mapstructure:"pool_size"`
+		URL         string        `mapstructure:"url"`
+		MaxIdle     int           `mapstructure:"max_idle"`
+		MaxActive   int           `mapstructure:"max_active"`
+		IdleTimeout time.Duration `mapstructure:"idle_timeout"`
 	} `mapstructure:"redis"`
 
 	ApplicationServer struct {

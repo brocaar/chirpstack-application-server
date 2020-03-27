@@ -6,10 +6,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/brocaar/lorawan"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq/hstore"
-
-	"github.com/brocaar/lorawan"
 )
 
 // SearchResult defines a search result.

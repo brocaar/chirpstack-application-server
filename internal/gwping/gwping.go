@@ -9,16 +9,15 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
-	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/brocaar/chirpstack-api/go/v3/as"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/chirpstack-api/go/v3/as"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/lorawan"
 )
 
@@ -223,10 +222,9 @@ func sendPing(mic lorawan.MIC, n storage.NetworkServer, ping storage.GatewayPing
 
 // CreatePingLookup creates an automatically expiring MIC to ping id lookup.
 func CreatePingLookup(mic lorawan.MIC, id int64) error {
-	c := storage.RedisPool().Get()
-	defer c.Close()
+	key := fmt.Sprintf(micLookupTempl, mic)
 
-	_, err := redis.String(c.Do("PSETEX", fmt.Sprintf(micLookupTempl, mic), int64(micLookupExpire)/int64(time.Millisecond), id))
+	err := storage.RedisClient().Set(key, id, micLookupExpire).Err()
 	if err != nil {
 		return errors.Wrap(err, "set mic lookup error")
 	}
@@ -234,10 +232,9 @@ func CreatePingLookup(mic lorawan.MIC, id int64) error {
 }
 
 func getPingLookup(mic lorawan.MIC) (int64, error) {
-	c := storage.RedisPool().Get()
-	defer c.Close()
+	key := fmt.Sprintf(micLookupTempl, mic)
 
-	id, err := redis.Int64(c.Do("GET", fmt.Sprintf(micLookupTempl, mic)))
+	id, err := storage.RedisClient().Get(key).Int64()
 	if err != nil {
 		return 0, errors.Wrap(err, "get ping lookup error")
 	}
@@ -246,10 +243,9 @@ func getPingLookup(mic lorawan.MIC) (int64, error) {
 }
 
 func deletePingLookup(mic lorawan.MIC) error {
-	c := storage.RedisPool().Get()
-	defer c.Close()
+	key := fmt.Sprintf(micLookupTempl, mic)
 
-	_, err := redis.Int(c.Do("DEL", fmt.Sprintf(micLookupTempl, mic)))
+	err := storage.RedisClient().Del(key).Err()
 	if err != nil {
 		return errors.Wrap(err, "delete ping lookup error")
 	}

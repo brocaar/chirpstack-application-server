@@ -4,10 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
+	"github.com/go-redis/redis/v7"
 	"github.com/golang/protobuf/proto"
-	"github.com/gomodule/redigo/redis"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
@@ -39,9 +38,6 @@ type EventLog struct {
 
 // LogEventForDevice logs an event for the given device.
 func LogEventForDevice(devEUI lorawan.EUI64, t string, msg proto.Message) error {
-	c := storage.RedisPool().Get()
-	defer c.Close()
-
 	b, err := marshaler.Marshal(marshaler.ProtobufJSON, msg)
 	if err != nil {
 		return errors.Wrap(err, "marshal protobuf json error")
@@ -58,7 +54,8 @@ func LogEventForDevice(devEUI lorawan.EUI64, t string, msg proto.Message) error 
 		return errors.Wrap(err, "json encode error")
 	}
 
-	if _, err := c.Do("PUBLISH", key, b); err != nil {
+	err = storage.RedisClient().Publish(key, b).Err()
+	if err != nil {
 		return errors.Wrap(err, "publish device event error")
 	}
 
@@ -68,69 +65,40 @@ func LogEventForDevice(devEUI lorawan.EUI64, t string, msg proto.Message) error 
 // GetEventLogForDevice subscribes to the device events for the given DevEUI
 // and sends this to the given channel.
 func GetEventLogForDevice(ctx context.Context, devEUI lorawan.EUI64, eventsChan chan EventLog) error {
-	c := storage.RedisPool().Get()
-	defer c.Close()
-
 	key := fmt.Sprintf(deviceEventUplinkPubSubKeyTempl, devEUI)
-	psc := redis.PubSubConn{Conn: c}
-	if err := psc.Subscribe(key); err != nil {
+
+	sub := storage.RedisClient().Subscribe(key)
+	_, err := sub.Receive()
+	if err != nil {
 		return errors.Wrap(err, "subscribe error")
 	}
 
-	done := make(chan error, 1)
+	ch := sub.Channel()
 
-	go func() {
-		for {
-			switch v := psc.Receive().(type) {
-			case redis.Message:
-				el, err := redisMessageToEventLog(v)
-				if err != nil {
-					log.WithError(err).Error("decode message errror")
-				} else {
-					eventsChan <- el
-				}
-			case redis.Subscription:
-				if v.Count == 0 {
-					done <- nil
-					return
-				}
-			case error:
-				done <- v
-				return
-			}
-		}
-	}()
-
-	// todo: make this a config value?
-	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
-
-loop:
 	for {
 		select {
-		case <-ticker.C:
-			if err := psc.Ping(""); err != nil {
-				log.WithError(err).Error("subscription ping error")
-				break loop
+		case msg := <-ch:
+			if msg == nil {
+				continue
+			}
+
+			el, err := redisMessageToEventLog(msg)
+			if err != nil {
+				log.WithError(err).Error("decode message error")
+			} else {
+				eventsChan <- el
 			}
 		case <-ctx.Done():
-			break loop
-		case err := <-done:
-			return err
+			sub.Close()
+			return nil
 		}
 	}
-
-	if err := psc.Unsubscribe(); err != nil {
-		return errors.Wrap(err, "unsubscribe error")
-	}
-
-	return <-done
 }
 
-func redisMessageToEventLog(msg redis.Message) (EventLog, error) {
+func redisMessageToEventLog(msg *redis.Message) (EventLog, error) {
 	var el EventLog
-	if err := json.Unmarshal(msg.Data, &el); err != nil {
-		return el, errors.Wrap(err, "gob decode error")
+	if err := json.Unmarshal([]byte(msg.Payload), &el); err != nil {
+		return el, errors.Wrap(err, "unmarshal message error")
 	}
 
 	return el, nil

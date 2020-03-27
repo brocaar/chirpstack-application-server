@@ -3,7 +3,6 @@ package amqp
 import (
 	"testing"
 
-	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -13,22 +12,19 @@ import (
 type ChannelPoolTestSuite struct {
 	suite.Suite
 
-	conn *amqp.Connection
+	url string
 }
 
 func (ts *ChannelPoolTestSuite) SetupSuite() {
-	assert := require.New(ts.T())
 	conf := test.GetConfig()
 
-	var err error
-	ts.conn, err = amqp.Dial(conf.ApplicationServer.Integration.AMQP.URL)
-	assert.NoError(err)
+	ts.url = conf.ApplicationServer.Integration.AMQP.URL
 }
 
 func (ts *ChannelPoolTestSuite) TestNew() {
 	assert := require.New(ts.T())
 
-	p, err := newPool(10, ts.conn)
+	p, err := newPool(10, ts.url)
 	assert.NoError(err)
 	defer p.close()
 	assert.Len(p.chans, 10)
@@ -37,7 +33,7 @@ func (ts *ChannelPoolTestSuite) TestNew() {
 func (ts *ChannelPoolTestSuite) TestGet() {
 	assert := require.New(ts.T())
 
-	p, err := newPool(10, ts.conn)
+	p, err := newPool(10, ts.url)
 	assert.NoError(err)
 	defer p.close()
 	assert.Len(p.chans, 10)
@@ -60,7 +56,7 @@ func (ts *ChannelPoolTestSuite) TestGet() {
 func (ts *ChannelPoolTestSuite) TestPut() {
 	assert := require.New(ts.T())
 
-	p, err := newPool(10, ts.conn)
+	p, err := newPool(10, ts.url)
 	assert.NoError(err)
 
 	chans := make([]*poolChannel, 10)
@@ -77,20 +73,14 @@ func (ts *ChannelPoolTestSuite) TestPut() {
 	}
 
 	assert.Len(p.chans, 10)
-
-	pc, err := p.get()
-	assert.NoError(err)
 	p.close()
-
-	assert.Len(p.chans, 0)
-	assert.NoError(pc.close())
 	assert.Len(p.chans, 0)
 }
 
 func (ts *ChannelPoolTestSuite) TestPutUnusable() {
 	assert := require.New(ts.T())
 
-	p, err := newPool(10, ts.conn)
+	p, err := newPool(10, ts.url)
 	assert.NoError(err)
 	defer p.close()
 

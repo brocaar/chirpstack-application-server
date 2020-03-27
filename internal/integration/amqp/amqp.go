@@ -20,7 +20,6 @@ import (
 
 // Integration implements an AMQP integration.
 type Integration struct {
-	conn   *amqp.Connection
 	chPool *pool
 
 	marshaler       marshaler.Type
@@ -35,12 +34,7 @@ func New(m marshaler.Type, conf config.IntegrationAMQPConfig) (*Integration, err
 	}
 
 	log.Info("integration/amqp: connecting to amqp broker")
-	i.conn, err = amqp.Dial(conf.URL)
-	if err != nil {
-		return nil, errors.Wrap(err, "dial amqp url error")
-	}
-
-	i.chPool, err = newPool(10, i.conn)
+	i.chPool, err = newPool(10, conf.URL)
 	if err != nil {
 		return nil, errors.Wrap(err, "new amqp channel pool error")
 	}
@@ -86,8 +80,7 @@ func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 }
 
 func (i *Integration) Close() error {
-	i.chPool.close()
-	return i.conn.Close()
+	return i.chPool.close()
 }
 
 func (i *Integration) publishEvent(ctx context.Context, applicationID uint64, devEUIB []byte, typ string, msg proto.Message) error {
@@ -139,6 +132,7 @@ func (i *Integration) publishEvent(ctx context.Context, applicationID uint64, de
 		},
 	)
 	if err != nil {
+		ch.markUnusable()
 		return errors.Wrap(err, "publish event error")
 	}
 

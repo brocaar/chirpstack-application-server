@@ -463,7 +463,7 @@ func (a *ApplicationServerAPI) HandleGatewayStats(ctx context.Context, req *as.H
 	copy(gatewayID[:], req.GatewayId)
 
 	ts := time.Now()
-	
+
 	err := storage.Transaction(func(tx sqlx.Ext) error {
 		gw, err := storage.GetGateway(ctx, tx, gatewayID, true)
 		if err != nil {
@@ -507,7 +507,7 @@ func (a *ApplicationServerAPI) HandleGatewayStats(ctx context.Context, req *as.H
 			"tx_ok_count": float64(req.TxPacketsEmitted),
 		},
 	}
-	if err := storage.SaveMetrics(ctx, storage.RedisPool(), fmt.Sprintf("gw:%s", gatewayID), metrics); err != nil {
+	if err := storage.SaveMetrics(ctx, fmt.Sprintf("gw:%s", gatewayID), metrics); err != nil {
 		return nil, helpers.ErrToRPCError(errors.Wrap(err, "save metrics error"))
 	}
 

@@ -29,7 +29,7 @@ func (ts *MarshalerTestSuite) SetupSuite() {
 	conf := test.GetConfig()
 	assert.NoError(storage.Setup(conf))
 
-	test.MustFlushRedis(storage.RedisPool())
+	storage.RedisClient().FlushAll()
 	test.MustResetDB(storage.DB().DB)
 }
 

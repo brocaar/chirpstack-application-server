@@ -24,7 +24,6 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/integration/postgresql"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/thingsboard"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
 // Integration implements the multi integration.
@@ -55,7 +54,7 @@ func New(m marshaler.Type, confs []interface{}) (*Integration, error) {
 		case influxdb.Config:
 			ii, err = influxdb.New(v)
 		case config.IntegrationMQTTConfig:
-			ii, err = mqtt.New(m, storage.RedisPool(), v)
+			ii, err = mqtt.New(m, v)
 		case config.IntegrationPostgreSQLConfig:
 			ii, err = postgresql.New(v)
 		case thingsboard.Config:

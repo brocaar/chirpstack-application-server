@@ -32,7 +32,7 @@ func (b *DatabaseTestSuiteBase) SetupTest() {
 	}
 	b.tx = tx
 
-	test.MustFlushRedis(storage.RedisPool())
+	storage.RedisClient().FlushAll()
 	test.MustResetDB(storage.DB().DB)
 }
 

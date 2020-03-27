@@ -3,15 +3,11 @@ package mqtt
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"os"
 	"testing"
 	"time"
 
 	paho "github.com/eclipse/paho.mqtt.golang"
 	"github.com/golang/protobuf/proto"
-	"github.com/gomodule/redigo/redis"
-	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -19,6 +15,8 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
+	"github.com/brocaar/chirpstack-application-server/internal/test"
 	"github.com/brocaar/lorawan"
 )
 
@@ -27,33 +25,16 @@ type MQTTHandlerTestSuite struct {
 
 	mqttClient  paho.Client
 	integration integration.Integrator
-	redisPool   *redis.Pool
 }
 
 func (ts *MQTTHandlerTestSuite) SetupSuite() {
 	assert := require.New(ts.T())
+	conf := test.GetConfig()
+	assert.NoError(storage.Setup(conf))
 
-	log.SetLevel(log.ErrorLevel)
-
-	mqttServer := "tcp://127.0.0.1:1883"
-	redisServer := "redis://localhost:6379/1"
-	var username string
-	var password string
-
-	if v := os.Getenv("TEST_MQTT_SERVER"); v != "" {
-		mqttServer = v
-	}
-
-	if v := os.Getenv("TEST_MQTT_USERNAME"); v != "" {
-		username = v
-	}
-	if v := os.Getenv("TEST_MQTT_PASSWORD"); v != "" {
-		password = v
-	}
-
-	if v := os.Getenv("TEST_REDIS_URL"); v != "" {
-		redisServer = v
-	}
+	mqttServer := conf.ApplicationServer.Integration.MQTT.Server
+	username := conf.ApplicationServer.Integration.MQTT.Username
+	password := conf.ApplicationServer.Integration.MQTT.Password
 
 	opts := paho.NewClientOptions().AddBroker(mqttServer).SetUsername(username).SetPassword(password)
 	ts.mqttClient = paho.NewClient(opts)
@@ -61,20 +42,9 @@ func (ts *MQTTHandlerTestSuite) SetupSuite() {
 	token.Wait()
 	assert.NoError(token.Error())
 
-	ts.redisPool = &redis.Pool{
-		Dial: func() (redis.Conn, error) {
-			c, err := redis.DialURL(redisServer)
-			if err != nil {
-				return nil, fmt.Errorf("redis connection error: %s", err)
-			}
-			return c, err
-		},
-	}
-
 	var err error
 	ts.integration, err = New(
 		marshaler.Protobuf,
-		ts.redisPool,
 		config.IntegrationMQTTConfig{
 			Server:                mqttServer,
 			Username:              username,
@@ -100,13 +70,7 @@ func (ts *MQTTHandlerTestSuite) TearDownSuite() {
 }
 
 func (ts *MQTTHandlerTestSuite) SetupTest() {
-	assert := require.New(ts.T())
-
-	c := ts.redisPool.Get()
-	defer c.Close()
-
-	_, err := c.Do("FLUSHALL")
-	assert.NoError(err)
+	storage.RedisClient().FlushAll()
 }
 
 func (ts *MQTTHandlerTestSuite) TestUplink() {

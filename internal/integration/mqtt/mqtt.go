@@ -17,7 +17,6 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/golang/protobuf/proto"
-	"github.com/gomodule/redigo/redis"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
@@ -26,6 +25,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
@@ -37,7 +37,6 @@ type Integration struct {
 	conn             mqtt.Client
 	dataDownChan     chan integration.DataDownPayload
 	wg               sync.WaitGroup
-	redisPool        *redis.Pool
 	config           config.IntegrationMQTTConfig
 	uplinkTemplate   *template.Template
 	downlinkTemplate *template.Template
@@ -59,12 +58,11 @@ type Integration struct {
 }
 
 // New creates a new MQTT integration.
-func New(m marshaler.Type, p *redis.Pool, conf config.IntegrationMQTTConfig) (*Integration, error) {
+func New(m marshaler.Type, conf config.IntegrationMQTTConfig) (*Integration, error) {
 	var err error
 	i := Integration{
 		marshaler:    m,
 		dataDownChan: make(chan integration.DataDownPayload),
-		redisPool:    p,
 		config:       conf,
 	}
 
@@ -361,16 +359,14 @@ func (i *Integration) txPayloadHandler(mqttc mqtt.Client, msg mqtt.Message) {
 	// by the application, the first instance receiving the message must lock it,
 	// so that other instances can ignore the message.
 	key := fmt.Sprintf("lora:as:downlink:lock:%d:%s", pl.ApplicationID, pl.DevEUI)
-	redisConn := i.redisPool.Get()
-	defer redisConn.Close()
-
-	_, err = redis.String(redisConn.Do("SET", key, "lock", "PX", int64(downlinkLockTTL/time.Millisecond), "NX"))
+	set, err := storage.RedisClient().SetNX(key, "lock", downlinkLockTTL).Result()
 	if err != nil {
-		if err == redis.ErrNil {
-			// the payload is already being processed by an other instance
-			return
-		}
-		log.Errorf("integration/mqtt: acquire downlink payload lock error: %s", err)
+		log.WithError(err).Error("integration/mqtt: acquire lock error")
+		return
+	}
+
+	// If we could not set, it means it is already locked by an other process.
+	if !set {
 		return
 	}
 

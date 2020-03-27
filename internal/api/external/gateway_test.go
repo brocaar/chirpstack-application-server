@@ -224,7 +224,7 @@ func (ts *APITestSuite) TestGateway() {
 					"tx_ok_count": 10,
 				},
 			}
-			assert.NoError(storage.SaveMetricsForInterval(context.Background(), storage.RedisPool(), storage.AggregationMinute, "gw:0102030405060708", metrics))
+			assert.NoError(storage.SaveMetricsForInterval(context.Background(), storage.AggregationMinute, "gw:0102030405060708", metrics))
 
 			start, _ := ptypes.TimestampProto(now.Truncate(time.Minute))
 			end, _ := ptypes.TimestampProto(now)

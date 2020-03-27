@@ -48,5 +48,5 @@ theme = "chirpstack-hugo-theme"
     weight = 6
 
 [params]
-version = "3.10.0"
+version = "3.9.0"
 component = "chirpstack-application-server"

@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brocaar/chirpstack-application-server/internal/test"
 	"github.com/stretchr/testify/require"
 )
 
@@ -362,13 +363,13 @@ func (ts *StorageTestSuite) TestMetrics() {
 			assert := require.New(t)
 			assert.NoError(SetTimeLocation(tst.LocationName))
 
-			RedisClient().FlushAll()
+			test.MustFlushRedis(RedisPool())
 
 			for _, metrics := range tst.SaveMetrics {
-				assert.NoError(SaveMetricsForInterval(context.Background(), tst.Interval, "metrics_test", metrics))
+				assert.NoError(SaveMetricsForInterval(context.Background(), RedisPool(), tst.Interval, "metrics_test", metrics))
 			}
 
-			metrics, err := GetMetrics(context.Background(), tst.Interval, "metrics_test", tst.GetStart, tst.GetEnd)
+			metrics, err := GetMetrics(context.Background(), RedisPool(), tst.Interval, "metrics_test", tst.GetStart, tst.GetEnd)
 			assert.NoError(err)
 			assert.EqualValues(tst.GetMetrics, metrics)
 		})

@@ -23,7 +23,7 @@ func TestEventLog(t *testing.T) {
 	conf := test.GetConfig()
 	assert.NoError(storage.Setup(conf))
 
-	storage.RedisClient().FlushAll()
+	test.MustFlushRedis(storage.RedisPool())
 
 	upEvent := pb.UplinkEvent{
 		Data: []byte{0x01, 0x02, 0x03, 0x03},

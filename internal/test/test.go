@@ -3,6 +3,7 @@ package test
 import (
 	"os"
 
+	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
 	migrate "github.com/rubenv/sql-migrate"
 	log "github.com/sirupsen/logrus"
@@ -66,6 +67,15 @@ func MustResetDB(db *sqlx.DB) {
 		log.Fatal(err)
 	}
 	if _, err := migrate.Exec(db.DB, "postgres", m, migrate.Up); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// MustFlushRedis flushes the Redis storage.
+func MustFlushRedis(p *redis.Pool) {
+	c := p.Get()
+	defer c.Close()
+	if _, err := c.Do("FLUSHALL"); err != nil {
 		log.Fatal(err)
 	}
 }

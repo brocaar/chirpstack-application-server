@@ -519,7 +519,7 @@ func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsReques
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad interval: %s", req.Interval)
 	}
 
-	metrics, err := storage.GetMetrics(ctx, storage.AggregationInterval(strings.ToUpper(req.Interval)), "gw:"+gatewayID.String(), start, end)
+	metrics, err := storage.GetMetrics(ctx, storage.RedisPool(), storage.AggregationInterval(strings.ToUpper(req.Interval)), "gw:"+gatewayID.String(), start, end)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}

@@ -6,11 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/brocaar/chirpstack-application-server/internal/logging"
 )
 
 var organizationNameRegexp = regexp.MustCompile(`^[\w-]+$`)

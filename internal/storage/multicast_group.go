@@ -38,8 +38,20 @@ type MulticastGroupListItem struct {
 	ServiceProfileName string    `db:"service_profile_name"`
 }
 
+// Validate validates the service-profile data.
+func (mg MulticastGroup) Validate() error {
+	if strings.TrimSpace(mg.Name) == "" {
+		return ErrMulticastGroupInvalidName
+	}
+	return nil
+}
+
 // CreateMulticastGroup creates the given multicast-group.
 func CreateMulticastGroup(ctx context.Context, db sqlx.Ext, mg *MulticastGroup) error {
+	if err := mg.Validate(); err != nil {
+		return errors.Wrap(err, "validate error")
+	}
+
 	mgID, err := uuid.NewV4()
 	if err != nil {
 		return errors.Wrap(err, "new uuid v4 error")
@@ -146,6 +158,10 @@ func GetMulticastGroup(ctx context.Context, db sqlx.Queryer, id uuid.UUID, forUp
 
 // UpdateMulticastGroup updates the given multicast-group.
 func UpdateMulticastGroup(ctx context.Context, db sqlx.Ext, mg *MulticastGroup) error {
+	if err := mg.Validate(); err != nil {
+		return errors.Wrap(err, "validate error")
+	}
+
 	mgID, err := uuid.FromBytes(mg.MulticastGroup.Id)
 	if err != nil {
 		return errors.Wrap(err, "uuid from bytes error")

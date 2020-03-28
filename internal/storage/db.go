@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/go-redis/redis/v7"
+	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
@@ -13,11 +13,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// redisClient holds the Redis client.
-var redisClient *redis.Client
+// redisPool holds Redis connection pool.
+var redisPool *redis.Pool
 
 // db holds the PostgreSQL connection pool.
 var db *DBLogger
+
+const (
+	redisDialWriteTimeout = time.Second
+	redisDialReadTimeout  = time.Minute
+	onBorrowPingInterval  = time.Minute
+)
 
 // DBLogger is a DB wrapper which logs the executed sql queries and their
 // duration.
@@ -113,9 +119,9 @@ func DB() *DBLogger {
 	return db
 }
 
-// RedisClient returns the RedisClient.
-func RedisClient() *redis.Client {
-	return redisClient
+// RedisPool returns the RedisPool object.
+func RedisPool() *redis.Pool {
+	return redisPool
 }
 
 // Transaction wraps the given function in a transaction. In case the given

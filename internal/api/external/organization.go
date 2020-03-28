@@ -93,47 +93,37 @@ func (a *OrganizationAPI) List(ctx context.Context, req *pb.ListOrganizationRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	filters := storage.OrganizationFilters{
-		Search: req.Search,
-		Limit:  int(req.Limit),
-		Offset: int(req.Offset),
-	}
-
-	sub, err := a.validator.GetSubject(ctx)
+	isAdmin, err := a.validator.GetIsAdmin(ctx)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	switch sub {
-	case auth.SubjectUser:
-		isAdmin, err := a.validator.GetIsAdmin(ctx)
+	var count int
+	var orgs []storage.Organization
+
+	if isAdmin {
+		count, err = storage.GetOrganizationCount(ctx, storage.DB(), req.Search)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
+		orgs, err = storage.GetOrganizations(ctx, storage.DB(), int(req.Limit), int(req.Offset), req.Search)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+	} else {
 		username, err := a.validator.GetUsername(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
-
-		if !isAdmin {
-			filters.Username = username
+		count, err = storage.GetOrganizationCountForUser(ctx, storage.DB(), username, req.Search)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
 		}
-	case auth.SubjectAPIKey:
-		// Nothing to do as the validator function already validated that the
-		// API key must be a global admin key.
-	default:
-		return nil, grpc.Errorf(codes.Unauthenticated, "invalid token subject: %s", err)
-	}
-
-	count, err := storage.GetOrganizationCount(ctx, storage.DB(), filters)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	orgs, err := storage.GetOrganizations(ctx, storage.DB(), filters)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
+		orgs, err = storage.GetOrganizationsForUser(ctx, storage.DB(), username, int(req.Limit), int(req.Offset), req.Search)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
 	}
 
 	resp := pb.ListOrganizationResponse{

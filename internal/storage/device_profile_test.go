@@ -130,16 +130,14 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 			assert.Equal(dp, dpGet)
 		})
 
-		t.Run("Get all", func(t *testing.T) {
+		t.Run("GetDeviceProfiles", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{})
+			count, err := GetDeviceProfileCount(context.Background(), ts.Tx())
 			assert.NoError(err)
 			assert.Equal(1, count)
 
-			dps, err := GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
-				Limit: 10,
-			})
+			dps, err := GetDeviceProfiles(context.Background(), ts.Tx(), 10, 0)
 			assert.NoError(err)
 			assert.Len(dps, 1)
 			assert.Equal(dp.Name, dps[0].Name)
@@ -148,62 +146,42 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 			assert.Equal(dpID, dps[0].DeviceProfileID)
 		})
 
-		t.Run("Get for organization ID", func(t *testing.T) {
+		t.Run("GetDeviceProfilesForOrganizationID", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
-				OrganizationID: org.ID,
-			})
+			count, err := GetDeviceProfileCountForOrganizationID(context.Background(), ts.Tx(), org.ID)
 			assert.NoError(err)
 			assert.Equal(1, count)
 
-			count, err = GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
-				OrganizationID: org.ID + 1,
-			})
+			count, err = GetDeviceProfileCountForOrganizationID(context.Background(), ts.Tx(), org.ID+1)
 			assert.NoError(err)
 			assert.Equal(0, count)
 
-			dps, err := GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
-				OrganizationID: org.ID,
-				Limit:          10,
-			})
+			dps, err := GetDeviceProfilesForOrganizationID(context.Background(), ts.Tx(), org.ID, 10, 0)
 			assert.NoError(err)
 			assert.Len(dps, 1)
 
-			dps, err = GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
-				OrganizationID: org.ID + 1,
-				Limit:          10,
-			})
+			dps, err = GetDeviceProfilesForOrganizationID(context.Background(), ts.Tx(), org.ID+1, 10, 0)
 			assert.NoError(err)
 			assert.Len(dps, 0)
 		})
 
-		t.Run("Get for username", func(t *testing.T) {
+		t.Run("GetDeviceProfilesForUser", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
-				Username: u.Username,
-			})
+			count, err := GetDeviceProfileCountForUser(context.Background(), ts.Tx(), u.Username)
 			assert.NoError(err)
 			assert.Equal(1, count)
 
-			count, err = GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
-				Username: "fakeuser",
-			})
+			count, err = GetDeviceProfileCountForUser(context.Background(), ts.Tx(), "fakeuser")
 			assert.NoError(err)
 			assert.Equal(0, count)
 
-			dps, err := GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
-				Username: u.Username,
-				Limit:    10,
-			})
+			dps, err := GetDeviceProfilesForUser(context.Background(), ts.Tx(), u.Username, 10, 0)
 			assert.NoError(err)
 			assert.Len(dps, 1)
 
-			dps, err = GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
-				Username: "fakeuser",
-				Limit:    10,
-			})
+			dps, err = GetDeviceProfilesForUser(context.Background(), ts.Tx(), "fakeuser", 10, 0)
 			assert.NoError(err)
 			assert.Len(dps, 0)
 		})
@@ -251,33 +229,23 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 			}
 			assert.NoError(CreateApplication(context.Background(), ts.Tx(), &app2))
 
-			t.Run("Get for application ID", func(t *testing.T) {
+			t.Run("GetDeviceProfilesForApplicationID", func(t *testing.T) {
 				assert := require.New(t)
 
-				count, err := GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
-					ApplicationID: app1.ID,
-				})
+				count, err := GetDeviceProfileCountForApplicationID(context.Background(), ts.Tx(), app1.ID)
 				assert.NoError(err)
 				assert.Equal(1, count)
 
-				count, err = GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
-					ApplicationID: app2.ID,
-				})
+				count, err = GetDeviceProfileCountForApplicationID(context.Background(), ts.Tx(), app2.ID)
 				assert.NoError(err)
 				assert.Equal(0, count)
 
-				dps, err := GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
-					ApplicationID: app1.ID,
-					Limit:         10,
-				})
+				dps, err := GetDeviceProfilesForApplicationID(context.Background(), ts.Tx(), app1.ID, 10, 0)
 				assert.NoError(err)
 				assert.Len(dps, 1)
 				assert.Equal(dpID, dps[0].DeviceProfileID)
 
-				dps, err = GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
-					ApplicationID: app2.ID,
-					Limit:         10,
-				})
+				dps, err = GetDeviceProfilesForApplicationID(context.Background(), ts.Tx(), app2.ID, 10, 0)
 				assert.NoError(err)
 				assert.Len(dps, 0)
 			})

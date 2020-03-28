@@ -36,7 +36,7 @@ func (ts *ASTestSuite) SetupSuite() {
 	conf := test.GetConfig()
 	assert.NoError(storage.Setup(conf))
 	test.MustResetDB(storage.DB().DB)
-	storage.RedisClient().FlushAll()
+	test.MustFlushRedis(storage.RedisPool())
 }
 
 func (ts *ASTestSuite) TestApplicationServer() {
@@ -363,7 +363,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		start := time.Now().Truncate(time.Minute)
 		end := time.Now()
 
-		metrics, err := storage.GetMetrics(context.Background(), storage.AggregationMinute, "gw:"+gw.MAC.String(), start, end)
+		metrics, err := storage.GetMetrics(context.Background(), storage.RedisPool(), storage.AggregationMinute, "gw:"+gw.MAC.String(), start, end)
 		assert.NoError(err)
 		assert.Len(metrics, 1)
 

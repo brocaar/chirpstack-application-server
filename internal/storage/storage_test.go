@@ -32,7 +32,7 @@ func (b *DatabaseTestSuiteBase) SetupTest() {
 	b.tx = tx
 
 	test.MustResetDB(DB().DB)
-	RedisClient().FlushAll()
+	test.MustFlushRedis(RedisPool())
 }
 
 // TearDownTest is called after every test.

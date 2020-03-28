@@ -19,6 +19,11 @@ type UserAPI struct {
 	validator auth.Validator
 }
 
+// InternalUserAPI exports the internal User related functions.
+type InternalUserAPI struct {
+	validator auth.Validator
+}
+
 // NewUserAPI creates a new UserAPI.
 func NewUserAPI(validator auth.Validator) *UserAPI {
 	return &UserAPI{
@@ -228,4 +233,160 @@ func (a *UserAPI) UpdatePassword(ctx context.Context, req *pb.UpdateUserPassword
 	}
 
 	return &empty.Empty{}, nil
+}
+
+// NewInternalUserAPI creates a new InternalUserAPI.
+func NewInternalUserAPI(validator auth.Validator) *InternalUserAPI {
+	return &InternalUserAPI{
+		validator: validator,
+	}
+}
+
+// Login validates the login request and returns a JWT token.
+func (a *InternalUserAPI) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	jwt, err := storage.LoginUser(ctx, storage.DB(), req.Username, req.Password)
+	if nil != err {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &pb.LoginResponse{Jwt: jwt}, nil
+}
+
+type claims struct {
+	Username string `json:"username"`
+}
+
+// Profile returns the user profile.
+func (a *InternalUserAPI) Profile(ctx context.Context, req *empty.Empty) (*pb.ProfileResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateActiveUser()); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	username, err := a.validator.GetUsername(ctx)
+	if nil != err {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	// Get the user id based on the username.
+	user, err := storage.GetUserByUsername(ctx, storage.DB(), username)
+	if nil != err {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	prof, err := storage.GetProfile(ctx, storage.DB(), user.ID)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	resp := pb.ProfileResponse{
+		User: &pb.User{
+			Id:         prof.User.ID,
+			Username:   prof.User.Username,
+			SessionTtl: prof.User.SessionTTL,
+			IsAdmin:    prof.User.IsAdmin,
+			IsActive:   prof.User.IsActive,
+		},
+		Settings: &pb.ProfileSettings{
+			DisableAssignExistingUsers: auth.DisableAssignExistingUsers,
+		},
+	}
+
+	for _, org := range prof.Organizations {
+		row := pb.OrganizationLink{
+			OrganizationId:   org.ID,
+			OrganizationName: org.Name,
+			IsAdmin:          org.IsAdmin,
+			IsDeviceAdmin:    org.IsDeviceAdmin,
+			IsGatewayAdmin:   org.IsGatewayAdmin,
+		}
+
+		row.CreatedAt, err = ptypes.TimestampProto(org.CreatedAt)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+		row.UpdatedAt, err = ptypes.TimestampProto(org.UpdatedAt)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		resp.Organizations = append(resp.Organizations, &row)
+	}
+
+	return &resp, nil
+}
+
+// Branding returns UI branding.
+func (a *InternalUserAPI) Branding(ctx context.Context, req *empty.Empty) (*pb.BrandingResponse, error) {
+	resp := pb.BrandingResponse{
+		Logo:         brandingHeader,
+		Registration: brandingRegistration,
+		Footer:       brandingFooter,
+	}
+
+	return &resp, nil
+}
+
+// GlobalSearch performs a global search.
+func (a *InternalUserAPI) GlobalSearch(ctx context.Context, req *pb.GlobalSearchRequest) (*pb.GlobalSearchResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateActiveUser()); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	username, err := a.validator.GetUsername(ctx)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	results, err := storage.GlobalSearch(ctx, storage.DB(), username, isAdmin, req.Search, int(req.Limit), int(req.Offset))
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	var out pb.GlobalSearchResponse
+
+	for _, r := range results {
+		res := pb.GlobalSearchResult{
+			Kind:  r.Kind,
+			Score: float32(r.Score),
+		}
+
+		if r.OrganizationID != nil {
+			res.OrganizationId = *r.OrganizationID
+		}
+		if r.OrganizationName != nil {
+			res.OrganizationName = *r.OrganizationName
+		}
+
+		if r.ApplicationID != nil {
+			res.ApplicationId = *r.ApplicationID
+		}
+		if r.ApplicationName != nil {
+			res.ApplicationName = *r.ApplicationName
+		}
+
+		if r.DeviceDevEUI != nil {
+			res.DeviceDevEui = r.DeviceDevEUI.String()
+		}
+		if r.DeviceName != nil {
+			res.DeviceName = *r.DeviceName
+		}
+
+		if r.GatewayMAC != nil {
+			res.GatewayMac = r.GatewayMAC.String()
+		}
+		if r.GatewayName != nil {
+			res.GatewayName = *r.GatewayName
+		}
+
+		out.Result = append(out.Result, &res)
+	}
+
+	return &out, nil
 }

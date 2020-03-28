@@ -22,7 +22,7 @@ func (ts *APITestSuite) TestApplication() {
 	nsClient := mock.NewClient()
 	networkserver.SetPool(mock.NewPool(nsClient))
 
-	validator := &TestValidator{returnSubject: "user"}
+	validator := &TestValidator{}
 	api := NewApplicationAPI(validator)
 
 	org := storage.Organization{
@@ -37,7 +37,6 @@ func (ts *APITestSuite) TestApplication() {
 	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &n))
 
 	sp := storage.ServiceProfile{
-		Name:            "test-sp",
 		OrganizationID:  org.ID,
 		NetworkServerID: n.ID,
 	}

@@ -16,8 +16,6 @@ func (ts *APITestSuite) TestOrganization() {
 	api := NewOrganizationAPI(validator)
 	userAPI := NewUserAPI(validator)
 
-	validator.returnSubject = "user"
-
 	ts.T().Run("Create with invalid name", func(t *testing.T) {
 		assert := require.New(t)
 

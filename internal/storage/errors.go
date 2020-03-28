@@ -36,7 +36,6 @@ var (
 	ErrInvalidEmail                    = errors.New("invalid e-mail")
 	ErrInvalidGatewayDiscoveryInterval = errors.New("invalid gateway-discovery interval, it must be greater than 0")
 	ErrDeviceProfileInvalidName        = errors.New("invalid device-profile name")
-	ErrServiceProfileInvalidName        = errors.New("invalid service-profile name")
 )
 
 func handlePSQLError(action Action, err error, description string) error {

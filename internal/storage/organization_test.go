@@ -56,7 +56,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 		t.Run("GetCount", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetOrganizationCount(context.Background(), DB(), OrganizationFilters{})
+			count, err := GetOrganizationCount(context.Background(), DB(), "")
 			assert.NoError(err)
 			assert.Equal(2, count) // first org is created by migration
 		})
@@ -64,9 +64,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 		t.Run("GetOrganizations", func(t *testing.T) {
 			assert := require.New(t)
 
-			items, err := GetOrganizations(context.Background(), DB(), OrganizationFilters{
-				Limit: 10,
-			})
+			items, err := GetOrganizations(context.Background(), DB(), 10, 0, "")
 			assert.NoError(err)
 
 			assert.Len(items, 2)
@@ -152,16 +150,11 @@ func (ts *StorageTestSuite) TestOrganization() {
 			t.Run("GetCountForUser", func(t *testing.T) {
 				assert := require.New(t)
 
-				c, err := GetOrganizationCount(context.Background(), DB(), OrganizationFilters{
-					Username: user.Username,
-				})
+				c, err := GetOrganizationCountForUser(context.Background(), DB(), user.Username, "")
 				assert.NoError(err)
 				assert.Equal(0, c)
 
-				orgs, err := GetOrganizations(context.Background(), DB(), OrganizationFilters{
-					Username: user.Username,
-					Limit:    10,
-				})
+				orgs, err := GetOrganizationsForUser(context.Background(), DB(), user.Username, 10, 0, "")
 				assert.NoError(err)
 				assert.Len(orgs, 0)
 			})
@@ -171,16 +164,11 @@ func (ts *StorageTestSuite) TestOrganization() {
 
 				assert.NoError(CreateOrganizationUser(context.Background(), DB(), org.ID, user.ID, false, true, true))
 
-				c, err := GetOrganizationCount(context.Background(), DB(), OrganizationFilters{
-					Username: user.Username,
-				})
+				c, err := GetOrganizationCountForUser(context.Background(), DB(), user.Username, "")
 				assert.NoError(err)
 				assert.Equal(1, c)
 
-				orgs, err := GetOrganizations(context.Background(), DB(), OrganizationFilters{
-					Username: user.Username,
-					Limit:    10,
-				})
+				orgs, err := GetOrganizationsForUser(context.Background(), DB(), user.Username, 10, 0, "")
 				assert.NoError(err)
 				assert.Len(orgs, 1)
 				assert.Equal(org.ID, orgs[0].ID)

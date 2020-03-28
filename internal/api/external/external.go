@@ -82,7 +82,7 @@ func setupAPI(conf config.Config) error {
 	pb.RegisterDeviceQueueServiceServer(grpcServer, NewDeviceQueueAPI(validator))
 	pb.RegisterDeviceServiceServer(grpcServer, NewDeviceAPI(validator))
 	pb.RegisterUserServiceServer(grpcServer, NewUserAPI(validator))
-	pb.RegisterInternalServiceServer(grpcServer, NewInternalAPI(validator))
+	pb.RegisterInternalServiceServer(grpcServer, NewInternalUserAPI(validator))
 	pb.RegisterGatewayServiceServer(grpcServer, NewGatewayAPI(validator))
 	pb.RegisterGatewayProfileServiceServer(grpcServer, NewGatewayProfileAPI(validator))
 	pb.RegisterOrganizationServiceServer(grpcServer, NewOrganizationAPI(validator))

@@ -22,7 +22,7 @@ func (ts *APITestSuite) TestDeviceProfile() {
 	nsClient := mock.NewClient()
 	networkserver.SetPool(mock.NewPool(nsClient))
 
-	validator := &TestValidator{returnSubject: "user"}
+	validator := &TestValidator{}
 	api := NewDeviceProfileServiceAPI(validator)
 
 	n := storage.NetworkServer{

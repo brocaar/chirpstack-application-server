@@ -3,14 +3,12 @@ package storage
 import (
 	"context"
 	"regexp"
-	"strings"
 	"time"
 
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/brocaar/chirpstack-application-server/internal/logging"
 )
 
 var organizationNameRegexp = regexp.MustCompile(`^[\w-]+$`)
@@ -89,98 +87,116 @@ func GetOrganization(ctx context.Context, db sqlx.Queryer, id int64) (Organizati
 	return org, nil
 }
 
-// OrganizationFilters provides filters for filtering organizations.
-type OrganizationFilters struct {
-	Username string `db:"username"`
-	Search   string `db:"search"`
-
-	// Limit and Offset are added for convenience so that this struct can
-	// be given as the arguments.
-	Limit  int `db:"limit"`
-	Offset int `db:"offset"`
-}
-
-// SQL returns the SQL filters.
-func (f OrganizationFilters) SQL() string {
-	var filters []string
-
-	if f.Username != "" {
-		filters = append(filters, "u.username = :username")
-	}
-
-	if f.Search != "" {
-		filters = append(filters, "o.display_name ilike :search")
-	}
-
-	if len(filters) == 0 {
-		return ""
-	}
-
-	return "where " + strings.Join(filters, " and ")
-}
-
 // GetOrganizationCount returns the total number of organizations.
-func GetOrganizationCount(ctx context.Context, db sqlx.Queryer, filters OrganizationFilters) (int, error) {
-	if filters.Search != "" {
-		filters.Search = "%" + filters.Search + "%"
-	}
-
-	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
-		select
-			count(distinct o.*)
-		from
-			organization o
-		left join organization_user ou
-			on o.id = ou.organization_id
-		left join "user" u
-			on ou.user_id = u.id
-	`+filters.SQL(), filters)
-	if err != nil {
-		return 0, errors.Wrap(err, "named query error")
-	}
-
+func GetOrganizationCount(ctx context.Context, db sqlx.Queryer, search string) (int, error) {
 	var count int
-	err = sqlx.Get(db, &count, query, args...)
-	if err != nil {
-		return 0, handlePSQLError(Select, err, "select error")
+
+	if search != "" {
+		search = "%" + search + "%"
 	}
 
+	err := sqlx.Get(db, &count, `
+		select count(*)
+		from organization
+		where
+			($1 != '' and display_name ilike $1)
+			or ($1 = '')`,
+		search,
+	)
+	if err != nil {
+		return count, handlePSQLError(Select, err, "select error")
+	}
 	return count, nil
 }
 
-// GetOrganizations returns a slice of organizations, sorted by name.
-func GetOrganizations(ctx context.Context, db sqlx.Queryer, filters OrganizationFilters) ([]Organization, error) {
-	if filters.Search != "" {
-		filters.Search = "%" + filters.Search + "%"
+// GetOrganizationCountForUser returns the number of organizations to which
+// the given user is member of.
+func GetOrganizationCountForUser(ctx context.Context, db sqlx.Queryer, username string, search string) (int, error) {
+	var count int
+
+	if search != "" {
+		search = "%" + search + "%"
 	}
 
-	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
+	err := sqlx.Get(db, &count, `
 		select
-			o.*
-		from
-			organization o
-		left join organization_user ou
-			on o.id = ou.organization_id
-		left join "user" u
-			on ou.user_id = u.id
-	`+filters.SQL()+`
-		group by
-			o.id
-		order by
-			o.display_name
-		limit :limit
-		offset :offset
-	`, filters)
+			count(o.*)
+		from organization o
+		inner join organization_user ou
+			on ou.organization_id = o.id
+		inner join "user" u
+			on u.id = ou.user_id
+		where
+			u.username = $1
+			and (
+				($2 != '' and o.display_name ilike $2)
+				or ($2 = '')
+			)`,
+		username,
+		search,
+	)
 	if err != nil {
-		return nil, errors.Wrap(err, "named query error")
+		return count, handlePSQLError(Select, err, "select error")
+	}
+	return count, nil
+}
+
+// GetOrganizations returns a slice of organizations, sorted by name and
+// respecting the given limit and offset.
+func GetOrganizations(ctx context.Context, db sqlx.Queryer, limit, offset int, search string) ([]Organization, error) {
+	var orgs []Organization
+
+	if search != "" {
+		search = "%" + search + "%"
 	}
 
-	var orgs []Organization
-	err = sqlx.Select(db, &orgs, query, args...)
+	err := sqlx.Select(db, &orgs, `
+		select *
+		from organization
+		where
+			($3 != '' and display_name ilike $3)
+			or ($3 = '')
+		order by display_name
+		limit $1 offset $2`, limit, offset, search)
 	if err != nil {
 		return nil, handlePSQLError(Select, err, "select error")
 	}
+	return orgs, nil
+}
 
+// GetOrganizationsForUser returns a slice of organizations to which the given
+// user is member of.
+func GetOrganizationsForUser(ctx context.Context, db sqlx.Queryer, username string, limit, offset int, search string) ([]Organization, error) {
+	var orgs []Organization
+
+	if search != "" {
+		search = "%" + search + "%"
+	}
+
+	err := sqlx.Select(db, &orgs, `
+		select
+			o.*
+		from organization o
+		inner join organization_user ou
+			on ou.organization_id = o.id
+		inner join "user" u
+			on u.id = ou.user_id
+		where
+			u.username = $1
+			and (
+				($4 != '' and o.display_name ilike $4)
+				or ($4 = '')
+			)
+		order by o.display_name
+		limit $2 offset $3`,
+		username,
+		limit,
+		offset,
+		search,
+	)
+	if err != nil {
+		return nil, handlePSQLError(Select, err, "select error")
+	}
 	return orgs, nil
 }
 

@@ -18,7 +18,6 @@ import Tune from "mdi-material-ui/Tune";
 import Settings from "mdi-material-ui/Settings";
 import Rss from "mdi-material-ui/Rss";
 import AccountDetails from "mdi-material-ui/AccountDetails";
-import KeyVariant from "mdi-material-ui/KeyVariant";
 
 import AutocompleteSelect from "./AutocompleteSelect";
 import SessionStore from "../stores/SessionStore";
@@ -181,12 +180,6 @@ class SideNav extends Component {
                 <Account />
               </ListItemIcon>
               <ListItemText primary="All users" />
-            </ListItem>
-            <ListItem button component={Link} to="/api-keys">
-              <ListItemIcon>
-                <KeyVariant />
-              </ListItemIcon>
-              <ListItemText primary="API keys" />
             </ListItem>
           </List>
           <Divider />

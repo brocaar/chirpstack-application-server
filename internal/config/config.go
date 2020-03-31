@@ -20,8 +20,10 @@ type Config struct {
 	} `mapstructure:"postgresql"`
 
 	Redis struct {
-		URL      string `mapstructure:"url"`
-		PoolSize int    `mapstructure:"pool_size"`
+		URL        string `mapstructure:"url"`
+		Cluster    bool   `mapstructure:"cluster"`
+		MasterName string `mapstructure:"master_name"`
+		PoolSize   int    `mapstructure:"pool_size"`
 	} `mapstructure:"redis"`
 
 	ApplicationServer struct {

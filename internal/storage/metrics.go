@@ -24,7 +24,7 @@ const (
 )
 
 const (
-	metricsKeyTempl = "lora:as:metrics:%s:%s:%d" // metrics key (identifier | aggregation | timestamp)
+	metricsKeyTempl = "lora:as:metrics:{%s}:%s:%d" // metrics key (identifier | aggregation | timestamp)
 
 )
 

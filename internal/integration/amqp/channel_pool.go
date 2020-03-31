@@ -64,7 +64,7 @@ func (p *pool) connect() {
 		p.conn.NotifyClose(closeChan)
 
 		go func() {
-			for _ = range closeChan {
+			for range closeChan {
 				p.connect()
 			}
 		}()

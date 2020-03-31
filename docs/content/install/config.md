@@ -143,20 +143,22 @@ max_idle_connections=2
 # https://www.iana.org/assignments/uri-schemes/prov/redis
 url="redis://localhost:6379"
 
-# Max idle connections in the pool.
-max_idle=10
-
-# Idle timeout.
+# Redis Cluster.
 #
-# Close connections after remaining idle for this duration. If the value
-# is zero, then idle connections are not closed. You should set
-# the timeout to a value less than the server's timeout.
-idle_timeout="5m0s"
+# Set this to true when the provided URL is pointing to a Redis Cluster
+# instance.
+cluster=false
 
-# Max active connections in the pool.
+# The master name.
 #
-# When zero, there is no limit on the number of connections in the pool.
-max_active=0
+# Set the master name when the provided URL is pointing to a Redis Sentinel
+# instance.
+master_name=""
+
+# Connection pool size.
+#
+# Default is 10 connections per every CPU.
+pool_size=0
 
 
 # Application-server settings.

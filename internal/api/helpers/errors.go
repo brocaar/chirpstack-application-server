@@ -31,6 +31,7 @@ var errToCode = map[error]codes.Code{
 	influxdb.ErrInvalidPrecision:               codes.InvalidArgument,
 }
 
+// ErrToRPCError converts the given error into a gRPC error.
 func ErrToRPCError(err error) error {
 	cause := errors.Cause(err)
 

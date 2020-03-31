@@ -47,7 +47,7 @@ var (
 // Setup configures the API package.
 func Setup(conf config.Config) error {
 	if conf.ApplicationServer.ExternalAPI.JWTSecret == "" {
-		return errors.New("jwt_secret must be set!")
+		return errors.New("jwt_secret must be set")
 	}
 
 	brandingHeader = conf.ApplicationServer.Branding.Header

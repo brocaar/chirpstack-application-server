@@ -50,6 +50,7 @@ func UnaryServerCtxIDInterceptor(ctx context.Context, req interface{}, info *grp
 	return handler(ctx, req)
 }
 
+// UnaryClientCtxIDInterceptor logs the context id from a RPC response.
 func UnaryClientCtxIDInterceptor(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	// read reasponse meta-data (set by remote server)
 	var header metadata.MD

@@ -337,7 +337,7 @@ func (f *FUOTADeploymentAPI) GetDeploymentDevice(ctx context.Context, req *pb.Ge
 	return &resp, nil
 }
 
-// ListDevices lists the devices (and status) for the given fuota deployment ID.
+// ListDeploymentDevices lists the devices (and status) for the given fuota deployment ID.
 func (f *FUOTADeploymentAPI) ListDeploymentDevices(ctx context.Context, req *pb.ListFUOTADeploymentDevicesRequest) (*pb.ListFUOTADeploymentDevicesResponse, error) {
 	fuotaDeploymentID, err := uuid.FromString(req.FuotaDeploymentId)
 	if err != nil {

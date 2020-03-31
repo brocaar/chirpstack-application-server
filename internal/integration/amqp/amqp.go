@@ -47,38 +47,47 @@ func New(m marshaler.Type, conf config.IntegrationAMQPConfig) (*Integration, err
 	return &i, nil
 }
 
+// SendDataUp sends a DataUpPayload.
 func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl pb.UplinkEvent) error {
 	return i.publishEvent(ctx, pl.ApplicationId, pl.DevEui, "up", &pl)
 }
 
+// SendJoinNotification sends a JoinNotification.
 func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error {
 	return i.publishEvent(ctx, pl.ApplicationId, pl.DevEui, "join", &pl)
 }
 
+// SendACKNotification sends an ACKNotification.
 func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]string, pl pb.AckEvent) error {
 	return i.publishEvent(ctx, pl.ApplicationId, pl.DevEui, "ack", &pl)
 }
 
+// SendErrorNotification sends an ErrorNotification.
 func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error {
 	return i.publishEvent(ctx, pl.ApplicationId, pl.DevEui, "error", &pl)
 }
 
+// SendStatusNotification sends a StatusNotification.
 func (i *Integration) SendStatusNotification(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error {
 	return i.publishEvent(ctx, pl.ApplicationId, pl.DevEui, "status", &pl)
 }
 
+// SendLocationNotification sends a LocationNotification.
 func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error {
 	return i.publishEvent(ctx, pl.ApplicationId, pl.DevEui, "location", &pl)
 }
 
+// SendTxAckNotification sends a TxAckNotification.
 func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
 	return i.publishEvent(ctx, pl.ApplicationId, pl.DevEui, "txack", &pl)
 }
 
+// DataDownChan returns nil
 func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	return nil
 }
 
+// Close closes the integration.
 func (i *Integration) Close() error {
 	return i.chPool.close()
 }

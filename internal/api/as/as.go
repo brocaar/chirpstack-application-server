@@ -146,6 +146,7 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 	return &empty.Empty{}, nil
 }
 
+// HandleTxAck handles a tx acknowledgement.
 func (a *ApplicationServerAPI) HandleTxAck(ctx context.Context, req *as.HandleTxAckRequest) (*empty.Empty, error) {
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEui)

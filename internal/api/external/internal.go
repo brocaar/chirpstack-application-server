@@ -175,6 +175,7 @@ func (a *InternalAPI) GlobalSearch(ctx context.Context, req *pb.GlobalSearchRequ
 	return &out, nil
 }
 
+// CreateAPIKey creates the given API key.
 func (a *InternalAPI) CreateAPIKey(ctx context.Context, req *pb.CreateAPIKeyRequest) (*pb.CreateAPIKeyResponse, error) {
 	apiKey := req.GetApiKey()
 
@@ -216,6 +217,7 @@ func (a *InternalAPI) CreateAPIKey(ctx context.Context, req *pb.CreateAPIKeyRequ
 	}, nil
 }
 
+// ListAPIKeys lists the API keys.
 func (a *InternalAPI) ListAPIKeys(ctx context.Context, req *pb.ListAPIKeysRequest) (*pb.ListAPIKeysResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateAPIKeysAccess(auth.List, req.GetOrganizationId(), req.GetApplicationId())); err != nil {
@@ -275,6 +277,7 @@ func (a *InternalAPI) ListAPIKeys(ctx context.Context, req *pb.ListAPIKeysReques
 	return &resp, nil
 }
 
+// DeleteAPIKey deletes the given API key.
 func (a *InternalAPI) DeleteAPIKey(ctx context.Context, req *pb.DeleteAPIKeyRequest) (*empty.Empty, error) {
 	apiKeyID, err := uuid.FromString(req.Id)
 	if err != nil {

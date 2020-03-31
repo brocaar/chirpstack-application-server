@@ -129,7 +129,7 @@ func JSONToBinary(b []byte) ([]byte, error) {
 
 	// DigitalInput
 	channels := make([]uint8, 0, len(lpp.DigitalInput))
-	for k, _ := range lpp.DigitalInput {
+	for k := range lpp.DigitalInput {
 		channels = append(channels, k)
 	}
 	sort.Slice(channels, func(i, j int) bool { return channels[i] < channels[j] })
@@ -141,7 +141,7 @@ func JSONToBinary(b []byte) ([]byte, error) {
 
 	// DigitalOutput
 	channels = make([]uint8, 0, len(lpp.DigitalOutput))
-	for k, _ := range lpp.DigitalOutput {
+	for k := range lpp.DigitalOutput {
 		channels = append(channels, k)
 	}
 	sort.Slice(channels, func(i, j int) bool { return channels[i] < channels[j] })
@@ -153,7 +153,7 @@ func JSONToBinary(b []byte) ([]byte, error) {
 
 	// AnalogInput
 	channels = make([]uint8, 0, len(lpp.AnalogInput))
-	for k, _ := range lpp.AnalogInput {
+	for k := range lpp.AnalogInput {
 		channels = append(channels, k)
 	}
 	sort.Slice(channels, func(i, j int) bool { return channels[i] < channels[j] })
@@ -165,7 +165,7 @@ func JSONToBinary(b []byte) ([]byte, error) {
 
 	// AnalogOutput
 	channels = make([]uint8, 0, len(lpp.AnalogOutput))
-	for k, _ := range lpp.AnalogOutput {
+	for k := range lpp.AnalogOutput {
 		channels = append(channels, k)
 	}
 	sort.Slice(channels, func(i, j int) bool { return channels[i] < channels[j] })
@@ -177,7 +177,7 @@ func JSONToBinary(b []byte) ([]byte, error) {
 
 	// IlluminanceSensor
 	channels = make([]uint8, 0, len(lpp.IlluminanceSensor))
-	for k, _ := range lpp.IlluminanceSensor {
+	for k := range lpp.IlluminanceSensor {
 		channels = append(channels, k)
 	}
 	sort.Slice(channels, func(i, j int) bool { return channels[i] < channels[j] })
@@ -189,7 +189,7 @@ func JSONToBinary(b []byte) ([]byte, error) {
 
 	// PresenceSensor
 	channels = make([]uint8, 0, len(lpp.PresenceSensor))
-	for k, _ := range lpp.PresenceSensor {
+	for k := range lpp.PresenceSensor {
 		channels = append(channels, k)
 	}
 	sort.Slice(channels, func(i, j int) bool { return channels[i] < channels[j] })
@@ -201,7 +201,7 @@ func JSONToBinary(b []byte) ([]byte, error) {
 
 	// TemperatureSensor
 	channels = make([]uint8, 0, len(lpp.TemperatureSensor))
-	for k, _ := range lpp.TemperatureSensor {
+	for k := range lpp.TemperatureSensor {
 		channels = append(channels, k)
 	}
 	sort.Slice(channels, func(i, j int) bool { return channels[i] < channels[j] })
@@ -213,7 +213,7 @@ func JSONToBinary(b []byte) ([]byte, error) {
 
 	// HumiditySensor
 	channels = make([]uint8, 0, len(lpp.HumiditySensor))
-	for k, _ := range lpp.HumiditySensor {
+	for k := range lpp.HumiditySensor {
 		channels = append(channels, k)
 	}
 	sort.Slice(channels, func(i, j int) bool { return channels[i] < channels[j] })
@@ -225,7 +225,7 @@ func JSONToBinary(b []byte) ([]byte, error) {
 
 	// Accelerometer
 	channels = make([]uint8, 0, len(lpp.Accelerometer))
-	for k, _ := range lpp.Accelerometer {
+	for k := range lpp.Accelerometer {
 		channels = append(channels, k)
 	}
 	sort.Slice(channels, func(i, j int) bool { return channels[i] < channels[j] })
@@ -237,7 +237,7 @@ func JSONToBinary(b []byte) ([]byte, error) {
 
 	// Barometer
 	channels = make([]uint8, 0, len(lpp.Barometer))
-	for k, _ := range lpp.Barometer {
+	for k := range lpp.Barometer {
 		channels = append(channels, k)
 	}
 	sort.Slice(channels, func(i, j int) bool { return channels[i] < channels[j] })
@@ -249,7 +249,7 @@ func JSONToBinary(b []byte) ([]byte, error) {
 
 	// Gyrometer
 	channels = make([]uint8, 0, len(lpp.Gyrometer))
-	for k, _ := range lpp.Gyrometer {
+	for k := range lpp.Gyrometer {
 		channels = append(channels, k)
 	}
 	sort.Slice(channels, func(i, j int) bool { return channels[i] < channels[j] })
@@ -261,7 +261,7 @@ func JSONToBinary(b []byte) ([]byte, error) {
 
 	// GPSLocation.
 	channels = make([]uint8, 0, len(lpp.GPSLocation))
-	for k, _ := range lpp.GPSLocation {
+	for k := range lpp.GPSLocation {
 		channels = append(channels, k)
 	}
 	sort.Slice(channels, func(i, j int) bool { return channels[i] < channels[j] })

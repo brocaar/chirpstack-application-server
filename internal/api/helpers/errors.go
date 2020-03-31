@@ -25,11 +25,12 @@ var errToCode = map[error]codes.Code{
 	storage.ErrInvalidEmail:                    codes.InvalidArgument,
 	storage.ErrInvalidGatewayDiscoveryInterval: codes.InvalidArgument,
 	storage.ErrDeviceProfileInvalidName:        codes.InvalidArgument,
-	storage.ErrServiceProfileInvalidName:		codes.InvalidArgument,
+	storage.ErrServiceProfileInvalidName:       codes.InvalidArgument,
 	http.ErrInvalidHeaderName:                  codes.InvalidArgument,
 	influxdb.ErrInvalidPrecision:               codes.InvalidArgument,
 }
 
+// ErrToRPCError converts the given error into a gRPC error.
 func ErrToRPCError(err error) error {
 	cause := errors.Cause(err)
 

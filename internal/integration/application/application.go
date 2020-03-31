@@ -100,6 +100,7 @@ func (i *Integration) SendLocationNotification(ctx context.Context, vars map[str
 	return multi.SendLocationNotification(ctx, vars, pl)
 }
 
+// SendTxAckNotification sends a TxAckNotification.
 func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
 	multi, err := i.getApplicationIntegration(ctx, pl.ApplicationId)
 	if err != nil {

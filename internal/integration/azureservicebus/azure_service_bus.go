@@ -99,6 +99,7 @@ func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	return nil
 }
 
+// Close closes the integration.
 func (i *Integration) Close() error {
 	log.Info("integration/azureservicebus: closing integration")
 	i.cancel()

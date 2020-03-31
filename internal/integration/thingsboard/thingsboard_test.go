@@ -158,7 +158,7 @@ func (ts *IntegrationTestSuite) TestUplink() {
 			assert := require.New(t)
 			assert.NoError(ts.integration.SendDataUp(context.Background(), vars, tst.Payload))
 
-			for _, _ = range tst.ExpectedBodies {
+			for range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests
 				assert.Equal("application/json", req.Header.Get("Content-Type"))
 
@@ -204,7 +204,7 @@ func (ts *IntegrationTestSuite) TestDeviceStatus() {
 			assert := require.New(t)
 			assert.NoError(ts.integration.SendStatusNotification(context.Background(), vars, tst.Payload))
 
-			for _, _ = range tst.ExpectedBodies {
+			for range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests
 				assert.Equal("application/json", req.Header.Get("Content-Type"))
 
@@ -253,7 +253,7 @@ func (ts *IntegrationTestSuite) TestLocation() {
 			assert := require.New(t)
 			assert.NoError(ts.integration.SendLocationNotification(context.Background(), vars, tst.Payload))
 
-			for _, _ = range tst.ExpectedBodies {
+			for range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests
 				assert.Equal("application/json", req.Header.Get("Content-Type"))
 

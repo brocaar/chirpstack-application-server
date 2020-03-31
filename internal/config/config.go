@@ -157,7 +157,7 @@ type IntegrationMQTTConfig struct {
 	TxAckRetainedMessage    bool          `mapstructure:"tx_ack_retained_message"`
 }
 
-// IntegrationAWSConfig holds the AWS SNS integration configuration.
+// IntegrationAWSSNSConfig holds the AWS SNS integration configuration.
 type IntegrationAWSSNSConfig struct {
 	AWSRegion          string `mapstructure:"aws_region"`
 	AWSAccessKeyID     string `mapstructure:"aws_access_key_id"`

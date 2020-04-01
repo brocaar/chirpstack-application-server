@@ -20,9 +20,15 @@ This makes it possible to generate (and revoke) API keys directly from within
 the web-interface. Internally, a lot of authorization code has been cleaned up
 to remove duplication and make the code easier to maintain. ([#421](https://github.com/brocaar/chirpstack-application-server/pull/421))
 
+#### Redis Cluster and Sentinel
+
+This release introduces the support for [Redis Cluster](https://redis.io/topics/cluster-tutorial)
+and [Redis Sentinel](https://redis.io/topics/sentinel). 
+
 ### Improvements
 
 * Use server time instead of gateway reported time in stats. ([#440](https://github.com/brocaar/chirpstack-application-server/pull/440/))
+* Add "Last seen" column to gateway list view. ([#444](https://github.com/brocaar/chirpstack-application-server/pull/444))
 
 ### Bugfixes
 
@@ -30,6 +36,7 @@ to remove duplication and make the code easier to maintain. ([#421](https://gith
 * Fix AMQP re-connect issue.
 * Fix setting `updated_at` field on organization user update. ([#430](https://github.com/brocaar/chirpstack-application-server/pull/430))
 * Fix create service-profile with empty name. ([#436](https://github.com/brocaar/chirpstack-application-server/pull/436/))
+* Fix closing WebSocket connections. ([#373](https://github.com/brocaar/chirpstack-application-server/issues/373))
 
 ## v3.9.0
 

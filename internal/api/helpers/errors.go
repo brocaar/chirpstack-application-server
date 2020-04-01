@@ -26,6 +26,7 @@ var errToCode = map[error]codes.Code{
 	storage.ErrInvalidGatewayDiscoveryInterval: codes.InvalidArgument,
 	storage.ErrDeviceProfileInvalidName:        codes.InvalidArgument,
 	storage.ErrServiceProfileInvalidName:       codes.InvalidArgument,
+	storage.ErrMulticastGroupInvalidName:       codes.InvalidArgument,
 	http.ErrInvalidHeaderName:                  codes.InvalidArgument,
 	influxdb.ErrInvalidPrecision:               codes.InvalidArgument,
 }

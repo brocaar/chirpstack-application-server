@@ -1,3 +1,4 @@
+
 import { EventEmitter } from "events";
 
 import Swagger from "swagger-client";
@@ -245,7 +246,7 @@ class ApplicationStore extends EventEmitter {
   getThingsBoardIntegration(applicationID, callbackFunc) {
     this.swagger.then(client => {
       client.apis.ApplicationService.GetThingsBoardIntegration({
-        application_id: applicationID, 
+        application_id: applicationID,
       })
         .then(checkStatus)
         .then(resp => {
@@ -306,7 +307,7 @@ class ApplicationStore extends EventEmitter {
   getMyDevicesIntegration(applicationID, callbackFunc) {
     this.swagger.then(client => {
       client.apis.ApplicationService.GetMyDevicesIntegration({
-        application_id: applicationID, 
+        application_id: applicationID,
       })
         .then(checkStatus)
         .then(resp => {
@@ -347,6 +348,66 @@ class ApplicationStore extends EventEmitter {
     });
   }
 
+  createKonkerIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.CreateKonkerIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+        .then(checkStatus)
+        .then(resp =>  {
+          this.integrationNotification("Konker", "created");
+          callbackFunc(resp.obj);
+        })
+      .catch(errorHandler);
+    });
+  }
+
+  getKonkerIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.GetKonkerIntegration({
+        application_id: applicationID,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          callbackFunc(resp.obj);
+        })
+      .catch(errorHandler);
+    });
+  }
+
+  updateKonkerIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.UpdateKonkerIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("Konker", "updated");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  deleteKonkerIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.DeleteKonkerIntegration({
+        application_id: applicationID,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("Konker", "deleted");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
 
   notify(action) {
     dispatcher.dispatch({

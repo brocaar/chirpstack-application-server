@@ -77,6 +77,16 @@ class UpdateIntegration extends Component {
           });
         });
         break;
+      case "konker":
+        ApplicationStore.getKonkerIntegration(this.props.match.params.applicationID, resp => {
+        let integration = resp.integration;
+        integration.kind = "konker";
+
+        this.setState({
+          integration: integration,
+        });
+      });
+      break;
       default:
         break;
     }
@@ -104,6 +114,11 @@ class UpdateIntegration extends Component {
           this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
         });
         break;
+      case "konker":
+        ApplicationStore.updateKonkerIntegration(integration, resp => {
+          this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
+        });
+      break;
       default:
         break;
     }
@@ -129,6 +144,11 @@ class UpdateIntegration extends Component {
           break;
         case "mydevices":
           ApplicationStore.deleteMyDevicesIntegration(this.props.match.params.applicationID, resp => {
+            this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
+          });
+          break;
+        case "konker":
+          ApplicationStore.deleteKonkerIntegration(this.props.match.params.applicationID, resp => {
             this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
           });
           break;

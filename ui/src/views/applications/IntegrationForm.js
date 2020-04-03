@@ -77,7 +77,7 @@ class HTTPIntegrationHeaderForm extends FormComponent {
           </IconButton>
         </Grid>
       </Grid>
-    );    
+    );
   }
 }
 
@@ -430,6 +430,262 @@ class MyDevicesIntegrationForm extends FormComponent {
   }
 }
 
+//Konker
+class KonkerIntegrationHeaderForm extends FormComponent {
+  constructor() {
+    super();
+
+    this.onDelete = this.onDelete.bind(this);
+  }
+
+  onChange(e) {
+    super.onChange(e);
+    this.props.onChange(this.props.index, this.state.object);
+  }
+
+  onDelete(e) {
+    e.preventDefault();
+    this.props.onDelete(this.props.index);
+  }
+
+  render() {
+    if (this.state.object === undefined) {
+      return(<div></div>);
+    }
+
+    return(
+      <Grid container spacing={4}>
+        <Grid item xs={4}>
+          <TextField
+            id="key"
+            label="Header name"
+            margin="normal"
+            value={this.state.object.key || ""}
+            onChange={this.onChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={7}>
+          <TextField
+            id="value"
+            label="Header value"
+            margin="normal"
+            value={this.state.object.value || ""}
+            onChange={this.onChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={1} className={this.props.classes.delete}>
+          <IconButton aria-label="delete" onClick={this.onDelete}>
+            <Delete />
+          </IconButton>
+        </Grid>
+      </Grid>
+    );
+  }
+}
+
+
+KonkerIntegrationHeaderForm = withStyles(styles)(KonkerIntegrationHeaderForm);
+
+
+class KonkerIntegrationForm extends FormComponent {
+  constructor() {
+    super();
+    this.addHeader = this.addHeader.bind(this);
+    this.onDeleteHeader = this.onDeleteHeader.bind(this);
+    this.onChangeHeader = this.onChangeHeader.bind(this);
+  }
+
+  onChange(e) {
+    super.onChange(e);
+    this.props.onChange(this.state.object);
+  }
+
+  addHeader(e) {
+    e.preventDefault();
+
+    let object = this.state.object;
+    if(object.headers === undefined) {
+      object.headers = [{}];
+    } else {
+      object.headers.push({});
+    }
+
+    this.props.onChange(object);
+  }
+
+  onDeleteHeader(index) {
+    let object = this.state.object;
+    object.headers.splice(index, 1);
+    this.props.onChange(object);
+  }
+
+  onChangeHeader(index, header) {
+    let object = this.state.object;
+    object.headers[index] = header;
+    this.props.onChange(object);
+  }
+
+  render() {
+    if (this.state.object === undefined) {
+      return(<div></div>);
+    }
+
+    let headers = [];
+    if (this.state.object.headers !== undefined) {
+      headers = this.state.object.headers.map((h, i) => <KonkerIntegrationHeaderForm key={i} index={i} object={h} onChange={this.onChangeHeader} onDelete={this.onDeleteHeader} />);
+    }
+
+    return(
+      <div>
+        <FormControl fullWidth margin="normal">
+          <FormLabel>Headers</FormLabel>
+          <Grid container spacing={4}>
+            <Grid item xs={4}>
+              <TextField
+                id="key"
+                label="Header name"
+                margin="normal"
+                value={"Content-Type"}
+                onChange={this.onChange}
+                fullWidth
+                />
+            </Grid>
+            <Grid item xs={7}>
+              <TextField
+                id="value"
+                label="Header value"
+                margin="normal"
+                value={"application/json"}
+                onChange={this.onChange}
+                fullWidth
+                />
+              </Grid>
+              <Grid item xs={4}>
+                <TextField
+                  id="key"
+                  label="Header name"
+                  margin="normal"
+                  value={"Authorization"}
+                  onChange={this.onChange}
+                  fullWidth
+                  />
+              </Grid>
+              <Grid item xs={7}>
+                <TextField
+                  id="value"
+                  label="Header value"
+                  margin="normal"
+                  value={"Bearer <TOKEN>"}
+                  onChange={this.onChange}
+                  fullWidth
+                  />
+              </Grid>
+              <Grid item xs={4}>
+                <TextField
+                  id="key"
+                  label="Header name"
+                  margin="normal"
+                  value={"X-Konker-DeviceIdField"}
+                  onChange={this.onChange}
+                  fullWidth
+                  />
+              </Grid>
+              <Grid item xs={7}>
+                <TextField
+                  id="value"
+                  label="Header value"
+                  margin="normal"
+                  value={"deviceName"}
+                  onChange={this.onChange}
+                  fullWidth
+                  />
+              </Grid>
+          </Grid>
+          {headers}
+        </FormControl>
+        <Button variant="outlined" onClick={this.addHeader}>Add header</Button>
+        <FormControl fullWidth margin="normal">
+          <FormLabel>Endpoints</FormLabel>
+          <TextField
+            id=""
+            label="Uplink data URL(s)"
+            placeholder="http://example.com/uplink"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
+            value={"http://data.demo.konkerlabs.net/gateway/data/pub"}
+            onChange={this.onChange}
+            margin="normal"
+            fullWidth
+          />
+          <TextField
+            id="joinNotificationURL"
+            label="Join notification URL(s)"
+            placeholder="http://example.com/join"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
+            value={this.state.object.joinNotificationURL || ""}
+            onChange={this.onChange}
+            margin="normal"
+            fullWidth
+          />
+          <TextField
+            id="statusNotificationURL"
+            label="Device-status notification URL(s)"
+            placeholder="http://example.com/status"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
+            value={this.state.object.statusNotificationURL || ""}
+            onChange={this.onChange}
+            margin="normal"
+            fullWidth
+          />
+          <TextField
+            id="locationNotificationURL"
+            label="Location notification URL(s)"
+            placeholder="http://example.com/location"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
+            value={this.state.object.locationNotificationURL || ""}
+            onChange={this.onChange}
+            margin="normal"
+            fullWidth
+          />
+          <TextField
+            id="ackNotificationURL"
+            label="ACK notification URL(s)"
+            placeholder="http://example.com/ack"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
+            value={this.state.object.ackNotificationURL || ""}
+            onChange={this.onChange}
+            margin="normal"
+            fullWidth
+          />
+          <TextField
+            id="txAckNotificationURL"
+            label="TX ACK notification URL(s)"
+            placeholder="http://example.com/txack"
+            helperText="This notification is sent when the downlink was acknowledged by the LoRa gateway for transmission. Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
+            value={this.state.object.txAckNotificationURL || ""}
+            onChange={this.onChange}
+            margin="normal"
+            fullWidth
+          />
+          <TextField
+            id="errorNotificationURL"
+            label="Error notification URL(s)"
+            placeholder="http://example.com/error"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
+            value={this.state.object.errorNotificationURL || ""}
+            onChange={this.onChange}
+            margin="normal"
+            fullWidth
+          />
+
+        </FormControl>
+      </div>
+    );
+  }
+}
+
+
 
 class IntegrationForm extends FormComponent {
   constructor() {
@@ -450,6 +706,7 @@ class IntegrationForm extends FormComponent {
       {value: "influxdb", label: "InfluxDB integration"},
       {value: "mydevices", label:"myDevices.com"},
       {value: "thingsboard", label: "ThingsBoard.io"},
+      {value: "konker", label: "Konker"},
     ];
 
     callbackFunc(kindOptions);
@@ -479,6 +736,7 @@ class IntegrationForm extends FormComponent {
         {this.state.object.kind === "influxdb" && <InfluxDBIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
         {this.state.object.kind === "thingsboard" && <ThingsBoardIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
         {this.state.object.kind === "mydevices" && <MyDevicesIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
+        {this.state.object.kind === "konker" && <KonkerIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
       </Form>
     );
   }

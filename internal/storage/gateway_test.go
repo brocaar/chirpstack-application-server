@@ -2,240 +2,284 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/lora-app-server/internal/test"
-	"github.com/brocaar/lorawan"
+	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/require"
+
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/lorawan"
 )
 
-func TestGateway(t *testing.T) {
-	conf := test.GetConfig()
+func (ts *StorageTestSuite) TestGateway() {
+	assert := require.New(ts.T())
 
-	Convey("Given a clean database woth a network-server and organization", t, func() {
-		if err := Setup(conf); err != nil {
-			t.Fatal(err)
+	nsClient := mock.NewClient()
+	networkserver.SetPool(mock.NewPool(nsClient))
+
+	n := NetworkServer{
+		Name:   "test-ns",
+		Server: "test-ns:1234",
+	}
+	assert.NoError(CreateNetworkServer(context.Background(), DB(), &n))
+
+	org := Organization{
+		Name: "test-org",
+	}
+	assert.NoError(CreateOrganization(context.Background(), DB(), &org))
+
+	ts.T().Run("Create with invalid name", func(t *testing.T) {
+		assert := require.New(t)
+
+		gw := Gateway{
+			MAC:  lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+			Name: "test gateway",
 		}
-		test.MustResetDB(DB().DB)
+		err := CreateGateway(context.Background(), ts.Tx(), &gw)
+		assert.Equal(ErrGatewayInvalidName, errors.Cause(err))
+	})
 
-		nsClient := mock.NewClient()
-		networkserver.SetPool(mock.NewPool(nsClient))
+	ts.T().Run("Create", func(t *testing.T) {
+		assert := require.New(t)
+		now := time.Now().UTC().Round(time.Second)
 
-		n := NetworkServer{
-			Name:   "test-ns",
-			Server: "test-ns:1234",
+		gw := Gateway{
+			MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+			FirstSeenAt:     &now,
+			LastSeenAt:      &now,
+			Name:            "test-gw",
+			Description:     "test gateway",
+			OrganizationID:  org.ID,
+			Ping:            true,
+			NetworkServerID: n.ID,
+			Latitude:        1,
+			Longitude:       2,
+			Altitude:        3,
+			Tags: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{Valid: true, String: "bar"},
+				},
+			},
+			Metadata: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{Valid: true, String: "bar"},
+				},
+			},
 		}
-		So(CreateNetworkServer(context.Background(), DB(), &n), ShouldBeNil)
+		assert.NoError(CreateGateway(context.Background(), ts.Tx(), &gw))
+		gw.CreatedAt = gw.CreatedAt.Round(time.Millisecond).UTC()
+		gw.UpdatedAt = gw.UpdatedAt.Round(time.Millisecond).UTC()
 
-		org := Organization{
-			Name: "test-org",
-		}
-		So(CreateOrganization(context.Background(), DB(), &org), ShouldBeNil)
+		t.Run("Get", func(t *testing.T) {
+			assert := require.New(t)
 
-		Convey("When creating a gateway with an invalid name", func() {
-			gw := Gateway{
-				MAC:  lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
-				Name: "test gateway",
+			gwGet, err := GetGateway(context.Background(), ts.Tx(), gw.MAC, false)
+			assert.NoError(err)
+
+			gwGet.CreatedAt = gwGet.CreatedAt.Round(time.Millisecond).UTC()
+			gwGet.UpdatedAt = gwGet.CreatedAt.Round(time.Millisecond).UTC()
+			firstSeen := gwGet.FirstSeenAt.UTC()
+			lastSeen := gwGet.LastSeenAt.UTC()
+			gw.FirstSeenAt = &firstSeen
+			gw.LastSeenAt = &lastSeen
+
+			assert.Equal(gw, gwGet)
+		})
+
+		t.Run("Update", func(t *testing.T) {
+			assert := require.New(t)
+
+			gw.Name = "test-gw2"
+			gw.Description = "updated test gateway"
+			gw.Ping = false
+
+			assert.NoError(UpdateGateway(context.Background(), ts.Tx(), &gw))
+			gw.CreatedAt = gw.CreatedAt.Round(time.Millisecond).UTC()
+			gw.UpdatedAt = gw.UpdatedAt.Round(time.Millisecond).UTC()
+
+			gwGet, err := GetGateway(context.Background(), ts.Tx(), gw.MAC, false)
+			assert.NoError(err)
+
+			gwGet.UpdatedAt = gwGet.UpdatedAt.Round(time.Millisecond).UTC()
+			gwGet.CreatedAt = gwGet.CreatedAt.Round(time.Millisecond).UTC()
+			firstSeen := gwGet.FirstSeenAt.UTC()
+			lastSeen := gwGet.LastSeenAt.UTC()
+			gw.FirstSeenAt = &firstSeen
+			gw.LastSeenAt = &lastSeen
+
+			assert.Equal(gw, gwGet)
+		})
+
+		t.Run("Get gateways", func(t *testing.T) {
+			assert := require.New(t)
+
+			c, err := GetGatewayCount(context.Background(), ts.Tx(), GatewayFilters{})
+			assert.NoError(err)
+			assert.Equal(1, c)
+
+			gws, err := GetGateways(context.Background(), ts.Tx(), GatewayFilters{
+				Limit: 10,
+			})
+			assert.NoError(err)
+			assert.Len(gws, 1)
+			assert.Equal(gw.MAC, gws[0].MAC)
+		})
+
+		t.Run("Get get gateways for organization id", func(t *testing.T) {
+			assert := require.New(t)
+
+			c, err := GetGatewayCount(context.Background(), ts.Tx(), GatewayFilters{
+				OrganizationID: org.ID,
+			})
+			assert.NoError(err)
+			assert.Equal(1, c)
+
+			gws, err := GetGateways(context.Background(), ts.Tx(), GatewayFilters{
+				OrganizationID: org.ID,
+				Limit:          10,
+			})
+			assert.NoError(err)
+			assert.Len(gws, 1)
+			assert.Equal(gw.MAC, gws[0].MAC)
+
+			c, err = GetGatewayCount(context.Background(), ts.Tx(), GatewayFilters{
+				OrganizationID: org.ID + 1,
+			})
+			assert.NoError(err)
+			assert.Equal(0, c)
+
+			gws, err = GetGateways(context.Background(), ts.Tx(), GatewayFilters{
+				OrganizationID: org.ID + 1,
+				Limit:          10,
+			})
+			assert.NoError(err)
+			assert.Len(gws, 0)
+		})
+
+		t.Run("Get gateways for username", func(t *testing.T) {
+			assert := require.New(t)
+			user := User{
+				Username: "testuser",
+				IsActive: true,
+				Email:    "foo@bar.com",
 			}
-			err := CreateGateway(context.Background(), DB(), &gw)
+			_, err := CreateUser(context.Background(), DB(), &user, "password123")
+			assert.NoError(err)
 
-			Convey("Then an error is returned", func() {
-				So(err, ShouldNotBeNil)
-				So(errors.Cause(err), ShouldResemble, ErrGatewayInvalidName)
+			c, err := GetGatewayCount(context.Background(), ts.Tx(), GatewayFilters{
+				Username: user.Username,
+			})
+			assert.NoError(err)
+			assert.Equal(0, c)
+
+			gws, err := GetGateways(context.Background(), ts.Tx(), GatewayFilters{
+				Username: user.Username,
+				Limit:    1,
+			})
+			assert.NoError(err)
+			assert.Len(gws, 0)
+
+			assert.NoError(CreateOrganizationUser(context.Background(), DB(), org.ID, user.ID, false, false, false))
+
+			c, err = GetGatewayCount(context.Background(), ts.Tx(), GatewayFilters{
+				Username: "testuser",
+			})
+			assert.NoError(err)
+			assert.Equal(1, c)
+
+			gws, err = GetGateways(context.Background(), ts.Tx(), GatewayFilters{
+				Username: user.Username,
+				Limit:    1,
+			})
+			assert.NoError(err)
+			assert.Len(gws, 1)
+			assert.Equal(gw.MAC, gws[0].MAC)
+		})
+
+		t.Run("Create gateway ping", func(t *testing.T) {
+			assert := require.New(t)
+
+			gwPing := GatewayPing{
+				GatewayMAC: gw.MAC,
+				Frequency:  868100000,
+				DR:         5,
+			}
+			assert.NoError(CreateGatewayPing(context.Background(), ts.Tx(), &gwPing))
+			gwPing.CreatedAt = gwPing.CreatedAt.UTC().Round(time.Millisecond)
+
+			t.Run("Get", func(t *testing.T) {
+				assert := require.New(t)
+
+				gwPingGet, err := GetGatewayPing(context.Background(), ts.Tx(), gwPing.ID)
+				assert.NoError(err)
+				gwPingGet.CreatedAt = gwPingGet.CreatedAt.UTC().Round(time.Millisecond)
+
+				assert.Equal(gwPing, gwPingGet)
+			})
+
+			t.Run("Create ping RX", func(t *testing.T) {
+				assert := require.New(t)
+				now := time.Now().Truncate(time.Millisecond)
+
+				gwPingRX := GatewayPingRX{
+					PingID:     gwPing.ID,
+					GatewayMAC: gw.MAC,
+					ReceivedAt: &now,
+					RSSI:       -10,
+					LoRaSNR:    5.5,
+					Location: GPSPoint{
+						Latitude:  1.12345,
+						Longitude: 1.23456,
+					},
+					Altitude: 10,
+				}
+				assert.NoError(CreateGatewayPingRX(context.Background(), ts.Tx(), &gwPingRX))
+				gwPingRX.CreatedAt = gwPingRX.CreatedAt.UTC().Round(time.Millisecond)
+
+				t.Run("Get ping RX", func(t *testing.T) {
+					assert := require.New(t)
+
+					gw.LastPingID = &gwPing.ID
+					gw.LastPingSentAt = &gwPing.CreatedAt
+					assert.NoError(UpdateGateway(context.Background(), ts.Tx(), &gw))
+
+					rx, err := GetGatewayPingRXForPingID(context.Background(), ts.Tx(), gwPing.ID)
+					assert.NoError(err)
+					assert.Len(rx, 1)
+					assert.Equal(gw.MAC, rx[0].GatewayMAC)
+					assert.True(rx[0].ReceivedAt.Equal(now))
+					assert.Equal(-10, rx[0].RSSI)
+					assert.Equal(5.5, rx[0].LoRaSNR)
+					assert.Equal(GPSPoint{
+						Latitude:  1.12345,
+						Longitude: 1.23456,
+					}, rx[0].Location)
+					assert.Equal(10.0, rx[0].Altitude)
+
+					t.Run("Get last ping and RX", func(t *testing.T) {
+						assert := require.New(t)
+
+						gwPing2, gwPingRX2, err := GetLastGatewayPingAndRX(context.Background(), ts.Tx(), gwPing.GatewayMAC)
+						assert.NoError(err)
+						assert.Equal(gwPing.ID, gwPing2.ID)
+						assert.Len(gwPingRX2, 1)
+						assert.Equal(rx[0].ID, gwPingRX2[0].ID)
+					})
+				})
 			})
 		})
 
-		Convey("When creating a gateway", func() {
-			now := time.Now().Round(time.Second)
+		t.Run("Delete", func(t *testing.T) {
+			assert := require.New(t)
 
-			gw := Gateway{
-				MAC:             lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
-				FirstSeenAt:     &now,
-				LastSeenAt:      &now,
-				Name:            "test-gw",
-				Description:     "test gateway",
-				OrganizationID:  org.ID,
-				Ping:            true,
-				NetworkServerID: n.ID,
-				Latitude:        1,
-				Longitude:       2,
-				Altitude:        3,
-			}
-			So(CreateGateway(context.Background(), DB(), &gw), ShouldBeNil)
-			gw.CreatedAt = gw.CreatedAt.Truncate(time.Millisecond).UTC()
-			gw.UpdatedAt = gw.UpdatedAt.Truncate(time.Millisecond).UTC()
+			assert.NoError(DeleteGateway(context.Background(), ts.Tx(), gw.MAC))
 
-			Convey("Then it can be get by its MAC", func() {
-				gw2, err := GetGateway(context.Background(), DB(), gw.MAC, false)
-				So(err, ShouldBeNil)
-				gw2.CreatedAt = gw2.CreatedAt.Truncate(time.Millisecond).UTC()
-				gw2.UpdatedAt = gw2.UpdatedAt.Truncate(time.Millisecond).UTC()
-				firstSeen := gw2.FirstSeenAt.Truncate(time.Millisecond).UTC()
-				lastSeen := gw2.LastSeenAt.Truncate(time.Millisecond).UTC()
-				gw.FirstSeenAt = &firstSeen
-				gw.LastSeenAt = &lastSeen
-
-				So(gw2, ShouldResemble, gw)
-			})
-
-			Convey("Then it can be updated", func() {
-				gw.Name = "test-gw2"
-				gw.Description = "updated test gateway"
-				gw.Ping = false
-				So(UpdateGateway(context.Background(), DB(), &gw), ShouldBeNil)
-				gw.CreatedAt = gw.CreatedAt.Truncate(time.Millisecond).UTC()
-				gw.UpdatedAt = gw.UpdatedAt.Truncate(time.Millisecond).UTC()
-
-				gw2, err := GetGateway(context.Background(), DB(), gw.MAC, false)
-				So(err, ShouldBeNil)
-				gw2.CreatedAt = gw2.CreatedAt.Truncate(time.Millisecond).UTC()
-				gw2.UpdatedAt = gw2.UpdatedAt.Truncate(time.Millisecond).UTC()
-				firstSeen := gw2.FirstSeenAt.Truncate(time.Millisecond).UTC()
-				lastSeen := gw2.LastSeenAt.Truncate(time.Millisecond).UTC()
-				gw.FirstSeenAt = &firstSeen
-				gw.LastSeenAt = &lastSeen
-
-				So(gw2, ShouldResemble, gw)
-			})
-
-			Convey("Then it can be deleted", func() {
-				So(DeleteGateway(context.Background(), DB(), gw.MAC), ShouldBeNil)
-				_, err := GetGateway(context.Background(), DB(), gw.MAC, false)
-				So(errors.Cause(err), ShouldResemble, ErrDoesNotExist)
-			})
-
-			Convey("Then getting the total gateway count returns 1", func() {
-				c, err := GetGatewayCount(context.Background(), DB(), "")
-				So(err, ShouldBeNil)
-				So(c, ShouldEqual, 1)
-			})
-
-			Convey("Then getting all gateways returns the expected gateway", func() {
-				gws, err := GetGateways(context.Background(), DB(), 10, 0, "")
-				So(err, ShouldBeNil)
-				So(gws, ShouldHaveLength, 1)
-				So(gws[0].MAC, ShouldEqual, gw.MAC)
-			})
-
-			Convey("Then getting the total gateway count for the organization returns 1", func() {
-				c, err := GetGatewayCountForOrganizationID(context.Background(), DB(), org.ID, "")
-				So(err, ShouldBeNil)
-				So(c, ShouldEqual, 1)
-			})
-
-			Convey("Then getting all gateways for the organization returns the exepected gateway", func() {
-				gws, err := GetGatewaysForOrganizationID(context.Background(), DB(), org.ID, 10, 0, "")
-				So(err, ShouldBeNil)
-				So(gws, ShouldHaveLength, 1)
-				So(gws[0].MAC, ShouldEqual, gw.MAC)
-			})
-
-			Convey("When creating an user", func() {
-				user := User{
-					Username: "testuser",
-					IsActive: true,
-					Email:    "foo@bar.com",
-				}
-				_, err := CreateUser(context.Background(), DB(), &user, "password123")
-				So(err, ShouldBeNil)
-
-				Convey("Getting the gateway count for this user returns 0", func() {
-					c, err := GetGatewayCountForUser(context.Background(), DB(), user.Username, "")
-					So(err, ShouldBeNil)
-					So(c, ShouldEqual, 0)
-				})
-
-				Convey("Then getting the gateways for this user returns 0 items", func() {
-					gws, err := GetGatewaysForUser(context.Background(), DB(), user.Username, 10, 0, "")
-					So(err, ShouldBeNil)
-					So(gws, ShouldHaveLength, 0)
-				})
-
-				Convey("When assigning the user to the organization", func() {
-					So(CreateOrganizationUser(context.Background(), DB(), org.ID, user.ID, false, false, false), ShouldBeNil)
-
-					Convey("Getting the gateway count for this user returns 1", func() {
-						c, err := GetGatewayCountForUser(context.Background(), DB(), user.Username, "")
-						So(err, ShouldBeNil)
-						So(c, ShouldEqual, 1)
-					})
-
-					Convey("Then getting the gateways for this user returns 1 item", func() {
-						gws, err := GetGatewaysForUser(context.Background(), DB(), user.Username, 10, 0, "")
-						So(err, ShouldBeNil)
-						So(gws, ShouldHaveLength, 1)
-						So(gws[0].MAC, ShouldEqual, gw.MAC)
-					})
-				})
-			})
-
-			Convey("When creating a gateway ping", func() {
-				gwPing := GatewayPing{
-					GatewayMAC: gw.MAC,
-					Frequency:  868100000,
-					DR:         5,
-				}
-				So(CreateGatewayPing(context.Background(), DB(), &gwPing), ShouldBeNil)
-				gwPing.CreatedAt = gwPing.CreatedAt.UTC().Truncate(time.Millisecond)
-
-				Convey("Then the ping can be retrieved by its ID", func() {
-					gwPingGet, err := GetGatewayPing(context.Background(), DB(), gwPing.ID)
-					So(err, ShouldBeNil)
-					gwPingGet.CreatedAt = gwPingGet.CreatedAt.UTC().Truncate(time.Millisecond)
-
-					So(gwPingGet, ShouldResemble, gwPing)
-				})
-
-				Convey("Then a gateway ping rx can be created", func() {
-					now := time.Now().Truncate(time.Millisecond)
-
-					gwPingRX := GatewayPingRX{
-						PingID:     gwPing.ID,
-						GatewayMAC: gw.MAC,
-						ReceivedAt: &now,
-						RSSI:       -10,
-						LoRaSNR:    5.5,
-						Location: GPSPoint{
-							Latitude:  1.12345,
-							Longitude: 1.23456,
-						},
-						Altitude: 10,
-					}
-					So(CreateGatewayPingRX(context.Background(), DB(), &gwPingRX), ShouldBeNil)
-					gwPingRX.CreatedAt = gwPingRX.CreatedAt.UTC().Truncate(time.Millisecond)
-
-					Convey("Then the ping rx can be retrieved by its ping ID", func() {
-						gw.LastPingID = &gwPing.ID
-						gw.LastPingSentAt = &gwPing.CreatedAt
-						So(UpdateGateway(context.Background(), DB(), &gw), ShouldBeNil)
-
-						rx, err := GetGatewayPingRXForPingID(context.Background(), DB(), gwPing.ID)
-						So(err, ShouldBeNil)
-						So(rx, ShouldHaveLength, 1)
-						So(rx[0].GatewayMAC, ShouldEqual, gw.MAC)
-						So(rx[0].ReceivedAt.Equal(now), ShouldBeTrue)
-						So(rx[0].RSSI, ShouldEqual, -10)
-						So(rx[0].LoRaSNR, ShouldEqual, 5.5)
-						So(rx[0].Location, ShouldResemble, GPSPoint{
-							Latitude:  1.12345,
-							Longitude: 1.23456,
-						})
-						So(rx[0].Altitude, ShouldEqual, 10)
-
-						Convey("Then the same ping is returned by GetLastGatewayPingAndRX", func() {
-							gwPing2, gwPingRX2, err := GetLastGatewayPingAndRX(context.Background(), DB(), gwPing.GatewayMAC)
-							So(err, ShouldBeNil)
-							So(gwPing2.ID, ShouldEqual, gwPing.ID)
-							So(gwPingRX2, ShouldHaveLength, 1)
-							So(gwPingRX2[0].ID, ShouldEqual, rx[0].ID)
-						})
-					})
-				})
-			})
+			_, err := GetGateway(context.Background(), ts.Tx(), gw.MAC, false)
+			assert.Equal(ErrDoesNotExist, errors.Cause(err))
 		})
 	})
 }

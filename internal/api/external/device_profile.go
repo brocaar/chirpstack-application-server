@@ -1,22 +1,25 @@
 package external
 
 import (
+	"database/sql"
+
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/lib/pq/hstore"
 
-	"github.com/brocaar/loraserver/api/ns"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/api/external/auth"
-	"github.com/brocaar/lora-app-server/internal/api/helpers"
-	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
+	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
+	"github.com/brocaar/chirpstack-application-server/internal/codec"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
 // DeviceProfileServiceAPI exports the ServiceProfile related functions.
@@ -50,6 +53,9 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 		PayloadCodec:         codec.Type(req.DeviceProfile.PayloadCodec),
 		PayloadEncoderScript: req.DeviceProfile.PayloadEncoderScript,
 		PayloadDecoderScript: req.DeviceProfile.PayloadDecoderScript,
+		Tags: hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		},
 		DeviceProfile: ns.DeviceProfile{
 			SupportsClassB:      req.DeviceProfile.SupportsClassB,
 			ClassBTimeout:       req.DeviceProfile.ClassBTimeout,
@@ -73,6 +79,10 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 			GeolocBufferTtl:     req.DeviceProfile.GeolocBufferTtl,
 			GeolocMinBufferSize: req.DeviceProfile.GeolocMinBufferSize,
 		},
+	}
+
+	for k, v := range req.DeviceProfile.Tags {
+		dp.Tags.Map[k] = sql.NullString{Valid: true, String: v}
 	}
 
 	// as this also performs a remote call to create the device-profile
@@ -142,6 +152,7 @@ func (a *DeviceProfileServiceAPI) Get(ctx context.Context, req *pb.GetDeviceProf
 			FactoryPresetFreqs:   dp.DeviceProfile.FactoryPresetFreqs,
 			GeolocBufferTtl:      dp.DeviceProfile.GeolocBufferTtl,
 			GeolocMinBufferSize:  dp.DeviceProfile.GeolocMinBufferSize,
+			Tags:                 make(map[string]string),
 		},
 	}
 
@@ -152,6 +163,10 @@ func (a *DeviceProfileServiceAPI) Get(ctx context.Context, req *pb.GetDeviceProf
 	resp.UpdatedAt, err = ptypes.TimestampProto(dp.UpdatedAt)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
+	}
+
+	for k, v := range dp.Tags.Map {
+		resp.DeviceProfile.Tags[k] = v.String
 	}
 
 	return &resp, nil
@@ -187,6 +202,9 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 		dp.PayloadCodec = codec.Type(req.DeviceProfile.PayloadCodec)
 		dp.PayloadEncoderScript = req.DeviceProfile.PayloadEncoderScript
 		dp.PayloadDecoderScript = req.DeviceProfile.PayloadDecoderScript
+		dp.Tags = hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		}
 		dp.DeviceProfile = ns.DeviceProfile{
 			Id:                  dpID.Bytes(),
 			SupportsClassB:      req.DeviceProfile.SupportsClassB,
@@ -210,6 +228,10 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 			FactoryPresetFreqs:  req.DeviceProfile.FactoryPresetFreqs,
 			GeolocBufferTtl:     req.DeviceProfile.GeolocBufferTtl,
 			GeolocMinBufferSize: req.DeviceProfile.GeolocMinBufferSize,
+		}
+
+		for k, v := range req.DeviceProfile.Tags {
+			dp.Tags.Map[k] = sql.NullString{Valid: true, String: v}
 		}
 
 		return storage.UpdateDeviceProfile(ctx, tx, &dp)
@@ -262,61 +284,51 @@ func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDevicePr
 		}
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	filters := storage.DeviceProfileFilters{
+		Limit:          int(req.Limit),
+		Offset:         int(req.Offset),
+		OrganizationID: req.OrganizationId,
+		ApplicationID:  req.ApplicationId,
+	}
+
+	sub, err := a.validator.GetSubject(ctx)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	username, err := a.validator.GetUsername(ctx)
+	switch sub {
+	case auth.SubjectUser:
+		isAdmin, err := a.validator.GetIsAdmin(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		username, err := a.validator.GetUsername(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		// Filter on username when org and app ID are not set and user is not
+		// global admin.
+		if !isAdmin && filters.OrganizationID == 0 && filters.ApplicationID == 0 {
+			filters.Username = username
+		}
+	case auth.SubjectAPIKey:
+		// Nothing to do as the validator function already validated that the
+		// API key is either of type admin, org (for the req.OrganizationId) or
+		// app (for the req.ApplicationId).
+	default:
+		return nil, grpc.Errorf(codes.Unauthenticated, "invalid token subject: %s", sub)
+	}
+
+	count, err := storage.GetDeviceProfileCount(ctx, storage.DB(), filters)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	var count int
-	var dps []storage.DeviceProfileMeta
-
-	if req.ApplicationId != 0 {
-		dps, err = storage.GetDeviceProfilesForApplicationID(ctx, storage.DB(), req.ApplicationId, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-
-		count, err = storage.GetDeviceProfileCountForApplicationID(ctx, storage.DB(), req.ApplicationId)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-	} else if req.OrganizationId != 0 {
-		dps, err = storage.GetDeviceProfilesForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-
-		count, err = storage.GetDeviceProfileCountForOrganizationID(ctx, storage.DB(), req.OrganizationId)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-	} else {
-		if isAdmin {
-			dps, err = storage.GetDeviceProfiles(ctx, storage.DB(), int(req.Limit), int(req.Offset))
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-
-			count, err = storage.GetDeviceProfileCount(ctx, storage.DB())
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		} else {
-			dps, err = storage.GetDeviceProfilesForUser(ctx, storage.DB(), username, int(req.Limit), int(req.Offset))
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-
-			count, err = storage.GetDeviceProfileCountForUser(ctx, storage.DB(), username)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		}
+	dps, err := storage.GetDeviceProfiles(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
 	}
 
 	resp := pb.ListDeviceProfileResponse{

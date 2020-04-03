@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/loraserver/api/common"
-	"github.com/brocaar/loraserver/api/ns"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/lorawan"
 )
 

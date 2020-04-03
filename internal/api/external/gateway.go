@@ -1,23 +1,25 @@
 package external
 
 import (
+	"database/sql"
 	"strings"
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq/hstore"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/api/external/auth"
-	"github.com/brocaar/lora-app-server/internal/api/helpers"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/loraserver/api/common"
-	"github.com/brocaar/loraserver/api/ns"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
+	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
@@ -97,6 +99,14 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 		createReq.Gateway.Boards = append(createReq.Gateway.Boards, &gwBoard)
 	}
 
+	tags := hstore.Hstore{
+		Map: make(map[string]sql.NullString),
+	}
+
+	for k, v := range req.Gateway.Tags {
+		tags.Map[k] = sql.NullString{Valid: true, String: v}
+	}
+
 	err = storage.Transaction(func(tx sqlx.Ext) error {
 		err = storage.CreateGateway(ctx, tx, &storage.Gateway{
 			MAC:             mac,
@@ -108,6 +118,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			Latitude:        req.Gateway.Location.Latitude,
 			Longitude:       req.Gateway.Location.Longitude,
 			Altitude:        req.Gateway.Location.Altitude,
+			Tags:            tags,
 		})
 		if err != nil {
 			return helpers.ErrToRPCError(err)
@@ -184,6 +195,8 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 				Altitude:  gw.Altitude,
 			},
 			NetworkServerId: gw.NetworkServerID,
+			Tags:            make(map[string]string),
+			Metadata:        make(map[string]string),
 		},
 	}
 
@@ -236,6 +249,13 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 		resp.Gateway.Boards = append(resp.Gateway.Boards, &gwBoard)
 	}
 
+	for k, v := range gw.Tags.Map {
+		resp.Gateway.Tags[k] = v.String
+	}
+	for k, v := range gw.Metadata.Map {
+		resp.Gateway.Metadata[k] = v.String
+	}
+
 	return &resp, err
 }
 
@@ -246,50 +266,51 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	var count int
-	var gws []storage.Gateway
+	filters := storage.GatewayFilters{
+		Search:         req.Search,
+		Limit:          int(req.Limit),
+		Offset:         int(req.Offset),
+		OrganizationID: req.OrganizationId,
+	}
 
-	if req.OrganizationId == 0 {
+	sub, err := a.validator.GetSubject(ctx)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	switch sub {
+	case auth.SubjectUser:
 		isAdmin, err := a.validator.GetIsAdmin(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		if isAdmin {
-			// in case of admin user list all gateways
-			count, err = storage.GetGatewayCount(ctx, storage.DB(), req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
+		username, err := a.validator.GetUsername(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
 
-			gws, err = storage.GetGateways(ctx, storage.DB(), int(req.Limit), int(req.Offset), req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		} else {
-			// filter result based on user
-			username, err := a.validator.GetUsername(ctx)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-			count, err = storage.GetGatewayCountForUser(ctx, storage.DB(), username, req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-			gws, err = storage.GetGatewaysForUser(ctx, storage.DB(), username, int(req.Limit), int(req.Offset), req.Search)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
+		// Filter on username when OrganizationID is not set and the user is
+		// not a global admin.
+		if !isAdmin && filters.OrganizationID == 0 {
+			filters.Username = username
 		}
-	} else {
-		count, err = storage.GetGatewayCountForOrganizationID(ctx, storage.DB(), req.OrganizationId, req.Search)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-		gws, err = storage.GetGatewaysForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset), req.Search)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
+
+	case auth.SubjectAPIKey:
+		// Nothing to do as the validator function already validated that the
+		// API Key has access to the given OrganizationID.
+	default:
+		return nil, grpc.Errorf(codes.Unauthenticated, "invalid token subject: %s", err)
+	}
+
+	count, err := storage.GetGatewayCount(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	gws, err := storage.GetGateways(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
 	}
 
 	resp := pb.ListGatewayResponse{
@@ -358,6 +379,13 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
+	tags := hstore.Hstore{
+		Map: make(map[string]sql.NullString),
+	}
+	for k, v := range req.Gateway.Tags {
+		tags.Map[k] = sql.NullString{Valid: true, String: v}
+	}
+
 	err = storage.Transaction(func(tx sqlx.Ext) error {
 		gw, err := storage.GetGateway(ctx, tx, mac, true)
 		if err != nil {
@@ -370,6 +398,7 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		gw.Latitude = req.Gateway.Location.Latitude
 		gw.Longitude = req.Gateway.Location.Longitude
 		gw.Altitude = req.Gateway.Location.Altitude
+		gw.Tags = tags
 
 		err = storage.UpdateGateway(ctx, tx, &gw)
 		if err != nil {
@@ -490,7 +519,7 @@ func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsReques
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad interval: %s", req.Interval)
 	}
 
-	metrics, err := storage.GetMetrics(ctx, storage.RedisPool(), storage.AggregationInterval(strings.ToUpper(req.Interval)), "gw:"+gatewayID.String(), start, end)
+	metrics, err := storage.GetMetrics(ctx, storage.AggregationInterval(strings.ToUpper(req.Interval)), "gw:"+gatewayID.String(), start, end)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}

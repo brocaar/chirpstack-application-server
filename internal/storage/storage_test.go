@@ -6,7 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/chirpstack-application-server/internal/test"
 )
 
 // DatabaseTestSuiteBase provides the setup and teardown of the database
@@ -32,7 +32,7 @@ func (b *DatabaseTestSuiteBase) SetupTest() {
 	b.tx = tx
 
 	test.MustResetDB(DB().DB)
-	test.MustFlushRedis(RedisPool())
+	RedisClient().FlushAll()
 }
 
 // TearDownTest is called after every test.

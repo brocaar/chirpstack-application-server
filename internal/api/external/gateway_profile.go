@@ -4,12 +4,12 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 
-	"github.com/brocaar/loraserver/api/ns"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/api/external/auth"
-	"github.com/brocaar/lora-app-server/internal/api/helpers"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
+	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"

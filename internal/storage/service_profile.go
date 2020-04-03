@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"time"
+	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -12,9 +13,9 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/logging"
-	"github.com/brocaar/loraserver/api/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 )
 
 // ServiceProfile defines the service-profile.
@@ -39,6 +40,9 @@ type ServiceProfileMeta struct {
 
 // Validate validates the service-profile data.
 func (sp ServiceProfile) Validate() error {
+	if strings.TrimSpace(sp.Name) == "" {
+		return ErrServiceProfileInvalidName
+	}
 	return nil
 }
 

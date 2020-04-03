@@ -2,7 +2,6 @@ package external
 
 import (
 	"database/sql"
-	"encoding/hex"
 	"encoding/json"
 
 	"github.com/gofrs/uuid"
@@ -16,16 +15,16 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/api/external/auth"
-	"github.com/brocaar/lora-app-server/internal/api/helpers"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/eventlog"
-	"github.com/brocaar/lora-app-server/internal/logging"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/loraserver/api/common"
-	"github.com/brocaar/loraserver/api/gw"
-	"github.com/brocaar/loraserver/api/ns"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
+	"github.com/brocaar/chirpstack-api/go/v3/gw"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
+	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/eventlog"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
@@ -65,6 +64,20 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*e
 	// if Name is "", set it to the DevEUI
 	if req.Device.Name == "" {
 		req.Device.Name = req.Device.DevEui
+	}
+
+	app, err := storage.GetApplication(ctx, storage.DB(), req.Device.ApplicationId)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	dp, err := storage.GetDeviceProfile(ctx, storage.DB(), dpID, false, true)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if app.OrganizationID != dp.OrganizationID {
+		return nil, grpc.Errorf(codes.InvalidArgument, "device-profile and application must be under the same organization")
 	}
 
 	d := storage.Device{
@@ -182,8 +195,11 @@ func (a *DeviceAPI) List(ctx context.Context, req *pb.ListDeviceRequest) (*pb.Li
 	filters := storage.DeviceFilters{
 		ApplicationID: req.ApplicationId,
 		Search:        req.Search,
-		Limit:         int(req.Limit),
-		Offset:        int(req.Offset),
+		Tags: hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		},
+		Limit:  int(req.Limit),
+		Offset: int(req.Offset),
 	}
 
 	if req.MulticastGroupId != "" {
@@ -198,6 +214,10 @@ func (a *DeviceAPI) List(ctx context.Context, req *pb.ListDeviceRequest) (*pb.Li
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
+	}
+
+	for k, v := range req.Tags {
+		filters.Tags.Map[k] = sql.NullString{String: v, Valid: true}
 	}
 
 	if filters.ApplicationID != 0 {
@@ -277,6 +297,20 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*e
 	if err := a.validator.Validate(ctx,
 		auth.ValidateNodeAccess(devEUI, auth.Update)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	app, err := storage.GetApplication(ctx, storage.DB(), req.Device.ApplicationId)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	dp, err := storage.GetDeviceProfile(ctx, storage.DB(), dpID, false, true)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if app.OrganizationID != dp.OrganizationID {
+		return nil, grpc.Errorf(codes.InvalidArgument, "device-profile and application must be under the same organization")
 	}
 
 	err = storage.Transaction(func(tx sqlx.Ext) error {
@@ -633,18 +667,20 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		},
 	}
 
-	_, err = nsClient.ActivateDevice(ctx, &actReq)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
+	err = storage.Transaction(func(db sqlx.Ext) error {
+		if err := storage.UpdateDeviceActivation(ctx, db, d.DevEUI, devAddr, appSKey); err != nil {
+			return helpers.ErrToRPCError(err)
+		}
 
-	err = storage.CreateDeviceActivation(ctx, storage.DB(), &storage.DeviceActivation{
-		DevEUI:  d.DevEUI,
-		DevAddr: devAddr,
-		AppSKey: appSKey,
+		_, err := nsClient.ActivateDevice(ctx, &actReq)
+		if err != nil {
+			return helpers.ErrToRPCError(err)
+		}
+
+		return nil
 	})
 	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
+		return nil, err
 	}
 
 	log.WithFields(log.Fields{
@@ -678,11 +714,6 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	da, err := storage.GetLastDeviceActivationForDevEUI(ctx, storage.DB(), devEUI)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
 	n, err := storage.GetNetworkServerForDevEUI(ctx, storage.DB(), devEUI)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -707,9 +738,9 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 
 	return &pb.GetDeviceActivationResponse{
 		DeviceActivation: &pb.DeviceActivation{
-			DevEui:      da.DevEUI.String(),
+			DevEui:      d.DevEUI.String(),
 			DevAddr:     devAddr.String(),
-			AppSKey:     da.AppSKey.String(),
+			AppSKey:     d.AppSKey.String(),
 			NwkSEncKey:  nwkSEncKey.String(),
 			SNwkSIntKey: sNwkSIntKey.String(),
 			FNwkSIntKey: fNwkSIntKey.String(),
@@ -754,6 +785,10 @@ func (a *DeviceAPI) StreamFrameLogs(req *pb.StreamDeviceFrameLogsRequest, srv pb
 	for {
 		resp, err := streamClient.Recv()
 		if err != nil {
+			if grpc.Code(err) == codes.Canceled {
+				return nil
+			}
+
 			return err
 		}
 
@@ -945,53 +980,8 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 	if up != nil {
 		uplinkFrameLog := pb.UplinkFrameLog{
 			TxInfo:         up.TxInfo,
+			RxInfo:         up.RxInfo,
 			PhyPayloadJson: string(phyJSON),
-		}
-
-		for _, rxInfo := range up.RxInfo {
-			var mac lorawan.EUI64
-			var uplinkID uuid.UUID
-			copy(mac[:], rxInfo.GatewayId)
-			copy(uplinkID[:], rxInfo.UplinkId)
-
-			upRXInfo := pb.UplinkRXInfo{
-				GatewayId:         mac.String(),
-				UplinkId:          uplinkID.String(),
-				Time:              rxInfo.Time,
-				TimeSinceGpsEpoch: rxInfo.TimeSinceGpsEpoch,
-				Rssi:              rxInfo.Rssi,
-				LoraSnr:           rxInfo.LoraSnr,
-				Channel:           rxInfo.Channel,
-				RfChain:           rxInfo.RfChain,
-				Board:             rxInfo.Board,
-				Antenna:           rxInfo.Antenna,
-				Location:          rxInfo.Location,
-				FineTimestampType: rxInfo.FineTimestampType,
-				Context:           rxInfo.Context,
-			}
-
-			switch rxInfo.FineTimestampType {
-			case gw.FineTimestampType_ENCRYPTED:
-				fineTS := rxInfo.GetEncryptedFineTimestamp()
-				if fineTS != nil {
-					upRXInfo.FineTimestamp = &pb.UplinkRXInfo_EncryptedFineTimestamp{
-						EncryptedFineTimestamp: &pb.EncryptedFineTimestamp{
-							AesKeyIndex: fineTS.AesKeyIndex,
-							EncryptedNs: fineTS.EncryptedNs,
-							FpgaId:      hex.EncodeToString(fineTS.FpgaId),
-						},
-					}
-				}
-			case gw.FineTimestampType_PLAIN:
-				fineTS := rxInfo.GetPlainFineTimestamp()
-				if fineTS != nil {
-					upRXInfo.FineTimestamp = &pb.UplinkRXInfo_PlainFineTimestamp{
-						PlainFineTimestamp: fineTS,
-					}
-				}
-			}
-
-			uplinkFrameLog.RxInfo = append(uplinkFrameLog.RxInfo, &upRXInfo)
 		}
 
 		return &uplinkFrameLog, nil, nil
@@ -999,56 +989,8 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 
 	if down != nil {
 		downlinkFrameLog := pb.DownlinkFrameLog{
+			TxInfo:         down.TxInfo,
 			PhyPayloadJson: string(phyJSON),
-		}
-
-		if down.TxInfo != nil {
-			var mac lorawan.EUI64
-			var downlinkID uuid.UUID
-			copy(mac[:], down.TxInfo.GatewayId[:])
-			copy(downlinkID[:], down.DownlinkId)
-
-			downlinkFrameLog.TxInfo = &pb.DownlinkTXInfo{
-				GatewayId:  mac.String(),
-				DownlinkId: downlinkID.String(),
-				Frequency:  down.TxInfo.Frequency,
-				Power:      down.TxInfo.Power,
-				Modulation: down.TxInfo.Modulation,
-				Board:      down.TxInfo.Board,
-				Antenna:    down.TxInfo.Antenna,
-				Timing:     down.TxInfo.Timing,
-				Context:    down.TxInfo.Context,
-			}
-
-			if lora := down.TxInfo.GetLoraModulationInfo(); lora != nil {
-				downlinkFrameLog.TxInfo.ModulationInfo = &pb.DownlinkTXInfo_LoraModulationInfo{
-					LoraModulationInfo: lora,
-				}
-			}
-
-			if fsk := down.TxInfo.GetFskModulationInfo(); fsk != nil {
-				downlinkFrameLog.TxInfo.ModulationInfo = &pb.DownlinkTXInfo_FskModulationInfo{
-					FskModulationInfo: fsk,
-				}
-			}
-
-			if ti := down.TxInfo.GetImmediatelyTimingInfo(); ti != nil {
-				downlinkFrameLog.TxInfo.TimingInfo = &pb.DownlinkTXInfo_ImmediatelyTimingInfo{
-					ImmediatelyTimingInfo: ti,
-				}
-			}
-
-			if ti := down.TxInfo.GetDelayTimingInfo(); ti != nil {
-				downlinkFrameLog.TxInfo.TimingInfo = &pb.DownlinkTXInfo_DelayTimingInfo{
-					DelayTimingInfo: ti,
-				}
-			}
-
-			if ti := down.TxInfo.GetGpsEpochTimingInfo(); ti != nil {
-				downlinkFrameLog.TxInfo.TimingInfo = &pb.DownlinkTXInfo_GpsEpochTimingInfo{
-					GpsEpochTimingInfo: ti,
-				}
-			}
 		}
 
 		return nil, &downlinkFrameLog, nil

@@ -6,11 +6,12 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/logging"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 )
 
 // Integration represents an integration.

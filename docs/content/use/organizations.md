@@ -4,7 +4,7 @@ menu:
     main:
         parent: use
         weight: 4
-description: Manage organizations, service-profiles assigned to organizations and organization users.
+description: Manage Organizations, Service Profiles assigned to Organizations and Organization Users.
 ---
 
 # Organization management
@@ -14,24 +14,24 @@ own applications and optionally their own gateways.
 
 An organization can have:
 
-* Service-profiles
-* Device-profiles
+* Service Profiles
+* Device Profiles
 * Gateways (when allowed)
 * Applications
 * Users
 
-## Service-profiles
+## Service Profiles
 
-Global admin users are able to manage
-[service-profiles]({{<relref "service-profiles.md">}}) for a given
-organizations. These service-profiles can then be used by (organization)
+Global Admin Users are able to manage
+[Service Profiles]({{<relref "service-profiles.md">}}) for any 
+organization. These Service Profiles can then be used by (organization)
 admin users when creating applications.
 
-## Device-profiles
+## Device Profiles
 
-[Device-profiles]({{<relref "device-profiles.md">}}) can be created by
+[Device Profiles]({{<relref "device-profiles.md">}}) can be created by
 (organization) admin users and can be assigned when creating a
-[device]({{<relref "devices.md">}}).
+[Device]({{<relref "devices.md">}}).
 
 ## Gateways
 

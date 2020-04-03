@@ -16,50 +16,28 @@ import (
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/gomodule/redigo/redis"
+	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/integration"
-	"github.com/brocaar/lora-app-server/internal/logging"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
 const downlinkLockTTL = time.Millisecond * 100
 
-// Config holds the configuration for the MQTT integration.
-type Config struct {
-	Server                  string
-	Username                string
-	Password                string
-	QOS                     uint8  `mapstructure:"qos"`
-	CleanSession            bool   `mapstructure:"clean_session"`
-	ClientID                string `mapstructure:"client_id"`
-	CACert                  string `mapstructure:"ca_cert"`
-	TLSCert                 string `mapstructure:"tls_cert"`
-	TLSKey                  string `mapstructure:"tls_key"`
-	UplinkTopicTemplate     string `mapstructure:"uplink_topic_template"`
-	DownlinkTopicTemplate   string `mapstructure:"downlink_topic_template"`
-	JoinTopicTemplate       string `mapstructure:"join_topic_template"`
-	AckTopicTemplate        string `mapstructure:"ack_topic_template"`
-	ErrorTopicTemplate      string `mapstructure:"error_topic_template"`
-	StatusTopicTemplate     string `mapstructure:"status_topic_template"`
-	LocationTopicTemplate   string `mapstructure:"location_topic_template"`
-	UplinkRetainedMessage   bool   `mapstructure:"uplink_retained_message"`
-	JoinRetainedMessage     bool   `mapstructure:"join_retained_message"`
-	AckRetainedMessage      bool   `mapstructure:"ack_retained_message"`
-	ErrorRetainedMessage    bool   `mapstructure:"error_retained_message"`
-	StatusRetainedMessage   bool   `mapstructure:"status_retained_message"`
-	LocationRetainedMessage bool   `mapstructure:"location_retained_message"`
-}
-
 // Integration implements a MQTT integration.
 type Integration struct {
+	marshaler        marshaler.Type
 	conn             mqtt.Client
 	dataDownChan     chan integration.DataDownPayload
 	wg               sync.WaitGroup
-	redisPool        *redis.Pool
-	config           Config
+	config           config.IntegrationMQTTConfig
 	uplinkTemplate   *template.Template
 	downlinkTemplate *template.Template
 	joinTemplate     *template.Template
@@ -67,6 +45,7 @@ type Integration struct {
 	errorTemplate    *template.Template
 	statusTemplate   *template.Template
 	locationTemplate *template.Template
+	txAckTemplate    *template.Template
 	downlinkTopic    string
 	downlinkRegexp   *regexp.Regexp
 	uplinkRetained   bool
@@ -75,14 +54,15 @@ type Integration struct {
 	errorRetained    bool
 	statusRetained   bool
 	locationRetained bool
+	txAckRetained    bool
 }
 
 // New creates a new MQTT integration.
-func New(p *redis.Pool, conf Config) (*Integration, error) {
+func New(m marshaler.Type, conf config.IntegrationMQTTConfig) (*Integration, error) {
 	var err error
 	i := Integration{
+		marshaler:    m,
 		dataDownChan: make(chan integration.DataDownPayload),
-		redisPool:    p,
 		config:       conf,
 	}
 
@@ -114,12 +94,17 @@ func New(p *redis.Pool, conf Config) (*Integration, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "parse location template error")
 	}
+	i.txAckTemplate, err = template.New("txack").Parse(i.config.TxAckTopicTemplate)
+	if err != nil {
+		return nil, errors.Wrap(err, "parse tx ack template error")
+	}
 	i.uplinkRetained = i.config.UplinkRetainedMessage
 	i.joinRetained = i.config.JoinRetainedMessage
 	i.ackRetained = i.config.AckRetainedMessage
 	i.errorRetained = i.config.ErrorRetainedMessage
 	i.statusRetained = i.config.StatusRetainedMessage
 	i.locationRetained = i.config.LocationRetainedMessage
+	i.txAckRetained = i.config.TxAckRetainedMessage
 
 	// generate downlink topic matching all applications and devices
 	topic := bytes.NewBuffer(nil)
@@ -154,6 +139,7 @@ func New(p *redis.Pool, conf Config) (*Integration, error) {
 	opts.SetClientID(i.config.ClientID)
 	opts.SetOnConnectHandler(i.onConnected)
 	opts.SetConnectionLostHandler(i.onConnectionLost)
+	opts.SetMaxReconnectInterval(i.config.MaxReconnectInterval)
 
 	tlsconfig, err := newTLSConfig(i.config.CACert, i.config.TLSCert, i.config.TLSKey)
 	if err != nil {
@@ -233,46 +219,54 @@ func (i *Integration) Close() error {
 }
 
 // SendDataUp sends a DataUpPayload.
-func (i *Integration) SendDataUp(ctx context.Context, payload integration.DataUpPayload) error {
-	return i.publish(ctx, payload.ApplicationID, payload.DevEUI, i.uplinkTemplate, i.uplinkRetained, payload)
+func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, payload pb.UplinkEvent) error {
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.uplinkTemplate, i.uplinkRetained, &payload)
 }
 
 // SendJoinNotification sends a JoinNotification.
-func (i *Integration) SendJoinNotification(ctx context.Context, payload integration.JoinNotification) error {
-	return i.publish(ctx, payload.ApplicationID, payload.DevEUI, i.joinTemplate, i.joinRetained, payload)
+func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]string, payload pb.JoinEvent) error {
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.joinTemplate, i.joinRetained, &payload)
 }
 
 // SendACKNotification sends an ACKNotification.
-func (i *Integration) SendACKNotification(ctx context.Context, payload integration.ACKNotification) error {
-	return i.publish(ctx, payload.ApplicationID, payload.DevEUI, i.ackTemplate, i.ackRetained, payload)
+func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]string, payload pb.AckEvent) error {
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.ackTemplate, i.ackRetained, &payload)
 }
 
 // SendErrorNotification sends an ErrorNotification.
-func (i *Integration) SendErrorNotification(ctx context.Context, payload integration.ErrorNotification) error {
-	return i.publish(ctx, payload.ApplicationID, payload.DevEUI, i.errorTemplate, i.errorRetained, payload)
+func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string]string, payload pb.ErrorEvent) error {
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.errorTemplate, i.errorRetained, &payload)
 }
 
 // SendStatusNotification sends a StatusNotification.
-func (i *Integration) SendStatusNotification(ctx context.Context, payload integration.StatusNotification) error {
-	return i.publish(ctx, payload.ApplicationID, payload.DevEUI, i.statusTemplate, i.statusRetained, payload)
+func (i *Integration) SendStatusNotification(ctx context.Context, vars map[string]string, payload pb.StatusEvent) error {
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.statusTemplate, i.statusRetained, &payload)
 }
 
 // SendLocationNotification sends a LocationNotification.
-func (i *Integration) SendLocationNotification(ctx context.Context, payload integration.LocationNotification) error {
-	return i.publish(ctx, payload.ApplicationID, payload.DevEUI, i.locationTemplate, i.locationRetained, payload)
+func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, payload pb.LocationEvent) error {
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.locationTemplate, i.locationRetained, &payload)
 }
 
-func (i *Integration) publish(ctx context.Context, applicationID int64, devEUI lorawan.EUI64, topicTemplate *template.Template, retained bool, v interface{}) error {
+// SendTxAckNotification sends a TxAckNotification.
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, payload pb.TxAckEvent) error {
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.txAckTemplate, i.txAckRetained, &payload)
+}
+
+func (i *Integration) publish(ctx context.Context, applicationID uint64, devEUIB []byte, topicTemplate *template.Template, retained bool, msg proto.Message) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], devEUIB)
+
 	topic := bytes.NewBuffer(nil)
 	err := topicTemplate.Execute(topic, struct {
-		ApplicationID int64
+		ApplicationID uint64
 		DevEUI        lorawan.EUI64
 	}{applicationID, devEUI})
 	if err != nil {
 		return errors.Wrap(err, "execute template error")
 	}
 
-	jsonB, err := json.Marshal(v)
+	b, err := marshaler.Marshal(i.marshaler, msg)
 	if err != nil {
 		return err
 	}
@@ -282,7 +276,7 @@ func (i *Integration) publish(ctx context.Context, applicationID int64, devEUI l
 		"qos":    i.config.QOS,
 		"ctx_id": ctx.Value(logging.ContextIDKey),
 	}).Info("integration/mqtt: publishing message")
-	if token := i.conn.Publish(topic.String(), i.config.QOS, retained, jsonB); token.Wait() && token.Error() != nil {
+	if token := i.conn.Publish(topic.String(), i.config.QOS, retained, b); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 
@@ -365,16 +359,14 @@ func (i *Integration) txPayloadHandler(mqttc mqtt.Client, msg mqtt.Message) {
 	// by the application, the first instance receiving the message must lock it,
 	// so that other instances can ignore the message.
 	key := fmt.Sprintf("lora:as:downlink:lock:%d:%s", pl.ApplicationID, pl.DevEUI)
-	redisConn := i.redisPool.Get()
-	defer redisConn.Close()
-
-	_, err = redis.String(redisConn.Do("SET", key, "lock", "PX", int64(downlinkLockTTL/time.Millisecond), "NX"))
+	set, err := storage.RedisClient().SetNX(key, "lock", downlinkLockTTL).Result()
 	if err != nil {
-		if err == redis.ErrNil {
-			// the payload is already being processed by an other instance
-			return
-		}
-		log.Errorf("integration/mqtt: acquire downlink payload lock error: %s", err)
+		log.WithError(err).Error("integration/mqtt: acquire lock error")
+		return
+	}
+
+	// If we could not set, it means it is already locked by an other process.
+	if !set {
 		return
 	}
 

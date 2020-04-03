@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 
-NAME=lora-app-server
+OLD_NAME=lora-app-server
+NAME=chirpstack-application-server
 BIN_DIR=/usr/bin
-SCRIPT_DIR=/usr/lib/lora-app-server/scripts
-LOG_DIR=/var/log/lora-app-server
+SCRIPT_DIR=/usr/lib/chirpstack-application-server/scripts
+LOG_DIR=/var/log/chirpstack-application-server
 DAEMON_USER=appserver
 DAEMON_GROUP=appserver
 
 function install_init {
 	cp -f $SCRIPT_DIR/$NAME.init /etc/init.d/$NAME
 	chmod +x /etc/init.d/$NAME
+	ln -s /etc/init.d/$NAME /etc/init.d/$OLD_NAME
 	update-rc.d $NAME defaults
 }
 
@@ -30,14 +32,22 @@ function restart_service {
 	fi	
 }
 
+function create_logdir {
+	if [[ ! -d $LOG_DIR ]]; then
+		mkdir -p $LOG_DIR
+		chown -R $DAEMON_USER:$DAEMON_GROUP $LOG_DIR
+	fi
+}
+
 # create user
 id $DAEMON_USER &>/dev/null
 if [[ $? -ne 0 ]]; then
 	useradd --system -U -M $DAEMON_USER -s /bin/false -d /etc/$NAME
 fi
 
-mkdir -p "$LOG_DIR"
-chown $DAEMON_USER:$DAEMON_GROUP "$LOG_DIR"
+# create log dir
+create_logdir
+
 
 # set the configuration owner / permissions
 if [[ -f /etc/$NAME/$NAME.toml ]]; then

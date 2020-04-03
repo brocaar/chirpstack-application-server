@@ -12,12 +12,12 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/downlink"
-	"github.com/brocaar/lora-app-server/internal/logging"
-	"github.com/brocaar/lora-app-server/internal/multicast"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/loraserver/api/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/downlink"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/multicast"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/applayer/fragmentation"
 	"github.com/brocaar/lorawan/applayer/multicastsetup"
@@ -159,7 +159,7 @@ func stepMulticastCreate(ctx context.Context, db sqlx.Ext, item storage.FUOTADep
 	case storage.FUOTADeploymentGroupTypeC:
 		mg.MulticastGroup.GroupType = ns.MulticastGroupType_CLASS_C
 	default:
-		return fmt.Errorf("unkonwn group-type: %s", item.GroupType)
+		return fmt.Errorf("unknown group-type: %s", item.GroupType)
 	}
 
 	err = storage.CreateMulticastGroup(ctx, db, &mg)

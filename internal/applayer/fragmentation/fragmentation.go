@@ -10,10 +10,10 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/downlink"
-	"github.com/brocaar/lora-app-server/internal/logging"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/downlink"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/applayer/fragmentation"
 )
@@ -35,7 +35,7 @@ func Setup(conf config.Config) error {
 	return nil
 }
 
-// SyncRemoteFragmentationSessions syncs the fragmentation sessions with the devices.
+// SyncRemoteFragmentationSessionsLoop syncs the fragmentation sessions with the devices.
 func SyncRemoteFragmentationSessionsLoop() {
 	for {
 		ctxID, err := uuid.NewV4()

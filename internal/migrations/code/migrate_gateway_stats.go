@@ -10,10 +10,10 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/loraserver/api/ns"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
@@ -120,7 +120,7 @@ func migrateGatewayStatsForGatewayIDInterval(nsClient ns.NetworkServerServiceCli
 			return err
 		}
 
-		err = storage.SaveMetricsForInterval(context.Background(), storage.RedisPool(), storage.AggregationInterval(interval.String()), fmt.Sprintf("gw:%s", gatewayID), storage.MetricsRecord{
+		err = storage.SaveMetricsForInterval(context.Background(), storage.AggregationInterval(interval.String()), fmt.Sprintf("gw:%s", gatewayID), storage.MetricsRecord{
 			Time: ts,
 			Metrics: map[string]float64{
 				"rx_count":    float64(m.RxPacketsReceived),

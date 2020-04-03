@@ -5,127 +5,150 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid"
-
 	"github.com/pkg/errors"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/require"
 
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/chirpstack-application-server/internal/test"
 )
 
-func TestApplication(t *testing.T) {
+func (ts *StorageTestSuite) TestApplication() {
+	assert := require.New(ts.T())
+
 	conf := test.GetConfig()
-	if err := Setup(conf); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(Setup(conf))
+
 	nsClient := mock.NewClient()
 	networkserver.SetPool(mock.NewPool(nsClient))
 
-	Convey("Given a clean database with an organization, network-server and service-profile", t, func() {
-		test.MustResetDB(DB().DB)
+	org := Organization{
+		Name: "test-org-123",
+	}
+	assert.NoError(CreateOrganization(context.Background(), ts.Tx(), &org))
 
-		org := Organization{
-			Name: "test-org",
+	n := NetworkServer{
+		Name:   "test-ns",
+		Server: "test-ns:1234",
+	}
+	assert.NoError(CreateNetworkServer(context.Background(), ts.Tx(), &n))
+
+	sp := ServiceProfile{
+		OrganizationID:  org.ID,
+		NetworkServerID: n.ID,
+		Name:            "test-service-profile",
+		ServiceProfile: ns.ServiceProfile{
+			UlRate:                 100,
+			UlBucketSize:           10,
+			UlRatePolicy:           ns.RatePolicy_MARK,
+			DlRate:                 200,
+			DlBucketSize:           20,
+			DlRatePolicy:           ns.RatePolicy_DROP,
+			AddGwMetadata:          true,
+			DevStatusReqFreq:       4,
+			ReportDevStatusBattery: true,
+			ReportDevStatusMargin:  true,
+			DrMin:                  3,
+			DrMax:                  5,
+			PrAllowed:              true,
+			HrAllowed:              true,
+			RaAllowed:              true,
+			NwkGeoLoc:              true,
+			TargetPer:              10,
+			MinGwDiversity:         3,
+		},
+	}
+	assert.NoError(CreateServiceProfile(context.Background(), ts.Tx(), &sp))
+	spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+	assert.NoError(err)
+
+	ts.T().Run("Create with invalid name", func(t *testing.T) {
+		assert := require.New(t)
+
+		app := Application{
+			OrganizationID:   org.ID,
+			ServiceProfileID: spID,
+			Name:             "i contain spaces",
 		}
-		So(CreateOrganization(context.Background(), db, &org), ShouldBeNil)
+		err := CreateApplication(context.Background(), ts.Tx(), &app)
+		assert.Equal(ErrApplicationInvalidName, errors.Cause(err))
+	})
 
-		n := NetworkServer{
-			Name:   "test-ns",
-			Server: "test-ns:1234",
+	ts.T().Run("Create", func(t *testing.T) {
+		assert := require.New(t)
+
+		app := Application{
+			OrganizationID:       org.ID,
+			ServiceProfileID:     spID,
+			Name:                 "test-application",
+			Description:          "A test application",
+			PayloadCodec:         "CUSTOM_JS",
+			PayloadEncoderScript: "Encode() {}",
+			PayloadDecoderScript: "Decode() {}",
 		}
-		So(CreateNetworkServer(context.Background(), DB(), &n), ShouldBeNil)
+		assert.NoError(CreateApplication(context.Background(), ts.Tx(), &app))
 
-		sp := ServiceProfile{
-			Name:            "test-service-profile",
-			OrganizationID:  org.ID,
-			NetworkServerID: n.ID,
-		}
-		So(CreateServiceProfile(context.Background(), DB(), &sp), ShouldBeNil)
-		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
-		So(err, ShouldBeNil)
+		t.Run("Get", func(t *testing.T) {
+			assert := require.New(t)
 
-		Convey("When creating an application with an invalid name", func() {
-			app := Application{
-				OrganizationID:   org.ID,
-				ServiceProfileID: spID,
-				Name:             "i contain spaces",
-			}
-			err := CreateApplication(context.Background(), db, &app)
-
-			Convey("Then an error is returned", func() {
-				So(err, ShouldNotBeNil)
-				So(errors.Cause(err), ShouldResemble, ErrApplicationInvalidName)
-			})
+			app2, err := GetApplication(context.Background(), ts.Tx(), app.ID)
+			assert.NoError(err)
+			assert.Equal(app, app2)
 		})
 
-		Convey("When creating an application", func() {
-			app := Application{
-				OrganizationID:       org.ID,
-				ServiceProfileID:     spID,
-				Name:                 "test-application",
-				Description:          "A test application",
-				PayloadCodec:         "CUSTOM_JS",
-				PayloadEncoderScript: "Encode() {}",
-				PayloadDecoderScript: "Decode() {}",
-			}
-			So(CreateApplication(context.Background(), db, &app), ShouldBeNil)
+		t.Run("Get applications", func(t *testing.T) {
+			assert := require.New(t)
 
-			Convey("It can be get by id", func() {
-				app2, err := GetApplication(context.Background(), db, app.ID)
-				So(err, ShouldBeNil)
-				So(app2, ShouldResemble, app)
+			apps, err := GetApplications(context.Background(), ts.Tx(), ApplicationFilters{
+				Limit: 10,
 			})
+			assert.NoError(err)
+			assert.Len(apps, 1)
+			assert.Equal(app.ID, apps[0].ID)
+			assert.Equal(sp.Name, apps[0].ServiceProfileName)
 
-			Convey("Then get applications returns a single application", func() {
-				apps, err := GetApplications(context.Background(), db, 10, 0, "")
-				So(err, ShouldBeNil)
-				So(apps, ShouldHaveLength, 1)
-				So(apps[0].ID, ShouldEqual, app.ID)
-				So(apps[0].ServiceProfileName, ShouldEqual, sp.Name)
+			apps, err = GetApplications(context.Background(), ts.Tx(), ApplicationFilters{OrganizationID: org.ID, Limit: 10})
+			assert.NoError(err)
+			assert.Len(apps, 1)
+			assert.Equal(app.ID, apps[0].ID)
+			assert.Equal(sp.Name, apps[0].ServiceProfileName)
+		})
 
+		t.Run("Get count", func(t *testing.T) {
+			assert := require.New(t)
+
+			count, err := GetApplicationCount(context.Background(), ts.Tx(), ApplicationFilters{})
+			assert.NoError(err)
+			assert.Equal(1, count)
+
+			count, err = GetApplicationCount(context.Background(), ts.Tx(), ApplicationFilters{
+				OrganizationID: org.ID,
 			})
+			assert.NoError(err)
+			assert.Equal(1, count)
+		})
 
-			Convey("Then get application count returns 1", func() {
-				count, err := GetApplicationCount(context.Background(), db, "")
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 1)
-			})
+		t.Run("Update", func(t *testing.T) {
+			assert := require.New(t)
 
-			Convey("Then the application count for the organization returns 1", func() {
-				count, err := GetApplicationCountForOrganizationID(context.Background(), db, org.ID, "")
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 1)
-			})
+			app.Description = "some new description"
 
-			Convey("Then listing the applications for the organization returns the expected application", func() {
-				apps, err := GetApplicationsForOrganizationID(context.Background(), db, org.ID, 10, 0, "")
-				So(err, ShouldBeNil)
-				So(apps, ShouldHaveLength, 1)
-				So(apps[0].ID, ShouldEqual, app.ID)
-				So(apps[0].ServiceProfileName, ShouldEqual, sp.Name)
-			})
+			assert.NoError(UpdateApplication(context.Background(), ts.Tx(), app))
 
-			Convey("When updating the application", func() {
-				app.Description = "some new description"
-				So(UpdateApplication(context.Background(), db, app), ShouldBeNil)
+			app2, err := GetApplication(context.Background(), ts.Tx(), app.ID)
+			assert.NoError(err)
+			assert.Equal(app, app2)
+		})
 
-				Convey("Then the application has been updated", func() {
-					app2, err := GetApplication(context.Background(), db, app.ID)
-					So(err, ShouldBeNil)
-					So(app2, ShouldResemble, app)
-				})
-			})
+		t.Run("Update", func(t *testing.T) {
+			assert := require.New(t)
 
-			Convey("When deleting the application", func() {
-				So(DeleteApplication(context.Background(), db, app.ID), ShouldBeNil)
+			assert.NoError(DeleteApplication(context.Background(), ts.Tx(), app.ID))
 
-				Convey("Then the application count returns 0", func() {
-					count, err := GetApplicationCount(context.Background(), db, "")
-					So(err, ShouldBeNil)
-					So(count, ShouldEqual, 0)
-				})
-			})
+			count, err := GetApplicationCount(context.Background(), ts.Tx(), ApplicationFilters{})
+			assert.NoError(err)
+			assert.Equal(0, count)
 		})
 	})
 }

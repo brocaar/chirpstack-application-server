@@ -12,12 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/brocaar/lora-app-server/internal/integration"
-	httpint "github.com/brocaar/lora-app-server/internal/integration/http"
-	mqttint "github.com/brocaar/lora-app-server/internal/integration/mqtt"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lora-app-server/internal/test"
-	"github.com/brocaar/lorawan"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	httpint "github.com/brocaar/chirpstack-application-server/internal/integration/http"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
+	"github.com/brocaar/chirpstack-application-server/internal/test"
 )
 
 type testHTTPHandler struct {
@@ -69,8 +70,8 @@ func (ts *IntegrationTestSuite) SetupSuite() {
 	assert.NoError(token.Error())
 
 	var err error
-	ts.integration, err = New([]interface{}{
-		mqttint.Config{
+	ts.integration, err = New(marshaler.Protobuf, []interface{}{
+		config.IntegrationMQTTConfig{
 			Server:                conf.ApplicationServer.Integration.MQTT.Server,
 			Username:              conf.ApplicationServer.Integration.MQTT.Username,
 			Password:              conf.ApplicationServer.Integration.MQTT.Password,
@@ -82,6 +83,7 @@ func (ts *IntegrationTestSuite) SetupSuite() {
 			ErrorTopicTemplate:    "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error",
 			StatusTopicTemplate:   "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status",
 			LocationTopicTemplate: "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location",
+			TxAckTopicTemplate:    "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/txack",
 		},
 		httpint.Config{
 			DataUpURL:               ts.httpServer.URL + "/rx",
@@ -90,6 +92,7 @@ func (ts *IntegrationTestSuite) SetupSuite() {
 			ErrorNotificationURL:    ts.httpServer.URL + "/error",
 			StatusNotificationURL:   ts.httpServer.URL + "/status",
 			LocationNotificationURL: ts.httpServer.URL + "/location",
+			TxAckNotificationURL:    ts.httpServer.URL + "/txack",
 		},
 	})
 	assert.NoError(err)
@@ -103,9 +106,9 @@ func (ts *IntegrationTestSuite) TearDownSuite() {
 
 func (ts *IntegrationTestSuite) TestSendDataUp() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendDataUp(context.Background(), integration.DataUpPayload{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, pb.UplinkEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	msg := <-ts.mqttMessages
@@ -117,9 +120,9 @@ func (ts *IntegrationTestSuite) TestSendDataUp() {
 
 func (ts *IntegrationTestSuite) TestSendJoinNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendJoinNotification(context.Background(), integration.JoinNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendJoinNotification(context.Background(), nil, pb.JoinEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	msg := <-ts.mqttMessages
@@ -131,9 +134,9 @@ func (ts *IntegrationTestSuite) TestSendJoinNotification() {
 
 func (ts *IntegrationTestSuite) TestSendACKNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendACKNotification(context.Background(), integration.ACKNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendACKNotification(context.Background(), nil, pb.AckEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	msg := <-ts.mqttMessages
@@ -145,9 +148,9 @@ func (ts *IntegrationTestSuite) TestSendACKNotification() {
 
 func (ts *IntegrationTestSuite) TestErrorNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendErrorNotification(context.Background(), integration.ErrorNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendErrorNotification(context.Background(), nil, pb.ErrorEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	msg := <-ts.mqttMessages
@@ -159,9 +162,9 @@ func (ts *IntegrationTestSuite) TestErrorNotification() {
 
 func (ts *IntegrationTestSuite) TestStatusNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendStatusNotification(context.Background(), integration.StatusNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendStatusNotification(context.Background(), nil, pb.StatusEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	msg := <-ts.mqttMessages
@@ -173,9 +176,9 @@ func (ts *IntegrationTestSuite) TestStatusNotification() {
 
 func (ts *IntegrationTestSuite) TestLocationNotification() {
 	assert := require.New(ts.T())
-	assert.NoError(ts.integration.SendLocationNotification(context.Background(), integration.LocationNotification{
-		ApplicationID: 1,
-		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+	assert.NoError(ts.integration.SendLocationNotification(context.Background(), nil, pb.LocationEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}))
 
 	msg := <-ts.mqttMessages
@@ -183,6 +186,20 @@ func (ts *IntegrationTestSuite) TestLocationNotification() {
 
 	req := <-ts.httpRequests
 	assert.Equal("/location", req.URL.Path)
+}
+
+func (ts *IntegrationTestSuite) TestTxAckNotification() {
+	assert := require.New(ts.T())
+	assert.NoError(ts.integration.SendTxAckNotification(context.Background(), nil, pb.TxAckEvent{
+		ApplicationId: 1,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
+	}))
+
+	msg := <-ts.mqttMessages
+	assert.Equal("application/1/device/0102030405060708/txack", msg.Topic())
+
+	req := <-ts.httpRequests
+	assert.Equal("/txack", req.URL.Path)
 }
 
 func TestIntegration(t *testing.T) {

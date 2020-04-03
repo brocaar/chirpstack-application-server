@@ -4,35 +4,35 @@ menu:
     main:
         parent: community
         weight: 3
-description: How to get the LoRa App Server source and how to compile this into an executable binary.
+description: How to get the ChirpStack Application Server source and how to compile this into an executable binary.
 ---
 
-# LoRa App Server source
+# ChirpStack Application Server source
 
-Source-code can be found at [https://github.com/brocaar/lora-app-server](https://github.com/brocaar/lora-app-server).
+Source-code can be found at [https://github.com/brocaar/chirpstack-application-server](https://github.com/brocaar/chirpstack-application-server).
 
 ### Building
 
 #### With Docker
 
 The easiest way to get started is by using the provided 
-[docker-compose](https://docs.docker.com/compose/) environment. To start a bash
+[Docker Compose](https://docs.docker.com/compose/) environment. To start a bash
 shell within the docker-compose environment, execute the following command from
 the root of this project:
 
 {{<highlight bash>}}
-docker-compose run --rm appserver bash
+docker-compose run --rm chirpstack-application-server bash
 {{< /highlight >}}
 
 ### Without Docker
 
-It is possible to build LoRa App Server without Docker. However this requires
+It is possible to build ChirpStack Application Server without Docker. However this requires
 to install a couple of dependencies (depending your platform, there might be
 pre-compiled packages available):
 
 #### Go
 
-Make sure you have [Go](https://golang.org/) installed (1.11+). As LoRa App Server
+Make sure you have [Go](https://golang.org/) installed (1.11+). As ChirpStack Application Server
 uses Go modules, the repository must be cloned outside the `$GOPATH`.
 
 #### Node.js
@@ -55,9 +55,6 @@ make dev-requirements ui-requirements
 
 # cleanup workspace
 make clean
-
-# generate the API source-code (run this after changing the .proto files)
-make api
 
 # run the tests
 make test

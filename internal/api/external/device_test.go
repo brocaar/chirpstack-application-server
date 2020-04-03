@@ -12,13 +12,14 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/lora-app-server/internal/eventlog"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/loraserver/api/common"
-	"github.com/brocaar/loraserver/api/ns"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/chirpstack-application-server/internal/eventlog"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
@@ -52,6 +53,10 @@ func (ts *APITestSuite) TestDevice() {
 		Name: "test-org",
 	}
 	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
+	org2 := storage.Organization{
+		Name: "test-org-2",
+	}
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org2))
 
 	n := storage.NetworkServer{
 		Name:   "test-ns",
@@ -106,6 +111,14 @@ func (ts *APITestSuite) TestDevice() {
 	assert.NoError(storage.CreateDeviceProfile(context.Background(), storage.DB(), &dp))
 	dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
 	assert.NoError(err)
+	dp2 := storage.DeviceProfile{
+		Name:            "test-dp",
+		OrganizationID:  org2.ID,
+		NetworkServerID: n.ID,
+	}
+	assert.NoError(storage.CreateDeviceProfile(context.Background(), storage.DB(), &dp2))
+	dpID2, err := uuid.FromBytes(dp2.DeviceProfile.Id)
+	assert.NoError(err)
 
 	ts.T().Run("Create without name", func(t *testing.T) {
 		assert := require.New(t)
@@ -135,6 +148,30 @@ func (ts *APITestSuite) TestDevice() {
 			DevEui: "0807060504030202",
 		})
 		assert.NoError(err)
+	})
+
+	ts.T().Run("Create with device-profile under different organization", func(t *testing.T) {
+		assert := require.New(t)
+
+		createReq := pb.CreateDeviceRequest{
+			Device: &pb.Device{
+				ApplicationId:     app.ID,
+				Name:              "test-device",
+				Description:       "test device description",
+				DevEui:            "0807060504030201",
+				DeviceProfileId:   dpID2.String(),
+				SkipFCntCheck:     true,
+				ReferenceAltitude: 5.6,
+				Variables: map[string]string{
+					"var_1": "test var 1",
+				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
+			},
+		}
+		_, err := api.Create(context.Background(), &createReq)
+		assert.Equal(codes.InvalidArgument, grpc.Code(err))
 	})
 
 	ts.T().Run("Create", func(t *testing.T) {
@@ -253,6 +290,29 @@ func (ts *APITestSuite) TestDevice() {
 			})
 
 			t.Run("List", func(t *testing.T) {
+				t.Run("Filter by tag", func(t *testing.T) {
+					assert := require.New(t)
+					validator.returnIsAdmin = true
+
+					devices, err := api.List(context.Background(), &pb.ListDeviceRequest{
+						Limit:  10,
+						Offset: 0,
+						Tags:   map[string]string{"foo": "bar"},
+					})
+					assert.NoError(err)
+					assert.EqualValues(1, devices.TotalCount)
+					assert.Len(devices.Result, 1)
+
+					devices, err = api.List(context.Background(), &pb.ListDeviceRequest{
+						Limit:  10,
+						Offset: 0,
+						Tags:   map[string]string{"foo": "bas"},
+					})
+					assert.NoError(err)
+					assert.EqualValues(0, devices.TotalCount)
+					assert.Len(devices.Result, 0)
+				})
+
 				t.Run("Global admin can list all devices", func(t *testing.T) {
 					assert := require.New(t)
 					validator.returnIsAdmin = true
@@ -299,6 +359,31 @@ func (ts *APITestSuite) TestDevice() {
 					assert.EqualValues(1, devices.TotalCount)
 					assert.Len(devices.Result, 1)
 				})
+			})
+
+			t.Run("Update with device-profile under different organization", func(t *testing.T) {
+				assert := require.New(t)
+
+				updateReq := pb.UpdateDeviceRequest{
+					Device: &pb.Device{
+						ApplicationId:     app.ID,
+						DevEui:            "0807060504030201",
+						Name:              "test-device-updated",
+						Description:       "test device description updated",
+						DeviceProfileId:   dpID2.String(),
+						SkipFCntCheck:     true,
+						ReferenceAltitude: 6.7,
+						Variables: map[string]string{
+							"var_2": "test var 2",
+						},
+						Tags: map[string]string{
+							"bar": "foo",
+						},
+					},
+				}
+
+				_, err := api.Update(context.Background(), &updateReq)
+				assert.Equal(codes.InvalidArgument, grpc.Code(err))
 			})
 
 			t.Run("Update", func(t *testing.T) {
@@ -516,10 +601,10 @@ func (ts *APITestSuite) TestDevice() {
 				}, <-nsClient.ActivateDeviceChan)
 
 				// activation was stored
-				da, err := storage.GetLastDeviceActivationForDevEUI(context.Background(), storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
+				d, err := storage.GetDevice(context.Background(), storage.DB(), lorawan.EUI64{0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01}, false, true)
 				assert.NoError(err)
-				assert.Equal(lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}, da.AppSKey)
-				assert.Equal(lorawan.DevAddr{1, 2, 3, 4}, da.DevAddr)
+				assert.Equal(lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}, d.AppSKey)
+				assert.Equal(lorawan.DevAddr{1, 2, 3, 4}, d.DevAddr)
 			})
 
 			t.Run("StreamEventLogs", func(t *testing.T) {
@@ -545,9 +630,7 @@ func (ts *APITestSuite) TestDevice() {
 					}
 				}()
 
-				assert.NoError(eventlog.LogEventForDevice(lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, eventlog.EventLog{
-					Type: eventlog.Join,
-				}))
+				assert.NoError(eventlog.LogEventForDevice(lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1}, eventlog.Join, &integration.JoinEvent{}))
 
 				resp := <-respChan
 				assert.Equal(eventlog.Join, resp.Type)

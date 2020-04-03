@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/lorawan"
 )
 
@@ -104,7 +104,7 @@ type FUOTADeploymentDeviceListItem struct {
 	ErrorMessage      string                     `db:"error_message"`
 }
 
-// FUOTADeploymentFilter provides filters that can be used to filter on
+// FUOTADeploymentFilters provides filters that can be used to filter on
 // FUOTA deployments. Note that empty values are not used as filters.
 type FUOTADeploymentFilters struct {
 	DevEUI        lorawan.EUI64 `db:"dev_eui"`

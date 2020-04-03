@@ -53,6 +53,62 @@ class FormComponent extends Component {
       });
     }
   }
+
+  addKV = (name) => {
+    return (e) => {
+      e.preventDefault();
+
+      let kvs = this.state[name];
+      kvs.push({});
+
+      let obj = {};
+      obj[name] = kvs;
+
+      this.setState(obj);
+    };
+  }
+
+  onChangeKV = (name) => {
+    return (index, obj) => {
+      let kvs = this.state[name];
+      let object = this.state.object;
+
+      kvs[index] = obj;
+
+      object[name] = {};
+      kvs.forEach((obj, i) => {
+        object[name][obj.key] = obj.value;
+      });
+
+      let ss = {
+        object: object,
+      };
+      ss[name] = kvs;
+
+      this.setState(ss);
+    };
+  }
+
+  onDeleteKV = (name) => {
+    return (index) => {
+      let kvs = this.state[name];
+      let object = this.state.object;
+
+      kvs.splice(index, 1);
+
+      object[name] = {};
+      kvs.forEach((obj, i) => {
+        object[name][obj.key] = obj.value;
+      });
+
+      let ss = {
+        object: object,
+      };
+      ss[name] = kvs;
+
+      this.setState(ss);
+    };
+  }
 }
 
 export default FormComponent;

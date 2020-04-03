@@ -3,51 +3,46 @@ package azureservicebus
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"sync"
+	"time"
 
 	servicebus "github.com/Azure/azure-service-bus-go"
+	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/integration"
-	"github.com/brocaar/lora-app-server/internal/logging"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/lorawan"
 )
 
-// PublishMode defines the publish-mode type.
-type PublishMode string
-
-// Publish modes.
-const (
-	PublishModeTopic PublishMode = "topic"
-	PublishModeQueue PublishMode = "queue"
-)
-
-// Config holds the Azure Service-Bus integration configuration.
-type Config struct {
-	ConnectionString string      `mapstructure:"connection_string"`
-	PublishMode      PublishMode `mapstructure:"publish_mode"`
-	PublishName      string      `mapstructure:"publish_name"`
-}
-
 // Integration implements an Azure Service-Bus integration.
 type Integration struct {
+	sync.RWMutex
+
+	marshaler   marshaler.Type
 	ctx         context.Context
 	cancel      context.CancelFunc
 	ns          *servicebus.Namespace
 	publishName string
+	publishMode config.AzurePublishMode
 	topic       *servicebus.Topic
 	queue       *servicebus.Queue
 }
 
 // New creates a new Azure Service-Bus integration.
-func New(conf Config) (*Integration, error) {
+func New(m marshaler.Type, conf config.IntegrationAzureConfig) (*Integration, error) {
 	var err error
 
 	i := Integration{
+		marshaler:   m,
 		ctx:         context.Background(),
 		publishName: conf.PublishName,
+		publishMode: conf.PublishMode,
 	}
 	i.ctx, i.cancel = context.WithCancel(i.ctx)
 
@@ -57,54 +52,106 @@ func New(conf Config) (*Integration, error) {
 		return nil, errors.Wrap(err, "new namespace error")
 	}
 
-	switch conf.PublishMode {
-	case PublishModeTopic:
-		if err := i.setTopicClient(); err != nil {
-			return nil, errors.Wrap(err, "set topic client error")
-		}
-	case PublishModeQueue:
-		if err := i.setQueueClient(); err != nil {
-			return nil, errors.Wrap(err, "set queue client error")
-		}
-	default:
-		return nil, fmt.Errorf("unknown publish_mode: %s", conf.PublishMode)
+	if err := i.setup(); err != nil {
+		return nil, errors.Wrap(err, "setup client error")
 	}
 
 	return &i, nil
 }
 
 // SendDataUp sends an uplink data payload.
-func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPayload) error {
-	return i.publish(ctx, "up", pl.ApplicationID, pl.DevEUI, pl)
+func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl pb.UplinkEvent) error {
+	return i.publishRetry(ctx, "up", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // SendJoinNotification sends a join notification.
-func (i *Integration) SendJoinNotification(ctx context.Context, pl integration.JoinNotification) error {
-	return i.publish(ctx, "join", pl.ApplicationID, pl.DevEUI, pl)
+func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error {
+	return i.publishRetry(ctx, "join", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // SendACKNotification sends an ack notification.
-func (i *Integration) SendACKNotification(ctx context.Context, pl integration.ACKNotification) error {
-	return i.publish(ctx, "ack", pl.ApplicationID, pl.DevEUI, pl)
+func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]string, pl pb.AckEvent) error {
+	return i.publishRetry(ctx, "ack", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // SendErrorNotification sends an error notification.
-func (i *Integration) SendErrorNotification(ctx context.Context, pl integration.ErrorNotification) error {
-	return i.publish(ctx, "error", pl.ApplicationID, pl.DevEUI, pl)
+func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error {
+	return i.publishRetry(ctx, "error", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // SendStatusNotification sends a status notification.
-func (i *Integration) SendStatusNotification(ctx context.Context, pl integration.StatusNotification) error {
-	return i.publish(ctx, "status", pl.ApplicationID, pl.DevEUI, pl)
+func (i *Integration) SendStatusNotification(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error {
+	return i.publishRetry(ctx, "status", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // SendLocationNotification sends a location notification.
-func (i *Integration) SendLocationNotification(ctx context.Context, pl integration.LocationNotification) error {
-	return i.publish(ctx, "location", pl.ApplicationID, pl.DevEUI, pl)
+func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error {
+	return i.publishRetry(ctx, "location", pl.ApplicationId, pl.DevEui, &pl)
+}
+
+// SendTxAckNotification sends a tx ack notification.
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
+	return i.publishRetry(ctx, "txack", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // DataDownChan return nil.
 func (i *Integration) DataDownChan() chan integration.DataDownPayload {
+	return nil
+}
+
+// Close closes the integration.
+func (i *Integration) Close() error {
+	log.Info("integration/azureservicebus: closing integration")
+	i.cancel()
+	return i.close()
+}
+
+func (i *Integration) reconnectLoop() {
+	i.Lock()
+	defer i.Unlock()
+
+	// try to close, but do not retry on error as we might not be able to
+	// close the client
+	if err := i.close(); err != nil {
+		log.WithError(err).Error("integration/azureservicebus: close client error")
+	}
+
+	// try to setup the client and retry on error
+	for {
+		if err := i.setup(); err != nil {
+			log.WithError(err).Error("integration/azureservicebus: setup client error")
+			time.Sleep(time.Second)
+			continue
+		}
+
+		break
+	}
+}
+
+func (i *Integration) setup() error {
+	switch i.publishMode {
+	case config.AzurePublishModeTopic:
+		if err := i.setTopicClient(); err != nil {
+			return errors.Wrap(err, "set topic client error")
+		}
+	case config.AzurePublishModeQueue:
+		if err := i.setQueueClient(); err != nil {
+			return errors.Wrap(err, "set queue client error")
+		}
+	default:
+		return fmt.Errorf("unknown publish_mode: %s", i.publishMode)
+	}
+
+	return nil
+}
+
+func (i *Integration) close() error {
+	if i.topic != nil {
+		return i.topic.Close(i.ctx)
+	}
+	if i.queue != nil {
+		return i.queue.Close(i.ctx)
+	}
 	return nil
 }
 
@@ -158,27 +205,41 @@ func (i *Integration) setQueueClient() error {
 	return nil
 }
 
-func (i *Integration) Close() error {
-	log.Info("integration/azureservicebus: closing integration")
-	i.cancel()
-	if i.topic != nil {
-		return i.topic.Close(i.ctx)
+func (i *Integration) publishRetry(ctx context.Context, event string, applicationID uint64, devEUIB []byte, v proto.Message) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], devEUIB)
+
+	for {
+		if err := i.publish(ctx, event, applicationID, devEUIB, v); err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"dev_eui": devEUI,
+				"event":   event,
+				"ctx_id":  ctx.Value(logging.ContextIDKey),
+			}).Error("integration/azureservicebus: publish event error, will reconnect and retry")
+			i.reconnectLoop()
+			time.Sleep(time.Second)
+			continue
+		}
+
+		return nil
 	}
-	if i.queue != nil {
-		return i.queue.Close(i.ctx)
-	}
-	return nil
 }
 
-func (i *Integration) publish(ctx context.Context, event string, applicationID int64, devEUI lorawan.EUI64, v interface{}) error {
-	jsonB, err := json.Marshal(v)
+func (i *Integration) publish(ctx context.Context, event string, applicationID uint64, devEUIB []byte, v proto.Message) error {
+	i.RLock()
+	defer i.RUnlock()
+
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], devEUIB)
+
+	b, err := marshaler.Marshal(i.marshaler, v)
 	if err != nil {
-		return errors.Wrap(err, "marshal json error")
+		return errors.Wrap(err, "marshal error")
 	}
 
 	msg := servicebus.Message{
 		ContentType: "application/json",
-		Data:        jsonB,
+		Data:        b,
 		UserProperties: map[string]interface{}{
 			"event":          event,
 			"application_id": applicationID,

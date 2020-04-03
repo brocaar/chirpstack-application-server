@@ -9,11 +9,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/loraserver/api/ns"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
 func (ts *APITestSuite) TestDeviceProfile() {
@@ -22,7 +22,7 @@ func (ts *APITestSuite) TestDeviceProfile() {
 	nsClient := mock.NewClient()
 	networkserver.SetPool(mock.NewPool(nsClient))
 
-	validator := &TestValidator{}
+	validator := &TestValidator{returnSubject: "user"}
 	api := NewDeviceProfileServiceAPI(validator)
 
 	n := storage.NetworkServer{
@@ -68,6 +68,9 @@ func (ts *APITestSuite) TestDeviceProfile() {
 				PayloadDecoderScript: "Decode() {}",
 				GeolocBufferTtl:      60,
 				GeolocMinBufferSize:  3,
+				Tags: map[string]string{
+					"foo": "bar",
+				},
 			},
 		}
 
@@ -124,6 +127,9 @@ func (ts *APITestSuite) TestDeviceProfile() {
 					Supports_32BitFCnt:  true,
 					GeolocBufferTtl:     120,
 					GeolocMinBufferSize: 6,
+					Tags: map[string]string{
+						"alice": "bob",
+					},
 				},
 			}
 

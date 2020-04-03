@@ -9,28 +9,28 @@ description: Manage devices, root-keys and ABP session-keys.
 
 # Device management
 
-A device is the end-device connecting to, and communicating over the LoRaWAN network.
-LoRa App Server supports both OTAA (over the air activation) and ABP
+A device is the end-device connecting to, and communicating over the LoRaWAN<sup>&reg;</sup> network.
+ChirpStack Application Server supports both OTAA (over the air activation) and ABP
 (activation by personalization) type devices (configured by the selected
-[device-profile]({{<relref "device-profiles.md">}})).
+[Device Profile]({{<relref "device-profiles.md">}})).
 
 ## Create / update
 
 When creating or updating a device, you need to select the
-[device-profile]({{<relref "device-profiles.md">}}) matching the device
-capabilities. E.g. the device-profile defines if the device is of type
+[Device Profile]({{<relref "device-profiles.md">}}) matching the device
+capabilities. E.g. the Device Profile defines if the device is of type
 OTAA or ABP.
 
-**Note:** In the dropdown, only the device-profiles are available which
-are provisioned on the same [network-server]({{<relref "network-servers.md">}})
-as the [service-profile]({{<relref "service-profiles.md">}}) which is assigned
-to the [application]({{<relref "applications.md">}}) above the device.
+**Note:** In the dropdown, only the Device Profiles are available which
+are provisioned on the same [Network Server]({{<relref "network-servers.md">}})
+as the [Service Profile]({{<relref "service-profiles.md">}}) which is assigned
+to the [Application]({{<relref "applications.md">}}) above the device.
 
 ### Tags and variables
 
 Each device can have multiple user-defined tags and variables assigned.
 Variables are used for integrations and can for example contain API tokens.
-Tags are exposed when LoRa App Server published device events and can be used
+Tags are exposed when ChirpStack Application Server published device events and can be used
 to add additional meta-data, e.g. for aggregation.
 
 ## Activation
@@ -99,7 +99,7 @@ for the following actions:
 2. Click **Set Customer Mode**
 3. Enter the **Device EUI** as `0807060504030201`. **Note**: this field
    must be entered as LSB (meaning it is the reverse value as created in
-   LoRa App Server)!
+   ChirpStack Application Server)!
 4. Click **Set Device EUI**
 5. Click **Set Application Mode**
 
@@ -108,10 +108,10 @@ for the following actions:
 1. Go back to **LoRaWAN Device**
 2. Enter the **Application EUI** as `0000000000000000`. **Note**: this field
    must be entered as LSBF (meaning it is the reverse value as created in
-   LoRa App Server)!
+   ChirpStack Application Server)!
 3. Enter the **Application Key** as `01020304050607080910111213141516`.
    **Note:** Opposite to the *Device / Application EUI*, this field must be
-   entered as MSB (the same value as set in LoRa App Server).
+   entered as MSB (the same value as set in ChirpStack Application Server).
 4. Click **Set Join Parameter**
 5. Click **Join Network**
 
@@ -146,18 +146,18 @@ AT+DI?
 3. Open the example sketch from **Examples -> LMIC-Arduino -> ttn-otaa.ino**
 4. Update the sketch with the **Device EUI** as `0807060504030201`. **Note**: this field
    must be entered as LSB (meaning it is the reverse value as created in
-   LoRa App Server)!
+   ChirpStack Application Server)!
 5. Update the sketch with the **Application EUI** as `0000000000000000`. **Note**: this field
    must be entered as LSB (meaning it is the reverse value as created in
-   LoRa App Server)!
+   ChirpStack Application Server)!
 6. Update the sketch with the **Application Key** as `01020304050607080910111213141516`.
    **Note:** Opposite to the *Device / Application EUI*, this field must be
-   entered as-is (the same value as set in LoRa App Server).
+   entered as-is (the same value as set in ChirpStack Application Server).
 7. Flash the sketch to your device and confirm that the device has been
-   activated in the LoraServer console and on the Arduino Serial Monitor
+   activated in the ChirpStack Application Server console and on the Arduino Serial Monitor
 
 ### Your device not here?
 
-Please help making this guide complete! Fork the [github.com/brocaar/lora-app-server](https://github.com/brocaar/lora-app-server)
+Please help making this guide complete! Fork the [github.com/brocaar/chirpstack-application-server](https://github.com/brocaar/chirpstack-application-server)
 repository, update this page with the actions needed to setup your device
-and create a pull-request :-)
+and create a pull-request.

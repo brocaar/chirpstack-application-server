@@ -10,12 +10,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/loraserver/api/common"
-	"github.com/brocaar/loraserver/api/ns"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
@@ -26,7 +26,9 @@ func (ts *APITestSuite) TestGateway() {
 	networkserver.SetPool(mock.NewPool(nsClient))
 
 	ctx := context.Background()
-	validator := &TestValidator{}
+	validator := &TestValidator{
+		returnSubject: "user",
+	}
 	api := NewGatewayAPI(validator)
 
 	n := storage.NetworkServer{
@@ -64,6 +66,10 @@ func (ts *APITestSuite) TestGateway() {
 						FineTimestampKey: "01020304050607080102030405060708",
 					},
 				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
+				Metadata: make(map[string]string),
 			},
 		}
 		_, err := api.Create(ctx, &createReq)
@@ -180,6 +186,10 @@ func (ts *APITestSuite) TestGateway() {
 							FpgaId: "0202030405060708",
 						},
 					},
+					Tags: map[string]string{
+						"bar": "foo",
+					},
+					Metadata: make(map[string]string),
 				},
 			}
 			_, err := api.Update(ctx, &updateReq)
@@ -214,7 +224,7 @@ func (ts *APITestSuite) TestGateway() {
 					"tx_ok_count": 10,
 				},
 			}
-			assert.NoError(storage.SaveMetricsForInterval(context.Background(), storage.RedisPool(), storage.AggregationMinute, "gw:0102030405060708", metrics))
+			assert.NoError(storage.SaveMetricsForInterval(context.Background(), storage.AggregationMinute, "gw:0102030405060708", metrics))
 
 			start, _ := ptypes.TimestampProto(now.Truncate(time.Minute))
 			end, _ := ptypes.TimestampProto(now)

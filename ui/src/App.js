@@ -81,6 +81,10 @@ import Search from "./views/search/Search";
 import CreateFUOTADeploymentForDevice from "./views/fuota/CreateFUOTADeploymentForDevice";
 import FUOTADeploymentLayout from "./views/fuota/FUOTADeploymentLayout";
 
+// API Keys
+import ListAdminAPIKeys from "./views/api-keys/ListAdminAPIKeys";
+import CreateAdminAPIKey from "./views/api-keys/CreateAdminAPIKey";
+
 
 const drawerWidth = 270;
 
@@ -178,6 +182,9 @@ class App extends Component {
                     <Route exact path="/gateway-profiles" component={ListGatewayProfiles} />
                     <Route exact path="/gateway-profiles/create" component={CreateGatewayProfile} />
                     <Route path="/gateway-profiles/:gatewayProfileID([\w-]{36})" component={GatewayProfileLayout} />
+
+                    <Route exact path="/api-keys" component={ListAdminAPIKeys} />
+                    <Route exact path="/api-keys/create" component={CreateAdminAPIKey} />
 
                     <Route exact path="/organizations/:organizationID(\d+)/service-profiles" component={ListServiceProfiles} />
                     <Route exact path="/organizations/:organizationID(\d+)/service-profiles/create" component={CreateServiceProfile} />

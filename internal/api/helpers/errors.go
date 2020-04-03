@@ -6,9 +6,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/brocaar/lora-app-server/internal/integration/http"
-	"github.com/brocaar/lora-app-server/internal/integration/influxdb"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/http"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/influxdb"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
 var errToCode = map[error]codes.Code{
@@ -25,10 +25,13 @@ var errToCode = map[error]codes.Code{
 	storage.ErrInvalidEmail:                    codes.InvalidArgument,
 	storage.ErrInvalidGatewayDiscoveryInterval: codes.InvalidArgument,
 	storage.ErrDeviceProfileInvalidName:        codes.InvalidArgument,
+	storage.ErrServiceProfileInvalidName:       codes.InvalidArgument,
+	storage.ErrMulticastGroupInvalidName:       codes.InvalidArgument,
 	http.ErrInvalidHeaderName:                  codes.InvalidArgument,
 	influxdb.ErrInvalidPrecision:               codes.InvalidArgument,
 }
 
+// ErrToRPCError converts the given error into a gRPC error.
 func ErrToRPCError(err error) error {
 	cause := errors.Cause(err)
 

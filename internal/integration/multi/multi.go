@@ -9,17 +9,21 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/integration"
-	"github.com/brocaar/lora-app-server/internal/integration/awssns"
-	"github.com/brocaar/lora-app-server/internal/integration/azureservicebus"
-	"github.com/brocaar/lora-app-server/internal/integration/gcppubsub"
-	"github.com/brocaar/lora-app-server/internal/integration/http"
-	"github.com/brocaar/lora-app-server/internal/integration/influxdb"
-	"github.com/brocaar/lora-app-server/internal/integration/mqtt"
-	"github.com/brocaar/lora-app-server/internal/integration/postgresql"
-	"github.com/brocaar/lora-app-server/internal/integration/thingsboard"
-	"github.com/brocaar/lora-app-server/internal/logging"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/amqp"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/awssns"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/azureservicebus"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/gcppubsub"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/http"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/influxdb"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/mqtt"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/mydevices"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/postgresql"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/thingsboard"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 )
 
 // Integration implements the multi integration.
@@ -30,7 +34,7 @@ type Integration struct {
 // New create a new multi integration.
 // The argument that must be given is a slice of configuration objects for
 // the handlers to setup.
-func New(confs []interface{}) (*Integration, error) {
+func New(m marshaler.Type, confs []interface{}) (*Integration, error) {
 	var integrations []integration.Integrator
 
 	for i := range confs {
@@ -39,22 +43,26 @@ func New(confs []interface{}) (*Integration, error) {
 		var err error
 
 		switch v := conf.(type) {
-		case awssns.Config:
-			ii, err = awssns.New(v)
-		case azureservicebus.Config:
-			ii, err = azureservicebus.New(v)
-		case gcppubsub.Config:
-			ii, err = gcppubsub.New(v)
+		case config.IntegrationAWSSNSConfig:
+			ii, err = awssns.New(m, v)
+		case config.IntegrationAzureConfig:
+			ii, err = azureservicebus.New(m, v)
+		case config.IntegrationGCPConfig:
+			ii, err = gcppubsub.New(m, v)
 		case http.Config:
-			ii, err = http.New(v)
+			ii, err = http.New(m, v)
 		case influxdb.Config:
 			ii, err = influxdb.New(v)
-		case mqtt.Config:
-			ii, err = mqtt.New(storage.RedisPool(), v)
-		case postgresql.Config:
+		case config.IntegrationMQTTConfig:
+			ii, err = mqtt.New(m, v)
+		case config.IntegrationPostgreSQLConfig:
 			ii, err = postgresql.New(v)
 		case thingsboard.Config:
 			ii, err = thingsboard.New(v)
+		case mydevices.Config:
+			ii, err = mydevices.New(v)
+		case config.IntegrationAMQPConfig:
+			ii, err = amqp.New(m, v)
 		default:
 			return nil, fmt.Errorf("unknown configuration type %T", conf)
 		}
@@ -77,10 +85,10 @@ func (i *Integration) Add(intg integration.Integrator) {
 }
 
 // SendDataUp sends a data-up payload.
-func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPayload) error {
+func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl pb.UplinkEvent) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
-			if err := i.SendDataUp(ctx, pl); err != nil {
+			if err := i.SendDataUp(ctx, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", i),
 					"ctx_id":      ctx.Value(logging.ContextIDKey),
@@ -93,10 +101,10 @@ func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPaylo
 }
 
 // SendJoinNotification sends a join notification.
-func (i *Integration) SendJoinNotification(ctx context.Context, pl integration.JoinNotification) error {
+func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
-			if err := i.SendJoinNotification(ctx, pl); err != nil {
+			if err := i.SendJoinNotification(ctx, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", i),
 					"ctx_id":      ctx.Value(logging.ContextIDKey),
@@ -109,10 +117,10 @@ func (i *Integration) SendJoinNotification(ctx context.Context, pl integration.J
 }
 
 // SendACKNotification sends an ACK notification.
-func (i *Integration) SendACKNotification(ctx context.Context, pl integration.ACKNotification) error {
+func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]string, pl pb.AckEvent) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
-			if err := i.SendACKNotification(ctx, pl); err != nil {
+			if err := i.SendACKNotification(ctx, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", i),
 					"ctx_id":      ctx.Value(logging.ContextIDKey),
@@ -125,10 +133,10 @@ func (i *Integration) SendACKNotification(ctx context.Context, pl integration.AC
 }
 
 // SendErrorNotification sends an error notification.
-func (i *Integration) SendErrorNotification(ctx context.Context, pl integration.ErrorNotification) error {
+func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
-			if err := i.SendErrorNotification(ctx, pl); err != nil {
+			if err := i.SendErrorNotification(ctx, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", i),
 					"ctx_id":      ctx.Value(logging.ContextIDKey),
@@ -141,10 +149,10 @@ func (i *Integration) SendErrorNotification(ctx context.Context, pl integration.
 }
 
 // SendStatusNotification sends a status notification.
-func (i *Integration) SendStatusNotification(ctx context.Context, pl integration.StatusNotification) error {
+func (i *Integration) SendStatusNotification(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
-			if err := i.SendStatusNotification(ctx, pl); err != nil {
+			if err := i.SendStatusNotification(ctx, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", i),
 					"ctx_id":      ctx.Value(logging.ContextIDKey),
@@ -157,10 +165,26 @@ func (i *Integration) SendStatusNotification(ctx context.Context, pl integration
 }
 
 // SendLocationNotification sends a location notification.
-func (i *Integration) SendLocationNotification(ctx context.Context, pl integration.LocationNotification) error {
+func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error {
 	for _, ii := range i.integrations {
 		go func(i integration.Integrator) {
-			if err := i.SendLocationNotification(ctx, pl); err != nil {
+			if err := i.SendLocationNotification(ctx, vars, pl); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"integration": fmt.Sprintf("%T", i),
+					"ctx_id":      ctx.Value(logging.ContextIDKey),
+				}).Error("integration/multi: integration error")
+			}
+		}(ii)
+	}
+
+	return nil
+}
+
+// SendTxAckNotification sends a tx ack notification.
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
+	for _, ii := range i.integrations {
+		go func(i integration.Integrator) {
+			if err := i.SendTxAckNotification(ctx, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", i),
 					"ctx_id":      ctx.Value(logging.ContextIDKey),

@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	nsmock "github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/lora-app-server/internal/test"
-	"github.com/brocaar/loraserver/api/ns"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	nsmock "github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
+	"github.com/brocaar/chirpstack-application-server/internal/test"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/applayer/fragmentation"
 	"github.com/gofrs/uuid"
@@ -23,13 +23,12 @@ type FUOTATestSuite struct {
 	tx       *storage.TxLogger
 	nsClient *nsmock.Client
 
-	NetworkServer    storage.NetworkServer
-	Organization     storage.Organization
-	ServiceProfile   storage.ServiceProfile
-	Application      storage.Application
-	DeviceProfile    storage.DeviceProfile
-	Device           storage.Device
-	DeviceActivation storage.DeviceActivation
+	NetworkServer  storage.NetworkServer
+	Organization   storage.Organization
+	ServiceProfile storage.ServiceProfile
+	Application    storage.Application
+	DeviceProfile  storage.DeviceProfile
+	Device         storage.Device
 }
 
 func (ts *FUOTATestSuite) SetupSuite() {
@@ -99,11 +98,6 @@ func (ts *FUOTATestSuite) SetupTest() {
 		Description:     "test device",
 	}
 	assert.NoError(storage.CreateDevice(context.Background(), ts.tx, &ts.Device))
-
-	ts.DeviceActivation = storage.DeviceActivation{
-		DevEUI: ts.Device.DevEUI,
-	}
-	assert.NoError(storage.CreateDeviceActivation(context.Background(), ts.tx, &ts.DeviceActivation))
 }
 
 func (ts *FUOTATestSuite) TestFUOTADeploymentMulticastCreate() {
@@ -541,7 +535,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentStatusRequest() {
 	req := <-ts.nsClient.CreateDeviceQueueItemChan
 	assert.NotNil(req.Item)
 	assert.Equal(ns.DeviceQueueItem{
-		DevAddr:    ts.DeviceActivation.DevAddr[:],
+		DevAddr:    ts.Device.DevAddr[:],
 		DevEui:     ts.Device.DevEUI[:],
 		FrmPayload: []byte{0x73, 0xa5},
 		FPort:      uint32(fragmentation.DefaultFPort),

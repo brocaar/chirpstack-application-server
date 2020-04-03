@@ -1,30 +1,57 @@
 package codec
 
+import (
+	"fmt"
+
+	"github.com/brocaar/chirpstack-application-server/internal/codec/cayennelpp"
+	"github.com/brocaar/chirpstack-application-server/internal/codec/js"
+	"github.com/lib/pq/hstore"
+)
+
 // Type defines the codec type.
 type Type string
 
 // Available codec types.
 const (
+	None                = ""
 	CayenneLPPType Type = "CAYENNE_LPP"
 	CustomJSType   Type = "CUSTOM_JS"
 )
 
-// Payload defines a codec payload.
-type Payload interface {
-	DecodeBytes(data []byte) error
-	EncodeToBytes() ([]byte, error)
-	Object() interface{}
-}
+// BinaryToJSON encodes the given binary payload to JSON.
+func BinaryToJSON(t Type, fPort uint8, variables hstore.Hstore, decodeScript string, b []byte) ([]byte, error) {
+	vars := make(map[string]string)
+	for k, v := range variables.Map {
+		if v.Valid {
+			vars[k] = v.String
+		}
+	}
 
-// NewPayload returns a new codec payload. In case of an unknown Type, nil is
-// returned.
-func NewPayload(t Type, fPort uint8, encodeScript, decodeScript string) Payload {
 	switch t {
 	case CayenneLPPType:
-		return &CayenneLPP{}
+		return cayennelpp.BinaryToJSON(b)
 	case CustomJSType:
-		return NewCustomJS(fPort, encodeScript, decodeScript)
+		return js.BinaryToJSON(fPort, vars, decodeScript, b)
 	default:
-		return nil
+		return nil, fmt.Errorf("unknown codec type: %s", t)
+	}
+}
+
+// JSONToBinary encodes the given JSON to binary.
+func JSONToBinary(t Type, fPort uint8, variables hstore.Hstore, encodeScript string, jsonB []byte) ([]byte, error) {
+	vars := make(map[string]string)
+	for k, v := range variables.Map {
+		if v.Valid {
+			vars[k] = v.String
+		}
+	}
+
+	switch t {
+	case CayenneLPPType:
+		return cayennelpp.JSONToBinary(jsonB)
+	case CustomJSType:
+		return js.JSONToBinary(fPort, vars, encodeScript, jsonB)
+	default:
+		return nil, fmt.Errorf("unknown codec type: %s", t)
 	}
 }

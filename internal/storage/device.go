@@ -13,34 +13,36 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/logging"
-	"github.com/brocaar/loraserver/api/ns"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/lorawan"
 )
 
 // Device defines a LoRaWAN device.
 type Device struct {
-	DevEUI                    lorawan.EUI64 `db:"dev_eui"`
-	CreatedAt                 time.Time     `db:"created_at"`
-	UpdatedAt                 time.Time     `db:"updated_at"`
-	LastSeenAt                *time.Time    `db:"last_seen_at"`
-	ApplicationID             int64         `db:"application_id"`
-	DeviceProfileID           uuid.UUID     `db:"device_profile_id"`
-	Name                      string        `db:"name"`
-	Description               string        `db:"description"`
-	SkipFCntCheck             bool          `db:"-"`
-	ReferenceAltitude         float64       `db:"-"`
-	DeviceStatusBattery       *float32      `db:"device_status_battery"`
-	DeviceStatusMargin        *int          `db:"device_status_margin"`
-	DeviceStatusExternalPower bool          `db:"device_status_external_power_source"`
-	DR                        *int          `db:"dr"`
-	Latitude                  *float64      `db:"latitude"`
-	Longitude                 *float64      `db:"longitude"`
-	Altitude                  *float64      `db:"altitude"`
-	Variables                 hstore.Hstore `db:"variables"`
-	Tags                      hstore.Hstore `db:"tags"`
+	DevEUI                    lorawan.EUI64     `db:"dev_eui"`
+	CreatedAt                 time.Time         `db:"created_at"`
+	UpdatedAt                 time.Time         `db:"updated_at"`
+	LastSeenAt                *time.Time        `db:"last_seen_at"`
+	ApplicationID             int64             `db:"application_id"`
+	DeviceProfileID           uuid.UUID         `db:"device_profile_id"`
+	Name                      string            `db:"name"`
+	Description               string            `db:"description"`
+	SkipFCntCheck             bool              `db:"-"`
+	ReferenceAltitude         float64           `db:"-"`
+	DeviceStatusBattery       *float32          `db:"device_status_battery"`
+	DeviceStatusMargin        *int              `db:"device_status_margin"`
+	DeviceStatusExternalPower bool              `db:"device_status_external_power_source"`
+	DR                        *int              `db:"dr"`
+	Latitude                  *float64          `db:"latitude"`
+	Longitude                 *float64          `db:"longitude"`
+	Altitude                  *float64          `db:"altitude"`
+	DevAddr                   lorawan.DevAddr   `db:"dev_addr"`
+	AppSKey                   lorawan.AES128Key `db:"app_s_key"`
+	Variables                 hstore.Hstore     `db:"variables"`
+	Tags                      hstore.Hstore     `db:"tags"`
 }
 
 // DeviceListItem defines the Device as list item.
@@ -63,15 +65,6 @@ type DeviceKeys struct {
 	AppKey    lorawan.AES128Key `db:"app_key"`
 	GenAppKey lorawan.AES128Key `db:"gen_app_key"`
 	JoinNonce int               `db:"join_nonce"`
-}
-
-// DeviceActivation defines the device-activation for a LoRaWAN device.
-type DeviceActivation struct {
-	ID        int64             `db:"id"`
-	CreatedAt time.Time         `db:"created_at"`
-	DevEUI    lorawan.EUI64     `db:"dev_eui"`
-	DevAddr   lorawan.DevAddr   `db:"dev_addr"`
-	AppSKey   lorawan.AES128Key `db:"app_s_key"`
 }
 
 // CreateDevice creates the given device.
@@ -102,8 +95,10 @@ func CreateDevice(ctx context.Context, db sqlx.Ext, d *Device) error {
 			altitude,
 			dr,
 			variables,
-			tags
-        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+			tags,
+			dev_addr,
+			app_s_key
+        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
 		d.DevEUI[:],
 		d.CreatedAt,
 		d.UpdatedAt,
@@ -121,6 +116,8 @@ func CreateDevice(ctx context.Context, db sqlx.Ext, d *Device) error {
 		d.DR,
 		d.Variables,
 		d.Tags,
+		d.DevAddr[:],
+		d.AppSKey,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -211,10 +208,11 @@ func GetDevice(ctx context.Context, db sqlx.Queryer, devEUI lorawan.EUI64, forUp
 // DeviceFilters provide filters that can be used to filter on devices.
 // Note that empty values are not used as filter.
 type DeviceFilters struct {
-	ApplicationID    int64     `db:"application_id"`
-	MulticastGroupID uuid.UUID `db:"multicast_group_id"`
-	ServiceProfileID uuid.UUID `db:"service_profile_id"`
-	Search           string    `db:"search"`
+	ApplicationID    int64         `db:"application_id"`
+	MulticastGroupID uuid.UUID     `db:"multicast_group_id"`
+	ServiceProfileID uuid.UUID     `db:"service_profile_id"`
+	Search           string        `db:"search"`
+	Tags             hstore.Hstore `db:"tags"`
 
 	// Limit and Offset are added for convenience so that this struct can
 	// be given as the arguments.
@@ -240,6 +238,10 @@ func (f DeviceFilters) SQL() string {
 
 	if f.Search != "" {
 		filters = append(filters, "(d.name ilike :search or encode(d.dev_eui, 'hex') ilike :search)")
+	}
+
+	if len(f.Tags.Map) != 0 {
+		filters = append(filters, "d.tags @> :tags")
 	}
 
 	if len(filters) == 0 {
@@ -340,7 +342,9 @@ func UpdateDevice(ctx context.Context, db sqlx.Ext, d *Device, localOnly bool) e
 			device_status_external_power_source = $13,
 			dr = $14,
 			variables = $15,
-			tags = $16
+			tags = $16,
+			dev_addr = $17,
+			app_s_key = $18
         where
             dev_eui = $1`,
 		d.DevEUI[:],
@@ -359,6 +363,8 @@ func UpdateDevice(ctx context.Context, db sqlx.Ext, d *Device, localOnly bool) e
 		d.DR,
 		d.Variables,
 		d.Tags,
+		d.DevAddr,
+		d.AppSKey,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")
@@ -412,6 +418,71 @@ func UpdateDevice(ctx context.Context, db sqlx.Ext, d *Device, localOnly bool) e
 		"dev_eui": d.DevEUI,
 		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("device updated")
+
+	return nil
+}
+
+// UpdateDeviceLastSeenAndDR updates the device last-seen timestamp and data-rate.
+func UpdateDeviceLastSeenAndDR(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI64, ts time.Time, dr int) error {
+	res, err := db.Exec(`
+		update device
+		set
+			last_seen_at = $2,
+			dr = $3
+		where
+			dev_eui = $1`,
+		devEUI[:],
+		ts,
+		dr,
+	)
+	if err != nil {
+		return handlePSQLError(Update, err, "update last-seen and dr error")
+	}
+	ra, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "get rows affected error")
+	}
+	if ra == 0 {
+		return ErrDoesNotExist
+	}
+
+	log.WithFields(log.Fields{
+		"dev_eui": devEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
+	}).Info("device last-seen and dr updated")
+
+	return nil
+}
+
+// UpdateDeviceActivation updates the device address and the AppSKey.
+func UpdateDeviceActivation(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI64, devAddr lorawan.DevAddr, appSKey lorawan.AES128Key) error {
+	res, err := db.Exec(`
+		update device
+		set
+			dev_addr = $2,
+			app_s_key = $3
+		where
+			dev_eui = $1`,
+		devEUI[:],
+		devAddr[:],
+		appSKey[:],
+	)
+	if err != nil {
+		return handlePSQLError(Update, err, "update last-seen and dr error")
+	}
+	ra, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "get rows affected error")
+	}
+	if ra == 0 {
+		return ErrDoesNotExist
+	}
+
+	log.WithFields(log.Fields{
+		"dev_eui":  devEUI,
+		"dev_addr": devAddr,
+		"ctx_id":   ctx.Value(logging.ContextIDKey),
+	}).Info("device activation updated")
 
 	return nil
 }
@@ -563,57 +634,6 @@ func DeleteDeviceKeys(ctx context.Context, db sqlx.Execer, devEUI lorawan.EUI64)
 	}).Info("device-keys deleted")
 
 	return nil
-}
-
-// CreateDeviceActivation creates the given device-activation.
-func CreateDeviceActivation(ctx context.Context, db sqlx.Queryer, da *DeviceActivation) error {
-	da.CreatedAt = time.Now()
-
-	err := sqlx.Get(db, &da.ID, `
-        insert into device_activation (
-            created_at,
-            dev_eui,
-            dev_addr,
-			app_s_key
-        ) values ($1, $2, $3, $4)
-        returning id`,
-		da.CreatedAt,
-		da.DevEUI[:],
-		da.DevAddr[:],
-		da.AppSKey[:],
-	)
-	if err != nil {
-		return handlePSQLError(Insert, err, "insert error")
-	}
-
-	log.WithFields(log.Fields{
-		"id":      da.ID,
-		"dev_eui": da.DevEUI,
-		"ctx_id":  ctx.Value(logging.ContextIDKey),
-	}).Info("device-activation created")
-
-	return nil
-}
-
-// GetLastDeviceActivationForDevEUI returns the most recent device-activation for the given DevEUI.
-func GetLastDeviceActivationForDevEUI(ctx context.Context, db sqlx.Queryer, devEUI lorawan.EUI64) (DeviceActivation, error) {
-	var da DeviceActivation
-
-	err := sqlx.Get(db, &da, `
-        select *
-        from device_activation
-        where
-            dev_eui = $1
-        order by
-            created_at desc
-        limit 1`,
-		devEUI[:],
-	)
-	if err != nil {
-		return da, handlePSQLError(Select, err, "select error")
-	}
-
-	return da, nil
 }
 
 // DeleteAllDevicesForApplicationID deletes all devices given an application id.

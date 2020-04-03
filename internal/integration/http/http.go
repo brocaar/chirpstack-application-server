@@ -4,16 +4,20 @@ package http
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/integration"
-	"github.com/brocaar/lora-app-server/internal/logging"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	"github.com/brocaar/lorawan"
 )
 
 var headerNameValidator = regexp.MustCompile(`^[A-Za-z0-9-]+$`)
@@ -27,6 +31,7 @@ type Config struct {
 	ErrorNotificationURL    string            `json:"errorNotificationURL"`
 	StatusNotificationURL   string            `json:"statusNotificationURL"`
 	LocationNotificationURL string            `json:"locationNotificationURL"`
+	TxAckNotificationURL    string            `json:"txAckNotificationURL"`
 }
 
 // Validate validates the HandlerConfig data.
@@ -41,18 +46,20 @@ func (c Config) Validate() error {
 
 // Integration implements a HTTP integration.
 type Integration struct {
-	config Config
+	marshaler marshaler.Type
+	config    Config
 }
 
 // New creates a new HTTP integration.
-func New(conf Config) (*Integration, error) {
+func New(m marshaler.Type, conf Config) (*Integration, error) {
 	return &Integration{
-		config: conf,
+		marshaler: m,
+		config:    conf,
 	}, nil
 }
 
-func (i *Integration) send(url string, payload interface{}) error {
-	b, err := json.Marshal(payload)
+func (i *Integration) send(url string, msg proto.Message) error {
+	b, err := marshaler.Marshal(i.marshaler, msg)
 	if err != nil {
 		return errors.Wrap(err, "marshal json error")
 	}
@@ -62,7 +69,12 @@ func (i *Integration) send(url string, payload interface{}) error {
 		return errors.Wrap(err, "new request error")
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	if i.marshaler == marshaler.Protobuf {
+		req.Header.Set("Content-Type", "application/octet-stream")
+	} else {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
 	for k, v := range i.config.Headers {
 		req.Header.Set(k, v)
 	}
@@ -81,114 +93,125 @@ func (i *Integration) send(url string, payload interface{}) error {
 	return nil
 }
 
+func (i *Integration) sendEvent(ctx context.Context, event, url string, devEUI lorawan.EUI64, msg proto.Message) {
+	log.WithFields(log.Fields{
+		"url":     url,
+		"dev_eui": devEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
+		"event":   event,
+	}).Info("integration/http: publishing event")
+	if err := i.send(url, msg); err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"url":     url,
+			"dev_eui": devEUI,
+			"ctx_id":  ctx.Value(logging.ContextIDKey),
+			"event":   event,
+		}).Error("integration/http: publish event error")
+	}
+}
+
 // Close closes the handler.
 func (i *Integration) Close() error {
 	return nil
 }
 
 // SendDataUp sends a data-up payload.
-func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPayload) error {
-	if i.config.DataUpURL == "" {
-		return nil
+func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl pb.UplinkEvent) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
+	for _, url := range getURLs(i.config.DataUpURL) {
+		i.sendEvent(ctx, "up", url, devEUI, &pl)
 	}
 
-	log.WithFields(log.Fields{
-		"url":     i.config.DataUpURL,
-		"dev_eui": pl.DevEUI,
-		"ctx_id":  ctx.Value(logging.ContextIDKey),
-	}).Info("integration/http: publishing data-up payload")
-	if err := i.send(i.config.DataUpURL, pl); err != nil {
-		return errors.Wrap(err, "send error")
-	}
 	return nil
 }
 
 // SendJoinNotification sends a join notification.
-func (i *Integration) SendJoinNotification(ctx context.Context, pl integration.JoinNotification) error {
-	if i.config.JoinNotificationURL == "" {
-		return nil
+func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
+	for _, url := range getURLs(i.config.JoinNotificationURL) {
+		i.sendEvent(ctx, "join", url, devEUI, &pl)
 	}
 
-	log.WithFields(log.Fields{
-		"url":     i.config.JoinNotificationURL,
-		"dev_eui": pl.DevEUI,
-		"ctx_id":  ctx.Value(logging.ContextIDKey),
-	}).Info("integration/http: publishing join notification")
-	if err := i.send(i.config.JoinNotificationURL, pl); err != nil {
-		return errors.Wrap(err, "send error")
-	}
 	return nil
 }
 
 // SendACKNotification sends an ACK notification.
-func (i *Integration) SendACKNotification(ctx context.Context, pl integration.ACKNotification) error {
-	if i.config.ACKNotificationURL == "" {
-		return nil
+func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]string, pl pb.AckEvent) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
+	for _, url := range getURLs(i.config.ACKNotificationURL) {
+		i.sendEvent(ctx, "ack", url, devEUI, &pl)
 	}
 
-	log.WithFields(log.Fields{
-		"url":     i.config.ACKNotificationURL,
-		"dev_eui": pl.DevEUI,
-		"ctx_id":  ctx.Value(logging.ContextIDKey),
-	}).Info("integration/http: publishing ack notification")
-	if err := i.send(i.config.ACKNotificationURL, pl); err != nil {
-		return errors.Wrap(err, "send error")
-	}
 	return nil
 }
 
 // SendErrorNotification sends an error notification.
-func (i *Integration) SendErrorNotification(ctx context.Context, pl integration.ErrorNotification) error {
-	if i.config.ErrorNotificationURL == "" {
-		return nil
+func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
+	for _, url := range getURLs(i.config.ErrorNotificationURL) {
+		i.sendEvent(ctx, "error", url, devEUI, &pl)
 	}
 
-	log.WithFields(log.Fields{
-		"url":     i.config.ErrorNotificationURL,
-		"dev_eui": pl.DevEUI,
-		"ctx_id":  ctx.Value(logging.ContextIDKey),
-	}).Info("integration/http: publishing error notification")
-	if err := i.send(i.config.ErrorNotificationURL, pl); err != nil {
-		return errors.Wrap(err, "send error")
-	}
 	return nil
 }
 
 // SendStatusNotification sends a status notification.
-func (i *Integration) SendStatusNotification(ctx context.Context, pl integration.StatusNotification) error {
-	if i.config.StatusNotificationURL == "" {
-		return nil
+func (i *Integration) SendStatusNotification(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
+	for _, url := range getURLs(i.config.StatusNotificationURL) {
+		i.sendEvent(ctx, "status", url, devEUI, &pl)
 	}
 
-	log.WithFields(log.Fields{
-		"url":     i.config.StatusNotificationURL,
-		"dev_eui": pl.DevEUI,
-		"ctx_id":  ctx.Value(logging.ContextIDKey),
-	}).Info("integration/http: publishing status notification")
-	if err := i.send(i.config.StatusNotificationURL, pl); err != nil {
-		return errors.Wrap(err, "send error")
-	}
 	return nil
 }
 
 // SendLocationNotification sends a location notification.
-func (i *Integration) SendLocationNotification(ctx context.Context, pl integration.LocationNotification) error {
-	if i.config.LocationNotificationURL == "" {
-		return nil
+func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
+	for _, url := range getURLs(i.config.LocationNotificationURL) {
+		i.sendEvent(ctx, "location", url, devEUI, &pl)
 	}
 
-	log.WithFields(log.Fields{
-		"url":     i.config.LocationNotificationURL,
-		"dev_eui": pl.DevEUI,
-		"ctx_id":  ctx.Value(logging.ContextIDKey),
-	}).Info("integration/http: publishing location notification")
-	if err := i.send(i.config.LocationNotificationURL, pl); err != nil {
-		return errors.Wrap(err, "send error")
+	return nil
+}
+
+// SendTxAckNotification sends a tx ack notification.
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
+	for _, url := range getURLs(i.config.TxAckNotificationURL) {
+		i.sendEvent(ctx, "txack", url, devEUI, &pl)
 	}
+
 	return nil
 }
 
 // DataDownChan return nil.
 func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	return nil
+}
+
+func getURLs(str string) []string {
+	urls := strings.Split(str, ",")
+	var out []string
+
+	for _, url := range urls {
+		if url := strings.TrimSpace(url); url != "" {
+			out = append(out, url)
+		}
+	}
+	return out
 }

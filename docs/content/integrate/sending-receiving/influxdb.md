@@ -12,7 +12,7 @@ When configured, the InfluxDB integration will write device data into an
 This makes it possible to directly visualize all device data using for example
 [Grafana](https://grafana.com).
 
-* [Getting started with InfluxDB](https://docs.influxdata.com/influxdb/v1.5/)
+* [Getting started with InfluxDB](https://docs.influxdata.com/influxdb/latest/)
 * [Getting started with Grafana](http://docs.grafana.org)
 
 ## Requirements
@@ -29,7 +29,7 @@ the JSON object.
 ### Naming
 
 All measurements are using the field names from the `object` element,
-joined by an underscode (`_`) in case the object element is nested.
+joined by an underscore (`_`) in case the object element is nested.
 Payload data is prefixed by `device_frmpayload_data`.
 
 Example:

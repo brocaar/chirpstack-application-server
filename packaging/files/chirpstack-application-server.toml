@@ -1,0 +1,140 @@
+# This configuration sets the required settings and configures an integration
+# with a MQTT broker. Many options and defaults have been omitted for
+# simplicity.
+#
+# See https://www.chirpstack.io/application-server/install/config/ for a full
+# configuration example and documentation.
+
+
+# PostgreSQL settings.
+#
+# Please note that PostgreSQL 9.5+ is required.
+[postgresql]
+# PostgreSQL dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable).
+#
+# Besides using an URL (e.g. 'postgres://user:password@hostname/database?sslmode=disable')
+# it is also possible to use the following format:
+# 'user=chirpstack_as dbname=chirpstack_as sslmode=disable'.
+#
+# The following connection parameters are supported:
+#
+# * dbname - The name of the database to connect to
+# * user - The user to sign in as
+# * password - The user's password
+# * host - The host to connect to. Values that start with / are for unix domain sockets. (default is localhost)
+# * port - The port to bind to. (default is 5432)
+# * sslmode - Whether or not to use SSL (default is require, this is not the default for libpq)
+# * fallback_application_name - An application_name to fall back to if one isn't provided.
+# * connect_timeout - Maximum wait for connection, in seconds. Zero or not specified means wait indefinitely.
+# * sslcert - Cert file location. The file must contain PEM encoded data.
+# * sslkey - Key file location. The file must contain PEM encoded data.
+# * sslrootcert - The location of the root certificate file. The file must contain PEM encoded data.
+#
+# Valid values for sslmode are:
+#
+# * disable - No SSL
+# * require - Always SSL (skip verification)
+# * verify-ca - Always SSL (verify that the certificate presented by the server was signed by a trusted CA)
+# * verify-full - Always SSL (verify that the certification presented by the server was signed by a trusted CA and the server host name matches the one in the certificate)
+dsn="postgres://localhost/chirpstack_as?sslmode=disable"
+
+
+# Redis settings
+#
+# Please note that Redis 2.6.0+ is required.
+[redis]
+# Redis url (e.g. redis://user:password@hostname/0)
+#
+# For more information about the Redis URL format, see:
+# https://www.iana.org/assignments/uri-schemes/prov/redis
+url="redis://localhost:6379"
+
+
+# Application-server settings.
+[application_server]
+
+  # Integration configures the data integration.
+  #
+  # This is the data integration which is available for all applications,
+  # besides the extra integrations that can be added on a per-application
+  # basis.
+  [application_server.integration]
+  # Enabled integrations.
+  enabled=["mqtt"]
+
+    # MQTT integration backend.
+    [application_server.integration.mqtt]
+    # MQTT topic templates for the different MQTT topics.
+    #
+    # The meaning of these topics are documented at:
+    # https://www.chirpstack.io/application-server/integrate/data/
+    #
+    # The following substitutions can be used:
+    # * "{{ .ApplicationID }}" for the application id.
+    # * "{{ .DevEUI }}" for the DevEUI of the device.
+    #
+    # Note: the downlink_topic_template must contain both the application id and
+    # DevEUI substitution!
+    uplink_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/rx"
+    downlink_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/tx"
+    join_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/join"
+    ack_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/ack"
+    error_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error"
+    status_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status"
+    location_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location"
+
+    # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
+    server="tcp://localhost:1883"
+
+    # Connect with the given username (optional)
+    username=""
+
+    # Connect with the given password (optional)
+    password=""
+
+
+    # Settings for the "internal api"
+    #
+    # This is the API used by ChirpStack Network Server to communicate with ChirpStack Application Server
+    # and should not be exposed to the end-user.
+    [application_server.api]
+    # ip:port to bind the api server
+    bind="0.0.0.0:8001"
+
+    # Public ip:port of the application-server API.
+    #
+    # This is used by ChirpStack Network Server to connect to ChirpStack Application Server. When running
+    # ChirpStack Application Server on a different host than ChirpStack Network Server, make sure to set
+    # this to the host:ip on which ChirpStack Network Server can reach ChirpStack Application Server.
+    # The port must be equal to the port configured by the 'bind' flag
+    # above.
+    public_host="localhost:8001"
+
+
+    # Settings for the "external api"
+    #
+    # This is the API and web-interface exposed to the end-user.
+    [application_server.external_api]
+    # ip:port to bind the (user facing) http server to (web-interface and REST / gRPC api)
+    bind="0.0.0.0:8080"
+
+    # http server TLS certificate (optional)
+    tls_cert=""
+
+    # http server TLS key (optional)
+    tls_key=""
+
+    # JWT secret used for api authentication / authorization
+    # You could generate this by executing 'openssl rand -base64 32' for example
+    jwt_secret=""
+
+
+# Join-server configuration.
+#
+# ChirpStack Application Server implements a (subset) of the join-api specified by the
+# LoRaWAN Backend Interfaces specification. This API is used by ChirpStack Network Server
+# to handle join-requests.
+[join_server]
+# ip:port to bind the join-server api interface to
+bind="0.0.0.0:8003"
+

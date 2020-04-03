@@ -117,7 +117,6 @@ type StatusNotification struct {
 	ApplicationName         string            `json:"applicationName"`
 	DeviceName              string            `json:"deviceName"`
 	DevEUI                  lorawan.EUI64     `json:"devEUI"`
-	Battery                 int               `json:"battery"`
 	Margin                  int               `json:"margin"`
 	ExternalPowerSource     bool              `json:"externalPowerSource"`
 	BatteryLevel            float32           `json:"batteryLevel"`
@@ -134,6 +133,18 @@ type LocationNotification struct {
 	DeviceName      string            `json:"deviceName"`
 	DevEUI          lorawan.EUI64     `json:"devEUI"`
 	Location        Location          `json:"location"`
+	Tags            map[string]string `json:"tags,omitempty"`
+	Variables       map[string]string `json:"-"`
+}
+
+// TxAckNotification defines the payload sent to the application after
+// receiving a tx ack from the network-server.
+type TxAckNotification struct {
+	ApplicationID   int64             `json:"applicationID,string"`
+	ApplicationName string            `json:"applicationName"`
+	DeviceName      string            `json:"deviceName"`
+	DevEUI          lorawan.EUI64     `json:"devEUI"`
+	FCnt            uint32            `json:"fCnt"`
 	Tags            map[string]string `json:"tags,omitempty"`
 	Variables       map[string]string `json:"-"`
 }

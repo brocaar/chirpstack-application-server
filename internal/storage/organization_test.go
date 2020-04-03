@@ -8,9 +8,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/lora-app-server/internal/test"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/chirpstack-application-server/internal/test"
 )
 
 func (ts *StorageTestSuite) TestOrganization() {
@@ -56,7 +56,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 		t.Run("GetCount", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetOrganizationCount(context.Background(), DB(), "")
+			count, err := GetOrganizationCount(context.Background(), DB(), OrganizationFilters{})
 			assert.NoError(err)
 			assert.Equal(2, count) // first org is created by migration
 		})
@@ -64,7 +64,9 @@ func (ts *StorageTestSuite) TestOrganization() {
 		t.Run("GetOrganizations", func(t *testing.T) {
 			assert := require.New(t)
 
-			items, err := GetOrganizations(context.Background(), DB(), 10, 0, "")
+			items, err := GetOrganizations(context.Background(), DB(), OrganizationFilters{
+				Limit: 10,
+			})
 			assert.NoError(err)
 
 			assert.Len(items, 2)
@@ -150,11 +152,16 @@ func (ts *StorageTestSuite) TestOrganization() {
 			t.Run("GetCountForUser", func(t *testing.T) {
 				assert := require.New(t)
 
-				c, err := GetOrganizationCountForUser(context.Background(), DB(), user.Username, "")
+				c, err := GetOrganizationCount(context.Background(), DB(), OrganizationFilters{
+					Username: user.Username,
+				})
 				assert.NoError(err)
 				assert.Equal(0, c)
 
-				orgs, err := GetOrganizationsForUser(context.Background(), DB(), user.Username, 10, 0, "")
+				orgs, err := GetOrganizations(context.Background(), DB(), OrganizationFilters{
+					Username: user.Username,
+					Limit:    10,
+				})
 				assert.NoError(err)
 				assert.Len(orgs, 0)
 			})
@@ -164,11 +171,16 @@ func (ts *StorageTestSuite) TestOrganization() {
 
 				assert.NoError(CreateOrganizationUser(context.Background(), DB(), org.ID, user.ID, false, true, true))
 
-				c, err := GetOrganizationCountForUser(context.Background(), DB(), user.Username, "")
+				c, err := GetOrganizationCount(context.Background(), DB(), OrganizationFilters{
+					Username: user.Username,
+				})
 				assert.NoError(err)
 				assert.Equal(1, c)
 
-				orgs, err := GetOrganizationsForUser(context.Background(), DB(), user.Username, 10, 0, "")
+				orgs, err := GetOrganizations(context.Background(), DB(), OrganizationFilters{
+					Username: user.Username,
+					Limit:    10,
+				})
 				assert.NoError(err)
 				assert.Len(orgs, 1)
 				assert.Equal(org.ID, orgs[0].ID)

@@ -3,14 +3,14 @@ package external
 import (
 	"testing"
 
-	"github.com/brocaar/loraserver/api/ns"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
 func (ts *APITestSuite) TestUser() {
@@ -23,7 +23,7 @@ func (ts *APITestSuite) TestUser() {
 	ctx := context.Background()
 	validator := &TestValidator{}
 	api := NewUserAPI(validator)
-	apiInternal := NewInternalUserAPI(validator)
+	apiInternal := NewInternalAPI(validator)
 
 	ts.T().Run("Create user assigned to organization", func(t *testing.T) {
 		assert := require.New(t)

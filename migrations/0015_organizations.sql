@@ -17,8 +17,8 @@ insert into organization (
 ) values(
 	now(),
 	now(),
-	'loraserver',
-	'LoRa Server',
+	'chirpstack',
+	'ChirpStack',
 	true
 );
 
@@ -39,7 +39,7 @@ create table organization_user (
 create index idx_organization_user_user_id on organization_user(user_id);
 create index idx_organization_user_organization_id on organization_user(organization_id);
 
--- assign admin user to LoRa Server organization
+-- assign admin user to ChirpStack Network Server organization
 insert into organization_user (
 	created_at,
 	updated_at,

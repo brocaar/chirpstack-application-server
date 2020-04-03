@@ -7,12 +7,12 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/loraserver/api/ns"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/chirpstack-application-server/internal/codec"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
@@ -69,17 +69,12 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 		DeviceProfileID: dpID,
 		Name:            "test-node",
 		DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
+		DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
+		AppSKey:         lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 	}
 	assert.NoError(storage.CreateDevice(context.Background(), storage.DB(), &d))
 
-	da := storage.DeviceActivation{
-		DevEUI:  d.DevEUI,
-		DevAddr: lorawan.DevAddr{1, 2, 3, 4},
-		AppSKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
-	}
-	assert.NoError(storage.CreateDeviceActivation(context.Background(), storage.DB(), &da))
-
-	b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 12, []byte{1, 2, 3, 4})
+	b, err := lorawan.EncryptFRMPayload(d.AppSKey, false, d.DevAddr, 12, []byte{1, 2, 3, 4})
 	assert.NoError(err)
 
 	ts.T().Run("codec configured on application", func(t *testing.T) {
@@ -115,7 +110,7 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 
 			assert.Equal(ns.CreateDeviceQueueItemRequest{
 				Item: &ns.DeviceQueueItem{
-					DevAddr:    da.DevAddr[:],
+					DevAddr:    d.DevAddr[:],
 					DevEui:     d.DevEUI[:],
 					FrmPayload: b,
 					FCnt:       12,
@@ -158,7 +153,7 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 
 			assert.Equal(ns.CreateDeviceQueueItemRequest{
 				Item: &ns.DeviceQueueItem{
-					DevAddr:    da.DevAddr[:],
+					DevAddr:    d.DevAddr[:],
 					DevEui:     d.DevEUI[:],
 					FrmPayload: []byte{0xa3, 0x9c, 0x42, 0xca},
 					FCnt:       12,
@@ -174,7 +169,7 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 		nsClient.GetDeviceQueueItemsForDevEUIResponse = ns.GetDeviceQueueItemsForDevEUIResponse{
 			Items: []*ns.DeviceQueueItem{
 				{
-					DevAddr:    da.DevAddr[:],
+					DevAddr:    d.DevAddr[:],
 					DevEui:     d.DevEUI[:],
 					FrmPayload: b,
 					FCnt:       12,
@@ -182,12 +177,21 @@ func (ts *APITestSuite) TestDownlinkQueue() {
 					Confirmed:  true,
 				},
 			},
+			TotalCount: 1,
 		}
 
 		resp, err := api.List(context.Background(), &pb.ListDeviceQueueItemsRequest{
-			DevEui: d.DevEUI.String(),
+			DevEui:    d.DevEUI.String(),
+			CountOnly: true,
 		})
 		assert.NoError(err)
+
+		assert.Equal(ns.GetDeviceQueueItemsForDevEUIRequest{
+			DevEui:    d.DevEUI[:],
+			CountOnly: true,
+		}, <-nsClient.GetDeviceQueueItemsForDevEUIChan)
+
+		assert.EqualValues(1, resp.TotalCount)
 		assert.Len(resp.DeviceQueueItems, 1)
 		assert.Equal(&pb.DeviceQueueItem{
 			DevEui:    d.DevEUI.String(),

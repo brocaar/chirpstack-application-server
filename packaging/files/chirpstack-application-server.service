@@ -1,0 +1,15 @@
+[Unit]
+Description=ChirpStack Application Server
+Documentation=https://www.chirpstack.io/
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=appserver
+Group=appserver
+ExecStart=/usr/bin/chirpstack-application-server
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=lora-app-server.service

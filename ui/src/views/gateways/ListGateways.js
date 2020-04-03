@@ -37,7 +37,7 @@ class GatewayRow extends Component {
     this.state = {};
   }
 
-  componentWillMount() {
+  componentDidMount() {
     const start = moment().subtract(29, "days").toISOString();
     const end = moment().toISOString();
 
@@ -81,8 +81,14 @@ class GatewayRow extends Component {
       },
     };
 
+    let lastseen = "Never";
+    if (this.props.gateway.lastSeenAt !== null) {
+      lastseen = moment(this.props.gateway.lastSeenAt).fromNow();
+    }
+
     return(
       <TableRow>
+          <TableCell>{lastseen}</TableCell>
           <TableCellLink to={`/organizations/${this.props.gateway.organizationID}/gateways/${this.props.gateway.id}`}>{this.props.gateway.name}</TableCellLink>
           <TableCell>{this.props.gateway.id}</TableCell>
           <TableCell>
@@ -134,6 +140,7 @@ class ListGatewaysTable extends Component {
       <DataTable
         header={
           <TableRow>
+            <TableCell>Last seen</TableCell>
             <TableCell>Name</TableCell>
             <TableCell>Gateway ID</TableCell>
             <TableCell className={this.props.classes.chart}>Gateway activity (30d)</TableCell>

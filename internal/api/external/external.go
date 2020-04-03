@@ -22,13 +22,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/brocaar/lora-app-server/api"
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/api/external/auth"
-	"github.com/brocaar/lora-app-server/internal/api/helpers"
-	"github.com/brocaar/lora-app-server/internal/config"
-	"github.com/brocaar/lora-app-server/internal/static"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
+	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/static"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
 var (
@@ -48,7 +47,7 @@ var (
 // Setup configures the API package.
 func Setup(conf config.Config) error {
 	if conf.ApplicationServer.ExternalAPI.JWTSecret == "" {
-		return errors.New("jwt_secret must be set!")
+		return errors.New("jwt_secret must be set")
 	}
 
 	brandingHeader = conf.ApplicationServer.Branding.Header
@@ -79,19 +78,19 @@ func setupAPI(conf config.Config) error {
 
 	grpcOpts := helpers.GetgRPCServerOptions()
 	grpcServer := grpc.NewServer(grpcOpts...)
-	api.RegisterApplicationServiceServer(grpcServer, NewApplicationAPI(validator))
-	api.RegisterDeviceQueueServiceServer(grpcServer, NewDeviceQueueAPI(validator))
-	api.RegisterDeviceServiceServer(grpcServer, NewDeviceAPI(validator))
-	api.RegisterUserServiceServer(grpcServer, NewUserAPI(validator))
-	api.RegisterInternalServiceServer(grpcServer, NewInternalUserAPI(validator))
-	api.RegisterGatewayServiceServer(grpcServer, NewGatewayAPI(validator))
-	api.RegisterGatewayProfileServiceServer(grpcServer, NewGatewayProfileAPI(validator))
-	api.RegisterOrganizationServiceServer(grpcServer, NewOrganizationAPI(validator))
-	api.RegisterNetworkServerServiceServer(grpcServer, NewNetworkServerAPI(validator))
-	api.RegisterServiceProfileServiceServer(grpcServer, NewServiceProfileServiceAPI(validator))
-	api.RegisterDeviceProfileServiceServer(grpcServer, NewDeviceProfileServiceAPI(validator))
-	api.RegisterMulticastGroupServiceServer(grpcServer, NewMulticastGroupAPI(validator, rpID))
-	api.RegisterFUOTADeploymentServiceServer(grpcServer, NewFUOTADeploymentAPI(validator))
+	pb.RegisterApplicationServiceServer(grpcServer, NewApplicationAPI(validator))
+	pb.RegisterDeviceQueueServiceServer(grpcServer, NewDeviceQueueAPI(validator))
+	pb.RegisterDeviceServiceServer(grpcServer, NewDeviceAPI(validator))
+	pb.RegisterUserServiceServer(grpcServer, NewUserAPI(validator))
+	pb.RegisterInternalServiceServer(grpcServer, NewInternalAPI(validator))
+	pb.RegisterGatewayServiceServer(grpcServer, NewGatewayAPI(validator))
+	pb.RegisterGatewayProfileServiceServer(grpcServer, NewGatewayProfileAPI(validator))
+	pb.RegisterOrganizationServiceServer(grpcServer, NewOrganizationAPI(validator))
+	pb.RegisterNetworkServerServiceServer(grpcServer, NewNetworkServerAPI(validator))
+	pb.RegisterServiceProfileServiceServer(grpcServer, NewServiceProfileServiceAPI(validator))
+	pb.RegisterDeviceProfileServiceServer(grpcServer, NewDeviceProfileServiceAPI(validator))
+	pb.RegisterMulticastGroupServiceServer(grpcServer, NewMulticastGroupAPI(validator, rpID))
+	pb.RegisterFUOTADeploymentServiceServer(grpcServer, NewFUOTADeploymentAPI(validator))
 
 	// setup the client http interface variable
 	// we need to start the gRPC service first, as it is used by the

@@ -8,12 +8,15 @@ import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+import Typography from "@material-ui/core/Typography";
+import Button from "@material-ui/core/Button";
 
 import {Controlled as CodeMirror} from "react-codemirror2";
 import "codemirror/mode/javascript/javascript";
 
 import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
+import KVForm from "../../components/KVForm";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import NetworkServerStore from "../../stores/NetworkServerStore";
 import { FormLabel } from "../../../node_modules/@material-ui/core";
@@ -34,6 +37,7 @@ class DeviceProfileForm extends FormComponent {
     super();
     this.state = {
       tab: 0,
+      tags: [],
     };
 
     this.onTabChange = this.onTabChange.bind(this);
@@ -43,6 +47,19 @@ class DeviceProfileForm extends FormComponent {
     this.getPingSlotPeriodOptions = this.getPingSlotPeriodOptions.bind(this);
     this.getPayloadCodecOptions = this.getPayloadCodecOptions.bind(this);
     this.onCodeChange = this.onCodeChange.bind(this);
+  }
+
+  componentDidMount() {
+    super.componentDidMount();
+    this.setKVArray(this.props.object || {});
+  }
+
+  componentDidUpdate(prevProps) {
+    super.componentDidUpdate(prevProps);
+
+    if (prevProps.object !== this.props.object) {
+      this.setKVArray(this.props.object || {});
+    }
   }
 
   getNetworkServerOptions(search, callbackFunc) {
@@ -124,6 +141,20 @@ class DeviceProfileForm extends FormComponent {
     }
   }
 
+  setKVArray = (props) => {
+    let tags = [];
+
+    if (props.tags !== undefined) {
+      for (let key in props.tags) {
+        tags.push({key: key, value: props.tags[key]});
+      }
+    }
+
+    this.setState({
+      tags: tags,
+    });
+  }
+
   render() {
     if (this.state.object === undefined) {
       return null;
@@ -149,8 +180,9 @@ class DeviceProfileForm extends FormComponent {
       payloadEncoderScript = `// Encode encodes the given object into an array of bytes.
 //  - fPort contains the LoRaWAN fPort number
 //  - obj is an object, e.g. {"temperature": 22.5}
+//  - variables contains the device variables e.g. {"calibration": "3.5"} (both the key / value are of type string)
 // The function must return an array of bytes, e.g. [225, 230, 255, 0]
-function Encode(fPort, obj) {
+function Encode(fPort, obj, variables) {
   return [];
 }`;
     }
@@ -159,11 +191,14 @@ function Encode(fPort, obj) {
       payloadDecoderScript = `// Decode decodes an array of bytes into an object.
 //  - fPort contains the LoRaWAN fPort number
 //  - bytes is an array of bytes, e.g. [225, 230, 255, 0]
+//  - variables contains the device variables e.g. {"calibration": "3.5"} (both the key / value are of type string)
 // The function must return an object, e.g. {"temperature": 22.5}
-function Decode(fPort, bytes) {
+function Decode(fPort, bytes, variables) {
   return {};
 }`;
     }
+
+    const tags = this.state.tags.map((obj, i) => <KVForm key={i} index={i} object={obj} onChange={this.onChangeKV("tags")} onDelete={this.onDeleteKV("tags")} />);
 
 
     return(
@@ -178,6 +213,7 @@ function Decode(fPort, bytes) {
           <Tab label="Class-B" />
           <Tab label="Class-C" />
           <Tab label="Codec" />
+          <Tab label="Tags" />
         </Tabs>
 
         {this.state.tab === 0 && <div>
@@ -434,7 +470,7 @@ function Decode(fPort, bytes) {
               getOptions={this.getPayloadCodecOptions}
             />
             <FormHelperText>
-              By defining a payload codec, LoRa App Server can encode and decode the binary device payload for you.
+              By defining a payload codec, ChirpStack Application Server can encode and decode the binary device payload for you.
             </FormHelperText>
           </FormControl>
 
@@ -447,7 +483,7 @@ function Decode(fPort, bytes) {
             />
             <FormHelperText>
               The function must have the signature <strong>function Decode(fPort, bytes)</strong> and must return an object.
-              LoRa App Server will convert this object to JSON.
+              ChirpStack Application Server will convert this object to JSON.
             </FormHelperText>
           </FormControl>}
           {this.state.object.payloadCodec === "CUSTOM_JS" && <FormControl fullWidth margin="normal">
@@ -462,6 +498,16 @@ function Decode(fPort, bytes) {
               of bytes.
             </FormHelperText>
           </FormControl>}
+        </div>}
+
+        {this.state.tab === 5 && <div>
+          <FormControl fullWidth margin="normal">
+            <Typography variant="body1">
+              Tags can be used to store additional key/value data.
+            </Typography>
+            {tags}
+          </FormControl>
+          <Button variant="outlined" onClick={this.addKV("tags")}>Add tag</Button>
         </div>}
       </Form>
     );

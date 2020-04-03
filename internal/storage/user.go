@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -405,8 +405,8 @@ func LoginUser(ctx context.Context, db sqlx.Queryer, username string, password s
 		expSecondsSinceEpoch = nowSecondsSinceEpoch + int64(defaultSessionTTL/time.Second)
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"iss":      "lora-app-server",
-		"aud":      "lora-app-server",
+		"iss":      "chirpstack-application-server",
+		"aud":      "chirpstack-application-server",
 		"nbf":      nowSecondsSinceEpoch,
 		"exp":      expSecondsSinceEpoch,
 		"sub":      "user",
@@ -414,7 +414,7 @@ func LoginUser(ctx context.Context, db sqlx.Queryer, username string, password s
 	})
 
 	jwt, err := token.SignedString(jwtsecret)
-	if nil != err {
+	if err != nil {
 		return jwt, errors.Wrap(err, "get jwt signed string error")
 	}
 	return jwt, err

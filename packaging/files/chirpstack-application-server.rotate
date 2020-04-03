@@ -1,0 +1,8 @@
+/var/log/chirpstack-application-server/chirpstack-application-server.log {
+    daily
+    rotate 7
+    missingok
+    dateext
+    copytruncate
+    compress
+}

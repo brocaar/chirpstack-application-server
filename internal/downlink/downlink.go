@@ -1,7 +1,6 @@
 package downlink
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/gofrs/uuid"
@@ -10,13 +9,14 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/eventlog"
-	"github.com/brocaar/lora-app-server/internal/integration"
-	"github.com/brocaar/lora-app-server/internal/logging"
-	"github.com/brocaar/lora-app-server/internal/storage"
-	"github.com/brocaar/loraserver/api/ns"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/codec"
+	"github.com/brocaar/chirpstack-application-server/internal/eventlog"
+	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
@@ -78,31 +78,16 @@ func handleDataDownPayload(ctx context.Context, pl integration.DataDownPayload) 
 			// device-profile codec fields.
 			payloadCodec := app.PayloadCodec
 			payloadEncoderScript := app.PayloadEncoderScript
-			payloadDecoderScript := app.PayloadDecoderScript
 
 			if dp.PayloadCodec != "" {
 				payloadCodec = dp.PayloadCodec
 				payloadEncoderScript = dp.PayloadEncoderScript
-				payloadDecoderScript = dp.PayloadDecoderScript
 			}
 
-			// get the codec payload configured for the application
-			codecPL := codec.NewPayload(payloadCodec, pl.FPort, payloadEncoderScript, payloadDecoderScript)
-			if codecPL == nil {
-				logCodecError(ctx, app, d, errors.New("no or invalid codec configured for application"))
-				return errors.New("no or invalid codec configured for application")
-			}
-
-			err = json.Unmarshal(pl.Object, &codecPL)
+			pl.Data, err = codec.JSONToBinary(payloadCodec, pl.FPort, d.Variables, payloadEncoderScript, []byte(pl.Object))
 			if err != nil {
 				logCodecError(ctx, app, d, err)
-				return errors.Wrap(err, "unmarshal to codec payload error")
-			}
-
-			pl.Data, err = codecPL.EncodeToBytes()
-			if err != nil {
-				logCodecError(ctx, app, d, err)
-				return errors.Wrap(err, "marshal codec payload to binary error")
+				return errors.Wrap(err, "encode object error")
 			}
 		}
 
@@ -135,14 +120,14 @@ func EnqueueDownlinkPayload(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI
 		return 0, errors.Wrap(err, "get next downlink fcnt for deveui error")
 	}
 
-	// get current device-activation for AppSKey
-	da, err := storage.GetLastDeviceActivationForDevEUI(ctx, db, devEUI)
+	// get device
+	d, err := storage.GetDevice(ctx, db, devEUI, false, true)
 	if err != nil {
-		return 0, errors.Wrap(err, "get last device-activation error")
+		return 0, errors.Wrap(err, "get device error")
 	}
 
 	// encrypt payload
-	b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, resp.FCnt, data)
+	b, err := lorawan.EncryptFRMPayload(d.AppSKey, false, d.DevAddr, resp.FCnt, data)
 	if err != nil {
 		return 0, errors.Wrap(err, "encrypt frmpayload error")
 	}
@@ -150,7 +135,7 @@ func EnqueueDownlinkPayload(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI
 	// enqueue device-queue item
 	_, err = nsClient.CreateDeviceQueueItem(ctx, &ns.CreateDeviceQueueItemRequest{
 		Item: &ns.DeviceQueueItem{
-			DevAddr:    da.DevAddr[:],
+			DevAddr:    d.DevAddr[:],
 			DevEui:     devEUI[:],
 			FrmPayload: b,
 			FCnt:       resp.FCnt,
@@ -172,37 +157,34 @@ func EnqueueDownlinkPayload(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI
 }
 
 func logCodecError(ctx context.Context, a storage.Application, d storage.Device, err error) {
-	errNotification := integration.ErrorNotification{
-		ApplicationID:   a.ID,
+	errEvent := pb.ErrorEvent{
+		ApplicationId:   uint64(a.ID),
 		ApplicationName: a.Name,
 		DeviceName:      d.Name,
-		DevEUI:          d.DevEUI,
-		Type:            "CODEC",
+		DevEui:          d.DevEUI[:],
+		Type:            pb.ErrorType_DOWNLINK_CODEC,
 		Error:           err.Error(),
 		Tags:            make(map[string]string),
-		Variables:       make(map[string]string),
 	}
 
 	for k, v := range d.Tags.Map {
 		if v.Valid {
-			errNotification.Tags[k] = v.String
+			errEvent.Tags[k] = v.String
 		}
 	}
 
+	vars := make(map[string]string)
 	for k, v := range d.Variables.Map {
 		if v.Valid {
-			errNotification.Variables[k] = v.String
+			vars[k] = v.String
 		}
 	}
 
-	if err := eventlog.LogEventForDevice(d.DevEUI, eventlog.EventLog{
-		Type:    eventlog.Error,
-		Payload: errNotification,
-	}); err != nil {
+	if err := eventlog.LogEventForDevice(d.DevEUI, eventlog.Error, &errEvent); err != nil {
 		log.WithError(err).WithField("ctx_id", ctx.Value(logging.ContextIDKey)).Error("log event for device error")
 	}
 
-	if err := integration.Integration().SendErrorNotification(ctx, errNotification); err != nil {
-		log.WithError(err).WithField("ctx_id", ctx.Value(logging.ContextIDKey)).Error("send error notification to integration error")
+	if err := integration.Integration().SendErrorNotification(ctx, vars, errEvent); err != nil {
+		log.WithError(err).WithField("ctx_id", ctx.Value(logging.ContextIDKey)).Error("send error event to integration error")
 	}
 }

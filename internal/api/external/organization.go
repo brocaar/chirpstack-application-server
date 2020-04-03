@@ -8,10 +8,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/lora-app-server/api"
-	"github.com/brocaar/lora-app-server/internal/api/external/auth"
-	"github.com/brocaar/lora-app-server/internal/api/helpers"
-	"github.com/brocaar/lora-app-server/internal/storage"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
+	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
 // OrganizationAPI exports the organization related functions.
@@ -93,37 +93,47 @@ func (a *OrganizationAPI) List(ctx context.Context, req *pb.ListOrganizationRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	filters := storage.OrganizationFilters{
+		Search: req.Search,
+		Limit:  int(req.Limit),
+		Offset: int(req.Offset),
+	}
+
+	sub, err := a.validator.GetSubject(ctx)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	var count int
-	var orgs []storage.Organization
-
-	if isAdmin {
-		count, err = storage.GetOrganizationCount(ctx, storage.DB(), req.Search)
+	switch sub {
+	case auth.SubjectUser:
+		isAdmin, err := a.validator.GetIsAdmin(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		orgs, err = storage.GetOrganizations(ctx, storage.DB(), int(req.Limit), int(req.Offset), req.Search)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-	} else {
 		username, err := a.validator.GetUsername(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
-		count, err = storage.GetOrganizationCountForUser(ctx, storage.DB(), username, req.Search)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
+
+		if !isAdmin {
+			filters.Username = username
 		}
-		orgs, err = storage.GetOrganizationsForUser(ctx, storage.DB(), username, int(req.Limit), int(req.Offset), req.Search)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
+	case auth.SubjectAPIKey:
+		// Nothing to do as the validator function already validated that the
+		// API key must be a global admin key.
+	default:
+		return nil, grpc.Errorf(codes.Unauthenticated, "invalid token subject: %s", err)
+	}
+
+	count, err := storage.GetOrganizationCount(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	orgs, err := storage.GetOrganizations(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
 	}
 
 	resp := pb.ListOrganizationResponse{

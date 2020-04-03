@@ -144,8 +144,9 @@ class HTTPIntegrationForm extends FormComponent {
           <FormLabel>Endpoints</FormLabel>
           <TextField
             id="uplinkDataURL"
-            label="Uplink data URL"
+            label="Uplink data URL(s)"
             placeholder="http://example.com/uplink"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
             value={this.state.object.uplinkDataURL || ""}
             onChange={this.onChange}
             margin="normal"
@@ -153,8 +154,9 @@ class HTTPIntegrationForm extends FormComponent {
           />
           <TextField
             id="joinNotificationURL"
-            label="Join notification URL"
+            label="Join notification URL(s)"
             placeholder="http://example.com/join"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
             value={this.state.object.joinNotificationURL || ""}
             onChange={this.onChange}
             margin="normal"
@@ -162,8 +164,9 @@ class HTTPIntegrationForm extends FormComponent {
           />
           <TextField
             id="statusNotificationURL"
-            label="Device-status notification URL"
+            label="Device-status notification URL(s)"
             placeholder="http://example.com/status"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
             value={this.state.object.statusNotificationURL || ""}
             onChange={this.onChange}
             margin="normal"
@@ -171,8 +174,9 @@ class HTTPIntegrationForm extends FormComponent {
           />
           <TextField
             id="locationNotificationURL"
-            label="Location notification URL"
+            label="Location notification URL(s)"
             placeholder="http://example.com/location"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
             value={this.state.object.locationNotificationURL || ""}
             onChange={this.onChange}
             margin="normal"
@@ -180,17 +184,29 @@ class HTTPIntegrationForm extends FormComponent {
           />
           <TextField
             id="ackNotificationURL"
-            label="ACK notification URL"
+            label="ACK notification URL(s)"
             placeholder="http://example.com/ack"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
             value={this.state.object.ackNotificationURL || ""}
             onChange={this.onChange}
             margin="normal"
             fullWidth
           />
           <TextField
+            id="txAckNotificationURL"
+            label="TX ACK notification URL(s)"
+            placeholder="http://example.com/txack"
+            helperText="This notification is sent when the downlink was acknowledged by the LoRa gateway for transmission. Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
+            value={this.state.object.txAckNotificationURL || ""}
+            onChange={this.onChange}
+            margin="normal"
+            fullWidth
+          />
+          <TextField
             id="errorNotificationURL"
-            label="Error notification url"
+            label="Error notification URL(s)"
             placeholder="http://example.com/error"
+            helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
             value={this.state.object.errorNotificationURL || ""}
             onChange={this.onChange}
             margin="normal"
@@ -331,6 +347,90 @@ class ThingsBoardIntegrationForm extends FormComponent {
 ThingsBoardIntegrationForm = withStyles(styles)(ThingsBoardIntegrationForm);
 
 
+class MyDevicesIntegrationForm extends FormComponent {
+  constructor() {
+    super();
+
+    this.endpointChange = this.endpointChange.bind(this);
+  }
+
+  onChange(e) {
+    super.onChange(e);
+  }
+
+  getEndpointOptions(search, callbackFunc) {
+    const endpointOptions = [
+      {value: "https://lora.mydevices.com/v1/networks/chirpstackio/uplink", label: "Cayenne"},
+      {value: "https://lora.iotinabox.com/v1/networks/iotinabox.chirpstackio/uplink", label: "IoT in a Box"},
+      {value: "custom", label: "Custom endpoint URL"},
+    ];
+
+    callbackFunc(endpointOptions);
+  }
+
+  endpointChange(e) {
+    let object = this.state.object;
+
+    if (e.target.value === "custom") {
+      object.endpoint = "";
+    } else {
+      object.endpoint = e.target.value;
+    }
+
+    this.setState({
+      object: object,
+    });
+  }
+
+  render() {
+    if (this.state.object === undefined) {
+      return null;
+    }
+
+    let endpointSelect = "custom";
+    if (this.state.object.endpoint === undefined) {
+      endpointSelect = "";
+    }
+
+    this.getEndpointOptions("", (options) => {
+      for (let opt of options) {
+        if (this.state.object.endpoint === opt.value) {
+          endpointSelect = this.state.object.endpoint;
+        }
+      }
+    });
+
+    return(
+      <div>
+        <FormControl fullWidth margin="normal">
+          <FormLabel>myDevices endpoint</FormLabel>
+          <AutocompleteSelect
+            id="_endpoint"
+            label="Select myDevices endpoint"
+            value={endpointSelect || ""}
+            getOptions={this.getEndpointOptions}
+            onChange={this.endpointChange}
+          />
+        </FormControl>
+        {endpointSelect === "custom" && <FormControl fullWidth margin="normal">
+          <FormLabel>myDevices integration configuration</FormLabel>
+          <TextField
+            id="endpoint"
+            label="myDevices API endpoint"
+            placeholder="http://host:port"
+            value={this.state.object.endpoint || ""}
+            onChange={this.onChange}
+            margin="normal"
+            required
+            fullWidth
+          />
+        </FormControl>}
+      </div>
+    );
+  }
+}
+
+
 class IntegrationForm extends FormComponent {
   constructor() {
     super();
@@ -348,6 +448,7 @@ class IntegrationForm extends FormComponent {
     const kindOptions = [
       {value: "http", label: "HTTP integration"},
       {value: "influxdb", label: "InfluxDB integration"},
+      {value: "mydevices", label:"myDevices.com"},
       {value: "thingsboard", label: "ThingsBoard.io"},
     ];
 
@@ -377,6 +478,7 @@ class IntegrationForm extends FormComponent {
         {this.state.object.kind === "http" && <HTTPIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
         {this.state.object.kind === "influxdb" && <InfluxDBIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
         {this.state.object.kind === "thingsboard" && <ThingsBoardIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
+        {this.state.object.kind === "mydevices" && <MyDevicesIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
       </Form>
     );
   }

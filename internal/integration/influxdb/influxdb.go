@@ -4,6 +4,7 @@ package influxdb
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -18,8 +19,10 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/lora-app-server/internal/integration"
-	"github.com/brocaar/lora-app-server/internal/logging"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	"github.com/brocaar/lorawan"
 )
 
 var precisionValidator = regexp.MustCompile(`^(ns|u|ms|s|m|h)$`)
@@ -159,17 +162,25 @@ func (i *Integration) Close() error {
 }
 
 // SendDataUp stores the uplink data into InfluxDB.
-func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPayload) error {
-	if pl.Object == nil {
+func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl pb.UplinkEvent) error {
+	if pl.ObjectJson == "" {
 		return nil
 	}
+
+	var obj interface{}
+	if err := json.Unmarshal([]byte(pl.ObjectJson), &obj); err != nil {
+		return errors.Wrap(err, "unmarshal json error")
+	}
+
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
 
 	tags := map[string]string{
 		"application_name": pl.ApplicationName,
 		"device_name":      pl.DeviceName,
-		"dev_eui":          pl.DevEUI.String(),
-		"dr":               strconv.FormatInt(int64(pl.TXInfo.DR), 10),
-		"frequency":        strconv.FormatInt(int64(pl.TXInfo.Frequency), 10),
+		"dev_eui":          devEUI.String(),
+		"dr":               strconv.FormatInt(int64(pl.Dr), 10),
+		"frequency":        strconv.FormatInt(int64(pl.GetTxInfo().GetFrequency()), 10),
 	}
 	for k, v := range pl.Tags {
 		tags[k] = v
@@ -187,18 +198,18 @@ func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPaylo
 		},
 	})
 
-	if len(pl.RXInfo) != 0 {
-		var rssi int
-		for i, rxInfo := range pl.RXInfo {
-			if i == 0 || rxInfo.RSSI > rssi {
-				rssi = rxInfo.RSSI
+	if len(pl.RxInfo) != 0 {
+		var rssi int32
+		for i, rxInfo := range pl.RxInfo {
+			if i == 0 || rxInfo.Rssi > rssi {
+				rssi = rxInfo.Rssi
 			}
 		}
 
 		var snr float64
-		for i, rxInfo := range pl.RXInfo {
-			if i == 0 || rxInfo.LoRaSNR > snr {
-				snr = rxInfo.LoRaSNR
+		for i, rxInfo := range pl.RxInfo {
+			if i == 0 || rxInfo.LoraSnr > snr {
+				snr = rxInfo.LoraSnr
 			}
 		}
 
@@ -207,7 +218,7 @@ func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPaylo
 	}
 
 	// parse object to measurements
-	measurements = append(measurements, objectToMeasurements(pl, "device_frmpayload_data", pl.Object)...)
+	measurements = append(measurements, objectToMeasurements(pl, "device_frmpayload_data", obj)...)
 
 	if len(measurements) == 0 {
 		return nil
@@ -218,7 +229,7 @@ func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPaylo
 	}
 
 	log.WithFields(log.Fields{
-		"dev_eui": pl.DevEUI,
+		"dev_eui": devEUI,
 		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/influxdb: uplink measurements written")
 
@@ -226,26 +237,20 @@ func (i *Integration) SendDataUp(ctx context.Context, pl integration.DataUpPaylo
 }
 
 // SendStatusNotification writes the device-status.
-func (i *Integration) SendStatusNotification(ctx context.Context, pl integration.StatusNotification) error {
+func (i *Integration) SendStatusNotification(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
 
 	tags := map[string]string{
 		"application_name": pl.ApplicationName,
 		"device_name":      pl.DeviceName,
-		"dev_eui":          pl.DevEUI.String(),
+		"dev_eui":          devEUI.String(),
 	}
 	for k, v := range pl.Tags {
 		tags[k] = v
 	}
 
 	var measurements []measurement
-
-	measurements = append(measurements, measurement{
-		Name: "device_status_battery",
-		Tags: tags,
-		Values: map[string]interface{}{
-			"value": pl.Battery,
-		},
-	})
 
 	if !pl.ExternalPowerSource && !pl.BatteryLevelUnavailable {
 		measurements = append(measurements, measurement{
@@ -270,7 +275,7 @@ func (i *Integration) SendStatusNotification(ctx context.Context, pl integration
 	}
 
 	log.WithFields(log.Fields{
-		"dev_eui": pl.DevEUI,
+		"dev_eui": devEUI,
 		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/influxdb: status measurements written")
 
@@ -278,22 +283,27 @@ func (i *Integration) SendStatusNotification(ctx context.Context, pl integration
 }
 
 // SendJoinNotification is not implemented.
-func (i *Integration) SendJoinNotification(ctx context.Context, pl integration.JoinNotification) error {
+func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error {
 	return nil
 }
 
 // SendACKNotification is not implemented.
-func (i *Integration) SendACKNotification(ctx context.Context, pl integration.ACKNotification) error {
+func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]string, pl pb.AckEvent) error {
 	return nil
 }
 
 // SendErrorNotification is not implemented.
-func (i *Integration) SendErrorNotification(ctx context.Context, pl integration.ErrorNotification) error {
+func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error {
 	return nil
 }
 
 // SendLocationNotification is not implemented.
-func (i *Integration) SendLocationNotification(ctx context.Context, pl integration.LocationNotification) error {
+func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error {
+	return nil
+}
+
+// SendTxAckNotification is not implemented.
+func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
 	return nil
 }
 
@@ -302,19 +312,22 @@ func (i *Integration) DataDownChan() chan integration.DataDownPayload {
 	return nil
 }
 
-func objectToMeasurements(pl integration.DataUpPayload, prefix string, obj interface{}) []measurement {
+func objectToMeasurements(pl pb.UplinkEvent, prefix string, obj interface{}) []measurement {
 	var out []measurement
 
 	if obj == nil {
 		return out
 	}
 
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
 	switch o := obj.(type) {
 	case int, uint, float32, float64, uint8, int8, uint16, int16, uint32, int32, uint64, int64, string, bool:
 		tags := map[string]string{
 			"application_name": pl.ApplicationName,
 			"device_name":      pl.DeviceName,
-			"dev_eui":          pl.DevEUI.String(),
+			"dev_eui":          devEUI.String(),
 			"f_port":           strconv.FormatInt(int64(pl.FPort), 10),
 		}
 		for k, v := range pl.Tags {
@@ -388,7 +401,7 @@ func objectToMeasurements(pl integration.DataUpPayload, prefix string, obj inter
 	return out
 }
 
-func mapToLocation(pl integration.DataUpPayload, prefix string, obj reflect.Value) []measurement {
+func mapToLocation(pl pb.UplinkEvent, prefix string, obj reflect.Value) []measurement {
 	var latFloat, longFloat float64
 
 	keys := obj.MapKeys()
@@ -416,10 +429,13 @@ func mapToLocation(pl integration.DataUpPayload, prefix string, obj reflect.Valu
 		return nil
 	}
 
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
 	tags := map[string]string{
 		"application_name": pl.ApplicationName,
 		"device_name":      pl.DeviceName,
-		"dev_eui":          pl.DevEUI.String(),
+		"dev_eui":          devEUI.String(),
 		"f_port":           strconv.FormatInt(int64(pl.FPort), 10),
 	}
 	for k, v := range pl.Tags {
@@ -439,7 +455,7 @@ func mapToLocation(pl integration.DataUpPayload, prefix string, obj reflect.Valu
 	}
 }
 
-func structToLocation(pl integration.DataUpPayload, prefix string, obj reflect.Value) []measurement {
+func structToLocation(pl pb.UplinkEvent, prefix string, obj reflect.Value) []measurement {
 	var latFloat, longFloat float64
 
 	l := obj.NumField()
@@ -468,10 +484,13 @@ func structToLocation(pl integration.DataUpPayload, prefix string, obj reflect.V
 		return nil
 	}
 
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
 	tags := map[string]string{
 		"application_name": pl.ApplicationName,
 		"device_name":      pl.DeviceName,
-		"dev_eui":          pl.DevEUI.String(),
+		"dev_eui":          devEUI.String(),
 		"f_port":           strconv.FormatInt(int64(pl.FPort), 10),
 	}
 	for k, v := range pl.Tags {

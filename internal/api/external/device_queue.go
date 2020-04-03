@@ -56,7 +56,7 @@ func (d *DeviceQueueAPI) Enqueue(ctx context.Context, req *pb.EnqueueDeviceQueue
 	if err := storage.Transaction(func(tx sqlx.Ext) error {
 		// Lock the device to avoid concurrent enqueue actions for the same
 		// device as this would result in re-use of the same frame-counter.
-		dev, err := storage.GetDevice(ctx, storage.DB(), devEUI, true, true)
+		dev, err := storage.GetDevice(ctx, tx, devEUI, true, true)
 		if err != nil {
 			return helpers.ErrToRPCError(err)
 		}

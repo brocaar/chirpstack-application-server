@@ -29,6 +29,7 @@ and [Redis Sentinel](https://redis.io/topics/sentinel).
 
 * Use server time instead of gateway reported time in stats. ([#440](https://github.com/brocaar/chirpstack-application-server/pull/440/))
 * Add "Last seen" column to gateway list view. ([#444](https://github.com/brocaar/chirpstack-application-server/pull/444))
+* Change ISM band names to their common name. ([#456](https://github.com/brocaar/chirpstack-application-server/pull/456))
 
 ### Bugfixes
 
@@ -37,6 +38,10 @@ and [Redis Sentinel](https://redis.io/topics/sentinel).
 * Fix setting `updated_at` field on organization user update. ([#430](https://github.com/brocaar/chirpstack-application-server/pull/430))
 * Fix create service-profile with empty name. ([#436](https://github.com/brocaar/chirpstack-application-server/pull/436/))
 * Fix closing WebSocket connections. ([#373](https://github.com/brocaar/chirpstack-application-server/issues/373))
+* Fix create multicast-group with empty name. ([#451](https://github.com/brocaar/chirpstack-application-server/pull/451/))
+* Fix device-status margin type (uint32 > int32).
+* Fix passing the correct database transaction on downlink enqueue. ([#412](https://github.com/brocaar/chirpstack-application-server/issues/412))
+* Update viper to fix reading configfile error. ([#461](https://github.com/brocaar/chirpstack-application-server/pull/461))
 
 ## v3.9.0
 

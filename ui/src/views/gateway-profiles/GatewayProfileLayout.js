@@ -3,7 +3,7 @@ import { withRouter } from "react-router-dom";
 
 import Grid from '@material-ui/core/Grid';
 
-import Delete from "mdi-material-ui/Plus";
+import Delete from "mdi-material-ui/Delete";
 
 import TitleBar from "../../components/TitleBar";
 import TitleBarTitle from "../../components/TitleBarTitle";

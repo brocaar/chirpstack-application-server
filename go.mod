@@ -1,6 +1,6 @@
 module github.com/brocaar/chirpstack-application-server
 
-go 1.13
+go 1.14
 
 require (
 	cloud.google.com/go v0.49.0 // indirect

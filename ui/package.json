@@ -5,6 +5,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.13.0",
     "@material-ui/core": "^4.9.10",
+    "@material-ui/lab": "^4.0.0-alpha.49",
     "chart.js": "^2.9.3",
     "classnames": "^2.2.6",
     "codemirror": "^5.52.2",
@@ -24,7 +25,6 @@
     "react-leaflet-markercluster": "^2.0.0",
     "react-router-dom": "^5.1.2",
     "react-scripts": "^3.4.1",
-    "react-select": "^1.2.1",
     "react-text-mask": "^5.4.3",
     "robust-websocket": "^1.0.0",
     "source-map-explorer": "^2.4.2",

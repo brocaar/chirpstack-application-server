@@ -369,9 +369,7 @@ class GatewayForm extends FormComponent {
               onChange={this.onChange}
               getOption={this.getGatewayProfileOption}
               getOptions={this.getGatewayProfileOptions}
-              inputProps={{
-                cache: false,
-              }}
+              clearable={true}
             />
             <FormHelperText>
               Optional. When assigning a gateway-profile to the gateway, ChirpStack Network Server will attempt to update the gateway according to the gateway-profile. Note that this does require a gateway with ChirpStack Concentratord.

@@ -255,6 +255,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 						},
 					},
 				},
+				ConfirmedUplink: true,
 			}
 			req.RxInfo[0].Time, _ = ptypes.TimestampProto(now)
 
@@ -284,6 +285,8 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					Tags: map[string]string{
 						"foo": "bar",
 					},
+					ConfirmedUplink: true,
+					DevAddr:         d.DevAddr[:],
 				}, <-h.SendDataUpChan)
 			})
 

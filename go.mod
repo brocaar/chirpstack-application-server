@@ -1,6 +1,6 @@
 module github.com/brocaar/chirpstack-application-server
 
-go 1.13
+go 1.14
 
 require (
 	cloud.google.com/go v0.49.0 // indirect
@@ -8,7 +8,7 @@ require (
 	github.com/Azure/azure-service-bus-go v0.10.0
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
 	github.com/aws/aws-sdk-go v1.26.3
-	github.com/brocaar/chirpstack-api/go/v3 v3.2.0
+	github.com/brocaar/chirpstack-api/go/v3 v3.3.2
 	github.com/brocaar/lorawan v0.0.0-20191115102621-6095d473cf60
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -18,7 +18,7 @@ require (
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
-	github.com/golang/protobuf v1.3.3
+	github.com/golang/protobuf v1.3.5
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/goreleaser/goreleaser v0.106.0
 	github.com/goreleaser/nfpm v0.11.0
@@ -47,7 +47,7 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.6.1
+	github.com/spf13/viper v1.6.2
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/stretchr/testify v1.4.0
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20200122045848-3419fae592fc
@@ -61,7 +61,7 @@ require (
 	golang.org/x/tools v0.0.0-20191217033636-bbbf87ae2631
 	google.golang.org/api v0.14.0
 	google.golang.org/genproto v0.0.0-20200218151345-dad8c97a84f5 // indirect
-	google.golang.org/grpc v1.27.1
+	google.golang.org/grpc v1.28.0
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
 )

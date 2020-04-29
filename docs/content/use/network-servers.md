@@ -11,7 +11,7 @@ description: Manage the connected Network Servers (ChirpStack Network Server ins
 
 ## Network Servers
 
-ChirpStack Application Server is able to connect to one or multiple [ChirpStack Network Server](/Network Server/)
+ChirpStack Application Server is able to connect to one or multiple [ChirpStack Network Server](/network-server/)
 instances. Global admin users are able to add new
 Network Servers to the ChirpStack Application Server installation.
 

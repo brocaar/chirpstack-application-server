@@ -350,7 +350,7 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 		ApplicationName:         app.Name,
 		DeviceName:              d.Name,
 		DevEui:                  d.DevEUI[:],
-		Margin:                  uint32(req.Margin),
+		Margin:                  int32(req.Margin),
 		ExternalPowerSource:     req.ExternalPowerSource,
 		BatteryLevel:            float32(math.Round(float64(req.BatteryLevel*100))) / 100,
 		BatteryLevelUnavailable: req.BatteryLevelUnavailable,

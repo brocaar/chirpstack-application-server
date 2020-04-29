@@ -411,6 +411,165 @@ func (a *ApplicationAPI) DeleteHTTPIntegration(ctx context.Context, in *pb.Delet
 	return &empty.Empty{}, nil
 }
 
+func (a *ApplicationAPI) CreateKonkerIntegration(ctx context.Context, in *pb.CreateKonkerIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Integration.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	headers := make(map[string]string)
+	for _, h := range in.Integration.Headers {
+		headers[h.Key] = h.Value
+	}
+
+	conf := http.Config{
+		Headers:                 headers,
+		DataUpURL:               in.Integration.UplinkDataUrl,
+		JoinNotificationURL:     in.Integration.JoinNotificationUrl,
+		ACKNotificationURL:      in.Integration.AckNotificationUrl,
+		ErrorNotificationURL:    in.Integration.ErrorNotificationUrl,
+		StatusNotificationURL:   in.Integration.StatusNotificationUrl,
+		LocationNotificationURL: in.Integration.LocationNotificationUrl,
+		TxAckNotificationURL:    in.Integration.TxAckNotificationUrl,
+	}
+	if err := conf.Validate(); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	integration := storage.Integration{
+		ApplicationID: in.Integration.ApplicationId,
+		Kind:          integration.Konker,
+		Settings:      confJSON,
+	}
+	if err = storage.CreateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// GetKonkerntegration returns the Konker application-itegration.
+func (a *ApplicationAPI) GetKonkerIntegration(ctx context.Context, in *pb.GetKonkerIntegrationRequest) (*pb.GetKonkerIntegrationResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.Konker)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	var conf http.Config
+	if err = json.Unmarshal(integration.Settings, &conf); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	var headers []*pb.KonkerIntegrationHeader
+	for k, v := range conf.Headers {
+		headers = append(headers, &pb.KonkerIntegrationHeader{
+			Key:   k,
+			Value: v,
+		})
+
+	}
+
+	return &pb.GetKonkerIntegrationResponse{
+		Integration: &pb.KonkerIntegration{
+			ApplicationId:           integration.ApplicationID,
+			Headers:                 headers,
+			UplinkDataUrl:           conf.DataUpURL,
+			JoinNotificationUrl:     conf.JoinNotificationURL,
+			AckNotificationUrl:      conf.ACKNotificationURL,
+			ErrorNotificationUrl:    conf.ErrorNotificationURL,
+			StatusNotificationUrl:   conf.StatusNotificationURL,
+			LocationNotificationUrl: conf.LocationNotificationURL,
+			TxAckNotificationUrl:    conf.TxAckNotificationURL,
+		},
+	}, nil
+}
+
+// UpdateKonkerIntegration updates the Konker application-integration.
+func (a *ApplicationAPI) UpdateKonkerIntegration(ctx context.Context, in *pb.UpdateKonkerIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Integration.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.Integration.ApplicationId, integration.Konker)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	headers := make(map[string]string)
+	for _, h := range in.Integration.Headers {
+		headers[h.Key] = h.Value
+	}
+
+	conf := http.Config{
+		Headers:                 headers,
+		DataUpURL:               in.Integration.UplinkDataUrl,
+		JoinNotificationURL:     in.Integration.JoinNotificationUrl,
+		ACKNotificationURL:      in.Integration.AckNotificationUrl,
+		ErrorNotificationURL:    in.Integration.ErrorNotificationUrl,
+		StatusNotificationURL:   in.Integration.StatusNotificationUrl,
+		LocationNotificationURL: in.Integration.LocationNotificationUrl,
+		TxAckNotificationURL:    in.Integration.TxAckNotificationUrl,
+	}
+	if err := conf.Validate(); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+	integration.Settings = confJSON
+
+	if err = storage.UpdateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// DeleteKonkerIntegration deletes the application-integration of the given type.
+func (a *ApplicationAPI) DeleteKonkerIntegration(ctx context.Context, in *pb.DeleteKonkerIntegrationRequest) (*empty.Empty, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.Konker)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if err = storage.DeleteIntegration(ctx, storage.DB(), integration.ID); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+
 // CreateInfluxDBIntegration create an InfluxDB application-integration.
 func (a *ApplicationAPI) CreateInfluxDBIntegration(ctx context.Context, in *pb.CreateInfluxDBIntegrationRequest) (*empty.Empty, error) {
 	if in.Integration == nil {
@@ -805,6 +964,8 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_THINGSBOARD})
 		case integration.MyDevices:
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_MYDEVICES})
+		case integration.Konker:
+			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_KONKER})
 		default:
 			return nil, grpc.Errorf(codes.Internal, "unknown integration kind: %s", intgr.Kind)
 		}

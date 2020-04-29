@@ -333,6 +333,8 @@ func handleIntegrations(ctx *uplinkContext) error {
 		Data:            ctx.data,
 		ObjectJson:      ctx.objectJSON,
 		Tags:            make(map[string]string),
+		ConfirmedUplink: ctx.uplinkDataReq.ConfirmedUplink,
+		DevAddr:         ctx.device.DevAddr[:],
 	}
 
 	// set tags

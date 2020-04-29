@@ -15,7 +15,7 @@ import Server from "mdi-material-ui/Server";
 import Apps from "mdi-material-ui/Apps";
 import RadioTower from "mdi-material-ui/RadioTower";
 import Tune from "mdi-material-ui/Tune";
-import Settings from "mdi-material-ui/Settings";
+import Cog from "mdi-material-ui/Cog";
 import Rss from "mdi-material-ui/Rss";
 import AccountDetails from "mdi-material-ui/AccountDetails";
 import KeyVariant from "mdi-material-ui/KeyVariant";
@@ -209,7 +209,7 @@ class SideNav extends Component {
           <Admin>
             <ListItem button component={Link} to={`/organizations/${this.state.organization.id}/edit`}>
               <ListItemIcon>
-                <Settings />
+                <Cog />
               </ListItemIcon>
               <ListItemText primary="Org. settings" />
             </ListItem>

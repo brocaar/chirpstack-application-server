@@ -37,7 +37,10 @@ class ListGatewayProfiles extends Component {
 
   getRow(obj) {
     return(
-      <TableRow id={obj.id}>
+      <TableRow
+        id={obj.id}
+        hover
+      >
         <TableCellLink to={`/gateway-profiles/${obj.id}`}>{obj.name}</TableCellLink>
         <TableCellLink to={`/network-servers/${obj.networkServerID}`}>{obj.networkServerName}</TableCellLink>
       </TableRow>
@@ -94,7 +97,7 @@ class ListGatewayProfiles extends Component {
               key={2}
               label="Help"
               icon={<HelpCircleOutline />}
-              onClick={this.toggleHelpDialog} 
+              onClick={this.toggleHelpDialog}
             />
           ]}
         >

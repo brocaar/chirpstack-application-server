@@ -28,7 +28,7 @@ const styles = {
 class ApplicationResult extends Component {
   render() {
     return(
-      <TableRow>
+      <TableRow hover>
         <TableCell className={this.props.classes.type}>application</TableCell>
         <TableCell><Link className={this.props.classes.link} to={`/organizations/${this.props.result.organizationID}/applications/${this.props.result.applicationID}`}>{this.props.result.applicationName}</Link></TableCell>
         <TableCell>organization: <Link className={this.props.classes.link} to={`/organizations/${this.props.result.organizationID}`}>{this.props.result.organizationName}</Link></TableCell>
@@ -44,7 +44,7 @@ ApplicationResult = withStyles(styles)(ApplicationResult);
 class OrganizationResult extends Component {
   render() {
     return(
-      <TableRow>
+      <TableRow hover>
         <TableCell className={this.props.classes.type}>organization</TableCell>
         <TableCell><Link className={this.props.classes.link} to={`/organizations/${this.props.result.organizationID}`}>{this.props.result.organizationName}</Link></TableCell>
         <TableCell></TableCell>
@@ -59,7 +59,7 @@ OrganizationResult = withStyles(styles)(OrganizationResult);
 class DeviceResult extends Component {
   render() {
     return(
-      <TableRow>
+      <TableRow hover>
         <TableCell className={this.props.classes.type}>device</TableCell>
         <TableCell><Link className={this.props.classes.link} to={`/organizations/${this.props.result.organizationID}/applications/${this.props.result.applicationID}/devices/${this.props.result.deviceDevEUI}`}>{this.props.result.deviceName}</Link></TableCell>
         <TableCell>organization: <Link className={this.props.classes.link} to={`/organizations/${this.props.result.organizationID}`}>{this.props.result.organizationName}</Link>, application: <Link className={this.props.classes.link} to={`/organizations/${this.props.result.organizationID}/applications/${this.props.result.applicationID}`}>{this.props.result.applicationName}</Link></TableCell>
@@ -74,7 +74,7 @@ DeviceResult = withStyles(styles)(DeviceResult);
 class GatewayResult extends Component {
   render() {
     return(
-      <TableRow>
+      <TableRow hover>
         <TableCell className={this.props.classes.type}>gateway</TableCell>
         <TableCell><Link className={this.props.classes.link} to={`/organizations/${this.props.result.organizationID}/gateways/${this.props.result.gatewayMAC}`}>{this.props.result.gatewayName}</Link></TableCell>
         <TableCell>organization: <Link className={this.props.classes.link} to={`/organizations/${this.props.result.organizationID}`}>{this.props.result.organizationName}</Link></TableCell>

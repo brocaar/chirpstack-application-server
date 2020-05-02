@@ -43,7 +43,10 @@ class ListIntegrations extends Component {
     const kind = obj.kind.toLowerCase();
 
     return(
-      <TableRow key={obj.kind}>
+      <TableRow
+        key={obj.kind}
+        hover
+      >
         <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations/${kind}`}>{obj.kind}</TableCellLink>
       </TableRow>
     );

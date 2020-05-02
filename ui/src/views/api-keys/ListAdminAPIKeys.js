@@ -27,7 +27,10 @@ class APIKeyRow extends Component {
 
   render() {
     return(
-      <TableRow key={this.props.obj.id}>
+      <TableRow
+        key={this.props.obj.id}
+        hover
+      >
         <TableCell>{this.props.obj.id}</TableCell>
         <TableCell>{this.props.obj.name}</TableCell>
         <TableCell align="right">
@@ -47,7 +50,7 @@ class ListAdminAPIKeys extends Component {
       isAdmin: true,
       limit: limit,
       offset: offset,
-    }, callbackFunc); 
+    }, callbackFunc);
   }
 
   getRow = (obj) => {

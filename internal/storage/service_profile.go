@@ -30,12 +30,13 @@ type ServiceProfile struct {
 
 // ServiceProfileMeta defines the service-profile meta record.
 type ServiceProfileMeta struct {
-	ServiceProfileID uuid.UUID `db:"service_profile_id"`
-	NetworkServerID  int64     `db:"network_server_id"`
-	OrganizationID   int64     `db:"organization_id"`
-	CreatedAt        time.Time `db:"created_at"`
-	UpdatedAt        time.Time `db:"updated_at"`
-	Name             string    `db:"name"`
+	ServiceProfileID  uuid.UUID	`db:"service_profile_id"`
+	NetworkServerID   int64    	`db:"network_server_id"`
+	OrganizationID    int64    	`db:"organization_id"`
+	CreatedAt         time.Time	`db:"created_at"`
+	UpdatedAt         time.Time	`db:"updated_at"`
+	Name              string   	`db:"name"`
+	NetworkServerName string    `db:"network_server_name"`
 }
 
 // Validate validates the service-profile data.
@@ -325,11 +326,16 @@ func GetServiceProfiles(ctx context.Context, db sqlx.Queryer, limit, offset int)
 func GetServiceProfilesForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, limit, offset int) ([]ServiceProfileMeta, error) {
 	var sps []ServiceProfileMeta
 	err := sqlx.Select(db, &sps, `
-		select *
-		from service_profile
+		select
+			sp.*,
+			ns.name as network_server_name
+		from
+			service_profile sp
+		inner join network_server ns
+			on sp.network_server_id = ns.id
 		where
-			organization_id = $1
-		order by name
+			sp.organization_id = $1
+		order by sp.name
 		limit $2 offset $3`,
 		organizationID,
 		limit,

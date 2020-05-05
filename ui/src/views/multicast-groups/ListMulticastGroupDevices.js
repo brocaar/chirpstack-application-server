@@ -58,7 +58,10 @@ class ListMulticastGroupDevices extends Component {
 
   getRow(obj) {
     return(
-      <TableRow key={obj.devEUI}>
+      <TableRow
+        key={obj.devEUI}
+        hover
+      >
         <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/applications/${obj.applicationID}/devices/${obj.devEUI}`}>{obj.name}</TableCellLink>
         <TableCell>{obj.devEUI}</TableCell>
         <TableCell className={this.props.classes.buttons}>

@@ -87,7 +87,7 @@ class GatewayRow extends Component {
     }
 
     return(
-      <TableRow>
+      <TableRow hover>
           <TableCell>{lastseen}</TableCell>
           <TableCellLink to={`/organizations/${this.props.gateway.organizationID}/gateways/${this.props.gateway.id}`}>{this.props.gateway.name}</TableCellLink>
           <TableCell>{this.props.gateway.id}</TableCell>
@@ -202,7 +202,7 @@ class ListGatewaysMap extends Component {
       prefix: "fa",
       markerColor: "red",
     });
-    
+
     for (const item of this.state.items) {
       const position = [item.location.latitude, item.location.longitude];
 

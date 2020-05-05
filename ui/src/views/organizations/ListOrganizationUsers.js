@@ -23,7 +23,7 @@ class ListOrganizationUsers extends Component {
     this.getPage = this.getPage.bind(this);
     this.getRow = this.getRow.bind(this);
   }
-  
+
   getPage(limit, offset, callbackFunc) {
     OrganizationStore.listUsers(this.props.match.params.organizationID, limit, offset, callbackFunc);
   }
@@ -38,7 +38,10 @@ class ListOrganizationUsers extends Component {
     }
 
     return(
-      <TableRow key={obj.userID}>
+      <TableRow
+        key={obj.userID}
+        hover
+      >
         <TableCell>{obj.userID}</TableCell>
         <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/users/${obj.userID}`}>{obj.username}</TableCellLink>
         <TableCell>{icon}</TableCell>

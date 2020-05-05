@@ -39,7 +39,10 @@ class ListUsers extends Component {
     }
 
     return(
-      <TableRow key={obj.id}>
+      <TableRow
+        key={obj.id}
+        hover
+      >
         <TableCellLink to={`/users/${obj.id}`}>{obj.username}</TableCellLink>
         <TableCell>{active}</TableCell>
         <TableCell>{admin}</TableCell>

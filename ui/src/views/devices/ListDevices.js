@@ -68,7 +68,10 @@ class ListDevices extends Component {
     }
 
     return(
-      <TableRow key={obj.devEUI}>
+      <TableRow
+        key={obj.devEUI}
+        hover
+      >
         <TableCell>{lastseen}</TableCell>
         <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${obj.devEUI}`}>{obj.name}</TableCellLink>
         <TableCell>{obj.devEUI}</TableCell>
@@ -102,6 +105,7 @@ class ListDevices extends Component {
                 <TableCell>Battery</TableCell>
               </TableRow>
             }
+
             getPage={this.getPage}
             getRow={this.getRow}
           />

@@ -631,15 +631,6 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	dp, err := storage.GetDeviceProfile(ctx, storage.DB(), d.DeviceProfileID, false, false)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	if dp.DeviceProfile.SupportsJoin {
-		return nil, grpc.Errorf(codes.FailedPrecondition, "node must be an ABP node")
-	}
-
 	n, err := storage.GetNetworkServerForDevEUI(ctx, storage.DB(), devEUI)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)

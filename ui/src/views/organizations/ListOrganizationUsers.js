@@ -29,12 +29,26 @@ class ListOrganizationUsers extends Component {
   }
 
   getRow(obj) {
-    let icon = null;
+    let orgAdmin = null;
+    let gwAdmin = null;
+    let devAdmin = null;
 
     if (obj.isAdmin) {
-      icon = <Check />
+      orgAdmin = <Check />
     } else {
-      icon = <Close />
+      orgAdmin = <Close />
+    }
+
+    if (obj.isAdmin || obj.isGatewayAdmin) {
+      gwAdmin = <Check />
+    } else {
+      gwAdmin = <Close />
+    }
+
+    if (obj.isAdmin || obj.isDeviceAdmin) {
+      devAdmin = <Check />
+    } else {
+      devAdmin = <Close />
     }
 
     return(
@@ -42,9 +56,10 @@ class ListOrganizationUsers extends Component {
         key={obj.userID}
         hover
       >
-        <TableCell>{obj.userID}</TableCell>
-        <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/users/${obj.userID}`}>{obj.username}</TableCellLink>
-        <TableCell>{icon}</TableCell>
+        <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/users/${obj.userID}`}>{obj.email}</TableCellLink>
+        <TableCell>{orgAdmin}</TableCell>
+        <TableCell>{gwAdmin}</TableCell>
+        <TableCell>{devAdmin}</TableCell>
       </TableRow>
     );
   }
@@ -68,9 +83,10 @@ class ListOrganizationUsers extends Component {
           <DataTable
             header={
               <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Username</TableCell>
-                <TableCell>Admin</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Organization admin</TableCell>
+                <TableCell>Gateway admin</TableCell>
+                <TableCell>Device admin</TableCell>
               </TableRow>
             }
             getPage={this.getPage}

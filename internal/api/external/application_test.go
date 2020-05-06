@@ -59,6 +59,13 @@ func (ts *APITestSuite) TestApplication() {
 	spID2, err := uuid.FromBytes(sp2.ServiceProfile.Id)
 	assert.NoError(err)
 
+	user := storage.User{
+		Email:    "foo@bar.com",
+		IsActive: true,
+		IsAdmin:  true,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &user))
+
 	ts.T().Run("Create with service-profile under different organization", func(t *testing.T) {
 		assert := require.New(t)
 		_, err := api.Create(context.Background(), &pb.CreateApplicationRequest{
@@ -125,7 +132,7 @@ func (ts *APITestSuite) TestApplication() {
 			t.Run("List", func(t *testing.T) {
 				t.Run("As global admin", func(t *testing.T) {
 					assert := require.New(t)
-					validator.returnIsAdmin = true
+					validator.returnUser = user
 
 					apps, err := api.List(context.Background(), &pb.ListApplicationRequest{
 						Limit:  10,
@@ -147,7 +154,7 @@ func (ts *APITestSuite) TestApplication() {
 
 				t.Run("As global admin - with org id filter", func(t *testing.T) {
 					assert := require.New(t)
-					validator.returnIsAdmin = true
+					validator.returnUser = user
 
 					apps, err := api.List(context.Background(), &pb.ListApplicationRequest{
 						Limit:          10,

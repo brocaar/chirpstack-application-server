@@ -14,6 +14,8 @@ import (
 )
 
 func (ts *APITestSuite) TestUser() {
+	assert := require.New(ts.T())
+
 	nsClient := mock.NewClient()
 	nsClient.GetDeviceProfileResponse = ns.GetDeviceProfileResponse{
 		DeviceProfile: &ns.DeviceProfile{},
@@ -25,9 +27,16 @@ func (ts *APITestSuite) TestUser() {
 	api := NewUserAPI(validator)
 	apiInternal := NewInternalAPI(validator)
 
+	user := storage.User{
+		Email:    "foo@bar.com",
+		IsAdmin:  true,
+		IsActive: true,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &user))
+
 	ts.T().Run("Create user assigned to organization", func(t *testing.T) {
 		assert := require.New(t)
-		validator.returnIsAdmin = true
+		validator.returnUser = user
 
 		org := storage.Organization{
 			Name: "test-org",
@@ -36,8 +45,7 @@ func (ts *APITestSuite) TestUser() {
 
 		createReq := pb.CreateUserRequest{
 			User: &pb.User{
-				Username: "testuser",
-				Email:    "foo@bar.com",
+				Email: "foo2@bar.com",
 			},
 			Password: "testpasswd",
 			Organizations: []*pb.UserOrganization{
@@ -57,14 +65,13 @@ func (ts *APITestSuite) TestUser() {
 
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
-		validator.returnIsAdmin = true
+		validator.returnUser = user
 
 		createReq := &pb.CreateUserRequest{
 			User: &pb.User{
-				Username:   "username",
 				IsAdmin:    true,
 				SessionTtl: 180,
-				Email:      "foo@bar.com",
+				Email:      "foo3@bar.com",
 			},
 			Password: "pass^^ord",
 		}
@@ -91,15 +98,15 @@ func (ts *APITestSuite) TestUser() {
 				Offset: 0,
 			})
 			assert.NoError(err)
-			assert.Len(users.Result, 3) // 2 created users + admin user
-			assert.EqualValues(3, users.TotalCount)
+			assert.Len(users.Result, 4) // 3 created users + admin user
+			assert.EqualValues(4, users.TotalCount)
 		})
 
 		t.Run("Login", func(t *testing.T) {
 			assert := require.New(t)
 
 			jwt, err := apiInternal.Login(ctx, &pb.LoginRequest{
-				Username: createReq.User.Username,
+				Username: createReq.User.Email,
 				Password: createReq.Password,
 			})
 			assert.NoError(err)
@@ -112,7 +119,6 @@ func (ts *APITestSuite) TestUser() {
 			updateReq := pb.UpdateUserRequest{
 				User: &pb.User{
 					Id:         createResp.Id,
-					Username:   "anotheruser",
 					SessionTtl: 300,
 					IsAdmin:    false,
 					Email:      "bar@foo.com",
@@ -139,7 +145,7 @@ func (ts *APITestSuite) TestUser() {
 			assert.NoError(err)
 
 			jwt, err := apiInternal.Login(ctx, &pb.LoginRequest{
-				Username: "anotheruser",
+				Username: "bar@foo.com",
 				Password: updatePass.Password,
 			})
 			assert.NoError(err)
@@ -159,8 +165,8 @@ func (ts *APITestSuite) TestUser() {
 				Offset: 0,
 			})
 			assert.NoError(err)
-			assert.Len(users.Result, 2)
-			assert.EqualValues(2, users.TotalCount)
+			assert.Len(users.Result, 3)
+			assert.EqualValues(3, users.TotalCount)
 		})
 	})
 

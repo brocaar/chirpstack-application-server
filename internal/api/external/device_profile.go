@@ -298,20 +298,15 @@ func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDevicePr
 
 	switch sub {
 	case auth.SubjectUser:
-		isAdmin, err := a.validator.GetIsAdmin(ctx)
+		user, err := a.validator.GetUser(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		username, err := a.validator.GetUsername(ctx)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-
-		// Filter on username when org and app ID are not set and user is not
+		// Filter on user ID when org and app ID are not set and user is not
 		// global admin.
-		if !isAdmin && filters.OrganizationID == 0 && filters.ApplicationID == 0 {
-			filters.Username = username
+		if !user.IsAdmin && filters.OrganizationID == 0 && filters.ApplicationID == 0 {
+			filters.UserID = user.ID
 		}
 	case auth.SubjectAPIKey:
 		// Nothing to do as the validator function already validated that the

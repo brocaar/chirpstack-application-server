@@ -106,18 +106,13 @@ func (a *OrganizationAPI) List(ctx context.Context, req *pb.ListOrganizationRequ
 
 	switch sub {
 	case auth.SubjectUser:
-		isAdmin, err := a.validator.GetIsAdmin(ctx)
+		user, err := a.validator.GetUser(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		username, err := a.validator.GetUsername(ctx)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-
-		if !isAdmin {
-			filters.Username = username
+		if !user.IsAdmin {
+			filters.UserID = user.ID
 		}
 	case auth.SubjectAPIKey:
 		// Nothing to do as the validator function already validated that the
@@ -174,7 +169,7 @@ func (a *OrganizationAPI) Update(ctx context.Context, req *pb.UpdateOrganization
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	user, err := a.validator.GetUser(ctx)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -186,7 +181,7 @@ func (a *OrganizationAPI) Update(ctx context.Context, req *pb.UpdateOrganization
 
 	org.Name = req.Organization.Name
 	org.DisplayName = req.Organization.DisplayName
-	if isAdmin {
+	if user.IsAdmin {
 		org.CanHaveGateways = req.Organization.CanHaveGateways
 	}
 
@@ -247,7 +242,7 @@ func (a *OrganizationAPI) ListUsers(ctx context.Context, req *pb.ListOrganizatio
 	for _, u := range users {
 		row := pb.OrganizationUserListItem{
 			UserId:         u.UserID,
-			Username:       u.Username,
+			Email:          u.Email,
 			IsAdmin:        u.IsAdmin,
 			IsDeviceAdmin:  u.IsDeviceAdmin,
 			IsGatewayAdmin: u.IsGatewayAdmin,
@@ -279,10 +274,15 @@ func (a *OrganizationAPI) AddUser(ctx context.Context, req *pb.AddOrganizationUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.CreateOrganizationUser(ctx,
+	user, err := storage.GetUserByEmail(ctx, storage.DB(), req.OrganizationUser.Email)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	err = storage.CreateOrganizationUser(ctx,
 		storage.DB(),
 		req.OrganizationUser.OrganizationId,
-		req.OrganizationUser.UserId,
+		user.ID,
 		req.OrganizationUser.IsAdmin,
 		req.OrganizationUser.IsDeviceAdmin,
 		req.OrganizationUser.IsGatewayAdmin,
@@ -354,7 +354,7 @@ func (a *OrganizationAPI) GetUser(ctx context.Context, req *pb.GetOrganizationUs
 			IsAdmin:        user.IsAdmin,
 			IsDeviceAdmin:  user.IsDeviceAdmin,
 			IsGatewayAdmin: user.IsGatewayAdmin,
-			Username:       user.Username,
+			Email:          user.Email,
 		},
 	}
 

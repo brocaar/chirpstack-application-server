@@ -55,6 +55,17 @@ class InternalStore extends EventEmitter {
     });
   }
 
+  settings(callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.InternalService.Settings({})
+        .then(checkStatus)
+        .then(resp => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
   notify(msg) {
     dispatcher.dispatch({
       type: "CREATE_NOTIFICATION",

@@ -19,12 +19,6 @@ const (
 // Flag defines the authorization flag.
 type Flag int
 
-// DisableAssignExistingUsers controls if existing users can be assigned
-// to an organization or application. When set to false (default), organization
-// admin users are able to list all users, which might depending on the
-// context of the setup be a privacy issue.
-var DisableAssignExistingUsers = false
-
 // Authorization flags.
 const (
 	Create Flag = iota
@@ -45,13 +39,13 @@ func ValidateActiveUser() ValidatorFunc {
 	`
 
 	where := [][]string{
-		{"u.username = $1", "u.is_active = true"},
+		{"(u.email = $1 or u.id = $2)", "u.is_active = true"},
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, query, where, claims.Username)
+			return executeQuery(db, query, where, claims.Username, claims.UserID)
 		case SubjectAPIKey:
 			return false, nil
 		default:
@@ -85,41 +79,21 @@ func ValidateUsersAccess(flag Flag) ValidatorFunc {
 	switch flag {
 	case Create:
 		// global admin
-		// organization admin
-
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true"},
+			{"(u.email = $1 or u.id = $2)", "u.is_active = true", "u.is_admin = true"},
 		}
 
 		apiKeyWhere = [][]string{
 			{"ak.id = $1", "ak.is_admin = true"},
-			{"ak.id = $1", "ak.organization_id is not null"},
 		}
 	case List:
-		if DisableAssignExistingUsers {
-			// global admin users
+		// global admin users
+		userWhere = [][]string{
+			{"(u.email = $1 or u.id = $2)", "u.is_active = true", "u.is_admin = true"},
+		}
 
-			userWhere = [][]string{
-				{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			}
-
-			apiKeyWhere = [][]string{
-				{"ak.id = $1", "ak.is_admin = true"},
-			}
-		} else {
-			// global admin
-			// organization admin
-
-			userWhere = [][]string{
-				{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-				{"u.username = $1", "u.is_active = true", "ou.is_admin = true"},
-			}
-
-			apiKeyWhere = [][]string{
-				{"ak.id = $1", "ak.is_admin = true"},
-				{"ak.id = $1", "ak.organization_id is not null"},
-			}
+		apiKeyWhere = [][]string{
+			{"ak.id = $1", "ak.is_admin = true"},
 		}
 	default:
 		panic("unsupported flag")
@@ -128,7 +102,7 @@ func ValidateUsersAccess(flag Flag) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username)
+			return executeQuery(db, userQuery, userWhere, claims.Username, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID)
 		default:
@@ -162,8 +136,8 @@ func ValidateUserAccess(userID int64, flag Flag) ValidatorFunc {
 		// global admin
 		// user itself
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "u.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.id = $2"},
 		}
 
 		// admin token
@@ -173,7 +147,7 @@ func ValidateUserAccess(userID int64, flag Flag) ValidatorFunc {
 	case Update, Delete:
 		// global admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
 		}
 
 		// admin token
@@ -184,8 +158,8 @@ func ValidateUserAccess(userID int64, flag Flag) ValidatorFunc {
 		// global admin
 		// user itself
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "u.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.id = $2"},
 		}
 
 		// admin token
@@ -199,7 +173,7 @@ func ValidateUserAccess(userID int64, flag Flag) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, userID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, userID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID)
 		default:
@@ -244,9 +218,9 @@ func ValidateApplicationsAccess(flag Flag, organizationID int64) ValidatorFunc {
 		// organization admin
 		// organization device admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_device_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "o.id = $2", "ou.is_device_admin = true"},
 		}
 
 		// admin api key
@@ -260,9 +234,9 @@ func ValidateApplicationsAccess(flag Flag, organizationID int64) ValidatorFunc {
 		// organization user (when organization id is given)
 		// any active user (api will filter on user)
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "$2 > 0", "o.id = $2 or a.organization_id = $2"},
-			{"u.username = $1", "u.is_active = true", "$2 = 0"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "$2 > 0", "o.id = $2 or a.organization_id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "$2 = 0"},
 		}
 
 		// admin api key
@@ -279,7 +253,7 @@ func ValidateApplicationsAccess(flag Flag, organizationID int64) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, organizationID)
 		default:
@@ -321,8 +295,8 @@ func ValidateApplicationAccess(applicationID int64, flag Flag) ValidatorFunc {
 		// global admin
 		// organization user
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "a.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "a.id = $2"},
 		}
 
 		// admin api key
@@ -337,9 +311,9 @@ func ValidateApplicationAccess(applicationID int64, flag Flag) ValidatorFunc {
 		// organization admin
 		// organization device admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
-			{"u.username = $1", "u.is_active = true", "ou.is_device_admin = true", "a.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_device_admin = true", "a.id = $2"},
 		}
 
 		// admin api key
@@ -354,9 +328,9 @@ func ValidateApplicationAccess(applicationID int64, flag Flag) ValidatorFunc {
 		// organization admin
 		// organization device admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
-			{"u.username = $1", "u.is_active = true", "ou.is_device_admin = true", "a.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_device_admin = true", "a.id = $2"},
 		}
 
 		// admin api key
@@ -373,7 +347,7 @@ func ValidateApplicationAccess(applicationID int64, flag Flag) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, applicationID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, applicationID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, applicationID)
 		default:
@@ -416,9 +390,9 @@ func ValidateNodesAccess(applicationID int64, flag Flag) ValidatorFunc {
 		// organization admin
 		// organization device admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
-			{"u.username = $1", "u.is_active = true", "ou.is_device_admin = true", "a.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_admin = true", "a.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_device_admin = true", "a.id = $2"},
 		}
 
 		// admin api key
@@ -432,8 +406,8 @@ func ValidateNodesAccess(applicationID int64, flag Flag) ValidatorFunc {
 		// global admin
 		// organization user
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "a.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "a.id = $2"},
 		}
 
 		// admin api key
@@ -450,7 +424,7 @@ func ValidateNodesAccess(applicationID int64, flag Flag) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, applicationID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, applicationID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, applicationID)
 		default:
@@ -495,8 +469,8 @@ func ValidateNodeAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 		// global admin
 		// organization user
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "d.dev_eui = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "d.dev_eui = $2"},
 		}
 
 		// admin api key
@@ -512,9 +486,9 @@ func ValidateNodeAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 		// organization admin
 		// organization device admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "d.dev_eui = $2"},
-			{"u.username = $1", "u.is_active = true", "ou.is_device_admin = true", "d.dev_eui = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_admin = true", "d.dev_eui = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_device_admin = true", "d.dev_eui = $2"},
 		}
 
 		// admin api key
@@ -529,9 +503,9 @@ func ValidateNodeAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 		// organization admin
 		// organization device admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "d.dev_eui = $2"},
-			{"u.username = $1", "u.is_active = true", "ou.is_device_admin = true", "d.dev_eui = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_admin = true", "d.dev_eui = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_device_admin = true", "d.dev_eui = $2"},
 		}
 
 		// admin api key
@@ -548,7 +522,7 @@ func ValidateNodeAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, devEUI[:])
+			return executeQuery(db, userQuery, userWhere, claims.Username, devEUI[:], claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, devEUI[:])
 		default:
@@ -592,8 +566,8 @@ func ValidateDeviceQueueAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 		// global admin
 		// organization user
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "d.dev_eui = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "d.dev_eui = $2"},
 		}
 
 		// admin api key
@@ -611,7 +585,7 @@ func ValidateDeviceQueueAccess(devEUI lorawan.EUI64, flag Flag) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, devEUI[:])
+			return executeQuery(db, userQuery, userWhere, claims.Username, devEUI[:], claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, devEUI[:])
 		default:
@@ -651,9 +625,9 @@ func ValidateGatewaysAccess(flag Flag, organizationID int64) ValidatorFunc {
 		// organization admin
 		// gateway admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true", "o.can_have_gateways = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_gateway_admin = true", "o.can_have_gateways = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "o.id = $2", "ou.is_admin = true", "o.can_have_gateways = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "o.id = $2", "ou.is_gateway_admin = true", "o.can_have_gateways = true"},
 		}
 
 		// admin api key
@@ -667,9 +641,9 @@ func ValidateGatewaysAccess(flag Flag, organizationID int64) ValidatorFunc {
 		// organization user
 		// any active user (result filtered on user)
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "$2 > 0", "o.id = $2"},
-			{"u.username = $1", "u.is_active = true", "$2 = 0"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "$2 > 0", "o.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "$2 = 0"},
 		}
 
 		// admin api key
@@ -686,7 +660,7 @@ func ValidateGatewaysAccess(flag Flag, organizationID int64) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, organizationID)
 		default:
@@ -727,8 +701,8 @@ func ValidateGatewayAccess(flag Flag, mac lorawan.EUI64) ValidatorFunc {
 		// global admin
 		// organization user
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "g.mac = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "g.mac = $2"},
 		}
 
 		// admin api key
@@ -742,9 +716,9 @@ func ValidateGatewayAccess(flag Flag, mac lorawan.EUI64) ValidatorFunc {
 			// global admin
 			// organization admin
 			// organization gateway admin
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "g.mac = $2", "ou.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "g.mac = $2", "ou.is_gateway_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "g.mac = $2", "ou.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "g.mac = $2", "ou.is_gateway_admin = true"},
 		}
 
 		// admin api key
@@ -760,7 +734,7 @@ func ValidateGatewayAccess(flag Flag, mac lorawan.EUI64) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, mac[:])
+			return executeQuery(db, userQuery, userWhere, claims.Username, mac[:], claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, mac[:])
 		default:
@@ -795,8 +769,8 @@ func ValidateIsOrganizationAdmin(organizationID int64) ValidatorFunc {
 	// global admin
 	// organization admin
 	userWhere := [][]string{
-		{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-		{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "o.id = $2"},
+		{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+		{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_admin = true", "o.id = $2"},
 	}
 
 	// admin api key
@@ -809,7 +783,7 @@ func ValidateIsOrganizationAdmin(organizationID int64) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, organizationID)
 		default:
@@ -842,7 +816,7 @@ func ValidateOrganizationsAccess(flag Flag) ValidatorFunc {
 	case Create:
 		// global admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $2)", "u.is_active = true", "u.is_admin = true"},
 		}
 
 		// admin api key
@@ -852,7 +826,7 @@ func ValidateOrganizationsAccess(flag Flag) ValidatorFunc {
 	case List:
 		// any active user (results are filtered by the api)
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true"},
+			{"(u.email = $1 or u.id = $2)", "u.is_active = true"},
 		}
 
 		// admin api key
@@ -868,7 +842,7 @@ func ValidateOrganizationsAccess(flag Flag) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username)
+			return executeQuery(db, userQuery, userWhere, claims.Username, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID)
 		default:
@@ -906,8 +880,8 @@ func ValidateOrganizationAccess(flag Flag, id int64) ValidatorFunc {
 		// global admin
 		// organization user
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "o.id = $2"},
 		}
 
 		// admin api key
@@ -920,8 +894,8 @@ func ValidateOrganizationAccess(flag Flag, id int64) ValidatorFunc {
 		// global admin
 		// organization admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
 		}
 
 		// admin api key
@@ -933,7 +907,7 @@ func ValidateOrganizationAccess(flag Flag, id int64) ValidatorFunc {
 	case Delete:
 		// global admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
 		}
 
 		// admin api key
@@ -947,7 +921,7 @@ func ValidateOrganizationAccess(flag Flag, id int64) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, id)
+			return executeQuery(db, userQuery, userWhere, claims.Username, id, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, id)
 		default:
@@ -981,37 +955,25 @@ func ValidateOrganizationUsersAccess(flag Flag, id int64) ValidatorFunc {
 
 	switch flag {
 	case Create:
-		if DisableAssignExistingUsers {
-			// global admin
-			userWhere = [][]string{
-				{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
-			}
+		// global admin
+		// organization admin
+		userWhere = [][]string{
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+		}
 
-			// admin api key
-			apiKeyWhere = [][]string{
-				{"ak.id = $1", "ak.is_admin = true", "$2 = $2"},
-			}
-		} else {
-			// global admin
-			// organization admin
-			userWhere = [][]string{
-				{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-				{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
-			}
-
-			// admin api key
-			// organization api key
-			apiKeyWhere = [][]string{
-				{"ak.id = $1", "ak.is_admin = true"},
-				{"ak.id = $1", "ak.organization_id = $2"},
-			}
+		// admin api key
+		// organization api key
+		apiKeyWhere = [][]string{
+			{"ak.id = $1", "ak.is_admin = true"},
+			{"ak.id = $1", "ak.organization_id = $2"},
 		}
 	case List:
 		// global admin
 		// organization user
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "o.id = $2"},
 		}
 
 		// admin api key
@@ -1027,7 +989,7 @@ func ValidateOrganizationUsersAccess(flag Flag, id int64) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, id)
+			return executeQuery(db, userQuery, userWhere, claims.Username, id, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, id)
 		default:
@@ -1065,9 +1027,9 @@ func ValidateOrganizationUserAccess(flag Flag, organizationID, userID int64) Val
 		// organization admin
 		// user itself
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.user_id = $3", "ou.user_id = u.id"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "o.id = $2", "ou.user_id = $3", "ou.user_id = u.id"},
 		}
 
 		// admin api key
@@ -1080,8 +1042,8 @@ func ValidateOrganizationUserAccess(flag Flag, organizationID, userID int64) Val
 		// global admin
 		// organization admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
 		}
 
 		// admin api key
@@ -1094,8 +1056,8 @@ func ValidateOrganizationUserAccess(flag Flag, organizationID, userID int64) Val
 		// global admin
 		// organization admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "u.is_admin = true", "$3 = $3"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
 		}
 
 		// admin api key
@@ -1111,7 +1073,7 @@ func ValidateOrganizationUserAccess(flag Flag, organizationID, userID int64) Val
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID, userID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID, userID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, organizationID)
 		default:
@@ -1136,17 +1098,17 @@ func ValidateGatewayProfileAccess(flag Flag) ValidatorFunc {
 	case Create, Update, Delete:
 		// global admin
 		where = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $2)", "u.is_active = true", "u.is_admin = true"},
 		}
 	case Read, List:
 		// any active user
 		where = [][]string{
-			{"u.username = $1", "u.is_active = true"},
+			{"(u.email = $1 or u.id = $2)", "u.is_active = true"},
 		}
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, query, where, claims.Username)
+		return executeQuery(db, query, where, claims.Username, claims.UserID)
 	}
 }
 
@@ -1178,7 +1140,7 @@ func ValidateNetworkServersAccess(flag Flag, organizationID int64) ValidatorFunc
 	case Create:
 		// global admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
 		}
 
 		// admin api key
@@ -1189,8 +1151,8 @@ func ValidateNetworkServersAccess(flag Flag, organizationID int64) ValidatorFunc
 		// global admin
 		// organization user
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "o.id = $2"},
 		}
 
 		// admin api key
@@ -1204,7 +1166,7 @@ func ValidateNetworkServersAccess(flag Flag, organizationID int64) ValidatorFunc
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, organizationID)
 		default:
@@ -1251,9 +1213,9 @@ func ValidateNetworkServerAccess(flag Flag, id int64) ValidatorFunc {
 		// organization admin
 		// organization gateway admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "ns.id = $2"},
-			{"u.username = $1", "u.is_active = true", "ou.is_gateway_admin = true", "ns.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_admin = true", "ns.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_gateway_admin = true", "ns.id = $2"},
 		}
 
 		// admin api key
@@ -1265,7 +1227,7 @@ func ValidateNetworkServerAccess(flag Flag, id int64) ValidatorFunc {
 	case Update, Delete:
 		// global admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
 		}
 
 		// admin api key
@@ -1277,7 +1239,7 @@ func ValidateNetworkServerAccess(flag Flag, id int64) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, id)
+			return executeQuery(db, userQuery, userWhere, claims.Username, id, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, id)
 		default:
@@ -1325,8 +1287,8 @@ func ValidateOrganizationNetworkServerAccess(flag Flag, organizationID, networkS
 		// global admin
 		// organization user
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ns.id = $3"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "o.id = $2", "ns.id = $3"},
 		}
 
 		// admin api key
@@ -1342,7 +1304,7 @@ func ValidateOrganizationNetworkServerAccess(flag Flag, organizationID, networkS
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID, networkServerID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID, networkServerID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, organizationID, networkServerID)
 		default:
@@ -1379,7 +1341,7 @@ func ValidateServiceProfilesAccess(flag Flag, organizationID int64) ValidatorFun
 	case Create:
 		// global admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
 		}
 
 		// admin api key
@@ -1391,9 +1353,9 @@ func ValidateServiceProfilesAccess(flag Flag, organizationID int64) ValidatorFun
 		// organization user (when organization id is given)
 		// any active user (filtered by user)
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "$2 > 0", "o.id = $2"},
-			{"u.username = $1", "u.is_active = true", "$2 = 0"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "$2 > 0", "o.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "$2 = 0"},
 		}
 
 		// admin api key
@@ -1407,7 +1369,7 @@ func ValidateServiceProfilesAccess(flag Flag, organizationID int64) ValidatorFun
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, organizationID)
 		default:
@@ -1447,8 +1409,8 @@ func ValidateServiceProfileAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 		// global admin
 		// organization users to which the service-profile is linked
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "sp.service_profile_id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "sp.service_profile_id = $2"},
 		}
 
 		// admin api key
@@ -1460,7 +1422,7 @@ func ValidateServiceProfileAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 	case Update, Delete:
 		// global admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true", "$2 = $2"},
 		}
 
 		// admin api key
@@ -1472,7 +1434,7 @@ func ValidateServiceProfileAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, id)
+			return executeQuery(db, userQuery, userWhere, claims.Username, id, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, id)
 		default:
@@ -1515,9 +1477,9 @@ func ValidateDeviceProfilesAccess(flag Flag, organizationID, applicationID int64
 		// organization admin
 		// organization device admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true", "$3 = 0"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_device_admin = true", "$3 = 0"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "o.id = $2", "ou.is_admin = true", "$3 = 0"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "o.id = $2", "ou.is_device_admin = true", "$3 = 0"},
 		}
 
 		// admin api key
@@ -1532,10 +1494,10 @@ func ValidateDeviceProfilesAccess(flag Flag, organizationID, applicationID int64
 		// user linked to a given application (when application id is given)
 		// any active user (filtered by user)
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "$3 = 0", "$2 > 0", "o.id = $2"},
-			{"u.username = $1", "u.is_active = true", "$2 = 0", "$3 > 0", "a.id = $3"},
-			{"u.username = $1", "u.is_active = true", "$2 = 0", "$3 = 0"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "$3 = 0", "$2 > 0", "o.id = $2"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "$2 = 0", "$3 > 0", "a.id = $3"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "$2 = 0", "$3 = 0"},
 		}
 
 		// admin api key
@@ -1551,7 +1513,7 @@ func ValidateDeviceProfilesAccess(flag Flag, organizationID, applicationID int64
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID, applicationID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID, applicationID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, organizationID, applicationID)
 		default:
@@ -1599,8 +1561,8 @@ func ValidateDeviceProfileAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 		// gloabal admin
 		// organization users
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "dp.device_profile_id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "dp.device_profile_id = $2"},
 		}
 
 		// admin api key
@@ -1615,9 +1577,9 @@ func ValidateDeviceProfileAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 		// organization admin users
 		// organization device admin users
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin=true", "dp.device_profile_id = $2"},
-			{"u.username = $1", "u.is_active = true", "ou.is_device_admin=true", "dp.device_profile_id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_admin=true", "dp.device_profile_id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_device_admin=true", "dp.device_profile_id = $2"},
 		}
 
 		// admin api key
@@ -1631,7 +1593,7 @@ func ValidateDeviceProfileAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, id)
+			return executeQuery(db, userQuery, userWhere, claims.Username, id, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, id)
 		default:
@@ -1671,8 +1633,8 @@ func ValidateMulticastGroupsAccess(flag Flag, organizationID int64) ValidatorFun
 		// global admin
 		// organization admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
 		}
 
 		// admin api key
@@ -1686,8 +1648,8 @@ func ValidateMulticastGroupsAccess(flag Flag, organizationID int64) ValidatorFun
 		// global admin
 		// organization user
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "o.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "o.id = $2"},
 		}
 
 		// admin api key
@@ -1701,7 +1663,7 @@ func ValidateMulticastGroupsAccess(flag Flag, organizationID int64) ValidatorFun
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, organizationID)
 		default:
@@ -1747,8 +1709,8 @@ func ValidateMulticastGroupAccess(flag Flag, multicastGroupID uuid.UUID) Validat
 		// global admin
 		// organization users
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "mg.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "mg.id = $2"},
 		}
 
 		// admin api key
@@ -1761,8 +1723,8 @@ func ValidateMulticastGroupAccess(flag Flag, multicastGroupID uuid.UUID) Validat
 		// global admin
 		// organization admin users
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "mg.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_admin = true", "mg.id = $2"},
 		}
 
 		// admin api key
@@ -1776,7 +1738,7 @@ func ValidateMulticastGroupAccess(flag Flag, multicastGroupID uuid.UUID) Validat
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, multicastGroupID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, multicastGroupID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, multicastGroupID)
 		default:
@@ -1822,8 +1784,8 @@ func ValidateMulticastGroupQueueAccess(flag Flag, multicastGroupID uuid.UUID) Va
 		// global admin
 		// organization user
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "mg.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "mg.id = $2"},
 		}
 
 		// admin api key
@@ -1837,7 +1799,7 @@ func ValidateMulticastGroupQueueAccess(flag Flag, multicastGroupID uuid.UUID) Va
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, multicastGroupID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, multicastGroupID, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, multicastGroupID)
 		default:
@@ -1889,8 +1851,8 @@ func ValidateFUOTADeploymentAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 		// global admin
 		// organization user
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "fd.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "fd.id = $2"},
 		}
 
 		// admin api key
@@ -1905,7 +1867,7 @@ func ValidateFUOTADeploymentAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, id)
+			return executeQuery(db, userQuery, userWhere, claims.Username, id, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, id)
 		default:
@@ -1949,9 +1911,9 @@ func ValidateFUOTADeploymentsAccess(flag Flag, applicationID int64, devEUI loraw
 		// global admin
 		// organization admin
 		userWhere = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "$2 > 0", "a.id = $2"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "$2 = 0", "d.dev_eui = $3"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "ou.is_admin = true", "$2 > 0", "a.id = $2"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "ou.is_admin = true", "$2 = 0", "d.dev_eui = $3"},
 		}
 
 		// admin api key
@@ -1967,7 +1929,7 @@ func ValidateFUOTADeploymentsAccess(flag Flag, applicationID int64, devEUI loraw
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, applicationID, devEUI)
+			return executeQuery(db, userQuery, userWhere, claims.Username, applicationID, devEUI, claims.UserID)
 		case SubjectAPIKey:
 			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, applicationID, devEUI)
 		default:
@@ -2000,9 +1962,9 @@ func ValidateAPIKeysAccess(flag Flag, organizationID int64, applicationID int64)
 		// organization admin of given org id
 		// organization admin of given app id
 		where = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "$2 > 0", "$3 = 0", "o.id = $2"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "$3 > 0", "$2 = 0", "a.id = $3"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "ou.is_admin = true", "$2 > 0", "$3 = 0", "o.id = $2"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "ou.is_admin = true", "$3 > 0", "$2 = 0", "a.id = $3"},
 		}
 
 	case List:
@@ -2010,16 +1972,16 @@ func ValidateAPIKeysAccess(flag Flag, organizationID int64, applicationID int64)
 		// organization admin of given org id (api key filtered by org in api)
 		// organization admin of given app id (api key filtered by app in api)
 		where = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "$2 > 0", "$3 = 0", "o.id = $2"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "$3 > 0", "$2 = 0", "a.id = $3"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "ou.is_admin = true", "$2 > 0", "$3 = 0", "o.id = $2"},
+			{"(u.email = $1 or u.id = $4)", "u.is_active = true", "ou.is_admin = true", "$3 > 0", "$2 = 0", "a.id = $3"},
 		}
 	default:
 		panic("unsupported flag")
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, query, where, claims.Username, organizationID, applicationID)
+		return executeQuery(db, query, where, claims.Username, organizationID, applicationID, claims.UserID)
 	}
 }
 
@@ -2047,15 +2009,15 @@ func ValidateAPIKeyAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 		// global admin
 		// organization admin
 		where = [][]string{
-			{"u.username = $1", "u.is_active = true", "u.is_admin = true"},
-			{"u.username = $1", "u.is_active = true", "ou.is_admin = true", "ak.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ou.is_admin = true", "ak.id = $2"},
 		}
 	default:
 		panic("unsupported flag")
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, query, where, claims.Username, id)
+		return executeQuery(db, query, where, claims.Username, id, claims.UserID)
 	}
 }
 

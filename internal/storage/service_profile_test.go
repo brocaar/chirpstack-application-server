@@ -8,10 +8,10 @@ import (
 	"github.com/gofrs/uuid"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
 )
 
 func TestServiceProfile(t *testing.T) {
@@ -32,14 +32,13 @@ func TestServiceProfile(t *testing.T) {
 		So(CreateOrganization(context.Background(), DB(), &org), ShouldBeNil)
 
 		u := User{
-			Username: "testuser",
 			IsAdmin:  false,
 			IsActive: true,
 			Email:    "foo@bar.com",
 		}
-		uID, err := CreateUser(context.Background(), DB(), &u, "testpassword")
+		err := CreateUser(context.Background(), DB(), &u)
 		So(err, ShouldBeNil)
-		So(CreateOrganizationUser(context.Background(), DB(), org.ID, uID, false, false, false), ShouldBeNil)
+		So(CreateOrganizationUser(context.Background(), DB(), org.ID, u.ID, false, false, false), ShouldBeNil)
 
 		n := NetworkServer{
 			Name:   "test-ns",
@@ -160,11 +159,11 @@ func TestServiceProfile(t *testing.T) {
 			})
 
 			Convey("Then GetServiceProfileCountForUser returns the service-profile count accessible by the given user", func() {
-				count, err := GetServiceProfileCountForUser(context.Background(), DB(), u.Username)
+				count, err := GetServiceProfileCountForUser(context.Background(), DB(), u.ID)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 
-				count, err = GetServiceProfileCountForUser(context.Background(), DB(), "fakeuser")
+				count, err = GetServiceProfileCountForUser(context.Background(), DB(), u.ID+999)
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 0)
 			})
@@ -187,11 +186,11 @@ func TestServiceProfile(t *testing.T) {
 			})
 
 			Convey("Then GetServiceProfilesForUser returns the service-profiles accessible by a given user", func() {
-				sps, err := GetServiceProfilesForUser(context.Background(), DB(), u.Username, 10, 0)
+				sps, err := GetServiceProfilesForUser(context.Background(), DB(), u.ID, 10, 0)
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 1)
 
-				sps, err = GetServiceProfilesForUser(context.Background(), DB(), "fakeuser", 10, 0)
+				sps, err = GetServiceProfilesForUser(context.Background(), DB(), u.ID+999, 10, 0)
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 0)
 			})

@@ -120,6 +120,20 @@ func (ts *APITestSuite) TestDevice() {
 	dpID2, err := uuid.FromBytes(dp2.DeviceProfile.Id)
 	assert.NoError(err)
 
+	adminUser := storage.User{
+		Email:    "admin@user.com",
+		IsActive: true,
+		IsAdmin:  true,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &adminUser))
+
+	user := storage.User{
+		Email:    "some@user.com",
+		IsActive: true,
+		IsAdmin:  false,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &user))
+
 	ts.T().Run("Create without name", func(t *testing.T) {
 		assert := require.New(t)
 
@@ -292,7 +306,7 @@ func (ts *APITestSuite) TestDevice() {
 			t.Run("List", func(t *testing.T) {
 				t.Run("Filter by tag", func(t *testing.T) {
 					assert := require.New(t)
-					validator.returnIsAdmin = true
+					validator.returnUser = adminUser
 
 					devices, err := api.List(context.Background(), &pb.ListDeviceRequest{
 						Limit:  10,
@@ -315,7 +329,7 @@ func (ts *APITestSuite) TestDevice() {
 
 				t.Run("Global admin can list all devices", func(t *testing.T) {
 					assert := require.New(t)
-					validator.returnIsAdmin = true
+					validator.returnUser = adminUser
 
 					devices, err := api.List(context.Background(), &pb.ListDeviceRequest{
 						Limit:  10,
@@ -337,7 +351,7 @@ func (ts *APITestSuite) TestDevice() {
 
 				t.Run("Non-admin can not list the devices", func(t *testing.T) {
 					assert := require.New(t)
-					validator.returnIsAdmin = false
+					validator.returnUser = user
 
 					_, err := api.List(context.Background(), &pb.ListDeviceRequest{
 						Limit:  10,
@@ -348,7 +362,7 @@ func (ts *APITestSuite) TestDevice() {
 
 				t.Run("Non-admin can list devices by application id", func(t *testing.T) {
 					assert := require.New(t)
-					validator.returnIsAdmin = false
+					validator.returnUser = user
 
 					devices, err := api.List(context.Background(), &pb.ListDeviceRequest{
 						Limit:         10,

@@ -121,6 +121,21 @@ class SessionStore extends EventEmitter {
     });
   }
 
+  openidConnectLogin(code, state, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.InternalService.OpenIDConnectLogin({
+        code: code,
+        state: state,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.setToken(resp.obj.jwtToken);
+          this.fetchProfile(callbackFunc);
+        })
+        .catch(errorHandler);
+    });
+  }
+
   logout(callBackFunc) {
     localStorage.clear();
     this.user = null;
@@ -165,17 +180,6 @@ class SessionStore extends EventEmitter {
       })
       .catch(errorHandler);
       });
-  }
-
-  getBranding(callbackFunc) {
-    this.swagger.then(client => {
-      client.apis.InternalService.Branding({})
-        .then(checkStatus)
-        .then(resp => {
-          callbackFunc(resp.obj);
-        })
-        .catch(errorHandler);
-    });
   }
 }
 

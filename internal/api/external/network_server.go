@@ -199,7 +199,7 @@ func (a *NetworkServerAPI) List(ctx context.Context, req *pb.ListNetworkServerRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	user, err := a.validator.GetUser(ctx)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -208,7 +208,7 @@ func (a *NetworkServerAPI) List(ctx context.Context, req *pb.ListNetworkServerRe
 	var nss []storage.NetworkServer
 
 	if req.OrganizationId == 0 {
-		if isAdmin {
+		if user.IsAdmin {
 			count, err = storage.GetNetworkServerCount(ctx, storage.DB())
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)

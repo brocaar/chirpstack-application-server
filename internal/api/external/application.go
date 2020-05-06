@@ -200,20 +200,15 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 
 	switch sub {
 	case auth.SubjectUser:
-		isAdmin, err := a.validator.GetIsAdmin(ctx)
+		user, err := a.validator.GetUser(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		username, err := a.validator.GetUsername(ctx)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-
-		// Filter on username when OrganizationID is not set and the user is
+		// Filter on user ID when OrganizationID is not set and the user is
 		// not a global admin.
-		if !isAdmin && filters.OrganizationID == 0 {
-			filters.Username = username
+		if !user.IsAdmin && filters.OrganizationID == 0 {
+			filters.UserID = user.ID
 		}
 
 	case auth.SubjectAPIKey:

@@ -1,15 +1,21 @@
 package external
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
+	"github.com/brocaar/chirpstack-application-server/internal/api/external/oidc"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
@@ -28,16 +34,12 @@ func NewInternalAPI(validator auth.Validator) *InternalAPI {
 
 // Login validates the login request and returns a JWT token.
 func (a *InternalAPI) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	jwt, err := storage.LoginUser(ctx, storage.DB(), req.Username, req.Password)
+	jwt, err := storage.LoginUserByPassword(ctx, storage.DB(), req.Username, req.Password)
 	if nil != err {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
 	return &pb.LoginResponse{Jwt: jwt}, nil
-}
-
-type claims struct {
-	Username string `json:"username"`
 }
 
 // Profile returns the user profile.
@@ -47,13 +49,8 @@ func (a *InternalAPI) Profile(ctx context.Context, req *empty.Empty) (*pb.Profil
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	username, err := a.validator.GetUsername(ctx)
-	if nil != err {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	// Get the user id based on the username.
-	user, err := storage.GetUserByUsername(ctx, storage.DB(), username)
+	// Get the user
+	user, err := a.validator.GetUser(ctx)
 	if nil != err {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -66,13 +63,10 @@ func (a *InternalAPI) Profile(ctx context.Context, req *empty.Empty) (*pb.Profil
 	resp := pb.ProfileResponse{
 		User: &pb.User{
 			Id:         prof.User.ID,
-			Username:   prof.User.Username,
+			Email:      prof.User.Email,
 			SessionTtl: prof.User.SessionTTL,
 			IsAdmin:    prof.User.IsAdmin,
 			IsActive:   prof.User.IsActive,
-		},
-		Settings: &pb.ProfileSettings{
-			DisableAssignExistingUsers: auth.DisableAssignExistingUsers,
 		},
 	}
 
@@ -100,17 +94,6 @@ func (a *InternalAPI) Profile(ctx context.Context, req *empty.Empty) (*pb.Profil
 	return &resp, nil
 }
 
-// Branding returns UI branding.
-func (a *InternalAPI) Branding(ctx context.Context, req *empty.Empty) (*pb.BrandingResponse, error) {
-	resp := pb.BrandingResponse{
-		Logo:         brandingHeader,
-		Registration: brandingRegistration,
-		Footer:       brandingFooter,
-	}
-
-	return &resp, nil
-}
-
 // GlobalSearch performs a global search.
 func (a *InternalAPI) GlobalSearch(ctx context.Context, req *pb.GlobalSearchRequest) (*pb.GlobalSearchResponse, error) {
 	if err := a.validator.Validate(ctx,
@@ -118,17 +101,12 @@ func (a *InternalAPI) GlobalSearch(ctx context.Context, req *pb.GlobalSearchRequ
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	user, err := a.validator.GetUser(ctx)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	username, err := a.validator.GetUsername(ctx)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	results, err := storage.GlobalSearch(ctx, storage.DB(), username, isAdmin, req.Search, int(req.Limit), int(req.Offset))
+	results, err := storage.GlobalSearch(ctx, storage.DB(), user.ID, user.IsAdmin, req.Search, int(req.Limit), int(req.Offset))
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -294,4 +272,124 @@ func (a *InternalAPI) DeleteAPIKey(ctx context.Context, req *pb.DeleteAPIKeyRequ
 	}
 
 	return &empty.Empty{}, nil
+}
+
+// Settings returns the global settings.
+func (a *InternalAPI) Settings(ctx context.Context, _ *empty.Empty) (*pb.SettingsResponse, error) {
+	return &pb.SettingsResponse{
+		Branding: &pb.Branding{
+			Registration: brandingRegistration,
+			Footer:       brandingFooter,
+		},
+		OpenidConnect: &pb.OpenIDConnect{
+			Enabled:    openIDConnectEnabled,
+			LoginLabel: openIDLoginLabel,
+			LoginUrl:   "/auth/oidc/login",
+		},
+	}, nil
+}
+
+// OpenIDConnectLogin performs an OpenID Connect login.
+func (a *InternalAPI) OpenIDConnectLogin(ctx context.Context, req *pb.OpenIDConnectLoginRequest) (*pb.OpenIDConnectLoginResponse, error) {
+	oidcUser, err := oidc.GetUser(ctx, req.Code, req.State)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if !oidcUser.EmailVerified {
+		return nil, grpc.Errorf(codes.FailedPrecondition, "email address must be verified before you can login")
+	}
+
+	var user storage.User
+
+	// try to get the user by external ID.
+	user, err = storage.GetUserByExternalID(ctx, storage.DB(), oidcUser.ExternalID)
+	if err != nil {
+		if err == storage.ErrDoesNotExist {
+			// try to get the user by email and set the external id.
+			user, err = storage.GetUserByEmail(ctx, storage.DB(), oidcUser.Email)
+			if err != nil {
+				// we did not find the user by external_id or email and registration is enabled.
+				if err == storage.ErrDoesNotExist && registrationEnabled {
+					user, err = a.createAndProvisionUser(ctx, oidcUser)
+					if err != nil {
+						return nil, helpers.ErrToRPCError(err)
+					}
+				} else {
+					return nil, helpers.ErrToRPCError(err)
+				}
+			}
+			user.ExternalID = &oidcUser.ExternalID
+		} else {
+			return nil, helpers.ErrToRPCError(err)
+		}
+	}
+
+	// update the user
+	user.Email = oidcUser.Email
+	user.EmailVerified = oidcUser.EmailVerified
+	if err := storage.UpdateUser(ctx, storage.DB(), &user); err != nil {
+		fmt.Println("SDFSDFSDFSDF")
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	// get the jwt token
+	token, err := storage.GetUserToken(user)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &pb.OpenIDConnectLoginResponse{
+		JwtToken: token,
+	}, nil
+}
+
+func (a *InternalAPI) createAndProvisionUser(ctx context.Context, user oidc.User) (storage.User, error) {
+	u := storage.User{
+		IsActive:      true,
+		Email:         user.Email,
+		EmailVerified: user.EmailVerified,
+		ExternalID:    &user.ExternalID,
+	}
+
+	if err := storage.CreateUser(ctx, storage.DB(), &u); err != nil {
+		return storage.User{}, errors.Wrap(err, "create user error")
+	}
+
+	if registrationCallbackURL == "" {
+		return u, nil
+	}
+
+	if err := a.provisionUser(ctx, u); err != nil {
+		if err := storage.DeleteUser(ctx, storage.DB(), u.ID); err != nil {
+			return storage.User{}, errors.Wrap(err, "delete user error after failed user provisioning")
+		}
+
+		log.WithError(err).Error("api/external: provision user error")
+
+		return storage.User{}, errors.New("error provisioning user")
+	}
+
+	return u, nil
+}
+
+func (a *InternalAPI) provisionUser(ctx context.Context, u storage.User) error {
+	req, err := http.NewRequestWithContext(ctx, "POST", registrationCallbackURL, nil)
+	if err != nil {
+		return errors.Wrap(err, "new request error")
+	}
+	q := req.URL.Query()
+	q.Add("user_id", fmt.Sprintf("%d", u.ID))
+	req.URL.RawQuery = q.Encode()
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "make registration callback request error")
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("registration callback must return 200, received: %d (%s)", resp.StatusCode, resp.Status)
+	}
+
+	return nil
 }

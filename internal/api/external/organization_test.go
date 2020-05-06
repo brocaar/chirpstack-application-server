@@ -9,19 +9,35 @@ import (
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
 func (ts *APITestSuite) TestOrganization() {
+	assert := require.New(ts.T())
+
 	validator := &TestValidator{}
 	api := NewOrganizationAPI(validator)
-	userAPI := NewUserAPI(validator)
 
 	validator.returnSubject = "user"
+
+	adminUser := storage.User{
+		Email:    "admin@user.com",
+		IsActive: true,
+		IsAdmin:  true,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &adminUser))
+
+	user := storage.User{
+		Email:    "some@user.com",
+		IsActive: true,
+		IsAdmin:  false,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &user))
 
 	ts.T().Run("Create with invalid name", func(t *testing.T) {
 		assert := require.New(t)
 
-		validator.returnIsAdmin = true
+		validator.returnUser = adminUser
 		createReq := &pb.CreateOrganizationRequest{
 			Organization: &pb.Organization{
 				Name:            "organization name",
@@ -36,7 +52,7 @@ func (ts *APITestSuite) TestOrganization() {
 	ts.T().Run("Create as global admin", func(t *testing.T) {
 		assert := require.New(t)
 
-		validator.returnIsAdmin = true
+		validator.returnUser = adminUser
 		createReq := pb.CreateOrganizationRequest{
 			Organization: &pb.Organization{
 				Name:            "orgName",
@@ -79,20 +95,13 @@ func (ts *APITestSuite) TestOrganization() {
 		t.Run("As user", func(t *testing.T) {
 			assert := require.New(t)
 
-			userReq := &pb.CreateUserRequest{
-				User: &pb.User{
-					Username:   "username",
-					IsActive:   true,
-					SessionTtl: 180,
-					Email:      "foo@bar.com",
-				},
-				Password: "pass^^ord",
+			user := storage.User{
+				Email:    "foo@bar.com",
+				IsActive: true,
 			}
-			userResp, err := userAPI.Create(context.Background(), userReq)
-			assert.NoError(err)
+			assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &user))
 
-			validator.returnIsAdmin = false
-			validator.returnUsername = userReq.User.Username
+			validator.returnUser = user
 
 			t.Run("User can not list organizations", func(t *testing.T) {
 				assert := require.New(t)
@@ -111,7 +120,7 @@ func (ts *APITestSuite) TestOrganization() {
 				addOrgUser := &pb.AddOrganizationUserRequest{
 					OrganizationUser: &pb.OrganizationUser{
 						OrganizationId: createResp.Id,
-						UserId:         userResp.Id,
+						Email:          user.Email,
 						IsAdmin:        false,
 						IsDeviceAdmin:  false,
 						IsGatewayAdmin: false,
@@ -123,8 +132,7 @@ func (ts *APITestSuite) TestOrganization() {
 				t.Run("List organizations for user", func(t *testing.T) {
 					assert := require.New(t)
 
-					validator.returnIsAdmin = false
-					validator.returnUsername = userReq.User.Username
+					validator.returnUser = user
 
 					orgs, err := api.List(context.Background(), &pb.ListOrganizationRequest{
 						Limit:  10,
@@ -147,8 +155,8 @@ func (ts *APITestSuite) TestOrganization() {
 					assert.NoError(err)
 
 					assert.Len(orgUsers.Result, 1)
-					assert.Equal(userResp.Id, orgUsers.Result[0].UserId)
-					assert.Equal(userReq.User.Username, orgUsers.Result[0].Username)
+					assert.Equal(user.ID, orgUsers.Result[0].UserId)
+					assert.Equal(user.Email, orgUsers.Result[0].Email)
 					assert.Equal(addOrgUser.OrganizationUser.IsAdmin, orgUsers.Result[0].IsAdmin)
 				})
 
@@ -158,7 +166,7 @@ func (ts *APITestSuite) TestOrganization() {
 					updOrgUser := &pb.UpdateOrganizationUserRequest{
 						OrganizationUser: &pb.OrganizationUser{
 							OrganizationId: createResp.Id,
-							UserId:         addOrgUser.OrganizationUser.UserId,
+							UserId:         user.ID,
 							IsAdmin:        !addOrgUser.OrganizationUser.IsAdmin,
 							IsDeviceAdmin:  !addOrgUser.OrganizationUser.IsDeviceAdmin,
 							IsGatewayAdmin: !addOrgUser.OrganizationUser.IsGatewayAdmin,
@@ -175,8 +183,8 @@ func (ts *APITestSuite) TestOrganization() {
 					assert.NoError(err)
 
 					assert.Len(orgUsers.Result, 1)
-					assert.Equal(userResp.Id, orgUsers.Result[0].UserId)
-					assert.Equal(userReq.User.Username, orgUsers.Result[0].Username)
+					assert.Equal(user.ID, orgUsers.Result[0].UserId)
+					assert.Equal(user.Email, orgUsers.Result[0].Email)
 					assert.Equal(updOrgUser.OrganizationUser.IsAdmin, orgUsers.Result[0].IsAdmin)
 					assert.Equal(updOrgUser.OrganizationUser.IsDeviceAdmin, orgUsers.Result[0].IsDeviceAdmin)
 					assert.Equal(updOrgUser.OrganizationUser.IsGatewayAdmin, orgUsers.Result[0].IsGatewayAdmin)
@@ -187,7 +195,7 @@ func (ts *APITestSuite) TestOrganization() {
 
 					delOrgUser := &pb.DeleteOrganizationUserRequest{
 						OrganizationId: createResp.Id,
-						UserId:         addOrgUser.OrganizationUser.UserId,
+						UserId:         user.ID,
 					}
 					_, err := api.DeleteUser(context.Background(), delOrgUser)
 					assert.NoError(err)
@@ -200,7 +208,7 @@ func (ts *APITestSuite) TestOrganization() {
 
 		t.Run("Update", func(t *testing.T) {
 			assert := require.New(t)
-			validator.returnIsAdmin = true
+			validator.returnUser = adminUser
 
 			updateOrg := &pb.UpdateOrganizationRequest{
 				Organization: &pb.Organization{
@@ -224,7 +232,7 @@ func (ts *APITestSuite) TestOrganization() {
 
 		t.Run("Delete", func(t *testing.T) {
 			assert := require.New(t)
-			validator.returnIsAdmin = true
+			validator.returnUser = adminUser
 
 			_, err := api.Delete(context.Background(), &pb.DeleteOrganizationRequest{
 				Id: createResp.Id,

@@ -285,7 +285,7 @@ func GetGateway(ctx context.Context, db sqlx.Queryer, mac lorawan.EUI64, forUpda
 // GatewayFilters provides filters for filtering gateways.
 type GatewayFilters struct {
 	OrganizationID int64  `db:"organization_id"`
-	Username       string `db:"username"`
+	UserID         int64  `db:"user_id"`
 	Search         string `db:"search"`
 
 	// Limit and Offset are added for convenience so that this struct can
@@ -302,8 +302,8 @@ func (f GatewayFilters) SQL() string {
 		filters = append(filters, "g.organization_id = :organization_id")
 	}
 
-	if f.Username != "" {
-		filters = append(filters, "u.username = :username")
+	if f.UserID != 0 {
+		filters = append(filters, "u.id = :user_id")
 	}
 
 	if f.Search != "" {

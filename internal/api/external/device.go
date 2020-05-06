@@ -17,7 +17,6 @@ import (
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
 	"github.com/brocaar/chirpstack-api/go/v3/common"
-	"github.com/brocaar/chirpstack-api/go/v3/gw"
 	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
@@ -255,12 +254,12 @@ func (a *DeviceAPI) List(ctx context.Context, req *pb.ListDeviceRequest) (*pb.Li
 	}
 
 	if !idFilter {
-		isAdmin, err := a.validator.GetIsAdmin(ctx)
+		user, err := a.validator.GetUser(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		if !isAdmin {
+		if !user.IsAdmin {
 			return nil, grpc.Errorf(codes.Unauthenticated, "client must be global admin for unfiltered request")
 		}
 	}
@@ -933,7 +932,7 @@ func (a *DeviceAPI) returnList(count int, devices []storage.DeviceListItem) (*pb
 	return &resp, nil
 }
 
-func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFrame, decodeMACCommands bool) (*pb.UplinkFrameLog, *pb.DownlinkFrameLog, error) {
+func convertUplinkAndDownlinkFrames(up *ns.UplinkFrameLog, down *ns.DownlinkFrameLog, decodeMACCommands bool) (*pb.UplinkFrameLog, *pb.DownlinkFrameLog, error) {
 	var phy lorawan.PHYPayload
 
 	if up != nil {

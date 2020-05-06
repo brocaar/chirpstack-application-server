@@ -94,7 +94,7 @@ func GetApplication(ctx context.Context, db sqlx.Queryer, id int64) (Application
 
 // ApplicationFilters provides filters for filtering applications.
 type ApplicationFilters struct {
-	Username       string `db:"username"`
+	UserID         int64  `db:"user_id"`
 	OrganizationID int64  `db:"organization_id"`
 	Search         string `db:"search"`
 
@@ -108,8 +108,8 @@ type ApplicationFilters struct {
 func (f ApplicationFilters) SQL() string {
 	var filters []string
 
-	if f.Username != "" {
-		filters = append(filters, "u.username = :username")
+	if f.UserID != 0 {
+		filters = append(filters, "u.id = :user_id")
 	}
 
 	if f.OrganizationID != 0 {

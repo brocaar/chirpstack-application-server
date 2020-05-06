@@ -8,9 +8,10 @@ require (
 	github.com/Azure/azure-service-bus-go v0.10.0
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
 	github.com/aws/aws-sdk-go v1.26.3
-	github.com/brocaar/chirpstack-api/go/v3 v3.3.2
+	github.com/brocaar/chirpstack-api/go/v3 v3.5.0
 	github.com/brocaar/lorawan v0.0.0-20191115102621-6095d473cf60
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
+	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.2.0
 	github.com/elazarl/go-bindata-assetfs v1.0.0
@@ -35,6 +36,7 @@ require (
 	github.com/mmcloughlin/geohash v0.9.0
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pkg/errors v0.8.1
+	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/client_golang v1.2.1
 	github.com/prometheus/client_model v0.0.0-20191202183732-d1d2010b5bee // indirect
 	github.com/prometheus/procfs v0.0.8 // indirect
@@ -56,13 +58,14 @@ require (
 	golang.org/x/exp v0.0.0-20191129062945-2f5052295587 // indirect
 	golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f
 	golang.org/x/net v0.0.0-20200219183655-46282727080f
-	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6 // indirect
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20200219091948-cb0a6d8edb6c // indirect
 	golang.org/x/tools v0.0.0-20191217033636-bbbf87ae2631
 	google.golang.org/api v0.14.0
 	google.golang.org/genproto v0.0.0-20200218151345-dad8c97a84f5 // indirect
 	google.golang.org/grpc v1.28.0
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
+	gopkg.in/square/go-jose.v2 v2.5.0 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
 )
 

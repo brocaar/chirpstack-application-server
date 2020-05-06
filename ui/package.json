@@ -16,6 +16,7 @@
     "leaflet.markercluster": "^1.4.1",
     "mdi-material-ui": "^6.13.2",
     "moment": "^2.24.0",
+    "query-string": "^6.12.1",
     "react": "^16.13.1",
     "react-chartjs-2": "^2.9.0",
     "react-codemirror2": "^7.1.0",

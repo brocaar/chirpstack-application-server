@@ -64,7 +64,7 @@ class UserLayout extends Component {
         >
           <TitleBarTitle to="/users" title="Users" />
           <TitleBarTitle title="/" />
-          <TitleBarTitle title={this.state.user.user.username} />
+          <TitleBarTitle title={this.state.user.user.email} />
         </TitleBar>
 
         <Grid item xs={12}>

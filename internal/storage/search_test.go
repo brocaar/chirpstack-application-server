@@ -27,10 +27,9 @@ func TestSearch(t *testing.T) {
 		test.MustResetDB(DB().DB)
 
 		u := User{
-			Username: "testuser",
-			Email:    "test@example.com",
+			Email: "test@example.com",
 		}
-		_, err := CreateUser(context.Background(), DB(), &u, "testpw")
+		err := CreateUser(context.Background(), DB(), &u)
 		So(err, ShouldBeNil)
 
 		n := NetworkServer{
@@ -96,7 +95,7 @@ func TestSearch(t *testing.T) {
 			}
 
 			for _, q := range queries {
-				res, err := GlobalSearch(context.Background(), DB(), u.Username, false, q, 10, 0)
+				res, err := GlobalSearch(context.Background(), DB(), u.ID, false, q, 10, 0)
 				So(err, ShouldBeNil)
 				So(res, ShouldHaveLength, 0)
 			}
@@ -115,7 +114,7 @@ func TestSearch(t *testing.T) {
 			}
 
 			for q, c := range queries {
-				res, err := GlobalSearch(context.Background(), DB(), u.Username, true, q, 10, 0)
+				res, err := GlobalSearch(context.Background(), DB(), u.ID, true, q, 10, 0)
 				So(err, ShouldBeNil)
 				So(res, ShouldHaveLength, c)
 			}
@@ -136,7 +135,7 @@ func TestSearch(t *testing.T) {
 			}
 
 			for q, c := range queries {
-				res, err := GlobalSearch(context.Background(), DB(), u.Username, false, q, 10, 0)
+				res, err := GlobalSearch(context.Background(), DB(), u.ID, false, q, 10, 0)
 				So(err, ShouldBeNil)
 				So(res, ShouldHaveLength, c)
 			}

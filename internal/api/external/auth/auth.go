@@ -24,6 +24,9 @@ type Claims struct {
 	// Username defines the identity of the user.
 	Username string `json:"username"`
 
+	// UserID defines the ID of th user.
+	UserID int64 `json:"user_id"`
+
 	// APIKeyID defines the API key ID.
 	APIKeyID uuid.UUID `json:"api_key_id"`
 }
@@ -42,11 +45,8 @@ type Validator interface {
 	// GetSubject returns the claim subject.
 	GetSubject(context.Context) (string, error)
 
-	// GetUsername returns the name of the authenticated user.
-	GetUsername(context.Context) (string, error)
-
-	// GetIsAdmin returns if the authenticated user is a global admin.
-	GetIsAdmin(context.Context) (bool, error)
+	// GetUser returns the user object.
+	GetUser(context.Context) (storage.User, error)
 
 	// GetAPIKey returns the API key ID.
 	GetAPIKeyID(context.Context) (uuid.UUID, error)
@@ -104,16 +104,6 @@ func (v JWTValidator) GetSubject(ctx context.Context) (string, error) {
 	return claims.Subject, nil
 }
 
-// GetUsername returns the username of the authenticated user.
-func (v JWTValidator) GetUsername(ctx context.Context) (string, error) {
-	claims, err := v.getClaims(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	return claims.Username, nil
-}
-
 // GetAPIKeyID returns the API key of the token.
 func (v JWTValidator) GetAPIKeyID(ctx context.Context) (uuid.UUID, error) {
 	claims, err := v.getClaims(ctx)
@@ -124,19 +114,26 @@ func (v JWTValidator) GetAPIKeyID(ctx context.Context) (uuid.UUID, error) {
 	return claims.APIKeyID, nil
 }
 
-// GetIsAdmin returns if the authenticated user is a global amin.
-func (v JWTValidator) GetIsAdmin(ctx context.Context) (bool, error) {
-	username, err := v.GetUsername(ctx)
+// GetUser returns the user object.
+func (v JWTValidator) GetUser(ctx context.Context) (storage.User, error) {
+	claims, err := v.getClaims(ctx)
 	if err != nil {
-		return false, err
+		return storage.User{}, err
 	}
 
-	user, err := storage.GetUserByUsername(ctx, v.db, username)
-	if err != nil {
-		return false, errors.Wrap(err, "get user by username error")
+	if claims.Subject != SubjectUser {
+		return storage.User{}, errors.New("subject must be user")
 	}
 
-	return user.IsAdmin, nil
+	if claims.UserID != 0 {
+		return storage.GetUser(ctx, v.db, claims.UserID)
+	}
+
+	if claims.Username != "" {
+		return storage.GetUserByEmail(ctx, v.db, claims.Username)
+	}
+
+	return storage.User{}, errors.New("no username or user_id in claims")
 }
 
 func (v JWTValidator) getClaims(ctx context.Context) (*Claims, error) {

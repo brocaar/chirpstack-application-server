@@ -2,8 +2,8 @@ package storage
 
 import (
 	"context"
-	"time"
 	"strings"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -13,9 +13,9 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
 )
 
 // ServiceProfile defines the service-profile.
@@ -279,8 +279,8 @@ func GetServiceProfileCountForOrganizationID(ctx context.Context, db sqlx.Querye
 }
 
 // GetServiceProfileCountForUser returns the total number of service-profiles
-// for the given username.
-func GetServiceProfileCountForUser(ctx context.Context, db sqlx.Queryer, username string) (int, error) {
+// for the given user ID.
+func GetServiceProfileCountForUser(ctx context.Context, db sqlx.Queryer, userID int64) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, `
 		select
@@ -293,8 +293,8 @@ func GetServiceProfileCountForUser(ctx context.Context, db sqlx.Queryer, usernam
 		inner join "user" u
 			on u.id = ou.user_id
 		where
-			u.username = $1`,
-		username,
+			u.id = $1`,
+		userID,
 	)
 	if err != nil {
 		return 0, handlePSQLError(Select, err, "select error")
@@ -343,8 +343,8 @@ func GetServiceProfilesForOrganizationID(ctx context.Context, db sqlx.Queryer, o
 }
 
 // GetServiceProfilesForUser returns a slice of service-profile for the given
-// username.
-func GetServiceProfilesForUser(ctx context.Context, db sqlx.Queryer, username string, limit, offset int) ([]ServiceProfileMeta, error) {
+// user ID.
+func GetServiceProfilesForUser(ctx context.Context, db sqlx.Queryer, userID int64, limit, offset int) ([]ServiceProfileMeta, error) {
 	var sps []ServiceProfileMeta
 	err := sqlx.Select(db, &sps, `
 		select
@@ -357,10 +357,10 @@ func GetServiceProfilesForUser(ctx context.Context, db sqlx.Queryer, username st
 		inner join "user" u
 			on u.id = ou.user_id
 		where
-			u.username = $1
+			u.id = $1
 		order by sp.name
 		limit $2 offset $3`,
-		username,
+		userID,
 		limit,
 		offset,
 	)

@@ -171,6 +171,59 @@ pool_size=0
 id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
 
+  # User authentication
+  [application_server.user_authentication]
+
+    # OpenID Connect.
+    [application_server.user_authentication.openid_connect]
+
+    # Enable OpenID Connect authentication.
+    #
+    # Enabling this option replaces password authentication.
+    enabled=false
+
+    # Registration enabled.
+    #
+    # Enabling this will automatically register the user when it is not yet present
+    # in the ChirpStack Application Server database. There is no
+    # registration form as the user information is automatically received using the
+    # OpenID Connect provided information.
+    # The user will not be associated with any organization, but in order to
+    # facilitate the automatic onboarding of users, it is possible to configure a
+    # registration callback URL (next config option).
+    registration_enabled=false
+
+    # Registration callback URL.
+    #
+    # This (optional) endpoint will be called on the registration of the user and
+    # can implement the association of the user with an organization, create a new
+    # organization, ...
+    # ChirpStack Application Server will make a HTTP POST call to this endpoint,
+    # with the URL parameter user_id.
+    registration_callback_url=""
+
+    # Provider URL.
+    # This is the URL of the OpenID Connect provider.
+    provider_url=""
+
+    # Client ID.
+    client_id=""
+
+    # Client secret.
+    client_secret=""
+
+    # Redirect URL.
+    #
+    # This must contain the ChirpStack Application Server web-interface hostname
+    # with '/auth/oidc/callback' path, e.g. https://example.com/auth/oidc/callback.
+    redirect_url=""
+
+    # Login label.
+    #
+    # The login label is used in the web-interface login form.
+    login_label=""
+
+
   # JavaScript codec settings.
   [application_server.codec.js]
   # Maximum execution time.
@@ -424,9 +477,6 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # Example value: https://example.com.
   # When left blank (default), CORS will not be used.
   cors_allow_origin=""
-
-  # when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)"
-  disable_assign_existing_users=false
 
 
   # Settings for the remote multicast setup.

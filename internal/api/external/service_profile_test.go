@@ -10,10 +10,10 @@ import (
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
 )
 
 func (ts *APITestSuite) TestServiceProfile() {
@@ -35,6 +35,20 @@ func (ts *APITestSuite) TestServiceProfile() {
 		Name: "test-org",
 	}
 	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
+
+	adminUser := storage.User{
+		Email:    "admin@user.com",
+		IsActive: true,
+		IsAdmin:  true,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &adminUser))
+
+	user := storage.User{
+		Email:    "some@user.com",
+		IsActive: true,
+		IsAdmin:  false,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &user))
 
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
@@ -91,7 +105,7 @@ func (ts *APITestSuite) TestServiceProfile() {
 
 		t.Run("List", func(t *testing.T) {
 			t.Run("As global admin", func(t *testing.T) {
-				validator.returnIsAdmin = true
+				validator.returnUser = adminUser
 
 				t.Run("No filters", func(t *testing.T) {
 					assert := require.New(t)
@@ -127,19 +141,20 @@ func (ts *APITestSuite) TestServiceProfile() {
 
 			t.Run("As organization user", func(t *testing.T) {
 				assert := require.New(t)
-				validator.returnIsAdmin = false
+				validator.returnUser = user
 
-				userID, err := storage.CreateUser(context.Background(), storage.DB(), &storage.User{
-					Username: "testuser",
+				user := storage.User{
 					IsActive: true,
 					Email:    "foo@bar.com",
-				}, "testpassword")
+				}
+
+				err := storage.CreateUser(context.Background(), storage.DB(), &user)
 				assert.NoError(err)
-				assert.NoError(storage.CreateOrganizationUser(context.Background(), storage.DB(), org.ID, userID, false, false, false))
+				assert.NoError(storage.CreateOrganizationUser(context.Background(), storage.DB(), org.ID, user.ID, false, false, false))
 
 				t.Run("No filters", func(t *testing.T) {
 					assert := require.New(t)
-					validator.returnUsername = "testuser"
+					validator.returnUser = user
 
 					listResp, err := api.List(context.Background(), &pb.ListServiceProfileRequest{
 						Limit: 10,
@@ -151,7 +166,15 @@ func (ts *APITestSuite) TestServiceProfile() {
 
 				t.Run("Invalid username", func(t *testing.T) {
 					assert := require.New(t)
-					validator.returnUsername = "differentuser"
+
+					user := storage.User{
+						IsActive: true,
+						Email:    "foo2@bar.com",
+					}
+
+					err := storage.CreateUser(context.Background(), storage.DB(), &user)
+
+					validator.returnUser = user
 
 					listResp, err := api.List(context.Background(), &pb.ListServiceProfileRequest{
 						Limit: 10,

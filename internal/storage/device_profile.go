@@ -306,9 +306,9 @@ func DeleteDeviceProfile(ctx context.Context, db sqlx.Ext, id uuid.UUID) error {
 
 // DeviceProfileFilters provide filders for filtering device-profiles.
 type DeviceProfileFilters struct {
-	ApplicationID  int64  `db:"application_id"`
-	OrganizationID int64  `db:"organization_id"`
-	Username       string `db:"username"`
+	ApplicationID  int64 `db:"application_id"`
+	OrganizationID int64 `db:"organization_id"`
+	UserID         int64 `db:"user_id"`
 
 	// Limit and Offset are added for convenience so that this struct can
 	// be given as the arguments.
@@ -330,8 +330,8 @@ func (f DeviceProfileFilters) SQL() string {
 		filters = append(filters, "o.id = :organization_id")
 	}
 
-	if f.Username != "" {
-		filters = append(filters, "u.username = :username")
+	if f.UserID != 0 {
+		filters = append(filters, "u.id = :user_id")
 	}
 
 	if len(filters) == 0 {

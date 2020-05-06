@@ -43,7 +43,7 @@ class ListUsers extends Component {
         key={obj.id}
         hover
       >
-        <TableCellLink to={`/users/${obj.id}`}>{obj.username}</TableCellLink>
+        <TableCellLink to={`/users/${obj.id}`}>{obj.email}</TableCellLink>
         <TableCell>{active}</TableCell>
         <TableCell>{admin}</TableCell>
       </TableRow>
@@ -70,7 +70,7 @@ class ListUsers extends Component {
           <DataTable
             header={
               <TableRow>
-                <TableCell>Username</TableCell>
+                <TableCell>Email</TableCell>
                 <TableCell>Active</TableCell>
                 <TableCell>Admin</TableCell>
               </TableRow>

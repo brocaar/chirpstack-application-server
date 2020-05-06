@@ -42,6 +42,13 @@ func (ts *APITestSuite) TestGateway() {
 	}
 	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 
+	adminUser := storage.User{
+		Email:    "admin@user.com",
+		IsActive: true,
+		IsAdmin:  true,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &adminUser))
+
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
 
@@ -112,7 +119,7 @@ func (ts *APITestSuite) TestGateway() {
 			t.Run("List all", func(t *testing.T) {
 				assert := require.New(t)
 
-				validator.returnIsAdmin = true
+				validator.returnUser = adminUser
 				gws, err := api.List(ctx, &pb.ListGatewayRequest{
 					Limit: 10,
 				})
@@ -123,13 +130,11 @@ func (ts *APITestSuite) TestGateway() {
 
 			t.Run("List as org user", func(t *testing.T) {
 				user := storage.User{
-					Username: "testuser",
-					Email:    "foo@bar.com",
+					Email: "foo@bar.com",
 				}
-				_, err := storage.CreateUser(context.Background(), storage.DB(), &user, "password123")
+				err := storage.CreateUser(context.Background(), storage.DB(), &user)
 				assert.NoError(err)
-				validator.returnIsAdmin = false
-				validator.returnUsername = user.Username
+				validator.returnUser = user
 
 				gws, err := api.List(ctx, &pb.ListGatewayRequest{
 					Limit: 10,

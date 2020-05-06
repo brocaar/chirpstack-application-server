@@ -28,7 +28,7 @@ type SearchResult struct {
 
 // GlobalSearch performs a search on organizations, applications, gateways
 // and devices.
-func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalAdmin bool, search string, limit, offset int) ([]SearchResult, error) {
+func GlobalSearch(ctx context.Context, db sqlx.Queryer, userID int64, globalAdmin bool, search string, limit, offset int) ([]SearchResult, error) {
 	var result []SearchResult
 
 	query, tags := parseSearchQuery(search)
@@ -63,7 +63,7 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalA
 		left join "user" u
 			on u.id = ou.user_id
 		where
-			($3 = true or u.username = $4)
+			($3 = true or u.id = $4)
 			and (d.name ilike $2 or encode(d.dev_eui, 'hex') ilike $2 or ($7 != hstore('') and d.tags @> $7))
 		union
 		select
@@ -86,7 +86,7 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalA
 		left join "user" u
 			on u.id = ou.user_id
 		where
-			($3 = true or u.username = $4)
+			($3 = true or u.id = $4)
 			and (g.name ilike $2 or encode(g.mac, 'hex') ilike $2 or ($7 != hstore('') and g.tags @> $7))
 		union
 		select
@@ -107,7 +107,7 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalA
 		left join "user" u
 			on u.id = ou.user_id
 		where
-			($3 = true or u.username = $4)
+			($3 = true or u.id = $4)
 			and o.name ilike $2
 		union
 		select
@@ -130,7 +130,7 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalA
 		left join "user" u
 			on u.id = ou.user_id
 		where
-			($3 = true or u.username = $4)
+			($3 = true or u.id = $4)
 			and a.name ilike $2
 		order by
 			score desc
@@ -139,7 +139,7 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalA
 		search,
 		query,
 		globalAdmin,
-		username,
+		userID,
 		limit,
 		offset,
 		tagsHstore,

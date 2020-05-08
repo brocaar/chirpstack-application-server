@@ -200,6 +200,7 @@ func (ts *APITestSuite) TestDevice() {
 				DeviceProfileId:   dpID.String(),
 				SkipFCntCheck:     true,
 				ReferenceAltitude: 5.6,
+				IsDisabled:        true,
 				Variables: map[string]string{
 					"var_1": "test var 1",
 				},
@@ -412,6 +413,7 @@ func (ts *APITestSuite) TestDevice() {
 						DeviceProfileId:   dpID.String(),
 						SkipFCntCheck:     true,
 						ReferenceAltitude: 6.7,
+						IsDisabled:        true,
 						Variables: map[string]string{
 							"var_2": "test var 2",
 						},

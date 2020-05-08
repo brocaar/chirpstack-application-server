@@ -87,6 +87,7 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*e
 		Description:       req.Device.Description,
 		SkipFCntCheck:     req.Device.SkipFCntCheck,
 		ReferenceAltitude: req.Device.ReferenceAltitude,
+		IsDisabled:        req.Device.IsDisabled,
 		Variables: hstore.Hstore{
 			Map: make(map[string]sql.NullString),
 		},
@@ -141,6 +142,7 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 			DeviceProfileId:   d.DeviceProfileID.String(),
 			SkipFCntCheck:     d.SkipFCntCheck,
 			ReferenceAltitude: d.ReferenceAltitude,
+			IsDisabled:        d.IsDisabled,
 			Variables:         make(map[string]string),
 			Tags:              make(map[string]string),
 		},
@@ -344,6 +346,7 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*e
 		d.Description = req.Device.Description
 		d.SkipFCntCheck = req.Device.SkipFCntCheck
 		d.ReferenceAltitude = req.Device.ReferenceAltitude
+		d.IsDisabled = req.Device.IsDisabled
 		d.Variables = hstore.Hstore{
 			Map: make(map[string]sql.NullString),
 		}

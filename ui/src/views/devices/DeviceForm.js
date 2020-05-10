@@ -160,7 +160,7 @@ class DeviceForm extends FormComponent {
               getOptions={this.getDeviceProfileOptions}
             />
           </FormControl>
-          <FormControl margin="normal">
+          <FormControl fullWidth margin="normal">
             <FormGroup>
               <FormControlLabel
                 label="Disable frame-counter validation"
@@ -176,6 +176,24 @@ class DeviceForm extends FormComponent {
             </FormGroup>
             <FormHelperText>
               Note that disabling the frame-counter validation will compromise security as it enables people to perform replay-attacks.
+            </FormHelperText>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="Device is disabled"
+                control={
+                  <Checkbox
+                    id="isDisabled"
+                    checked={!!this.state.object.isDisabled}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+            <FormHelperText>
+              ChirpStack Network Server will ignore received uplink frames and join-requests from disabled devices.
             </FormHelperText>
           </FormControl>
         </div>}

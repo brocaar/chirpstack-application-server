@@ -281,10 +281,11 @@ func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListService
 	}
 	for _, sp := range sps {
 		row := pb.ServiceProfileListItem{
-			Id:              sp.ServiceProfileID.String(),
-			Name:            sp.Name,
-			OrganizationId:  sp.OrganizationID,
-			NetworkServerId: sp.NetworkServerID,
+			Id:                sp.ServiceProfileID.String(),
+			Name:              sp.Name,
+			OrganizationId:    sp.OrganizationID,
+			NetworkServerId:   sp.NetworkServerID,
+			NetworkServerName: sp.NetworkServerName,
 		}
 
 		row.CreatedAt, err = ptypes.TimestampProto(sp.CreatedAt)

@@ -35,12 +35,13 @@ type DeviceProfile struct {
 
 // DeviceProfileMeta defines the device-profile meta record.
 type DeviceProfileMeta struct {
-	DeviceProfileID uuid.UUID `db:"device_profile_id"`
-	NetworkServerID int64     `db:"network_server_id"`
-	OrganizationID  int64     `db:"organization_id"`
-	CreatedAt       time.Time `db:"created_at"`
-	UpdatedAt       time.Time `db:"updated_at"`
-	Name            string    `db:"name"`
+	DeviceProfileID 	uuid.UUID	`db:"device_profile_id"`
+	NetworkServerID 	int64    	`db:"network_server_id"`
+	OrganizationID  	int64    	`db:"organization_id"`
+	CreatedAt       	time.Time	`db:"created_at"`
+	UpdatedAt       	time.Time	`db:"updated_at"`
+	Name            	string   	`db:"name"`
+	NetworkServerName	string		`db:"network_server_name"`
 }
 
 // Validate validates the device-profile data.
@@ -383,7 +384,8 @@ func GetDeviceProfiles(ctx context.Context, db sqlx.Queryer, filters DeviceProfi
 			dp.organization_id,
 			dp.created_at,
 			dp.updated_at,
-			dp.name
+			dp.name,
+			ns.name as network_server_name
 		from
 			device_profile dp
 		inner join network_server ns
@@ -400,7 +402,8 @@ func GetDeviceProfiles(ctx context.Context, db sqlx.Queryer, filters DeviceProfi
 			on ou.user_id = u.id
 	`+filters.SQL()+`
 		group by
-			dp.device_profile_id
+			dp.device_profile_id,
+			ns.name
 		order by
 			dp.name
 		limit :limit

@@ -332,10 +332,11 @@ func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDevicePr
 
 	for _, dp := range dps {
 		row := pb.DeviceProfileListItem{
-			Id:              dp.DeviceProfileID.String(),
-			Name:            dp.Name,
-			OrganizationId:  dp.OrganizationID,
-			NetworkServerId: dp.NetworkServerID,
+			Id:                 dp.DeviceProfileID.String(),
+			Name:               dp.Name,
+			OrganizationId:     dp.OrganizationID,
+			NetworkServerId:    dp.NetworkServerID,
+			NetworkServerName:  dp.NetworkServerName,
 		}
 
 		row.CreatedAt, err = ptypes.TimestampProto(dp.CreatedAt)

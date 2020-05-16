@@ -74,6 +74,25 @@ func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl
 
 	telemetry := objToMap("data", obj)
 
+	if len(pl.RxInfo) != 0 {
+		var rssi int32
+		for i, rxInfo := range pl.RxInfo {
+			if i == 0 || rxInfo.Rssi > rssi {
+				rssi = rxInfo.Rssi
+			}
+		}
+
+		var snr float64
+		for i, rxInfo := range pl.RxInfo {
+			if i == 0 || rxInfo.LoraSnr > snr {
+				snr = rxInfo.LoraSnr
+			}
+		}
+
+		telemetry["data_rssi"] = rssi
+		telemetry["data_snr"] = snr
+	}
+
 	if err := i.send(accessToken, attributes, telemetry); err != nil {
 		return errors.Wrap(err, "send event error")
 	}

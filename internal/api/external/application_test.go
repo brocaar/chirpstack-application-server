@@ -506,6 +506,86 @@ func (ts *APITestSuite) TestApplication() {
 			})
 		})
 
+		t.Run("LoRaCloudIntegration", func(t *testing.T) {
+			t.Run("Create", func(t *testing.T) {
+				assert := require.New(t)
+
+				createReq := pb.CreateLoRaCloudIntegrationRequest{
+					Integration: &pb.LoRaCloudIntegration{
+						ApplicationId:            createResp.Id,
+						Geolocation:              true,
+						GeolocationToken:         "ab123",
+						GeolocationBufferTtl:     10,
+						GeolocationMinBufferSize: 4,
+						GeolocationTdoa:          true,
+						GeolocationRssi:          true,
+					},
+				}
+				_, err := api.CreateLoRaCloudIntegration(context.Background(), &createReq)
+				assert.NoError(err)
+
+				t.Run("Get", func(t *testing.T) {
+					assert := require.New(t)
+
+					i, err := api.GetLoRaCloudIntegration(context.Background(), &pb.GetLoRaCloudIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(createReq.Integration, i.Integration)
+				})
+
+				t.Run("List", func(t *testing.T) {
+					assert := require.New(t)
+
+					resp, err := api.ListIntegrations(context.Background(), &pb.ListIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.EqualValues(1, resp.TotalCount)
+					assert.Equal(pb.IntegrationKind_LORACLOUD, resp.Result[0].Kind)
+				})
+
+				t.Run("Update", func(t *testing.T) {
+					assert := require.New(t)
+
+					updateReq := pb.UpdateLoRaCloudIntegrationRequest{
+						Integration: &pb.LoRaCloudIntegration{
+							ApplicationId:            createResp.Id,
+							Geolocation:              true,
+							GeolocationToken:         "123ab",
+							GeolocationBufferTtl:     4,
+							GeolocationMinBufferSize: 10,
+							GeolocationTdoa:          true,
+							GeolocationRssi:          true,
+						},
+					}
+
+					_, err := api.UpdateLoRaCloudIntegration(context.Background(), &updateReq)
+					assert.NoError(err)
+
+					i, err := api.GetLoRaCloudIntegration(context.Background(), &pb.GetLoRaCloudIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(updateReq.Integration, i.Integration)
+				})
+
+				t.Run("Delete", func(t *testing.T) {
+					assert := require.New(t)
+
+					_, err := api.DeleteLoRaCloudIntegration(context.Background(), &pb.DeleteLoRaCloudIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+
+					_, err = api.GetLoRaCloudIntegration(context.Background(), &pb.GetLoRaCloudIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.Equal(codes.NotFound, grpc.Code(err))
+				})
+			})
+		})
+
 		t.Run("Delete", func(t *testing.T) {
 			assert := require.New(t)
 

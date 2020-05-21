@@ -347,6 +347,66 @@ class ApplicationStore extends EventEmitter {
     });
   }
 
+  createLoRaCloudIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.CreateLoRaCloudIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.integrationNotification("LoRa Cloud", "created");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  getLoRaCloudIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.GetLoRaCloudIntegration({
+        application_id: applicationID, 
+      })
+        .then(checkStatus)
+        .then(resp => {
+          callbackFunc(resp.obj);
+        })
+      .catch(errorHandler);
+    });
+  }
+
+  updateLoRaCloudIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.UpdateLoRaCloudIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("LoRa Cloud", "updated");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
+  deleteLoRaCloudIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.DeleteLoRaCloudIntegration({
+        application_id: applicationID,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        this.integrationNotification("LoRa Cloud", "deleted");
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
 
   notify(action) {
     dispatcher.dispatch({

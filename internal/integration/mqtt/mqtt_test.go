@@ -13,8 +13,8 @@ import (
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
 	"github.com/brocaar/lorawan"
@@ -24,7 +24,7 @@ type MQTTHandlerTestSuite struct {
 	suite.Suite
 
 	mqttClient  paho.Client
-	integration integration.Integrator
+	integration models.IntegrationHandler
 }
 
 func (ts *MQTTHandlerTestSuite) SetupSuite() {
@@ -89,7 +89,7 @@ func (ts *MQTTHandlerTestSuite) TestUplink() {
 		ApplicationId: 123,
 		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-uplinkChan)
 }
 
@@ -110,7 +110,7 @@ func (ts *MQTTHandlerTestSuite) TestJoin() {
 		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 		DevAddr:       []byte{1, 2, 3, 4},
 	}
-	assert.NoError(ts.integration.SendJoinNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleJoinEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-joinChan)
 }
 
@@ -130,7 +130,7 @@ func (ts *MQTTHandlerTestSuite) TestAck() {
 		ApplicationId: 123,
 		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.integration.SendACKNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleAckEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-ackChan)
 }
 
@@ -150,7 +150,7 @@ func (ts *MQTTHandlerTestSuite) TestError() {
 		ApplicationId: 123,
 		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.integration.SendErrorNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleErrorEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-errChan)
 }
 
@@ -171,7 +171,7 @@ func (ts *MQTTHandlerTestSuite) TestStatus() {
 		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
 
-	assert.NoError(ts.integration.SendStatusNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleStatusEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-statusChan)
 }
 
@@ -191,7 +191,7 @@ func (ts *MQTTHandlerTestSuite) TestLocation() {
 		ApplicationId: 123,
 		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.integration.SendLocationNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleLocationEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-locationChan)
 }
 
@@ -211,14 +211,14 @@ func (ts *MQTTHandlerTestSuite) TestTxAck() {
 		ApplicationId: 123,
 		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.integration.SendTxAckNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleTxAckEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-txAckChan)
 }
 
 func (ts *MQTTHandlerTestSuite) TestDownlink() {
 	assert := require.New(ts.T())
 
-	pl := integration.DataDownPayload{
+	pl := models.DataDownPayload{
 		Confirmed: false,
 		FPort:     1,
 		Data:      []byte("hello"),
@@ -230,7 +230,7 @@ func (ts *MQTTHandlerTestSuite) TestDownlink() {
 	token := ts.mqttClient.Publish("application/123/device/0102030405060708/tx", 0, false, b)
 	token.Wait()
 	assert.NoError(token.Error())
-	assert.Equal(integration.DataDownPayload{
+	assert.Equal(models.DataDownPayload{
 		ApplicationID: 123,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 		Confirmed:     false,

@@ -120,7 +120,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 	assert.NoError(storage.CreateGateway(context.Background(), storage.DB(), &gw))
 
 	h := mock.New()
-	integration.SetIntegration(h)
+	integration.SetMockIntegration(h)
 
 	ctx := context.Background()
 	api := NewApplicationServerAPI()
@@ -486,7 +486,6 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				Latitude:  1.123,
 				Longitude: 2.123,
 				Altitude:  3.123,
-				Source:    common.LocationSource_GEO_RESOLVER,
 			},
 			UplinkIds: [][]byte{
 				{1},
@@ -505,7 +504,6 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				Latitude:  1.123,
 				Longitude: 2.123,
 				Altitude:  3.123,
-				Source:    common.LocationSource_GEO_RESOLVER,
 			},
 			UplinkIds: [][]byte{
 				{1},

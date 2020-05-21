@@ -14,7 +14,7 @@ import (
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-api/go/v3/common"
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 )
 
 type testHTTPHandler struct {
@@ -31,7 +31,7 @@ func (h *testHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	integration integration.Integrator
+	integration models.IntegrationHandler
 	httpHandler *testHTTPHandler
 	server      *httptest.Server
 }
@@ -156,7 +156,7 @@ func (ts *IntegrationTestSuite) TestUplink() {
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.integration.SendDataUp(context.Background(), vars, tst.Payload))
+			assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, vars, tst.Payload))
 
 			for range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests
@@ -202,7 +202,7 @@ func (ts *IntegrationTestSuite) TestDeviceStatus() {
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.integration.SendStatusNotification(context.Background(), vars, tst.Payload))
+			assert.NoError(ts.integration.HandleStatusEvent(context.Background(), nil, vars, tst.Payload))
 
 			for range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests
@@ -251,7 +251,7 @@ func (ts *IntegrationTestSuite) TestLocation() {
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.integration.SendLocationNotification(context.Background(), vars, tst.Payload))
+			assert.NoError(ts.integration.HandleLocationEvent(context.Background(), nil, vars, tst.Payload))
 
 			for range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests

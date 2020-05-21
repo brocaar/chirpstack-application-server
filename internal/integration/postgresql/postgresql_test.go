@@ -296,7 +296,7 @@ func (ts *PostgreSQLTestSuite) SetupTest() {
 	}
 }
 
-func (ts *PostgreSQLTestSuite) TestSendDataUp() {
+func (ts *PostgreSQLTestSuite) TestHandleUplinkEvent() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now().Round(time.Second).UTC()
@@ -333,7 +333,7 @@ func (ts *PostgreSQLTestSuite) TestSendDataUp() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, pl))
 
 	var up deviceUp
 	assert.NoError(ts.db.Get(&up, "select * from device_up"))
@@ -368,7 +368,7 @@ func (ts *PostgreSQLTestSuite) TestSendDataUp() {
 	}, up)
 }
 
-func (ts *PostgreSQLTestSuite) TestSendDataUpNoObject() {
+func (ts *PostgreSQLTestSuite) TestHandleUplinkEventNoObject() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now().Round(time.Second).UTC()
@@ -401,7 +401,7 @@ func (ts *PostgreSQLTestSuite) TestSendDataUpNoObject() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, pl))
 
 	var up deviceUp
 	assert.NoError(ts.db.Get(&up, "select * from device_up"))
@@ -435,7 +435,7 @@ func (ts *PostgreSQLTestSuite) TestSendDataUpNoObject() {
 	}, up)
 }
 
-func (ts *PostgreSQLTestSuite) TestSendDataUpNoData() {
+func (ts *PostgreSQLTestSuite) TestUplinkEventNoData() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now().Round(time.Second).UTC()
@@ -467,7 +467,7 @@ func (ts *PostgreSQLTestSuite) TestSendDataUpNoData() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, pl))
 
 	var up deviceUp
 	assert.NoError(ts.db.Get(&up, "select * from device_up"))
@@ -501,7 +501,7 @@ func (ts *PostgreSQLTestSuite) TestSendDataUpNoData() {
 	}, up)
 }
 
-func (ts *PostgreSQLTestSuite) TestSendStatusNotification() {
+func (ts *PostgreSQLTestSuite) TestHandleStatusEvent() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now()
@@ -520,7 +520,7 @@ func (ts *PostgreSQLTestSuite) TestSendStatusNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendStatusNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleStatusEvent(context.Background(), nil, nil, pl))
 
 	var status deviceStatus
 	assert.NoError(ts.db.Get(&status, "select * from device_status"))
@@ -550,7 +550,7 @@ func (ts *PostgreSQLTestSuite) TestSendStatusNotification() {
 
 }
 
-func (ts *PostgreSQLTestSuite) TestJoinNotification() {
+func (ts *PostgreSQLTestSuite) TestHandleJoinEvent() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now()
@@ -566,7 +566,7 @@ func (ts *PostgreSQLTestSuite) TestJoinNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendJoinNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleJoinEvent(context.Background(), nil, nil, pl))
 
 	var join deviceJoin
 	assert.NoError(ts.db.Get(&join, "select * from device_join"))
@@ -592,7 +592,7 @@ func (ts *PostgreSQLTestSuite) TestJoinNotification() {
 	}, join)
 }
 
-func (ts *PostgreSQLTestSuite) TestAckNotification() {
+func (ts *PostgreSQLTestSuite) TestHandleAckEvent() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now()
@@ -609,7 +609,7 @@ func (ts *PostgreSQLTestSuite) TestAckNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendACKNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleAckEvent(context.Background(), nil, nil, pl))
 
 	var ack deviceAck
 	assert.NoError(ts.db.Get(&ack, "select * from device_ack"))
@@ -636,7 +636,7 @@ func (ts *PostgreSQLTestSuite) TestAckNotification() {
 	}, ack)
 }
 
-func (ts *PostgreSQLTestSuite) TestErrorNotification() {
+func (ts *PostgreSQLTestSuite) TestHandleErrorEvent() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now()
@@ -654,7 +654,7 @@ func (ts *PostgreSQLTestSuite) TestErrorNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendErrorNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleErrorEvent(context.Background(), nil, nil, pl))
 
 	var e deviceError
 	assert.NoError(ts.db.Get(&e, "select * from device_error"))
@@ -682,7 +682,7 @@ func (ts *PostgreSQLTestSuite) TestErrorNotification() {
 	}, e)
 }
 
-func (ts *PostgreSQLTestSuite) TestLocationNotification() {
+func (ts *PostgreSQLTestSuite) TestLocationEvent() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now()
@@ -702,7 +702,7 @@ func (ts *PostgreSQLTestSuite) TestLocationNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendLocationNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleLocationEvent(context.Background(), nil, nil, pl))
 
 	var loc deviceLocation
 	assert.NoError(ts.db.Get(&loc, "select * from device_location"))

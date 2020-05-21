@@ -91,7 +91,7 @@ func (ts *IntegrationTestSuite) TestUplinkEvent() {
 		DevEui:        ts.devEUI[:],
 	}
 
-	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, pl))
 
 	msg := <-ts.amqpEventChan
 
@@ -112,7 +112,7 @@ func (ts *IntegrationTestSuite) TestJoinEvent() {
 		DevEui:        ts.devEUI[:],
 	}
 
-	assert.NoError(ts.integration.SendJoinNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleJoinEvent(context.Background(), nil, nil, pl))
 
 	msg := <-ts.amqpEventChan
 
@@ -133,7 +133,7 @@ func (ts *IntegrationTestSuite) TestAckEvent() {
 		DevEui:        ts.devEUI[:],
 	}
 
-	assert.NoError(ts.integration.SendACKNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleAckEvent(context.Background(), nil, nil, pl))
 
 	msg := <-ts.amqpEventChan
 
@@ -154,7 +154,7 @@ func (ts *IntegrationTestSuite) TestErrorEvent() {
 		DevEui:        ts.devEUI[:],
 	}
 
-	assert.NoError(ts.integration.SendErrorNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleErrorEvent(context.Background(), nil, nil, pl))
 
 	msg := <-ts.amqpEventChan
 
@@ -175,7 +175,7 @@ func (ts *IntegrationTestSuite) TestStatusEvent() {
 		DevEui:        ts.devEUI[:],
 	}
 
-	assert.NoError(ts.integration.SendStatusNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleStatusEvent(context.Background(), nil, nil, pl))
 
 	msg := <-ts.amqpEventChan
 
@@ -196,7 +196,7 @@ func (ts *IntegrationTestSuite) TestLocationEvent() {
 		DevEui:        ts.devEUI[:],
 	}
 
-	assert.NoError(ts.integration.SendLocationNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleLocationEvent(context.Background(), nil, nil, pl))
 
 	msg := <-ts.amqpEventChan
 
@@ -217,7 +217,7 @@ func (ts *IntegrationTestSuite) TestTxAckEvent() {
 		DevEui:        ts.devEUI[:],
 	}
 
-	assert.NoError(ts.integration.SendTxAckNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleTxAckEvent(context.Background(), nil, nil, pl))
 
 	msg := <-ts.amqpEventChan
 

@@ -15,7 +15,7 @@ import (
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 )
 
 func init() {
@@ -36,7 +36,7 @@ func (h *testHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type HandlerTestSuite struct {
 	suite.Suite
 
-	Handler  integration.Integrator
+	Handler  models.IntegrationHandler
 	Requests chan *http.Request
 	Server   *httptest.Server
 }
@@ -93,7 +93,7 @@ device_status_margin,application_name=test-app,dev_eui=0102030405060708,device_n
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.Handler.SendStatusNotification(context.Background(), nil, tst.Payload))
+			assert.NoError(ts.Handler.HandleStatusEvent(context.Background(), nil, nil, tst.Payload))
 			req := <-ts.Requests
 			assert.Equal("/write", req.URL.Path)
 			assert.Equal(url.Values{
@@ -311,7 +311,7 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.Handler.SendDataUp(context.Background(), nil, tst.Payload))
+			assert.NoError(ts.Handler.HandleUplinkEvent(context.Background(), nil, nil, tst.Payload))
 			req := <-ts.Requests
 			assert.Equal("/write", req.URL.Path)
 			assert.Equal(url.Values{

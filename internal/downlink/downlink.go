@@ -13,8 +13,8 @@ import (
 	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/codec"
-	"github.com/brocaar/chirpstack-application-server/internal/eventlog"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
@@ -23,8 +23,8 @@ import (
 // HandleDataDownPayloads handles received downlink payloads to be emitted to the
 // devices.
 func HandleDataDownPayloads() {
-	for pl := range integration.Integration().DataDownChan() {
-		go func(pl integration.DataDownPayload) {
+	for pl := range integration.ForApplicationID(0).DataDownChan() {
+		go func(pl models.DataDownPayload) {
 			ctxID, err := uuid.NewV4()
 			if err != nil {
 				log.WithError(err).Error("new uuid error")
@@ -44,7 +44,7 @@ func HandleDataDownPayloads() {
 	}
 }
 
-func handleDataDownPayload(ctx context.Context, pl integration.DataDownPayload) error {
+func handleDataDownPayload(ctx context.Context, pl models.DataDownPayload) error {
 	return storage.Transaction(func(tx sqlx.Ext) error {
 		// lock the device so that a concurrent Enqueue action will block
 		// until this transaction has been completed
@@ -180,11 +180,7 @@ func logCodecError(ctx context.Context, a storage.Application, d storage.Device,
 		}
 	}
 
-	if err := eventlog.LogEventForDevice(d.DevEUI, eventlog.Error, &errEvent); err != nil {
-		log.WithError(err).WithField("ctx_id", ctx.Value(logging.ContextIDKey)).Error("log event for device error")
-	}
-
-	if err := integration.Integration().SendErrorNotification(ctx, vars, errEvent); err != nil {
+	if err := integration.ForApplicationID(a.ID).HandleErrorEvent(ctx, vars, errEvent); err != nil {
 		log.WithError(err).WithField("ctx_id", ctx.Value(logging.ContextIDKey)).Error("send error event to integration error")
 	}
 }

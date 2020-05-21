@@ -5,9 +5,14 @@ import Grid from "@material-ui/core/Grid";
 import TextField from '@material-ui/core/TextField';
 import FormControl from "@material-ui/core/FormControl";
 import FormLabel from "@material-ui/core/FormLabel";
+import FormGroup from "@material-ui/core/FormGroup";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Checkbox from "@material-ui/core/Checkbox";
 import IconButton from '@material-ui/core/IconButton';
 import FormHelperText from "@material-ui/core/FormHelperText";
 import Button from "@material-ui/core/Button";
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
 
 import Delete from "mdi-material-ui/Delete";
 
@@ -431,6 +436,115 @@ class MyDevicesIntegrationForm extends FormComponent {
 }
 
 
+class LoRaCloudIntegrationForm extends FormComponent {
+  constructor() {
+    super();
+
+    this.state = {
+      tab: 0,
+    };
+  }
+
+  onChange(e) {
+    super.onChange(e);
+  }
+
+  render() {
+    if (this.state.object === undefined) {
+      return null;
+    }
+
+    return(
+      <div>
+        <Tabs 
+          value={this.state.tab}
+          indicatorColor="primary"
+        >
+          <Tab label="Geolocation" />
+        </Tabs>
+        {this.state.tab === 0 && <div>
+          <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="Geolocation enabled"
+                control={
+                  <Checkbox 
+                    id="geolocation"
+                    checked={!!this.state.object.geolocation}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>
+          {!!this.state.object.geolocation && <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="TDOA based geolocation"
+                control={
+                  <Checkbox 
+                    id="geolocationTDOA"
+                    checked={!!this.state.object.geolocationTDOA}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>}
+          {!!this.state.object.geolocation && <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="RSSI based geolocation"
+                control={
+                  <Checkbox 
+                    id="geolocationRSSI"
+                    checked={!!this.state.object.geolocationRSSI}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>}
+          {!!this.state.object.geolocation && <TextField
+            id="geolocationToken"
+            label="Token"
+            value={this.state.object.geolocationToken || ""}
+            onChange={this.onChange}
+            margin="normal"
+            helperText="This token can be obtained from loracloud.com"
+            required
+            fullWidth
+          />}
+          {!!this.state.object.geolocation && <TextField
+            id="geolocationBufferTTL"
+            label="Geolocation buffer TTL (seconds)"
+            type="number"
+            margin="normal"
+            value={this.state.object.geolocationBufferTTL || 0}
+            onChange={this.onChange}
+            helperText="The time in seconds that historical uplinks will be stored in the geolocation buffer."
+            fullWidth
+          />}
+          {!!this.state.object.geolocation && <TextField
+            id="geolocationMinBufferSize"
+            label="Geolocation minimum buffer size"
+            type="number"
+            margin="normal"
+            value={this.state.object.geolocationMinBufferSize || 0}
+            onChange={this.onChange}
+            helperText="The minimum buffer size required before using geolocation. Using multiple uplinks for geolocation can increase the accuracy of the geolocation results."
+            fullWidth
+          />}
+        </div>}
+      </div>
+    );
+  }
+}
+
+
 class IntegrationForm extends FormComponent {
   constructor() {
     super();
@@ -448,6 +562,7 @@ class IntegrationForm extends FormComponent {
     const kindOptions = [
       {value: "http", label: "HTTP integration"},
       {value: "influxdb", label: "InfluxDB integration"},
+      {value: "loracloud", label: "LoRa Cloud"},
       {value: "mydevices", label:"myDevices.com"},
       {value: "thingsboard", label: "ThingsBoard.io"},
     ];
@@ -479,6 +594,7 @@ class IntegrationForm extends FormComponent {
         {this.state.object.kind === "influxdb" && <InfluxDBIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
         {this.state.object.kind === "thingsboard" && <ThingsBoardIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
         {this.state.object.kind === "mydevices" && <MyDevicesIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
+        {this.state.object.kind === "loracloud" && <LoRaCloudIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
       </Form>
     );
   }

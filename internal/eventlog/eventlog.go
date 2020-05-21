@@ -21,7 +21,7 @@ const (
 
 // Event types.
 const (
-	Uplink   = "uplink"
+	Uplink   = "up"
 	ACK      = "ack"
 	Join     = "join"
 	Error    = "error"

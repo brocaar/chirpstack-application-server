@@ -169,7 +169,6 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 			Latitude:  *d.Latitude,
 			Longitude: *d.Longitude,
 			Altitude:  *d.Altitude,
-			Source:    common.LocationSource_GEO_RESOLVER,
 		}
 	}
 

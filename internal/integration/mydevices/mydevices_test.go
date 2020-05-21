@@ -16,7 +16,7 @@ import (
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-api/go/v3/common"
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/lorawan"
 )
@@ -35,7 +35,7 @@ func (h *testHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	integration integration.Integrator
+	integration models.IntegrationHandler
 	httpHandler *testHTTPHandler
 	server      *httptest.Server
 }
@@ -87,7 +87,7 @@ func (ts *IntegrationTestSuite) TestUplink() {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, logging.ContextIDKey, ctxID)
 
-	assert.NoError(ts.integration.SendDataUp(ctx, nil, pl))
+	assert.NoError(ts.integration.HandleUplinkEvent(ctx, nil, nil, pl))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("application/json", req.Header.Get("Content-Type"))

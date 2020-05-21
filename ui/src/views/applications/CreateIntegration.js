@@ -60,6 +60,11 @@ class CreateIntegration extends Component {
           this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
         });
         break;
+      case "loracloud":
+        ApplicationStore.createLoRaCloudIntegration(integr, resp => {
+          this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
+        });
+        break;
       default:
         break;
     }

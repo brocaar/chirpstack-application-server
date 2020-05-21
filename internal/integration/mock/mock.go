@@ -4,7 +4,7 @@ import (
 	"context"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 )
 
 // Integration implements a mock integration.
@@ -13,7 +13,7 @@ type Integration struct {
 	SendJoinNotificationChan     chan pb.JoinEvent
 	SendACKNotificationChan      chan pb.AckEvent
 	SendErrorNotificationChan    chan pb.ErrorEvent
-	DataDownPayloadChan          chan integration.DataDownPayload
+	DataDownPayloadChan          chan models.DataDownPayload
 	SendStatusNotificationChan   chan pb.StatusEvent
 	SendLocationNotificationChan chan pb.LocationEvent
 	SendTxAckNotificationChan    chan pb.TxAckEvent
@@ -26,7 +26,7 @@ func New() *Integration {
 		SendJoinNotificationChan:     make(chan pb.JoinEvent, 100),
 		SendACKNotificationChan:      make(chan pb.AckEvent, 100),
 		SendErrorNotificationChan:    make(chan pb.ErrorEvent, 100),
-		DataDownPayloadChan:          make(chan integration.DataDownPayload, 100),
+		DataDownPayloadChan:          make(chan models.DataDownPayload, 100),
 		SendStatusNotificationChan:   make(chan pb.StatusEvent, 100),
 		SendLocationNotificationChan: make(chan pb.LocationEvent, 100),
 		SendTxAckNotificationChan:    make(chan pb.TxAckEvent, 100),
@@ -38,49 +38,49 @@ func (i *Integration) Close() error {
 	return nil
 }
 
-// SendDataUp method.
-func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, payload pb.UplinkEvent) error {
+// HandleUplinkEvent sends an UplinkEvent.
+func (i *Integration) HandleUplinkEvent(ctx context.Context, vars map[string]string, payload pb.UplinkEvent) error {
 	i.SendDataUpChan <- payload
 	return nil
 }
 
-// SendJoinNotification Method.
-func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]string, payload pb.JoinEvent) error {
+// HandleJoinEvent sends a JoinEvent.
+func (i *Integration) HandleJoinEvent(ctx context.Context, vars map[string]string, payload pb.JoinEvent) error {
 	i.SendJoinNotificationChan <- payload
 	return nil
 }
 
-// SendACKNotification method.
-func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]string, payload pb.AckEvent) error {
+// HandleAckEvent sends an AckEvent.
+func (i *Integration) HandleAckEvent(ctx context.Context, vars map[string]string, payload pb.AckEvent) error {
 	i.SendACKNotificationChan <- payload
 	return nil
 }
 
-// SendErrorNotification method.
-func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string]string, payload pb.ErrorEvent) error {
+// HandleErrorEvent sends an ErrorEvent.
+func (i *Integration) HandleErrorEvent(ctx context.Context, vars map[string]string, payload pb.ErrorEvent) error {
 	i.SendErrorNotificationChan <- payload
 	return nil
 }
 
 // DataDownChan method.
-func (i *Integration) DataDownChan() chan integration.DataDownPayload {
+func (i *Integration) DataDownChan() chan models.DataDownPayload {
 	return i.DataDownPayloadChan
 }
 
-// SendStatusNotification method.
-func (i *Integration) SendStatusNotification(ctx context.Context, vars map[string]string, payload pb.StatusEvent) error {
+// HandleStatusEvent sends a StatusEvent.
+func (i *Integration) HandleStatusEvent(ctx context.Context, vars map[string]string, payload pb.StatusEvent) error {
 	i.SendStatusNotificationChan <- payload
 	return nil
 }
 
-// SendLocationNotification method.
-func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, payload pb.LocationEvent) error {
+// HandleLocationEvent sends a LocationEvent.
+func (i *Integration) HandleLocationEvent(ctx context.Context, vars map[string]string, payload pb.LocationEvent) error {
 	i.SendLocationNotificationChan <- payload
 	return nil
 }
 
-// SendTxAckNotification method.
-func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, payload pb.TxAckEvent) error {
+// HandleTxAckEvent sends a TxAckEvent.
+func (i *Integration) HandleTxAckEvent(ctx context.Context, vars map[string]string, payload pb.TxAckEvent) error {
 	i.SendTxAckNotificationChan <- payload
 	return nil
 }

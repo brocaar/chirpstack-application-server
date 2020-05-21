@@ -1,4 +1,4 @@
-package integration
+package models
 
 import (
 	"encoding/gob"

@@ -14,8 +14,8 @@ import (
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-api/go/v3/common"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 )
 
 type testHTTPHandler struct {
@@ -72,7 +72,7 @@ func TestHandlerConfig(t *testing.T) {
 type HandlerTestSuite struct {
 	suite.Suite
 
-	integration integration.Integrator
+	integration models.IntegrationHandler
 	httpHandler *testHTTPHandler
 	server      *httptest.Server
 }
@@ -114,7 +114,7 @@ func (ts *HandlerTestSuite) TestUplink() {
 	reqPL := pb.UplinkEvent{
 		Data: []byte{1, 2, 3, 4},
 	}
-	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, reqPL))
+	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/dataup", req.URL.Path)
@@ -135,7 +135,7 @@ func (ts *HandlerTestSuite) TestJoin() {
 	reqPL := pb.JoinEvent{
 		DevAddr: []byte{1, 2, 3, 4},
 	}
-	assert.NoError(ts.integration.SendJoinNotification(context.Background(), nil, reqPL))
+	assert.NoError(ts.integration.HandleJoinEvent(context.Background(), nil, nil, reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/join", req.URL.Path)
@@ -156,7 +156,7 @@ func (ts *HandlerTestSuite) TestAck() {
 	reqPL := pb.AckEvent{
 		DevEui: []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.integration.SendACKNotification(context.Background(), nil, reqPL))
+	assert.NoError(ts.integration.HandleAckEvent(context.Background(), nil, nil, reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/ack", req.URL.Path)
@@ -177,7 +177,7 @@ func (ts *HandlerTestSuite) TestError() {
 	reqPL := pb.ErrorEvent{
 		Error: "boom!",
 	}
-	assert.NoError(ts.integration.SendErrorNotification(context.Background(), nil, reqPL))
+	assert.NoError(ts.integration.HandleErrorEvent(context.Background(), nil, nil, reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/error", req.URL.Path)
@@ -198,7 +198,7 @@ func (ts *HandlerTestSuite) TestStatus() {
 	reqPL := pb.StatusEvent{
 		BatteryLevel: 55,
 	}
-	assert.NoError(ts.integration.SendStatusNotification(context.Background(), nil, reqPL))
+	assert.NoError(ts.integration.HandleStatusEvent(context.Background(), nil, nil, reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/status", req.URL.Path)
@@ -223,7 +223,7 @@ func (ts *HandlerTestSuite) TestLocation() {
 			Altitude:  3.123,
 		},
 	}
-	assert.NoError(ts.integration.SendLocationNotification(context.Background(), nil, reqPL))
+	assert.NoError(ts.integration.HandleLocationEvent(context.Background(), nil, nil, reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/location", req.URL.Path)
@@ -244,7 +244,7 @@ func (ts *HandlerTestSuite) TestTxAck() {
 	reqPL := pb.TxAckEvent{
 		FCnt: 123,
 	}
-	assert.NoError(ts.integration.SendTxAckNotification(context.Background(), nil, reqPL))
+	assert.NoError(ts.integration.HandleTxAckEvent(context.Background(), nil, nil, reqPL))
 
 	req := <-ts.httpHandler.requests
 	assert.Equal("/txack", req.URL.Path)

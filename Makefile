@@ -37,6 +37,13 @@ dist: ui/build internal/statics internal/migrations
 snapshot: ui/build internal/statics internal/migrations
 	@goreleaser --snapshot
 
+proto:
+	@rm -rf /tmp/chirpstack-api
+	@git clone https://github.com/brocaar/chirpstack-api.git /tmp/chirpstack-api
+	@git --git-dir=/tmp/chirpstack-api/.git --work-tree=/tmp/chirpstack-api checkout $(API_VERSION)
+	@go generate internal/integration/loracloud/frame_rx_info.go
+
+
 ui/build:
 	@echo "Building ui"
 	@cd ui && npm run build
@@ -67,6 +74,7 @@ dev-requirements:
 	go install golang.org/x/tools/cmd/stringer
 	go install github.com/goreleaser/goreleaser
 	go install github.com/goreleaser/nfpm
+	go install github.com/golang/protobuf/protoc-gen-go
 
 ui-requirements:
 	@echo "Installing UI requirements"

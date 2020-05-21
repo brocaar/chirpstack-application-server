@@ -22,8 +22,8 @@ import (
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
@@ -35,7 +35,7 @@ const downlinkLockTTL = time.Millisecond * 100
 type Integration struct {
 	marshaler        marshaler.Type
 	conn             mqtt.Client
-	dataDownChan     chan integration.DataDownPayload
+	dataDownChan     chan models.DataDownPayload
 	wg               sync.WaitGroup
 	config           config.IntegrationMQTTConfig
 	uplinkTemplate   *template.Template
@@ -62,7 +62,7 @@ func New(m marshaler.Type, conf config.IntegrationMQTTConfig) (*Integration, err
 	var err error
 	i := Integration{
 		marshaler:    m,
-		dataDownChan: make(chan integration.DataDownPayload),
+		dataDownChan: make(chan models.DataDownPayload),
 		config:       conf,
 	}
 
@@ -218,38 +218,38 @@ func (i *Integration) Close() error {
 	return nil
 }
 
-// SendDataUp sends a DataUpPayload.
-func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, payload pb.UplinkEvent) error {
+// HandleUplinkEvent sends an UplinkEvent.
+func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.UplinkEvent) error {
 	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.uplinkTemplate, i.uplinkRetained, &payload)
 }
 
-// SendJoinNotification sends a JoinNotification.
-func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]string, payload pb.JoinEvent) error {
+// HandleJoinEvent sends a JoinEvent.
+func (i *Integration) HandleJoinEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.JoinEvent) error {
 	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.joinTemplate, i.joinRetained, &payload)
 }
 
-// SendACKNotification sends an ACKNotification.
-func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]string, payload pb.AckEvent) error {
+// HandleAckEvent sends an AckEvent.
+func (i *Integration) HandleAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.AckEvent) error {
 	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.ackTemplate, i.ackRetained, &payload)
 }
 
-// SendErrorNotification sends an ErrorNotification.
-func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string]string, payload pb.ErrorEvent) error {
+// HandleErrorEvent sends an ErrorEvent.
+func (i *Integration) HandleErrorEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.ErrorEvent) error {
 	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.errorTemplate, i.errorRetained, &payload)
 }
 
-// SendStatusNotification sends a StatusNotification.
-func (i *Integration) SendStatusNotification(ctx context.Context, vars map[string]string, payload pb.StatusEvent) error {
+// HandleStatusEvent sends a StatusEvent.
+func (i *Integration) HandleStatusEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.StatusEvent) error {
 	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.statusTemplate, i.statusRetained, &payload)
 }
 
-// SendLocationNotification sends a LocationNotification.
-func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, payload pb.LocationEvent) error {
+// HandleLocationEvent sends a LocationEvent.
+func (i *Integration) HandleLocationEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.LocationEvent) error {
 	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.locationTemplate, i.locationRetained, &payload)
 }
 
-// SendTxAckNotification sends a TxAckNotification.
-func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, payload pb.TxAckEvent) error {
+// HandleTxAckEvent sends a TxAckEvent.
+func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.TxAckEvent) error {
 	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.txAckTemplate, i.txAckRetained, &payload)
 }
 
@@ -284,7 +284,7 @@ func (i *Integration) publish(ctx context.Context, applicationID uint64, devEUIB
 }
 
 // DataDownChan returns the channel containing the received DataDownPayload.
-func (i *Integration) DataDownChan() chan integration.DataDownPayload {
+func (i *Integration) DataDownChan() chan models.DataDownPayload {
 	return i.dataDownChan
 }
 
@@ -334,7 +334,7 @@ func (i *Integration) txPayloadHandler(mqttc mqtt.Client, msg mqtt.Message) {
 		return
 	}
 
-	var pl integration.DataDownPayload
+	var pl models.DataDownPayload
 	dec := json.NewDecoder(bytes.NewReader(msg.Payload()))
 	if err := dec.Decode(&pl); err != nil {
 		log.WithFields(log.Fields{

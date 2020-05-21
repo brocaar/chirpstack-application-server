@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -22,9 +21,6 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/fuota"
 	"github.com/brocaar/chirpstack-application-server/internal/gwping"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
-	"github.com/brocaar/chirpstack-application-server/internal/integration/application"
-	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
-	"github.com/brocaar/chirpstack-application-server/internal/integration/multi"
 	"github.com/brocaar/chirpstack-application-server/internal/migrations/code"
 	"github.com/brocaar/chirpstack-application-server/internal/monitoring"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
@@ -100,43 +96,9 @@ func setupStorage() error {
 }
 
 func setupIntegration() error {
-	var confs []interface{}
-
-	for _, name := range config.C.ApplicationServer.Integration.Enabled {
-		switch name {
-		case "aws_sns":
-			confs = append(confs, config.C.ApplicationServer.Integration.AWSSNS)
-		case "azure_service_bus":
-			confs = append(confs, config.C.ApplicationServer.Integration.AzureServiceBus)
-		case "mqtt":
-			confs = append(confs, config.C.ApplicationServer.Integration.MQTT)
-		case "gcp_pub_sub":
-			confs = append(confs, config.C.ApplicationServer.Integration.GCPPubSub)
-		case "postgresql":
-			confs = append(confs, config.C.ApplicationServer.Integration.PostgreSQL)
-		case "amqp":
-			confs = append(confs, config.C.ApplicationServer.Integration.AMQP)
-		default:
-			return fmt.Errorf("unknown integration type: %s", name)
-		}
+	if err := integration.Setup(config.C); err != nil {
+		return errors.Wrap(err, "setup integration error")
 	}
-
-	var m marshaler.Type
-	switch config.C.ApplicationServer.Integration.Marshaler {
-	case "protobuf":
-		m = marshaler.Protobuf
-	case "json":
-		m = marshaler.ProtobufJSON
-	case "json_v3":
-		m = marshaler.JSONV3
-	}
-
-	mi, err := multi.New(m, confs)
-	if err != nil {
-		return errors.Wrap(err, "setup integrations error")
-	}
-	mi.Add(application.New(m))
-	integration.SetIntegration(mi)
 
 	return nil
 }
@@ -145,6 +107,7 @@ func setupCodec() error {
 	if err := jscodec.Setup(config.C); err != nil {
 		return errors.Wrap(err, "setup codec error")
 	}
+
 	return nil
 }
 

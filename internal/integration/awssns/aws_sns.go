@@ -16,8 +16,8 @@ import (
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/lorawan"
 )
@@ -57,43 +57,43 @@ func New(m marshaler.Type, conf config.IntegrationAWSSNSConfig) (*Integration, e
 	return &i, nil
 }
 
-// SendDataUp sends an uplink data payload.
-func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl pb.UplinkEvent) error {
+// HandleUplinkEvent sends an UplinkEvent.
+func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.UplinkEvent) error {
 	return i.publish(ctx, "up", pl.ApplicationId, pl.DevEui, &pl)
 }
 
-// SendJoinNotification sends a join notification.
-func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error {
+// HandleJoinEvent sends a JoinEvent.
+func (i *Integration) HandleJoinEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.JoinEvent) error {
 	return i.publish(ctx, "join", pl.ApplicationId, pl.DevEui, &pl)
 }
 
-// SendACKNotification sends an ack notification.
-func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]string, pl pb.AckEvent) error {
+// HandleAckEvent sends an AckEvent.
+func (i *Integration) HandleAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.AckEvent) error {
 	return i.publish(ctx, "ack", pl.ApplicationId, pl.DevEui, &pl)
 }
 
-// SendErrorNotification sends an error notification.
-func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error {
+// HandleErrorEvent sends an ErrorEvent.
+func (i *Integration) HandleErrorEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.ErrorEvent) error {
 	return i.publish(ctx, "error", pl.ApplicationId, pl.DevEui, &pl)
 }
 
-// SendStatusNotification sends a status notification.
-func (i *Integration) SendStatusNotification(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error {
+// HandleStatusEvent sends a StatusEvent.
+func (i *Integration) HandleStatusEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.StatusEvent) error {
 	return i.publish(ctx, "status", pl.ApplicationId, pl.DevEui, &pl)
 }
 
-// SendLocationNotification sends a location notification.
-func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error {
+// HandleLocationEvent sends a LocationEvent.
+func (i *Integration) HandleLocationEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.LocationEvent) error {
 	return i.publish(ctx, "location", pl.ApplicationId, pl.DevEui, &pl)
 }
 
-// SendTxAckNotification sends a tx ack notification.
-func (i *Integration) SendTxAckNotification(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
+// HandleTxAckEvent sends a TxAckEevent.
+func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.TxAckEvent) error {
 	return i.publish(ctx, "txack", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // DataDownChan return nil.
-func (i *Integration) DataDownChan() chan integration.DataDownPayload {
+func (i *Integration) DataDownChan() chan models.DataDownPayload {
 	return nil
 }
 

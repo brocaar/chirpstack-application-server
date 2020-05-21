@@ -7,6 +7,10 @@ import CardHeader from "@material-ui/core/CardHeader";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import Grid from '@material-ui/core/Grid';
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableRow from "@material-ui/core/TableRow";
+import TableCell from "@material-ui/core/TableCell";
 
 import moment from "moment";
 import { Map, Marker } from 'react-leaflet';
@@ -22,6 +26,37 @@ const styles = {
   },
 };
 
+class DetailsCard extends Component {
+  render() {
+    return(
+      <Card>
+        <CardHeader title="Gateway details" />
+        <CardContent>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableCell>Gateway ID</TableCell>
+                <TableCell>{this.props.gateway.id}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Altitude</TableCell>
+                <TableCell>{this.props.gateway.location.altitude} meters</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>GPS coordinates</TableCell>
+                <TableCell>{this.props.gateway.location.latitude}, {this.props.gateway.location.longitude}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Last seen at</TableCell>
+                <TableCell>{this.props.lastSeenAt}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    );
+  }
+}
 
 class GatewayDetails extends Component {
   constructor() {
@@ -119,37 +154,7 @@ class GatewayDetails extends Component {
     return(
       <Grid container spacing={4}>
         <Grid item xs={6}>
-          <Card>
-            <CardHeader
-              title="Gateway details"
-            />
-            <CardContent>
-              <Typography variant="subtitle1" color="primary">
-                Gateway ID
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {this.props.gateway.id}
-              </Typography>
-              <Typography variant="subtitle1" color="primary">
-                Altitude
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {this.props.gateway.location.altitude} meters
-              </Typography>
-              <Typography variant="subtitle1" color="primary">
-                GPS coordinates
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {this.props.gateway.location.latitude}, {this.props.gateway.location.longitude}
-              </Typography>
-              <Typography variant="subtitle1" color="primary">
-                Last seen at
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {lastSeenAt}
-              </Typography>
-            </CardContent>
-          </Card>
+          <DetailsCard gateway={this.props.gateway} lastSeenAt={lastSeenAt} />
         </Grid>
         <Grid item xs={6}>
           <Paper>

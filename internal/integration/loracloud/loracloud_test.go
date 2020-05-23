@@ -155,7 +155,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 							GatewayID: lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1},
 							RSSI:      1,
 							SNR:       1.1,
-							TDOA:      111,
+							TOA:       111,
 							AntennaLocation: geolocation.AntennaLocation{
 								Latitude:  1.111,
 								Longitude: 2.222,
@@ -166,7 +166,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 							GatewayID: lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2},
 							RSSI:      2,
 							SNR:       2.1,
-							TDOA:      222,
+							TOA:       222,
 							AntennaLocation: geolocation.AntennaLocation{
 								Latitude:  1.111,
 								Longitude: 2.222,
@@ -177,7 +177,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 							GatewayID: lorawan.EUI64{3, 3, 3, 3, 3, 3, 3, 3},
 							RSSI:      3,
 							SNR:       3.1,
-							TDOA:      333,
+							TOA:       333,
 							AntennaLocation: geolocation.AntennaLocation{
 								Latitude:  1.111,
 								Longitude: 2.222,
@@ -615,7 +615,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 								GatewayID: lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1},
 								RSSI:      1,
 								SNR:       1.1,
-								TDOA:      444,
+								TOA:       444,
 								AntennaLocation: geolocation.AntennaLocation{
 									Latitude:  1.111,
 									Longitude: 2.222,
@@ -626,7 +626,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 								GatewayID: lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2},
 								RSSI:      2,
 								SNR:       2.1,
-								TDOA:      555,
+								TOA:       555,
 								AntennaLocation: geolocation.AntennaLocation{
 									Latitude:  1.111,
 									Longitude: 2.222,
@@ -637,7 +637,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 								GatewayID: lorawan.EUI64{3, 3, 3, 3, 3, 3, 3, 3},
 								RSSI:      3,
 								SNR:       3.1,
-								TDOA:      666,
+								TOA:       666,
 								AntennaLocation: geolocation.AntennaLocation{
 									Latitude:  1.111,
 									Longitude: 2.222,
@@ -650,7 +650,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 								GatewayID: lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1},
 								RSSI:      1,
 								SNR:       1.1,
-								TDOA:      111,
+								TOA:       111,
 								AntennaLocation: geolocation.AntennaLocation{
 									Latitude:  1.111,
 									Longitude: 2.222,
@@ -661,7 +661,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 								GatewayID: lorawan.EUI64{2, 2, 2, 2, 2, 2, 2, 2},
 								RSSI:      2,
 								SNR:       2.1,
-								TDOA:      222,
+								TOA:       222,
 								AntennaLocation: geolocation.AntennaLocation{
 									Latitude:  1.111,
 									Longitude: 2.222,
@@ -672,7 +672,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 								GatewayID: lorawan.EUI64{3, 3, 3, 3, 3, 3, 3, 3},
 								RSSI:      3,
 								SNR:       3.1,
-								TDOA:      333,
+								TOA:       333,
 								AntennaLocation: geolocation.AntennaLocation{
 									Latitude:  1.111,
 									Longitude: 2.222,

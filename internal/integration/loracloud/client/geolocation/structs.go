@@ -48,7 +48,7 @@ type UplinkTDOA struct {
 	GatewayID       lorawan.EUI64   `json:"gatewayId"`
 	RSSI            float64         `json:"rssi"`
 	SNR             float64         `json:"snr"`
-	TDOA            uint32          `json:"tdoa"`
+	TOA             uint32          `json:"toa"`
 	AntennaID       int             `json:"antennaId"`
 	AntennaLocation AntennaLocation `json:"antennaLocation"`
 }
@@ -113,16 +113,16 @@ func NewUplinkTDOA(rxInfo []*gw.UplinkRXInfo) []UplinkTDOA {
 		var gatewayID lorawan.EUI64
 		copy(gatewayID[:], rxInfo[i].GatewayId)
 
-		var tdoa uint32
+		var toa uint32
 		if plainTS := rxInfo[i].GetPlainFineTimestamp(); plainTS != nil {
-			tdoa = uint32(plainTS.GetTime().Nanos)
+			toa = uint32(plainTS.GetTime().Nanos)
 		}
 
 		out = append(out, UplinkTDOA{
 			GatewayID: gatewayID,
 			RSSI:      float64(rxInfo[i].Rssi),
 			SNR:       rxInfo[i].LoraSnr,
-			TDOA:      tdoa,
+			TOA:       toa,
 			AntennaID: int(rxInfo[i].Antenna),
 			AntennaLocation: AntennaLocation{
 				Latitude:  rxInfo[i].GetLocation().Latitude,

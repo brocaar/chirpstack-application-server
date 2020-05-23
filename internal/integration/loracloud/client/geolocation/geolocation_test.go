@@ -88,7 +88,7 @@ func (ts *ClientTestSuite) TestTDOASingleFrame() {
 					GatewayID: lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 					RSSI:      1,
 					SNR:       2,
-					TDOA:      12345,
+					TOA:       12345,
 					AntennaID: 3,
 					AntennaLocation: AntennaLocation{
 						Latitude:  1.123,
@@ -181,7 +181,7 @@ func (ts *ClientTestSuite) TestTDOAMultiFrame() {
 						GatewayID: lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 						RSSI:      1,
 						SNR:       2,
-						TDOA:      12345,
+						TOA:       12345,
 						AntennaID: 3,
 						AntennaLocation: AntennaLocation{
 							Latitude:  1.123,

@@ -980,9 +980,13 @@ func convertUplinkAndDownlinkFrames(up *ns.UplinkFrameLog, down *ns.DownlinkFram
 	}
 
 	if down != nil {
+		var gatewayID lorawan.EUI64
+		copy(gatewayID[:], down.GatewayId)
+
 		downlinkFrameLog := pb.DownlinkFrameLog{
 			TxInfo:         down.TxInfo,
 			PhyPayloadJson: string(phyJSON),
+			GatewayId:      gatewayID.String(),
 		}
 
 		return nil, &downlinkFrameLog, nil

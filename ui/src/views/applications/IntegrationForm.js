@@ -514,6 +514,7 @@ class LoRaCloudIntegrationForm extends FormComponent {
             value={this.state.object.geolocationToken || ""}
             onChange={this.onChange}
             margin="normal"
+            type="password"
             helperText="This token can be obtained from loracloud.com"
             required
             fullWidth

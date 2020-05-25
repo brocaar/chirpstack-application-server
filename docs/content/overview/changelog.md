@@ -32,7 +32,7 @@ renamed to email. Existing users can still login with their username, but on
 user update, the username must be set to an email address.
 
 Previously there was an unused email field. As there was no guarantee that
-this field was unique this field has been deprecated. It is stil present in
+this field was unique this field has been deprecated. It is still present in
 the database as `email_old` so that the new `email` field (containing the old
 `username` as value) can be updated by hand if needed.
 
@@ -73,6 +73,7 @@ This feature makes it possible to (temporarily) disable a device.
 
 ### Improvements
 
+* Make it possible to use activate API endpoint for OTAA devices (to import an existing activation).
 * Gateway Profile / channel-plan re-configuration documentation in web-interface.
 * Internal cleanup auto-complete select in web-interface.
 * Expose (un)confirmed + DevAddr in integration payloads. ([#453](https://github.com/brocaar/chirpstack-application-server/issues/453))

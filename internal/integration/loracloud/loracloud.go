@@ -2,6 +2,9 @@ package loracloud
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -18,12 +21,17 @@ import (
 
 // Config contains the LoRaCloud integration configuration.
 type Config struct {
-	Geolocation              bool   `json:"geolocation"`
-	GeolocationToken         string `json:"geolocationToken"`
-	GeolocationBufferTTL     int    `json:"geolocationBufferTTL"`
-	GeolocationMinBufferSize int    `json:"geolocationMinBufferSize"`
-	GeolocationTDOA          bool   `json:"geolocationTDOA"`
-	GeolocationRSSI          bool   `json:"geolocationRSSI"`
+	Geolocation                 bool   `json:"geolocation"`
+	GeolocationToken            string `json:"geolocationToken"`
+	GeolocationBufferTTL        int    `json:"geolocationBufferTTL"`
+	GeolocationMinBufferSize    int    `json:"geolocationMinBufferSize"`
+	GeolocationTDOA             bool   `json:"geolocationTDOA"`
+	GeolocationRSSI             bool   `json:"geolocationRSSI"`
+	GeolocationGNSS             bool   `json:"geolocationGNSS"`
+	GeolocationGNSSPayloadField string `json:"geolocationGNSSPayloadField"`
+	GeolocationGNSSUseRxTime    bool   `json:"geolicationGNSSUseRxTime"`
+	GeolocationWifi             bool   `json:"geolocationWifi"`
+	GeolocationWifiPayloadField string `json:"geolocationWifiPayloadField"`
 }
 
 // Integration implements a LoRaCloud Integration.
@@ -53,20 +61,17 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, ii models.Integrati
 		}
 
 		// do geolocation
-		loc, err := i.geolocation(ctx, devEUI, geolocBuffer)
+		uplinkIDs, loc, err := i.geolocation(ctx, devEUI, geolocBuffer, pl)
 		if err != nil {
 			return errors.Wrap(err, "geolocation error")
 		}
 
 		// if it resolved to a location, send it to integrations
 		if loc != nil {
-			var uplinkIDs [][]byte
-			for i := range geolocBuffer {
-				for j := range geolocBuffer[i] {
-					uplinkIDs = append(uplinkIDs, geolocBuffer[i][j].UplinkId)
-				}
+			var fCnt uint32
+			if len(uplinkIDs) == 0 {
+				fCnt = pl.FCnt
 			}
-
 			if err := ii.HandleLocationEvent(ctx, vars, pb.LocationEvent{
 				ApplicationId:   pl.ApplicationId,
 				ApplicationName: pl.ApplicationName,
@@ -75,6 +80,7 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, ii models.Integrati
 				Tags:            pl.Tags,
 				Location:        loc,
 				UplinkIds:       uplinkIDs,
+				FCnt:            fCnt,
 			}); err != nil {
 				log.WithError(err).Error("integration/loracloud: geolocation error")
 			}
@@ -147,7 +153,53 @@ func (i *Integration) updateGeolocBuffer(ctx context.Context, devEUI lorawan.EUI
 	return geolocBuffer, nil
 }
 
-func (i *Integration) geolocation(ctx context.Context, devEUI lorawan.EUI64, geolocBuffer [][]*gw.UplinkRXInfo) (*common.Location, error) {
+func (i *Integration) geolocation(ctx context.Context, devEUI lorawan.EUI64, geolocBuffer [][]*gw.UplinkRXInfo, pl pb.UplinkEvent) ([][]byte, *common.Location, error) {
+	if i.config.GeolocationGNSS {
+		gnssPL, err := getBytesFromJSONObject(i.config.GeolocationGNSSPayloadField, pl.ObjectJson)
+		if err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"dev_eui":       devEUI,
+				"ctx_id":        ctx.Value(logging.ContextIDKey),
+				"payload_field": i.config.GeolocationGNSSPayloadField,
+			}).Error("integration/loracloud: get gnss bytes from object error")
+			return nil, nil, nil
+		}
+
+		if len(gnssPL) == 0 {
+			log.WithFields(log.Fields{
+				"dev_eui":       devEUI,
+				"ctx_id":        ctx.Value(logging.ContextIDKey),
+				"payload_field": i.config.GeolocationGNSSPayloadField,
+			}).Debug("integration/loracloud: no gnss bytes found in object")
+		} else {
+			loc, err := i.gnssLR1110Geolocation(ctx, devEUI, pl.RxInfo, gnssPL)
+			return nil, loc, err
+		}
+	}
+
+	if i.config.GeolocationWifi {
+		wifiAPs, err := getWifiAccessPointsFromJSONObject(i.config.GeolocationWifiPayloadField, pl.ObjectJson)
+		if err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"dev_eui":       devEUI,
+				"ctx_id":        ctx.Value(logging.ContextIDKey),
+				"payload_field": i.config.GeolocationWifiPayloadField,
+			}).Error("integration/loracloud: get wifi access-points from object error")
+			return nil, nil, nil
+		}
+
+		if len(wifiAPs) == 0 {
+			log.WithFields(log.Fields{
+				"dev_eui":       devEUI,
+				"ctx_id":        ctx.Value(logging.ContextIDKey),
+				"payload_field": i.config.GeolocationWifiPayloadField,
+			}).Debug("integration/loracloud: no wifi access-points found in object")
+		} else {
+			loc, err := i.wifiTDOAGeolocation(ctx, devEUI, pl.RxInfo, wifiAPs)
+			return nil, loc, err
+		}
+	}
+
 	if i.config.GeolocationTDOA {
 		tdoaFiltered := filterOnFineTimestamp(geolocBuffer, 3)
 		if len(tdoaFiltered) == 0 || len(tdoaFiltered) < i.config.GeolocationMinBufferSize {
@@ -157,7 +209,15 @@ func (i *Integration) geolocation(ctx context.Context, devEUI lorawan.EUI64, geo
 				"tdoa_suitable_frames": len(tdoaFiltered),
 			}).Debug("integration/loracloud: not enough meta-data for tdoa geolocation")
 		} else {
-			return i.tdoaGeolocation(ctx, devEUI, tdoaFiltered)
+			var uplinkIDs [][]byte
+			for i := range tdoaFiltered {
+				for j := range tdoaFiltered[i] {
+					uplinkIDs = append(uplinkIDs, tdoaFiltered[i][j].GetUplinkId())
+				}
+			}
+
+			loc, err := i.tdoaGeolocation(ctx, devEUI, tdoaFiltered)
+			return uplinkIDs, loc, err
 		}
 	}
 
@@ -169,11 +229,18 @@ func (i *Integration) geolocation(ctx context.Context, devEUI lorawan.EUI64, geo
 				"frames":  len(geolocBuffer),
 			}).Debug("integration/loracloud: not enough meta-data for rssi geolocation")
 		} else {
-			return i.rssiGeolocation(ctx, devEUI, geolocBuffer)
+			var uplinkIDs [][]byte
+			for i := range geolocBuffer {
+				for j := range geolocBuffer[i] {
+					uplinkIDs = append(uplinkIDs, geolocBuffer[i][j].GetUplinkId())
+				}
+			}
+			loc, err := i.rssiGeolocation(ctx, devEUI, geolocBuffer)
+			return uplinkIDs, loc, err
 		}
 	}
 
-	return nil, nil
+	return nil, nil, nil
 }
 
 func (i *Integration) tdoaGeolocation(ctx context.Context, devEUI lorawan.EUI64, geolocBuffer [][]*gw.UplinkRXInfo) (*common.Location, error) {
@@ -235,6 +302,40 @@ func (i *Integration) rssiGeolocation(ctx context.Context, devEUI lorawan.EUI64,
 	return &loc, nil
 }
 
+func (i *Integration) gnssLR1110Geolocation(ctx context.Context, devEUI lorawan.EUI64, rxInfo []*gw.UplinkRXInfo, pl []byte) (*common.Location, error) {
+	client := geolocation.New(i.geolocationURI, i.config.GeolocationToken)
+	start := time.Now()
+
+	loc, err := client.GNSSLR1110SingleFrame(ctx, rxInfo, i.config.GeolocationGNSSUseRxTime, pl)
+	if err != nil {
+		if err == geolocation.ErrNoLocation {
+			return nil, nil
+		}
+
+		return nil, errors.Wrap(err, "geolocation error")
+	}
+
+	loRaCloudAPIDuration("v3_gnss_rl1110_single").Observe(float64(time.Since(start)) / float64(time.Second))
+
+	return &loc, nil
+}
+
+func (i *Integration) wifiTDOAGeolocation(ctx context.Context, devEUI lorawan.EUI64, rxInfo []*gw.UplinkRXInfo, aps []geolocation.WifiAccessPoint) (*common.Location, error) {
+	client := geolocation.New(i.geolocationURI, i.config.GeolocationToken)
+	start := time.Now()
+
+	loc, err := client.WifiTDOASingleFrame(ctx, rxInfo, aps)
+	if err != nil {
+		if err == geolocation.ErrNoLocation {
+			return nil, nil
+		}
+	}
+
+	loRaCloudAPIDuration("v2_wifi_tdoa_single").Observe(float64(time.Since(start)) / float64(time.Second))
+
+	return &loc, nil
+}
+
 // filterOnFineTimestamp filters the given frame RXInfo slices on the presence
 // of a plain fine-timestamp. Per frame it filters on the availability of
 // minPerFrame.
@@ -256,4 +357,86 @@ func filterOnFineTimestamp(geolocBuffer [][]*gw.UplinkRXInfo, minPerFrame int) [
 	}
 
 	return out
+}
+
+// getBytesFromJSONObject returns a slice of bytes from the decoded object,
+// using the given name.
+func getBytesFromJSONObject(field, jsonStr string) ([]byte, error) {
+	if jsonStr == "" {
+		return nil, nil
+	}
+
+	v := make(map[string]interface{})
+	if err := json.Unmarshal([]byte(jsonStr), &v); err != nil {
+		return nil, errors.Wrap(err, "unmarshal json error")
+	}
+
+	vv, ok := v[field]
+	if !ok {
+		return nil, nil
+	}
+
+	str, ok := vv.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected string, got %T", vv)
+	}
+
+	b, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return nil, errors.Wrap(err, "base64 decode error")
+	}
+
+	return b, nil
+}
+
+// getWifiAccessPointsFromJSONObject returns a slice of Wifi APs from the
+// decoded object, using the given name.
+func getWifiAccessPointsFromJSONObject(field, jsonStr string) ([]geolocation.WifiAccessPoint, error) {
+	if jsonStr == "" {
+		return nil, nil
+	}
+
+	v := make(map[string]interface{})
+	if err := json.Unmarshal([]byte(jsonStr), &v); err != nil {
+		return nil, errors.Wrap(err, "unmarshal json error")
+	}
+
+	vv, ok := v[field]
+	if !ok {
+		return nil, nil
+	}
+
+	aps, ok := vv.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("field content must be a list of objects, got: %T", vv)
+	}
+
+	var out []geolocation.WifiAccessPoint
+
+	for i := range aps {
+		vvv, ok := aps[i].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("expected key / value map, got: %T", aps[i])
+		}
+
+		var ap geolocation.WifiAccessPoint
+		bssid, ok := vvv["macAddress"].(string)
+		if !ok {
+			return nil, fmt.Errorf("macAddress must be a string, got: %T", vvv["macAddress"])
+		}
+		b, err := base64.StdEncoding.DecodeString(bssid)
+		if err != nil {
+			return nil, errors.Wrap(err, "base64 decode error")
+		}
+		copy(ap.MacAddress[:], b)
+
+		ss, ok := vvv["signalStrength"].(float64)
+		if !ok {
+			return nil, fmt.Errorf("signalStrength must be a float64, got: %T", vvv["signalStrength"])
+		}
+		ap.SignalStrength = int(ss)
+		out = append(out, ap)
+	}
+
+	return out, nil
 }

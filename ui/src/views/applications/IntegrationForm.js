@@ -508,6 +508,36 @@ class LoRaCloudIntegrationForm extends FormComponent {
               />
             </FormGroup>
           </FormControl>}
+          {!!this.state.object.geolocation && <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="Wifi based geolocation"
+                control={
+                  <Checkbox 
+                    id="geolocationWifi"
+                    checked={!!this.state.object.geolocationWifi}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>}
+          {!!this.state.object.geolocation && <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="GNSS based geolocation (LR1110)"
+                control={
+                  <Checkbox 
+                    id="geolocationGNSS"
+                    checked={!!this.state.object.geolocationGNSS}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>}
           {!!this.state.object.geolocation && <TextField
             id="geolocationToken"
             label="Token"
@@ -519,26 +549,61 @@ class LoRaCloudIntegrationForm extends FormComponent {
             required
             fullWidth
           />}
-          {!!this.state.object.geolocation && <TextField
+          {!!this.state.object.geolocation && (this.state.object.geolocationTDOA || this.state.object.geolocationRSSI) && <TextField
             id="geolocationBufferTTL"
             label="Geolocation buffer TTL (seconds)"
             type="number"
             margin="normal"
             value={this.state.object.geolocationBufferTTL || 0}
             onChange={this.onChange}
-            helperText="The time in seconds that historical uplinks will be stored in the geolocation buffer."
+            helperText="The time in seconds that historical uplinks will be stored in the geolocation buffer. Used for TDOA and RSSI geolocation."
             fullWidth
           />}
-          {!!this.state.object.geolocation && <TextField
+          {!!this.state.object.geolocation && (this.state.object.geolocationTDOA || this.state.object.geolocationRSSI) && <TextField
             id="geolocationMinBufferSize"
             label="Geolocation minimum buffer size"
             type="number"
             margin="normal"
             value={this.state.object.geolocationMinBufferSize || 0}
             onChange={this.onChange}
-            helperText="The minimum buffer size required before using geolocation. Using multiple uplinks for geolocation can increase the accuracy of the geolocation results."
+            helperText="The minimum buffer size required before using geolocation. Using multiple uplinks for geolocation can increase the accuracy of the geolocation results. Used for TDOA and RSSI geolocation."
             fullWidth
           />}
+          {!!this.state.object.geolocation && this.state.object.geolocationWifi && <TextField
+            id="geolocationWifiPayloadField"
+            label="Wifi payload field"
+            value={this.state.object.geolocationWifiPayloadField || ""}
+            onChange={this.onChange}
+            margin="normal"
+            helperText="This must match the name of the field in the decoded payload which holds array of Wifi access-points. Each element in the array must contain two keys: 1) macAddress: array of 6 bytes, 2) signalStrength: RSSI of the access-point."
+            required
+            fullWidth
+          />}
+          {!!this.state.object.geolocation && this.state.object.geolocationGNSS && <TextField
+            id="geolocationGNSSPayloadField"
+            label="GNSS payload field"
+            value={this.state.object.geolocationGNSSPayloadField || ""}
+            onChange={this.onChange}
+            margin="normal"
+            helperText="This must match the name of the field in the decoded payload which holds the LR1110 GNSS bytes."
+            required
+            fullWidth
+          />}
+          {!!this.state.object.geolocation && this.state.object.geolocationGNSS && <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="Use receive timestamp for GNSS geolocation"
+                control={
+                  <Checkbox 
+                    id="geolocationGNSSUseRxTime"
+                    checked={!!this.state.object.geolocationGNSSUseRxTime}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>}
         </div>}
       </div>
     );

@@ -51,6 +51,7 @@ func (ts *LoRaCloudTestSuite) TearDownSuite() {
 
 func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 	nowPB := ptypes.TimestampNow()
+	altitude := float64(3.333)
 
 	ts.T().Run("Geolocation", func(t *testing.T) {
 		tests := []struct {
@@ -58,7 +59,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 			config              Config
 			geolocBuffer        [][]*gw.UplinkRXInfo
 			uplinkEvent         pb.UplinkEvent
-			geolocationResponse *geolocation.Response
+			geolocationResponse interface{}
 
 			expectedGeolocationRequest interface{}
 			expectedLocationEvent      *pb.LocationEvent
@@ -1044,6 +1045,214 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 										Nanos: 333,
 									},
 								},
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "gnss geolocation",
+				config: Config{
+					Geolocation:                 true,
+					GeolocationGNSS:             true,
+					GeolocationGNSSPayloadField: "lr1110_gnss",
+				},
+				geolocationResponse: &geolocation.V3Response{
+					Result: &geolocation.LocationSolverResult{
+						LLH:      []float64{1.123, 2.123, 3.123},
+						Accuracy: 10,
+					},
+				},
+				expectedGeolocationRequest: &geolocation.GNSSLR1110SingleFrameRequest{
+					Payload:            geolocation.HEXBytes([]byte{1, 2, 3}),
+					GNSSAssistPosition: []float64{1.111, 2.222},
+					GNSSAssistAltitude: &altitude,
+				},
+				expectedLocationEvent: &pb.LocationEvent{
+					ApplicationName: "test-app",
+					ApplicationId:   1,
+					DeviceName:      "test-device",
+					DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
+					Location: &common.Location{
+						Latitude:  1.123,
+						Longitude: 2.123,
+						Altitude:  3.123,
+						Source:    common.LocationSource_GEO_RESOLVER_GNSS,
+						Accuracy:  10,
+					},
+				},
+				uplinkEvent: pb.UplinkEvent{
+					ApplicationId:   1,
+					ApplicationName: "test-app",
+					DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
+					DeviceName:      "test-device",
+					ObjectJson:      `{"lr1110_gnss": "AQID"}`,
+					RxInfo: []*gw.UplinkRXInfo{
+						{
+							UplinkId:  []byte{1},
+							GatewayId: []byte{1, 1, 1, 1, 1, 1, 1, 1},
+							Time:      nowPB,
+							Rssi:      1,
+							LoraSnr:   1.1,
+							Location: &common.Location{
+								Latitude:  1.111,
+								Longitude: 2.222,
+								Altitude:  3.333,
+							},
+							FineTimestamp: &gw.UplinkRXInfo_PlainFineTimestamp{
+								PlainFineTimestamp: &gw.PlainFineTimestamp{
+									Time: &timestamp.Timestamp{
+										Nanos: 111,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "gnss geolocation, no payload",
+				config: Config{
+					Geolocation:                 true,
+					GeolocationGNSS:             true,
+					GeolocationGNSSPayloadField: "lr1110_gnss",
+				},
+				uplinkEvent: pb.UplinkEvent{
+					ApplicationId:   1,
+					ApplicationName: "test-app",
+					DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
+					DeviceName:      "test-device",
+					ObjectJson:      `{"different_field": "AQID"}`,
+					RxInfo: []*gw.UplinkRXInfo{
+						{
+							UplinkId:  []byte{1},
+							GatewayId: []byte{1, 1, 1, 1, 1, 1, 1, 1},
+							Time:      nowPB,
+							Rssi:      1,
+							LoraSnr:   1.1,
+							Location: &common.Location{
+								Latitude:  1.111,
+								Longitude: 2.222,
+								Altitude:  3.333,
+							},
+							FineTimestamp: &gw.UplinkRXInfo_PlainFineTimestamp{
+								PlainFineTimestamp: &gw.PlainFineTimestamp{
+									Time: &timestamp.Timestamp{
+										Nanos: 111,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "wifi geolocation",
+				config: Config{
+					Geolocation:                 true,
+					GeolocationWifi:             true,
+					GeolocationWifiPayloadField: "wifi_aps",
+				},
+				geolocationResponse: &geolocation.Response{
+					Result: &geolocation.LocationResult{
+						Latitude:  1.123,
+						Longitude: 2.123,
+						Altitude:  3.123,
+						Accuracy:  10,
+					},
+				},
+				expectedGeolocationRequest: &geolocation.WifiTDOASingleFrameRequest{
+					LoRaWAN: []geolocation.UplinkTDOA{
+						{
+							GatewayID: lorawan.EUI64{1, 1, 1, 1, 1, 1, 1, 1},
+							RSSI:      1,
+							SNR:       1.1,
+							AntennaLocation: geolocation.AntennaLocation{
+								Latitude:  1.111,
+								Longitude: 2.222,
+								Altitude:  3.333,
+							},
+						},
+					},
+					WifiAccessPoints: []geolocation.WifiAccessPoint{
+						{
+							MacAddress:     geolocation.BSSID{1, 1, 1, 1, 1, 1},
+							SignalStrength: -10,
+						},
+						{
+							MacAddress:     geolocation.BSSID{2, 2, 2, 2, 2, 2},
+							SignalStrength: -20,
+						},
+						{
+							MacAddress:     geolocation.BSSID{3, 3, 3, 3, 3, 3},
+							SignalStrength: -30,
+						},
+					},
+				},
+				expectedLocationEvent: &pb.LocationEvent{
+					ApplicationName: "test-app",
+					ApplicationId:   1,
+					DeviceName:      "test-device",
+					DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
+					Location: &common.Location{
+						Latitude:  1.123,
+						Longitude: 2.123,
+						Altitude:  3.123,
+						Source:    common.LocationSource_GEO_RESOLVER_WIFI,
+						Accuracy:  10,
+					},
+				},
+				uplinkEvent: pb.UplinkEvent{
+					ApplicationId:   1,
+					ApplicationName: "test-app",
+					DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
+					DeviceName:      "test-device",
+					ObjectJson: `{
+						"wifi_aps": [
+							{"macAddress": "AQEBAQEB", "signalStrength": -10},
+							{"macAddress": "AgICAgIC", "signalStrength": -20},
+							{"macAddress": "AwMDAwMD", "signalStrength": -30}
+						]
+					}`,
+					RxInfo: []*gw.UplinkRXInfo{
+						{
+							UplinkId:  []byte{1},
+							GatewayId: []byte{1, 1, 1, 1, 1, 1, 1, 1},
+							Time:      nowPB,
+							Rssi:      1,
+							LoraSnr:   1.1,
+							Location: &common.Location{
+								Latitude:  1.111,
+								Longitude: 2.222,
+								Altitude:  3.333,
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "wifi geolocation, no payload",
+				config: Config{
+					Geolocation:                 true,
+					GeolocationWifi:             true,
+					GeolocationWifiPayloadField: "wifi_aps",
+				},
+				uplinkEvent: pb.UplinkEvent{
+					ApplicationId:   1,
+					ApplicationName: "test-app",
+					DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
+					DeviceName:      "test-device",
+					RxInfo: []*gw.UplinkRXInfo{
+						{
+							UplinkId:  []byte{1},
+							GatewayId: []byte{1, 1, 1, 1, 1, 1, 1, 1},
+							Time:      nowPB,
+							Rssi:      1,
+							LoraSnr:   1.1,
+							Location: &common.Location{
+								Latitude:  1.111,
+								Longitude: 2.222,
+								Altitude:  3.333,
 							},
 						},
 					},

@@ -1,8 +1,14 @@
 package geolocation
 
 import (
+	"encoding/hex"
+	"strings"
+	"time"
+
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
 	"github.com/brocaar/lorawan"
+	"github.com/brocaar/lorawan/gps"
+	"github.com/pkg/errors"
 )
 
 // TDOASingleFrameRequest implements the LoRa Cloud TDOA Single-Frame request.
@@ -20,9 +26,25 @@ type RSSISingleFrameRequest struct {
 	LoRaWAN []UplinkRSSI `json:"lorawan"`
 }
 
+// WifiTDOASingleFrameRequest implements the LoRa Cloud Wifi / TDOA Single-Frame request.
+type WifiTDOASingleFrameRequest struct {
+	LoRaWAN          []UplinkTDOA      `json:"lorawan"`
+	WifiAccessPoints []WifiAccessPoint `json:"wifiAccessPoints"`
+}
+
 // RSSIMultiFrameRequest implements the LoRa Cloud RSSI Multi-Frame request.
 type RSSIMultiFrameRequest struct {
 	LoRaWAN [][]UplinkRSSI `json:"lorawan"`
+}
+
+// GNSSLR1110SingleFrameRequest implements the LoRa Cloud GNSS LR1110 Single-Frame request.
+type GNSSLR1110SingleFrameRequest struct {
+	Payload                 HEXBytes  `json:"payload"`
+	GNSSCaptureTime         *float64  `json:"gnss_capture_time,omitempty"`
+	GNSSCaptureTimeAccuracy *float64  `json:"gnss_capture_time_accuracy,omitempty"`
+	GNSSAssistPosition      []float64 `json:"gnss_assist_position,omitempty"`
+	GNSSAssistAltitude      *float64  `json:"gnss_assist_altitude,omitempty"`
+	GNSSUse2DSolver         bool      `json:"gnss_use_2D_solver,omitempty"`
 }
 
 // Response implements the LoRa Cloud Response object.
@@ -30,6 +52,13 @@ type Response struct {
 	Result   *LocationResult `json:"result"`
 	Errors   []string        `json:"errors"`
 	Warnings []string        `json:"warnings"`
+}
+
+// V3Response implements the LoRa Cloud API v3 Response object.
+type V3Response struct {
+	Result   *LocationSolverResult `json:"result"`
+	Errors   []string              `json:"errors"`
+	Warnings []string              `json:"warnings"`
 }
 
 // LocationResult implements the LoRa Cloud LocationResult object.
@@ -41,6 +70,16 @@ type LocationResult struct {
 	AlgorithmType            string  `json:"algorithmType"`
 	NumberOfGatewaysReceived int     `json:"numberOfGatewaysReceived"`
 	NumberOfGatewaysUsed     int     `json:"numberOfGatewaysUsed"`
+}
+
+// LocationSolverResult implements the LoRa Cloud LocationSolverResult object.
+type LocationSolverResult struct {
+	ECEF           []float64 `json:"ecef"`
+	LLH            []float64 `json:"llh"`
+	GDOP           float64   `json:"gdop"`
+	Accuracy       float64   `json:"accuracy"`
+	CaptureTimeGPS float64   `json:"capture_time_gps"`
+	CaptureTimeUTC float64   `json:"capture_time_utc"`
 }
 
 // UplinkTDOA implements the LoRa Cloud UplinkTdoa object.
@@ -60,6 +99,12 @@ type UplinkRSSI struct {
 	SNR             float64         `json:"snr"`
 	AntennaID       int             `json:"antennaId"`
 	AntennaLocation AntennaLocation `json:"antennaLocation"`
+}
+
+// WifiAccessPoint implements the LoRa Cloud WifiAccessPoints object.
+type WifiAccessPoint struct {
+	MacAddress     BSSID `json:"macAddress"`
+	SignalStrength int   `json:"signalStrength"`
 }
 
 // AntennaLocation implements the LoRa Cloud AntennaLocation object.
@@ -100,6 +145,44 @@ func NewRSSIMultiFrameRequest(rxInfo [][]*gw.UplinkRXInfo) RSSIMultiFrameRequest
 
 	for i := range rxInfo {
 		out.LoRaWAN = append(out.LoRaWAN, NewUplinkRSSI(rxInfo[i]))
+	}
+
+	return out
+}
+
+// NewWifiTDOASingleFrameRequest creates a new WifiTDOASingleFrameRequest.
+func NewWifiTDOASingleFrameRequest(rxInfo []*gw.UplinkRXInfo, aps []WifiAccessPoint) WifiTDOASingleFrameRequest {
+	out := WifiTDOASingleFrameRequest{
+		LoRaWAN:          NewUplinkTDOA(rxInfo),
+		WifiAccessPoints: aps,
+	}
+
+	return out
+}
+
+// NewGNSSLR1110SingleFrameRequest creates a new GNSSLR1110SingleFrameRequest.
+func NewGNSSLR1110SingleFrameRequest(rxInfo []*gw.UplinkRXInfo, useRxTime bool, pl []byte) GNSSLR1110SingleFrameRequest {
+	out := GNSSLR1110SingleFrameRequest{
+		Payload: HEXBytes(pl),
+	}
+
+	if useRxTime {
+		acc := float64(15)
+		out.GNSSCaptureTimeAccuracy = &acc
+
+		if gpsTime := getTimeSinceGPSEpoch(rxInfo); gpsTime != nil {
+			t := (float64(*gpsTime) / float64(time.Second)) - 6
+			out.GNSSCaptureTime = &t
+		} else {
+			gpsTime := gps.Time(time.Now()).TimeSinceGPSEpoch()
+			t := (float64(gpsTime) / float64(time.Second)) - 6
+			out.GNSSCaptureTime = &t
+		}
+	}
+
+	if loc := getStartLocation(rxInfo); loc != nil {
+		out.GNSSAssistPosition = []float64{loc.Latitude, loc.Longitude}
+		out.GNSSAssistAltitude = &loc.Altitude
 	}
 
 	return out
@@ -157,4 +240,62 @@ func NewUplinkRSSI(rxInfo []*gw.UplinkRXInfo) []UplinkRSSI {
 	}
 
 	return out
+}
+
+// HEXBytes defines a type which represents bytes as HEX when marshaled to
+// text.
+type HEXBytes []byte
+
+// String implements fmt.Stringer.
+func (hb HEXBytes) String() string {
+	return hex.EncodeToString(hb[:])
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (hb HEXBytes) MarshalText() ([]byte, error) {
+	return []byte(hb.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (hb *HEXBytes) UnmarshalText(text []byte) error {
+	b, err := hex.DecodeString(string(text))
+	if err != nil {
+		return err
+	}
+	*hb = HEXBytes(b)
+	return nil
+}
+
+// BSSID defines a BSSID identifier,.
+type BSSID [6]byte
+
+// MarshalText implements encoding.TextMarshaler.
+func (b BSSID) MarshalText() ([]byte, error) {
+	var str []string
+	for i := range b[:] {
+		str = append(str, hex.EncodeToString([]byte{b[i]}))
+	}
+
+	return []byte(strings.Join(str, ":")), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (b *BSSID) UnmarshalText(text []byte) error {
+	parts := strings.Split(string(text), ":")
+	if len(parts) != 6 {
+		return errors.New("bssid must be 6 bytes")
+	}
+
+	for i := range parts {
+		bb, err := hex.DecodeString(parts[i])
+		if err != nil {
+			return errors.Wrap(err, "decode hex error")
+		}
+		if len(bb) != 1 {
+			return errors.New("exactly 1 byte expected")
+		}
+		b[i] = bb[0]
+	}
+
+	return nil
 }

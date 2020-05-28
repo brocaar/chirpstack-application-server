@@ -787,12 +787,17 @@ func (a *ApplicationAPI) CreateLoRaCloudIntegration(ctx context.Context, in *pb.
 	}
 
 	config := loracloud.Config{
-		Geolocation:              in.GetIntegration().Geolocation,
-		GeolocationToken:         in.GetIntegration().GeolocationToken,
-		GeolocationBufferTTL:     int(in.GetIntegration().GeolocationBufferTtl),
-		GeolocationMinBufferSize: int(in.GetIntegration().GeolocationMinBufferSize),
-		GeolocationTDOA:          in.GetIntegration().GeolocationTdoa,
-		GeolocationRSSI:          in.GetIntegration().GeolocationRssi,
+		Geolocation:                 in.GetIntegration().Geolocation,
+		GeolocationToken:            in.GetIntegration().GeolocationToken,
+		GeolocationBufferTTL:        int(in.GetIntegration().GeolocationBufferTtl),
+		GeolocationMinBufferSize:    int(in.GetIntegration().GeolocationMinBufferSize),
+		GeolocationTDOA:             in.GetIntegration().GeolocationTdoa,
+		GeolocationRSSI:             in.GetIntegration().GeolocationRssi,
+		GeolocationGNSS:             in.GetIntegration().GeolocationGnss,
+		GeolocationGNSSPayloadField: in.GetIntegration().GeolocationGnssPayloadField,
+		GeolocationGNSSUseRxTime:    in.GetIntegration().GeolocationGnssUseRxTime,
+		GeolocationWifi:             in.GetIntegration().GeolocationWifi,
+		GeolocationWifiPayloadField: in.GetIntegration().GeolocationWifiPayloadField,
 	}
 	confJSON, err := json.Marshal(config)
 	if err != nil {
@@ -831,13 +836,18 @@ func (a *ApplicationAPI) GetLoRaCloudIntegration(ctx context.Context, in *pb.Get
 
 	return &pb.GetLoRaCloudIntegrationResponse{
 		Integration: &pb.LoRaCloudIntegration{
-			ApplicationId:            in.ApplicationId,
-			Geolocation:              conf.Geolocation,
-			GeolocationToken:         conf.GeolocationToken,
-			GeolocationBufferTtl:     uint32(conf.GeolocationBufferTTL),
-			GeolocationMinBufferSize: uint32(conf.GeolocationMinBufferSize),
-			GeolocationTdoa:          conf.GeolocationTDOA,
-			GeolocationRssi:          conf.GeolocationRSSI,
+			ApplicationId:               in.ApplicationId,
+			Geolocation:                 conf.Geolocation,
+			GeolocationToken:            conf.GeolocationToken,
+			GeolocationBufferTtl:        uint32(conf.GeolocationBufferTTL),
+			GeolocationMinBufferSize:    uint32(conf.GeolocationMinBufferSize),
+			GeolocationTdoa:             conf.GeolocationTDOA,
+			GeolocationRssi:             conf.GeolocationRSSI,
+			GeolocationGnss:             conf.GeolocationGNSS,
+			GeolocationGnssPayloadField: conf.GeolocationGNSSPayloadField,
+			GeolocationGnssUseRxTime:    conf.GeolocationGNSSUseRxTime,
+			GeolocationWifi:             conf.GeolocationWifi,
+			GeolocationWifiPayloadField: conf.GeolocationWifiPayloadField,
 		},
 	}, nil
 }
@@ -860,12 +870,17 @@ func (a *ApplicationAPI) UpdateLoRaCloudIntegration(ctx context.Context, in *pb.
 	}
 
 	conf := loracloud.Config{
-		Geolocation:              in.GetIntegration().Geolocation,
-		GeolocationToken:         in.GetIntegration().GeolocationToken,
-		GeolocationBufferTTL:     int(in.GetIntegration().GeolocationBufferTtl),
-		GeolocationMinBufferSize: int(in.GetIntegration().GeolocationMinBufferSize),
-		GeolocationTDOA:          in.GetIntegration().GeolocationTdoa,
-		GeolocationRSSI:          in.GetIntegration().GeolocationRssi,
+		Geolocation:                 in.GetIntegration().Geolocation,
+		GeolocationToken:            in.GetIntegration().GeolocationToken,
+		GeolocationBufferTTL:        int(in.GetIntegration().GeolocationBufferTtl),
+		GeolocationMinBufferSize:    int(in.GetIntegration().GeolocationMinBufferSize),
+		GeolocationTDOA:             in.GetIntegration().GeolocationTdoa,
+		GeolocationRSSI:             in.GetIntegration().GeolocationRssi,
+		GeolocationGNSS:             in.GetIntegration().GeolocationGnss,
+		GeolocationGNSSPayloadField: in.GetIntegration().GeolocationGnssPayloadField,
+		GeolocationGNSSUseRxTime:    in.GetIntegration().GeolocationGnssUseRxTime,
+		GeolocationWifi:             in.GetIntegration().GeolocationWifi,
+		GeolocationWifiPayloadField: in.GetIntegration().GeolocationWifiPayloadField,
 	}
 	confJSON, err := json.Marshal(conf)
 	if err != nil {

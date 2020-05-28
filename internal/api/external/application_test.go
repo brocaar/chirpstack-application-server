@@ -512,13 +512,18 @@ func (ts *APITestSuite) TestApplication() {
 
 				createReq := pb.CreateLoRaCloudIntegrationRequest{
 					Integration: &pb.LoRaCloudIntegration{
-						ApplicationId:            createResp.Id,
-						Geolocation:              true,
-						GeolocationToken:         "ab123",
-						GeolocationBufferTtl:     10,
-						GeolocationMinBufferSize: 4,
-						GeolocationTdoa:          true,
-						GeolocationRssi:          true,
+						ApplicationId:               createResp.Id,
+						Geolocation:                 true,
+						GeolocationToken:            "ab123",
+						GeolocationBufferTtl:        10,
+						GeolocationMinBufferSize:    4,
+						GeolocationTdoa:             true,
+						GeolocationRssi:             true,
+						GeolocationGnss:             true,
+						GeolocationGnssPayloadField: "lr1110_gnss",
+						GeolocationGnssUseRxTime:    true,
+						GeolocationWifi:             true,
+						GeolocationWifiPayloadField: "access_points",
 					},
 				}
 				_, err := api.CreateLoRaCloudIntegration(context.Background(), &createReq)
@@ -550,13 +555,18 @@ func (ts *APITestSuite) TestApplication() {
 
 					updateReq := pb.UpdateLoRaCloudIntegrationRequest{
 						Integration: &pb.LoRaCloudIntegration{
-							ApplicationId:            createResp.Id,
-							Geolocation:              true,
-							GeolocationToken:         "123ab",
-							GeolocationBufferTtl:     4,
-							GeolocationMinBufferSize: 10,
-							GeolocationTdoa:          true,
-							GeolocationRssi:          true,
+							ApplicationId:               createResp.Id,
+							Geolocation:                 true,
+							GeolocationToken:            "123ab",
+							GeolocationBufferTtl:        4,
+							GeolocationMinBufferSize:    10,
+							GeolocationTdoa:             true,
+							GeolocationRssi:             true,
+							GeolocationGnss:             true,
+							GeolocationGnssPayloadField: "lr1110_gnss_updated",
+							GeolocationGnssUseRxTime:    true,
+							GeolocationWifi:             true,
+							GeolocationWifiPayloadField: "access_points_updated",
 						},
 					}
 

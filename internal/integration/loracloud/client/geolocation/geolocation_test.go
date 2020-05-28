@@ -405,6 +405,144 @@ func (ts *ClientTestSuite) TestRSSIMultiFrame() {
 	})
 }
 
+func (ts *ClientTestSuite) TestGNSSLR1110SingleFrame() {
+	rxInfo := gw.UplinkRXInfo{}
+
+	ts.T().Run("Result", func(t *testing.T) {
+		assert := require.New(t)
+
+		result := V3Response{
+			Result: &LocationSolverResult{
+				LLH:      []float64{1.123, 2.123, 3.123},
+				Accuracy: 4.123,
+			},
+		}
+		resultB, err := json.Marshal(result)
+		assert.NoError(err)
+		ts.apiResponse = string(resultB)
+
+		resp, err := ts.client.GNSSLR1110SingleFrame(context.Background(), []*gw.UplinkRXInfo{&rxInfo}, false, []byte{1, 2, 3})
+		assert.NoError(err)
+		assert.Equal(common.Location{
+			Latitude:  1.123,
+			Longitude: 2.123,
+			Altitude:  3.123,
+			Accuracy:  4,
+			Source:    common.LocationSource_GEO_RESOLVER_GNSS,
+		}, resp)
+
+		var req GNSSLR1110SingleFrameRequest
+		assert.NoError(json.Unmarshal([]byte(ts.apiRequest), &req))
+		assert.Equal(GNSSLR1110SingleFrameRequest{
+			Payload: HEXBytes([]byte{1, 2, 3}),
+		}, req)
+	})
+
+	ts.T().Run("Error", func(t *testing.T) {
+		assert := require.New(t)
+
+		result := V3Response{
+			Errors: []string{"boom", "boom!"},
+		}
+		resultB, err := json.Marshal(result)
+		assert.NoError(err)
+		ts.apiResponse = string(resultB)
+
+		_, err = ts.client.GNSSLR1110SingleFrame(context.Background(), []*gw.UplinkRXInfo{&rxInfo}, false, []byte{1, 2, 3})
+		assert.Equal("api returned error(s): boom, boom!", err.Error())
+	})
+
+	ts.T().Run("No result", func(t *testing.T) {
+		assert := require.New(t)
+
+		result := V3Response{}
+		resultB, err := json.Marshal(result)
+		assert.NoError(err)
+		ts.apiResponse = string(resultB)
+
+		_, err = ts.client.GNSSLR1110SingleFrame(context.Background(), []*gw.UplinkRXInfo{&rxInfo}, false, []byte{1, 2, 3})
+		assert.Equal(ErrNoLocation, err)
+	})
+}
+
+func (ts *ClientTestSuite) TestWifiTDOASingleFrame() {
+	rxInfo := gw.UplinkRXInfo{
+		GatewayId: []byte{1, 2, 3, 4, 5, 6, 7, 8},
+		Rssi:      1,
+		LoraSnr:   2,
+		Antenna:   3,
+		Location: &common.Location{
+			Latitude:  1.123,
+			Longitude: 1.223,
+			Altitude:  1.323,
+		},
+		FineTimestamp: &gw.UplinkRXInfo_PlainFineTimestamp{
+			PlainFineTimestamp: &gw.PlainFineTimestamp{
+				Time: &timestamp.Timestamp{
+					Nanos: 12345,
+				},
+			},
+		},
+	}
+
+	ts.T().Run("Result", func(t *testing.T) {
+		assert := require.New(t)
+
+		result := Response{
+			Result: &LocationResult{
+				Latitude:  1.123,
+				Longitude: 2.123,
+				Altitude:  3.123,
+				Accuracy:  10,
+			},
+		}
+		resultB, err := json.Marshal(result)
+		assert.NoError(err)
+		ts.apiResponse = string(resultB)
+
+		resp, err := ts.client.WifiTDOASingleFrame(context.Background(), []*gw.UplinkRXInfo{&rxInfo}, []WifiAccessPoint{
+			{MacAddress: BSSID{1, 1, 1, 1, 1, 1}, SignalStrength: -10},
+			{MacAddress: BSSID{2, 2, 2, 2, 2, 2}, SignalStrength: -20},
+			{MacAddress: BSSID{3, 3, 3, 3, 3, 3}, SignalStrength: -30},
+		})
+		assert.NoError(err)
+		assert.Equal(common.Location{
+			Latitude:  1.123,
+			Longitude: 2.123,
+			Altitude:  3.123,
+			Accuracy:  10,
+			Source:    common.LocationSource_GEO_RESOLVER_WIFI,
+		}, resp)
+	})
+
+	ts.T().Run("Error", func(t *testing.T) {
+		assert := require.New(t)
+
+		result := Response{
+			Errors: []string{"boom", "boom!"},
+		}
+		resultB, err := json.Marshal(result)
+		assert.NoError(err)
+		ts.apiResponse = string(resultB)
+
+		_, err = ts.client.WifiTDOASingleFrame(context.Background(), []*gw.UplinkRXInfo{&rxInfo}, []WifiAccessPoint{})
+		assert.Equal("api returned error(s): boom, boom!", err.Error())
+
+	})
+
+	ts.T().Run("No result", func(t *testing.T) {
+		assert := require.New(t)
+
+		result := Response{}
+		resultB, err := json.Marshal(result)
+		assert.NoError(err)
+		ts.apiResponse = string(resultB)
+
+		_, err = ts.client.WifiTDOASingleFrame(context.Background(), []*gw.UplinkRXInfo{&rxInfo}, []WifiAccessPoint{})
+		assert.Equal(ErrNoLocation, err)
+	})
+}
+
 func (ts *ClientTestSuite) apiHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {

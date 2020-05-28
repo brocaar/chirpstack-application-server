@@ -125,6 +125,9 @@ func (i *Integration) publish(ctx context.Context, event string, applicationID u
 		},
 		TopicArn: aws.String(i.topicARN),
 	})
+	if err != nil {
+		return errors.Wrap(err, "sns publish")
+	}
 
 	log.WithFields(log.Fields{
 		"dev_eui": devEUI,

@@ -16,6 +16,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/integration/gcppubsub"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/http"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/influxdb"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/kafka"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/logger"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/loracloud"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
@@ -80,6 +81,8 @@ func Setup(conf config.Config) error {
 			i, err = mqtt.New(marshalType, conf.ApplicationServer.Integration.MQTT)
 		case "gcp_pub_sub":
 			i, err = gcppubsub.New(marshalType, conf.ApplicationServer.Integration.GCPPubSub)
+		case "kafka":
+			i, err = kafka.New(marshalType, conf.ApplicationServer.Integration.Kafka)
 		case "postgresql":
 			i, err = postgresql.New(conf.ApplicationServer.Integration.PostgreSQL)
 		case "amqp":

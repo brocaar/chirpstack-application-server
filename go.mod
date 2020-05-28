@@ -42,6 +42,7 @@ require (
 	github.com/prometheus/procfs v0.0.8 // indirect
 	github.com/robertkrimen/otto v0.0.0-20191217063420-37f8e9a2460c
 	github.com/rubenv/sql-migrate v0.0.0-20191213152630-06338513c237
+	github.com/segmentio/kafka-go v0.3.6
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4

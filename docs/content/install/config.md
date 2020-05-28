@@ -411,6 +411,15 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   topic_name=""
 
 
+  # Kafka integration.
+  [application_server.integration.kafka]
+  # Brokers, e.g.: localhost:9092.
+  brokers=["localhost:9092"]
+
+  # Topic for events.
+  topic="chirpstack_as"
+
+
   # PostgreSQL database integration.
   [application_server.integration.postgresql]
   # PostgreSQL dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable).

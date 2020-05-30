@@ -60,6 +60,7 @@ func init() {
 	viper.SetDefault("application_server.integration.mqtt.clean_session", true)
 	viper.SetDefault("application_server.integration.kafka.brokers", []string{"localhost:9092"})
 	viper.SetDefault("application_server.integration.kafka.topic", "chirpstack_as")
+	viper.SetDefault("application_server.integration.kafka.event_key_template", "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}")
 	viper.SetDefault("application_server.integration.postgresql.max_idle_connections", 2)
 	viper.SetDefault("application_server.integration.amqp.url", "amqp://guest:guest@localhost:5672")
 	viper.SetDefault("application_server.integration.amqp.event_routing_key_template", "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}")

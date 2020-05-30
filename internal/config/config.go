@@ -206,8 +206,9 @@ type IntegrationAMQPConfig struct {
 
 // IntegrationKafkaConfig holds the Kafka integration configuration.
 type IntegrationKafkaConfig struct {
-	Brokers []string `mapstructure:"brokers"`
-	Topic   string   `mapstructure:"topic"`
+	Brokers          []string `mapstructure:"brokers"`
+	Topic            string   `mapstructure:"topic"`
+	EventKeyTemplate string   `mapstructure:"event_key_template"`
 }
 
 // AzurePublishMode defines the publish-mode type.

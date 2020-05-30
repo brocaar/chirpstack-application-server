@@ -28,6 +28,7 @@ func GetConfig() config.Config {
 	c.ApplicationServer.ID = "6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 	c.ApplicationServer.Integration.AMQP.EventRoutingKeyTemplate = "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}"
 	c.ApplicationServer.Integration.Kafka.Topic = "chirpstack_as"
+	c.ApplicationServer.Integration.Kafka.EventKeyTemplate = "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}"
 
 	if v := os.Getenv("TEST_POSTGRES_DSN"); v != "" {
 		c.PostgreSQL.DSN = v

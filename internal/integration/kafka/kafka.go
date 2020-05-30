@@ -1,9 +1,10 @@
 package kafka
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"sync"
+	"text/template"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
@@ -21,10 +22,10 @@ import (
 
 // Integration implements an Kafka integration.
 type Integration struct {
-	marshaler marshaler.Type
-	writer    *kafka.Writer
-	wg        sync.WaitGroup
-	config    config.IntegrationKafkaConfig
+	marshaler        marshaler.Type
+	writer           *kafka.Writer
+	eventKeyTemplate *template.Template
+	config           config.IntegrationKafkaConfig
 }
 
 // New creates a new Kafka integration.
@@ -35,10 +36,16 @@ func New(m marshaler.Type, conf config.IntegrationKafkaConfig) (*Integration, er
 		Balancer: &kafka.LeastBytes{},
 	})
 
+	kt, err := template.New("key").Parse(conf.EventKeyTemplate)
+	if err != nil {
+		return nil, errors.Wrap(err, "parse key template")
+	}
+
 	i := Integration{
-		marshaler: m,
-		writer:    w,
-		config:    conf,
+		marshaler:        m,
+		writer:           w,
+		eventKeyTemplate: kt,
+		config:           conf,
 	}
 	return &i, nil
 }
@@ -90,16 +97,34 @@ func (i *Integration) publish(ctx context.Context, applicationID uint64, devEUIB
 	if err != nil {
 		return err
 	}
-	key := fmt.Sprintf("application.%d.device.%s", applicationID, devEUI.String())
+
+	keyBuf := bytes.NewBuffer(nil)
+	err = i.eventKeyTemplate.Execute(keyBuf, struct {
+		ApplicationID uint64
+		DevEUI        lorawan.EUI64
+		EventType     string
+	}{applicationID, devEUI, event})
+	if err != nil {
+		return errors.Wrap(err, "executing template")
+	}
+	key := keyBuf.Bytes()
+
 	kmsg := kafka.Message{
-		Key:   []byte(key),
 		Value: b,
+		Headers: []kafka.Header{
+			{
+				Key:   "event",
+				Value: []byte(event),
+			},
+		},
+	}
+	if len(key) > 0 {
+		kmsg.Key = key
 	}
 
 	log.WithFields(log.Fields{
-		"dev_eui": devEUI.String(),
-		"event":   event,
-		"ctx_id":  ctx.Value(logging.ContextIDKey),
+		"key":    string(key),
+		"ctx_id": ctx.Value(logging.ContextIDKey),
 	}).Info("integration/kafka: publishing message")
 
 	if err := i.writer.WriteMessages(ctx, kmsg); err != nil {

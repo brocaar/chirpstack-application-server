@@ -77,7 +77,7 @@ func (ts *IntegrationTestSuite) checkMessage(err error, tx, rx proto.Message) {
 	msg, err := ts.conn.ReadMessage(1 << 10)
 	assert.NoError(err)
 
-	assert.Equal("application.10.device.0102030405060708", string(msg.Key))
+	assert.Equal("application.10.device.0102030405060708.event.up", string(msg.Key))
 
 	assert.NoError(proto.Unmarshal(msg.Value, rx))
 	assert.True(proto.Equal(tx, rx))

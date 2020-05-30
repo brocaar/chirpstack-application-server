@@ -367,6 +367,14 @@ id="{{ .ApplicationServer.ID }}"
   # Topic for events.
   topic="{{ .ApplicationServer.Integration.Kafka.Topic }}"
 
+  # Template for keys included in Kafka messages. If empty, no key is included.
+  # Kafka uses the key for distributing messages over partitions. You can use
+  # this to ensure some subset of messages end up in the same partition, so
+  # they can be consumed in-order. And Kafka can use the key for data retention
+  # decisions.  A header "event" with the event type is included in each
+  # message. There is no need to parse it from the key.
+  event_key_template="{{ .ApplicationServer.Integration.Kafka.EventKeyTemplate }}"
+
 
   # PostgreSQL database integration.
   [application_server.integration.postgresql]

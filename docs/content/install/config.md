@@ -256,6 +256,7 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # * aws_sns           - AWS Simple Notification Service (SNS)
   # * azure_service_bus - Azure Service-Bus
   # * gcp_pub_sub       - Google Cloud Pub/Sub
+  # * kafka             - Kafka distributed streaming platform
   # * postgresql        - PostgreSQL database
   enabled=["mqtt"]
 
@@ -425,7 +426,7 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # they can be consumed in-order. And Kafka can use the key for data retention
   # decisions.  A header "event" with the event type is included in each
   # message. There is no need to parse it from the key.
-  event_key_template="{{ .ApplicationServer.Integration.Kafka.EventKeyTemplate }}"
+  event_key_template="application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}"
 
 
   # PostgreSQL database integration.

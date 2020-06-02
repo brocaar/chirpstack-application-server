@@ -203,6 +203,7 @@ id="{{ .ApplicationServer.ID }}"
   # * aws_sns           - AWS Simple Notification Service (SNS)
   # * azure_service_bus - Azure Service-Bus
   # * gcp_pub_sub       - Google Cloud Pub/Sub
+  # * kafka             - Kafka distributed streaming platform
   # * postgresql        - PostgreSQL database
   enabled=[{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}{{ range $index, $elm := .ApplicationServer.Integration.Enabled }}{{ if $index }}", "{{ end }}{{ $elm }}{{ end }}{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}]
 
@@ -356,6 +357,23 @@ id="{{ .ApplicationServer.ID }}"
 
   # Pub/Sub topic name.
   topic_name="{{ .ApplicationServer.Integration.GCPPubSub.TopicName }}"
+
+
+  # Kafka integration.
+  [application_server.integration.kafka]
+  # Brokers, e.g.: localhost:9092.
+  brokers=[{{ range $index, $broker := .ApplicationServer.Integration.Kafka.Brokers }}{{ if $index }}, {{ end }}"{{ $broker }}"{{ end }}]
+
+  # Topic for events.
+  topic="{{ .ApplicationServer.Integration.Kafka.Topic }}"
+
+  # Template for keys included in Kafka messages. If empty, no key is included.
+  # Kafka uses the key for distributing messages over partitions. You can use
+  # this to ensure some subset of messages end up in the same partition, so
+  # they can be consumed in-order. And Kafka can use the key for data retention
+  # decisions.  A header "event" with the event type is included in each
+  # message. There is no need to parse it from the key.
+  event_key_template="{{ .ApplicationServer.Integration.Kafka.EventKeyTemplate }}"
 
 
   # PostgreSQL database integration.

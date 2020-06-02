@@ -56,6 +56,7 @@ type Config struct {
 			AzureServiceBus IntegrationAzureConfig      `mapstructure:"azure_service_bus"`
 			MQTT            IntegrationMQTTConfig       `mapstructure:"mqtt"`
 			GCPPubSub       IntegrationGCPConfig        `mapstructure:"gcp_pub_sub"`
+			Kafka           IntegrationKafkaConfig      `mapstructure:"kafka"`
 			PostgreSQL      IntegrationPostgreSQLConfig `mapstructure:"postgresql"`
 			AMQP            IntegrationAMQPConfig       `mapstructure:"amqp"`
 		} `mapstructure:"integration"`
@@ -201,6 +202,13 @@ type IntegrationPostgreSQLConfig struct {
 type IntegrationAMQPConfig struct {
 	URL                     string `mapstructure:"url"`
 	EventRoutingKeyTemplate string `mapstructure:"event_routing_key_template"`
+}
+
+// IntegrationKafkaConfig holds the Kafka integration configuration.
+type IntegrationKafkaConfig struct {
+	Brokers          []string `mapstructure:"brokers"`
+	Topic            string   `mapstructure:"topic"`
+	EventKeyTemplate string   `mapstructure:"event_key_template"`
 }
 
 // AzurePublishMode defines the publish-mode type.

@@ -11,11 +11,14 @@ services:
       - redis
       - mosquitto
       - rabbitmq
+      - zookeeper
+      - kafka
     environment:
       - TEST_POSTGRES_DSN=postgres://chirpstack_as:chirpstack_as@postgres/chirpstack_as?sslmode=disable
       - TEST_REDIS_URL=redis://redis:6379
       - TEST_MQTT_SERVER=tcp://mosquitto:1883
       - TEST_RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - TEST_KAFKA_BROKER=kafka:9092
 
   postgres:
     image: postgres:9.6-alpine
@@ -32,3 +35,15 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-alpine
+
+  zookeeper:
+    image: 'bitnami/zookeeper:3'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: 'bitnami/kafka:2'
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper

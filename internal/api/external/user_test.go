@@ -106,7 +106,7 @@ func (ts *APITestSuite) TestUser() {
 			assert := require.New(t)
 
 			jwt, err := apiInternal.Login(ctx, &pb.LoginRequest{
-				Username: createReq.User.Email,
+				Email:    createReq.User.Email,
 				Password: createReq.Password,
 			})
 			assert.NoError(err)
@@ -145,7 +145,7 @@ func (ts *APITestSuite) TestUser() {
 			assert.NoError(err)
 
 			jwt, err := apiInternal.Login(ctx, &pb.LoginRequest{
-				Username: "bar@foo.com",
+				Email:    "bar@foo.com",
 				Password: updatePass.Password,
 			})
 			assert.NoError(err)

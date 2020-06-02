@@ -44,10 +44,10 @@ class LoginForm extends FormComponent {
         onSubmit={this.onSubmit}
       >
         <TextField
-          id="username"
+          id="email"
           label="Username / email"
           margin="normal"
-          value={this.state.object.username || ""}
+          value={this.state.object.email || ""}
           onChange={this.onChange}
           fullWidth
           required

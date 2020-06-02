@@ -34,7 +34,7 @@ func NewInternalAPI(validator auth.Validator) *InternalAPI {
 
 // Login validates the login request and returns a JWT token.
 func (a *InternalAPI) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	jwt, err := storage.LoginUserByPassword(ctx, storage.DB(), req.Username, req.Password)
+	jwt, err := storage.LoginUserByPassword(ctx, storage.DB(), req.Email, req.Password)
 	if nil != err {
 		return nil, helpers.ErrToRPCError(err)
 	}

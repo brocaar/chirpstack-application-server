@@ -211,6 +211,7 @@ func GetDevice(ctx context.Context, db sqlx.Queryer, devEUI lorawan.EUI64, forUp
 // DeviceFilters provide filters that can be used to filter on devices.
 // Note that empty values are not used as filter.
 type DeviceFilters struct {
+	OrganizationID   int64         `db:"organization_id"`
 	ApplicationID    int64         `db:"application_id"`
 	MulticastGroupID uuid.UUID     `db:"multicast_group_id"`
 	ServiceProfileID uuid.UUID     `db:"service_profile_id"`
@@ -226,6 +227,10 @@ type DeviceFilters struct {
 // SQL returns the SQL filter.
 func (f DeviceFilters) SQL() string {
 	var filters []string
+
+	if f.OrganizationID != 0 {
+		filters = append(filters, "a.organization_id = :organization_id")
+	}
 
 	if f.ApplicationID != 0 {
 		filters = append(filters, "d.application_id = :application_id")

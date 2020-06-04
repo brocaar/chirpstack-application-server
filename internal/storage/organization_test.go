@@ -36,8 +36,10 @@ func (ts *StorageTestSuite) TestOrganization() {
 		assert := require.New(t)
 
 		org := Organization{
-			Name:        "test-organization",
-			DisplayName: "test organization",
+			Name:            "test-organization",
+			DisplayName:     "test organization",
+			MaxGatewayCount: 10,
+			MaxDeviceCount:  20,
 		}
 		assert.NoError(CreateOrganization(context.Background(), DB(), &org))
 		org.CreatedAt = org.CreatedAt.Truncate(time.Millisecond).UTC()
@@ -46,7 +48,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 		t.Run("Get", func(t *testing.T) {
 			assert := require.New(t)
 
-			o, err := GetOrganization(context.Background(), DB(), org.ID)
+			o, err := GetOrganization(context.Background(), DB(), org.ID, false)
 			assert.NoError(err)
 			o.CreatedAt = o.CreatedAt.Truncate(time.Millisecond).UTC()
 			o.UpdatedAt = o.UpdatedAt.Truncate(time.Millisecond).UTC()
@@ -192,12 +194,14 @@ func (ts *StorageTestSuite) TestOrganization() {
 			org.Name = "test-organization-updated"
 			org.DisplayName = "test organization updated"
 			org.CanHaveGateways = true
+			org.MaxGatewayCount = 30
+			org.MaxDeviceCount = 40
 			assert.NoError(UpdateOrganization(context.Background(), DB(), &org))
 
 			org.CreatedAt = org.CreatedAt.Truncate(time.Millisecond).UTC()
 			org.UpdatedAt = org.UpdatedAt.Truncate(time.Millisecond).UTC()
 
-			o, err := GetOrganization(context.Background(), DB(), org.ID)
+			o, err := GetOrganization(context.Background(), DB(), org.ID, false)
 			assert.NoError(err)
 			o.CreatedAt = o.CreatedAt.Truncate(time.Millisecond).UTC()
 			o.UpdatedAt = o.UpdatedAt.Truncate(time.Millisecond).UTC()
@@ -209,7 +213,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 
 			assert.NoError(DeleteOrganization(context.Background(), DB(), org.ID))
 
-			_, err := GetOrganization(context.Background(), DB(), org.ID)
+			_, err := GetOrganization(context.Background(), DB(), org.ID, false)
 			assert.Equal(ErrDoesNotExist, errors.Cause(err))
 		})
 	})

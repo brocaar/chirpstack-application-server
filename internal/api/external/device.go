@@ -45,16 +45,19 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*e
 		return nil, grpc.Errorf(codes.InvalidArgument, "device must not be nil")
 	}
 
+	// decode DevEUI
 	var devEUI lorawan.EUI64
 	if err := devEUI.UnmarshalText([]byte(req.Device.DevEui)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
+	// decode DeviceProfileID
 	dpID, err := uuid.FromString(req.Device.DeviceProfileId)
 	if err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 	}
 
+	// validate access
 	if err := a.validator.Validate(ctx,
 		auth.ValidateNodesAccess(req.Device.ApplicationId, auth.Create)); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
@@ -65,20 +68,21 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*e
 		req.Device.Name = req.Device.DevEui
 	}
 
+	// Validate that application and device-profile are under the same
+	// organization ID.
 	app, err := storage.GetApplication(ctx, storage.DB(), req.Device.ApplicationId)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
-
 	dp, err := storage.GetDeviceProfile(ctx, storage.DB(), dpID, false, true)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
-
 	if app.OrganizationID != dp.OrganizationID {
 		return nil, grpc.Errorf(codes.InvalidArgument, "device-profile and application must be under the same organization")
 	}
 
+	// Set Device struct.
 	d := storage.Device{
 		DevEUI:            devEUI,
 		ApplicationID:     req.Device.ApplicationId,
@@ -95,18 +99,36 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*e
 			Map: make(map[string]sql.NullString),
 		},
 	}
-
 	for k, v := range req.Device.Variables {
 		d.Variables.Map[k] = sql.NullString{String: v, Valid: true}
 	}
-
 	for k, v := range req.Device.Tags {
 		d.Tags.Map[k] = sql.NullString{String: v, Valid: true}
 	}
 
-	// as this also performs a remote call to create the node on the
-	// network-server, wrap it in a transaction
+	// A transaction is needed as:
+	//  * A remote gRPC call is performed and in case of error, we want to
+	//    rollback the transaction.
+	//  * We want to lock the organization so that we can validate the
+	//    max device count.
 	err = storage.Transaction(func(tx sqlx.Ext) error {
+		org, err := storage.GetOrganization(ctx, tx, app.OrganizationID, true)
+		if err != nil {
+			return err
+		}
+
+		// Validate max. device count when != 0.
+		if org.MaxDeviceCount != 0 {
+			count, err := storage.GetDeviceCount(ctx, tx, storage.DeviceFilters{OrganizationID: app.OrganizationID})
+			if err != nil {
+				return err
+			}
+
+			if count >= org.MaxDeviceCount {
+				return storage.ErrOrganizationMaxDeviceCount
+			}
+		}
+
 		return storage.CreateDevice(ctx, tx, &d)
 	})
 	if err != nil {

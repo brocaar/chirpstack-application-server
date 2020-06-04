@@ -61,6 +61,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
 	}
 
+	// Set CreateGatewayRequest struct.
 	createReq := ns.CreateGatewayRequest{
 		Gateway: &ns.Gateway{
 			Id:               mac[:],
@@ -68,7 +69,6 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			RoutingProfileId: applicationServerID.Bytes(),
 		},
 	}
-
 	if req.Gateway.GatewayProfileId != "" {
 		gpID, err := uuid.FromString(req.Gateway.GatewayProfileId)
 		if err != nil {
@@ -76,7 +76,6 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 		}
 		createReq.Gateway.GatewayProfileId = gpID.Bytes()
 	}
-
 	for _, board := range req.Gateway.Boards {
 		var gwBoard ns.GatewayBoard
 
@@ -98,16 +97,36 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 
 		createReq.Gateway.Boards = append(createReq.Gateway.Boards, &gwBoard)
 	}
-
 	tags := hstore.Hstore{
 		Map: make(map[string]sql.NullString),
 	}
-
 	for k, v := range req.Gateway.Tags {
 		tags.Map[k] = sql.NullString{Valid: true, String: v}
 	}
 
+	// A transaction is needed as:
+	//  * A remote gRPC call is performed and in case of error, we want to
+	//    rollback the transaction.
+	//  * We want to lock the organization so that we can validate the
+	//    max gateway count.
 	err = storage.Transaction(func(tx sqlx.Ext) error {
+		org, err := storage.GetOrganization(ctx, tx, req.Gateway.OrganizationId, true)
+		if err != nil {
+			return helpers.ErrToRPCError(err)
+		}
+
+		// Validate max. gateway count when != 0.
+		if org.MaxGatewayCount != 0 {
+			count, err := storage.GetGatewayCount(ctx, tx, storage.GatewayFilters{OrganizationID: req.Gateway.OrganizationId})
+			if err != nil {
+				return helpers.ErrToRPCError(err)
+			}
+
+			if count >= org.MaxGatewayCount {
+				return helpers.ErrToRPCError(storage.ErrOrganizationMaxGatewayCount)
+			}
+		}
+
 		err = storage.CreateGateway(ctx, tx, &storage.Gateway{
 			MAC:             mac,
 			Name:            req.Gateway.Name,

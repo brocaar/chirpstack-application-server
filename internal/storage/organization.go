@@ -23,6 +23,8 @@ type Organization struct {
 	Name            string    `db:"name"`
 	DisplayName     string    `db:"display_name"`
 	CanHaveGateways bool      `db:"can_have_gateways"`
+	MaxDeviceCount  int       `db:"max_device_count"`
+	MaxGatewayCount int       `db:"max_gateway_count"`
 }
 
 // Validate validates the data of the Organization.
@@ -58,13 +60,17 @@ func CreateOrganization(ctx context.Context, db sqlx.Queryer, org *Organization)
 			updated_at,
 			name,
 			display_name,
-			can_have_gateways
-		) values ($1, $2, $3, $4, $5) returning id`,
+			can_have_gateways,
+			max_gateway_count,
+			max_device_count
+		) values ($1, $2, $3, $4, $5, $6, $7) returning id`,
 		now,
 		now,
 		org.Name,
 		org.DisplayName,
 		org.CanHaveGateways,
+		org.MaxGatewayCount,
+		org.MaxDeviceCount,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -80,9 +86,15 @@ func CreateOrganization(ctx context.Context, db sqlx.Queryer, org *Organization)
 }
 
 // GetOrganization returns the Organization for the given id.
-func GetOrganization(ctx context.Context, db sqlx.Queryer, id int64) (Organization, error) {
+// When forUpdate is set to true, then db must be a db transaction.
+func GetOrganization(ctx context.Context, db sqlx.Queryer, id int64, forUpdate bool) (Organization, error) {
+	var fu string
+	if forUpdate {
+		fu = " for update"
+	}
+
 	var org Organization
-	err := sqlx.Get(db, &org, "select * from organization where id = $1", id)
+	err := sqlx.Get(db, &org, "select * from organization where id = $1"+fu, id)
 	if err != nil {
 		return org, handlePSQLError(Select, err, "select error")
 	}
@@ -197,13 +209,17 @@ func UpdateOrganization(ctx context.Context, db sqlx.Execer, org *Organization) 
 			name = $2,
 			display_name = $3,
 			can_have_gateways = $4,
-			updated_at = $5
+			updated_at = $5,
+			max_gateway_count = $6,
+			max_device_count = $7
 		where id = $1`,
 		org.ID,
 		org.Name,
 		org.DisplayName,
 		org.CanHaveGateways,
 		now,
+		org.MaxGatewayCount,
+		org.MaxDeviceCount,
 	)
 
 	if err != nil {

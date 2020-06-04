@@ -63,6 +63,32 @@ class OrganizationForm extends FormComponent {
             />
           </FormGroup>
           <FormHelperText>When checked, it means that organization administrators are able to add their own gateways to the network. Note that the usage of the gateways is not limited to this organization.</FormHelperText>
+          {!!this.state.object.canHaveGateways && <TextField
+            id="maxGatewayCount"
+            label="Max. number of gateways"
+            helperText="The maximum number of gateways that can be added to this organization (0 = unlimited)."
+            margin="normal"
+            value={this.state.object.maxGatewayCount || 0}
+            onChange={this.onChange}
+            type="number"
+            required
+            fullWidth
+          />}
+        </FormControl>
+        <FormControl
+          label="Devices"
+        >
+          <TextField
+            id="maxDeviceCount"
+            label="Max. number of devices"
+            helperText="The maximum number of devices that can be added to this organization (0 = unlimited)."
+            margin="normal"
+            value={this.state.object.maxDeviceCount || 0}
+            onChange={this.onChange}
+            type="number"
+            required
+            fullWidth
+          />
         </FormControl>
       </Form>
     );

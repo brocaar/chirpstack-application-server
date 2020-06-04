@@ -58,6 +58,8 @@ func (ts *APITestSuite) TestOrganization() {
 				Name:            "orgName",
 				DisplayName:     "Display Name",
 				CanHaveGateways: true,
+				MaxGatewayCount: 2,
+				MaxDeviceCount:  10,
 			},
 		}
 		createResp, err := api.Create(context.Background(), &createReq)
@@ -216,6 +218,8 @@ func (ts *APITestSuite) TestOrganization() {
 					Name:            "anotherorg",
 					DisplayName:     "Display Name 2",
 					CanHaveGateways: false,
+					MaxGatewayCount: 4,
+					MaxDeviceCount:  20,
 				},
 			}
 			_, err := api.Update(context.Background(), updateOrg)

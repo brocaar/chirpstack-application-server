@@ -38,7 +38,8 @@ func (ts *APITestSuite) TestGateway() {
 	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &n))
 
 	org := storage.Organization{
-		Name: "test-org-gw",
+		Name:            "test-org-gw",
+		MaxGatewayCount: 1,
 	}
 	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 
@@ -87,6 +88,28 @@ func (ts *APITestSuite) TestGateway() {
 			Gateway: nsReq.Gateway,
 		}
 		assert.Equal(applicationServerID.Bytes(), nsReq.Gateway.RoutingProfileId)
+
+		t.Run("Create second exceeds max gateway count", func(t *testing.T) {
+			assert := require.New(t)
+
+			createReq := pb.CreateGatewayRequest{
+				Gateway: &pb.Gateway{
+					Id:          "0807060504030202",
+					Name:        "test-gateway-2",
+					Description: "test gateway",
+					Location: &common.Location{
+						Latitude:  1.1234,
+						Longitude: 1.1235,
+						Altitude:  5.5,
+					},
+					OrganizationId:  org.ID,
+					NetworkServerId: n.ID,
+				},
+			}
+			_, err := api.Create(ctx, &createReq)
+			assert.Equal(codes.FailedPrecondition, grpc.Code(err))
+			assert.Equal("rpc error: code = FailedPrecondition desc = organization reached max. gateway count", err.Error())
+		})
 
 		t.Run("Get", func(t *testing.T) {
 			assert := require.New(t)

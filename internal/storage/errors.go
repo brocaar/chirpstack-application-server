@@ -38,6 +38,8 @@ var (
 	ErrDeviceProfileInvalidName        = errors.New("invalid device-profile name")
 	ErrServiceProfileInvalidName       = errors.New("invalid service-profile name")
 	ErrMulticastGroupInvalidName       = errors.New("invalid multicast-group name")
+	ErrOrganizationMaxDeviceCount      = errors.New("organization reached max. device count")
+	ErrOrganizationMaxGatewayCount     = errors.New("organization reached max. gateway count")
 )
 
 func handlePSQLError(action Action, err error, description string) error {

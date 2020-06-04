@@ -50,7 +50,8 @@ func (ts *APITestSuite) TestDevice() {
 	api := pb.NewDeviceServiceClient(apiClient)
 
 	org := storage.Organization{
-		Name: "test-org",
+		Name:           "test-org",
+		MaxDeviceCount: 1,
 	}
 	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 	org2 := storage.Organization{
@@ -216,6 +217,23 @@ func (ts *APITestSuite) TestDevice() {
 		nsClient.GetDeviceResponse = ns.GetDeviceResponse{
 			Device: nsReq.Device,
 		}
+
+		t.Run("Create second exceeds max device count", func(t *testing.T) {
+			assert := require.New(t)
+
+			createReq := pb.CreateDeviceRequest{
+				Device: &pb.Device{
+					ApplicationId:   app.ID,
+					Name:            "test-device-2",
+					Description:     "test device description",
+					DevEui:          "0807060504030202",
+					DeviceProfileId: dpID.String(),
+				},
+			}
+			_, err := api.Create(context.Background(), &createReq)
+			assert.Equal(codes.FailedPrecondition, grpc.Code(err))
+			assert.Equal("rpc error: code = FailedPrecondition desc = organization reached max. device count", err.Error())
+		})
 
 		t.Run("Get", func(t *testing.T) {
 			assert := require.New(t)

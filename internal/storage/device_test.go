@@ -157,6 +157,18 @@ func (ts *StorageTestSuite) TestDevice() {
 			assert.Equal(1, count)
 		})
 
+		t.Run("List by OrganizationID", func(t *testing.T) {
+			assert := require.New(t)
+
+			devices, err := GetDevices(context.Background(), ts.Tx(), DeviceFilters{Limit: 10, OrganizationID: org.ID})
+			assert.NoError(err)
+			assert.Len(devices, 1)
+
+			count, err := GetDeviceCount(context.Background(), ts.Tx(), DeviceFilters{OrganizationID: org.ID})
+			assert.NoError(err)
+			assert.Equal(1, count)
+		})
+
 		t.Run("List by ApplicationID", func(t *testing.T) {
 			assert := require.New(t)
 

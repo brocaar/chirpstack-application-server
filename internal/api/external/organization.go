@@ -41,6 +41,8 @@ func (a *OrganizationAPI) Create(ctx context.Context, req *pb.CreateOrganization
 		Name:            req.Organization.Name,
 		DisplayName:     req.Organization.DisplayName,
 		CanHaveGateways: req.Organization.CanHaveGateways,
+		MaxDeviceCount:  int(req.Organization.MaxDeviceCount),
+		MaxGatewayCount: int(req.Organization.MaxGatewayCount),
 	}
 
 	err := storage.CreateOrganization(ctx, storage.DB(), &org)
@@ -60,7 +62,7 @@ func (a *OrganizationAPI) Get(ctx context.Context, req *pb.GetOrganizationReques
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	org, err := storage.GetOrganization(ctx, storage.DB(), req.Id)
+	org, err := storage.GetOrganization(ctx, storage.DB(), req.Id, false)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -71,6 +73,8 @@ func (a *OrganizationAPI) Get(ctx context.Context, req *pb.GetOrganizationReques
 			Name:            org.Name,
 			DisplayName:     org.DisplayName,
 			CanHaveGateways: org.CanHaveGateways,
+			MaxDeviceCount:  uint32(org.MaxDeviceCount),
+			MaxGatewayCount: uint32(org.MaxGatewayCount),
 		},
 	}
 
@@ -174,7 +178,7 @@ func (a *OrganizationAPI) Update(ctx context.Context, req *pb.UpdateOrganization
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	org, err := storage.GetOrganization(ctx, storage.DB(), req.Organization.Id)
+	org, err := storage.GetOrganization(ctx, storage.DB(), req.Organization.Id, false)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -183,6 +187,8 @@ func (a *OrganizationAPI) Update(ctx context.Context, req *pb.UpdateOrganization
 	org.DisplayName = req.Organization.DisplayName
 	if user.IsAdmin {
 		org.CanHaveGateways = req.Organization.CanHaveGateways
+		org.MaxGatewayCount = int(req.Organization.MaxGatewayCount)
+		org.MaxDeviceCount = int(req.Organization.MaxDeviceCount)
 	}
 
 	err = storage.UpdateOrganization(ctx, storage.DB(), &org)

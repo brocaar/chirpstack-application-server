@@ -90,6 +90,14 @@ max_idle_connections={{ .PostgreSQL.MaxIdleConnections }}
 # https://www.iana.org/assignments/uri-schemes/prov/redis
 url="{{ .Redis.URL }}"
 
+password="{{ .Redis.Password }}"
+
+database={{ .Redis.Database }}
+
+servers=[{{ range $index, $elm := .Redis.Servers }}
+      "{{ $elm }}",{{ end }}
+    ]
+
 # Redis Cluster.
 #
 # Set this to true when the provided URL is pointing to a Redis Cluster

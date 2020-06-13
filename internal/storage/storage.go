@@ -57,27 +57,53 @@ func Setup(c config.Config) error {
 	)
 
 	log.Info("storage: setting up Redis client")
-	opt, err := redis.ParseURL(c.Redis.URL)
-	if err != nil {
-		return errors.Wrap(err, "parse redis url error")
-	}
-	opt.PoolSize = c.Redis.PoolSize
-	if c.Redis.Cluster {
-		redisClient = redis.NewClusterClient(&redis.ClusterOptions{
-			Addrs:    []string{opt.Addr},
-			PoolSize: opt.PoolSize,
-			Password: opt.Password,
-		})
-	} else if c.Redis.MasterName != "" {
-		redisClient = redis.NewFailoverClient(&redis.FailoverOptions{
-			MasterName:       c.Redis.MasterName,
-			SentinelAddrs:    []string{opt.Addr},
-			SentinelPassword: opt.Password,
-			DB:               opt.DB,
-			PoolSize:         opt.PoolSize,
-		})
+
+	opt := &redis.Options{}
+	if c.Redis.URL != "" {
+		var err error
+		opt, err = redis.ParseURL(c.Redis.URL)
+		if err != nil {
+			return errors.Wrap(err, "parse redis url error")
+		}
 	} else {
-		redisClient = redis.NewClient(opt)
+		opt.DB = c.Redis.Database
+		opt.Password = c.Redis.Password
+		opt.Addr = c.Redis.Servers[0]
+	}
+
+	opt.PoolSize = c.Redis.PoolSize
+
+	if c.Redis.Cluster || c.Redis.MasterName != "" {
+		var addresses []string
+		if len(c.Redis.Servers) == 0 {
+			addresses = []string{opt.Addr}
+		} else {
+			addresses = c.Redis.Servers
+		}
+
+		if c.Redis.Cluster {
+			redisClient = redis.NewClusterClient(&redis.ClusterOptions{
+				Addrs:    addresses,
+				PoolSize: opt.PoolSize,
+				Password: opt.Password,
+			})
+		} else if c.Redis.MasterName != "" {
+			redisClient = redis.NewFailoverClient(&redis.FailoverOptions{
+				MasterName:       c.Redis.MasterName,
+				SentinelAddrs:    addresses,
+				SentinelPassword: opt.Password,
+				DB:               opt.DB,
+				PoolSize:         opt.PoolSize,
+				Password:         opt.Password,
+			})
+		}
+	} else {
+		redisClient = redis.NewClient(&redis.Options{
+			Addr:     c.Redis.Servers[0],
+			Password: c.Redis.Password,
+			PoolSize: c.Redis.PoolSize,
+			DB:       c.Redis.Database,
+		})
 	}
 
 	log.Info("storage: connecting to PostgreSQL database")

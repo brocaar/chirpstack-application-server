@@ -138,10 +138,26 @@ max_idle_connections=2
 # Please note that Redis 2.6.0+ is required.
 [redis]
 # Redis url (e.g. redis://user:password@hostname/0)
-#
 # For more information about the Redis URL format, see:
 # https://www.iana.org/assignments/uri-schemes/prov/redis
 url="redis://localhost:6379"
+
+# The server address or addresses
+#
+# Set multiple addresses when connecting to a cluster
+servers=[
+    "localhost:6739"
+]
+
+# The password
+#
+# Set the password for authenticating to the redis instance
+password=“”
+
+# The database number
+#
+# The database to connect to
+database=0
 
 # Redis Cluster.
 #

@@ -10,20 +10,17 @@ import (
 	"golang.org/x/net/context"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
-	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/codec"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/lorawan"
 )
 
 // HandleDataDownPayloads handles received downlink payloads to be emitted to the
 // devices.
-func HandleDataDownPayloads() {
-	for pl := range integration.ForApplicationID(0).DataDownChan() {
+func HandleDataDownPayloads(downChan chan models.DataDownPayload) {
+	for pl := range downChan {
 		go func(pl models.DataDownPayload) {
 			ctxID, err := uuid.NewV4()
 			if err != nil {
@@ -91,69 +88,12 @@ func handleDataDownPayload(ctx context.Context, pl models.DataDownPayload) error
 			}
 		}
 
-		if _, err := EnqueueDownlinkPayload(ctx, tx, pl.DevEUI, pl.Confirmed, pl.FPort, pl.Data); err != nil {
+		if _, err := storage.EnqueueDownlinkPayload(ctx, tx, pl.DevEUI, pl.Confirmed, pl.FPort, pl.Data); err != nil {
 			return errors.Wrap(err, "enqueue downlink device-queue item error")
 		}
 
 		return nil
 	})
-}
-
-// EnqueueDownlinkPayload adds the downlink payload to the network-server
-// device-queue.
-func EnqueueDownlinkPayload(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI64, confirmed bool, fPort uint8, data []byte) (uint32, error) {
-	// get network-server and network-server api client
-	n, err := storage.GetNetworkServerForDevEUI(ctx, db, devEUI)
-	if err != nil {
-		return 0, errors.Wrap(err, "get network-server error")
-	}
-	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
-	if err != nil {
-		return 0, errors.Wrap(err, "get network-server client error")
-	}
-
-	// get fCnt to use for encrypting and enqueueing
-	resp, err := nsClient.GetNextDownlinkFCntForDevEUI(context.Background(), &ns.GetNextDownlinkFCntForDevEUIRequest{
-		DevEui: devEUI[:],
-	})
-	if err != nil {
-		return 0, errors.Wrap(err, "get next downlink fcnt for deveui error")
-	}
-
-	// get device
-	d, err := storage.GetDevice(ctx, db, devEUI, false, true)
-	if err != nil {
-		return 0, errors.Wrap(err, "get device error")
-	}
-
-	// encrypt payload
-	b, err := lorawan.EncryptFRMPayload(d.AppSKey, false, d.DevAddr, resp.FCnt, data)
-	if err != nil {
-		return 0, errors.Wrap(err, "encrypt frmpayload error")
-	}
-
-	// enqueue device-queue item
-	_, err = nsClient.CreateDeviceQueueItem(ctx, &ns.CreateDeviceQueueItemRequest{
-		Item: &ns.DeviceQueueItem{
-			DevAddr:    d.DevAddr[:],
-			DevEui:     devEUI[:],
-			FrmPayload: b,
-			FCnt:       resp.FCnt,
-			FPort:      uint32(fPort),
-			Confirmed:  confirmed,
-		},
-	})
-	if err != nil {
-		return 0, errors.Wrap(err, "create device-queue item error")
-	}
-
-	log.WithFields(log.Fields{
-		"f_cnt":     resp.FCnt,
-		"dev_eui":   devEUI,
-		"confirmed": confirmed,
-	}).Info("downlink device-queue item handled")
-
-	return resp.FCnt, nil
 }
 
 func logCodecError(ctx context.Context, a storage.Application, d storage.Device, err error) {

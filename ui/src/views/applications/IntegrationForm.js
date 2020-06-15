@@ -449,6 +449,12 @@ class LoRaCloudIntegrationForm extends FormComponent {
     super.onChange(e);
   }
 
+  onChangeTab = (e, v) => {
+    this.setState({
+      tab: v,
+    });
+  }
+
   render() {
     if (this.state.object === undefined) {
       return null;
@@ -458,9 +464,11 @@ class LoRaCloudIntegrationForm extends FormComponent {
       <div>
         <Tabs 
           value={this.state.tab}
+          onChange={this.onChangeTab}
           indicatorColor="primary"
         >
           <Tab label="Geolocation" />
+          <Tab label="Device & Application Services" />
         </Tabs>
         {this.state.tab === 0 && <div>
           <FormControl fullWidth margin="normal">
@@ -604,6 +612,44 @@ class LoRaCloudIntegrationForm extends FormComponent {
               />
             </FormGroup>
           </FormControl>}
+        </div>}
+        {this.state.tab === 1 && <div>
+          <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="DAS enabled"
+                control={
+                  <Checkbox 
+                    id="das"
+                    checked={!!this.state.object.das}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>
+          {!!this.state.object.das && <TextField
+            id="dasToken"
+            label="Token"
+            value={this.state.object.dasToken || ""}
+            onChange={this.onChange}
+            margin="normal"
+            helperText="This token can be obtained from loracloud.com"
+            type="password"
+            required
+            fullWidth
+          />}
+          {!!this.state.object.das && <TextField
+            id="dasModemPort"
+            label="DAS Modem port (FPort)"
+            value={this.state.object.dasModemPort || 199}
+            onChange={this.onChange}
+            type="number"
+            margin="normal"
+            helperText="ChirpStack Application Server will only forward the FRMPayload to LoRa Cloud when the uplink matches the configured port."
+            fullWidth
+          />}
         </div>}
       </div>
     );

@@ -662,3 +662,60 @@ func DeleteAllDevicesForApplicationID(ctx context.Context, db sqlx.Ext, applicat
 
 	return nil
 }
+
+// EnqueueDownlinkPayload adds the downlink payload to the network-server
+// device-queue.
+func EnqueueDownlinkPayload(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI64, confirmed bool, fPort uint8, data []byte) (uint32, error) {
+	// get network-server and network-server api client
+	n, err := GetNetworkServerForDevEUI(ctx, db, devEUI)
+	if err != nil {
+		return 0, errors.Wrap(err, "get network-server error")
+	}
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	if err != nil {
+		return 0, errors.Wrap(err, "get network-server client error")
+	}
+
+	// get fCnt to use for encrypting and enqueueing
+	resp, err := nsClient.GetNextDownlinkFCntForDevEUI(context.Background(), &ns.GetNextDownlinkFCntForDevEUIRequest{
+		DevEui: devEUI[:],
+	})
+	if err != nil {
+		return 0, errors.Wrap(err, "get next downlink fcnt for deveui error")
+	}
+
+	// get device
+	d, err := GetDevice(ctx, db, devEUI, false, true)
+	if err != nil {
+		return 0, errors.Wrap(err, "get device error")
+	}
+
+	// encrypt payload
+	b, err := lorawan.EncryptFRMPayload(d.AppSKey, false, d.DevAddr, resp.FCnt, data)
+	if err != nil {
+		return 0, errors.Wrap(err, "encrypt frmpayload error")
+	}
+
+	// enqueue device-queue item
+	_, err = nsClient.CreateDeviceQueueItem(ctx, &ns.CreateDeviceQueueItemRequest{
+		Item: &ns.DeviceQueueItem{
+			DevAddr:    d.DevAddr[:],
+			DevEui:     devEUI[:],
+			FrmPayload: b,
+			FCnt:       resp.FCnt,
+			FPort:      uint32(fPort),
+			Confirmed:  confirmed,
+		},
+	})
+	if err != nil {
+		return 0, errors.Wrap(err, "create device-queue item error")
+	}
+
+	log.WithFields(log.Fields{
+		"f_cnt":     resp.FCnt,
+		"dev_eui":   devEUI,
+		"confirmed": confirmed,
+	}).Info("downlink device-queue item handled")
+
+	return resp.FCnt, nil
+}

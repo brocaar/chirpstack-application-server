@@ -11,6 +11,7 @@ import (
 
 	"github.com/brocaar/chirpstack-api/go/v3/common"
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/loracloud/client/helpers"
 	"github.com/brocaar/lorawan"
 )
 
@@ -193,7 +194,7 @@ func (ts *StructsTestSuite) TestGNSSLR1110SingleFrameRequest() {
 		req := NewGNSSLR1110SingleFrameRequest([]*gw.UplinkRXInfo{rxInfo}, false, pl)
 
 		assert.Equal(GNSSLR1110SingleFrameRequest{
-			Payload: HEXBytes(pl),
+			Payload: helpers.HEXBytes(pl),
 		}, req)
 	})
 
@@ -210,7 +211,7 @@ func (ts *StructsTestSuite) TestGNSSLR1110SingleFrameRequest() {
 		req := NewGNSSLR1110SingleFrameRequest([]*gw.UplinkRXInfo{rxInfo}, true, pl)
 
 		assert.Equal(GNSSLR1110SingleFrameRequest{
-			Payload:                 HEXBytes(pl),
+			Payload:                 helpers.HEXBytes(pl),
 			GNSSCaptureTime:         &captTime,
 			GNSSCaptureTimeAccuracy: &acc,
 		}, req)
@@ -230,7 +231,7 @@ func (ts *StructsTestSuite) TestGNSSLR1110SingleFrameRequest() {
 		req := NewGNSSLR1110SingleFrameRequest([]*gw.UplinkRXInfo{rxInfo}, false, pl)
 
 		assert.Equal(GNSSLR1110SingleFrameRequest{
-			Payload:            HEXBytes(pl),
+			Payload:            helpers.HEXBytes(pl),
 			GNSSAssistPosition: []float64{1.123, 2.123},
 			GNSSAssistAltitude: &rxInfo.Location.Altitude,
 		}, req)

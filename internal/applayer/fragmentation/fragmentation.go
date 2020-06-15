@@ -11,7 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/downlink"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
@@ -158,7 +157,7 @@ func syncRemoteFragmentationSession(ctx context.Context, db sqlx.Ext, item stora
 		return errors.Wrap(err, "marshal binary error")
 	}
 
-	_, err = downlink.EnqueueDownlinkPayload(ctx, db, item.DevEUI, false, fragmentation.DefaultFPort, b)
+	_, err = storage.EnqueueDownlinkPayload(ctx, db, item.DevEUI, false, fragmentation.DefaultFPort, b)
 	if err != nil {
 		return errors.Wrap(err, "enqueue downlink payload error")
 	}

@@ -524,6 +524,9 @@ func (ts *APITestSuite) TestApplication() {
 						GeolocationGnssUseRxTime:    true,
 						GeolocationWifi:             true,
 						GeolocationWifiPayloadField: "access_points",
+						Das:                         true,
+						DasToken:                    "ba321",
+						DasModemPort:                199,
 					},
 				}
 				_, err := api.CreateLoRaCloudIntegration(context.Background(), &createReq)
@@ -567,6 +570,9 @@ func (ts *APITestSuite) TestApplication() {
 							GeolocationGnssUseRxTime:    true,
 							GeolocationWifi:             true,
 							GeolocationWifiPayloadField: "access_points_updated",
+							Das:                         true,
+							DasToken:                    "321ba",
+							DasModemPort:                189,
 						},
 					}
 

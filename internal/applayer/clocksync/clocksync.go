@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/brocaar/chirpstack-application-server/internal/downlink"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/applayer/clocksync"
 )
@@ -63,7 +63,7 @@ func handleAppTimeReq(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI64, ti
 		return errors.Wrap(err, "marshal command error")
 	}
 
-	_, err = downlink.EnqueueDownlinkPayload(ctx, db, devEUI, false, uint8(clocksync.DefaultFPort), b)
+	_, err = storage.EnqueueDownlinkPayload(ctx, db, devEUI, false, uint8(clocksync.DefaultFPort), b)
 	if err != nil {
 		return errors.Wrap(err, "enqueue downlink payload error")
 	}

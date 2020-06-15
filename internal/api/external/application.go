@@ -798,6 +798,9 @@ func (a *ApplicationAPI) CreateLoRaCloudIntegration(ctx context.Context, in *pb.
 		GeolocationGNSSUseRxTime:    in.GetIntegration().GeolocationGnssUseRxTime,
 		GeolocationWifi:             in.GetIntegration().GeolocationWifi,
 		GeolocationWifiPayloadField: in.GetIntegration().GeolocationWifiPayloadField,
+		DAS:                         in.GetIntegration().Das,
+		DASToken:                    in.GetIntegration().DasToken,
+		DASModemPort:                uint8(in.GetIntegration().DasModemPort),
 	}
 	confJSON, err := json.Marshal(config)
 	if err != nil {
@@ -848,6 +851,9 @@ func (a *ApplicationAPI) GetLoRaCloudIntegration(ctx context.Context, in *pb.Get
 			GeolocationGnssUseRxTime:    conf.GeolocationGNSSUseRxTime,
 			GeolocationWifi:             conf.GeolocationWifi,
 			GeolocationWifiPayloadField: conf.GeolocationWifiPayloadField,
+			Das:                         conf.DAS,
+			DasToken:                    conf.DASToken,
+			DasModemPort:                uint32(conf.DASModemPort),
 		},
 	}, nil
 }
@@ -881,6 +887,9 @@ func (a *ApplicationAPI) UpdateLoRaCloudIntegration(ctx context.Context, in *pb.
 		GeolocationGNSSUseRxTime:    in.GetIntegration().GeolocationGnssUseRxTime,
 		GeolocationWifi:             in.GetIntegration().GeolocationWifi,
 		GeolocationWifiPayloadField: in.GetIntegration().GeolocationWifiPayloadField,
+		DAS:                         in.GetIntegration().Das,
+		DASToken:                    in.GetIntegration().DasToken,
+		DASModemPort:                uint8(in.GetIntegration().DasModemPort),
 	}
 	confJSON, err := json.Marshal(conf)
 	if err != nil {

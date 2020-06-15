@@ -14,6 +14,7 @@ import (
 
 	"github.com/brocaar/chirpstack-api/go/v3/common"
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/loracloud/client/helpers"
 	"github.com/brocaar/lorawan"
 )
 
@@ -434,7 +435,7 @@ func (ts *ClientTestSuite) TestGNSSLR1110SingleFrame() {
 		var req GNSSLR1110SingleFrameRequest
 		assert.NoError(json.Unmarshal([]byte(ts.apiRequest), &req))
 		assert.Equal(GNSSLR1110SingleFrameRequest{
-			Payload: HEXBytes([]byte{1, 2, 3}),
+			Payload: helpers.HEXBytes([]byte{1, 2, 3}),
 		}, req)
 	})
 

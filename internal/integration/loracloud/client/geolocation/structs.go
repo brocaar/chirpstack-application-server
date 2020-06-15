@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/loracloud/client/helpers"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/gps"
 	"github.com/pkg/errors"
@@ -39,12 +40,12 @@ type RSSIMultiFrameRequest struct {
 
 // GNSSLR1110SingleFrameRequest implements the LoRa Cloud GNSS LR1110 Single-Frame request.
 type GNSSLR1110SingleFrameRequest struct {
-	Payload                 HEXBytes  `json:"payload"`
-	GNSSCaptureTime         *float64  `json:"gnss_capture_time,omitempty"`
-	GNSSCaptureTimeAccuracy *float64  `json:"gnss_capture_time_accuracy,omitempty"`
-	GNSSAssistPosition      []float64 `json:"gnss_assist_position,omitempty"`
-	GNSSAssistAltitude      *float64  `json:"gnss_assist_altitude,omitempty"`
-	GNSSUse2DSolver         bool      `json:"gnss_use_2D_solver,omitempty"`
+	Payload                 helpers.HEXBytes `json:"payload"`
+	GNSSCaptureTime         *float64         `json:"gnss_capture_time,omitempty"`
+	GNSSCaptureTimeAccuracy *float64         `json:"gnss_capture_time_accuracy,omitempty"`
+	GNSSAssistPosition      []float64        `json:"gnss_assist_position,omitempty"`
+	GNSSAssistAltitude      *float64         `json:"gnss_assist_altitude,omitempty"`
+	GNSSUse2DSolver         bool             `json:"gnss_use_2D_solver,omitempty"`
 }
 
 // Response implements the LoRa Cloud Response object.
@@ -163,7 +164,7 @@ func NewWifiTDOASingleFrameRequest(rxInfo []*gw.UplinkRXInfo, aps []WifiAccessPo
 // NewGNSSLR1110SingleFrameRequest creates a new GNSSLR1110SingleFrameRequest.
 func NewGNSSLR1110SingleFrameRequest(rxInfo []*gw.UplinkRXInfo, useRxTime bool, pl []byte) GNSSLR1110SingleFrameRequest {
 	out := GNSSLR1110SingleFrameRequest{
-		Payload: HEXBytes(pl),
+		Payload: helpers.HEXBytes(pl),
 	}
 
 	if useRxTime {
@@ -240,30 +241,6 @@ func NewUplinkRSSI(rxInfo []*gw.UplinkRXInfo) []UplinkRSSI {
 	}
 
 	return out
-}
-
-// HEXBytes defines a type which represents bytes as HEX when marshaled to
-// text.
-type HEXBytes []byte
-
-// String implements fmt.Stringer.
-func (hb HEXBytes) String() string {
-	return hex.EncodeToString(hb[:])
-}
-
-// MarshalText implements encoding.TextMarshaler.
-func (hb HEXBytes) MarshalText() ([]byte, error) {
-	return []byte(hb.String()), nil
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (hb *HEXBytes) UnmarshalText(text []byte) error {
-	b, err := hex.DecodeString(string(text))
-	if err != nil {
-		return err
-	}
-	*hb = HEXBytes(b)
-	return nil
 }
 
 // BSSID defines a BSSID identifier,.

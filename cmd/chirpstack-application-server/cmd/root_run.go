@@ -133,7 +133,8 @@ func migrateToClusterKeys() error {
 }
 
 func handleDataDownPayloads() error {
-	go downlink.HandleDataDownPayloads()
+	downChan := integration.ForApplicationID(0).DataDownChan()
+	go downlink.HandleDataDownPayloads(downChan)
 	return nil
 }
 

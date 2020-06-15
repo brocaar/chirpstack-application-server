@@ -10,6 +10,7 @@ import (
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/eventlog"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/lorawan"
 )
 
@@ -33,7 +34,7 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], pl.DevEui)
 
-	return i.log(eventlog.Uplink, devEUI, &pl)
+	return i.log(ctx, eventlog.Uplink, devEUI, &pl)
 }
 
 // HandleJoinEvent sends a JoinEvent.
@@ -41,7 +42,7 @@ func (i *Integration) HandleJoinEvent(ctx context.Context, _ models.Integration,
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], pl.DevEui)
 
-	return i.log(eventlog.Join, devEUI, &pl)
+	return i.log(ctx, eventlog.Join, devEUI, &pl)
 }
 
 // HandleAckEvent sends an AckEvent.
@@ -49,7 +50,7 @@ func (i *Integration) HandleAckEvent(ctx context.Context, _ models.Integration, 
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], pl.DevEui)
 
-	return i.log(eventlog.ACK, devEUI, &pl)
+	return i.log(ctx, eventlog.ACK, devEUI, &pl)
 }
 
 // HandleErrorEvent sends an ErrorEvent.
@@ -57,7 +58,7 @@ func (i *Integration) HandleErrorEvent(ctx context.Context, _ models.Integration
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], pl.DevEui)
 
-	return i.log(eventlog.Error, devEUI, &pl)
+	return i.log(ctx, eventlog.Error, devEUI, &pl)
 }
 
 // HandleStatusEvent sends a StatusEvent.
@@ -65,7 +66,7 @@ func (i *Integration) HandleStatusEvent(ctx context.Context, _ models.Integratio
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], pl.DevEui)
 
-	return i.log(eventlog.Status, devEUI, &pl)
+	return i.log(ctx, eventlog.Status, devEUI, &pl)
 }
 
 // HandleLocationEvent sends a LocationEvent.
@@ -73,7 +74,7 @@ func (i *Integration) HandleLocationEvent(ctx context.Context, _ models.Integrat
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], pl.DevEui)
 
-	return i.log(eventlog.Location, devEUI, &pl)
+	return i.log(ctx, eventlog.Location, devEUI, &pl)
 }
 
 // HandleTxAckEvent sends a TxAckEvent.
@@ -81,7 +82,7 @@ func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], pl.DevEui)
 
-	return i.log(eventlog.TxAck, devEUI, &pl)
+	return i.log(ctx, eventlog.TxAck, devEUI, &pl)
 }
 
 // Close is not implemented.
@@ -94,10 +95,11 @@ func (i *Integration) DataDownChan() chan models.DataDownPayload {
 	return nil
 }
 
-func (i *Integration) log(typ string, devEUI lorawan.EUI64, msg proto.Message) error {
+func (i *Integration) log(ctx context.Context, typ string, devEUI lorawan.EUI64, msg proto.Message) error {
 	log.WithFields(log.Fields{
 		"dev_eui": devEUI,
 		"type":    typ,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/logger: logging event")
 
 	return eventlog.LogEventForDevice(devEUI, typ, msg)

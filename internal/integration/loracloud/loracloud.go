@@ -13,14 +13,18 @@ import (
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-api/go/v3/common"
 	gw "github.com/brocaar/chirpstack-api/go/v3/gw"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/loracloud/client/das"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/loracloud/client/geolocation"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/loracloud/client/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
 // Config contains the LoRaCloud integration configuration.
 type Config struct {
+	// Geolocation.
 	Geolocation                 bool   `json:"geolocation"`
 	GeolocationToken            string `json:"geolocationToken"`
 	GeolocationBufferTTL        int    `json:"geolocationBufferTTL"`
@@ -32,12 +36,18 @@ type Config struct {
 	GeolocationGNSSUseRxTime    bool   `json:"geolicationGNSSUseRxTime"`
 	GeolocationWifi             bool   `json:"geolocationWifi"`
 	GeolocationWifiPayloadField string `json:"geolocationWifiPayloadField"`
+
+	// Device Application Services.
+	DAS          bool   `json:"das"`
+	DASToken     string `json:"dasToken"`
+	DASModemPort uint8  `json:"dasModemPort"`
 }
 
 // Integration implements a LoRaCloud Integration.
 type Integration struct {
 	config         Config
 	geolocationURI string
+	dasURI         string
 }
 
 // New creates a new LoRaCloud integration.
@@ -45,6 +55,7 @@ func New(conf Config) (*Integration, error) {
 	return &Integration{
 		config:         conf,
 		geolocationURI: "https://gls.loracloud.com",
+		dasURI:         "https://das.loracloud.com",
 	}, nil
 }
 
@@ -53,37 +64,67 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, ii models.Integrati
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], pl.DevEui)
 
+	// handle geolocation
 	if i.config.Geolocation {
-		// update and get geoloc buffer
-		geolocBuffer, err := i.updateGeolocBuffer(ctx, devEUI, pl)
-		if err != nil {
-			return errors.Wrap(err, "update geolocation buffer error")
-		}
-
-		// do geolocation
-		uplinkIDs, loc, err := i.geolocation(ctx, devEUI, geolocBuffer, pl)
-		if err != nil {
-			return errors.Wrap(err, "geolocation error")
-		}
-
-		// if it resolved to a location, send it to integrations
-		if loc != nil {
-			var fCnt uint32
-			if len(uplinkIDs) == 0 {
-				fCnt = pl.FCnt
+		err := func() error {
+			// update and get geoloc buffer
+			geolocBuffer, err := i.updateGeolocBuffer(ctx, devEUI, pl)
+			if err != nil {
+				return errors.Wrap(err, "update geolocation buffer error")
 			}
-			if err := ii.HandleLocationEvent(ctx, vars, pb.LocationEvent{
-				ApplicationId:   pl.ApplicationId,
-				ApplicationName: pl.ApplicationName,
-				DeviceName:      pl.DeviceName,
-				DevEui:          pl.DevEui,
-				Tags:            pl.Tags,
-				Location:        loc,
-				UplinkIds:       uplinkIDs,
-				FCnt:            fCnt,
-			}); err != nil {
-				log.WithError(err).Error("integration/loracloud: geolocation error")
+
+			// do geolocation
+			uplinkIDs, loc, err := i.geolocation(ctx, devEUI, geolocBuffer, pl)
+			if err != nil {
+				return errors.Wrap(err, "geolocation error")
 			}
+
+			// if it resolved to a location, send it to integrations
+			if loc != nil {
+				var fCnt uint32
+				if len(uplinkIDs) == 0 {
+					fCnt = pl.FCnt
+				}
+				if err := ii.HandleLocationEvent(ctx, vars, pb.LocationEvent{
+					ApplicationId:   pl.ApplicationId,
+					ApplicationName: pl.ApplicationName,
+					DeviceName:      pl.DeviceName,
+					DevEui:          pl.DevEui,
+					Tags:            pl.Tags,
+					Location:        loc,
+					UplinkIds:       uplinkIDs,
+					FCnt:            fCnt,
+				}); err != nil {
+					return errors.Wrap(err, "handle location event error")
+				}
+			}
+
+			return nil
+		}()
+		if err != nil {
+			log.WithError(err).Error("integration/loracloud: geolocation error")
+		}
+	}
+
+	// handle das
+	if i.config.DAS {
+		err := func() error {
+			if pl.FPort == uint32(i.config.DASModemPort) {
+				// handle DAS modem message
+				if err := i.dasModem(ctx, devEUI, pl); err != nil {
+					return errors.Wrap(err, "das modem message error")
+				}
+			} else {
+				// uplink meta-data
+				if err := i.dasUplinkMetaData(ctx, devEUI, pl); err != nil {
+					return errors.Wrap(err, "das meta-data message error")
+				}
+			}
+
+			return nil
+		}()
+		if err != nil {
+			log.WithError(err).Error("integration/loracloud: das error")
 		}
 	}
 
@@ -92,6 +133,16 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, ii models.Integrati
 
 // HandleJoinEvent is not implemented.
 func (i *Integration) HandleJoinEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.JoinEvent) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
+	// handle das
+	if i.config.DAS {
+		if err := i.dasJoin(ctx, devEUI, pl); err != nil {
+			log.WithError(err).Error("integration/loracloud: das error")
+		}
+	}
+
 	return nil
 }
 
@@ -329,11 +380,136 @@ func (i *Integration) wifiTDOAGeolocation(ctx context.Context, devEUI lorawan.EU
 		if err == geolocation.ErrNoLocation {
 			return nil, nil
 		}
+
+		return nil, errors.Wrap(err, "geolocation error")
 	}
 
 	loRaCloudAPIDuration("v2_wifi_tdoa_single").Observe(float64(time.Since(start)) / float64(time.Second))
 
 	return &loc, nil
+}
+
+func (i *Integration) dasJoin(ctx context.Context, devEUI lorawan.EUI64, pl pb.JoinEvent) error {
+	log.WithFields(log.Fields{
+		"dev_eui": devEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
+	}).Info("integration/das: forwarding join notification")
+
+	client := das.New(i.dasURI, i.config.DASToken)
+	start := time.Now()
+
+	resp, err := client.UplinkSend(ctx, das.UplinkRequest{
+		helpers.EUI64(devEUI): das.UplinkMsgJoining{
+			MsgType:   "joining",
+			Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).Unix()),
+			DR:        uint8(pl.Dr),
+			Freq:      pl.GetTxInfo().Frequency,
+		},
+	})
+	if err != nil {
+		return errors.Wrap(err, "das error")
+	}
+
+	loRaCloudAPIDuration("das_v1_uplink_send").Observe(float64(time.Since(start)) / float64(time.Second))
+
+	err = i.handleDASResponse(ctx, devEUI, resp)
+	if err != nil {
+		return errors.Wrap(err, "handle das response error")
+	}
+
+	return nil
+}
+
+func (i *Integration) dasModem(ctx context.Context, devEUI lorawan.EUI64, pl pb.UplinkEvent) error {
+	log.WithFields(log.Fields{
+		"dev_eui": devEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
+	}).Info("integration/das: forwarding das modem message")
+
+	client := das.New(i.dasURI, i.config.DASToken)
+	start := time.Now()
+
+	resp, err := client.UplinkSend(ctx, das.UplinkRequest{
+		helpers.EUI64(devEUI): das.UplinkMsgModem{
+			MsgType:   "modem",
+			Payload:   helpers.HEXBytes(pl.Data),
+			FCnt:      pl.FCnt,
+			Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).Unix()),
+			DR:        uint8(pl.Dr),
+			Freq:      pl.GetTxInfo().Frequency,
+		},
+	})
+	if err != nil {
+		return errors.Wrap(err, "das error")
+	}
+
+	loRaCloudAPIDuration("das_v1_uplink_send").Observe(float64(time.Since(start)) / float64(time.Second))
+
+	err = i.handleDASResponse(ctx, devEUI, resp)
+	if err != nil {
+		return errors.Wrap(err, "handle das response error")
+	}
+
+	return nil
+}
+
+func (i *Integration) dasUplinkMetaData(ctx context.Context, devEUI lorawan.EUI64, pl pb.UplinkEvent) error {
+	log.WithFields(log.Fields{
+		"dev_eui": devEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
+	}).Info("integration/das: forwarding uplink meta-data to das")
+
+	client := das.New(i.dasURI, i.config.DASToken)
+	start := time.Now()
+
+	resp, err := client.UplinkSend(ctx, das.UplinkRequest{
+		helpers.EUI64(devEUI): das.UplinkMsg{
+			MsgType:   "updf",
+			FCnt:      pl.FCnt,
+			Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).Unix()),
+			Port:      uint8(pl.FPort),
+			DR:        uint8(pl.Dr),
+			Freq:      pl.GetTxInfo().Frequency,
+		},
+	})
+	if err != nil {
+		return errors.Wrap(err, "das error")
+	}
+
+	err = i.handleDASResponse(ctx, devEUI, resp)
+	if err != nil {
+		return errors.Wrap(err, "handle das response error")
+	}
+
+	loRaCloudAPIDuration("das_v1_uplink_send").Observe(float64(time.Since(start)) / float64(time.Second))
+
+	return nil
+}
+
+func (i *Integration) handleDASResponse(ctx context.Context, devEUI lorawan.EUI64, dasResp das.UplinkResponse) error {
+	devResp, ok := dasResp.Result[helpers.EUI64(devEUI)]
+	if !ok {
+		return errors.New("no response for deveui")
+	}
+
+	if devResp.Error != "" {
+		return fmt.Errorf("das api returned error: %s", devResp.Error)
+	}
+
+	if dl := devResp.Result.Downlink; dl != nil {
+		fCnt, err := storage.EnqueueDownlinkPayload(ctx, storage.DB(), devEUI, false, dl.Port, dl.Payload[:])
+		if err != nil {
+			return errors.Wrap(err, "enqueue downlink payload error")
+		}
+
+		log.WithFields(log.Fields{
+			"dev_eui": devEUI,
+			"f_cnt":   fCnt,
+			"ctx_id":  ctx.Value(logging.ContextIDKey),
+		}).Info("integration/loracloud: enqueued das downlink payload")
+	}
+
+	return nil
 }
 
 // filterOnFineTimestamp filters the given frame RXInfo slices on the presence

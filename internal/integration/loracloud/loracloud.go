@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-api/go/v3/common"
 	gw "github.com/brocaar/chirpstack-api/go/v3/gw"
@@ -111,12 +112,12 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, ii models.Integrati
 		err := func() error {
 			if pl.FPort == uint32(i.config.DASModemPort) {
 				// handle DAS modem message
-				if err := i.dasModem(ctx, devEUI, pl); err != nil {
+				if err := i.dasModem(ctx, devEUI, pl, ii); err != nil {
 					return errors.Wrap(err, "das modem message error")
 				}
 			} else {
 				// uplink meta-data
-				if err := i.dasUplinkMetaData(ctx, devEUI, pl); err != nil {
+				if err := i.dasUplinkMetaData(ctx, devEUI, pl, ii); err != nil {
 					return errors.Wrap(err, "das meta-data message error")
 				}
 			}
@@ -403,7 +404,7 @@ func (i *Integration) dasJoin(ctx context.Context, devEUI lorawan.EUI64, pl pb.J
 	client := das.New(i.dasURI, i.config.DASToken)
 	start := time.Now()
 
-	resp, err := client.UplinkSend(ctx, das.UplinkRequest{
+	_, err := client.UplinkSend(ctx, das.UplinkRequest{
 		helpers.EUI64(devEUI): das.UplinkMsgJoining{
 			MsgType:   "joining",
 			Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).Unix()),
@@ -417,15 +418,10 @@ func (i *Integration) dasJoin(ctx context.Context, devEUI lorawan.EUI64, pl pb.J
 
 	loRaCloudAPIDuration("das_v1_uplink_send").Observe(float64(time.Since(start)) / float64(time.Second))
 
-	err = i.handleDASResponse(ctx, devEUI, resp)
-	if err != nil {
-		return errors.Wrap(err, "handle das response error")
-	}
-
 	return nil
 }
 
-func (i *Integration) dasModem(ctx context.Context, devEUI lorawan.EUI64, pl pb.UplinkEvent) error {
+func (i *Integration) dasModem(ctx context.Context, devEUI lorawan.EUI64, pl pb.UplinkEvent, ii models.Integration) error {
 	log.WithFields(log.Fields{
 		"dev_eui": devEUI,
 		"ctx_id":  ctx.Value(logging.ContextIDKey),
@@ -450,7 +446,7 @@ func (i *Integration) dasModem(ctx context.Context, devEUI lorawan.EUI64, pl pb.
 
 	loRaCloudAPIDuration("das_v1_uplink_send").Observe(float64(time.Since(start)) / float64(time.Second))
 
-	err = i.handleDASResponse(ctx, devEUI, resp)
+	err = i.handleDASResponse(ctx, devEUI, resp, ii, pl)
 	if err != nil {
 		return errors.Wrap(err, "handle das response error")
 	}
@@ -458,7 +454,7 @@ func (i *Integration) dasModem(ctx context.Context, devEUI lorawan.EUI64, pl pb.
 	return nil
 }
 
-func (i *Integration) dasUplinkMetaData(ctx context.Context, devEUI lorawan.EUI64, pl pb.UplinkEvent) error {
+func (i *Integration) dasUplinkMetaData(ctx context.Context, devEUI lorawan.EUI64, pl pb.UplinkEvent, ii models.Integration) error {
 	log.WithFields(log.Fields{
 		"dev_eui": devEUI,
 		"ctx_id":  ctx.Value(logging.ContextIDKey),
@@ -481,7 +477,7 @@ func (i *Integration) dasUplinkMetaData(ctx context.Context, devEUI lorawan.EUI6
 		return errors.Wrap(err, "das error")
 	}
 
-	err = i.handleDASResponse(ctx, devEUI, resp)
+	err = i.handleDASResponse(ctx, devEUI, resp, ii, pl)
 	if err != nil {
 		return errors.Wrap(err, "handle das response error")
 	}
@@ -491,7 +487,7 @@ func (i *Integration) dasUplinkMetaData(ctx context.Context, devEUI lorawan.EUI6
 	return nil
 }
 
-func (i *Integration) handleDASResponse(ctx context.Context, devEUI lorawan.EUI64, dasResp das.UplinkResponse) error {
+func (i *Integration) handleDASResponse(ctx context.Context, devEUI lorawan.EUI64, dasResp das.UplinkResponse, ii models.Integration, pl integration.UplinkEvent) error {
 	devResp, ok := dasResp.Result[helpers.EUI64(devEUI)]
 	if !ok {
 		return errors.New("no response for deveui")
@@ -512,6 +508,24 @@ func (i *Integration) handleDASResponse(ctx context.Context, devEUI lorawan.EUI6
 			"f_cnt":   fCnt,
 			"ctx_id":  ctx.Value(logging.ContextIDKey),
 		}).Info("integration/loracloud: enqueued das downlink payload")
+	}
+
+	b, err := json.Marshal(devResp.Result)
+	if err != nil {
+		return errors.Wrap(err, "marshal json error")
+	}
+
+	intPL := integration.IntegrationEvent{
+		ApplicationId:   pl.ApplicationId,
+		ApplicationName: pl.ApplicationName,
+		DeviceName:      pl.DeviceName,
+		DevEui:          pl.DevEui,
+		IntegrationName: "loracloud",
+		EventType:       "UplinkResponse",
+		ObjectJson:      string(b),
+	}
+	if err := ii.HandleIntegrationEvent(ctx, nil, intPL); err != nil {
+		return errors.Wrap(err, "handle integration event error")
 	}
 
 	return nil

@@ -1371,15 +1371,27 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 		now, err := ptypes.Timestamp(nowPB)
 		assert.NoError(err)
 
+		integrationB, err := json.Marshal(das.UplinkResponseResult{})
+		assert.NoError(err)
+
+		integrationDownlinkB, err := json.Marshal(das.UplinkResponseResult{
+			Downlink: &das.LoRaDownlink{
+				Port:    10,
+				Payload: helpers.HEXBytes{4, 5, 6},
+			},
+		})
+		assert.NoError(err)
+
 		tests := []struct {
 			name        string
 			config      Config
 			uplinkEvent pb.UplinkEvent
 			dasResponse *das.UplinkResponse
 
-			expectedDASRequest      *das.UplinkRequest
-			expectedDownlinkPayload []byte
-			expectedDownlinkFPort   uint8
+			expectedDASRequest       *das.UplinkRequest
+			expectedDownlinkPayload  []byte
+			expectedDownlinkFPort    uint8
+			expectedIntegrationEvent *pb.IntegrationEvent
 		}{
 			{
 				name: "modem uplink",
@@ -1418,6 +1430,12 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 						DR:        3,
 						Freq:      868100000,
 					},
+				},
+				expectedIntegrationEvent: &pb.IntegrationEvent{
+					DevEui:          ts.device.DevEUI[:],
+					IntegrationName: "loracloud",
+					EventType:       "UplinkResponse",
+					ObjectJson:      string(integrationB),
 				},
 			},
 			{
@@ -1465,6 +1483,12 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 				},
 				expectedDownlinkFPort:   10,
 				expectedDownlinkPayload: []byte{4, 5, 6},
+				expectedIntegrationEvent: &pb.IntegrationEvent{
+					DevEui:          ts.device.DevEUI[:],
+					IntegrationName: "loracloud",
+					EventType:       "UplinkResponse",
+					ObjectJson:      string(integrationDownlinkB),
+				},
 			},
 			{
 				name: "uplink meta-data",
@@ -1503,6 +1527,12 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 						Freq:      868100000,
 						Port:      190,
 					},
+				},
+				expectedIntegrationEvent: &pb.IntegrationEvent{
+					DevEui:          ts.device.DevEUI[:],
+					IntegrationName: "loracloud",
+					EventType:       "UplinkResponse",
+					ObjectJson:      string(integrationB),
 				},
 			},
 		}
@@ -1545,6 +1575,14 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 					b, err := lorawan.EncryptFRMPayload(ts.device.AppSKey, false, ts.device.DevAddr, downPL.Item.FCnt, downPL.Item.FrmPayload)
 					assert.NoError(err)
 					assert.Equal(tst.expectedDownlinkPayload, b)
+				}
+
+				// assert integration event
+				if tst.expectedIntegrationEvent != nil {
+					pl := <-ts.integration.SendIntegrationNotificationChan
+					assert.Equal(*tst.expectedIntegrationEvent, pl)
+				} else {
+					assert.Len(ts.integration.SendIntegrationNotificationChan, 0)
 				}
 			})
 		}

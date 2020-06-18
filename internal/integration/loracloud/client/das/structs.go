@@ -54,7 +54,14 @@ type UplinkResponseItem struct {
 
 // UplinkResponseResult holds the response result.
 type UplinkResponseResult struct {
-	Downlink *LoRaDownlink `json:"dnlink"`
+	File              interface{}   `json:"file"`
+	StreamRecords     interface{}   `json:"stream_records"`
+	FulfilledRequests interface{}   `json:"fulfilled_requests"`
+	FPorts            interface{}   `json:"fports"`
+	InfoFields        interface{}   `json:"info_fields"`
+	PendingRequests   interface{}   `json:"pending_requests"`
+	LogMessages       interface{}   `json:"log_messages"`
+	Downlink          *LoRaDownlink `json:"dnlink"`
 }
 
 // LoRaDownlink implements the LoRa Cloud LoRaDownlink object.

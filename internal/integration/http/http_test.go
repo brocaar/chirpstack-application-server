@@ -90,13 +90,14 @@ func (ts *HandlerTestSuite) SetupSuite() {
 		Headers: map[string]string{
 			"Foo": "Bar",
 		},
-		DataUpURL:               ts.server.URL + "/dataup",
-		JoinNotificationURL:     ts.server.URL + "/join",
-		ACKNotificationURL:      ts.server.URL + "/ack",
-		ErrorNotificationURL:    ts.server.URL + "/error",
-		StatusNotificationURL:   ts.server.URL + "/status",
-		LocationNotificationURL: ts.server.URL + "/location",
-		TxAckNotificationURL:    ts.server.URL + "/txack",
+		DataUpURL:                  ts.server.URL + "/dataup",
+		JoinNotificationURL:        ts.server.URL + "/join",
+		ACKNotificationURL:         ts.server.URL + "/ack",
+		ErrorNotificationURL:       ts.server.URL + "/error",
+		StatusNotificationURL:      ts.server.URL + "/status",
+		LocationNotificationURL:    ts.server.URL + "/location",
+		TxAckNotificationURL:       ts.server.URL + "/txack",
+		IntegrationNotificationURL: ts.server.URL + "/integration",
 	}
 
 	var err error
@@ -253,6 +254,27 @@ func (ts *HandlerTestSuite) TestTxAck() {
 	assert.NoError(err)
 
 	var pl pb.TxAckEvent
+	assert.NoError(proto.Unmarshal(b, &pl))
+	assert.True(proto.Equal(&reqPL, &pl))
+	assert.Equal("Bar", req.Header.Get("Foo"))
+	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
+}
+
+func (ts *HandlerTestSuite) TestIntegration() {
+	assert := require.New(ts.T())
+
+	reqPL := pb.IntegrationEvent{
+		IntegrationName: "foo",
+	}
+	assert.NoError(ts.integration.HandleIntegrationEvent(context.Background(), nil, nil, reqPL))
+
+	req := <-ts.httpHandler.requests
+	assert.Equal("/integration", req.URL.Path)
+
+	b, err := ioutil.ReadAll(req.Body)
+	assert.NoError(err)
+
+	var pl pb.IntegrationEvent
 	assert.NoError(proto.Unmarshal(b, &pl))
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))

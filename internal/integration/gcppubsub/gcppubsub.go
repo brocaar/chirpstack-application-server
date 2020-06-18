@@ -106,6 +106,11 @@ func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration
 	return i.publish(ctx, "txack", pl.DevEui, &pl)
 }
 
+// HandleIntegrationEvent sends an IntegrationEvent.
+func (i *Integration) HandleIntegrationEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.IntegrationEvent) error {
+	return i.publish(ctx, "integration", pl.DevEui, &pl)
+}
+
 // DataDownChan return nil.
 func (i *Integration) DataDownChan() chan models.DataDownPayload {
 	return nil

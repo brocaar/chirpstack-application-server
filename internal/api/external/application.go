@@ -266,14 +266,15 @@ func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.Creat
 	}
 
 	conf := http.Config{
-		Headers:                 headers,
-		DataUpURL:               in.Integration.UplinkDataUrl,
-		JoinNotificationURL:     in.Integration.JoinNotificationUrl,
-		ACKNotificationURL:      in.Integration.AckNotificationUrl,
-		ErrorNotificationURL:    in.Integration.ErrorNotificationUrl,
-		StatusNotificationURL:   in.Integration.StatusNotificationUrl,
-		LocationNotificationURL: in.Integration.LocationNotificationUrl,
-		TxAckNotificationURL:    in.Integration.TxAckNotificationUrl,
+		Headers:                    headers,
+		DataUpURL:                  in.Integration.UplinkDataUrl,
+		JoinNotificationURL:        in.Integration.JoinNotificationUrl,
+		ACKNotificationURL:         in.Integration.AckNotificationUrl,
+		ErrorNotificationURL:       in.Integration.ErrorNotificationUrl,
+		StatusNotificationURL:      in.Integration.StatusNotificationUrl,
+		LocationNotificationURL:    in.Integration.LocationNotificationUrl,
+		TxAckNotificationURL:       in.Integration.TxAckNotificationUrl,
+		IntegrationNotificationURL: in.Integration.IntegrationNotificationUrl,
 	}
 	if err := conf.Validate(); err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -325,15 +326,16 @@ func (a *ApplicationAPI) GetHTTPIntegration(ctx context.Context, in *pb.GetHTTPI
 
 	return &pb.GetHTTPIntegrationResponse{
 		Integration: &pb.HTTPIntegration{
-			ApplicationId:           integration.ApplicationID,
-			Headers:                 headers,
-			UplinkDataUrl:           conf.DataUpURL,
-			JoinNotificationUrl:     conf.JoinNotificationURL,
-			AckNotificationUrl:      conf.ACKNotificationURL,
-			ErrorNotificationUrl:    conf.ErrorNotificationURL,
-			StatusNotificationUrl:   conf.StatusNotificationURL,
-			LocationNotificationUrl: conf.LocationNotificationURL,
-			TxAckNotificationUrl:    conf.TxAckNotificationURL,
+			ApplicationId:              integration.ApplicationID,
+			Headers:                    headers,
+			UplinkDataUrl:              conf.DataUpURL,
+			JoinNotificationUrl:        conf.JoinNotificationURL,
+			AckNotificationUrl:         conf.ACKNotificationURL,
+			ErrorNotificationUrl:       conf.ErrorNotificationURL,
+			StatusNotificationUrl:      conf.StatusNotificationURL,
+			LocationNotificationUrl:    conf.LocationNotificationURL,
+			TxAckNotificationUrl:       conf.TxAckNotificationURL,
+			IntegrationNotificationUrl: conf.IntegrationNotificationURL,
 		},
 	}, nil
 }
@@ -361,14 +363,15 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.Updat
 	}
 
 	conf := http.Config{
-		Headers:                 headers,
-		DataUpURL:               in.Integration.UplinkDataUrl,
-		JoinNotificationURL:     in.Integration.JoinNotificationUrl,
-		ACKNotificationURL:      in.Integration.AckNotificationUrl,
-		ErrorNotificationURL:    in.Integration.ErrorNotificationUrl,
-		StatusNotificationURL:   in.Integration.StatusNotificationUrl,
-		LocationNotificationURL: in.Integration.LocationNotificationUrl,
-		TxAckNotificationURL:    in.Integration.TxAckNotificationUrl,
+		Headers:                    headers,
+		DataUpURL:                  in.Integration.UplinkDataUrl,
+		JoinNotificationURL:        in.Integration.JoinNotificationUrl,
+		ACKNotificationURL:         in.Integration.AckNotificationUrl,
+		ErrorNotificationURL:       in.Integration.ErrorNotificationUrl,
+		StatusNotificationURL:      in.Integration.StatusNotificationUrl,
+		LocationNotificationURL:    in.Integration.LocationNotificationUrl,
+		TxAckNotificationURL:       in.Integration.TxAckNotificationUrl,
+		IntegrationNotificationURL: in.Integration.IntegrationNotificationUrl,
 	}
 	if err := conf.Validate(); err != nil {
 		return nil, helpers.ErrToRPCError(err)

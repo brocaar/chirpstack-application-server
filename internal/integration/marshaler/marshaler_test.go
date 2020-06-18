@@ -218,6 +218,21 @@ func (ts *MarshalerTestSuite) GetTxAckEvent() integration.TxAckEvent {
 	}
 }
 
+func (ts *MarshalerTestSuite) GetIntegrationEvent() integration.IntegrationEvent {
+	return integration.IntegrationEvent{
+		ApplicationId:   123,
+		ApplicationName: "test-application",
+		DeviceName:      "test-device",
+		DevEui:          []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+		IntegrationName: "foo",
+		EventType:       "bar",
+		ObjectJson:      `{"foo":"bar"}`,
+		Tags: map[string]string{
+			"test": "tag",
+		},
+	}
+}
+
 func (ts *MarshalerTestSuite) TestProtobuf() {
 	uplinkEvent := ts.GetUplinkEvent()
 
@@ -453,6 +468,31 @@ func (ts *MarshalerTestSuite) TestJSONV3() {
 			DeviceName:      "test-device",
 			DevEUI:          lorawan.EUI64{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
 			FCnt:            123,
+			Tags: map[string]string{
+				"test": "tag",
+			},
+		}, pl)
+	})
+
+	ts.T().Run("IntegrationNotification", func(t *testing.T) {
+		event := ts.GetIntegrationEvent()
+
+		assert := require.New(t)
+		b, err := Marshal(JSONV3, &event)
+		assert.NoError(err)
+
+		var pl models.IntegrationNotification
+		assert.NoError(json.Unmarshal(b, &pl))
+
+		assert.Equal(models.IntegrationNotification{
+
+			ApplicationID:   123,
+			ApplicationName: "test-application",
+			DeviceName:      "test-device",
+			DevEUI:          lorawan.EUI64{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+			Object: map[string]interface{}{
+				"foo": "bar",
+			},
 			Tags: map[string]string{
 				"test": "tag",
 			},

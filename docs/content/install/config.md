@@ -281,6 +281,7 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   error_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error"
   status_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status"
   location_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location"
+  integration_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/integration"
 
   # Retained messages configuration.
   #
@@ -293,6 +294,7 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   error_retained_message=false
   status_retained_message=false
   location_retained_message=false
+  integration_retained_message=false
 
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="tcp://localhost:1883"

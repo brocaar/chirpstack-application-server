@@ -121,6 +121,16 @@ func (ts *LoggerTestSuite) TestTxAckEvent() {
 	assert.Equal(toEventLog("txack", &pl), el)
 }
 
+func (ts *LoggerTestSuite) TestIntegrationEvent() {
+	assert := require.New(ts.T())
+	pl := pb.IntegrationEvent{
+		DevEui: ts.devEUI[:],
+	}
+	assert.NoError(ts.integration.HandleIntegrationEvent(context.Background(), nil, nil, pl))
+	el := <-ts.logChannel
+	assert.Equal(toEventLog("integration", &pl), el)
+}
+
 func toEventLog(t string, msg proto.Message) eventlog.EventLog {
 	b, err := marshaler.Marshal(marshaler.ProtobufJSON, msg)
 	if err != nil {

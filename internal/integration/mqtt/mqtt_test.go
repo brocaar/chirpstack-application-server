@@ -46,18 +46,19 @@ func (ts *MQTTHandlerTestSuite) SetupSuite() {
 	ts.integration, err = New(
 		marshaler.Protobuf,
 		config.IntegrationMQTTConfig{
-			Server:                mqttServer,
-			Username:              username,
-			Password:              password,
-			CleanSession:          true,
-			UplinkTopicTemplate:   "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/rx",
-			DownlinkTopicTemplate: "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/tx",
-			JoinTopicTemplate:     "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/join",
-			AckTopicTemplate:      "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/ack",
-			ErrorTopicTemplate:    "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error",
-			StatusTopicTemplate:   "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status",
-			LocationTopicTemplate: "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location",
-			TxAckTopicTemplate:    "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/txack",
+			Server:                   mqttServer,
+			Username:                 username,
+			Password:                 password,
+			CleanSession:             true,
+			UplinkTopicTemplate:      "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/rx",
+			DownlinkTopicTemplate:    "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/tx",
+			JoinTopicTemplate:        "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/join",
+			AckTopicTemplate:         "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/ack",
+			ErrorTopicTemplate:       "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error",
+			StatusTopicTemplate:      "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status",
+			LocationTopicTemplate:    "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location",
+			TxAckTopicTemplate:       "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/txack",
+			IntegrationTopicTemplate: "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/integration",
 		},
 	)
 	assert.NoError(err)
@@ -213,6 +214,26 @@ func (ts *MQTTHandlerTestSuite) TestTxAck() {
 	}
 	assert.NoError(ts.integration.HandleTxAckEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-txAckChan)
+}
+
+func (ts *MQTTHandlerTestSuite) TestIntegration() {
+	assert := require.New(ts.T())
+
+	eventChan := make(chan pb.IntegrationEvent, 1)
+	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/integration", 0, func(c paho.Client, msg paho.Message) {
+		var pl pb.IntegrationEvent
+		assert.NoError(proto.Unmarshal(msg.Payload(), &pl))
+		eventChan <- pl
+	})
+	token.Wait()
+	assert.NoError(token.Error())
+
+	pl := pb.IntegrationEvent{
+		ApplicationId: 123,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
+	}
+	assert.NoError(ts.integration.HandleIntegrationEvent(context.Background(), nil, nil, pl))
+	assert.Equal(pl, <-eventChan)
 }
 
 func (ts *MQTTHandlerTestSuite) TestDownlink() {

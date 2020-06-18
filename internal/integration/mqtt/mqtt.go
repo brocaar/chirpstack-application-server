@@ -33,28 +33,30 @@ const downlinkLockTTL = time.Millisecond * 100
 
 // Integration implements a MQTT integration.
 type Integration struct {
-	marshaler        marshaler.Type
-	conn             mqtt.Client
-	dataDownChan     chan models.DataDownPayload
-	wg               sync.WaitGroup
-	config           config.IntegrationMQTTConfig
-	uplinkTemplate   *template.Template
-	downlinkTemplate *template.Template
-	joinTemplate     *template.Template
-	ackTemplate      *template.Template
-	errorTemplate    *template.Template
-	statusTemplate   *template.Template
-	locationTemplate *template.Template
-	txAckTemplate    *template.Template
-	downlinkTopic    string
-	downlinkRegexp   *regexp.Regexp
-	uplinkRetained   bool
-	joinRetained     bool
-	ackRetained      bool
-	errorRetained    bool
-	statusRetained   bool
-	locationRetained bool
-	txAckRetained    bool
+	marshaler           marshaler.Type
+	conn                mqtt.Client
+	dataDownChan        chan models.DataDownPayload
+	wg                  sync.WaitGroup
+	config              config.IntegrationMQTTConfig
+	uplinkTemplate      *template.Template
+	downlinkTemplate    *template.Template
+	joinTemplate        *template.Template
+	ackTemplate         *template.Template
+	errorTemplate       *template.Template
+	statusTemplate      *template.Template
+	locationTemplate    *template.Template
+	txAckTemplate       *template.Template
+	integrationTemplate *template.Template
+	downlinkTopic       string
+	downlinkRegexp      *regexp.Regexp
+	uplinkRetained      bool
+	joinRetained        bool
+	ackRetained         bool
+	errorRetained       bool
+	statusRetained      bool
+	locationRetained    bool
+	txAckRetained       bool
+	integrationRetained bool
 }
 
 // New creates a new MQTT integration.
@@ -98,6 +100,8 @@ func New(m marshaler.Type, conf config.IntegrationMQTTConfig) (*Integration, err
 	if err != nil {
 		return nil, errors.Wrap(err, "parse tx ack template error")
 	}
+	i.integrationTemplate, err = template.New("integration").Parse(i.config.IntegrationTopicTemplate)
+
 	i.uplinkRetained = i.config.UplinkRetainedMessage
 	i.joinRetained = i.config.JoinRetainedMessage
 	i.ackRetained = i.config.AckRetainedMessage
@@ -105,6 +109,7 @@ func New(m marshaler.Type, conf config.IntegrationMQTTConfig) (*Integration, err
 	i.statusRetained = i.config.StatusRetainedMessage
 	i.locationRetained = i.config.LocationRetainedMessage
 	i.txAckRetained = i.config.TxAckRetainedMessage
+	i.integrationRetained = i.config.IntegrationRetainedMessage
 
 	// generate downlink topic matching all applications and devices
 	topic := bytes.NewBuffer(nil)
@@ -251,6 +256,11 @@ func (i *Integration) HandleLocationEvent(ctx context.Context, _ models.Integrat
 // HandleTxAckEvent sends a TxAckEvent.
 func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.TxAckEvent) error {
 	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.txAckTemplate, i.txAckRetained, &payload)
+}
+
+// HandleIntegrationEvent sends an IntegrationEvent.
+func (i *Integration) HandleIntegrationEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.IntegrationEvent) error {
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.integrationTemplate, i.integrationRetained, &payload)
 }
 
 func (i *Integration) publish(ctx context.Context, applicationID uint64, devEUIB []byte, topicTemplate *template.Template, retained bool, msg proto.Message) error {

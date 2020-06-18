@@ -78,6 +78,8 @@ func marshalJSONV3(msg proto.Message) ([]byte, error) {
 		return jsonv3MarshalLocationEvent(v)
 	case *integration.TxAckEvent:
 		return jsonv3MarshalTxAckEvent(v)
+	case *integration.IntegrationEvent:
+		return jsonv3MarshalIntegrationEvent(v)
 	default:
 		return nil, fmt.Errorf("unknown message type: %T", msg)
 	}
@@ -88,7 +90,6 @@ func jsonv3MarshalUplinkEvent(msg *integration.UplinkEvent) ([]byte, error) {
 	var obj interface{}
 	if msg.ObjectJson != "" {
 		if err := json.Unmarshal([]byte(msg.ObjectJson), &obj); err != nil {
-			fmt.Println(msg.ObjectJson)
 			log.WithError(err).Error("integration/marshaler: unmarshal json error")
 		}
 	}
@@ -286,6 +287,26 @@ func jsonv3MarshalTxAckEvent(msg *integration.TxAckEvent) ([]byte, error) {
 		DeviceName:      msg.DeviceName,
 		FCnt:            msg.FCnt,
 		Tags:            msg.Tags,
+	}
+
+	copy(m.DevEUI[:], msg.DevEui)
+	return json.Marshal(m)
+}
+
+func jsonv3MarshalIntegrationEvent(msg *integration.IntegrationEvent) ([]byte, error) {
+	var obj interface{}
+	if msg.ObjectJson != "" {
+		if err := json.Unmarshal([]byte(msg.ObjectJson), &obj); err != nil {
+			log.WithError(err).Error("integration/marshaler: unmarshal json error")
+		}
+	}
+
+	m := models.IntegrationNotification{
+		ApplicationID:   int64(msg.ApplicationId),
+		ApplicationName: msg.ApplicationName,
+		DeviceName:      msg.DeviceName,
+		Tags:            msg.Tags,
+		Object:          obj,
 	}
 
 	copy(m.DevEUI[:], msg.DevEui)

@@ -85,6 +85,11 @@ func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration
 	return i.publish(ctx, pl.ApplicationId, pl.DevEui, "txack", &pl)
 }
 
+// HandleIntegrationEvent sends an IntegrationEvent.
+func (i *Integration) HandleIntegrationEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.IntegrationEvent) error {
+	return i.publish(ctx, pl.ApplicationId, pl.DevEui, "integration", &pl)
+}
+
 func (i *Integration) publish(ctx context.Context, applicationID uint64, devEUIB []byte, event string, msg proto.Message) error {
 	if i.writer == nil {
 		return fmt.Errorf("integration closed")

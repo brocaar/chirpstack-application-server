@@ -228,6 +228,7 @@ id="{{ .ApplicationServer.ID }}"
   error_topic_template="{{ .ApplicationServer.Integration.MQTT.ErrorTopicTemplate }}"
   status_topic_template="{{ .ApplicationServer.Integration.MQTT.StatusTopicTemplate }}"
   location_topic_template="{{ .ApplicationServer.Integration.MQTT.LocationTopicTemplate }}"
+  integration_topic_template="{{ .ApplicationServer.Integration.MQTT.IntegrationTopicTemplate }}"
 
   # Retained messages configuration.
   #
@@ -240,6 +241,7 @@ id="{{ .ApplicationServer.ID }}"
   error_retained_message={{ .ApplicationServer.Integration.MQTT.ErrorRetainedMessage }}
   status_retained_message={{ .ApplicationServer.Integration.MQTT.StatusRetainedMessage }}
   location_retained_message={{ .ApplicationServer.Integration.MQTT.LocationRetainedMessage }}
+  integration_retained_message={{ .ApplicationServer.Integration.MQTT.IntegrationRetainedMessage }}
 
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="{{ .ApplicationServer.Integration.MQTT.Server }}"

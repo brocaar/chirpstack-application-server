@@ -15,6 +15,7 @@ type Integration interface {
 	HandleStatusEvent(ctx context.Context, vars map[string]string, pl integration.StatusEvent) error
 	HandleLocationEvent(ctx context.Context, vars map[string]string, pl integration.LocationEvent) error
 	HandleTxAckEvent(ctx context.Context, vars map[string]string, pl integration.TxAckEvent) error
+	HandleIntegrationEvent(ctx context.Context, vars map[string]string, pl integration.IntegrationEvent) error
 	DataDownChan() chan DataDownPayload
 }
 
@@ -31,6 +32,7 @@ type IntegrationHandler interface {
 	HandleStatusEvent(ctx context.Context, i Integration, vars map[string]string, pl integration.StatusEvent) error
 	HandleLocationEvent(ctx context.Context, i Integration, vars map[string]string, pl integration.LocationEvent) error
 	HandleTxAckEvent(ctx context.Context, i Integration, vars map[string]string, pl integration.TxAckEvent) error
+	HandleIntegrationEvent(ctx context.Context, i Integration, vars map[string]string, pl integration.IntegrationEvent) error
 	DataDownChan() chan DataDownPayload
 	Close() error
 }

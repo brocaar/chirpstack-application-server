@@ -9,27 +9,29 @@ import (
 
 // Integration implements a mock integration.
 type Integration struct {
-	SendDataUpChan               chan pb.UplinkEvent
-	SendJoinNotificationChan     chan pb.JoinEvent
-	SendACKNotificationChan      chan pb.AckEvent
-	SendErrorNotificationChan    chan pb.ErrorEvent
-	DataDownPayloadChan          chan models.DataDownPayload
-	SendStatusNotificationChan   chan pb.StatusEvent
-	SendLocationNotificationChan chan pb.LocationEvent
-	SendTxAckNotificationChan    chan pb.TxAckEvent
+	SendDataUpChan                  chan pb.UplinkEvent
+	SendJoinNotificationChan        chan pb.JoinEvent
+	SendACKNotificationChan         chan pb.AckEvent
+	SendErrorNotificationChan       chan pb.ErrorEvent
+	DataDownPayloadChan             chan models.DataDownPayload
+	SendStatusNotificationChan      chan pb.StatusEvent
+	SendLocationNotificationChan    chan pb.LocationEvent
+	SendTxAckNotificationChan       chan pb.TxAckEvent
+	SendIntegrationNotificationChan chan pb.IntegrationEvent
 }
 
 // New creates a new mock integration.
 func New() *Integration {
 	return &Integration{
-		SendDataUpChan:               make(chan pb.UplinkEvent, 100),
-		SendJoinNotificationChan:     make(chan pb.JoinEvent, 100),
-		SendACKNotificationChan:      make(chan pb.AckEvent, 100),
-		SendErrorNotificationChan:    make(chan pb.ErrorEvent, 100),
-		DataDownPayloadChan:          make(chan models.DataDownPayload, 100),
-		SendStatusNotificationChan:   make(chan pb.StatusEvent, 100),
-		SendLocationNotificationChan: make(chan pb.LocationEvent, 100),
-		SendTxAckNotificationChan:    make(chan pb.TxAckEvent, 100),
+		SendDataUpChan:                  make(chan pb.UplinkEvent, 100),
+		SendJoinNotificationChan:        make(chan pb.JoinEvent, 100),
+		SendACKNotificationChan:         make(chan pb.AckEvent, 100),
+		SendErrorNotificationChan:       make(chan pb.ErrorEvent, 100),
+		DataDownPayloadChan:             make(chan models.DataDownPayload, 100),
+		SendStatusNotificationChan:      make(chan pb.StatusEvent, 100),
+		SendLocationNotificationChan:    make(chan pb.LocationEvent, 100),
+		SendTxAckNotificationChan:       make(chan pb.TxAckEvent, 100),
+		SendIntegrationNotificationChan: make(chan pb.IntegrationEvent, 100),
 	}
 }
 
@@ -82,5 +84,11 @@ func (i *Integration) HandleLocationEvent(ctx context.Context, vars map[string]s
 // HandleTxAckEvent sends a TxAckEvent.
 func (i *Integration) HandleTxAckEvent(ctx context.Context, vars map[string]string, payload pb.TxAckEvent) error {
 	i.SendTxAckNotificationChan <- payload
+	return nil
+}
+
+// HandleIntegrationEvent sends an IntegrationEvent.
+func (i *Integration) HandleIntegrationEvent(ctx context.Context, vars map[string]string, payload pb.IntegrationEvent) error {
+	i.SendIntegrationNotificationChan <- payload
 	return nil
 }

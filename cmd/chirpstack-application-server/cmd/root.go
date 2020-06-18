@@ -57,6 +57,7 @@ func init() {
 	viper.SetDefault("application_server.integration.mqtt.status_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status")
 	viper.SetDefault("application_server.integration.mqtt.location_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location")
 	viper.SetDefault("application_server.integration.mqtt.tx_ack_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/txack")
+	viper.SetDefault("application_server.integration.mqtt.integration_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/integration")
 	viper.SetDefault("application_server.integration.mqtt.clean_session", true)
 	viper.SetDefault("application_server.integration.kafka.brokers", []string{"localhost:9092"})
 	viper.SetDefault("application_server.integration.kafka.topic", "chirpstack_as")

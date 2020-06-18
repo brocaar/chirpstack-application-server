@@ -208,6 +208,16 @@ class HTTPIntegrationForm extends FormComponent {
             fullWidth
           />
           <TextField
+            id="integrationNotificationURL"
+            label="Integration notification URL(s)"
+            placeholder="http://example.com/integration"
+            helperText="This notification can by sent by configured integrations to send custom payloads. Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
+            value={this.state.object.integrationNotificationURL || ""}
+            onChange={this.onChange}
+            margin="normal"
+            fullWidth
+          />
+          <TextField
             id="errorNotificationURL"
             label="Error notification URL(s)"
             placeholder="http://example.com/error"

@@ -230,6 +230,27 @@ func (ts *IntegrationTestSuite) TestTxAckEvent() {
 	assert.True(proto.Equal(&pl, &plReceived))
 }
 
+func (ts *IntegrationTestSuite) TestIntegrationEvent() {
+	assert := require.New(ts.T())
+
+	pl := pb.IntegrationEvent{
+		ApplicationId: ts.applicationID,
+		DevEui:        ts.devEUI[:],
+	}
+
+	assert.NoError(ts.integration.HandleIntegrationEvent(context.Background(), nil, nil, pl))
+
+	msg := <-ts.amqpEventChan
+
+	assert.Equal("application.10.device.0102030405060708.event.integration", msg.RoutingKey)
+	assert.Equal("application/octet-stream", msg.ContentType)
+
+	var plReceived pb.IntegrationEvent
+
+	assert.NoError(proto.Unmarshal(msg.Body, &plReceived))
+	assert.True(proto.Equal(&pl, &plReceived))
+}
+
 func TestIntegration(t *testing.T) {
 	suite.Run(t, new(IntegrationTestSuite))
 }

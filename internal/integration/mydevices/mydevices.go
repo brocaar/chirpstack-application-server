@@ -165,6 +165,11 @@ func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration
 	return nil
 }
 
+// HandleIntegrationEvent is not implemented.
+func (i *Integration) HandleIntegrationEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.IntegrationEvent) error {
+	return nil
+}
+
 // DataDownChan is not implemented.
 func (i *Integration) DataDownChan() chan models.DataDownPayload {
 	return nil

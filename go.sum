@@ -81,8 +81,8 @@ github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6r
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/blakesmith/ar v0.0.0-20150311145944-8bd4349a67f2 h1:oMCHnXa6CCCafdPDbMh/lWRhRByN0VFLvv+g+ayx1SI=
 github.com/blakesmith/ar v0.0.0-20150311145944-8bd4349a67f2/go.mod h1:PkYb9DJNAwrSvRx5DYA+gUcOIgTGVMNkfSCbZM8cWpI=
-github.com/brocaar/chirpstack-api/go/v3 v3.6.8 h1:5v88p7OQypa34Vir9blTMags/DJUEVSw4LhsH11b4Do=
-github.com/brocaar/chirpstack-api/go/v3 v3.6.8/go.mod h1:ex/wqXQaClwDMa2zDN6crp9ZiMGc1GMVQhjxiB+OJcg=
+github.com/brocaar/chirpstack-api/go/v3 v3.6.10 h1:UDk/KWe+W76juXOxTMEr1wVKhs2NXkYoy05rhqmUGwE=
+github.com/brocaar/chirpstack-api/go/v3 v3.6.10/go.mod h1:ex/wqXQaClwDMa2zDN6crp9ZiMGc1GMVQhjxiB+OJcg=
 github.com/brocaar/grpc-websocket-proxy v1.0.0 h1:Z45a0W3y9jaYf/vcHL8961M104ZTDkrmR3bVbzdUjsw=
 github.com/brocaar/grpc-websocket-proxy v1.0.0/go.mod h1:MzueoeqOElZxUy6+jxbCrKqsLh/HSDlpKLIqmnx5aXo=
 github.com/brocaar/lorawan v0.0.0-20191115102621-6095d473cf60 h1:jecx8QFcsUAWZojNIqOZaoAWFwkBbd3VOHZ3kv6FQxE=

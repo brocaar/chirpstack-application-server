@@ -85,6 +85,14 @@ func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration
 	return i.log(ctx, eventlog.TxAck, devEUI, &pl)
 }
 
+// HandleIntegrationEvent sends an IntegrationEvent.
+func (i *Integration) HandleIntegrationEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.IntegrationEvent) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
+	return i.log(ctx, eventlog.Integration, devEUI, &pl)
+}
+
 // Close is not implemented.
 func (i *Integration) Close() error {
 	return nil

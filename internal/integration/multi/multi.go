@@ -175,6 +175,27 @@ func (i *Integration) HandleTxAckEvent(ctx context.Context, vars map[string]stri
 	return nil
 }
 
+// HandleIntegrationEvent sends an IntegrationEvent.
+func (i *Integration) HandleIntegrationEvent(ctx context.Context, vars map[string]string, pl pb.IntegrationEvent) error {
+	defer i.closeAppIntegrations()
+
+	for _, ii := range i.integrations() {
+		i.wg.Add(1)
+
+		go func(ii models.IntegrationHandler) {
+			defer i.wg.Done()
+			if err := ii.HandleIntegrationEvent(ctx, i, vars, pl); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"integration": fmt.Sprintf("%T", ii),
+					"ctx_id":      ctx.Value(logging.ContextIDKey),
+				}).Error("integration/multi: integration error")
+			}
+		}(ii)
+	}
+
+	return nil
+}
+
 // DataDownChan returns the channel containing the received DataDownPayload.
 func (i *Integration) DataDownChan() chan models.DataDownPayload {
 	defer i.closeAppIntegrations()

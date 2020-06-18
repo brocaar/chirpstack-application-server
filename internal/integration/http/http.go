@@ -24,14 +24,15 @@ var headerNameValidator = regexp.MustCompile(`^[A-Za-z0-9-]+$`)
 
 // Config contains the configuration for the HTTP integration.
 type Config struct {
-	Headers                 map[string]string `json:"headers"`
-	DataUpURL               string            `json:"dataUpURL"`
-	JoinNotificationURL     string            `json:"joinNotificationURL"`
-	ACKNotificationURL      string            `json:"ackNotificationURL"`
-	ErrorNotificationURL    string            `json:"errorNotificationURL"`
-	StatusNotificationURL   string            `json:"statusNotificationURL"`
-	LocationNotificationURL string            `json:"locationNotificationURL"`
-	TxAckNotificationURL    string            `json:"txAckNotificationURL"`
+	Headers                    map[string]string `json:"headers"`
+	DataUpURL                  string            `json:"dataUpURL"`
+	JoinNotificationURL        string            `json:"joinNotificationURL"`
+	ACKNotificationURL         string            `json:"ackNotificationURL"`
+	ErrorNotificationURL       string            `json:"errorNotificationURL"`
+	StatusNotificationURL      string            `json:"statusNotificationURL"`
+	LocationNotificationURL    string            `json:"locationNotificationURL"`
+	TxAckNotificationURL       string            `json:"txAckNotificationURL"`
+	IntegrationNotificationURL string            `json:"integrationNotificationURL"`
 }
 
 // Validate validates the HandlerConfig data.
@@ -194,6 +195,18 @@ func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration
 
 	for _, url := range getURLs(i.config.TxAckNotificationURL) {
 		i.sendEvent(ctx, "txack", url, devEUI, &pl)
+	}
+
+	return nil
+}
+
+// HandleIntegrationEvent sends an IntegrationEvent.
+func (i *Integration) HandleIntegrationEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.IntegrationEvent) error {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+
+	for _, url := range getURLs(i.config.IntegrationNotificationURL) {
+		i.sendEvent(ctx, "integration", url, devEUI, &pl)
 	}
 
 	return nil

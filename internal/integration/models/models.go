@@ -1,22 +1,12 @@
 package models
 
 import (
-	"encoding/gob"
 	"encoding/json"
 	"time"
 
 	"github.com/brocaar/lorawan"
 	"github.com/gofrs/uuid"
 )
-
-func init() {
-	gob.Register(DataUpPayload{})
-	gob.Register(JoinNotification{})
-	gob.Register(ACKNotification{})
-	gob.Register(ErrorNotification{})
-	gob.Register(StatusNotification{})
-	gob.Register(LocationNotification{})
-}
 
 // Location details.
 type Location struct {
@@ -147,4 +137,14 @@ type TxAckNotification struct {
 	FCnt            uint32            `json:"fCnt"`
 	Tags            map[string]string `json:"tags,omitempty"`
 	Variables       map[string]string `json:"-"`
+}
+
+// IntegrationNotification defines the payload for the integration event.
+type IntegrationNotification struct {
+	ApplicationID   int64             `json:"applicationID,string"`
+	ApplicationName string            `json:"applicationName"`
+	DeviceName      string            `json:"deviceName"`
+	DevEUI          lorawan.EUI64     `json:"devEUI"`
+	Tags            map[string]string `json:"tags,omitempty"`
+	Object          interface{}       `json:"object"`
 }

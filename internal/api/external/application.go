@@ -266,7 +266,11 @@ func (a *ApplicationAPI) CreateHTTPIntegration(ctx context.Context, in *pb.Creat
 	}
 
 	conf := http.Config{
-		Headers:                    headers,
+		Headers:          headers,
+		EventEndpointURL: in.Integration.EventEndpointUrl,
+		Marshaler:        in.Integration.Marshaler.String(),
+
+		// Backwards compatibility.
 		DataUpURL:                  in.Integration.UplinkDataUrl,
 		JoinNotificationURL:        in.Integration.JoinNotificationUrl,
 		ACKNotificationURL:         in.Integration.AckNotificationUrl,
@@ -326,8 +330,12 @@ func (a *ApplicationAPI) GetHTTPIntegration(ctx context.Context, in *pb.GetHTTPI
 
 	return &pb.GetHTTPIntegrationResponse{
 		Integration: &pb.HTTPIntegration{
-			ApplicationId:              integration.ApplicationID,
-			Headers:                    headers,
+			ApplicationId:    integration.ApplicationID,
+			Headers:          headers,
+			EventEndpointUrl: conf.EventEndpointURL,
+			Marshaler:        pb.Marshaler(pb.Marshaler_value[conf.Marshaler]),
+
+			// Backwards compatibility.
 			UplinkDataUrl:              conf.DataUpURL,
 			JoinNotificationUrl:        conf.JoinNotificationURL,
 			AckNotificationUrl:         conf.ACKNotificationURL,
@@ -363,7 +371,11 @@ func (a *ApplicationAPI) UpdateHTTPIntegration(ctx context.Context, in *pb.Updat
 	}
 
 	conf := http.Config{
-		Headers:                    headers,
+		Headers:          headers,
+		EventEndpointURL: in.Integration.EventEndpointUrl,
+		Marshaler:        in.Integration.Marshaler.String(),
+
+		// Backwards compatibility.
 		DataUpURL:                  in.Integration.UplinkDataUrl,
 		JoinNotificationURL:        in.Integration.JoinNotificationUrl,
 		ACKNotificationURL:         in.Integration.AckNotificationUrl,

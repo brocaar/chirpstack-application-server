@@ -232,6 +232,9 @@ func (ts *APITestSuite) TestApplication() {
 						Headers: []*pb.HTTPIntegrationHeader{
 							{Key: "Foo", Value: "bar"},
 						},
+						EventEndpointUrl: "http://event",
+						Marshaler:        pb.Marshaler_PROTOBUF,
+
 						UplinkDataUrl:           "http://up",
 						JoinNotificationUrl:     "http://join",
 						AckNotificationUrl:      "http://ack",
@@ -270,6 +273,9 @@ func (ts *APITestSuite) TestApplication() {
 
 					req := pb.UpdateHTTPIntegrationRequest{
 						Integration: &pb.HTTPIntegration{
+							EventEndpointUrl: "http://event2",
+							Marshaler:        pb.Marshaler_JSON,
+
 							ApplicationId:           createResp.Id,
 							UplinkDataUrl:           "http://up2",
 							JoinNotificationUrl:     "http://join2",

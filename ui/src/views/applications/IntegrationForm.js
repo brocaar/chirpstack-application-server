@@ -91,19 +91,12 @@ HTTPIntegrationHeaderForm = withStyles(styles)(HTTPIntegrationHeaderForm);
 
 
 class HTTPIntegrationForm extends FormComponent {
-  constructor() {
-    super();
-    this.addHeader = this.addHeader.bind(this);
-    this.onDeleteHeader = this.onDeleteHeader.bind(this);
-    this.onChangeHeader = this.onChangeHeader.bind(this);
-  }
-
   onChange(e) {
     super.onChange(e);
     this.props.onChange(this.state.object);
   }
 
-  addHeader(e) {
+  addHeader = (e) => {
     e.preventDefault();
 
     let object = this.state.object;
@@ -116,16 +109,26 @@ class HTTPIntegrationForm extends FormComponent {
     this.props.onChange(object);
   }
 
-  onDeleteHeader(index) {
+  onDeleteHeader = (index) => {
     let object = this.state.object;
     object.headers.splice(index, 1);
     this.props.onChange(object);
   }
 
-  onChangeHeader(index, header) {
+  onChangeHeader = (index, header) => {
     let object = this.state.object;
     object.headers[index] = header;
     this.props.onChange(object);
+  }
+
+  getMarshalerOptions = (search, callbackFunc) => {
+    const marshalerOptions = [
+      {value: "JSON", label: "JSON"},
+      {value: "PROTOBUF", label: "Protocol Buffers"},
+      {value: "JSON_V3", label: "JSON (legacy, will be deprecated)"},
+    ];
+
+    callbackFunc(marshalerOptions);
   }
 
   render() {
@@ -141,6 +144,17 @@ class HTTPIntegrationForm extends FormComponent {
     return(
       <div>
         <FormControl fullWidth margin="normal">
+          <FormLabel required>Payload marshaler</FormLabel>
+          <AutocompleteSelect
+            id="marshaler"
+            label="Select payload marshaler"
+            value={this.state.object.marshaler || ""}
+            onChange={this.onChange}
+            getOptions={this.getMarshalerOptions}
+          />
+          <FormHelperText>This defines how the payload will be encoded.</FormHelperText>
+        </FormControl>
+        <FormControl fullWidth margin="normal">
           <FormLabel>Headers</FormLabel>
           {headers}
         </FormControl>
@@ -148,6 +162,16 @@ class HTTPIntegrationForm extends FormComponent {
         <FormControl fullWidth margin="normal">
           <FormLabel>Endpoints</FormLabel>
           <TextField
+            id="eventEndpointURL"
+            label="Endpoint URL(s) for events"
+            placeholder="http://example.com/events"
+            helperText="ChirpStack will make a POST request to this URL(s) with 'eventType' as query parameter. Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
+            value={this.state.object.eventEndpointURL || ""}
+            onChange={this.onChange}
+            margin="normal"
+            fullWidth
+          />
+          {!!this.state.object.uplinkDataURL && <TextField
             id="uplinkDataURL"
             label="Uplink data URL(s)"
             placeholder="http://example.com/uplink"
@@ -156,8 +180,8 @@ class HTTPIntegrationForm extends FormComponent {
             onChange={this.onChange}
             margin="normal"
             fullWidth
-          />
-          <TextField
+          />}
+          {!!this.state.object.joinNotificationURL && <TextField
             id="joinNotificationURL"
             label="Join notification URL(s)"
             placeholder="http://example.com/join"
@@ -166,8 +190,8 @@ class HTTPIntegrationForm extends FormComponent {
             onChange={this.onChange}
             margin="normal"
             fullWidth
-          />
-          <TextField
+          />}
+          {!!this.state.object.statusNotificationURL && <TextField
             id="statusNotificationURL"
             label="Device-status notification URL(s)"
             placeholder="http://example.com/status"
@@ -176,8 +200,8 @@ class HTTPIntegrationForm extends FormComponent {
             onChange={this.onChange}
             margin="normal"
             fullWidth
-          />
-          <TextField
+          />}
+          {!!this.state.object.locationNotificationURL && <TextField
             id="locationNotificationURL"
             label="Location notification URL(s)"
             placeholder="http://example.com/location"
@@ -186,8 +210,8 @@ class HTTPIntegrationForm extends FormComponent {
             onChange={this.onChange}
             margin="normal"
             fullWidth
-          />
-          <TextField
+          />}
+          {!!this.state.object.ackNotificationURL && <TextField
             id="ackNotificationURL"
             label="ACK notification URL(s)"
             placeholder="http://example.com/ack"
@@ -196,8 +220,8 @@ class HTTPIntegrationForm extends FormComponent {
             onChange={this.onChange}
             margin="normal"
             fullWidth
-          />
-          <TextField
+          />}
+          {!!this.state.object.txAckNotificationURL && <TextField
             id="txAckNotificationURL"
             label="TX ACK notification URL(s)"
             placeholder="http://example.com/txack"
@@ -206,8 +230,8 @@ class HTTPIntegrationForm extends FormComponent {
             onChange={this.onChange}
             margin="normal"
             fullWidth
-          />
-          <TextField
+          />}
+          {!!this.state.object.integrationNotificationURL && <TextField
             id="integrationNotificationURL"
             label="Integration notification URL(s)"
             placeholder="http://example.com/integration"
@@ -216,8 +240,8 @@ class HTTPIntegrationForm extends FormComponent {
             onChange={this.onChange}
             margin="normal"
             fullWidth
-          />
-          <TextField
+          />}
+          {!!this.state.object.errorNotificationURL && <TextField
             id="errorNotificationURL"
             label="Error notification URL(s)"
             placeholder="http://example.com/error"
@@ -226,7 +250,7 @@ class HTTPIntegrationForm extends FormComponent {
             onChange={this.onChange}
             margin="normal"
             fullWidth
-          />
+          />}
         </FormControl>
       </div>
     );

@@ -210,38 +210,18 @@ id="{{ .ApplicationServer.ID }}"
 
   # MQTT integration backend.
   [application_server.integration.mqtt]
-  # MQTT topic templates for the different MQTT topics.
-  #
-  # The meaning of these topics are documented at:
-  # https://www.chirpstack.io/application-server/integrate/data/
-  #
-  # The following substitutions can be used:
-  # * "{{ "{{ .ApplicationID }}" }}" for the application id.
-  # * "{{ "{{ .DevEUI }}" }}" for the DevEUI of the device.
-  #
-  # Note: the downlink_topic_template must contain both the application id and
-  # DevEUI substitution!
-  uplink_topic_template="{{ .ApplicationServer.Integration.MQTT.UplinkTopicTemplate }}"
-  downlink_topic_template="{{ .ApplicationServer.Integration.MQTT.DownlinkTopicTemplate }}"
-  join_topic_template="{{ .ApplicationServer.Integration.MQTT.JoinTopicTemplate }}"
-  ack_topic_template="{{ .ApplicationServer.Integration.MQTT.AckTopicTemplate }}"
-  error_topic_template="{{ .ApplicationServer.Integration.MQTT.ErrorTopicTemplate }}"
-  status_topic_template="{{ .ApplicationServer.Integration.MQTT.StatusTopicTemplate }}"
-  location_topic_template="{{ .ApplicationServer.Integration.MQTT.LocationTopicTemplate }}"
-  integration_topic_template="{{ .ApplicationServer.Integration.MQTT.IntegrationTopicTemplate }}"
+  # Event topic template.
+  event_topic_template="{{ .ApplicationServer.Integration.MQTT.EventTopicTemplate }}"
 
-  # Retained messages configuration.
+  # Command topic template.
+  command_topic_template="{{ .ApplicationServer.Integration.MQTT.CommandTopicTemplate }}"
+
+  # Retain events.
   #
-  # The MQTT broker will store the last publised message, when retained message is set
-  # to true. When a client subscribes to a topic with retained message set to true, it will
-  # always receive the last published message.
-  uplink_retained_message={{ .ApplicationServer.Integration.MQTT.UplinkRetainedMessage }}
-  join_retained_message={{ .ApplicationServer.Integration.MQTT.JoinRetainedMessage }}
-  ack_retained_message={{ .ApplicationServer.Integration.MQTT.AckRetainedMessage }}
-  error_retained_message={{ .ApplicationServer.Integration.MQTT.ErrorRetainedMessage }}
-  status_retained_message={{ .ApplicationServer.Integration.MQTT.StatusRetainedMessage }}
-  location_retained_message={{ .ApplicationServer.Integration.MQTT.LocationRetainedMessage }}
-  integration_retained_message={{ .ApplicationServer.Integration.MQTT.IntegrationRetainedMessage }}
+  # The MQTT broker will store the last publised message, when retain events is set
+  # to true. When a MQTT client connects and subscribes, it will always receive the
+  # last published message.
+  retain_events={{ .ApplicationServer.Integration.MQTT.RetainEvents }}
 
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="{{ .ApplicationServer.Integration.MQTT.Server }}"

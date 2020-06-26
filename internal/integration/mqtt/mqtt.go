@@ -33,11 +33,18 @@ const downlinkLockTTL = time.Millisecond * 100
 
 // Integration implements a MQTT integration.
 type Integration struct {
-	marshaler           marshaler.Type
-	conn                mqtt.Client
-	dataDownChan        chan models.DataDownPayload
-	wg                  sync.WaitGroup
-	config              config.IntegrationMQTTConfig
+	marshaler            marshaler.Type
+	conn                 mqtt.Client
+	dataDownChan         chan models.DataDownPayload
+	wg                   sync.WaitGroup
+	config               config.IntegrationMQTTConfig
+	eventTopicTemplate   *template.Template
+	commandTopicTemplate *template.Template
+	downlinkTopic        string
+	downlinkRegexp       *regexp.Regexp
+	retainEvents         bool
+
+	// For backwards compatibility.
 	uplinkTemplate      *template.Template
 	downlinkTemplate    *template.Template
 	joinTemplate        *template.Template
@@ -47,8 +54,6 @@ type Integration struct {
 	locationTemplate    *template.Template
 	txAckTemplate       *template.Template
 	integrationTemplate *template.Template
-	downlinkTopic       string
-	downlinkRegexp      *regexp.Regexp
 	uplinkRetained      bool
 	joinRetained        bool
 	ackRetained         bool
@@ -68,40 +73,71 @@ func New(m marshaler.Type, conf config.IntegrationMQTTConfig) (*Integration, err
 		config:       conf,
 	}
 
-	i.uplinkTemplate, err = template.New("uplink").Parse(i.config.UplinkTopicTemplate)
+	i.retainEvents = i.config.RetainEvents
+	i.eventTopicTemplate, err = template.New("event").Parse(i.config.EventTopicTemplate)
 	if err != nil {
-		return nil, errors.Wrap(err, "parse uplink template error")
+		return nil, errors.Wrap(err, "parse event template error")
 	}
-	i.downlinkTemplate, err = template.New("downlink").Parse(i.config.DownlinkTopicTemplate)
+	i.commandTopicTemplate, err = template.New("command").Parse(i.config.CommandTopicTemplate)
 	if err != nil {
-		return nil, errors.Wrap(err, "parse downlink template error")
+		return nil, errors.Wrap(err, "parse command template error")
 	}
-	i.joinTemplate, err = template.New("join").Parse(i.config.JoinTopicTemplate)
-	if err != nil {
-		return nil, errors.Wrap(err, "parse join template error")
-	}
-	i.ackTemplate, err = template.New("ack").Parse(i.config.AckTopicTemplate)
-	if err != nil {
-		return nil, errors.Wrap(err, "parse ack template error")
-	}
-	i.errorTemplate, err = template.New("error").Parse(i.config.ErrorTopicTemplate)
-	if err != nil {
-		return nil, errors.Wrap(err, "parse error template error")
-	}
-	i.statusTemplate, err = template.New("status").Parse(i.config.StatusTopicTemplate)
-	if err != nil {
-		return nil, errors.Wrap(err, "parse status template error")
-	}
-	i.locationTemplate, err = template.New("location").Parse(i.config.LocationTopicTemplate)
-	if err != nil {
-		return nil, errors.Wrap(err, "parse location template error")
-	}
-	i.txAckTemplate, err = template.New("txack").Parse(i.config.TxAckTopicTemplate)
-	if err != nil {
-		return nil, errors.Wrap(err, "parse tx ack template error")
-	}
-	i.integrationTemplate, err = template.New("integration").Parse(i.config.IntegrationTopicTemplate)
 
+	// For backwards compatibility.
+	if i.config.UplinkTopicTemplate != "" {
+		i.uplinkTemplate, err = template.New("uplink").Parse(i.config.UplinkTopicTemplate)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse uplink template error")
+		}
+	}
+	if i.config.DownlinkTopicTemplate != "" {
+		i.downlinkTemplate, err = template.New("downlink").Parse(i.config.DownlinkTopicTemplate)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse downlink template error")
+		}
+	}
+	if i.config.JoinTopicTemplate != "" {
+		i.joinTemplate, err = template.New("join").Parse(i.config.JoinTopicTemplate)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse join template error")
+		}
+	}
+	if i.config.AckTopicTemplate != "" {
+		i.ackTemplate, err = template.New("ack").Parse(i.config.AckTopicTemplate)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse ack template error")
+		}
+	}
+	if i.config.ErrorTopicTemplate != "" {
+		i.errorTemplate, err = template.New("error").Parse(i.config.ErrorTopicTemplate)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse error template error")
+		}
+	}
+	if i.config.StatusTopicTemplate != "" {
+		i.statusTemplate, err = template.New("status").Parse(i.config.StatusTopicTemplate)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse status template error")
+		}
+	}
+	if i.config.LocationTopicTemplate != "" {
+		i.locationTemplate, err = template.New("location").Parse(i.config.LocationTopicTemplate)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse location template error")
+		}
+	}
+	if i.config.TxAckTopicTemplate != "" {
+		i.txAckTemplate, err = template.New("txack").Parse(i.config.TxAckTopicTemplate)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse tx ack template error")
+		}
+	}
+	if i.config.IntegrationTopicTemplate != "" {
+		i.integrationTemplate, err = template.New("integration").Parse(i.config.IntegrationTopicTemplate)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse integration template error")
+		}
+	}
 	i.uplinkRetained = i.config.UplinkRetainedMessage
 	i.joinRetained = i.config.JoinRetainedMessage
 	i.ackRetained = i.config.AckRetainedMessage
@@ -112,28 +148,15 @@ func New(m marshaler.Type, conf config.IntegrationMQTTConfig) (*Integration, err
 	i.integrationRetained = i.config.IntegrationRetainedMessage
 
 	// generate downlink topic matching all applications and devices
-	topic := bytes.NewBuffer(nil)
-	err = i.downlinkTemplate.Execute(topic, struct {
-		ApplicationID string
-		DevEUI        string
-	}{"+", "+"})
+	i.downlinkTopic, err = i.getDownlinkTopic()
 	if err != nil {
-		return nil, errors.Wrap(err, "execute template error")
+		return nil, errors.Wrap(err, "get downlink topic error")
 	}
-	i.downlinkTopic = topic.String()
 
 	// generate downlink topic regexp
-	topic.Reset()
-	err = i.downlinkTemplate.Execute(topic, struct {
-		ApplicationID string
-		DevEUI        string
-	}{`(?P<application_id>\w+)`, `(?P<dev_eui>\w+)`})
+	i.downlinkRegexp, err = i.getDownlinkTopicRegexp()
 	if err != nil {
-		return nil, errors.Wrap(err, "execute template error")
-	}
-	i.downlinkRegexp, err = regexp.Compile(topic.String())
-	if err != nil {
-		return nil, errors.Wrap(err, "compile regexp error")
+		return nil, errors.Wrap(err, "get downlink topic regexp error")
 	}
 
 	opts := mqtt.NewClientOptions()
@@ -225,56 +248,54 @@ func (i *Integration) Close() error {
 
 // HandleUplinkEvent sends an UplinkEvent.
 func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.UplinkEvent) error {
-	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.uplinkTemplate, i.uplinkRetained, &payload)
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, "up", &payload)
 }
 
 // HandleJoinEvent sends a JoinEvent.
 func (i *Integration) HandleJoinEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.JoinEvent) error {
-	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.joinTemplate, i.joinRetained, &payload)
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, "join", &payload)
 }
 
 // HandleAckEvent sends an AckEvent.
 func (i *Integration) HandleAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.AckEvent) error {
-	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.ackTemplate, i.ackRetained, &payload)
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, "ack", &payload)
 }
 
 // HandleErrorEvent sends an ErrorEvent.
 func (i *Integration) HandleErrorEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.ErrorEvent) error {
-	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.errorTemplate, i.errorRetained, &payload)
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, "error", &payload)
 }
 
 // HandleStatusEvent sends a StatusEvent.
 func (i *Integration) HandleStatusEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.StatusEvent) error {
-	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.statusTemplate, i.statusRetained, &payload)
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, "status", &payload)
 }
 
 // HandleLocationEvent sends a LocationEvent.
 func (i *Integration) HandleLocationEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.LocationEvent) error {
-	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.locationTemplate, i.locationRetained, &payload)
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, "location", &payload)
 }
 
 // HandleTxAckEvent sends a TxAckEvent.
 func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.TxAckEvent) error {
-	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.txAckTemplate, i.txAckRetained, &payload)
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, "txack", &payload)
 }
 
 // HandleIntegrationEvent sends an IntegrationEvent.
 func (i *Integration) HandleIntegrationEvent(ctx context.Context, _ models.Integration, vars map[string]string, payload pb.IntegrationEvent) error {
-	return i.publish(ctx, payload.ApplicationId, payload.DevEui, i.integrationTemplate, i.integrationRetained, &payload)
+	return i.publish(ctx, payload.ApplicationId, payload.DevEui, "integration", &payload)
 }
 
-func (i *Integration) publish(ctx context.Context, applicationID uint64, devEUIB []byte, topicTemplate *template.Template, retained bool, msg proto.Message) error {
+func (i *Integration) publish(ctx context.Context, applicationID uint64, devEUIB []byte, eventType string, msg proto.Message) error {
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], devEUIB)
 
-	topic := bytes.NewBuffer(nil)
-	err := topicTemplate.Execute(topic, struct {
-		ApplicationID uint64
-		DevEUI        lorawan.EUI64
-	}{applicationID, devEUI})
+	topic, err := i.getTopic(applicationID, devEUI, eventType)
 	if err != nil {
-		return errors.Wrap(err, "execute template error")
+		return errors.Wrap(err, "get topic error")
 	}
+
+	retain := i.getRetainEvents(eventType)
 
 	b, err := marshaler.Marshal(i.marshaler, msg)
 	if err != nil {
@@ -282,11 +303,13 @@ func (i *Integration) publish(ctx context.Context, applicationID uint64, devEUIB
 	}
 
 	log.WithFields(log.Fields{
-		"topic":  topic.String(),
-		"qos":    i.config.QOS,
-		"ctx_id": ctx.Value(logging.ContextIDKey),
-	}).Info("integration/mqtt: publishing message")
-	if token := i.conn.Publish(topic.String(), i.config.QOS, retained, b); token.Wait() && token.Error() != nil {
+		"dev_eui": devEUI,
+		"retain":  retain,
+		"topic":   topic,
+		"qos":     i.config.QOS,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
+	}).Info("integration/mqtt: publishing event")
+	if token := i.conn.Publish(topic, i.config.QOS, retain, b); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 
@@ -337,7 +360,7 @@ func (i *Integration) txPayloadHandler(mqttc mqtt.Client, msg mqtt.Message) {
 	i.wg.Add(1)
 	defer i.wg.Done()
 
-	log.WithField("topic", msg.Topic()).Info("integration/mqtt: data-down payload received")
+	log.WithField("topic", msg.Topic()).Info("integration/mqtt: downlink event received")
 	topicApplicationID, topicDevEUI, err := i.getTXTopicVariables(msg.Topic())
 	if err != nil {
 		log.WithError(err).Warning("integration/mqtt: get variables from topic error")
@@ -401,4 +424,114 @@ func (i *Integration) onConnected(mqttc mqtt.Client) {
 
 func (i *Integration) onConnectionLost(mqttc mqtt.Client, reason error) {
 	log.Errorf("integration/mqtt: mqtt connection error: %s", reason)
+}
+
+func (i *Integration) getDownlinkTopic() (string, error) {
+	topic := bytes.NewBuffer(nil)
+	topicTemplate := i.commandTopicTemplate
+	if i.downlinkTemplate != nil {
+		topicTemplate = i.downlinkTemplate
+	}
+
+	err := topicTemplate.Execute(topic, struct {
+		ApplicationID string
+		DevEUI        string
+		CommandType   string
+	}{"+", "+", "down"})
+	if err != nil {
+		return "", errors.Wrap(err, "execute template error")
+	}
+	return topic.String(), nil
+}
+
+func (i *Integration) getDownlinkTopicRegexp() (*regexp.Regexp, error) {
+	topic := bytes.NewBuffer(nil)
+	topicTemplate := i.commandTopicTemplate
+	if i.downlinkTemplate != nil {
+		topicTemplate = i.downlinkTemplate
+	}
+
+	err := topicTemplate.Execute(topic, struct {
+		ApplicationID string
+		DevEUI        string
+		CommandType   string
+	}{`(?P<application_id>\w+)`, `(?P<dev_eui>\w+)`, `(?P<command_type>\w)`})
+	if err != nil {
+		return nil, errors.Wrap(err, "execute template error")
+	}
+
+	r, err := regexp.Compile(topic.String())
+	if err != nil {
+		return nil, errors.Wrap(err, "compile regexp error")
+	}
+
+	return r, nil
+}
+
+func (i *Integration) getTopic(applicationID uint64, devEUI lorawan.EUI64, eventType string) (string, error) {
+	var topicTemplate *template.Template
+
+	// For backwards compatibility.
+	switch eventType {
+	case "up":
+		topicTemplate = i.uplinkTemplate
+	case "join":
+		topicTemplate = i.joinTemplate
+	case "ack":
+		topicTemplate = i.ackTemplate
+	case "error":
+		topicTemplate = i.errorTemplate
+	case "status":
+		topicTemplate = i.statusTemplate
+	case "location":
+		topicTemplate = i.locationTemplate
+	case "txack":
+		topicTemplate = i.txAckTemplate
+	case "integration":
+		topicTemplate = i.integrationTemplate
+	}
+
+	if topicTemplate == nil {
+		topicTemplate = i.eventTopicTemplate
+	}
+
+	topic := bytes.NewBuffer(nil)
+	err := topicTemplate.Execute(topic, struct {
+		ApplicationID uint64
+		DevEUI        lorawan.EUI64
+		EventType     string
+	}{applicationID, devEUI, eventType})
+	if err != nil {
+		return "", errors.Wrap(err, "execute template error")
+	}
+
+	return topic.String(), nil
+}
+
+func (i *Integration) getRetainEvents(eventType string) bool {
+	if i.retainEvents {
+		return true
+	}
+
+	// For backwards compatibility
+	switch eventType {
+	case "up":
+		return i.uplinkRetained
+	case "join":
+		return i.joinRetained
+	case "ack":
+		return i.ackRetained
+	case "error":
+		return i.errorRetained
+	case "status":
+		return i.statusRetained
+	case "location":
+		return i.locationRetained
+	case "txack":
+		return i.txAckRetained
+	case "integration":
+		return i.integrationRetained
+	default:
+		return false
+	}
 }

@@ -263,38 +263,18 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
   # MQTT integration backend.
   [application_server.integration.mqtt]
-  # MQTT topic templates for the different MQTT topics.
-  #
-  # The meaning of these topics are documented at:
-  # https://www.chirpstack.io/application-server/integrate/data/
-  #
-  # The following substitutions can be used:
-  # * "{{ .ApplicationID }}" for the application id.
-  # * "{{ .DevEUI }}" for the DevEUI of the device.
-  #
-  # Note: the downlink_topic_template must contain both the application id and
-  # DevEUI substitution!
-  uplink_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/rx"
-  downlink_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/tx"
-  join_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/join"
-  ack_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/ack"
-  error_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error"
-  status_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status"
-  location_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location"
-  integration_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/integration"
+  # Event topic template.
+  event_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/event/{{ .EventType }}"
 
-  # Retained messages configuration.
+  # Command topic template.
+  command_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/command/{{ .CommandType }}"
+
+  # Retain events.
   #
-  # The MQTT broker will store the last publised message, when retained message is set
-  # to true. When a client subscribes to a topic with retained message set to true, it will
-  # always receive the last published message.
-  uplink_retained_message=false
-  join_retained_message=false
-  ack_retained_message=false
-  error_retained_message=false
-  status_retained_message=false
-  location_retained_message=false
-  integration_retained_message=false
+  # The MQTT broker will store the last publised message, when retain events is set
+  # to true. When a MQTT client connects and subscribes, it will always receive the
+  # last published message.
+  retain_events=false
 
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="tcp://localhost:1883"

@@ -13,12 +13,14 @@ need to subscribe to its MQTT topic. For debugging, you could use a
 (command-line) tool like `mosquitto_sub` which is part of the 
 [Mosquitto](http://mosquitto.org/) MQTT broker.
 
+## Quickstart
+
 Use `+` for a single-level wildcard, `#` for a multi-level wildcard.
 Examples:
 
 {{<highlight bash>}}
-mosquitto_sub -t "application/123/#" -v          # display everything for the given application ID
-mosquitto_sub -t "application/123/device/+/rx" -v  # display only the RX payloads for the given application ID
+mosquitto_sub -t "application/123/#" -v                  # display everything for the given application ID
+mosquitto_sub -t "application/123/device/+/event/up" -v  # display only the uplink payloads for the given application ID
 {{< /highlight >}}
 
 **Notes:**
@@ -30,29 +32,21 @@ mosquitto_sub -t "application/123/device/+/rx" -v  # display only the RX payload
 ## Events
 
 The MQTT integration exposes all events as documented by [Event Types](../#event-types).
+The default event topic is: `application/[ApplicationID]/device/[DevEUI]/event/[EventType]`
 
-## Event MQTT topics
+**Note:** Before v3.11.0, the default event topic was: `application[ApplicationID]/device/[DevEUI]/[EventType]`.
+In case these are configured in the ChirpStack Application Server configuration,
+then these will override the default configuration.
 
-The following mapping to MQTT topics applies for the available events:
+## Scheduling a downlink
 
-* Uplink: `application/[applicationID]/device/[devEUI]/rx`
-* Status: `application/[applicationID]/device/[devEUI]/status`
-* Ack: `application/[applicationID]/device/[devEUI]/ack`
-* Error: `application/[applicationID]/device/[devEUI]/error`
+The default topic for scheduling downlink payloads is: `application/[ApplicationID]/device/[DevEUI]/command/down`.
 
-**Note:** for versions before v1.0.0 `.../device/..` was configured as
-`.../node/...`. Please refer to the `application_server.integration.mqtt`
-[configuration]({{<ref "install/config.md">}}) for the correct topic.
+**Note:** Before v3.11.0, the default event topic was: `application[ApplicationID]/device/[DevEUI]/tx`.
+In case these are configured in the ChirpStack Application Server configuration,
+then these will override the default configuration.
 
-## Scheduling downlink data
-
-### application/[applicationID]/device/[devEUI]/tx
-
-**Note:** for versions before v1.0.0 `.../device/..` was configured as
-`.../node/...`. Please refer to the `application_server.integration.mqtt`
-[configuration]({{<ref "install/config.md">}}) for the correct topic.
-
-**Note:** the application ID and DevEUI of the device will be taken from the topic.
+**Note:** The ApplicationID and DevEUI of the device will be taken from the topic.
 
 Example payload:
 

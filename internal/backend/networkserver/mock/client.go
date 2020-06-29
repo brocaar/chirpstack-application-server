@@ -143,6 +143,9 @@ type Client struct {
 	GetMulticastQueueItemsForMulticastGroupChan     chan ns.GetMulticastQueueItemsForMulticastGroupRequest
 	GetMulticastQueueItemsForMulticastGroupResponse ns.GetMulticastQueueItemsForMulticastGroupResponse
 
+	GenerateGatewayClientCertificateChan     chan ns.GenerateGatewayClientCertificateRequest
+	GenerateGatewayClientCertificateResponse ns.GenerateGatewayClientCertificateResponse
+
 	GetVersionResponse ns.GetVersionResponse
 }
 
@@ -193,6 +196,7 @@ func NewClient() *Client {
 		EnqueueMulticastQueueItemChan:               make(chan ns.EnqueueMulticastQueueItemRequest, 100),
 		FlushMulticastQueueForMulticastGroupChan:    make(chan ns.FlushMulticastQueueForMulticastGroupRequest, 100),
 		GetMulticastQueueItemsForMulticastGroupChan: make(chan ns.GetMulticastQueueItemsForMulticastGroupRequest, 100),
+		GenerateGatewayClientCertificateChan:        make(chan ns.GenerateGatewayClientCertificateRequest, 100),
 	}
 }
 
@@ -473,4 +477,10 @@ func (n Client) FlushMulticastQueueForMulticastGroup(ctx context.Context, in *ns
 func (n Client) GetMulticastQueueItemsForMulticastGroup(ctx context.Context, in *ns.GetMulticastQueueItemsForMulticastGroupRequest, opts ...grpc.CallOption) (*ns.GetMulticastQueueItemsForMulticastGroupResponse, error) {
 	n.GetMulticastQueueItemsForMulticastGroupChan <- *in
 	return &n.GetMulticastQueueItemsForMulticastGroupResponse, nil
+}
+
+// GenerateGatewayClientCertificate method.
+func (n Client) GenerateGatewayClientCertificate(ctx context.Context, in *ns.GenerateGatewayClientCertificateRequest, opts ...grpc.CallOption) (*ns.GenerateGatewayClientCertificateResponse, error) {
+	n.GenerateGatewayClientCertificateChan <- *in
+	return &n.GenerateGatewayClientCertificateResponse, nil
 }

@@ -79,6 +79,19 @@ class GatewayStore extends EventEmitter {
     });
   }
 
+  generateClientCertificate(id, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.GatewayService.GenerateGatewayClientCertificate({
+        gateway_id: id,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
   list(search, organizationID, limit, offset, callbackFunc) {
     this.swagger.then(client => {
       client.apis.GatewayService.List({

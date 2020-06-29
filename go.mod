@@ -8,7 +8,7 @@ require (
 	github.com/Azure/azure-service-bus-go v0.10.0
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
 	github.com/aws/aws-sdk-go v1.26.3
-	github.com/brocaar/chirpstack-api/go/v3 v3.6.11
+	github.com/brocaar/chirpstack-api/go/v3 v3.6.12
 	github.com/brocaar/lorawan v0.0.0-20191115102621-6095d473cf60
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/coreos/go-oidc v2.2.1+incompatible

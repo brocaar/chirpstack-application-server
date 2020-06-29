@@ -367,6 +367,25 @@ func (ts *APITestSuite) TestGateway() {
 			}, pingResp.PingRx)
 		})
 
+		t.Run("GenerateGatewayClientCertificate", func(t *testing.T) {
+			assert := require.New(t)
+
+			nsClient.GenerateGatewayClientCertificateResponse = ns.GenerateGatewayClientCertificateResponse{
+				TlsCert: []byte("foo"),
+				TlsKey:  []byte("bar"),
+			}
+
+			resp, err := api.GenerateGatewayClientCertificate(ctx, &pb.GenerateGatewayClientCertificateRequest{
+				GatewayId: createReq.Gateway.Id,
+			})
+			assert.NoError(err)
+			assert.Equal(&pb.GenerateGatewayClientCertificateResponse{
+				TlsCert: "foo",
+				TlsKey:  "bar",
+			}, resp)
+
+		})
+
 		t.Run("Delete", func(t *testing.T) {
 			assert := require.New(t)
 

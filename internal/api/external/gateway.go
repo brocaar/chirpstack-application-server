@@ -506,6 +506,46 @@ func (a *GatewayAPI) Delete(ctx context.Context, req *pb.DeleteGatewayRequest) (
 	return &empty.Empty{}, nil
 }
 
+// GenerateGatewayClientCertificate returns a TLS certificate for gateway authentication / authorization.
+func (a *GatewayAPI) GenerateGatewayClientCertificate(ctx context.Context, req *pb.GenerateGatewayClientCertificateRequest) (*pb.GenerateGatewayClientCertificateResponse, error) {
+	var id lorawan.EUI64
+	if err := id.UnmarshalText([]byte(req.GatewayId)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "gateway id: %s", err)
+	}
+
+	err := a.validator.Validate(ctx, auth.ValidateGatewayAccess(auth.Update, id))
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	gw, err := storage.GetGateway(ctx, storage.DB(), id, false)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	n, err := storage.GetNetworkServer(ctx, storage.DB(), gw.NetworkServerID)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	resp, err := nsClient.GenerateGatewayClientCertificate(ctx, &ns.GenerateGatewayClientCertificateRequest{
+		Id: id[:],
+	})
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &pb.GenerateGatewayClientCertificateResponse{
+		TlsCert: string(resp.TlsCert),
+		TlsKey:  string(resp.TlsKey),
+	}, nil
+}
+
 // GetStats gets the gateway statistics for the gateway with the given Mac.
 func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsRequest) (*pb.GetGatewayStatsResponse, error) {
 	var gatewayID lorawan.EUI64

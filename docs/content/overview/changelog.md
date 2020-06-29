@@ -92,6 +92,19 @@ a pre-configured CA certificate and if valid it can use the CommonName of the
 certificate (which contains the gateway ID) to authorize publish / subscribe
 to certain topics.
 
+#### Single HTTP integration endpoint
+
+This updates the HTTP integration with a single endpoint configuration. Instead of configuring
+a per-event endpoint, this makes it possible to have a single endpoint to which all events
+are posted, with the `eventType` as query parameter.
+
+This update makes it also possible to configure the marshaler (JSON, Protocol Buffers
+and legacy JSON v3) per HTTP integration.
+
+Already configured HTTP integrations are not affected by this update but it is recommended
+to update your configuration so that you will automatically receive new
+event-types when they are introduced.
+
 #### Support max gateway / device option
 
 This option makes it possible to configure the maximum gateways and devices

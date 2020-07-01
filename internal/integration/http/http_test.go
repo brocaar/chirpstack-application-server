@@ -90,7 +90,7 @@ func (ts *HandlerTestSuite) SetupSuite() {
 		Headers: map[string]string{
 			"Foo": "Bar",
 		},
-		EventEndpointURL: ts.server.URL + "/event",
+		EventEndpointURL: ts.server.URL + "/event?myToken=abc123",
 	}
 
 	var err error
@@ -121,7 +121,8 @@ func (ts *HandlerTestSuite) TestUplink() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
-	assert.Equal("up", req.URL.Query().Get("eventType"))
+	assert.Equal("up", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func (ts *HandlerTestSuite) TestJoin() {
@@ -143,7 +144,8 @@ func (ts *HandlerTestSuite) TestJoin() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
-	assert.Equal("join", req.URL.Query().Get("eventType"))
+	assert.Equal("join", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func (ts *HandlerTestSuite) TestAck() {
@@ -165,7 +167,8 @@ func (ts *HandlerTestSuite) TestAck() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
-	assert.Equal("ack", req.URL.Query().Get("eventType"))
+	assert.Equal("ack", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func (ts *HandlerTestSuite) TestError() {
@@ -187,7 +190,8 @@ func (ts *HandlerTestSuite) TestError() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
-	assert.Equal("error", req.URL.Query().Get("eventType"))
+	assert.Equal("error", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func (ts *HandlerTestSuite) TestStatus() {
@@ -209,7 +213,8 @@ func (ts *HandlerTestSuite) TestStatus() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
-	assert.Equal("status", req.URL.Query().Get("eventType"))
+	assert.Equal("status", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func (ts *HandlerTestSuite) TestLocation() {
@@ -235,7 +240,8 @@ func (ts *HandlerTestSuite) TestLocation() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
-	assert.Equal("location", req.URL.Query().Get("eventType"))
+	assert.Equal("location", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func (ts *HandlerTestSuite) TestTxAck() {
@@ -257,7 +263,8 @@ func (ts *HandlerTestSuite) TestTxAck() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
-	assert.Equal("txack", req.URL.Query().Get("eventType"))
+	assert.Equal("txack", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func (ts *HandlerTestSuite) TestIntegration() {
@@ -279,7 +286,8 @@ func (ts *HandlerTestSuite) TestIntegration() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
-	assert.Equal("integration", req.URL.Query().Get("eventType"))
+	assert.Equal("integration", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func TestHandler(t *testing.T) {

@@ -9,7 +9,7 @@ menu:
 
 When configured, the HTTP integration will make `POST` requests to the
 configured event endpoint or endpoints (multiple URLs can ben configured, comma
-separated). The `eventType` URL query parameter indicates the type of the event.
+separated). The `event` URL query parameter indicates the type of the event.
 
 ## Marshaler
 

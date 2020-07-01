@@ -165,7 +165,7 @@ class HTTPIntegrationForm extends FormComponent {
             id="eventEndpointURL"
             label="Endpoint URL(s) for events"
             placeholder="http://example.com/events"
-            helperText="ChirpStack will make a POST request to this URL(s) with 'eventType' as query parameter. Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
+            helperText="ChirpStack will make a POST request to this URL(s) with 'event' as query parameter. Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
             value={this.state.object.eventEndpointURL || ""}
             onChange={this.onChange}
             margin="normal"

@@ -75,16 +75,13 @@ func New(m marshaler.Type, conf Config) (*Integration, error) {
 	}, nil
 }
 
-func (i *Integration) send(u string, eventType string, msg proto.Message) error {
+func (i *Integration) send(u string, msg proto.Message) error {
 	b, err := marshaler.Marshal(i.marshaler, msg)
 	if err != nil {
 		return errors.Wrap(err, "marshal json error")
 	}
 
-	args := url.Values{}
-	args.Set("eventType", eventType)
-
-	req, err := http.NewRequest("POST", u+"?"+args.Encode(), bytes.NewReader(b))
+	req, err := http.NewRequest("POST", u, bytes.NewReader(b))
 	if err != nil {
 		return errors.Wrap(err, "new request error")
 	}
@@ -113,21 +110,37 @@ func (i *Integration) send(u string, eventType string, msg proto.Message) error 
 	return nil
 }
 
-func (i *Integration) sendEvent(ctx context.Context, eventType, url string, devEUI lorawan.EUI64, msg proto.Message) {
+func (i *Integration) sendEvent(ctx context.Context, eventType, u string, devEUI lorawan.EUI64, msg proto.Message) {
+	uu, err := url.Parse(u)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"url":        u,
+			"dev_eui":    devEUI,
+			"ctx_id":     ctx.Value(logging.ContextIDKey),
+			"event_type": eventType,
+		}).Error("integration/http: parse url error")
+		return
+	}
+
+	args := uu.Query()
+	args.Set("event", eventType)
+	u = fmt.Sprintf("%s://%s%s?%s", uu.Scheme, uu.Host, uu.Path, args.Encode())
+
 	log.WithFields(log.Fields{
-		"url":        url,
+		"url":        u,
 		"dev_eui":    devEUI,
 		"ctx_id":     ctx.Value(logging.ContextIDKey),
 		"event_type": eventType,
 	}).Info("integration/http: publishing event")
 
-	if err := i.send(url, eventType, msg); err != nil {
+	if err := i.send(u, msg); err != nil {
 		log.WithError(err).WithFields(log.Fields{
-			"url":        url,
+			"url":        u,
 			"dev_eui":    devEUI,
 			"ctx_id":     ctx.Value(logging.ContextIDKey),
 			"event_type": eventType,
 		}).Error("integration/http: publish event error")
+		return
 	}
 }
 

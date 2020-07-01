@@ -191,15 +191,17 @@ func TestJoinServerAPI(t *testing.T) {
 			var joinAnsPayload backend.JoinAnsPayload
 			assert.NoError(json.NewDecoder(resp.Body).Decode(&joinAnsPayload))
 			assert.Equal(joinAnsPayload, backend.JoinAnsPayload{
-				BasePayload: backend.BasePayload{
-					ProtocolVersion: backend.ProtocolVersion1_0,
-					SenderID:        "0807060504030201",
-					ReceiverID:      "010203",
-					TransactionID:   1234,
-					MessageType:     backend.JoinAns,
-				},
-				Result: backend.Result{
-					ResultCode: backend.Success,
+				BasePayloadResult: backend.BasePayloadResult{
+					BasePayload: backend.BasePayload{
+						ProtocolVersion: backend.ProtocolVersion1_0,
+						SenderID:        "0807060504030201",
+						ReceiverID:      "010203",
+						TransactionID:   1234,
+						MessageType:     backend.JoinAns,
+					},
+					Result: backend.Result{
+						ResultCode: backend.Success,
+					},
 				},
 				PHYPayload: backend.HEXBytes(jaPHYBytes),
 				NwkSKey: &backend.KeyEnvelope{
@@ -313,15 +315,17 @@ func TestJoinServerAPI(t *testing.T) {
 			var joinAnsPayload backend.JoinAnsPayload
 			assert.NoError(json.NewDecoder(resp.Body).Decode(&joinAnsPayload))
 			assert.Equal(backend.JoinAnsPayload{
-				BasePayload: backend.BasePayload{
-					ProtocolVersion: backend.ProtocolVersion1_0,
-					SenderID:        "0807060504030201",
-					ReceiverID:      "010203",
-					TransactionID:   1234,
-					MessageType:     backend.JoinAns,
-				},
-				Result: backend.Result{
-					ResultCode: backend.Success,
+				BasePayloadResult: backend.BasePayloadResult{
+					BasePayload: backend.BasePayload{
+						ProtocolVersion: backend.ProtocolVersion1_0,
+						SenderID:        "0807060504030201",
+						ReceiverID:      "010203",
+						TransactionID:   1234,
+						MessageType:     backend.JoinAns,
+					},
+					Result: backend.Result{
+						ResultCode: backend.Success,
+					},
 				},
 				PHYPayload: backend.HEXBytes(jaPHYBytes),
 				SNwkSIntKey: &backend.KeyEnvelope{
@@ -405,15 +409,17 @@ func TestJoinServerAPI(t *testing.T) {
 			var rejoinAnsPayload backend.RejoinAnsPayload
 			assert.NoError(json.NewDecoder(resp.Body).Decode(&rejoinAnsPayload))
 			assert.Equal(rejoinAnsPayload, backend.RejoinAnsPayload{
-				BasePayload: backend.BasePayload{
-					ProtocolVersion: backend.ProtocolVersion1_0,
-					SenderID:        "0807060504030201",
-					ReceiverID:      "010203",
-					TransactionID:   1234,
-					MessageType:     backend.RejoinAns,
-				},
-				Result: backend.Result{
-					ResultCode: backend.Success,
+				BasePayloadResult: backend.BasePayloadResult{
+					BasePayload: backend.BasePayload{
+						ProtocolVersion: backend.ProtocolVersion1_0,
+						SenderID:        "0807060504030201",
+						ReceiverID:      "010203",
+						TransactionID:   1234,
+						MessageType:     backend.RejoinAns,
+					},
+					Result: backend.Result{
+						ResultCode: backend.Success,
+					},
 				},
 				SNwkSIntKey: &backend.KeyEnvelope{
 					AESKey: []byte{84, 115, 118, 176, 7, 14, 169, 150, 78, 61, 226, 98, 252, 231, 85, 145},

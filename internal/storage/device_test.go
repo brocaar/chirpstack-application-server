@@ -14,7 +14,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lorawan"
-	"github.com/brocaar/lorawan/backend"
+	"github.com/brocaar/lorawan/band"
 )
 
 func (ts *StorageTestSuite) TestDevice() {
@@ -85,7 +85,7 @@ func (ts *StorageTestSuite) TestDevice() {
 			MaxEirp:            14,
 			MaxDutyCycle:       10,
 			SupportsJoin:       true,
-			RfRegion:           string(backend.EU868),
+			RfRegion:           string(band.EU868),
 			Supports_32BitFCnt: true,
 		},
 	}

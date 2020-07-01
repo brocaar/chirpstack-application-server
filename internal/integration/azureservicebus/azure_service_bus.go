@@ -2,12 +2,19 @@
 package azureservicebus
 
 import (
+	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
 	"sync"
 	"time"
 
-	servicebus "github.com/Azure/azure-service-bus-go"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -25,78 +32,76 @@ type Integration struct {
 	sync.RWMutex
 
 	marshaler   marshaler.Type
-	ctx         context.Context
-	cancel      context.CancelFunc
-	ns          *servicebus.Namespace
 	publishName string
 	publishMode config.AzurePublishMode
-	topic       *servicebus.Topic
-	queue       *servicebus.Queue
+
+	uri     string
+	keyName string
+	key     string
 }
 
 // New creates a new Azure Service-Bus integration.
 func New(m marshaler.Type, conf config.IntegrationAzureConfig) (*Integration, error) {
-	var err error
+	kv, err := parseConnectionString(conf.ConnectionString)
+	if err != nil {
+		return nil, errors.Wrap(err, "parse connection string error")
+	}
 
 	i := Integration{
 		marshaler:   m,
-		ctx:         context.Background(),
 		publishName: conf.PublishName,
 		publishMode: conf.PublishMode,
-	}
-	i.ctx, i.cancel = context.WithCancel(i.ctx)
 
-	log.Info("integration/azureservicebus: setting up namespace")
-	i.ns, err = servicebus.NewNamespace(servicebus.NamespaceWithConnectionString(conf.ConnectionString))
-	if err != nil {
-		return nil, errors.Wrap(err, "new namespace error")
+		keyName: kv["SharedAccessKeyName"],
+		key:     kv["SharedAccessKey"],
 	}
 
-	if err := i.setup(); err != nil {
-		return nil, errors.Wrap(err, "setup client error")
-	}
+	i.uri = fmt.Sprintf("https://%s%s",
+		strings.Replace(kv["Endpoint"], "sb://", "", 1),
+		conf.PublishName,
+	)
 
 	return &i, nil
 }
 
 // HandleUplinkEvent sends an UplinkEvent.
 func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.UplinkEvent) error {
-	return i.publishRetry(ctx, "up", pl.ApplicationId, pl.DevEui, &pl)
+	return i.publishHTTP(ctx, "up", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // HandleJoinEvent sends a JoinEvent.
 func (i *Integration) HandleJoinEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.JoinEvent) error {
-	return i.publishRetry(ctx, "join", pl.ApplicationId, pl.DevEui, &pl)
+	return i.publishHTTP(ctx, "join", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // HandleAckEvent sends an AckEvent.
 func (i *Integration) HandleAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.AckEvent) error {
-	return i.publishRetry(ctx, "ack", pl.ApplicationId, pl.DevEui, &pl)
+	return i.publishHTTP(ctx, "ack", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // HandleErrorEvent sends an ErrorEvent.
 func (i *Integration) HandleErrorEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.ErrorEvent) error {
-	return i.publishRetry(ctx, "error", pl.ApplicationId, pl.DevEui, &pl)
+	return i.publishHTTP(ctx, "error", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // HandleStatusEvent sends a StatusEvent.
 func (i *Integration) HandleStatusEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.StatusEvent) error {
-	return i.publishRetry(ctx, "status", pl.ApplicationId, pl.DevEui, &pl)
+	return i.publishHTTP(ctx, "status", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // HandleLocationEvent sends a LocationEvent.
 func (i *Integration) HandleLocationEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.LocationEvent) error {
-	return i.publishRetry(ctx, "location", pl.ApplicationId, pl.DevEui, &pl)
+	return i.publishHTTP(ctx, "location", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // HandleTxAckEvent sends a TxAckEvent.
 func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.TxAckEvent) error {
-	return i.publishRetry(ctx, "txack", pl.ApplicationId, pl.DevEui, &pl)
+	return i.publishHTTP(ctx, "txack", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // HandleIntegrationEvent sends an IntegrationEvent.
 func (i *Integration) HandleIntegrationEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.IntegrationEvent) error {
-	return i.publishRetry(ctx, "integration", pl.ApplicationId, pl.DevEui, &pl)
+	return i.publishHTTP(ctx, "integration", pl.ApplicationId, pl.DevEui, &pl)
 }
 
 // DataDownChan return nil.
@@ -106,160 +111,51 @@ func (i *Integration) DataDownChan() chan models.DataDownPayload {
 
 // Close closes the integration.
 func (i *Integration) Close() error {
-	log.Info("integration/azureservicebus: closing integration")
-	i.cancel()
-	return i.close()
-}
-
-func (i *Integration) reconnectLoop() {
-	i.Lock()
-	defer i.Unlock()
-
-	// try to close, but do not retry on error as we might not be able to
-	// close the client
-	if err := i.close(); err != nil {
-		log.WithError(err).Error("integration/azureservicebus: close client error")
-	}
-
-	// try to setup the client and retry on error
-	for {
-		if err := i.setup(); err != nil {
-			log.WithError(err).Error("integration/azureservicebus: setup client error")
-			time.Sleep(time.Second)
-			continue
-		}
-
-		break
-	}
-}
-
-func (i *Integration) setup() error {
-	switch i.publishMode {
-	case config.AzurePublishModeTopic:
-		if err := i.setTopicClient(); err != nil {
-			return errors.Wrap(err, "set topic client error")
-		}
-	case config.AzurePublishModeQueue:
-		if err := i.setQueueClient(); err != nil {
-			return errors.Wrap(err, "set queue client error")
-		}
-	default:
-		return fmt.Errorf("unknown publish_mode: %s", i.publishMode)
-	}
-
 	return nil
 }
 
-func (i *Integration) close() error {
-	if i.topic != nil {
-		return i.topic.Close(i.ctx)
-	}
-	if i.queue != nil {
-		return i.queue.Close(i.ctx)
-	}
-	return nil
-}
-
-func (i *Integration) setTopicClient() error {
-	tm := i.ns.NewTopicManager()
-
-	log.WithField("topic", i.publishName).Info("integration/azureservicebus: testing if topic exists")
-	t, err := tm.Get(i.ctx, i.publishName)
-	if err != nil {
-		return errors.Wrap(err, "get topic error")
-	}
-
-	if t == nil {
-		log.WithField("topic", i.publishName).Info("integration/azureservicebus: topic does not exist, creating it")
-		_, err := tm.Put(i.ctx, i.publishName)
-		if err != nil {
-			return errors.Wrap(err, "create topic error")
-		}
-	}
-
-	i.topic, err = i.ns.NewTopic(i.publishName)
-	if err != nil {
-		return errors.Wrap(err, "new topic error")
-	}
-
-	return nil
-}
-
-func (i *Integration) setQueueClient() error {
-	qm := i.ns.NewQueueManager()
-
-	log.WithField("queue", i.publishName).Info("integration/azureservicebus: testing if queue exists")
-	q, err := qm.Get(i.ctx, i.publishName)
-	if err != nil {
-		return errors.Wrap(err, "get queue error")
-	}
-
-	if q == nil {
-		log.WithField("queue", i.publishName).Info("integration/azureservicebus: queue does not exist, creating it")
-		_, err := qm.Put(i.ctx, i.publishName)
-		if err != nil {
-			return errors.Wrap(err, "create queue error")
-		}
-	}
-
-	i.queue, err = i.ns.NewQueue(i.publishName)
-	if err != nil {
-		return errors.Wrap(err, "new queue error")
-	}
-
-	return nil
-}
-
-func (i *Integration) publishRetry(ctx context.Context, event string, applicationID uint64, devEUIB []byte, v proto.Message) error {
-	var devEUI lorawan.EUI64
-	copy(devEUI[:], devEUIB)
-
-	for {
-		if err := i.publish(ctx, event, applicationID, devEUIB, v); err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"dev_eui": devEUI,
-				"event":   event,
-				"ctx_id":  ctx.Value(logging.ContextIDKey),
-			}).Error("integration/azureservicebus: publish event error, will reconnect and retry")
-			i.reconnectLoop()
-			time.Sleep(time.Second)
-			continue
-		}
-
-		return nil
-	}
-}
-
-func (i *Integration) publish(ctx context.Context, event string, applicationID uint64, devEUIB []byte, v proto.Message) error {
-	i.RLock()
-	defer i.RUnlock()
-
-	var devEUI lorawan.EUI64
-	copy(devEUI[:], devEUIB)
-
+func (i *Integration) publishHTTP(ctx context.Context, event string, applicationID uint64, devEUIB []byte, v proto.Message) error {
 	b, err := marshaler.Marshal(i.marshaler, v)
 	if err != nil {
-		return errors.Wrap(err, "marshal error")
+		return errors.Wrap(err, "marshal event error")
 	}
 
-	msg := servicebus.Message{
-		ContentType: "application/json",
-		Data:        b,
-		UserProperties: map[string]interface{}{
-			"event":          event,
-			"application_id": applicationID,
-			"dev_eui":        devEUI.String(),
-		},
-	}
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], devEUIB)
 
-	if i.queue != nil {
-		err = i.queue.Send(i.ctx, &msg)
-	}
-	if i.topic != nil {
-		err = i.topic.Send(i.ctx, &msg)
-	}
+	token, err := createSASToken(i.uri, i.keyName, i.key, time.Now().Add(time.Minute*5))
 	if err != nil {
-		return errors.Wrap(err, "send error")
+		return errors.Wrap(err, "create sas token error")
+	}
+
+	ctxCancel, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctxCancel, "POST", i.uri+"/messages", bytes.NewReader(b))
+	if err != nil {
+		return errors.Wrap(err, "new request error")
+	}
+
+	req.Header.Set("Authorization", token)
+
+	if i.marshaler == marshaler.Protobuf {
+		req.Header.Set("Content-Type", "application/octet-stream")
+	} else {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	req.Header.Set("event", fmt.Sprintf("\"%s\"", event))
+	req.Header.Set("application_id", fmt.Sprintf("%d", applicationID))
+	req.Header.Set("dev_eui", fmt.Sprintf("\"%s\"", devEUI))
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "http request error")
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		b, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("expected 2xx response, got: %d (%s)", resp.StatusCode, string(b))
 	}
 
 	log.WithFields(log.Fields{
@@ -269,4 +165,41 @@ func (i *Integration) publish(ctx context.Context, event string, applicationID u
 	}).Info("integration/azureservicebus: event published")
 
 	return nil
+}
+
+func parseConnectionString(str string) (map[string]string, error) {
+	out := make(map[string]string)
+	pairs := strings.Split(str, ";")
+	for _, pair := range pairs {
+		kv := strings.SplitN(pair, "=", 2)
+		if len(kv) != 2 {
+			return nil, fmt.Errorf("expected two items in: %+v", kv)
+		}
+
+		out[kv[0]] = kv[1]
+	}
+
+	return out, nil
+}
+
+func createSASToken(uri string, keyName, key string, expiration time.Time) (string, error) {
+	keyB := []byte(key)
+
+	encoded := url.QueryEscape(uri)
+	exp := expiration.Unix()
+
+	signature := fmt.Sprintf("%s\n%d", encoded, exp)
+
+	mac := hmac.New(sha256.New, keyB)
+	mac.Write([]byte(signature))
+	hash := url.QueryEscape(base64.StdEncoding.EncodeToString(mac.Sum(nil)))
+
+	token := fmt.Sprintf("SharedAccessSignature sig=%s&se=%d&skn=%s&sr=%s",
+		hash,
+		exp,
+		keyName,
+		encoded,
+	)
+
+	return token, nil
 }

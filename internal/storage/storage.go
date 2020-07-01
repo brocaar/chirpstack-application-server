@@ -99,12 +99,7 @@ func Setup(c config.Config) error {
 			})
 		}
 	} else {
-		redisClient = redis.NewClient(&redis.Options{
-			Addr:     opt.Addr,
-			Password: opt.Password,
-			PoolSize: opt.PoolSize,
-			DB:       opt.DB,
-		})
+		redisClient = redis.NewClient(opt)
 	}
 
 	log.Info("storage: connecting to PostgreSQL database")

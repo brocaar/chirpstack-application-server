@@ -59,6 +59,9 @@ func Setup(c config.Config) error {
 	log.Info("storage: setting up Redis client")
 
 	opt := &redis.Options{}
+	opt.PoolSize = c.Redis.PoolSize
+
+	// URL config takes precedence
 	if c.Redis.URL != "" {
 		var err error
 		opt, err = redis.ParseURL(c.Redis.URL)
@@ -70,8 +73,6 @@ func Setup(c config.Config) error {
 		opt.Password = c.Redis.Password
 		opt.Addr = c.Redis.Servers[0]
 	}
-
-	opt.PoolSize = c.Redis.PoolSize
 
 	if c.Redis.Cluster || c.Redis.MasterName != "" {
 		var addresses []string
@@ -99,10 +100,10 @@ func Setup(c config.Config) error {
 		}
 	} else {
 		redisClient = redis.NewClient(&redis.Options{
-			Addr:     c.Redis.Servers[0],
-			Password: c.Redis.Password,
-			PoolSize: c.Redis.PoolSize,
-			DB:       c.Redis.Database,
+			Addr:     opt.Addr,
+			Password: opt.Password,
+			PoolSize: opt.PoolSize,
+			DB:       opt.DB,
 		})
 	}
 

@@ -20,7 +20,7 @@ type Config struct {
 	} `mapstructure:"postgresql"`
 
 	Redis struct {
-		URL        string   `mapstructure:"url"`
+		URL        string   `mapstructure:"url"` // deprecated
 		Servers    []string `mapstructure:"servers"`
 		Cluster    bool     `mapstructure:"cluster"`
 		MasterName string   `mapstructure:"master_name"`

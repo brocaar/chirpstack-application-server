@@ -174,7 +174,7 @@ master_name=""
 # Connection pool size.
 #
 # Default is 10 connections per every CPU.
-pool_size=0
+pool_size=10
 
 
 # Application-server settings.

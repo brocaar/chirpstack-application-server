@@ -84,16 +84,20 @@ max_idle_connections={{ .PostgreSQL.MaxIdleConnections }}
 #
 # Please note that Redis 2.6.0+ is required.
 [redis]
-# Redis url (e.g. redis://user:password@hostname/0)
-#
-# For more information about the Redis URL format, see:
-# https://www.iana.org/assignments/uri-schemes/prov/redis
-url="{{ .Redis.URL }}"
 
+# The password
+#
+# Set the password for authenticating to the redis instance
 password="{{ .Redis.Password }}"
 
+# The database number
+#
+# The database to connect to
 database={{ .Redis.Database }}
 
+# The server address or addresses
+#
+# Set multiple addresses when connecting to a cluster
 servers=[{{ range $index, $elm := .Redis.Servers }}
       "{{ $elm }}",{{ end }}
     ]

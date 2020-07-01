@@ -1,15 +1,19 @@
 package gcppubsub
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	"sync"
+	"io/ioutil"
+	"net/http"
+	"time"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"google.golang.org/api/option"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
@@ -19,56 +23,58 @@ import (
 	"github.com/brocaar/lorawan"
 )
 
+type publishRequest struct {
+	Messages []message `json:"messages"`
+}
+
+type message struct {
+	Attributes map[string]string `json:"attributes"`
+	Data       []byte            `json:"data"`
+}
+
 // Integration implements a GCP Pub/Sub integration.
 type Integration struct {
-	sync.RWMutex
-	ctx    context.Context
-	cancel context.CancelFunc
-
 	marshaler marshaler.Type
-	client    *pubsub.Client
-	topic     *pubsub.Topic
+
+	project             string
+	topic               string
+	jsonCredentialsFile []byte
+	client              *http.Client
+	ctx                 context.Context
+	cancel              context.CancelFunc
 }
 
 // New creates a new Pub/Sub integration.
 func New(m marshaler.Type, conf config.IntegrationGCPConfig) (*Integration, error) {
+	var err error
+
 	i := Integration{
 		marshaler: m,
-		ctx:       context.Background(),
+		project:   conf.ProjectID,
+		topic:     conf.TopicName,
 	}
-	var err error
-	var o []option.ClientOption
-
-	i.ctx, i.cancel = context.WithCancel(i.ctx)
+	i.ctx, i.cancel = context.WithCancel(context.Background())
 
 	if conf.CredentialsFile != "" {
-		o = append(o, option.WithCredentialsFile(conf.CredentialsFile))
+		i.jsonCredentialsFile, err = ioutil.ReadFile(conf.CredentialsFile)
+		if err != nil {
+			return nil, errors.Wrap(err, "read credentials file error")
+		}
 	}
 
-	log.Info("integration/gcp_pub_sub: setting up client")
-	i.client, err = pubsub.NewClient(i.ctx, conf.ProjectID, o...)
+	creds, err := google.CredentialsFromJSON(i.ctx, i.jsonCredentialsFile, "https://www.googleapis.com/auth/pubsub")
 	if err != nil {
-		return nil, errors.Wrap(err, "new pubsub client error")
+		return nil, errors.Wrap(err, "credentials from json error")
 	}
-
-	log.WithField("topic", conf.TopicName).Info("integration/gcp_pub_sub: setup topic")
-	i.topic = i.client.Topic(conf.TopicName)
-	ok, err := i.topic.Exists(i.ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "topic exists error")
-	}
-	if !ok {
-		return nil, fmt.Errorf("topic %s does not exist", conf.TopicName)
-	}
+	i.client = oauth2.NewClient(i.ctx, creds.TokenSource)
 
 	return &i, nil
 }
 
 // Close closes the integration.
 func (i *Integration) Close() error {
-	log.Info("integration/gcppubsub: closing integration")
 	i.cancel()
-	return i.client.Close()
+	return nil
 }
 
 // HandleUplinkEvent sends an UplinkEvent.
@@ -122,18 +128,41 @@ func (i *Integration) publish(ctx context.Context, event string, devEUIB []byte,
 
 	b, err := marshaler.Marshal(i.marshaler, msg)
 	if err != nil {
-		return errors.Wrap(err, "marshal error")
+		return errors.Wrap(err, "marshal event error")
 	}
 
-	res := i.topic.Publish(ctx, &pubsub.Message{
-		Data: b,
-		Attributes: map[string]string{
-			"event":  event,
-			"devEUI": devEUI.String(),
+	req := publishRequest{
+		Messages: []message{
+			{
+				Attributes: map[string]string{
+					"event":  event,
+					"devEUI": devEUI.String(),
+				},
+				Data: b,
+			},
 		},
-	})
-	if _, err := res.Get(i.ctx); err != nil {
-		return errors.Wrap(err, "get publish result error")
+	}
+	b, err = json.Marshal(req)
+	if err != nil {
+		return errors.Wrap(err, "marshal pub/sub request error")
+	}
+
+	ctxCancel, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+
+	httpReq, err := http.NewRequestWithContext(ctxCancel, "POST", fmt.Sprintf("https://pubsub.googleapis.com/v1/projects/%s/topics/%s:publish", i.project, i.topic), bytes.NewReader(b))
+	if err != nil {
+		return errors.Wrap(err, "new request error")
+	}
+
+	resp, err := i.client.Do(httpReq)
+	if err != nil {
+		return errors.Wrap(err, "pub/sub request error")
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		b, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("exepcted 2xx code, got: %d (%s)", resp.StatusCode, string(b))
 	}
 
 	log.WithFields(log.Fields{

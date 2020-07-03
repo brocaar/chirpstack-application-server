@@ -21,9 +21,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/applayer/multicastsetup"
 	"github.com/brocaar/chirpstack-application-server/internal/codec"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/eventlog"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
-	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/gps"
@@ -169,14 +167,7 @@ func updateDeviceActivation(ctx *uplinkContext) error {
 		}
 	}
 
-	err = eventlog.LogEventForDevice(ctx.device.DevEUI, eventlog.Join, &pl)
-	if err != nil {
-		log.WithError(err).WithFields(log.Fields{
-			"ctx_id": ctx.ctx.Value(logging.ContextIDKey),
-		}).Error("log event for device error")
-	}
-
-	err = integration.Integration().SendJoinNotification(ctx.ctx, vars, pl)
+	err = integration.ForApplicationID(ctx.device.ApplicationID).HandleJoinEvent(ctx.ctx, vars, pl)
 	if err != nil {
 		return errors.Wrap(err, "send join notification error")
 	}
@@ -298,11 +289,7 @@ func handleCodec(ctx *uplinkContext) error {
 			}
 		}
 
-		if err := eventlog.LogEventForDevice(ctx.device.DevEUI, eventlog.Error, &errEvent); err != nil {
-			log.WithError(err).Error("log event for device error")
-		}
-
-		if err := integration.Integration().SendErrorNotification(ctx.ctx, vars, errEvent); err != nil {
+		if err := integration.ForApplicationID(ctx.device.ApplicationID).HandleErrorEvent(ctx.ctx, vars, errEvent); err != nil {
 			log.WithError(err).Error("send error event to integration error")
 		}
 	}
@@ -350,12 +337,7 @@ func handleIntegrations(ctx *uplinkContext) error {
 		}
 	}
 
-	err := eventlog.LogEventForDevice(ctx.device.DevEUI, eventlog.Uplink, &pl)
-	if err != nil {
-		log.WithError(err).Error("log event for device error")
-	}
-
-	err = integration.Integration().SendDataUp(ctx.ctx, vars, pl)
+	err := integration.ForApplicationID(ctx.device.ApplicationID).HandleUplinkEvent(ctx.ctx, vars, pl)
 	if err != nil {
 		log.WithError(err).Error("send uplink event error")
 	}

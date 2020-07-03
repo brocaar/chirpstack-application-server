@@ -253,12 +253,12 @@ func (f *FUOTADeploymentAPI) List(ctx context.Context, req *pb.ListFUOTADeployme
 	}
 
 	if !idFilter {
-		isAdmin, err := f.validator.GetIsAdmin(ctx)
+		user, err := f.validator.GetUser(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		if !isAdmin {
+		if !user.IsAdmin {
 			return nil, grpc.Errorf(codes.Unauthenticated, "client must be global admin for unfiltered request")
 		}
 	}

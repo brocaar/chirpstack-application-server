@@ -19,6 +19,7 @@ import AccountCircle from "mdi-material-ui/AccountCircle";
 import Magnify from "mdi-material-ui/Magnify";
 import HelpCicle from "mdi-material-ui/HelpCircle";
 
+import InternalStore from "../stores/InternalStore";
 import SessionStore from "../stores/SessionStore";
 import theme from "../theme";
 
@@ -48,10 +49,6 @@ const styles = {
     padding: 5,
     borderRadius: 3,
   },
-  avatar: {
-    background: blue[600],
-    color: theme.palette.common.white,
-  },
   chip: {
     background: blue[600],
     color: theme.palette.common.white,
@@ -77,47 +74,49 @@ class TopNav extends Component {
     this.state = {
       menuAnchor: null,
       search: "",
+      oidcEnabled: false,
     };
-
-    this.handleDrawerToggle = this.handleDrawerToggle.bind(this);
-    this.onMenuOpen = this.onMenuOpen.bind(this);
-    this.onMenuClose = this.onMenuClose.bind(this);
-    this.onLogout = this.onLogout.bind(this);
-    this.onSearchChange = this.onSearchChange.bind(this);
-    this.onSearchSubmit = this.onSearchSubmit.bind(this);
   }
 
-  onMenuOpen(e) {
+  onMenuOpen = (e) => {
     this.setState({
       menuAnchor: e.currentTarget,
     });
   }
 
-  onMenuClose() {
+  onMenuClose = () => {
     this.setState({
       menuAnchor: null,
     });
   }
 
-  onLogout() {
+  onLogout = () => {
     SessionStore.logout(() => {
       this.props.history.push("/login");
     });
   }
 
-  handleDrawerToggle() {
+  handleDrawerToggle = () => {
     this.props.setDrawerOpen(!this.props.drawerOpen);
   }
 
-  onSearchChange(e) {
+  onSearchChange = (e) => {
     this.setState({
       search: e.target.value,
     });
   }
 
-  onSearchSubmit(e) {
+  onSearchSubmit = (e) => {
     e.preventDefault();
     this.props.history.push(`/search?search=${encodeURIComponent(this.state.search)}`);
+  }
+
+  componentDidMount() {
+    InternalStore.settings(resp => {
+      this.setState({
+        oidcEnabled: resp.openidConnect.enabled,
+      });
+    })
   }
 
   render() {
@@ -173,10 +172,10 @@ class TopNav extends Component {
                 <AccountCircle />
               </Avatar>
             }
-            label={this.props.user.username}
+            label={this.props.user.email}
             onClick={this.onMenuOpen}
+            color="primary"
             classes={{
-              avatar: this.props.classes.avatar,
               root: this.props.classes.chip,
             }}
           />
@@ -194,7 +193,7 @@ class TopNav extends Component {
             open={open}
             onClose={this.onMenuClose}
           >
-            <MenuItem component={Link} to={`/users/${this.props.user.id}/password`}>Change password</MenuItem>
+            {!this.state.oidcEnabled && <MenuItem component={Link} to={`/users/${this.props.user.id}/password`}>Change password</MenuItem>}
             <MenuItem onClick={this.onLogout}>Logout</MenuItem>
           </Menu>
         </Toolbar>

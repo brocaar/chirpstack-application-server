@@ -54,14 +54,13 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 	assert.NoError(CreateOrganization(context.Background(), ts.Tx(), &org))
 
 	u := User{
-		Username: "testuser",
 		IsAdmin:  false,
 		IsActive: true,
 		Email:    "foo@bar.com",
 	}
-	uID, err := CreateUser(context.Background(), ts.Tx(), &u, "testpassword")
+	err := CreateUser(context.Background(), ts.Tx(), &u)
 	assert.NoError(err)
-	assert.NoError(CreateOrganizationUser(context.Background(), ts.Tx(), org.ID, uID, false, false, false))
+	assert.NoError(CreateOrganizationUser(context.Background(), ts.Tx(), org.ID, u.ID, false, false, false))
 
 	n := NetworkServer{
 		Name:   "test-ns",
@@ -182,27 +181,27 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 			assert := require.New(t)
 
 			count, err := GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
-				Username: u.Username,
+				UserID: u.ID,
 			})
 			assert.NoError(err)
 			assert.Equal(1, count)
 
 			count, err = GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
-				Username: "fakeuser",
+				UserID: u.ID + 999,
 			})
 			assert.NoError(err)
 			assert.Equal(0, count)
 
 			dps, err := GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
-				Username: u.Username,
-				Limit:    10,
+				UserID: u.ID,
+				Limit:  10,
 			})
 			assert.NoError(err)
 			assert.Len(dps, 1)
 
 			dps, err = GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
-				Username: "fakeuser",
-				Limit:    10,
+				UserID: u.ID + 999,
+				Limit:  10,
 			})
 			assert.NoError(err)
 			assert.Len(dps, 0)

@@ -12,12 +12,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/pbkdf2"
+
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 )
 
 // saltSize defines the salt size
@@ -26,42 +27,51 @@ const saltSize = 16
 // defaultSessionTTL defines the default session TTL
 const defaultSessionTTL = time.Hour * 24
 
-// Any upper, lower, digit characters, at least 6 characters.
-var usernameValidator = regexp.MustCompile(`^[[:alnum:]]+$`)
-
 // Any printable characters, at least 6 characters.
 var passwordValidator = regexp.MustCompile(`^.{6,}$`)
 
 // Must contain @ (this is far from perfect)
 var emailValidator = regexp.MustCompile(`.+@.+`)
 
-// User represents a user to external code.
+// User defines the user structure.
 type User struct {
-	ID           int64     `db:"id"`
-	Username     string    `db:"username"`
-	IsAdmin      bool      `db:"is_admin"`
-	IsActive     bool      `db:"is_active"`
-	SessionTTL   int32     `db:"session_ttl"`
-	CreatedAt    time.Time `db:"created_at"`
-	UpdatedAt    time.Time `db:"updated_at"`
-	PasswordHash string    `db:"password_hash"`
-	Email        string    `db:"email"`
-	Note         string    `db:"note"`
+	ID            int64     `db:"id"`
+	IsAdmin       bool      `db:"is_admin"`
+	IsActive      bool      `db:"is_active"`
+	SessionTTL    int32     `db:"session_ttl"`
+	CreatedAt     time.Time `db:"created_at"`
+	UpdatedAt     time.Time `db:"updated_at"`
+	PasswordHash  string    `db:"password_hash"`
+	Email         string    `db:"email"`
+	EmailVerified bool      `db:"email_verified"`
+	EmailOld      string    `db:"email_old"`
+	Note          string    `db:"note"`
+	ExternalID    *string   `db:"external_id"` // must be pointer for unique index
 }
 
-const externalUserFields = "id, username, is_admin, is_active, session_ttl, created_at, updated_at, email, note"
-const internalUserFields = "*"
+// Validate validates the user data.
+func (u User) Validate() error {
+	if !emailValidator.MatchString(u.Email) {
+		return ErrInvalidEmail
+	}
 
-// UserUpdate represents the user fields that can be "updated" in the simple
-// case.  This excludes id, which identifies the record to be updated.
-type UserUpdate struct {
-	ID         int64  `db:"id"`
-	Username   string `db:"username"`
-	IsAdmin    bool   `db:"is_admin"`
-	IsActive   bool   `db:"is_active"`
-	SessionTTL int32  `db:"session_ttl"`
-	Email      string `db:"email"`
-	Note       string `db:"note"`
+	return nil
+}
+
+// SetPasswordHash hashes the given password and sets it.
+func (u *User) SetPasswordHash(pw string) error {
+	if !passwordValidator.MatchString(pw) {
+		return ErrUserPasswordLength
+	}
+
+	pwHash, err := hash(pw, saltSize, HashIterations)
+	if err != nil {
+		return err
+	}
+
+	u.PasswordHash = pwHash
+
+	return nil
 }
 
 // UserProfile contains the profile of the user.
@@ -73,7 +83,7 @@ type UserProfile struct {
 // UserProfileUser contains the user information of the profile.
 type UserProfileUser struct {
 	ID         int64     `db:"id"`
-	Username   string    `db:"username"`
+	Email      string    `db:"email"`
 	IsAdmin    bool      `db:"is_admin"`
 	IsActive   bool      `db:"is_active"`
 	SessionTTL int32     `db:"session_ttl"`
@@ -93,102 +103,315 @@ type UserProfileOrganization struct {
 	UpdatedAt      time.Time `db:"updated_at"`
 }
 
-// userInternal represents a user as known by the database.
-type userInternal struct {
-	ID           int64     `db:"id"`
-	Username     string    `db:"username"`
-	PasswordHash string    `db:"password_hash"`
-	IsAdmin      bool      `db:"is_admin"`
-	IsActive     bool      `db:"is_active"`
-	SessionTTL   int32     `db:"session_ttl"`
-	CreatedAt    time.Time `db:"created_at"`
-	UpdatedAt    time.Time `db:"updated_at"`
-	Email        string    `db:"email"`
-	Note         string    `db:"note"`
-}
-
-// ValidateUsername validates the given username.
-func ValidateUsername(username string) error {
-	if !usernameValidator.MatchString(username) {
-		return ErrUserInvalidUsername
-	}
-	return nil
-}
-
-// ValidatePassword validates the given password.
-func ValidatePassword(password string) error {
-	if !passwordValidator.MatchString(password) {
-		return ErrUserPasswordLength
-	}
-	return nil
-}
-
-// ValidateEmail validates the given e-mail.
-func ValidateEmail(email string) error {
-	if !emailValidator.MatchString(email) {
-		return ErrInvalidEmail
-	}
-	return nil
-}
-
 // CreateUser creates the given user.
-func CreateUser(ctx context.Context, db sqlx.Queryer, user *User, password string) (int64, error) {
-	if err := ValidateUsername(user.Username); err != nil {
-		return 0, errors.Wrap(err, "validation error")
-	}
-
-	if err := ValidatePassword(password); err != nil {
-		return 0, errors.Wrap(err, "validation error")
-	}
-
-	if err := ValidateEmail(user.Email); err != nil {
-		return 0, errors.Wrap(err, "validation error")
-	}
-
-	pwHash, err := hash(password, saltSize, HashIterations)
-	if err != nil {
-		return 0, err
+func CreateUser(ctx context.Context, db sqlx.Queryer, user *User) error {
+	if err := user.Validate(); err != nil {
+		return errors.Wrap(err, "validation error")
 	}
 
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	// Add the new user.
-	err = sqlx.Get(db, &user.ID, `
+	err := sqlx.Get(db, &user.ID, `
 		insert into "user" (
-			username,
-			password_hash,
 			is_admin,
 			is_active,
 			session_ttl,
 			created_at,
 			updated_at,
+			password_hash,
 			email,
-			note
+			email_verified,
+			note,
+			external_id
 		)
 		values (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9) returning id`,
-		user.Username,
-		pwHash,
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		returning
+			id`,
 		user.IsAdmin,
 		user.IsActive,
 		user.SessionTTL,
 		user.CreatedAt,
 		user.UpdatedAt,
+		user.PasswordHash,
 		user.Email,
+		user.EmailVerified,
 		user.Note,
+		user.ExternalID,
 	)
 	if err != nil {
-		return 0, handlePSQLError(Insert, err, "insert error")
+		return handlePSQLError(Insert, err, "insert error")
+	}
+
+	var externalID string
+	if user.ExternalID != nil {
+		externalID = *user.ExternalID
 	}
 
 	log.WithFields(log.Fields{
-		"username":    user.Username,
-		"session_ttl": user.SessionTTL,
-		"is_admin":    user.IsAdmin,
+		"id":          user.ID,
+		"external_id": externalID,
+		"email":       user.Email,
 		"ctx_id":      ctx.Value(logging.ContextIDKey),
-	}).Info("user created")
-	return user.ID, nil
+	}).Info("storage: user created")
+
+	return nil
+}
+
+// GetUser returns the User for the given id.
+func GetUser(ctx context.Context, db sqlx.Queryer, id int64) (User, error) {
+	var user User
+
+	err := sqlx.Get(db, &user, `
+		select
+			*
+		from
+			"user"
+		where
+			id = $1
+	`, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return user, ErrDoesNotExist
+		}
+		return user, errors.Wrap(err, "select error")
+	}
+
+	return user, nil
+}
+
+// GetUserByExternalID returns the User for the given ext. ID.
+func GetUserByExternalID(ctx context.Context, db sqlx.Queryer, externalID string) (User, error) {
+	var user User
+
+	err := sqlx.Get(db, &user, `
+		select
+			*
+		from
+			"user"
+		where
+			external_id = $1
+	`, externalID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return user, ErrDoesNotExist
+		}
+		return user, errors.Wrap(err, "select error")
+	}
+
+	return user, nil
+}
+
+// GetUserByEmail returns the User for the given email.
+func GetUserByEmail(ctx context.Context, db sqlx.Queryer, email string) (User, error) {
+	var user User
+
+	err := sqlx.Get(db, &user, `
+		select
+			*
+		from
+			"user"
+		where
+			email = $1
+	`, email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return user, ErrDoesNotExist
+		}
+		return user, errors.Wrap(err, "select error")
+	}
+
+	return user, nil
+}
+
+// GetUserCount returns the total number of users.
+func GetUserCount(ctx context.Context, db sqlx.Queryer) (int, error) {
+	var count int
+	err := sqlx.Get(db, &count, `
+		select
+			count(*)
+		from "user"
+	`)
+	if err != nil {
+		return 0, errors.Wrap(err, "select error")
+	}
+	return count, nil
+}
+
+// GetUsers returns a slice of users, respecting the given limit and offset.
+func GetUsers(ctx context.Context, db sqlx.Queryer, limit, offset int) ([]User, error) {
+	var users []User
+
+	err := sqlx.Select(db, &users, `
+		select
+			*
+		from
+			"user"
+		order by
+			email
+		limit $1
+		offset $2
+	`, limit, offset)
+	if err != nil {
+		return nil, errors.Wrap(err, "select error")
+	}
+	return users, nil
+}
+
+// UpdateUser updates the given User.
+func UpdateUser(ctx context.Context, db sqlx.Execer, u *User) error {
+	if err := u.Validate(); err != nil {
+		return errors.Wrap(err, "validate user error")
+	}
+
+	u.UpdatedAt = time.Now()
+
+	res, err := db.Exec(`
+		update "user"
+		set
+			updated_at = $2,
+			is_admin = $3,
+			is_active = $4,
+			session_ttl = $5,
+			email = $6,
+			email_verified = $7,
+			note = $8,
+			external_id = $9,
+			password_hash = $10
+		where
+			id = $1`,
+		u.ID,
+		u.UpdatedAt,
+		u.IsAdmin,
+		u.IsActive,
+		u.SessionTTL,
+		u.Email,
+		u.EmailVerified,
+		u.Note,
+		u.ExternalID,
+		u.PasswordHash,
+	)
+	if err != nil {
+		return handlePSQLError(Update, err, "update error")
+	}
+	ra, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "get rows affected error")
+	}
+	if ra == 0 {
+		return ErrDoesNotExist
+	}
+
+	var extUser string
+	if u.ExternalID != nil {
+		extUser = *u.ExternalID
+	}
+
+	log.WithFields(log.Fields{
+		"id":          u.ID,
+		"external_id": extUser,
+		"ctx_id":      ctx.Value(logging.ContextIDKey),
+	}).Info("storage: user updated")
+
+	return nil
+}
+
+// DeleteUser deletes the User record matching the given ID.
+func DeleteUser(ctx context.Context, db sqlx.Execer, id int64) error {
+	res, err := db.Exec(`
+		delete from
+			"user"
+		where
+			id = $1
+	`, id)
+	if err != nil {
+		return errors.Wrap(err, "delete error")
+	}
+	ra, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "get rows affected error")
+	}
+	if ra == 0 {
+		return ErrDoesNotExist
+	}
+
+	log.WithFields(log.Fields{
+		"id":     id,
+		"ctx_id": ctx.Value(logging.ContextIDKey),
+	}).Info("storage: user deleted")
+	return nil
+}
+
+// LoginUserByPassword returns a JWT token for the user matching the given email
+// and password combination.
+func LoginUserByPassword(ctx context.Context, db sqlx.Queryer, email string, password string) (string, error) {
+	// get the user by email
+	var user User
+	err := sqlx.Get(db, &user, `
+		select
+			*
+		from
+			"user"
+		where
+			email = $1
+	`, email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", ErrInvalidUsernameOrPassword
+		}
+		return "", errors.Wrap(err, "select error")
+	}
+
+	// Compare the passed in password with the hash in the database.
+	if !hashCompare(password, user.PasswordHash) {
+		return "", ErrInvalidUsernameOrPassword
+	}
+
+	return GetUserToken(user)
+}
+
+// GetProfile returns the user profile (user, applications and organizations
+// to which the user is linked).
+func GetProfile(ctx context.Context, db sqlx.Queryer, id int64) (UserProfile, error) {
+	var prof UserProfile
+
+	user, err := GetUser(ctx, db, id)
+	if err != nil {
+		return prof, errors.Wrap(err, "get user error")
+	}
+	prof.User = UserProfileUser{
+		ID:         user.ID,
+		Email:      user.Email,
+		SessionTTL: user.SessionTTL,
+		IsAdmin:    user.IsAdmin,
+		IsActive:   user.IsActive,
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
+	}
+
+	err = sqlx.Select(db, &prof.Organizations, `
+		select
+			ou.organization_id as organization_id,
+			o.name as organization_name,
+			ou.is_admin as is_admin,
+			ou.is_device_admin as is_device_admin,
+			ou.is_gateway_admin as is_gateway_admin,
+			ou.created_at as created_at,
+			ou.updated_at as updated_at
+		from
+			organization_user ou,
+			organization o
+		where
+			ou.user_id = $1
+			and ou.organization_id = o.id`,
+		id,
+	)
+	if err != nil {
+		return prof, errors.Wrap(err, "select error")
+	}
+
+	return prof, nil
 }
 
 // Generate the hash of a password for storage in the database.
@@ -230,7 +453,7 @@ func hashWithSalt(password string, salt []byte, iterations int) string {
 	return buffer.String()
 }
 
-// HashCompare verifies that passed password hashes to the same value as the
+// hashCompare verifies that passed password hashes to the same value as the
 // passed passwordHash.
 func hashCompare(password string, passwordHash string) bool {
 	// SPlit the hash string into its parts.
@@ -244,163 +467,14 @@ func hashCompare(password string, passwordHash string) bool {
 	return newHash == passwordHash
 }
 
-// GetUser returns the User for the given id.
-func GetUser(ctx context.Context, db sqlx.Queryer, id int64) (User, error) {
-	var user User
-	err := sqlx.Get(db, &user, "select "+externalUserFields+" from \"user\" where id = $1", id)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return user, ErrDoesNotExist
-		}
-		return user, errors.Wrap(err, "select error")
-	}
-
-	return user, nil
-}
-
-// GetUserByUsername returns the User for the given username.
-func GetUserByUsername(ctx context.Context, db sqlx.Queryer, username string) (User, error) {
-	var user User
-	err := sqlx.Get(db, &user, "select "+externalUserFields+" from \"user\" where username = $1", username)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return user, ErrDoesNotExist
-		}
-		return user, errors.Wrap(err, "select error")
-	}
-
-	return user, nil
-}
-
-// GetUserCount returns the total number of users.
-func GetUserCount(ctx context.Context, db sqlx.Queryer, search string) (int32, error) {
-	var count int32
-	if search != "" {
-		search = "%" + search + "%"
-	}
-	err := sqlx.Get(db, &count, `
-		select
-			count(*)
-		from "user"
-		where
-			($1 != '' and username ilike $1)
-			or ($1 = '')
-		`, search)
-	if err != nil {
-		return 0, errors.Wrap(err, "select error")
-	}
-	return count, nil
-}
-
-// GetUsers returns a slice of users, respecting the given limit and offset.
-func GetUsers(ctx context.Context, db sqlx.Queryer, limit, offset int, search string) ([]User, error) {
-	var users []User
-	if search != "" {
-		search = "%" + search + "%"
-	}
-	err := sqlx.Select(db, &users, "select "+externalUserFields+` from "user" where ($3 != '' and username ilike $3) or ($3 = '') order by username limit $1 offset $2`, limit, offset, search)
-	if err != nil {
-		return nil, errors.Wrap(err, "select error")
-	}
-	return users, nil
-}
-
-// UpdateUser updates the given User.
-func UpdateUser(ctx context.Context, db sqlx.Execer, item UserUpdate) error {
-	if err := ValidateUsername(item.Username); err != nil {
-		return errors.Wrap(err, "validation error")
-	}
-
-	if err := ValidateEmail(item.Email); err != nil {
-		return errors.Wrap(err, "validation error")
-	}
-
-	res, err := db.Exec(`
-		update "user"
-		set
-			username = $2,
-			is_admin = $3,
-			is_active = $4,
-			session_ttl = $5,
-			updated_at = now(),
-			email = $6,
-			note = $7
-		where id = $1`,
-		item.ID,
-		item.Username,
-		item.IsAdmin,
-		item.IsActive,
-		item.SessionTTL,
-		item.Email,
-		item.Note,
-	)
-	if err != nil {
-		return handlePSQLError(Update, err, "update error")
-	}
-	ra, err := res.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "get rows affected error")
-	}
-	if ra == 0 {
-		return ErrDoesNotExist
-	}
-
-	log.WithFields(log.Fields{
-		"id":          item.ID,
-		"username":    item.Username,
-		"is_admin":    item.IsAdmin,
-		"session_ttl": item.SessionTTL,
-		"ctx_id":      ctx.Value(logging.ContextIDKey),
-	}).Info("user updated")
-
-	return nil
-}
-
-// DeleteUser deletes the User record matching the given ID.
-func DeleteUser(ctx context.Context, db sqlx.Execer, id int64) error {
-	res, err := db.Exec("delete from \"user\" where id = $1", id)
-	if err != nil {
-		return errors.Wrap(err, "delete error")
-	}
-	ra, err := res.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "get rows affected error")
-	}
-	if ra == 0 {
-		return ErrDoesNotExist
-	}
-
-	log.WithFields(log.Fields{
-		"id":     id,
-		"ctx_id": ctx.Value(logging.ContextIDKey),
-	}).Info("user deleted")
-	return nil
-}
-
-// LoginUser returns a JWT token for the user matching the given username
-// and password.
-func LoginUser(ctx context.Context, db sqlx.Queryer, username string, password string) (string, error) {
-	// Find the user by username
-	var user userInternal
-	err := sqlx.Get(db, &user, "select "+internalUserFields+" from \"user\" where username = $1", username)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return "", ErrInvalidUsernameOrPassword
-		}
-		return "", errors.Wrap(err, "select error")
-	}
-
-	// Compare the passed in password with the hash in the database.
-	if !hashCompare(password, user.PasswordHash) {
-		return "", ErrInvalidUsernameOrPassword
-	}
-
+// GetUserToken returns a JWT token for the given user.
+func GetUserToken(u User) (string, error) {
 	// Generate the token.
 	now := time.Now()
 	nowSecondsSinceEpoch := now.Unix()
 	var expSecondsSinceEpoch int64
-	if user.SessionTTL > 0 {
-		expSecondsSinceEpoch = nowSecondsSinceEpoch + (60 * int64(user.SessionTTL))
+	if u.SessionTTL > 0 {
+		expSecondsSinceEpoch = nowSecondsSinceEpoch + (60 * int64(u.SessionTTL))
 	} else {
 		expSecondsSinceEpoch = nowSecondsSinceEpoch + int64(defaultSessionTTL/time.Second)
 	}
@@ -410,7 +484,8 @@ func LoginUser(ctx context.Context, db sqlx.Queryer, username string, password s
 		"nbf":      nowSecondsSinceEpoch,
 		"exp":      expSecondsSinceEpoch,
 		"sub":      "user",
-		"username": user.Username,
+		"id":       u.ID,
+		"username": u.Email, // backwards compatibility
 	})
 
 	jwt, err := token.SignedString(jwtsecret)
@@ -418,73 +493,4 @@ func LoginUser(ctx context.Context, db sqlx.Queryer, username string, password s
 		return jwt, errors.Wrap(err, "get jwt signed string error")
 	}
 	return jwt, err
-}
-
-// UpdatePassword updates the user with the new password.
-func UpdatePassword(ctx context.Context, db sqlx.Execer, id int64, newpassword string) error {
-	if err := ValidatePassword(newpassword); err != nil {
-		return errors.Wrap(err, "validation error")
-	}
-
-	pwHash, err := hash(newpassword, saltSize, HashIterations)
-	if err != nil {
-		return err
-	}
-
-	// Add the new user.
-	_, err = db.Exec("update \"user\" set password_hash = $1, updated_at = now() where id = $2",
-		pwHash, id)
-	if err != nil {
-		return errors.Wrap(err, "update error")
-	}
-
-	log.WithFields(log.Fields{
-		"id":     id,
-		"ctx_id": ctx.Value(logging.ContextIDKey),
-	}).Info("user password updated")
-	return nil
-
-}
-
-// GetProfile returns the user profile (user, applications and organizations
-// to which the user is linked).
-func GetProfile(ctx context.Context, db sqlx.Queryer, id int64) (UserProfile, error) {
-	var prof UserProfile
-
-	user, err := GetUser(ctx, db, id)
-	if err != nil {
-		return prof, errors.Wrap(err, "get user error")
-	}
-	prof.User = UserProfileUser{
-		ID:         user.ID,
-		Username:   user.Username,
-		SessionTTL: user.SessionTTL,
-		IsAdmin:    user.IsAdmin,
-		IsActive:   user.IsActive,
-		CreatedAt:  user.CreatedAt,
-		UpdatedAt:  user.UpdatedAt,
-	}
-
-	err = sqlx.Select(db, &prof.Organizations, `
-		select
-			ou.organization_id as organization_id,
-			o.name as organization_name,
-			ou.is_admin as is_admin,
-			ou.is_device_admin as is_device_admin,
-			ou.is_gateway_admin as is_gateway_admin,
-			ou.created_at as created_at,
-			ou.updated_at as updated_at
-		from
-			organization_user ou,
-			organization o
-		where
-			ou.user_id = $1
-			and ou.organization_id = o.id`,
-		id,
-	)
-	if err != nil {
-		return prof, errors.Wrap(err, "select error")
-	}
-
-	return prof, nil
 }

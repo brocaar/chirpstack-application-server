@@ -1,0 +1,10 @@
+syntax  = "proto3";
+
+package loracloud;
+
+import "gw/gw.proto";
+
+message FrameRXInfo {
+    // Uplink Gateway meta-data.
+    repeated gw.UplinkRXInfo rx_info = 1;
+}

@@ -3,7 +3,7 @@ import React, { Component } from "react";
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 
-import SessionStore from "../stores/SessionStore";
+import InternalStore from "../stores/InternalStore";
 import theme from "../theme";
 
 const styles = {
@@ -25,10 +25,10 @@ class Footer extends Component {
   }
 
   componentDidMount() {
-    SessionStore.getBranding(resp => {
-      if (resp.footer !== "") {
+    InternalStore.settings(resp => {
+      if (resp.branding.footer !== "") {
         this.setState({
-          footer: resp.footer,
+          footer: resp.branding.footer,
         });
       }
     });

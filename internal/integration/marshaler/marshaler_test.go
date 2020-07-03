@@ -13,7 +13,7 @@ import (
 	"github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-api/go/v3/common"
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
-	models "github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
 	"github.com/brocaar/lorawan"
@@ -196,7 +196,7 @@ func (ts *MarshalerTestSuite) GetLocationEvent() integration.LocationEvent {
 			Latitude:  1.123,
 			Longitude: 2.123,
 			Altitude:  100,
-			Source:    common.LocationSource_GEO_RESOLVER,
+			Source:    common.LocationSource_GEO_RESOLVER_TDOA,
 			Accuracy:  10,
 		},
 		Tags: map[string]string{

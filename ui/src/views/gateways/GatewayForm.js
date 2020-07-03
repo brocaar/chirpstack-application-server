@@ -359,7 +359,7 @@ class GatewayForm extends FormComponent {
               Select the network-server to which the gateway will connect. When no network-servers are available in the dropdown, make sure a service-profile exists for this organization. 
             </FormHelperText>
           </FormControl>}
-          {this.state.object.gatewayProfileID && <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal">
             <FormLabel className={this.props.classes.formLabel}>Gateway-profile</FormLabel>
             <AutocompleteSelect
               id="gatewayProfileID"
@@ -369,15 +369,12 @@ class GatewayForm extends FormComponent {
               onChange={this.onChange}
               getOption={this.getGatewayProfileOption}
               getOptions={this.getGatewayProfileOptions}
-              inputProps={{
-                clearable: true,
-                cache: false,
-              }}
+              clearable={true}
             />
             <FormHelperText>
-              An optional gateway-profile which can be assigned to a gateway. This configuration can be used to automatically re-configure the gateway when ChirpStack Gateway Bridge is configured so that it manages the packet-forwarder configuration.
+              Optional. When assigning a gateway-profile to the gateway, ChirpStack Network Server will attempt to update the gateway according to the gateway-profile. Note that this does require a gateway with ChirpStack Concentratord.
             </FormHelperText>
-          </FormControl>}
+          </FormControl>
           <FormGroup>
             <FormControlLabel
               label="Gateway discovery enabled"

@@ -36,7 +36,7 @@ func (o Organization) Validate() error {
 // OrganizationUser represents an organization user.
 type OrganizationUser struct {
 	UserID         int64     `db:"user_id"`
-	Username       string    `db:"username"`
+	Email          string    `db:"email"`
 	IsAdmin        bool      `db:"is_admin"`
 	IsDeviceAdmin  bool      `db:"is_device_admin"`
 	IsGatewayAdmin bool      `db:"is_gateway_admin"`
@@ -91,8 +91,8 @@ func GetOrganization(ctx context.Context, db sqlx.Queryer, id int64) (Organizati
 
 // OrganizationFilters provides filters for filtering organizations.
 type OrganizationFilters struct {
-	Username string `db:"username"`
-	Search   string `db:"search"`
+	UserID int64  `db:"user_id"`
+	Search string `db:"search"`
 
 	// Limit and Offset are added for convenience so that this struct can
 	// be given as the arguments.
@@ -104,8 +104,8 @@ type OrganizationFilters struct {
 func (f OrganizationFilters) SQL() string {
 	var filters []string
 
-	if f.Username != "" {
-		filters = append(filters, "u.username = :username")
+	if f.UserID != 0 {
+		filters = append(filters, "u.id = :user_id")
 	}
 
 	if f.Search != "" {
@@ -358,7 +358,7 @@ func GetOrganizationUser(ctx context.Context, db sqlx.Queryer, organizationID, u
 	err := sqlx.Get(db, &u, `
 		select
 			u.id as user_id,
-			u.username as username,
+			u.email as email,
 			ou.created_at as created_at,
 			ou.updated_at as updated_at,
 			ou.is_admin as is_admin,
@@ -401,7 +401,7 @@ func GetOrganizationUsers(ctx context.Context, db sqlx.Queryer, organizationID i
 	err := sqlx.Select(db, &users, `
 		select
 			u.id as user_id,
-			u.username as username,
+			u.email as email,
 			ou.created_at as created_at,
 			ou.updated_at as updated_at,
 			ou.is_admin as is_admin,
@@ -412,7 +412,7 @@ func GetOrganizationUsers(ctx context.Context, db sqlx.Queryer, organizationID i
 			on u.id = ou.user_id
 		where
 			ou.organization_id = $1
-		order by u.username
+		order by u.email
 		limit $2 offset $3`,
 		organizationID,
 		limit,

@@ -46,14 +46,17 @@ class FUOTADeploymentDevices extends Component {
     const updatedAt = moment(obj.updatedAt).format('lll');
 
     return(
-      <TableRow key={obj.devEUI}>
+      <TableRow
+        key={obj.devEUI}
+        hover
+      >
         <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${obj.devEUI}`}>{obj.deviceName}</TableCellLink>
         <TableCell>{obj.devEUI}</TableCell>
         <TableCell>{createdAt}</TableCell>
         <TableCell>{updatedAt}</TableCell>
         <TableCell><Button size="small" onClick={() => this.showDetails(obj.devEUI)}>{obj.state}</Button></TableCell>
       </TableRow>
-    ); 
+    );
   }
 
   showDetails(devEUI) {

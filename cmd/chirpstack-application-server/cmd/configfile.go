@@ -118,6 +118,59 @@ pool_size={{ .Redis.PoolSize }}
 id="{{ .ApplicationServer.ID }}"
 
 
+  # User authentication
+  [application_server.user_authentication]
+
+    # OpenID Connect.
+    [application_server.user_authentication.openid_connect]
+
+    # Enable OpenID Connect authentication.
+    #
+    # Enabling this option replaces password authentication.
+    enabled={{ .ApplicationServer.UserAuthentication.OpenIDConnect.Enabled }}
+
+    # Registration enabled.
+    #
+    # Enabling this will automatically register the user when it is not yet present
+    # in the ChirpStack Application Server database. There is no
+    # registration form as the user information is automatically received using the
+    # OpenID Connect provided information.
+    # The user will not be associated with any organization, but in order to
+    # facilitate the automatic onboarding of users, it is possible to configure a
+    # registration callback URL (next config option).
+    registration_enabled={{ .ApplicationServer.UserAuthentication.OpenIDConnect.RegistrationEnabled }}
+
+    # Registration callback URL.
+    #
+    # This (optional) endpoint will be called on the registration of the user and
+    # can implement the association of the user with an organization, create a new
+    # organization, ...
+    # ChirpStack Application Server will make a HTTP POST call to this endpoint,
+    # with the URL parameter user_id.
+    registration_callback_url="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.RegistrationCallbackURL }}"
+
+    # Provider URL.
+    # This is the URL of the OpenID Connect provider.
+    provider_url="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.ProviderURL }}"
+
+    # Client ID.
+    client_id="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.ClientID }}"
+
+    # Client secret.
+    client_secret="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.ClientSecret }}"
+
+    # Redirect URL.
+    #
+    # This must contain the ChirpStack Application Server web-interface hostname
+    # with '/auth/oidc/callback' path, e.g. https://example.com/auth/oidc/callback.
+    redirect_url="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.RedirectURL }}"
+
+    # Login label.
+    #
+    # The login label is used in the web-interface login form.
+    login_label="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.LoginLabel }}"
+
+
   # JavaScript codec settings.
   [application_server.codec.js]
   # Maximum execution time.
@@ -372,9 +425,6 @@ id="{{ .ApplicationServer.ID }}"
   # When left blank (default), CORS will not be used.
   cors_allow_origin="{{ .ApplicationServer.ExternalAPI.CORSAllowOrigin }}"
 
-  # when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)"
-  disable_assign_existing_users={{ .ApplicationServer.ExternalAPI.DisableAssignExistingUsers }}
-
 
   # Settings for the remote multicast setup.
   [application_server.remote_multicast_setup]
@@ -399,12 +449,9 @@ id="{{ .ApplicationServer.ID }}"
   # Synchronization batch-size.
   sync_batch_size={{ .ApplicationServer.FragmentationSession.SyncBatchSize }}
 
-{{ if ne .ApplicationServer.Branding.Header  "" }}
+{{ if ne .ApplicationServer.Branding.Footer  "" }}
   # Branding configuration.
   [application_server.branding]
-  # Header
-  header="{{ .ApplicationServer.Branding.Header }}"
-
   # Footer
   footer="{{ .ApplicationServer.Branding.Footer }}"
 

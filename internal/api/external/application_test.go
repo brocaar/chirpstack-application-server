@@ -59,6 +59,13 @@ func (ts *APITestSuite) TestApplication() {
 	spID2, err := uuid.FromBytes(sp2.ServiceProfile.Id)
 	assert.NoError(err)
 
+	user := storage.User{
+		Email:    "foo@bar.com",
+		IsActive: true,
+		IsAdmin:  true,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &user))
+
 	ts.T().Run("Create with service-profile under different organization", func(t *testing.T) {
 		assert := require.New(t)
 		_, err := api.Create(context.Background(), &pb.CreateApplicationRequest{
@@ -125,7 +132,7 @@ func (ts *APITestSuite) TestApplication() {
 			t.Run("List", func(t *testing.T) {
 				t.Run("As global admin", func(t *testing.T) {
 					assert := require.New(t)
-					validator.returnIsAdmin = true
+					validator.returnUser = user
 
 					apps, err := api.List(context.Background(), &pb.ListApplicationRequest{
 						Limit:  10,
@@ -147,7 +154,7 @@ func (ts *APITestSuite) TestApplication() {
 
 				t.Run("As global admin - with org id filter", func(t *testing.T) {
 					assert := require.New(t)
-					validator.returnIsAdmin = true
+					validator.returnUser = user
 
 					apps, err := api.List(context.Background(), &pb.ListApplicationRequest{
 						Limit:          10,
@@ -288,84 +295,6 @@ func (ts *APITestSuite) TestApplication() {
 					assert.NoError(err)
 
 					_, err = api.GetHTTPIntegration(context.Background(), &pb.GetHTTPIntegrationRequest{ApplicationId: createResp.Id})
-					assert.Equal(codes.NotFound, grpc.Code(err))
-				})
-			})
-		})
-
-		t.Run("KonkerIntegration", func(t *testing.T) {
-			t.Run("Create", func(t *testing.T) {
-				assert := require.New(t)
-
-				req := pb.CreateKonkerIntegrationRequest{
-					Integration: &pb.KonkerIntegration{
-						ApplicationId: createResp.Id,
-						Headers: []*pb.KonkerIntegrationHeader{
-							{Key: "Foo", Value: "bar"},
-						},
-						UplinkDataUrl:           "http://up",
-						JoinNotificationUrl:     "http://join",
-						AckNotificationUrl:      "http://ack",
-						ErrorNotificationUrl:    "http://error",
-						StatusNotificationUrl:   "http://status",
-						LocationNotificationUrl: "http://location",
-						TxAckNotificationUrl:    "http://txack",
-					},
-				}
-				_, err := api.CreateKonkerIntegration(context.Background(), &req)
-				assert.NoError(err)
-
-				t.Run("Get", func(t *testing.T) {
-					assert := require.New(t)
-
-					i, err := api.GetKonkerIntegration(context.Background(), &pb.GetKonkerIntegrationRequest{ApplicationId: createResp.Id})
-					assert.NoError(err)
-
-					assert.Equal(req.Integration, i.Integration)
-				})
-
-				t.Run("List", func(t *testing.T) {
-					assert := require.New(t)
-
-					resp, err := api.ListIntegrations(context.Background(), &pb.ListIntegrationRequest{ApplicationId: createResp.Id})
-					assert.NoError(err)
-
-					assert.EqualValues(1, resp.TotalCount)
-					assert.Equal(&pb.IntegrationListItem{
-						Kind: pb.IntegrationKind_Konker,
-					}, resp.Result[0])
-				})
-
-				t.Run("Update", func(t *testing.T) {
-					assert := require.New(t)
-
-					req := pb.UpdateKonkerIntegrationRequest{
-						Integration: &pb.KonkerIntegration{
-							ApplicationId:           createResp.Id,
-							UplinkDataUrl:           "http://up2",
-							JoinNotificationUrl:     "http://join2",
-							AckNotificationUrl:      "http://ack2",
-							ErrorNotificationUrl:    "http://error",
-							StatusNotificationUrl:   "http://status2",
-							LocationNotificationUrl: "http://location2",
-							TxAckNotificationUrl:    "http://txack2",
-						},
-					}
-					_, err := api.UpdateKonkerIntegration(context.Background(), &req)
-					assert.NoError(err)
-
-					i, err := api.GetKonkerIntegration(context.Background(), &pb.GetKonkerIntegrationRequest{ApplicationId: createResp.Id})
-					assert.NoError(err)
-					assert.Equal(req.Integration, i.Integration)
-				})
-
-				t.Run("Delete", func(t *testing.T) {
-					assert := require.New(t)
-
-					_, err := api.DeleteKonkerIntegration(context.Background(), &pb.DeleteKonkerIntegrationRequest{ApplicationId: createResp.Id})
-					assert.NoError(err)
-
-					_, err = api.GetKonkerIntegration(context.Background(), &pb.GetKonkerIntegrationRequest{ApplicationId: createResp.Id})
 					assert.Equal(codes.NotFound, grpc.Code(err))
 				})
 			})
@@ -570,6 +499,96 @@ func (ts *APITestSuite) TestApplication() {
 					assert.NoError(err)
 
 					_, err = api.GetMyDevicesIntegration(context.Background(), &pb.GetMyDevicesIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.Equal(codes.NotFound, grpc.Code(err))
+				})
+			})
+		})
+
+		t.Run("LoRaCloudIntegration", func(t *testing.T) {
+			t.Run("Create", func(t *testing.T) {
+				assert := require.New(t)
+
+				createReq := pb.CreateLoRaCloudIntegrationRequest{
+					Integration: &pb.LoRaCloudIntegration{
+						ApplicationId:               createResp.Id,
+						Geolocation:                 true,
+						GeolocationToken:            "ab123",
+						GeolocationBufferTtl:        10,
+						GeolocationMinBufferSize:    4,
+						GeolocationTdoa:             true,
+						GeolocationRssi:             true,
+						GeolocationGnss:             true,
+						GeolocationGnssPayloadField: "lr1110_gnss",
+						GeolocationGnssUseRxTime:    true,
+						GeolocationWifi:             true,
+						GeolocationWifiPayloadField: "access_points",
+					},
+				}
+				_, err := api.CreateLoRaCloudIntegration(context.Background(), &createReq)
+				assert.NoError(err)
+
+				t.Run("Get", func(t *testing.T) {
+					assert := require.New(t)
+
+					i, err := api.GetLoRaCloudIntegration(context.Background(), &pb.GetLoRaCloudIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(createReq.Integration, i.Integration)
+				})
+
+				t.Run("List", func(t *testing.T) {
+					assert := require.New(t)
+
+					resp, err := api.ListIntegrations(context.Background(), &pb.ListIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.EqualValues(1, resp.TotalCount)
+					assert.Equal(pb.IntegrationKind_LORACLOUD, resp.Result[0].Kind)
+				})
+
+				t.Run("Update", func(t *testing.T) {
+					assert := require.New(t)
+
+					updateReq := pb.UpdateLoRaCloudIntegrationRequest{
+						Integration: &pb.LoRaCloudIntegration{
+							ApplicationId:               createResp.Id,
+							Geolocation:                 true,
+							GeolocationToken:            "123ab",
+							GeolocationBufferTtl:        4,
+							GeolocationMinBufferSize:    10,
+							GeolocationTdoa:             true,
+							GeolocationRssi:             true,
+							GeolocationGnss:             true,
+							GeolocationGnssPayloadField: "lr1110_gnss_updated",
+							GeolocationGnssUseRxTime:    true,
+							GeolocationWifi:             true,
+							GeolocationWifiPayloadField: "access_points_updated",
+						},
+					}
+
+					_, err := api.UpdateLoRaCloudIntegration(context.Background(), &updateReq)
+					assert.NoError(err)
+
+					i, err := api.GetLoRaCloudIntegration(context.Background(), &pb.GetLoRaCloudIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(updateReq.Integration, i.Integration)
+				})
+
+				t.Run("Delete", func(t *testing.T) {
+					assert := require.New(t)
+
+					_, err := api.DeleteLoRaCloudIntegration(context.Background(), &pb.DeleteLoRaCloudIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+
+					_, err = api.GetLoRaCloudIntegration(context.Background(), &pb.GetLoRaCloudIntegrationRequest{
 						ApplicationId: createResp.Id,
 					})
 					assert.Equal(codes.NotFound, grpc.Code(err))

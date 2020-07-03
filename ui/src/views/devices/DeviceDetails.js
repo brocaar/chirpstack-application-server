@@ -55,9 +55,14 @@ class DetailsCard extends Component {
 class StatusCard extends Component {
   render() {
     let lastSeenAt = "never";
+    let state = "enabled";
 
     if (this.props.device.lastSeenAt !== null) {
       lastSeenAt = moment(this.props.device.lastSeenAt).format("lll");
+    }
+
+    if (this.props.device.device.isDisabled === true) {
+      state = "disabled";
     }
 
     return(
@@ -69,6 +74,10 @@ class StatusCard extends Component {
               <TableRow>
                 <TableCell>Last seen at</TableCell>
                 <TableCell>{lastSeenAt}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>State</TableCell>
+                <TableCell>{state}</TableCell>
               </TableRow>
             </TableBody>
           </Table>

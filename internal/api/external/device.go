@@ -17,7 +17,6 @@ import (
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
 	"github.com/brocaar/chirpstack-api/go/v3/common"
-	"github.com/brocaar/chirpstack-api/go/v3/gw"
 	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
@@ -88,6 +87,7 @@ func (a *DeviceAPI) Create(ctx context.Context, req *pb.CreateDeviceRequest) (*e
 		Description:       req.Device.Description,
 		SkipFCntCheck:     req.Device.SkipFCntCheck,
 		ReferenceAltitude: req.Device.ReferenceAltitude,
+		IsDisabled:        req.Device.IsDisabled,
 		Variables: hstore.Hstore{
 			Map: make(map[string]sql.NullString),
 		},
@@ -142,6 +142,7 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 			DeviceProfileId:   d.DeviceProfileID.String(),
 			SkipFCntCheck:     d.SkipFCntCheck,
 			ReferenceAltitude: d.ReferenceAltitude,
+			IsDisabled:        d.IsDisabled,
 			Variables:         make(map[string]string),
 			Tags:              make(map[string]string),
 		},
@@ -168,7 +169,6 @@ func (a *DeviceAPI) Get(ctx context.Context, req *pb.GetDeviceRequest) (*pb.GetD
 			Latitude:  *d.Latitude,
 			Longitude: *d.Longitude,
 			Altitude:  *d.Altitude,
-			Source:    common.LocationSource_GEO_RESOLVER,
 		}
 	}
 
@@ -255,12 +255,12 @@ func (a *DeviceAPI) List(ctx context.Context, req *pb.ListDeviceRequest) (*pb.Li
 	}
 
 	if !idFilter {
-		isAdmin, err := a.validator.GetIsAdmin(ctx)
+		user, err := a.validator.GetUser(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		if !isAdmin {
+		if !user.IsAdmin {
 			return nil, grpc.Errorf(codes.Unauthenticated, "client must be global admin for unfiltered request")
 		}
 	}
@@ -345,6 +345,7 @@ func (a *DeviceAPI) Update(ctx context.Context, req *pb.UpdateDeviceRequest) (*e
 		d.Description = req.Device.Description
 		d.SkipFCntCheck = req.Device.SkipFCntCheck
 		d.ReferenceAltitude = req.Device.ReferenceAltitude
+		d.IsDisabled = req.Device.IsDisabled
 		d.Variables = hstore.Hstore{
 			Map: make(map[string]sql.NullString),
 		}
@@ -629,15 +630,6 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 	d, err := storage.GetDevice(ctx, storage.DB(), devEUI, false, true)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
-	}
-
-	dp, err := storage.GetDeviceProfile(ctx, storage.DB(), d.DeviceProfileID, false, false)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	if dp.DeviceProfile.SupportsJoin {
-		return nil, grpc.Errorf(codes.FailedPrecondition, "node must be an ABP node")
 	}
 
 	n, err := storage.GetNetworkServerForDevEUI(ctx, storage.DB(), devEUI)
@@ -942,7 +934,7 @@ func (a *DeviceAPI) returnList(count int, devices []storage.DeviceListItem) (*pb
 	return &resp, nil
 }
 
-func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFrame, decodeMACCommands bool) (*pb.UplinkFrameLog, *pb.DownlinkFrameLog, error) {
+func convertUplinkAndDownlinkFrames(up *ns.UplinkFrameLog, down *ns.DownlinkFrameLog, decodeMACCommands bool) (*pb.UplinkFrameLog, *pb.DownlinkFrameLog, error) {
 	var phy lorawan.PHYPayload
 
 	if up != nil {
@@ -988,9 +980,13 @@ func convertUplinkAndDownlinkFrames(up *gw.UplinkFrameSet, down *gw.DownlinkFram
 	}
 
 	if down != nil {
+		var gatewayID lorawan.EUI64
+		copy(gatewayID[:], down.GatewayId)
+
 		downlinkFrameLog := pb.DownlinkFrameLog{
 			TxInfo:         down.TxInfo,
 			PhyPayloadJson: string(phyJSON),
+			GatewayId:      gatewayID.String(),
 		}
 
 		return nil, &downlinkFrameLog, nil

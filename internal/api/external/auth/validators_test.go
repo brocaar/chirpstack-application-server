@@ -64,13 +64,13 @@ func (ts *ValidatorTestSuite) SetupTest() {
 
 func (ts *ValidatorTestSuite) CreateUser(username string, isActive, isAdmin bool) (int64, error) {
 	u := storage.User{
-		Username: username,
 		IsAdmin:  isAdmin,
 		IsActive: isActive,
 		Email:    username + "@example.com",
 	}
 
-	return storage.CreateUser(context.Background(), storage.DB(), &u, "v3rys3cr3t!")
+	err := storage.CreateUser(context.Background(), storage.DB(), &u)
+	return u.ID, err
 }
 
 func (ts *ValidatorTestSuite) RunTests(t *testing.T, tests []validatorTest) {
@@ -78,7 +78,7 @@ func (ts *ValidatorTestSuite) RunTests(t *testing.T, tests []validatorTest) {
 		t.Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
 
-			if tst.Claims.Username != "" {
+			if tst.Claims.Username != "" || tst.Claims.UserID != 0 {
 				tst.Claims.Subject = "user"
 			} else {
 				tst.Claims.Subject = "api_key"
@@ -146,19 +146,19 @@ func (ts *ValidatorTestSuite) TestUser() {
 			{
 				Name:       "active user",
 				Validators: []ValidatorFunc{ValidateActiveUser()},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "inactive user",
 				Validators: []ValidatorFunc{ValidateActiveUser()},
-				Claims:     Claims{Username: "inactiveAdmin"},
+				Claims:     Claims{UserID: users[4].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "invalid user",
 				Validators: []ValidatorFunc{ValidateActiveUser()},
-				Claims:     Claims{Username: "wrongUser"},
+				Claims:     Claims{UserID: 9999},
 				ExpectedOK: false,
 			},
 		}
@@ -166,13 +166,12 @@ func (ts *ValidatorTestSuite) TestUser() {
 		ts.RunTests(t, tests)
 	})
 
-	ts.T().Run("UsersAccess (DisableAssignExistingUsers = false)", func(t *testing.T) {
-		DisableAssignExistingUsers = false
+	ts.T().Run("UsersAccess", func(t *testing.T) {
 		tests := []validatorTest{
 			{
 				Name:       "global admin user can create and list",
 				Validators: []ValidatorFunc{ValidateUsersAccess(Create), ValidateUsersAccess(List)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
@@ -182,70 +181,21 @@ func (ts *ValidatorTestSuite) TestUser() {
 				ExpectedOK: true,
 			},
 			{
-				Name:       "inactive global admin user can not create or list",
-				Validators: []ValidatorFunc{ValidateUsersAccess(Create), ValidateUsersAccess(List)},
-				Claims:     Claims{Username: "inactiveAdmin"},
-				ExpectedOK: false,
-			},
-			{
-				Name:       "organization admin user can create and list",
-				Validators: []ValidatorFunc{ValidateUsersAccess(Create), ValidateUsersAccess(List)},
-				Claims:     Claims{Username: "orgAdmin"},
-				ExpectedOK: true,
-			},
-			{
-				Name:       "organization api key can create and list",
-				Validators: []ValidatorFunc{ValidateUsersAccess(Create), ValidateUsersAccess(List)},
-				Claims:     Claims{APIKeyID: apiKeys[1].ID},
-				ExpectedOK: true,
-			},
-			{
-				Name:       "normal user can not create or list",
-				Validators: []ValidatorFunc{ValidateUsersAccess(Create), ValidateUsersAccess(List)},
-				Claims:     Claims{Username: "orgUser"},
-				ExpectedOK: false,
-			},
-			{
-				Name:       "other api keys can not create or list",
-				Validators: []ValidatorFunc{ValidateUsersAccess(Create), ValidateUsersAccess(List)},
-				Claims:     Claims{APIKeyID: apiKeys[2].ID},
-				ExpectedOK: false,
-			},
-		}
-		ts.RunTests(t, tests)
-	})
-
-	ts.T().Run("UsersAccess (DisableAssignExistingUsers = true)", func(t *testing.T) {
-		DisableAssignExistingUsers = true
-		tests := []validatorTest{
-			{
-				Name:       "global admin user can create and list",
-				Validators: []ValidatorFunc{ValidateUsersAccess(Create), ValidateUsersAccess(List)},
-				Claims:     Claims{Username: "activeAdmin"},
-				ExpectedOK: true,
-			},
-			{
-				Name:       "admin api key can create and list",
-				Validators: []ValidatorFunc{ValidateUsersAccess(Create), ValidateUsersAccess(List)},
-				Claims:     Claims{APIKeyID: apiKeys[0].ID},
-				ExpectedOK: true,
-			},
-			{
-				Name:       "organization admin user can create",
+				Name:       "organization admin user can not create",
 				Validators: []ValidatorFunc{ValidateUsersAccess(Create)},
-				Claims:     Claims{Username: "orgAdmin"},
-				ExpectedOK: true,
+				Claims:     Claims{UserID: orgUsers[0].id},
+				ExpectedOK: false,
 			},
 			{
-				Name:       "organization api key can create",
+				Name:       "organization api key can not create",
 				Validators: []ValidatorFunc{ValidateUsersAccess(Create)},
 				Claims:     Claims{APIKeyID: apiKeys[1].ID},
-				ExpectedOK: true,
+				ExpectedOK: false,
 			},
 			{
 				Name:       "organization admin user can not list",
 				Validators: []ValidatorFunc{ValidateUsersAccess(List)},
-				Claims:     Claims{Username: "orgAdmin"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
@@ -263,7 +213,7 @@ func (ts *ValidatorTestSuite) TestUser() {
 			{
 				Name:       "global admin user has access to read, update and delete",
 				Validators: []ValidatorFunc{ValidateUserAccess(users[2].id, Read), ValidateUserAccess(users[2].id, Update), ValidateUserAccess(users[2].id, Delete)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
@@ -275,19 +225,19 @@ func (ts *ValidatorTestSuite) TestUser() {
 			{
 				Name:       "user itself has access to read",
 				Validators: []ValidatorFunc{ValidateUserAccess(users[2].id, Read)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "user itself has no access to update or delete",
 				Validators: []ValidatorFunc{ValidateUserAccess(users[2].id, Update), ValidateUserAccess(users[2].id, Delete)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "other users are not able to read, update or delete",
 				Validators: []ValidatorFunc{ValidateUserAccess(users[2].id, Read), ValidateUserAccess(users[2].id, Update), ValidateUserAccess(users[2].id, Delete)},
-				Claims:     Claims{Username: "activeUser2"},
+				Claims:     Claims{UserID: users[3].id},
 				ExpectedOK: false,
 			},
 			{
@@ -306,6 +256,7 @@ func (ts *ValidatorTestSuite) TestGateway() {
 	assert := require.New(ts.T())
 
 	users := []struct {
+		id       int64
 		username string
 		isActive bool
 		isAdmin  bool
@@ -316,12 +267,14 @@ func (ts *ValidatorTestSuite) TestGateway() {
 		{username: "inactiveUser", isActive: false, isAdmin: false},
 	}
 
-	for _, user := range users {
-		_, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
+	for i, user := range users {
+		id, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
 		assert.NoError(err)
+		users[i].id = id
 	}
 
 	orgUsers := []struct {
+		id             int64
 		organizationID int64
 		username       string
 		isAdmin        bool
@@ -338,9 +291,10 @@ func (ts *ValidatorTestSuite) TestGateway() {
 		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserGatewayAdmin", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: true},
 	}
 
-	for _, orgUser := range orgUsers {
+	for i, orgUser := range orgUsers {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
+		orgUsers[i].id = id
 
 		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
@@ -362,19 +316,19 @@ func (ts *ValidatorTestSuite) TestGateway() {
 			{
 				Name:       "global admin users can create, update, delete read and list",
 				Validators: []ValidatorFunc{ValidateGatewayProfileAccess(Create), ValidateGatewayProfileAccess(Update), ValidateGatewayProfileAccess(Delete), ValidateGatewayProfileAccess(Read), ValidateGatewayProfileAccess(List)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "normal users can read and list",
 				Validators: []ValidatorFunc{ValidateGatewayProfileAccess(Read), ValidateGatewayProfileAccess(List)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "normal users can not create, update and delete",
 				Validators: []ValidatorFunc{ValidateGatewayProfileAccess(Create), ValidateGatewayProfileAccess(Update), ValidateGatewayProfileAccess(Delete)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 		}
@@ -387,55 +341,55 @@ func (ts *ValidatorTestSuite) TestGateway() {
 			{
 				Name:       "global admin users can create and list",
 				Validators: []ValidatorFunc{ValidateGatewaysAccess(Create, ts.organizations[0].ID), ValidateGatewaysAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can create and list (org CanHaveGateways=true)",
 				Validators: []ValidatorFunc{ValidateGatewaysAccess(Create, ts.organizations[0].ID), ValidateGatewaysAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "gateway admin users can create and list (org CanHaveGateways=true)",
 				Validators: []ValidatorFunc{ValidateGatewaysAccess(Create, ts.organizations[0].ID), ValidateGatewaysAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserGatewayAdmin"},
+				Claims:     Claims{UserID: orgUsers[3].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "normal user can list",
 				Validators: []ValidatorFunc{ValidateGatewaysAccess(List, 0)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can not create (org CanHaveGateways=false)",
 				Validators: []ValidatorFunc{ValidateGatewaysAccess(Create, ts.organizations[1].ID)},
-				Claims:     Claims{Username: "org1ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[5].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "gateway admin users can not create (org CanHaveGateways=true)",
 				Validators: []ValidatorFunc{ValidateGatewaysAccess(Create, ts.organizations[1].ID)},
-				Claims:     Claims{Username: "org1ActiveUserGatewayAdmin"},
+				Claims:     Claims{UserID: orgUsers[7].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "organization user can not create",
 				Validators: []ValidatorFunc{ValidateGatewaysAccess(Create, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "normal user can not create",
 				Validators: []ValidatorFunc{ValidateGatewaysAccess(Create, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "inactive user can not list",
 				Validators: []ValidatorFunc{ValidateGatewaysAccess(List, 0)},
-				Claims:     Claims{Username: "inactiveUser"},
+				Claims:     Claims{UserID: users[3].id},
 				ExpectedOK: false,
 			},
 			{
@@ -481,37 +435,37 @@ func (ts *ValidatorTestSuite) TestGateway() {
 			{
 				Name:       "global admin users can create, update and delete",
 				Validators: []ValidatorFunc{ValidateGatewayAccess(Read, gateways[0].MAC), ValidateGatewayAccess(Update, gateways[0].MAC), ValidateGatewayAccess(Delete, gateways[0].MAC)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can create, update and delete",
 				Validators: []ValidatorFunc{ValidateGatewayAccess(Read, gateways[0].MAC), ValidateGatewayAccess(Update, gateways[0].MAC), ValidateGatewayAccess(Delete, gateways[0].MAC)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization gateway admin users can create, update and delete",
 				Validators: []ValidatorFunc{ValidateGatewayAccess(Read, gateways[0].MAC), ValidateGatewayAccess(Update, gateways[0].MAC), ValidateGatewayAccess(Delete, gateways[0].MAC)},
-				Claims:     Claims{Username: "org0ActiveUserGatewayAdmin"},
+				Claims:     Claims{UserID: orgUsers[3].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can read",
 				Validators: []ValidatorFunc{ValidateGatewayAccess(Read, gateways[0].MAC)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can not update or delete",
 				Validators: []ValidatorFunc{ValidateGatewayAccess(Update, gateways[0].MAC), ValidateGatewayAccess(Delete, gateways[0].MAC)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "normal users can not read, update or delete",
 				Validators: []ValidatorFunc{ValidateGatewayAccess(Read, gateways[0].MAC), ValidateGatewayAccess(Update, gateways[0].MAC), ValidateGatewayAccess(Delete, gateways[0].MAC)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -527,7 +481,7 @@ func (ts *ValidatorTestSuite) TestGateway() {
 				ExpectedOK: true,
 			},
 			{
-				Name:       "oter api key can not read, update or delete",
+				Name:       "other api key can not read, update or delete",
 				Validators: []ValidatorFunc{ValidateGatewayAccess(Read, gateways[0].MAC), ValidateGatewayAccess(Update, gateways[0].MAC), ValidateGatewayAccess(Delete, gateways[0].MAC)},
 				Claims:     Claims{APIKeyID: apiKeys[3].ID},
 				ExpectedOK: false,
@@ -542,6 +496,7 @@ func (ts *ValidatorTestSuite) TestApplication() {
 	assert := require.New(ts.T())
 
 	users := []struct {
+		id       int64
 		username string
 		isActive bool
 		isAdmin  bool
@@ -552,12 +507,14 @@ func (ts *ValidatorTestSuite) TestApplication() {
 		{username: "inactiveUser", isActive: false, isAdmin: false},
 	}
 
-	for _, user := range users {
-		_, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
+	for i, user := range users {
+		id, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
 		assert.NoError(err)
+		users[i].id = id
 	}
 
 	orgUsers := []struct {
+		id             int64
 		organizationID int64
 		username       string
 		isAdmin        bool
@@ -573,9 +530,10 @@ func (ts *ValidatorTestSuite) TestApplication() {
 		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserDeviceAdmin", isAdmin: false, isDeviceAdmin: true, isGatewayAdmin: false},
 		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserGatewayAdmin", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: true},
 	}
-	for _, orgUser := range orgUsers {
+	for i, orgUser := range orgUsers {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
+		orgUsers[i].id = id
 
 		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
@@ -614,43 +572,43 @@ func (ts *ValidatorTestSuite) TestApplication() {
 			{
 				Name:       "global admin users can create and list",
 				Validators: []ValidatorFunc{ValidateApplicationsAccess(Create, ts.organizations[0].ID), ValidateApplicationsAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can create and list",
 				Validators: []ValidatorFunc{ValidateApplicationsAccess(Create, ts.organizations[0].ID), ValidateApplicationsAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization device admin users can create and list",
 				Validators: []ValidatorFunc{ValidateApplicationsAccess(Create, ts.organizations[0].ID), ValidateApplicationsAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserDeviceAdmin"},
+				Claims:     Claims{UserID: orgUsers[2].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can list",
 				Validators: []ValidatorFunc{ValidateApplicationsAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "normal users can list when no organization id is given",
 				Validators: []ValidatorFunc{ValidateApplicationsAccess(List, 0)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can not create",
 				Validators: []ValidatorFunc{ValidateApplicationsAccess(Create, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "normal users can not create and list",
 				Validators: []ValidatorFunc{ValidateApplicationsAccess(Create, ts.organizations[0].ID), ValidateApplicationsAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -682,31 +640,31 @@ func (ts *ValidatorTestSuite) TestApplication() {
 			{
 				Name:       "global admin users can read, update and delete",
 				Validators: []ValidatorFunc{ValidateApplicationAccess(applications[0].ID, Read), ValidateApplicationAccess(applications[0].ID, Update), ValidateApplicationAccess(applications[0].ID, Delete)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can read update and delete",
 				Validators: []ValidatorFunc{ValidateApplicationAccess(applications[0].ID, Read), ValidateApplicationAccess(applications[0].ID, Update), ValidateApplicationAccess(applications[0].ID, Delete)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization device admin users can read update and delete",
 				Validators: []ValidatorFunc{ValidateApplicationAccess(applications[0].ID, Read), ValidateApplicationAccess(applications[0].ID, Update), ValidateApplicationAccess(applications[0].ID, Delete)},
-				Claims:     Claims{Username: "org0ActiveUserDeviceAdmin"},
+				Claims:     Claims{UserID: orgUsers[2].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can read",
 				Validators: []ValidatorFunc{ValidateApplicationAccess(applications[0].ID, Read)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "other users can not read, update or delete",
 				Validators: []ValidatorFunc{ValidateApplicationAccess(1, Read), ValidateApplicationAccess(1, Update), ValidateApplicationAccess(1, Delete)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -743,6 +701,7 @@ func (ts *ValidatorTestSuite) TestDevice() {
 	assert := require.New(ts.T())
 
 	users := []struct {
+		id       int64
 		username string
 		isActive bool
 		isAdmin  bool
@@ -753,12 +712,14 @@ func (ts *ValidatorTestSuite) TestDevice() {
 		{username: "inactiveUser", isActive: false, isAdmin: false},
 	}
 
-	for _, user := range users {
-		_, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
+	for i, user := range users {
+		id, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
 		assert.NoError(err)
+		users[i].id = id
 	}
 
 	orgUsers := []struct {
+		id             int64
 		organizationID int64
 		username       string
 		isAdmin        bool
@@ -775,9 +736,10 @@ func (ts *ValidatorTestSuite) TestDevice() {
 		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserGatewayAdmin", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: true},
 	}
 
-	for _, orgUser := range orgUsers {
+	for i, orgUser := range orgUsers {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
+		orgUsers[i].id = id
 
 		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
@@ -833,37 +795,37 @@ func (ts *ValidatorTestSuite) TestDevice() {
 			{
 				Name:       "global admin user has access to create and list",
 				Validators: []ValidatorFunc{ValidateNodesAccess(applications[0].ID, Create), ValidateNodesAccess(applications[0].ID, List)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can create and list",
 				Validators: []ValidatorFunc{ValidateNodesAccess(applications[0].ID, Create), ValidateNodesAccess(applications[0].ID, List)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization device admin users can create and list",
 				Validators: []ValidatorFunc{ValidateNodesAccess(applications[0].ID, Create), ValidateNodesAccess(applications[0].ID, List)},
-				Claims:     Claims{Username: "org0ActiveUserDeviceAdmin"},
+				Claims:     Claims{UserID: orgUsers[2].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can list",
 				Validators: []ValidatorFunc{ValidateNodesAccess(applications[0].ID, List)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can not create",
 				Validators: []ValidatorFunc{ValidateNodesAccess(applications[0].ID, Create)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "other users can not create or list",
 				Validators: []ValidatorFunc{ValidateNodesAccess(applications[0].ID, Create), ValidateNodesAccess(applications[0].ID, List)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -900,37 +862,37 @@ func (ts *ValidatorTestSuite) TestDevice() {
 			{
 				Name:       "global admin users can read, update and delete",
 				Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Read), ValidateNodeAccess(devices[0].DevEUI, Update), ValidateNodeAccess(devices[0].DevEUI, Delete)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can read, update and delete",
 				Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Read), ValidateNodeAccess(devices[0].DevEUI, Update), ValidateNodeAccess(devices[0].DevEUI, Delete)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization device admin users can read, update and delete",
 				Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Read), ValidateNodeAccess(devices[0].DevEUI, Update), ValidateNodeAccess(devices[0].DevEUI, Delete)},
-				Claims:     Claims{Username: "org0ActiveUserDeviceAdmin"},
+				Claims:     Claims{UserID: orgUsers[2].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can read",
 				Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Read)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users (non-admin) can not update or delete",
 				Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Update), ValidateNodeAccess(devices[0].DevEUI, Delete)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "other users can not read, update and delete",
 				Validators: []ValidatorFunc{ValidateNodeAccess(devices[0].DevEUI, Read), ValidateNodeAccess(devices[0].DevEUI, Update), ValidateNodeAccess(devices[0].DevEUI, Delete)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -961,19 +923,19 @@ func (ts *ValidatorTestSuite) TestDevice() {
 			{
 				Name:       "global admin users can read, list, update and delete",
 				Validators: []ValidatorFunc{ValidateDeviceQueueAccess(devices[0].DevEUI, Create), ValidateDeviceQueueAccess(devices[0].DevEUI, List), ValidateDeviceQueueAccess(devices[0].DevEUI, Delete)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can read, list, update and delete",
 				Validators: []ValidatorFunc{ValidateDeviceQueueAccess(devices[0].DevEUI, Create), ValidateDeviceQueueAccess(devices[0].DevEUI, List), ValidateDeviceQueueAccess(devices[0].DevEUI, Delete)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "other users can not read, list, update and delete",
 				Validators: []ValidatorFunc{ValidateDeviceQueueAccess(devices[0].DevEUI, Create), ValidateDeviceQueueAccess(devices[0].DevEUI, List), ValidateDeviceQueueAccess(devices[0].DevEUI, Delete)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -1010,6 +972,7 @@ func (ts *ValidatorTestSuite) TestDeviceProfile() {
 	assert := require.New(ts.T())
 
 	users := []struct {
+		id       int64
 		username string
 		isActive bool
 		isAdmin  bool
@@ -1020,12 +983,14 @@ func (ts *ValidatorTestSuite) TestDeviceProfile() {
 		{username: "inactiveUser", isActive: false, isAdmin: false},
 	}
 
-	for _, user := range users {
-		_, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
+	for i, user := range users {
+		id, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
 		assert.NoError(err)
+		users[i].id = id
 	}
 
 	orgUsers := []struct {
+		id             int64
 		organizationID int64
 		username       string
 		isAdmin        bool
@@ -1042,9 +1007,10 @@ func (ts *ValidatorTestSuite) TestDeviceProfile() {
 		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserGatewayAdmin", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: true},
 	}
 
-	for _, orgUser := range orgUsers {
+	for i, orgUser := range orgUsers {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
+		orgUsers[i].id = id
 
 		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
@@ -1094,55 +1060,55 @@ func (ts *ValidatorTestSuite) TestDeviceProfile() {
 			{
 				Name:       "global admin users can create and list",
 				Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, ts.organizations[0].ID, 0), ValidateDeviceProfilesAccess(List, ts.organizations[0].ID, 0)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can create and list",
 				Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, ts.organizations[0].ID, 0), ValidateDeviceProfilesAccess(List, ts.organizations[0].ID, 0)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization device admin users can create and list",
 				Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, ts.organizations[0].ID, 0), ValidateDeviceProfilesAccess(List, ts.organizations[0].ID, 0)},
-				Claims:     Claims{Username: "org0ActiveUserDeviceAdmin"},
+				Claims:     Claims{UserID: orgUsers[2].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can list",
 				Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(List, ts.organizations[0].ID, 0)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can list with an application id is given",
 				Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(List, 0, applications[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "any user can list when organization id = 0",
 				Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(List, 0, 0)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can not create",
 				Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, ts.organizations[0].ID, 0)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "non-organization users can not create or list",
 				Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(Create, ts.organizations[0].ID, 0), ValidateDeviceProfilesAccess(List, ts.organizations[0].ID, 0)},
-				Claims:     Claims{Username: "org1ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[4].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "non-organization users can not list when an application id is given beloning to a different organization",
 				Validators: []ValidatorFunc{ValidateDeviceProfilesAccess(List, 0, applications[1].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
@@ -1185,37 +1151,37 @@ func (ts *ValidatorTestSuite) TestDeviceProfile() {
 			{
 				Name:       "global admin users can read, update and delete",
 				Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Update, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Delete, deviceProfilesIDs[0])},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can read, update and delete",
 				Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Update, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Delete, deviceProfilesIDs[0])},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization device admin users can read, update and delete",
 				Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Update, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Delete, deviceProfilesIDs[0])},
-				Claims:     Claims{Username: "org0ActiveUserDeviceAdmin"},
+				Claims:     Claims{UserID: orgUsers[2].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can read",
 				Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfilesIDs[0])},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can not update and delete",
 				Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Update, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Delete, deviceProfilesIDs[0])},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "non-organization users can not read, update ande delete",
 				Validators: []ValidatorFunc{ValidateDeviceProfileAccess(Read, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Update, deviceProfilesIDs[0]), ValidateDeviceProfileAccess(Delete, deviceProfilesIDs[0])},
-				Claims:     Claims{Username: "org1ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[4].id},
 				ExpectedOK: false,
 			},
 			{
@@ -1258,6 +1224,7 @@ func (ts *ValidatorTestSuite) TestNetworkServer() {
 	assert := require.New(ts.T())
 
 	users := []struct {
+		id       int64
 		username string
 		isActive bool
 		isAdmin  bool
@@ -1268,12 +1235,14 @@ func (ts *ValidatorTestSuite) TestNetworkServer() {
 		{username: "inactiveUser", isActive: false, isAdmin: false},
 	}
 
-	for _, user := range users {
-		_, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
+	for i, user := range users {
+		id, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
 		assert.NoError(err)
+		users[i].id = id
 	}
 
 	orgUsers := []struct {
+		id             int64
 		organizationID int64
 		username       string
 		isAdmin        bool
@@ -1290,9 +1259,10 @@ func (ts *ValidatorTestSuite) TestNetworkServer() {
 		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserGatewayAdmin", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: true},
 	}
 
-	for _, orgUser := range orgUsers {
+	for i, orgUser := range orgUsers {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
+		orgUsers[i].id = id
 
 		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
@@ -1323,25 +1293,25 @@ func (ts *ValidatorTestSuite) TestNetworkServer() {
 			{
 				Name:       "global admin users can create and list",
 				Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create, ts.organizations[0].ID), ValidateNetworkServersAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can list",
 				Validators: []ValidatorFunc{ValidateNetworkServersAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can not create",
 				Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "non-organization users can not create or list",
 				Validators: []ValidatorFunc{ValidateNetworkServersAccess(Create, ts.organizations[0].ID), ValidateNetworkServersAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -1377,31 +1347,31 @@ func (ts *ValidatorTestSuite) TestNetworkServer() {
 			{
 				Name:       "global admin users can read, update and delete",
 				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID), ValidateNetworkServerAccess(Update, ts.networkServers[0].ID), ValidateNetworkServerAccess(Delete, ts.networkServers[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can read",
 				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization gateway admin users can read",
 				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserGatewayAdmin"},
+				Claims:     Claims{UserID: orgUsers[3].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can not update and delete",
 				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Update, ts.networkServers[0].ID), ValidateNetworkServerAccess(Delete, ts.networkServers[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "regular users can not read, update and delete",
 				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID), ValidateNetworkServerAccess(Update, ts.networkServers[0].ID), ValidateNetworkServerAccess(Delete, ts.networkServers[0].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
@@ -1438,6 +1408,7 @@ func (ts *ValidatorTestSuite) TestOrganization() {
 	assert := require.New(ts.T())
 
 	users := []struct {
+		id       int64
 		username string
 		isActive bool
 		isAdmin  bool
@@ -1448,9 +1419,10 @@ func (ts *ValidatorTestSuite) TestOrganization() {
 		{username: "inactiveUser", isActive: false, isAdmin: false},
 	}
 
-	for _, user := range users {
-		_, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
+	for i, user := range users {
+		id, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
 		assert.NoError(err)
+		users[i].id = id
 	}
 
 	orgUsers := []struct {
@@ -1459,7 +1431,7 @@ func (ts *ValidatorTestSuite) TestOrganization() {
 		isAdmin        bool
 		isDeviceAdmin  bool
 		isGatewayAdmin bool
-		ID             int64
+		id             int64
 	}{
 		{organizationID: ts.organizations[0].ID, username: "org0ActiveUser", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: false},
 		{organizationID: ts.organizations[0].ID, username: "org0ActiveUserAdmin", isAdmin: true, isDeviceAdmin: false, isGatewayAdmin: false},
@@ -1474,7 +1446,7 @@ func (ts *ValidatorTestSuite) TestOrganization() {
 	for i, orgUser := range orgUsers {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
-		orgUsers[i].ID = id
+		orgUsers[i].id = id
 
 		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
@@ -1513,19 +1485,19 @@ func (ts *ValidatorTestSuite) TestOrganization() {
 			{
 				Name:       "global admin users are",
 				Validators: []ValidatorFunc{ValidateIsOrganizationAdmin(ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users are",
 				Validators: []ValidatorFunc{ValidateIsOrganizationAdmin(ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "normal organization users are not",
 				Validators: []ValidatorFunc{ValidateIsOrganizationAdmin(applications[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
@@ -1556,43 +1528,43 @@ func (ts *ValidatorTestSuite) TestOrganization() {
 			{
 				Name:       "global admin users can create and list",
 				Validators: []ValidatorFunc{ValidateOrganizationsAccess(Create), ValidateOrganizationsAccess(List)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can list",
 				Validators: []ValidatorFunc{ValidateOrganizationsAccess(List)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can list",
 				Validators: []ValidatorFunc{ValidateOrganizationsAccess(List)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "normal users users can list",
 				Validators: []ValidatorFunc{ValidateOrganizationsAccess(List)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can not create",
 				Validators: []ValidatorFunc{ValidateOrganizationsAccess(Create)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "normal users can not create",
 				Validators: []ValidatorFunc{ValidateOrganizationsAccess(Create)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "inactive global admin users can not create and list",
 				Validators: []ValidatorFunc{ValidateOrganizationsAccess(Create), ValidateOrganizationsAccess(List)},
-				Claims:     Claims{Username: "inactiveAdmin"},
+				Claims:     Claims{UserID: users[1].id},
 				ExpectedOK: false,
 			},
 			{
@@ -1623,37 +1595,37 @@ func (ts *ValidatorTestSuite) TestOrganization() {
 			{
 				Name:       "global admin users can read, update and delete",
 				Validators: []ValidatorFunc{ValidateOrganizationAccess(Read, ts.organizations[0].ID), ValidateOrganizationAccess(Update, ts.organizations[0].ID), ValidateOrganizationAccess(Delete, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can read and update",
 				Validators: []ValidatorFunc{ValidateOrganizationAccess(Read, ts.organizations[0].ID), ValidateOrganizationAccess(Update, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can read",
 				Validators: []ValidatorFunc{ValidateOrganizationAccess(Read, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin can not delete",
 				Validators: []ValidatorFunc{ValidateOrganizationAccess(Delete, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "organization users can not update or delete",
 				Validators: []ValidatorFunc{ValidateOrganizationAccess(Update, ts.organizations[0].ID), ValidateOrganizationAccess(Delete, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "normal users can not read, update or delete",
 				Validators: []ValidatorFunc{ValidateOrganizationAccess(Read, ts.organizations[0].ID), ValidateOrganizationAccess(Update, ts.organizations[0].ID), ValidateOrganizationAccess(Delete, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -1685,37 +1657,36 @@ func (ts *ValidatorTestSuite) TestOrganization() {
 		ts.RunTests(t, tests)
 	})
 
-	ts.T().Run("ValidateOrganizationUsersAccess (DisableAssignExistingUsers=false)", func(t *testing.T) {
-		DisableAssignExistingUsers = false
+	ts.T().Run("ValidateOrganizationUsersAccess", func(t *testing.T) {
 		tests := []validatorTest{
 			{
 				Name:       "global admin users can create and list",
 				Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, ts.organizations[0].ID), ValidateOrganizationUsersAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can create and list",
 				Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, ts.organizations[0].ID), ValidateOrganizationUsersAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can list",
 				Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can not create",
 				Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "normal users can not create and list",
 				Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, ts.organizations[0].ID), ValidateOrganizationUsersAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -1741,103 +1712,59 @@ func (ts *ValidatorTestSuite) TestOrganization() {
 		ts.RunTests(t, tests)
 	})
 
-	ts.T().Run("OrganizationUsersAccess (DisableAssignExistingUsers=true)", func(t *testing.T) {
-		DisableAssignExistingUsers = true
-		tests := []validatorTest{
-			{
-				Name:       "global admin users can create and list",
-				Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, ts.organizations[0].ID), ValidateOrganizationUsersAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
-				ExpectedOK: true,
-			},
-			{
-				Name:       "organization admin users can not create",
-				Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
-				ExpectedOK: false,
-			},
-			{
-				Name:       "admin api token can create and list",
-				Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, ts.organizations[0].ID), ValidateOrganizationUsersAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{APIKeyID: apiKeys[0].ID},
-				ExpectedOK: true,
-			},
-			{
-				Name:       "org api token can list",
-				Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{APIKeyID: apiKeys[1].ID},
-				ExpectedOK: true,
-			},
-			{
-				Name:       "org api token can not create",
-				Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, ts.organizations[0].ID)},
-				Claims:     Claims{APIKeyID: apiKeys[1].ID},
-				ExpectedOK: false,
-			},
-			{
-				Name:       "app api token can not create or list",
-				Validators: []ValidatorFunc{ValidateOrganizationUsersAccess(Create, ts.organizations[0].ID), ValidateOrganizationUsersAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{APIKeyID: apiKeys[2].ID},
-				ExpectedOK: false,
-			},
-		}
-
-		ts.RunTests(t, tests)
-	})
-
 	ts.T().Run("OrganizationUserAccess", func(t *testing.T) {
 		tests := []validatorTest{
 			{
 				Name:       "global admin users can read, update or delete",
-				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].ID), ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].ID), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].id), ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].id), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].id)},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can read, update or delete",
-				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].ID), ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].ID), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].id), ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].id), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].id)},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization user can read own user record",
-				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].id)},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization user can not read other user record",
-				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[1].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[1].id)},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "organization users can not update or delete",
-				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].ID), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].id), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].id)},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "normal users can not read, update or delete",
-				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].ID), ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].ID), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].id), ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].id), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].id)},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "admin api key can read, update and delete",
-				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].ID), ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].ID), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].ID)},
+				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].id), ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].id), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].id)},
 				Claims:     Claims{APIKeyID: apiKeys[0].ID},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "org api key can read, update and delete",
-				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].ID), ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].ID), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].ID)},
+				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].id), ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].id), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].id)},
 				Claims:     Claims{APIKeyID: apiKeys[1].ID},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "app api key can read, update and delete",
-				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].ID), ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].ID), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].ID)},
+				Validators: []ValidatorFunc{ValidateOrganizationUserAccess(Read, ts.organizations[0].ID, orgUsers[0].id), ValidateOrganizationUserAccess(Update, ts.organizations[0].ID, orgUsers[0].id), ValidateOrganizationUserAccess(Delete, ts.organizations[0].ID, orgUsers[0].id)},
 				Claims:     Claims{APIKeyID: apiKeys[2].ID},
 				ExpectedOK: false,
 			},
@@ -1851,25 +1778,25 @@ func (ts *ValidatorTestSuite) TestOrganization() {
 			{
 				Name:       "global admin users can read",
 				Validators: []ValidatorFunc{ValidateOrganizationNetworkServerAccess(Read, ts.organizations[0].ID, ts.networkServers[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can read",
 				Validators: []ValidatorFunc{ValidateOrganizationNetworkServerAccess(Read, ts.organizations[0].ID, ts.networkServers[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can not read when the network-server is not linked to the organization",
 				Validators: []ValidatorFunc{ValidateOrganizationNetworkServerAccess(Read, ts.organizations[0].ID, ts.networkServers[1].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "non-organization users can not read",
 				Validators: []ValidatorFunc{ValidateOrganizationNetworkServerAccess(Read, ts.organizations[0].ID, ts.networkServers[0].ID)},
-				Claims:     Claims{Username: "org1ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[4].id},
 				ExpectedOK: false,
 			},
 			{
@@ -1906,6 +1833,7 @@ func (ts *ValidatorTestSuite) TestServiceProfile() {
 	assert := require.New(ts.T())
 
 	users := []struct {
+		id       int64
 		username string
 		isActive bool
 		isAdmin  bool
@@ -1915,9 +1843,10 @@ func (ts *ValidatorTestSuite) TestServiceProfile() {
 		{username: "activeUser", isActive: true, isAdmin: false},
 		{username: "inactiveUser", isActive: false, isAdmin: false},
 	}
-	for _, user := range users {
-		_, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
+	for i, user := range users {
+		id, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
 		assert.NoError(err)
+		users[i].id = id
 	}
 
 	orgUsers := []struct {
@@ -1926,7 +1855,7 @@ func (ts *ValidatorTestSuite) TestServiceProfile() {
 		isAdmin        bool
 		isDeviceAdmin  bool
 		isGatewayAdmin bool
-		ID             int64
+		id             int64
 	}{
 		{organizationID: ts.organizations[0].ID, username: "org0ActiveUser", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: false},
 		{organizationID: ts.organizations[0].ID, username: "org0ActiveUserAdmin", isAdmin: true, isDeviceAdmin: false, isGatewayAdmin: false},
@@ -1941,7 +1870,7 @@ func (ts *ValidatorTestSuite) TestServiceProfile() {
 	for i, orgUser := range orgUsers {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
-		orgUsers[i].ID = id
+		orgUsers[i].id = id
 
 		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
@@ -1972,43 +1901,43 @@ func (ts *ValidatorTestSuite) TestServiceProfile() {
 			{
 				Name:       "global admin users can create and list",
 				Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create, ts.organizations[0].ID), ValidateServiceProfilesAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can list",
 				Validators: []ValidatorFunc{ValidateServiceProfilesAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can list",
 				Validators: []ValidatorFunc{ValidateServiceProfilesAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "any user can list when organization id = 0",
 				Validators: []ValidatorFunc{ValidateServiceProfilesAccess(List, 0)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can not create",
 				Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "organization users can not create",
 				Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "non-organization can not create or list",
 				Validators: []ValidatorFunc{ValidateServiceProfilesAccess(Create, ts.organizations[1].ID), ValidateServiceProfilesAccess(List, ts.organizations[1].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -2047,37 +1976,37 @@ func (ts *ValidatorTestSuite) TestServiceProfile() {
 			{
 				Name:       "global admin users can read, update and delete",
 				Validators: []ValidatorFunc{ValidateServiceProfileAccess(Read, id), ValidateServiceProfileAccess(Update, id), ValidateServiceProfileAccess(Delete, id)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can read",
 				Validators: []ValidatorFunc{ValidateServiceProfileAccess(Read, id)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can read",
 				Validators: []ValidatorFunc{ValidateServiceProfileAccess(Read, id)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can not update or delete",
 				Validators: []ValidatorFunc{ValidateServiceProfileAccess(Update, id), ValidateServiceProfileAccess(Delete, id)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "organization users can not update or delete",
 				Validators: []ValidatorFunc{ValidateServiceProfileAccess(Update, id), ValidateServiceProfileAccess(Delete, id)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "non-organization users can not read, update or delete",
 				Validators: []ValidatorFunc{ValidateServiceProfileAccess(Read, id), ValidateServiceProfileAccess(Update, id), ValidateServiceProfileAccess(Delete, id)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -2114,6 +2043,7 @@ func (ts *ValidatorTestSuite) TestMulticastGroup() {
 	assert := require.New(ts.T())
 
 	users := []struct {
+		id       int64
 		username string
 		isActive bool
 		isAdmin  bool
@@ -2123,9 +2053,10 @@ func (ts *ValidatorTestSuite) TestMulticastGroup() {
 		{username: "activeUser", isActive: true, isAdmin: false},
 		{username: "inactiveUser", isActive: false, isAdmin: false},
 	}
-	for _, user := range users {
-		_, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
+	for i, user := range users {
+		id, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
 		assert.NoError(err)
+		users[i].id = id
 	}
 
 	orgUsers := []struct {
@@ -2134,7 +2065,7 @@ func (ts *ValidatorTestSuite) TestMulticastGroup() {
 		isAdmin        bool
 		isDeviceAdmin  bool
 		isGatewayAdmin bool
-		ID             int64
+		id             int64
 	}{
 		{organizationID: ts.organizations[0].ID, username: "org0ActiveUser", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: false},
 		{organizationID: ts.organizations[0].ID, username: "org0ActiveUserAdmin", isAdmin: true, isDeviceAdmin: false, isGatewayAdmin: false},
@@ -2149,7 +2080,7 @@ func (ts *ValidatorTestSuite) TestMulticastGroup() {
 	for i, orgUser := range orgUsers {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
-		orgUsers[i].ID = id
+		orgUsers[i].id = id
 
 		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
@@ -2192,31 +2123,31 @@ func (ts *ValidatorTestSuite) TestMulticastGroup() {
 			{
 				Name:       "global admin users can create and list",
 				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, ts.organizations[0].ID), ValidateMulticastGroupsAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can create and list",
 				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, ts.organizations[0].ID), ValidateMulticastGroupsAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can list",
 				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can not create",
 				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "non-organization users can not create or list",
 				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, ts.organizations[0].ID), ValidateMulticastGroupsAccess(List, ts.organizations[0].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -2247,31 +2178,31 @@ func (ts *ValidatorTestSuite) TestMulticastGroup() {
 			{
 				Name:       "global admin users can read, update and delete",
 				Validators: []ValidatorFunc{ValidateMulticastGroupAccess(Read, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Update, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Delete, multicastGroupsIDs[0])},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can read, update, and delete",
 				Validators: []ValidatorFunc{ValidateMulticastGroupAccess(Read, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Update, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Delete, multicastGroupsIDs[0])},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can read",
 				Validators: []ValidatorFunc{ValidateMulticastGroupAccess(Read, multicastGroupsIDs[0])},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can not update and delete",
 				Validators: []ValidatorFunc{ValidateMulticastGroupAccess(Update, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Delete, multicastGroupsIDs[0])},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "non-organization users can not read, update and delete",
 				Validators: []ValidatorFunc{ValidateMulticastGroupAccess(Read, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Update, multicastGroupsIDs[0]), ValidateMulticastGroupAccess(Delete, multicastGroupsIDs[0])},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -2302,25 +2233,25 @@ func (ts *ValidatorTestSuite) TestMulticastGroup() {
 			{
 				Name:       "global admin user can create, read, list and delete",
 				Validators: []ValidatorFunc{ValidateMulticastGroupQueueAccess(Create, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(Read, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(List, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(Delete, multicastGroupsIDs[0])},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can create, read, list and delete",
 				Validators: []ValidatorFunc{ValidateMulticastGroupQueueAccess(Create, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(Read, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(List, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(Delete, multicastGroupsIDs[0])},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can create, read, list and delete",
 				Validators: []ValidatorFunc{ValidateMulticastGroupQueueAccess(Create, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(Read, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(List, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(Delete, multicastGroupsIDs[0])},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "non-organization users can not create, list and delete",
 				Validators: []ValidatorFunc{ValidateMulticastGroupQueueAccess(Create, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(List, multicastGroupsIDs[0]), ValidateMulticastGroupQueueAccess(Delete, multicastGroupsIDs[0])},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -2351,6 +2282,7 @@ func (ts *ValidatorTestSuite) TestFUOTA() {
 	assert := require.New(ts.T())
 
 	users := []struct {
+		id       int64
 		username string
 		isActive bool
 		isAdmin  bool
@@ -2361,12 +2293,14 @@ func (ts *ValidatorTestSuite) TestFUOTA() {
 		{username: "inactiveUser", isActive: false, isAdmin: false},
 	}
 
-	for _, user := range users {
-		_, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
+	for i, user := range users {
+		id, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
 		assert.NoError(err)
+		users[i].id = id
 	}
 
 	orgUsers := []struct {
+		id             int64
 		organizationID int64
 		username       string
 		isAdmin        bool
@@ -2383,9 +2317,10 @@ func (ts *ValidatorTestSuite) TestFUOTA() {
 		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserGatewayAdmin", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: true},
 	}
 
-	for _, orgUser := range orgUsers {
+	for i, orgUser := range orgUsers {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
+		orgUsers[i].id = id
 
 		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
@@ -2448,25 +2383,25 @@ func (ts *ValidatorTestSuite) TestFUOTA() {
 			{
 				Name:       "global admin user can read",
 				Validators: []ValidatorFunc{ValidateFUOTADeploymentAccess(Read, fuotaDeployments[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin can read",
 				Validators: []ValidatorFunc{ValidateFUOTADeploymentAccess(Read, fuotaDeployments[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization user can read",
 				Validators: []ValidatorFunc{ValidateFUOTADeploymentAccess(Read, fuotaDeployments[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "non-organization user can not read",
 				Validators: []ValidatorFunc{ValidateFUOTADeploymentAccess(Read, fuotaDeployments[0].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -2503,25 +2438,25 @@ func (ts *ValidatorTestSuite) TestFUOTA() {
 			{
 				Name:       "global admin user can create",
 				Validators: []ValidatorFunc{ValidateFUOTADeploymentsAccess(Create, applications[0].ID, lorawan.EUI64{}), ValidateFUOTADeploymentsAccess(Create, 0, devices[0].DevEUI)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin user can create",
 				Validators: []ValidatorFunc{ValidateFUOTADeploymentsAccess(Create, applications[0].ID, lorawan.EUI64{}), ValidateFUOTADeploymentsAccess(Create, 0, devices[0].DevEUI)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization user can not create",
 				Validators: []ValidatorFunc{ValidateFUOTADeploymentsAccess(Create, applications[0].ID, lorawan.EUI64{}), ValidateFUOTADeploymentsAccess(Create, 0, devices[0].DevEUI)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "non-organization user can not create",
 				Validators: []ValidatorFunc{ValidateFUOTADeploymentsAccess(Create, applications[0].ID, lorawan.EUI64{}), ValidateFUOTADeploymentsAccess(Create, 0, devices[0].DevEUI)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
@@ -2558,6 +2493,7 @@ func (ts *ValidatorTestSuite) TestAPIKeys() {
 	assert := require.New(ts.T())
 
 	users := []struct {
+		id       int64
 		username string
 		isActive bool
 		isAdmin  bool
@@ -2568,12 +2504,14 @@ func (ts *ValidatorTestSuite) TestAPIKeys() {
 		{username: "inactiveUser", isActive: false, isAdmin: false},
 	}
 
-	for _, user := range users {
-		_, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
+	for i, user := range users {
+		id, err := ts.CreateUser(user.username, user.isActive, user.isAdmin)
 		assert.NoError(err)
+		users[i].id = id
 	}
 
 	orgUsers := []struct {
+		id             int64
 		organizationID int64
 		username       string
 		isAdmin        bool
@@ -2590,9 +2528,10 @@ func (ts *ValidatorTestSuite) TestAPIKeys() {
 		{organizationID: ts.organizations[1].ID, username: "org1ActiveUserGatewayAdmin", isAdmin: false, isDeviceAdmin: false, isGatewayAdmin: true},
 	}
 
-	for _, orgUser := range orgUsers {
+	for i, orgUser := range orgUsers {
 		id, err := ts.CreateUser(orgUser.username, true, false)
 		assert.NoError(err)
+		orgUsers[i].id = id
 
 		err = storage.CreateOrganizationUser(context.Background(), storage.DB(), orgUser.organizationID, id, orgUser.isAdmin, orgUser.isDeviceAdmin, orgUser.isGatewayAdmin)
 		assert.NoError(err)
@@ -2630,67 +2569,67 @@ func (ts *ValidatorTestSuite) TestAPIKeys() {
 			{
 				Name:       "global admin can create and list admin api keys",
 				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, 0), ValidateAPIKeysAccess(List, 0, 0)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "global admin can create and list org api key",
 				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, ts.organizations[0].ID, 0), ValidateAPIKeysAccess(List, ts.organizations[0].ID, 0)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "global admin can create and list app api key",
 				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, applications[0].ID), ValidateAPIKeysAccess(List, 0, applications[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "org admin can create and list org api key",
 				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, ts.organizations[0].ID, 0), ValidateAPIKeysAccess(List, ts.organizations[0].ID, 0)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "org admin can create and list app api key",
 				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, applications[0].ID), ValidateAPIKeysAccess(List, 0, applications[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "org user can not create or list api key",
 				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, 0), ValidateAPIKeysAccess(List, 0, 0)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "org user can not create or list org api key",
 				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, ts.organizations[0].ID, 0), ValidateAPIKeysAccess(List, ts.organizations[0].ID, 0)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "org user can not create or list app api key",
 				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, applications[0].ID), ValidateAPIKeysAccess(List, 0, applications[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "regular user can not create or list admin api key",
 				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, 0), ValidateAPIKeysAccess(List, 0, 0)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "regular user can not create or list org api key",
 				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, ts.organizations[0].ID, 0), ValidateAPIKeysAccess(List, ts.organizations[0].ID, 0)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "regular user can not create or list app api key",
 				Validators: []ValidatorFunc{ValidateAPIKeysAccess(Create, 0, applications[0].ID), ValidateAPIKeysAccess(List, 0, applications[0].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 		}
@@ -2703,73 +2642,73 @@ func (ts *ValidatorTestSuite) TestAPIKeys() {
 			{
 				Name:       "global admin can delete admin api key",
 				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[0].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "global admin can delete org api key",
 				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[1].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "global admin can delete app api key",
 				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[2].ID)},
-				Claims:     Claims{Username: "activeAdmin"},
+				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "org admin can delete org api key",
 				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[1].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "org admin can delete app api key",
 				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[2].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "org admin can not delete admin api key",
 				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUserAdmin"},
+				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "org user can not delete admin api key",
 				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[0].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "org user can not delete org api key",
 				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[1].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "org user can not delete app api key",
 				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[2].ID)},
-				Claims:     Claims{Username: "org0ActiveUser"},
+				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "regular user can not delete admin api key",
 				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[0].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "regular user can not delete org api key",
 				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[1].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "regular user can not delete app api key",
 				Validators: []ValidatorFunc{ValidateAPIKeyAccess(Delete, apiKeys[2].ID)},
-				Claims:     Claims{Username: "activeUser"},
+				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 		}

@@ -24,6 +24,7 @@ import (
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
+	"github.com/brocaar/chirpstack-application-server/internal/api/external/oidc"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/static"
@@ -31,9 +32,12 @@ import (
 )
 
 var (
-	brandingHeader       string
-	brandingRegistration string
-	brandingFooter       string
+	brandingRegistration    string
+	brandingFooter          string
+	openIDLoginLabel        string
+	openIDConnectEnabled    bool
+	registrationEnabled     bool
+	registrationCallbackURL string
 
 	bind            string
 	tlsCert         string
@@ -50,17 +54,18 @@ func Setup(conf config.Config) error {
 		return errors.New("jwt_secret must be set")
 	}
 
-	brandingHeader = conf.ApplicationServer.Branding.Header
 	brandingRegistration = conf.ApplicationServer.Branding.Registration
 	brandingFooter = conf.ApplicationServer.Branding.Footer
+	registrationEnabled = conf.ApplicationServer.UserAuthentication.OpenIDConnect.RegistrationEnabled
+	registrationCallbackURL = conf.ApplicationServer.UserAuthentication.OpenIDConnect.RegistrationCallbackURL
+	openIDConnectEnabled = conf.ApplicationServer.UserAuthentication.OpenIDConnect.Enabled
+	openIDLoginLabel = conf.ApplicationServer.UserAuthentication.OpenIDConnect.LoginLabel
 
 	bind = conf.ApplicationServer.ExternalAPI.Bind
 	tlsCert = conf.ApplicationServer.ExternalAPI.TLSCert
 	tlsKey = conf.ApplicationServer.ExternalAPI.TLSKey
 	jwtSecret = conf.ApplicationServer.ExternalAPI.JWTSecret
 	corsAllowOrigin = conf.ApplicationServer.ExternalAPI.CORSAllowOrigin
-
-	auth.DisableAssignExistingUsers = conf.ApplicationServer.ExternalAPI.DisableAssignExistingUsers
 
 	if err := applicationServerID.UnmarshalText([]byte(conf.ApplicationServer.ID)); err != nil {
 		return errors.Wrap(err, "decode application_server.id error")
@@ -173,6 +178,10 @@ func setupHTTPAPI(conf config.Config) (http.Handler, error) {
 		w.Write(data)
 	}).Methods("get")
 	r.PathPrefix("/api").Handler(jsonHandler)
+
+	if err := oidc.Setup(conf, r); err != nil {
+		return nil, errors.Wrap(err, "setup openid connect error")
+	}
 
 	// setup static file server
 	r.PathPrefix("/").Handler(http.FileServer(&assetfs.AssetFS{

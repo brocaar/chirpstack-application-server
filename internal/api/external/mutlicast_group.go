@@ -287,12 +287,12 @@ func (a *MulticastGroupAPI) List(ctx context.Context, req *pb.ListMulticastGroup
 
 	// listing all stored objects is for global admin only
 	if !idFilter {
-		isAdmin, err := a.validator.GetIsAdmin(ctx)
+		user, err := a.validator.GetUser(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		if !isAdmin {
+		if !user.IsAdmin {
 			return nil, grpc.Errorf(codes.Unauthenticated, "client must be global admin for unfiltered request")
 		}
 	}

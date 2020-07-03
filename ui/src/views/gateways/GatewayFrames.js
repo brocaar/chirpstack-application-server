@@ -136,10 +136,13 @@ class GatewayFrames extends Component {
     }
 
     if (frame.downlinkFrame !== undefined) {
+      delete frame.downlinkFrame.txInfo['gatewayID'];
+
       frames.unshift({
         id: now.getTime(),
         receivedAt: now,
         downlinkMetaData: {
+          gatewayID: frame.downlinkFrame.gatewayID,
           txInfo: frame.downlinkFrame.txInfo,
         },
         phyPayload: JSON.parse(frame.downlinkFrame.phyPayloadJSON),

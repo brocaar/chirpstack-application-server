@@ -29,6 +29,19 @@ type Config struct {
 	ApplicationServer struct {
 		ID string `mapstructure:"id"`
 
+		UserAuthentication struct {
+			OpenIDConnect struct {
+				Enabled                 bool   `mapstructure:"enabled"`
+				RegistrationEnabled     bool   `mapstructure:"registration_enabled"`
+				RegistrationCallbackURL string `mapstructure:"registration_callback_url"`
+				ProviderURL             string `mapstructure:"provider_url"`
+				ClientID                string `mapstructure:"client_id"`
+				ClientSecret            string `mapstructure:"client_secret"`
+				RedirectURL             string `mapstructure:"redirect_url"`
+				LoginLabel              string `mapstructure:"login_label"`
+			} `mapstructure:"openid_connect"`
+		} `mapstructure:"user_authentication"`
+
 		Codec struct {
 			JS struct {
 				MaxExecutionTime time.Duration `mapstructure:"max_execution_time"`
@@ -56,12 +69,11 @@ type Config struct {
 		} `mapstructure:"api"`
 
 		ExternalAPI struct {
-			Bind                       string
-			TLSCert                    string `mapstructure:"tls_cert"`
-			TLSKey                     string `mapstructure:"tls_key"`
-			JWTSecret                  string `mapstructure:"jwt_secret"`
-			DisableAssignExistingUsers bool   `mapstructure:"disable_assign_existing_users"`
-			CORSAllowOrigin            string `mapstructure:"cors_allow_origin"`
+			Bind            string
+			TLSCert         string `mapstructure:"tls_cert"`
+			TLSKey          string `mapstructure:"tls_key"`
+			JWTSecret       string `mapstructure:"jwt_secret"`
+			CORSAllowOrigin string `mapstructure:"cors_allow_origin"`
 		} `mapstructure:"external_api"`
 
 		RemoteMulticastSetup struct {
@@ -82,7 +94,6 @@ type Config struct {
 		} `mapstructure:"fuota_deployment"`
 
 		Branding struct {
-			Header       string
 			Footer       string
 			Registration string
 		} `mapstructure:"branding"`

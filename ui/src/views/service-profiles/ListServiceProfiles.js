@@ -29,8 +29,12 @@ class ListServiceProfiles extends Component {
 
   getRow(obj) {
     return(
-      <TableRow key={obj.id}>
+      <TableRow
+        key={obj.id}
+        hover
+      >
         <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/service-profiles/${obj.id}`}>{obj.name}</TableCellLink>
+        <TableCellLink to={`/network-servers/${obj.networkServerID}`}>{obj.networkServerName}</TableCellLink>
       </TableRow>
     );
   }
@@ -56,6 +60,7 @@ class ListServiceProfiles extends Component {
             header={
               <TableRow>
                 <TableCell>Name</TableCell>
+                <TableCell>Network Server</TableCell>
               </TableRow>
             }
             getPage={this.getPage}

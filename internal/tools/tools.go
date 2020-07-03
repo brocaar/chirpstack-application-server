@@ -4,6 +4,7 @@ package tools
 
 import (
 	_ "github.com/elazarl/go-bindata-assetfs/go-bindata-assetfs"
+	_ "github.com/golang/protobuf/protoc-gen-go"
 	_ "github.com/goreleaser/goreleaser"
 	_ "github.com/goreleaser/nfpm"
 	_ "github.com/jteeuwen/go-bindata/go-bindata"

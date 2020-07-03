@@ -31,6 +31,7 @@ class UpdateOrganizationUser extends Component {
                 submitLabel="Update user"
                 object={this.props.organizationUser}
                 onSubmit={this.onSubmit}
+                update={true}
               />
             </CardContent>
           </Card>

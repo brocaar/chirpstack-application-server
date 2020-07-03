@@ -77,16 +77,26 @@ class UpdateIntegration extends Component {
           });
         });
         break;
+      case "loracloud":
+        ApplicationStore.getLoRaCloudIntegration(this.props.match.params.applicationID, resp => {
+          let integration = resp.integration;
+          integration.kind = "loracloud";
+
+          this.setState({
+            integration: integration,
+          });
+        });
+        break;
       case "konker":
         ApplicationStore.getKonkerIntegration(this.props.match.params.applicationID, resp => {
-        let integration = resp.integration;
-        integration.kind = "konker";
+          let integration = resp.integration;
+          integration.kind = "konker";
 
-        this.setState({
-          integration: integration,
+          this.setState({
+            integration: integration,
+          });
         });
-      });
-        break;
+        break;  
       default:
         break;
     }
@@ -114,11 +124,16 @@ class UpdateIntegration extends Component {
           this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
         });
         break;
+      case "loracloud":
+        ApplicationStore.updateLoRaCloudIntegration(integration, resp => {
+          this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
+        });
+        break;
       case "konker":
         ApplicationStore.updateKonkerIntegration(integration, resp => {
           this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
         });
-      break;
+        break;
       default:
         break;
     }
@@ -144,6 +159,11 @@ class UpdateIntegration extends Component {
           break;
         case "mydevices":
           ApplicationStore.deleteMyDevicesIntegration(this.props.match.params.applicationID, resp => {
+            this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
+          });
+          break;
+        case "loracloud":
+          ApplicationStore.deleteLoRaCloudIntegration(this.props.match.params.applicationID, resp => {
             this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
           });
           break;

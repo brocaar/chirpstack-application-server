@@ -10,6 +10,82 @@ description: Lists the changes per ChirpStack Application Server release, includ
 
 # Changelog
 
+## v3.11.0
+
+### Features
+
+#### OpenID Connect authentication
+
+This feature makes it possible to use an OpenID Connect authentication backend
+together with ChirpStack Application Server, for example [Auth0.com](https://auth0.com/).
+Users are automatically matched based on email address on the first login.
+If there is a succesful match, an external OpenID Connect user identifier is
+associated with the user, so that even in case of an email address update, it
+can still be matched (and updated in the ChirpStack Application Server database).
+
+The implementation of this feature required a couple of changes:
+
+##### Usernames
+
+Usernames no longer exist in ChirpStack Application Server and have been
+renamed to email. Existing users can still login with their username, but on
+user update, the username must be set to an email address.
+
+Previously there was an unused email field. As there was no guarantee that
+this field was unique this field has been deprecated. It is still present in
+the database as `email_old` so that the new `email` field (containing the old
+`username` as value) can be updated by hand if needed.
+
+##### Create users
+
+Creating new users as an organization admin has been removed. However, the
+OpenID Connect integration provides a `registration_enabled` option, which
+automatically creates new users when it does not exist.
+
+Together with the `registration_callback_url`, it can be used to automatically
+onboard new users. When this option is set, ChirpStack Application Server will
+make a HTTP request to configured URL when a new user is created. This makes
+it possible to implement an onboarding service which (using the API) could:
+
+* Create an organization for the given user ID
+* Setup one or multiple service-profiles
+* ...
+
+##### Assigning users to organization
+
+Previously there was an auto-complete field to assign an user to an organization.
+As the username has been replaced by email and to not leak email addresses, the
+autocomplete function has been removed and the exact email must be given when
+associating a given user with an organization.
+
+#### LoRa Cloud geolocation
+
+This migrates the geolocation integration from ChirpStack Network Server to
+ChirpStack Application Server and allows a per-application integration 
+configuration. The current integration provides support for TDOA and RSSI
+based geolocation. This will be extended by future releases to also support
+the [LR1110](https://www.semtech.com/products/wireless-rf/lora-transceivers/lr1110)
+capabilities.
+
+#### Disable device
+
+This feature makes it possible to (temporarily) disable a device.
+
+### Improvements
+
+* Make it possible to use activate API endpoint for OTAA devices (to import an existing activation).
+* Gateway Profile / channel-plan re-configuration documentation in web-interface.
+* Internal cleanup auto-complete select in web-interface.
+* Expose (un)confirmed + DevAddr in integration payloads. ([#453](https://github.com/brocaar/chirpstack-application-server/issues/453))
+* Highlight rlow when hovering over table rows in web-interface. ([#474](https://github.com/brocaar/chirpstack-application-server/pull/474))
+* Include Network Server name column in Device- and Service Profile list. ([#475](https://github.com/brocaar/chirpstack-application-server/pull/475))
+* Include RSSI and SNR in ThingsBoard integration. ([#478](https://github.com/brocaar/chirpstack-application-server/pull/478/))
+* Align Gateway detail overview styling. ([#480](https://github.com/brocaar/chirpstack-application-server/pull/480/))
+
+### Bugfixes
+
+* Fix delete icon in gateway-profile UI (was showing + icon instead of delete).
+
 ## v3.10.0
 
 ### Features

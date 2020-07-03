@@ -22,15 +22,6 @@ class UserForm extends FormComponent {
         onSubmit={this.onSubmit}
       >
         <TextField
-          id="username"
-          label="Username"
-          margin="normal"
-          value={this.state.object.username || ""}
-          onChange={this.onChange}
-          required
-          fullWidth
-        />
-        <TextField
           id="email"
           label="E-mail address"
           margin="normal"

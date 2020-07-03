@@ -43,6 +43,7 @@ type Device struct {
 	AppSKey                   lorawan.AES128Key `db:"app_s_key"`
 	Variables                 hstore.Hstore     `db:"variables"`
 	Tags                      hstore.Hstore     `db:"tags"`
+	IsDisabled                bool              `db:"-"`
 }
 
 // DeviceListItem defines the Device as list item.
@@ -146,6 +147,7 @@ func CreateDevice(ctx context.Context, db sqlx.Ext, d *Device) error {
 			RoutingProfileId:  applicationServerID.Bytes(),
 			SkipFCntCheck:     d.SkipFCntCheck,
 			ReferenceAltitude: d.ReferenceAltitude,
+			IsDisabled:        d.IsDisabled,
 		},
 	})
 	if err != nil {
@@ -200,6 +202,7 @@ func GetDevice(ctx context.Context, db sqlx.Queryer, devEUI lorawan.EUI64, forUp
 	if resp.Device != nil {
 		d.SkipFCntCheck = resp.Device.SkipFCntCheck
 		d.ReferenceAltitude = resp.Device.ReferenceAltitude
+		d.IsDisabled = resp.Device.IsDisabled
 	}
 
 	return d, nil
@@ -407,6 +410,7 @@ func UpdateDevice(ctx context.Context, db sqlx.Ext, d *Device, localOnly bool) e
 				RoutingProfileId:  rpID.Bytes(),
 				SkipFCntCheck:     d.SkipFCntCheck,
 				ReferenceAltitude: d.ReferenceAltitude,
+				IsDisabled:        d.IsDisabled,
 			},
 		})
 		if err != nil {

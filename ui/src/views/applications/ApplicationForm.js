@@ -76,7 +76,7 @@ class ApplicationForm extends FormComponent {
       mode: "javascript",
       theme: "default",
     };
-
+    
     let payloadEncoderScript = this.state.object.payloadEncoderScript;
     let payloadDecoderScript = this.state.object.payloadDecoderScript;
 
@@ -135,7 +135,7 @@ function Decode(fPort, bytes) {
             getOptions={this.getServiceProfileOptions}
           />
           <FormHelperText>
-            The service-profile to which this application will be attached. Note that you cant change this value after the application has been created.
+            The service-profile to which this application will be attached. Note that you can't change this value after the application has been created.
           </FormHelperText>
         </FormControl>}
         {this.state.object.payloadCodec !== "" && this.state.object.payloadCodec !== undefined && <div>
@@ -149,7 +149,7 @@ function Decode(fPort, bytes) {
               getOptions={this.getPayloadCodecOptions}
             />
             <FormHelperText>
-              By defining a payload codec, ChirpStack Application Server can encode and decode the binary device payload for you.
+              By defining a payload codec, ChirpStack Application Server can encode and decode the binary device payload for you. 
               <strong>Important note</strong>: the payload fields have moved to the device-profile. For backward-compatibility and migration, existing codec settings are still visible.
               Codec settings on the device-profile have priority over the application codec settings.
             </FormHelperText>

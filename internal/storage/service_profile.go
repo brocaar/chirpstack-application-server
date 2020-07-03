@@ -2,8 +2,8 @@ package storage
 
 import (
 	"context"
-	"time"
 	"strings"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -13,9 +13,9 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
 )
 
 // ServiceProfile defines the service-profile.
@@ -30,12 +30,13 @@ type ServiceProfile struct {
 
 // ServiceProfileMeta defines the service-profile meta record.
 type ServiceProfileMeta struct {
-	ServiceProfileID uuid.UUID `db:"service_profile_id"`
-	NetworkServerID  int64     `db:"network_server_id"`
-	OrganizationID   int64     `db:"organization_id"`
-	CreatedAt        time.Time `db:"created_at"`
-	UpdatedAt        time.Time `db:"updated_at"`
-	Name             string    `db:"name"`
+	ServiceProfileID  uuid.UUID	`db:"service_profile_id"`
+	NetworkServerID   int64    	`db:"network_server_id"`
+	OrganizationID    int64    	`db:"organization_id"`
+	CreatedAt         time.Time	`db:"created_at"`
+	UpdatedAt         time.Time	`db:"updated_at"`
+	Name              string   	`db:"name"`
+	NetworkServerName string    `db:"network_server_name"`
 }
 
 // Validate validates the service-profile data.
@@ -279,8 +280,8 @@ func GetServiceProfileCountForOrganizationID(ctx context.Context, db sqlx.Querye
 }
 
 // GetServiceProfileCountForUser returns the total number of service-profiles
-// for the given username.
-func GetServiceProfileCountForUser(ctx context.Context, db sqlx.Queryer, username string) (int, error) {
+// for the given user ID.
+func GetServiceProfileCountForUser(ctx context.Context, db sqlx.Queryer, userID int64) (int, error) {
 	var count int
 	err := sqlx.Get(db, &count, `
 		select
@@ -293,8 +294,8 @@ func GetServiceProfileCountForUser(ctx context.Context, db sqlx.Queryer, usernam
 		inner join "user" u
 			on u.id = ou.user_id
 		where
-			u.username = $1`,
-		username,
+			u.id = $1`,
+		userID,
 	)
 	if err != nil {
 		return 0, handlePSQLError(Select, err, "select error")
@@ -325,11 +326,16 @@ func GetServiceProfiles(ctx context.Context, db sqlx.Queryer, limit, offset int)
 func GetServiceProfilesForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, limit, offset int) ([]ServiceProfileMeta, error) {
 	var sps []ServiceProfileMeta
 	err := sqlx.Select(db, &sps, `
-		select *
-		from service_profile
+		select
+			sp.*,
+			ns.name as network_server_name
+		from
+			service_profile sp
+		inner join network_server ns
+			on sp.network_server_id = ns.id
 		where
-			organization_id = $1
-		order by name
+			sp.organization_id = $1
+		order by sp.name
 		limit $2 offset $3`,
 		organizationID,
 		limit,
@@ -343,8 +349,8 @@ func GetServiceProfilesForOrganizationID(ctx context.Context, db sqlx.Queryer, o
 }
 
 // GetServiceProfilesForUser returns a slice of service-profile for the given
-// username.
-func GetServiceProfilesForUser(ctx context.Context, db sqlx.Queryer, username string, limit, offset int) ([]ServiceProfileMeta, error) {
+// user ID.
+func GetServiceProfilesForUser(ctx context.Context, db sqlx.Queryer, userID int64, limit, offset int) ([]ServiceProfileMeta, error) {
 	var sps []ServiceProfileMeta
 	err := sqlx.Select(db, &sps, `
 		select
@@ -357,10 +363,10 @@ func GetServiceProfilesForUser(ctx context.Context, db sqlx.Queryer, username st
 		inner join "user" u
 			on u.id = ou.user_id
 		where
-			u.username = $1
+			u.id = $1
 		order by sp.name
 		limit $2 offset $3`,
-		username,
+		userID,
 		limit,
 		offset,
 	)

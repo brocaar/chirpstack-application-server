@@ -5,9 +5,14 @@ import Grid from "@material-ui/core/Grid";
 import TextField from '@material-ui/core/TextField';
 import FormControl from "@material-ui/core/FormControl";
 import FormLabel from "@material-ui/core/FormLabel";
+import FormGroup from "@material-ui/core/FormGroup";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Checkbox from "@material-ui/core/Checkbox";
 import IconButton from '@material-ui/core/IconButton';
 import FormHelperText from "@material-ui/core/FormHelperText";
 import Button from "@material-ui/core/Button";
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
 
 import Delete from "mdi-material-ui/Delete";
 
@@ -430,6 +435,181 @@ class MyDevicesIntegrationForm extends FormComponent {
   }
 }
 
+
+class LoRaCloudIntegrationForm extends FormComponent {
+  constructor() {
+    super();
+
+    this.state = {
+      tab: 0,
+    };
+  }
+
+  onChange(e) {
+    super.onChange(e);
+  }
+
+  render() {
+    if (this.state.object === undefined) {
+      return null;
+    }
+
+    return(
+      <div>
+        <Tabs
+          value={this.state.tab}
+          indicatorColor="primary"
+        >
+          <Tab label="Geolocation" />
+        </Tabs>
+        {this.state.tab === 0 && <div>
+          <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="Geolocation enabled"
+                control={
+                  <Checkbox
+                    id="geolocation"
+                    checked={!!this.state.object.geolocation}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>
+          {!!this.state.object.geolocation && <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="TDOA based geolocation"
+                control={
+                  <Checkbox
+                    id="geolocationTDOA"
+                    checked={!!this.state.object.geolocationTDOA}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>}
+          {!!this.state.object.geolocation && <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="RSSI based geolocation"
+                control={
+                  <Checkbox
+                    id="geolocationRSSI"
+                    checked={!!this.state.object.geolocationRSSI}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>}
+          {!!this.state.object.geolocation && <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="Wifi based geolocation"
+                control={
+                  <Checkbox
+                    id="geolocationWifi"
+                    checked={!!this.state.object.geolocationWifi}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>}
+          {!!this.state.object.geolocation && <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="GNSS based geolocation (LR1110)"
+                control={
+                  <Checkbox
+                    id="geolocationGNSS"
+                    checked={!!this.state.object.geolocationGNSS}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>}
+          {!!this.state.object.geolocation && <TextField
+            id="geolocationToken"
+            label="Token"
+            value={this.state.object.geolocationToken || ""}
+            onChange={this.onChange}
+            margin="normal"
+            type="password"
+            helperText="This token can be obtained from loracloud.com"
+            required
+            fullWidth
+          />}
+          {!!this.state.object.geolocation && (this.state.object.geolocationTDOA || this.state.object.geolocationRSSI) && <TextField
+            id="geolocationBufferTTL"
+            label="Geolocation buffer TTL (seconds)"
+            type="number"
+            margin="normal"
+            value={this.state.object.geolocationBufferTTL || 0}
+            onChange={this.onChange}
+            helperText="The time in seconds that historical uplinks will be stored in the geolocation buffer. Used for TDOA and RSSI geolocation."
+            fullWidth
+          />}
+          {!!this.state.object.geolocation && (this.state.object.geolocationTDOA || this.state.object.geolocationRSSI) && <TextField
+            id="geolocationMinBufferSize"
+            label="Geolocation minimum buffer size"
+            type="number"
+            margin="normal"
+            value={this.state.object.geolocationMinBufferSize || 0}
+            onChange={this.onChange}
+            helperText="The minimum buffer size required before using geolocation. Using multiple uplinks for geolocation can increase the accuracy of the geolocation results. Used for TDOA and RSSI geolocation."
+            fullWidth
+          />}
+          {!!this.state.object.geolocation && this.state.object.geolocationWifi && <TextField
+            id="geolocationWifiPayloadField"
+            label="Wifi payload field"
+            value={this.state.object.geolocationWifiPayloadField || ""}
+            onChange={this.onChange}
+            margin="normal"
+            helperText="This must match the name of the field in the decoded payload which holds array of Wifi access-points. Each element in the array must contain two keys: 1) macAddress: array of 6 bytes, 2) signalStrength: RSSI of the access-point."
+            required
+            fullWidth
+          />}
+          {!!this.state.object.geolocation && this.state.object.geolocationGNSS && <TextField
+            id="geolocationGNSSPayloadField"
+            label="GNSS payload field"
+            value={this.state.object.geolocationGNSSPayloadField || ""}
+            onChange={this.onChange}
+            margin="normal"
+            helperText="This must match the name of the field in the decoded payload which holds the LR1110 GNSS bytes."
+            required
+            fullWidth
+          />}
+          {!!this.state.object.geolocation && this.state.object.geolocationGNSS && <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="Use receive timestamp for GNSS geolocation"
+                control={
+                  <Checkbox
+                    id="geolocationGNSSUseRxTime"
+                    checked={!!this.state.object.geolocationGNSSUseRxTime}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>}
+        </div>}
+      </div>
+    );
+  }
+}
+
 //Konker
 class KonkerIntegrationHeaderForm extends FormComponent {
   constructor() {
@@ -488,7 +668,7 @@ class KonkerIntegrationHeaderForm extends FormComponent {
 
 KonkerIntegrationHeaderForm = withStyles(styles)(KonkerIntegrationHeaderForm);
 
-
+const list = [{key:"Content-Type", value:"application/json"}, {key:"Authorization", value:"Bearer <TOKEN>"}, {key:"X-Konker-DeviceIdField", value:"deviceName"}];
 class KonkerIntegrationForm extends FormComponent {
   constructor() {
     super();
@@ -506,11 +686,7 @@ class KonkerIntegrationForm extends FormComponent {
     e.preventDefault();
 
     let object = this.state.object;
-    if(object.headers === undefined) {
-      object.headers = [{}];
-    } else {
-      object.headers.push({});
-    }
+    object.headers.push({});
 
     this.props.onChange(object);
   }
@@ -531,89 +707,32 @@ class KonkerIntegrationForm extends FormComponent {
     if (this.state.object === undefined) {
       return(<div></div>);
     }
+    
+    let object = this.state.object;
+    if(object.headers === undefined) {
+      object.headers = list;
+      object.uplinkDataURL = "http://data.demo.konkerlabs.net/gateway/data/pub"
+    }  
 
     let headers = [];
     if (this.state.object.headers !== undefined) {
       headers = this.state.object.headers.map((h, i) => <KonkerIntegrationHeaderForm key={i} index={i} object={h} onChange={this.onChangeHeader} onDelete={this.onDeleteHeader} />);
     }
-
     return(
       <div>
         <FormControl fullWidth margin="normal">
-          <FormLabel>Headers</FormLabel>
-          <Grid container spacing={4}>
-            <Grid item xs={4}>
-              <TextField
-                id="key"
-                label="Header name"
-                margin="normal"
-                value={"Content-Type"}
-                onChange={this.onChange}
-                fullWidth
-                />
-            </Grid>
-            <Grid item xs={7}>
-              <TextField
-                id="value"
-                label="Header value"
-                margin="normal"
-                value={"application/json"}
-                onChange={this.onChange}
-                fullWidth
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField
-                  id="key"
-                  label="Header name"
-                  margin="normal"
-                  value={"Authorization"}
-                  onChange={this.onChange}
-                  fullWidth
-                  />
-              </Grid>
-              <Grid item xs={7}>
-                <TextField
-                  id="value"
-                  label="Header value"
-                  margin="normal"
-                  value={"Bearer <TOKEN>"}
-                  onChange={this.onChange}
-                  fullWidth
-                  />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField
-                  id="key"
-                  label="Header name"
-                  margin="normal"
-                  value={"X-Konker-DeviceIdField"}
-                  onChange={this.onChange}
-                  fullWidth
-                  />
-              </Grid>
-              <Grid item xs={7}>
-                <TextField
-                  id="value"
-                  label="Header value"
-                  margin="normal"
-                  value={"deviceName"}
-                  onChange={this.onChange}
-                  fullWidth
-                  />
-              </Grid>
-          </Grid>
+          <FormLabel>Headers</FormLabel> 
           {headers}
         </FormControl>
         <Button variant="outlined" onClick={this.addHeader}>Add header</Button>
         <FormControl fullWidth margin="normal">
           <FormLabel>Endpoints</FormLabel>
           <TextField
-            id=""
+            id="uplinkDataURL"
             label="Uplink data URL(s)"
             placeholder="http://example.com/uplink"
             helperText="Multiple URLs can be defined as a comma separated list. Whitespace will be automatically removed."
-            value={"http://data.demo.konkerlabs.net/gateway/data/pub"}
+            defaultValue={this.state.object.uplinkDataURL}
             onChange={this.onChange}
             margin="normal"
             fullWidth
@@ -687,6 +806,7 @@ class KonkerIntegrationForm extends FormComponent {
 
 
 
+
 class IntegrationForm extends FormComponent {
   constructor() {
     super();
@@ -704,6 +824,7 @@ class IntegrationForm extends FormComponent {
     const kindOptions = [
       {value: "http", label: "HTTP integration"},
       {value: "influxdb", label: "InfluxDB integration"},
+      {value: "loracloud", label: "LoRa Cloud"},
       {value: "mydevices", label:"myDevices.com"},
       {value: "thingsboard", label: "ThingsBoard.io"},
       {value: "konker", label: "Konker"},
@@ -736,6 +857,7 @@ class IntegrationForm extends FormComponent {
         {this.state.object.kind === "influxdb" && <InfluxDBIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
         {this.state.object.kind === "thingsboard" && <ThingsBoardIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
         {this.state.object.kind === "mydevices" && <MyDevicesIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
+        {this.state.object.kind === "loracloud" && <LoRaCloudIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
         {this.state.object.kind === "konker" && <KonkerIntegrationForm object={this.state.object} onChange={this.onFormChange} />}
       </Form>
     );

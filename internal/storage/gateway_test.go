@@ -163,22 +163,21 @@ func (ts *StorageTestSuite) TestGateway() {
 		t.Run("Get gateways for username", func(t *testing.T) {
 			assert := require.New(t)
 			user := User{
-				Username: "testuser",
 				IsActive: true,
 				Email:    "foo@bar.com",
 			}
-			_, err := CreateUser(context.Background(), DB(), &user, "password123")
+			err := CreateUser(context.Background(), DB(), &user)
 			assert.NoError(err)
 
 			c, err := GetGatewayCount(context.Background(), ts.Tx(), GatewayFilters{
-				Username: user.Username,
+				UserID: user.ID,
 			})
 			assert.NoError(err)
 			assert.Equal(0, c)
 
 			gws, err := GetGateways(context.Background(), ts.Tx(), GatewayFilters{
-				Username: user.Username,
-				Limit:    1,
+				UserID: user.ID,
+				Limit:  1,
 			})
 			assert.NoError(err)
 			assert.Len(gws, 0)
@@ -186,14 +185,14 @@ func (ts *StorageTestSuite) TestGateway() {
 			assert.NoError(CreateOrganizationUser(context.Background(), DB(), org.ID, user.ID, false, false, false))
 
 			c, err = GetGatewayCount(context.Background(), ts.Tx(), GatewayFilters{
-				Username: "testuser",
+				UserID: user.ID,
 			})
 			assert.NoError(err)
 			assert.Equal(1, c)
 
 			gws, err = GetGateways(context.Background(), ts.Tx(), GatewayFilters{
-				Username: user.Username,
-				Limit:    1,
+				UserID: user.ID,
+				Limit:  1,
 			})
 			assert.NoError(err)
 			assert.Len(gws, 1)

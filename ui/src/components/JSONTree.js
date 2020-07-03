@@ -51,12 +51,6 @@ class JSONTree extends Component {
       }
     }
 
-    if ("txInfo" in data && data.txInfo !== null) {
-      if ("gatewayID" in data.txInfo && data.txInfo.gatewayID !== null) {
-        data.txInfo.gatewayID = base64ToHex(data.txInfo.gatewayID);
-      }
-    }
-
     if ("uplinkIDs" in data && data.uplinkIDs !== null) {
       for (let i = 0; i < data.uplinkIDs.length; i++) {
         const id = Buffer.from(data.uplinkIDs[i], 'base64');

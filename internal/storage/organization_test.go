@@ -95,7 +95,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 				u, err := GetOrganizationUser(context.Background(), DB(), org.ID, 1)
 				assert.NoError(err)
 				assert.EqualValues(1, u.UserID)
-				assert.Equal("admin", u.Username)
+				assert.Equal("admin", u.Email)
 				assert.False(u.IsAdmin)
 				assert.False(u.IsDeviceAdmin)
 				assert.False(u.IsGatewayAdmin)
@@ -122,7 +122,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 				assert.NoError(err)
 
 				assert.EqualValues(1, u.UserID)
-				assert.Equal("admin", u.Username)
+				assert.Equal("admin", u.Email)
 				assert.True(u.IsAdmin)
 				assert.True(u.IsDeviceAdmin)
 				assert.True(u.IsGatewayAdmin)
@@ -142,25 +142,24 @@ func (ts *StorageTestSuite) TestOrganization() {
 			assert := require.New(t)
 
 			user := User{
-				Username: "testuser",
 				IsActive: true,
 				Email:    "foo@bar.com",
 			}
-			_, err := CreateUser(context.Background(), DB(), &user, "password123")
+			err := CreateUser(context.Background(), DB(), &user)
 			assert.NoError(err)
 
 			t.Run("GetCountForUser", func(t *testing.T) {
 				assert := require.New(t)
 
 				c, err := GetOrganizationCount(context.Background(), DB(), OrganizationFilters{
-					Username: user.Username,
+					UserID: user.ID,
 				})
 				assert.NoError(err)
 				assert.Equal(0, c)
 
 				orgs, err := GetOrganizations(context.Background(), DB(), OrganizationFilters{
-					Username: user.Username,
-					Limit:    10,
+					UserID: user.ID,
+					Limit:  10,
 				})
 				assert.NoError(err)
 				assert.Len(orgs, 0)
@@ -172,14 +171,14 @@ func (ts *StorageTestSuite) TestOrganization() {
 				assert.NoError(CreateOrganizationUser(context.Background(), DB(), org.ID, user.ID, false, true, true))
 
 				c, err := GetOrganizationCount(context.Background(), DB(), OrganizationFilters{
-					Username: user.Username,
+					UserID: user.ID,
 				})
 				assert.NoError(err)
 				assert.Equal(1, c)
 
 				orgs, err := GetOrganizations(context.Background(), DB(), OrganizationFilters{
-					Username: user.Username,
-					Limit:    10,
+					UserID: user.ID,
+					Limit:  10,
 				})
 				assert.NoError(err)
 				assert.Len(orgs, 1)

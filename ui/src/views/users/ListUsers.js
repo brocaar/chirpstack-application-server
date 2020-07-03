@@ -39,8 +39,11 @@ class ListUsers extends Component {
     }
 
     return(
-      <TableRow key={obj.id}>
-        <TableCellLink to={`/users/${obj.id}`}>{obj.username}</TableCellLink>
+      <TableRow
+        key={obj.id}
+        hover
+      >
+        <TableCellLink to={`/users/${obj.id}`}>{obj.email}</TableCellLink>
         <TableCell>{active}</TableCell>
         <TableCell>{admin}</TableCell>
       </TableRow>
@@ -67,7 +70,7 @@ class ListUsers extends Component {
           <DataTable
             header={
               <TableRow>
-                <TableCell>Username</TableCell>
+                <TableCell>Email</TableCell>
                 <TableCell>Active</TableCell>
                 <TableCell>Admin</TableCell>
               </TableRow>

@@ -19,6 +19,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/http"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/influxdb"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/loracloud"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/mydevices"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/thingsboard"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
@@ -200,20 +201,15 @@ func (a *ApplicationAPI) List(ctx context.Context, req *pb.ListApplicationReques
 
 	switch sub {
 	case auth.SubjectUser:
-		isAdmin, err := a.validator.GetIsAdmin(ctx)
+		user, err := a.validator.GetUser(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		username, err := a.validator.GetUsername(ctx)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-
-		// Filter on username when OrganizationID is not set and the user is
+		// Filter on user ID when OrganizationID is not set and the user is
 		// not a global admin.
-		if !isAdmin && filters.OrganizationID == 0 {
-			filters.Username = username
+		if !user.IsAdmin && filters.OrganizationID == 0 {
+			filters.UserID = user.ID
 		}
 
 	case auth.SubjectAPIKey:
@@ -568,7 +564,6 @@ func (a *ApplicationAPI) DeleteKonkerIntegration(ctx context.Context, in *pb.Del
 
 	return &empty.Empty{}, nil
 }
-
 
 // CreateInfluxDBIntegration create an InfluxDB application-integration.
 func (a *ApplicationAPI) CreateInfluxDBIntegration(ctx context.Context, in *pb.CreateInfluxDBIntegrationRequest) (*empty.Empty, error) {
@@ -937,6 +932,147 @@ func (a *ApplicationAPI) DeleteMyDevicesIntegration(ctx context.Context, in *pb.
 	return &empty.Empty{}, nil
 }
 
+// CreateLoRaCloudIntegration creates a LoRaCloud application-integration.
+func (a *ApplicationAPI) CreateLoRaCloudIntegration(ctx context.Context, in *pb.CreateLoRaCloudIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.GetIntegration().ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	config := loracloud.Config{
+		Geolocation:                 in.GetIntegration().Geolocation,
+		GeolocationToken:            in.GetIntegration().GeolocationToken,
+		GeolocationBufferTTL:        int(in.GetIntegration().GeolocationBufferTtl),
+		GeolocationMinBufferSize:    int(in.GetIntegration().GeolocationMinBufferSize),
+		GeolocationTDOA:             in.GetIntegration().GeolocationTdoa,
+		GeolocationRSSI:             in.GetIntegration().GeolocationRssi,
+		GeolocationGNSS:             in.GetIntegration().GeolocationGnss,
+		GeolocationGNSSPayloadField: in.GetIntegration().GeolocationGnssPayloadField,
+		GeolocationGNSSUseRxTime:    in.GetIntegration().GeolocationGnssUseRxTime,
+		GeolocationWifi:             in.GetIntegration().GeolocationWifi,
+		GeolocationWifiPayloadField: in.GetIntegration().GeolocationWifiPayloadField,
+	}
+	confJSON, err := json.Marshal(config)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	integration := storage.Integration{
+		ApplicationID: in.GetIntegration().ApplicationId,
+		Kind:          integration.LoRaCloud,
+		Settings:      confJSON,
+	}
+	if err := storage.CreateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// GetLoRaCloudIntegration returns the LoRaCloud application-integration.
+func (a *ApplicationAPI) GetLoRaCloudIntegration(ctx context.Context, in *pb.GetLoRaCloudIntegrationRequest) (*pb.GetLoRaCloudIntegrationResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.LoRaCloud)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	var conf loracloud.Config
+	if err := json.Unmarshal(integration.Settings, &conf); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &pb.GetLoRaCloudIntegrationResponse{
+		Integration: &pb.LoRaCloudIntegration{
+			ApplicationId:               in.ApplicationId,
+			Geolocation:                 conf.Geolocation,
+			GeolocationToken:            conf.GeolocationToken,
+			GeolocationBufferTtl:        uint32(conf.GeolocationBufferTTL),
+			GeolocationMinBufferSize:    uint32(conf.GeolocationMinBufferSize),
+			GeolocationTdoa:             conf.GeolocationTDOA,
+			GeolocationRssi:             conf.GeolocationRSSI,
+			GeolocationGnss:             conf.GeolocationGNSS,
+			GeolocationGnssPayloadField: conf.GeolocationGNSSPayloadField,
+			GeolocationGnssUseRxTime:    conf.GeolocationGNSSUseRxTime,
+			GeolocationWifi:             conf.GeolocationWifi,
+			GeolocationWifiPayloadField: conf.GeolocationWifiPayloadField,
+		},
+	}, nil
+}
+
+// UpdateLoRaCloudIntegration updates the LoRaCloud application-integration.
+func (a *ApplicationAPI) UpdateLoRaCloudIntegration(ctx context.Context, in *pb.UpdateLoRaCloudIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Integration.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.GetIntegration().ApplicationId, integration.LoRaCloud)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	conf := loracloud.Config{
+		Geolocation:                 in.GetIntegration().Geolocation,
+		GeolocationToken:            in.GetIntegration().GeolocationToken,
+		GeolocationBufferTTL:        int(in.GetIntegration().GeolocationBufferTtl),
+		GeolocationMinBufferSize:    int(in.GetIntegration().GeolocationMinBufferSize),
+		GeolocationTDOA:             in.GetIntegration().GeolocationTdoa,
+		GeolocationRSSI:             in.GetIntegration().GeolocationRssi,
+		GeolocationGNSS:             in.GetIntegration().GeolocationGnss,
+		GeolocationGNSSPayloadField: in.GetIntegration().GeolocationGnssPayloadField,
+		GeolocationGNSSUseRxTime:    in.GetIntegration().GeolocationGnssUseRxTime,
+		GeolocationWifi:             in.GetIntegration().GeolocationWifi,
+		GeolocationWifiPayloadField: in.GetIntegration().GeolocationWifiPayloadField,
+	}
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	integration.Settings = confJSON
+	if err = storage.UpdateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// DeleteLoRaCloudIntegration deletes the LoRaCloud application-integration.
+func (a *ApplicationAPI) DeleteLoRaCloudIntegration(ctx context.Context, in *pb.DeleteLoRaCloudIntegrationRequest) (*empty.Empty, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.LoRaCloud)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if err = storage.DeleteIntegration(ctx, storage.DB(), integration.ID); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
 // ListIntegrations lists all configured integrations.
 func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegrationRequest) (*pb.ListIntegrationResponse, error) {
 	if err := a.validator.Validate(ctx,
@@ -964,6 +1100,8 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_THINGSBOARD})
 		case integration.MyDevices:
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_MYDEVICES})
+		case integration.LoRaCloud:
+			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_LORACLOUD})
 		case integration.Konker:
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_KONKER})
 		default:

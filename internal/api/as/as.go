@@ -20,7 +20,6 @@ import (
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/eventlog"
 	"github.com/brocaar/chirpstack-application-server/internal/events/uplink"
 	"github.com/brocaar/chirpstack-application-server/internal/gwping"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
@@ -133,12 +132,7 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		}
 	}
 
-	err = eventlog.LogEventForDevice(devEUI, eventlog.ACK, &pl)
-	if err != nil {
-		log.WithError(err).Error("log event for device error")
-	}
-
-	err = integration.Integration().SendACKNotification(ctx, vars, pl)
+	err = integration.ForApplicationID(app.ID).HandleAckEvent(ctx, vars, pl)
 	if err != nil {
 		log.WithError(err).Error("send ack event error")
 	}
@@ -191,12 +185,7 @@ func (a *ApplicationServerAPI) HandleTxAck(ctx context.Context, req *as.HandleTx
 		}
 	}
 
-	err = eventlog.LogEventForDevice(devEUI, eventlog.TxAck, &pl)
-	if err != nil {
-		log.WithError(err).Error("log event for device error")
-	}
-
-	err = integration.Integration().SendTxAckNotification(ctx, vars, pl)
+	err = integration.ForApplicationID(app.ID).HandleTxAckEvent(ctx, vars, pl)
 	if err != nil {
 		log.WithError(err).Error("send tx ack event error")
 	}
@@ -271,12 +260,7 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		}
 	}
 
-	err = eventlog.LogEventForDevice(devEUI, eventlog.Error, &pl)
-	if err != nil {
-		log.WithError(err).Error("log event for device error")
-	}
-
-	err = integration.Integration().SendErrorNotification(ctx, vars, pl)
+	err = integration.ForApplicationID(app.ID).HandleErrorEvent(ctx, vars, pl)
 	if err != nil {
 		errStr := fmt.Sprintf("send error notification to integration error: %s", err)
 		log.Error(errStr)
@@ -350,7 +334,7 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 		ApplicationName:         app.Name,
 		DeviceName:              d.Name,
 		DevEui:                  d.DevEUI[:],
-		Margin:                  int32(req.Margin),
+		Margin:                  req.Margin,
 		ExternalPowerSource:     req.ExternalPowerSource,
 		BatteryLevel:            float32(math.Round(float64(req.BatteryLevel*100))) / 100,
 		BatteryLevelUnavailable: req.BatteryLevelUnavailable,
@@ -371,12 +355,7 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 		}
 	}
 
-	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.Status, &pl)
-	if err != nil {
-		log.WithError(err).Error("log event for device error")
-	}
-
-	err = integration.Integration().SendStatusNotification(ctx, vars, pl)
+	err = integration.ForApplicationID(app.ID).HandleStatusEvent(ctx, vars, pl)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(errors.Wrap(err, "send status notification to handler error"))
 	}
@@ -445,12 +424,7 @@ func (a *ApplicationServerAPI) SetDeviceLocation(ctx context.Context, req *as.Se
 		}
 	}
 
-	err = eventlog.LogEventForDevice(d.DevEUI, eventlog.Location, &pl)
-	if err != nil {
-		log.WithError(err).Error("log event for device error")
-	}
-
-	err = integration.Integration().SendLocationNotification(ctx, vars, pl)
+	err = integration.ForApplicationID(app.ID).HandleLocationEvent(ctx, vars, pl)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(errors.Wrap(err, "send location notification to handler error"))
 	}

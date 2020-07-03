@@ -35,12 +35,13 @@ type DeviceProfile struct {
 
 // DeviceProfileMeta defines the device-profile meta record.
 type DeviceProfileMeta struct {
-	DeviceProfileID uuid.UUID `db:"device_profile_id"`
-	NetworkServerID int64     `db:"network_server_id"`
-	OrganizationID  int64     `db:"organization_id"`
-	CreatedAt       time.Time `db:"created_at"`
-	UpdatedAt       time.Time `db:"updated_at"`
-	Name            string    `db:"name"`
+	DeviceProfileID 	uuid.UUID	`db:"device_profile_id"`
+	NetworkServerID 	int64    	`db:"network_server_id"`
+	OrganizationID  	int64    	`db:"organization_id"`
+	CreatedAt       	time.Time	`db:"created_at"`
+	UpdatedAt       	time.Time	`db:"updated_at"`
+	Name            	string   	`db:"name"`
+	NetworkServerName	string		`db:"network_server_name"`
 }
 
 // Validate validates the device-profile data.
@@ -306,9 +307,9 @@ func DeleteDeviceProfile(ctx context.Context, db sqlx.Ext, id uuid.UUID) error {
 
 // DeviceProfileFilters provide filders for filtering device-profiles.
 type DeviceProfileFilters struct {
-	ApplicationID  int64  `db:"application_id"`
-	OrganizationID int64  `db:"organization_id"`
-	Username       string `db:"username"`
+	ApplicationID  int64 `db:"application_id"`
+	OrganizationID int64 `db:"organization_id"`
+	UserID         int64 `db:"user_id"`
 
 	// Limit and Offset are added for convenience so that this struct can
 	// be given as the arguments.
@@ -330,8 +331,8 @@ func (f DeviceProfileFilters) SQL() string {
 		filters = append(filters, "o.id = :organization_id")
 	}
 
-	if f.Username != "" {
-		filters = append(filters, "u.username = :username")
+	if f.UserID != 0 {
+		filters = append(filters, "u.id = :user_id")
 	}
 
 	if len(filters) == 0 {
@@ -383,7 +384,8 @@ func GetDeviceProfiles(ctx context.Context, db sqlx.Queryer, filters DeviceProfi
 			dp.organization_id,
 			dp.created_at,
 			dp.updated_at,
-			dp.name
+			dp.name,
+			ns.name as network_server_name
 		from
 			device_profile dp
 		inner join network_server ns
@@ -400,7 +402,8 @@ func GetDeviceProfiles(ctx context.Context, db sqlx.Queryer, filters DeviceProfi
 			on ou.user_id = u.id
 	`+filters.SQL()+`
 		group by
-			dp.device_profile_id
+			dp.device_profile_id,
+			ns.name
 		order by
 			dp.name
 		limit :limit

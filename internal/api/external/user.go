@@ -37,17 +37,7 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.Cr
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	// validate if the client has admin rights for the given organizations
-	// to which the user must be linked
-	for _, org := range req.Organizations {
-		if err := a.validator.Validate(ctx,
-			auth.ValidateIsOrganizationAdmin(org.OrganizationId)); err != nil {
-			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-		}
-	}
-
 	user := storage.User{
-		Username:   req.User.Username,
 		SessionTTL: req.User.SessionTtl,
 		IsAdmin:    req.User.IsAdmin,
 		IsActive:   req.User.IsActive,
@@ -55,28 +45,18 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.Cr
 		Note:       req.User.Note,
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
-	if err != nil {
+	if err := user.SetPasswordHash(req.Password); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	if !isAdmin {
-		// non-admin users are not able to modify the fields below
-		user.IsAdmin = false
-		user.IsActive = true
-		user.SessionTTL = 0
-	}
-
-	var userID int64
-
-	err = storage.Transaction(func(tx sqlx.Ext) error {
-		userID, err = storage.CreateUser(ctx, tx, &user, req.Password)
+	err := storage.Transaction(func(tx sqlx.Ext) error {
+		err := storage.CreateUser(ctx, tx, &user)
 		if err != nil {
 			return err
 		}
 
 		for _, org := range req.Organizations {
-			if err := storage.CreateOrganizationUser(ctx, tx, org.OrganizationId, userID, org.IsAdmin, org.IsDeviceAdmin, org.IsGatewayAdmin); err != nil {
+			if err := storage.CreateOrganizationUser(ctx, tx, org.OrganizationId, user.ID, org.IsAdmin, org.IsDeviceAdmin, org.IsGatewayAdmin); err != nil {
 				return err
 			}
 		}
@@ -87,7 +67,7 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.Cr
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	return &pb.CreateUserResponse{Id: userID}, nil
+	return &pb.CreateUserResponse{Id: user.ID}, nil
 }
 
 // Get returns the user matching the given ID.
@@ -105,7 +85,6 @@ func (a *UserAPI) Get(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserR
 	resp := pb.GetUserResponse{
 		User: &pb.User{
 			Id:         user.ID,
-			Username:   user.Username,
 			SessionTtl: user.SessionTTL,
 			IsAdmin:    user.IsAdmin,
 			IsActive:   user.IsActive,
@@ -133,12 +112,12 @@ func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	users, err := storage.GetUsers(ctx, storage.DB(), int(req.Limit), int(req.Offset), req.Search)
+	users, err := storage.GetUsers(ctx, storage.DB(), int(req.Limit), int(req.Offset))
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	totalUserCount, err := storage.GetUserCount(ctx, storage.DB(), req.Search)
+	totalUserCount, err := storage.GetUserCount(ctx, storage.DB())
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -150,7 +129,7 @@ func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUs
 	for _, u := range users {
 		row := pb.UserListItem{
 			Id:         u.ID,
-			Username:   u.Username,
+			Email:      u.Email,
 			SessionTtl: u.SessionTTL,
 			IsAdmin:    u.IsAdmin,
 			IsActive:   u.IsActive,
@@ -182,18 +161,18 @@ func (a *UserAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*empty
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	userUpdate := storage.UserUpdate{
-		ID:         req.User.Id,
-		Username:   req.User.Username,
-		IsAdmin:    req.User.IsAdmin,
-		IsActive:   req.User.IsActive,
-		SessionTTL: req.User.SessionTtl,
-		Email:      req.User.Email,
-		Note:       req.User.Note,
+	user, err := storage.GetUser(ctx, storage.DB(), req.User.Id)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
 	}
 
-	err := storage.UpdateUser(ctx, storage.DB(), userUpdate)
-	if err != nil {
+	user.IsAdmin = req.User.IsAdmin
+	user.IsActive = req.User.IsActive
+	user.SessionTTL = req.User.SessionTtl
+	user.Email = req.User.Email
+	user.Note = req.User.Note
+
+	if err := storage.UpdateUser(ctx, storage.DB(), &user); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
@@ -222,8 +201,16 @@ func (a *UserAPI) UpdatePassword(ctx context.Context, req *pb.UpdateUserPassword
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.UpdatePassword(ctx, storage.DB(), req.UserId, req.Password)
+	user, err := storage.GetUser(ctx, storage.DB(), req.UserId)
 	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if err := user.SetPasswordHash(req.Password); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if err := storage.UpdateUser(ctx, storage.DB(), &user); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 

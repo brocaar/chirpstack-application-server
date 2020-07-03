@@ -126,6 +126,7 @@ func (ts *StorageTestSuite) TestDevice() {
 					"foo": sql.NullString{String: "bar", Valid: true},
 				},
 			},
+			IsDisabled: true,
 		}
 		assert.NoError(CreateDevice(context.Background(), ts.Tx(), &d))
 		d.CreatedAt = d.CreatedAt.UTC().Truncate(time.Millisecond)
@@ -140,6 +141,7 @@ func (ts *StorageTestSuite) TestDevice() {
 				RoutingProfileId:  applicationServerID.Bytes(),
 				SkipFCntCheck:     true,
 				ReferenceAltitude: 5.6,
+				IsDisabled:        true,
 			},
 		}, createReq)
 
@@ -225,6 +227,7 @@ func (ts *StorageTestSuite) TestDevice() {
 			d.DR = &dr
 			d.Variables.Map["var_2"] = sql.NullString{String: "test var 2", Valid: true}
 			d.Tags.Map["bar"] = sql.NullString{String: "foo", Valid: true}
+			d.IsDisabled = true
 
 			assert.NoError(UpdateDevice(context.Background(), ts.Tx(), &d, false))
 			d.UpdatedAt = d.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -238,6 +241,7 @@ func (ts *StorageTestSuite) TestDevice() {
 					RoutingProfileId:  applicationServerID.Bytes(),
 					SkipFCntCheck:     true,
 					ReferenceAltitude: 5.6,
+					IsDisabled:        true,
 				},
 			}, updateReq)
 

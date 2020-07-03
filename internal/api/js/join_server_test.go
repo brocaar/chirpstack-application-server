@@ -36,7 +36,7 @@ func TestJoinServerAPI(t *testing.T) {
 	networkserver.SetPool(nsmock.NewPool(nsClient))
 
 	h := mock.New()
-	integration.SetIntegration(h)
+	integration.SetMockIntegration(h)
 
 	org := storage.Organization{
 		Name: "test-org",

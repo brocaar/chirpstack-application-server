@@ -63,7 +63,10 @@ class ListFUOTADeploymentsForDevice extends Component {
     const updatedAt = moment(obj.updatedAt).format('lll');
 
     return(
-      <TableRow key={obj.id}>
+      <TableRow
+        key={obj.id}
+        hover
+      >
         <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/fuota-deployments/${obj.id}`}>{obj.name}</TableCellLink>
         <TableCell>{createdAt}</TableCell>
         <TableCell>{updatedAt}</TableCell>

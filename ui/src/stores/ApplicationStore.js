@@ -157,6 +157,7 @@ class ApplicationStore extends EventEmitter {
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("http", "deleted");
+        this.emit("integration.delete");
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -219,6 +220,7 @@ class ApplicationStore extends EventEmitter {
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("InfluxDB", "deleted");
+        this.emit("integration.delete");
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -280,6 +282,7 @@ class ApplicationStore extends EventEmitter {
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("ThingsBoard.io", "deleted");
+        this.emit("integration.delete");
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -296,7 +299,7 @@ class ApplicationStore extends EventEmitter {
       })
         .then(checkStatus)
         .then(resp =>  {
-          this.integrationNotification("MyDevices", "created");
+          this.integrationNotification("myDevices", "created");
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);
@@ -326,7 +329,7 @@ class ApplicationStore extends EventEmitter {
       })
       .then(checkStatus)
       .then(resp => {
-        this.integrationNotification("MyDevices", "updated");
+        this.integrationNotification("myDevices", "updated");
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -340,7 +343,8 @@ class ApplicationStore extends EventEmitter {
       })
       .then(checkStatus)
       .then(resp => {
-        this.integrationNotification("MyDevices", "deleted");
+        this.integrationNotification("myDevices", "deleted");
+        this.emit("integration.delete");
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -402,6 +406,7 @@ class ApplicationStore extends EventEmitter {
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("LoRa Cloud", "deleted");
+        this.emit("integration.delete");
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -415,6 +420,192 @@ class ApplicationStore extends EventEmitter {
         type: "success",
         message: "application has been " + action,
       },
+    });
+  }
+
+  createGCPPubSubIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.CreateGCPPubSubIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.integrationNotification("GCP Pub/Sub", "created");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  getGCPPubSubIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.GetGCPPubSubIntegration({
+        application_id: applicationID,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  updateGCPPubSubIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.UpdateGCPPubSubIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.integrationNotification("GCP Pub/Sub", "updated");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  deleteGCPPubSubIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.DeleteGCPPubSubIntegration({
+        application_id: applicationID,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.integrationNotification("GCP Pub/Sbu", "deleted");
+          this.emit("integration.delete");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  createAWSSNSIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.CreateAWSSNSIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.integrationNotification("AWS SNS", "created");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  getAWSSNSIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.GetAWSSNSIntegration({
+        application_id: applicationID,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  updateAWSSNSIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.UpdateAWSSNSIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.integrationNotification("AWS SNS", "updated");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  deleteAWSSNSIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.DeleteAWSSNSIntegration({
+        application_id: applicationID,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.integrationNotification("AWS SNS", "deleted");
+          this.emit("integration.delete");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  createAzureServiceBusIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.CreateAzureServiceBusIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.integrationNotification("Azure Service-Bus", "created");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  getAzureServiceBusIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.GetAzureServiceBusIntegration({
+        application_id: applicationID,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  updateAzureServiceBusIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.UpdateAzureServiceBusIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.integrationNotification("Azure Service-Bus", "updated");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  deleteAzureServiceBusIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.DeleteAzureServiceBusIntegration({
+        application_id: applicationID,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.integrationNotification("Azure Service-Bus", "deleted");
+          this.emit("integration.delete");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
     });
   }
 

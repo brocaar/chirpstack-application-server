@@ -20,6 +20,22 @@ import UpdateApplication from "./UpdateApplication";
 import ListIntegrations from "./ListIntegrations";
 import ListFUOTADeploymentsForApplication from "../fuota/ListFUOTADeploymentsForApplication";
 
+import CreateAWSSNSIntegration from "./integrations/CreateAWSSNSIntegration";
+import CreateGCPPubSubIntegration from "./integrations/CreateGCPPubSubIntegration";
+import CreateHTTPIntegration from "./integrations/CreateHTTPIntegration";
+import CreateAzureServiceBusIntegration from "./integrations/CreateAzureServiceBusIntegration";
+import CreateInfluxDBIntegration from "./integrations/CreateInfluxDBIntegration";
+import CreateThingsBoardIntegration from "./integrations/CreateThingsBoardIntegration";
+import CreateLoRaCloudIntegration from "./integrations/CreateLoRaCloudIntegration";
+import CreateMyDevicesIntegration from "./integrations/CreateMyDevicesIntegration";
+import UpdateAWSSNSIntegration from "./integrations/UpdateAWSSNSIntegration";
+import UpdateGCPPubSubIntegration from "./integrations/UpdateGCPPubSubIntegration";
+import UpdateHTTPIntegration from "./integrations/UpdateHTTPIntegration";
+import UpdateAzureServiceBusIntegration from "./integrations/UpdateAzureServiceBusIntegration";
+import UpdateInfluxDBIntegration from "./integrations/UpdateInfluxDBIntegration";
+import UpdateThingsBoardIntegration from "./integrations/UpdateThingsBoardIntegration";
+import UpdateLoRaCloudIntegration from "./integrations/UpdateLoRaCloudIntegration";
+import UpdateMyDevicesIntegration from "./integrations/UpdateMyDevicesIntegration";
 
 import theme from "../../theme";
 
@@ -89,12 +105,12 @@ class ApplicationLayout extends Component {
   locationToTab() {
     let tab = 0;
 
-    if (window.location.href.endsWith("/edit")) {
-      tab = 1;
-    } else if (window.location.href.endsWith("/integrations")) {
+    if (window.location.href.match(/.*\/integrations.*/g)) {
       tab = 2;
     } else if (window.location.href.endsWith("/fuota-deployments")) {
       tab = 3;
+    } else if (window.location.href.endsWith("/edit")) {
+      tab = 1;
     }
 
     this.setState({
@@ -152,6 +168,23 @@ class ApplicationLayout extends Component {
             <Route exact path={`${this.props.match.path}/integrations`} render={props => <ListIntegrations application={this.state.application.application} {...props} />} />
             <Route exact path={`${this.props.match.path}`} render={props => <ListDevices application={this.state.application.application} {...props} />} />
             <Route exact path={`${this.props.match.path}/fuota-deployments`} render={props => <ListFUOTADeploymentsForApplication application={this.state.application.application} {...props} /> } />
+
+            <Route exact path={`${this.props.match.path}/integrations/aws-sns/create`} render={props => <CreateAWSSNSIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/aws-sns/edit`} render={props => <UpdateAWSSNSIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/gcp-pubsub/create`} render={props => <CreateGCPPubSubIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/gcp-pubsub/edit`} render={props => <UpdateGCPPubSubIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/http/create`} render={props => <CreateHTTPIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/http/edit`} render={props => <UpdateHTTPIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/azure-service-bus/create`} render={props => <CreateAzureServiceBusIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/azure-service-bus/edit`} render={props => <UpdateAzureServiceBusIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/influxdb/create`} render={props => <CreateInfluxDBIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/influxdb/edit`} render={props => <UpdateInfluxDBIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/thingsboard/create`} render={props => <CreateThingsBoardIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/thingsboard/edit`} render={props => <UpdateThingsBoardIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/loracloud/create`} render={props => <CreateLoRaCloudIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/loracloud/edit`} render={props => <UpdateLoRaCloudIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/mydevices/create`} render={props => <CreateMyDevicesIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/mydevices/edit`} render={props => <UpdateMyDevicesIntegration {...props} />} />
           </Switch>
         </Grid>
       </Grid>

@@ -46,7 +46,16 @@ type Integration struct {
 
 // New creates a new Pub/Sub integration.
 func New(m marshaler.Type, conf config.IntegrationGCPConfig) (*Integration, error) {
-	var err error
+	if conf.Marshaler != "" {
+		switch conf.Marshaler {
+		case "PROTOBUF":
+			m = marshaler.Protobuf
+		case "JSON":
+			m = marshaler.ProtobufJSON
+		case "JSON_V3":
+			m = marshaler.JSONV3
+		}
+	}
 
 	i := Integration{
 		marshaler: m,
@@ -55,11 +64,14 @@ func New(m marshaler.Type, conf config.IntegrationGCPConfig) (*Integration, erro
 	}
 	i.ctx, i.cancel = context.WithCancel(context.Background())
 
+	var err error
 	if conf.CredentialsFile != "" {
 		i.jsonCredentialsFile, err = ioutil.ReadFile(conf.CredentialsFile)
 		if err != nil {
 			return nil, errors.Wrap(err, "read credentials file error")
 		}
+	} else {
+		i.jsonCredentialsFile = []byte(conf.CredentialsFileBytes)
 	}
 
 	creds, err := google.CredentialsFromJSON(i.ctx, i.jsonCredentialsFile, "https://www.googleapis.com/auth/pubsub")

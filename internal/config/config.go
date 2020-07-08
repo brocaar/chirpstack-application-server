@@ -178,24 +178,28 @@ type IntegrationMQTTConfig struct {
 
 // IntegrationAWSSNSConfig holds the AWS SNS integration configuration.
 type IntegrationAWSSNSConfig struct {
-	AWSRegion          string `mapstructure:"aws_region"`
-	AWSAccessKeyID     string `mapstructure:"aws_access_key_id"`
-	AWSSecretAccessKey string `mapstructure:"aws_secret_access_key"`
-	TopicARN           string `mapstructure:"topic_arn"`
+	Marshaler          string `mapstructure:"marshaler" json:"marshaler"`
+	AWSRegion          string `mapstructure:"aws_region" json:"region"`
+	AWSAccessKeyID     string `mapstructure:"aws_access_key_id" json:"accessKeyID"`
+	AWSSecretAccessKey string `mapstructure:"aws_secret_access_key" json:"secretAccessKey"`
+	TopicARN           string `mapstructure:"topic_arn" json:"topicARN"`
 }
 
 // IntegrationAzureConfig holds the Azure Service-Bus integration configuration.
 type IntegrationAzureConfig struct {
-	ConnectionString string           `mapstructure:"connection_string"`
-	PublishMode      AzurePublishMode `mapstructure:"publish_mode"`
-	PublishName      string           `mapstructure:"publish_name"`
+	Marshaler        string           `mapstructure:"marshaler" json:"marshaler"`
+	ConnectionString string           `mapstructure:"connection_string" json:"connectionString"`
+	PublishMode      AzurePublishMode `mapstructure:"publish_mode" json:"-"`
+	PublishName      string           `mapstructure:"publish_name" json:"publishName"`
 }
 
 // IntegrationGCPConfig holds the GCP Pub/Sub integration configuration.
 type IntegrationGCPConfig struct {
-	CredentialsFile string `mapstructure:"credentials_file"`
-	ProjectID       string `mapstructure:"project_id"`
-	TopicName       string `mapstructure:"topic_name"`
+	Marshaler            string `mapstructure:"marshaler" json:"marshaler"`
+	CredentialsFile      string `mapstructure:"credentials_file" json:"-"`
+	CredentialsFileBytes []byte `mapstructure:"-" json:"credentialsFile"`
+	ProjectID            string `mapstructure:"project_id" json:"projectID"`
+	TopicName            string `mapstructure:"topic_name" json:"topicName"`
 }
 
 // IntegrationPostgreSQLConfig holds the PostgreSQL integration configuration.

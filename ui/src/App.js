@@ -61,8 +61,6 @@ import CreateGateway from "./views/gateways/CreateGateway";
 import ListApplications from "./views/applications/ListApplications";
 import CreateApplication from "./views/applications/CreateApplication";
 import ApplicationLayout from "./views/applications/ApplicationLayout";
-import CreateIntegration from "./views/applications/CreateIntegration";
-import UpdateIntegration from "./views/applications/UpdateIntegration";
 
 // multicast-groups
 import ListMulticastGroups from "./views/multicast-groups/ListMulticastGroups";
@@ -200,8 +198,6 @@ class App extends Component {
 
                     <Route exact path="/organizations/:organizationID(\d+)/applications" component={ListApplications} />
                     <Route exact path="/organizations/:organizationID(\d+)/applications/create" component={CreateApplication} />
-                    <Route exact path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/integrations/create" component={CreateIntegration} />
-                    <Route exact path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/integrations/:kind" component={UpdateIntegration} />
                     <Route exact path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/devices/create" component={CreateDevice} />
                     <Route exact path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/devices/:devEUI([\w]{16})/fuota-deployments/create" component={CreateFUOTADeploymentForDevice} />
                     <Route path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/fuota-deployments/:fuotaDeploymentID([\w-]{36})" component={FUOTADeploymentLayout} />

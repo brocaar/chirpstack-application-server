@@ -608,6 +608,239 @@ func (ts *APITestSuite) TestApplication() {
 			})
 		})
 
+		t.Run("GCPPubSub", func(t *testing.T) {
+			t.Run("Create", func(t *testing.T) {
+				assert := require.New(t)
+
+				req := pb.CreateGCPPubSubIntegrationRequest{
+					Integration: &pb.GCPPubSubIntegration{
+						ApplicationId:   createResp.Id,
+						Marshaler:       pb.Marshaler_PROTOBUF,
+						CredentialsFile: "file",
+						ProjectId:       "test-project",
+						TopicName:       "test-topic",
+					},
+				}
+				_, err := api.CreateGCPPubSubIntegration(context.Background(), &req)
+				assert.NoError(err)
+
+				t.Run("Get", func(t *testing.T) {
+					assert := require.New(t)
+
+					i, err := api.GetGCPPubSubIntegration(context.Background(), &pb.GetGCPPubSubIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(req.Integration, i.Integration)
+				})
+
+				t.Run("List", func(t *testing.T) {
+					assert := require.New(t)
+
+					resp, err := api.ListIntegrations(context.Background(), &pb.ListIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.EqualValues(1, resp.TotalCount)
+					assert.Equal(&pb.IntegrationListItem{
+						Kind: pb.IntegrationKind_GCP_PUBSUB,
+					}, resp.Result[0])
+				})
+
+				t.Run("Update", func(t *testing.T) {
+					assert := require.New(t)
+
+					req := pb.UpdateGCPPubSubIntegrationRequest{
+						Integration: &pb.GCPPubSubIntegration{
+							ApplicationId:   createResp.Id,
+							Marshaler:       pb.Marshaler_JSON,
+							CredentialsFile: "file-update",
+							ProjectId:       "test-project-updated",
+							TopicName:       "test-topic-updated",
+						},
+					}
+					_, err := api.UpdateGCPPubSubIntegration(context.Background(), &req)
+					assert.NoError(err)
+
+					i, err := api.GetGCPPubSubIntegration(context.Background(), &pb.GetGCPPubSubIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(req.Integration, i.Integration)
+				})
+
+				t.Run("Delete", func(t *testing.T) {
+					assert := require.New(t)
+
+					_, err := api.DeleteGCPPubSubIntegration(context.Background(), &pb.DeleteGCPPubSubIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+
+					_, err = api.DeleteGCPPubSubIntegration(context.Background(), &pb.DeleteGCPPubSubIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.Equal(codes.NotFound, grpc.Code(err))
+				})
+			})
+		})
+
+		t.Run("AWSSNS", func(t *testing.T) {
+			t.Run("Create", func(t *testing.T) {
+				assert := require.New(t)
+
+				req := pb.CreateAWSSNSIntegrationRequest{
+					Integration: &pb.AWSSNSIntegration{
+						ApplicationId:   createResp.Id,
+						Marshaler:       pb.Marshaler_PROTOBUF,
+						Region:          "eu-west-1",
+						AccessKeyId:     "key-id-1",
+						SecretAccessKey: "secret-key",
+						TopicArn:        "test-topic",
+					},
+				}
+				_, err := api.CreateAWSSNSIntegration(context.Background(), &req)
+				assert.NoError(err)
+
+				t.Run("Get", func(t *testing.T) {
+					assert := require.New(t)
+
+					i, err := api.GetAWSSNSIntegration(context.Background(), &pb.GetAWSSNSIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(req.Integration, i.Integration)
+				})
+
+				t.Run("List", func(t *testing.T) {
+					assert := require.New(t)
+
+					resp, err := api.ListIntegrations(context.Background(), &pb.ListIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.EqualValues(1, resp.TotalCount)
+					assert.Equal(&pb.IntegrationListItem{
+						Kind: pb.IntegrationKind_AWS_SNS,
+					}, resp.Result[0])
+				})
+
+				t.Run("Update", func(t *testing.T) {
+					assert := require.New(t)
+
+					req := pb.UpdateAWSSNSIntegrationRequest{
+						Integration: &pb.AWSSNSIntegration{
+							ApplicationId:   createResp.Id,
+							Marshaler:       pb.Marshaler_JSON,
+							Region:          "eu-west-2",
+							AccessKeyId:     "key-id-2",
+							SecretAccessKey: "secret-key-updated",
+							TopicArn:        "test-topic-updated",
+						},
+					}
+					_, err := api.UpdateAWSSNSIntegration(context.Background(), &req)
+					assert.NoError(err)
+
+					i, err := api.GetAWSSNSIntegration(context.Background(), &pb.GetAWSSNSIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(req.Integration, i.Integration)
+				})
+
+				t.Run("Delete", func(t *testing.T) {
+					assert := require.New(t)
+
+					_, err := api.DeleteAWSSNSIntegration(context.Background(), &pb.DeleteAWSSNSIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+
+					_, err = api.DeleteAWSSNSIntegration(context.Background(), &pb.DeleteAWSSNSIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.Equal(codes.NotFound, grpc.Code(err))
+				})
+			})
+		})
+
+		t.Run("AzureServiceBus", func(t *testing.T) {
+			t.Run("Create", func(t *testing.T) {
+				assert := require.New(t)
+
+				req := pb.CreateAzureServiceBusIntegrationRequest{
+					Integration: &pb.AzureServiceBusIntegration{
+						ApplicationId:    createResp.Id,
+						Marshaler:        pb.Marshaler_PROTOBUF,
+						ConnectionString: "test-connection-string",
+						PublishName:      "test-queue",
+					},
+				}
+				_, err := api.CreateAzureServiceBusIntegration(context.Background(), &req)
+				assert.NoError(err)
+
+				t.Run("Get", func(t *testing.T) {
+					assert := require.New(t)
+
+					i, err := api.GetAzureServiceBusIntegration(context.Background(), &pb.GetAzureServiceBusIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(req.Integration, i.Integration)
+				})
+
+				t.Run("List", func(t *testing.T) {
+					assert := require.New(t)
+
+					resp, err := api.ListIntegrations(context.Background(), &pb.ListIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+
+					assert.EqualValues(1, resp.TotalCount)
+					assert.Equal(&pb.IntegrationListItem{
+						Kind: pb.IntegrationKind_AZURE_SERVICE_BUS,
+					}, resp.Result[0])
+				})
+
+				t.Run("Update", func(t *testing.T) {
+					assert := require.New(t)
+
+					req := pb.UpdateAzureServiceBusIntegrationRequest{
+						Integration: &pb.AzureServiceBusIntegration{
+							ApplicationId:    createResp.Id,
+							Marshaler:        pb.Marshaler_JSON,
+							ConnectionString: "test-connection-string-updated",
+							PublishName:      "test-queue-updated",
+						},
+					}
+
+					_, err := api.UpdateAzureServiceBusIntegration(context.Background(), &req)
+					assert.NoError(err)
+
+					i, err := api.GetAzureServiceBusIntegration(context.Background(), &pb.GetAzureServiceBusIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(req.Integration, i.Integration)
+				})
+
+				t.Run("Delete", func(t *testing.T) {
+					assert := require.New(t)
+
+					_, err := api.DeleteAzureServiceBusIntegration(context.Background(), &pb.DeleteAzureServiceBusIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+
+					_, err = api.DeleteAzureServiceBusIntegration(context.Background(), &pb.DeleteAzureServiceBusIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.Equal(codes.NotFound, grpc.Code(err))
+				})
+			})
+		})
+
 		t.Run("Delete", func(t *testing.T) {
 			assert := require.New(t)
 

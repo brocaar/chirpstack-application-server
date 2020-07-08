@@ -42,6 +42,17 @@ type Integration struct {
 
 // New creates a new Azure Service-Bus integration.
 func New(m marshaler.Type, conf config.IntegrationAzureConfig) (*Integration, error) {
+	if conf.Marshaler != "" {
+		switch conf.Marshaler {
+		case "PROTOBUF":
+			m = marshaler.Protobuf
+		case "JSON":
+			m = marshaler.ProtobufJSON
+		case "JSON_V3":
+			m = marshaler.JSONV3
+		}
+	}
+
 	kv, err := parseConnectionString(conf.ConnectionString)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse connection string error")

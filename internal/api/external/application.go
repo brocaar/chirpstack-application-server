@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes/empty"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
@@ -16,6 +17,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/codec"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/http"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/influxdb"
@@ -939,6 +941,367 @@ func (a *ApplicationAPI) DeleteLoRaCloudIntegration(ctx context.Context, in *pb.
 	return &empty.Empty{}, nil
 }
 
+// CreateGCPPubSubIntegration creates a GCP PubSub application-integration.
+func (a *ApplicationAPI) CreateGCPPubSubIntegration(ctx context.Context, in *pb.CreateGCPPubSubIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.GetIntegration().ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	conf := config.IntegrationGCPConfig{
+		Marshaler:            in.GetIntegration().Marshaler.String(),
+		CredentialsFileBytes: []byte(in.GetIntegration().CredentialsFile),
+		TopicName:            in.GetIntegration().TopicName,
+		ProjectID:            in.GetIntegration().ProjectId,
+	}
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	integration := storage.Integration{
+		ApplicationID: in.GetIntegration().ApplicationId,
+		Kind:          integration.GCPPubSub,
+		Settings:      confJSON,
+	}
+	if err := storage.CreateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// GetGCPPubSubIntegration returns the GCP PubSub application-integration.
+func (a *ApplicationAPI) GetGCPPubSubIntegration(ctx context.Context, in *pb.GetGCPPubSubIntegrationRequest) (*pb.GetGCPPubSubIntegrationResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.GCPPubSub)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	var conf config.IntegrationGCPConfig
+	if err = json.Unmarshal(integration.Settings, &conf); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &pb.GetGCPPubSubIntegrationResponse{
+		Integration: &pb.GCPPubSubIntegration{
+			ApplicationId:   integration.ApplicationID,
+			Marshaler:       pb.Marshaler(pb.Marshaler_value[conf.Marshaler]),
+			CredentialsFile: string(conf.CredentialsFileBytes),
+			TopicName:       conf.TopicName,
+			ProjectId:       conf.ProjectID,
+		},
+	}, nil
+}
+
+// UpdateGCPPubSubIntegration updates the GCP PubSub application-integration.
+func (a *ApplicationAPI) UpdateGCPPubSubIntegration(ctx context.Context, in *pb.UpdateGCPPubSubIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Integration.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.GetIntegration().ApplicationId, integration.GCPPubSub)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	conf := config.IntegrationGCPConfig{
+		Marshaler:            in.GetIntegration().Marshaler.String(),
+		CredentialsFileBytes: []byte(in.GetIntegration().CredentialsFile),
+		TopicName:            in.GetIntegration().TopicName,
+		ProjectID:            in.GetIntegration().ProjectId,
+	}
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	integration.Settings = confJSON
+
+	if err = storage.UpdateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// DeleteGCPPubSubIntegration deletes the GCP PubSub application-integration.
+func (a *ApplicationAPI) DeleteGCPPubSubIntegration(ctx context.Context, in *pb.DeleteGCPPubSubIntegrationRequest) (*empty.Empty, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.GCPPubSub)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if err = storage.DeleteIntegration(ctx, storage.DB(), integration.ID); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// CreateAWSSNSIntegration creates a AWS SNS application-integration.
+func (a *ApplicationAPI) CreateAWSSNSIntegration(ctx context.Context, in *pb.CreateAWSSNSIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.GetIntegration().ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	conf := config.IntegrationAWSSNSConfig{
+		Marshaler:          in.GetIntegration().Marshaler.String(),
+		AWSRegion:          in.GetIntegration().Region,
+		AWSAccessKeyID:     in.GetIntegration().AccessKeyId,
+		AWSSecretAccessKey: in.GetIntegration().SecretAccessKey,
+		TopicARN:           in.GetIntegration().TopicArn,
+	}
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	integration := storage.Integration{
+		ApplicationID: in.GetIntegration().ApplicationId,
+		Kind:          integration.AWSSNS,
+		Settings:      confJSON,
+	}
+	if err = storage.CreateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// GetAWSSNSIntegration returns the AWS SNS application-integration.
+func (a *ApplicationAPI) GetAWSSNSIntegration(ctx context.Context, in *pb.GetAWSSNSIntegrationRequest) (*pb.GetAWSSNSIntegrationResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.AWSSNS)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	var conf config.IntegrationAWSSNSConfig
+	if err = json.Unmarshal(integration.Settings, &conf); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &pb.GetAWSSNSIntegrationResponse{
+		Integration: &pb.AWSSNSIntegration{
+			ApplicationId:   integration.ApplicationID,
+			Marshaler:       pb.Marshaler(pb.Marshaler_value[conf.Marshaler]),
+			Region:          conf.AWSRegion,
+			AccessKeyId:     conf.AWSAccessKeyID,
+			SecretAccessKey: conf.AWSSecretAccessKey,
+			TopicArn:        conf.TopicARN,
+		},
+	}, nil
+}
+
+// UpdateAWSSNSIntegration updates the AWS SNS application-integration.
+func (a *ApplicationAPI) UpdateAWSSNSIntegration(ctx context.Context, in *pb.UpdateAWSSNSIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.GetIntegration().ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.GetIntegration().ApplicationId, integration.AWSSNS)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	conf := config.IntegrationAWSSNSConfig{
+		Marshaler:          in.GetIntegration().Marshaler.String(),
+		AWSRegion:          in.GetIntegration().Region,
+		AWSAccessKeyID:     in.GetIntegration().AccessKeyId,
+		AWSSecretAccessKey: in.GetIntegration().SecretAccessKey,
+		TopicARN:           in.GetIntegration().TopicArn,
+	}
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+	integration.Settings = confJSON
+
+	if err = storage.UpdateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// DeleteAWSSNSIntegration deletes the AWS SNS application-integration.
+func (a *ApplicationAPI) DeleteAWSSNSIntegration(ctx context.Context, in *pb.DeleteAWSSNSIntegrationRequest) (*empty.Empty, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.AWSSNS)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if err = storage.DeleteIntegration(ctx, storage.DB(), integration.ID); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// CreateAzureServiceBusIntegration creates an Azure Service-Bus application-integration.
+func (a *ApplicationAPI) CreateAzureServiceBusIntegration(ctx context.Context, in *pb.CreateAzureServiceBusIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.GetIntegration().ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	conf := config.IntegrationAzureConfig{
+		Marshaler:        in.GetIntegration().Marshaler.String(),
+		ConnectionString: in.GetIntegration().ConnectionString,
+		PublishName:      in.GetIntegration().PublishName,
+	}
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	integration := storage.Integration{
+		ApplicationID: in.GetIntegration().ApplicationId,
+		Kind:          integration.AzureServiceBus,
+		Settings:      confJSON,
+	}
+	if err = storage.CreateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// GetAzureServiceBusIntegration returns the Azure Service-Bus application-integration.
+func (a *ApplicationAPI) GetAzureServiceBusIntegration(ctx context.Context, in *pb.GetAzureServiceBusIntegrationRequest) (*pb.GetAzureServiceBusIntegrationResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.AzureServiceBus)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	var conf config.IntegrationAzureConfig
+	if err = json.Unmarshal(integration.Settings, &conf); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &pb.GetAzureServiceBusIntegrationResponse{
+		Integration: &pb.AzureServiceBusIntegration{
+			ApplicationId:    integration.ApplicationID,
+			Marshaler:        pb.Marshaler(pb.Marshaler_value[conf.Marshaler]),
+			ConnectionString: conf.ConnectionString,
+			PublishName:      conf.PublishName,
+		},
+	}, nil
+}
+
+// UpdateAzureServiceBusIntegration updates the Azure Service-Bus application-integration.
+func (a *ApplicationAPI) UpdateAzureServiceBusIntegration(ctx context.Context, in *pb.UpdateAzureServiceBusIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.GetIntegration().ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.GetIntegration().ApplicationId, integration.AzureServiceBus)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	conf := config.IntegrationAzureConfig{
+		Marshaler:        in.GetIntegration().Marshaler.String(),
+		ConnectionString: in.GetIntegration().ConnectionString,
+		PublishName:      in.GetIntegration().PublishName,
+	}
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+	integration.Settings = confJSON
+
+	if err = storage.UpdateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// DeleteAzureServiceBusIntegration deletes the Azure Service-Bus application-integration.
+func (a *ApplicationAPI) DeleteAzureServiceBusIntegration(ctx context.Context, in *pb.DeleteAzureServiceBusIntegrationRequest) (*empty.Empty, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.AzureServiceBus)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if err = storage.DeleteIntegration(ctx, storage.DB(), integration.ID); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
 // ListIntegrations lists all configured integrations.
 func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegrationRequest) (*pb.ListIntegrationResponse, error) {
 	if err := a.validator.Validate(ctx,
@@ -968,8 +1331,16 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_MYDEVICES})
 		case integration.LoRaCloud:
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_LORACLOUD})
+		case integration.GCPPubSub:
+			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_GCP_PUBSUB})
+		case integration.AWSSNS:
+			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_AWS_SNS})
+		case integration.AzureServiceBus:
+			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_AZURE_SERVICE_BUS})
 		default:
-			return nil, grpc.Errorf(codes.Internal, "unknown integration kind: %s", intgr.Kind)
+			log.WithFields(log.Fields{
+				"kind": intgr.Kind,
+			}).Warning("api/external: unknown integration kind")
 		}
 	}
 

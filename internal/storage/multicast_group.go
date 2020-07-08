@@ -40,7 +40,7 @@ type MulticastGroupListItem struct {
 
 // Validate validates the service-profile data.
 func (mg MulticastGroup) Validate() error {
-	if strings.TrimSpace(mg.Name) == "" {
+	if strings.TrimSpace(mg.Name) == "" || len(mg.Name) > 100 {
 		return ErrMulticastGroupInvalidName
 	}
 	return nil

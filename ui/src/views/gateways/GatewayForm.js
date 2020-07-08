@@ -354,6 +354,7 @@ class GatewayForm extends FormComponent {
               onChange={this.onChange}
               getOption={this.getNetworkServerOption}
               getOptions={this.getNetworkServerOptions}
+              required
             />
             <FormHelperText>
               Select the network-server to which the gateway will connect. When no network-servers are available in the dropdown, make sure a service-profile exists for this organization. 

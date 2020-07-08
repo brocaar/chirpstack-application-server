@@ -76,7 +76,7 @@ class AutocompleteSelect extends Component {
         onChange={this.onChange}
         onInputChange={this.onInputChange}
         className={this.props.className}
-        renderInput={(params) => <TextField {...params} /> }
+        renderInput={(params) => <TextField required={!!this.props.required} {...params} /> }
         disableClearable={!this.props.clearable}
       />
     );

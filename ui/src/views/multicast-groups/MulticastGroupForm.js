@@ -119,6 +119,7 @@ class MulticastGroupForm extends FormComponent {
             getOption={this.getServiceProfileOption}
             getOptions={this.getServiceProfileOptions}
             margin="none"
+            required
           />
           <FormHelperText>
             The service-profile to which this multicast-group will be attached. Note that you can't change this value after the multicast-group has been created.
@@ -198,6 +199,7 @@ class MulticastGroupForm extends FormComponent {
             value={this.state.object.groupType || ""}
             onChange={this.onChange}
             getOptions={this.getGroupTypeOptions}
+            required
           />
           <FormHelperText>
             The multicast-group type defines the way how multicast frames are scheduled by the network-server.
@@ -211,6 +213,7 @@ class MulticastGroupForm extends FormComponent {
             value={this.state.object.pingSlotPeriod || ""}
             onChange={this.onChange}
             getOptions={this.getPingSlotPeriodOptions}
+            required
           />
           <FormHelperText>Class-B ping-slot periodicity.</FormHelperText>
         </FormControl>}

@@ -34,7 +34,7 @@ class ListServiceProfiles extends Component {
         hover
       >
         <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/service-profiles/${obj.id}`}>{obj.name}</TableCellLink>
-        <TableCellLink to={`/network-servers/${obj.networkServerID}`}>{obj.networkServerName}</TableCellLink>
+        <TableCell>{obj.networkServerName}</TableCell>
       </TableRow>
     );
   }

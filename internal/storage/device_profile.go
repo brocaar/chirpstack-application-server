@@ -35,18 +35,18 @@ type DeviceProfile struct {
 
 // DeviceProfileMeta defines the device-profile meta record.
 type DeviceProfileMeta struct {
-	DeviceProfileID 	uuid.UUID	`db:"device_profile_id"`
-	NetworkServerID 	int64    	`db:"network_server_id"`
-	OrganizationID  	int64    	`db:"organization_id"`
-	CreatedAt       	time.Time	`db:"created_at"`
-	UpdatedAt       	time.Time	`db:"updated_at"`
-	Name            	string   	`db:"name"`
-	NetworkServerName	string		`db:"network_server_name"`
+	DeviceProfileID   uuid.UUID `db:"device_profile_id"`
+	NetworkServerID   int64     `db:"network_server_id"`
+	OrganizationID    int64     `db:"organization_id"`
+	CreatedAt         time.Time `db:"created_at"`
+	UpdatedAt         time.Time `db:"updated_at"`
+	Name              string    `db:"name"`
+	NetworkServerName string    `db:"network_server_name"`
 }
 
 // Validate validates the device-profile data.
 func (dp DeviceProfile) Validate() error {
-	if dp.Name == "" {
+	if strings.TrimSpace(dp.Name) == "" || len(dp.Name) > 100 {
 		return ErrDeviceProfileInvalidName
 	}
 	return nil

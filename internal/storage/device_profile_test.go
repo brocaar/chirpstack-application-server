@@ -33,6 +33,17 @@ func TestDeviceProfileValidate(t *testing.T) {
 			},
 			Error: ErrDeviceProfileInvalidName,
 		},
+		{
+			DeviceProfile: DeviceProfile{
+				Name: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			},
+		},
+		{
+			DeviceProfile: DeviceProfile{
+				Name: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			},
+			Error: ErrDeviceProfileInvalidName,
+		},
 	}
 
 	assert := require.New(t)

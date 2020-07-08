@@ -7,12 +7,49 @@ import (
 
 	"github.com/gofrs/uuid"
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/require"
 
 	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
 )
+
+func TestServiceProfileValidate(t *testing.T) {
+	tests := []struct {
+		ServiceProfile ServiceProfile
+		Error          error
+	}{
+		{
+			ServiceProfile: ServiceProfile{
+				Name: "valid-name",
+			},
+		},
+		{
+			ServiceProfile: ServiceProfile{
+				Name: "",
+			},
+			Error: ErrServiceProfileInvalidName,
+		},
+		{
+			ServiceProfile: ServiceProfile{
+				Name: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			},
+		},
+		{
+			ServiceProfile: ServiceProfile{
+				Name: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			},
+			Error: ErrServiceProfileInvalidName,
+		},
+	}
+
+	assert := require.New(t)
+
+	for _, tst := range tests {
+		assert.Equal(tst.Error, tst.ServiceProfile.Validate())
+	}
+}
 
 func TestServiceProfile(t *testing.T) {
 	conf := test.GetConfig()

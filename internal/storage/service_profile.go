@@ -30,18 +30,18 @@ type ServiceProfile struct {
 
 // ServiceProfileMeta defines the service-profile meta record.
 type ServiceProfileMeta struct {
-	ServiceProfileID  uuid.UUID	`db:"service_profile_id"`
-	NetworkServerID   int64    	`db:"network_server_id"`
-	OrganizationID    int64    	`db:"organization_id"`
-	CreatedAt         time.Time	`db:"created_at"`
-	UpdatedAt         time.Time	`db:"updated_at"`
-	Name              string   	`db:"name"`
+	ServiceProfileID  uuid.UUID `db:"service_profile_id"`
+	NetworkServerID   int64     `db:"network_server_id"`
+	OrganizationID    int64     `db:"organization_id"`
+	CreatedAt         time.Time `db:"created_at"`
+	UpdatedAt         time.Time `db:"updated_at"`
+	Name              string    `db:"name"`
 	NetworkServerName string    `db:"network_server_name"`
 }
 
 // Validate validates the service-profile data.
 func (sp ServiceProfile) Validate() error {
-	if strings.TrimSpace(sp.Name) == "" {
+	if strings.TrimSpace(sp.Name) == "" || len(sp.Name) > 100 {
 		return ErrServiceProfileInvalidName
 	}
 	return nil

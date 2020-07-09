@@ -1434,7 +1434,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 				expectedIntegrationEvent: &pb.IntegrationEvent{
 					DevEui:          ts.device.DevEUI[:],
 					IntegrationName: "loracloud",
-					EventType:       "UplinkResponse",
+					EventType:       "DAS_UplinkResponse",
 					ObjectJson:      string(integrationB),
 				},
 			},
@@ -1486,7 +1486,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 				expectedIntegrationEvent: &pb.IntegrationEvent{
 					DevEui:          ts.device.DevEUI[:],
 					IntegrationName: "loracloud",
-					EventType:       "UplinkResponse",
+					EventType:       "DAS_UplinkResponse",
 					ObjectJson:      string(integrationDownlinkB),
 				},
 			},
@@ -1531,7 +1531,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 				expectedIntegrationEvent: &pb.IntegrationEvent{
 					DevEui:          ts.device.DevEUI[:],
 					IntegrationName: "loracloud",
-					EventType:       "UplinkResponse",
+					EventType:       "DAS_UplinkResponse",
 					ObjectJson:      string(integrationB),
 				},
 			},

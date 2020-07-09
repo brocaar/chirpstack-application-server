@@ -521,7 +521,7 @@ func (i *Integration) handleDASResponse(ctx context.Context, devEUI lorawan.EUI6
 		DeviceName:      pl.DeviceName,
 		DevEui:          pl.DevEui,
 		IntegrationName: "loracloud",
-		EventType:       "UplinkResponse",
+		EventType:       "DAS_UplinkResponse",
 		ObjectJson:      string(b),
 	}
 	if err := ii.HandleIntegrationEvent(ctx, nil, intPL); err != nil {

@@ -29,6 +29,7 @@ class GatewayCertificate extends Component {
       this.setState({
         tlsKey: resp.tlsKey,
         tlsCert: resp.tlsCert,
+        caCert: resp.caCert,
       });
     }));
   }
@@ -44,6 +45,16 @@ class GatewayCertificate extends Component {
           </Typography>
           {this.state.tlsCert == null && <Button onClick={this.requestCertificate} disabled={this.state.buttonDisabled}>Generate certificate</Button>}
           {this.state.tlsCert != null && <form>
+            <TextField
+              id="caCert"
+              label="CA certificate"
+              margin="normal"
+              value={this.state.caCert}
+              rows={10}
+              multiline
+              fullWidth
+              helperText="The CA certificate is to authenticate the certificate of the server. Store this as a text-file on your gateway, e.g. named 'ca.pem'."
+            />
             <TextField
               id="tlsCert"
               label="TLS certificate"

@@ -373,6 +373,7 @@ func (ts *APITestSuite) TestGateway() {
 			nsClient.GenerateGatewayClientCertificateResponse = ns.GenerateGatewayClientCertificateResponse{
 				TlsCert: []byte("foo"),
 				TlsKey:  []byte("bar"),
+				CaCert:  []byte("test"),
 			}
 
 			resp, err := api.GenerateGatewayClientCertificate(ctx, &pb.GenerateGatewayClientCertificateRequest{
@@ -382,6 +383,7 @@ func (ts *APITestSuite) TestGateway() {
 			assert.Equal(&pb.GenerateGatewayClientCertificateResponse{
 				TlsCert: "foo",
 				TlsKey:  "bar",
+				CaCert:  "test",
 			}, resp)
 
 		})

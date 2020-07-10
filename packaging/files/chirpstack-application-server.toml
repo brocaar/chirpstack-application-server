@@ -59,29 +59,24 @@ url="redis://localhost:6379"
   # besides the extra integrations that can be added on a per-application
   # basis.
   [application_server.integration]
+  # Payload marshaler.
+  #
+  # This defines how the MQTT payloads are encoded. Valid options are:
+  # * protobuf:  Protobuf encoding
+  # * json:      JSON encoding (easier for debugging, but less compact than 'protobuf')
+  # * json_v3:   v3 JSON (will be removed in the next major release)
+  marshaler="json_v3"
+
   # Enabled integrations.
   enabled=["mqtt"]
 
     # MQTT integration backend.
     [application_server.integration.mqtt]
-    # MQTT topic templates for the different MQTT topics.
-    #
-    # The meaning of these topics are documented at:
-    # https://www.chirpstack.io/application-server/integrate/data/
-    #
-    # The following substitutions can be used:
-    # * "{{ .ApplicationID }}" for the application id.
-    # * "{{ .DevEUI }}" for the DevEUI of the device.
-    #
-    # Note: the downlink_topic_template must contain both the application id and
-    # DevEUI substitution!
-    uplink_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/rx"
-    downlink_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/tx"
-    join_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/join"
-    ack_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/ack"
-    error_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error"
-    status_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status"
-    location_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location"
+    # Event topic template.
+    event_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/event/{{ .EventType }}"
+
+    # Command topic template.
+    command_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/command/{{ .CommandType }}"
 
     # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
     server="tcp://localhost:1883"
@@ -137,4 +132,3 @@ url="redis://localhost:6379"
 [join_server]
 # ip:port to bind the join-server api interface to
 bind="0.0.0.0:8003"
-

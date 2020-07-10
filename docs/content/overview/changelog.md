@@ -144,7 +144,7 @@ a change in MQTT topics (default configuration):
 * `application/[ApplicationID]/device/[DevEUI]/status` -> `application/[ApplicationID]/device/[DevEUI]/event/status`
 * `application/[ApplicationID]/device/[DevEUI]/txack` -> `application/[ApplicationID]/device/[DevEUI]/event/txack`
 * `application/[ApplicationID]/device/[DevEUI]/location` -> `application/[ApplicationID]/device/[DevEUI]/event/location`
-* `application/[ApplicationID]/device/[DevEUI]/tx` -> `application/[ApplicationID]/device/[DevEUI]/command/tx`
+* `application/[ApplicationID]/device/[DevEUI]/tx` -> `application/[ApplicationID]/device/[DevEUI]/command/down`
 
 ### Improvements
 

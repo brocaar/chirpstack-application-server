@@ -221,6 +221,12 @@ class SideNav extends Component {
               </ListItemIcon>
               <ListItemText primary="Org. users" />
             </ListItem>
+            <ListItem button component={Link} to={`/organizations/${this.state.organization.id}/api-keys`}>
+              <ListItemIcon>
+                <KeyVariant />
+              </ListItemIcon>
+              <ListItemText primary="Org. API keys" />
+            </ListItem>
           </Admin>
           <ListItem button component={Link} to={`/organizations/${this.state.organization.id}/service-profiles`}>
             <ListItemIcon>

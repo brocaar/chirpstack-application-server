@@ -82,6 +82,8 @@ import FUOTADeploymentLayout from "./views/fuota/FUOTADeploymentLayout";
 // API Keys
 import ListAdminAPIKeys from "./views/api-keys/ListAdminAPIKeys";
 import CreateAdminAPIKey from "./views/api-keys/CreateAdminAPIKey";
+import ListOrganizationAPIKeys from "./views/api-keys/ListOrganizationAPIKeys";
+import CreateOrganizationAPIKey from "./views/api-keys/CreateOrganizationAPIKey";
 
 
 const drawerWidth = 270;
@@ -183,6 +185,9 @@ class App extends Component {
 
                     <Route exact path="/api-keys" component={ListAdminAPIKeys} />
                     <Route exact path="/api-keys/create" component={CreateAdminAPIKey} />
+
+                    <Route exact path="/organizations/:organizationID(\d+)/api-keys" component={ListOrganizationAPIKeys} />
+                    <Route exact path="/organizations/:organizationID(\d+)/api-keys/create" component={CreateOrganizationAPIKey} />
 
                     <Route exact path="/organizations/:organizationID(\d+)/service-profiles" component={ListServiceProfiles} />
                     <Route exact path="/organizations/:organizationID(\d+)/service-profiles/create" component={CreateServiceProfile} />

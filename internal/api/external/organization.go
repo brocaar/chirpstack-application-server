@@ -173,7 +173,7 @@ func (a *OrganizationAPI) Update(ctx context.Context, req *pb.UpdateOrganization
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	user, err := a.validator.GetUser(ctx)
+	sub, err := a.validator.GetSubject(ctx)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -185,7 +185,22 @@ func (a *OrganizationAPI) Update(ctx context.Context, req *pb.UpdateOrganization
 
 	org.Name = req.Organization.Name
 	org.DisplayName = req.Organization.DisplayName
-	if user.IsAdmin {
+
+	switch sub {
+	case auth.SubjectUser:
+		user, err := a.validator.GetUser(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		if user.IsAdmin {
+			org.CanHaveGateways = req.Organization.CanHaveGateways
+			org.MaxGatewayCount = int(req.Organization.MaxGatewayCount)
+			org.MaxDeviceCount = int(req.Organization.MaxDeviceCount)
+		}
+	case auth.SubjectAPIKey:
+		// The validator function already validated that the
+		// API key must be a global admin key.
 		org.CanHaveGateways = req.Organization.CanHaveGateways
 		org.MaxGatewayCount = int(req.Organization.MaxGatewayCount)
 		org.MaxDeviceCount = int(req.Organization.MaxDeviceCount)

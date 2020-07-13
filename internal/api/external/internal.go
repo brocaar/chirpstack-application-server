@@ -184,6 +184,10 @@ func (a *InternalAPI) CreateAPIKey(ctx context.Context, req *pb.CreateAPIKeyRequ
 		ApplicationID:  applicationID,
 	}
 
+	if !ak.IsAdmin && ak.OrganizationID == nil && ak.ApplicationID == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "the api key must be either of type admin, organization or application")
+	}
+
 	jwtToken, err := storage.CreateAPIKey(ctx, storage.DB(), &ak)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)

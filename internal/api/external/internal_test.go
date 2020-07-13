@@ -59,6 +59,16 @@ func (ts *APITestSuite) TestInternal() {
 
 	ts.T().Run("APIKey", func(t *testing.T) {
 		t.Run("Create", func(t *testing.T) {
+			t.Run("Invalid", func(t *testing.T) {
+				assert := require.New(t)
+
+				_, err := api.CreateAPIKey(context.Background(), &pb.CreateAPIKeyRequest{
+					ApiKey: &pb.APIKey{
+						Name: "invalid",
+					},
+				})
+				assert.Equal(codes.InvalidArgument, grpc.Code(err))
+			})
 			t.Run("Admin key", func(t *testing.T) {
 				assert := require.New(t)
 

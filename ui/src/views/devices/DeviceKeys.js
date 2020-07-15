@@ -118,13 +118,13 @@ class DeviceKeys extends Component {
   onSubmit(deviceKeys) {
     if (this.state.update) {
       DeviceStore.updateKeys(deviceKeys, resp => {
-        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
+        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}`);
       });
     } else {
       let keys = deviceKeys;
       keys.devEUI = this.props.match.params.devEUI;
       DeviceStore.createKeys(keys, resp => {
-        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
+        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}`);
       });
     }
   }

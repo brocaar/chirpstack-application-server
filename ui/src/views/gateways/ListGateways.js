@@ -91,6 +91,7 @@ class GatewayRow extends Component {
           <TableCell>{lastseen}</TableCell>
           <TableCellLink to={`/organizations/${this.props.gateway.organizationID}/gateways/${this.props.gateway.id}`}>{this.props.gateway.name}</TableCellLink>
           <TableCell>{this.props.gateway.id}</TableCell>
+          <TableCell>{this.props.gateway.networkServerName}</TableCell>
           <TableCell>
             {this.state.stats && <Bar
               width={380}
@@ -143,6 +144,7 @@ class ListGatewaysTable extends Component {
             <TableCell>Last seen</TableCell>
             <TableCell>Name</TableCell>
             <TableCell>Gateway ID</TableCell>
+            <TableCell>Network server</TableCell>
             <TableCell className={this.props.classes.chart}>Gateway activity (30d)</TableCell>
           </TableRow>
         }

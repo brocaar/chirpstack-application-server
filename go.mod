@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.49.0 // indirect
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
 	github.com/aws/aws-sdk-go v1.26.3
-	github.com/brocaar/chirpstack-api/go/v3 v3.7.1
+	github.com/brocaar/chirpstack-api/go/v3 v3.7.2
 	github.com/brocaar/lorawan v0.0.0-20200701080958-20a4ab23bf94
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/coreos/go-oidc v2.2.1+incompatible

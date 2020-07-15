@@ -48,6 +48,23 @@ type Gateway struct {
 	Metadata         hstore.Hstore `db:"metadata"`
 }
 
+// GatewayListItem defines the gateway as list item.
+type GatewayListItem struct {
+	MAC               lorawan.EUI64 `db:"mac"`
+	Name              string        `db:"name"`
+	Description       string        `db:"description"`
+	CreatedAt         time.Time     `db:"created_at"`
+	UpdatedAt         time.Time     `db:"updated_at"`
+	FirstSeenAt       *time.Time    `db:"first_seen_at"`
+	LastSeenAt        *time.Time    `db:"last_seen_at"`
+	OrganizationID    int64         `db:"organization_id"`
+	NetworkServerID   int64         `db:"network_server_id"`
+	Latitude          float64       `db:"latitude"`
+	Longitude         float64       `db:"longitude"`
+	Altitude          float64       `db:"altitude"`
+	NetworkServerName string        `db:"network_server_name"`
+}
+
 // GatewayPing represents a gateway ping.
 type GatewayPing struct {
 	ID         int64         `db:"id"`
@@ -350,32 +367,44 @@ func GetGatewayCount(ctx context.Context, db sqlx.Queryer, filters GatewayFilter
 }
 
 // GetGateways returns a slice of gateways sorted by name.
-func GetGateways(ctx context.Context, db sqlx.Queryer, filters GatewayFilters) ([]Gateway, error) {
+func GetGateways(ctx context.Context, db sqlx.Queryer, filters GatewayFilters) ([]GatewayListItem, error) {
 	if filters.Search != "" {
 		filters.Search = "%" + filters.Search + "%"
 	}
 
 	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
-			g.*
+			distinct g.mac,
+			g.name,
+			g.description,
+			g.created_at,
+			g.updated_at,
+			g.first_seen_at,
+			g.last_seen_at,
+			g.organization_id,
+			g.network_server_id,
+			g.latitude,
+			g.longitude,
+			g.altitude,
+			n.name as network_server_name
 		from
 			gateway g
 		inner join organization o
 			on o.id = g.organization_id
+		inner join network_server n
+			on n.id = g.network_server_id
 		left join organization_user ou
 			on o.id = ou.organization_id
 		left join "user" u
 			on ou.user_id = u.id
 	`+filters.SQL()+`
-		group by
-			g.mac
 		order by
 			g.name
 		limit :limit
 		offset :offset
 	`, filters)
 
-	var gws []Gateway
+	var gws []GatewayListItem
 	err = sqlx.Select(db, &gws, query, args...)
 	if err != nil {
 		return nil, handlePSQLError(Select, err, "select error")

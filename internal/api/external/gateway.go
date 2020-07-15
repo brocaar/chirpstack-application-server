@@ -333,11 +333,12 @@ func (a *GatewayAPI) List(ctx context.Context, req *pb.ListGatewayRequest) (*pb.
 
 	for _, gw := range gws {
 		row := pb.GatewayListItem{
-			Id:              gw.MAC.String(),
-			Name:            gw.Name,
-			Description:     gw.Description,
-			OrganizationId:  gw.OrganizationID,
-			NetworkServerId: gw.NetworkServerID,
+			Id:                gw.MAC.String(),
+			Name:              gw.Name,
+			Description:       gw.Description,
+			OrganizationId:    gw.OrganizationID,
+			NetworkServerId:   gw.NetworkServerID,
+			NetworkServerName: gw.NetworkServerName,
 			Location: &common.Location{
 				Latitude:  gw.Latitude,
 				Longitude: gw.Longitude,

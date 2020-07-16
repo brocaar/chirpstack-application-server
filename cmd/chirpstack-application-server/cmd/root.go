@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/go-redis/redis/v7"
 	"github.com/spf13/viper"
 
 	log "github.com/sirupsen/logrus"
@@ -40,7 +41,7 @@ func init() {
 	viper.SetDefault("postgresql.dsn", "postgres://localhost/chirpstack_as?sslmode=disable")
 	viper.SetDefault("postgresql.automigrate", true)
 	viper.SetDefault("postgresql.max_idle_connections", 2)
-	viper.SetDefault("redis.url", "redis://localhost:6379")
+	viper.SetDefault("redis.servers", []string{"localhost:6379"})
 	viper.SetDefault("application_server.api.public_host", "localhost:8001")
 	viper.SetDefault("application_server.id", "6d5db27e-4ce2-4b2b-b5d7-91f069397978")
 	viper.SetDefault("application_server.api.bind", "0.0.0.0:8001")
@@ -134,6 +135,17 @@ func initConfig() {
 	// backwards compatibility
 	if config.C.ApplicationServer.Integration.Backend != "" {
 		config.C.ApplicationServer.Integration.Enabled = []string{config.C.ApplicationServer.Integration.Backend}
+	}
+
+	if config.C.Redis.URL != "" {
+		opt, err := redis.ParseURL(config.C.Redis.URL)
+		if err != nil {
+			log.WithError(err).Fatal("redis url error")
+		}
+
+		config.C.Redis.Servers = []string{opt.Addr}
+		config.C.Redis.Database = opt.DB
+		config.C.Redis.Password = opt.Password
 	}
 }
 

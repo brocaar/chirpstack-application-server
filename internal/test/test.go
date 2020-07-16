@@ -2,6 +2,7 @@ package test
 
 import (
 	"os"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	migrate "github.com/rubenv/sql-migrate"
@@ -23,7 +24,7 @@ func GetConfig() config.Config {
 	var c config.Config
 
 	c.PostgreSQL.DSN = "postgres://localhost/chirpstack_as_test?sslmode=disable"
-	c.Redis.URL = "redis://localhost:6379"
+	c.Redis.Servers = []string{"localhost:6379"}
 	c.ApplicationServer.Integration.MQTT.Server = "tcp://localhost:1883"
 	c.ApplicationServer.ID = "6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 	c.ApplicationServer.Integration.AMQP.EventRoutingKeyTemplate = "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}"
@@ -34,8 +35,8 @@ func GetConfig() config.Config {
 		c.PostgreSQL.DSN = v
 	}
 
-	if v := os.Getenv("TEST_REDIS_URL"); v != "" {
-		c.Redis.URL = v
+	if v := os.Getenv("TEST_REDIS_SERVERS"); v != "" {
+		c.Redis.Servers = strings.Split(v, ",")
 	}
 
 	if v := os.Getenv("TEST_MQTT_SERVER"); v != "" {

@@ -57,49 +57,32 @@ func Setup(c config.Config) error {
 	)
 
 	log.Info("storage: setting up Redis client")
-
-	opt := &redis.Options{}
-	opt.PoolSize = c.Redis.PoolSize
-
-	// URL config takes precedence
-	if c.Redis.URL != "" {
-		var err error
-		opt, err = redis.ParseURL(c.Redis.URL)
-		if err != nil {
-			return errors.Wrap(err, "parse redis url error")
-		}
-	} else {
-		opt.DB = c.Redis.Database
-		opt.Password = c.Redis.Password
-		opt.Addr = c.Redis.Servers[0]
+	if len(c.Redis.Servers) == 0 {
+		return errors.New("at least one redis server must be configured")
 	}
 
-	if c.Redis.Cluster || c.Redis.MasterName != "" {
-		var addresses []string
-		if len(c.Redis.Servers) == 0 {
-			addresses = []string{opt.Addr}
-		} else {
-			addresses = c.Redis.Servers
-		}
-
-		if c.Redis.Cluster {
-			redisClient = redis.NewClusterClient(&redis.ClusterOptions{
-				Addrs:    addresses,
-				PoolSize: opt.PoolSize,
-				Password: opt.Password,
-			})
-		} else if c.Redis.MasterName != "" {
-			redisClient = redis.NewFailoverClient(&redis.FailoverOptions{
-				MasterName:       c.Redis.MasterName,
-				SentinelAddrs:    addresses,
-				SentinelPassword: opt.Password,
-				DB:               opt.DB,
-				PoolSize:         opt.PoolSize,
-				Password:         opt.Password,
-			})
-		}
+	if c.Redis.Cluster {
+		redisClient = redis.NewClusterClient(&redis.ClusterOptions{
+			Addrs:    c.Redis.Servers,
+			PoolSize: c.Redis.PoolSize,
+			Password: c.Redis.Password,
+		})
+	} else if c.Redis.MasterName != "" {
+		redisClient = redis.NewFailoverClient(&redis.FailoverOptions{
+			MasterName:       c.Redis.MasterName,
+			SentinelAddrs:    c.Redis.Servers,
+			SentinelPassword: c.Redis.Password,
+			DB:               c.Redis.Database,
+			PoolSize:         c.Redis.PoolSize,
+			Password:         c.Redis.Password,
+		})
 	} else {
-		redisClient = redis.NewClient(opt)
+		redisClient = redis.NewClient(&redis.Options{
+			Addr:     c.Redis.Servers[0],
+			DB:       c.Redis.Database,
+			Password: c.Redis.Password,
+			PoolSize: c.Redis.PoolSize,
+		})
 	}
 
 	log.Info("storage: connecting to PostgreSQL database")

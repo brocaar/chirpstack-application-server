@@ -14,7 +14,7 @@ WORKDIR $PROJECT_PATH
 RUN make dev-requirements ui-requirements
 RUN make
 
-FROM alpine:latest AS production
+FROM alpine:3.11.2 AS production
 
 RUN apk --no-cache add ca-certificates
 COPY --from=development /chirpstack-application-server/build/chirpstack-application-server /usr/bin/chirpstack-application-server

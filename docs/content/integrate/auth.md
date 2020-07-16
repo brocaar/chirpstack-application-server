@@ -20,6 +20,8 @@ To generate a random secret, you could use the following command:
 openssl rand -base64 32
 {{< /highlight >}}
 
+To create a claim, follow the JWT standard to create a claim and sign it with your secret. 
+
 Example claim:
 
 {{<highlight json>}}
@@ -28,7 +30,7 @@ Example claim:
 	"aud": "chirpstack-application-server", // audience for which the claim is intended
 	"nbf": 1489566958,                  // unix time from which the token is valid
 	"exp": 1489653358,                  // unix time when the token expires
-	"sub": "user",                      // subject of the claim (an user)
+	"sub": "user",                      // subject of the claim (a user)
 	"username": "admin"                 // username the client claims to be
 }
 {{< /highlight >}}
@@ -46,4 +48,4 @@ method.
 
 For requests to the RESTful JSON interface, you need to set the JWT token
 using the `Grpc-Metadata-Authorization` header field. The token needs to
-be present for each request.
+be present for each request. For example as a cURL header `--header "Grpc-Metadata-Authorization: Bearer <jwt token>"`

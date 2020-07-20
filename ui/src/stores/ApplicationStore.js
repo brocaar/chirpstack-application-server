@@ -20,9 +20,11 @@ class ApplicationStore extends EventEmitter {
           application: application,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -34,8 +36,10 @@ class ApplicationStore extends EventEmitter {
       client.apis.ApplicationService.Get({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -50,9 +54,11 @@ class ApplicationStore extends EventEmitter {
           application: application,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -64,9 +70,11 @@ class ApplicationStore extends EventEmitter {
       client.apis.ApplicationService.Delete({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -81,8 +89,10 @@ class ApplicationStore extends EventEmitter {
         organizationID: organizationID,
         search: search,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -94,8 +104,10 @@ class ApplicationStore extends EventEmitter {
       client.apis.ApplicationService.ListIntegrations({
         application_id: applicationID,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -110,9 +122,11 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("http", "created");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -124,8 +138,10 @@ class ApplicationStore extends EventEmitter {
       client.apis.ApplicationService.GetHTTPIntegration({
         application_id: applicationID,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -140,9 +156,11 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("http", "updated");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -154,9 +172,11 @@ class ApplicationStore extends EventEmitter {
       client.apis.ApplicationService.DeleteHTTPIntegration({
         application_id: applicationID,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("http", "deleted");
+        this.stopLoader();
         this.emit("integration.delete");
         callbackFunc(resp.obj);
       })
@@ -173,9 +193,11 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("InfluxDB", "created");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -187,8 +209,10 @@ class ApplicationStore extends EventEmitter {
       client.apis.ApplicationService.GetInfluxDBIntegration({
         application_id: applicationID,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -203,9 +227,11 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("InfluxDB", "updated");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -217,9 +243,11 @@ class ApplicationStore extends EventEmitter {
       client.apis.ApplicationService.DeleteInfluxDBIntegration({
         application_id: applicationID,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("InfluxDB", "deleted");
+        this.stopLoader();
         this.emit("integration.delete");
         callbackFunc(resp.obj);
       })
@@ -235,9 +263,11 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp =>  {
           this.integrationNotification("ThingsBoard.io", "created");
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);
@@ -247,10 +277,12 @@ class ApplicationStore extends EventEmitter {
   getThingsBoardIntegration(applicationID, callbackFunc) {
     this.swagger.then(client => {
       client.apis.ApplicationService.GetThingsBoardIntegration({
-        application_id: applicationID, 
+        application_id: applicationID,
       })
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);
@@ -265,9 +297,11 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("ThingsBoard.io", "updated");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -279,9 +313,11 @@ class ApplicationStore extends EventEmitter {
       client.apis.ApplicationService.DeleteThingsBoardIntegration({
         application_id: applicationID,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("ThingsBoard.io", "deleted");
+        this.stopLoader();
         this.emit("integration.delete");
         callbackFunc(resp.obj);
       })
@@ -297,9 +333,11 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp =>  {
           this.integrationNotification("myDevices", "created");
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);
@@ -309,10 +347,12 @@ class ApplicationStore extends EventEmitter {
   getMyDevicesIntegration(applicationID, callbackFunc) {
     this.swagger.then(client => {
       client.apis.ApplicationService.GetMyDevicesIntegration({
-        application_id: applicationID, 
+        application_id: applicationID,
       })
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);
@@ -327,9 +367,11 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("myDevices", "updated");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -341,9 +383,11 @@ class ApplicationStore extends EventEmitter {
       client.apis.ApplicationService.DeleteMyDevicesIntegration({
         application_id: applicationID,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("myDevices", "deleted");
+        this.stopLoader();
         this.emit("integration.delete");
         callbackFunc(resp.obj);
       })
@@ -359,9 +403,11 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
           this.integrationNotification("LoRa Cloud", "created");
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -371,10 +417,12 @@ class ApplicationStore extends EventEmitter {
   getLoRaCloudIntegration(applicationID, callbackFunc) {
     this.swagger.then(client => {
       client.apis.ApplicationService.GetLoRaCloudIntegration({
-        application_id: applicationID, 
+        application_id: applicationID,
       })
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);
@@ -389,9 +437,11 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("LoRa Cloud", "updated");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -403,9 +453,11 @@ class ApplicationStore extends EventEmitter {
       client.apis.ApplicationService.DeleteLoRaCloudIntegration({
         application_id: applicationID,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("LoRa Cloud", "deleted");
+        this.stopLoader();
         this.emit("integration.delete");
         callbackFunc(resp.obj);
       })
@@ -616,6 +668,18 @@ class ApplicationStore extends EventEmitter {
         type: "success",
         message: kind + " integration has been " + action,
       },
+    });
+  }
+
+  startLoader() {
+    dispatcher.dispatch({
+      type: "START_LOADER",
+    });
+  }
+
+  stopLoader() {
+    dispatcher.dispatch({
+      type: "STOP_LOADER",
     });
   }
 }

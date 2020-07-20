@@ -20,9 +20,11 @@ class MulticastGroupStore extends EventEmitter {
           multicastGroup: multicastGroup,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -34,8 +36,10 @@ class MulticastGroupStore extends EventEmitter {
       client.apis.MulticastGroupService.Get({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -50,9 +54,11 @@ class MulticastGroupStore extends EventEmitter {
           multicastGroup: multicastGroup,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -64,9 +70,11 @@ class MulticastGroupStore extends EventEmitter {
       client.apis.MulticastGroupService.Delete({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -83,8 +91,10 @@ class MulticastGroupStore extends EventEmitter {
         devEUI: devEUI,
         search: search,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -99,9 +109,11 @@ class MulticastGroupStore extends EventEmitter {
           devEUI: devEUI,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notifyDevice("added to");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -114,9 +126,11 @@ class MulticastGroupStore extends EventEmitter {
         multicast_group_id: multicastGroupID,
         dev_eui: devEUI,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notifyDevice("removed from");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -140,6 +154,18 @@ class MulticastGroupStore extends EventEmitter {
         type: "success",
         message: "device has been " + action + " multicast-group",
       },
+    });
+  }
+
+  startLoader() {
+    dispatcher.dispatch({
+      type: "START_LOADER",
+    });
+  }
+
+  stopLoader() {
+    dispatcher.dispatch({
+      type: "STOP_LOADER",
     });
   }
 }

@@ -20,8 +20,10 @@ class NetworkServerStore extends EventEmitter {
           networkServer: networkServer,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         this.notifiy("created");
         callbackFunc(resp.obj);
       })
@@ -34,8 +36,10 @@ class NetworkServerStore extends EventEmitter {
       client.apis.NetworkServerService.Get({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -50,8 +54,10 @@ class NetworkServerStore extends EventEmitter {
           networkServer: networkServer,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         this.notifiy("updated");
         callbackFunc(resp.obj);
       })
@@ -68,21 +74,35 @@ class NetworkServerStore extends EventEmitter {
       },
     });
   }
+  
+  startLoader() {
+    dispatcher.dispatch({
+      type: "START_LOADER",
+    });
+  }
+
+  stopLoader() {
+    dispatcher.dispatch({
+      type: "STOP_LOADER",
+    });
+  }
 
   delete(id, callbackFunc) {
     this.swagger.then(client => {
       client.apis.NetworkServerService.Delete({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         this.notifiy("deleted");
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
     });
   }
-  
+
   list(organizationID, limit, offset, callbackFunc) {
     this.swagger.then((client) => {
       client.apis.NetworkServerService.List({
@@ -90,13 +110,16 @@ class NetworkServerStore extends EventEmitter {
         limit: limit,
         offset: offset,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
     });
   }
+
 }
 
 const networkServerStore = new NetworkServerStore();

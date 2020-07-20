@@ -18,9 +18,11 @@ class DeviceQueueStore extends EventEmitter {
       client.apis.DeviceQueueService.Flush({
         dev_eui: devEUI,
       })
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
           this.notify("device-queue has been flushed");
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -32,8 +34,10 @@ class DeviceQueueStore extends EventEmitter {
       client.apis.DeviceQueueService.List({
         dev_eui: devEUI,
       })
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);
@@ -48,9 +52,11 @@ class DeviceQueueStore extends EventEmitter {
           deviceQueueItem: item,
         },
       })
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
           this.notify("device-queue item has been created");
+          this.stopLoader();
           this.emit("enqueue");
           callbackFunc(resp.obj);
         })

@@ -31,9 +31,11 @@ class DeviceStore extends EventEmitter {
           device: device,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -45,9 +47,11 @@ class DeviceStore extends EventEmitter {
       client.apis.DeviceService.Get({
         dev_eui: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
+        this.stopLoader();
       })
       .catch(errorHandler);
     });
@@ -61,10 +65,12 @@ class DeviceStore extends EventEmitter {
           device: device,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.emit("update");
         this.notify("updated");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -77,9 +83,11 @@ class DeviceStore extends EventEmitter {
       client.apis.DeviceService.Delete({
         dev_eui: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -89,9 +97,11 @@ class DeviceStore extends EventEmitter {
   list(filters, callbackFunc) {
     this.swagger.then(client => {
       client.apis.DeviceService.List(filters)
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
+        this.stopLoader();
       })
       .catch(errorHandler);
     });
@@ -102,9 +112,11 @@ class DeviceStore extends EventEmitter {
       client.apis.DeviceService.GetKeys({
         dev_eui: devEUI,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
+        this.stopLoader();
       })
       .catch(errorHandlerIgnoreNotFoundWithCallback(callbackFunc));
     });
@@ -118,9 +130,11 @@ class DeviceStore extends EventEmitter {
           deviceKeys: deviceKeys,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notifyKeys("created");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -135,9 +149,11 @@ class DeviceStore extends EventEmitter {
           deviceKeys: deviceKeys,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notifyKeys("updated");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -149,9 +165,11 @@ class DeviceStore extends EventEmitter {
       client.apis.DeviceService.GetActivation({
         "dev_eui": devEUI,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
+        this.stopLoader();
       })
       .catch(errorHandlerIgnoreNotFoundWithCallback(callbackFunc));
     });
@@ -165,6 +183,7 @@ class DeviceStore extends EventEmitter {
           deviceActivation: deviceActivation,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         dispatcher.dispatch({
@@ -174,6 +193,7 @@ class DeviceStore extends EventEmitter {
             message: "device has been (re)activated",
           },
         });
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -185,8 +205,10 @@ class DeviceStore extends EventEmitter {
       client.apis.DeviceService.GetRandomDevAddr({
         dev_eui: devEUI,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -298,6 +320,18 @@ class DeviceStore extends EventEmitter {
         type: "success",
         message: "device has been " + action,
       },
+    });
+  }
+
+  startLoader() {
+    dispatcher.dispatch({
+      type: "START_LOADER",
+    });
+  }
+
+  stopLoader() {
+    dispatcher.dispatch({
+      type: "STOP_LOADER",
     });
   }
 

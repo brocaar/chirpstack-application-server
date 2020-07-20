@@ -19,6 +19,9 @@ export function errorHandler(error) {
         message: error.message,
       },
     });
+    dispatcher.dispatch({
+      type: "STOP_LOADER",
+    });
   } else {
     if (error.response.obj.code === 16) {
       history.push("/login");
@@ -29,6 +32,9 @@ export function errorHandler(error) {
           type: "error",
           message: error.response.obj.error + " (code: " + error.response.obj.code + ")",
         },
+      });
+      dispatcher.dispatch({
+        type: "STOP_LOADER",
       });
     }
   }

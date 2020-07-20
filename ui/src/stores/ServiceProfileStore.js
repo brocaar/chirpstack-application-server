@@ -20,9 +20,11 @@ class ServiceProfileStore extends EventEmitter {
           serviceProfile: serviceProfile,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -34,8 +36,10 @@ class ServiceProfileStore extends EventEmitter {
       client.apis.ServiceProfileService.Get({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -50,9 +54,11 @@ class ServiceProfileStore extends EventEmitter {
           serviceProfile: serviceProfile,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -64,9 +70,11 @@ class ServiceProfileStore extends EventEmitter {
       client.apis.ServiceProfileService.Delete({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
+        this.stopLoader();
         callbackFunc(resp.ojb);
       })
       .catch(errorHandler);
@@ -80,8 +88,10 @@ class ServiceProfileStore extends EventEmitter {
         limit: limit,
         offset: offset,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -97,6 +107,18 @@ class ServiceProfileStore extends EventEmitter {
       },
     });
   }
+
+    startLoader() {
+      dispatcher.dispatch({
+        type: "START_LOADER",
+      });
+    }
+
+    stopLoader() {
+      dispatcher.dispatch({
+        type: "STOP_LOADER",
+      });
+    }
 }
 
 const serviceProfileStore = new ServiceProfileStore();

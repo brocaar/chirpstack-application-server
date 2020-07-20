@@ -20,9 +20,11 @@ class DeviceProfileStore extends EventEmitter {
           deviceProfile: deviceProfile,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -34,9 +36,11 @@ class DeviceProfileStore extends EventEmitter {
       client.apis.DeviceProfileService.Get({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
+        this.stopLoader();
       })
       .catch(errorHandler);
     });
@@ -50,9 +54,11 @@ class DeviceProfileStore extends EventEmitter {
           deviceProfile: deviceProfile,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -64,9 +70,11 @@ class DeviceProfileStore extends EventEmitter {
       client.apis.DeviceProfileService.Delete({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
+        this.stopLoader();
         callbackFunc(resp.ojb);
       })
       .catch(errorHandler);
@@ -81,8 +89,10 @@ class DeviceProfileStore extends EventEmitter {
         limit: limit,
         offset: offset,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -98,6 +108,19 @@ class DeviceProfileStore extends EventEmitter {
       },
     });
   }
+
+  startLoader() {
+    dispatcher.dispatch({
+      type: "START_LOADER",
+    });
+  }
+
+  stopLoader() {
+    dispatcher.dispatch({
+      type: "STOP_LOADER",
+    });
+  }
+
 }
 
 const deviceProfileStore = new DeviceProfileStore();

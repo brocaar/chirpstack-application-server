@@ -20,10 +20,12 @@ class OrganizationStore extends EventEmitter {
           organization: organization,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.emit("create", organization);
         this.notify("created");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -35,8 +37,10 @@ class OrganizationStore extends EventEmitter {
       client.apis.OrganizationService.Get({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -51,10 +55,12 @@ class OrganizationStore extends EventEmitter {
           organization: organization,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.emit("change", organization);
         this.notify("updated");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -66,10 +72,12 @@ class OrganizationStore extends EventEmitter {
       client.apis.OrganizationService.Delete({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.emit("delete", id);
         this.notify("deleted");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -83,8 +91,10 @@ class OrganizationStore extends EventEmitter {
         limit: limit,
         offset: offset,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -99,8 +109,10 @@ class OrganizationStore extends EventEmitter {
           organizationUser: user,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -113,8 +125,10 @@ class OrganizationStore extends EventEmitter {
         organization_id: organizationID,
         user_id: userID,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -127,8 +141,10 @@ class OrganizationStore extends EventEmitter {
         organization_id: organizationID,
         user_id: userID,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -144,8 +160,10 @@ class OrganizationStore extends EventEmitter {
           organizationUser: organizationUser,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -159,8 +177,10 @@ class OrganizationStore extends EventEmitter {
         limit: limit,
         offset: offset,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -176,6 +196,19 @@ class OrganizationStore extends EventEmitter {
       },
     });
   }
+
+  startLoader() {
+    dispatcher.dispatch({
+      type: "START_LOADER",
+    });
+  }
+
+  stopLoader() {
+    dispatcher.dispatch({
+      type: "STOP_LOADER",
+    });
+  }
+
 }
 
 const organizationStore = new OrganizationStore();

@@ -20,9 +20,11 @@ class GatewayProfileStore extends EventEmitter {
           gatewayProfile: gatewayProfile,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -34,8 +36,10 @@ class GatewayProfileStore extends EventEmitter {
       client.apis.GatewayProfileService.Get({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -50,9 +54,11 @@ class GatewayProfileStore extends EventEmitter {
           gatewayProfile: gatewayProfile,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -64,9 +70,11 @@ class GatewayProfileStore extends EventEmitter {
       client.apis.GatewayProfileService.Delete({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -80,8 +88,10 @@ class GatewayProfileStore extends EventEmitter {
         limit: limit,
         offset: offset,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -97,6 +107,19 @@ class GatewayProfileStore extends EventEmitter {
       },
     });
   }
+
+  startLoader() {
+    dispatcher.dispatch({
+      type: "START_LOADER",
+    });
+  }
+
+  stopLoader() {
+    dispatcher.dispatch({
+      type: "STOP_LOADER",
+    });
+  }
+
 }
 
 const gatewayProfileStore = new GatewayProfileStore();

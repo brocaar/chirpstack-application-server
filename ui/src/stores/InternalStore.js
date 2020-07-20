@@ -17,8 +17,10 @@ class InternalStore extends EventEmitter {
   listAPIKeys(filters, callbackFunc) {
     this.swagger.then(client => {
       client.apis.InternalService.ListAPIKeys(filters)
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -30,9 +32,11 @@ class InternalStore extends EventEmitter {
       client.apis.InternalService.DeleteAPIKey({
         id: id,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("api key has been deleted");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -46,9 +50,11 @@ class InternalStore extends EventEmitter {
           apiKey: obj,
         },
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         this.notify("api key has been created");
+        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -58,8 +64,10 @@ class InternalStore extends EventEmitter {
   settings(callbackFunc) {
     this.swagger.then(client => {
       client.apis.InternalService.Settings({})
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -75,6 +83,19 @@ class InternalStore extends EventEmitter {
       },
     });
   }
+
+  startLoader() {
+    dispatcher.dispatch({
+      type: "START_LOADER",
+    });
+  }
+
+  stopLoader() {
+    dispatcher.dispatch({
+      type: "STOP_LOADER",
+    });
+  }
+
 }
 
 const internalStore = new InternalStore();

@@ -21,9 +21,11 @@ class FUOTADeploymentStore extends EventEmitter {
           fuotaDeployment: fuotaDeployment,
         },
       })
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
           this.notify("created");
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -35,8 +37,10 @@ class FUOTADeploymentStore extends EventEmitter {
       client.apis.FUOTADeploymentService.Get({
         id: id,
       })
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -46,8 +50,10 @@ class FUOTADeploymentStore extends EventEmitter {
   list(filters, callbackFunc) {
     this.swagger.then(client => {
       client.apis.FUOTADeploymentService.List(filters)
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -57,8 +63,10 @@ class FUOTADeploymentStore extends EventEmitter {
   listDeploymentDevices(filters, callbackFunc) {
     this.swagger.then(client => {
       client.apis.FUOTADeploymentService.ListDeploymentDevices(filters)
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -71,8 +79,10 @@ class FUOTADeploymentStore extends EventEmitter {
         fuota_deployment_id: fuotaDeploymentID,
         dev_eui: devEUI,
       })
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
+          this.stopLoader();
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -89,6 +99,18 @@ class FUOTADeploymentStore extends EventEmitter {
     });
   }
 
+  startLoader() {
+    dispatcher.dispatch({
+      type: "START_LOADER",
+    });
+  }
+
+  stopLoader() {
+    dispatcher.dispatch({
+      type: "STOP_LOADER",
+    });
+  }
+
   emitReload() {
     this.emit("reload");
   }
@@ -96,4 +118,3 @@ class FUOTADeploymentStore extends EventEmitter {
 
 const fuotaDeploymentStore = new FUOTADeploymentStore();
 export default fuotaDeploymentStore;
-

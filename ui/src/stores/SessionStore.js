@@ -2,6 +2,7 @@ import { EventEmitter } from "events";
 
 import Swagger from "swagger-client";
 import { checkStatus, errorHandler, errorHandlerLogin } from "./helpers";
+import dispatcher from "../dispatcher";
 
 
 class SessionStore extends EventEmitter {
@@ -14,7 +15,7 @@ class SessionStore extends EventEmitter {
     this.branding = {};
 
     this.swagger = Swagger("/swagger/internal.swagger.json", this.getClientOpts())
-    
+
     this.swagger.then(client => {
       this.client = client;
 
@@ -112,9 +113,11 @@ class SessionStore extends EventEmitter {
   login(login, callBackFunc) {
     this.swagger.then(client => {
       client.apis.InternalService.Login({body: login})
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
           this.setToken(resp.obj.jwt);
+          this.stopLoader();
           this.fetchProfile(callBackFunc);
         })
         .catch(errorHandlerLogin);
@@ -127,9 +130,11 @@ class SessionStore extends EventEmitter {
         code: code,
         state: state,
       })
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
           this.setToken(resp.obj.jwtToken);
+          this.stopLoader();
           this.fetchProfile(callbackFunc);
         })
         .catch(errorHandler);
@@ -148,8 +153,10 @@ class SessionStore extends EventEmitter {
   fetchProfile(callBackFunc) {
     this.swagger.then(client => {
       client.apis.InternalService.Profile({})
+        .then(this.startLoader())
         .then(checkStatus)
         .then(resp => {
+          this.stopLoader();
           this.user = resp.obj.user;
 
           if(resp.obj.organizations !== undefined) {
@@ -174,13 +181,28 @@ class SessionStore extends EventEmitter {
         limit: limit,
         offset: offset,
       })
+      .then(this.startLoader())
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
+        this.stopLoader();
       })
       .catch(errorHandler);
       });
   }
+
+  startLoader() {
+    dispatcher.dispatch({
+      type: "START_LOADER",
+    });
+  }
+
+  stopLoader() {
+    dispatcher.dispatch({
+      type: "STOP_LOADER",
+    });
+  }
+
 }
 
 const sessionStore = new SessionStore();

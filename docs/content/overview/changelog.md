@@ -146,23 +146,33 @@ a change in MQTT topics (default configuration):
 * `application/[ApplicationID]/device/[DevEUI]/location` -> `application/[ApplicationID]/device/[DevEUI]/event/location`
 * `application/[ApplicationID]/device/[DevEUI]/tx` -> `application/[ApplicationID]/device/[DevEUI]/command/down`
 
+#### API keys
+
+It is now possible to also generate per-organization API keys in the web-interface
+for easy integration with the gRPC and REST API.
+
 ### Improvements
 
 * Make it possible to use activate API endpoint for OTAA devices (to import an existing activation).
 * Gateway Profile / channel-plan re-configuration documentation in web-interface.
 * Internal cleanup auto-complete select in web-interface.
 * Remove links in web-interface which could cause a logout due to user-permissions.
+* Redirect to device overview after saving root-keys.
+* Add network-server name in gateway list.
 * Expose (un)confirmed + DevAddr in integration payloads. ([#453](https://github.com/brocaar/chirpstack-application-server/issues/453))
 * Highlight rlow when hovering over table rows in web-interface. ([#474](https://github.com/brocaar/chirpstack-application-server/pull/474))
 * Include Network Server name column in Device- and Service Profile list. ([#475](https://github.com/brocaar/chirpstack-application-server/pull/475))
 * Include RSSI and SNR in ThingsBoard integration. ([#478](https://github.com/brocaar/chirpstack-application-server/pull/478/))
 * Align Gateway detail overview styling. ([#480](https://github.com/brocaar/chirpstack-application-server/pull/480/))
 * Makefile changes to speed up tests. ([#493](https://github.com/brocaar/chirpstack-application-server/pull/493))
+* Support multiple Redis addresses for clustering. ([#491](https://github.com/brocaar/chirpstack-application-server/pull/494))
 
 ### Bugfixes
 
 * Fix delete icon in gateway-profile UI (was showing + icon instead of delete).
+* Fix updating organization with global API key. ([#487](https://github.com/brocaar/chirpstack-application-server/issues/487))
 * Add missing error check in AWS SNS integration. ([#483](https://github.com/brocaar/chirpstack-application-server/pull/483))
+
 
 ## v3.10.0
 

@@ -12,7 +12,7 @@ and payloads can be enqueued by using MQTT or the API.
 
 ## Architecture
 
-![architecture](https://www.chirpstack.io/img/graphs/architecture.png)
+![architecture](https://www.chirpstack.io/static/img/graphs/architecture.dot.png)
 
 ### Component links
 

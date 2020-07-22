@@ -14,7 +14,6 @@ clean:
 	@rm -rf static/logo
 	@rm -rf static/integrations
 	@rm -rf static/swagger/*.json
-	@rm -rf docs/public
 	@rm -rf dist
 
 test: internal/statics internal/migrations

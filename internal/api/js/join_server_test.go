@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/aes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid"
+	"github.com/lib/pq/hstore"
 	"github.com/stretchr/testify/require"
 
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
@@ -79,6 +81,14 @@ func TestJoinServerAPI(t *testing.T) {
 		Name:            "test-device",
 		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 		DeviceProfileID: dpID,
+		Variables: hstore.Hstore{
+			Map: map[string]sql.NullString{
+				"home_netid": sql.NullString{
+					String: "010203",
+					Valid:  true,
+				},
+			},
+		},
 	}
 	assert.NoError(storage.CreateDevice(context.Background(), storage.DB(), &d))
 
@@ -435,6 +445,94 @@ func TestJoinServerAPI(t *testing.T) {
 				},
 				PHYPayload: backend.HEXBytes([]byte{32, 119, 168, 146, 89, 229, 41, 109, 112, 191, 64, 133, 175, 89, 101, 194, 76, 190, 109, 70, 29, 106, 9, 76, 214, 165, 255, 143, 250, 27, 248, 233, 75}),
 			})
+		})
+	})
+
+	t.Run("HomeNSReq", func(t *testing.T) {
+		t.Run("Known DevEUI", func(t *testing.T) {
+			assert := require.New(t)
+
+			homeNSReq := backend.HomeNSReqPayload{
+				BasePayload: backend.BasePayload{
+					ProtocolVersion: backend.ProtocolVersion1_0,
+					SenderID:        "010203",
+					ReceiverID:      "0807060504030201",
+					TransactionID:   1234,
+					MessageType:     backend.HomeNSReq,
+				},
+				DevEUI: d.DevEUI,
+			}
+			homeNSReqJSON, err := json.Marshal(homeNSReq)
+			assert.NoError(err)
+
+			req, err := http.NewRequest("POST", server.URL, bytes.NewReader(homeNSReqJSON))
+			assert.NoError(err)
+
+			resp, err := http.DefaultClient.Do(req)
+			assert.NoError(err)
+
+			var homeNSAns backend.HomeNSAnsPayload
+			assert.NoError(json.NewDecoder(resp.Body).Decode(&homeNSAns))
+			assert.Equal(backend.Success, homeNSAns.Result.ResultCode)
+			assert.Equal(lorawan.NetID{1, 2, 3}, homeNSAns.HNetID)
+		})
+
+		t.Run("Know DevEUI, no home_netid variable", func(t *testing.T) {
+			assert := require.New(t)
+
+			d.Variables = hstore.Hstore{}
+			assert.NoError(storage.UpdateDevice(context.Background(), storage.DB(), &d, true))
+
+			homeNSReq := backend.HomeNSReqPayload{
+				BasePayload: backend.BasePayload{
+					ProtocolVersion: backend.ProtocolVersion1_0,
+					SenderID:        "010203",
+					ReceiverID:      "0807060504030201",
+					TransactionID:   1234,
+					MessageType:     backend.HomeNSReq,
+				},
+				DevEUI: d.DevEUI,
+			}
+			homeNSReqJSON, err := json.Marshal(homeNSReq)
+			assert.NoError(err)
+
+			req, err := http.NewRequest("POST", server.URL, bytes.NewReader(homeNSReqJSON))
+			assert.NoError(err)
+
+			resp, err := http.DefaultClient.Do(req)
+			assert.NoError(err)
+
+			var homeNSAns backend.HomeNSAnsPayload
+			assert.NoError(json.NewDecoder(resp.Body).Decode(&homeNSAns))
+			assert.Equal(backend.Success, homeNSAns.Result.ResultCode)
+			assert.Equal(lorawan.NetID{0, 0, 0}, homeNSAns.HNetID)
+		})
+
+		t.Run("Unknown DevEUI", func(t *testing.T) {
+			assert := require.New(t)
+
+			homeNSReq := backend.HomeNSReqPayload{
+				BasePayload: backend.BasePayload{
+					ProtocolVersion: backend.ProtocolVersion1_0,
+					SenderID:        "010203",
+					ReceiverID:      "0807060504030201",
+					TransactionID:   1234,
+					MessageType:     backend.HomeNSReq,
+				},
+				DevEUI: lorawan.EUI64{3, 3, 3, 3, 3, 3, 3, 3},
+			}
+			homeNSReqJSON, err := json.Marshal(homeNSReq)
+			assert.NoError(err)
+
+			req, err := http.NewRequest("POST", server.URL, bytes.NewReader(homeNSReqJSON))
+			assert.NoError(err)
+
+			resp, err := http.DefaultClient.Do(req)
+			assert.NoError(err)
+
+			var homeNSAns backend.HomeNSAnsPayload
+			assert.NoError(json.NewDecoder(resp.Body).Decode(&homeNSAns))
+			assert.Equal(backend.UnknownDevEUI, homeNSAns.Result.ResultCode)
 		})
 	})
 }

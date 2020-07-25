@@ -30,6 +30,8 @@ var errToCode = map[error]codes.Code{
 	storage.ErrOrganizationMaxDeviceCount:      codes.FailedPrecondition,
 	storage.ErrOrganizationMaxGatewayCount:     codes.FailedPrecondition,
 	storage.ErrNetworkServerInvalidName:        codes.InvalidArgument,
+	storage.ErrFUOTADeploymentInvalidName:      codes.InvalidArgument,
+	storage.ErrFUOTADeploymentNullPayload:      codes.InvalidArgument,
 	http.ErrInvalidHeaderName:                  codes.InvalidArgument,
 	influxdb.ErrInvalidPrecision:               codes.InvalidArgument,
 }

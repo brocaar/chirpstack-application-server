@@ -136,9 +136,24 @@ func (f FUOTADeploymentFilters) SQL() string {
 	return "where " + strings.Join(filters, " and ")
 }
 
+// Validate validates the FUOTADeployment data.
+func (fd FUOTADeployment) Validate() error {
+	if strings.TrimSpace(fd.Name) == "" {
+		return ErrFUOTADeploymentInvalidName
+	}
+	if len(fd.Payload) <= 0 || fd.Payload == nil {
+		return ErrFUOTADeploymentNullPayload
+	}
+	return nil
+}
+
 // CreateFUOTADeploymentForDevice creates and initializes a FUOTA deployment
 // for the given device.
 func CreateFUOTADeploymentForDevice(ctx context.Context, db sqlx.Ext, fd *FUOTADeployment, devEUI lorawan.EUI64) error {
+	if err := fd.Validate(); err != nil {
+		return errors.Wrap(err, "validate error")
+	}
+
 	now := time.Now()
 	var err error
 	fd.ID, err = uuid.NewV4()
@@ -322,6 +337,10 @@ func GetPendingFUOTADeployments(ctx context.Context, db sqlx.Ext, batchSize int)
 
 // UpdateFUOTADeployment updates the given FUOTA deployment.
 func UpdateFUOTADeployment(ctx context.Context, db sqlx.Ext, fd *FUOTADeployment) error {
+	if err := fd.Validate(); err != nil {
+		return errors.Wrap(err, "validate error")
+	}
+
 	fd.UpdatedAt = time.Now()
 
 	res, err := db.Exec(`

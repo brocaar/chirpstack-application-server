@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	uuid "github.com/gofrs/uuid"
@@ -37,6 +38,10 @@ type NetworkServer struct {
 
 // Validate validates the network-server data.
 func (ns NetworkServer) Validate() error {
+	if strings.TrimSpace(ns.Name) == "" || len(ns.Name) > 100 {
+		return ErrNetworkServerInvalidName
+	}
+
 	if ns.GatewayDiscoveryEnabled && ns.GatewayDiscoveryInterval <= 0 {
 		return ErrInvalidGatewayDiscoveryInterval
 	}

@@ -40,6 +40,7 @@ var (
 	ErrMulticastGroupInvalidName       = errors.New("invalid multicast-group name")
 	ErrOrganizationMaxDeviceCount      = errors.New("organization reached max. device count")
 	ErrOrganizationMaxGatewayCount     = errors.New("organization reached max. gateway count")
+	ErrNetworkServerInvalidName        = errors.New("invalid network-server name")
 )
 
 func handlePSQLError(action Action, err error, description string) error {

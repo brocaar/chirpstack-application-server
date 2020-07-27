@@ -348,7 +348,23 @@ func (a *OrganizationAPI) DeleteUser(ctx context.Context, req *pb.DeleteOrganiza
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteOrganizationUser(ctx, storage.DB(), req.OrganizationId, req.UserId)
+	sub, err := a.validator.GetSubject(ctx)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if sub == auth.SubjectUser {
+		user, err := a.validator.GetUser(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		if !user.IsAdmin && user.ID == req.UserId {
+			return nil, grpc.Errorf(codes.InvalidArgument, "you can not delete yourself from an organization")
+		}
+	}
+
+	err = storage.DeleteOrganizationUser(ctx, storage.DB(), req.OrganizationId, req.UserId)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}

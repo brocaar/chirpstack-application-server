@@ -193,17 +193,32 @@ func (ts *APITestSuite) TestOrganization() {
 				})
 
 				t.Run("Remove user from organization", func(t *testing.T) {
-					assert := require.New(t)
+					t.Run("Remove self", func(t *testing.T) {
+						assert := require.New(t)
+						validator.returnUser = user
 
-					delOrgUser := &pb.DeleteOrganizationUserRequest{
-						OrganizationId: createResp.Id,
-						UserId:         user.ID,
-					}
-					_, err := api.DeleteUser(context.Background(), delOrgUser)
-					assert.NoError(err)
+						delOrgUser := &pb.DeleteOrganizationUserRequest{
+							OrganizationId: createResp.Id,
+							UserId:         user.ID,
+						}
+						_, err := api.DeleteUser(context.Background(), delOrgUser)
+						assert.Equal(codes.InvalidArgument, grpc.Code(err))
+					})
 
-					_, err = api.DeleteUser(context.Background(), delOrgUser)
-					assert.Equal(codes.NotFound, grpc.Code(err))
+					t.Run("Remove other", func(t *testing.T) {
+						assert := require.New(t)
+						validator.returnUser = adminUser
+
+						delOrgUser := &pb.DeleteOrganizationUserRequest{
+							OrganizationId: createResp.Id,
+							UserId:         user.ID,
+						}
+						_, err := api.DeleteUser(context.Background(), delOrgUser)
+						assert.NoError(err)
+
+						_, err = api.DeleteUser(context.Background(), delOrgUser)
+						assert.Equal(codes.NotFound, grpc.Code(err))
+					})
 				})
 			})
 		})

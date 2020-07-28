@@ -333,7 +333,6 @@ func (a *InternalAPI) OpenIDConnectLogin(ctx context.Context, req *pb.OpenIDConn
 	user.Email = oidcUser.Email
 	user.EmailVerified = oidcUser.EmailVerified
 	if err := storage.UpdateUser(ctx, storage.DB(), &user); err != nil {
-		fmt.Println("SDFSDFSDFSDF")
 		return nil, helpers.ErrToRPCError(err)
 	}
 

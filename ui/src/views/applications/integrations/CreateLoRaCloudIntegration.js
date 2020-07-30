@@ -19,13 +19,17 @@ class CreateLoRaCloudIntegration extends Component {
   } 
 
   render() {
+    let obj = {
+      dasModemPort: 199,
+    }; 
+
     return(
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Card>
             <CardHeader title="Add Semtech LoRa Cloud integration" />
             <CardContent>
-              <LoRaCloudIntegrationForm submitLabel="Add integration" onSubmit={this.onSubmit} />
+              <LoRaCloudIntegrationForm submitLabel="Add integration" onSubmit={this.onSubmit} object={obj} />
             </CardContent>
           </Card>
         </Grid>

@@ -215,7 +215,7 @@ class LoRaCloudIntegrationForm extends FormComponent {
           {!!this.state.object.das && <TextField
             id="dasModemPort"
             label="DAS Modem port (FPort)"
-            value={this.state.object.dasModemPort || 199}
+            value={this.state.object.dasModemPort || 0}
             onChange={this.onChange}
             type="number"
             margin="normal"

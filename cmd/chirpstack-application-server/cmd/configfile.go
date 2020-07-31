@@ -359,6 +359,11 @@ id="{{ .ApplicationServer.ID }}"
   # Brokers, e.g.: localhost:9092.
   brokers=[{{ range $index, $broker := .ApplicationServer.Integration.Kafka.Brokers }}{{ if $index }}, {{ end }}"{{ $broker }}"{{ end }}]
 
+  # TLS.
+  #
+  # Set this to true when the Kafka client must connect using TLS to the Broker.
+  tls={{ .ApplicationServer.Integration.TLS }}
+
   # Topic for events.
   topic="{{ .ApplicationServer.Integration.Kafka.Topic }}"
 
@@ -369,6 +374,12 @@ id="{{ .ApplicationServer.ID }}"
   # decisions.  A header "event" with the event type is included in each
   # message. There is no need to parse it from the key.
   event_key_template="{{ .ApplicationServer.Integration.Kafka.EventKeyTemplate }}"
+
+  # Username (optional).
+  username="{{ .ApplicationServer.Integration.Kafka.Username }}"
+
+  # Password (optional).
+  password="{{ .ApplicationServer.Integration.Kafka.Password }}"
 
 
   # PostgreSQL database integration.

@@ -3,14 +3,17 @@ package kafka
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"text/template"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/sasl/plain"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
@@ -30,11 +33,41 @@ type Integration struct {
 
 // New creates a new Kafka integration.
 func New(m marshaler.Type, conf config.IntegrationKafkaConfig) (*Integration, error) {
-	w := kafka.NewWriter(kafka.WriterConfig{
+	wc := kafka.WriterConfig{
 		Brokers:  conf.Brokers,
 		Topic:    conf.Topic,
 		Balancer: &kafka.LeastBytes{},
-	})
+
+		// Equal to kafka.DefaultDialer.
+		// We do not want to use kafka.DefaultDialer itself, as we might modify
+		// it below to setup SASLMechanism.
+		Dialer: &kafka.Dialer{
+			Timeout:   10 * time.Second,
+			DualStack: true,
+		},
+	}
+
+	if conf.TLS {
+		wc.Dialer.TLS = &tls.Config{}
+	}
+
+	if conf.Username != "" || conf.Password != "" {
+		fmt.Println("username", conf.Username)
+		fmt.Println("password", conf.Password)
+		wc.Dialer.SASLMechanism = plain.Mechanism{
+			Username: conf.Username,
+			Password: conf.Password,
+		}
+	}
+
+	log.WithFields(log.Fields{
+		"brokers": conf.Brokers,
+		"topic":   conf.Topic,
+	}).Info("integration/kafka: connecting to kafka broker(s)")
+
+	w := kafka.NewWriter(wc)
+
+	log.Info("integration/kafka: connected to kafka broker(s)")
 
 	kt, err := template.New("key").Parse(conf.EventKeyTemplate)
 	if err != nil {

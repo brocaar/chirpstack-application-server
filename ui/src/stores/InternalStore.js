@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import { checkStatus, errorHandler } from "./helpers";
+import { checkStatus, errorHandler, startLoader, stopLoader } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -15,12 +15,13 @@ class InternalStore extends EventEmitter {
   }
 
   listAPIKeys(filters, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.ListAPIKeys(filters)
-        .then(this.startLoader())
+        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
-          this.stopLoader();
+
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -28,15 +29,15 @@ class InternalStore extends EventEmitter {
   }
 
   deleteAPIKey(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.DeleteAPIKey({
         id: id,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("api key has been deleted");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -44,17 +45,17 @@ class InternalStore extends EventEmitter {
   }
 
   createAPIKey(obj, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.CreateAPIKey({
         body: {
           apiKey: obj,
         },
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("api key has been created");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -62,12 +63,13 @@ class InternalStore extends EventEmitter {
   }
 
   settings(callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.Settings({})
-        .then(this.startLoader())
+        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
-          this.stopLoader();
+
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -81,18 +83,6 @@ class InternalStore extends EventEmitter {
         type: "success",
         message: msg,
       },
-    });
-  }
-
-  startLoader() {
-    dispatcher.dispatch({
-      type: "START_LOADER",
-    });
-  }
-
-  stopLoader() {
-    dispatcher.dispatch({
-      type: "STOP_LOADER",
     });
   }
 

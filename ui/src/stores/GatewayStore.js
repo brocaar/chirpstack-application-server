@@ -4,7 +4,7 @@ import RobustWebSocket from "robust-websocket";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler, errorHandlerIgnoreNotFound } from "./helpers";
+import {checkStatus, errorHandler, errorHandlerIgnoreNotFound, startLoader, stopLoader } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -20,17 +20,17 @@ class GatewayStore extends EventEmitter {
   }
 
   create(gateway, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.GatewayService.Create({
         body: {
           gateway: gateway,
         },
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -38,14 +38,14 @@ class GatewayStore extends EventEmitter {
   }
 
   get(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.GatewayService.Get({
         id: id,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -53,6 +53,7 @@ class GatewayStore extends EventEmitter {
   }
 
   update(gateway, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.GatewayService.Update({
         "gateway.id": gateway.id,
@@ -60,11 +61,10 @@ class GatewayStore extends EventEmitter {
           gateway: gateway,
         },
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -72,15 +72,15 @@ class GatewayStore extends EventEmitter {
   }
 
   delete(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.GatewayService.Delete({
         id: id,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -88,14 +88,14 @@ class GatewayStore extends EventEmitter {
   }
 
   generateClientCertificate(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.GatewayService.GenerateGatewayClientCertificate({
         gateway_id: id,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -103,6 +103,7 @@ class GatewayStore extends EventEmitter {
   }
 
   list(search, organizationID, limit, offset, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.GatewayService.List({
         limit: limit,
@@ -110,10 +111,9 @@ class GatewayStore extends EventEmitter {
         organizationID: organizationID,
         search: search,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -121,6 +121,7 @@ class GatewayStore extends EventEmitter {
   }
 
   getStats(gatewayID, start, end, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.GatewayService.GetStats({
         gateway_id: gatewayID,
@@ -128,10 +129,9 @@ class GatewayStore extends EventEmitter {
         startTimestamp: start,
         endTimestamp: end,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -139,14 +139,14 @@ class GatewayStore extends EventEmitter {
   }
 
   getLastPing(gatewayID, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.GatewayService.GetLastPing({
         gateway_id: gatewayID,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandlerIgnoreNotFound);
@@ -214,17 +214,6 @@ class GatewayStore extends EventEmitter {
     });
   }
 
-  startLoader() {
-    dispatcher.dispatch({
-      type: "START_LOADER",
-    });
-  }
-
-  stopLoader() {
-    dispatcher.dispatch({
-      type: "STOP_LOADER",
-    });
-  }
 }
 
 const gatewayStore = new GatewayStore();

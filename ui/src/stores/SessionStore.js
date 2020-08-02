@@ -1,9 +1,7 @@
 import { EventEmitter } from "events";
 
 import Swagger from "swagger-client";
-import { checkStatus, errorHandler, errorHandlerLogin } from "./helpers";
-import dispatcher from "../dispatcher";
-
+import { checkStatus, errorHandler, errorHandlerLogin, startLoader, stopLoader } from "./helpers";
 
 class SessionStore extends EventEmitter {
   constructor() {
@@ -111,13 +109,14 @@ class SessionStore extends EventEmitter {
   }
 
   login(login, callBackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.Login({body: login})
-        .then(this.startLoader())
+        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.setToken(resp.obj.jwt);
-          this.stopLoader();
+
           this.fetchProfile(callBackFunc);
         })
         .catch(errorHandlerLogin);
@@ -125,16 +124,17 @@ class SessionStore extends EventEmitter {
   }
 
   openidConnectLogin(code, state, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.OpenIDConnectLogin({
         code: code,
         state: state,
       })
-        .then(this.startLoader())
+        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.setToken(resp.obj.jwtToken);
-          this.stopLoader();
+
           this.fetchProfile(callbackFunc);
         })
         .catch(errorHandler);
@@ -151,12 +151,13 @@ class SessionStore extends EventEmitter {
   }
 
   fetchProfile(callBackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.Profile({})
-        .then(this.startLoader())
+        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
-          this.stopLoader();
+
           this.user = resp.obj.user;
 
           if(resp.obj.organizations !== undefined) {
@@ -175,33 +176,22 @@ class SessionStore extends EventEmitter {
   }
 
   globalSearch(search, limit, offset, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.GlobalSearch({
         search: search,
         limit: limit,
         offset: offset,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
-        this.stopLoader();
       })
       .catch(errorHandler);
       });
   }
 
-  startLoader() {
-    dispatcher.dispatch({
-      type: "START_LOADER",
-    });
-  }
-
-  stopLoader() {
-    dispatcher.dispatch({
-      type: "STOP_LOADER",
-    });
-  }
 
 }
 

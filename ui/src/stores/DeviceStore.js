@@ -4,7 +4,7 @@ import RobustWebSocket from "robust-websocket";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler, errorHandlerIgnoreNotFoundWithCallback } from "./helpers";
+import {checkStatus, errorHandler, errorHandlerIgnoreNotFoundWithCallback, startLoader, stopLoader } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -25,17 +25,17 @@ class DeviceStore extends EventEmitter {
   }
 
   create(device, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.Create({
         body: {
           device: device,
         },
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -43,21 +43,22 @@ class DeviceStore extends EventEmitter {
   }
 
   get(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.Get({
         dev_eui: id,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
-        this.stopLoader();
       })
       .catch(errorHandler);
     });
   }
 
   update(device, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.Update({
         "device.dev_eui": device.devEUI,
@@ -65,12 +66,11 @@ class DeviceStore extends EventEmitter {
           device: device,
         },
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.emit("update");
         this.notify("updated");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -79,15 +79,15 @@ class DeviceStore extends EventEmitter {
   }
 
   delete(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.Delete({
         dev_eui: id,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -95,34 +95,35 @@ class DeviceStore extends EventEmitter {
   }
 
   list(filters, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.List(filters)
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
-        this.stopLoader();
       })
       .catch(errorHandler);
     });
   }
 
   getKeys(devEUI, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.GetKeys({
         dev_eui: devEUI,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
-        this.stopLoader();
       })
       .catch(errorHandlerIgnoreNotFoundWithCallback(callbackFunc));
     });
   }
 
   createKeys(deviceKeys, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.CreateKeys({
         "device_keys.dev_eui": deviceKeys.devEUI,
@@ -130,11 +131,10 @@ class DeviceStore extends EventEmitter {
           deviceKeys: deviceKeys,
         },
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notifyKeys("created");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -142,6 +142,7 @@ class DeviceStore extends EventEmitter {
   }
 
   updateKeys(deviceKeys, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.UpdateKeys({
         "device_keys.dev_eui": deviceKeys.devEUI,
@@ -149,11 +150,10 @@ class DeviceStore extends EventEmitter {
           deviceKeys: deviceKeys,
         },
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notifyKeys("updated");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -161,21 +161,22 @@ class DeviceStore extends EventEmitter {
   }
 
   getActivation(devEUI, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.GetActivation({
         "dev_eui": devEUI,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
-        this.stopLoader();
       })
       .catch(errorHandlerIgnoreNotFoundWithCallback(callbackFunc));
     });
   }
 
   activate(deviceActivation, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.Activate({
         "device_activation.dev_eui": deviceActivation.devEUI,
@@ -183,7 +184,7 @@ class DeviceStore extends EventEmitter {
           deviceActivation: deviceActivation,
         },
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         dispatcher.dispatch({
@@ -193,7 +194,6 @@ class DeviceStore extends EventEmitter {
             message: "device has been (re)activated",
           },
         });
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -201,14 +201,14 @@ class DeviceStore extends EventEmitter {
   }
 
   getRandomDevAddr(devEUI, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.GetRandomDevAddr({
         dev_eui: devEUI,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -320,18 +320,6 @@ class DeviceStore extends EventEmitter {
         type: "success",
         message: "device has been " + action,
       },
-    });
-  }
-
-  startLoader() {
-    dispatcher.dispatch({
-      type: "START_LOADER",
-    });
-  }
-
-  stopLoader() {
-    dispatcher.dispatch({
-      type: "STOP_LOADER",
     });
   }
 

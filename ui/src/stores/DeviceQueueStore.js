@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler, startLoader, stopLoader } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -14,15 +14,15 @@ class DeviceQueueStore extends EventEmitter {
   }
 
   flush(devEUI, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceQueueService.Flush({
         dev_eui: devEUI,
       })
-        .then(this.startLoader())
+        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.notify("device-queue has been flushed");
-          this.stopLoader();
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -30,14 +30,14 @@ class DeviceQueueStore extends EventEmitter {
   }
 
   list(devEUI, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceQueueService.List({
         dev_eui: devEUI,
       })
-        .then(this.startLoader())
+        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
-          this.stopLoader();
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);
@@ -45,6 +45,7 @@ class DeviceQueueStore extends EventEmitter {
   }
 
   enqueue(item, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceQueueService.Enqueue({
         "device_queue_item.dev_eui": item.devEUI,
@@ -52,11 +53,10 @@ class DeviceQueueStore extends EventEmitter {
           deviceQueueItem: item,
         },
       })
-        .then(this.startLoader())
+        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.notify("device-queue item has been created");
-          this.stopLoader();
           this.emit("enqueue");
           callbackFunc(resp.obj);
         })

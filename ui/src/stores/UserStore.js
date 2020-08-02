@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler, startLoader, stopLoader } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -14,6 +14,7 @@ class UserStore extends EventEmitter {
   }
 
   create(user, password, organizations, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.UserService.Create({
         body: {
@@ -22,11 +23,10 @@ class UserStore extends EventEmitter {
           user: user,
         },
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -34,14 +34,14 @@ class UserStore extends EventEmitter {
   }
 
   get(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.UserService.Get({
         id: id,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -49,6 +49,7 @@ class UserStore extends EventEmitter {
   }
 
   update(user, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.UserService.Update({
         "user.id": user.id,
@@ -56,11 +57,10 @@ class UserStore extends EventEmitter {
           "user": user,
         },
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -68,15 +68,15 @@ class UserStore extends EventEmitter {
   }
 
   delete(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.UserService.Delete({
         id: id,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -84,6 +84,7 @@ class UserStore extends EventEmitter {
   }
 
   updatePassword(id, password, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.UserService.UpdatePassword({
         "user_id": id,
@@ -91,11 +92,10 @@ class UserStore extends EventEmitter {
           password: password,
         },
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -103,16 +103,16 @@ class UserStore extends EventEmitter {
   }
 
   list(search, limit, offset, callbackFunc) {
+    startLoader();
     this.swagger.then((client) => {
       client.apis.UserService.List({
         search: search,
         limit: limit,
         offset: offset,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -126,18 +126,6 @@ class UserStore extends EventEmitter {
         type: "success",
         message: "user has been " + action,
       },
-    });
-  }
-
-  startLoader() {
-    dispatcher.dispatch({
-      type: "START_LOADER",
-    });
-  }
-
-  stopLoader() {
-    dispatcher.dispatch({
-      type: "STOP_LOADER",
     });
   }
 }

@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler, startLoader, stopLoader} from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -14,17 +14,17 @@ class ServiceProfileStore extends EventEmitter {
   }
 
   create(serviceProfile, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.ServiceProfileService.Create({
         body: {
           serviceProfile: serviceProfile,
         },
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -32,14 +32,14 @@ class ServiceProfileStore extends EventEmitter {
   }
 
   get(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.ServiceProfileService.Get({
         id: id,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -47,6 +47,7 @@ class ServiceProfileStore extends EventEmitter {
   }
 
   update(serviceProfile, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.ServiceProfileService.Update({
         "service_profile.id": serviceProfile.id,
@@ -54,11 +55,10 @@ class ServiceProfileStore extends EventEmitter {
           serviceProfile: serviceProfile,
         },
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -66,15 +66,15 @@ class ServiceProfileStore extends EventEmitter {
   }
 
   delete(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.ServiceProfileService.Delete({
         id: id,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
-        this.stopLoader();
         callbackFunc(resp.ojb);
       })
       .catch(errorHandler);
@@ -82,16 +82,16 @@ class ServiceProfileStore extends EventEmitter {
   }
 
   list(organizationID, limit, offset, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.ServiceProfileService.List({
         organizationID: organizationID,
         limit: limit,
         offset: offset,
       })
-      .then(this.startLoader())
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
-        this.stopLoader();
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
@@ -108,17 +108,6 @@ class ServiceProfileStore extends EventEmitter {
     });
   }
 
-    startLoader() {
-      dispatcher.dispatch({
-        type: "START_LOADER",
-      });
-    }
-
-    stopLoader() {
-      dispatcher.dispatch({
-        type: "STOP_LOADER",
-      });
-    }
 }
 
 const serviceProfileStore = new ServiceProfileStore();

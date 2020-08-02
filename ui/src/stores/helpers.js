@@ -1,7 +1,6 @@
 import dispatcher from "../dispatcher";
 import history from '../history';
 
-
 export function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
     return response
@@ -11,6 +10,7 @@ export function checkStatus(response) {
 };
 
 export function errorHandler(error) {
+  stopLoader();
   if(error.response === undefined) {
     dispatcher.dispatch({
       type: "CREATE_NOTIFICATION",
@@ -18,9 +18,6 @@ export function errorHandler(error) {
         type: "error",
         message: error.message,
       },
-    });
-    dispatcher.dispatch({
-      type: "STOP_LOADER",
     });
   } else {
     if (error.response.obj.code === 16) {
@@ -33,14 +30,12 @@ export function errorHandler(error) {
           message: error.response.obj.error + " (code: " + error.response.obj.code + ")",
         },
       });
-      dispatcher.dispatch({
-        type: "STOP_LOADER",
-      });
     }
   }
 };
 
 export function errorHandlerLogin(error) {
+  stopLoader();
   if(error.response === undefined) {
     dispatcher.dispatch({
       type: "CREATE_NOTIFICATION",
@@ -61,6 +56,7 @@ export function errorHandlerLogin(error) {
 };
 
 export function errorHandlerIgnoreNotFound(error) {
+  stopLoader();
   if (error.response === undefined) {
     dispatcher.dispatch({
       type: "CREATE_NOTIFICATION",
@@ -86,10 +82,24 @@ export function errorHandlerIgnoreNotFound(error) {
 
 export function errorHandlerIgnoreNotFoundWithCallback(callbackFunc) {
   return function(error) {
+    stopLoader()
     if (error.response.obj.code === 5) {
       callbackFunc(null);
     } else {
       errorHandlerIgnoreNotFound(error);
     }
   }
+}
+
+export function startLoader() {
+  dispatcher.dispatch({
+    type: "START_LOADER",
+  });
+}
+
+export function stopLoader(response) {
+  dispatcher.dispatch({
+    type: "STOP_LOADER",
+  });
+  return response;
 }

@@ -8,6 +8,8 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 
 import LoaderStore from "../stores/LoaderStore";
 
+import moment from "moment";
+
 const styles = {
   root: {
     zIndex: "3000",
@@ -30,6 +32,9 @@ class Loader extends Component {
     super();
     this.state = {
       totalRequest: LoaderStore.getTotalRequest(),
+      display: "hide",
+      lastLoading: 0,
+      status: "stop"
     };
   }
 
@@ -39,10 +44,46 @@ class Loader extends Component {
         totalRequest: LoaderStore.getTotalRequest(),
       });
     });
+    this.timer = setInterval(this.progress, 10);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.timer);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props === prevProps) {
+      return;
+    }
+    this.progress();
+  }
+
+  progress = () => {
+    const showThreshold = 2;
+    if (moment().unix() - this.state.lastLoading > showThreshold) {
+      this.setState({
+        lastLoading: moment().unix(),
+        status: "running",
+      });
+    }
+
+    if (this.state.status === "running") {
+      this.setState({
+        display: "show",
+      });
+    }
+
+    if (this.state.totalRequest == 0) {
+      this.setState({
+        display: "hide",
+        status: "stop"
+      });
+    }
+
   }
 
   render() {
-    if (this.state.totalRequest !== 0) {
+    if (this.state.display === "show") {
       return(<LoaderProgress variant="indeterminate" />);
     }
 

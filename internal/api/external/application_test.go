@@ -533,6 +533,8 @@ func (ts *APITestSuite) TestApplication() {
 						Das:                         true,
 						DasToken:                    "ba321",
 						DasModemPort:                199,
+						DasGnssPort:                 198,
+						DasGnssUseRxTime:            true,
 					},
 				}
 				_, err := api.CreateLoRaCloudIntegration(context.Background(), &createReq)
@@ -579,6 +581,8 @@ func (ts *APITestSuite) TestApplication() {
 							Das:                         true,
 							DasToken:                    "321ba",
 							DasModemPort:                189,
+							DasGnssPort:                 188,
+							DasGnssUseRxTime:            false,
 						},
 					}
 

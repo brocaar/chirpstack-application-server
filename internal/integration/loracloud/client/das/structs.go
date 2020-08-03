@@ -35,7 +35,18 @@ type UplinkMsgModem struct {
 	Timestamp float64          `json:"timestamp"` // Seconds since UTC
 	DR        uint8            `json:"dr"`
 	Freq      uint32           `json:"freq"`
-	// TODO GNSS fields!
+}
+
+// UplinkMsgGNSS implements the LoRa Cloud UplinkMsg object containing a gnss payload.
+type UplinkMsgGNSS struct {
+	MsgType                 string           `json:"msgtype"` // Must be set to "gnss"
+	Payload                 helpers.HEXBytes `json:"payload"`
+	Timestamp               float64          `json:"timestamp"`                            // Seconds since UTC
+	GNSSCaptureTime         float64          `json:"gnss_capture_time,omitempty"`          // GPS time
+	GNSSCaptureTimeAccuracy float64          `json:"gnss_capture_time_accuracy,omitempty"` // seconds
+	GNSSAssistPosition      []float64        `json:"gnss_assist_position,omitempty"`
+	GNSSAssistAltitude      float64          `json:"gnss_assist_altitude,omitempty"`
+	GNSSUse2DSolver         bool             `json:"gnss_use_2D_solver,omitempty"`
 }
 
 // UplinkMsgJoining implements the LoRa Cloud UplinkMsg object indicating a session reset.
@@ -54,18 +65,29 @@ type UplinkResponseItem struct {
 
 // UplinkResponseResult holds the response result.
 type UplinkResponseResult struct {
-	File              interface{}   `json:"file"`
-	StreamRecords     interface{}   `json:"stream_records"`
-	FulfilledRequests interface{}   `json:"fulfilled_requests"`
-	FPorts            interface{}   `json:"fports"`
-	InfoFields        interface{}   `json:"info_fields"`
-	PendingRequests   interface{}   `json:"pending_requests"`
-	LogMessages       interface{}   `json:"log_messages"`
-	Downlink          *LoRaDownlink `json:"dnlink"`
+	File              interface{}       `json:"file"`
+	StreamRecords     interface{}       `json:"stream_records"`
+	PositionSolution  *PositionSolution `json:"position_solution"`
+	FulfilledRequests interface{}       `json:"fulfilled_requests"`
+	FPorts            interface{}       `json:"fports"`
+	InfoFields        interface{}       `json:"info_fields"`
+	PendingRequests   interface{}       `json:"pending_requests"`
+	LogMessages       interface{}       `json:"log_messages"`
+	Downlink          *LoRaDownlink     `json:"dnlink"`
 }
 
 // LoRaDownlink implements the LoRa Cloud LoRaDownlink object.
 type LoRaDownlink struct {
 	Port    uint8            `json:"port"`
 	Payload helpers.HEXBytes `json:"payload"`
+}
+
+// PositionSolution implements the Positition Solution object.
+type PositionSolution struct {
+	ECEF           []float64 `json:"ecef"`
+	LLH            []float64 `json:"llh"`
+	CaptureTimeGPS float64   `json:"capture_time_gps"`
+	GDOP           float64   `json:"gdop"`
+	Accuracy       float64   `json:"accuracy"`
+	Timestamp      float64   `json:"timestamp"`
 }

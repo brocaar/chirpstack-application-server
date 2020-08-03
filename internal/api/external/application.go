@@ -818,6 +818,8 @@ func (a *ApplicationAPI) CreateLoRaCloudIntegration(ctx context.Context, in *pb.
 		DAS:                         in.GetIntegration().Das,
 		DASToken:                    in.GetIntegration().DasToken,
 		DASModemPort:                uint8(in.GetIntegration().DasModemPort),
+		DASGNSSPort:                 uint8(in.GetIntegration().DasGnssPort),
+		DASGNSSUseRxTime:            in.GetIntegration().DasGnssUseRxTime,
 	}
 	confJSON, err := json.Marshal(config)
 	if err != nil {
@@ -871,6 +873,8 @@ func (a *ApplicationAPI) GetLoRaCloudIntegration(ctx context.Context, in *pb.Get
 			Das:                         conf.DAS,
 			DasToken:                    conf.DASToken,
 			DasModemPort:                uint32(conf.DASModemPort),
+			DasGnssPort:                 uint32(conf.DASGNSSPort),
+			DasGnssUseRxTime:            conf.DASGNSSUseRxTime,
 		},
 	}, nil
 }
@@ -907,6 +911,8 @@ func (a *ApplicationAPI) UpdateLoRaCloudIntegration(ctx context.Context, in *pb.
 		DAS:                         in.GetIntegration().Das,
 		DASToken:                    in.GetIntegration().DasToken,
 		DASModemPort:                uint8(in.GetIntegration().DasModemPort),
+		DASGNSSPort:                 uint8(in.GetIntegration().DasGnssPort),
+		DASGNSSUseRxTime:            in.GetIntegration().DasGnssUseRxTime,
 	}
 	confJSON, err := json.Marshal(conf)
 	if err != nil {

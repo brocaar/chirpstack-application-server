@@ -5,11 +5,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/loracloud/client/helpers"
 	"github.com/brocaar/lorawan"
 	"github.com/brocaar/lorawan/gps"
-	"github.com/pkg/errors"
 )
 
 // TDOASingleFrameRequest implements the LoRa Cloud TDOA Single-Frame request.
@@ -171,7 +172,7 @@ func NewGNSSLR1110SingleFrameRequest(rxInfo []*gw.UplinkRXInfo, useRxTime bool, 
 		acc := float64(15)
 		out.GNSSCaptureTimeAccuracy = &acc
 
-		if gpsTime := getTimeSinceGPSEpoch(rxInfo); gpsTime != nil {
+		if gpsTime := helpers.GetTimeSinceGPSEpoch(rxInfo); gpsTime != nil {
 			t := (float64(*gpsTime) / float64(time.Second)) - 6
 			out.GNSSCaptureTime = &t
 		} else {
@@ -181,7 +182,7 @@ func NewGNSSLR1110SingleFrameRequest(rxInfo []*gw.UplinkRXInfo, useRxTime bool, 
 		}
 	}
 
-	if loc := getStartLocation(rxInfo); loc != nil {
+	if loc := helpers.GetStartLocation(rxInfo); loc != nil {
 		out.GNSSAssistPosition = []float64{loc.Latitude, loc.Longitude}
 		out.GNSSAssistAltitude = &loc.Altitude
 	}

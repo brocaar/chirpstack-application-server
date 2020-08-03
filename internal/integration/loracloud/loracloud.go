@@ -21,6 +21,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
+	"github.com/brocaar/lorawan/gps"
 )
 
 // Config contains the LoRaCloud integration configuration.
@@ -39,9 +40,11 @@ type Config struct {
 	GeolocationWifiPayloadField string `json:"geolocationWifiPayloadField"`
 
 	// Device Application Services.
-	DAS          bool   `json:"das"`
-	DASToken     string `json:"dasToken"`
-	DASModemPort uint8  `json:"dasModemPort"`
+	DAS              bool   `json:"das"`
+	DASToken         string `json:"dasToken"`
+	DASModemPort     uint8  `json:"dasModemPort"`
+	DASGNSSPort      uint8  `json:"dasGNSSPort"`
+	DASGNSSUseRxTime bool   `json:"dasGNSSUseRxTime"`
 }
 
 // Integration implements a LoRaCloud Integration.
@@ -53,6 +56,8 @@ type Integration struct {
 
 // New creates a new LoRaCloud integration.
 func New(conf Config) (*Integration, error) {
+	conf.DASGNSSPort = 198
+
 	return &Integration{
 		config:         conf,
 		geolocationURI: "https://gls.loracloud.com",
@@ -112,12 +117,17 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, ii models.Integrati
 		err := func() error {
 			if pl.FPort == uint32(i.config.DASModemPort) {
 				// handle DAS modem message
-				if err := i.dasModem(ctx, devEUI, pl, ii); err != nil {
+				if err := i.dasModem(ctx, vars, devEUI, pl, ii); err != nil {
 					return errors.Wrap(err, "das modem message error")
+				}
+			} else if pl.FPort == uint32(i.config.DASGNSSPort) {
+				// handle DAS gnss message
+				if err := i.dasGNSS(ctx, vars, devEUI, pl, ii); err != nil {
+					return errors.Wrap(err, "das gnss message error")
 				}
 			} else {
 				// uplink meta-data
-				if err := i.dasUplinkMetaData(ctx, devEUI, pl, ii); err != nil {
+				if err := i.dasUplinkMetaData(ctx, vars, devEUI, pl, ii); err != nil {
 					return errors.Wrap(err, "das meta-data message error")
 				}
 			}
@@ -421,11 +431,11 @@ func (i *Integration) dasJoin(ctx context.Context, devEUI lorawan.EUI64, pl pb.J
 	return nil
 }
 
-func (i *Integration) dasModem(ctx context.Context, devEUI lorawan.EUI64, pl pb.UplinkEvent, ii models.Integration) error {
+func (i *Integration) dasModem(ctx context.Context, vars map[string]string, devEUI lorawan.EUI64, pl pb.UplinkEvent, ii models.Integration) error {
 	log.WithFields(log.Fields{
 		"dev_eui": devEUI,
 		"ctx_id":  ctx.Value(logging.ContextIDKey),
-	}).Info("integration/das: forwarding das modem message")
+	}).Info("integration/loracloud: forwarding das modem message")
 
 	client := das.New(i.dasURI, i.config.DASToken)
 	start := time.Now()
@@ -446,7 +456,7 @@ func (i *Integration) dasModem(ctx context.Context, devEUI lorawan.EUI64, pl pb.
 
 	loRaCloudAPIDuration("das_v1_uplink_send").Observe(float64(time.Since(start)) / float64(time.Second))
 
-	err = i.handleDASResponse(ctx, devEUI, resp, ii, pl)
+	err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl)
 	if err != nil {
 		return errors.Wrap(err, "handle das response error")
 	}
@@ -454,7 +464,58 @@ func (i *Integration) dasModem(ctx context.Context, devEUI lorawan.EUI64, pl pb.
 	return nil
 }
 
-func (i *Integration) dasUplinkMetaData(ctx context.Context, devEUI lorawan.EUI64, pl pb.UplinkEvent, ii models.Integration) error {
+func (i *Integration) dasGNSS(ctx context.Context, vars map[string]string, devEUI lorawan.EUI64, pl pb.UplinkEvent, ii models.Integration) error {
+	log.WithFields(log.Fields{
+		"dev_eui": devEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
+	}).Info("integration/loracloud: forwarding das gnss message")
+
+	client := das.New(i.dasURI, i.config.DASToken)
+	start := time.Now()
+
+	msg := das.UplinkMsgGNSS{
+		MsgType:   "gnss",
+		Payload:   helpers.HEXBytes(pl.Data),
+		Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).Unix()),
+	}
+
+	if i.config.DASGNSSUseRxTime {
+		acc := float64(15)
+		msg.GNSSCaptureTimeAccuracy = acc
+
+		if gpsTime := helpers.GetTimeSinceGPSEpoch(pl.RxInfo); gpsTime != nil {
+			t := (float64(*gpsTime) / float64(time.Second)) - 6
+			msg.GNSSCaptureTime = t
+		} else {
+			gpsTime := gps.Time(time.Now()).TimeSinceGPSEpoch()
+			t := (float64(gpsTime) / float64(time.Second)) - 6
+			msg.GNSSCaptureTime = t
+		}
+	}
+
+	if loc := helpers.GetStartLocation(pl.RxInfo); loc != nil {
+		msg.GNSSAssistPosition = []float64{loc.Latitude, loc.Longitude}
+		msg.GNSSAssistAltitude = loc.Altitude
+	}
+
+	resp, err := client.UplinkSend(ctx, das.UplinkRequest{
+		helpers.EUI64(devEUI): msg,
+	})
+	if err != nil {
+		return errors.Wrap(err, "das error")
+	}
+
+	loRaCloudAPIDuration("das_v1_uplink_send").Observe(float64(time.Since(start)) / float64(time.Second))
+
+	err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl)
+	if err != nil {
+		return errors.Wrap(err, "handle das response error")
+	}
+
+	return nil
+}
+
+func (i *Integration) dasUplinkMetaData(ctx context.Context, vars map[string]string, devEUI lorawan.EUI64, pl pb.UplinkEvent, ii models.Integration) error {
 	log.WithFields(log.Fields{
 		"dev_eui": devEUI,
 		"ctx_id":  ctx.Value(logging.ContextIDKey),
@@ -477,7 +538,7 @@ func (i *Integration) dasUplinkMetaData(ctx context.Context, devEUI lorawan.EUI6
 		return errors.Wrap(err, "das error")
 	}
 
-	err = i.handleDASResponse(ctx, devEUI, resp, ii, pl)
+	err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl)
 	if err != nil {
 		return errors.Wrap(err, "handle das response error")
 	}
@@ -487,7 +548,7 @@ func (i *Integration) dasUplinkMetaData(ctx context.Context, devEUI lorawan.EUI6
 	return nil
 }
 
-func (i *Integration) handleDASResponse(ctx context.Context, devEUI lorawan.EUI64, dasResp das.UplinkResponse, ii models.Integration, pl integration.UplinkEvent) error {
+func (i *Integration) handleDASResponse(ctx context.Context, vars map[string]string, devEUI lorawan.EUI64, dasResp das.UplinkResponse, ii models.Integration, pl integration.UplinkEvent) error {
 	devResp, ok := dasResp.Result[helpers.EUI64(devEUI)]
 	if !ok {
 		return errors.New("no response for deveui")
@@ -508,6 +569,30 @@ func (i *Integration) handleDASResponse(ctx context.Context, devEUI lorawan.EUI6
 			"f_cnt":   fCnt,
 			"ctx_id":  ctx.Value(logging.ContextIDKey),
 		}).Info("integration/loracloud: enqueued das downlink payload")
+	}
+
+	if ps := devResp.Result.PositionSolution; ps != nil {
+		if len(ps.LLH) != 3 {
+			return errors.New("position_solution.llh must contain exactly 3 items")
+		}
+
+		locPL := integration.LocationEvent{
+			ApplicationId:   pl.ApplicationId,
+			ApplicationName: pl.ApplicationName,
+			DeviceName:      pl.DeviceName,
+			DevEui:          pl.DevEui,
+			FCnt:            pl.FCnt,
+			Location: &common.Location{
+				Latitude:  ps.LLH[0],
+				Longitude: ps.LLH[1],
+				Altitude:  ps.LLH[2],
+				Source:    common.LocationSource_GEO_RESOLVER_GNSS,
+				Accuracy:  uint32(ps.Accuracy),
+			},
+		}
+		if err := ii.HandleLocationEvent(ctx, vars, locPL); err != nil {
+			return errors.Wrap(err, "handle integration even error")
+		}
 	}
 
 	b, err := json.Marshal(devResp.Result)

@@ -213,6 +213,16 @@ class LoRaCloudIntegrationForm extends FormComponent {
             fullWidth
           />}
           {!!this.state.object.das && <TextField
+            id="dasGNSSPort"
+            label="DAS GNSS port (FPort)"
+            value={this.state.object.dasGNSSPort || 0}
+            onChange={this.onChange}
+            type="number"
+            margin="normal"
+            helperText="ChirpStack Application Server will only forward the FRMPayload for GNSS geolocation to LoRa Cloud when the uplink matches the configured port."
+            fullWidth
+          />}
+          {!!this.state.object.das && <TextField
             id="dasModemPort"
             label="DAS Modem port (FPort)"
             value={this.state.object.dasModemPort || 0}
@@ -222,6 +232,21 @@ class LoRaCloudIntegrationForm extends FormComponent {
             helperText="ChirpStack Application Server will only forward the FRMPayload to LoRa Cloud when the uplink matches the configured port."
             fullWidth
           />}
+          {!!this.state.object.das && <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="Use receive timestamp for GNSS geolocation"
+                control={
+                  <Checkbox 
+                    id="dasGNSSUseRxTime"
+                    checked={!!this.state.object.dasGNSSUseRxTime}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+          </FormControl>}
         </div>}
       </Form>
     );

@@ -20,6 +20,7 @@ class CreateLoRaCloudIntegration extends Component {
 
   render() {
     let obj = {
+      dasGNSSPort: 198,
       dasModemPort: 199,
     }; 
 

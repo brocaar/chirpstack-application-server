@@ -191,7 +191,7 @@ func setupHTTPAPI(conf config.Config) (http.Handler, error) {
 		Prefix:    "",
 	}))
 
-	return wsproxy.WebsocketProxy(r), nil
+	return wsproxy.WebsocketProxy(r, wsproxy.WithPingControl(30*time.Second)), nil
 }
 
 func getJSONGateway(ctx context.Context) (http.Handler, error) {

@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.49.0 // indirect
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
 	github.com/aws/aws-sdk-go v1.26.3
-	github.com/brocaar/chirpstack-api/go/v3 v3.7.3
+	github.com/brocaar/chirpstack-api/go/v3 v3.7.4
 	github.com/brocaar/lorawan v0.0.0-20200712153947-7a20fad6a6ed
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/coreos/go-oidc v2.2.1+incompatible
@@ -64,3 +64,5 @@ require (
 // remove when https://github.com/tmc/grpc-websocket-proxy/pull/23 has been merged
 // and grpc-websocket-proxy dependency has been updated to version including this fix.
 replace github.com/tmc/grpc-websocket-proxy => github.com/brocaar/grpc-websocket-proxy v1.0.1
+
+// replace github.com/brocaar/chirpstack-api/go/v3 => ../chirpstack-api/go

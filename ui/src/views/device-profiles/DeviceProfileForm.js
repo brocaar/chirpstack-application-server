@@ -17,6 +17,7 @@ import "codemirror/mode/javascript/javascript";
 import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
 import KVForm from "../../components/KVForm";
+import DurationField from "../../components/DurationField";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import NetworkServerStore from "../../stores/NetworkServerStore";
 import { FormLabel } from "../../../node_modules/@material-ui/core";
@@ -276,6 +277,13 @@ function Decode(fPort, bytes, variables) {
             helperText="Maximum EIRP supported by the device."
             required
             fullWidth
+          />
+          <DurationField
+            id="uplinkInterval"
+            label="Uplink interval (seconds)"
+            helperText="The expected interval in seconds in which the device sends uplink messages. This is used to determine if a device is active or inactive."
+            value={this.state.object.uplinkInterval}
+            onChange={this.onChange}
           />
         </div>}
 

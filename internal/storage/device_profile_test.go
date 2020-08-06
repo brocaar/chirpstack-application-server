@@ -94,6 +94,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 					"foo": sql.NullString{Valid: true, String: "bar"},
 				},
 			},
+			UplinkInterval: 10 * time.Minute,
 			DeviceProfile: ns.DeviceProfile{
 				SupportsClassB:     true,
 				ClassBTimeout:      10,
@@ -297,6 +298,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 			assert := require.New(t)
 
 			dp.Name = "updated-device-profile"
+			dp.UplinkInterval = 20 * time.Minute
 			dp.DeviceProfile = ns.DeviceProfile{
 				Id:                 dp.DeviceProfile.Id,
 				SupportsClassB:     true,

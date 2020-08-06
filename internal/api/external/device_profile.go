@@ -46,6 +46,11 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
+	uplinkInterval, err := ptypes.Duration(req.DeviceProfile.UplinkInterval)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
 	dp := storage.DeviceProfile{
 		OrganizationID:       req.DeviceProfile.OrganizationId,
 		NetworkServerID:      req.DeviceProfile.NetworkServerId,
@@ -56,6 +61,7 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 		Tags: hstore.Hstore{
 			Map: make(map[string]sql.NullString),
 		},
+		UplinkInterval: uplinkInterval,
 		DeviceProfile: ns.DeviceProfile{
 			SupportsClassB:     req.DeviceProfile.SupportsClassB,
 			ClassBTimeout:      req.DeviceProfile.ClassBTimeout,
@@ -85,7 +91,7 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 
 	// as this also performs a remote call to create the device-profile
 	// on the network-server, wrap it in a transaction
-	err := storage.Transaction(func(tx sqlx.Ext) error {
+	err = storage.Transaction(func(tx sqlx.Ext) error {
 		return storage.CreateDeviceProfile(ctx, tx, &dp)
 	})
 	if err != nil {
@@ -149,6 +155,7 @@ func (a *DeviceProfileServiceAPI) Get(ctx context.Context, req *pb.GetDeviceProf
 			Supports_32BitFCnt:   dp.DeviceProfile.Supports_32BitFCnt,
 			FactoryPresetFreqs:   dp.DeviceProfile.FactoryPresetFreqs,
 			Tags:                 make(map[string]string),
+			UplinkInterval:       ptypes.DurationProto(dp.UplinkInterval),
 		},
 	}
 
@@ -194,6 +201,11 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 			return err
 		}
 
+		uplinkInterval, err := ptypes.Duration(req.DeviceProfile.UplinkInterval)
+		if err != nil {
+			return err
+		}
+
 		dp.Name = req.DeviceProfile.Name
 		dp.PayloadCodec = codec.Type(req.DeviceProfile.PayloadCodec)
 		dp.PayloadEncoderScript = req.DeviceProfile.PayloadEncoderScript
@@ -201,6 +213,7 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 		dp.Tags = hstore.Hstore{
 			Map: make(map[string]sql.NullString),
 		}
+		dp.UplinkInterval = uplinkInterval
 		dp.DeviceProfile = ns.DeviceProfile{
 			Id:                 dpID.Bytes(),
 			SupportsClassB:     req.DeviceProfile.SupportsClassB,

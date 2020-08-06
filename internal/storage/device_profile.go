@@ -30,6 +30,7 @@ type DeviceProfile struct {
 	PayloadEncoderScript string           `db:"payload_encoder_script"`
 	PayloadDecoderScript string           `db:"payload_decoder_script"`
 	Tags                 hstore.Hstore    `db:"tags"`
+	UplinkInterval       time.Duration    `db:"uplink_interval"`
 	DeviceProfile        ns.DeviceProfile `db:"-"`
 }
 
@@ -81,8 +82,9 @@ func CreateDeviceProfile(ctx context.Context, db sqlx.Ext, dp *DeviceProfile) er
 			payload_codec,
 			payload_encoder_script,
 			payload_decoder_script,
-			tags
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+			tags,
+			uplink_interval
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
 		dpID,
 		dp.NetworkServerID,
 		dp.OrganizationID,
@@ -93,6 +95,7 @@ func CreateDeviceProfile(ctx context.Context, db sqlx.Ext, dp *DeviceProfile) er
 		dp.PayloadEncoderScript,
 		dp.PayloadDecoderScript,
 		dp.Tags,
+		dp.UplinkInterval,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -145,7 +148,8 @@ func GetDeviceProfile(ctx context.Context, db sqlx.Queryer, id uuid.UUID, forUpd
 			payload_codec,
 			payload_encoder_script,
 			payload_decoder_script,
-			tags
+			tags,
+			uplink_interval
 		from device_profile
 		where
 			device_profile_id = $1`+fu,
@@ -165,6 +169,7 @@ func GetDeviceProfile(ctx context.Context, db sqlx.Queryer, id uuid.UUID, forUpd
 		&dp.PayloadEncoderScript,
 		&dp.PayloadDecoderScript,
 		&dp.Tags,
+		&dp.UplinkInterval,
 	)
 	if err != nil {
 		return dp, handlePSQLError(Scan, err, "scan error")
@@ -237,7 +242,8 @@ func UpdateDeviceProfile(ctx context.Context, db sqlx.Ext, dp *DeviceProfile) er
 			payload_codec = $4,
 			payload_encoder_script = $5,
 			payload_decoder_script = $6,
-			tags = $7
+			tags = $7,
+			uplink_interval = $8
 		where device_profile_id = $1`,
 		dpID,
 		dp.UpdatedAt,
@@ -246,6 +252,7 @@ func UpdateDeviceProfile(ctx context.Context, db sqlx.Ext, dp *DeviceProfile) er
 		dp.PayloadEncoderScript,
 		dp.PayloadDecoderScript,
 		dp.Tags,
+		dp.UplinkInterval,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

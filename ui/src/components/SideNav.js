@@ -10,12 +10,12 @@ import ListItemText from '@material-ui/core/ListItemText';
 
 import Divider from '@material-ui/core/Divider';
 import Domain from "mdi-material-ui/Domain";
+import Home from "mdi-material-ui/Home";
 import Account from "mdi-material-ui/Account";
 import Server from "mdi-material-ui/Server";
 import Apps from "mdi-material-ui/Apps";
 import RadioTower from "mdi-material-ui/RadioTower";
 import Tune from "mdi-material-ui/Tune";
-import Cog from "mdi-material-ui/Cog";
 import Rss from "mdi-material-ui/Rss";
 import AccountDetails from "mdi-material-ui/AccountDetails";
 import KeyVariant from "mdi-material-ui/KeyVariant";
@@ -207,11 +207,11 @@ class SideNav extends Component {
 
         {this.state.organization && <List>
           <Admin>
-            <ListItem button component={Link} to={`/organizations/${this.state.organization.id}/edit`}>
+            <ListItem button component={Link} to={`/organizations/${this.state.organization.id}`}>
               <ListItemIcon>
-                <Cog />
+                <Home />
               </ListItemIcon>
-              <ListItemText primary="Org. settings" />
+              <ListItemText primary="Org. dashboard" />
             </ListItem>
           </Admin>
           <Admin organizationID={this.state.organization.id}>

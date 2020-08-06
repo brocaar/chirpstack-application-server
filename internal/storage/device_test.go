@@ -67,6 +67,7 @@ func (ts *StorageTestSuite) TestDevice() {
 		NetworkServerID: n.ID,
 		OrganizationID:  org.ID,
 		Name:            "device-profile",
+		UplinkInterval:  time.Second * 10,
 		DeviceProfile: ns.DeviceProfile{
 			SupportsClassB:     true,
 			ClassBTimeout:      10,
@@ -266,6 +267,56 @@ func (ts *StorageTestSuite) TestDevice() {
 			deviceGet.CreatedAt = deviceGet.CreatedAt.UTC().Truncate(time.Millisecond)
 			deviceGet.UpdatedAt = deviceGet.UpdatedAt.UTC().Truncate(time.Millisecond)
 			assert.Equal(d, deviceGet)
+		})
+
+		t.Run("GetDevicesActiveInactive", func(t *testing.T) {
+			assert := require.New(t)
+			ls := time.Now()
+
+			// device is active
+			d.LastSeenAt = &ls
+			assert.NoError(UpdateDevice(context.Background(), ts.Tx(), &d, true))
+
+			ai, err := GetDevicesActiveInactive(context.Background(), ts.Tx(), org.ID)
+			assert.NoError(err)
+			assert.Equal(DevicesActiveInactive{
+				ActiveCount:   1,
+				InactiveCount: 0,
+			}, ai)
+
+			// device is inactive
+			ls = ls.Add(time.Second * -11)
+			assert.NoError(UpdateDevice(context.Background(), ts.Tx(), &d, true))
+
+			ai, err = GetDevicesActiveInactive(context.Background(), ts.Tx(), org.ID)
+			assert.NoError(err)
+			assert.Equal(DevicesActiveInactive{
+				ActiveCount:   0,
+				InactiveCount: 1,
+			}, ai)
+		})
+
+		t.Run("GetDevicesDataRates", func(t *testing.T) {
+			assert := require.New(t)
+
+			// no datarate set
+			d.DR = nil
+			assert.NoError(UpdateDevice(context.Background(), ts.Tx(), &d, true))
+
+			ddr, err := GetDevicesDataRates(context.Background(), ts.Tx(), org.ID)
+			assert.NoError(err)
+			assert.Equal(DevicesDataRates{}, ddr)
+
+			// dr 3
+			three := 3
+			d.DR = &three
+			assert.NoError(UpdateDevice(context.Background(), ts.Tx(), &d, true))
+
+			ddr, err = GetDevicesDataRates(context.Background(), ts.Tx(), org.ID)
+			assert.NoError(err)
+			assert.Equal(DevicesDataRates{
+				3: 1,
+			}, ddr)
 		})
 
 		t.Run("CreateDeviceKeys", func(t *testing.T) {

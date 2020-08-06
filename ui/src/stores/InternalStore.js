@@ -66,6 +66,32 @@ class InternalStore extends EventEmitter {
     });
   }
 
+  getDevicesSummary(organizationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.InternalService.GetDevicesSummary({
+        organizationID: organizationID,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  getGatewaysSummary(organizationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.InternalService.GetGatewaysSummary({
+        organizationID: organizationID,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
   notify(msg) {
     dispatcher.dispatch({
       type: "CREATE_NOTIFICATION",

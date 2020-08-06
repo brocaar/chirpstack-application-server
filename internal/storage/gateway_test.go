@@ -114,6 +114,34 @@ func (ts *StorageTestSuite) TestGateway() {
 			assert.Equal(gw, gwGet)
 		})
 
+		t.Run("GetGatewaysActiveInactive", func(t *testing.T) {
+			assert := require.New(t)
+			ls := time.Now()
+
+			// gateway is active
+			gw.LastSeenAt = &ls
+			assert.NoError(UpdateGateway(context.Background(), ts.Tx(), &gw))
+
+			ga, err := GetGatewaysActiveInactive(context.Background(), ts.Tx(), gw.OrganizationID)
+			assert.NoError(err)
+			assert.Equal(GatewaysActiveInactive{
+				ActiveCount:   1,
+				InactiveCount: 0,
+			}, ga)
+
+			// gateway is inactive
+			ls = ls.Add(time.Second * -61)
+			gw.LastSeenAt = &ls
+			assert.NoError(UpdateGateway(context.Background(), ts.Tx(), &gw))
+
+			ga, err = GetGatewaysActiveInactive(context.Background(), ts.Tx(), gw.OrganizationID)
+			assert.NoError(err)
+			assert.Equal(GatewaysActiveInactive{
+				ActiveCount:   1,
+				InactiveCount: 0,
+			}, ga)
+		})
+
 		t.Run("Get gateways", func(t *testing.T) {
 			assert := require.New(t)
 

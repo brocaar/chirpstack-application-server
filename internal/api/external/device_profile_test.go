@@ -2,8 +2,10 @@ package external
 
 import (
 	"testing"
+	"time"
 
 	uuid "github.com/gofrs/uuid"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -76,6 +78,7 @@ func (ts *APITestSuite) TestDeviceProfile() {
 				Tags: map[string]string{
 					"foo": "bar",
 				},
+				UplinkInterval: ptypes.DurationProto(10 * time.Second),
 			},
 		}
 
@@ -133,6 +136,7 @@ func (ts *APITestSuite) TestDeviceProfile() {
 					Tags: map[string]string{
 						"alice": "bob",
 					},
+					UplinkInterval: ptypes.DurationProto(20 * time.Second),
 				},
 			}
 

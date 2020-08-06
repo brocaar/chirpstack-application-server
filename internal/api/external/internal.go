@@ -348,6 +348,52 @@ func (a *InternalAPI) OpenIDConnectLogin(ctx context.Context, req *pb.OpenIDConn
 	}, nil
 }
 
+// GetDevicesSummary returns an aggregated devices summary.
+func (a *InternalAPI) GetDevicesSummary(ctx context.Context, req *pb.GetDevicesSummaryRequest) (*pb.GetDevicesSummaryResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateOrganizationAccess(auth.Read, req.OrganizationId)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	daic, err := storage.GetDevicesActiveInactive(ctx, storage.DB(), req.OrganizationId)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	ddr, err := storage.GetDevicesDataRates(ctx, storage.DB(), req.OrganizationId)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	out := pb.GetDevicesSummaryResponse{
+		ActiveCount:   daic.ActiveCount,
+		InactiveCount: daic.InactiveCount,
+		DrCount:       ddr,
+	}
+
+	return &out, nil
+}
+
+// GetDevicesSummary returns an aggregated gateways summary.
+func (a *InternalAPI) GetGatewaysSummary(ctx context.Context, req *pb.GetGatewaysSummaryRequest) (*pb.GetGatewaysSummaryResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateOrganizationAccess(auth.Read, req.OrganizationId)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	gai, err := storage.GetGatewaysActiveInactive(ctx, storage.DB(), req.OrganizationId)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	out := pb.GetGatewaysSummaryResponse{
+		ActiveCount:   gai.ActiveCount,
+		InactiveCount: gai.InactiveCount,
+	}
+
+	return &out, nil
+}
+
 func (a *InternalAPI) createAndProvisionUser(ctx context.Context, user oidc.User) (storage.User, error) {
 	u := storage.User{
 		IsActive:      true,

@@ -93,6 +93,12 @@ type GPSPoint struct {
 	Longitude float64
 }
 
+// GatewaysActiveInactive holds the avtive and inactive counts.
+type GatewaysActiveInactive struct {
+	ActiveCount   uint32 `db:"active_count"`
+	InactiveCount uint32 `db:"inactive_count"`
+}
+
 // Value implements the driver.Valuer interface.
 func (l GPSPoint) Value() (driver.Value, error) {
 	return fmt.Sprintf("(%s,%s)", strconv.FormatFloat(l.Latitude, 'f', -1, 64), strconv.FormatFloat(l.Longitude, 'f', -1, 64)), nil
@@ -572,4 +578,23 @@ func GetLastGatewayPingAndRX(ctx context.Context, db sqlx.Queryer, mac lorawan.E
 	}
 
 	return ping, rx, nil
+}
+
+// GetGatewaysActiveInactive returns the active / inactive gateways.
+func GetGatewaysActiveInactive(ctx context.Context, db sqlx.Queryer, organizationID int64) (GatewaysActiveInactive, error) {
+	var out GatewaysActiveInactive
+	err := sqlx.Get(db, &out, `
+		select
+			coalesce(sum(case when (now() - '1 minute'::interval) > g.last_seen_at then 1 end), 0) as inactive_count,
+			coalesce(sum(case when (now() - '1 minute'::interval) <= g.last_seen_at then 1 end), 0) as active_count
+		from
+			gateway g
+		where
+			g.organization_id = $1
+	`, organizationID)
+	if err != nil {
+		return out, errors.Wrap(err, "get gateway active/inactive count error")
+	}
+
+	return out, nil
 }

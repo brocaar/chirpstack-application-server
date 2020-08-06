@@ -70,9 +70,9 @@ class ChangeUserPassword extends Component {
     return(
       <Grid container spacing={4}>
         <TitleBar>
-          <TitleBarTitle title="Users" />
+          <TitleBarTitle to="/users" title="Users" />
           <TitleBarTitle title="/" />
-          <TitleBarTitle title={this.state.user.user.email} />
+          <TitleBarTitle to={`/users/${this.props.match.params.userID}`} title={this.state.user.user.email} />
           <TitleBarTitle title="/" />
           <TitleBarTitle title="Change password" />
         </TitleBar>

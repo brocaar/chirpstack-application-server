@@ -75,10 +75,6 @@ class ListGatewaysMap extends Component {
     });
 
     for (const item of this.state.items) {
-      if (item.location.latitude === 0 && item.location.longitude === 0) {
-        continue;
-      }
-
       const position = [item.location.latitude, item.location.longitude];
 
       bounds.push(position);

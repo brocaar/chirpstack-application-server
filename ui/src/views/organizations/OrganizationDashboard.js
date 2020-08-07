@@ -130,7 +130,7 @@ class DevicesActiveInactive extends Component {
   render() {
     let data = null;
 
-    if (this.props.summary !== null && this.props.summary.activeCount !== 0 && this.props.summary.inactiveCount !== 0) {
+    if (this.props.summary !== null && (this.props.summary.activeCount !== 0 || this.props.summary.inactiveCount !== 0)) {
       data = {
         labels: ["Inactive", "Active"],
         datasets: [
@@ -162,7 +162,7 @@ class GatewaysActiveInactive extends Component {
   render() {
     let data = null;
 
-    if (this.props.summary !== null && this.props.summary.activeCount !== 0 && this.props.summary.inactiveCount !== 0) {
+    if (this.props.summary !== null && (this.props.summary.activeCount !== 0 || this.props.summary.inactiveCount !== 0)) {
       data = {
         labels: ["Inactive", "Active"],
         datasets: [

@@ -2,6 +2,7 @@ package external
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
@@ -46,9 +47,13 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	uplinkInterval, err := ptypes.Duration(req.DeviceProfile.UplinkInterval)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
+	var err error
+	var uplinkInterval time.Duration
+	if req.DeviceProfile.UplinkInterval != nil {
+		uplinkInterval, err = ptypes.Duration(req.DeviceProfile.UplinkInterval)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
 	}
 
 	dp := storage.DeviceProfile{
@@ -201,9 +206,12 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 			return err
 		}
 
-		uplinkInterval, err := ptypes.Duration(req.DeviceProfile.UplinkInterval)
-		if err != nil {
-			return err
+		var uplinkInterval time.Duration
+		if req.DeviceProfile.UplinkInterval != nil {
+			uplinkInterval, err = ptypes.Duration(req.DeviceProfile.UplinkInterval)
+			if err != nil {
+				return err
+			}
 		}
 
 		dp.Name = req.DeviceProfile.Name

@@ -558,17 +558,35 @@ func (i *Integration) handleDASResponse(ctx context.Context, vars map[string]str
 		return fmt.Errorf("das api returned error: %s", devResp.Error)
 	}
 
+	b, err := json.Marshal(devResp.Result)
+	if err != nil {
+		return errors.Wrap(err, "marshal json error")
+	}
+
+	intPL := integration.IntegrationEvent{
+		ApplicationId:   pl.ApplicationId,
+		ApplicationName: pl.ApplicationName,
+		DeviceName:      pl.DeviceName,
+		DevEui:          pl.DevEui,
+		IntegrationName: "loracloud",
+		EventType:       "DAS_UplinkResponse",
+		ObjectJson:      string(b),
+	}
+	if err := ii.HandleIntegrationEvent(ctx, nil, intPL); err != nil {
+		log.WithError(err).Error("integration/loracloud: handle integration event error")
+	}
+
 	if dl := devResp.Result.Downlink; dl != nil {
 		fCnt, err := storage.EnqueueDownlinkPayload(ctx, storage.DB(), devEUI, false, dl.Port, dl.Payload[:])
 		if err != nil {
-			return errors.Wrap(err, "enqueue downlink payload error")
+			log.WithError(err).Error("integration/loracloud: enqueue downlink payload error")
+		} else {
+			log.WithFields(log.Fields{
+				"dev_eui": devEUI,
+				"f_cnt":   fCnt,
+				"ctx_id":  ctx.Value(logging.ContextIDKey),
+			}).Info("integration/loracloud: enqueued das downlink payload")
 		}
-
-		log.WithFields(log.Fields{
-			"dev_eui": devEUI,
-			"f_cnt":   fCnt,
-			"ctx_id":  ctx.Value(logging.ContextIDKey),
-		}).Info("integration/loracloud: enqueued das downlink payload")
 	}
 
 	if ps := devResp.Result.PositionSolution; ps != nil {
@@ -591,26 +609,8 @@ func (i *Integration) handleDASResponse(ctx context.Context, vars map[string]str
 			},
 		}
 		if err := ii.HandleLocationEvent(ctx, vars, locPL); err != nil {
-			return errors.Wrap(err, "handle integration even error")
+			log.WithError(err).Error("integration/loracloud: handle  location event error")
 		}
-	}
-
-	b, err := json.Marshal(devResp.Result)
-	if err != nil {
-		return errors.Wrap(err, "marshal json error")
-	}
-
-	intPL := integration.IntegrationEvent{
-		ApplicationId:   pl.ApplicationId,
-		ApplicationName: pl.ApplicationName,
-		DeviceName:      pl.DeviceName,
-		DevEui:          pl.DevEui,
-		IntegrationName: "loracloud",
-		EventType:       "DAS_UplinkResponse",
-		ObjectJson:      string(b),
-	}
-	if err := ii.HandleIntegrationEvent(ctx, nil, intPL); err != nil {
-		return errors.Wrap(err, "handle integration event error")
 	}
 
 	return nil

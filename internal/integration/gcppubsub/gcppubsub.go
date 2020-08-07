@@ -40,8 +40,6 @@ type Integration struct {
 	topic               string
 	jsonCredentialsFile []byte
 	client              *http.Client
-	ctx                 context.Context
-	cancel              context.CancelFunc
 }
 
 // New creates a new Pub/Sub integration.
@@ -62,7 +60,6 @@ func New(m marshaler.Type, conf config.IntegrationGCPConfig) (*Integration, erro
 		project:   conf.ProjectID,
 		topic:     conf.TopicName,
 	}
-	i.ctx, i.cancel = context.WithCancel(context.Background())
 
 	var err error
 	if conf.CredentialsFile != "" {
@@ -74,18 +71,17 @@ func New(m marshaler.Type, conf config.IntegrationGCPConfig) (*Integration, erro
 		i.jsonCredentialsFile = []byte(conf.CredentialsFileBytes)
 	}
 
-	creds, err := google.CredentialsFromJSON(i.ctx, i.jsonCredentialsFile, "https://www.googleapis.com/auth/pubsub")
+	creds, err := google.CredentialsFromJSON(context.Background(), i.jsonCredentialsFile, "https://www.googleapis.com/auth/pubsub")
 	if err != nil {
 		return nil, errors.Wrap(err, "credentials from json error")
 	}
-	i.client = oauth2.NewClient(i.ctx, creds.TokenSource)
+	i.client = oauth2.NewClient(context.Background(), creds.TokenSource)
 
 	return &i, nil
 }
 
-// Close closes the integration.
+// Close is not implemented.
 func (i *Integration) Close() error {
-	i.cancel()
 	return nil
 }
 

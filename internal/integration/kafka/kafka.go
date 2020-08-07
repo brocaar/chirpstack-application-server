@@ -52,8 +52,6 @@ func New(m marshaler.Type, conf config.IntegrationKafkaConfig) (*Integration, er
 	}
 
 	if conf.Username != "" || conf.Password != "" {
-		fmt.Println("username", conf.Username)
-		fmt.Println("password", conf.Password)
 		wc.Dialer.SASLMechanism = plain.Mechanism{
 			Username: conf.Username,
 			Password: conf.Password,

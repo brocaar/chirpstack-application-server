@@ -4,7 +4,6 @@ package multi
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	log "github.com/sirupsen/logrus"
 
@@ -15,7 +14,6 @@ import (
 
 // Integration implements the multi integration.
 type Integration struct {
-	wg                 sync.WaitGroup
 	globalIntegrations []models.IntegrationHandler
 	appIntegrations    []models.IntegrationHandler
 }
@@ -30,13 +28,9 @@ func New(global, app []models.IntegrationHandler) *Integration {
 
 // HandleUplinkEvent sends an UplinkEvent.
 func (i *Integration) HandleUplinkEvent(ctx context.Context, vars map[string]string, pl pb.UplinkEvent) error {
-	defer i.closeAppIntegrations()
-
 	for _, ii := range i.integrations() {
-		i.wg.Add(1)
 
 		go func(ii models.IntegrationHandler) {
-			defer i.wg.Done()
 			if err := ii.HandleUplinkEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", ii),
@@ -51,13 +45,8 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, vars map[string]str
 
 // HandleJoinEvent sends a JoinEvent.
 func (i *Integration) HandleJoinEvent(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error {
-	defer i.closeAppIntegrations()
-
 	for _, ii := range i.integrations() {
-		i.wg.Add(1)
-
 		go func(ii models.IntegrationHandler) {
-			defer i.wg.Done()
 			if err := ii.HandleJoinEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", ii),
@@ -72,13 +61,8 @@ func (i *Integration) HandleJoinEvent(ctx context.Context, vars map[string]strin
 
 // HandleAckEvent sends an AckEvent.
 func (i *Integration) HandleAckEvent(ctx context.Context, vars map[string]string, pl pb.AckEvent) error {
-	defer i.closeAppIntegrations()
-
 	for _, ii := range i.integrations() {
-		i.wg.Add(1)
-
 		go func(ii models.IntegrationHandler) {
-			defer i.wg.Done()
 			if err := ii.HandleAckEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", ii),
@@ -93,13 +77,9 @@ func (i *Integration) HandleAckEvent(ctx context.Context, vars map[string]string
 
 // HandleErrorEvent sends an ErrorEvent.
 func (i *Integration) HandleErrorEvent(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error {
-	defer i.closeAppIntegrations()
 
 	for _, ii := range i.integrations() {
-		i.wg.Add(1)
-
 		go func(ii models.IntegrationHandler) {
-			defer i.wg.Done()
 			if err := ii.HandleErrorEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", ii),
@@ -114,13 +94,8 @@ func (i *Integration) HandleErrorEvent(ctx context.Context, vars map[string]stri
 
 // HandleStatusEvent sends a StatusEvent.
 func (i *Integration) HandleStatusEvent(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error {
-	defer i.closeAppIntegrations()
-
 	for _, ii := range i.integrations() {
-		i.wg.Add(1)
-
 		go func(ii models.IntegrationHandler) {
-			defer i.wg.Done()
 			if err := ii.HandleStatusEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", ii),
@@ -135,13 +110,8 @@ func (i *Integration) HandleStatusEvent(ctx context.Context, vars map[string]str
 
 // HandleLocationEvent sends a LocationEvent.
 func (i *Integration) HandleLocationEvent(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error {
-	defer i.closeAppIntegrations()
-
 	for _, ii := range i.integrations() {
-		i.wg.Add(1)
-
 		go func(ii models.IntegrationHandler) {
-			defer i.wg.Done()
 			if err := ii.HandleLocationEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", ii),
@@ -156,13 +126,8 @@ func (i *Integration) HandleLocationEvent(ctx context.Context, vars map[string]s
 
 // HandleTxAckEvent sends a TxAckEvent.
 func (i *Integration) HandleTxAckEvent(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
-	defer i.closeAppIntegrations()
-
 	for _, ii := range i.integrations() {
-		i.wg.Add(1)
-
 		go func(ii models.IntegrationHandler) {
-			defer i.wg.Done()
 			if err := ii.HandleTxAckEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", ii),
@@ -177,13 +142,8 @@ func (i *Integration) HandleTxAckEvent(ctx context.Context, vars map[string]stri
 
 // HandleIntegrationEvent sends an IntegrationEvent.
 func (i *Integration) HandleIntegrationEvent(ctx context.Context, vars map[string]string, pl pb.IntegrationEvent) error {
-	defer i.closeAppIntegrations()
-
 	for _, ii := range i.integrations() {
-		i.wg.Add(1)
-
 		go func(ii models.IntegrationHandler) {
-			defer i.wg.Done()
 			if err := ii.HandleIntegrationEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"integration": fmt.Sprintf("%T", ii),
@@ -198,8 +158,6 @@ func (i *Integration) HandleIntegrationEvent(ctx context.Context, vars map[strin
 
 // DataDownChan returns the channel containing the received DataDownPayload.
 func (i *Integration) DataDownChan() chan models.DataDownPayload {
-	defer i.closeAppIntegrations()
-
 	for _, ii := range i.globalIntegrations {
 		if c := ii.DataDownChan(); c != nil {
 			return c
@@ -207,23 +165,6 @@ func (i *Integration) DataDownChan() chan models.DataDownPayload {
 	}
 
 	return nil
-}
-
-// closeAppIntegrations closes the application integrations.
-func (i *Integration) closeAppIntegrations() {
-	log.Debug("integration/multi: waiting for integrations to complete")
-	i.wg.Wait()
-
-	log.Debug("integration/multi: closing integrations")
-	for _, ii := range i.appIntegrations {
-		if err := ii.Close(); err != nil {
-			log.WithError(err).WithFields(log.Fields{
-				"integration": fmt.Sprintf("%T", ii),
-			}).Error("integrations/multi: close integration error")
-		}
-	}
-
-	log.Debug("integration/multi: integrations closed")
 }
 
 // integrations returns a slice with the global and application-integrations

@@ -362,7 +362,7 @@ id="{{ .ApplicationServer.ID }}"
   # TLS.
   #
   # Set this to true when the Kafka client must connect using TLS to the Broker.
-  tls={{ .ApplicationServer.Integration.TLS }}
+  tls={{ .ApplicationServer.Integration.Kafka.TLS }}
 
   # Topic for events.
   topic="{{ .ApplicationServer.Integration.Kafka.Topic }}"

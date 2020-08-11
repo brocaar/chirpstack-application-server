@@ -95,8 +95,9 @@ type GPSPoint struct {
 
 // GatewaysActiveInactive holds the avtive and inactive counts.
 type GatewaysActiveInactive struct {
-	ActiveCount   uint32 `db:"active_count"`
-	InactiveCount uint32 `db:"inactive_count"`
+	NeverSeenCount uint32 `db:"never_seen_count"`
+	ActiveCount    uint32 `db:"active_count"`
+	InactiveCount  uint32 `db:"inactive_count"`
 }
 
 // Value implements the driver.Valuer interface.
@@ -585,6 +586,7 @@ func GetGatewaysActiveInactive(ctx context.Context, db sqlx.Queryer, organizatio
 	var out GatewaysActiveInactive
 	err := sqlx.Get(db, &out, `
 		select
+			coalesce(sum(case when g.last_seen_at is null then 1 end), 0) as never_seen_count,
 			coalesce(sum(case when (now() - '1 minute'::interval) > g.last_seen_at then 1 end), 0) as inactive_count,
 			coalesce(sum(case when (now() - '1 minute'::interval) <= g.last_seen_at then 1 end), 0) as active_count
 		from

@@ -366,9 +366,10 @@ func (a *InternalAPI) GetDevicesSummary(ctx context.Context, req *pb.GetDevicesS
 	}
 
 	out := pb.GetDevicesSummaryResponse{
-		ActiveCount:   daic.ActiveCount,
-		InactiveCount: daic.InactiveCount,
-		DrCount:       ddr,
+		NeverSeenCount: daic.NeverSeenCount,
+		ActiveCount:    daic.ActiveCount,
+		InactiveCount:  daic.InactiveCount,
+		DrCount:        ddr,
 	}
 
 	return &out, nil
@@ -387,8 +388,9 @@ func (a *InternalAPI) GetGatewaysSummary(ctx context.Context, req *pb.GetGateway
 	}
 
 	out := pb.GetGatewaysSummaryResponse{
-		ActiveCount:   gai.ActiveCount,
-		InactiveCount: gai.InactiveCount,
+		NeverSeenCount: gai.NeverSeenCount,
+		ActiveCount:    gai.ActiveCount,
+		InactiveCount:  gai.InactiveCount,
 	}
 
 	return &out, nil

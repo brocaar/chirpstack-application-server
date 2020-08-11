@@ -273,15 +273,28 @@ func (ts *StorageTestSuite) TestDevice() {
 			assert := require.New(t)
 			ls := time.Now()
 
-			// device is active
-			d.LastSeenAt = &ls
+			// device is never seen
+			d.LastSeenAt = nil
 			assert.NoError(UpdateDevice(context.Background(), ts.Tx(), &d, true))
 
 			ai, err := GetDevicesActiveInactive(context.Background(), ts.Tx(), org.ID)
 			assert.NoError(err)
 			assert.Equal(DevicesActiveInactive{
-				ActiveCount:   1,
-				InactiveCount: 0,
+				NeverSeenCount: 1,
+				ActiveCount:    0,
+				InactiveCount:  0,
+			}, ai)
+
+			// device is active
+			d.LastSeenAt = &ls
+			assert.NoError(UpdateDevice(context.Background(), ts.Tx(), &d, true))
+
+			ai, err = GetDevicesActiveInactive(context.Background(), ts.Tx(), org.ID)
+			assert.NoError(err)
+			assert.Equal(DevicesActiveInactive{
+				NeverSeenCount: 0,
+				ActiveCount:    1,
+				InactiveCount:  0,
 			}, ai)
 
 			// device is inactive
@@ -291,8 +304,9 @@ func (ts *StorageTestSuite) TestDevice() {
 			ai, err = GetDevicesActiveInactive(context.Background(), ts.Tx(), org.ID)
 			assert.NoError(err)
 			assert.Equal(DevicesActiveInactive{
-				ActiveCount:   0,
-				InactiveCount: 1,
+				NeverSeenCount: 0,
+				ActiveCount:    0,
+				InactiveCount:  1,
 			}, ai)
 		})
 

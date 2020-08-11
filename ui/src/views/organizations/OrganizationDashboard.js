@@ -128,11 +128,12 @@ class DevicesActiveInactive extends Component {
 
     if (this.props.summary !== null && (this.props.summary.activeCount !== 0 || this.props.summary.inactiveCount !== 0)) {
       data = {
-        labels: ["Inactive", "Active"],
+        labels: ["Never seen", "Inactive", "Active"],
         datasets: [
           {
-            data: [this.props.summary.inactiveCount, this.props.summary.activeCount],
+            data: [this.props.summary.neverSeenCount, this.props.summary.inactiveCount, this.props.summary.activeCount],
             backgroundColor: [
+              theme.palette.warning.main,
               theme.palette.error.main,
               theme.palette.success.main,
             ],
@@ -160,11 +161,12 @@ class GatewaysActiveInactive extends Component {
 
     if (this.props.summary !== null && (this.props.summary.activeCount !== 0 || this.props.summary.inactiveCount !== 0)) {
       data = {
-        labels: ["Inactive", "Active"],
+        labels: ["Never seen", "Inactive", "Active"],
         datasets: [
           {
-            data: [this.props.summary.inactiveCount, this.props.summary.activeCount],
+            data: [this.props.summary.neverSeenCount, this.props.summary.inactiveCount, this.props.summary.activeCount],
             backgroundColor: [
+              theme.palette.warning.main,
               theme.palette.error.main,
               theme.palette.success.main,
             ],

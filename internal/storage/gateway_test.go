@@ -118,15 +118,28 @@ func (ts *StorageTestSuite) TestGateway() {
 			assert := require.New(t)
 			ls := time.Now()
 
-			// gateway is active
-			gw.LastSeenAt = &ls
+			// gateway is never seen
+			gw.LastSeenAt = nil
 			assert.NoError(UpdateGateway(context.Background(), ts.Tx(), &gw))
 
 			ga, err := GetGatewaysActiveInactive(context.Background(), ts.Tx(), gw.OrganizationID)
 			assert.NoError(err)
 			assert.Equal(GatewaysActiveInactive{
-				ActiveCount:   1,
-				InactiveCount: 0,
+				NeverSeenCount: 1,
+				ActiveCount:    0,
+				InactiveCount:  0,
+			}, ga)
+
+			// gateway is active
+			gw.LastSeenAt = &ls
+			assert.NoError(UpdateGateway(context.Background(), ts.Tx(), &gw))
+
+			ga, err = GetGatewaysActiveInactive(context.Background(), ts.Tx(), gw.OrganizationID)
+			assert.NoError(err)
+			assert.Equal(GatewaysActiveInactive{
+				NeverSeenCount: 0,
+				ActiveCount:    1,
+				InactiveCount:  0,
 			}, ga)
 
 			// gateway is inactive
@@ -137,8 +150,9 @@ func (ts *StorageTestSuite) TestGateway() {
 			ga, err = GetGatewaysActiveInactive(context.Background(), ts.Tx(), gw.OrganizationID)
 			assert.NoError(err)
 			assert.Equal(GatewaysActiveInactive{
-				ActiveCount:   1,
-				InactiveCount: 0,
+				NeverSeenCount: 0,
+				ActiveCount:    1,
+				InactiveCount:  0,
 			}, ga)
 		})
 

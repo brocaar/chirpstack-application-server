@@ -70,8 +70,9 @@ type DeviceKeys struct {
 
 // DevicesActiveInactive holds the active and inactive counts.
 type DevicesActiveInactive struct {
-	ActiveCount   uint32 `db:"active_count"`
-	InactiveCount uint32 `db:"inactive_count"`
+	NeverSeenCount uint32 `db:"never_seen_count"`
+	ActiveCount    uint32 `db:"active_count"`
+	InactiveCount  uint32 `db:"inactive_count"`
 }
 
 // DevicesDataRates holds the device counts by data-rate.
@@ -747,6 +748,7 @@ func GetDevicesActiveInactive(ctx context.Context, db sqlx.Queryer, organization
 				a.organization_id = $1
 		)
 		select
+			coalesce(sum(case when last_seen_at is null then 1 end), 0) as never_seen_count,
 			coalesce(sum(case when (now() - uplink_interval) > last_seen_at then 1 end), 0) as inactive_count,
 			coalesce(sum(case when (now() - uplink_interval) <= last_seen_at then 1 end), 0) as active_count
 		from

@@ -29,13 +29,15 @@ func TestNetworkServer(t *testing.T) {
 		}{
 			{
 				NetworkServer: NetworkServer{
+					Name:                     "test-ns",
 					GatewayDiscoveryEnabled:  false,
-					GatewayDiscoveryInterval: 0,
+					GatewayDiscoveryInterval: 5,
 				},
 				ExpectedError: nil,
 			},
 			{
 				NetworkServer: NetworkServer{
+					Name:                     "test-ns",
 					GatewayDiscoveryEnabled:  true,
 					GatewayDiscoveryInterval: 0,
 				},

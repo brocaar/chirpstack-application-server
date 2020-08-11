@@ -118,7 +118,7 @@ class SideNav extends Component {
   }
 
   onChange(e) {
-    this.props.history.push(`/organizations/${e.target.value}/applications`);
+    this.props.history.push(`/organizations/${e.target.value}`);
   }
 
   getOrganizationFromLocation() {

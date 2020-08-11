@@ -29,6 +29,18 @@ class ListGatewaysMap extends Component {
   }
 
   componentDidMount() {
+    this.loadData();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps === this.props) {
+      return;
+    }
+
+    this.loadData();
+  }
+
+  loadData = () => {
     GatewayStore.list("", this.props.organizationID, 9999, 0, resp => {
       this.setState({
         items: resp.result,
@@ -242,6 +254,18 @@ class OrganizationDashboard extends Component {
   }
 
   componentDidMount() {
+    this.loadData();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps === this.props) {
+      return;
+    }
+
+    this.loadData();
+  }
+
+  loadData = () => {
     InternalStore.getDevicesSummary(this.props.organization.id, resp => {
       this.setState({
         devicesSummary: resp,

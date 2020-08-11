@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import { checkStatus, errorHandler } from "./helpers";
+import { checkStatus, errorHandler, startLoader, stopLoader } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -15,10 +15,13 @@ class InternalStore extends EventEmitter {
   }
 
   listAPIKeys(filters, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.ListAPIKeys(filters)
+        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
+
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -26,10 +29,12 @@ class InternalStore extends EventEmitter {
   }
 
   deleteAPIKey(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.DeleteAPIKey({
         id: id,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("api key has been deleted");
@@ -40,12 +45,14 @@ class InternalStore extends EventEmitter {
   }
 
   createAPIKey(obj, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.CreateAPIKey({
         body: {
           apiKey: obj,
         },
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("api key has been created");
@@ -56,10 +63,13 @@ class InternalStore extends EventEmitter {
   }
 
   settings(callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.Settings({})
+        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
+
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -101,6 +111,7 @@ class InternalStore extends EventEmitter {
       },
     });
   }
+
 }
 
 const internalStore = new InternalStore();

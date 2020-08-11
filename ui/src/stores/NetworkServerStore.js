@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler, startLoader, stopLoader } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -14,12 +14,14 @@ class NetworkServerStore extends EventEmitter {
   }
 
   create(networkServer, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.NetworkServerService.Create({
         body: {
           networkServer: networkServer,
         },
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notifiy("created");
@@ -30,10 +32,12 @@ class NetworkServerStore extends EventEmitter {
   }
 
   get(id, callbackFunc) {
+    startLoader();
     this.swagger.then((client) => {
       client.apis.NetworkServerService.Get({
         id: id,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -43,6 +47,7 @@ class NetworkServerStore extends EventEmitter {
   }
 
   update(networkServer, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.NetworkServerService.Update({
         "network_server.id": networkServer.id,
@@ -50,6 +55,7 @@ class NetworkServerStore extends EventEmitter {
           networkServer: networkServer,
         },
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notifiy("updated");
@@ -70,10 +76,12 @@ class NetworkServerStore extends EventEmitter {
   }
 
   delete(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.NetworkServerService.Delete({
         id: id,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notifiy("deleted");
@@ -82,14 +90,16 @@ class NetworkServerStore extends EventEmitter {
       .catch(errorHandler);
     });
   }
-  
+
   list(organizationID, limit, offset, callbackFunc) {
+    startLoader();
     this.swagger.then((client) => {
       client.apis.NetworkServerService.List({
         organizationID: organizationID,
         limit: limit,
         offset: offset,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -97,6 +107,7 @@ class NetworkServerStore extends EventEmitter {
       .catch(errorHandler);
     });
   }
+
 }
 
 const networkServerStore = new NetworkServerStore();

@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler, startLoader, stopLoader } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -14,12 +14,14 @@ class GatewayProfileStore extends EventEmitter {
   }
 
   create(gatewayProfile, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.GatewayProfileService.Create({
         body: {
           gatewayProfile: gatewayProfile,
         },
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
@@ -30,10 +32,12 @@ class GatewayProfileStore extends EventEmitter {
   }
 
   get(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.GatewayProfileService.Get({
         id: id,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -43,6 +47,7 @@ class GatewayProfileStore extends EventEmitter {
   }
 
   update(gatewayProfile, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.GatewayProfileService.Update({
         "gateway_profile.id": gatewayProfile.id,
@@ -50,6 +55,7 @@ class GatewayProfileStore extends EventEmitter {
           gatewayProfile: gatewayProfile,
         },
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
@@ -60,10 +66,12 @@ class GatewayProfileStore extends EventEmitter {
   }
 
   delete(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.GatewayProfileService.Delete({
         id: id,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
@@ -74,12 +82,14 @@ class GatewayProfileStore extends EventEmitter {
   }
 
   list(networkServerID, limit, offset, callbackFunc) {
+    startLoader();
     this.swagger.then((client) => {
       client.apis.GatewayProfileService.List({
         networkServerID: networkServerID,
         limit: limit,
         offset: offset,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -97,6 +107,7 @@ class GatewayProfileStore extends EventEmitter {
       },
     });
   }
+
 }
 
 const gatewayProfileStore = new GatewayProfileStore();

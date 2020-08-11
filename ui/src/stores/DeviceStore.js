@@ -4,7 +4,7 @@ import RobustWebSocket from "robust-websocket";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler, errorHandlerIgnoreNotFoundWithCallback } from "./helpers";
+import {checkStatus, errorHandler, errorHandlerIgnoreNotFoundWithCallback, startLoader, stopLoader } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -25,12 +25,14 @@ class DeviceStore extends EventEmitter {
   }
 
   create(device, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.Create({
         body: {
           device: device,
         },
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
@@ -41,10 +43,12 @@ class DeviceStore extends EventEmitter {
   }
 
   get(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.Get({
         dev_eui: id,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -54,6 +58,7 @@ class DeviceStore extends EventEmitter {
   }
 
   update(device, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.Update({
         "device.dev_eui": device.devEUI,
@@ -61,6 +66,7 @@ class DeviceStore extends EventEmitter {
           device: device,
         },
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.emit("update");
@@ -73,10 +79,12 @@ class DeviceStore extends EventEmitter {
   }
 
   delete(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.Delete({
         dev_eui: id,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
@@ -87,8 +95,10 @@ class DeviceStore extends EventEmitter {
   }
 
   list(filters, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.List(filters)
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -98,10 +108,12 @@ class DeviceStore extends EventEmitter {
   }
 
   getKeys(devEUI, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.GetKeys({
         dev_eui: devEUI,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -111,6 +123,7 @@ class DeviceStore extends EventEmitter {
   }
 
   createKeys(deviceKeys, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.CreateKeys({
         "device_keys.dev_eui": deviceKeys.devEUI,
@@ -118,6 +131,7 @@ class DeviceStore extends EventEmitter {
           deviceKeys: deviceKeys,
         },
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notifyKeys("created");
@@ -128,6 +142,7 @@ class DeviceStore extends EventEmitter {
   }
 
   updateKeys(deviceKeys, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.UpdateKeys({
         "device_keys.dev_eui": deviceKeys.devEUI,
@@ -135,6 +150,7 @@ class DeviceStore extends EventEmitter {
           deviceKeys: deviceKeys,
         },
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notifyKeys("updated");
@@ -145,10 +161,12 @@ class DeviceStore extends EventEmitter {
   }
 
   getActivation(devEUI, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.GetActivation({
         "dev_eui": devEUI,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -158,6 +176,7 @@ class DeviceStore extends EventEmitter {
   }
 
   activate(deviceActivation, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.Activate({
         "device_activation.dev_eui": deviceActivation.devEUI,
@@ -165,6 +184,7 @@ class DeviceStore extends EventEmitter {
           deviceActivation: deviceActivation,
         },
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         dispatcher.dispatch({
@@ -181,10 +201,12 @@ class DeviceStore extends EventEmitter {
   }
 
   getRandomDevAddr(devEUI, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceService.GetRandomDevAddr({
         dev_eui: devEUI,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);

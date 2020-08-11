@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler, startLoader, stopLoader } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -14,6 +14,7 @@ class UserStore extends EventEmitter {
   }
 
   create(user, password, organizations, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.UserService.Create({
         body: {
@@ -22,6 +23,7 @@ class UserStore extends EventEmitter {
           user: user,
         },
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
@@ -32,10 +34,12 @@ class UserStore extends EventEmitter {
   }
 
   get(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.UserService.Get({
         id: id,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -45,6 +49,7 @@ class UserStore extends EventEmitter {
   }
 
   update(user, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.UserService.Update({
         "user.id": user.id,
@@ -52,6 +57,7 @@ class UserStore extends EventEmitter {
           "user": user,
         },
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
@@ -62,10 +68,12 @@ class UserStore extends EventEmitter {
   }
 
   delete(id, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.UserService.Delete({
         id: id,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
@@ -76,6 +84,7 @@ class UserStore extends EventEmitter {
   }
 
   updatePassword(id, password, callbackFunc) {
+    startLoader();
     this.swagger.then(client => {
       client.apis.UserService.UpdatePassword({
         "user_id": id,
@@ -83,6 +92,7 @@ class UserStore extends EventEmitter {
           password: password,
         },
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
@@ -93,12 +103,14 @@ class UserStore extends EventEmitter {
   }
 
   list(search, limit, offset, callbackFunc) {
+    startLoader();
     this.swagger.then((client) => {
       client.apis.UserService.List({
         search: search,
         limit: limit,
         offset: offset,
       })
+      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);

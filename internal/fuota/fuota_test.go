@@ -109,6 +109,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentMulticastCreate() {
 		DR:             3,
 		Frequency:      868100000,
 		PingSlotPeriod: 2,
+		Payload:        []byte{1, 2, 3},
 	}
 	assert.NoError(storage.CreateFUOTADeploymentForDevice(context.Background(), ts.tx, &fd, ts.Device.DevEUI))
 
@@ -167,6 +168,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentMulticastSetupLW10() {
 		MulticastGroupID: &mcgID,
 		UnicastTimeout:   time.Second,
 		State:            storage.FUOTADeploymentMulticastSetup,
+		Payload:          []byte{1, 2, 3},
 	}
 	assert.NoError(storage.CreateFUOTADeploymentForDevice(context.Background(), ts.tx, &fd, ts.Device.DevEUI))
 
@@ -225,6 +227,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentMulticastSetupLW11() {
 		MulticastGroupID: &mcgID,
 		UnicastTimeout:   time.Second,
 		State:            storage.FUOTADeploymentMulticastSetup,
+		Payload:          []byte{1, 2, 3},
 	}
 	assert.NoError(storage.CreateFUOTADeploymentForDevice(context.Background(), ts.tx, &fd, ts.Device.DevEUI))
 
@@ -393,6 +396,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentMulticastSessCSetup() {
 		UnicastTimeout:   time.Second,
 		MulticastTimeout: 8,
 		State:            storage.FUOTADeploymentMulticastSessCSetup,
+		Payload:          []byte{1, 2, 3},
 	}
 	assert.NoError(storage.CreateFUOTADeploymentForDevice(context.Background(), ts.tx, &fd, ts.Device.DevEUI))
 
@@ -526,6 +530,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentStatusRequest() {
 		Name:             "test-deployment",
 		MulticastGroupID: &mcgID,
 		State:            storage.FUOTADeploymentStatusRequest,
+		Payload:          []byte{1, 2, 3},
 	}
 	assert.NoError(storage.CreateFUOTADeploymentForDevice(context.Background(), ts.tx, &fd, ts.Device.DevEUI))
 
@@ -563,6 +568,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentSetDeviceStatusNoError() {
 		Name:             "test-deployment",
 		MulticastGroupID: &mcgID,
 		State:            storage.FUOTADeploymentSetDeviceStatus,
+		Payload:          []byte{1, 2, 3},
 	}
 	assert.NoError(storage.CreateFUOTADeploymentForDevice(context.Background(), ts.tx, &fd, ts.Device.DevEUI))
 
@@ -601,6 +607,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentSetDeviceStatusGenericError() {
 		Name:             "test-deployment",
 		MulticastGroupID: &mcgID,
 		State:            storage.FUOTADeploymentSetDeviceStatus,
+		Payload:          []byte{1, 2, 3},
 	}
 	assert.NoError(storage.CreateFUOTADeploymentForDevice(context.Background(), ts.tx, &fd, ts.Device.DevEUI))
 
@@ -642,6 +649,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentSetDeviceStatusRemoteMulticastSetup
 		Name:             "test-deployment",
 		MulticastGroupID: &mcgID,
 		State:            storage.FUOTADeploymentSetDeviceStatus,
+		Payload:          []byte{1, 2, 3},
 	}
 	assert.NoError(storage.CreateFUOTADeploymentForDevice(context.Background(), ts.tx, &fd, ts.Device.DevEUI))
 
@@ -683,6 +691,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentSetDeviceStatusFragmentationSession
 		Name:             "test-deployment",
 		MulticastGroupID: &mcgID,
 		State:            storage.FUOTADeploymentSetDeviceStatus,
+		Payload:          []byte{1, 2, 3},
 	}
 	assert.NoError(storage.CreateFUOTADeploymentForDevice(context.Background(), ts.tx, &fd, ts.Device.DevEUI))
 
@@ -716,6 +725,7 @@ func (ts *FUOTATestSuite) TestFUOTADeploymentCleanup() {
 		Name:             "test-deployment",
 		MulticastGroupID: &mcgID,
 		State:            storage.FUOTADeploymentCleanup,
+		Payload:          []byte{1, 2, 3},
 	}
 	assert.NoError(storage.CreateFUOTADeploymentForDevice(context.Background(), ts.tx, &fd, ts.Device.DevEUI))
 

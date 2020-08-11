@@ -592,7 +592,7 @@ func GetGatewaysActiveInactive(ctx context.Context, db sqlx.Queryer, organizatio
 		from
 			gateway g
 		where
-			g.organization_id = $1
+			$1 = 0 or g.organization_id = $1
 	`, organizationID)
 	if err != nil {
 		return out, errors.Wrap(err, "get gateway active/inactive count error")

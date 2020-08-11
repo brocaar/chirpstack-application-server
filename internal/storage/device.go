@@ -745,7 +745,7 @@ func GetDevicesActiveInactive(ctx context.Context, db sqlx.Queryer, organization
 			inner join application a
 				on d.application_id = a.id
 			where
-				a.organization_id = $1
+				$1 = 0 or a.organization_id = $1
 		)
 		select
 			coalesce(sum(case when last_seen_at is null then 1 end), 0) as never_seen_count,
@@ -774,7 +774,7 @@ func GetDevicesDataRates(ctx context.Context, db sqlx.Queryer, organizationID in
 		inner join application a
 			on d.application_id = a.id
 		where
-			a.organization_id = $1
+			($1 = 0 or a.organization_id = $1)
 			and d.dr is not null
 		group by d.dr
 	`, organizationID)

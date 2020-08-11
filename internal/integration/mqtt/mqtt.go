@@ -313,6 +313,8 @@ func (i *Integration) publish(ctx context.Context, applicationID uint64, devEUIB
 		return token.Error()
 	}
 
+	mqttEventCounter(eventType).Inc()
+
 	return nil
 }
 
@@ -402,6 +404,8 @@ func (i *Integration) txPayloadHandler(mqttc mqtt.Client, msg mqtt.Message) {
 	if !set {
 		return
 	}
+
+	mqttCommandCounter("down").Inc()
 
 	i.dataDownChan <- pl
 }

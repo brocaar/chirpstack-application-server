@@ -158,6 +158,12 @@ class SideNav extends Component {
       >
         <Admin>
           <List>
+            <ListItem button component={Link} to="/dashboard">
+              <ListItemIcon>
+                <Home />
+              </ListItemIcon>
+              <ListItemText primary="Dashboard" />
+            </ListItem>
             <ListItem button component={Link} to="/network-servers">
               <ListItemIcon>
                 <Server />

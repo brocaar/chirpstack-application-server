@@ -15,6 +15,7 @@ import SideNav from "./components/SideNav";
 import Footer from "./components/Footer";
 import Notifications from "./components/Notifications";
 import SessionStore from "./stores/SessionStore";
+import Dashboard from "./views/dashboard/Dashboard";
 
 // network-server
 import ListNetworkServers from "./views/network-servers/ListNetworkServers";
@@ -174,6 +175,7 @@ class App extends Component {
                     <Route exact path="/users/create" component={CreateUser} />
                     <Route exact path="/users/:userID(\d+)" component={UserLayout} />
                     <Route exact path="/users/:userID(\d+)/password" component={ChangeUserPassword} />
+                    <Route exact path="/dashboard" component={Dashboard} />
 
                     <Route exact path="/network-servers" component={ListNetworkServers} />
                     <Route exact path="/network-servers/create" component={CreateNetworkServer} />

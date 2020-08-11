@@ -112,7 +112,7 @@ class ListGatewaysMap extends Component {
       markers.push(
         <Marker position={position} key={`gw-${item.id}`} icon={marker}>
           <Popup>
-            <Link to={`/organizations/${this.props.organizationID}/gateways/${item.id}`}>{item.name}</Link><br />
+            <Link to={`/organizations/${item.organizationID}/gateways/${item.id}`}>{item.name}</Link><br />
             {item.id}<br /><br />
             {lastSeen}
           </Popup>

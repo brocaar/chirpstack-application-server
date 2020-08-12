@@ -212,14 +212,12 @@ class SideNav extends Component {
         </div>
 
         {this.state.organization && <List>
-          <Admin>
-            <ListItem button component={Link} to={`/organizations/${this.state.organization.id}`}>
-              <ListItemIcon>
-                <Home />
-              </ListItemIcon>
-              <ListItemText primary="Org. dashboard" />
-            </ListItem>
-          </Admin>
+          <ListItem button component={Link} to={`/organizations/${this.state.organization.id}`}>
+            <ListItemIcon>
+              <Home />
+            </ListItemIcon>
+            <ListItemText primary="Org. dashboard" />
+          </ListItem>
           <Admin organizationID={this.state.organization.id}>
             <ListItem button component={Link} to={`/organizations/${this.state.organization.id}/users`}>
               <ListItemIcon>

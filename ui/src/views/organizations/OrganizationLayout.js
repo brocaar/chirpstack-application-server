@@ -14,6 +14,7 @@ import TitleBarButton from "../../components/TitleBarButton";
 import OrganizationStore from "../../stores/OrganizationStore";
 import UpdateOrganization from "./UpdateOrganization";
 import OrganizationDashboard from "./OrganizationDashboard";
+import SessionStore from "../../stores/SessionStore";
 
 import theme from "../../theme";
 
@@ -33,12 +34,19 @@ class OrganizationLayout extends Component {
     super();
     this.state = {
       tab: 0,
+      admin: false,
     };
   }
 
   componentDidMount() {
     this.loadData();
     this.locationToTab();
+    SessionStore.on("change", this.setIsAdmin);
+    this.setIsAdmin();
+  }
+
+  componentWillUnmount() {
+    SessionStore.removeListener("change", this.setIsAdmin);
   }
 
   componentDidUpdate(prevProps) {
@@ -48,6 +56,12 @@ class OrganizationLayout extends Component {
 
     this.loadData();
     this.locationToTab();
+  }
+
+  setIsAdmin = () => {
+    this.setState({
+      admin: SessionStore.isAdmin() || SessionStore.isOrganizationAdmin(this.props.match.params.organizationID),
+    });
   }
 
   loadData = () => {
@@ -115,7 +129,7 @@ class OrganizationLayout extends Component {
         <Grid item xs={12}>
           <Switch>
             <Route exact path={this.props.match.path} render={props => <OrganizationDashboard organization={this.state.organization.organization} {...props} />} />
-            <Route exact path={`${this.props.match.path}/edit`} render={props => <UpdateOrganization organization={this.state.organization.organization} {...props} />} />
+            <Route exact path={`${this.props.match.path}/edit`} render={props => <UpdateOrganization organization={this.state.organization.organization} admin={this.state.admin} {...props} />} />
           </Switch>
         </Grid>
       </Grid>

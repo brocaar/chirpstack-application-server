@@ -17,7 +17,7 @@ class UpdateOrganization extends Component {
 
   onSubmit(organization) {
     OrganzationStore.update(organization, resp => {
-      this.props.history.push("/organizations");
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}`);
     });
   }
 
@@ -31,6 +31,7 @@ class UpdateOrganization extends Component {
                 submitLabel="Update organization"
                 object={this.props.organization}
                 onSubmit={this.onSubmit}
+                disabled={!this.props.admin}
               />
             </CardContent>
           </Card>

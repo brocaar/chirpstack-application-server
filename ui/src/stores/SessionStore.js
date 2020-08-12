@@ -1,7 +1,8 @@
 import { EventEmitter } from "events";
 
 import Swagger from "swagger-client";
-import { checkStatus, errorHandler, errorHandlerLogin, startLoader, stopLoader } from "./helpers";
+import { checkStatus, errorHandler, errorHandlerLogin } from "./helpers";
+
 
 class SessionStore extends EventEmitter {
   constructor() {
@@ -13,7 +14,7 @@ class SessionStore extends EventEmitter {
     this.branding = {};
 
     this.swagger = Swagger("/swagger/internal.swagger.json", this.getClientOpts())
-
+    
     this.swagger.then(client => {
       this.client = client;
 
@@ -109,14 +110,11 @@ class SessionStore extends EventEmitter {
   }
 
   login(login, callBackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.Login({body: login})
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.setToken(resp.obj.jwt);
-
           this.fetchProfile(callBackFunc);
         })
         .catch(errorHandlerLogin);
@@ -124,17 +122,14 @@ class SessionStore extends EventEmitter {
   }
 
   openidConnectLogin(code, state, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.OpenIDConnectLogin({
         code: code,
         state: state,
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.setToken(resp.obj.jwtToken);
-
           this.fetchProfile(callbackFunc);
         })
         .catch(errorHandler);
@@ -151,13 +146,10 @@ class SessionStore extends EventEmitter {
   }
 
   fetchProfile(callBackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.Profile({})
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
-
           this.user = resp.obj.user;
 
           if(resp.obj.organizations !== undefined) {
@@ -176,14 +168,12 @@ class SessionStore extends EventEmitter {
   }
 
   globalSearch(search, limit, offset, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.InternalService.GlobalSearch({
         search: search,
         limit: limit,
         offset: offset,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -191,8 +181,6 @@ class SessionStore extends EventEmitter {
       .catch(errorHandler);
       });
   }
-
-
 }
 
 const sessionStore = new SessionStore();

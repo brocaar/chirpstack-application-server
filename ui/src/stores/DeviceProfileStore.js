@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler, startLoader, stopLoader} from "./helpers";
+import {checkStatus, errorHandler } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -14,14 +14,12 @@ class DeviceProfileStore extends EventEmitter {
   }
 
   create(deviceProfile, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceProfileService.Create({
         body: {
           deviceProfile: deviceProfile,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
@@ -32,12 +30,10 @@ class DeviceProfileStore extends EventEmitter {
   }
 
   get(id, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceProfileService.Get({
         id: id,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -47,7 +43,6 @@ class DeviceProfileStore extends EventEmitter {
   }
 
   update(deviceProfile, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceProfileService.Update({
         "device_profile.id": deviceProfile.id,
@@ -55,7 +50,6 @@ class DeviceProfileStore extends EventEmitter {
           deviceProfile: deviceProfile,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
@@ -66,12 +60,10 @@ class DeviceProfileStore extends EventEmitter {
   }
 
   delete(id, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceProfileService.Delete({
         id: id,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
@@ -82,7 +74,6 @@ class DeviceProfileStore extends EventEmitter {
   }
 
   list(organizationID, applicationID, limit, offset, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.DeviceProfileService.List({
         organizationID: organizationID,
@@ -90,7 +81,6 @@ class DeviceProfileStore extends EventEmitter {
         limit: limit,
         offset: offset,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -108,7 +98,6 @@ class DeviceProfileStore extends EventEmitter {
       },
     });
   }
-
 }
 
 const deviceProfileStore = new DeviceProfileStore();

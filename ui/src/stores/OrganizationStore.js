@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler, startLoader, stopLoader } from "./helpers";
+import {checkStatus, errorHandler } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -14,14 +14,12 @@ class OrganizationStore extends EventEmitter {
   }
 
   create(organization, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.OrganizationService.Create({
         body: {
           organization: organization,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.emit("create", organization);
@@ -33,12 +31,10 @@ class OrganizationStore extends EventEmitter {
   }
 
   get(id, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.OrganizationService.Get({
         id: id,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -48,7 +44,6 @@ class OrganizationStore extends EventEmitter {
   }
 
   update(organization, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.OrganizationService.Update({
         "organization.id": organization.id,
@@ -56,7 +51,6 @@ class OrganizationStore extends EventEmitter {
           organization: organization,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.emit("change", organization);
@@ -68,12 +62,10 @@ class OrganizationStore extends EventEmitter {
   }
 
   delete(id, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.OrganizationService.Delete({
         id: id,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.emit("delete", id);
@@ -85,14 +77,12 @@ class OrganizationStore extends EventEmitter {
   }
 
   list(search, limit, offset, callbackFunc) {
-    startLoader();
     this.swagger.then((client) => {
       client.apis.OrganizationService.List({
         search: search,
         limit: limit,
         offset: offset,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -102,7 +92,6 @@ class OrganizationStore extends EventEmitter {
   }
 
   addUser(organizationID, user, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.OrganizationService.AddUser({
         "organization_user.organization_id": organizationID,
@@ -110,7 +99,6 @@ class OrganizationStore extends EventEmitter {
           organizationUser: user,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -120,13 +108,11 @@ class OrganizationStore extends EventEmitter {
   }
 
   getUser(organizationID, userID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.OrganizationService.GetUser({
         organization_id: organizationID,
         user_id: userID,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -136,13 +122,11 @@ class OrganizationStore extends EventEmitter {
   }
 
   deleteUser(organizationID, userID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.OrganizationService.DeleteUser({
         organization_id: organizationID,
         user_id: userID,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -152,7 +136,6 @@ class OrganizationStore extends EventEmitter {
   }
 
   updateUser(organizationUser, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.OrganizationService.UpdateUser({
         "organization_user.organization_id": organizationUser.organizationID,
@@ -161,7 +144,6 @@ class OrganizationStore extends EventEmitter {
           organizationUser: organizationUser,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -171,14 +153,12 @@ class OrganizationStore extends EventEmitter {
   }
 
   listUsers(organizationID, limit, offset, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.OrganizationService.ListUsers({
         organization_id: organizationID,
         limit: limit,
         offset: offset,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -196,7 +176,6 @@ class OrganizationStore extends EventEmitter {
       },
     });
   }
-
 }
 
 const organizationStore = new OrganizationStore();

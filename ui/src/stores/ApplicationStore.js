@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler, startLoader, stopLoader } from "./helpers";
+import {checkStatus, errorHandler } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -14,14 +14,12 @@ class ApplicationStore extends EventEmitter {
   }
 
   create(application, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.Create({
         body: {
           application: application,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
@@ -32,12 +30,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   get(id, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.Get({
         id: id,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -47,7 +43,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   update(application, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.Update({
         "application.id": application.id,
@@ -55,7 +50,6 @@ class ApplicationStore extends EventEmitter {
           application: application,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
@@ -66,12 +60,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   delete(id, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.Delete({
         id: id,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
@@ -82,7 +74,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   list(search, organizationID, limit, offset, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.List({
         limit: limit,
@@ -90,7 +81,6 @@ class ApplicationStore extends EventEmitter {
         organizationID: organizationID,
         search: search,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -100,12 +90,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   listIntegrations(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.ListIntegrations({
         application_id: applicationID,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -115,7 +103,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   createHTTPIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.CreateHTTPIntegration({
         "integration.application_id": integration.applicationID,
@@ -123,7 +110,6 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("http", "created");
@@ -134,12 +120,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   getHTTPIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.GetHTTPIntegration({
         application_id: applicationID,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -149,7 +133,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   updateHTTPIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.UpdateHTTPIntegration({
         "integration.application_id": integration.applicationID,
@@ -157,7 +140,6 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("http", "updated");
@@ -168,12 +150,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   deleteHTTPIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.DeleteHTTPIntegration({
         application_id: applicationID,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("http", "deleted");
@@ -186,7 +166,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   createInfluxDBIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.CreateInfluxDBIntegration({
         "integration.application_id": integration.applicationID,
@@ -194,7 +173,6 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("InfluxDB", "created");
@@ -205,12 +183,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   getInfluxDBIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.GetInfluxDBIntegration({
         application_id: applicationID,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -220,7 +196,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   updateInfluxDBIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.UpdateInfluxDBIntegration({
         "integration.application_id": integration.applicationID,
@@ -228,7 +203,6 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("InfluxDB", "updated");
@@ -239,12 +213,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   deleteInfluxDBIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.DeleteInfluxDBIntegration({
         application_id: applicationID,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("InfluxDB", "deleted");
@@ -256,7 +228,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   createThingsBoardIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.CreateThingsBoardIntegration({
         "integration.application_id": integration.applicationID,
@@ -264,11 +235,9 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp =>  {
           this.integrationNotification("ThingsBoard.io", "created");
-
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);
@@ -276,15 +245,12 @@ class ApplicationStore extends EventEmitter {
   }
 
   getThingsBoardIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.GetThingsBoardIntegration({
-        application_id: applicationID,
+        application_id: applicationID, 
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
-
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);
@@ -292,7 +258,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   updateThingsBoardIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.UpdateThingsBoardIntegration({
         "integration.application_id": integration.applicationID,
@@ -300,7 +265,6 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("ThingsBoard.io", "updated");
@@ -311,12 +275,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   deleteThingsBoardIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.DeleteThingsBoardIntegration({
         application_id: applicationID,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("ThingsBoard.io", "deleted");
@@ -328,7 +290,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   createMyDevicesIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.CreateMyDevicesIntegration({
         "integration.application_id": integration.applicationID,
@@ -336,11 +297,9 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp =>  {
           this.integrationNotification("myDevices", "created");
-
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);
@@ -348,15 +307,12 @@ class ApplicationStore extends EventEmitter {
   }
 
   getMyDevicesIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.GetMyDevicesIntegration({
-        application_id: applicationID,
+        application_id: applicationID, 
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
-
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);
@@ -364,7 +320,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   updateMyDevicesIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.UpdateMyDevicesIntegration({
         "integration.application_id": integration.applicationID,
@@ -372,7 +327,6 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("myDevices", "updated");
@@ -383,12 +337,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   deleteMyDevicesIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.DeleteMyDevicesIntegration({
         application_id: applicationID,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("myDevices", "deleted");
@@ -400,7 +352,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   createLoRaCloudIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.CreateLoRaCloudIntegration({
         "integration.application_id": integration.applicationID,
@@ -408,11 +359,9 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.integrationNotification("LoRa Cloud", "created");
-
           callbackFunc(resp.obj);
         })
         .catch(errorHandler);
@@ -420,15 +369,12 @@ class ApplicationStore extends EventEmitter {
   }
 
   getLoRaCloudIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.GetLoRaCloudIntegration({
-        application_id: applicationID,
+        application_id: applicationID, 
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
-
           callbackFunc(resp.obj);
         })
       .catch(errorHandler);
@@ -436,7 +382,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   updateLoRaCloudIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.UpdateLoRaCloudIntegration({
         "integration.application_id": integration.applicationID,
@@ -444,7 +389,6 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("LoRa Cloud", "updated");
@@ -455,12 +399,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   deleteLoRaCloudIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.DeleteLoRaCloudIntegration({
         application_id: applicationID,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.integrationNotification("LoRa Cloud", "deleted");
@@ -482,7 +424,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   createGCPPubSubIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.CreateGCPPubSubIntegration({
         "integration.application_id": integration.applicationID,
@@ -490,7 +431,6 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.integrationNotification("GCP Pub/Sub", "created");
@@ -501,12 +441,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   getGCPPubSubIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.GetGCPPubSubIntegration({
         application_id: applicationID,
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           callbackFunc(resp.obj);
@@ -516,7 +454,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   updateGCPPubSubIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.UpdateGCPPubSubIntegration({
         "integration.application_id": integration.applicationID,
@@ -524,7 +461,6 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.integrationNotification("GCP Pub/Sub", "updated");
@@ -535,12 +471,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   deleteGCPPubSubIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.DeleteGCPPubSubIntegration({
         application_id: applicationID,
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.integrationNotification("GCP Pub/Sbu", "deleted");
@@ -552,7 +486,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   createAWSSNSIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.CreateAWSSNSIntegration({
         "integration.application_id": integration.applicationID,
@@ -560,7 +493,6 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.integrationNotification("AWS SNS", "created");
@@ -571,12 +503,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   getAWSSNSIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.GetAWSSNSIntegration({
         application_id: applicationID,
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           callbackFunc(resp.obj);
@@ -586,7 +516,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   updateAWSSNSIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.UpdateAWSSNSIntegration({
         "integration.application_id": integration.applicationID,
@@ -594,7 +523,6 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.integrationNotification("AWS SNS", "updated");
@@ -605,12 +533,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   deleteAWSSNSIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.DeleteAWSSNSIntegration({
         application_id: applicationID,
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.integrationNotification("AWS SNS", "deleted");
@@ -622,7 +548,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   createAzureServiceBusIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.CreateAzureServiceBusIntegration({
         "integration.application_id": integration.applicationID,
@@ -630,7 +555,6 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.integrationNotification("Azure Service-Bus", "created");
@@ -641,12 +565,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   getAzureServiceBusIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.GetAzureServiceBusIntegration({
         application_id: applicationID,
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           callbackFunc(resp.obj);
@@ -656,7 +578,6 @@ class ApplicationStore extends EventEmitter {
   }
 
   updateAzureServiceBusIntegration(integration, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.UpdateAzureServiceBusIntegration({
         "integration.application_id": integration.applicationID,
@@ -664,7 +585,6 @@ class ApplicationStore extends EventEmitter {
           integration: integration,
         },
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.integrationNotification("Azure Service-Bus", "updated");
@@ -675,12 +595,10 @@ class ApplicationStore extends EventEmitter {
   }
 
   deleteAzureServiceBusIntegration(applicationID, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.ApplicationService.DeleteAzureServiceBusIntegration({
         application_id: applicationID,
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           this.integrationNotification("Azure Service-Bus", "deleted");
@@ -700,7 +618,6 @@ class ApplicationStore extends EventEmitter {
       },
     });
   }
-
 }
 
 const applicationStore = new ApplicationStore();

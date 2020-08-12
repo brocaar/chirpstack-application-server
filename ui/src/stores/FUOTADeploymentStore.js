@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler, startLoader, stopLoader } from "./helpers";
+import {checkStatus, errorHandler } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -14,7 +14,6 @@ class FUOTADeploymentStore extends EventEmitter {
   }
 
   createForDevice(devEUI, fuotaDeployment, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.FUOTADeploymentService.CreateForDevice({
         dev_eui: devEUI,
@@ -22,7 +21,6 @@ class FUOTADeploymentStore extends EventEmitter {
           fuotaDeployment: fuotaDeployment,
         },
       })
-        .then(stopLoader())
         .then(checkStatus)
         .then(resp => {
           this.notify("created");
@@ -33,12 +31,10 @@ class FUOTADeploymentStore extends EventEmitter {
   }
 
   get(id, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.FUOTADeploymentService.Get({
         id: id,
       })
-        .then(stopLoader())
         .then(checkStatus)
         .then(resp => {
           callbackFunc(resp.obj);
@@ -48,10 +44,8 @@ class FUOTADeploymentStore extends EventEmitter {
   }
 
   list(filters, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.FUOTADeploymentService.List(filters)
-        .then(stopLoader())
         .then(checkStatus)
         .then(resp => {
           callbackFunc(resp.obj);
@@ -61,10 +55,8 @@ class FUOTADeploymentStore extends EventEmitter {
   }
 
   listDeploymentDevices(filters, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.FUOTADeploymentService.ListDeploymentDevices(filters)
-        .then(stopLoader())
         .then(checkStatus)
         .then(resp => {
           callbackFunc(resp.obj);
@@ -74,13 +66,11 @@ class FUOTADeploymentStore extends EventEmitter {
   }
 
   getDeploymentDevice(fuotaDeploymentID, devEUI, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.FUOTADeploymentService.GetDeploymentDevice({
         fuota_deployment_id: fuotaDeploymentID,
         dev_eui: devEUI,
       })
-        .then(stopLoader)
         .then(checkStatus)
         .then(resp => {
           callbackFunc(resp.obj);
@@ -106,3 +96,4 @@ class FUOTADeploymentStore extends EventEmitter {
 
 const fuotaDeploymentStore = new FUOTADeploymentStore();
 export default fuotaDeploymentStore;
+

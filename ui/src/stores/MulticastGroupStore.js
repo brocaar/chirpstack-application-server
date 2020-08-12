@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler, startLoader, stopLoader } from "./helpers";
+import {checkStatus, errorHandler } from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -14,14 +14,12 @@ class MulticastGroupStore extends EventEmitter {
   }
 
   create(multicastGroup, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.MulticastGroupService.Create({
         body: {
           multicastGroup: multicastGroup,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("created");
@@ -32,12 +30,10 @@ class MulticastGroupStore extends EventEmitter {
   }
 
   get(id, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.MulticastGroupService.Get({
         id: id,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -47,7 +43,6 @@ class MulticastGroupStore extends EventEmitter {
   }
 
   update(multicastGroup, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.MulticastGroupService.Update({
         "multicast_group.id": multicastGroup.id,
@@ -55,7 +50,6 @@ class MulticastGroupStore extends EventEmitter {
           multicastGroup: multicastGroup,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("updated");
@@ -66,12 +60,10 @@ class MulticastGroupStore extends EventEmitter {
   }
 
   delete(id, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.MulticastGroupService.Delete({
         id: id,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notify("deleted");
@@ -82,7 +74,6 @@ class MulticastGroupStore extends EventEmitter {
   }
 
   list(search, organizationID, serviceProfileID, devEUI, limit, offset, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.MulticastGroupService.List({
         limit: limit,
@@ -92,7 +83,6 @@ class MulticastGroupStore extends EventEmitter {
         devEUI: devEUI,
         search: search,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         callbackFunc(resp.obj);
@@ -102,7 +92,6 @@ class MulticastGroupStore extends EventEmitter {
   }
 
   addDevice(multicastGroupID, devEUI, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.MulticastGroupService.AddDevice({
         multicast_group_id: multicastGroupID,
@@ -110,7 +99,6 @@ class MulticastGroupStore extends EventEmitter {
           devEUI: devEUI,
         },
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notifyDevice("added to");
@@ -121,13 +109,11 @@ class MulticastGroupStore extends EventEmitter {
   }
 
   removeDevice(multicastGroupID, devEUI, callbackFunc) {
-    startLoader();
     this.swagger.then(client => {
       client.apis.MulticastGroupService.RemoveDevice({
         multicast_group_id: multicastGroupID,
         dev_eui: devEUI,
       })
-      .then(stopLoader)
       .then(checkStatus)
       .then(resp => {
         this.notifyDevice("removed from");
@@ -156,7 +142,6 @@ class MulticastGroupStore extends EventEmitter {
       },
     });
   }
-
 }
 
 

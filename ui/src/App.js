@@ -14,7 +14,6 @@ import TopNav from "./components/TopNav";
 import SideNav from "./components/SideNav";
 import Footer from "./components/Footer";
 import Notifications from "./components/Notifications";
-import Loader from "./components/Loader";
 import SessionStore from "./stores/SessionStore";
 import Dashboard from "./views/dashboard/Dashboard";
 
@@ -165,7 +164,6 @@ class App extends Component {
           <CssBaseline />
           <MuiThemeProvider theme={theme}>
             <div className={this.props.classes.root}>
-              <Loader />
               {topNav}
               {sideNav}
               <div className={classNames(this.props.classes.main, this.state.drawerOpen && this.props.classes.mainDrawerOpen)}>

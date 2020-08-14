@@ -46,6 +46,7 @@ proto:
 
 ui/build:
 	@echo "Building ui"
+	@cd ui && npm install
 	@cd ui && npm run build
 	@mv ui/build/* static
 

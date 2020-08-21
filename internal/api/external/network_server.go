@@ -199,34 +199,20 @@ func (a *NetworkServerAPI) List(ctx context.Context, req *pb.ListNetworkServerRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	user, err := a.validator.GetUser(ctx)
+	filters := storage.NetworkServerFilters{
+		OrganizationID: req.OrganizationId,
+		Limit:          int(req.Limit),
+		Offset:         int(req.Offset),
+	}
+
+	count, err := storage.GetNetworkServerCount(ctx, storage.DB(), filters)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	var count int
-	var nss []storage.NetworkServer
-
-	if req.OrganizationId == 0 {
-		if user.IsAdmin {
-			count, err = storage.GetNetworkServerCount(ctx, storage.DB())
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-			nss, err = storage.GetNetworkServers(ctx, storage.DB(), int(req.Limit), int(req.Offset))
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		}
-	} else {
-		count, err = storage.GetNetworkServerCountForOrganizationID(ctx, storage.DB(), req.OrganizationId)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-		nss, err = storage.GetNetworkServersForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
+	nss, err := storage.GetNetworkServers(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
 	}
 
 	resp := pb.ListNetworkServerResponse{

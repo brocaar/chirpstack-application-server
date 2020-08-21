@@ -89,20 +89,7 @@ func (ts *APITestSuite) TestNetworkServer() {
 			assert.Equal("RPTLSKEY", n.RoutingProfileTLSKey)
 		})
 
-		t.Run("List as non-admin", func(t *testing.T) {
-			assert := require.New(t)
-
-			listResp, err := api.List(context.Background(), &pb.ListNetworkServerRequest{
-				Limit:  10,
-				Offset: 0,
-			})
-			assert.NoError(err)
-
-			assert.EqualValues(0, listResp.TotalCount, 0)
-			assert.Len(listResp.Result, 0)
-		})
-
-		t.Run("List as admin", func(t *testing.T) {
+		t.Run("List", func(t *testing.T) {
 			assert := require.New(t)
 			validator.returnUser = adminUser
 

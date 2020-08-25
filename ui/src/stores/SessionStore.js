@@ -136,12 +136,16 @@ class SessionStore extends EventEmitter {
     });
   }
 
-  logout(callBackFunc) {
+  logout(emit, callBackFunc) {
     localStorage.clear();
     this.user = null;
     this.organizations = [];
     this.settings = {};
-    this.emit("change");
+
+    if (emit === true) {
+      this.emit("change");
+    }
+
     callBackFunc();
   }
 

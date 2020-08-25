@@ -94,7 +94,7 @@ class Login extends Component {
   }
 
   componentDidMount() {
-    SessionStore.logout(() => {});
+    SessionStore.logout(true, () => {});
 
     InternalStore.settings(resp => {
       this.setState({

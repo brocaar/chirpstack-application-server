@@ -183,6 +183,7 @@ func (ts *APITestSuite) TestInternal() {
 		brandingFooter = "branding-foot"
 		openIDConnectEnabled = true
 		openIDLoginLabel = "login label"
+		logoutURL = "http://logout.com"
 
 		validator := &TestValidator{returnSubject: "user"}
 		api := NewInternalAPI(validator)
@@ -198,6 +199,7 @@ func (ts *APITestSuite) TestInternal() {
 				Enabled:    true,
 				LoginUrl:   "/auth/oidc/login",
 				LoginLabel: "login label",
+				LogoutUrl:  "http://logout.com",
 			},
 		}, resp)
 	})

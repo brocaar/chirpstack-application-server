@@ -91,9 +91,21 @@ class TopNav extends Component {
   }
 
   onLogout = () => {
-    SessionStore.logout(() => {
-      this.props.history.push("/login");
-    });
+    if (this.state.oidcEnabled === true) {
+      if (this.state.logoutURL !== "") {
+        SessionStore.logout(false, () => {
+          window.location.assign(this.state.logoutURL);
+        });
+      } else {
+        SessionStore.logout(true, () => {
+            this.props.history.push("/login");
+        });
+      }
+    } else {
+      SessionStore.logout(true, () => {
+        this.props.history.push("/login");
+      });
+    }
   }
 
   handleDrawerToggle = () => {
@@ -115,6 +127,7 @@ class TopNav extends Component {
     InternalStore.settings(resp => {
       this.setState({
         oidcEnabled: resp.openidConnect.enabled,
+        logoutURL: resp.openidConnect.logoutURL,
       });
     })
   }

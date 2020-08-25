@@ -38,6 +38,7 @@ var (
 	openIDConnectEnabled    bool
 	registrationEnabled     bool
 	registrationCallbackURL string
+	logoutURL               string
 
 	bind            string
 	tlsCert         string
@@ -60,6 +61,7 @@ func Setup(conf config.Config) error {
 	registrationCallbackURL = conf.ApplicationServer.UserAuthentication.OpenIDConnect.RegistrationCallbackURL
 	openIDConnectEnabled = conf.ApplicationServer.UserAuthentication.OpenIDConnect.Enabled
 	openIDLoginLabel = conf.ApplicationServer.UserAuthentication.OpenIDConnect.LoginLabel
+	logoutURL = conf.ApplicationServer.UserAuthentication.OpenIDConnect.LogoutURL
 
 	bind = conf.ApplicationServer.ExternalAPI.Bind
 	tlsCert = conf.ApplicationServer.ExternalAPI.TLSCert

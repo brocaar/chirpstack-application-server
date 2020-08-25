@@ -41,6 +41,7 @@ type Config struct {
 				ClientID                string `mapstructure:"client_id"`
 				ClientSecret            string `mapstructure:"client_secret"`
 				RedirectURL             string `mapstructure:"redirect_url"`
+				LogoutURL               string `mapstructure:"logout_url"`
 				LoginLabel              string `mapstructure:"login_label"`
 			} `mapstructure:"openid_connect"`
 		} `mapstructure:"user_authentication"`

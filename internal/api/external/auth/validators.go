@@ -1085,30 +1085,55 @@ func ValidateOrganizationUserAccess(flag Flag, organizationID, userID int64) Val
 // ValidateGatewayProfileAccess validates if the client has access
 // to the gateway-profiles.
 func ValidateGatewayProfileAccess(flag Flag) ValidatorFunc {
-	query := `
+	userQuery := `
 		select
 			1
 		from
 			"user" u
 	`
 
-	var where = [][]string{}
+	apiKeyQuery := `
+		select
+			1
+		from
+			api_key ak
+	`
+
+	var userWhere = [][]string{}
+	var apiKeyWhere = [][]string{}
 
 	switch flag {
 	case Create, Update, Delete:
 		// global admin
-		where = [][]string{
+		userWhere = [][]string{
 			{"(u.email = $1 or u.id = $2)", "u.is_active = true", "u.is_admin = true"},
+		}
+
+		// admin api key
+		apiKeyWhere = [][]string{
+			{"ak.id = $1", "ak.is_admin = true"},
 		}
 	case Read, List:
 		// any active user
-		where = [][]string{
+		userWhere = [][]string{
 			{"(u.email = $1 or u.id = $2)", "u.is_active = true"},
+		}
+
+		// any api key
+		apiKeyWhere = [][]string{
+			{"ak.id = $1"},
 		}
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
-		return executeQuery(db, query, where, claims.Username, claims.UserID)
+		switch claims.Subject {
+		case SubjectUser:
+			return executeQuery(db, userQuery, userWhere, claims.Username, claims.UserID)
+		case SubjectAPIKey:
+			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID)
+		default:
+			return false, nil
+		}
 	}
 }
 

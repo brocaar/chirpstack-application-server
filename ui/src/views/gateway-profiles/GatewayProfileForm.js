@@ -13,6 +13,7 @@ import Grid from '@material-ui/core/Grid';
 import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
 import FormControl from "../../components/FormControl";
+import DurationField from "../../components/DurationField";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import NetworkServerStore from "../../stores/NetworkServerStore";
 
@@ -284,7 +285,13 @@ class GatewayProfileForm extends FormComponent {
           required
           fullWidth
         />
-
+        <DurationField
+          id="statsInterval"
+          label="Stats interval (seconds)"
+          helperText="The stats interval in which the gateway reports its statistics."
+          value={this.state.object.statsInterval}
+          onChange={this.onChange}
+        />
         <TextField
           id="channelsStr"
           label="Enabled channels"

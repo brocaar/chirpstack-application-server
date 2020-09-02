@@ -853,6 +853,7 @@ func (ts *APITestSuite) TestApplication() {
 					Integration: &pb.PilotThingsIntegration{
 						ApplicationId: createResp.Id,
 						Server:        "http://localhost:1234",
+						Token:         "very secure token",
 					},
 				}
 				_, err := api.CreatePilotThingsIntegration(context.Background(), &createReq)
@@ -885,6 +886,7 @@ func (ts *APITestSuite) TestApplication() {
 						Integration: &pb.PilotThingsIntegration{
 							ApplicationId: createResp.Id,
 							Server:        "https://localhost:12345",
+							Token:         "less secure token",
 						},
 					}
 					_, err := api.UpdatePilotThingsIntegration(context.Background(), &updateReq)
@@ -900,10 +902,10 @@ func (ts *APITestSuite) TestApplication() {
 				t.Run("Delete", func(t *testing.T) {
 					assert := require.New(t)
 
-					_, err := api.DeletePilotThingsIntegration(context.Background(), &pb.DeletePilotThingsIntegration{ApplicationId: createResp.Id})
+					_, err := api.DeletePilotThingsIntegration(context.Background(), &pb.DeletePilotThingsIntegrationRequest{ApplicationId: createResp.Id})
 					assert.NoError(err)
 
-					_, err = api.GetPilotThingsIntegration(context.Background(), &pb.GetPilotThingsIntegration{ApplicationId: createResp.Id})
+					_, err = api.GetPilotThingsIntegration(context.Background(), &pb.GetPilotThingsIntegrationRequest{ApplicationId: createResp.Id})
 					assert.Equal(codes.NotFound, grpc.Code(err))
 				})
 			})

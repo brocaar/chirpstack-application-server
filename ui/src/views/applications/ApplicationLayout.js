@@ -28,6 +28,7 @@ import CreateInfluxDBIntegration from "./integrations/CreateInfluxDBIntegration"
 import CreateThingsBoardIntegration from "./integrations/CreateThingsBoardIntegration";
 import CreateLoRaCloudIntegration from "./integrations/CreateLoRaCloudIntegration";
 import CreateMyDevicesIntegration from "./integrations/CreateMyDevicesIntegration";
+import CreatePilotThingsIntegration from "./integrations/CreatePilotThingsIntegration";
 import UpdateAWSSNSIntegration from "./integrations/UpdateAWSSNSIntegration";
 import UpdateGCPPubSubIntegration from "./integrations/UpdateGCPPubSubIntegration";
 import UpdateHTTPIntegration from "./integrations/UpdateHTTPIntegration";
@@ -36,6 +37,7 @@ import UpdateInfluxDBIntegration from "./integrations/UpdateInfluxDBIntegration"
 import UpdateThingsBoardIntegration from "./integrations/UpdateThingsBoardIntegration";
 import UpdateLoRaCloudIntegration from "./integrations/UpdateLoRaCloudIntegration";
 import UpdateMyDevicesIntegration from "./integrations/UpdateMyDevicesIntegration";
+import UpdatePilotThingsIntegration from "./integrations/UpdatePilotThingsIntegration";
 
 import theme from "../../theme";
 
@@ -185,6 +187,8 @@ class ApplicationLayout extends Component {
             <Route exact path={`${this.props.match.path}/integrations/loracloud/edit`} render={props => <UpdateLoRaCloudIntegration {...props} />} />
             <Route exact path={`${this.props.match.path}/integrations/mydevices/create`} render={props => <CreateMyDevicesIntegration {...props} />} />
             <Route exact path={`${this.props.match.path}/integrations/mydevices/edit`} render={props => <UpdateMyDevicesIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/pilot-things/create`} render={props => <CreatePilotThingsIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/pilot-things/edit`} render={props => <UpdatePilotThingsIntegration {...props} />} />
           </Switch>
         </Grid>
       </Grid>

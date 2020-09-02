@@ -24,6 +24,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/integration/mqtt"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/multi"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/mydevices"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/pilotthings"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/postgresql"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/thingsboard"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
@@ -39,6 +40,7 @@ const (
 	GCPPubSub       = "GCP_PUBSUB"
 	AWSSNS          = "AWS_SNS"
 	AzureServiceBus = "AZURE_SERVICE_BUS"
+	PilotThings     = "PILOT_THINGS"
 )
 
 var (
@@ -233,6 +235,17 @@ func ForApplicationID(id int64) models.Integration {
 
 			// create new aws sns integration
 			i, err = azureservicebus.New(marshalType, conf)
+		case PilotThings:
+			var config pilotthings.Config
+			if err := json.NewDecoder(bytes.NewReader(appint.Settings)).Decode(&config); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"application_id": id,
+				}).Error("integrtations: read pilot things configuration error")
+				continue
+			}
+
+			// create new pilot things integration
+			i, err = pilotthings.New(config)
 		default:
 			log.WithFields(log.Fields{
 				"application_id": id,

@@ -288,7 +288,7 @@ class GatewayProfileForm extends FormComponent {
         <DurationField
           id="statsInterval"
           label="Stats interval (seconds)"
-          helperText="The stats interval in which the gateway reports its statistics."
+          helperText="The stats interval in which the gateway reports its statistics. The recommended value is 30 seconds."
           value={this.state.object.statsInterval}
           onChange={this.onChange}
         />

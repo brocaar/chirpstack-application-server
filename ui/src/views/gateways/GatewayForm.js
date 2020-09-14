@@ -161,6 +161,7 @@ class GatewayForm extends FormComponent {
       object.location = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
+        altitude: this.state.object.location.altitude,
       }
       this.setState({
         object: object,
@@ -174,6 +175,7 @@ class GatewayForm extends FormComponent {
     object.location = {
       latitude: position.lat,
       longitude: position.lng,
+      altitude: this.state.object.location.altitude,
     }
     this.setState({
       object: object,

@@ -2,10 +2,12 @@ package external
 
 import (
 	"testing"
+	"time"
 
 	"github.com/brocaar/chirpstack-api/go/v3/common"
 	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	uuid "github.com/gofrs/uuid"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -40,6 +42,7 @@ func (ts *APITestSuite) TestGatewayProfile() {
 				Name:            "test-gp",
 				NetworkServerId: n.ID,
 				Channels:        []uint32{0, 1, 2},
+				StatsInterval:   ptypes.DurationProto(time.Second * 30),
 				ExtraChannels: []*pb.GatewayProfileExtraChannel{
 					{
 						Modulation:       common.Modulation_LORA,
@@ -120,6 +123,7 @@ func (ts *APITestSuite) TestGatewayProfile() {
 					NetworkServerId: n.ID,
 					Name:            "updated-gp",
 					Channels:        []uint32{1, 2},
+					StatsInterval:   ptypes.DurationProto(time.Minute * 30),
 					ExtraChannels: []*pb.GatewayProfileExtraChannel{
 						{
 							Modulation: common.Modulation_FSK,

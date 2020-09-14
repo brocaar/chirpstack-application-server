@@ -178,11 +178,11 @@ id="{{ .ApplicationServer.ID }}"
     # with '/auth/oidc/callback' path, e.g. https://example.com/auth/oidc/callback.
     redirect_url="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.RedirectURL }}"
 
-	# Logout URL.
-	#
-	# When set, ChirpStack Application Server will redirect to this URL instead
-	# of redirecting to the login page.
-	logout_url="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.LogoutURL }}"
+    # Logout URL.
+    #
+    # When set, ChirpStack Application Server will redirect to this URL instead
+    # of redirecting to the login page.
+    logout_url="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.LogoutURL }}"
 
     # Login label.
     #

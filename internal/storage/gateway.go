@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	uuid "github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/lib/pq/hstore"
@@ -40,7 +41,7 @@ type Gateway struct {
 	LastPingID       *int64        `db:"last_ping_id"`
 	LastPingSentAt   *time.Time    `db:"last_ping_sent_at"`
 	NetworkServerID  int64         `db:"network_server_id"`
-	GatewayProfileID *string       `db:"gateway_profile_id"`
+	GatewayProfileID *uuid.UUID    `db:"gateway_profile_id"`
 	Latitude         float64       `db:"latitude"`
 	Longitude        float64       `db:"longitude"`
 	Altitude         float64       `db:"altitude"`
@@ -585,14 +586,23 @@ func GetLastGatewayPingAndRX(ctx context.Context, db sqlx.Queryer, mac lorawan.E
 func GetGatewaysActiveInactive(ctx context.Context, db sqlx.Queryer, organizationID int64) (GatewaysActiveInactive, error) {
 	var out GatewaysActiveInactive
 	err := sqlx.Get(db, &out, `
+		with gateway_active_inactive as (
+			select
+				g.last_seen_at as last_seen_at,
+				make_interval(secs => coalesce(gp.stats_interval / 1000000000, 30)) * 1.5 as stats_interval
+			from
+				gateway g
+			left join gateway_profile gp
+				on g.gateway_profile_id = gp.gateway_profile_id
+			where
+				$1 = 0 or g.organization_id = $1
+		)
 		select
-			coalesce(sum(case when g.last_seen_at is null then 1 end), 0) as never_seen_count,
-			coalesce(sum(case when (now() - '1 minute'::interval) > g.last_seen_at then 1 end), 0) as inactive_count,
-			coalesce(sum(case when (now() - '1 minute'::interval) <= g.last_seen_at then 1 end), 0) as active_count
+			coalesce(sum(case when last_seen_at is null then 1 end), 0) as never_seen_count,
+			coalesce(sum(case when (now() - stats_interval) > last_seen_at then 1 end), 0) as inactive_count,
+			coalesce(sum(case when (now() - stats_interval) <= last_seen_at then 1 end), 0) as active_count
 		from
-			gateway g
-		where
-			$1 = 0 or g.organization_id = $1
+			gateway_active_inactive
 	`, organizationID)
 	if err != nil {
 		return out, errors.Wrap(err, "get gateway active/inactive count error")

@@ -317,7 +317,7 @@ func GetNetworkServerCount(ctx context.Context, db sqlx.Queryer, filters Network
 func GetNetworkServers(ctx context.Context, db sqlx.Queryer, filters NetworkServerFilters) ([]NetworkServer, error) {
 	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
-			ns.*
+			distinct ns.*
 		from
 			network_server ns
 		left join service_profile sp

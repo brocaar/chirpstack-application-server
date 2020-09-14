@@ -61,6 +61,14 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
 	}
 
+	var gpID uuid.UUID
+	if req.Gateway.GatewayProfileId != "" {
+		gpID, err = uuid.FromString(req.Gateway.GatewayProfileId)
+		if err != nil {
+			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+		}
+	}
+
 	// Set CreateGatewayRequest struct.
 	createReq := ns.CreateGatewayRequest{
 		Gateway: &ns.Gateway{
@@ -69,11 +77,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			RoutingProfileId: applicationServerID.Bytes(),
 		},
 	}
-	if req.Gateway.GatewayProfileId != "" {
-		gpID, err := uuid.FromString(req.Gateway.GatewayProfileId)
-		if err != nil {
-			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
-		}
+	if gpID != uuid.Nil {
 		createReq.Gateway.GatewayProfileId = gpID.Bytes()
 	}
 	for _, board := range req.Gateway.Boards {
@@ -127,7 +131,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			}
 		}
 
-		err = storage.CreateGateway(ctx, tx, &storage.Gateway{
+		gw := storage.Gateway{
 			MAC:             mac,
 			Name:            req.Gateway.Name,
 			Description:     req.Gateway.Description,
@@ -138,7 +142,13 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			Longitude:       req.Gateway.Location.Longitude,
 			Altitude:        req.Gateway.Location.Altitude,
 			Tags:            tags,
-		})
+		}
+
+		if gpID != uuid.Nil {
+			gw.GatewayProfileID = &gpID
+		}
+
+		err = storage.CreateGateway(ctx, tx, &gw)
 		if err != nil {
 			return helpers.ErrToRPCError(err)
 		}
@@ -401,6 +411,14 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		tags.Map[k] = sql.NullString{Valid: true, String: v}
 	}
 
+	var gpID uuid.UUID
+	if req.Gateway.GatewayProfileId != "" {
+		gpID, err = uuid.FromString(req.Gateway.GatewayProfileId)
+		if err != nil {
+			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+		}
+	}
+
 	err = storage.Transaction(func(tx sqlx.Ext) error {
 		gw, err := storage.GetGateway(ctx, tx, mac, true)
 		if err != nil {
@@ -414,6 +432,10 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		gw.Longitude = req.Gateway.Location.Longitude
 		gw.Altitude = req.Gateway.Location.Altitude
 		gw.Tags = tags
+		gw.GatewayProfileID = nil
+		if gpID != uuid.Nil {
+			gw.GatewayProfileID = &gpID
+		}
 
 		err = storage.UpdateGateway(ctx, tx, &gw)
 		if err != nil {
@@ -427,11 +449,7 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 			},
 		}
 
-		if req.Gateway.GatewayProfileId != "" {
-			gpID, err := uuid.FromString(req.Gateway.GatewayProfileId)
-			if err != nil {
-				return grpc.Errorf(codes.InvalidArgument, err.Error())
-			}
+		if gpID != uuid.Nil {
 			updateReq.Gateway.GatewayProfileId = gpID.Bytes()
 		}
 

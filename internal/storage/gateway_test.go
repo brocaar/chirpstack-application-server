@@ -151,8 +151,8 @@ func (ts *StorageTestSuite) TestGateway() {
 			assert.NoError(err)
 			assert.Equal(GatewaysActiveInactive{
 				NeverSeenCount: 0,
-				ActiveCount:    1,
-				InactiveCount:  0,
+				ActiveCount:    0,
+				InactiveCount:  1,
 			}, ga)
 		})
 

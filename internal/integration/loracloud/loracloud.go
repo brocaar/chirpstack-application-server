@@ -3,6 +3,7 @@ package loracloud
 import (
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -40,11 +41,12 @@ type Config struct {
 	GeolocationWifiPayloadField string `json:"geolocationWifiPayloadField"`
 
 	// Device Application Services.
-	DAS              bool   `json:"das"`
-	DASToken         string `json:"dasToken"`
-	DASModemPort     uint8  `json:"dasModemPort"`
-	DASGNSSPort      uint8  `json:"dasGNSSPort"`
-	DASGNSSUseRxTime bool   `json:"dasGNSSUseRxTime"`
+	DAS                          bool   `json:"das"`
+	DASToken                     string `json:"dasToken"`
+	DASModemPort                 uint8  `json:"dasModemPort"`
+	DASGNSSPort                  uint8  `json:"dasGNSSPort"`
+	DASGNSSUseRxTime             bool   `json:"dasGNSSUseRxTime"`
+	DASStreamingGeolocWorkaround bool   `json:"dasStreamingGeolocWorkaround"`
 }
 
 // Integration implements a LoRaCloud Integration.
@@ -56,8 +58,6 @@ type Integration struct {
 
 // New creates a new LoRaCloud integration.
 func New(conf Config) (*Integration, error) {
-	conf.DASGNSSPort = 198
-
 	return &Integration{
 		config:         conf,
 		geolocationURI: "https://gls.loracloud.com",
@@ -558,6 +558,16 @@ func (i *Integration) handleDASResponse(ctx context.Context, vars map[string]str
 		return fmt.Errorf("das api returned error: %s", devResp.Error)
 	}
 
+	// workaround!
+	if i.config.DASStreamingGeolocWorkaround && len(devResp.Result.StreamRecords) != 0 {
+		if err := i.streamGeolocWorkaround(ctx, vars, devEUI, ii, pl, devResp.Result.StreamRecords); err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"dev_eui": devEUI,
+				"ctx_id":  ctx.Value(logging.ContextIDKey),
+			}).Error("integration/loracloud: streaming geoloc workaround error")
+		}
+	}
+
 	b, err := json.Marshal(devResp.Result)
 	if err != nil {
 		return errors.Wrap(err, "marshal json error")
@@ -610,6 +620,74 @@ func (i *Integration) handleDASResponse(ctx context.Context, vars map[string]str
 		}
 		if err := ii.HandleLocationEvent(ctx, vars, locPL); err != nil {
 			log.WithError(err).Error("integration/loracloud: handle  location event error")
+		}
+	}
+
+	return nil
+}
+
+func (i *Integration) streamGeolocWorkaround(ctx context.Context, vars map[string]string, devEUI lorawan.EUI64, ii models.Integration, pl integration.UplinkEvent, records das.StreamUpdate) error {
+	var payloads [][]byte
+
+	for _, r := range records {
+		// sanity check as 0 = index, 1 = payload
+		if len(r) != 2 {
+			continue
+		}
+
+		// sanity check to make sure that pl is of type string
+		hexPL, ok := r[1].(string)
+		if !ok {
+			continue
+		}
+
+		// decode pl from hex
+		b, err := hex.DecodeString(hexPL)
+		if err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"dev_eui": devEUI,
+				"ctx_id":  ctx.Value(logging.ContextIDKey),
+			}).Error("integration/loracloud: could not hex decode stream record")
+			continue
+		}
+
+		payloads = append(payloads, b)
+	}
+
+	for _, p := range payloads {
+		if len(p) < 2 {
+			continue
+		}
+
+		// gnss with pcb || gnss with patch antenna
+		if p[0] == 0x06 || p[0] == 0x07 {
+			msg := das.UplinkMsgGNSS{
+				MsgType:   "gnss",
+				Payload:   helpers.HEXBytes(p[2:]),
+				Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).Unix()),
+			}
+
+			// Note: we must rely on the embedded gnss timestamp, as the frame
+			// is de-fragmented and we can not assume the scan time from the
+			// rx timestamp.
+
+			if loc := helpers.GetStartLocation(pl.RxInfo); loc != nil {
+				msg.GNSSAssistPosition = []float64{loc.Latitude, loc.Longitude}
+				msg.GNSSAssistAltitude = loc.Altitude
+			}
+
+			client := das.New(i.dasURI, i.config.DASToken)
+			resp, err := client.UplinkSend(ctx, das.UplinkRequest{
+				helpers.EUI64(devEUI): msg,
+			})
+			if err != nil {
+				return errors.Wrap(err, "das error")
+			}
+
+			err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl)
+			if err != nil {
+				return errors.Wrap(err, "handle das response error")
+			}
 		}
 	}
 

@@ -234,16 +234,35 @@ func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListService
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	user, err := a.validator.GetUser(ctx)
+	sub, err := a.validator.GetSubject(ctx)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
+	}
+
+	isAdminOrAPIKey := false
+	userID := int64(0)
+	switch sub {
+	case auth.SubjectUser:
+		user, err := a.validator.GetUser(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+		isAdminOrAPIKey = user.IsAdmin
+		userID = user.ID
+
+	case auth.SubjectAPIKey:
+		// Nothing to do as the validator function already validated that the
+		// API Key has access to the given OrganizationID.
+		isAdminOrAPIKey = true
+	default:
+		return nil, grpc.Errorf(codes.Unauthenticated, "invalid token subject: %s", sub)
 	}
 
 	var count int
 	var sps []storage.ServiceProfileMeta
 
 	if req.OrganizationId == 0 {
-		if user.IsAdmin {
+		if isAdminOrAPIKey {
 			sps, err = storage.GetServiceProfiles(ctx, storage.DB(), int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
@@ -254,12 +273,12 @@ func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListService
 				return nil, helpers.ErrToRPCError(err)
 			}
 		} else {
-			sps, err = storage.GetServiceProfilesForUser(ctx, storage.DB(), user.ID, int(req.Limit), int(req.Offset))
+			sps, err = storage.GetServiceProfilesForUser(ctx, storage.DB(), userID, int(req.Limit), int(req.Offset))
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}
 
-			count, err = storage.GetServiceProfileCountForUser(ctx, storage.DB(), user.ID)
+			count, err = storage.GetServiceProfileCountForUser(ctx, storage.DB(), userID)
 			if err != nil {
 				return nil, helpers.ErrToRPCError(err)
 			}

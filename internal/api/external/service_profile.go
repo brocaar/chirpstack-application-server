@@ -239,8 +239,8 @@ func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListService
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	isAdminOrAPIKey := false
-	userID := int64(0)
+	var isAdminOrAPIKey bool
+	var userID int64
 	switch sub {
 	case auth.SubjectUser:
 		user, err := a.validator.GetUser(ctx)

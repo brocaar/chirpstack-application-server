@@ -40,11 +40,22 @@ type Integration struct {
 	uplink string
 }
 
+type uplinkMetadata struct {
+	Rssi    int32   `json:"rssi"`
+	LoraSnr float64 `json:"lorasnr"`
+	RfChain uint32  `json:"rfchain"`
+	Antenna uint32  `json:"antenna"`
+	Board   uint32  `json:"board"`
+}
+
 type uplinkPayload struct {
-	DeviceName string `json:"deviceName"`
-	Data       string `json:"data"`
-	DevEUI     string `json:"devEUI"`
-	FPort      uint32 `json:"fPort"`
+	DeviceName string           `json:"deviceName"`
+	Data       string           `json:"data"`
+	DevEUI     string           `json:"devEUI"`
+	FPort      uint32           `json:"fPort"`
+	DevAddr    string           `json:"devAddr"`
+	FCnt       uint32           `json:"fcnt"`
+	Metadata   []uplinkMetadata `json:"metadata"`
 }
 
 // New creates the integration from a configuration
@@ -73,6 +84,19 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 		hex.EncodeToString(event.Data),
 		hex.EncodeToString(event.DevEui),
 		event.FPort,
+		hex.EncodeToString(event.DevAddr),
+		event.FCnt,
+		make([]uplinkMetadata, 0, len(event.RxInfo)),
+	}
+
+	for _, rxInfo := range event.RxInfo {
+		body.Metadata = append(body.Metadata, uplinkMetadata{
+			rxInfo.Rssi,
+			rxInfo.LoraSnr,
+			rxInfo.RfChain,
+			rxInfo.Antenna,
+			rxInfo.Board,
+		})
 	}
 
 	bodyStr, err := json.Marshal(body)

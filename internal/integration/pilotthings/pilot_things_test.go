@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-api/go/v3/gw"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 )
@@ -67,6 +68,24 @@ func (ts *IntegrationTestSuite) TestUplink() {
 		DevEui:     []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
 		FPort:      11,
 		Data:       []byte{0x01, 0x02, 0x03, 0x04},
+		DevAddr:    []byte{0x05, 0x06, 0x07, 0x08},
+		FCnt:       10,
+		RxInfo: []*gw.UplinkRXInfo{
+			{
+				Rssi:    1,
+				LoraSnr: 1.1,
+				RfChain: 1,
+				Antenna: 1,
+				Board:   1,
+			},
+			{
+				Rssi:    2,
+				LoraSnr: 2.1,
+				RfChain: 2,
+				Antenna: 2,
+				Board:   3,
+			},
+		},
 	}
 
 	ctxID, err := uuid.NewV4()
@@ -92,6 +111,24 @@ func (ts *IntegrationTestSuite) TestUplink() {
 		Data:       "01020304",
 		DevEUI:     "0102030405060708",
 		FPort:      11,
+		DevAddr:    "05060708",
+		FCnt:       10,
+		Metadata: []uplinkMetadata{
+			{
+				Rssi:    1,
+				LoraSnr: 1.1,
+				RfChain: 1,
+				Antenna: 1,
+				Board:   1,
+			},
+			{
+				Rssi:    2,
+				LoraSnr: 2.1,
+				RfChain: 2,
+				Antenna: 2,
+				Board:   3,
+			},
+		},
 	}, pl2)
 }
 

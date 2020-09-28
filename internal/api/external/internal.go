@@ -289,6 +289,7 @@ func (a *InternalAPI) Settings(ctx context.Context, _ *empty.Empty) (*pb.Setting
 			Enabled:    openIDConnectEnabled,
 			LoginLabel: openIDLoginLabel,
 			LoginUrl:   "/auth/oidc/login",
+			LogoutUrl:  logoutURL,
 		},
 	}, nil
 }

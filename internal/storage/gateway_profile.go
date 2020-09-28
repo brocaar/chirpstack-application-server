@@ -5,13 +5,14 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-api/go/v3/ns"
 )
 
 // Modulations
@@ -40,12 +41,13 @@ type GatewayProfile struct {
 
 // GatewayProfileMeta defines the gateway-profile meta record.
 type GatewayProfileMeta struct {
-	GatewayProfileID  uuid.UUID `db:"gateway_profile_id"`
-	NetworkServerID   int64     `db:"network_server_id"`
-	NetworkServerName string    `db:"network_server_name"`
-	CreatedAt         time.Time `db:"created_at"`
-	UpdatedAt         time.Time `db:"updated_at"`
-	Name              string    `db:"name"`
+	GatewayProfileID  uuid.UUID     `db:"gateway_profile_id"`
+	NetworkServerID   int64         `db:"network_server_id"`
+	NetworkServerName string        `db:"network_server_name"`
+	CreatedAt         time.Time     `db:"created_at"`
+	UpdatedAt         time.Time     `db:"updated_at"`
+	Name              string        `db:"name"`
+	StatsInterval     time.Duration `db:"stats_interval"`
 }
 
 // CreateGatewayProfile creates the given gateway-profile.
@@ -63,20 +65,30 @@ func CreateGatewayProfile(ctx context.Context, db sqlx.Ext, gp *GatewayProfile) 
 	gp.CreatedAt = now
 	gp.UpdatedAt = now
 
+	var statsInterval time.Duration
+	if gp.GatewayProfile.StatsInterval != nil {
+		statsInterval, err = ptypes.Duration(gp.GatewayProfile.StatsInterval)
+		if err != nil {
+			return errors.Wrap(err, "stats interval error")
+		}
+	}
+
 	_, err = db.Exec(`
 		insert into gateway_profile (
 			gateway_profile_id,
 			network_server_id,
 			created_at,
 			updated_at,
-			name
-		) values ($1, $2, $3, $4, $5)`,
+			name,
+			stats_interval
+		) values ($1, $2, $3, $4, $5, $6)`,
 
 		gpID,
 		gp.NetworkServerID,
 		gp.CreatedAt,
 		gp.UpdatedAt,
 		gp.Name,
+		statsInterval,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -159,18 +171,28 @@ func UpdateGatewayProfile(ctx context.Context, db sqlx.Ext, gp *GatewayProfile) 
 		return errors.Wrap(err, "uuid from bytes error")
 	}
 
+	var statsInterval time.Duration
+	if gp.GatewayProfile.StatsInterval != nil {
+		statsInterval, err = ptypes.Duration(gp.GatewayProfile.StatsInterval)
+		if err != nil {
+			return errors.Wrap(err, "stats interval error")
+		}
+	}
+
 	res, err := db.Exec(`
 		update gateway_profile
 		set
 			updated_at = $2,
 			network_server_id = $3,
-			name = $4
+			name = $4,
+			stats_interval = $5
 		where
 			gateway_profile_id = $1`,
 		gpID,
 		gp.UpdatedAt,
 		gp.NetworkServerID,
 		gp.Name,
+		statsInterval,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update gateway-profile error")

@@ -45,7 +45,8 @@ func (a *GatewayProfileAPI) Create(ctx context.Context, req *pb.CreateGatewayPro
 		NetworkServerID: req.GatewayProfile.NetworkServerId,
 		Name:            req.GatewayProfile.Name,
 		GatewayProfile: ns.GatewayProfile{
-			Channels: req.GatewayProfile.Channels,
+			Channels:      req.GatewayProfile.Channels,
+			StatsInterval: req.GatewayProfile.StatsInterval,
 		},
 	}
 
@@ -100,6 +101,7 @@ func (a *GatewayProfileAPI) Get(ctx context.Context, req *pb.GetGatewayProfileRe
 			Name:            gp.Name,
 			NetworkServerId: gp.NetworkServerID,
 			Channels:        gp.GatewayProfile.Channels,
+			StatsInterval:   gp.GatewayProfile.StatsInterval,
 		},
 	}
 
@@ -150,6 +152,7 @@ func (a *GatewayProfileAPI) Update(ctx context.Context, req *pb.UpdateGatewayPro
 	gp.Name = req.GatewayProfile.Name
 	gp.GatewayProfile.Channels = req.GatewayProfile.Channels
 	gp.GatewayProfile.ExtraChannels = []*ns.GatewayProfileExtraChannel{}
+	gp.GatewayProfile.StatsInterval = req.GatewayProfile.StatsInterval
 
 	for _, ec := range req.GatewayProfile.ExtraChannels {
 		gp.GatewayProfile.ExtraChannels = append(gp.GatewayProfile.ExtraChannels, &ns.GatewayProfileExtraChannel{

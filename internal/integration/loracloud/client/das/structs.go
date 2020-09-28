@@ -66,7 +66,7 @@ type UplinkResponseItem struct {
 // UplinkResponseResult holds the response result.
 type UplinkResponseResult struct {
 	File              interface{}       `json:"file"`
-	StreamRecords     interface{}       `json:"stream_records"`
+	StreamRecords     StreamUpdate      `json:"stream_records"`
 	PositionSolution  *PositionSolution `json:"position_solution"`
 	FulfilledRequests interface{}       `json:"fulfilled_requests"`
 	FPorts            interface{}       `json:"fports"`
@@ -75,6 +75,10 @@ type UplinkResponseResult struct {
 	LogMessages       interface{}       `json:"log_messages"`
 	Downlink          *LoRaDownlink     `json:"dnlink"`
 }
+
+// StreamUpdate lists both the signals and the fully-assembled streaming records that are received by the decoder.
+// Each entry denotes an assembled packet with application data and record offset.
+type StreamUpdate [][]interface{}
 
 // LoRaDownlink implements the LoRa Cloud LoRaDownlink object.
 type LoRaDownlink struct {

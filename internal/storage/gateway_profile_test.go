@@ -5,143 +5,145 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofrs/uuid"
-	. "github.com/smartystreets/goconvey/convey"
+	uuid "github.com/gofrs/uuid"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/stretchr/testify/require"
 
-	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
-	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/chirpstack-application-server/internal/test"
 	"github.com/brocaar/chirpstack-api/go/v3/common"
 	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 )
 
-func TestGatewayProfile(t *testing.T) {
-	conf := test.GetConfig()
-	if err := Setup(conf); err != nil {
-		t.Fatal(err)
-	}
+func (ts *StorageTestSuite) TestGatewayProfile() {
+	assert := require.New(ts.T())
+
 	nsClient := mock.NewClient()
 	networkserver.SetPool(mock.NewPool(nsClient))
 
-	Convey("Given a clean database with network-server", t, func() {
-		test.MustResetDB(DB().DB)
+	n := NetworkServer{
+		Name:   "test-ns",
+		Server: "test-ns:1234",
+	}
+	assert.NoError(CreateNetworkServer(context.Background(), ts.Tx(), &n))
 
-		n := NetworkServer{
-			Name:   "test-ns",
-			Server: "test-ns:1234",
+	ts.T().Run("Create", func(t *testing.T) {
+		assert := require.New(t)
+
+		gp := GatewayProfile{
+			NetworkServerID: n.ID,
+			Name:            "test-gateway-profile",
+			GatewayProfile: ns.GatewayProfile{
+				Channels:      []uint32{0, 1, 2},
+				StatsInterval: ptypes.DurationProto(time.Second * 30),
+				ExtraChannels: []*ns.GatewayProfileExtraChannel{
+					{
+						Modulation:       common.Modulation_LORA,
+						Frequency:        867100000,
+						SpreadingFactors: []uint32{10, 11, 12},
+						Bandwidth:        125,
+					},
+				},
+			},
 		}
-		So(CreateNetworkServer(context.Background(), DB(), &n), ShouldBeNil)
+		assert.NoError(CreateGatewayProfile(context.Background(), ts.Tx(), &gp))
+		gp.CreatedAt = gp.CreatedAt.UTC().Truncate(time.Millisecond)
+		gp.UpdatedAt = gp.UpdatedAt.UTC().Truncate(time.Millisecond)
 
-		Convey("Then CreateGatewayProfile creates the gateway-profile", func() {
-			gp := GatewayProfile{
-				NetworkServerID: n.ID,
-				Name:            "test-gateway-profile",
-				GatewayProfile: ns.GatewayProfile{
-					Channels: []uint32{0, 1, 2},
-					ExtraChannels: []*ns.GatewayProfileExtraChannel{
-						{
-							Modulation:       common.Modulation_LORA,
-							Frequency:        867100000,
-							SpreadingFactors: []uint32{10, 11, 12},
-							Bandwidth:        125,
-						},
+		gpID, err := uuid.FromBytes(gp.GatewayProfile.Id)
+		assert.NoError(err)
+
+		assert.Equal(ns.CreateGatewayProfileRequest{
+			GatewayProfile: &gp.GatewayProfile,
+		}, <-nsClient.CreateGatewayProfileChan)
+
+		t.Run("Get", func(t *testing.T) {
+			assert := require.New(t)
+
+			nsClient.GetGatewayProfileResponse = ns.GetGatewayProfileResponse{
+				GatewayProfile: &gp.GatewayProfile,
+			}
+
+			gpGet, err := GetGatewayProfile(context.Background(), ts.Tx(), gpID)
+			assert.NoError(err)
+			gpGet.CreatedAt = gpGet.CreatedAt.UTC().Truncate(time.Millisecond)
+			gpGet.UpdatedAt = gpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
+
+			assert.Equal(gp, gpGet)
+		})
+
+		t.Run("Update", func(t *testing.T) {
+			assert := require.New(t)
+
+			gp.Name = "updated-gateway-profile"
+			gp.GatewayProfile = ns.GatewayProfile{
+				Id:            gp.GatewayProfile.Id,
+				Channels:      []uint32{0, 1},
+				StatsInterval: ptypes.DurationProto(time.Minute * 30),
+				ExtraChannels: []*ns.GatewayProfileExtraChannel{
+					{
+						Modulation:       common.Modulation_LORA,
+						Frequency:        867300000,
+						SpreadingFactors: []uint32{9, 10, 11, 12},
+						Bandwidth:        250,
 					},
 				},
 			}
-			So(CreateGatewayProfile(context.Background(), DB(), &gp), ShouldBeNil)
-			gp.CreatedAt = gp.CreatedAt.UTC().Truncate(time.Millisecond)
+
+			assert.NoError(UpdateGatewayProfile(context.Background(), ts.Tx(), &gp))
 			gp.UpdatedAt = gp.UpdatedAt.UTC().Truncate(time.Millisecond)
-			gpID, err := uuid.FromBytes(gp.GatewayProfile.Id)
-			So(err, ShouldBeNil)
 
-			So(nsClient.CreateGatewayProfileChan, ShouldHaveLength, 1)
-			So(<-nsClient.CreateGatewayProfileChan, ShouldResemble, ns.CreateGatewayProfileRequest{
+			assert.Equal(ns.UpdateGatewayProfileRequest{
 				GatewayProfile: &gp.GatewayProfile,
+			}, <-nsClient.UpdateGatewayProfileChan)
+
+			gpGet, err := GetGatewayProfile(context.Background(), ts.Tx(), gpID)
+			assert.NoError(err)
+			assert.Equal("updated-gateway-profile", gpGet.Name)
+		})
+
+		t.Run("List", func(t *testing.T) {
+			assert := require.New(t)
+
+			count, err := GetGatewayProfileCount(context.Background(), ts.Tx())
+			assert.NoError(err)
+			assert.Equal(1, count)
+
+			gps, err := GetGatewayProfiles(context.Background(), ts.Tx(), 10, 0)
+			assert.NoError(err)
+
+			assert.Len(gps, 1)
+			assert.Equal(gpID, gps[0].GatewayProfileID)
+			assert.Equal(gp.NetworkServerID, gps[0].NetworkServerID)
+			assert.Equal(n.Name, gps[0].NetworkServerName)
+			assert.Equal(gp.Name, gps[0].Name)
+		})
+
+		t.Run("List by NetworkServerID", func(t *testing.T) {
+			assert := require.New(t)
+
+			count, err := GetGatewayProfileCountForNetworkServerID(context.Background(), ts.Tx(), n.ID)
+			assert.NoError(err)
+			assert.Equal(1, count)
+
+			gps, err := GetGatewayProfilesForNetworkServerID(context.Background(), ts.Tx(), n.ID, 10, 0)
+			assert.Len(gps, 1)
+			assert.Equal(gpID, gps[0].GatewayProfileID)
+			assert.Equal(gp.NetworkServerID, gps[0].NetworkServerID)
+			assert.Equal(n.Name, gps[0].NetworkServerName)
+			assert.Equal(gp.Name, gps[0].Name)
+		})
+
+		t.Run("Delete", func(t *testing.T) {
+			assert := require.New(t)
+
+			assert.NoError(DeleteGatewayProfile(context.Background(), ts.Tx(), gpID))
+			assert.Equal(<-nsClient.DeleteGatewayProfileChan, ns.DeleteGatewayProfileRequest{
+				Id: gp.GatewayProfile.Id,
 			})
 
-			Convey("Then GetGatewayProfile reuturns the gateway-profile", func() {
-				nsClient.GetGatewayProfileResponse = ns.GetGatewayProfileResponse{
-					GatewayProfile: &gp.GatewayProfile,
-				}
-
-				gpGet, err := GetGatewayProfile(context.Background(), DB(), gpID)
-				So(err, ShouldBeNil)
-				gpGet.CreatedAt = gpGet.CreatedAt.UTC().Truncate(time.Millisecond)
-				gpGet.UpdatedAt = gpGet.UpdatedAt.UTC().Truncate(time.Millisecond)
-
-				So(gpGet, ShouldResemble, gp)
-			})
-
-			Convey("Then UpdateGatewayProfile updates the gateway-profile", func() {
-				gp.Name = "updated-gateway-profile"
-				gp.GatewayProfile = ns.GatewayProfile{
-					Id:       gp.GatewayProfile.Id,
-					Channels: []uint32{0, 1},
-					ExtraChannels: []*ns.GatewayProfileExtraChannel{
-						{
-							Modulation:       common.Modulation_LORA,
-							Frequency:        867300000,
-							SpreadingFactors: []uint32{9, 10, 11, 12},
-							Bandwidth:        250,
-						},
-					},
-				}
-
-				So(UpdateGatewayProfile(context.Background(), DB(), &gp), ShouldBeNil)
-				gp.UpdatedAt = gp.UpdatedAt.UTC().Truncate(time.Millisecond)
-
-				So(nsClient.UpdateGatewayProfileChan, ShouldHaveLength, 1)
-				So(<-nsClient.UpdateGatewayProfileChan, ShouldResemble, ns.UpdateGatewayProfileRequest{
-					GatewayProfile: &gp.GatewayProfile,
-				})
-
-				gpGet, err := GetGatewayProfile(context.Background(), DB(), gpID)
-				So(err, ShouldBeNil)
-				So(gpGet.Name, ShouldEqual, "updated-gateway-profile")
-			})
-
-			Convey("Then DeleteGatewayProfile deletes the gateway-profile", func() {
-				So(DeleteGatewayProfile(context.Background(), DB(), gpID), ShouldBeNil)
-				So(nsClient.DeleteGatewayProfileChan, ShouldHaveLength, 1)
-				So(<-nsClient.DeleteGatewayProfileChan, ShouldResemble, ns.DeleteGatewayProfileRequest{
-					Id: gp.GatewayProfile.Id,
-				})
-
-				_, err := GetGatewayProfile(context.Background(), DB(), gpID)
-				So(err, ShouldEqual, ErrDoesNotExist)
-			})
-
-			Convey("Then GetGatewayProfileCount returns the number of gateway profiles", func() {
-				count, err := GetGatewayProfileCount(context.Background(), db)
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 1)
-			})
-
-			Convey("Then GetGatewayProfiles returns the gateway profiles", func() {
-				gps, err := GetGatewayProfiles(context.Background(), DB(), 10, 0)
-				So(err, ShouldBeNil)
-				So(gps, ShouldHaveLength, 1)
-				So(gps[0].GatewayProfileID, ShouldEqual, gpID)
-				So(gps[0].NetworkServerID, ShouldEqual, gp.NetworkServerID)
-				So(gps[0].NetworkServerName, ShouldEqual, n.Name)
-				So(gps[0].Name, ShouldEqual, gp.Name)
-			})
-
-			Convey("Then GetGatewayProfileCountForNetworkServerID returns the number of gateway profiles", func() {
-				count, err := GetGatewayProfileCountForNetworkServerID(context.Background(), DB(), n.ID)
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 1)
-			})
-
-			Convey("Then GetGatewayProfilesForNetworkServerID returns the gateway profiles", func() {
-				gps, err := GetGatewayProfilesForNetworkServerID(context.Background(), DB(), n.ID, 10, 0)
-				So(err, ShouldBeNil)
-				So(gps, ShouldHaveLength, 1)
-				So(gps[0].GatewayProfileID, ShouldEqual, gpID)
-				So(gps[0].NetworkServerID, ShouldEqual, gp.NetworkServerID)
-				So(gps[0].NetworkServerName, ShouldEqual, n.Name)
-				So(gps[0].Name, ShouldEqual, gp.Name)
-			})
+			_, err := GetGatewayProfile(context.Background(), ts.Tx(), gpID)
+			assert.Equal(ErrDoesNotExist, err)
 		})
 	})
 }

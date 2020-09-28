@@ -6,6 +6,7 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import FormGroup from "@material-ui/core/FormGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+import FormHelperText from "@material-ui/core/FormHelperText";
 import Checkbox from "@material-ui/core/Checkbox";
 
 import FormComponent from "../../../classes/FormComponent";
@@ -245,6 +246,26 @@ class LoRaCloudIntegrationForm extends FormComponent {
                   />
                 }
               />
+            </FormGroup>
+          </FormControl>}
+          {!!this.state.object.das && <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="Resolve geolocation records from data streams"
+                control={
+                  <Checkbox 
+                    id="dasStreamingGeolocWorkaround"
+                    checked={!!this.state.object.dasStreamingGeolocWorkaround}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+              <FormHelperText>
+                When enabled, ChirpStack Application Server will try to resolve the location of the device when a geolocation payload is detected.
+                The payload must be in TLV format. Type 0x06 and 0x07 are handled as GNSS payload.
+                Note: this flag will be removed when natively supported by the API.
+              </FormHelperText>
             </FormGroup>
           </FormControl>}
         </div>}

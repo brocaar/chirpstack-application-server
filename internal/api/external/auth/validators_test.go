@@ -331,6 +331,24 @@ func (ts *ValidatorTestSuite) TestGateway() {
 				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
+			{
+				Name:       "admin api key can create, update, delete, read and list",
+				Validators: []ValidatorFunc{ValidateGatewayProfileAccess(Create), ValidateGatewayProfileAccess(Update), ValidateGatewayProfileAccess(Delete), ValidateGatewayProfileAccess(Read), ValidateGatewayProfileAccess(List)},
+				Claims:     Claims{APIKeyID: apiKeys[0].ID},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "any api key can read and list",
+				Validators: []ValidatorFunc{ValidateGatewayProfileAccess(Read), ValidateGatewayProfileAccess(List)},
+				Claims:     Claims{APIKeyID: apiKeys[3].ID},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "non-admin api keys can not create, update or delete",
+				Validators: []ValidatorFunc{ValidateGatewayProfileAccess(Create), ValidateGatewayProfileAccess(Update), ValidateGatewayProfileAccess(Delete)},
+				Claims:     Claims{APIKeyID: apiKeys[1].ID},
+				ExpectedOK: false,
+			},
 		}
 
 		ts.RunTests(t, tests)

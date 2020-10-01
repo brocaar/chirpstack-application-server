@@ -116,6 +116,13 @@ class ListIntegrations extends Component {
         available.push(<MyDevicesCard organizationID={organizationID} applicationID={applicationID} add />);
       }
 
+      // Pilot Things
+      if (includes(resp.result, "PILOT_THINGS")) {
+        configured.push(<PilotThingsCard organizationID={organizationID} applicationID={applicationID} />);
+      } else {
+        available.push(<PilotThingsCard organizationID={organizationID} applicationID={applicationID} add />);
+      }
+
       // Semtech LoRa Cloud
       if(includes(resp.result, "LORACLOUD")) {
         configured.push(<LoRaCloudCard organizationID={organizationID} applicationID={applicationID} />);
@@ -128,13 +135,6 @@ class ListIntegrations extends Component {
         configured.push(<ThingsboardCard organizationID={organizationID} applicationID={applicationID} />);
       } else {
         available.push(<ThingsboardCard organizationID={organizationID} applicationID={applicationID} add />);
-      }
-
-      // Pilot Things
-      if (includes(resp.result, "PILOT_THINGS")) {
-        configured.push(<PilotThingsCard organizationID={organizationID} applicationID={applicationID} />);
-      } else {
-        available.push(<PilotThingsCard organizationID={organizationID} applicationID={applicationID} add />);
       }
 
       this.setState({

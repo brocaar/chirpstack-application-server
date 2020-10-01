@@ -560,9 +560,10 @@ func (a *GatewayAPI) GenerateGatewayClientCertificate(ctx context.Context, req *
 	}
 
 	return &pb.GenerateGatewayClientCertificateResponse{
-		TlsCert: string(resp.TlsCert),
-		TlsKey:  string(resp.TlsKey),
-		CaCert:  string(resp.CaCert),
+		ExpiresAt: resp.ExpiresAt,
+		TlsCert:   string(resp.TlsCert),
+		TlsKey:    string(resp.TlsKey),
+		CaCert:    string(resp.CaCert),
 	}, nil
 }
 

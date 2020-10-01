@@ -6,6 +6,8 @@ import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 
+import moment from "moment";
+
 import GatewayStore from "../../stores/GatewayStore";
 
 
@@ -30,6 +32,7 @@ class GatewayCertificate extends Component {
         tlsKey: resp.tlsKey,
         tlsCert: resp.tlsCert,
         caCert: resp.caCert,
+        expiresAt: moment(resp.expiresAt).format("lll"),
       });
     }));
   }
@@ -45,6 +48,15 @@ class GatewayCertificate extends Component {
           </Typography>
           {this.state.tlsCert == null && <Button onClick={this.requestCertificate} disabled={this.state.buttonDisabled}>Generate certificate</Button>}
           {this.state.tlsCert != null && <form>
+            <TextField
+              id="expiresAt"
+              label="Certificate expires at"
+              margin="normal"
+              value={this.state.expiresAt}
+              helperText="The certificate expires at this date. Make sure to generate and configure a new certificate for your gateway before this expiration date."
+              disabled
+              fullWidth
+            />
             <TextField
               id="caCert"
               label="CA certificate"

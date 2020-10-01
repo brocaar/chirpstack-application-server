@@ -14,6 +14,7 @@ import InfluxDBCard from "./integrations/InfluxDBCard";
 import ThingsboardCard from "./integrations/ThingsboardCard";
 import LoRaCloudCard from "./integrations/LoRaCloudCard";
 import MyDevicesCard from "./integrations/MyDevicesCard";
+import PilotThingsCard from "./integrations/PilotThingsCard";
 
 
 const styles = {
@@ -127,6 +128,13 @@ class ListIntegrations extends Component {
         configured.push(<ThingsboardCard organizationID={organizationID} applicationID={applicationID} />);
       } else {
         available.push(<ThingsboardCard organizationID={organizationID} applicationID={applicationID} add />);
+      }
+
+      // Pilot Things
+      if (includes(resp.result, "PILOT_THINGS")) {
+        configured.push(<PilotThingsCard organizationID={organizationID} applicationID={applicationID} />);
+      } else {
+        available.push(<PilotThingsCard organizationID={organizationID} applicationID={applicationID} add />);
       }
 
       this.setState({

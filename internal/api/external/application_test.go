@@ -847,6 +847,72 @@ func (ts *APITestSuite) TestApplication() {
 			})
 		})
 
+		t.Run("PilotThings", func(t *testing.T) {
+			t.Run("Create", func(t *testing.T) {
+				assert := require.New(t)
+
+				createReq := pb.CreatePilotThingsIntegrationRequest{
+					Integration: &pb.PilotThingsIntegration{
+						ApplicationId: createResp.Id,
+						Server:        "http://localhost:1234",
+						Token:         "very secure token",
+					},
+				}
+				_, err := api.CreatePilotThingsIntegration(context.Background(), &createReq)
+				assert.NoError(err)
+
+				t.Run("Get", func(t *testing.T) {
+					assert := require.New(t)
+
+					i, err := api.GetPilotThingsIntegration(context.Background(), &pb.GetPilotThingsIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(createReq.Integration, i.Integration)
+				})
+
+				t.Run("List", func(t *testing.T) {
+					assert := require.New(t)
+
+					resp, err := api.ListIntegrations(context.Background(), &pb.ListIntegrationRequest{ApplicationId: createResp.Id})
+					assert.NoError(err)
+
+					assert.EqualValues(1, resp.TotalCount)
+					assert.Equal(pb.IntegrationKind_PILOT_THINGS, resp.Result[0].Kind)
+				})
+
+				t.Run("Update", func(t *testing.T) {
+					assert := require.New(t)
+
+					updateReq := pb.UpdatePilotThingsIntegrationRequest{
+						Integration: &pb.PilotThingsIntegration{
+							ApplicationId: createResp.Id,
+							Server:        "https://localhost:12345",
+							Token:         "less secure token",
+						},
+					}
+					_, err := api.UpdatePilotThingsIntegration(context.Background(), &updateReq)
+					assert.NoError(err)
+
+					i, err := api.GetPilotThingsIntegration(context.Background(), &pb.GetPilotThingsIntegrationRequest{
+						ApplicationId: createResp.Id,
+					})
+					assert.NoError(err)
+					assert.Equal(updateReq.Integration, i.Integration)
+				})
+
+				t.Run("Delete", func(t *testing.T) {
+					assert := require.New(t)
+
+					_, err := api.DeletePilotThingsIntegration(context.Background(), &pb.DeletePilotThingsIntegrationRequest{ApplicationId: createResp.Id})
+					assert.NoError(err)
+
+					_, err = api.GetPilotThingsIntegration(context.Background(), &pb.GetPilotThingsIntegrationRequest{ApplicationId: createResp.Id})
+					assert.Equal(codes.NotFound, grpc.Code(err))
+				})
+			})
+		})
+
 		t.Run("Delete", func(t *testing.T) {
 			assert := require.New(t)
 

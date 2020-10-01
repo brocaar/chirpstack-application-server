@@ -375,7 +375,7 @@ func (a *InternalAPI) GetDevicesSummary(ctx context.Context, req *pb.GetDevicesS
 	return &out, nil
 }
 
-// GetDevicesSummary returns an aggregated gateways summary.
+// GetGatewaysSummary returns an aggregated gateways summary.
 func (a *InternalAPI) GetGatewaysSummary(ctx context.Context, req *pb.GetGatewaysSummaryRequest) (*pb.GetGatewaysSummaryResponse, error) {
 	if err := a.validator.Validate(ctx,
 		auth.ValidateOrganizationAccess(auth.Read, req.OrganizationId)); err != nil {

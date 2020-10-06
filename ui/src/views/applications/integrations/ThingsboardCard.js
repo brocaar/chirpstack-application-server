@@ -40,7 +40,7 @@ class ThingsboardCard extends Component {
             ThingsBoard.io
           </Typography>
           <Typography variant="body2" color="textSecondary" component="p">
-            The ThingsBoard integration forward events to a ThingsBoard.io instance.
+            The ThingsBoard integration forwards events to a ThingsBoard.io instance.
           </Typography>
         </CardContent>
         <CardActions>

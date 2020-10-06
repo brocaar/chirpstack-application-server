@@ -40,7 +40,7 @@ class PilotThingsCard extends Component {
             Pilot Things
           </Typography>
           <Typography variant="body2" color="textSecondary" component="p">
-            The Pilot Things integration forward messages to a Pilot Things instance.
+            Get access to more than 500 sensor decoders and encoders with the Pilot Things integration.
           </Typography>
         </CardContent>
         <CardActions>

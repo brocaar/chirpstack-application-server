@@ -40,7 +40,7 @@ class PilotThingsCard extends Component {
             Pilot Things
           </Typography>
           <Typography variant="body2" color="textSecondary" component="p">
-            The Pilot Things integration forward messages to a Pilot Things instance.
+            The Pilot Things integration forwards messages to a Pilot Things instance.
           </Typography>
         </CardContent>
         <CardActions>

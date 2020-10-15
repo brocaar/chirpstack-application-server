@@ -36,6 +36,7 @@ type GatewayProfile struct {
 	CreatedAt       time.Time         `db:"created_at"`
 	UpdatedAt       time.Time         `db:"updated_at"`
 	Name            string            `db:"name"`
+	StatsInterval   time.Duration     `db:"stats_interval"`
 	GatewayProfile  ns.GatewayProfile `db:"-"`
 }
 
@@ -126,6 +127,7 @@ func GetGatewayProfile(ctx context.Context, db sqlx.Queryer, id uuid.UUID) (Gate
 		select
 			network_server_id,
 			name,
+			stats_interval,
 			created_at,
 			updated_at
 		from gateway_profile

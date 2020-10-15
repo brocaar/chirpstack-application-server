@@ -101,7 +101,7 @@ func (a *GatewayProfileAPI) Get(ctx context.Context, req *pb.GetGatewayProfileRe
 			Name:            gp.Name,
 			NetworkServerId: gp.NetworkServerID,
 			Channels:        gp.GatewayProfile.Channels,
-			StatsInterval:   gp.GatewayProfile.StatsInterval,
+			StatsInterval:   ptypes.DurationProto(gp.StatsInterval),
 		},
 	}
 

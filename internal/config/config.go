@@ -7,9 +7,10 @@ import (
 // Config defines the configuration structure.
 type Config struct {
 	General struct {
-		LogLevel               int  `mapstructure:"log_level"`
-		LogToSyslog            bool `mapstructure:"log_to_syslog"`
-		PasswordHashIterations int  `mapstructure:"password_hash_iterations"`
+		LogLevel                  int    `mapstructure:"log_level"`
+		LogToSyslog               bool   `mapstructure:"log_to_syslog"`
+		PasswordHashIterations    int    `mapstructure:"password_hash_iterations"`
+		GRPCDefaultResolverScheme string `mapstructure:"grpc_default_resolver_scheme"`
 	} `mapstructure:"general"`
 
 	PostgreSQL struct {

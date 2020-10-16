@@ -37,6 +37,7 @@ func init() {
 	viper.BindPFlag("general.log_level", rootCmd.PersistentFlags().Lookup("log-level"))
 
 	// defaults
+	viper.SetDefault("general.grpc_default_resolver_scheme", "passthrough")
 	viper.SetDefault("general.password_hash_iterations", 100000)
 	viper.SetDefault("postgresql.dsn", "postgres://localhost/chirpstack_as?sslmode=disable")
 	viper.SetDefault("postgresql.automigrate", true)

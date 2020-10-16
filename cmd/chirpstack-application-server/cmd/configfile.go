@@ -25,6 +25,11 @@ log_to_syslog={{ .General.LogToSyslog }}
 # an attack takes more time to perform.
 password_hash_iterations={{ .General.PasswordHashIterations }}
 
+# gRPC default resolver scheme.
+#
+# Set this to "dns" for enabling dns round-robin load balancing.
+grpc_default_resolver_scheme="{{ .General.GRPCDefaultResolverScheme }}"
+
 
 # PostgreSQL settings.
 #

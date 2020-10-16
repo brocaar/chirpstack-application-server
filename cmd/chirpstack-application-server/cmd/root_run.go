@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc/resolver"
 
 	"github.com/brocaar/chirpstack-application-server/internal/api"
 	"github.com/brocaar/chirpstack-application-server/internal/applayer/fragmentation"
@@ -34,6 +35,7 @@ func run(cmd *cobra.Command, args []string) error {
 	tasks := []func() error{
 		setLogLevel,
 		setSyslog,
+		setGRPCResolver,
 		printStartMessage,
 		setupStorage,
 		setupNetworkServer,
@@ -76,6 +78,11 @@ func run(cmd *cobra.Command, args []string) error {
 
 func setLogLevel() error {
 	log.SetLevel(log.Level(uint8(config.C.General.LogLevel)))
+	return nil
+}
+
+func setGRPCResolver() error {
+	resolver.SetDefaultScheme(config.C.General.GRPCDefaultResolverScheme)
 	return nil
 }
 

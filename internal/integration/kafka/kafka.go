@@ -60,15 +60,25 @@ func New(m marshaler.Type, conf config.IntegrationKafkaConfig) (*Integration, er
 				Password: conf.Password,
 			}
 		case "scram":
-			algo := scram.SHA512
-			if conf.Algorithm != "SHA-512" {
-				algo = scram.SHA256
+			var algorithm scram.Algorithm
+
+			switch conf.Algorithm {
+			case "SHA-512":
+				algorithm = scram.SHA512
+			case "SHA-256":
+				algorithm = scram.SHA256
+			default:
+				return nil, fmt.Errorf("unknown sasl algorithm %s", conf.Algorithm)
 			}
-			mechanism, err := scram.Mechanism(algo, conf.Username, conf.Password)
+
+			mechanism, err := scram.Mechanism(algorithm, conf.Username, conf.Password)
 			if err != nil {
 				return nil, errors.Wrap(err, "sasl mechanism")
 			}
+
 			wc.Dialer.SASLMechanism = mechanism
+		default:
+			return nil, fmt.Errorf("unknown sasl mechanism %s", conf.Mechanism)
 		}
 
 	}

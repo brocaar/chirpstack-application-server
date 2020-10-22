@@ -392,6 +392,12 @@ id="{{ .ApplicationServer.ID }}"
   # Password (optional).
   password="{{ .ApplicationServer.Integration.Kafka.Password }}"
 
+  # One of plain or scram
+  mechanism="{{ .ApplicationServer.Integration.Kafka.Mechanism }}"
+  
+  # Only used if mechanism == scram.
+  # SHA-256 or SHA-512 
+  algorithm="{{ .ApplicationServer.Integration.Kafka.Algorithm }}"
 
   # PostgreSQL database integration.
   [application_server.integration.postgresql]

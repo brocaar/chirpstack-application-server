@@ -14,6 +14,7 @@ import (
 
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/plain"
+	"github.com/segmentio/kafka-go/sasl/scram"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
@@ -52,10 +53,34 @@ func New(m marshaler.Type, conf config.IntegrationKafkaConfig) (*Integration, er
 	}
 
 	if conf.Username != "" || conf.Password != "" {
-		wc.Dialer.SASLMechanism = plain.Mechanism{
-			Username: conf.Username,
-			Password: conf.Password,
+		switch conf.Mechanism {
+		case "plain":
+			wc.Dialer.SASLMechanism = plain.Mechanism{
+				Username: conf.Username,
+				Password: conf.Password,
+			}
+		case "scram":
+			var algorithm scram.Algorithm
+
+			switch conf.Algorithm {
+			case "SHA-512":
+				algorithm = scram.SHA512
+			case "SHA-256":
+				algorithm = scram.SHA256
+			default:
+				return nil, fmt.Errorf("unknown sasl algorithm %s", conf.Algorithm)
+			}
+
+			mechanism, err := scram.Mechanism(algorithm, conf.Username, conf.Password)
+			if err != nil {
+				return nil, errors.Wrap(err, "sasl mechanism")
+			}
+
+			wc.Dialer.SASLMechanism = mechanism
+		default:
+			return nil, fmt.Errorf("unknown sasl mechanism %s", conf.Mechanism)
 		}
+
 	}
 
 	log.WithFields(log.Fields{

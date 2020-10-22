@@ -228,6 +228,8 @@ type IntegrationKafkaConfig struct {
 	EventKeyTemplate string   `mapstructure:"event_key_template"`
 	Username         string   `mapstructure:"username"`
 	Password         string   `mapstructure:"password"`
+	Mechanism        string   `mapstructure:"mechanism"`
+	Algorithm        string   `mapstructure:"algorithm"`
 }
 
 // AzurePublishMode defines the publish-mode type.

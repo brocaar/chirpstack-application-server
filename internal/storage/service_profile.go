@@ -326,6 +326,7 @@ func GetServiceProfiles(ctx context.Context, db sqlx.Queryer, filters ServicePro
 			on ou.user_id = u.id
 	`+filters.SQL()+`
 		group by
+			sp.service_profile_id,
 			sp.name
 		order by
 			sp.name

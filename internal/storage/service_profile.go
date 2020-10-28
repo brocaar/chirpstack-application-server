@@ -321,14 +321,14 @@ func GetServiceProfiles(ctx context.Context, db sqlx.Queryer, filters ServicePro
 		from
 			service_profile sp
 		left join organization_user ou
-			on a.organization_id = ou.organization_id
+			on sp.organization_id = ou.organization_id
 		left join "user" u
 			on ou.user_id = u.id
 	`+filters.SQL()+`
 		group by
 			sp.name
 		order by
-			a.name
+			sp.name
 		limit :limit
 		offset :offset
 	`, filters)

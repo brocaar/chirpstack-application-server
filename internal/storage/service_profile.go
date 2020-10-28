@@ -296,7 +296,7 @@ func GetServiceProfileCount(ctx context.Context, db sqlx.Queryer, filters Servic
 		from
 			service_profile sp
 		left join organization_user ou
-			on s.organization_id = ou.organization_id
+			on sp.organization_id = ou.organization_id
 		left join "user" u
 			on ou.user_id = u.id
 	`+filters.SQL(), filters)

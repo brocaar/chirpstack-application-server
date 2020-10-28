@@ -23,6 +23,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/integration/influxdb"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/loracloud"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/mydevices"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/pilotthings"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/thingsboard"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
@@ -1311,6 +1312,128 @@ func (a *ApplicationAPI) DeleteAzureServiceBusIntegration(ctx context.Context, i
 	return &empty.Empty{}, nil
 }
 
+// CreatePilotThingsIntegration creates an Pilot Things application-integration.
+func (a *ApplicationAPI) CreatePilotThingsIntegration(ctx context.Context, in *pb.CreatePilotThingsIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.GetIntegration().ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	conf := pilotthings.Config{
+		Server: in.GetIntegration().Server,
+		Token:  in.GetIntegration().Token,
+	}
+	if err := conf.Validate(); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	integration := storage.Integration{
+		ApplicationID: in.GetIntegration().ApplicationId,
+		Kind:          integration.PilotThings,
+		Settings:      confJSON,
+	}
+	if err = storage.CreateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// GetPilotThingsIntegration returns the Pilot Things application-integration.
+func (a *ApplicationAPI) GetPilotThingsIntegration(ctx context.Context, in *pb.GetPilotThingsIntegrationRequest) (*pb.GetPilotThingsIntegrationResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.PilotThings)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	var conf pilotthings.Config
+	if err = json.Unmarshal(integration.Settings, &conf); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &pb.GetPilotThingsIntegrationResponse{
+		Integration: &pb.PilotThingsIntegration{
+			ApplicationId: integration.ApplicationID,
+			Server:        conf.Server,
+			Token:         conf.Token,
+		},
+	}, nil
+}
+
+// UpdatePilotThingsIntegration updates the Pilot Things application-integration.
+func (a *ApplicationAPI) UpdatePilotThingsIntegration(ctx context.Context, in *pb.UpdatePilotThingsIntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.GetIntegration().ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.GetIntegration().ApplicationId, integration.PilotThings)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	conf := pilotthings.Config{
+		Server: in.GetIntegration().Server,
+		Token:  in.GetIntegration().Token,
+	}
+	if err := conf.Validate(); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+	integration.Settings = confJSON
+
+	if err = storage.UpdateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// DeletePilotThingsIntegration deletes an Pilot Things application-integration.
+func (a *ApplicationAPI) DeletePilotThingsIntegration(ctx context.Context, in *pb.DeletePilotThingsIntegrationRequest) (*empty.Empty, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.PilotThings)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if err = storage.DeleteIntegration(ctx, storage.DB(), integration.ID); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
 // ListIntegrations lists all configured integrations.
 func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegrationRequest) (*pb.ListIntegrationResponse, error) {
 	if err := a.validator.Validate(ctx,
@@ -1346,6 +1469,8 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_AWS_SNS})
 		case integration.AzureServiceBus:
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_AZURE_SERVICE_BUS})
+		case integration.PilotThings:
+			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_PILOT_THINGS})
 		default:
 			log.WithFields(log.Fields{
 				"kind": intgr.Kind,

@@ -609,6 +609,68 @@ class ApplicationStore extends EventEmitter {
     });
   }
 
+  createPilotThingsIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.CreatePilotThingsIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.integrationNotification("Pilot Things", "created");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  getPilotThingsIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.GetPilotThingsIntegration({
+        application_id: applicationID,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  updatePilotThingsIntegration(integration, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.UpdatePilotThingsIntegration({
+        "integration.application_id": integration.applicationID,
+        body: {
+          integration: integration,
+        },
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.integrationNotification("Pilot Things", "updated");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  deletePilotThingsIntegration(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.DeletePilotThingsIntegration({
+        application_id: applicationID,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.integrationNotification("Pilot Things", "deleted");
+          this.emit("integration.delete");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
   integrationNotification(kind, action) {
     dispatcher.dispatch({
       type: "CREATE_NOTIFICATION",

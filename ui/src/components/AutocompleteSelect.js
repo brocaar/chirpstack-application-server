@@ -27,9 +27,10 @@ class AutocompleteSelect extends Component {
   }
 
   setInitialOptions = (callbackFunc) => {
-    this.props.getOptions("", options => {
+    this.props.getOptions("", (options, totalCount) => {
       this.setState({
         options: options,
+        totalCount: totalCount,
       }, callbackFunc);
     });
   }
@@ -65,10 +66,15 @@ class AutocompleteSelect extends Component {
   }
 
   render() {
+    let options = this.state.options;
+    if (this.state.totalCount !== undefined) {
+      options.unshift({label: `Showing ${options.length} of ${this.state.totalCount}`, value: "__DISABLED__"});
+    }
+
     return(
       <Autocomplete
         id={this.props.id}
-        options={this.state.options}
+        options={options}
         getOptionLabel={(option) => option.label || ""}
         onOpen={() => this.setInitialOptions(null)}
         openOnFocus={true}
@@ -76,6 +82,7 @@ class AutocompleteSelect extends Component {
         onChange={this.onChange}
         onInputChange={this.onInputChange}
         className={this.props.className}
+        getOptionDisabled={t => t.value === "__DISABLED__"}
         renderInput={(params) => <TextField required={!!this.props.required} placeholder={this.props.label} {...params} /> }
         disableClearable={!this.props.clearable}
       />
@@ -101,9 +108,10 @@ class AutocompleteSelect extends Component {
   }
 
   onInputChange = (e, v, r) => {
-    this.props.getOptions(v, options => {
+    this.props.getOptions(v, (options, totalCount) => {
       this.setState({
         options: options,
+        totalCount: undefined,
       });
     });
   }

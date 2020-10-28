@@ -139,7 +139,7 @@ class SideNav extends Component {
   getOrganizationOptions(search, callbackFunc) {
     OrganizationStore.list(search, 10, 0, resp => {
       const options = resp.result.map((o, i) => {return {label: o.name, value: o.id}});
-      callbackFunc(options);
+      callbackFunc(options, resp.totalCount);
     });
   }
 

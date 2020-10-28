@@ -37,6 +37,7 @@ func init() {
 	viper.BindPFlag("general.log_level", rootCmd.PersistentFlags().Lookup("log-level"))
 
 	// defaults
+	viper.SetDefault("general.grpc_default_resolver_scheme", "passthrough")
 	viper.SetDefault("general.password_hash_iterations", 100000)
 	viper.SetDefault("postgresql.dsn", "postgres://localhost/chirpstack_as?sslmode=disable")
 	viper.SetDefault("postgresql.automigrate", true)
@@ -56,6 +57,8 @@ func init() {
 	viper.SetDefault("application_server.integration.kafka.brokers", []string{"localhost:9092"})
 	viper.SetDefault("application_server.integration.kafka.topic", "chirpstack_as")
 	viper.SetDefault("application_server.integration.kafka.event_key_template", "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}")
+	viper.SetDefault("application_server.integration.kafka.mechanism", "plain")
+	viper.SetDefault("application_server.integration.kafka.algorithm", "SHA-512")
 	viper.SetDefault("application_server.integration.postgresql.max_idle_connections", 2)
 	viper.SetDefault("application_server.integration.amqp.url", "amqp://guest:guest@localhost:5672")
 	viper.SetDefault("application_server.integration.amqp.event_routing_key_template", "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}")

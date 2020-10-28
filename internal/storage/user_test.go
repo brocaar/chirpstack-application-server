@@ -8,6 +8,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestUser(t *testing.T) {
+	t.Run("admin", func(t *testing.T) {
+		assert := require.New(t)
+
+		u := User{Email: "admin"}
+		assert.NoError(u.Validate())
+	})
+
+	t.Run("non admin", func(t *testing.T) {
+		assert := require.New(t)
+
+		u := User{Email: "nonadmin"}
+		assert.Equal(ErrInvalidEmail, u.Validate())
+
+		u = User{Email: "nonadmin@example.com"}
+		assert.NoError(u.Validate())
+	})
+}
+
 func (ts *StorageTestSuite) TestUser() {
 	// Set a user secret so JWTs can be assigned
 	jwtsecret = []byte("DoWahDiddy")

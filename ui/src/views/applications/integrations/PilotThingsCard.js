@@ -20,10 +20,10 @@ const styles = {
 };
 
 
-class ThingsboardCard extends Component {
+class PilotThingsCard extends Component {
   delete = () => {
-    if (window.confirm("Are you sure you want to remove the ThingsBoard integration?")) {
-      ApplicationStore.deleteThingsBoardIntegration(this.props.applicationID, () => {});
+    if (window.confirm("Are you sure you want to remove the Pilot Things integration?")) {
+      ApplicationStore.deletePilotThingsIntegration(this.props.applicationID, () => {});
     }
   }
 
@@ -32,19 +32,19 @@ class ThingsboardCard extends Component {
       <Card className={this.props.classes.root}>
         <CardMedia
           className={this.props.classes.media}
-          image="/integrations/thingsboard.png"
-          title="ThingsBoard.io"
+          image="/integrations/pilot_things.png"
+          title="Pilot Things"
         />
         <CardContent>
           <Typography gutterBottom variant="h5" component="h2">
-            ThingsBoard.io
+            Pilot Things
           </Typography>
           <Typography variant="body2" color="textSecondary" component="p">
-            The ThingsBoard integration forwards events to a ThingsBoard.io instance.
+            The Pilot Things integration forwards messages to a Pilot Things instance.
           </Typography>
         </CardContent>
         <CardActions>
-          {!this.props.add && <Link to={`/organizations/${this.props.organizationID}/applications/${this.props.applicationID}/integrations/thingsboard/edit`}>
+          {!this.props.add && <Link to={`/organizations/${this.props.organizationID}/applications/${this.props.applicationID}/integrations/pilot-things/edit`}>
             <Button size="small" color="primary">
               Edit
             </Button>
@@ -52,7 +52,7 @@ class ThingsboardCard extends Component {
           {!this.props.add && <Button size="small" color="primary" onClick={this.delete}>
             Remove
           </Button>}
-            {!!this.props.add && <Link to={`/organizations/${this.props.organizationID}/applications/${this.props.applicationID}/integrations/thingsboard/create`}>
+            {!!this.props.add && <Link to={`/organizations/${this.props.organizationID}/applications/${this.props.applicationID}/integrations/pilot-things/create`}>
               <Button size="small" color="primary">
                 Add
               </Button>
@@ -63,4 +63,4 @@ class ThingsboardCard extends Component {
   }
 }
 
-export default withStyles(styles)(ThingsboardCard);
+export default withStyles(styles)(PilotThingsCard);

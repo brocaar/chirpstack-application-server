@@ -290,10 +290,6 @@ func (f ServiceProfileFilters) SQL() string {
 
 // GetServiceProfileCount returns the total number of service-profiles.
 func GetServiceProfileCount(ctx context.Context, db sqlx.Queryer, filters ServiceProfileFilters) (int, error) {
-	if filters.Search != "" {
-		filters.Search = "%" + filters.Search + "%"
-	}
-
 	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
 			count(distinct sp.*)
@@ -319,10 +315,6 @@ func GetServiceProfileCount(ctx context.Context, db sqlx.Queryer, filters Servic
 
 // GetServiceProfiles returns a slice of service-profiles.
 func GetServiceProfiles(ctx context.Context, db sqlx.Queryer, filters ServiceProfileFilters) ([]ServiceProfileMeta, error) {
-	if filters.Search != "" {
-		filters.Search = "%" + filters.Search + "%"
-	}
-
 	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
 			sp.*

@@ -258,118 +258,87 @@ func DeleteServiceProfile(ctx context.Context, db sqlx.Ext, id uuid.UUID) error 
 	return nil
 }
 
+// ServiceProfileFilters provides filters for filtering service profiles.
+type ServiceProfileFilters struct {
+	UserID         int64 `db:"user_id"`
+	OrganizationID int64 `db:"organization_id"`
+
+	// Limit and Offset are added for convenience so that this struct can
+	// be given as the arguments.
+	Limit  int `db:"limit"`
+	Offset int `db:"offset"`
+}
+
+// SQL returns the SQL filters.
+func (f ServiceProfileFilters) SQL() string {
+	var filters []string
+
+	if f.UserID != 0 {
+		filters = append(filters, "u.id = :user_id")
+	}
+
+	if f.OrganizationID != 0 {
+		filters = append(filters, "sp.organization_id = :organization_id")
+	}
+
+	if len(filters) == 0 {
+		return ""
+	}
+
+	return "where " + strings.Join(filters, " and ")
+}
+
 // GetServiceProfileCount returns the total number of service-profiles.
-func GetServiceProfileCount(ctx context.Context, db sqlx.Queryer) (int, error) {
-	var count int
-	err := sqlx.Get(db, &count, "select count(*) from service_profile")
-	if err != nil {
-		return 0, handlePSQLError(Select, err, "select error")
-	}
-	return count, nil
-}
-
-// GetServiceProfileCountForOrganizationID returns the total number of
-// service-profiles for the given organization id.
-func GetServiceProfileCountForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64) (int, error) {
-	var count int
-	err := sqlx.Get(db, &count, "select count(*) from service_profile where organization_id = $1", organizationID)
-	if err != nil {
-		return 0, handlePSQLError(Select, err, "select error")
-	}
-	return count, nil
-}
-
-// GetServiceProfileCountForUser returns the total number of service-profiles
-// for the given user ID.
-func GetServiceProfileCountForUser(ctx context.Context, db sqlx.Queryer, userID int64) (int, error) {
-	var count int
-	err := sqlx.Get(db, &count, `
+func GetServiceProfileCount(ctx context.Context, db sqlx.Queryer, filters ServiceProfileFilters) (int, error) {
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
-			count(sp.*)
-		from service_profile sp
-		inner join organization o
-			on o.id = sp.organization_id
-		inner join organization_user ou
-			on ou.organization_id = o.id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.id = $1`,
-		userID,
-	)
+			count(distinct sp.*)
+		from
+			service_profile sp
+		left join organization_user ou
+			on sp.organization_id = ou.organization_id
+		left join "user" u
+			on ou.user_id = u.id
+	`+filters.SQL(), filters)
+	if err != nil {
+		return 0, errors.Wrap(err, "named query error")
+	}
+
+	var count int
+	err = sqlx.Get(db, &count, query, args...)
 	if err != nil {
 		return 0, handlePSQLError(Select, err, "select error")
 	}
+
 	return count, nil
 }
 
 // GetServiceProfiles returns a slice of service-profiles.
-func GetServiceProfiles(ctx context.Context, db sqlx.Queryer, limit, offset int) ([]ServiceProfileMeta, error) {
-	var sps []ServiceProfileMeta
-	err := sqlx.Select(db, &sps, `
-		select *
-		from service_profile
-		order by name
-		limit $1 offset $2`,
-		limit,
-		offset,
-	)
-	if err != nil {
-		return nil, handlePSQLError(Select, err, "select error")
-	}
-
-	return sps, nil
-}
-
-// GetServiceProfilesForOrganizationID returns a slice of service-profiles
-// for the given organization id.
-func GetServiceProfilesForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, limit, offset int) ([]ServiceProfileMeta, error) {
-	var sps []ServiceProfileMeta
-	err := sqlx.Select(db, &sps, `
-		select
-			sp.*,
-			ns.name as network_server_name
-		from
-			service_profile sp
-		inner join network_server ns
-			on sp.network_server_id = ns.id
-		where
-			sp.organization_id = $1
-		order by sp.name
-		limit $2 offset $3`,
-		organizationID,
-		limit,
-		offset,
-	)
-	if err != nil {
-		return nil, handlePSQLError(Select, err, "select error")
-	}
-
-	return sps, nil
-}
-
-// GetServiceProfilesForUser returns a slice of service-profile for the given
-// user ID.
-func GetServiceProfilesForUser(ctx context.Context, db sqlx.Queryer, userID int64, limit, offset int) ([]ServiceProfileMeta, error) {
-	var sps []ServiceProfileMeta
-	err := sqlx.Select(db, &sps, `
+func GetServiceProfiles(ctx context.Context, db sqlx.Queryer, filters ServiceProfileFilters) ([]ServiceProfileMeta, error) {
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
 			sp.*
-		from service_profile sp
-		inner join organization o
-			on o.id = sp.organization_id
-		inner join organization_user ou
-			on ou.organization_id = o.id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.id = $1
-		order by sp.name
-		limit $2 offset $3`,
-		userID,
-		limit,
-		offset,
-	)
+		from
+			service_profile sp
+		left join organization_user ou
+			on sp.organization_id = ou.organization_id
+		left join "user" u
+			on ou.user_id = u.id
+	`+filters.SQL()+`
+		group by
+			sp.service_profile_id,
+			sp.name
+		order by
+			sp.name
+		limit :limit
+		offset :offset
+	`, filters)
+	if err != nil {
+		return nil, errors.Wrap(err, "named query error")
+	}
+
+	var sps []ServiceProfileMeta
+	err = sqlx.Select(db, &sps, query, args...)
 	if err != nil {
 		return nil, handlePSQLError(Select, err, "select error")
 	}

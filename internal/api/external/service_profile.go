@@ -234,46 +234,45 @@ func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListService
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	user, err := a.validator.GetUser(ctx)
+	filters := storage.ServiceProfileFilters{
+		Limit:          int(req.Limit),
+		Offset:         int(req.Offset),
+		OrganizationID: req.OrganizationId,
+	}
+
+	sub, err := a.validator.GetSubject(ctx)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	var count int
-	var sps []storage.ServiceProfileMeta
-
-	if req.OrganizationId == 0 {
-		if user.IsAdmin {
-			sps, err = storage.GetServiceProfiles(ctx, storage.DB(), int(req.Limit), int(req.Offset))
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-
-			count, err = storage.GetServiceProfileCount(ctx, storage.DB())
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		} else {
-			sps, err = storage.GetServiceProfilesForUser(ctx, storage.DB(), user.ID, int(req.Limit), int(req.Offset))
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-
-			count, err = storage.GetServiceProfileCountForUser(ctx, storage.DB(), user.ID)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		}
-	} else {
-		sps, err = storage.GetServiceProfilesForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
+	switch sub {
+	case auth.SubjectUser:
+		user, err := a.validator.GetUser(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		count, err = storage.GetServiceProfileCountForOrganizationID(ctx, storage.DB(), req.OrganizationId)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
+		// Filter on user ID when OrganizationID is not set and the user is
+		// not a global admin.
+		if !user.IsAdmin && filters.OrganizationID == 0 {
+			filters.UserID = user.ID
 		}
+
+	case auth.SubjectAPIKey:
+		// Nothing to do as the validator function already validated that the
+		// API Key has access to the given OrganizationID.
+	default:
+		return nil, grpc.Errorf(codes.Unauthenticated, "invalid token subject: %s", sub)
+	}
+
+	sps, err := storage.GetServiceProfiles(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	count, err := storage.GetServiceProfileCount(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
 	}
 
 	resp := pb.ListServiceProfileResponse{

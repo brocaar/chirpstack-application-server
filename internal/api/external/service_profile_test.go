@@ -22,7 +22,7 @@ func (ts *APITestSuite) TestServiceProfile() {
 	nsClient := mock.NewClient()
 	networkserver.SetPool(mock.NewPool(nsClient))
 
-	validator := &TestValidator{}
+	validator := &TestValidator{returnSubject: "user"}
 	api := NewServiceProfileServiceAPI(validator)
 
 	n := storage.NetworkServer{
@@ -182,6 +182,31 @@ func (ts *APITestSuite) TestServiceProfile() {
 					assert.NoError(err)
 					assert.EqualValues(0, listResp.TotalCount)
 					assert.Len(listResp.Result, 0)
+				})
+			})
+
+			t.Run("As API user", func(t *testing.T) {
+				assert := require.New(t)
+				validator.returnUser = user
+
+				key := storage.APIKey{
+					Name:    "foo@bar.com",
+					IsAdmin: true,
+				}
+				_, err := storage.CreateAPIKey(context.Background(), storage.DB(), &key)
+				assert.NoError(err)
+				assert.NoError(storage.CreateOrganizationUser(context.Background(), storage.DB(), org.ID, user.ID, false, false, false))
+
+				t.Run("No filters", func(t *testing.T) {
+					assert := require.New(t)
+					validator.returnAPIKeyID = key.ID
+
+					listResp, err := api.List(context.Background(), &pb.ListServiceProfileRequest{
+						Limit: 10,
+					})
+					assert.NoError(err)
+					assert.EqualValues(1, listResp.TotalCount)
+					assert.Len(listResp.Result, 1)
 				})
 			})
 		})

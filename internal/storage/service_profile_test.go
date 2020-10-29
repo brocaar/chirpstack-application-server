@@ -180,54 +180,76 @@ func TestServiceProfile(t *testing.T) {
 			})
 
 			Convey("Then GetServiceProfileCount returns 1", func() {
-				count, err := GetServiceProfileCount(context.Background(), DB())
+				count, err := GetServiceProfileCount(context.Background(), DB(), ServiceProfileFilters{})
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 			})
 
-			Convey("Then GetServiceProfileCountForOrganizationID returns the number of service-profiles for the given organization", func() {
-				count, err := GetServiceProfileCountForOrganizationID(context.Background(), DB(), org.ID)
+			Convey("Then GetServiceProfileCount for OrganizationID returns the number of service-profiles for the given organization", func() {
+				count, err := GetServiceProfileCount(context.Background(), DB(), ServiceProfileFilters{
+					OrganizationID: org.ID,
+				})
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 
-				count, err = GetServiceProfileCountForOrganizationID(context.Background(), DB(), org.ID+1)
+				count, err = GetServiceProfileCount(context.Background(), DB(), ServiceProfileFilters{
+					OrganizationID: org.ID + 1,
+				})
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 0)
 			})
 
-			Convey("Then GetServiceProfileCountForUser returns the service-profile count accessible by the given user", func() {
-				count, err := GetServiceProfileCountForUser(context.Background(), DB(), u.ID)
+			Convey("Then GetServiceProfileCount for UserID returns the service-profile count accessible by the given user", func() {
+				count, err := GetServiceProfileCount(context.Background(), DB(), ServiceProfileFilters{
+					UserID: u.ID,
+				})
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 1)
 
-				count, err = GetServiceProfileCountForUser(context.Background(), DB(), u.ID+999)
+				count, err = GetServiceProfileCount(context.Background(), DB(), ServiceProfileFilters{
+					UserID: u.ID + 999,
+				})
 				So(err, ShouldBeNil)
 				So(count, ShouldEqual, 0)
 			})
 
 			Convey("Then GetServiceProfiles includes the created service-profile", func() {
-				profiles, err := GetServiceProfiles(context.Background(), DB(), 10, 0)
+				profiles, err := GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
+					Limit: 10,
+				})
 				So(err, ShouldBeNil)
 				So(profiles, ShouldHaveLength, 1)
 				So(profiles[0].Name, ShouldEqual, sp.Name)
 			})
 
-			Convey("Then GetServiceProfilesForOrganizationID returns the service-profiles for the given organization", func() {
-				sps, err := GetServiceProfilesForOrganizationID(context.Background(), DB(), org.ID, 10, 0)
+			Convey("Then GetServiceProfiles for OrganizationID returns the service-profiles for the given organization", func() {
+				sps, err := GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
+					OrganizationID: org.ID,
+					Limit:          10,
+				})
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 1)
 
-				sps, err = GetServiceProfilesForOrganizationID(context.Background(), DB(), org.ID+1, 10, 0)
+				sps, err = GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
+					OrganizationID: org.ID + 1,
+					Limit:          10,
+				})
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 0)
 			})
 
-			Convey("Then GetServiceProfilesForUser returns the service-profiles accessible by a given user", func() {
-				sps, err := GetServiceProfilesForUser(context.Background(), DB(), u.ID, 10, 0)
+			Convey("Then GetServiceProfiles for User returns the service-profiles accessible by a given user", func() {
+				sps, err := GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
+					UserID: u.ID,
+					Limit:  10,
+				})
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 1)
 
-				sps, err = GetServiceProfilesForUser(context.Background(), DB(), u.ID+999, 10, 0)
+				sps, err = GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
+					UserID: u.ID + 999,
+					Limit:  10,
+				})
 				So(err, ShouldBeNil)
 				So(sps, ShouldHaveLength, 0)
 			})

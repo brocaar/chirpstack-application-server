@@ -52,6 +52,7 @@ class LW10DeviceActivationForm extends FormComponent {
           onChange={this.onChange}
           disabled={this.props.disabled}
           randomFunc={this.getRandomDevAddr}
+          helperText="While any device address can be entered, please note that a LoRaWAN compliant device address consists of an AddrPrefix (derived from the NetID) + NwkAddr."
           fullWidth
           required
           random

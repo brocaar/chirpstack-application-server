@@ -89,6 +89,7 @@ type UserProfileUser struct {
 	SessionTTL int32     `db:"session_ttl"`
 	CreatedAt  time.Time `db:"created_at"`
 	UpdatedAt  time.Time `db:"updated_at"`
+	Note       string    `db:"note"`
 }
 
 // UserProfileOrganization contains the organizations to which the user
@@ -388,6 +389,7 @@ func GetProfile(ctx context.Context, db sqlx.Queryer, id int64) (UserProfile, er
 		IsActive:   user.IsActive,
 		CreatedAt:  user.CreatedAt,
 		UpdatedAt:  user.UpdatedAt,
+		Note:       user.Note,
 	}
 
 	err = sqlx.Select(db, &prof.Organizations, `

@@ -67,6 +67,7 @@ func (a *InternalAPI) Profile(ctx context.Context, req *empty.Empty) (*pb.Profil
 			SessionTtl: prof.User.SessionTTL,
 			IsAdmin:    prof.User.IsAdmin,
 			IsActive:   prof.User.IsActive,
+			Note:       prof.User.Note,
 		},
 	}
 

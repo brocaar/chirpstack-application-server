@@ -24,8 +24,20 @@ type APIKey struct {
 	ApplicationID  *int64    `db:"application_id"`
 }
 
+// Validate validates the given API Key data.
+func (a APIKey) Validate() error {
+	if strings.TrimSpace(a.Name) == "" || len(a.Name) > 100 {
+		return ErrAPIKeyInvalidName
+	}
+	return nil
+}
+
 // CreateAPIKey creates the given API key and returns the JWT.
 func CreateAPIKey(ctx context.Context, db sqlx.Ext, a *APIKey) (string, error) {
+	if err := a.Validate(); err != nil {
+		return "", errors.Wrap(err, "validate error")
+	}
+
 	id, err := uuid.NewV4()
 	if err != nil {
 		return "", errors.Wrap(err, "new uuid error")

@@ -32,6 +32,7 @@ var errToCode = map[error]codes.Code{
 	storage.ErrNetworkServerInvalidName:        codes.InvalidArgument,
 	storage.ErrFUOTADeploymentInvalidName:      codes.InvalidArgument,
 	storage.ErrFUOTADeploymentNullPayload:      codes.InvalidArgument,
+	storage.ErrAPIKeyInvalidName:               codes.InvalidArgument,
 	http.ErrInvalidHeaderName:                  codes.InvalidArgument,
 	influxdb.ErrInvalidPrecision:               codes.InvalidArgument,
 }

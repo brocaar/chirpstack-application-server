@@ -30,8 +30,9 @@ const defaultSessionTTL = time.Hour * 24
 // Any printable characters, at least 6 characters.
 var passwordValidator = regexp.MustCompile(`^.{6,}$`)
 
-// Must contain @ (this is far from perfect)
-var emailValidator = regexp.MustCompile(`.+@.+`)
+// Email validation regexp taken from:
+// https://html.spec.whatwg.org/multipage/input.html#e-mail-state-(type%3Demail)
+var emailValidator = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 // User defines the user structure.
 type User struct {

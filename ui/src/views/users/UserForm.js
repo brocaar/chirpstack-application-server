@@ -25,6 +25,7 @@ class UserForm extends FormComponent {
           id="email"
           label="E-mail address"
           margin="normal"
+          type="email"
           value={this.state.object.email || ""}
           onChange={this.onChange}
           required

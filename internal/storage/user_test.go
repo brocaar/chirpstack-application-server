@@ -17,13 +17,34 @@ func TestUser(t *testing.T) {
 	})
 
 	t.Run("non admin", func(t *testing.T) {
-		assert := require.New(t)
 
-		u := User{Email: "nonadmin"}
-		assert.Equal(ErrInvalidEmail, u.Validate())
+		t.Run("invalid", func(t *testing.T) {
+			assert := require.New(t)
 
-		u = User{Email: "nonadmin@example.com"}
-		assert.NoError(u.Validate())
+			tests := []string{
+				"nonadmin",
+				"foo-bar.baz@example.com ",
+			}
+
+			for _, tst := range tests {
+				u := User{Email: tst}
+				assert.Equal(ErrInvalidEmail, u.Validate())
+			}
+
+		})
+
+		t.Run("valid", func(t *testing.T) {
+			assert := require.New(t)
+
+			tests := []string{
+				"foo-bar.baz@example.com",
+			}
+
+			for _, tst := range tests {
+				u := User{Email: tst}
+				assert.NoError(u.Validate())
+			}
+		})
 	})
 }
 

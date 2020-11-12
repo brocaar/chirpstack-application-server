@@ -197,7 +197,7 @@ func (a *UserAPI) Delete(ctx context.Context, req *pb.DeleteUserRequest) (*empty
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		if (!user.IsAdmin || user.IsAdmin) && user.ID == req.Id {
+		if user.ID == req.Id {
 			return nil, grpc.Errorf(codes.InvalidArgument, "you can not delete yourself from the user")
 		}
 	}

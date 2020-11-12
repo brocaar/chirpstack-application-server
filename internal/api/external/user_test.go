@@ -6,6 +6,8 @@ import (
 	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
@@ -26,6 +28,8 @@ func (ts *APITestSuite) TestUser() {
 	validator := &TestValidator{}
 	api := NewUserAPI(validator)
 	apiInternal := NewInternalAPI(validator)
+
+	validator.returnSubject = "user"
 
 	user := storage.User{
 		Email:    "foo@bar.com",
@@ -153,6 +157,17 @@ func (ts *APITestSuite) TestUser() {
 		})
 
 		t.Run("Delete", func(t *testing.T) {
+			t.Run("Remove self", func(t *testing.T) {
+				assert := require.New(t)
+				validator.returnUser = user
+
+				_, err = api.Delete(context.Background(), &pb.DeleteUserRequest{
+					Id: user.ID,
+				})
+				assert.Equal(codes.InvalidArgument, grpc.Code(err))
+			})
+
+			t.Run("Remote other", func(t *testing.T) {
 			assert := require.New(t)
 
 			_, err := api.Delete(ctx, &pb.DeleteUserRequest{
@@ -167,6 +182,7 @@ func (ts *APITestSuite) TestUser() {
 			assert.NoError(err)
 			assert.Len(users.Result, 3)
 			assert.EqualValues(3, users.TotalCount)
+			})
 		})
 	})
 

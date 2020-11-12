@@ -186,7 +186,23 @@ func (a *UserAPI) Delete(ctx context.Context, req *pb.DeleteUserRequest) (*empty
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteUser(ctx, storage.DB(), req.Id)
+	sub, err := a.validator.GetSubject(ctx)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if sub == auth.SubjectUser {
+		user, err := a.validator.GetUser(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		if user.ID == req.Id {
+			return nil, grpc.Errorf(codes.InvalidArgument, "you can not delete yourself from the user")
+		}
+	}
+
+	err = storage.DeleteUser(ctx, storage.DB(), req.Id)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}

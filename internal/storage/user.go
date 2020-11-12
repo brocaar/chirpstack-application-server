@@ -480,8 +480,8 @@ func GetUserToken(u User) (string, error) {
 		expSecondsSinceEpoch = nowSecondsSinceEpoch + int64(defaultSessionTTL/time.Second)
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"iss":      "chirpstack-application-server",
-		"aud":      "chirpstack-application-server",
+		"iss":      "as",
+		"aud":      "as",
 		"nbf":      nowSecondsSinceEpoch,
 		"exp":      expSecondsSinceEpoch,
 		"sub":      "user",

@@ -81,6 +81,10 @@ func (v JWTValidator) Validate(ctx context.Context, funcs ...ValidatorFunc) erro
 		return err
 	}
 
+	if claims.Audience != "as" {
+		return ErrNotAuthorized
+	}
+
 	for _, f := range funcs {
 		ok, err := f(v.db, claims)
 		if err != nil {

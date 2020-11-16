@@ -417,7 +417,7 @@ func (i *Integration) dasJoin(ctx context.Context, devEUI lorawan.EUI64, pl pb.J
 	_, err := client.UplinkSend(ctx, das.UplinkRequest{
 		helpers.EUI64(devEUI): das.UplinkMsgJoining{
 			MsgType:   "joining",
-			Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).Unix()),
+			Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
 			DR:        uint8(pl.Dr),
 			Freq:      pl.GetTxInfo().Frequency,
 		},
@@ -445,7 +445,7 @@ func (i *Integration) dasModem(ctx context.Context, vars map[string]string, devE
 			MsgType:   "modem",
 			Payload:   helpers.HEXBytes(pl.Data),
 			FCnt:      pl.FCnt,
-			Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).Unix()),
+			Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
 			DR:        uint8(pl.Dr),
 			Freq:      pl.GetTxInfo().Frequency,
 		},
@@ -476,7 +476,7 @@ func (i *Integration) dasGNSS(ctx context.Context, vars map[string]string, devEU
 	msg := das.UplinkMsgGNSS{
 		MsgType:   "gnss",
 		Payload:   helpers.HEXBytes(pl.Data),
-		Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).Unix()),
+		Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
 	}
 
 	if i.config.DASGNSSUseRxTime {
@@ -528,7 +528,7 @@ func (i *Integration) dasUplinkMetaData(ctx context.Context, vars map[string]str
 		helpers.EUI64(devEUI): das.UplinkMsg{
 			MsgType:   "updf",
 			FCnt:      pl.FCnt,
-			Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).Unix()),
+			Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
 			Port:      uint8(pl.FPort),
 			DR:        uint8(pl.Dr),
 			Freq:      pl.GetTxInfo().Frequency,
@@ -664,7 +664,7 @@ func (i *Integration) streamGeolocWorkaround(ctx context.Context, vars map[strin
 			msg := das.UplinkMsgGNSS{
 				MsgType:   "gnss",
 				Payload:   helpers.HEXBytes(p[2:]),
-				Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).Unix()),
+				Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
 			}
 
 			// Note: we must rely on the embedded gnss timestamp, as the frame

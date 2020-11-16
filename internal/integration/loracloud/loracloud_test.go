@@ -1434,7 +1434,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 						MsgType:   "modem",
 						Payload:   helpers.HEXBytes{1, 2, 3},
 						FCnt:      10,
-						Timestamp: float64(now.Unix()),
+						Timestamp: float64(now.UnixNano()) / float64(time.Second),
 						DR:        3,
 						Freq:      868100000,
 					},
@@ -1484,7 +1484,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 						MsgType:   "modem",
 						Payload:   helpers.HEXBytes{1, 2, 3},
 						FCnt:      10,
-						Timestamp: float64(now.Unix()),
+						Timestamp: float64(now.UnixNano()) / float64(time.Second),
 						DR:        3,
 						Freq:      868100000,
 					},
@@ -1530,7 +1530,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 					helpers.EUI64(ts.device.DevEUI): &das.UplinkMsg{
 						MsgType:   "updf",
 						FCnt:      10,
-						Timestamp: float64(now.Unix()),
+						Timestamp: float64(now.UnixNano()) / float64(time.Second),
 						DR:        3,
 						Freq:      868100000,
 						Port:      190,
@@ -1580,7 +1580,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 					helpers.EUI64(ts.device.DevEUI): &das.UplinkMsgGNSS{
 						MsgType:   "gnss",
 						Payload:   helpers.HEXBytes{1, 2, 3},
-						Timestamp: float64(now.Unix()),
+						Timestamp: float64(now.UnixNano()) / float64(time.Second),
 					},
 				},
 				expectedIntegrationEvent: &pb.IntegrationEvent{
@@ -1701,7 +1701,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 		expected := das.UplinkRequest{
 			helpers.EUI64(ts.device.DevEUI): &das.UplinkMsgJoining{
 				MsgType:   "joining",
-				Timestamp: float64(now.Unix()),
+				Timestamp: float64(now.UnixNano()) / float64(time.Second),
 				DR:        3,
 				Freq:      868100000,
 			},

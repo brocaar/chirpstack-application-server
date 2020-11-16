@@ -659,8 +659,8 @@ func (i *Integration) streamGeolocWorkaround(ctx context.Context, vars map[strin
 			continue
 		}
 
-		// gnss with pcb || gnss with patch antenna
 		if p[0] == 0x06 || p[0] == 0x07 {
+			// gnss with pcb || gnss with patch antenna
 			msg := das.UplinkMsgGNSS{
 				MsgType:   "gnss",
 				Payload:   helpers.HEXBytes(p[2:]),
@@ -674,6 +674,26 @@ func (i *Integration) streamGeolocWorkaround(ctx context.Context, vars map[strin
 			if loc := helpers.GetStartLocation(pl.RxInfo); loc != nil {
 				msg.GNSSAssistPosition = []float64{loc.Latitude, loc.Longitude}
 				msg.GNSSAssistAltitude = loc.Altitude
+			}
+
+			client := das.New(i.dasURI, i.config.DASToken)
+			resp, err := client.UplinkSend(ctx, das.UplinkRequest{
+				helpers.EUI64(devEUI): msg,
+			})
+			if err != nil {
+				return errors.Wrap(err, "das error")
+			}
+
+			err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl)
+			if err != nil {
+				return errors.Wrap(err, "handle das response error")
+			}
+		} else if p[0] == 0x08 {
+			// wifi
+			msg := das.UplinkMsgWifi{
+				MsgType:   "wifi",
+				Payload:   helpers.HEXBytes(p[2:]),
+				Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
 			}
 
 			client := das.New(i.dasURI, i.config.DASToken)

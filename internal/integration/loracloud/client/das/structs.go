@@ -49,6 +49,13 @@ type UplinkMsgGNSS struct {
 	GNSSUse2DSolver         bool             `json:"gnss_use_2D_solver,omitempty"`
 }
 
+// UplinkMsgWifi implements the LoRa Cloud UplinkMsg object containing a wifi payload.
+type UplinkMsgWifi struct {
+	MsgType   string           `json:"msgtype"` // Must be set to "wifi"
+	Payload   helpers.HEXBytes `json:"payload"`
+	Timestamp float64          `json:"timestamp"` // Seconds since UTC
+}
+
 // UplinkMsgJoining implements the LoRa Cloud UplinkMsg object indicating a session reset.
 type UplinkMsgJoining struct {
 	MsgType   string  `json:"msgtype"`   // Must be set to "joining"

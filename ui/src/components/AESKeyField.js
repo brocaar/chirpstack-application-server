@@ -165,12 +165,11 @@ class AESKeyField extends Component {
   }
 
   randomKey = () => {
-    let key = "";
-    const possible = 'abcdef0123456789';
+    let cryptoObj = window.crypto || window.msCrypto;
+    let b = new Uint8Array(16);
+    cryptoObj.getRandomValues(b);
 
-    for(let i = 0; i < 32; i++){
-      key += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
+    let key = Buffer.from(b).toString('hex');
     this.setState({
       value: key,
     });

@@ -46,22 +46,19 @@ class MulticastGroupForm extends FormComponent {
   }
 
   getRandomKey(len) {
-    let key = "";
-    const possible = 'abcdef0123456789';
+    let cryptoObj = window.crypto || window.msCrypto;
+    let b = new Uint8Array(len);
+    cryptoObj.getRandomValues(b);
 
-    for(let i = 0; i < len; i++){
-      key += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-
-    return key;
+    return Buffer.from(b).toString('hex');
   }
 
   getRandomMcAddr = (cb) => {
-    cb(this.getRandomKey(8));
+    cb(this.getRandomKey(4));
   }
 
   getRandomSessionKey = (cb) => {
-    cb(this.getRandomKey(32));
+    cb(this.getRandomKey(16));
   }
 
 

@@ -76,12 +76,11 @@ class EUI64Field extends Component {
   }
 
   randomKey = () => {
-    let key = "";
-    const possible = 'abcdef0123456789';
+    let cryptoObj = window.crypto || window.msCrypto;
+    let b = new Uint8Array(8);
+    cryptoObj.getRandomValues(b);
 
-    for(let i = 0; i < 16; i++){
-      key += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
+    let key = Buffer.from(b).toString('hex');
     this.setState({
       value: key,
     });

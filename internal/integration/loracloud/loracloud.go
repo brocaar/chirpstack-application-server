@@ -456,7 +456,7 @@ func (i *Integration) dasModem(ctx context.Context, vars map[string]string, devE
 
 	loRaCloudAPIDuration("das_v1_uplink_send").Observe(float64(time.Since(start)) / float64(time.Second))
 
-	err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl)
+	err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl, common.LocationSource_UNKNOWN)
 	if err != nil {
 		return errors.Wrap(err, "handle das response error")
 	}
@@ -507,7 +507,7 @@ func (i *Integration) dasGNSS(ctx context.Context, vars map[string]string, devEU
 
 	loRaCloudAPIDuration("das_v1_uplink_send").Observe(float64(time.Since(start)) / float64(time.Second))
 
-	err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl)
+	err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl, common.LocationSource_GEO_RESOLVER_GNSS)
 	if err != nil {
 		return errors.Wrap(err, "handle das response error")
 	}
@@ -538,7 +538,7 @@ func (i *Integration) dasUplinkMetaData(ctx context.Context, vars map[string]str
 		return errors.Wrap(err, "das error")
 	}
 
-	err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl)
+	err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl, common.LocationSource_UNKNOWN)
 	if err != nil {
 		return errors.Wrap(err, "handle das response error")
 	}
@@ -548,7 +548,7 @@ func (i *Integration) dasUplinkMetaData(ctx context.Context, vars map[string]str
 	return nil
 }
 
-func (i *Integration) handleDASResponse(ctx context.Context, vars map[string]string, devEUI lorawan.EUI64, dasResp das.UplinkResponse, ii models.Integration, pl integration.UplinkEvent) error {
+func (i *Integration) handleDASResponse(ctx context.Context, vars map[string]string, devEUI lorawan.EUI64, dasResp das.UplinkResponse, ii models.Integration, pl integration.UplinkEvent, ls common.LocationSource) error {
 	devResp, ok := dasResp.Result[helpers.EUI64(devEUI)]
 	if !ok {
 		return errors.New("no response for deveui")
@@ -614,7 +614,7 @@ func (i *Integration) handleDASResponse(ctx context.Context, vars map[string]str
 				Latitude:  ps.LLH[0],
 				Longitude: ps.LLH[1],
 				Altitude:  ps.LLH[2],
-				Source:    common.LocationSource_GEO_RESOLVER_GNSS,
+				Source:    ls,
 				Accuracy:  uint32(ps.Accuracy),
 			},
 		}
@@ -684,7 +684,7 @@ func (i *Integration) streamGeolocWorkaround(ctx context.Context, vars map[strin
 				return errors.Wrap(err, "das error")
 			}
 
-			err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl)
+			err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl, common.LocationSource_GEO_RESOLVER_GNSS)
 			if err != nil {
 				return errors.Wrap(err, "handle das response error")
 			}
@@ -692,7 +692,7 @@ func (i *Integration) streamGeolocWorkaround(ctx context.Context, vars map[strin
 			// wifi
 			msg := das.UplinkMsgWifi{
 				MsgType:   "wifi",
-				Payload:   helpers.HEXBytes(p[2:]),
+				Payload:   helpers.HEXBytes(append([]byte{0x01}, p[2:]...)),
 				Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
 			}
 
@@ -704,7 +704,7 @@ func (i *Integration) streamGeolocWorkaround(ctx context.Context, vars map[strin
 				return errors.Wrap(err, "das error")
 			}
 
-			err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl)
+			err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl, common.LocationSource_GEO_RESOLVER_WIFI)
 			if err != nil {
 				return errors.Wrap(err, "handle das response error")
 			}

@@ -830,10 +830,8 @@ func ValidateOrganizationsAccess(flag Flag) ValidatorFunc {
 		}
 
 		// admin api key
-		// organization api key
 		apiKeyWhere = [][]string{
 			{"ak.id = $1", "ak.is_admin = true"},
-			{"ak.id = $1", "ak.organization_id is not null"},
 		}
 	default:
 		panic("unsupported flag")
@@ -899,10 +897,8 @@ func ValidateOrganizationAccess(flag Flag, id int64) ValidatorFunc {
 		}
 
 		// admin api key
-		// organization api key
 		apiKeyWhere = [][]string{
-			{"ak.id = $1", "ak.is_admin = true"},
-			{"ak.id = $1", "ak.organization_id = $2"},
+			{"ak.id = $1", "ak.is_admin = true", "$2 = $2"},
 		}
 	case Delete:
 		// global admin

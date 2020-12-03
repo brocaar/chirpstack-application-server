@@ -1592,10 +1592,10 @@ func (ts *ValidatorTestSuite) TestOrganization() {
 				ExpectedOK: true,
 			},
 			{
-				Name:       "org api key can list",
+				Name:       "org api key can not list",
 				Validators: []ValidatorFunc{ValidateOrganizationsAccess(List)},
 				Claims:     Claims{APIKeyID: apiKeys[1].ID},
-				ExpectedOK: true,
+				ExpectedOK: false,
 			},
 			{
 				Name:       "app api key can not create or list",
@@ -1653,10 +1653,16 @@ func (ts *ValidatorTestSuite) TestOrganization() {
 				ExpectedOK: true,
 			},
 			{
-				Name:       "org api key can read and update",
-				Validators: []ValidatorFunc{ValidateOrganizationAccess(Read, ts.organizations[0].ID), ValidateOrganizationAccess(Update, ts.organizations[0].ID)},
+				Name:       "org api key can read",
+				Validators: []ValidatorFunc{ValidateOrganizationAccess(Read, ts.organizations[0].ID)},
 				Claims:     Claims{APIKeyID: apiKeys[1].ID},
 				ExpectedOK: true,
+			},
+			{
+				Name:       "org api key can not update",
+				Validators: []ValidatorFunc{ValidateOrganizationAccess(Update, ts.organizations[0].ID)},
+				Claims:     Claims{APIKeyID: apiKeys[1].ID},
+				ExpectedOK: false,
 			},
 			{
 				Name:       "org api key can not delete",

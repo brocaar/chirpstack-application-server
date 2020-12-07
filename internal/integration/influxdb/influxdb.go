@@ -195,6 +195,9 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 		Values: map[string]interface{}{
 			"value": 1,
 			"f_cnt": pl.FCnt,
+            "adr": pl.ADR,
+            "data_rate": pl.DR,
+            "spread_factor": pl.SF
 		},
 	})
 

@@ -42,6 +42,8 @@ type deviceUp struct {
 	RXInfo          json.RawMessage `db:"rx_info"`
 	Object          json.RawMessage `db:"object"`
 	Tags            hstore.Hstore   `db:"tags"`
+	DevAddr         lorawan.DevAddr `db:"dev_addr"`
+	ConfirmedUplink bool            `db:"confirmed_uplink"`
 }
 
 type deviceStatus struct {
@@ -198,7 +200,9 @@ func (ts *PostgreSQLTestSuite) SetupTest() {
 			tags hstore not null,
 			data bytea not null,
 			rx_info jsonb not null,
-			object jsonb not null
+			object jsonb not null,
+			confirmed_uplink boolean not null,
+    		dev_addr bytea not null
 		)
 	`)
 	if err != nil {
@@ -331,6 +335,8 @@ func (ts *PostgreSQLTestSuite) TestHandleUplinkEvent() {
 		Tags: map[string]string{
 			"foo": "bar",
 		},
+		ConfirmedUplink: true,
+		DevAddr:         []byte{1, 2, 3, 4},
 	}
 
 	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, pl))
@@ -365,6 +371,8 @@ func (ts *PostgreSQLTestSuite) TestHandleUplinkEvent() {
 				"foo": sql.NullString{String: "bar", Valid: true},
 			},
 		},
+		ConfirmedUplink: true,
+		DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
 	}, up)
 }
 
@@ -399,6 +407,8 @@ func (ts *PostgreSQLTestSuite) TestHandleUplinkEventNoObject() {
 		Tags: map[string]string{
 			"foo": "bar",
 		},
+		ConfirmedUplink: true,
+		DevAddr:         []byte{1, 2, 3, 4},
 	}
 
 	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, pl))
@@ -432,6 +442,8 @@ func (ts *PostgreSQLTestSuite) TestHandleUplinkEventNoObject() {
 				"foo": sql.NullString{String: "bar", Valid: true},
 			},
 		},
+		ConfirmedUplink: true,
+		DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
 	}, up)
 }
 
@@ -465,6 +477,8 @@ func (ts *PostgreSQLTestSuite) TestUplinkEventNoData() {
 		Tags: map[string]string{
 			"foo": "bar",
 		},
+		ConfirmedUplink: false,
+		DevAddr:         []byte{1, 2, 3, 4},
 	}
 
 	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, pl))
@@ -498,6 +512,8 @@ func (ts *PostgreSQLTestSuite) TestUplinkEventNoData() {
 				"foo": sql.NullString{String: "bar", Valid: true},
 			},
 		},
+		ConfirmedUplink: false,
+		DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
 	}, up)
 }
 

@@ -92,7 +92,9 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 	}
 
 	var devEUI lorawan.EUI64
+	var devAddr lorawan.DevAddr
 	copy(devEUI[:], pl.DevEui)
+	copy(devAddr[:], pl.DevAddr)
 
 	_, err = i.db.Exec(`
 		insert into device_up (
@@ -110,8 +112,10 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 			data,
 			rx_info,
 			object,
-			tags
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+			tags,
+			confirmed_uplink,
+			dev_addr
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
 		id,
 		rxTime,
 		devEUI,
@@ -127,6 +131,8 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 		rxInfoJSON,
 		objectJSON,
 		tagsToHstore(pl.Tags),
+		pl.ConfirmedUplink,
+		devAddr[:],
 	)
 	if err != nil {
 		return errors.Wrap(err, "insert error")

@@ -76,10 +76,6 @@ import DeviceLayout from "./views/devices/DeviceLayout";
 // search
 import Search from "./views/search/Search";
 
-// FUOTA
-import CreateFUOTADeploymentForDevice from "./views/fuota/CreateFUOTADeploymentForDevice";
-import FUOTADeploymentLayout from "./views/fuota/FUOTADeploymentLayout";
-
 // API Keys
 import ListAdminAPIKeys from "./views/api-keys/ListAdminAPIKeys";
 import CreateAdminAPIKey from "./views/api-keys/CreateAdminAPIKey";
@@ -206,8 +202,6 @@ class App extends Component {
                     <Route exact path="/organizations/:organizationID(\d+)/applications" component={ListApplications} />
                     <Route exact path="/organizations/:organizationID(\d+)/applications/create" component={CreateApplication} />
                     <Route exact path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/devices/create" component={CreateDevice} />
-                    <Route exact path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/devices/:devEUI([\w]{16})/fuota-deployments/create" component={CreateFUOTADeploymentForDevice} />
-                    <Route path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/fuota-deployments/:fuotaDeploymentID([\w-]{36})" component={FUOTADeploymentLayout} />
                     <Route path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)/devices/:devEUI([\w]{16})" component={DeviceLayout} />
                     <Route path="/organizations/:organizationID(\d+)/applications/:applicationID(\d+)" component={ApplicationLayout} />
 

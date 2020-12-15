@@ -524,10 +524,9 @@ func (ts *APITestSuite) TestDevice() {
 					})
 					assert.NoError(err)
 					assert.Equal(&pb.DeviceKeys{
-						DevEui:    "0807060504030201",
-						NwkKey:    "01020304050607080807060504030201",
-						AppKey:    "00000000000000000000000000000000",
-						GenAppKey: "00000000000000000000000000000000",
+						DevEui: "0807060504030201",
+						NwkKey: "01020304050607080807060504030201",
+						AppKey: "00000000000000000000000000000000",
 					}, dk.DeviceKeys)
 				})
 
@@ -550,10 +549,9 @@ func (ts *APITestSuite) TestDevice() {
 					assert.NoError(err)
 
 					assert.Equal(&pb.DeviceKeys{
-						DevEui:    "0807060504030201",
-						NwkKey:    "08070605040302010102030405060708",
-						AppKey:    "00000000000000000000000000000000",
-						GenAppKey: "00000000000000000000000000000000",
+						DevEui: "0807060504030201",
+						NwkKey: "08070605040302010102030405060708",
+						AppKey: "00000000000000000000000000000000",
 					}, dk.DeviceKeys)
 				})
 

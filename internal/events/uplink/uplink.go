@@ -8,24 +8,18 @@ import (
 	"time"
 
 	keywrap "github.com/NickBall/go-aes-key-wrap"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/chirpstack-api/go/v3/as"
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-api/go/v3/common"
-	"github.com/brocaar/chirpstack-application-server/internal/applayer/clocksync"
-	"github.com/brocaar/chirpstack-application-server/internal/applayer/fragmentation"
-	"github.com/brocaar/chirpstack-application-server/internal/applayer/multicastsetup"
 	"github.com/brocaar/chirpstack-application-server/internal/codec"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
-	"github.com/brocaar/lorawan/gps"
 )
 
 type uplinkContext struct {
@@ -47,7 +41,6 @@ var tasks = []func(*uplinkContext) error{
 	updateDeviceLastSeenAndDR,
 	updateDeviceActivation,
 	decryptPayload,
-	handleApplicationLayers,
 	handleCodec,
 	handleIntegrations,
 }
@@ -184,62 +177,6 @@ func decryptPayload(ctx *uplinkContext) error {
 		return errors.Wrap(err, "decrypt payload error")
 	}
 	return nil
-}
-
-func handleApplicationLayers(ctx *uplinkContext) error {
-	// TODO: make application layer configurable
-	// * make ports configurable
-	// * disable application-layer features
-	if ctx.uplinkDataReq.FPort != 200 && ctx.uplinkDataReq.FPort != 201 && ctx.uplinkDataReq.FPort != 202 {
-		return nil
-	}
-
-	return storage.Transaction(func(db sqlx.Ext) error {
-		switch ctx.uplinkDataReq.FPort {
-		case 200:
-			if err := multicastsetup.HandleRemoteMulticastSetupCommand(ctx.ctx, db, ctx.device.DevEUI, ctx.data); err != nil {
-				return errors.Wrap(err, "handle remote multicast setup command error")
-			}
-		case 201:
-			if err := fragmentation.HandleRemoteFragmentationSessionCommand(ctx.ctx, db, ctx.device.DevEUI, ctx.data); err != nil {
-				return errors.Wrap(err, "handle remote fragmentation session command error")
-			}
-		case 202:
-			var timeSinceGPSEpoch time.Duration
-			var timeField time.Time
-			var err error
-
-			for _, rxInfo := range ctx.uplinkDataReq.RxInfo {
-				if rxInfo.TimeSinceGpsEpoch != nil {
-					timeSinceGPSEpoch, err = ptypes.Duration(rxInfo.TimeSinceGpsEpoch)
-					if err != nil {
-						log.WithError(err).Error("time since gps epoch to duration error")
-						continue
-					}
-				} else if rxInfo.Time != nil {
-					timeField, err = ptypes.Timestamp(rxInfo.Time)
-					if err != nil {
-						log.WithError(err).Error("time to timestamp error")
-						continue
-					}
-				}
-			}
-
-			// fallback on time field when time since GPS epoch is not available
-			if timeSinceGPSEpoch == 0 {
-				// fallback on current server time when time field is not available
-				if timeField.IsZero() {
-					timeField = time.Now()
-				}
-				timeSinceGPSEpoch = gps.Time(timeField).TimeSinceGPSEpoch()
-			}
-
-			if err := clocksync.HandleClockSyncCommand(ctx.ctx, db, ctx.device.DevEUI, timeSinceGPSEpoch, ctx.data); err != nil {
-				return errors.Wrap(err, "handle clocksync command error")
-			}
-		}
-		return nil
-	})
 }
 
 func handleCodec(ctx *uplinkContext) error {

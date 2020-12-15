@@ -64,7 +64,6 @@ type DeviceKeys struct {
 	DevEUI    lorawan.EUI64     `db:"dev_eui"`
 	NwkKey    lorawan.AES128Key `db:"nwk_key"`
 	AppKey    lorawan.AES128Key `db:"app_key"`
-	GenAppKey lorawan.AES128Key `db:"gen_app_key"`
 	JoinNonce int               `db:"join_nonce"`
 }
 
@@ -558,16 +557,14 @@ func CreateDeviceKeys(ctx context.Context, db sqlx.Execer, dc *DeviceKeys) error
             dev_eui,
 			nwk_key,
 			app_key,
-			join_nonce,
-			gen_app_key
-        ) values ($1, $2, $3, $4, $5, $6, $7)`,
+			join_nonce
+        ) values ($1, $2, $3, $4, $5, $6)`,
 		dc.CreatedAt,
 		dc.UpdatedAt,
 		dc.DevEUI[:],
 		dc.NwkKey[:],
 		dc.AppKey[:],
 		dc.JoinNonce,
-		dc.GenAppKey[:],
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -603,8 +600,7 @@ func UpdateDeviceKeys(ctx context.Context, db sqlx.Execer, dc *DeviceKeys) error
             updated_at = $2,
 			nwk_key = $3,
 			app_key = $4,
-			join_nonce = $5,
-			gen_app_key = $6
+			join_nonce = $5
         where
             dev_eui = $1`,
 		dc.DevEUI[:],
@@ -612,7 +608,6 @@ func UpdateDeviceKeys(ctx context.Context, db sqlx.Execer, dc *DeviceKeys) error
 		dc.NwkKey[:],
 		dc.AppKey[:],
 		dc.JoinNonce,
-		dc.GenAppKey[:],
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

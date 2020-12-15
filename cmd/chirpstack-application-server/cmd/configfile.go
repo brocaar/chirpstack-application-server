@@ -473,29 +473,6 @@ id="{{ .ApplicationServer.ID }}"
   cors_allow_origin="{{ .ApplicationServer.ExternalAPI.CORSAllowOrigin }}"
 
 
-  # Settings for the remote multicast setup.
-  [application_server.remote_multicast_setup]
-  # Synchronization interval.
-  sync_interval="{{ .ApplicationServer.RemoteMulticastSetup.SyncInterval }}"
-
-  # Synchronization retries.
-  sync_retries={{ .ApplicationServer.RemoteMulticastSetup.SyncRetries }}
-
-  # Synchronization batch-size.
-  sync_batch_size={{ .ApplicationServer.RemoteMulticastSetup.SyncBatchSize }}
-
-
-  # Settings for the fragmentation-session setup.
-  [application_server.fragmentation_session]
-  # Synchronization interval.
-  sync_interval="{{ .ApplicationServer.FragmentationSession.SyncInterval }}"
-
-  # Synchronization retries.
-  sync_retries={{ .ApplicationServer.FragmentationSession.SyncRetries }}
-
-  # Synchronization batch-size.
-  sync_batch_size={{ .ApplicationServer.FragmentationSession.SyncBatchSize }}
-
 {{ if ne .ApplicationServer.Branding.Footer  "" }}
   # Branding configuration.
   [application_server.branding]

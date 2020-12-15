@@ -434,15 +434,6 @@ func (a *DeviceAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequ
 		}
 	}
 
-	// genAppKey is only for LoRaWAN 1.0 devices that implement the
-	// remote multicast setup specification.
-	var genAppKey lorawan.AES128Key
-	if req.DeviceKeys.GenAppKey != "" {
-		if err := genAppKey.UnmarshalText([]byte(req.DeviceKeys.GenAppKey)); err != nil {
-			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
-		}
-	}
-
 	// nwkKey
 	var nwkKey lorawan.AES128Key
 	if err := nwkKey.UnmarshalText([]byte(req.DeviceKeys.NwkKey)); err != nil {
@@ -462,10 +453,9 @@ func (a *DeviceAPI) CreateKeys(ctx context.Context, req *pb.CreateDeviceKeysRequ
 	}
 
 	err := storage.CreateDeviceKeys(ctx, storage.DB(), &storage.DeviceKeys{
-		DevEUI:    eui,
-		NwkKey:    nwkKey,
-		AppKey:    appKey,
-		GenAppKey: genAppKey,
+		DevEUI: eui,
+		NwkKey: nwkKey,
+		AppKey: appKey,
 	})
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -494,10 +484,9 @@ func (a *DeviceAPI) GetKeys(ctx context.Context, req *pb.GetDeviceKeysRequest) (
 
 	return &pb.GetDeviceKeysResponse{
 		DeviceKeys: &pb.DeviceKeys{
-			DevEui:    eui.String(),
-			AppKey:    dk.AppKey.String(),
-			NwkKey:    dk.NwkKey.String(),
-			GenAppKey: dk.GenAppKey.String(),
+			DevEui: eui.String(),
+			AppKey: dk.AppKey.String(),
+			NwkKey: dk.NwkKey.String(),
 		},
 	}, nil
 }
@@ -512,15 +501,6 @@ func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequ
 	// appKey is not used for LoRaWAN 1.0
 	if req.DeviceKeys.AppKey != "" {
 		if err := appKey.UnmarshalText([]byte(req.DeviceKeys.AppKey)); err != nil {
-			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
-		}
-	}
-
-	// genAppKey is only for LoRaWAN 1.0 devices that implement the
-	// remote multicast setup specification.
-	var genAppKey lorawan.AES128Key
-	if req.DeviceKeys.GenAppKey != "" {
-		if err := genAppKey.UnmarshalText([]byte(req.DeviceKeys.GenAppKey)); err != nil {
 			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
 		}
 	}
@@ -547,7 +527,6 @@ func (a *DeviceAPI) UpdateKeys(ctx context.Context, req *pb.UpdateDeviceKeysRequ
 	}
 	dk.NwkKey = nwkKey
 	dk.AppKey = appKey
-	dk.GenAppKey = genAppKey
 
 	err = storage.UpdateDeviceKeys(ctx, storage.DB(), &dk)
 	if err != nil {

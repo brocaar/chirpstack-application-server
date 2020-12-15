@@ -18,7 +18,6 @@ import SessionStore from "../../stores/SessionStore";
 import ListDevices from "../devices/ListDevices";
 import UpdateApplication from "./UpdateApplication";
 import ListIntegrations from "./ListIntegrations";
-import ListFUOTADeploymentsForApplication from "../fuota/ListFUOTADeploymentsForApplication";
 
 import CreateAWSSNSIntegration from "./integrations/CreateAWSSNSIntegration";
 import CreateGCPPubSubIntegration from "./integrations/CreateGCPPubSubIntegration";
@@ -109,8 +108,6 @@ class ApplicationLayout extends Component {
 
     if (window.location.href.match(/.*\/integrations.*/g)) {
       tab = 2;
-    } else if (window.location.href.endsWith("/fuota-deployments")) {
-      tab = 3;
     } else if (window.location.href.endsWith("/edit")) {
       tab = 1;
     }
@@ -160,7 +157,6 @@ class ApplicationLayout extends Component {
             <Tab label="Devices" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`} />
             {this.state.admin && <Tab label="Application configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/edit`} />}
             {this.state.admin && <Tab label="Integrations" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`} />}
-            {this.state.admin && <Tab label="FUOTA" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/fuota-deployments`} />}
           </Tabs>
         </Grid>
 
@@ -169,7 +165,6 @@ class ApplicationLayout extends Component {
             <Route exact path={`${this.props.match.path}/edit`} render={props => <UpdateApplication application={this.state.application.application} {...props} />} />
             <Route exact path={`${this.props.match.path}/integrations`} render={props => <ListIntegrations application={this.state.application.application} {...props} />} />
             <Route exact path={`${this.props.match.path}`} render={props => <ListDevices application={this.state.application.application} {...props} />} />
-            <Route exact path={`${this.props.match.path}/fuota-deployments`} render={props => <ListFUOTADeploymentsForApplication application={this.state.application.application} {...props} /> } />
 
             <Route exact path={`${this.props.match.path}/integrations/aws-sns/create`} render={props => <CreateAWSSNSIntegration {...props} />} />
             <Route exact path={`${this.props.match.path}/integrations/aws-sns/edit`} render={props => <UpdateAWSSNSIntegration {...props} />} />

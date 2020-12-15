@@ -37,8 +37,6 @@ var (
 	ErrInvalidGatewayDiscoveryInterval = errors.New("invalid gateway-discovery interval, it must be greater than 0")
 	ErrDeviceProfileInvalidName        = errors.New("invalid device-profile name")
 	ErrServiceProfileInvalidName       = errors.New("invalid service-profile name")
-	ErrFUOTADeploymentInvalidName      = errors.New("invalid FUOTA Deployment name")
-	ErrFUOTADeploymentNullPayload      = errors.New("invalid FUOTA Deployment Payload")
 	ErrMulticastGroupInvalidName       = errors.New("invalid multicast-group name")
 	ErrOrganizationMaxDeviceCount      = errors.New("organization reached max. device count")
 	ErrOrganizationMaxGatewayCount     = errors.New("organization reached max. gateway count")

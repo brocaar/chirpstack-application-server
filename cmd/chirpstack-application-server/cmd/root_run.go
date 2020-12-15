@@ -13,13 +13,10 @@ import (
 	"google.golang.org/grpc/resolver"
 
 	"github.com/brocaar/chirpstack-application-server/internal/api"
-	"github.com/brocaar/chirpstack-application-server/internal/applayer/fragmentation"
-	"github.com/brocaar/chirpstack-application-server/internal/applayer/multicastsetup"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	jscodec "github.com/brocaar/chirpstack-application-server/internal/codec/js"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/downlink"
-	"github.com/brocaar/chirpstack-application-server/internal/fuota"
 	"github.com/brocaar/chirpstack-application-server/internal/gwping"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/migrations/code"
@@ -45,9 +42,6 @@ func run(cmd *cobra.Command, args []string) error {
 		setupCodec,
 		handleDataDownPayloads,
 		startGatewayPing,
-		setupMulticastSetup,
-		setupFragmentation,
-		setupFUOTA,
 		setupAPI,
 		setupMonitoring,
 	}
@@ -155,27 +149,6 @@ func setupAPI() error {
 func startGatewayPing() error {
 	go gwping.SendPingLoop()
 
-	return nil
-}
-
-func setupMulticastSetup() error {
-	if err := multicastsetup.Setup(config.C); err != nil {
-		return errors.Wrap(err, "multicastsetup setup error")
-	}
-	return nil
-}
-
-func setupFragmentation() error {
-	if err := fragmentation.Setup(config.C); err != nil {
-		return errors.Wrap(err, "fragmentation setup error")
-	}
-	return nil
-}
-
-func setupFUOTA() error {
-	if err := fuota.Setup(config.C); err != nil {
-		return errors.Wrap(err, "fuota setup error")
-	}
 	return nil
 }
 

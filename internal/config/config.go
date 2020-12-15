@@ -83,23 +83,6 @@ type Config struct {
 			CORSAllowOrigin string `mapstructure:"cors_allow_origin"`
 		} `mapstructure:"external_api"`
 
-		RemoteMulticastSetup struct {
-			SyncInterval  time.Duration `mapstructure:"sync_interval"`
-			SyncRetries   int           `mapstructure:"sync_retries"`
-			SyncBatchSize int           `mapstructure:"sync_batch_size"`
-		} `mapstructure:"remote_multicast_setup"`
-
-		FragmentationSession struct {
-			SyncInterval  time.Duration `mapstructure:"sync_interval"`
-			SyncRetries   int           `mapstructure:"sync_retries"`
-			SyncBatchSize int           `mapstructure:"sync_batch_size"`
-		} `mapstructure:"fragmentation_session"`
-
-		FUOTADeployment struct {
-			McGroupID int `mapstructure:"mc_group_id"`
-			FragIndex int `mapstructure:"frag_index"`
-		} `mapstructure:"fuota_deployment"`
-
 		Branding struct {
 			Footer       string
 			Registration string

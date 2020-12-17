@@ -53,6 +53,10 @@ var (
 func Setup(conf config.Config) error {
 	log.Info("integration: configuring global integrations")
 
+	if err := mqtt.Setup(conf); err != nil {
+		return err
+	}
+
 	var ints []models.IntegrationHandler
 
 	// setup marshaler

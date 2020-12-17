@@ -86,6 +86,7 @@ func (ts *StorageTestSuite) TestApplication() {
 			PayloadCodec:         "CUSTOM_JS",
 			PayloadEncoderScript: "Encode() {}",
 			PayloadDecoderScript: "Decode() {}",
+			MQTTTLSCert:          []byte{},
 		}
 		assert.NoError(CreateApplication(context.Background(), ts.Tx(), &app))
 
@@ -133,6 +134,7 @@ func (ts *StorageTestSuite) TestApplication() {
 			assert := require.New(t)
 
 			app.Description = "some new description"
+			app.MQTTTLSCert = []byte{1, 2, 3}
 
 			assert.NoError(UpdateApplication(context.Background(), ts.Tx(), app))
 

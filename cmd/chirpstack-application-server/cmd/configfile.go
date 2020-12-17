@@ -303,6 +303,22 @@ id="{{ .ApplicationServer.ID }}"
   # TLS key file (optional)
   tls_key="{{ .ApplicationServer.Integration.MQTT.TLSKey }}"
 
+    # Client configuration.
+    #
+    # This section contains configuration for end-applications connecting to the
+    # MQTT broker.
+    [application_server.integration.mqtt.client]
+
+    # CA certificate and key file (optional).
+    #
+    # When setting the CA certificate and key file options, ChirpStack Application Server
+    # will generate client certificates which can be used by the end-application for
+    # authentication and authorization with the MQTT broker. The Common Name of the
+    # certificate will be set to the application ID.
+    ca_cert="{{ .ApplicationServer.Integration.MQTT.Client.CACert }}"
+    ca_key="{{ .ApplicationServer.Integration.MQTT.Client.CAKey }}"
+    client_cert_lifetime="{{ .ApplicationServer.Integration.MQTT.Client.ClientCertLifetime }}"
+
 
   # AMQP / RabbitMQ.
   [application_server.integration.amqp]

@@ -27,6 +27,7 @@ type Application struct {
 	PayloadCodec         codec.Type `db:"payload_codec"`
 	PayloadEncoderScript string     `db:"payload_encoder_script"`
 	PayloadDecoderScript string     `db:"payload_decoder_script"`
+	MQTTTLSCert          []byte     `db:"mqtt_tls_cert"`
 }
 
 // ApplicationListItem devices the application as a list item.
@@ -58,8 +59,9 @@ func CreateApplication(ctx context.Context, db sqlx.Queryer, item *Application) 
 			service_profile_id,
 			payload_codec,
 			payload_encoder_script,
-			payload_decoder_script
-		) values ($1, $2, $3, $4, $5, $6, $7) returning id`,
+			payload_decoder_script,
+			mqtt_tls_cert
+		) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id`,
 		item.Name,
 		item.Description,
 		item.OrganizationID,
@@ -67,6 +69,7 @@ func CreateApplication(ctx context.Context, db sqlx.Queryer, item *Application) 
 		item.PayloadCodec,
 		item.PayloadEncoderScript,
 		item.PayloadDecoderScript,
+		item.MQTTTLSCert,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -212,7 +215,8 @@ func UpdateApplication(ctx context.Context, db sqlx.Execer, item Application) er
 			service_profile_id = $5,
 			payload_codec = $6,
 			payload_encoder_script = $7,
-			payload_decoder_script = $8
+			payload_decoder_script = $8,
+			mqtt_tls_cert = $9
 		where id = $1`,
 		item.ID,
 		item.Name,
@@ -222,6 +226,7 @@ func UpdateApplication(ctx context.Context, db sqlx.Execer, item Application) er
 		item.PayloadCodec,
 		item.PayloadEncoderScript,
 		item.PayloadDecoderScript,
+		item.MQTTTLSCert,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

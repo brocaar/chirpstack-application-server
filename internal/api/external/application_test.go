@@ -1,7 +1,9 @@
 package external
 
 import (
+	"io/ioutil"
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
@@ -13,7 +15,9 @@ import (
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/mqtt"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
+	"github.com/brocaar/chirpstack-application-server/internal/test"
 )
 
 func (ts *APITestSuite) TestApplication() {
@@ -910,6 +914,41 @@ func (ts *APITestSuite) TestApplication() {
 					_, err = api.GetPilotThingsIntegration(context.Background(), &pb.GetPilotThingsIntegrationRequest{ApplicationId: createResp.Id})
 					assert.Equal(codes.NotFound, grpc.Code(err))
 				})
+			})
+		})
+
+		t.Run("MQTT", func(t *testing.T) {
+			t.Run("Generate certificate", func(t *testing.T) {
+				assert := require.New(t)
+
+				app, err := storage.GetApplication(context.Background(), ts.tx.Tx, createResp.Id)
+				assert.NoError(err)
+				assert.Len(app.MQTTTLSCert, 0)
+
+				conf := test.GetConfig()
+				conf.ApplicationServer.Integration.MQTT.Client.CACert = "../../test/ca_cert.pem"
+				conf.ApplicationServer.Integration.MQTT.Client.CAKey = "../../test/ca_private.pem"
+				conf.ApplicationServer.Integration.MQTT.Client.ClientCertLifetime = time.Hour
+
+				assert.NoError(mqtt.Setup(conf))
+
+				resp, err := api.GenerateMQTTIntegrationClientCertificate(context.Background(), &pb.GenerateMQTTIntegrationClientCertificateRequest{
+					ApplicationId: createResp.Id,
+				})
+				assert.NoError(err)
+
+				assert.NotEqual(0, len(resp.TlsCert))
+				assert.NotEqual(0, len(resp.TlsKey))
+
+				b, err := ioutil.ReadFile(conf.ApplicationServer.Integration.MQTT.Client.CACert)
+				assert.NoError(err)
+
+				assert.Equal(string(b), string(resp.CaCert))
+				assert.NotNil(resp.ExpiresAt)
+
+				app, err = storage.GetApplication(context.Background(), ts.tx.Tx, createResp.Id)
+				assert.NoError(err)
+				assert.NotEqual(0, len(app.MQTTTLSCert))
 			})
 		})
 

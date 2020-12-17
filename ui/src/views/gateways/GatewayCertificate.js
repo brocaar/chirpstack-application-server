@@ -16,6 +16,7 @@ class GatewayCertificate extends Component {
     super();
 
     this.state = {
+      caCert: null,
       tlsCert: null,
       tlsKey: null,
       buttonDisabled: false,
@@ -42,7 +43,7 @@ class GatewayCertificate extends Component {
       <Card>
         <CardContent>
           <Typography gutterBottom>
-            When required by the network, the gateway needs a client certificate in order to connect to the network.
+            If required by the network, the gateway needs a client certificate in order to connect to the network.
             This certificate must be configured on the gateway. After generating the certificate, the certificate
             can only be retrieved once.
           </Typography>

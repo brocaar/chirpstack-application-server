@@ -31,6 +31,12 @@ import (
 
 const downlinkLockTTL = time.Millisecond * 100
 
+var (
+	clientCACert       string
+	clientCAKey        string
+	clientCertLifetime time.Duration
+)
+
 // Integration implements a MQTT integration.
 type Integration struct {
 	marshaler            marshaler.Type
@@ -62,6 +68,14 @@ type Integration struct {
 	locationRetained    bool
 	txAckRetained       bool
 	integrationRetained bool
+}
+
+// Setup configures the MQTT package.
+func Setup(c config.Config) error {
+	clientCACert = c.ApplicationServer.Integration.MQTT.Client.CACert
+	clientCAKey = c.ApplicationServer.Integration.MQTT.Client.CAKey
+	clientCertLifetime = c.ApplicationServer.Integration.MQTT.Client.ClientCertLifetime
+	return nil
 }
 
 // New creates a new MQTT integration.

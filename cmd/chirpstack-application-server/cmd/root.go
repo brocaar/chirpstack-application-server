@@ -54,6 +54,7 @@ func init() {
 	viper.SetDefault("application_server.integration.mqtt.clean_session", true)
 	viper.SetDefault("application_server.integration.mqtt.event_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/event/{{ .EventType }}")
 	viper.SetDefault("application_server.integration.mqtt.command_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/command/{{ .CommandType }}")
+	viper.SetDefault("application_server.integration.mqtt.client.client_cert_lifetime", time.Hour*24*365)
 	viper.SetDefault("application_server.integration.kafka.brokers", []string{"localhost:9092"})
 	viper.SetDefault("application_server.integration.kafka.topic", "chirpstack_as")
 	viper.SetDefault("application_server.integration.kafka.event_key_template", "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}")

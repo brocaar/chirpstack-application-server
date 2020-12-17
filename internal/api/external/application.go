@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gofrs/uuid"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	log "github.com/sirupsen/logrus"
 
@@ -22,6 +23,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/integration/http"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/influxdb"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/loracloud"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/mqtt"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/mydevices"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/pilotthings"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/thingsboard"
@@ -1434,6 +1436,44 @@ func (a *ApplicationAPI) DeletePilotThingsIntegration(ctx context.Context, in *p
 	return &empty.Empty{}, nil
 }
 
+// GenerateMQTTIntegrationClientCertificate generates an application ID specific TLS certificate
+// to connect to the MQTT broker.
+func (a *ApplicationAPI) GenerateMQTTIntegrationClientCertificate(ctx context.Context, in *pb.GenerateMQTTIntegrationClientCertificateRequest) (*pb.GenerateMQTTIntegrationClientCertificateResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	expiresAt, ca, cert, key, err := mqtt.GenerateClientCertificate(in.ApplicationId)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	app, err := storage.GetApplication(ctx, storage.DB(), in.ApplicationId)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	app.MQTTTLSCert = cert
+
+	if err := storage.UpdateApplication(ctx, storage.DB(), app); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	expiresAtPB, err := ptypes.TimestampProto(expiresAt)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &pb.GenerateMQTTIntegrationClientCertificateResponse{
+		TlsCert:   string(cert),
+		TlsKey:    string(key),
+		CaCert:    string(ca),
+		ExpiresAt: expiresAtPB,
+	}, nil
+}
+
 // ListIntegrations lists all configured integrations.
 func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegrationRequest) (*pb.ListIntegrationResponse, error) {
 	if err := a.validator.Validate(ctx,
@@ -1442,11 +1482,11 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
+	// Application integrations
 	integrations, err := storage.GetIntegrationsForApplicationID(ctx, storage.DB(), in.ApplicationId)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
-
 	out := pb.ListIntegrationResponse{
 		TotalCount: int64(len(integrations)),
 	}
@@ -1476,6 +1516,16 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 				"kind": intgr.Kind,
 			}).Warning("api/external: unknown integration kind")
 		}
+	}
+
+	// Global integrations
+	conf := config.Get()
+	for _, name := range conf.ApplicationServer.Integration.Enabled {
+		switch name {
+		case "mqtt":
+			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_MQTT_GLOBAL})
+		}
+
 	}
 
 	return &out, nil

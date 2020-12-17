@@ -37,6 +37,7 @@ import UpdateThingsBoardIntegration from "./integrations/UpdateThingsBoardIntegr
 import UpdateLoRaCloudIntegration from "./integrations/UpdateLoRaCloudIntegration";
 import UpdateMyDevicesIntegration from "./integrations/UpdateMyDevicesIntegration";
 import UpdatePilotThingsIntegration from "./integrations/UpdatePilotThingsIntegration";
+import MQTTCertificate from "./integrations/MQTTCertificate";
 
 import theme from "../../theme";
 
@@ -184,6 +185,7 @@ class ApplicationLayout extends Component {
             <Route exact path={`${this.props.match.path}/integrations/mydevices/edit`} render={props => <UpdateMyDevicesIntegration {...props} />} />
             <Route exact path={`${this.props.match.path}/integrations/pilot-things/create`} render={props => <CreatePilotThingsIntegration {...props} />} />
             <Route exact path={`${this.props.match.path}/integrations/pilot-things/edit`} render={props => <UpdatePilotThingsIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/mqtt/certificate`} render={props => <MQTTCertificate {...props} />} />
           </Switch>
         </Grid>
       </Grid>

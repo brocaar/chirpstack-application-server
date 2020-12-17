@@ -15,6 +15,7 @@ import ThingsboardCard from "./integrations/ThingsboardCard";
 import LoRaCloudCard from "./integrations/LoRaCloudCard";
 import MyDevicesCard from "./integrations/MyDevicesCard";
 import PilotThingsCard from "./integrations/PilotThingsCard";
+import MQTTCard from "./integrations/MQTTCard";
 
 
 const styles = {
@@ -114,6 +115,11 @@ class ListIntegrations extends Component {
         configured.push(<MyDevicesCard organizationID={organizationID} applicationID={applicationID} />);
       } else {
         available.push(<MyDevicesCard organizationID={organizationID} applicationID={applicationID} add />);
+      }
+
+      // Global MQTT
+      if(includes(resp.result, "MQTT_GLOBAL")) {
+        configured.push(<MQTTCard organizationID={organizationID} applicationID={applicationID} />);
       }
 
       // Pilot Things

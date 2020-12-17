@@ -671,6 +671,19 @@ class ApplicationStore extends EventEmitter {
     });
   }
 
+  generateMQTTIntegrationClientCertificate(applicationID, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.ApplicationService.GenerateMQTTIntegrationClientCertificate({
+        application_id: applicationID,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
   integrationNotification(kind, action) {
     dispatcher.dispatch({
       type: "CREATE_NOTIFICATION",

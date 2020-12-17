@@ -131,6 +131,8 @@ type Config struct {
 
 // IntegrationMQTTConfig holds the configuration for the MQTT integration.
 type IntegrationMQTTConfig struct {
+	Client IntegrationMQTTClientConfig `mapstructure:"client"`
+
 	Server               string        `mapstructure:"server"`
 	Username             string        `mapstructure:"username"`
 	Password             string        `mapstructure:"password"`
@@ -163,6 +165,13 @@ type IntegrationMQTTConfig struct {
 	LocationRetainedMessage    bool   `mapstructure:"location_retained_message"`
 	TxAckRetainedMessage       bool   `mapstructure:"tx_ack_retained_message"`
 	IntegrationRetainedMessage bool   `mapstructure:"integration_retained_message"`
+}
+
+// IntegrationMQTTClientConfig holds the additional client config.
+type IntegrationMQTTClientConfig struct {
+	CACert             string        `mapstructure:"ca_cert"`
+	CAKey              string        `mapstructure:"ca_key"`
+	ClientCertLifetime time.Duration `mapstructure:"client_cert_lifetime"`
 }
 
 // IntegrationAWSSNSConfig holds the AWS SNS integration configuration.
@@ -227,3 +236,8 @@ const (
 
 // C holds the global configuration.
 var C Config
+
+// Get returns the configuration.
+func Get() *Config {
+	return &C
+}

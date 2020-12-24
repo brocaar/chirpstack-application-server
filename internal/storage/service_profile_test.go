@@ -238,6 +238,22 @@ func TestServiceProfile(t *testing.T) {
 				So(sps, ShouldHaveLength, 0)
 			})
 
+			Convey("Then GetServiceProfiles for NetworkServerID returns the service-profiles for the given network-server", func() {
+				sps, err := GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
+					NetworkServerID: n.ID,
+					Limit:           10,
+				})
+				So(err, ShouldBeNil)
+				So(sps, ShouldHaveLength, 1)
+
+				sps, err = GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
+					NetworkServerID: n.ID + 1,
+					Limit:           10,
+				})
+				So(err, ShouldBeNil)
+				So(sps, ShouldHaveLength, 0)
+			})
+
 			Convey("Then GetServiceProfiles for User returns the service-profiles accessible by a given user", func() {
 				sps, err := GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
 					UserID: u.ID,

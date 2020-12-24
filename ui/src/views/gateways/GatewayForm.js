@@ -21,6 +21,7 @@ import KVForm from "../../components/KVForm";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import NetworkServerStore from "../../stores/NetworkServerStore";
 import GatewayProfileStore from "../../stores/GatewayProfileStore";
+import ServiceProfileStore from "../../stores/ServiceProfileStore";
 import LocationStore from "../../stores/LocationStore";
 import MapTileLayer from "../../components/MapTileLayer";
 import EUI64Field from "../../components/EUI64Field";
@@ -143,6 +144,7 @@ class GatewayForm extends FormComponent {
     if (e.target.id === "networkServerID" && e.target.value !== this.state.object.networkServerID) {
       let object = this.state.object;
       object.gatewayProfileID = null;
+      object.serviceProfileID = null;
       this.setState({
         object: object,
       });
@@ -215,6 +217,24 @@ class GatewayForm extends FormComponent {
 
     GatewayProfileStore.list(this.state.object.networkServerID, 999, 0, resp => {
       const options = resp.result.map((gp, i) => {return {label: gp.name, value: gp.id}});
+      callbackFunc(options);
+    });
+  }
+
+  getServiceProfileOption = (id, callbackFunc) => {
+    ServiceProfileStore.get(id, resp => {
+      callbackFunc({label: resp.serviceProfile.name, value: resp.serviceProfile.id});
+    });
+  }
+
+  getServiceProfileOptions = (search, callbackFunc) => {
+    if (this.state.object === undefined || this.state.object.networkServerID === undefined) {
+      callbackFunc([]);
+      return;
+    }
+
+    ServiceProfileStore.list(this.props.match.params.organizationID, this.state.object.networkServerID, 999, 0, resp => {
+      const options = resp.result.map((sp, i) => { return {label: sp.name, value: sp.id} });
       callbackFunc(options);
     });
   }
@@ -362,6 +382,22 @@ class GatewayForm extends FormComponent {
               Select the network-server to which the gateway will connect. When no network-servers are available in the dropdown, make sure a service-profile exists for this organization. 
             </FormHelperText>
           </FormControl>}
+          <FormControl fullWidth margin="normal">
+            <FormLabel className={this.props.classes.formLabel}>Service-profile</FormLabel>
+            <AutocompleteSelect
+              id="serviceProfileID"
+              label="Select service-profile"
+              value={this.state.object.serviceProfileID || ""}
+              triggerReload={this.state.object.networkServerID || ""}
+              onChange={this.onChange}
+              getOption={this.getServiceProfileOption}
+              getOptions={this.getServiceProfileOptions}
+              clearable={true}
+            />
+            <FormHelperText>
+              Select the service-profile under which the gateway must be added. The available service-profiles depend on the selected network-server, which must be selected first.
+            </FormHelperText>
+          </FormControl>
           <FormControl fullWidth margin="normal">
             <FormLabel className={this.props.classes.formLabel}>Gateway-profile</FormLabel>
             <AutocompleteSelect

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -31,6 +32,15 @@ func (ts *StorageTestSuite) TestGateway() {
 		Name: "test-org",
 	}
 	assert.NoError(CreateOrganization(context.Background(), DB(), &org))
+
+	sp := ServiceProfile{
+		Name:            "test-sp",
+		NetworkServerID: n.ID,
+		OrganizationID:  org.ID,
+	}
+	assert.NoError(CreateServiceProfile(context.Background(), DB(), &sp))
+	var spID uuid.UUID
+	copy(spID[:], sp.ServiceProfile.Id)
 
 	ts.T().Run("Create with invalid name", func(t *testing.T) {
 		assert := require.New(t)
@@ -69,6 +79,7 @@ func (ts *StorageTestSuite) TestGateway() {
 					"foo": sql.NullString{Valid: true, String: "bar"},
 				},
 			},
+			ServiceProfileID: &spID,
 		}
 		assert.NoError(CreateGateway(context.Background(), ts.Tx(), &gw))
 		gw.CreatedAt = gw.CreatedAt.Round(time.Millisecond).UTC()
@@ -96,6 +107,7 @@ func (ts *StorageTestSuite) TestGateway() {
 			gw.Name = "test-gw2"
 			gw.Description = "updated test gateway"
 			gw.Ping = false
+			gw.ServiceProfileID = nil
 
 			assert.NoError(UpdateGateway(context.Background(), ts.Tx(), &gw))
 			gw.CreatedAt = gw.CreatedAt.Round(time.Millisecond).UTC()

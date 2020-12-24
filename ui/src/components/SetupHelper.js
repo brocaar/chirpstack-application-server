@@ -73,7 +73,7 @@ class SetupHelper extends Component {
       return;
     }
 
-    ServiceProfileStore.list(SessionStore.getOrganizationID(), 0, 0, resp => {
+    ServiceProfileStore.list(SessionStore.getOrganizationID(), 0, 0, 0, resp => {
       if (resp.totalCount === "0" && !(this.state.nsDialog || this.state.dpDialog)) {
         this.setState({
           spDialog: true,

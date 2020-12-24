@@ -73,10 +73,11 @@ class ServiceProfileStore extends EventEmitter {
     });
   }
 
-  list(organizationID, limit, offset, callbackFunc) {
+  list(organizationID, networkServerID, limit, offset, callbackFunc) {
     this.swagger.then(client => {
       client.apis.ServiceProfileService.List({
         organizationID: organizationID,
+        networkServerID: networkServerID,
         limit: limit,
         offset: offset,
       })

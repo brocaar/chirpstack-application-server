@@ -42,6 +42,7 @@ type Gateway struct {
 	LastPingSentAt   *time.Time    `db:"last_ping_sent_at"`
 	NetworkServerID  int64         `db:"network_server_id"`
 	GatewayProfileID *uuid.UUID    `db:"gateway_profile_id"`
+	ServiceProfileID *uuid.UUID    `db:"service_profile_id"`
 	Latitude         float64       `db:"latitude"`
 	Longitude        float64       `db:"longitude"`
 	Altitude         float64       `db:"altitude"`
@@ -154,8 +155,9 @@ func CreateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 			longitude,
 			altitude,
 			tags,
-			metadata
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+			metadata,
+			service_profile_id
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
 		gw.MAC[:],
 		gw.CreatedAt,
 		gw.UpdatedAt,
@@ -174,6 +176,7 @@ func CreateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 		gw.Altitude,
 		gw.Tags,
 		gw.Metadata,
+		gw.ServiceProfileID,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -212,7 +215,8 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 			longitude = $14,
 			altitude = $15,
 			tags = $16,
-			metadata = $17
+			metadata = $17,
+			service_profile_id = $18
 		where
 			mac = $1`,
 		gw.MAC[:],
@@ -232,6 +236,7 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 		gw.Altitude,
 		gw.Tags,
 		gw.Metadata,
+		gw.ServiceProfileID,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

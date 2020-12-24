@@ -38,7 +38,7 @@ class CreateMulticastGroup extends Component {
   }
 
   componentDidMount() {
-    ServiceProfileStore.list(this.props.match.params.organizationID, 0, 0, resp => {
+    ServiceProfileStore.list(this.props.match.params.organizationID, 0, 0, 0, resp => {
       if (resp.totalCount === "0") {
         this.setState({
           spDialog: true,

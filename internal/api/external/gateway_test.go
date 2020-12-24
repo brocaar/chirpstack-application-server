@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -43,12 +44,70 @@ func (ts *APITestSuite) TestGateway() {
 	}
 	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
 
+	org2 := storage.Organization{
+		Name: "test-org-2",
+	}
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org2))
+
+	sp := storage.ServiceProfile{
+		NetworkServerID: n.ID,
+		OrganizationID:  org.ID,
+		Name:            "test-sp",
+	}
+	assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp))
+	var spID uuid.UUID
+	copy(spID[:], sp.ServiceProfile.Id)
+
+	sp2 := storage.ServiceProfile{
+		NetworkServerID: n.ID,
+		OrganizationID:  org2.ID,
+		Name:            "test-sp-2",
+	}
+	assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp2))
+	var sp2ID uuid.UUID
+	copy(sp2ID[:], sp2.ServiceProfile.Id)
+
 	adminUser := storage.User{
 		Email:    "admin@user.com",
 		IsActive: true,
 		IsAdmin:  true,
 	}
 	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &adminUser))
+
+	ts.T().Run("Create with service-profile under different org", func(t *testing.T) {
+		assert := require.New(t)
+
+		createReq := pb.CreateGatewayRequest{
+			Gateway: &pb.Gateway{
+				Id:          "0807060504030201",
+				Name:        "test-gateway",
+				Description: "test gateway",
+				Location: &common.Location{
+					Latitude:  1.1234,
+					Longitude: 1.1235,
+					Altitude:  5.5,
+				},
+				OrganizationId:   org.ID,
+				DiscoveryEnabled: true,
+				NetworkServerId:  n.ID,
+				Boards: []*pb.GatewayBoard{
+					{
+						FpgaId: "0102030405060708",
+					},
+					{
+						FineTimestampKey: "01020304050607080102030405060708",
+					},
+				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
+				Metadata:         make(map[string]string),
+				ServiceProfileId: sp2ID.String(),
+			},
+		}
+		_, err := api.Create(ctx, &createReq)
+		assert.Equal(codes.InvalidArgument, grpc.Code(err))
+	})
 
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
@@ -77,7 +136,8 @@ func (ts *APITestSuite) TestGateway() {
 				Tags: map[string]string{
 					"foo": "bar",
 				},
-				Metadata: make(map[string]string),
+				Metadata:         make(map[string]string),
+				ServiceProfileId: spID.String(),
 			},
 		}
 		_, err := api.Create(ctx, &createReq)
@@ -189,6 +249,40 @@ func (ts *APITestSuite) TestGateway() {
 				assert.Len(gws.Result, 1)
 				assert.Equal(gw2.MAC.String(), gws.Result[0].Id)
 			})
+		})
+
+		t.Run("Update with service-profile under different org", func(t *testing.T) {
+			assert := require.New(t)
+			updateReq := pb.UpdateGatewayRequest{
+				Gateway: &pb.Gateway{
+					Id:   "0807060504030201",
+					Name: "test-gateway-updated",
+					Description: "test gateway updated	",
+					Location: &common.Location{
+						Latitude:  2.1234,
+						Longitude: 2.1235,
+						Altitude:  6.5,
+					},
+					OrganizationId:   org.ID,
+					DiscoveryEnabled: true,
+					NetworkServerId:  n.ID,
+					Boards: []*pb.GatewayBoard{
+						{
+							FineTimestampKey: "02020304050607080102030405060708",
+						},
+						{
+							FpgaId: "0202030405060708",
+						},
+					},
+					Tags: map[string]string{
+						"bar": "foo",
+					},
+					Metadata:         make(map[string]string),
+					ServiceProfileId: sp2ID.String(),
+				},
+			}
+			_, err := api.Update(ctx, &updateReq)
+			assert.Equal(codes.InvalidArgument, grpc.Code(err))
 		})
 
 		t.Run("Update", func(t *testing.T) {

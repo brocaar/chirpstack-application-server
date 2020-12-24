@@ -45,6 +45,7 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 		return nil, grpc.Errorf(codes.InvalidArgument, "gateway.location must not be nil")
 	}
 
+	// validate that user has access to organization
 	err := a.validator.Validate(ctx, auth.ValidateGatewaysAccess(auth.Create, req.Gateway.OrganizationId))
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
@@ -56,16 +57,37 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
+	// gateway id
 	var mac lorawan.EUI64
 	if err := mac.UnmarshalText([]byte(req.Gateway.Id)); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "bad gateway mac: %s", err)
 	}
 
+	// gateway profile id (if any)
 	var gpID uuid.UUID
 	if req.Gateway.GatewayProfileId != "" {
 		gpID, err = uuid.FromString(req.Gateway.GatewayProfileId)
 		if err != nil {
 			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+		}
+	}
+
+	// service-profile id (if any)
+	var spID uuid.UUID
+	if req.Gateway.ServiceProfileId != "" {
+		spID, err = uuid.FromString(req.Gateway.ServiceProfileId)
+		if err != nil {
+			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+		}
+
+		// validate that the service-profile has the same organization id
+		sp, err := storage.GetServiceProfile(ctx, storage.DB(), spID, true)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		if sp.OrganizationID != req.Gateway.OrganizationId {
+			return nil, grpc.Errorf(codes.InvalidArgument, "service-profile must be under the same organization")
 		}
 	}
 
@@ -80,6 +102,10 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 	if gpID != uuid.Nil {
 		createReq.Gateway.GatewayProfileId = gpID.Bytes()
 	}
+	if spID != uuid.Nil {
+		createReq.Gateway.ServiceProfileId = spID.Bytes()
+	}
+
 	for _, board := range req.Gateway.Boards {
 		var gwBoard ns.GatewayBoard
 
@@ -146,6 +172,10 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 
 		if gpID != uuid.Nil {
 			gw.GatewayProfileID = &gpID
+		}
+
+		if spID != uuid.Nil {
+			gw.ServiceProfileID = &spID
 		}
 
 		err = storage.CreateGateway(ctx, tx, &gw)
@@ -258,6 +288,14 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 			return nil, helpers.ErrToRPCError(err)
 		}
 		resp.Gateway.GatewayProfileId = gpID.String()
+	}
+
+	if len(getResp.Gateway.ServiceProfileId) != 0 {
+		spID, err := uuid.FromBytes(getResp.Gateway.ServiceProfileId)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+		resp.Gateway.ServiceProfileId = spID.String()
 	}
 
 	for i := range getResp.Gateway.Boards {
@@ -419,10 +457,30 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		}
 	}
 
+	var spID uuid.UUID
+	if req.Gateway.ServiceProfileId != "" {
+		spID, err = uuid.FromString(req.Gateway.ServiceProfileId)
+		if err != nil {
+			return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+		}
+	}
+
 	err = storage.Transaction(func(tx sqlx.Ext) error {
 		gw, err := storage.GetGateway(ctx, tx, mac, true)
 		if err != nil {
 			return helpers.ErrToRPCError(err)
+		}
+
+		// validate that the service-profile has the same organization id
+		if spID != uuid.Nil {
+			sp, err := storage.GetServiceProfile(ctx, storage.DB(), spID, true)
+			if err != nil {
+				return helpers.ErrToRPCError(err)
+			}
+
+			if sp.OrganizationID != gw.OrganizationID {
+				return grpc.Errorf(codes.InvalidArgument, "service-profile must be under the same organization")
+			}
 		}
 
 		gw.Name = req.Gateway.Name
@@ -433,8 +491,12 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 		gw.Altitude = req.Gateway.Location.Altitude
 		gw.Tags = tags
 		gw.GatewayProfileID = nil
+		gw.ServiceProfileID = nil
 		if gpID != uuid.Nil {
 			gw.GatewayProfileID = &gpID
+		}
+		if spID != uuid.Nil {
+			gw.ServiceProfileID = &spID
 		}
 
 		err = storage.UpdateGateway(ctx, tx, &gw)
@@ -451,6 +513,10 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 
 		if gpID != uuid.Nil {
 			updateReq.Gateway.GatewayProfileId = gpID.Bytes()
+		}
+
+		if spID != uuid.Nil {
+			updateReq.Gateway.ServiceProfileId = spID.Bytes()
 		}
 
 		for _, board := range req.Gateway.Boards {

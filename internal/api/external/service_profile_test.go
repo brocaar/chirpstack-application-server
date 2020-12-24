@@ -76,6 +76,7 @@ func (ts *APITestSuite) TestServiceProfile() {
 				NwkGeoLoc:              true,
 				TargetPer:              10,
 				MinGwDiversity:         3,
+				GwsPrivate:             true,
 			},
 		}
 
@@ -132,6 +133,28 @@ func (ts *APITestSuite) TestServiceProfile() {
 					listResp, err = api.List(context.Background(), &pb.ListServiceProfileRequest{
 						Limit:          10,
 						OrganizationId: org.ID + 1,
+					})
+					assert.NoError(err)
+					assert.EqualValues(0, listResp.TotalCount)
+					assert.Len(listResp.Result, 0)
+				})
+
+				t.Run("Filter by organization ID + network-server ID", func(t *testing.T) {
+					assert := require.New(t)
+
+					listResp, err := api.List(context.Background(), &pb.ListServiceProfileRequest{
+						Limit:           10,
+						OrganizationId:  org.ID,
+						NetworkServerId: n.ID,
+					})
+					assert.NoError(err)
+					assert.EqualValues(1, listResp.TotalCount)
+					assert.Len(listResp.Result, 1)
+
+					listResp, err = api.List(context.Background(), &pb.ListServiceProfileRequest{
+						Limit:           10,
+						OrganizationId:  org.ID,
+						NetworkServerId: n.ID + 1,
 					})
 					assert.NoError(err)
 					assert.EqualValues(0, listResp.TotalCount)
@@ -238,6 +261,7 @@ func (ts *APITestSuite) TestServiceProfile() {
 					NwkGeoLoc:              true,
 					TargetPer:              20,
 					MinGwDiversity:         4,
+					GwsPrivate:             false,
 				},
 			}
 

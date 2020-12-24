@@ -39,7 +39,7 @@ class MulticastGroupForm extends FormComponent {
   }
 
   getServiceProfileOptions(search, callbackFunc) {
-    ServiceProfileStore.list(this.props.match.params.organizationID, 999, 0, resp => {
+    ServiceProfileStore.list(this.props.match.params.organizationID, 0, 999, 0, resp => {
       const options = resp.result.map((sp, i) => {return {label: sp.name, value: sp.id}});
       callbackFunc(options);
     });

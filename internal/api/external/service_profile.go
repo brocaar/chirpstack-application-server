@@ -65,6 +65,7 @@ func (a *ServiceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateSer
 			MinGwDiversity:         req.ServiceProfile.MinGwDiversity,
 			UlRatePolicy:           ns.RatePolicy(req.ServiceProfile.UlRatePolicy),
 			DlRatePolicy:           ns.RatePolicy(req.ServiceProfile.DlRatePolicy),
+			GwsPrivate:             req.ServiceProfile.GwsPrivate,
 		},
 	}
 
@@ -130,6 +131,7 @@ func (a *ServiceProfileServiceAPI) Get(ctx context.Context, req *pb.GetServicePr
 			MinGwDiversity:         sp.ServiceProfile.MinGwDiversity,
 			UlRatePolicy:           pb.RatePolicy(sp.ServiceProfile.UlRatePolicy),
 			DlRatePolicy:           pb.RatePolicy(sp.ServiceProfile.DlRatePolicy),
+			GwsPrivate:             sp.ServiceProfile.GwsPrivate,
 		},
 	}
 
@@ -189,6 +191,7 @@ func (a *ServiceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateSer
 		MinGwDiversity:         req.ServiceProfile.MinGwDiversity,
 		UlRatePolicy:           ns.RatePolicy(req.ServiceProfile.UlRatePolicy),
 		DlRatePolicy:           ns.RatePolicy(req.ServiceProfile.DlRatePolicy),
+		GwsPrivate:             req.ServiceProfile.GwsPrivate,
 	}
 
 	// as this also performs a remote call to create the service-profile
@@ -235,9 +238,10 @@ func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListService
 	}
 
 	filters := storage.ServiceProfileFilters{
-		Limit:          int(req.Limit),
-		Offset:         int(req.Offset),
-		OrganizationID: req.OrganizationId,
+		Limit:           int(req.Limit),
+		Offset:          int(req.Offset),
+		OrganizationID:  req.OrganizationId,
+		NetworkServerID: req.NetworkServerId,
 	}
 
 	sub, err := a.validator.GetSubject(ctx)

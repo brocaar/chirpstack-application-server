@@ -24,7 +24,7 @@ class ListServiceProfiles extends Component {
   }
 
   getPage(limit, offset, callbackFunc) {
-    ServiceProfileStore.list(this.props.match.params.organizationID, limit, offset, callbackFunc);
+    ServiceProfileStore.list(this.props.match.params.organizationID, 0, limit, offset, callbackFunc);
   }
 
   getRow(obj) {

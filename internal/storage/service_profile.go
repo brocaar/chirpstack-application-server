@@ -260,8 +260,9 @@ func DeleteServiceProfile(ctx context.Context, db sqlx.Ext, id uuid.UUID) error 
 
 // ServiceProfileFilters provides filters for filtering service profiles.
 type ServiceProfileFilters struct {
-	UserID         int64 `db:"user_id"`
-	OrganizationID int64 `db:"organization_id"`
+	UserID          int64 `db:"user_id"`
+	OrganizationID  int64 `db:"organization_id"`
+	NetworkServerID int64 `db:"network_server_id"`
 
 	// Limit and Offset are added for convenience so that this struct can
 	// be given as the arguments.
@@ -279,6 +280,10 @@ func (f ServiceProfileFilters) SQL() string {
 
 	if f.OrganizationID != 0 {
 		filters = append(filters, "sp.organization_id = :organization_id")
+	}
+
+	if f.NetworkServerID != 0 {
+		filters = append(filters, "sp.network_server_id = :network_server_id")
 	}
 
 	if len(filters) == 0 {

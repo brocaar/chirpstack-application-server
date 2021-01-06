@@ -169,6 +169,23 @@ class ServiceProfileForm extends FormComponent {
           fullWidth
           required
         />
+        <FormControl fullWidth margin="normal">
+          <FormControlLabel
+            label="Private gateways"
+            control={
+              <Checkbox
+                id="gwsPrivate"
+                checked={!!this.state.object.gwsPrivate}
+                onChange={this.onChange}
+                disabled={this.props.disabled}
+                color="primary"
+              />
+            }
+          />
+          <FormHelperText>
+            Gateways under this service-profile are private. This means that these gateways can only be used by devices under the same service-profile.
+          </FormHelperText>
+        </FormControl>
       </Form>
     );
   }

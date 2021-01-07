@@ -49,7 +49,7 @@ require (
 	github.com/spf13/viper v1.6.2
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/stretchr/testify v1.4.0
-	github.com/tmc/grpc-websocket-proxy v0.0.0-20200122045848-3419fae592fc
+	github.com/tmc/grpc-websocket-proxy v0.0.0-20201229170055-e5319fda7802
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f
 	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
@@ -60,9 +60,5 @@ require (
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 )
-
-// remove when https://github.com/tmc/grpc-websocket-proxy/pull/23 has been merged
-// and grpc-websocket-proxy dependency has been updated to version including this fix.
-replace github.com/tmc/grpc-websocket-proxy => github.com/brocaar/grpc-websocket-proxy v1.0.1
 
 // replace github.com/brocaar/chirpstack-api/go/v3 => ../chirpstack-api/go

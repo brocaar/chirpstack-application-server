@@ -587,6 +587,11 @@ func (i *Integration) handleDASResponse(ctx context.Context, vars map[string]str
 	}
 
 	if dl := devResp.Result.Downlink; dl != nil {
+		// Work-around for assistance position
+		if dl.Port == 0 {
+			dl.Port = 150
+		}
+
 		fCnt, err := storage.EnqueueDownlinkPayload(ctx, storage.DB(), devEUI, false, dl.Port, dl.Payload[:])
 		if err != nil {
 			log.WithError(err).Error("integration/loracloud: enqueue downlink payload error")

@@ -145,6 +145,8 @@ func (a *ApplicationServerAPI) HandleTxAck(ctx context.Context, req *as.HandleTx
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], req.DevEui)
 
+	var gatewayID lorawan.EUI64
+	copy(gatewayID[:], req.GatewayId)
 	d, err := storage.GetDevice(ctx, storage.DB(), devEUI, false, true)
 	if err != nil {
 		errStr := fmt.Sprintf("get device error: %s", err)
@@ -169,6 +171,8 @@ func (a *ApplicationServerAPI) HandleTxAck(ctx context.Context, req *as.HandleTx
 		DevEui:          devEUI[:],
 		FCnt:            req.FCnt,
 		Tags:            make(map[string]string),
+		GatewayId:       gatewayID[:],
+		TxInfo:          req.TxInfo,
 	}
 
 	// set tags

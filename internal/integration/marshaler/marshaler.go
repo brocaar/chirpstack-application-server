@@ -287,9 +287,24 @@ func jsonv3MarshalTxAckEvent(msg *integration.TxAckEvent) ([]byte, error) {
 		DeviceName:      msg.DeviceName,
 		FCnt:            msg.FCnt,
 		Tags:            msg.Tags,
+		TXInfo: models.TXAckTxInfo{
+			Frequency:  int(msg.TxInfo.Frequency),
+			Modulation: msg.TxInfo.Modulation.String(),
+			Power:      int(msg.TxInfo.Power),
+			Board:      int(msg.TxInfo.Board),
+			Antenna:    int(msg.TxInfo.Antenna),
+			Timing:     msg.TxInfo.Timing.String(),
+			LoraModulationInfo: models.LoraModulationInfo{
+				Bandwidth:             int(msg.TxInfo.GetLoraModulationInfo().Bandwidth),
+				SpreadingFactor:       int(msg.TxInfo.GetLoraModulationInfo().SpreadingFactor),
+				CodeRate:              msg.TxInfo.GetLoraModulationInfo().CodeRate,
+				PolarizationInversion: msg.TxInfo.GetLoraModulationInfo().PolarizationInversion,
+			},
+		},
 	}
 
 	copy(m.DevEUI[:], msg.DevEui)
+	copy(m.GatewayID[:], msg.GatewayId)
 	return json.Marshal(m)
 }
 

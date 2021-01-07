@@ -215,6 +215,20 @@ func (ts *MarshalerTestSuite) GetTxAckEvent() integration.TxAckEvent {
 		Tags: map[string]string{
 			"test": "tag",
 		},
+		GatewayId: []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+		TxInfo: &gw.DownlinkTXInfo{
+			Frequency:  868100000,
+			Board:      0,
+			Antenna:    0,
+			Modulation: common.Modulation_LORA,
+			ModulationInfo: &gw.DownlinkTXInfo_LoraModulationInfo{
+				LoraModulationInfo: &gw.LoRaModulationInfo{
+					Bandwidth:       125,
+					SpreadingFactor: 12,
+					CodeRate:        "3/4",
+				},
+			},
+		},
 	}
 }
 
@@ -470,6 +484,21 @@ func (ts *MarshalerTestSuite) TestJSONV3() {
 			FCnt:            123,
 			Tags: map[string]string{
 				"test": "tag",
+			},
+			GatewayID: lorawan.EUI64{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+			TXInfo: models.TXAckTxInfo{
+				Frequency:  868100000,
+				Modulation: "LORA",
+				LoraModulationInfo: models.LoraModulationInfo{
+					Bandwidth:             125,
+					SpreadingFactor:       12,
+					CodeRate:              "3/4",
+					PolarizationInversion: false,
+				},
+				Timing:  "IMMEDIATELY",
+				Power:   0,
+				Board:   0,
+				Antenna: 0,
 			},
 		}, pl)
 	})

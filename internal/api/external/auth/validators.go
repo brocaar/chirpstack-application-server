@@ -27,6 +27,7 @@ const (
 	Delete
 	List
 	UpdateProfile
+	ADRAlgorithms
 )
 
 // ValidateActiveUser validates if the user in the JWT claim is active.
@@ -1254,6 +1255,20 @@ func ValidateNetworkServerAccess(flag Flag, id int64) ValidatorFunc {
 		// admin api key
 		apiKeyWhere = [][]string{
 			{"ak.id = $1", "ak.is_admin = true", "$2 = $2"},
+		}
+	case ADRAlgorithms:
+		// global admin
+		// active user
+		userWhere = [][]string{
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "ns.id = $2"},
+		}
+
+		// admin api key
+		// organization api key
+		apiKeyWhere = [][]string{
+			{"ak.id = $1", "ak.is_admin = true"},
+			{"ak.id = $1", "ns.id = $2"},
 		}
 	}
 

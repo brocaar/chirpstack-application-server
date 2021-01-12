@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
@@ -196,6 +197,32 @@ func (ts *APITestSuite) TestNetworkServer() {
 			assert.Equal(4, n.GatewayDiscoveryDR)
 		})
 
+		t.Run("GetADRAlgorithms", func(t *testing.T) {
+			assert := require.New(t)
+
+			nsClient.GetADRAlgorithmsResponse = ns.GetADRAlgorithmsResponse{
+				AdrAlgorithms: []*ns.ADRAlgorithm{
+					{
+						Id:   "default",
+						Name: "Default ADR algorithm",
+					},
+				},
+			}
+
+			resp, err := api.GetADRAlgorithms(context.Background(), &pb.GetADRAlgorithmsRequest{
+				NetworkServerId: resp.Id,
+			})
+			assert.NoError(err)
+			assert.Equal(&pb.GetADRAlgorithmsResponse{
+				AdrAlgorithms: []*pb.ADRAlgorithm{
+					{
+						Id:   "default",
+						Name: "Default ADR algorithm",
+					},
+				},
+			}, resp)
+		})
+
 		t.Run("Delete", func(t *testing.T) {
 			assert := require.New(t)
 
@@ -210,4 +237,5 @@ func (ts *APITestSuite) TestNetworkServer() {
 			assert.Equal(codes.NotFound, grpc.Code(err))
 		})
 	})
+
 }

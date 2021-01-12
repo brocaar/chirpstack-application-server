@@ -87,6 +87,7 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 			RfRegion:           req.DeviceProfile.RfRegion,
 			Supports_32BitFCnt: req.DeviceProfile.Supports_32BitFCnt,
 			FactoryPresetFreqs: req.DeviceProfile.FactoryPresetFreqs,
+			AdrAlgorithmId:     req.DeviceProfile.AdrAlgorithmId,
 		},
 	}
 
@@ -161,6 +162,7 @@ func (a *DeviceProfileServiceAPI) Get(ctx context.Context, req *pb.GetDeviceProf
 			FactoryPresetFreqs:   dp.DeviceProfile.FactoryPresetFreqs,
 			Tags:                 make(map[string]string),
 			UplinkInterval:       ptypes.DurationProto(dp.UplinkInterval),
+			AdrAlgorithmId:       dp.DeviceProfile.AdrAlgorithmId,
 		},
 	}
 
@@ -243,6 +245,7 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 			RfRegion:           req.DeviceProfile.RfRegion,
 			Supports_32BitFCnt: req.DeviceProfile.Supports_32BitFCnt,
 			FactoryPresetFreqs: req.DeviceProfile.FactoryPresetFreqs,
+			AdrAlgorithmId:     req.DeviceProfile.AdrAlgorithmId,
 		}
 
 		for k, v := range req.DeviceProfile.Tags {

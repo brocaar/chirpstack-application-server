@@ -116,6 +116,17 @@ class DeviceProfileForm extends FormComponent {
     callbackFunc(payloadCodecOptions);
   }
 
+  getADRAlgorithmsOptions = (search, callbackFunc) => {
+    if (this.state.object.networkServerID === undefined) {
+      callbackFunc([]);
+    } else {
+      NetworkServerStore.getADRAlgorithms(this.state.object.networkServerID, resp => {
+        const options = resp.adrAlgorithms.map((adr, i) => {return {value: adr.id, label: adr.name}});
+        callbackFunc(options);
+      })
+    }
+  }
+
   onCodeChange(field, editor, data, newCode) {
     let object = this.state.object;
     object[field] = newCode;
@@ -265,6 +276,20 @@ function Decode(fPort, bytes, variables) {
             />
             <FormHelperText>
                 Revision of the Regional Parameters specification supported by the device.
+            </FormHelperText>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <FormLabel className={this.props.classes.formLabel} required>ADR algorithm</FormLabel>
+            <AutocompleteSelect
+              id="adrAlgorithmID"
+              label="Select ADR algorithm"
+              value={this.state.object.adrAlgorithmID || ""}
+              onChange={this.onChange}
+              getOptions={this.getADRAlgorithmsOptions}
+              triggerReload={this.state.object.networkServerID || ""}
+            />
+            <FormHelperText>
+                The ADR algorithm that will be used for controlling the device data-rate.
             </FormHelperText>
           </FormControl>
           <TextField

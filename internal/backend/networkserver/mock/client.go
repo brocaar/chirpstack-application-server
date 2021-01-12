@@ -147,6 +147,8 @@ type Client struct {
 	GenerateGatewayClientCertificateResponse ns.GenerateGatewayClientCertificateResponse
 
 	GetVersionResponse ns.GetVersionResponse
+
+	GetADRAlgorithmsResponse ns.GetADRAlgorithmsResponse
 }
 
 // NewClient creates a new Client.
@@ -483,4 +485,9 @@ func (n *Client) GetMulticastQueueItemsForMulticastGroup(ctx context.Context, in
 func (n *Client) GenerateGatewayClientCertificate(ctx context.Context, in *ns.GenerateGatewayClientCertificateRequest, opts ...grpc.CallOption) (*ns.GenerateGatewayClientCertificateResponse, error) {
 	n.GenerateGatewayClientCertificateChan <- *in
 	return &n.GenerateGatewayClientCertificateResponse, nil
+}
+
+// GetADRAlgorithms method.
+func (n *Client) GetADRAlgorithms(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ns.GetADRAlgorithmsResponse, error) {
+	return &n.GetADRAlgorithmsResponse, nil
 }

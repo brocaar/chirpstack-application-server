@@ -1362,21 +1362,27 @@ func (ts *ValidatorTestSuite) TestNetworkServer() {
 	ts.T().Run("NetworkServerAccess", func(t *testing.T) {
 		tests := []validatorTest{
 			{
-				Name:       "global admin users can read, update and delete",
-				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID), ValidateNetworkServerAccess(Update, ts.networkServers[0].ID), ValidateNetworkServerAccess(Delete, ts.networkServers[0].ID)},
+				Name:       "global admin users can read, update and delete and get adr algorithms",
+				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID), ValidateNetworkServerAccess(Update, ts.networkServers[0].ID), ValidateNetworkServerAccess(Delete, ts.networkServers[0].ID), ValidateNetworkServerAccess(ADRAlgorithms, ts.networkServers[0].ID)},
 				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
-				Name:       "organization admin users can read",
-				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID)},
+				Name:       "organization admin users can read and get adr algorithms",
+				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID), ValidateNetworkServerAccess(ADRAlgorithms, ts.networkServers[0].ID)},
 				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
-				Name:       "organization gateway admin users can read",
-				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID)},
+				Name:       "organization gateway admin users can read and get adr algorithms",
+				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID), ValidateNetworkServerAccess(ADRAlgorithms, ts.networkServers[0].ID)},
 				Claims:     Claims{UserID: orgUsers[3].id},
+				ExpectedOK: true,
+			},
+			{
+				Name:       "organization user can get adr algorithms",
+				Validators: []ValidatorFunc{ValidateNetworkServerAccess(ADRAlgorithms, ts.networkServers[0].ID)},
+				Claims:     Claims{UserID: orgUsers[2].id},
 				ExpectedOK: true,
 			},
 			{
@@ -1392,14 +1398,14 @@ func (ts *ValidatorTestSuite) TestNetworkServer() {
 				ExpectedOK: false,
 			},
 			{
-				Name:       "admin api key can read, update and delete",
-				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID), ValidateNetworkServerAccess(Update, ts.networkServers[0].ID), ValidateNetworkServerAccess(Delete, ts.networkServers[0].ID)},
+				Name:       "admin api key can read, update and delete and get adr algorithms",
+				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID), ValidateNetworkServerAccess(Update, ts.networkServers[0].ID), ValidateNetworkServerAccess(Delete, ts.networkServers[0].ID), ValidateNetworkServerAccess(ADRAlgorithms, ts.networkServers[0].ID)},
 				Claims:     Claims{APIKeyID: apiKeys[0].ID},
 				ExpectedOK: true,
 			},
 			{
-				Name:       "org api key can read",
-				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID)},
+				Name:       "org api key can read and get adr algorithms",
+				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID), ValidateNetworkServerAccess(ADRAlgorithms, ts.networkServers[0].ID)},
 				Claims:     Claims{APIKeyID: apiKeys[1].ID},
 				ExpectedOK: true,
 			},
@@ -1410,8 +1416,8 @@ func (ts *ValidatorTestSuite) TestNetworkServer() {
 				ExpectedOK: false,
 			},
 			{
-				Name:       "other api key can not read, update or delete",
-				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID), ValidateNetworkServerAccess(Update, ts.networkServers[0].ID), ValidateNetworkServerAccess(Delete, ts.networkServers[0].ID)},
+				Name:       "other api key can not read, update or delete or get adr algorithms",
+				Validators: []ValidatorFunc{ValidateNetworkServerAccess(Read, ts.networkServers[0].ID), ValidateNetworkServerAccess(Update, ts.networkServers[0].ID), ValidateNetworkServerAccess(Delete, ts.networkServers[0].ID), ValidateNetworkServerAccess(ADRAlgorithms, ts.networkServers[0].ID)},
 				Claims:     Claims{APIKeyID: apiKeys[2].ID},
 				ExpectedOK: false,
 			},

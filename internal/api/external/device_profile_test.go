@@ -79,6 +79,7 @@ func (ts *APITestSuite) TestDeviceProfile() {
 					"foo": "bar",
 				},
 				UplinkInterval: ptypes.DurationProto(10 * time.Second),
+				AdrAlgorithmId: "default",
 			},
 		}
 
@@ -137,6 +138,7 @@ func (ts *APITestSuite) TestDeviceProfile() {
 						"alice": "bob",
 					},
 					UplinkInterval: ptypes.DurationProto(20 * time.Second),
+					AdrAlgorithmId: "custom-adr",
 				},
 			}
 

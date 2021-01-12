@@ -240,3 +240,37 @@ func (a *NetworkServerAPI) List(ctx context.Context, req *pb.ListNetworkServerRe
 
 	return &resp, nil
 }
+
+// GetADRAlgorithms returns the available ADR algorithms.
+func (a *NetworkServerAPI) GetADRAlgorithms(ctx context.Context, req *pb.GetADRAlgorithmsRequest) (*pb.GetADRAlgorithmsResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNetworkServerAccess(auth.ADRAlgorithms, req.NetworkServerId),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	n, err := storage.GetNetworkServer(ctx, storage.DB(), req.NetworkServerId)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	nsResp, err := nsClient.GetADRAlgorithms(ctx, &empty.Empty{})
+	if err != nil {
+		return nil, err
+	}
+
+	var resp pb.GetADRAlgorithmsResponse
+	for _, adrAlgorithm := range nsResp.AdrAlgorithms {
+		resp.AdrAlgorithms = append(resp.AdrAlgorithms, &pb.ADRAlgorithm{
+			Id:   adrAlgorithm.Id,
+			Name: adrAlgorithm.Name,
+		})
+	}
+
+	return &resp, nil
+}

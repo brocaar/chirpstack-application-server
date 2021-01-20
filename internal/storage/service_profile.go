@@ -296,13 +296,13 @@ func (f ServiceProfileFilters) SQL() string {
 // GetServiceProfileCount returns the total number of service-profiles.
 func GetServiceProfileCount(ctx context.Context, db sqlx.Queryer, filters ServiceProfileFilters) (int, error) {
 	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
-		select
+		select DISTINCT
 			count(distinct sp.*)
 		from
 			service_profile sp
-		left join organization_user ou
+		inner join organization_user ou
 			on sp.organization_id = ou.organization_id
-		left join "user" u
+		inner join "user" u
 			on ou.user_id = u.id
 	`+filters.SQL(), filters)
 	if err != nil {
@@ -321,18 +321,18 @@ func GetServiceProfileCount(ctx context.Context, db sqlx.Queryer, filters Servic
 // GetServiceProfiles returns a slice of service-profiles.
 func GetServiceProfiles(ctx context.Context, db sqlx.Queryer, filters ServiceProfileFilters) ([]ServiceProfileMeta, error) {
 	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
-		select
-			sp.*
+		select DISTINCT
+			sp.*,
+			ns.name as network_server_name
 		from
 			service_profile sp
-		left join organization_user ou
+		inner join network_server ns
+			on sp.network_server_id = ns.id
+		inner join organization_user ou
 			on sp.organization_id = ou.organization_id
-		left join "user" u
+		inner join "user" u
 			on ou.user_id = u.id
 	`+filters.SQL()+`
-		group by
-			sp.service_profile_id,
-			sp.name
 		order by
 			sp.name
 		limit :limit

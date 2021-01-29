@@ -6,13 +6,12 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/chirpstack-application-server/internal/test"
 )
 
 func TestServiceProfileValidate(t *testing.T) {
@@ -51,224 +50,237 @@ func TestServiceProfileValidate(t *testing.T) {
 	}
 }
 
-func TestServiceProfile(t *testing.T) {
-	conf := test.GetConfig()
-	if err := Setup(conf); err != nil {
-		t.Fatal(err)
-	}
+func (ts *StorageTestSuite) TestServiceProfile() {
+	assert := require.New(ts.T())
 
 	nsClient := mock.NewClient()
 	networkserver.SetPool(mock.NewPool(nsClient))
 
-	Convey("Given a clean database with organization and network-server", t, func() {
-		test.MustResetDB(DB().DB)
+	org := Organization{
+		Name: "test-org",
+	}
+	assert.NoError(CreateOrganization(context.Background(), ts.Tx(), &org))
 
-		org := Organization{
-			Name: "test-org",
+	u := User{
+		IsAdmin:  false,
+		IsActive: true,
+		Email:    "foo@bar.com",
+	}
+	assert.NoError(CreateUser(context.Background(), ts.Tx(), &u))
+	assert.NoError(CreateOrganizationUser(context.Background(), ts.Tx(), org.ID, u.ID, false, false, false))
+
+	n := NetworkServer{
+		Name:   "test-ns",
+		Server: "test-ns:1234",
+	}
+	assert.NoError(CreateNetworkServer(context.Background(), ts.Tx(), &n))
+
+	ts.T().Run("Create", func(t *testing.T) {
+		assert := require.New(t)
+
+		sp := ServiceProfile{
+			OrganizationID:  org.ID,
+			NetworkServerID: n.ID,
+			Name:            "test-service-profile",
+			ServiceProfile: ns.ServiceProfile{
+				UlRate:                 100,
+				UlBucketSize:           10,
+				UlRatePolicy:           ns.RatePolicy_MARK,
+				DlRate:                 200,
+				DlBucketSize:           20,
+				DlRatePolicy:           ns.RatePolicy_DROP,
+				AddGwMetadata:          true,
+				DevStatusReqFreq:       4,
+				ReportDevStatusBattery: true,
+				ReportDevStatusMargin:  true,
+				DrMin:                  3,
+				DrMax:                  5,
+				PrAllowed:              true,
+				HrAllowed:              true,
+				RaAllowed:              true,
+				NwkGeoLoc:              true,
+				TargetPer:              10,
+				MinGwDiversity:         3,
+			},
 		}
-		So(CreateOrganization(context.Background(), DB(), &org), ShouldBeNil)
+		assert.NoError(CreateServiceProfile(context.Background(), ts.Tx(), &sp))
 
-		u := User{
-			IsAdmin:  false,
-			IsActive: true,
-			Email:    "foo@bar.com",
+		sp.CreatedAt = sp.CreatedAt.UTC().Truncate(time.Millisecond)
+		sp.UpdatedAt = sp.UpdatedAt.UTC().Truncate(time.Millisecond)
+		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
+		assert.NoError(err)
+
+		createReq := <-nsClient.CreateServiceProfileChan
+		if !proto.Equal(createReq.ServiceProfile, &sp.ServiceProfile) {
+			assert.Equal(sp.ServiceProfile, createReq.ServiceProfile)
 		}
-		err := CreateUser(context.Background(), DB(), &u)
-		So(err, ShouldBeNil)
-		So(CreateOrganizationUser(context.Background(), DB(), org.ID, u.ID, false, false, false), ShouldBeNil)
+		nsClient.GetServiceProfileResponse.ServiceProfile = createReq.ServiceProfile
 
-		n := NetworkServer{
-			Name:   "test-ns",
-			Server: "test-ns:1234",
-		}
-		So(CreateNetworkServer(context.Background(), DB(), &n), ShouldBeNil)
+		t.Run("Get", func(t *testing.T) {
+			assert := require.New(t)
 
-		Convey("Then CreateServiceProfile creates the service-profile", func() {
-			sp := ServiceProfile{
-				OrganizationID:  org.ID,
+			spGet, err := GetServiceProfile(context.Background(), ts.Tx(), spID, false)
+			assert.NoError(err)
+			spGet.CreatedAt = spGet.CreatedAt.UTC().Truncate(time.Millisecond)
+			spGet.UpdatedAt = spGet.UpdatedAt.UTC().Truncate(time.Millisecond)
+
+			assert.Equal(sp, spGet)
+		})
+
+		t.Run("Get without filters", func(t *testing.T) {
+			assert := require.New(t)
+
+			count, err := GetServiceProfileCount(context.Background(), ts.Tx(), ServiceProfileFilters{})
+			assert.NoError(err)
+			assert.Equal(1, count)
+
+			sps, err := GetServiceProfiles(context.Background(), ts.Tx(), ServiceProfileFilters{
+				Limit: 10,
+			})
+			assert.NoError(err)
+			assert.Len(sps, 1)
+			assert.Equal("test-ns", sps[0].NetworkServerName)
+		})
+
+		t.Run("Get for OrganizationID", func(t *testing.T) {
+			assert := require.New(t)
+
+			count, err := GetServiceProfileCount(context.Background(), ts.Tx(), ServiceProfileFilters{
+				OrganizationID: org.ID,
+			})
+			assert.NoError(err)
+			assert.Equal(1, count)
+
+			count, err = GetServiceProfileCount(context.Background(), ts.Tx(), ServiceProfileFilters{
+				OrganizationID: org.ID + 1,
+			})
+			assert.NoError(err)
+			assert.Equal(0, count)
+
+			sps, err := GetServiceProfiles(context.Background(), ts.Tx(), ServiceProfileFilters{
+				OrganizationID: org.ID,
+				Limit:          10,
+			})
+			assert.NoError(err)
+			assert.Len(sps, 1)
+
+			sps, err = GetServiceProfiles(context.Background(), ts.Tx(), ServiceProfileFilters{
+				OrganizationID: org.ID + 1,
+				Limit:          10,
+			})
+			assert.NoError(err)
+			assert.Len(sps, 0)
+		})
+
+		t.Run("Get for UserID", func(t *testing.T) {
+			assert := require.New(t)
+
+			count, err := GetServiceProfileCount(context.Background(), ts.Tx(), ServiceProfileFilters{
+				UserID: u.ID,
+			})
+			assert.NoError(err)
+			assert.Equal(1, count)
+
+			count, err = GetServiceProfileCount(context.Background(), ts.Tx(), ServiceProfileFilters{
+				UserID: u.ID + 1,
+			})
+			assert.NoError(err)
+			assert.Equal(0, count)
+
+			sps, err := GetServiceProfiles(context.Background(), ts.Tx(), ServiceProfileFilters{
+				UserID: u.ID,
+				Limit:  10,
+			})
+			assert.NoError(err)
+			assert.Len(sps, 1)
+
+			sps, err = GetServiceProfiles(context.Background(), ts.Tx(), ServiceProfileFilters{
+				UserID: u.ID + 1,
+				Limit:  10,
+			})
+			assert.NoError(err)
+			assert.Len(sps, 0)
+		})
+
+		t.Run("Get for NetworkServerID", func(t *testing.T) {
+			assert := require.New(t)
+
+			count, err := GetServiceProfileCount(context.Background(), ts.Tx(), ServiceProfileFilters{
 				NetworkServerID: n.ID,
-				Name:            "test-service-profile",
-				ServiceProfile: ns.ServiceProfile{
-					UlRate:                 100,
-					UlBucketSize:           10,
-					UlRatePolicy:           ns.RatePolicy_MARK,
-					DlRate:                 200,
-					DlBucketSize:           20,
-					DlRatePolicy:           ns.RatePolicy_DROP,
-					AddGwMetadata:          true,
-					DevStatusReqFreq:       4,
-					ReportDevStatusBattery: true,
-					ReportDevStatusMargin:  true,
-					DrMin:                  3,
-					DrMax:                  5,
-					PrAllowed:              true,
-					HrAllowed:              true,
-					RaAllowed:              true,
-					NwkGeoLoc:              true,
-					TargetPer:              10,
-					MinGwDiversity:         3,
-				},
+			})
+			assert.NoError(err)
+			assert.Equal(1, count)
+
+			count, err = GetServiceProfileCount(context.Background(), ts.Tx(), ServiceProfileFilters{
+				NetworkServerID: n.ID + 1,
+			})
+			assert.NoError(err)
+			assert.Equal(0, count)
+
+			sps, err := GetServiceProfiles(context.Background(), ts.Tx(), ServiceProfileFilters{
+				NetworkServerID: n.ID,
+				Limit:           10,
+			})
+			assert.NoError(err)
+			assert.Len(sps, 1)
+
+			sps, err = GetServiceProfiles(context.Background(), ts.Tx(), ServiceProfileFilters{
+				NetworkServerID: n.ID + 1,
+				Limit:           10,
+			})
+			assert.NoError(err)
+			assert.Len(sps, 0)
+		})
+
+		t.Run("Update", func(t *testing.T) {
+			assert := require.New(t)
+
+			sp.Name = "updated-service-profile"
+			sp.ServiceProfile = ns.ServiceProfile{
+				Id:                     sp.ServiceProfile.Id,
+				UlRate:                 101,
+				UlBucketSize:           11,
+				UlRatePolicy:           ns.RatePolicy_DROP,
+				DlRate:                 201,
+				DlBucketSize:           21,
+				DlRatePolicy:           ns.RatePolicy_MARK,
+				AddGwMetadata:          true,
+				DevStatusReqFreq:       5,
+				ReportDevStatusBattery: true,
+				ReportDevStatusMargin:  true,
+				DrMin:                  4,
+				DrMax:                  6,
+				PrAllowed:              true,
+				HrAllowed:              true,
+				RaAllowed:              true,
+				NwkGeoLoc:              true,
+				TargetPer:              11,
+				MinGwDiversity:         4,
 			}
-			So(CreateServiceProfile(context.Background(), DB(), &sp), ShouldBeNil)
-			So(nsClient.CreateServiceProfileChan, ShouldHaveLength, 1)
-			So(<-nsClient.CreateServiceProfileChan, ShouldResemble, ns.CreateServiceProfileRequest{
-				ServiceProfile: &sp.ServiceProfile,
-			})
-			sp.CreatedAt = sp.CreatedAt.UTC().Truncate(time.Millisecond)
+
+			assert.NoError(UpdateServiceProfile(context.Background(), ts.Tx(), &sp))
 			sp.UpdatedAt = sp.UpdatedAt.UTC().Truncate(time.Millisecond)
-			spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
-			So(err, ShouldBeNil)
 
-			Convey("Then GetServiceProfile returns the service-profile", func() {
-				nsClient.GetServiceProfileResponse = ns.GetServiceProfileResponse{
-					ServiceProfile: &sp.ServiceProfile,
-				}
+			updateReq := <-nsClient.UpdateServiceProfileChan
+			if !proto.Equal(&sp.ServiceProfile, updateReq.ServiceProfile) {
+				assert.Equal(sp.ServiceProfile, updateReq.ServiceProfile)
+			}
 
-				spGet, err := GetServiceProfile(context.Background(), DB(), spID, false)
-				So(err, ShouldBeNil)
-				spGet.CreatedAt = spGet.CreatedAt.UTC().Truncate(time.Millisecond)
-				spGet.UpdatedAt = spGet.UpdatedAt.UTC().Truncate(time.Millisecond)
-				So(spGet, ShouldResemble, sp)
-			})
+			nsClient.GetServiceProfileResponse.ServiceProfile = updateReq.ServiceProfile
+			spGet, err := GetServiceProfile(context.Background(), ts.Tx(), spID, false)
+			assert.NoError(err)
+			spGet.CreatedAt = spGet.CreatedAt.UTC().Truncate(time.Millisecond)
+			spGet.UpdatedAt = spGet.UpdatedAt.UTC().Truncate(time.Millisecond)
 
-			Convey("Then UpdateServiceProfile updates the service-profile", func() {
-				sp.Name = "updated-service-profile"
-				sp.ServiceProfile = ns.ServiceProfile{
-					Id:                     sp.ServiceProfile.Id,
-					UlRate:                 101,
-					UlBucketSize:           11,
-					UlRatePolicy:           ns.RatePolicy_DROP,
-					DlRate:                 201,
-					DlBucketSize:           21,
-					DlRatePolicy:           ns.RatePolicy_MARK,
-					AddGwMetadata:          true,
-					DevStatusReqFreq:       5,
-					ReportDevStatusBattery: true,
-					ReportDevStatusMargin:  true,
-					DrMin:                  4,
-					DrMax:                  6,
-					PrAllowed:              true,
-					HrAllowed:              true,
-					RaAllowed:              true,
-					NwkGeoLoc:              true,
-					TargetPer:              11,
-					MinGwDiversity:         4,
-				}
-				So(UpdateServiceProfile(context.Background(), DB(), &sp), ShouldBeNil)
-				sp.UpdatedAt = sp.UpdatedAt.UTC().Truncate(time.Millisecond)
-				So(nsClient.UpdateServiceProfileChan, ShouldHaveLength, 1)
-				So(<-nsClient.UpdateServiceProfileChan, ShouldResemble, ns.UpdateServiceProfileRequest{
-					ServiceProfile: &sp.ServiceProfile,
-				})
+			assert.Equal(sp, spGet)
+		})
 
-				spGet, err := GetServiceProfile(context.Background(), DB(), spID, false)
-				So(err, ShouldBeNil)
-				spGet.UpdatedAt = spGet.UpdatedAt.UTC().Truncate(time.Millisecond)
-				So(spGet.Name, ShouldEqual, "updated-service-profile")
-				So(spGet.UpdatedAt, ShouldResemble, sp.UpdatedAt)
-			})
+		t.Run("Delete", func(t *testing.T) {
+			assert := require.New(t)
 
-			Convey("Then DeleteServiceProfile deletes the service-profile", func() {
-				So(DeleteServiceProfile(context.Background(), DB(), spID), ShouldBeNil)
-				So(nsClient.DeleteServiceProfileChan, ShouldHaveLength, 1)
-				So(<-nsClient.DeleteServiceProfileChan, ShouldResemble, ns.DeleteServiceProfileRequest{
-					Id: sp.ServiceProfile.Id,
-				})
-
-				_, err := GetServiceProfile(context.Background(), DB(), spID, false)
-				So(err, ShouldEqual, ErrDoesNotExist)
-			})
-
-			Convey("Then GetServiceProfileCount returns 1", func() {
-				count, err := GetServiceProfileCount(context.Background(), DB(), ServiceProfileFilters{})
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 1)
-			})
-
-			Convey("Then GetServiceProfileCount for OrganizationID returns the number of service-profiles for the given organization", func() {
-				count, err := GetServiceProfileCount(context.Background(), DB(), ServiceProfileFilters{
-					OrganizationID: org.ID,
-				})
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 1)
-
-				count, err = GetServiceProfileCount(context.Background(), DB(), ServiceProfileFilters{
-					OrganizationID: org.ID + 1,
-				})
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 0)
-			})
-
-			Convey("Then GetServiceProfileCount for UserID returns the service-profile count accessible by the given user", func() {
-				count, err := GetServiceProfileCount(context.Background(), DB(), ServiceProfileFilters{
-					UserID: u.ID,
-				})
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 1)
-
-				count, err = GetServiceProfileCount(context.Background(), DB(), ServiceProfileFilters{
-					UserID: u.ID + 999,
-				})
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 0)
-			})
-
-			Convey("Then GetServiceProfiles includes the created service-profile", func() {
-				profiles, err := GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
-					Limit: 10,
-				})
-				So(err, ShouldBeNil)
-				So(profiles, ShouldHaveLength, 1)
-				So(profiles[0].Name, ShouldEqual, sp.Name)
-			})
-
-			Convey("Then GetServiceProfiles for OrganizationID returns the service-profiles for the given organization", func() {
-				sps, err := GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
-					OrganizationID: org.ID,
-					Limit:          10,
-				})
-				So(err, ShouldBeNil)
-				So(sps, ShouldHaveLength, 1)
-
-				sps, err = GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
-					OrganizationID: org.ID + 1,
-					Limit:          10,
-				})
-				So(err, ShouldBeNil)
-				So(sps, ShouldHaveLength, 0)
-			})
-
-			Convey("Then GetServiceProfiles for NetworkServerID returns the service-profiles for the given network-server", func() {
-				sps, err := GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
-					NetworkServerID: n.ID,
-					Limit:           10,
-				})
-				So(err, ShouldBeNil)
-				So(sps, ShouldHaveLength, 1)
-
-				sps, err = GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
-					NetworkServerID: n.ID + 1,
-					Limit:           10,
-				})
-				So(err, ShouldBeNil)
-				So(sps, ShouldHaveLength, 0)
-			})
-
-			Convey("Then GetServiceProfiles for User returns the service-profiles accessible by a given user", func() {
-				sps, err := GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
-					UserID: u.ID,
-					Limit:  10,
-				})
-				So(err, ShouldBeNil)
-				So(sps, ShouldHaveLength, 1)
-
-				sps, err = GetServiceProfiles(context.Background(), DB(), ServiceProfileFilters{
-					UserID: u.ID + 999,
-					Limit:  10,
-				})
-				So(err, ShouldBeNil)
-				So(sps, ShouldHaveLength, 0)
-			})
+			assert.NoError(DeleteServiceProfile(context.Background(), ts.Tx(), spID))
+			delReq := <-nsClient.DeleteServiceProfileChan
+			assert.Equal(sp.ServiceProfile.Id, delReq.Id)
 		})
 	})
 }

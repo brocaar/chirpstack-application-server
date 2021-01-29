@@ -322,9 +322,12 @@ func GetServiceProfileCount(ctx context.Context, db sqlx.Queryer, filters Servic
 func GetServiceProfiles(ctx context.Context, db sqlx.Queryer, filters ServiceProfileFilters) ([]ServiceProfileMeta, error) {
 	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
-			sp.*
+			sp.*,
+			ns.name as network_server_name
 		from
 			service_profile sp
+		inner join network_server ns
+			on sp.network_server_id = ns.id
 		left join organization_user ou
 			on sp.organization_id = ou.organization_id
 		left join "user" u
@@ -332,7 +335,8 @@ func GetServiceProfiles(ctx context.Context, db sqlx.Queryer, filters ServicePro
 	`+filters.SQL()+`
 		group by
 			sp.service_profile_id,
-			sp.name
+			sp.name,
+			network_server_name
 		order by
 			sp.name
 		limit :limit

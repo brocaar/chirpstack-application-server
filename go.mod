@@ -1,13 +1,13 @@
 module github.com/brocaar/chirpstack-application-server
 
-go 1.14
+go 1.15
 
 require (
 	cloud.google.com/go v0.49.0 // indirect
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
 	github.com/aws/aws-sdk-go v1.26.3
 	github.com/brocaar/chirpstack-api/go/v3 v3.9.3
-	github.com/brocaar/lorawan v0.0.0-20200712153947-7a20fad6a6ed
+	github.com/brocaar/lorawan v0.0.0-20201030140234-f23da2d4a303
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible

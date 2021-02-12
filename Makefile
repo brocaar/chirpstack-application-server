@@ -53,6 +53,7 @@ internal/statics internal/migrations: static/swagger/api.swagger.json
 	@echo "Generating static files"
 	@go generate internal/migrations/migrations.go
 	@go generate internal/static/static.go
+	statik -src migrations/postgres-integration -dest internal/ -p migrations -f
 
 
 static/swagger/api.swagger.json:
@@ -75,6 +76,8 @@ dev-requirements:
 	go install github.com/goreleaser/goreleaser
 	go install github.com/goreleaser/nfpm
 	go install github.com/golang/protobuf/protoc-gen-go
+	go install github.com/rakyll/statik
+	go install github.com/golang-migrate/migrate/v4/cmd/migrate
 
 ui-requirements:
 	@echo "Installing UI requirements"

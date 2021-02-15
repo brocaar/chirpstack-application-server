@@ -13,7 +13,8 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jmoiron/sqlx"
-	
+
+	_ "github.com/brocaar/chirpstack-application-server/internal/integration/postgresql/statik"
 	"github.com/lib/pq/hstore"
 	"github.com/mmcloughlin/geohash"
 	"github.com/pkg/errors"

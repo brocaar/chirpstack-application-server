@@ -1,5 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS hstore;
-
 CREATE TABLE IF NOT EXISTS device_up (
     id uuid primary key,
     received_at timestamp with time zone not null,
@@ -18,13 +16,6 @@ CREATE TABLE IF NOT EXISTS device_up (
     object jsonb not null
 );
 
-CREATE INDEX IF NOT EXISTS idx_device_up_received_at on device_up(received_at);
-CREATE INDEX IF NOT EXISTS idx_device_up_dev_eui on device_up(dev_eui);
-CREATE INDEX IF NOT EXISTS idx_device_up_application_id on device_up(application_id);
-CREATE INDEX IF NOT EXISTS idx_device_up_frequency on device_up(frequency);
-CREATE INDEX IF NOT EXISTS idx_device_up_dr on device_up(dr);
-CREATE INDEX IF NOT EXISTS idx_device_up_tags on device_up(tags);
-
 CREATE TABLE IF NOT EXISTS device_status (
     id uuid primary key,
     received_at timestamp with time zone not null,
@@ -39,11 +30,6 @@ CREATE TABLE IF NOT EXISTS device_status (
     tags hstore not null
 );
 
-CREATE INDEX IF NOT EXISTS idx_device_status_received_at on device_status(received_at);
-CREATE INDEX IF NOT EXISTS idx_device_status_dev_eui on device_status(dev_eui);
-CREATE INDEX IF NOT EXISTS idx_device_status_application_id on device_status(application_id);
-CREATE INDEX IF NOT EXISTS idx_device_status_tags on device_status(tags);
-
 CREATE TABLE IF NOT EXISTS device_join (
     id uuid primary key,
     received_at timestamp with time zone not null,
@@ -54,11 +40,6 @@ CREATE TABLE IF NOT EXISTS device_join (
     dev_addr bytea not null,
     tags hstore not null
 );
-
-CREATE INDEX IF NOT EXISTS idx_device_join_received_at on device_join(received_at);
-CREATE INDEX IF NOT EXISTS idx_device_join_dev_eui on device_join(dev_eui);
-CREATE INDEX IF NOT EXISTS idx_device_join_application_id on device_join(application_id);
-CREATE INDEX IF NOT EXISTS idx_device_join_tags on device_join(tags);
 
 CREATE TABLE IF NOT EXISTS device_ack (
     id uuid primary key,
@@ -72,11 +53,6 @@ CREATE TABLE IF NOT EXISTS device_ack (
     tags hstore not null
 );
 
-CREATE INDEX IF NOT EXISTS idx_device_ack_received_at on device_ack(received_at);
-CREATE INDEX IF NOT EXISTS idx_device_ack_dev_eui on device_ack(dev_eui);
-CREATE INDEX IF NOT EXISTS idx_device_ack_application_id on device_ack(application_id);
-CREATE INDEX IF NOT EXISTS idx_device_ack_tags on device_ack(tags);
-
 CREATE TABLE IF NOT EXISTS device_error (
     id uuid primary key,
     received_at timestamp with time zone not null,
@@ -89,11 +65,6 @@ CREATE TABLE IF NOT EXISTS device_error (
     f_cnt bigint not null,
     tags hstore not null
 );
-
-CREATE INDEX IF NOT EXISTS idx_device_error_received_at on device_error(received_at);
-CREATE INDEX IF NOT EXISTS idx_device_error_dev_eui on device_error(dev_eui);
-CREATE INDEX IF NOT EXISTS idx_device_error_application_id on device_error(application_id);
-CREATE INDEX IF NOT EXISTS idx_device_error_tags on device_error(tags);
 
 CREATE TABLE IF NOT EXISTS device_location (
     id uuid primary key,
@@ -110,8 +81,3 @@ CREATE TABLE IF NOT EXISTS device_location (
     -- this field is currently not populated
     accuracy smallint not null
 );
-
-CREATE INDEX IF NOT EXISTS idx_device_location_received_at on device_location(received_at);
-CREATE INDEX IF NOT EXISTS idx_device_location_dev_eui on device_location(dev_eui);
-CREATE INDEX IF NOT EXISTS idx_device_location_application_id on device_location(application_id);
-CREATE INDEX IF NOT EXISTS idx_device_location_tags on device_location(tags);

@@ -1,9 +1,9 @@
-.PHONY: build clean test ui-requirements serve internal/statics internal/migrations 
+.PHONY: build clean test statics ui-requirements serve internal/statics internal/migrations 
 PKGS := $(shell go list ./cmd/... ./internal/... | grep -v /vendor |grep -v /internal/static |grep -v /internal/migrations)
 VERSION := $(shell git describe --always |sed -e "s/^v//")
 API_VERSION := $(shell go list -m -f '{{ .Version }}' github.com/brocaar/chirpstack-api/go/v3 | awk '{n=split($$0, a, "-"); print a[n]}')
 
-build: ui/build internal/statics internal/migrations
+build: ui/build internal/statics internal/migrations statics
 	mkdir -p build
 	go build $(GO_EXTRA_BUILD_ARGS) -ldflags "-s -w -X main.version=$(VERSION)" -o build/chirpstack-application-server cmd/chirpstack-application-server/main.go
 
@@ -43,6 +43,9 @@ proto:
 	@git --git-dir=/tmp/chirpstack-api/.git --work-tree=/tmp/chirpstack-api checkout $(API_VERSION)
 	@go generate internal/integration/loracloud/frame_rx_info.go
 
+statics:
+	@echo "Generating postgresql integration static files"
+	statik -src migrations/postgres-integration -dest internal/integration/postgresql/ -f
 
 ui/build:
 	@echo "Building ui"
@@ -53,8 +56,6 @@ internal/statics internal/migrations: static/swagger/api.swagger.json
 	@echo "Generating static files"
 	@go generate internal/migrations/migrations.go
 	@go generate internal/static/static.go
-	statik -src migrations/postgres-integration -dest internal/ -p migrations -f
-
 
 static/swagger/api.swagger.json:
 	@echo "Fetching Swagger definitions and generate combined Swagger JSON"

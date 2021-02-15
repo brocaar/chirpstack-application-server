@@ -15,6 +15,7 @@
 /build
 /internal/static/static_gen.go
 /internal/migrations/migrations_gen.go
+/internal/integration/postgresql/statik/statik.go
 /static/logo
 /static/integrations
 /static/static

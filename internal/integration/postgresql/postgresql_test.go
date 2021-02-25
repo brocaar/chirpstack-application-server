@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	_ "github.com/brocaar/chirpstack-application-server/internal/integration/postgresql/statik"
 	"github.com/brocaar/chirpstack-api/go/v3/common"
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
 	"github.com/brocaar/chirpstack-application-server/internal/config"

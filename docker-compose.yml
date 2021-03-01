@@ -22,17 +22,17 @@ services:
       - TEST_KAFKA_BROKER=kafka:9092
 
   postgres:
-    image: postgres:9.6-alpine
+    image: postgres:13-alpine
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - ./.docker-compose/postgresql/initdb:/docker-entrypoint-initdb.d
 
   redis:
-    image: redis:4-alpine
+    image: redis:6-alpine
 
   mosquitto:
-    image: eclipse-mosquitto
+    image: eclipse-mosquitto:1.6
 
   rabbitmq:
     image: rabbitmq:3-alpine

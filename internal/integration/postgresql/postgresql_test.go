@@ -20,6 +20,8 @@ import (
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-api/go/v3/common"
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
@@ -124,6 +126,7 @@ func (ts *PostgreSQLTestSuite) SetupSuite() {
 	assert := require.New(ts.T())
 	conf := test.GetConfig()
 	assert.NoError(storage.Setup(conf))
+	test.MustResetDB(storage.DB().DB)
 
 	dsn := "postgres://localhost/chirpstack_as_test?sslmode=disable"
 	if v := os.Getenv("TEST_POSTGRES_DSN"); v != "" {
@@ -143,6 +146,26 @@ func (ts *PostgreSQLTestSuite) SetupSuite() {
 		panic(err)
 	}
 
+	nsClient := mock.NewClient()
+	networkserver.SetPool(mock.NewPool(nsClient))
+
+	ns := storage.NetworkServer{
+		Name: "test-ns",
+	}
+	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &ns))
+
+	org := storage.Organization{
+		Name: "test-org",
+	}
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
+
+	gw := storage.Gateway{
+		MAC:             lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
+		Name:            "test-gw",
+		OrganizationID:  org.ID,
+		NetworkServerID: ns.ID,
+	}
+	assert.NoError(storage.CreateGateway(context.Background(), storage.DB(), &gw))
 }
 
 func (ts *PostgreSQLTestSuite) TearDownSuite() {
@@ -152,146 +175,10 @@ func (ts *PostgreSQLTestSuite) TearDownSuite() {
 }
 
 func (ts *PostgreSQLTestSuite) SetupTest() {
-	_, err := ts.db.Exec("drop table if exists device_up")
-	if err != nil {
+	if err := MigrateDown(ts.db); err != nil {
 		panic(err)
 	}
-
-	_, err = ts.db.Exec("drop table if exists device_status")
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec("drop table if exists device_join")
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec("drop table if exists device_ack")
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec("drop table if exists device_error")
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec("drop table if exists device_location")
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec(`
-		create table device_up (
-			id uuid primary key,
-			received_at timestamp with time zone not null,
-			dev_eui bytea not null,
-			device_name varchar(100) not null,
-			application_id bigint not null,
-			application_name varchar(100) not null,
-			frequency bigint not null,
-			dr smallint not null,
-			adr boolean not null,
-			f_cnt bigint not null,
-			f_port smallint not null,
-			tags hstore not null,
-			data bytea not null,
-			rx_info jsonb not null,
-			object jsonb not null
-		)
-	`)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec(`
-		create table device_status (
-			id uuid primary key,
-			received_at timestamp with time zone not null,
-			dev_eui bytea not null,
-			device_name varchar(100) not null,
-			application_id bigint not null,
-			application_name varchar(100) not null,
-			margin smallint not null,
-			external_power_source boolean not null,
-			battery_level_unavailable boolean not null,
-			battery_level numeric(5, 2) not null,
-			tags hstore not null
-		)
-	`)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec(`
-		create table device_join (
-			id uuid primary key,
-			received_at timestamp with time zone not null,
-			dev_eui bytea not null,
-			device_name varchar(100) not null,
-			application_id bigint not null,
-			application_name varchar(100) not null,
-			dev_addr bytea not null,
-			tags hstore not null
-		)
-	`)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec(`
-		create table device_ack (
-			id uuid primary key,
-			received_at timestamp with time zone not null,
-			dev_eui bytea not null,
-			device_name varchar(100) not null,
-			application_id bigint not null,
-			application_name varchar(100) not null,
-			acknowledged boolean not null,
-			f_cnt bigint not null,
-			tags hstore not null
-		)
-	`)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec(`
-		create table device_error (
-			id uuid primary key,
-			received_at timestamp with time zone not null,
-			dev_eui bytea not null,
-			device_name varchar(100) not null,
-			application_id bigint not null,
-			application_name varchar(100) not null,
-			type varchar(100) not null,
-			error text not null,
-			f_cnt bigint not null,
-			tags hstore not null
-		)
-	`)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec(`
-		create table device_location (
-			id uuid primary key,
-			received_at timestamp with time zone not null,
-			dev_eui bytea not null,
-			device_name varchar(100) not null,
-			application_id bigint not null,
-			application_name varchar(100) not null,
-			altitude double precision not null,
-			latitude double precision not null,
-			longitude double precision not null,
-			geohash varchar(12) not null,
-			tags hstore not null,
-			accuracy smallint not null
-		)
-	`)
-	if err != nil {
+	if err := MigrateUp(ts.db); err != nil {
 		panic(err)
 	}
 }

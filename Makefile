@@ -43,7 +43,6 @@ proto:
 	@git --git-dir=/tmp/chirpstack-api/.git --work-tree=/tmp/chirpstack-api checkout $(API_VERSION)
 	@go generate internal/integration/loracloud/frame_rx_info.go
 
-
 ui/build:
 	@echo "Building ui"
 	@cd ui && npm run build
@@ -53,7 +52,6 @@ internal/statics internal/migrations: static/swagger/api.swagger.json
 	@echo "Generating static files"
 	@go generate internal/migrations/migrations.go
 	@go generate internal/static/static.go
-
 
 static/swagger/api.swagger.json:
 	@echo "Fetching Swagger definitions and generate combined Swagger JSON"
@@ -75,6 +73,7 @@ dev-requirements:
 	go install github.com/goreleaser/goreleaser
 	go install github.com/goreleaser/nfpm
 	go install github.com/golang/protobuf/protoc-gen-go
+	go install github.com/golang-migrate/migrate/v4/cmd/migrate
 
 ui-requirements:
 	@echo "Installing UI requirements"

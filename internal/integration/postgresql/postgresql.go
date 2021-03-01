@@ -3,12 +3,19 @@ package postgresql
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"encoding/json"
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jmoiron/sqlx"
+
 	"github.com/lib/pq/hstore"
 	"github.com/mmcloughlin/geohash"
 	"github.com/pkg/errors"
@@ -22,6 +29,10 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
+
+// Migrations
+//go:embed migrations/*
+var migrations embed.FS
 
 // Integration implements a PostgreSQL integration.
 type Integration struct {
@@ -47,6 +58,9 @@ func New(conf config.IntegrationPostgreSQLConfig) (*Integration, error) {
 	d.SetMaxOpenConns(conf.MaxOpenConnections)
 	d.SetMaxIdleConns(conf.MaxIdleConnections)
 
+	if err := MigrateUp(d); err != nil {
+		return nil, err
+	}
 	return &Integration{
 		db: d,
 	}, nil
@@ -57,6 +71,80 @@ func (i *Integration) Close() error {
 	if err := i.db.Close(); err != nil {
 		return errors.Wrap(err, "close database error")
 	}
+	return nil
+}
+
+// MigrateUp configure postgres-integration migration down
+func MigrateUp(db *sqlx.DB) error {
+	log.Info("integration/postgresql: applying PostgreSQL schema migrations")
+
+	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("integration/postgresql: migrate postgres driver error: %w", err)
+	}
+
+	src, err := httpfs.New(http.FS(migrations), "/migrations")
+	if err != nil {
+		return fmt.Errorf("new httpfs error: %w", err)
+	}
+
+	m, err := migrate.NewWithInstance("httpfs", src, "postgres", driver)
+	if err != nil {
+		return fmt.Errorf("integration/postgresql: new migrate instance error: %w", err)
+	}
+
+	oldVersion, _, _ := m.Version()
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("integration/postgresql: migrate up error: %w", err)
+	}
+
+	newVersion, _, _ := m.Version()
+
+	if oldVersion != newVersion {
+		log.WithFields(log.Fields{
+			"from_version": oldVersion,
+			"to_version":   newVersion,
+		}).Info("integration/postgresql: applied database migrations")
+	}
+
+	return nil
+}
+
+// MigrateDown configure postgres-integration migration down
+func MigrateDown(db *sqlx.DB) error {
+	log.Info("integration/postgresql: reverting PostgreSQL schema migrations")
+
+	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("integration/postgresql: migrate postgres driver error: %w", err)
+	}
+
+	src, err := httpfs.New(http.FS(migrations), "/migrations")
+	if err != nil {
+		return fmt.Errorf("new httpfs error: %w", err)
+	}
+
+	m, err := migrate.NewWithInstance("httpfs", src, "postgres", driver)
+	if err != nil {
+		return fmt.Errorf("integration/postgresql: new migrate instance error: %w", err)
+	}
+
+	oldVersion, _, _ := m.Version()
+
+	if err := m.Down(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("integration/postgresql: migrate down error: %w", err)
+	}
+
+	newVersion, _, _ := m.Version()
+
+	if oldVersion != newVersion {
+		log.WithFields(log.Fields{
+			"from_version": oldVersion,
+			"to_version":   newVersion,
+		}).Info("integration/postgresql: applied database migrations")
+	}
+
 	return nil
 }
 

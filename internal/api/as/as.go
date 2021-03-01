@@ -169,6 +169,8 @@ func (a *ApplicationServerAPI) HandleTxAck(ctx context.Context, req *as.HandleTx
 		DevEui:          devEUI[:],
 		FCnt:            req.FCnt,
 		Tags:            make(map[string]string),
+		GatewayId:       req.GatewayId,
+		TxInfo:          req.TxInfo,
 	}
 
 	// set tags

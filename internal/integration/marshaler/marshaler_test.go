@@ -215,6 +215,20 @@ func (ts *MarshalerTestSuite) GetTxAckEvent() integration.TxAckEvent {
 		Tags: map[string]string{
 			"test": "tag",
 		},
+		GatewayId: []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+		TxInfo: &gw.DownlinkTXInfo{
+			Frequency:  868100000,
+			Board:      0,
+			Antenna:    0,
+			Modulation: common.Modulation_LORA,
+			ModulationInfo: &gw.DownlinkTXInfo_LoraModulationInfo{
+				LoraModulationInfo: &gw.LoRaModulationInfo{
+					Bandwidth:       125,
+					SpreadingFactor: 12,
+					CodeRate:        "3/4",
+				},
+			},
+		},
 	}
 }
 

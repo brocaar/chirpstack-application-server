@@ -3,8 +3,10 @@ package postgresql
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -14,11 +16,9 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jmoiron/sqlx"
 
-	_ "github.com/brocaar/chirpstack-application-server/internal/integration/postgresql/statik"
 	"github.com/lib/pq/hstore"
 	"github.com/mmcloughlin/geohash"
 	"github.com/pkg/errors"
-	"github.com/rakyll/statik/fs"
 	log "github.com/sirupsen/logrus"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
@@ -29,6 +29,10 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
+
+// Migrations
+//go:embed migrations/*
+var migrations embed.FS
 
 // Integration implements a PostgreSQL integration.
 type Integration struct {
@@ -74,17 +78,12 @@ func (i *Integration) Close() error {
 func MigrateUp(db *sqlx.DB) error {
 	log.Info("integration/postgresql: applying PostgreSQL schema migrations")
 
-	statikFS, err := fs.New()
-	if err != nil {
-		return fmt.Errorf("statik fs error: %w", err)
-	}
-
 	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
 	if err != nil {
 		return fmt.Errorf("integration/postgresql: migrate postgres driver error: %w", err)
 	}
 
-	src, err := httpfs.New(statikFS, "/")
+	src, err := httpfs.New(http.FS(migrations), "/migrations")
 	if err != nil {
 		return fmt.Errorf("new httpfs error: %w", err)
 	}
@@ -116,17 +115,12 @@ func MigrateUp(db *sqlx.DB) error {
 func MigrateDown(db *sqlx.DB) error {
 	log.Info("integration/postgresql: reverting PostgreSQL schema migrations")
 
-	statikFS, err := fs.New()
-	if err != nil {
-		return fmt.Errorf("statik fs error: %w", err)
-	}
-
 	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
 	if err != nil {
 		return fmt.Errorf("integration/postgresql: migrate postgres driver error: %w", err)
 	}
 
-	src, err := httpfs.New(statikFS, "/")
+	src, err := httpfs.New(http.FS(migrations), "/migrations")
 	if err != nil {
 		return fmt.Errorf("new httpfs error: %w", err)
 	}

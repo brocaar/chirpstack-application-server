@@ -18,9 +18,10 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
-	_ "github.com/brocaar/chirpstack-application-server/internal/integration/postgresql/statik"
 	"github.com/brocaar/chirpstack-api/go/v3/common"
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
@@ -125,6 +126,7 @@ func (ts *PostgreSQLTestSuite) SetupSuite() {
 	assert := require.New(ts.T())
 	conf := test.GetConfig()
 	assert.NoError(storage.Setup(conf))
+	test.MustResetDB(storage.DB().DB)
 
 	dsn := "postgres://localhost/chirpstack_as_test?sslmode=disable"
 	if v := os.Getenv("TEST_POSTGRES_DSN"); v != "" {
@@ -144,6 +146,26 @@ func (ts *PostgreSQLTestSuite) SetupSuite() {
 		panic(err)
 	}
 
+	nsClient := mock.NewClient()
+	networkserver.SetPool(mock.NewPool(nsClient))
+
+	ns := storage.NetworkServer{
+		Name: "test-ns",
+	}
+	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &ns))
+
+	org := storage.Organization{
+		Name: "test-org",
+	}
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
+
+	gw := storage.Gateway{
+		MAC:             lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
+		Name:            "test-gw",
+		OrganizationID:  org.ID,
+		NetworkServerID: ns.ID,
+	}
+	assert.NoError(storage.CreateGateway(context.Background(), storage.DB(), &gw))
 }
 
 func (ts *PostgreSQLTestSuite) TearDownSuite() {

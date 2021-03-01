@@ -32,25 +32,6 @@ type TXInfo struct {
 	DR        int `json:"dr"`
 }
 
-// TXAckTxInfo contains the TxAck TX information.
-type TXAckTxInfo struct {
-	Frequency          int                `json:"frequency"`
-	Modulation         string             `json:"modulation"`
-	Power              int                `json:"power"`
-	Timing             string             `json:"timing"`
-	Board              int                `json:"board"`
-	Antenna            int                `json:"antenna"`
-	LoraModulationInfo LoraModulationInfo `json:"loraModulationInfo"`
-}
-
-// LoraModulationInfo contains the LoRa Modulation information.
-type LoraModulationInfo struct {
-	Bandwidth             int    `json:"bandwidth"`
-	SpreadingFactor       int    `json:"spreadingFactor"`
-	CodeRate              string `json:"codeRate"`
-	PolarizationInversion bool   `json:"polarizationInversion"`
-}
-
 // DataUpPayload represents a data-up payload.
 type DataUpPayload struct {
 	ApplicationID   int64             `json:"applicationID,string"`
@@ -156,8 +137,6 @@ type TxAckNotification struct {
 	FCnt            uint32            `json:"fCnt"`
 	Tags            map[string]string `json:"tags,omitempty"`
 	Variables       map[string]string `json:"-"`
-	GatewayID       lorawan.EUI64     `json:"gatewayID"`
-	TXInfo          TXAckTxInfo       `json:"txInfo"`
 }
 
 // IntegrationNotification defines the payload for the integration event.

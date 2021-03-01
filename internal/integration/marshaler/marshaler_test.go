@@ -485,21 +485,6 @@ func (ts *MarshalerTestSuite) TestJSONV3() {
 			Tags: map[string]string{
 				"test": "tag",
 			},
-			GatewayID: lorawan.EUI64{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
-			TXInfo: models.TXAckTxInfo{
-				Frequency:  868100000,
-				Modulation: "LORA",
-				LoraModulationInfo: models.LoraModulationInfo{
-					Bandwidth:             125,
-					SpreadingFactor:       12,
-					CodeRate:              "3/4",
-					PolarizationInversion: false,
-				},
-				Timing:  "IMMEDIATELY",
-				Power:   0,
-				Board:   0,
-				Antenna: 0,
-			},
 		}, pl)
 	})
 

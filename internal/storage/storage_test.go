@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/brocaar/chirpstack-application-server/internal/test"
@@ -55,4 +56,29 @@ type StorageTestSuite struct {
 
 func TestStorage(t *testing.T) {
 	suite.Run(t, new(StorageTestSuite))
+}
+
+func TestGetRedisKey(t *testing.T) {
+	assert := require.New(t)
+
+	tests := []struct {
+		template string
+		params   []interface{}
+		expected string
+	}{
+		{
+			template: "foo:bar:key",
+			expected: "foo:bar:key",
+		},
+		{
+			template: "foo:bar:%s",
+			params:   []interface{}{"test"},
+			expected: "foo:bar:test",
+		},
+	}
+
+	for _, tst := range tests {
+		out := GetRedisKey(tst.template, tst.params...)
+		assert.Equal(tst.expected, out)
+	}
 }

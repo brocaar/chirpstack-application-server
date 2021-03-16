@@ -2,6 +2,7 @@ package storage
 
 import (
 	"crypto/tls"
+	"fmt"
 	"strings"
 	"time"
 
@@ -129,4 +130,9 @@ func Setup(c config.Config) error {
 	}
 
 	return nil
+}
+
+// GetRedisKey returns the Redis key given a template and parameters.
+func GetRedisKey(tmpl string, params ...interface{}) string {
+	return fmt.Sprintf(tmpl, params...)
 }

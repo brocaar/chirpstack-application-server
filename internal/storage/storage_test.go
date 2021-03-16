@@ -62,10 +62,16 @@ func TestGetRedisKey(t *testing.T) {
 	assert := require.New(t)
 
 	tests := []struct {
-		template string
-		params   []interface{}
-		expected string
+		keyPrefix string
+		template  string
+		params    []interface{}
+		expected  string
 	}{
+		{
+			keyPrefix: "as1:",
+			template:  "foo:bar:key",
+			expected:  "as1:foo:bar:key",
+		},
 		{
 			template: "foo:bar:key",
 			expected: "foo:bar:key",
@@ -78,6 +84,7 @@ func TestGetRedisKey(t *testing.T) {
 	}
 
 	for _, tst := range tests {
+		keyPrefix = tst.keyPrefix
 		out := GetRedisKey(tst.template, tst.params...)
 		assert.Equal(tst.expected, out)
 	}

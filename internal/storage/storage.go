@@ -22,6 +22,7 @@ var (
 	// HashIterations denfines the number of times a password is hashed.
 	HashIterations      = 100000
 	applicationServerID uuid.UUID
+	keyPrefix           string
 )
 
 // Setup configures the storage package.
@@ -30,6 +31,7 @@ func Setup(c config.Config) error {
 
 	jwtsecret = []byte(c.ApplicationServer.ExternalAPI.JWTSecret)
 	HashIterations = c.General.PasswordHashIterations
+	keyPrefix = c.Redis.KeyPrefix
 
 	if err := applicationServerID.UnmarshalText([]byte(c.ApplicationServer.ID)); err != nil {
 		return errors.Wrap(err, "decode application_server.id error")
@@ -134,5 +136,5 @@ func Setup(c config.Config) error {
 
 // GetRedisKey returns the Redis key given a template and parameters.
 func GetRedisKey(tmpl string, params ...interface{}) string {
-	return fmt.Sprintf(tmpl, params...)
+	return keyPrefix + fmt.Sprintf(tmpl, params...)
 }

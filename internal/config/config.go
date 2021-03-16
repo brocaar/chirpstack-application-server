@@ -29,6 +29,7 @@ type Config struct {
 		Password   string   `mapstructure:"password"`
 		Database   int      `mapstructure:"database"`
 		TLSEnabled bool     `mapstructure:"tls_enabled"`
+		KeyPrefix  string   `mapstructure:"key_prefix"`
 	} `mapstructure:"redis"`
 
 	ApplicationServer struct {

@@ -131,6 +131,14 @@ pool_size={{ .Redis.PoolSize }}
 # used by the server.
 tls_enabled={{ .Redis.TLSEnabled }}
 
+# Key prefix.
+#
+# A key prefix can be used to avoid key collisions when multiple deployments
+# are using the same Redis database and it is not possible to separate
+# keys by database index (e.g. when using Redis Cluster, which does not
+# support multiple databases).
+key_prefix="{{ .Redis.KeyPrefix }}"
+
 
 # Application-server settings.
 [application_server]

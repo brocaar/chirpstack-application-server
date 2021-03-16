@@ -2,7 +2,6 @@ package loracloud
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/proto"
@@ -27,7 +26,7 @@ func SaveGeolocBuffer(ctx context.Context, devEUI lorawan.EUI64, items [][]*gw.U
 		return nil
 	}
 
-	key := fmt.Sprintf(geolocBufferKeyTempl, devEUI)
+	key := storage.GetRedisKey(geolocBufferKeyTempl, devEUI)
 	pipe := storage.RedisClient().TxPipeline()
 	pipe.Del(key)
 
@@ -62,7 +61,7 @@ func GetGeolocBuffer(ctx context.Context, devEUI lorawan.EUI64, ttl time.Duratio
 		return nil, nil
 	}
 
-	key := fmt.Sprintf(geolocBufferKeyTempl, devEUI)
+	key := storage.GetRedisKey(geolocBufferKeyTempl, devEUI)
 	resp, err := storage.RedisClient().LRange(key, 0, -1).Result()
 	if err != nil {
 		return nil, errors.Wrap(err, "read buffer error")

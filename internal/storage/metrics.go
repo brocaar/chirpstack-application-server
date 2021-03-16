@@ -115,7 +115,7 @@ func SaveMetricsForInterval(ctx context.Context, agg AggregationInterval, name s
 		return fmt.Errorf("unexepcted aggregation interval: %s", agg)
 	}
 
-	key := fmt.Sprintf(metricsKeyTempl, name, agg, ts.Unix())
+	key := GetRedisKey(metricsKeyTempl, name, agg, ts.Unix())
 
 	pipe := RedisClient().TxPipeline()
 	for k, v := range metrics.Metrics {
@@ -153,7 +153,7 @@ func GetMetrics(ctx context.Context, agg AggregationInterval, name string, start
 				break
 			}
 			timestamps = append(timestamps, ts)
-			keys = append(keys, fmt.Sprintf(metricsKeyTempl, name, agg, ts.Unix()))
+			keys = append(keys, GetRedisKey(metricsKeyTempl, name, agg, ts.Unix()))
 		}
 	case AggregationHour:
 		end = time.Date(end.Year(), end.Month(), end.Day(), end.Hour(), 0, 0, 0, timeLocation)
@@ -163,7 +163,7 @@ func GetMetrics(ctx context.Context, agg AggregationInterval, name string, start
 				break
 			}
 			timestamps = append(timestamps, ts)
-			keys = append(keys, fmt.Sprintf(metricsKeyTempl, name, agg, ts.Unix()))
+			keys = append(keys, GetRedisKey(metricsKeyTempl, name, agg, ts.Unix()))
 		}
 	case AggregationDay:
 		end = time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, timeLocation)
@@ -173,7 +173,7 @@ func GetMetrics(ctx context.Context, agg AggregationInterval, name string, start
 				break
 			}
 			timestamps = append(timestamps, ts)
-			keys = append(keys, fmt.Sprintf(metricsKeyTempl, name, agg, ts.Unix()))
+			keys = append(keys, GetRedisKey(metricsKeyTempl, name, agg, ts.Unix()))
 		}
 	case AggregationMonth:
 		end = time.Date(end.Year(), end.Month(), 1, 0, 0, 0, 0, timeLocation)
@@ -183,7 +183,7 @@ func GetMetrics(ctx context.Context, agg AggregationInterval, name string, start
 				break
 			}
 			timestamps = append(timestamps, ts)
-			keys = append(keys, fmt.Sprintf(metricsKeyTempl, name, agg, ts.Unix()))
+			keys = append(keys, GetRedisKey(metricsKeyTempl, name, agg, ts.Unix()))
 		}
 	default:
 		return nil, fmt.Errorf("unexepcted aggregation interval: %s", agg)

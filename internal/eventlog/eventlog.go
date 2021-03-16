@@ -3,7 +3,6 @@ package eventlog
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/go-redis/redis/v7"
 	"github.com/golang/protobuf/proto"
@@ -49,7 +48,7 @@ func LogEventForDevice(devEUI lorawan.EUI64, t string, msg proto.Message) error 
 		Payload: json.RawMessage(b),
 	}
 
-	key := fmt.Sprintf(deviceEventUplinkPubSubKeyTempl, devEUI)
+	key := storage.GetRedisKey(deviceEventUplinkPubSubKeyTempl, devEUI)
 	b, err = json.Marshal(el)
 	if err != nil {
 		return errors.Wrap(err, "json encode error")
@@ -66,7 +65,7 @@ func LogEventForDevice(devEUI lorawan.EUI64, t string, msg proto.Message) error 
 // GetEventLogForDevice subscribes to the device events for the given DevEUI
 // and sends this to the given channel.
 func GetEventLogForDevice(ctx context.Context, devEUI lorawan.EUI64, eventsChan chan EventLog) error {
-	key := fmt.Sprintf(deviceEventUplinkPubSubKeyTempl, devEUI)
+	key := storage.GetRedisKey(deviceEventUplinkPubSubKeyTempl, devEUI)
 
 	sub := storage.RedisClient().Subscribe(key)
 	_, err := sub.Receive()

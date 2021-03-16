@@ -2,7 +2,6 @@ package code
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
@@ -120,7 +119,7 @@ func migrateGatewayStatsForGatewayIDInterval(nsClient ns.NetworkServerServiceCli
 			return err
 		}
 
-		err = storage.SaveMetricsForInterval(context.Background(), storage.AggregationInterval(interval.String()), fmt.Sprintf("gw:%s", gatewayID), storage.MetricsRecord{
+		err = storage.SaveMetricsForInterval(context.Background(), storage.AggregationInterval(interval.String()), storage.GetRedisKey("gw:%s", gatewayID), storage.MetricsRecord{
 			Time: ts,
 			Metrics: map[string]float64{
 				"rx_count":    float64(m.RxPacketsReceived),

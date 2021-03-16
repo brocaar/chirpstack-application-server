@@ -55,7 +55,7 @@ func migrateKey(conf config.Config, key string) error {
 		return fmt.Errorf("key %s is invalid", key)
 	}
 
-	newKey := fmt.Sprintf("lora:as:metrics:{%s}:%s", strings.Join(keyParts[3:len(keyParts)-2], ":"), strings.Join(keyParts[len(keyParts)-2:], ":"))
+	newKey := storage.GetRedisKey("lora:as:metrics:{%s}:%s", strings.Join(keyParts[3:len(keyParts)-2], ":"), strings.Join(keyParts[len(keyParts)-2:], ":"))
 
 	val, err := storage.RedisClient().HGetAll(key).Result()
 	if err != nil {

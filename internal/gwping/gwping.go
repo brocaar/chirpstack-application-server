@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -222,7 +221,7 @@ func sendPing(mic lorawan.MIC, n storage.NetworkServer, ping storage.GatewayPing
 
 // CreatePingLookup creates an automatically expiring MIC to ping id lookup.
 func CreatePingLookup(mic lorawan.MIC, id int64) error {
-	key := fmt.Sprintf(micLookupTempl, mic)
+	key := storage.GetRedisKey(micLookupTempl, mic)
 
 	err := storage.RedisClient().Set(key, id, micLookupExpire).Err()
 	if err != nil {
@@ -232,7 +231,7 @@ func CreatePingLookup(mic lorawan.MIC, id int64) error {
 }
 
 func getPingLookup(mic lorawan.MIC) (int64, error) {
-	key := fmt.Sprintf(micLookupTempl, mic)
+	key := storage.GetRedisKey(micLookupTempl, mic)
 
 	id, err := storage.RedisClient().Get(key).Int64()
 	if err != nil {
@@ -243,7 +242,7 @@ func getPingLookup(mic lorawan.MIC) (int64, error) {
 }
 
 func deletePingLookup(mic lorawan.MIC) error {
-	key := fmt.Sprintf(micLookupTempl, mic)
+	key := storage.GetRedisKey(micLookupTempl, mic)
 
 	err := storage.RedisClient().Del(key).Err()
 	if err != nil {

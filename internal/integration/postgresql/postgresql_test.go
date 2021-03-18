@@ -111,6 +111,18 @@ type deviceLocation struct {
 	Tags            hstore.Hstore `db:"tags"`
 }
 
+type txAck struct {
+	ID              uuid.UUID     `db:"id"`
+	ReceivedAt      time.Time     `db:"received_at"`
+	DevEUI          lorawan.EUI64 `db:"dev_eui"`
+	DeviceName      string        `db:"device_name"`
+	ApplicationID   int64         `db:"application_id"`
+	ApplicationName string        `db:"application_name"`
+	GatewayID       lorawan.EUI64 `db:"gateway_id"`
+	FCnt            int           `db:"f_cnt"`
+	Tags            hstore.Hstore `db:"tags"`
+}
+
 func init() {
 	log.SetLevel(log.ErrorLevel)
 }
@@ -616,6 +628,50 @@ func (ts *PostgreSQLTestSuite) TestLocationEvent() {
 			},
 		},
 	}, loc)
+}
+
+func (ts *PostgreSQLTestSuite) TestHandleTxAckEvent() {
+	assert := require.New(ts.T())
+
+	timestamp := time.Now()
+
+	pl := pb.TxAckEvent{
+		ApplicationId:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
+		FCnt:            10,
+		GatewayId:       []byte{8, 7, 6, 5, 4, 3, 2, 1},
+		Tags: map[string]string{
+			"foo": "bar",
+		},
+	}
+
+	assert.NoError(ts.integration.HandleTxAckEvent(context.Background(), nil, nil, pl))
+
+	var ack txAck
+	assert.NoError(ts.db.Get(&ack, "select * from tx_ack"))
+
+	assert.True(ack.ReceivedAt.After(timestamp))
+	ack.ReceivedAt = timestamp
+
+	assert.NotEqual(uuid.Nil, ack.ID)
+	ack.ID = uuid.Nil
+
+	assert.Equal(txAck{
+		ReceivedAt:      timestamp,
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		GatewayID:       lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
+		FCnt:            10,
+		Tags: hstore.Hstore{
+			Map: map[string]sql.NullString{
+				"foo": sql.NullString{String: "bar", Valid: true},
+			},
+		},
+	}, ack)
 }
 
 func TestPostgreSQL(t *testing.T) {

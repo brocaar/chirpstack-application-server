@@ -491,9 +491,53 @@ func (i *Integration) HandleLocationEvent(ctx context.Context, _ models.Integrat
 	return nil
 }
 
-// HandleTxAckEvent is not implemented.
-// TODO: implement this + schema migrations for the PostgreSQL database!
+// HandleTxAckEvent writes TX events into postgres database.
 func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.TxAckEvent) error {
+	// use an UUID here so that we can later refactor this for correlation
+	id, err := uuid.NewV4()
+	if err != nil {
+		return errors.Wrap(err, "new uuid error")
+	}
+
+	var devEUI, gatewayID lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+	copy(gatewayID[:], pl.GatewayId)
+
+	rxTime := time.Now()
+
+	_, err = i.db.Exec(`
+		insert into tx_ack (
+			id,
+			received_at,
+			dev_eui,
+			device_name,
+			application_id,
+			application_name,
+		    gateway_id,
+		    f_cnt,
+			tags
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		id,
+		rxTime,
+		devEUI,
+		pl.DeviceName,
+		pl.ApplicationId,
+		pl.ApplicationName,
+		gatewayID,
+		pl.FCnt,
+		tagsToHstore(pl.Tags),
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert error")
+	}
+
+	log.WithFields(log.Fields{
+		"event":   "tx_ack",
+		"dev_eui": devEUI,
+		"gateway_id": gatewayID,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
+	}).Info("integration/postgresql: event stored")
+
 	return nil
 }
 

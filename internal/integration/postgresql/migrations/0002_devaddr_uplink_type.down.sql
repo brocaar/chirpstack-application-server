@@ -1,3 +1,3 @@
-ALTER TABLE IF EXISTS device_up
-    DROP COLUMN IF EXISTS dev_addr,
-    DROP COLUMN IF EXISTS confirmed_uplink;
+ALTER TABLE device_up
+    DROP COLUMN dev_addr,
+    DROP COLUMN confirmed_uplink;

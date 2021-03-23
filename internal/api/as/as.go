@@ -490,3 +490,60 @@ func (a *ApplicationServerAPI) HandleGatewayStats(ctx context.Context, req *as.H
 
 	return &empty.Empty{}, nil
 }
+
+// ReEncryptDeviceQueueItems handles the re-encryption of device queue-items.
+func (a *ApplicationServerAPI) ReEncryptDeviceQueueItems(ctx context.Context, req *as.ReEncryptDeviceQueueItemsRequest) (*as.ReEncryptDeviceQueueItemsResponse, error) {
+	var devEUI lorawan.EUI64
+	copy(devEUI[:], req.DevEui)
+
+	var devAddr lorawan.DevAddr
+	copy(devAddr[:], req.DevAddr)
+
+	fCnt := req.FCntStart
+	var out as.ReEncryptDeviceQueueItemsResponse
+
+	if err := storage.Transaction(func(tx sqlx.Ext) error {
+		// Lock the device to avoid concurrent enqueue actions for the same
+		// device as this would result in re-use of the same frame-counter.
+		d, err := storage.GetDevice(ctx, tx, devEUI, true, true)
+		if err != nil {
+			return helpers.ErrToRPCError(err)
+		}
+
+		// Validate that the security context is in sync.
+		if devAddr != d.DevAddr {
+			return grpc.Errorf(codes.FailedPrecondition, "devaddr does not match, the security-context is out of sync")
+		}
+
+		for _, qi := range req.GetItems() {
+			// decrypt using old parameters
+			bDecr, err := lorawan.EncryptFRMPayload(d.AppSKey, false, d.DevAddr, qi.FCnt, qi.FrmPayload)
+			if err != nil {
+				return grpc.Errorf(codes.Internal, "decrypt frmpayload error: %s", err)
+			}
+
+			// re-encrypt using the new frame-counter
+			bEncr, err := lorawan.EncryptFRMPayload(d.AppSKey, false, d.DevAddr, fCnt, bDecr)
+			if err != nil {
+				return grpc.Errorf(codes.Internal, "encrypt frmpayload error: %s", err)
+			}
+
+			// append the item to the output
+			out.Items = append(out.Items, &as.ReEncryptedDeviceQueueItem{
+				FrmPayload: bEncr,
+				FCnt:       fCnt,
+				FPort:      qi.FPort,
+				Confirmed:  qi.Confirmed,
+			})
+
+			// increment the frame-counter
+			fCnt++
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return &out, nil
+}

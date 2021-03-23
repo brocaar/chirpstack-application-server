@@ -89,6 +89,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 	d := storage.Device{
 		ApplicationID:   app.ID,
 		Name:            "test-node",
+		DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
 		DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		DeviceProfileID: dpID,
 		Tags: hstore.Hstore{
@@ -523,6 +524,8 @@ func (ts *ASTestSuite) TestApplicationServer() {
 	})
 
 	ts.T().Run("HandleDownlinkACK", func(t *testing.T) {
+		assert := require.New(t)
+
 		_, err := api.HandleDownlinkACK(ctx, &as.HandleDownlinkACKRequest{
 			DevEui:       d.DevEUI[:],
 			FCnt:         10,
@@ -541,6 +544,52 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				"foo": "bar",
 			},
 		}, <-h.SendACKNotificationChan)
+	})
+
+	ts.T().Run("ReEnecryptDeviceQueueItems", func(t *testing.T) {
+		t.Run("Valid DevAddr", func(t *testing.T) {
+			assert := require.New(t)
+
+			resp, err := api.ReEncryptDeviceQueueItems(ctx, &as.ReEncryptDeviceQueueItemsRequest{
+				DevEui:    d.DevEUI[:],
+				DevAddr:   d.DevAddr[:],
+				FCntStart: 10,
+				Items: []*as.ReEncryptDeviceQueueItem{
+					{
+						FrmPayload: []byte{1, 2, 3},
+						FCnt:       8,
+						FPort:      20,
+						Confirmed:  true,
+					},
+					{
+						FrmPayload: []byte{4, 5, 6},
+						FCnt:       9,
+						FPort:      30,
+						Confirmed:  false,
+					},
+				},
+			})
+			assert.NoError(err)
+			assert.Equal(&as.ReEncryptDeviceQueueItemsResponse{
+				Items: []*as.ReEncryptedDeviceQueueItem{
+					{
+						FrmPayload: []byte{0x2b, 0xe4, 0x41},
+						FCnt:       10,
+						FPort:      20,
+						Confirmed:  true,
+					},
+					{
+						FrmPayload: []byte{0x50, 0xd1, 0x18},
+						FCnt:       11,
+						FPort:      30,
+						Confirmed:  false,
+					},
+				},
+			}, resp)
+		})
+
+		t.Run("Invalid DevAddr", func(t *testing.T) {
+		})
 	})
 }
 

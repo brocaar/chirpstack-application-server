@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS tx_ack (
+CREATE TABLE tx_ack (
     id               uuid primary key,
     received_at      timestamp with time zone not null,
     dev_eui          bytea not null,

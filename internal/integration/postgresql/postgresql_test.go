@@ -669,7 +669,7 @@ func (ts *PostgreSQLTestSuite) TestHandleTxAckEvent() {
 	assert.NoError(ts.integration.HandleTxAckEvent(context.Background(), nil, nil, pl))
 
 	var ack txAck
-	assert.NoError(ts.db.Get(&ack, "select * from tx_ack"))
+	assert.NoError(ts.db.Get(&ack, "select * from device_txack"))
 
 	assert.True(ack.ReceivedAt.After(timestamp))
 	ack.ReceivedAt = timestamp

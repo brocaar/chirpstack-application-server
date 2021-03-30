@@ -1,1 +1,1 @@
-DROP TABLE tx_ack;
+DROP TABLE device_txack;

@@ -529,7 +529,7 @@ func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration
 	rxTime := time.Now()
 
 	_, err = i.db.Exec(`
-		insert into tx_ack (
+		insert into device_txack (
 			id,
 			received_at,
 			dev_eui,
@@ -557,7 +557,7 @@ func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration
 	}
 
 	log.WithFields(log.Fields{
-		"event":      "tx_ack",
+		"event":      "txack",
 		"dev_eui":    devEUI,
 		"gateway_id": gatewayID,
 		"ctx_id":     ctx.Value(logging.ContextIDKey),

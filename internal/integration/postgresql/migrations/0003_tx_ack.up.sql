@@ -1,4 +1,4 @@
-CREATE TABLE tx_ack (
+CREATE TABLE device_txack (
     id               uuid primary key,
     received_at      timestamp with time zone not null,
     dev_eui          bytea not null,

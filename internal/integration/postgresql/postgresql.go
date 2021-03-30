@@ -24,6 +24,7 @@ import (
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
@@ -36,11 +37,18 @@ var migrations embed.FS
 
 // Integration implements a PostgreSQL integration.
 type Integration struct {
-	db *sqlx.DB
+	db        *sqlx.DB
+	marshaler marshaler.Type
 }
 
 // New creates a new PostgreSQL integration.
-func New(conf config.IntegrationPostgreSQLConfig) (*Integration, error) {
+func New(m marshaler.Type, conf config.IntegrationPostgreSQLConfig) (*Integration, error) {
+	// In case of (binary) Protobuf marshaler, use JSON Protobuf mapping as we
+	// write the output to a jsonb field.
+	if m == marshaler.Protobuf {
+		m = marshaler.ProtobufJSON
+	}
+
 	log.Info("integration/postgresql: connecting to PostgreSQL database")
 	d, err := sqlx.Open("postgres", conf.DSN)
 	if err != nil {
@@ -62,7 +70,8 @@ func New(conf config.IntegrationPostgreSQLConfig) (*Integration, error) {
 		return nil, err
 	}
 	return &Integration{
-		db: d,
+		db:        d,
+		marshaler: m,
 	}, nil
 }
 
@@ -497,9 +506,63 @@ func (i *Integration) HandleLocationEvent(ctx context.Context, _ models.Integrat
 	return nil
 }
 
-// HandleTxAckEvent is not implemented.
-// TODO: implement this + schema migrations for the PostgreSQL database!
+// HandleTxAckEvent writes TX events into postgres database.
 func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.TxAckEvent) error {
+	// use an UUID here so that we can later refactor this for correlation
+	id, err := uuid.NewV4()
+	if err != nil {
+		return errors.Wrap(err, "new uuid error")
+	}
+
+	var devEUI, gatewayID lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+	copy(gatewayID[:], pl.GatewayId)
+
+	txInfoB := []byte("null")
+	if txInfo := pl.GetTxInfo(); txInfo != nil {
+		txInfoB, err = marshaler.Marshal(i.marshaler, txInfo)
+		if err != nil {
+			return errors.Wrap(err, "marshal tx_info error")
+		}
+	}
+
+	rxTime := time.Now()
+
+	_, err = i.db.Exec(`
+		insert into device_txack (
+			id,
+			received_at,
+			dev_eui,
+			device_name,
+			application_id,
+			application_name,
+		    gateway_id,
+		    f_cnt,
+			tags,
+			tx_info
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+		id,
+		rxTime,
+		devEUI,
+		pl.DeviceName,
+		pl.ApplicationId,
+		pl.ApplicationName,
+		gatewayID,
+		pl.FCnt,
+		tagsToHstore(pl.Tags),
+		json.RawMessage(txInfoB),
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert error")
+	}
+
+	log.WithFields(log.Fields{
+		"event":      "txack",
+		"dev_eui":    devEUI,
+		"gateway_id": gatewayID,
+		"ctx_id":     ctx.Value(logging.ContextIDKey),
+	}).Info("integration/postgresql: event stored")
+
 	return nil
 }
 

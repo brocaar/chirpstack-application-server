@@ -93,7 +93,7 @@ func Setup(conf config.Config) error {
 		case "kafka":
 			i, err = kafka.New(marshalType, conf.ApplicationServer.Integration.Kafka)
 		case "postgresql":
-			i, err = postgresql.New(conf.ApplicationServer.Integration.PostgreSQL)
+			i, err = postgresql.New(marshalType, conf.ApplicationServer.Integration.PostgreSQL)
 		case "amqp":
 			i, err = amqp.New(marshalType, conf.ApplicationServer.Integration.AMQP)
 		default:

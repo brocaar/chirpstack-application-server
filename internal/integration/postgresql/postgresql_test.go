@@ -23,6 +23,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
 	"github.com/brocaar/lorawan"
@@ -114,15 +115,16 @@ type deviceLocation struct {
 }
 
 type txAck struct {
-	ID              uuid.UUID     `db:"id"`
-	ReceivedAt      time.Time     `db:"received_at"`
-	DevEUI          lorawan.EUI64 `db:"dev_eui"`
-	DeviceName      string        `db:"device_name"`
-	ApplicationID   int64         `db:"application_id"`
-	ApplicationName string        `db:"application_name"`
-	GatewayID       lorawan.EUI64 `db:"gateway_id"`
-	FCnt            int           `db:"f_cnt"`
-	Tags            hstore.Hstore `db:"tags"`
+	ID              uuid.UUID       `db:"id"`
+	ReceivedAt      time.Time       `db:"received_at"`
+	DevEUI          lorawan.EUI64   `db:"dev_eui"`
+	DeviceName      string          `db:"device_name"`
+	ApplicationID   int64           `db:"application_id"`
+	ApplicationName string          `db:"application_name"`
+	GatewayID       lorawan.EUI64   `db:"gateway_id"`
+	FCnt            int             `db:"f_cnt"`
+	Tags            hstore.Hstore   `db:"tags"`
+	TXInfo          json.RawMessage `db:"tx_info"`
 }
 
 func init() {
@@ -153,7 +155,7 @@ func (ts *PostgreSQLTestSuite) SetupSuite() {
 		panic(err)
 	}
 
-	ts.integration, err = New(config.IntegrationPostgreSQLConfig{
+	ts.integration, err = New(marshaler.Protobuf, config.IntegrationPostgreSQLConfig{
 		DSN: dsn,
 	})
 	if err != nil {
@@ -659,6 +661,9 @@ func (ts *PostgreSQLTestSuite) TestHandleTxAckEvent() {
 		Tags: map[string]string{
 			"foo": "bar",
 		},
+		TxInfo: &gw.DownlinkTXInfo{
+			Frequency: 868100000,
+		},
 	}
 
 	assert.NoError(ts.integration.HandleTxAckEvent(context.Background(), nil, nil, pl))
@@ -671,6 +676,9 @@ func (ts *PostgreSQLTestSuite) TestHandleTxAckEvent() {
 
 	assert.NotEqual(uuid.Nil, ack.ID)
 	ack.ID = uuid.Nil
+
+	assert.NotEqual(json.RawMessage("null"), ack.TXInfo)
+	ack.TXInfo = nil
 
 	assert.Equal(txAck{
 		ReceivedAt:      timestamp,

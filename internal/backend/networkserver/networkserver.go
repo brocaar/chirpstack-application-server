@@ -124,7 +124,7 @@ func (p *pool) createClient(hostname string, caCert, tlsCert, tlsKey []byte) (*g
 
 		caCertPool := x509.NewCertPool()
 		if !caCertPool.AppendCertsFromPEM(caCert) {
-			return nil, nil, errors.Wrap(err, "append ca cert to pool error")
+			return nil, nil, errors.New("append ca cert to pool error")
 		}
 
 		nsOpts = append(nsOpts, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{

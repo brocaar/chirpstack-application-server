@@ -22,12 +22,10 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
-	"github.com/brocaar/chirpstack-api/go/v3/gw"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
@@ -178,9 +176,25 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 		}
 	}
 
-	rxInfoJSON, err := getRXInfoJSON(pl.RxInfo)
+	var rxInfoItems []json.RawMessage
+	for ii := range pl.GetRxInfo() {
+		b, err := marshaler.Marshal(i.marshaler, pl.RxInfo[ii])
+		if err != nil {
+			return errors.Wrap(err, "marshal rx_info error")
+		}
+		rxInfoItems = append(rxInfoItems, json.RawMessage(b))
+	}
+	rxInfoB, err := json.Marshal(rxInfoItems)
 	if err != nil {
-		return errors.Wrap(err, "get rxInfo json error")
+		return errors.Wrap(err, "marshal json error")
+	}
+
+	txInfoB := []byte("null")
+	if txInfo := pl.GetTxInfo(); txInfo != nil {
+		txInfoB, err = marshaler.Marshal(i.marshaler, txInfo)
+		if err != nil {
+			return errors.Wrap(err, "marshal tx_info error")
+		}
 	}
 
 	objectJSON := json.RawMessage("null")
@@ -208,24 +222,27 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 			f_port,
 			data,
 			rx_info,
+			tx_info,
 			object,
 			tags,
 			confirmed_uplink,
 			dev_addr
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
 		id,
 		rxTime,
 		devEUI,
 		pl.DeviceName,
 		pl.ApplicationId,
 		pl.ApplicationName,
+		// TODO: deprecate this field, as it is part of tx_info.
 		pl.GetTxInfo().GetFrequency(),
 		pl.Dr,
 		pl.Adr,
 		pl.FCnt,
 		pl.FPort,
 		pl.Data,
-		rxInfoJSON,
+		json.RawMessage(rxInfoB),
+		json.RawMessage(txInfoB),
 		objectJSON,
 		tagsToHstore(pl.Tags),
 		pl.ConfirmedUplink,
@@ -575,58 +592,6 @@ func (i *Integration) HandleIntegrationEvent(ctx context.Context, _ models.Integ
 // DataDownChan return nil.
 func (i *Integration) DataDownChan() chan models.DataDownPayload {
 	return nil
-}
-
-func getRXInfoJSON(rxInfo []*gw.UplinkRXInfo) (json.RawMessage, error) {
-	var out []models.RXInfo
-	var gatewayIDs []lorawan.EUI64
-
-	for i := range rxInfo {
-		rx := models.RXInfo{
-			RSSI:    int(rxInfo[i].Rssi),
-			LoRaSNR: rxInfo[i].LoraSnr,
-		}
-
-		copy(rx.GatewayID[:], rxInfo[i].GatewayId)
-		copy(rx.UplinkID[:], rxInfo[i].UplinkId)
-
-		if rxInfo[i].Time != nil {
-			ts, err := ptypes.Timestamp(rxInfo[i].Time)
-			if err != nil {
-				return nil, errors.Wrap(err, "proto timestamp error")
-			}
-
-			rx.Time = &ts
-		}
-
-		if rxInfo[i].Location != nil {
-			rx.Location = &models.Location{
-				Latitude:  rxInfo[i].Location.Latitude,
-				Longitude: rxInfo[i].Location.Longitude,
-				Altitude:  rxInfo[i].Location.Altitude,
-			}
-		}
-
-		gatewayIDs = append(gatewayIDs, rx.GatewayID)
-		out = append(out, rx)
-	}
-
-	gws, err := storage.GetGatewaysForMACs(context.Background(), storage.DB(), gatewayIDs)
-	if err != nil {
-		return nil, errors.Wrap(err, "get gateways for ids error")
-	}
-	for i := range out {
-		if gw, ok := gws[out[i].GatewayID]; ok {
-			out[i].Name = gw.Name
-		}
-	}
-
-	b, err := json.Marshal(out)
-	if err != nil {
-		return nil, errors.Wrap(err, "marshal json error")
-	}
-
-	return json.RawMessage(b), nil
 }
 
 func tagsToHstore(tags map[string]string) hstore.Hstore {

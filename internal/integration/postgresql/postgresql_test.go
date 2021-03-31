@@ -43,6 +43,7 @@ type deviceUp struct {
 	FPort           int             `db:"f_port"`
 	Data            []byte          `db:"data"`
 	RXInfo          json.RawMessage `db:"rx_info"`
+	TXInfo          json.RawMessage `db:"tx_info"`
 	Object          json.RawMessage `db:"object"`
 	Tags            hstore.Hstore   `db:"tags"`
 	DevAddr         lorawan.DevAddr `db:"dev_addr"`
@@ -246,8 +247,10 @@ func (ts *PostgreSQLTestSuite) TestHandleUplinkEvent() {
 	up.ReceivedAt = up.ReceivedAt.UTC()
 
 	assert.NotEqual(json.RawMessage("null"), up.RXInfo)
+	assert.NotEqual(json.RawMessage("null"), up.TXInfo)
 	assert.NotEqual(json.RawMessage("null"), up.Object)
 	up.RXInfo = nil
+	up.TXInfo = nil
 	up.Object = nil
 
 	assert.NotEqual(uuid.Nil, up.ID)
@@ -318,7 +321,9 @@ func (ts *PostgreSQLTestSuite) TestHandleUplinkEventNoObject() {
 	up.ReceivedAt = up.ReceivedAt.UTC()
 
 	assert.NotEqual(json.RawMessage("null"), up.RXInfo)
+	assert.NotEqual(json.RawMessage("null"), up.TXInfo)
 	up.RXInfo = nil
+	up.TXInfo = nil
 
 	assert.NotEqual(uuid.Nil, up.ID)
 	up.ID = uuid.Nil
@@ -388,7 +393,9 @@ func (ts *PostgreSQLTestSuite) TestUplinkEventNoData() {
 	up.ReceivedAt = up.ReceivedAt.UTC()
 
 	assert.NotEqual(json.RawMessage("null"), up.RXInfo)
+	assert.NotEqual(json.RawMessage("null"), up.TXInfo)
 	up.RXInfo = nil
+	up.TXInfo = nil
 
 	assert.NotEqual(uuid.Nil, up.ID)
 	up.ID = uuid.Nil

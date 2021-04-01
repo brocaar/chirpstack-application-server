@@ -76,6 +76,7 @@ class DeviceProfileForm extends FormComponent {
       {value: "1.0.1", label: "1.0.1"},
       {value: "1.0.2", label: "1.0.2"},
       {value: "1.0.3", label: "1.0.3"},
+      {value: "1.0.4", label: "1.0.4"},
       {value: "1.1.0", label: "1.1.0"},
     ];
 
@@ -86,6 +87,8 @@ class DeviceProfileForm extends FormComponent {
     const regParamsOptions = [
       {value: "A", label: "A"},
       {value: "B", label: "B"},
+      {value: "RP002-1.0.0", label: "RP002-1.0.0"},
+      {value: "RP002-1.0.1", label: "RP002-1.0.1"},
     ];
 
     callbackFunc(regParamsOptions);

@@ -1,0 +1,3 @@
+drop index device_queue_mapping_dev_eui;
+drop index device_queue_mapping_created_at;
+drop table device_queue_mapping;

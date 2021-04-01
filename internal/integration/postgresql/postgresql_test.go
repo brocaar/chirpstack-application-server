@@ -143,7 +143,8 @@ func (ts *PostgreSQLTestSuite) SetupSuite() {
 	assert := require.New(ts.T())
 	conf := test.GetConfig()
 	assert.NoError(storage.Setup(conf))
-	test.MustResetDB(storage.DB().DB)
+	assert.NoError(storage.MigrateDown(storage.DB().DB))
+	assert.NoError(storage.MigrateUp(storage.DB().DB))
 
 	dsn := "postgres://localhost/chirpstack_as_test?sslmode=disable"
 	if v := os.Getenv("TEST_POSTGRES_DSN"); v != "" {

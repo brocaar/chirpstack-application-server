@@ -30,7 +30,8 @@ func (ts *MarshalerTestSuite) SetupSuite() {
 	assert.NoError(storage.Setup(conf))
 
 	storage.RedisClient().FlushAll()
-	test.MustResetDB(storage.DB().DB)
+	assert.NoError(storage.MigrateDown(storage.DB().DB))
+	assert.NoError(storage.MigrateUp(storage.DB().DB))
 }
 
 func (ts *MarshalerTestSuite) GetUplinkEvent() integration.UplinkEvent {

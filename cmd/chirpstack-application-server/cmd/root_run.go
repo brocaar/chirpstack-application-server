@@ -6,7 +6,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -19,7 +18,6 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/downlink"
 	"github.com/brocaar/chirpstack-application-server/internal/gwping"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
-	"github.com/brocaar/chirpstack-application-server/internal/migrations/code"
 	"github.com/brocaar/chirpstack-application-server/internal/monitoring"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
@@ -36,8 +34,6 @@ func run(cmd *cobra.Command, args []string) error {
 		printStartMessage,
 		setupStorage,
 		setupNetworkServer,
-		migrateGatewayStats,
-		migrateToClusterKeys,
 		setupIntegration,
 		setupCodec,
 		handleDataDownPayloads,
@@ -117,20 +113,6 @@ func setupNetworkServer() error {
 		return errors.Wrap(err, "setup networkserver error")
 	}
 	return nil
-}
-
-func migrateGatewayStats() error {
-	if err := code.Migrate("migrate_gw_stats", code.MigrateGatewayStats); err != nil {
-		return errors.Wrap(err, "migration error")
-	}
-
-	return nil
-}
-
-func migrateToClusterKeys() error {
-	return code.Migrate("migrate_to_cluster_keys", func(db sqlx.Ext) error {
-		return code.MigrateToClusterKeys(config.C)
-	})
 }
 
 func handleDataDownPayloads() error {

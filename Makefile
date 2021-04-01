@@ -1,31 +1,28 @@
-.PHONY: build clean test ui-requirements serve internal/statics internal/migrations 
-PKGS := $(shell go list ./cmd/... ./internal/... | grep -v /vendor |grep -v /internal/static |grep -v /internal/migrations)
+.PHONY: build clean test ui-requirements serve internal/statics 
 VERSION := $(shell git describe --always |sed -e "s/^v//")
 API_VERSION := $(shell go list -m -f '{{ .Version }}' github.com/brocaar/chirpstack-api/go/v3 | awk '{n=split($$0, a, "-"); print a[n]}')
 
-build: ui/build internal/statics internal/migrations
+build: ui/build internal/statics
 	mkdir -p build
 	go build $(GO_EXTRA_BUILD_ARGS) -ldflags "-s -w -X main.version=$(VERSION)" -o build/chirpstack-application-server cmd/chirpstack-application-server/main.go
 
 clean:
 	@echo "Cleaning up workspace"
-	@rm -rf build dist internal/migrations/migrations_gen.go internal/static/static_gen.go ui/build static/static
+	@rm -rf build dist internal/static/static_gen.go ui/build static/static
 	@rm -f static/index.html static/icon.png static/manifest.json static/asset-manifest.json static/service-worker.js
 	@rm -rf static/logo
 	@rm -rf static/integrations
 	@rm -rf static/swagger/*.json
 	@rm -rf dist
 
-test: internal/statics internal/migrations
+test: internal/statics
 	@echo "Running tests"
 	@rm -f coverage.out
-	@for pkg in $(PKGS) ; do \
-		golint $$pkg ; \
-	done
-	@go vet $(PKGS)
-	@go test -p 1 -v $(PKGS) -cover -coverprofile coverage.out
+	@golint ./...
+	@go vet ./...
+	@go test -p 1 -v -cover ./... -coverprofile coverage.out
 
-dist: ui/build internal/statics internal/migrations
+dist: ui/build internal/statics
 	@goreleaser
 	mkdir -p dist/upload/tar
 	mkdir -p dist/upload/deb
@@ -34,7 +31,7 @@ dist: ui/build internal/statics internal/migrations
 	mv dist/*.deb dist/upload/deb
 	mv dist/*.rpm dist/upload/rpm
 
-snapshot: ui/build internal/statics internal/migrations
+snapshot: ui/build internal/statics
 	@goreleaser --snapshot
 
 proto:
@@ -48,9 +45,8 @@ ui/build:
 	@cd ui && npm run build
 	@mv ui/build/* static
 
-internal/statics internal/migrations: static/swagger/api.swagger.json
+internal/statics: static/swagger/api.swagger.json
 	@echo "Generating static files"
-	@go generate internal/migrations/migrations.go
 	@go generate internal/static/static.go
 
 static/swagger/api.swagger.json:

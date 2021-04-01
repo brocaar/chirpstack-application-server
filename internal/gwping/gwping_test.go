@@ -26,7 +26,8 @@ func TestGatewayPing(t *testing.T) {
 
 	Convey("Given a clean database and a gateway", t, func() {
 		nsClient := mock.NewClient()
-		test.MustResetDB(storage.DB().DB)
+		So(storage.MigrateDown(storage.DB().DB), ShouldBeNil)
+		So(storage.MigrateUp(storage.DB().DB), ShouldBeNil)
 		storage.RedisClient().FlushAll()
 		networkserver.SetPool(mock.NewPool(nsClient))
 

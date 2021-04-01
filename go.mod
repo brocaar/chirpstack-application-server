@@ -36,7 +36,6 @@ require (
 	github.com/prometheus/client_model v0.0.0-20191202183732-d1d2010b5bee // indirect
 	github.com/prometheus/procfs v0.0.8 // indirect
 	github.com/robertkrimen/otto v0.0.0-20191217063420-37f8e9a2460c
-	github.com/rubenv/sql-migrate v0.0.0-20191213152630-06338513c237
 	github.com/segmentio/kafka-go v0.3.6
 	github.com/sirupsen/logrus v1.7.0
 	github.com/smartystreets/assertions v1.0.0 // indirect

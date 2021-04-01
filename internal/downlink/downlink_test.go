@@ -29,7 +29,8 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 	}
 
 	Convey("Given a clean database an organization, application + node", t, func() {
-		test.MustResetDB(storage.DB().DB)
+		So(storage.MigrateDown(storage.DB().DB), ShouldBeNil)
+		So(storage.MigrateUp(storage.DB().DB), ShouldBeNil)
 
 		nsClient := mock.NewClient()
 		nsClient.GetNextDownlinkFCntForDevEUIResponse = ns.GetNextDownlinkFCntForDevEUIResponse{

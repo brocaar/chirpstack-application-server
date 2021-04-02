@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
@@ -13,6 +14,7 @@ import (
 // DatabaseTestSuiteBase provides the setup and teardown of the database
 // for every test-run.
 type DatabaseTestSuiteBase struct {
+	suite.Suite
 	tx *storage.TxLogger
 }
 
@@ -26,6 +28,8 @@ func (b *DatabaseTestSuiteBase) SetupSuite() {
 
 // SetupTest is called before every test.
 func (b *DatabaseTestSuiteBase) SetupTest() {
+	assert := require.New(b.T())
+
 	tx, err := storage.DB().Beginx()
 	if err != nil {
 		panic(err)
@@ -33,7 +37,8 @@ func (b *DatabaseTestSuiteBase) SetupTest() {
 	b.tx = tx
 
 	storage.RedisClient().FlushAll()
-	test.MustResetDB(storage.DB().DB)
+	assert.NoError(storage.MigrateDown(storage.DB().DB))
+	assert.NoError(storage.MigrateUp(storage.DB().DB))
 }
 
 // TearDownTest is called after every test.
@@ -50,7 +55,6 @@ func (b *DatabaseTestSuiteBase) Tx() sqlx.Ext {
 }
 
 type APITestSuite struct {
-	suite.Suite
 	DatabaseTestSuiteBase
 }
 

@@ -42,7 +42,8 @@ func (ts *ValidatorTestSuite) SetupSuite() {
 func (ts *ValidatorTestSuite) SetupTest() {
 	assert := require.New(ts.T())
 
-	test.MustResetDB(storage.DB().DB)
+	assert.NoError(storage.MigrateDown(storage.DB().DB))
+	assert.NoError(storage.MigrateUp(storage.DB().DB))
 
 	ts.networkServers = []storage.NetworkServer{
 		{Name: "test-ns", Server: "test-ns:1234"},

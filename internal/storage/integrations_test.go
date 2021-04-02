@@ -29,7 +29,8 @@ func TestIntegration(t *testing.T) {
 	networkserver.SetPool(mock.NewPool(nsClient))
 
 	Convey("Given a clean database with an organization, network-server, service-profile, and application", t, func() {
-		test.MustResetDB(DB().DB)
+		So(MigrateDown(DB().DB), ShouldBeNil)
+		So(MigrateUp(DB().DB), ShouldBeNil)
 
 		org := Organization{
 			Name: "test-org",

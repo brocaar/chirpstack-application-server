@@ -13,15 +13,18 @@ import (
 // DatabaseTestSuiteBase provides the setup and teardown of the database
 // for every test-run.
 type DatabaseTestSuiteBase struct {
+	suite.Suite
 	tx *TxLogger
 }
 
 // SetupSuite is called once before starting the test-suite.
 func (b *DatabaseTestSuiteBase) SetupSuite() {
+	assert := require.New(b.T())
 	conf := test.GetConfig()
-	if err := Setup(conf); err != nil {
-		panic(err)
-	}
+
+	assert.NoError(Setup(conf))
+	assert.NoError(MigrateDown(DB().DB))
+	assert.NoError(MigrateUp(DB().DB))
 }
 
 // SetupTest is called before every test.
@@ -32,7 +35,13 @@ func (b *DatabaseTestSuiteBase) SetupTest() {
 	}
 	b.tx = tx
 
-	test.MustResetDB(DB().DB)
+	if err := MigrateDown(DB().DB); err != nil {
+		panic(err)
+	}
+	if err := MigrateUp(DB().DB); err != nil {
+		panic(err)
+	}
+
 	RedisClient().FlushAll()
 }
 
@@ -50,7 +59,6 @@ func (b *DatabaseTestSuiteBase) Tx() sqlx.Ext {
 }
 
 type StorageTestSuite struct {
-	suite.Suite
 	DatabaseTestSuiteBase
 }
 

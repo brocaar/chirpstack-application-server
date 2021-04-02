@@ -7,6 +7,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: install ui-dependencies
+          command: docker-compose run --rm chirpstack-application-server make ui-requirements
+      - run:
           name: run tests
           command: docker-compose run --rm chirpstack-application-server make test
 

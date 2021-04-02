@@ -119,8 +119,14 @@ func setupNetworkServer() error {
 	return nil
 }
 
+func handleDataDownPayloads() error {
+	downChan := integration.ForApplicationID(0).DataDownChan()
+	go downlink.HandleDataDownPayloads(downChan)
+	return nil
+}
+
 func migrateGatewayStats() error {
-	if err := code.Migrate("migrate_gw_stats", code.MigrateGatewayStats); err != nil {
+	if err := storage.CodeMigration("migrate_gw_stats", code.MigrateGatewayStats); err != nil {
 		return errors.Wrap(err, "migration error")
 	}
 
@@ -128,15 +134,9 @@ func migrateGatewayStats() error {
 }
 
 func migrateToClusterKeys() error {
-	return code.Migrate("migrate_to_cluster_keys", func(db sqlx.Ext) error {
+	return storage.CodeMigration("migrate_to_cluster_keys", func(db sqlx.Ext) error {
 		return code.MigrateToClusterKeys(config.C)
 	})
-}
-
-func handleDataDownPayloads() error {
-	downChan := integration.ForApplicationID(0).DataDownChan()
-	go downlink.HandleDataDownPayloads(downChan)
-	return nil
 }
 
 func setupAPI() error {

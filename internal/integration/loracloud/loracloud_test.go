@@ -47,7 +47,8 @@ func (ts *LoRaCloudTestSuite) SetupSuite() {
 	conf := test.GetConfig()
 
 	assert.NoError(storage.Setup(conf))
-	test.MustResetDB(storage.DB().DB)
+	assert.NoError(storage.MigrateDown(storage.DB().DB))
+	assert.NoError(storage.MigrateUp(storage.DB().DB))
 
 	ts.server = httptest.NewServer(http.HandlerFunc(ts.apiHandler))
 	ts.integration = mock.New()

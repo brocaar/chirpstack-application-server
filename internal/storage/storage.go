@@ -2,20 +2,28 @@ package storage
 
 import (
 	"crypto/tls"
+	"embed"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v7"
 	uuid "github.com/gofrs/uuid"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	migrate "github.com/rubenv/sql-migrate"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/migrations"
+	"github.com/brocaar/chirpstack-application-server/internal/storage/migrations/code"
 )
+
+// Migrations
+//go:embed migrations/*
+var migrations embed.FS
 
 var (
 	jwtsecret []byte
@@ -117,18 +125,90 @@ func Setup(c config.Config) error {
 
 	db = &DBLogger{d}
 
+	if err := CodeMigration("migrate_to_golang_migrate", func(db sqlx.Ext) error {
+		return code.MigrateToGolangMigrate(db)
+	}); err != nil {
+		return err
+	}
+
 	if c.PostgreSQL.Automigrate {
-		log.Info("storage: applying PostgreSQL data migrations")
-		m := &migrate.AssetMigrationSource{
-			Asset:    migrations.Asset,
-			AssetDir: migrations.AssetDir,
-			Dir:      "",
+		if err := MigrateUp(d); err != nil {
+			return err
 		}
-		n, err := migrate.Exec(db.DB.DB, "postgres", m, migrate.Up)
-		if err != nil {
-			return errors.Wrap(err, "storage: applying PostgreSQL data migrations error")
-		}
-		log.WithField("count", n).Info("storage: PostgreSQL data migrations applied")
+	}
+
+	return nil
+}
+
+// MigrateUp configure postgres migration up
+func MigrateUp(db *sqlx.DB) error {
+	log.Info("storage: applying PostgreSQL data migrations")
+
+	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("storage: migrate postgres driver error: %w", err)
+	}
+
+	src, err := httpfs.New(http.FS(migrations), "migrations")
+	if err != nil {
+		return fmt.Errorf("new httpfs error: %w", err)
+	}
+
+	m, err := migrate.NewWithInstance("httpfs", src, "postgres", driver)
+	if err != nil {
+		return fmt.Errorf("storage: new migrate instance error: %w", err)
+	}
+
+	oldVersion, _, _ := m.Version()
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("storage: migrate up error: %w", err)
+	}
+
+	newVersion, _, _ := m.Version()
+
+	if oldVersion != newVersion {
+		log.WithFields(log.Fields{
+			"from_version": oldVersion,
+			"to_version":   newVersion,
+		}).Info("storage: PostgreSQL data migrations applied")
+	}
+
+	return nil
+}
+
+// MigrateDown configure postgres migration down
+func MigrateDown(db *sqlx.DB) error {
+	log.Info("storage: reverting PostgreSQL data migrations")
+
+	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("storage: migrate postgres driver error: %w", err)
+	}
+
+	src, err := httpfs.New(http.FS(migrations), "migrations")
+	if err != nil {
+		return fmt.Errorf("new httpfs error: %w", err)
+	}
+
+	m, err := migrate.NewWithInstance("httpfs", src, "postgres", driver)
+	if err != nil {
+		return fmt.Errorf("storage: new migrate instance error: %w", err)
+	}
+
+	oldVersion, _, _ := m.Version()
+
+	if err := m.Down(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("storage: migrate down error: %w", err)
+	}
+
+	newVersion, _, _ := m.Version()
+
+	if oldVersion != newVersion {
+		log.WithFields(log.Fields{
+			"from_version": oldVersion,
+			"to_version":   newVersion,
+		}).Info("storage: reverted PostgreSQL data migrations applied")
 	}
 
 	return nil

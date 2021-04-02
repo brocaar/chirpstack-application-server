@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -27,8 +26,8 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/oidc"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/static"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
+	"github.com/brocaar/chirpstack-application-server/static"
 )
 
 var (
@@ -170,7 +169,7 @@ func setupHTTPAPI(conf config.Config) (http.Handler, error) {
 
 	log.WithField("path", "/api").Info("api/external: registering rest api handler and documentation endpoint")
 	r.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
-		data, err := static.Asset("swagger/index.html")
+		data, err := static.FS.ReadFile("swagger/index.html")
 		if err != nil {
 			log.WithError(err).Error("get swagger template error")
 			w.WriteHeader(http.StatusInternalServerError)
@@ -185,12 +184,7 @@ func setupHTTPAPI(conf config.Config) (http.Handler, error) {
 	}
 
 	// setup static file server
-	r.PathPrefix("/").Handler(http.FileServer(&assetfs.AssetFS{
-		Asset:     static.Asset,
-		AssetDir:  static.AssetDir,
-		AssetInfo: static.AssetInfo,
-		Prefix:    "",
-	}))
+	r.PathPrefix("/").Handler(http.FileServer(http.FS(static.FS)))
 
 	return wsproxy.WebsocketProxy(r), nil
 }

@@ -1,4 +1,4 @@
-.PHONY: build clean test ui-requirements serve internal/statics 
+.PHONY: build clean test ui-requirements serve statics
 VERSION := $(shell git describe --always |sed -e "s/^v//")
 API_VERSION := $(shell go list -m -f '{{ .Version }}' github.com/brocaar/chirpstack-api/go/v3 | awk '{n=split($$0, a, "-"); print a[n]}')
 
@@ -15,14 +15,14 @@ clean:
 	@rm -rf static/swagger/*.json
 	@rm -rf dist
 
-test:
+test: statics
 	@echo "Running tests"
 	@rm -f coverage.out
 	@golint ./...
 	@go vet ./...
 	@go test -p 1 -v -cover ./... -coverprofile coverage.out
 
-dist: ui/build
+dist: statics
 	@goreleaser
 	mkdir -p dist/upload/tar
 	mkdir -p dist/upload/deb
@@ -31,7 +31,7 @@ dist: ui/build
 	mv dist/*.deb dist/upload/deb
 	mv dist/*.rpm dist/upload/rpm
 
-snapshot: ui/build
+snapshot: statics
 	@goreleaser --snapshot
 
 proto:
@@ -39,6 +39,8 @@ proto:
 	@git clone https://github.com/brocaar/chirpstack-api.git /tmp/chirpstack-api
 	@git --git-dir=/tmp/chirpstack-api/.git --work-tree=/tmp/chirpstack-api checkout $(API_VERSION)
 	@go generate internal/integration/loracloud/frame_rx_info.go
+
+statics: ui/build static/swagger/api.swagger.json
 
 ui/build:
 	@echo "Building ui"

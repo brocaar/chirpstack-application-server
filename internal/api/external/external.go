@@ -185,14 +185,6 @@ func setupHTTPAPI(conf config.Config) (http.Handler, error) {
 
 	// setup static file server
 	r.PathPrefix("/").Handler(http.FileServer(http.FS(static.FS)))
-	/*
-		r.PathPrefix("/").Handler(http.FileServer(&assetfs.AssetFS{
-			Asset:     static.Asset,
-			AssetDir:  static.AssetDir,
-			AssetInfo: static.AssetInfo,
-			Prefix:    "",
-		}))
-	*/
 
 	return wsproxy.WebsocketProxy(r), nil
 }

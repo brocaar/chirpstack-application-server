@@ -13,6 +13,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Errors.
+var (
+	// ErrTransactionRollback indicates that the transaction must be rolled back,
+	// but does not raise an error returned by the Transaction function.
+	ErrTransactionRollback = errors.New("rollback")
+)
+
 // redisClient holds the Redis client.
 var redisClient redis.UniversalClient
 
@@ -131,6 +138,11 @@ func Transaction(f func(tx sqlx.Ext) error) error {
 		if rbErr := tx.Rollback(); rbErr != nil {
 			return errors.Wrap(rbErr, "storage: transaction rollback error")
 		}
+
+		if err == ErrTransactionRollback {
+			return nil
+		}
+
 		return err
 	}
 

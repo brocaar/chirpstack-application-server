@@ -1,4 +1,4 @@
-package code
+package storage
 
 import (
 	"time"
@@ -7,15 +7,15 @@ import (
 	"github.com/lib/pq"
 )
 
-// Migrate checks if the given function code has been applied and if not
+// CodeMigration checks if the given function code has been applied and if not
 // it will execute the given function.
-func Migrate(db *sqlx.DB, name string, f func(db sqlx.Ext) error) error {
-	return transaction(db, func(tx sqlx.Ext) error {
-		_, err := tx.Exec(`lock table code_migration`)
+func CodeMigration(name string, f func(db sqlx.Ext) error) error {
+	return Transaction(func(tx sqlx.Ext) error {
+		_, err := tx.Exec("lock table code_migration")
 		if err != nil {
-			// The table might not exist as the code migrations are executed
+			// The table might not exist when the code migration is executed
 			// before the schema migrations.
-			return errRollback
+			return ErrTransactionRollback
 		}
 
 		res, err := tx.Exec(`

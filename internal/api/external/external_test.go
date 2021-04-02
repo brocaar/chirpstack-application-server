@@ -55,7 +55,6 @@ func (b *DatabaseTestSuiteBase) Tx() sqlx.Ext {
 }
 
 type APITestSuite struct {
-	suite.Suite
 	DatabaseTestSuiteBase
 }
 

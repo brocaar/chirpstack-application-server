@@ -6,23 +6,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-redis/redis/v7"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
 // MigrateToClusterKeys migrates the keys to Redis Cluster compatible keys.
-func MigrateToClusterKeys(redisClient redis.UniversalClient, conf config.Config) error {
+func MigrateToClusterKeys(conf config.Config) error {
 
-	keys, err := redisClient.Keys("lora:as:metrics:*").Result()
+	keys, err := storage.RedisClient().Keys("lora:as:metrics:*").Result()
 	if err != nil {
 		return errors.Wrap(err, "get keys error")
 	}
 
 	for i, key := range keys {
-		if err := migrateKey(redisClient, conf, key); err != nil {
+		if err := migrateKey(conf, key); err != nil {
 			log.WithError(err).Error("migrations/code: migrate metrics key error")
 		}
 
@@ -37,7 +37,7 @@ func MigrateToClusterKeys(redisClient redis.UniversalClient, conf config.Config)
 	return nil
 }
 
-func migrateKey(redisClient redis.UniversalClient, conf config.Config, key string) error {
+func migrateKey(conf config.Config, key string) error {
 	keyParts := strings.Split(key, ":")
 	if len(keyParts) < 6 {
 		return fmt.Errorf("key %s is invalid", key)
@@ -55,14 +55,14 @@ func migrateKey(redisClient redis.UniversalClient, conf config.Config, key strin
 		return fmt.Errorf("key %s is invalid", key)
 	}
 
-	newKey := fmt.Sprintf("lora:as:metrics:{%s}:%s", strings.Join(keyParts[3:len(keyParts)-2], ":"), strings.Join(keyParts[len(keyParts)-2:], ":"))
+	newKey := storage.GetRedisKey("lora:as:metrics:{%s}:%s", strings.Join(keyParts[3:len(keyParts)-2], ":"), strings.Join(keyParts[len(keyParts)-2:], ":"))
 
-	val, err := redisClient.HGetAll(key).Result()
+	val, err := storage.RedisClient().HGetAll(key).Result()
 	if err != nil {
 		return errors.Wrap(err, "hgetall error")
 	}
 
-	pipe := redisClient.TxPipeline()
+	pipe := storage.RedisClient().TxPipeline()
 	for k, v := range val {
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {

@@ -18,8 +18,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/migrations/code"
-	codemig "github.com/brocaar/chirpstack-application-server/internal/storage/migrations/code"
+	"github.com/brocaar/chirpstack-application-server/internal/storage/migrations/code"
 )
 
 // Migrations
@@ -126,20 +125,8 @@ func Setup(c config.Config) error {
 
 	db = &DBLogger{d}
 
-	if err := code.Migrate(db.DB, "migrate_gw_stats", func(db sqlx.Ext) error {
-		return codemig.MigrateGatewayStats(RedisClient(), db, c)
-	}); err != nil {
-		return err
-	}
-
-	if err := code.Migrate(db.DB, "migrate_to_cluster_keys", func(db sqlx.Ext) error {
-		return codemig.MigrateToClusterKeys(RedisClient(), c)
-	}); err != nil {
-		return err
-	}
-
-	if err := code.Migrate(db.DB, "migrate_to_golang_migrate", func(db sqlx.Ext) error {
-		return codemig.MigrateToGolangMigrate(db)
+	if err := CodeMigration("migrate_to_golang_migrate", func(db sqlx.Ext) error {
+		return code.MigrateToGolangMigrate(db)
 	}); err != nil {
 		return err
 	}

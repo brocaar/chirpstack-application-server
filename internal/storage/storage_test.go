@@ -59,7 +59,6 @@ func (b *DatabaseTestSuiteBase) Tx() sqlx.Ext {
 }
 
 type StorageTestSuite struct {
-	suite.Suite
 	DatabaseTestSuiteBase
 }
 

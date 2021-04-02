@@ -2,7 +2,7 @@
 VERSION := $(shell git describe --always |sed -e "s/^v//")
 API_VERSION := $(shell go list -m -f '{{ .Version }}' github.com/brocaar/chirpstack-api/go/v3 | awk '{n=split($$0, a, "-"); print a[n]}')
 
-build: ui/build internal/statics
+build: ui/build static/swagger/api.swagger.json
 	mkdir -p build
 	go build $(GO_EXTRA_BUILD_ARGS) -ldflags "-s -w -X main.version=$(VERSION)" -o build/chirpstack-application-server cmd/chirpstack-application-server/main.go
 
@@ -15,14 +15,14 @@ clean:
 	@rm -rf static/swagger/*.json
 	@rm -rf dist
 
-test: internal/statics
+test:
 	@echo "Running tests"
 	@rm -f coverage.out
 	@golint ./...
 	@go vet ./...
 	@go test -p 1 -v -cover ./... -coverprofile coverage.out
 
-dist: ui/build internal/statics
+dist: ui/build
 	@goreleaser
 	mkdir -p dist/upload/tar
 	mkdir -p dist/upload/deb
@@ -31,7 +31,7 @@ dist: ui/build internal/statics
 	mv dist/*.deb dist/upload/deb
 	mv dist/*.rpm dist/upload/rpm
 
-snapshot: ui/build internal/statics
+snapshot: ui/build
 	@goreleaser --snapshot
 
 proto:
@@ -44,10 +44,6 @@ ui/build:
 	@echo "Building ui"
 	@cd ui && npm run build
 	@mv ui/build/* static
-
-internal/statics: static/swagger/api.swagger.json
-	@echo "Generating static files"
-	@go generate internal/static/static.go
 
 static/swagger/api.swagger.json:
 	@echo "Fetching Swagger definitions and generate combined Swagger JSON"
@@ -63,8 +59,6 @@ static/swagger/api.swagger.json:
 dev-requirements:
 	go mod download
 	go install golang.org/x/lint/golint
-	go install github.com/elazarl/go-bindata-assetfs/go-bindata-assetfs
-	go install github.com/jteeuwen/go-bindata/go-bindata
 	go install golang.org/x/tools/cmd/stringer
 	go install github.com/goreleaser/goreleaser
 	go install github.com/goreleaser/nfpm

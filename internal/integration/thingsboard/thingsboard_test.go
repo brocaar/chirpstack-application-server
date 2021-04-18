@@ -79,6 +79,12 @@ func (ts *IntegrationTestSuite) TestUplink() {
 				TxInfo: &gw.UplinkTXInfo{
 					Frequency: 868100000,
 				},
+				RxInfo: []*gw.UplinkRXInfo{
+					{
+						Rssi:    30,
+						LoraSnr: -5,
+					},
+				},
 				ObjectJson: `{
 					"temperature": 25.4,
 					"humidity":    20,
@@ -91,7 +97,7 @@ func (ts *IntegrationTestSuite) TestUplink() {
 			},
 			ExpectedBodies: map[string]string{
 				"/api/v1/verysecret/attributes": `{"application_id":"0","application_name":"test-app","dev_eui":"0102030405060708","device_name":"test-dev","foo":"bar"}`,
-				"/api/v1/verysecret/telemetry":  `{"data_active":true,"data_humidity":20,"data_status":"on","data_temperature":25.4}`,
+				"/api/v1/verysecret/telemetry":  `{"data_active":true,"data_humidity":20,"data_status":"on","data_temperature":25.4,"dr":2,"fcnt":10,"fport":20,"rssi":30,"snr":-5}`,
 			},
 		},
 		{
@@ -118,7 +124,7 @@ func (ts *IntegrationTestSuite) TestUplink() {
 			},
 			ExpectedBodies: map[string]string{
 				"/api/v1/verysecret/attributes": `{"application_id":"0","application_name":"test-app","dev_eui":"0102030405060708","device_name":"test-dev","foo":"bar"}`,
-				"/api/v1/verysecret/telemetry":  `{"data_active":true,"data_humidity":20,"data_status":"on"}`,
+				"/api/v1/verysecret/telemetry":  `{"data_active":true,"data_humidity":20,"data_status":"on","dr":2,"fcnt":10,"fport":20}`,
 			},
 		},
 		{
@@ -148,7 +154,7 @@ func (ts *IntegrationTestSuite) TestUplink() {
 			},
 			ExpectedBodies: map[string]string{
 				"/api/v1/verysecret/attributes": `{"application_id":"0","application_name":"test-app","dev_eui":"0102030405060708","device_name":"test-dev","foo":"bar"}`,
-				"/api/v1/verysecret/telemetry":  `{"data_active":true,"data_humidity":20,"data_status":"on","data_temperature_a":20.5,"data_temperature_b":33.3}`,
+				"/api/v1/verysecret/telemetry":  `{"data_active":true,"data_humidity":20,"data_status":"on","data_temperature_a":20.5,"data_temperature_b":33.3,"dr":2,"fcnt":10,"fport":20}`,
 			},
 		},
 	}

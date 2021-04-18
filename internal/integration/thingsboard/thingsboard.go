@@ -73,6 +73,9 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 	}
 
 	telemetry := objToMap("data", obj)
+	telemetry["fport"] = pl.FPort
+	telemetry["fcnt"] = pl.FCnt
+	telemetry["dr"] = pl.Dr
 
 	if len(pl.RxInfo) != 0 {
 		var rssi int32
@@ -89,8 +92,8 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 			}
 		}
 
-		telemetry["data_rssi"] = rssi
-		telemetry["data_snr"] = snr
+		telemetry["rssi"] = rssi
+		telemetry["snr"] = snr
 	}
 
 	if err := i.send(accessToken, attributes, telemetry); err != nil {

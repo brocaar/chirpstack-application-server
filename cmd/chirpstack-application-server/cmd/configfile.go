@@ -66,7 +66,7 @@ dsn="{{ .PostgreSQL.DSN }}"
 # Automatically apply database migrations.
 #
 # It is possible to apply the database-migrations by hand
-# (see https://github.com/brocaar/chirpstack-application-server/tree/master/migrations)
+# (see https://github.com/brocaar/chirpstack-application-server/tree/master/internal/storage/migrations)
 # or let ChirpStack Application Server migrate to the latest state automatically, by using
 # this setting. Make sure that you always make a backup when upgrading Lora
 # App Server and / or applying migrations.

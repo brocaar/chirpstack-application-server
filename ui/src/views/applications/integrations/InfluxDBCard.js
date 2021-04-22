@@ -23,7 +23,7 @@ const styles = {
 class InfluxDBCard extends Component {
   delete = () => {
     if (window.confirm("Are you sure you want to remove the InfluxDB integration?")) {
-      ApplicationStore.deleteInfluxDBIntegration(this.props.applicationID, () => {});
+      ApplicationStore.deleteInfluxDBIntegration(this.props.applicationID, () => {}, this.props.V2);
     }
   }
 
@@ -44,7 +44,8 @@ class InfluxDBCard extends Component {
           </Typography>
         </CardContent>
         <CardActions>
-          {!this.props.add && <Link to={`/organizations/${this.props.organizationID}/applications/${this.props.applicationID}/integrations/influxdb/edit`}>
+          {!this.props.add && <Link
+              to={`/organizations/${this.props.organizationID}/applications/${this.props.applicationID}/integrations/${this.props.V2 ? "influxdbv2" : "influxdb"}/edit`}>
             <Button size="small" color="primary">
               Edit
             </Button>

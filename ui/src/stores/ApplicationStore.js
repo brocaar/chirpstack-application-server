@@ -1,9 +1,9 @@
-import { EventEmitter } from "events";
+import {EventEmitter} from "events";
 
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler } from "./helpers";
+import {checkStatus, errorHandler} from "./helpers";
 import dispatcher from "../dispatcher";
 
 
@@ -165,65 +165,81 @@ class ApplicationStore extends EventEmitter {
     });
   }
 
-  createInfluxDBIntegration(integration, callbackFunc) {
+  createInfluxDBIntegration(integration, callbackFunc, v2 = false) {
+    let data = {
+      "integration.application_id": integration.applicationID,
+      body: {
+        integration: integration,
+      },
+    };
+
     this.swagger.then(client => {
-      client.apis.ApplicationService.CreateInfluxDBIntegration({
-        "integration.application_id": integration.applicationID,
-        body: {
-          integration: integration,
-        },
-      })
-      .then(checkStatus)
-      .then(resp => {
-        this.integrationNotification("InfluxDB", "created");
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandler);
+      let promise = v2 ? client.apis.ApplicationService.CreateInfluxDBV2Integration(data)
+          : client.apis.ApplicationService.CreateInfluxDBIntegration(data);
+
+      promise.then(checkStatus)
+          .then(resp => {
+            this.integrationNotification("InfluxDB", "created");
+            callbackFunc(resp.obj);
+          })
+          .catch(errorHandler);
     });
   }
 
-  getInfluxDBIntegration(applicationID, callbackFunc) {
+  getInfluxDBIntegration(applicationID, callbackFunc, v2 = false) {
+    let data = {
+      application_id: applicationID,
+    };
+
     this.swagger.then(client => {
-      client.apis.ApplicationService.GetInfluxDBIntegration({
-        application_id: applicationID,
-      })
-      .then(checkStatus)
-      .then(resp => {
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandler);
+      let promise = v2 ? client.apis.ApplicationService.GetInfluxDBV2Integration(data)
+          : client.apis.ApplicationService.GetInfluxDBIntegration(data);
+
+      promise.then(checkStatus)
+          .then(resp => {
+            callbackFunc(resp.obj);
+          })
+          .catch(errorHandler);
     });
   }
 
-  updateInfluxDBIntegration(integration, callbackFunc) {
+  updateInfluxDBIntegration(integration, callbackFunc, v2 = false) {
+    let data = {
+      "integration.application_id": integration.applicationID,
+      body: {
+        integration: integration,
+      },
+    };
+
     this.swagger.then(client => {
-      client.apis.ApplicationService.UpdateInfluxDBIntegration({
-        "integration.application_id": integration.applicationID,
-        body: {
-          integration: integration,
-        },
-      })
-      .then(checkStatus)
-      .then(resp => {
-        this.integrationNotification("InfluxDB", "updated");
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandler);
+      let promise = v2 ? client.apis.ApplicationService.UpdateInfluxDBV2Integration(data)
+          : client.apis.ApplicationService.UpdateInfluxDBIntegration(data);
+
+      promise.then(checkStatus)
+          .then(resp => {
+            this.integrationNotification("InfluxDB", "updated");
+            callbackFunc(resp.obj);
+          })
+          .catch(errorHandler);
     });
   }
 
-  deleteInfluxDBIntegration(applicationID, callbackFunc) {
+  deleteInfluxDBIntegration(applicationID, callbackFunc, v2 = false) {
+    let data = {
+      application_id: applicationID,
+    };
+
     this.swagger.then(client => {
-      client.apis.ApplicationService.DeleteInfluxDBIntegration({
-        application_id: applicationID,
-      })
-      .then(checkStatus)
-      .then(resp => {
-        this.integrationNotification("InfluxDB", "deleted");
-        this.emit("integration.delete");
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandler);
+      let promise = v2 ? client.apis.ApplicationService.DeleteInfluxDBV2Integration(data)
+          : client.apis.ApplicationService.DeleteInfluxDBIntegration(data);
+
+      promise.then(checkStatus)
+          .then(resp => {
+            this.integrationNotification("InfluxDB", "deleted");
+            this.emit("integration.delete");
+            callbackFunc(resp.obj);
+          })
+          .catch(errorHandler);
     });
   }
 

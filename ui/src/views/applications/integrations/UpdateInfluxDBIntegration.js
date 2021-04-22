@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, {Component} from "react";
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
 import CardHeader from "@material-ui/core/CardHeader";
@@ -6,12 +6,12 @@ import CardContent from "@material-ui/core/CardContent";
 
 import ApplicationStore from "../../../stores/ApplicationStore";
 import InfluxDBIntegrationForm from "./InfluxDBIntegrationForm";
+import InfluxDBV2IntegrationForm from "./InfluxDBV2IntegrationForm";
 
 
 class UpdateInfluxDBIntegration extends Component {
   constructor() {
     super();
-
     this.state = {};
   }
 
@@ -21,7 +21,7 @@ class UpdateInfluxDBIntegration extends Component {
 
     ApplicationStore.updateInfluxDBIntegration(integr, resp => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`);
-    });
+    }, this.props.V2);
   } 
 
   componentDidMount() {
@@ -29,7 +29,7 @@ class UpdateInfluxDBIntegration extends Component {
       this.setState({
         object: resp.integration,
       });
-    });
+    }, this.props.V2);
   }
 
   render() {
@@ -43,7 +43,10 @@ class UpdateInfluxDBIntegration extends Component {
           <Card>
             <CardHeader title="Update InfluxDB integration" />
             <CardContent>
-              <InfluxDBIntegrationForm submitLabel="Update integration" onSubmit={this.onSubmit} object={this.state.object} />
+              {this.props.V2 ?
+                  <InfluxDBV2IntegrationForm submitLabel="Update integration" onSubmit={this.onSubmit} object={this.state.object}/>
+                  : <InfluxDBIntegrationForm submitLabel="Update integration" onSubmit={this.onSubmit} object={this.state.object}/>
+              }
             </CardContent>
           </Card>
         </Grid>

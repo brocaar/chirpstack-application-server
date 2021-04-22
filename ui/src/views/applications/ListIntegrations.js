@@ -105,7 +105,9 @@ class ListIntegrations extends Component {
 
       // InfluxDB
       if(includes(resp.result, "INFLUXDB")) {
-        configured.push(<InfluxDBCard organizationID={organizationID} applicationID={applicationID} />);
+        configured.push(<InfluxDBCard organizationID={organizationID} applicationID={applicationID}/>);
+      } else if (includes(resp.result, "INFLUXDBV2") ){
+          configured.push(<InfluxDBCard organizationID={organizationID} applicationID={applicationID} V2 />);
       } else {
         available.push(<InfluxDBCard organizationID={organizationID} applicationID={applicationID} add />);
       }

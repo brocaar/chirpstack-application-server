@@ -177,6 +177,7 @@ class ApplicationLayout extends Component {
             <Route exact path={`${this.props.match.path}/integrations/azure-service-bus/edit`} render={props => <UpdateAzureServiceBusIntegration {...props} />} />
             <Route exact path={`${this.props.match.path}/integrations/influxdb/create`} render={props => <CreateInfluxDBIntegration {...props} />} />
             <Route exact path={`${this.props.match.path}/integrations/influxdb/edit`} render={props => <UpdateInfluxDBIntegration {...props} />} />
+            <Route exact path={`${this.props.match.path}/integrations/influxdbv2/edit`} render={props => <UpdateInfluxDBIntegration {...props} V2/>} />
             <Route exact path={`${this.props.match.path}/integrations/thingsboard/create`} render={props => <CreateThingsBoardIntegration {...props} />} />
             <Route exact path={`${this.props.match.path}/integrations/thingsboard/edit`} render={props => <UpdateThingsBoardIntegration {...props} />} />
             <Route exact path={`${this.props.match.path}/integrations/loracloud/create`} render={props => <CreateLoRaCloudIntegration {...props} />} />

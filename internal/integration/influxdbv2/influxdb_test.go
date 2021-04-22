@@ -1,4 +1,4 @@
-package influxdb
+package influxdbv2
 
 import (
 	"bytes"
@@ -51,12 +51,11 @@ func (ts *HandlerTestSuite) SetupSuite() {
 	ts.Server = httptest.NewServer(&httpHandler)
 
 	conf := Config{
-		Endpoint:            ts.Server.URL + "/write",
-		DB:                  "chirpstack",
-		Username:            "user",
-		Password:            "password",
-		RetentionPolicyName: "DEFAULT",
-		Precision:           "s",
+		Host:          ts.Server.URL,
+		Organization: "chirpstack",
+		Bucket:       "bucket",
+		Token:        "token",
+		Precision:    "s",
 	}
 	var err error
 	ts.Handler, err = New(conf)
@@ -95,21 +94,19 @@ device_status_margin,application_name=test-app,dev_eui=0102030405060708,device_n
 			assert := require.New(t)
 			assert.NoError(ts.Handler.HandleStatusEvent(context.Background(), nil, nil, tst.Payload))
 			req := <-ts.Requests
-			assert.Equal("/write", req.URL.Path)
+
+			assert.Equal(V2UrlEndpoint, req.URL.Path)
 			assert.Equal(url.Values{
-				"db":        []string{"chirpstack"},
+				"org":       []string{"chirpstack"},
+				"bucket":    []string{"bucket"},
 				"precision": []string{"s"},
-				"rp":        []string{"DEFAULT"},
 			}, req.URL.Query())
+
+			assert.Equal("Token token", req.Header.Get("Authorization"))
 
 			b, err := ioutil.ReadAll(req.Body)
 			assert.NoError(err)
 			assert.Equal(tst.ExpectedBody, string(b))
-
-			user, pw, ok := req.BasicAuth()
-			assert.Equal("user", user)
-			assert.Equal("password", pw)
-			assert.True(ok)
 
 			assert.Equal("text/plain", req.Header.Get("Content-Type"))
 		})
@@ -313,21 +310,19 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 			assert := require.New(t)
 			assert.NoError(ts.Handler.HandleUplinkEvent(context.Background(), nil, nil, tst.Payload))
 			req := <-ts.Requests
-			assert.Equal("/write", req.URL.Path)
+
+			assert.Equal(V2UrlEndpoint, req.URL.Path)
 			assert.Equal(url.Values{
-				"db":        []string{"chirpstack"},
+				"org":       []string{"chirpstack"},
+				"bucket":    []string{"bucket"},
 				"precision": []string{"s"},
-				"rp":        []string{"DEFAULT"},
 			}, req.URL.Query())
+
+			assert.Equal("Token token", req.Header.Get("Authorization"))
 
 			b, err := ioutil.ReadAll(req.Body)
 			assert.NoError(err)
 			assert.Equal(tst.ExpectedBody, string(b))
-
-			user, pw, ok := req.BasicAuth()
-			assert.Equal("user", user)
-			assert.Equal("password", pw)
-			assert.True(ok)
 
 			assert.Equal("text/plain", req.Header.Get("Content-Type"))
 		})

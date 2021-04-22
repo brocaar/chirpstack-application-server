@@ -1,5 +1,5 @@
-// Package influxdb implements a InfluxDB integration.
-package influxdb
+// Package influxdbv2 implements a InfluxDBv2 (Flux) integration.
+package influxdbv2
 
 import (
 	"bytes"
@@ -20,6 +20,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	influxdbv1 "github.com/brocaar/chirpstack-application-server/internal/integration/influxdb"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/lorawan"
@@ -27,20 +28,22 @@ import (
 
 var precisionValidator = regexp.MustCompile(`^(ns|u|ms|s|m|h)$`)
 
+// V2UrlEndpoint contains the API path to InfluxDBV2 write endpoint
+const V2UrlEndpoint = "/api/v2/write"
+
 // Config contains the configuration for the InfluxDB integration.
 type Config struct {
-	Endpoint            string `json:"endpoint"`
-	DB                  string `json:"db"`
-	Username            string `json:"username"`
-	Password            string `json:"password"`
-	RetentionPolicyName string `json:"retentionPolicyName"`
+	Host            	string `json:"host"`
+	Organization 		string `json:"organization"`
+	Bucket              string `json:"bucket"`
+	Token               string `json:"token"`
 	Precision           string `json:"precision"`
 }
 
 // Validate validates the HandlerConfig data.
 func (c Config) Validate() error {
 	if !precisionValidator.MatchString(c.Precision) {
-		return ErrInvalidPrecision
+		return influxdbv1.ErrInvalidPrecision
 	}
 	return nil
 }
@@ -126,20 +129,18 @@ func (i *Integration) send(measurements []measurement) error {
 	b := []byte(strings.Join(measStr, "\n"))
 
 	args := url.Values{}
-	args.Set("db", i.config.DB)
+	args.Set("org", i.config.Organization)
+	args.Set("bucket", i.config.Bucket)
 	args.Set("precision", i.config.Precision)
-	args.Set("rp", i.config.RetentionPolicyName)
 
-	req, err := http.NewRequest("POST", i.config.Endpoint+"?"+args.Encode(), bytes.NewReader(b))
+	req, err := http.NewRequest("POST", i.config.Host+V2UrlEndpoint+"?"+args.Encode(), bytes.NewReader(b))
 	if err != nil {
 		return errors.Wrap(err, "new request error")
 	}
 
 	req.Header.Set("Content-Type", "text/plain")
+	req.Header.Set("Authorization", "Token "+i.config.Token)
 
-	if i.config.Username != "" || i.config.Password != "" {
-		req.SetBasicAuth(i.config.Username, i.config.Password)
-	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

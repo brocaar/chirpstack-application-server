@@ -16,6 +16,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/integration/gcppubsub"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/http"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/influxdb"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/influxdbv2"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/kafka"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/logger"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/loracloud"
@@ -34,6 +35,7 @@ import (
 const (
 	HTTP            = "HTTP"
 	InfluxDB        = "INFLUXDB"
+	InfluxDBV2		= "INFLUXDBV2"
 	ThingsBoard     = "THINGSBOARD"
 	MyDevices       = "MYDEVICES"
 	LoRaCloud       = "LORACLOUD"
@@ -167,6 +169,18 @@ func ForApplicationID(id int64) models.Integration {
 
 			// create new influxdb integration
 			i, err = influxdb.New(conf)
+		case InfluxDBV2:
+			// read config
+			var conf influxdbv2.Config
+			if err := json.NewDecoder(bytes.NewReader(appint.Settings)).Decode(&conf); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"application_id": id,
+				}).Error("integrations: read influxdbv2 configuration error")
+				continue
+			}
+
+			// create new influxdbv2 integration
+			i, err = influxdbv2.New(conf)
 		case ThingsBoard:
 			// read config
 			var conf thingsboard.Config

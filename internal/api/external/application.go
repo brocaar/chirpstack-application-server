@@ -2,6 +2,7 @@ package external
 
 import (
 	"encoding/json"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/influxdbv2"
 	"strings"
 
 	"github.com/gofrs/uuid"
@@ -562,6 +563,141 @@ func (a *ApplicationAPI) DeleteInfluxDBIntegration(ctx context.Context, in *pb.D
 
 	return &empty.Empty{}, nil
 }
+// -----
+
+// CreateInfluxDBV2Integration create an InfluxDBV2 application-integration.
+func (a *ApplicationAPI) CreateInfluxDBV2Integration(ctx context.Context, in *pb.CreateInfluxDBV2IntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Integration.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	conf := influxdbv2.Config{
+		Host:            in.Integration.Host,
+		Organization:    in.Integration.Org,
+		Bucket:          in.Integration.Bucket,
+		Token:           in.Integration.Token,
+		Precision:       strings.ToLower(in.Integration.Precision.String()),
+	}
+	if err := conf.Validate(); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	integration := storage.Integration{
+		ApplicationID: in.Integration.ApplicationId,
+		Kind:          integration.InfluxDBV2,
+		Settings:      confJSON,
+	}
+	if err := storage.CreateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// GetInfluxDBV2Integration returns the InfluxDBV2 application-integration.
+func (a *ApplicationAPI) GetInfluxDBV2Integration(ctx context.Context, in *pb.GetInfluxDBV2IntegrationRequest) (*pb.GetInfluxDBV2IntegrationResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.InfluxDBV2)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	var conf influxdbv2.Config
+	if err = json.Unmarshal(integration.Settings, &conf); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	prec, _ := pb.InfluxDBPrecision_value[strings.ToUpper(conf.Precision)]
+
+	return &pb.GetInfluxDBV2IntegrationResponse{
+		Integration: &pb.InfluxDBV2Integration{
+			ApplicationId: in.ApplicationId,
+			Host:          conf.Host,
+			Org:           conf.Organization,
+			Bucket:        conf.Bucket,
+			Token:         conf.Token,
+			Precision:     pb.InfluxDBPrecision(prec),
+		},
+	}, nil
+}
+
+// UpdateInfluxDBV2Integration updates the InfluxDBV2 application-integration.
+func (a *ApplicationAPI) UpdateInfluxDBV2Integration(ctx context.Context, in *pb.UpdateInfluxDBV2IntegrationRequest) (*empty.Empty, error) {
+	if in.Integration == nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "integration must not be nil")
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.Integration.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.Integration.ApplicationId, integration.InfluxDBV2)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	conf := influxdbv2.Config{
+		Host:         in.Integration.Host,
+		Organization: in.Integration.Org,
+		Bucket:       in.Integration.Bucket,
+		Token:        in.Integration.Token,
+		Precision:    strings.ToLower(in.Integration.Precision.String()),
+	}
+	if err := conf.Validate(); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	confJSON, err := json.Marshal(conf)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	integration.Settings = confJSON
+	if err = storage.UpdateIntegration(ctx, storage.DB(), &integration); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// DeleteInfluxDBV2Integration deletes the InfluxDBV2 application-integration.
+func (a *ApplicationAPI) DeleteInfluxDBV2Integration(ctx context.Context, in *pb.DeleteInfluxDBV2IntegrationRequest) (*empty.Empty, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateApplicationAccess(in.ApplicationId, auth.Update),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	integration, err := storage.GetIntegrationByApplicationID(ctx, storage.DB(), in.ApplicationId, integration.InfluxDBV2)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if err = storage.DeleteIntegration(ctx, storage.DB(), integration.ID); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	return &empty.Empty{}, nil
+}
+// -------
 
 // CreateThingsBoardIntegration creates a ThingsBoard application-integration.
 func (a *ApplicationAPI) CreateThingsBoardIntegration(ctx context.Context, in *pb.CreateThingsBoardIntegrationRequest) (*empty.Empty, error) {
@@ -1497,6 +1633,8 @@ func (a *ApplicationAPI) ListIntegrations(ctx context.Context, in *pb.ListIntegr
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_HTTP})
 		case integration.InfluxDB:
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_INFLUXDB})
+		case integration.InfluxDBV2:
+			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_INFLUXDBV2})
 		case integration.ThingsBoard:
 			out.Result = append(out.Result, &pb.IntegrationListItem{Kind: pb.IntegrationKind_THINGSBOARD})
 		case integration.MyDevices:

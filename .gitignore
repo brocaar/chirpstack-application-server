@@ -1,6 +1,9 @@
 # hidden files
 .*
 
+# hidden files except .docker-compose
+!.docker-compose/
+
 # logs
 *.log
 

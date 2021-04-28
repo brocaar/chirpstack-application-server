@@ -30,30 +30,38 @@ function CopyMenu(props) {
   function copyToClipboard() {
     const bytes = props.value.match(/[A-Fa-f0-9]{2}/g);
     
-    if (bytes !== null) {
-      navigator.clipboard.writeText(bytes.join("").toUpperCase())
+    if (bytes !== null && navigator.clipboard != undefined) {
+        navigator.clipboard.writeText(bytes.join("").toUpperCase()).then(function () {
+         }, function (err) {
+           alert('Something wrong: ', err);
+        })
     }
     handleClose()
   }
   function copyToClipboardHexArray() {
     const bytes = props.value.match(/[A-Fa-f0-9]{2}/g);
     
-    if (bytes !== null) {
-      navigator.clipboard.writeText(bytes.join(", ").toUpperCase().replace(/[A-Fa-f0-9]{2}/g, "0x$&"))
+    if (bytes !== null && navigator.clipboard != undefined) {
+      navigator.clipboard.writeText(bytes.join(", ").toUpperCase().replace(/[A-Fa-f0-9]{2}/g, "0x$&")).then(function () {
+      }, function (err) {
+        alert('Something wrong: ', err);
+     })
     }
     handleClose()
   }
 
   return (
     <div>
-      <IconButton
-            aria-controls="fade-menu" 
-            aria-haspopup="true" 
-            onClick={handleClick}
-            aria-label="Toggle key visibility"
-            >
-            <Copy /> 
-        </IconButton>
+      <Tooltip title="Click to copy">
+        <IconButton
+              aria-controls="fade-menu" 
+              aria-haspopup="true" 
+              onClick={handleClick}
+              aria-label="Toggle key visibility"
+              >
+              <Copy /> 
+          </IconButton>
+        </Tooltip>
       <Menu
         id="fade-menu"
         anchorEl={anchorEl}

@@ -10,6 +10,16 @@ export function checkStatus(response) {
   }
 };
 
+export function successNotify(message) {
+  dispatcher.dispatch({
+    type: "CREATE_NOTIFICATION",
+    notification: {
+      type: "success",
+      message: message,
+    },
+  });
+}
+
 export function errorHandler(error) {
   if(error.response === undefined) {
     dispatcher.dispatch({

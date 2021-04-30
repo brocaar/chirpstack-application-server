@@ -33,7 +33,7 @@ function CopyMenu(props) {
     const bytes = props.value.match(/[A-Fa-f0-9]{2}/g);
 
     if (bytes !== null && navigator.clipboard != undefined) {
-        navigator.clipboard.writeText(bytes.join("").toUpperCase()).then(successNotify("Copied!")).catch(errorHandler);
+        navigator.clipboard.writeText(bytes.join("").toUpperCase()).then(successNotify("Copied to clipboard")).catch(errorHandler);
     }
     handleClose()
   }
@@ -41,7 +41,7 @@ function CopyMenu(props) {
     const bytes = props.value.match(/[A-Fa-f0-9]{2}/g);
 
     if (bytes !== null && navigator.clipboard != undefined) {
-      navigator.clipboard.writeText(bytes.join(", ").toUpperCase().replace(/[A-Fa-f0-9]{2}/g, "0x$&")).then(successNotify("Copied!")).catch(errorHandler);
+      navigator.clipboard.writeText(bytes.join(", ").toUpperCase().replace(/[A-Fa-f0-9]{2}/g, "0x$&")).then(successNotify("Copied to clipboard")).catch(errorHandler);
     }
     handleClose()
   }

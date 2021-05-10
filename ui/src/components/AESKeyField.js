@@ -15,6 +15,8 @@ import Refresh from "mdi-material-ui/Refresh";
 import Copy from "mdi-material-ui/ContentCopy";
 
 import MaskedInput from "react-text-mask";
+import {successNotify, errorHandler } from "../stores/helpers";
+
 function CopyMenu(props) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
@@ -29,31 +31,33 @@ function CopyMenu(props) {
 
   function copyToClipboard() {
     const bytes = props.value.match(/[A-Fa-f0-9]{2}/g);
-    
-    if (bytes !== null) {
-      navigator.clipboard.writeText(bytes.join("").toUpperCase())
+
+    if (bytes !== null && navigator.clipboard != undefined) {
+        navigator.clipboard.writeText(bytes.join("").toUpperCase()).then(successNotify("Copied to clipboard")).catch(errorHandler);
     }
     handleClose()
   }
   function copyToClipboardHexArray() {
     const bytes = props.value.match(/[A-Fa-f0-9]{2}/g);
-    
-    if (bytes !== null) {
-      navigator.clipboard.writeText(bytes.join(", ").toUpperCase().replace(/[A-Fa-f0-9]{2}/g, "0x$&"))
+
+    if (bytes !== null && navigator.clipboard != undefined) {
+      navigator.clipboard.writeText(bytes.join(", ").toUpperCase().replace(/[A-Fa-f0-9]{2}/g, "0x$&")).then(successNotify("Copied to clipboard")).catch(errorHandler);
     }
     handleClose()
   }
 
   return (
     <div>
-      <IconButton
-            aria-controls="fade-menu" 
-            aria-haspopup="true" 
-            onClick={handleClick}
-            aria-label="Toggle key visibility"
-            >
-            <Copy /> 
-        </IconButton>
+      <Tooltip title="Click to copy">
+        <IconButton
+              aria-controls="fade-menu"
+              aria-haspopup="true"
+              onClick={handleClick}
+              aria-label="Toggle key visibility"
+              >
+              <Copy />
+          </IconButton>
+        </Tooltip>
       <Menu
         id="fade-menu"
         anchorEl={anchorEl}

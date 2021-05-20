@@ -6,7 +6,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/net/context"
 
+	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
 )
@@ -21,6 +23,9 @@ type DatabaseTestSuiteBase struct {
 // SetupSuite is called once before starting the test-suite.
 func (b *DatabaseTestSuiteBase) SetupSuite() {
 	conf := test.GetConfig()
+	conf.Monitoring.PerDeviceEventLogMaxHistory = 10
+	config.Set(conf)
+
 	if err := storage.Setup(conf); err != nil {
 		panic(err)
 	}
@@ -36,7 +41,7 @@ func (b *DatabaseTestSuiteBase) SetupTest() {
 	}
 	b.tx = tx
 
-	storage.RedisClient().FlushAll()
+	storage.RedisClient().FlushAll(context.Background())
 	assert.NoError(storage.MigrateDown(storage.DB().DB))
 	assert.NoError(storage.MigrateUp(storage.DB().DB))
 }

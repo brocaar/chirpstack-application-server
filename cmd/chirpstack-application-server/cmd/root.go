@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis/v8"
 	"github.com/spf13/viper"
 
 	log "github.com/sirupsen/logrus"
@@ -72,6 +72,8 @@ func init() {
 	viper.SetDefault("metrics.redis.hour_aggregation_ttl", time.Hour*48)
 	viper.SetDefault("metrics.redis.day_aggregation_ttl", time.Hour*24*90)
 	viper.SetDefault("metrics.redis.month_aggregation_ttl", time.Hour*24*730)
+
+	viper.SetDefault("monitoring.per_device_event_log_max_history", 10)
 
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(configCmd)

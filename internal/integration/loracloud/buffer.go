@@ -28,7 +28,7 @@ func SaveGeolocBuffer(ctx context.Context, devEUI lorawan.EUI64, items [][]*gw.U
 
 	key := storage.GetRedisKey(geolocBufferKeyTempl, devEUI)
 	pipe := storage.RedisClient().TxPipeline()
-	pipe.Del(key)
+	pipe.Del(ctx, key)
 
 	for i := range items {
 		var frameRXInfo FrameRXInfo
@@ -41,12 +41,12 @@ func SaveGeolocBuffer(ctx context.Context, devEUI lorawan.EUI64, items [][]*gw.U
 			return errors.Wrap(err, "protobuf marshal error")
 		}
 
-		pipe.RPush(key, b)
+		pipe.RPush(ctx, key, b)
 	}
 
-	pipe.PExpire(key, ttl)
+	pipe.PExpire(ctx, key, ttl)
 
-	if _, err := pipe.Exec(); err != nil {
+	if _, err := pipe.Exec(ctx); err != nil {
 		return errors.Wrap(err, "redis exec error")
 	}
 
@@ -62,7 +62,7 @@ func GetGeolocBuffer(ctx context.Context, devEUI lorawan.EUI64, ttl time.Duratio
 	}
 
 	key := storage.GetRedisKey(geolocBufferKeyTempl, devEUI)
-	resp, err := storage.RedisClient().LRange(key, 0, -1).Result()
+	resp, err := storage.RedisClient().LRange(ctx, key, 0, -1).Result()
 	if err != nil {
 		return nil, errors.Wrap(err, "read buffer error")
 	}

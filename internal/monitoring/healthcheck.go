@@ -8,7 +8,7 @@ import (
 )
 
 func healthCheckHandlerFunc(w http.ResponseWriter, r *http.Request) {
-	_, err := storage.RedisClient().Ping().Result()
+	_, err := storage.RedisClient().Ping(r.Context()).Result()
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		w.Write([]byte(errors.Wrap(err, "redis ping error").Error()))

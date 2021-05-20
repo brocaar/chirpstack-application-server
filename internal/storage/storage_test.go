@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -42,7 +43,7 @@ func (b *DatabaseTestSuiteBase) SetupTest() {
 		panic(err)
 	}
 
-	RedisClient().FlushAll()
+	RedisClient().FlushAll(context.Background())
 }
 
 // TearDownTest is called after every test.

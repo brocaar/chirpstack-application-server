@@ -33,7 +33,7 @@ func TestJoinServerAPI(t *testing.T) {
 
 	assert.NoError(storage.MigrateDown(storage.DB().DB))
 	assert.NoError(storage.MigrateUp(storage.DB().DB))
-	storage.RedisClient().FlushAll()
+	storage.RedisClient().FlushAll(context.Background())
 
 	nsClient := nsmock.NewClient()
 	networkserver.SetPool(nsmock.NewPool(nsClient))

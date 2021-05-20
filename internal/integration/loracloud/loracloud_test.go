@@ -1322,7 +1322,7 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 		for _, tst := range tests {
 			t.Run(tst.name, func(t *testing.T) {
 				assert := require.New(t)
-				storage.RedisClient().FlushAll()
+				storage.RedisClient().FlushAll(context.Background())
 
 				var devEUI lorawan.EUI64
 				copy(devEUI[:], tst.uplinkEvent.DevEui)

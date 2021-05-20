@@ -52,7 +52,7 @@ func (ts *IntegrationTestSuite) SetupSuite() {
 	assert.NoError(storage.Setup(conf))
 	assert.NoError(storage.MigrateDown(storage.DB().DB))
 	assert.NoError(storage.MigrateUp(storage.DB().DB))
-	storage.RedisClient().FlushAll()
+	storage.RedisClient().FlushAll(context.Background())
 
 	// http request channel
 	ts.httpRequests = make(chan *http.Request, 100)

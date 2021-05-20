@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis/v8"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -119,10 +119,10 @@ func SaveMetricsForInterval(ctx context.Context, agg AggregationInterval, name s
 
 	pipe := RedisClient().TxPipeline()
 	for k, v := range metrics.Metrics {
-		pipe.HIncrByFloat(key, k, v)
+		pipe.HIncrByFloat(ctx, key, k, v)
 	}
-	pipe.PExpire(key, exp)
-	if _, err := pipe.Exec(); err != nil {
+	pipe.PExpire(ctx, key, exp)
+	if _, err := pipe.Exec(ctx); err != nil {
 		return errors.Wrap(err, "exec error")
 	}
 
@@ -196,9 +196,9 @@ func GetMetrics(ctx context.Context, agg AggregationInterval, name string, start
 	pipe := RedisClient().Pipeline()
 	var vals []*redis.StringStringMapCmd
 	for _, k := range keys {
-		vals = append(vals, pipe.HGetAll(k))
+		vals = append(vals, pipe.HGetAll(ctx, k))
 	}
-	if _, err := pipe.Exec(); err != nil {
+	if _, err := pipe.Exec(ctx); err != nil {
 		return nil, errors.Wrap(err, "hget error")
 	}
 

@@ -127,6 +127,7 @@ type Config struct {
 		PrometheusEndpoint           bool   `mapstructure:"prometheus_endpoint"`
 		PrometheusAPITimingHistogram bool   `mapstructure:"prometheus_api_timing_histogram"`
 		HealthcheckEndpoint          bool   `mapstructure:"healthcheck_endpoint"`
+		PerDeviceEventLogMaxHistory  int64  `mapstructure:"per_device_event_log_max_history"`
 	} `mapstructure:"monitoring"`
 }
 
@@ -241,4 +242,9 @@ var C Config
 // Get returns the configuration.
 func Get() *Config {
 	return &C
+}
+
+// Set sets the configuration.
+func Set(c Config) {
+	C = c
 }

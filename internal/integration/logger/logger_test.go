@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/eventlog"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
@@ -30,6 +31,8 @@ type LoggerTestSuite struct {
 func (ts *LoggerTestSuite) SetupSuite() {
 	assert := require.New(ts.T())
 	conf := test.GetConfig()
+	conf.Monitoring.PerDeviceEventLogMaxHistory = 10
+	config.Set(conf)
 	assert.NoError(storage.Setup(conf))
 
 	ts.logChannel = make(chan eventlog.EventLog, 1)

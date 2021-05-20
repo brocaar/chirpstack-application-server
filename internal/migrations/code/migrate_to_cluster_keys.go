@@ -1,6 +1,7 @@
 package code
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -16,7 +17,7 @@ import (
 // MigrateToClusterKeys migrates the keys to Redis Cluster compatible keys.
 func MigrateToClusterKeys(conf config.Config) error {
 
-	keys, err := storage.RedisClient().Keys("lora:as:metrics:*").Result()
+	keys, err := storage.RedisClient().Keys(context.Background(), "lora:as:metrics:*").Result()
 	if err != nil {
 		return errors.Wrap(err, "get keys error")
 	}
@@ -57,7 +58,7 @@ func migrateKey(conf config.Config, key string) error {
 
 	newKey := storage.GetRedisKey("lora:as:metrics:{%s}:%s", strings.Join(keyParts[3:len(keyParts)-2], ":"), strings.Join(keyParts[len(keyParts)-2:], ":"))
 
-	val, err := storage.RedisClient().HGetAll(key).Result()
+	val, err := storage.RedisClient().HGetAll(context.Background(), key).Result()
 	if err != nil {
 		return errors.Wrap(err, "hgetall error")
 	}
@@ -68,11 +69,11 @@ func migrateKey(conf config.Config, key string) error {
 		if err != nil {
 			return errors.Wrap(err, "parse float error")
 		}
-		pipe.HIncrByFloat(newKey, k, f)
+		pipe.HIncrByFloat(context.Background(), newKey, k, f)
 	}
-	pipe.PExpire(key, ttl)
+	pipe.PExpire(context.Background(), key, ttl)
 
-	if _, err := pipe.Exec(); err != nil {
+	if _, err := pipe.Exec(context.Background()); err != nil {
 		return errors.Wrap(err, "exec error")
 	}
 

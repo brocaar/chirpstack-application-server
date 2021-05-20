@@ -223,7 +223,7 @@ func sendPing(mic lorawan.MIC, n storage.NetworkServer, ping storage.GatewayPing
 func CreatePingLookup(mic lorawan.MIC, id int64) error {
 	key := storage.GetRedisKey(micLookupTempl, mic)
 
-	err := storage.RedisClient().Set(key, id, micLookupExpire).Err()
+	err := storage.RedisClient().Set(context.Background(), key, id, micLookupExpire).Err()
 	if err != nil {
 		return errors.Wrap(err, "set mic lookup error")
 	}
@@ -233,7 +233,7 @@ func CreatePingLookup(mic lorawan.MIC, id int64) error {
 func getPingLookup(mic lorawan.MIC) (int64, error) {
 	key := storage.GetRedisKey(micLookupTempl, mic)
 
-	id, err := storage.RedisClient().Get(key).Int64()
+	id, err := storage.RedisClient().Get(context.Background(), key).Int64()
 	if err != nil {
 		return 0, errors.Wrap(err, "get ping lookup error")
 	}
@@ -244,7 +244,7 @@ func getPingLookup(mic lorawan.MIC) (int64, error) {
 func deletePingLookup(mic lorawan.MIC) error {
 	key := storage.GetRedisKey(micLookupTempl, mic)
 
-	err := storage.RedisClient().Del(key).Err()
+	err := storage.RedisClient().Del(context.Background(), key).Err()
 	if err != nil {
 		return errors.Wrap(err, "delete ping lookup error")
 	}

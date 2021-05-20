@@ -650,6 +650,13 @@ timezone="{{ .Metrics.Timezone }}"
   #   * Ping PostgreSQL database
   #   * Ping Redis database
   healthcheck_endpoint={{ .Monitoring.HealthcheckEndpoint }}
+
+  # Per device event-log max history.
+  #
+  # When set to > 0, ChirpStack Application Server will log events per device
+  # to a Redis Stream. This feature is used by the web-interface.
+  per_device_event_log_max_history={{ .Monitoring.PerDeviceEventLogMaxHistory }}
+
 `
 
 var configCmd = &cobra.Command{

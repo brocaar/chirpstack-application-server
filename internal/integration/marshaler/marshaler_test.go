@@ -1,6 +1,7 @@
 package marshaler
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -29,7 +30,7 @@ func (ts *MarshalerTestSuite) SetupSuite() {
 	conf := test.GetConfig()
 	assert.NoError(storage.Setup(conf))
 
-	storage.RedisClient().FlushAll()
+	storage.RedisClient().FlushAll(context.Background())
 	assert.NoError(storage.MigrateDown(storage.DB().DB))
 	assert.NoError(storage.MigrateUp(storage.DB().DB))
 }

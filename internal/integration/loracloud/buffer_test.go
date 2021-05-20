@@ -99,7 +99,7 @@ func TestGeolocBuffer(t *testing.T) {
 
 	for _, tst := range tests {
 		t.Run(tst.Name, func(t *testing.T) {
-			storage.RedisClient().FlushAll()
+			storage.RedisClient().FlushAll(context.Background())
 			assert := require.New(t)
 
 			assert.NoError(SaveGeolocBuffer(context.Background(), tst.DevEUI, tst.Items, tst.AddTTL))

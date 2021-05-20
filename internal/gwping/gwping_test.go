@@ -28,7 +28,7 @@ func TestGatewayPing(t *testing.T) {
 		nsClient := mock.NewClient()
 		So(storage.MigrateDown(storage.DB().DB), ShouldBeNil)
 		So(storage.MigrateUp(storage.DB().DB), ShouldBeNil)
-		storage.RedisClient().FlushAll()
+		storage.RedisClient().FlushAll(context.Background())
 		networkserver.SetPool(mock.NewPool(nsClient))
 
 		org := storage.Organization{

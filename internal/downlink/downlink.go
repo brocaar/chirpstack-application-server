@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofrs/uuid"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -105,6 +106,7 @@ func logCodecError(ctx context.Context, a storage.Application, d storage.Device,
 		Type:            pb.ErrorType_DOWNLINK_CODEC,
 		Error:           err.Error(),
 		Tags:            make(map[string]string),
+		PublishedAt:     ptypes.TimestampNow(),
 	}
 
 	for k, v := range d.Tags.Map {

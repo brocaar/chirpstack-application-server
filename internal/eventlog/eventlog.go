@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/pkg/errors"
 
 	"github.com/brocaar/chirpstack-api/go/v3/as/integration"
@@ -32,10 +33,17 @@ const (
 	Integration = "integration"
 )
 
+// PublishedAtMessage implements the proto.Message with PublishedAt getter.
+type PublishedAtMessage interface {
+	proto.Message
+	GetPublishedAt() *timestamp.Timestamp
+}
+
 // EventLog contains an event log.
 type EventLog struct {
-	Type    string
-	Payload json.RawMessage
+	Type        string
+	PublishedAt *timestamp.Timestamp
+	Payload     json.RawMessage
 }
 
 // LogEventForDevice logs an event for the given device.
@@ -96,7 +104,7 @@ func GetEventLogForDevice(ctx context.Context, devEUI lorawan.EUI64, eventsChan 
 
 		for _, msg := range resp[0].Messages {
 			lastID = msg.ID
-			var pl proto.Message
+			var pl PublishedAtMessage
 
 			event, ok := msg.Values["event"].(string)
 			if !ok {
@@ -141,8 +149,9 @@ func GetEventLogForDevice(ctx context.Context, devEUI lorawan.EUI64, eventsChan 
 			}
 
 			eventsChan <- EventLog{
-				Type:    event,
-				Payload: json.RawMessage(jsonB),
+				Type:        event,
+				Payload:     json.RawMessage(jsonB),
+				PublishedAt: pl.GetPublishedAt(),
 			}
 		}
 	}

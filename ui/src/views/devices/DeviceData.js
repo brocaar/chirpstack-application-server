@@ -67,20 +67,34 @@ const styles = {
 
 
 class DeviceDataItem extends Component {
+  constructor() {
+    super();
+
+    this.state = {
+      expanded: false,
+    };
+  }
+
+  onExpandChange = (e, expanded) => {
+    this.setState({
+      expanded: expanded,
+    });
+  }
+
   render() {
-    const receivedAt = moment(this.props.data.receivedAt).format("LTS");
+    const publishedAt = moment(this.props.data.publishedAt).format("LTS");
     
     return(
-      <ExpansionPanel>
+      <ExpansionPanel onChange={this.onExpandChange}>
         <ExpansionPanelSummary expandIcon={<ChevronDown />}>
-          <div className={this.props.classes.headerColumnFixedSmall}><Typography variant="body2">{receivedAt}</Typography></div>
+          <div className={this.props.classes.headerColumnFixedSmall}><Typography variant="body2">{publishedAt}</Typography></div>
           <div className={this.props.classes.headerColumnFixedSmall}><Typography variant="body2">{this.props.data.type}</Typography></div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <Grid container spacing={4}>
-            <Grid item xs className={this.props.classes.treeStyle}>
+            {this.state.expanded && <Grid item xs className={this.props.classes.treeStyle}>
               <JSONTree data={this.props.data.payload} />
-            </Grid>
+            </Grid>}
           </Grid>
         </ExpansionPanelDetails>
       </ExpansionPanel>
@@ -172,7 +186,7 @@ class DeviceData extends Component {
 
     data.unshift({
       id: now.getTime(),
-      receivedAt: now,
+      publishedAt: d.publishedAt,
       type: d.type,
       payload: JSON.parse(d.payloadJSON),
     });

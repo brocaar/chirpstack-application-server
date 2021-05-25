@@ -8,6 +8,7 @@ import (
 	"time"
 
 	keywrap "github.com/NickBall/go-aes-key-wrap"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
@@ -145,6 +146,7 @@ func updateDeviceActivation(ctx *uplinkContext) error {
 		TxInfo:          ctx.uplinkDataReq.TxInfo,
 		Dr:              ctx.uplinkDataReq.Dr,
 		Tags:            make(map[string]string),
+		PublishedAt:     ptypes.TimestampNow(),
 	}
 
 	// set tags
@@ -212,6 +214,7 @@ func handleCodec(ctx *uplinkContext) error {
 			Error:           err.Error(),
 			FCnt:            ctx.uplinkDataReq.FCnt,
 			Tags:            make(map[string]string),
+			PublishedAt:     ptypes.TimestampNow(),
 		}
 
 		for k, v := range ctx.device.Tags.Map {
@@ -260,6 +263,7 @@ func handleIntegrations(ctx *uplinkContext) error {
 		Tags:            make(map[string]string),
 		ConfirmedUplink: ctx.uplinkDataReq.ConfirmedUplink,
 		DevAddr:         ctx.device.DevAddr[:],
+		PublishedAt:     ptypes.TimestampNow(),
 	}
 
 	// set tags

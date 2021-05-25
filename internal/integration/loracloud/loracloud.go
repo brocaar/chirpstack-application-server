@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
@@ -100,6 +101,7 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, ii models.Integrati
 					Location:        loc,
 					UplinkIds:       uplinkIDs,
 					FCnt:            fCnt,
+					PublishedAt:     ptypes.TimestampNow(),
 				}); err != nil {
 					return errors.Wrap(err, "handle location event error")
 				}
@@ -581,6 +583,7 @@ func (i *Integration) handleDASResponse(ctx context.Context, vars map[string]str
 		IntegrationName: "loracloud",
 		EventType:       "DAS_UplinkResponse",
 		ObjectJson:      string(b),
+		PublishedAt:     ptypes.TimestampNow(),
 	}
 	if err := ii.HandleIntegrationEvent(ctx, nil, intPL); err != nil {
 		log.WithError(err).Error("integration/loracloud: handle integration event error")
@@ -622,6 +625,7 @@ func (i *Integration) handleDASResponse(ctx context.Context, vars map[string]str
 				Source:    ls,
 				Accuracy:  uint32(ps.Accuracy),
 			},
+			PublishedAt: ptypes.TimestampNow(),
 		}
 		if err := ii.HandleLocationEvent(ctx, vars, locPL); err != nil {
 			log.WithError(err).Error("integration/loracloud: handle  location event error")

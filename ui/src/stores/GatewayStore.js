@@ -141,7 +141,7 @@ class GatewayStore extends EventEmitter {
     const loc = window.location;
     const wsURL = (() => {
       if (loc.host === "localhost:3000" || loc.host === "localhost:3001") {
-        return `wss://localhost:8080/api/gateways/${gatewayID}/frames`;
+        return `ws://localhost:8080/api/gateways/${gatewayID}/frames`;
       }
 
       const wsProtocol = loc.protocol === "https:" ? "wss:" : "ws:";

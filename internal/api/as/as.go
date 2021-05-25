@@ -7,6 +7,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq/hstore"
@@ -116,6 +117,7 @@ func (a *ApplicationServerAPI) HandleDownlinkACK(ctx context.Context, req *as.Ha
 		Acknowledged:    req.Acknowledged,
 		FCnt:            req.FCnt,
 		Tags:            make(map[string]string),
+		PublishedAt:     ptypes.TimestampNow(),
 	}
 
 	// set tags
@@ -171,6 +173,7 @@ func (a *ApplicationServerAPI) HandleTxAck(ctx context.Context, req *as.HandleTx
 		Tags:            make(map[string]string),
 		GatewayId:       req.GatewayId,
 		TxInfo:          req.TxInfo,
+		PublishedAt:     ptypes.TimestampNow(),
 	}
 
 	// set tags
@@ -246,6 +249,7 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		Error:           req.Error,
 		FCnt:            req.FCnt,
 		Tags:            make(map[string]string),
+		PublishedAt:     ptypes.TimestampNow(),
 	}
 
 	// set tags
@@ -341,6 +345,7 @@ func (a *ApplicationServerAPI) SetDeviceStatus(ctx context.Context, req *as.SetD
 		BatteryLevel:            float32(math.Round(float64(req.BatteryLevel*100))) / 100,
 		BatteryLevelUnavailable: req.BatteryLevelUnavailable,
 		Tags:                    make(map[string]string),
+		PublishedAt:             ptypes.TimestampNow(),
 	}
 
 	// set tags
@@ -410,6 +415,7 @@ func (a *ApplicationServerAPI) SetDeviceLocation(ctx context.Context, req *as.Se
 		Location:        req.Location,
 		UplinkIds:       req.UplinkIds,
 		Tags:            make(map[string]string),
+		PublishedAt:     ptypes.TimestampNow(),
 	}
 
 	// set tags

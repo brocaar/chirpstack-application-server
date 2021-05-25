@@ -792,12 +792,14 @@ func (a *DeviceAPI) StreamFrameLogs(req *pb.StreamDeviceFrameLogsRequest, srv pb
 
 		var frameResp pb.StreamDeviceFrameLogsResponse
 		if up != nil {
+			up.PublishedAt = resp.GetUplinkFrameSet().GetPublishedAt()
 			frameResp.Frame = &pb.StreamDeviceFrameLogsResponse_UplinkFrame{
 				UplinkFrame: up,
 			}
 		}
 
 		if down != nil {
+			down.PublishedAt = resp.GetDownlinkFrame().GetPublishedAt()
 			frameResp.Frame = &pb.StreamDeviceFrameLogsResponse_DownlinkFrame{
 				DownlinkFrame: down,
 			}
@@ -841,6 +843,7 @@ func (a *DeviceAPI) StreamEventLogs(req *pb.StreamDeviceEventLogsRequest, srv pb
 		}
 
 		resp := pb.StreamDeviceEventLogsResponse{
+			PublishedAt: el.PublishedAt,
 			Type:        el.Type,
 			PayloadJson: string(b),
 		}

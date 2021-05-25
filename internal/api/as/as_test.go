@@ -138,6 +138,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		})
 		assert.NoError(err)
 
+		pl := <-h.SendErrorNotificationChan
+		assert.NotNil(pl.PublishedAt)
+
 		assert.Equal(pb.ErrorEvent{
 			ApplicationId:   uint64(app.ID),
 			ApplicationName: "test-app",
@@ -149,7 +152,8 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			Tags: map[string]string{
 				"foo": "bar",
 			},
-		}, <-h.SendErrorNotificationChan)
+			PublishedAt: pl.PublishedAt,
+		}, pl)
 	})
 
 	ts.T().Run("HandleUplinkDataRequest", func(t *testing.T) {
@@ -271,6 +275,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 				assert.NoError(err)
 				assert.InDelta(time.Now().UnixNano(), d.LastSeenAt.UnixNano(), float64(time.Second))
 
+				pl := <-h.SendDataUpChan
+				assert.NotNil(pl.PublishedAt)
+
 				assert.Equal(pb.UplinkEvent{
 					ApplicationId:   uint64(app.ID),
 					ApplicationName: "test-app",
@@ -289,7 +296,8 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					},
 					ConfirmedUplink: true,
 					DevAddr:         d.DevAddr[:],
-				}, <-h.SendDataUpChan)
+					PublishedAt:     pl.PublishedAt,
+				}, pl)
 			})
 
 			t.Run("JS codec", func(t *testing.T) {
@@ -462,7 +470,12 @@ func (ts *ASTestSuite) TestApplicationServer() {
 
 				_, err := api.SetDeviceStatus(ctx, &tst.SetDeviceStatusRequest)
 				assert.NoError(err)
-				assert.Equal(tst.StatusNotification, <-h.SendStatusNotificationChan)
+
+				pl := <-h.SendStatusNotificationChan
+				assert.NotNil(pl.PublishedAt)
+				pl.PublishedAt = nil
+
+				assert.Equal(tst.StatusNotification, pl)
 
 				d, err := storage.GetDevice(context.Background(), storage.DB(), d.DevEUI, false, false)
 				assert.NoError(err)
@@ -497,6 +510,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		})
 		assert.NoError(err)
 
+		pl := <-h.SendLocationNotificationChan
+		assert.NotNil(pl.PublishedAt)
+
 		assert.Equal(pb.LocationEvent{
 			ApplicationId:   uint64(app.ID),
 			ApplicationName: app.Name,
@@ -515,7 +531,8 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			Tags: map[string]string{
 				"foo": "bar",
 			},
-		}, <-h.SendLocationNotificationChan)
+			PublishedAt: pl.PublishedAt,
+		}, pl)
 
 		d, err := storage.GetDevice(context.Background(), storage.DB(), d.DevEUI, false, true)
 		assert.NoError(err)
@@ -534,6 +551,9 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		})
 		assert.NoError(err)
 
+		pl := <-h.SendACKNotificationChan
+		assert.NotNil(pl.PublishedAt)
+
 		assert.Equal(pb.AckEvent{
 			ApplicationId:   uint64(app.ID),
 			ApplicationName: app.Name,
@@ -544,7 +564,8 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			Tags: map[string]string{
 				"foo": "bar",
 			},
-		}, <-h.SendACKNotificationChan)
+			PublishedAt: pl.PublishedAt,
+		}, pl)
 	})
 
 	ts.T().Run("ReEnecryptDeviceQueueItems", func(t *testing.T) {

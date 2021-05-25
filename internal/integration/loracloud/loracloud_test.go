@@ -1358,6 +1358,8 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 				// assert locationEvent
 				if tst.expectedLocationEvent != nil {
 					pl := <-ts.integration.SendLocationNotificationChan
+					assert.NotNil(pl.PublishedAt)
+					pl.PublishedAt = nil
 					assert.Equal(*tst.expectedLocationEvent, pl)
 				} else {
 					assert.Len(ts.integration.SendLocationNotificationChan, 0)
@@ -1647,6 +1649,8 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 				// assert integration event
 				if tst.expectedIntegrationEvent != nil {
 					pl := <-ts.integration.SendIntegrationNotificationChan
+					assert.NotNil(pl.PublishedAt)
+					pl.PublishedAt = nil
 					assert.Equal(*tst.expectedIntegrationEvent, pl)
 				} else {
 					assert.Len(ts.integration.SendIntegrationNotificationChan, 0)
@@ -1655,6 +1659,8 @@ func (ts *LoRaCloudTestSuite) TestHandleUplinkEvent() {
 				// assert location event
 				if tst.expectedLocationEvent != nil {
 					pl := <-ts.integration.SendLocationNotificationChan
+					assert.NotNil(pl.PublishedAt)
+					pl.PublishedAt = nil
 					assert.Equal(*tst.expectedLocationEvent, pl)
 				} else {
 					assert.Len(ts.integration.SendLocationNotificationChan, 0)

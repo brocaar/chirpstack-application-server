@@ -126,7 +126,7 @@ class GatewayFrames extends Component {
     if (frame.uplinkFrame !== undefined) {
       frames.unshift({
         id: now.getTime(),
-        receivedAt: now,
+        publishedAt: frame.uplinkFrame.publishedAt,
         uplinkMetaData: {
           rxInfo: frame.uplinkFrame.rxInfo,
           txInfo: frame.uplinkFrame.txInfo,
@@ -140,7 +140,7 @@ class GatewayFrames extends Component {
 
       frames.unshift({
         id: now.getTime(),
-        receivedAt: now,
+        publishedAt: frame.downlinkFrame.publishedAt,
         downlinkMetaData: {
           gatewayID: frame.downlinkFrame.gatewayID,
           txInfo: frame.downlinkFrame.txInfo,

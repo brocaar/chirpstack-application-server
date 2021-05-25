@@ -35,6 +35,21 @@ const styles = {
 
 
 class LoRaWANFrameLog extends Component {
+  constructor() {
+    super();
+
+    this.state = {
+      expanded: false,
+    };
+
+  }
+
+  onExpandChange = (e, expanded) => {
+    this.setState({
+      expanded: expanded,
+    });
+  } 
+
   render() {
     let dir = "";
     let devID = "";
@@ -45,7 +60,7 @@ class LoRaWANFrameLog extends Component {
       dir = "DOWNLINK";
     }
 
-    const receivedAt = moment(this.props.frame.receivedAt).format("LTS");
+    const receivedAt = moment(this.props.frame.publishedAt).format("LTS");
     const mType = this.props.frame.phyPayload.mhdr.mType;
 
     if (this.props.frame.phyPayload.macPayload !== undefined) {
@@ -59,7 +74,7 @@ class LoRaWANFrameLog extends Component {
     }
 
     return(
-      <ExpansionPanel>
+      <ExpansionPanel onChange={this.onExpandChange}>
         <ExpansionPanelSummary expandIcon={<ChevronDown />}>
           <div className={this.props.classes.headerColumnFixedSmall}><Typography variant="body2">{dir}</Typography></div>
           <div className={this.props.classes.headerColumnFixedSmall}><Typography variant="body2">{receivedAt}</Typography></div>
@@ -67,7 +82,7 @@ class LoRaWANFrameLog extends Component {
           <div className={this.props.classes.headerColumn}><Typography variant="body2">{devID}</Typography></div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <Grid container spacing={4}>
+          {this.state.expanded && <Grid container spacing={4}>
             <Grid item xs className={this.props.classes.treeStyle}>
               {this.props.frame.uplinkMetaData && <JSONTree data={this.props.frame.uplinkMetaData} />}
               {this.props.frame.downlinkMetaData && <JSONTree data={this.props.frame.downlinkMetaData} />}
@@ -75,7 +90,7 @@ class LoRaWANFrameLog extends Component {
             <Grid item xs className={this.props.classes.treeStyle}>
               <JSONTree data={{phyPayload: this.props.frame.phyPayload}} />
             </Grid>
-          </Grid>
+          </Grid>}
         </ExpansionPanelDetails>
       </ExpansionPanel>
     );

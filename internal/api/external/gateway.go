@@ -770,12 +770,14 @@ func (a *GatewayAPI) StreamFrameLogs(req *pb.StreamGatewayFrameLogsRequest, srv 
 
 		var frameResp pb.StreamGatewayFrameLogsResponse
 		if up != nil {
+			up.PublishedAt = resp.GetUplinkFrameSet().GetPublishedAt()
 			frameResp.Frame = &pb.StreamGatewayFrameLogsResponse_UplinkFrame{
 				UplinkFrame: up,
 			}
 		}
 
 		if down != nil {
+			down.PublishedAt = resp.GetDownlinkFrame().GetPublishedAt()
 			frameResp.Frame = &pb.StreamGatewayFrameLogsResponse_DownlinkFrame{
 				DownlinkFrame: down,
 			}

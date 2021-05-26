@@ -82,8 +82,8 @@ class GatewayFrames extends Component {
   onDownload() {
     const dl = this.state.frames.map((frame, i) => {
       return {
-        uplinkMetaData: frame.uplinkMetaData,
-        downlinkMetaData: frame.downlinkMetaData,
+        rxInfo: frame.rxInfo,
+        txInfo: frame.txInfo,
         phyPayload: frame.phyPayload,
       };
     });
@@ -127,10 +127,8 @@ class GatewayFrames extends Component {
       frames.unshift({
         id: now.getTime(),
         publishedAt: frame.uplinkFrame.publishedAt,
-        uplinkMetaData: {
-          rxInfo: frame.uplinkFrame.rxInfo,
-          txInfo: frame.uplinkFrame.txInfo,
-        },
+        rxInfo: frame.uplinkFrame.rxInfo,
+        txInfo: frame.uplinkFrame.txInfo,
         phyPayload: JSON.parse(frame.uplinkFrame.phyPayloadJSON),
       });
     }
@@ -141,10 +139,8 @@ class GatewayFrames extends Component {
       frames.unshift({
         id: now.getTime(),
         publishedAt: frame.downlinkFrame.publishedAt,
-        downlinkMetaData: {
-          gatewayID: frame.downlinkFrame.gatewayID,
-          txInfo: frame.downlinkFrame.txInfo,
-        },
+        gatewayID: frame.downlinkFrame.gatewayID,
+        txInfo: frame.downlinkFrame.txInfo,
         phyPayload: JSON.parse(frame.downlinkFrame.phyPayloadJSON),
       });
     }

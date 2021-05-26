@@ -63,6 +63,9 @@ const styles = {
     fontSize: 12,
     lineHeight: 1.5,
   },
+  chip: {
+    marginRight: theme.spacing(1),
+  },
 };
 
 
@@ -82,13 +85,54 @@ class DeviceDataItem extends Component {
   }
 
   render() {
-    const publishedAt = moment(this.props.data.publishedAt).format("LTS");
+    const publishedAt = moment(this.props.data.publishedAt).format("MMM DD LTS");
+    let chips = [];
+
+    switch (this.props.data.type) {
+      case "up":
+        chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`${this.props.data.payload.txInfo.frequency / 1000000} MHz`} />);
+        if (this.props.data.payload.txInfo.loRaModulationInfo !== undefined) {
+          chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`SF${this.props.data.payload.txInfo.loRaModulationInfo.spreadingFactor}`} />);
+          chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`BW${this.props.data.payload.txInfo.loRaModulationInfo.bandwidth}`} />);
+        }
+        chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`FCnt: ${this.props.data.payload.fCnt}`} />);
+        chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`FPort: ${this.props.data.payload.fPort}`} />);
+
+        if (this.props.data.payload.confirmedUplink) {
+          chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label="Confirmed" />);
+        } else {
+          chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label="Unconfirmed" />);
+        }
+        break;
+      case "join":
+        chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`DevAddr: ${Buffer.from(this.props.data.payload.devAddr, 'base64').toString('hex')}`} />);
+        break;
+      case "status":
+        chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`Margin: ${this.props.data.payload.margin}`} />);
+        break;
+      case "ack":
+        chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`Ack: ${this.props.data.payload.acknowledged}`} />);
+        chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`FCnt: ${this.props.data.payload.fCnt}`} />);
+        break;
+      case "txack":
+        chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`${this.props.data.payload.txInfo.frequency / 1000000} MHz`} />);
+        if (this.props.data.payload.txInfo.loRaModulationInfo !== undefined) {
+          chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`SF${this.props.data.payload.txInfo.loRaModulationInfo.spreadingFactor}`} />);
+          chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`BW${this.props.data.payload.txInfo.loRaModulationInfo.bandwidth}`} />);
+        }
+        chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`FCnt: ${this.props.data.payload.fCnt}`} />);
+        chips.push(<Chip className={this.props.classes.chip} size="small" variant="outlined" label={`GW: ${Buffer.from(this.props.data.payload.gatewayID, 'base64').toString('hex')}`} />);
+        break;
+      default:
+        break;
+    }
     
     return(
       <ExpansionPanel onChange={this.onExpandChange}>
         <ExpansionPanelSummary expandIcon={<ChevronDown />}>
-          <div className={this.props.classes.headerColumnFixedSmall}><Typography variant="body2">{publishedAt}</Typography></div>
+          <div className={this.props.classes.headerColumnFixedSmall}><Typography variant="body2">{publishedAt}</Typography> </div>
           <div className={this.props.classes.headerColumnFixedSmall}><Typography variant="body2">{this.props.data.type}</Typography></div>
+          {chips}
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <Grid container spacing={4}>

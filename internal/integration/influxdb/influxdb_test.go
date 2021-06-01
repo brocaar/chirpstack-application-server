@@ -33,7 +33,7 @@ func (h *testHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-type HandlerTestSuite struct {
+type IntegrationV1TestSuite struct {
 	suite.Suite
 
 	Handler  models.IntegrationHandler
@@ -41,7 +41,7 @@ type HandlerTestSuite struct {
 	Server   *httptest.Server
 }
 
-func (ts *HandlerTestSuite) SetupSuite() {
+func (ts *IntegrationV1TestSuite) SetupSuite() {
 	assert := require.New(ts.T())
 	ts.Requests = make(chan *http.Request, 100)
 
@@ -63,11 +63,11 @@ func (ts *HandlerTestSuite) SetupSuite() {
 	assert.NoError(err)
 }
 
-func (ts *HandlerTestSuite) TearDownSuite() {
+func (ts *IntegrationV1TestSuite) TearDownSuite() {
 	ts.Server.Close()
 }
 
-func (ts *HandlerTestSuite) TestStatus() {
+func (ts *IntegrationV1TestSuite) TestStatus() {
 	tests := []struct {
 		Name         string
 		Payload      pb.StatusEvent
@@ -116,7 +116,7 @@ device_status_margin,application_name=test-app,dev_eui=0102030405060708,device_n
 	}
 }
 
-func (ts *HandlerTestSuite) TestUplink() {
+func (ts *IntegrationV1TestSuite) TestUplink() {
 	tests := []struct {
 		Name         string
 		Payload      pb.UplinkEvent
@@ -334,6 +334,64 @@ device_uplink,application_name=test-app,dev_eui=0102030405060708,device_name=tes
 	}
 }
 
-func TestHandler(t *testing.T) {
-	suite.Run(t, new(HandlerTestSuite))
+type IntegrationV2TestSuite struct {
+	suite.Suite
+
+	Handler  *Integration
+	Requests chan *http.Request
+	Server   *httptest.Server
+}
+
+func (ts *IntegrationV2TestSuite) SetupSuite() {
+	assert := require.New(ts.T())
+	ts.Requests = make(chan *http.Request, 100)
+
+	httpHandler := testHTTPHandler{
+		requests: ts.Requests,
+	}
+	ts.Server = httptest.NewServer(&httpHandler)
+
+	conf := Config{
+		Endpoint:     ts.Server.URL + "/write",
+		Version:      2,
+		Token:        "test-token",
+		Organization: "test-org",
+		Bucket:       "test-bucket",
+	}
+	var err error
+	ts.Handler, err = New(conf)
+	assert.NoError(err)
+}
+
+func (ts *IntegrationV2TestSuite) TearDownSuite() {
+	ts.Server.Close()
+}
+
+// TestSend tests the send method with the InfluxDB v2 parameters.
+func (ts *IntegrationV2TestSuite) TestSend() {
+	assert := require.New(ts.T())
+	assert.NoError(ts.Handler.send([]measurement{
+		{
+			Name:   "test_measurement",
+			Tags:   map[string]string{"foo": "bar"},
+			Values: map[string]interface{}{"temperature": 22.5},
+		},
+	}))
+
+	req := <-ts.Requests
+	assert.Equal("/write", req.URL.Path)
+	assert.Equal(url.Values{
+		"org":    []string{"test-org"},
+		"bucket": []string{"test-bucket"},
+	}, req.URL.Query())
+
+	assert.Equal("Token test-token", req.Header.Get("Authorization"))
+}
+
+func TestV1Integration(t *testing.T) {
+	suite.Run(t, new(IntegrationV1TestSuite))
+}
+
+func TestV2Integration(t *testing.T) {
+	suite.Run(t, new(IntegrationV2TestSuite))
 }

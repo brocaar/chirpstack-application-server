@@ -439,13 +439,22 @@ func (a *ApplicationAPI) CreateInfluxDBIntegration(ctx context.Context, in *pb.C
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
+	version := 1
+	if in.Integration.Version == pb.InfluxDBVersion_INFLUXDB_2 {
+		version = 2
+	}
+
 	conf := influxdb.Config{
 		Endpoint:            in.Integration.Endpoint,
+		Version:             version,
 		DB:                  in.Integration.Db,
 		Username:            in.Integration.Username,
 		Password:            in.Integration.Password,
 		RetentionPolicyName: in.Integration.RetentionPolicyName,
 		Precision:           strings.ToLower(in.Integration.Precision.String()),
+		Token:               in.Integration.Token,
+		Organization:        in.Integration.Organization,
+		Bucket:              in.Integration.Bucket,
 	}
 	if err := conf.Validate(); err != nil {
 		return nil, helpers.ErrToRPCError(err)
@@ -487,16 +496,25 @@ func (a *ApplicationAPI) GetInfluxDBIntegration(ctx context.Context, in *pb.GetI
 	}
 
 	prec, _ := pb.InfluxDBPrecision_value[strings.ToUpper(conf.Precision)]
+	version := pb.InfluxDBVersion_INFLUXDB_1
+
+	if conf.Version == 2 {
+		version = pb.InfluxDBVersion_INFLUXDB_2
+	}
 
 	return &pb.GetInfluxDBIntegrationResponse{
 		Integration: &pb.InfluxDBIntegration{
 			ApplicationId:       in.ApplicationId,
 			Endpoint:            conf.Endpoint,
+			Version:             version,
 			Db:                  conf.DB,
 			Username:            conf.Username,
 			Password:            conf.Password,
 			RetentionPolicyName: conf.RetentionPolicyName,
 			Precision:           pb.InfluxDBPrecision(prec),
+			Token:               conf.Token,
+			Organization:        conf.Organization,
+			Bucket:              conf.Bucket,
 		},
 	}, nil
 }
@@ -518,13 +536,22 @@ func (a *ApplicationAPI) UpdateInfluxDBIntegration(ctx context.Context, in *pb.U
 		return nil, helpers.ErrToRPCError(err)
 	}
 
+	version := 1
+	if in.Integration.Version == pb.InfluxDBVersion_INFLUXDB_2 {
+		version = 2
+	}
+
 	conf := influxdb.Config{
 		Endpoint:            in.Integration.Endpoint,
+		Version:             version,
 		DB:                  in.Integration.Db,
 		Username:            in.Integration.Username,
 		Password:            in.Integration.Password,
 		RetentionPolicyName: in.Integration.RetentionPolicyName,
 		Precision:           strings.ToLower(in.Integration.Precision.String()),
+		Token:               in.Integration.Token,
+		Organization:        in.Integration.Organization,
+		Bucket:              in.Integration.Bucket,
 	}
 	if err := conf.Validate(); err != nil {
 		return nil, helpers.ErrToRPCError(err)

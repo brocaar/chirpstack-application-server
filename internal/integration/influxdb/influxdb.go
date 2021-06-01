@@ -29,17 +29,25 @@ var precisionValidator = regexp.MustCompile(`^(ns|u|ms|s|m|h)$`)
 
 // Config contains the configuration for the InfluxDB integration.
 type Config struct {
-	Endpoint            string `json:"endpoint"`
+	Endpoint string `json:"endpoint"`
+	Version  int    `json:"version"`
+
+	// v1 options
 	DB                  string `json:"db"`
 	Username            string `json:"username"`
 	Password            string `json:"password"`
 	RetentionPolicyName string `json:"retentionPolicyName"`
 	Precision           string `json:"precision"`
+
+	// v2 options
+	Token        string `json:"token"`
+	Organization string `json:"org"`
+	Bucket       string `json:"bucket"`
 }
 
 // Validate validates the HandlerConfig data.
 func (c Config) Validate() error {
-	if !precisionValidator.MatchString(c.Precision) {
+	if c.Precision != "" && !precisionValidator.MatchString(c.Precision) {
 		return ErrInvalidPrecision
 	}
 	return nil
@@ -126,9 +134,17 @@ func (i *Integration) send(measurements []measurement) error {
 	b := []byte(strings.Join(measStr, "\n"))
 
 	args := url.Values{}
-	args.Set("db", i.config.DB)
-	args.Set("precision", i.config.Precision)
-	args.Set("rp", i.config.RetentionPolicyName)
+
+	if i.config.Version == 2 {
+		args.Set("org", i.config.Organization)
+		args.Set("bucket", i.config.Bucket)
+	} else {
+		// Use else as version is a new field which might not be set.
+		// It is safe to assume that in this case v1 must be used.
+		args.Set("db", i.config.DB)
+		args.Set("precision", i.config.Precision)
+		args.Set("rp", i.config.RetentionPolicyName)
+	}
 
 	req, err := http.NewRequest("POST", i.config.Endpoint+"?"+args.Encode(), bytes.NewReader(b))
 	if err != nil {
@@ -137,8 +153,14 @@ func (i *Integration) send(measurements []measurement) error {
 
 	req.Header.Set("Content-Type", "text/plain")
 
-	if i.config.Username != "" || i.config.Password != "" {
-		req.SetBasicAuth(i.config.Username, i.config.Password)
+	if i.config.Version == 2 {
+		req.Header.Set("Authorization", "Token "+i.config.Token)
+	} else {
+		// Use else as version is a new field which might not be set.
+		// It is safe to assume that in this case v1 must be used.
+		if i.config.Username != "" || i.config.Password != "" {
+			req.SetBasicAuth(i.config.Username, i.config.Password)
+		}
 	}
 
 	resp, err := http.DefaultClient.Do(req)

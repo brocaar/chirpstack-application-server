@@ -318,11 +318,15 @@ func (ts *APITestSuite) TestApplication() {
 					Integration: &pb.InfluxDBIntegration{
 						ApplicationId:       createResp.Id,
 						Endpoint:            "http://localhost:8086/write",
+						Version:             pb.InfluxDBVersion_INFLUXDB_1,
 						Db:                  "chirpstack",
 						Username:            "username",
 						Password:            "password",
 						RetentionPolicyName: "DEFAULT",
 						Precision:           pb.InfluxDBPrecision_MS,
+						Token:               "test-token",
+						Organization:        "test-org",
+						Bucket:              "test-bucket",
 					},
 				}
 				_, err := api.CreateInfluxDBIntegration(context.Background(), &createReq)
@@ -355,11 +359,15 @@ func (ts *APITestSuite) TestApplication() {
 						Integration: &pb.InfluxDBIntegration{
 							ApplicationId:       createResp.Id,
 							Endpoint:            "http://localhost:8086/write2",
+							Version:             pb.InfluxDBVersion_INFLUXDB_2,
 							Db:                  "chirpstack2",
 							Username:            "username2",
 							Password:            "password2",
 							RetentionPolicyName: "CUSTOM",
 							Precision:           pb.InfluxDBPrecision_S,
+							Token:               "test-token-2",
+							Organization:        "test-org-2",
+							Bucket:              "test-bucket-2",
 						},
 					}
 					_, err := api.UpdateInfluxDBIntegration(context.Background(), &updateReq)

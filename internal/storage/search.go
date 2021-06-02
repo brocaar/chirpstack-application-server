@@ -44,7 +44,7 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, userID int64, globalAdmi
 	err := sqlx.Select(db, &result, `
 		select
 			'device' as kind,
-			greatest(similarity(d.name, $1), similarity(encode(d.dev_eui, 'hex'), $1)) as score,
+			greatest(similarity(d.name, $1), similarity(encode(d.dev_eui, 'hex'), $1), similarity(encode(d.dev_addr, 'hex'), $1)) as score,
 			o.id as organization_id,
 			o.name as organization_name,
 			a.id as application_id,
@@ -64,7 +64,7 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, userID int64, globalAdmi
 			on u.id = ou.user_id
 		where
 			($3 = true or u.id = $4)
-			and (d.name ilike $2 or encode(d.dev_eui, 'hex') ilike $2 or ($7 != hstore('') and d.tags @> $7))
+			and (d.name ilike $2 or encode(d.dev_eui, 'hex') ilike $2 or encode(d.dev_addr, 'hex') ilike $2 or ($7 != hstore('') and d.tags @> $7))
 		union
 		select
 			'gateway' as kind,

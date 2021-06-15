@@ -19,22 +19,22 @@ import (
 
 // MulticastGroup defines the multicast-group.
 type MulticastGroup struct {
-	CreatedAt        time.Time         `db:"created_at"`
-	UpdatedAt        time.Time         `db:"updated_at"`
-	Name             string            `db:"name"`
-	MCAppSKey        lorawan.AES128Key `db:"mc_app_s_key"`
-	ServiceProfileID uuid.UUID         `db:"service_profile_id"`
-	MulticastGroup   ns.MulticastGroup `db:"-"`
+	CreatedAt      time.Time         `db:"created_at"`
+	UpdatedAt      time.Time         `db:"updated_at"`
+	Name           string            `db:"name"`
+	MCAppSKey      lorawan.AES128Key `db:"mc_app_s_key"`
+	ApplicationID  int64             `db:"application_id"`
+	MulticastGroup ns.MulticastGroup `db:"-"`
 }
 
 // MulticastGroupListItem defines the multicast-group for listing.
 type MulticastGroupListItem struct {
-	ID                 uuid.UUID `db:"id"`
-	CreatedAt          time.Time `db:"created_at"`
-	UpdatedAt          time.Time `db:"updated_at"`
-	Name               string    `db:"name"`
-	ServiceProfileID   uuid.UUID `db:"service_profile_id"`
-	ServiceProfileName string    `db:"service_profile_name"`
+	ID              uuid.UUID `db:"id"`
+	CreatedAt       time.Time `db:"created_at"`
+	UpdatedAt       time.Time `db:"updated_at"`
+	Name            string    `db:"name"`
+	ApplicationID   int64     `db:"application_id"`
+	ApplicationName string    `db:"application_name"`
 }
 
 // Validate validates the service-profile data.
@@ -67,7 +67,7 @@ func CreateMulticastGroup(ctx context.Context, db sqlx.Ext, mg *MulticastGroup) 
 			created_at,
 			updated_at,
 			name,
-			service_profile_id,
+			application_id,
 			mc_app_s_key
 		) values ($1, $2, $3, $4, $5, $6)
 	`,
@@ -75,14 +75,14 @@ func CreateMulticastGroup(ctx context.Context, db sqlx.Ext, mg *MulticastGroup) 
 		mg.CreatedAt,
 		mg.UpdatedAt,
 		mg.Name,
-		mg.ServiceProfileID,
+		mg.ApplicationID,
 		mg.MCAppSKey,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
 	}
 
-	nsClient, err := getNSClientForServiceProfile(ctx, db, mg.ServiceProfileID)
+	nsClient, err := getNSClientForApplication(ctx, db, mg.ApplicationID)
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -116,7 +116,7 @@ func GetMulticastGroup(ctx context.Context, db sqlx.Queryer, id uuid.UUID, forUp
 			created_at,
 			updated_at,
 			name,
-			service_profile_id,
+			application_id,
 			mc_app_s_key
 		from
 			multicast_group
@@ -131,7 +131,7 @@ func GetMulticastGroup(ctx context.Context, db sqlx.Queryer, id uuid.UUID, forUp
 		return mg, nil
 	}
 
-	nsClient, err := getNSClientForServiceProfile(ctx, db, mg.ServiceProfileID)
+	nsClient, err := getNSClientForApplication(ctx, db, mg.ApplicationID)
 	if err != nil {
 		return mg, errors.Wrap(err, "get network-server client error")
 	}
@@ -190,7 +190,7 @@ func UpdateMulticastGroup(ctx context.Context, db sqlx.Ext, mg *MulticastGroup) 
 		return ErrDoesNotExist
 	}
 
-	nsClient, err := getNSClientForServiceProfile(ctx, db, mg.ServiceProfileID)
+	nsClient, err := getNSClientForApplication(ctx, db, mg.ApplicationID)
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -253,10 +253,10 @@ func DeleteMulticastGroup(ctx context.Context, db sqlx.Ext, id uuid.UUID) error 
 // MulticastGroupFilters provide filters that can be used to filter on
 // multicast-groups. Note that empty values are not used as filters.
 type MulticastGroupFilters struct {
-	OrganizationID   int64         `db:"organization_id"`
-	ServiceProfileID uuid.UUID     `db:"service_profile_id"`
-	DevEUI           lorawan.EUI64 `db:"dev_eui"`
-	Search           string        `db:"search"`
+	OrganizationID int64         `db:"organization_id"`
+	ApplicationID  int64         `db:"application_id"`
+	DevEUI         lorawan.EUI64 `db:"dev_eui"`
+	Search         string        `db:"search"`
 
 	// Limit and Offset are added for convenience so that this struct can
 	// be given as the arguments.
@@ -272,8 +272,8 @@ func (f MulticastGroupFilters) SQL() string {
 	if f.OrganizationID != 0 {
 		filters = append(filters, "o.id = :organization_id")
 	}
-	if f.ServiceProfileID != uuid.Nil {
-		filters = append(filters, "mg.service_profile_id = :service_profile_id")
+	if f.ApplicationID != 0 {
+		filters = append(filters, "mg.application_id = :application_id")
 	}
 	if f.DevEUI != nilEUI {
 		filters = append(filters, "dmg.dev_eui = :dev_eui")
@@ -301,10 +301,10 @@ func GetMulticastGroupCount(ctx context.Context, db sqlx.Queryer, filters Multic
 			count(distinct mg.*)
 		from
 			multicast_group mg
-		inner join service_profile sp
-			on sp.service_profile_id = mg.service_profile_id
+		inner join application a
+			on a.id = mg.application_id
 		inner join organization o
-			on o.id = sp.organization_id
+			on o.id = a.organization_id
 		left join device_multicast_group dmg
 			on mg.id = dmg.multicast_group_id
 	`+filters.SQL(), filters)
@@ -334,14 +334,14 @@ func GetMulticastGroups(ctx context.Context, db sqlx.Queryer, filters MulticastG
 			mg.created_at,
 			mg.updated_at,
 			mg.name,
-			mg.service_profile_id,
-			sp.name as service_profile_name
+			mg.application_id,
+			a.name as application_name
 		from
 			multicast_group mg
-		inner join service_profile sp
-			on sp.service_profile_id = mg.service_profile_id
+		inner join application a
+			on a.id = mg.application_id
 		inner join organization o
-			on o.id = sp.organization_id
+			on o.id = a.organization_id
 		left join device_multicast_group dmg
 			on mg.id = dmg.multicast_group_id
 	`+filters.SQL()+`

@@ -1640,7 +1640,7 @@ func ValidateDeviceProfileAccess(flag Flag, id uuid.UUID) ValidatorFunc {
 
 // ValidateMulticastGroupsAccess validates if the client has access to the
 // multicast-groups.
-func ValidateMulticastGroupsAccess(flag Flag, organizationID int64) ValidatorFunc {
+func ValidateMulticastGroupsAccess(flag Flag, applicationID int64) ValidatorFunc {
 	userQuery := `
 		select
 			1
@@ -1648,8 +1648,8 @@ func ValidateMulticastGroupsAccess(flag Flag, organizationID int64) ValidatorFun
 			"user" u
 		left join organization_user ou
 			on u.id = ou.user_id
-		left join organization o
-			on o.id = ou.organization_id
+		left join application a
+			on a.organization_id = ou.organization_id
 	`
 
 	apiKeyQuery := `
@@ -1657,8 +1657,8 @@ func ValidateMulticastGroupsAccess(flag Flag, organizationID int64) ValidatorFun
 			1
 		from
 			api_key ak
-		left join organization o
-			on ak.organization_id = o.id
+		left join application a
+			on ak.organization_id = a.organization_id
 	`
 
 	var userWhere = [][]string{}
@@ -1670,14 +1670,14 @@ func ValidateMulticastGroupsAccess(flag Flag, organizationID int64) ValidatorFun
 		// organization admin
 		userWhere = [][]string{
 			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
-			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "o.id = $2", "ou.is_admin = true"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "a.id = $2", "ou.is_admin = true"},
 		}
 
 		// admin api key
 		// org api key
 		apiKeyWhere = [][]string{
 			{"ak.id = $1", "ak.is_admin = true"},
-			{"ak.id = $1", "o.id = $2"},
+			{"ak.id = $1", "a.id = $2"},
 		}
 
 	case List:
@@ -1685,23 +1685,23 @@ func ValidateMulticastGroupsAccess(flag Flag, organizationID int64) ValidatorFun
 		// organization user
 		userWhere = [][]string{
 			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "u.is_admin = true"},
-			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "o.id = $2"},
+			{"(u.email = $1 or u.id = $3)", "u.is_active = true", "a.id = $2"},
 		}
 
 		// admin api key
 		// org api key
 		apiKeyWhere = [][]string{
 			{"ak.id = $1", "ak.is_admin = true"},
-			{"ak.id = $1", "o.id = $2"},
+			{"ak.id = $1", "a.id = $2"},
 		}
 	}
 
 	return func(db sqlx.Queryer, claims *Claims) (bool, error) {
 		switch claims.Subject {
 		case SubjectUser:
-			return executeQuery(db, userQuery, userWhere, claims.Username, organizationID, claims.UserID)
+			return executeQuery(db, userQuery, userWhere, claims.Username, applicationID, claims.UserID)
 		case SubjectAPIKey:
-			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, organizationID)
+			return executeQuery(db, apiKeyQuery, apiKeyWhere, claims.APIKeyID, applicationID)
 		default:
 			return false, nil
 		}
@@ -1718,10 +1718,10 @@ func ValidateMulticastGroupAccess(flag Flag, multicastGroupID uuid.UUID) Validat
 			"user" u
 		left join organization_user ou
 			on u.id = ou.user_id
-		left join service_profile sp
-			on sp.organization_id = ou.organization_id
+		left join application a
+			on a.organization_id = ou.organization_id
 		left join multicast_group mg
-			on sp.service_profile_id = mg.service_profile_id
+			on a.id = mg.application_id
 	`
 
 	apiKeyQuery := `
@@ -1731,10 +1731,10 @@ func ValidateMulticastGroupAccess(flag Flag, multicastGroupID uuid.UUID) Validat
 			api_key ak
 		left join organization o
 			on ak.organization_id = o.id
-		left join service_profile sp
-			on o.id = sp.organization_id
+		left join application a
+			on o.id = a.organization_id
 		left join multicast_group mg
-			on sp.service_profile_id = mg.service_profile_id
+			on a.id = mg.application_id
 	`
 
 	var userWhere = [][]string{}
@@ -1793,10 +1793,10 @@ func ValidateMulticastGroupQueueAccess(flag Flag, multicastGroupID uuid.UUID) Va
 			"user" u
 		left join organization_user ou
 			on u.id = ou.user_id
-		left join service_profile sp
-			on sp.organization_id = ou.organization_id
+		left join application a
+			on a.organization_id = ou.organization_id
 		left join multicast_group mg
-			on sp.service_profile_id = mg.service_profile_id
+			on a.id = mg.application_id
 	`
 
 	apiKeyQuery := `
@@ -1806,10 +1806,10 @@ func ValidateMulticastGroupQueueAccess(flag Flag, multicastGroupID uuid.UUID) Va
 			api_key ak
 		left join organization o
 			on ak.organization_id = o.id
-		left join service_profile sp
-			on o.id = sp.organization_id
+		left join application a
+			on o.id = a.organization_id
 		left join multicast_group mg
-			on sp.service_profile_id = mg.service_profile_id
+			on a.id = mg.application_id
 	`
 
 	var userWhere = [][]string{}

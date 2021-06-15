@@ -84,16 +84,16 @@ func (ts *APITestSuite) TestMulticastGroup() {
 
 		createReq := pb.CreateMulticastGroupRequest{
 			MulticastGroup: &pb.MulticastGroup{
-				Name:             "test-mg",
-				McAddr:           "01020304",
-				McNwkSKey:        "01020304050607080102030405060708",
-				McAppSKey:        "08070605040302010807060504030201",
-				FCnt:             10,
-				GroupType:        pb.MulticastGroupType_CLASS_B,
-				Dr:               5,
-				Frequency:        868100000,
-				PingSlotPeriod:   32,
-				ServiceProfileId: spID.String(),
+				Name:           "test-mg",
+				McAddr:         "01020304",
+				McNwkSKey:      "01020304050607080102030405060708",
+				McAppSKey:      "08070605040302010807060504030201",
+				FCnt:           10,
+				GroupType:      pb.MulticastGroupType_CLASS_B,
+				Dr:             5,
+				Frequency:      868100000,
+				PingSlotPeriod: 32,
+				ApplicationId:  app.ID,
 			},
 		}
 
@@ -159,10 +159,10 @@ func (ts *APITestSuite) TestMulticastGroup() {
 						TotalCount: 1,
 						Result: []*pb.MulticastGroupListItem{
 							{
-								Id:                 createResp.Id,
-								Name:               createReq.MulticastGroup.Name,
-								ServiceProfileId:   spID.String(),
-								ServiceProfileName: sp.Name,
+								Id:              createResp.Id,
+								Name:            createReq.MulticastGroup.Name,
+								ApplicationId:   app.ID,
+								ApplicationName: app.Name,
 							},
 						},
 					},
@@ -189,10 +189,10 @@ func (ts *APITestSuite) TestMulticastGroup() {
 						TotalCount: 1,
 						Result: []*pb.MulticastGroupListItem{
 							{
-								Id:                 createResp.Id,
-								Name:               createReq.MulticastGroup.Name,
-								ServiceProfileId:   spID.String(),
-								ServiceProfileName: sp.Name,
+								Id:              createResp.Id,
+								Name:            createReq.MulticastGroup.Name,
+								ApplicationId:   app.ID,
+								ApplicationName: app.Name,
 							},
 						},
 					},
@@ -219,40 +219,40 @@ func (ts *APITestSuite) TestMulticastGroup() {
 						TotalCount: 1,
 						Result: []*pb.MulticastGroupListItem{
 							{
-								Id:                 createResp.Id,
-								Name:               createReq.MulticastGroup.Name,
-								ServiceProfileId:   spID.String(),
-								ServiceProfileName: sp.Name,
+								Id:              createResp.Id,
+								Name:            createReq.MulticastGroup.Name,
+								ApplicationId:   app.ID,
+								ApplicationName: app.Name,
 							},
 						},
 					},
 				},
 				{
-					Name: "non-matching service-profile id",
+					Name: "non-matching application id",
 					User: user,
 					Request: pb.ListMulticastGroupRequest{
-						Limit:            10,
-						ServiceProfileId: uuid.Must(uuid.NewV4()).String(),
+						Limit:         10,
+						ApplicationId: app.ID + 1,
 					},
 					ExpectedResponse: pb.ListMulticastGroupResponse{
 						TotalCount: 0,
 					},
 				},
 				{
-					Name: "matching service-profile id",
+					Name: "matching application id",
 					User: user,
 					Request: pb.ListMulticastGroupRequest{
-						Limit:            10,
-						ServiceProfileId: spID.String(),
+						Limit:         10,
+						ApplicationId: app.ID,
 					},
 					ExpectedResponse: pb.ListMulticastGroupResponse{
 						TotalCount: 1,
 						Result: []*pb.MulticastGroupListItem{
 							{
-								Id:                 createResp.Id,
-								Name:               createReq.MulticastGroup.Name,
-								ServiceProfileId:   spID.String(),
-								ServiceProfileName: sp.Name,
+								Id:              createResp.Id,
+								Name:            createReq.MulticastGroup.Name,
+								ApplicationId:   app.ID,
+								ApplicationName: app.Name,
 							},
 						},
 					},
@@ -279,10 +279,10 @@ func (ts *APITestSuite) TestMulticastGroup() {
 						TotalCount: 1,
 						Result: []*pb.MulticastGroupListItem{
 							{
-								Id:                 createResp.Id,
-								Name:               createReq.MulticastGroup.Name,
-								ServiceProfileId:   spID.String(),
-								ServiceProfileName: sp.Name,
+								Id:              createResp.Id,
+								Name:            createReq.MulticastGroup.Name,
+								ApplicationId:   app.ID,
+								ApplicationName: app.Name,
 							},
 						},
 					},
@@ -346,17 +346,17 @@ func (ts *APITestSuite) TestMulticastGroup() {
 
 			updateReq := pb.UpdateMulticastGroupRequest{
 				MulticastGroup: &pb.MulticastGroup{
-					Id:               createResp.Id,
-					Name:             "test-mg-updated",
-					McAddr:           "04030201",
-					McAppSKey:        "01020304050607080102030405060708",
-					McNwkSKey:        "08070605040302010807060504030201",
-					FCnt:             11,
-					GroupType:        pb.MulticastGroupType_CLASS_C,
-					Dr:               4,
-					Frequency:        868300000,
-					PingSlotPeriod:   64,
-					ServiceProfileId: spID.String(),
+					Id:             createResp.Id,
+					Name:           "test-mg-updated",
+					McAddr:         "04030201",
+					McAppSKey:      "01020304050607080102030405060708",
+					McNwkSKey:      "08070605040302010807060504030201",
+					FCnt:           11,
+					GroupType:      pb.MulticastGroupType_CLASS_C,
+					Dr:             4,
+					Frequency:      868300000,
+					PingSlotPeriod: 64,
+					ApplicationId:  app.ID,
 				},
 			}
 

@@ -456,10 +456,34 @@ func GetNetworkServerForMulticastGroupID(ctx context.Context, db sqlx.Queryer, i
 			network_server ns
 		inner join service_profile sp
 			on sp.network_server_id = ns.id
+		inner join application a
+			on a.service_profile_id = sp.service_profile_id
 		inner join multicast_group mg
-			on mg.service_profile_id = sp.service_profile_id
+			on mg.application_id = a.id
 		where
 			mg.id = $1
+	`, id)
+	if err != nil {
+		return n, handlePSQLError(Select, err, "select error")
+	}
+	return n, nil
+}
+
+// GetNetworkServerForApplicationID returns the network-server for the given
+// application ID.
+func GetNetworkServerForApplicationID(ctx context.Context, db sqlx.Queryer, id int64) (NetworkServer, error) {
+	var n NetworkServer
+	err := sqlx.Get(db, &n, `
+		select
+			ns.*
+		from
+			network_server ns
+		inner join service_profile sp
+			on sp.network_server_id = ns.id
+		inner join application a
+			on a.service_profile_id = sp.service_profile_id
+		where
+			a.id = $1
 	`, id)
 	if err != nil {
 		return n, handlePSQLError(Select, err, "select error")

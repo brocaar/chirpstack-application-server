@@ -73,12 +73,12 @@ class MulticastGroupStore extends EventEmitter {
     });
   }
 
-  list(search, organizationID, serviceProfileID, devEUI, limit, offset, callbackFunc) {
+  list(search, applicationID, serviceProfileID, devEUI, limit, offset, callbackFunc) {
     this.swagger.then(client => {
       client.apis.MulticastGroupService.List({
         limit: limit,
         offset: offset,
-        organizationID: organizationID,
+        applicationID: applicationID,
         serviceProfileID: serviceProfileID,
         devEUI: devEUI,
         search: search,
@@ -116,7 +116,7 @@ class MulticastGroupStore extends EventEmitter {
       })
       .then(checkStatus)
       .then(resp => {
-        this.notifyDevice("removed from");
+        this.notifyDevice(devEUI + " removed from");
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);

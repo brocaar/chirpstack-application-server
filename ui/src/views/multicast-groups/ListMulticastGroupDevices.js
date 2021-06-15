@@ -1,14 +1,11 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
 
 import { withStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import Button from '@material-ui/core/Button';
-import IconButton from "@material-ui/core/IconButton";
-
-import Plus from "mdi-material-ui/Plus";
+import Checkbox from "@material-ui/core/Checkbox";
 import Delete from "mdi-material-ui/Delete";
 
 import DeviceAdmin from "../../components/DeviceAdmin";
@@ -16,10 +13,14 @@ import TableCellLink from "../../components/TableCellLink";
 import DataTable from "../../components/DataTable";
 import DeviceStore from "../../stores/DeviceStore";
 import theme from "../../theme";
-import multicastGroupStore from "../../stores/MulticastGroupStore";
+import MulticastGroupStore from "../../stores/MulticastGroupStore";
 
 
 const styles = {
+  select: {
+    width: 2 * theme.spacing(1),
+    padding: 0,
+  },
   buttons: {
     textAlign: "right",
   },
@@ -36,11 +37,13 @@ const styles = {
 class ListMulticastGroupDevices extends Component {
   constructor() {
     super();
-    this.getPage = this.getPage.bind(this);
-    this.getRow = this.getRow.bind(this);
+
+    this.state = {
+      selected: {},
+    };
   }
 
-  getPage(limit, offset, callbackFunc) {
+  getPage = (limit, offset, callbackFunc) => {
     DeviceStore.list({
       multicastGroupID: this.props.match.params.multicastGroupID,
       limit: limit,
@@ -48,27 +51,60 @@ class ListMulticastGroupDevices extends Component {
     }, callbackFunc);
   }
 
-  onDelete(devEUI) {
-    if(window.confirm("Are you sure you want to remove this device from the multicast-group? This does not remove the device itself.")) {
-      multicastGroupStore.removeDevice(this.props.match.params.multicastGroupID, devEUI, resp => {
-        this.forceUpdate();
-      });
+  onCheckboxChange = (e) => {
+    let selected = this.state.selected;
+
+    if (e.target.checked) {
+      selected[e.target.id] = true;
+    } else {
+      delete selected[e.target.id];
+    }
+    
+    this.setState({
+      selected: selected,
+    });
+  }
+
+  removeDevices = () => {
+    if (window.confirm("Are you sure you want to remove the selected devices from the multicast-group?")) {
+      let count = 0;
+      let self = this;
+
+      for (const [key, ] of Object.entries(this.state.selected)) {
+        count++;
+
+        MulticastGroupStore.removeDevice(this.props.match.params.multicastGroupID, key, function (cnt) {
+          return function () {
+            // reload after the last request completed
+            if (cnt === Object.keys(self.state.selected).length) {
+              self.setState({
+                selected: {},
+              });
+              self.forceUpdate();
+            }
+          };
+        }(count));
+      }
     }
   }
 
-  getRow(obj) {
+  getRow = (obj) => {
     return(
       <TableRow
         key={obj.devEUI}
         hover
       >
-        <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/applications/${obj.applicationID}/devices/${obj.devEUI}`}>{obj.name}</TableCellLink>
-        <TableCell>{obj.devEUI}</TableCell>
-        <TableCell className={this.props.classes.buttons}>
+        <TableCell className={this.props.classes.select}>
           <DeviceAdmin organizationID={this.props.match.params.organizationID}>
-            <IconButton onClick={this.onDelete.bind(this, obj.devEUI)}><Delete /></IconButton>
+            <Checkbox
+              id={obj.devEUI}
+              onChange={this.onCheckboxChange}
+              checked={!!this.state.selected[obj.devEUI]}
+            />
           </DeviceAdmin>
         </TableCell>
+        <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/applications/${obj.applicationID}/devices/${obj.devEUI}`}>{obj.name}</TableCellLink>
+        <TableCell>{obj.devEUI}</TableCell>
       </TableRow>
     );
   }
@@ -78,9 +114,9 @@ class ListMulticastGroupDevices extends Component {
       <Grid container spacing={4}>
         <DeviceAdmin organizationID={this.props.match.params.organizationID}>
           <Grid item xs={12} className={this.props.classes.buttons}>
-            <Button variant="outlined" className={this.props.classes.button} component={Link} to={`/organizations/${this.props.match.params.organizationID}/multicast-groups/${this.props.match.params.multicastGroupID}/devices/create`}>
-              <Plus className={this.props.classes.icon} />
-              Add
+            <Button variant="outlined" disabled={Object.keys(this.state.selected).length === 0} color="secondary" className={this.props.classes.button} onClick={this.removeDevices}>
+              <Delete className={this.props.classes.icon} />
+              Remove from group
             </Button>
           </Grid>
         </DeviceAdmin>
@@ -88,9 +124,9 @@ class ListMulticastGroupDevices extends Component {
           <DataTable
             header={
               <TableRow>
+                <TableCell></TableCell>
                 <TableCell>Device name</TableCell>
                 <TableCell>Device EUI</TableCell>
-                <TableCell></TableCell>
               </TableRow>
             }
             getPage={this.getPage}

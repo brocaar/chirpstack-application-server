@@ -2137,9 +2137,17 @@ func (ts *ValidatorTestSuite) TestMulticastGroup() {
 		assert.NoError(err)
 	}
 
+	applications := []storage.Application{
+		{OrganizationID: ts.organizations[0].ID, Name: "application-1", ServiceProfileID: serviceProfileIDs[0]},
+		{OrganizationID: ts.organizations[0].ID, Name: "application-2", ServiceProfileID: serviceProfileIDs[1]},
+	}
+	for i := range applications {
+		assert.NoError(storage.CreateApplication(context.Background(), storage.DB(), &applications[i]))
+	}
+
 	multicastGroups := []storage.MulticastGroup{
-		{Name: "mg-1", ServiceProfileID: serviceProfileIDs[0]},
-		{Name: "mg-2", ServiceProfileID: serviceProfileIDs[1]},
+		{Name: "mg-1", ApplicationID: applications[0].ID},
+		{Name: "mg-2", ApplicationID: applications[1].ID},
 	}
 	var multicastGroupsIDs []uuid.UUID
 	for i := range multicastGroups {
@@ -2152,49 +2160,49 @@ func (ts *ValidatorTestSuite) TestMulticastGroup() {
 		tests := []validatorTest{
 			{
 				Name:       "global admin users can create and list",
-				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, ts.organizations[0].ID), ValidateMulticastGroupsAccess(List, ts.organizations[0].ID)},
+				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, applications[0].ID), ValidateMulticastGroupsAccess(List, applications[0].ID)},
 				Claims:     Claims{UserID: users[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization admin users can create and list",
-				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, ts.organizations[0].ID), ValidateMulticastGroupsAccess(List, ts.organizations[0].ID)},
+				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, applications[0].ID), ValidateMulticastGroupsAccess(List, applications[0].ID)},
 				Claims:     Claims{UserID: orgUsers[1].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can list",
-				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(List, ts.organizations[0].ID)},
+				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(List, applications[0].ID)},
 				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "organization users can not create",
-				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, ts.organizations[0].ID)},
+				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, applications[0].ID)},
 				Claims:     Claims{UserID: orgUsers[0].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "non-organization users can not create or list",
-				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, ts.organizations[0].ID), ValidateMulticastGroupsAccess(List, ts.organizations[0].ID)},
+				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, applications[0].ID), ValidateMulticastGroupsAccess(List, applications[0].ID)},
 				Claims:     Claims{UserID: users[2].id},
 				ExpectedOK: false,
 			},
 			{
 				Name:       "admin api key can create and list",
-				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, ts.organizations[0].ID), ValidateMulticastGroupsAccess(List, ts.organizations[0].ID)},
+				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, applications[0].ID), ValidateMulticastGroupsAccess(List, applications[0].ID)},
 				Claims:     Claims{APIKeyID: apiKeys[0].ID},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "org api key can create and list",
-				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, ts.organizations[0].ID), ValidateMulticastGroupsAccess(List, ts.organizations[0].ID)},
+				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, applications[0].ID), ValidateMulticastGroupsAccess(List, applications[0].ID)},
 				Claims:     Claims{APIKeyID: apiKeys[1].ID},
 				ExpectedOK: true,
 			},
 			{
 				Name:       "other api key can not create or list",
-				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, ts.organizations[0].ID), ValidateMulticastGroupsAccess(List, ts.organizations[0].ID)},
+				Validators: []ValidatorFunc{ValidateMulticastGroupsAccess(Create, applications[0].ID), ValidateMulticastGroupsAccess(List, applications[0].ID)},
 				Claims:     Claims{APIKeyID: apiKeys[2].ID},
 				ExpectedOK: false,
 			},

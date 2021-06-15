@@ -16,7 +16,6 @@ import Server from "mdi-material-ui/Server";
 import Apps from "mdi-material-ui/Apps";
 import RadioTower from "mdi-material-ui/RadioTower";
 import Tune from "mdi-material-ui/Tune";
-import Rss from "mdi-material-ui/Rss";
 import AccountDetails from "mdi-material-ui/AccountDetails";
 import KeyVariant from "mdi-material-ui/KeyVariant";
 
@@ -255,12 +254,6 @@ class SideNav extends Component {
               <Apps />
             </ListItemIcon>
             <ListItemText primary="Applications" />
-          </ListItem>
-          <ListItem button component={Link} to={`/organizations/${this.state.organization.id}/multicast-groups`}>
-            <ListItemIcon>
-              <Rss />
-            </ListItemIcon>
-            <ListItemText primary="Multicast-groups" />
           </ListItem>
         </List>}
       </Drawer>

@@ -131,6 +131,12 @@ func Setup(c config.Config) error {
 		return err
 	}
 
+	if err := CodeMigration("validate_multicast_group_devices", func(db sqlx.Ext) error {
+		return code.ValidateMulticastGroupDevices(db)
+	}); err != nil {
+		return err
+	}
+
 	if c.PostgreSQL.Automigrate {
 		if err := MigrateUp(d); err != nil {
 			return err

@@ -19,6 +19,8 @@ import ListDevices from "../devices/ListDevices";
 import UpdateApplication from "./UpdateApplication";
 import ListIntegrations from "./ListIntegrations";
 
+import ListMulticastGroups from "../multicast-groups/ListMulticastGroups";
+
 import CreateAWSSNSIntegration from "./integrations/CreateAWSSNSIntegration";
 import CreateGCPPubSubIntegration from "./integrations/CreateGCPPubSubIntegration";
 import CreateHTTPIntegration from "./integrations/CreateHTTPIntegration";
@@ -108,8 +110,10 @@ class ApplicationLayout extends Component {
     let tab = 0;
 
     if (window.location.href.match(/.*\/integrations.*/g)) {
-      tab = 2;
+      tab = 3;
     } else if (window.location.href.endsWith("/edit")) {
+      tab = 2;
+    } else if (window.location.href.match(/.*\/multicast-groups.*/g)) {
       tab = 1;
     }
 
@@ -156,6 +160,7 @@ class ApplicationLayout extends Component {
             className={this.props.classes.tabs}
           >
             <Tab label="Devices" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`} />
+            <Tab label="Multicast groups" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/multicast-groups`} />
             {this.state.admin && <Tab label="Application configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/edit`} />}
             {this.state.admin && <Tab label="Integrations" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations`} />}
           </Tabs>
@@ -163,6 +168,7 @@ class ApplicationLayout extends Component {
 
         <Grid item xs={12}>
           <Switch>
+            <Route exact path={`${this.props.match.path}/multicast-groups`} render={props => <ListMulticastGroups application={this.state.application.application} {...props} />} />
             <Route exact path={`${this.props.match.path}/edit`} render={props => <UpdateApplication application={this.state.application.application} {...props} />} />
             <Route exact path={`${this.props.match.path}/integrations`} render={props => <ListIntegrations application={this.state.application.application} {...props} />} />
             <Route exact path={`${this.props.match.path}`} render={props => <ListDevices application={this.state.application.application} {...props} />} />

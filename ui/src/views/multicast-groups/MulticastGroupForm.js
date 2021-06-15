@@ -11,7 +11,6 @@ import AESKeyField from "../../components/AESKeyField";
 import DevAddrField from "../../components/DevAddrField";
 import Form from "../../components/Form";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
-import ServiceProfileStore from "../../stores/ServiceProfileStore";
 import theme from "../../theme";
 
 
@@ -26,25 +25,6 @@ const styles = {
 
 
 class MulticastGroupForm extends FormComponent {
-  constructor() {
-    super();
-    this.getServiceProfileOption = this.getServiceProfileOption.bind(this);
-    this.getServiceProfileOptions = this.getServiceProfileOptions.bind(this);
-  }
-
-  getServiceProfileOption(id, callbackFunc) {
-    ServiceProfileStore.get(id, resp => {
-      callbackFunc({label: resp.serviceProfile.name, value: resp.serviceProfile.id});
-    });
-  }
-
-  getServiceProfileOptions(search, callbackFunc) {
-    ServiceProfileStore.list(this.props.match.params.organizationID, 0, 999, 0, resp => {
-      const options = resp.result.map((sp, i) => {return {label: sp.name, value: sp.id}});
-      callbackFunc(options);
-    });
-  }
-
   getRandomKey(len) {
     let cryptoObj = window.crypto || window.msCrypto;
     let b = new Uint8Array(len);
@@ -106,22 +86,6 @@ class MulticastGroupForm extends FormComponent {
           fullWidth
           required
         />
-        {!this.props.update && <FormControl fullWidth margin="normal">
-          <FormLabel className={this.props.classes.formLabel} required>Service-profile</FormLabel> 
-          <AutocompleteSelect
-            id="serviceProfileID"
-            label="Select service-profile"
-            value={this.state.object.serviceProfileID || ""}
-            onChange={this.onChange}
-            getOption={this.getServiceProfileOption}
-            getOptions={this.getServiceProfileOptions}
-            margin="none"
-            required
-          />
-          <FormHelperText>
-            The service-profile to which this multicast-group will be attached. Note that you can't change this value after the multicast-group has been created.
-          </FormHelperText>
-        </FormControl>}
         <DevAddrField
           id="mcAddr"
           label="Multicast address"

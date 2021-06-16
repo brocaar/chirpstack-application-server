@@ -339,7 +339,7 @@ id="{{ .ApplicationServer.ID }}"
   # Event routing key template.
   #
   # This is the event routing-key template used when publishing device
-  # events.
+  # events. Messages will be published to the "amq.topic" exchange.
   event_routing_key_template="{{ .ApplicationServer.Integration.AMQP.EventRoutingKeyTemplate }}"
 
 

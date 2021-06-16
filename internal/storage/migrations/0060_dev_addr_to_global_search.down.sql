@@ -1,0 +1,1 @@
+drop index idx_device_dev_addr_trgm;

@@ -29,6 +29,7 @@ class JSONTree extends Component {
 
     // :(
     let data = JSON.parse(JSON.stringify(this.props.data));
+    let type = this.props.eventType;
 
     if ("devEUI" in data && data.devEUI !== null) {
       data.devEUI = base64ToHex(data.devEUI);
@@ -38,7 +39,7 @@ class JSONTree extends Component {
       data.devAddr = base64ToHex(data.devAddr);
     }
 
-    if ("gatewayID" in data && data.gatewayID !== null) {
+    if ("gatewayID" in data && data.gatewayID !== null && type === "txack") {
       data.gatewayID = base64ToHex(data.gatewayID);
     }
 

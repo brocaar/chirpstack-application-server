@@ -137,7 +137,7 @@ class DeviceDataItem extends Component {
         <ExpansionPanelDetails>
           <Grid container spacing={4}>
             {this.state.expanded && <Grid item xs className={this.props.classes.treeStyle}>
-              <JSONTree data={this.props.data.payload} />
+              <JSONTree data={this.props.data.payload} eventType={this.props.data.type} />
             </Grid>}
           </Grid>
         </ExpansionPanelDetails>
@@ -222,8 +222,6 @@ class DeviceData extends Component {
     if (this.state.paused) {
       return;
     }
-
-    console.log('data: ', d);
 
     let data = this.state.data;
     const now = new Date();

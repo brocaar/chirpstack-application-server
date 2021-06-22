@@ -1,0 +1,1 @@
+create index idx_device_dev_addr_trgm on device using gin (encode(dev_addr, 'hex') gin_trgm_ops);

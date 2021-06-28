@@ -35,18 +35,11 @@ var migrations embed.FS
 
 // Integration implements a PostgreSQL integration.
 type Integration struct {
-	db        *sqlx.DB
-	marshaler marshaler.Type
+	db *sqlx.DB
 }
 
 // New creates a new PostgreSQL integration.
-func New(m marshaler.Type, conf config.IntegrationPostgreSQLConfig) (*Integration, error) {
-	// In case of (binary) Protobuf marshaler, use JSON Protobuf mapping as we
-	// write the output to a jsonb field.
-	if m == marshaler.Protobuf {
-		m = marshaler.ProtobufJSON
-	}
-
+func New(conf config.IntegrationPostgreSQLConfig) (*Integration, error) {
 	log.Info("integration/postgresql: connecting to PostgreSQL database")
 	d, err := sqlx.Open("postgres", conf.DSN)
 	if err != nil {
@@ -68,8 +61,7 @@ func New(m marshaler.Type, conf config.IntegrationPostgreSQLConfig) (*Integratio
 		return nil, err
 	}
 	return &Integration{
-		db:        d,
-		marshaler: m,
+		db: d,
 	}, nil
 }
 
@@ -178,7 +170,7 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 
 	var rxInfoItems []json.RawMessage
 	for ii := range pl.GetRxInfo() {
-		b, err := marshaler.Marshal(i.marshaler, pl.RxInfo[ii])
+		b, err := marshaler.Marshal(marshaler.ProtobufJSON, pl.RxInfo[ii])
 		if err != nil {
 			return errors.Wrap(err, "marshal rx_info error")
 		}
@@ -191,7 +183,7 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 
 	txInfoB := []byte("null")
 	if txInfo := pl.GetTxInfo(); txInfo != nil {
-		txInfoB, err = marshaler.Marshal(i.marshaler, txInfo)
+		txInfoB, err = marshaler.Marshal(marshaler.ProtobufJSON, txInfo)
 		if err != nil {
 			return errors.Wrap(err, "marshal tx_info error")
 		}
@@ -537,7 +529,7 @@ func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration
 
 	txInfoB := []byte("null")
 	if txInfo := pl.GetTxInfo(); txInfo != nil {
-		txInfoB, err = marshaler.Marshal(i.marshaler, txInfo)
+		txInfoB, err = marshaler.Marshal(marshaler.ProtobufJSON, txInfo)
 		if err != nil {
 			return errors.Wrap(err, "marshal tx_info error")
 		}

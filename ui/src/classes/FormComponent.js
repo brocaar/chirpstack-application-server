@@ -76,8 +76,8 @@ class FormComponent extends Component {
       kvs[index] = obj;
 
       object[name] = {};
-      kvs.forEach((obj, i) => {
-        object[name][obj.key] = obj.value;
+      kvs.forEach((objj, i) => {
+        object[name][objj.key] = objj.value;
       });
 
       let ss = {

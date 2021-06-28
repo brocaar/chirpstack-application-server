@@ -161,7 +161,6 @@ class ApplicationStore extends EventEmitter {
         callbackFunc(resp.obj);
       })
       .catch(errorHandler);
-      ;
     });
   }
 

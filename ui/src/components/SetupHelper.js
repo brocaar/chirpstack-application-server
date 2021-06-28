@@ -101,7 +101,7 @@ class SetupHelper extends Component {
     }
 
     DeviceProfileStore.list(SessionStore.getOrganizationID(), 0, 0, 0, resp => {
-      if (resp.totalCount === "0" && !(this.state.nsDialog | this.state.dpDialog)) {
+      if (resp.totalCount === "0" && !(this.state.nsDialog || this.state.dpDialog)) {
         this.setState({
           dpDialog: true,
         });

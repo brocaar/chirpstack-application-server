@@ -184,9 +184,7 @@ class AESKeyField extends Component {
       str = bytes.reverse().join("");
     } else if (bytes !== null) {
       str = bytes.join("");
-    } else {
-      str = "";
-    }
+    } 
 
     this.props.onChange({
       target: {
@@ -209,9 +207,7 @@ class AESKeyField extends Component {
       str = bytes.reverse().join("");
     } else if (bytes !== null) {
       str = bytes.join("");
-    } else {
-      str = "";
-    }
+    } 
 
     this.props.onChange({
       target: {

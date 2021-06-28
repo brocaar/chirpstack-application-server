@@ -91,8 +91,6 @@ class EUI64Field extends Component {
       str = bytes.reverse().join("");
     } else if (bytes !== null) {
       str = bytes.join("");
-    } else {
-      str = "";
     }
 
     this.props.onChange({
@@ -116,8 +114,6 @@ class EUI64Field extends Component {
       str = bytes.reverse().join("");
     } else if (bytes !== null) {
       str = bytes.join("");
-    } else {
-      str = "";
     }
 
     this.props.onChange({

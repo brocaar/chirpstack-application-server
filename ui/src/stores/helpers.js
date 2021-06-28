@@ -8,7 +8,7 @@ export function checkStatus(response) {
   } else {
     throw response.json();
   }
-};
+}
 
 export function successNotify(message) {
   dispatcher.dispatch({
@@ -42,7 +42,7 @@ export function errorHandler(error) {
       });
     }
   }
-};
+}
 
 export function errorHandlerLogin(error) {
   if(error.response === undefined) {
@@ -62,7 +62,7 @@ export function errorHandlerLogin(error) {
       },
     });
   }
-};
+}
 
 export function errorHandlerIgnoreNotFound(error) {
   if (error.response === undefined) {
@@ -86,7 +86,7 @@ export function errorHandlerIgnoreNotFound(error) {
       });
     }
   }
-};
+}
 
 export function errorHandlerIgnoreNotFoundWithCallback(callbackFunc) {
   return function(error) {

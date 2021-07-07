@@ -40,6 +40,9 @@ jobs:
         name: Install UI depdencies
         run: docker-compose run --rm chirpstack-application-server make ui-requirements
       -
+        name: Reset package-lock.json
+        run: it checkout -- ui/package-lock.json
+      -
         name: Build distributable binaries
         run: docker-compose run --rm chirpstack-application-server make dist
       -

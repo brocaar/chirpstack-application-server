@@ -226,16 +226,18 @@ class DeviceData extends Component {
     let data = this.state.data;
     const now = new Date();
 
-    data.unshift({
-      id: now.getTime(),
-      publishedAt: d.publishedAt,
-      type: d.type,
-      payload: JSON.parse(d.payloadJSON),
-    });
+    if (data.length === 0 || moment(d.publishedAt).isAfter(data[0].publishedAt)) {
+      data.unshift({
+        id: now.getTime(),
+        publishedAt: d.publishedAt,
+        type: d.type,
+        payload: JSON.parse(d.payloadJSON),
+      });
 
-    this.setState({
-      data: data,
-    });
+      this.setState({
+        data: data,
+      });
+    }
   }
 
   render() {

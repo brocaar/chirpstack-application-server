@@ -20,6 +20,7 @@ import HelpCircleOutline from "mdi-material-ui/HelpCircleOutline";
 import AlertCircleOutline from "mdi-material-ui/AlertCircleOutline";
 
 import fileDownload from "js-file-download";
+import moment from "moment";
 
 import LoRaWANFrameLog from "../../components/LoRaWANFrameLog";
 import GatewayStore from "../../stores/GatewayStore";
@@ -121,35 +122,37 @@ class GatewayFrames extends Component {
     }
 
     let frames = this.state.frames;
+    let f = {};
     const now = new Date();
 
     if (frame.uplinkFrame !== undefined) {
-      frames.unshift({
+      f = {
         id: now.getTime(),
         publishedAt: frame.uplinkFrame.publishedAt,
         rxInfo: frame.uplinkFrame.rxInfo,
         txInfo: frame.uplinkFrame.txInfo,
         phyPayload: JSON.parse(frame.uplinkFrame.phyPayloadJSON),
-      });
+      };
     }
 
     if (frame.downlinkFrame !== undefined) {
       delete frame.downlinkFrame.txInfo['gatewayID'];
 
-      frames.unshift({
+      f = {
         id: now.getTime(),
         publishedAt: frame.downlinkFrame.publishedAt,
         gatewayID: frame.downlinkFrame.gatewayID,
         txInfo: frame.downlinkFrame.txInfo,
         phyPayload: JSON.parse(frame.downlinkFrame.phyPayloadJSON),
-      });
+      };
     }
 
-    console.log(frame);
-
-    this.setState({
-      frames: frames,
-    });
+    if (frames.length === 0 || moment(f.publishedAt).isAfter(moment(frames[0].publishedAt))) {
+      frames.unshift(f);
+      this.setState({
+        frames: frames,
+      });
+    }
   }
 
   render() {

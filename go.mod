@@ -6,7 +6,7 @@ require (
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
 	github.com/aws/aws-sdk-go v1.26.3
 	github.com/brocaar/chirpstack-api/go/v3 v3.10.0
-	github.com/brocaar/lorawan v0.0.0-20210507123736-8a8cd6f95de0
+	github.com/brocaar/lorawan v0.0.0-20210629093152-95aaed5ba796
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.3.1

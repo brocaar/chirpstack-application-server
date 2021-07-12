@@ -13,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-api/go/v3/gw"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
@@ -80,6 +81,10 @@ func marshalJSONV3(msg proto.Message) ([]byte, error) {
 		return jsonv3MarshalTxAckEvent(v)
 	case *integration.IntegrationEvent:
 		return jsonv3MarshalIntegrationEvent(v)
+	case *gw.UplinkRXInfo:
+		return jsonv3MarshalUplinkRXInfo(v)
+	case *gw.UplinkTXInfo:
+		return jsonv3MarshalUplinkTXInfo(v)
 	default:
 		return nil, fmt.Errorf("unknown message type: %T", msg)
 	}
@@ -152,6 +157,43 @@ func jsonv3MarshalUplinkEvent(msg *integration.UplinkEvent) ([]byte, error) {
 	}
 
 	return json.Marshal(m)
+}
+
+func jsonv3MarshalUplinkRXInfo(msg *gw.UplinkRXInfo) ([]byte, error) {
+	rxInfo := models.RXInfo{
+		RSSI:    int(msg.Rssi),
+		LoRaSNR: float64(msg.LoraSnr),
+	}
+
+	copy(rxInfo.GatewayID[:], msg.GatewayId)
+	copy(rxInfo.UplinkID[:], msg.UplinkId)
+
+	if msg.Time != nil {
+		t, err := ptypes.Timestamp(msg.Time)
+		if err == nil {
+			rxInfo.Time = &t
+		}
+	}
+
+	if msg.Location != nil {
+		rxInfo.Location = &models.Location{
+			Latitude:  msg.Location.Latitude,
+			Longitude: msg.Location.Longitude,
+			Altitude:  msg.Location.Altitude,
+		}
+	}
+
+	if gw, err := storage.GetGateway(context.Background(), storage.DB(), rxInfo.GatewayID, false); err == nil {
+		rxInfo.Name = gw.Name
+	}
+
+	return json.Marshal(rxInfo)
+}
+
+func jsonv3MarshalUplinkTXInfo(msg *gw.UplinkTXInfo) ([]byte, error) {
+	return json.Marshal(models.TXInfo{
+		Frequency: int(msg.Frequency),
+	})
 }
 
 func jsonv3MarshalJoinEvent(msg *integration.JoinEvent) ([]byte, error) {

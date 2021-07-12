@@ -23,6 +23,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
 	"github.com/brocaar/lorawan"
@@ -156,7 +157,7 @@ func (ts *PostgreSQLTestSuite) SetupSuite() {
 		panic(err)
 	}
 
-	ts.integration, err = New(config.IntegrationPostgreSQLConfig{
+	ts.integration, err = New(marshaler.Protobuf, config.IntegrationPostgreSQLConfig{
 		DSN: dsn,
 	})
 	if err != nil {

@@ -5,7 +5,7 @@ ENV PATH=$PATH:$PROJECT_PATH/build
 ENV CGO_ENABLED=0
 ENV GO_EXTRA_BUILD_ARGS="-a -installsuffix cgo"
 
-RUN apk add --no-cache ca-certificates make git bash alpine-sdk nodejs nodejs-npm
+RUN apk add --no-cache ca-certificates make git bash alpine-sdk nodejs npm
 
 RUN mkdir -p $PROJECT_PATH
 COPY . $PROJECT_PATH

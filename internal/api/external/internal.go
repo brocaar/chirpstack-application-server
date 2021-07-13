@@ -1,6 +1,7 @@
 package external
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -412,7 +413,7 @@ func (a *InternalAPI) createAndProvisionUser(ctx context.Context, user oidc.User
 		return u, nil
 	}
 
-	if err := a.provisionUser(ctx, u); err != nil {
+	if err := a.provisionUser(ctx, u, user); err != nil {
 		if err := storage.DeleteUser(ctx, storage.DB(), u.ID); err != nil {
 			return storage.User{}, errors.Wrap(err, "delete user error after failed user provisioning")
 		}
@@ -425,13 +426,18 @@ func (a *InternalAPI) createAndProvisionUser(ctx context.Context, user oidc.User
 	return u, nil
 }
 
-func (a *InternalAPI) provisionUser(ctx context.Context, u storage.User) error {
+func (a *InternalAPI) provisionUser(ctx context.Context, u storage.User, oidcUser oidc.User) error {
 	req, err := http.NewRequestWithContext(ctx, "POST", registrationCallbackURL, nil)
 	if err != nil {
 		return errors.Wrap(err, "new request error")
 	}
 	q := req.URL.Query()
 	q.Add("user_id", fmt.Sprintf("%d", u.ID))
+	claims, err := json.Marshal(oidcUser.UserInfoClaims)
+	if err != nil {
+		return errors.Wrap(err, "marshal claims error")
+	}
+	q.Add("oidc_claims", string(claims))
 	req.URL.RawQuery = q.Encode()
 
 	resp, err := http.DefaultClient.Do(req)

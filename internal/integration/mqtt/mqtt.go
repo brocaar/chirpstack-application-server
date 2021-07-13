@@ -408,7 +408,7 @@ func (i *Integration) txPayloadHandler(mqttc mqtt.Client, msg mqtt.Message) {
 	// Since with MQTT all subscribers will receive the downlink messages sent
 	// by the application, the first instance receiving the message must lock it,
 	// so that other instances can ignore the message.
-	key := fmt.Sprintf("lora:as:downlink:lock:%d:%s:%x", pl.ApplicationID, pl.DevEUI, sha256.Sum256(msg.Payload()))
+	key := storage.GetRedisKey("lora:as:downlink:lock:%d:%s:%x", pl.ApplicationID, pl.DevEUI, sha256.Sum256(msg.Payload()))
 	set, err := storage.RedisClient().SetNX(context.Background(), key, "lock", downlinkLockTTL).Result()
 	if err != nil {
 		log.WithError(err).Error("integration/mqtt: acquire lock error")

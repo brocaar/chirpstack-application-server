@@ -100,7 +100,7 @@ class MulticastGroupLayout extends Component {
   deleteMulticastGroup() {
     if (window.confirm("Are you sure you want to delete this multicast-group?")) {
       MulticastGroupStore.delete(this.props.match.params.multicastGroupID, resp => {
-        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/multicast-groups`);
+        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/multicast-groups`);
       });
     }
   }

@@ -32,6 +32,7 @@ import (
 // Migrations
 //go:embed migrations/*
 var migrations embed.FS
+var StaticIntegration Integration
 
 // Integration implements a PostgreSQL integration.
 type Integration struct {
@@ -67,6 +68,12 @@ func New(m marshaler.Type, conf config.IntegrationPostgreSQLConfig) (*Integratio
 	if err := MigrateUp(d); err != nil {
 		return nil, err
 	}
+	staticIntegration := Integration{
+		db:        d,
+		marshaler: m,
+	}
+	StaticIntegration = staticIntegration
+
 	return &Integration{
 		db:        d,
 		marshaler: m,
@@ -246,6 +253,90 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 		objectJSON,
 		tagsToHstore(pl.Tags),
 		pl.ConfirmedUplink,
+		devAddr[:],
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert error")
+	}
+
+	log.WithFields(log.Fields{
+		"event":   "up",
+		"dev_eui": devEUI,
+		"ctx_id":  ctx.Value(logging.ContextIDKey),
+	}).Info("integration/postgresql: event stored")
+
+	return nil
+}
+
+// HandleDownEvent implemented.
+func (i Integration) HandleDownlinkEvent(ctx context.Context, vars map[string]string, pl pb.DownlinkEvent) error {
+
+	// use an UUID here so that we can later refactor this for correlation
+	id, err := uuid.NewV4()
+	if err != nil {
+		return errors.Wrap(err, "new uuid error")
+	}
+
+	ts, err := ptypes.Timestamp(pl.PublishedAt)
+	if err != nil {
+		return errors.Wrap(err, "protobuf timestamp error")
+	}
+
+	txInfoB := []byte("null")
+	if txInfo := pl.GetTxInfo(); txInfo != nil {
+		txInfoB, err = marshaler.Marshal(i.marshaler, txInfo)
+		if err != nil {
+			return errors.Wrap(err, "marshal tx_info error")
+		}
+	}
+
+	objectJSON := json.RawMessage("null")
+	if pl.ObjectJson != "" {
+		objectJSON = json.RawMessage(pl.ObjectJson)
+	}
+
+	var devEUI lorawan.EUI64
+	var devAddr lorawan.DevAddr
+	copy(devEUI[:], pl.DevEui)
+	copy(devAddr[:], pl.DevAddr)
+
+	_, err = i.db.Exec(`
+		insert into device_down (
+			id,
+			sent_at,
+			dev_eui,
+			device_name,
+			application_id,
+			application_name,
+			frequency,
+			dr,
+			adr,
+			f_cnt,
+			f_port,
+			data,
+			tx_info,
+			object,
+			tags,
+			confirmed_downlink,
+			dev_addr
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+		id,
+		ts,
+		devEUI,
+		pl.DeviceName,
+		pl.ApplicationId,
+		pl.ApplicationName,
+		// TODO: deprecate this field, as it is part of tx_info.
+		pl.GetTxInfo().GetFrequency(),
+		pl.Dr,
+		pl.Adr,
+		pl.FCnt,
+		pl.FPort,
+		pl.Data,
+		json.RawMessage(txInfoB),
+		objectJSON,
+		tagsToHstore(pl.Tags),
+		pl.ConfirmedDownlink,
 		devAddr[:],
 	)
 	if err != nil {

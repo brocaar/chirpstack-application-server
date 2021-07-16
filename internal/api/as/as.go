@@ -21,6 +21,7 @@ import (
 	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/events/downlink"
 	"github.com/brocaar/chirpstack-application-server/internal/events/uplink"
 	"github.com/brocaar/chirpstack-application-server/internal/gwping"
 	"github.com/brocaar/chirpstack-application-server/internal/integration"
@@ -82,6 +83,15 @@ func NewApplicationServerAPI() *ApplicationServerAPI {
 func (a *ApplicationServerAPI) HandleUplinkData(ctx context.Context, req *as.HandleUplinkDataRequest) (*empty.Empty, error) {
 	if err := uplink.Handle(ctx, *req); err != nil {
 		return nil, grpc.Errorf(codes.Internal, "handle uplink data error: %s", err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// HandleDownlinkData handles ongoing (downlink) data.
+func (a *ApplicationServerAPI) HandleDownlinkData(ctx context.Context, req *as.HandleDownlinkDataRequest) (*empty.Empty, error) {
+	if err := downlink.Handle(ctx, *req); err != nil {
+		return nil, grpc.Errorf(codes.Internal, "handle downlink data error: %s", err) //todo
 	}
 
 	return &empty.Empty{}, nil

@@ -321,6 +321,11 @@ func (a *InternalAPI) OpenIDConnectLogin(ctx context.Context, req *pb.OpenIDConn
 					if err != nil {
 						return nil, helpers.ErrToRPCError(err)
 					}
+					// fetch user again because the provisioning callback url may have updated the user.
+					user, err = storage.GetUser(ctx, storage.DB(), user.ID)
+					if err != nil {
+						return nil, helpers.ErrToRPCError(err)
+					}
 				} else {
 					return nil, helpers.ErrToRPCError(err)
 				}

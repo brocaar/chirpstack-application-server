@@ -33,10 +33,11 @@ var (
 
 // User defines an OpenID Connect user object.
 type User struct {
-	ExternalID    string `json:"sub"`
-	Name          string `json:"name"`
-	Email         string `json:"email"`
-	EmailVerified bool   `json:"email_verified"`
+	ExternalID     string                 `json:"sub"`
+	Name           string                 `json:"name"`
+	Email          string                 `json:"email"`
+	EmailVerified  bool                   `json:"email_verified"`
+	UserInfoClaims map[string]interface{} `json:"user_info_claims"`
 }
 
 // Setup configured the OpenID Connect endpoint handlers.
@@ -190,14 +191,31 @@ func GetUser(ctx context.Context, code string, state string) (User, error) {
 		ClientID: clientID,
 	}
 
-	idToken, err := auth.provider.Verifier(oidcConfig).Verify(ctx, rawIDToken)
-	if err != nil {
+	if _, err := auth.provider.Verifier(oidcConfig).Verify(ctx, rawIDToken); err != nil {
 		return User{}, errors.Wrap(err, "verify id token error")
 	}
 
 	var user User
-	if err := idToken.Claims(&user); err != nil {
+
+	// Request the claims through a UserInfo call to the OIDC server.
+	// We don't read claims from the "id_token" because most OIDC servers don't include
+	// claims in id_token by default. We would have to request claims to be included in
+	// id_token explicitly. But then servers don't have to implement/support that
+	// request. The UserInfo call does always include the claims.
+	userInfo, err := auth.provider.UserInfo(ctx, oauth2.StaticTokenSource(token))
+	if err != nil {
 		return User{}, errors.Wrap(err, "get userInfo error")
+	}
+
+	// Parse the well-known claims into user.
+	if err := userInfo.Claims(&user); err != nil {
+		return User{}, errors.Wrap(err, "get userInfo claims for user error")
+	}
+
+	// And also parse the claims in a map, so we can pass them on when calling the registration URL later on.
+	user.UserInfoClaims = map[string]interface{}{}
+	if err := userInfo.Claims(&user.UserInfoClaims); err != nil {
+		return User{}, errors.Wrap(err, "get userInfo claims for user claims map error")
 	}
 
 	return user, nil

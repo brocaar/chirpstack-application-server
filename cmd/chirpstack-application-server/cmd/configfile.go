@@ -178,11 +178,14 @@ id="{{ .ApplicationServer.ID }}"
     # can implement the association of the user with an organization, create a new
     # organization, ...
     # ChirpStack Application Server will make a HTTP POST call to this endpoint,
-    # with the URL parameter user_id.
+    # with the following URL parameters:
+    # - user_id, of the newly created user in ChirpStack Application Server.
+    # - oidc_claims, the claims returned by the OpenID Connect "UserInfo" call, JSON-encoded. Use this to find additional information, like the users organization.
     registration_callback_url="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.RegistrationCallbackURL }}"
 
     # Provider URL.
     # This is the URL of the OpenID Connect provider.
+    # Example: https://auth.example.org
     provider_url="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.ProviderURL }}"
 
     # Client ID.

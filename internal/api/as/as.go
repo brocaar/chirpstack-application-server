@@ -490,6 +490,27 @@ func (a *ApplicationServerAPI) HandleGatewayStats(ctx context.Context, req *as.H
 			"tx_ok_count": float64(req.TxPacketsEmitted),
 		},
 	}
+
+	for k, v := range req.TxPacketsPerFrequency {
+		metrics.Metrics[fmt.Sprintf("tx_freq_%d", k)] = float64(v)
+	}
+
+	for k, v := range req.RxPacketsPerFrequency {
+		metrics.Metrics[fmt.Sprintf("rx_freq_%d", k)] = float64(v)
+	}
+
+	for k, v := range req.TxPacketsPerDr {
+		metrics.Metrics[fmt.Sprintf("tx_dr_%d", k)] = float64(v)
+	}
+
+	for k, v := range req.RxPacketsPerDr {
+		metrics.Metrics[fmt.Sprintf("rx_dr_%d", k)] = float64(v)
+	}
+
+	for k, v := range req.TxPacketsPerStatus {
+		metrics.Metrics[fmt.Sprintf("tx_status_%s", k)] = float64(v)
+	}
+
 	if err := storage.SaveMetrics(ctx, fmt.Sprintf("gw:%s", gatewayID), metrics); err != nil {
 		return nil, helpers.ErrToRPCError(errors.Wrap(err, "save metrics error"))
 	}

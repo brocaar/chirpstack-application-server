@@ -366,6 +366,22 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			RxPacketsReceivedOk: 9,
 			TxPacketsReceived:   8,
 			TxPacketsEmitted:    7,
+			TxPacketsPerFrequency: map[uint32]uint32{
+				868100000: 7,
+			},
+			RxPacketsPerFrequency: map[uint32]uint32{
+				868300000: 9,
+			},
+			TxPacketsPerDr: map[uint32]uint32{
+				3: 7,
+			},
+			RxPacketsPerDr: map[uint32]uint32{
+				2: 9,
+			},
+			TxPacketsPerStatus: map[string]uint32{
+				"OK":       7,
+				"TOO_LATE": 1,
+			},
 			Metadata: map[string]string{
 				"foo": "bar",
 			},
@@ -381,10 +397,16 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		assert.Len(metrics, 1)
 
 		assert.Equal(map[string]float64{
-			"rx_count":    10,
-			"rx_ok_count": 9,
-			"tx_count":    8,
-			"tx_ok_count": 7,
+			"rx_count":           10,
+			"rx_ok_count":        9,
+			"tx_count":           8,
+			"tx_ok_count":        7,
+			"tx_freq_868100000":  7,
+			"rx_freq_868300000":  9,
+			"tx_dr_3":            7,
+			"rx_dr_2":            9,
+			"tx_status_OK":       7,
+			"tx_status_TOO_LATE": 1,
 		}, metrics[0].Metrics)
 		assert.Equal(start.UTC(), metrics[0].Time.UTC())
 

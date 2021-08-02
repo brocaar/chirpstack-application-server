@@ -311,7 +311,7 @@ func (i Integration) HandleDownlinkEvent(ctx context.Context, vars map[string]st
 			frequency,
 			dr,
 			adr,
-			f_cnt,
+			f_cnt_down,
 			f_port,
 			data,
 			tx_info,

@@ -89,6 +89,7 @@ class DeviceProfileForm extends FormComponent {
       {value: "B", label: "B"},
       {value: "RP002-1.0.0", label: "RP002-1.0.0"},
       {value: "RP002-1.0.1", label: "RP002-1.0.1"},
+      {value: "RP002-1.0.2", label: "RP002-1.0.2"},
     ];
 
     callbackFunc(regParamsOptions);

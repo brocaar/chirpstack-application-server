@@ -284,7 +284,7 @@ func (a *OrganizationAPI) ListUsers(ctx context.Context, req *pb.ListOrganizatio
 	return &resp, nil
 }
 
-// AddUser creates the given organization-user link.
+// AddUser creates the given organization-user link. The user is matched by email, not user id.
 func (a *OrganizationAPI) AddUser(ctx context.Context, req *pb.AddOrganizationUserRequest) (*empty.Empty, error) {
 	if req.OrganizationUser == nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "organization_user must not be nil")

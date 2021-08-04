@@ -157,11 +157,15 @@ class DevicesActiveInactive extends Component {
       };
     }
 
+    const options = {
+      animation: false,
+    };
+
     return(
       <Card>
         <CardHeader title="Active devices" />
         <CardContent>
-          {data && <Doughnut data={data} />}
+          {data && <Doughnut data={data} options={options} />}
           {!data && <div>No data available.</div>}
         </CardContent>
       </Card>
@@ -190,12 +194,16 @@ class GatewaysActiveInactive extends Component {
       };
     }
 
+    const options = {
+      animation: false,
+    };
+
 
     return(
       <Card>
         <CardHeader title="Active gateways" />
         <CardContent>
-          {data && <Doughnut data={data} />}
+          {data && <Doughnut data={data} options={options} />}
           {!data && <div>No data available.</div>}
         </CardContent>
       </Card>
@@ -229,13 +237,16 @@ class DevicesDataRates extends Component {
         data.datasets[0].backgroundColor.push(this.getColor(dr));
       }
     }
-
+    
+    const options = {
+      animation: false,
+    };
 
     return(
       <Card>
         <CardHeader title="Device data-rate usage" />
         <CardContent>
-          {data && <Doughnut data={data} />}
+          {data && <Doughnut data={data} options={options} />}
           {!data && <div>No data available.</div>}
         </CardContent>
       </Card>

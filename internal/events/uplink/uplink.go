@@ -44,6 +44,7 @@ var tasks = []func(*uplinkContext) error{
 	decryptPayload,
 	handleCodec,
 	handleIntegrations,
+	saveMetrics,
 }
 
 // Handle handles the uplink event.
@@ -290,6 +291,44 @@ func handleIntegrations(ctx *uplinkContext) error {
 			log.WithError(err).Error("send uplink event error")
 		}
 	}()
+
+	return nil
+}
+
+func saveMetrics(ctx *uplinkContext) error {
+	var maxRSSI int32
+	var maxSNR float64
+
+	for i, rxInfo := range ctx.uplinkDataReq.GetRxInfo() {
+		if i == 0 {
+			maxRSSI = rxInfo.Rssi
+			maxSNR = rxInfo.LoraSnr
+		}
+
+		if rxInfo.Rssi > maxRSSI {
+			maxRSSI = rxInfo.Rssi
+		}
+
+		if rxInfo.LoraSnr > maxSNR {
+			maxSNR = rxInfo.LoraSnr
+		}
+	}
+
+	// note that the RSS and SNR needs to be divided by the rx_count
+	metrics := storage.MetricsRecord{
+		Time: time.Now(),
+		Metrics: map[string]float64{
+			"rx_count":    1.0,
+			"gw_rssi_sum": float64(maxRSSI),
+			"gw_snr_sum":  maxSNR,
+			fmt.Sprintf("rx_freq_%d", ctx.uplinkDataReq.GetTxInfo().Frequency): 1.0,
+			fmt.Sprintf("rx_dr_%d", ctx.uplinkDataReq.Dr):                      1.0,
+		},
+	}
+
+	if err := storage.SaveMetrics(ctx.ctx, fmt.Sprintf("device:%s", ctx.device.DevEUI), metrics); err != nil {
+		return errors.Wrap(err, "save metrics error")
+	}
 
 	return nil
 }

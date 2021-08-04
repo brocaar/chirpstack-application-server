@@ -2,6 +2,7 @@ package external
 
 import (
 	"database/sql"
+	"strconv"
 	"strings"
 
 	"github.com/gofrs/uuid"
@@ -668,15 +669,51 @@ func (a *GatewayAPI) GetStats(ctx context.Context, req *pb.GetGatewayStatsReques
 	result := make([]*pb.GatewayStats, len(metrics))
 	for i, m := range metrics {
 		result[i] = &pb.GatewayStats{
-			RxPacketsReceived:   int32(m.Metrics["rx_count"]),
-			RxPacketsReceivedOk: int32(m.Metrics["rx_ok_count"]),
-			TxPacketsReceived:   int32(m.Metrics["tx_count"]),
-			TxPacketsEmitted:    int32(m.Metrics["tx_ok_count"]),
+			RxPacketsReceived:     int32(m.Metrics["rx_count"]),
+			RxPacketsReceivedOk:   int32(m.Metrics["rx_ok_count"]),
+			TxPacketsReceived:     int32(m.Metrics["tx_count"]),
+			TxPacketsEmitted:      int32(m.Metrics["tx_ok_count"]),
+			TxPacketsPerDr:        make(map[uint32]uint32),
+			RxPacketsPerDr:        make(map[uint32]uint32),
+			TxPacketsPerFrequency: make(map[uint32]uint32),
+			RxPacketsPerFrequency: make(map[uint32]uint32),
+			TxPacketsPerStatus:    make(map[string]uint32),
 		}
 
 		result[i].Timestamp, err = ptypes.TimestampProto(m.Time)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
+		}
+
+		for k, v := range m.Metrics {
+			if strings.HasPrefix(k, "tx_freq_") {
+				if freq, err := strconv.ParseUint(strings.TrimPrefix(k, "tx_freq_"), 10, 32); err == nil {
+					result[i].TxPacketsPerFrequency[uint32(freq)] = uint32(v)
+				}
+			}
+
+			if strings.HasPrefix(k, "rx_freq_") {
+				if freq, err := strconv.ParseUint(strings.TrimPrefix(k, "rx_freq_"), 10, 32); err == nil {
+					result[i].RxPacketsPerFrequency[uint32(freq)] = uint32(v)
+				}
+			}
+
+			if strings.HasPrefix(k, "tx_dr_") {
+				if freq, err := strconv.ParseUint(strings.TrimPrefix(k, "tx_dr_"), 10, 32); err == nil {
+					result[i].TxPacketsPerDr[uint32(freq)] = uint32(v)
+				}
+			}
+
+			if strings.HasPrefix(k, "rx_dr_") {
+				if freq, err := strconv.ParseUint(strings.TrimPrefix(k, "rx_dr_"), 10, 32); err == nil {
+					result[i].RxPacketsPerDr[uint32(freq)] = uint32(v)
+				}
+			}
+
+			if strings.HasPrefix(k, "tx_status_") {
+				status := strings.TrimPrefix(k, "tx_status_")
+				result[i].TxPacketsPerStatus[status] = uint32(v)
+			}
 		}
 	}
 

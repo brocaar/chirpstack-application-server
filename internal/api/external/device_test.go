@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -25,6 +26,9 @@ import (
 
 func (ts *APITestSuite) TestDevice() {
 	assert := require.New(ts.T())
+
+	assert.NoError(storage.SetAggregationIntervals([]storage.AggregationInterval{storage.AggregationMinute}))
+	storage.SetMetricsTTL(time.Minute, time.Minute, time.Minute, time.Minute)
 
 	nsClient := mock.NewClient()
 	networkserver.SetPool(mock.NewPool(nsClient))
@@ -665,6 +669,47 @@ func (ts *APITestSuite) TestDevice() {
 
 				resp := <-respChan
 				assert.Equal(eventlog.Join, resp.Type)
+			})
+
+			t.Run("GetStats", func(t *testing.T) {
+				assert := require.New(t)
+
+				metrics := storage.MetricsRecord{
+					Time: time.Now(),
+					Metrics: map[string]float64{
+						"rx_count":          2,
+						"gw_rssi_sum":       -120.0,
+						"gw_snr_sum":        10.0,
+						"rx_freq_868100000": 2,
+						"rx_dr_2":           2,
+						"error_TOO_LATE":    1,
+					},
+				}
+				assert.NoError(storage.SaveMetrics(context.Background(), "device:0807060504030201", metrics))
+
+				resp, err := api.GetStats(context.Background(), &pb.GetDeviceStatsRequest{
+					DevEui:         "0807060504030201",
+					Interval:       "MINUTE",
+					StartTimestamp: ptypes.TimestampNow(),
+					EndTimestamp:   ptypes.TimestampNow(),
+				})
+				assert.NoError(err)
+				assert.Len(resp.Result, 1)
+				resp.Result[0].Timestamp = nil
+				assert.Equal(&pb.DeviceStats{
+					RxPackets: 2,
+					GwRssi:    -60,
+					GwSnr:     5,
+					RxPacketsPerFrequency: map[uint32]uint32{
+						868100000: 2,
+					},
+					RxPacketsPerDr: map[uint32]uint32{
+						2: 2,
+					},
+					Errors: map[string]uint32{
+						"TOO_LATE": 1,
+					},
+				}, resp.Result[0])
 			})
 
 			t.Run("Delete", func(t *testing.T) {

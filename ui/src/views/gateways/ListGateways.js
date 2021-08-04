@@ -57,19 +57,23 @@ class GatewayRow extends Component {
   render() {
     const options = {
       scales: {
-        xAxes: [{display: false}],
-        yAxes: [{display: false}],
+        x: {
+          display: false,
+        },
+        y: {
+          display: false,
+        },
       },
-      tooltips: {
-        enabled: false,
-      },
-      legend: {
-        display: false,
+      plugins: {
+        tooltips: {
+          enabled: false,
+        },
+        legend: {
+          display: false,
+        },
       },
       responsive: false,
-      animation: {
-        duration: 0,
-      },
+      animation: false,
     };
 
     let lastseen = "Never";

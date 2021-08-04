@@ -193,6 +193,22 @@ class DeviceStore extends EventEmitter {
     });
   }
 
+  getStats(devEUI, start, end, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.DeviceService.GetStats({
+        dev_eui: devEUI,
+        interval: "DAY",
+        startTimestamp: start,
+        endTimestamp: end,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
+
   getDataLogsConnection(devEUI, onData) {
     const loc = window.location;
     const wsURL = (() => {

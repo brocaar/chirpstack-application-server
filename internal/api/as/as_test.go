@@ -43,6 +43,9 @@ func (ts *ASTestSuite) SetupSuite() {
 func (ts *ASTestSuite) TestApplicationServer() {
 	assert := require.New(ts.T())
 
+	assert.NoError(storage.SetAggregationIntervals([]storage.AggregationInterval{storage.AggregationMinute}))
+	storage.SetMetricsTTL(time.Minute, time.Minute, time.Minute, time.Minute)
+
 	nsClient := nsmock.NewClient()
 	networkserver.SetPool(nsmock.NewPool(nsClient))
 
@@ -128,6 +131,7 @@ func (ts *ASTestSuite) TestApplicationServer() {
 	api := NewApplicationServerAPI()
 
 	ts.T().Run("HandleError", func(t *testing.T) {
+		start := time.Now()
 		assert := require.New(t)
 
 		_, err := api.HandleError(ctx, &as.HandleErrorRequest{
@@ -154,11 +158,24 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			},
 			PublishedAt: pl.PublishedAt,
 		}, pl)
+
+		stop := time.Now()
+
+		// metrics
+		metrics, err := storage.GetMetrics(context.Background(), storage.AggregationMinute, "device:0102030405060708", start, stop)
+		assert.NoError(err)
+		assert.Len(metrics, 1)
+		assert.Equal(map[string]float64{
+			"error_DATA_UP_FCNT_RESET": 1.0,
+		}, metrics[0].Metrics)
 	})
 
 	ts.T().Run("HandleUplinkDataRequest", func(t *testing.T) {
 		t.Run("With DeviceSecurityContext", func(t *testing.T) {
 			assert := require.New(t)
+
+			// make sure stats are all flushed
+			storage.RedisClient().FlushAll(context.Background())
 
 			now := time.Now().UTC()
 			uplinkID, err := uuid.NewV4()
@@ -217,6 +234,18 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			assert.NoError(err)
 			assert.Equal(lorawan.DevAddr{0x01, 0x02, 0x03, 0x04}, d.DevAddr)
 			assert.Equal(lorawan.AES128Key{0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8}, d.AppSKey)
+
+			stop := time.Now()
+			metrics, err := storage.GetMetrics(context.Background(), storage.AggregationMinute, "device:0102030405060708", now, stop)
+			assert.NoError(err)
+			assert.Len(metrics, 1)
+			assert.Equal(map[string]float64{
+				"gw_rssi_sum":       -60,
+				"gw_snr_sum":        5,
+				"rx_count":          1,
+				"rx_dr_6":           1,
+				"rx_freq_868100000": 1,
+			}, metrics[0].Metrics)
 		})
 
 		t.Run("Activated device", func(t *testing.T) {
@@ -351,9 +380,6 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		nowPB, err := ptypes.TimestampProto(now)
 		assert.NoError(err)
 
-		assert.NoError(storage.SetAggregationIntervals([]storage.AggregationInterval{storage.AggregationMinute}))
-		storage.SetMetricsTTL(time.Minute, time.Minute, time.Minute, time.Minute)
-
 		stats := as.HandleGatewayStatsRequest{
 			GatewayId: gw.MAC[:],
 			Time:      nowPB,
@@ -366,6 +392,22 @@ func (ts *ASTestSuite) TestApplicationServer() {
 			RxPacketsReceivedOk: 9,
 			TxPacketsReceived:   8,
 			TxPacketsEmitted:    7,
+			TxPacketsPerFrequency: map[uint32]uint32{
+				868100000: 7,
+			},
+			RxPacketsPerFrequency: map[uint32]uint32{
+				868300000: 9,
+			},
+			TxPacketsPerDr: map[uint32]uint32{
+				3: 7,
+			},
+			RxPacketsPerDr: map[uint32]uint32{
+				2: 9,
+			},
+			TxPacketsPerStatus: map[string]uint32{
+				"OK":       7,
+				"TOO_LATE": 1,
+			},
 			Metadata: map[string]string{
 				"foo": "bar",
 			},
@@ -381,10 +423,16 @@ func (ts *ASTestSuite) TestApplicationServer() {
 		assert.Len(metrics, 1)
 
 		assert.Equal(map[string]float64{
-			"rx_count":    10,
-			"rx_ok_count": 9,
-			"tx_count":    8,
-			"tx_ok_count": 7,
+			"rx_count":           10,
+			"rx_ok_count":        9,
+			"tx_count":           8,
+			"tx_ok_count":        7,
+			"tx_freq_868100000":  7,
+			"rx_freq_868300000":  9,
+			"tx_dr_3":            7,
+			"rx_dr_2":            9,
+			"tx_status_OK":       7,
+			"tx_status_TOO_LATE": 1,
 		}, metrics[0].Metrics)
 		assert.Equal(start.UTC(), metrics[0].Time.UTC())
 

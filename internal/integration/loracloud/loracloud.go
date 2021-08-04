@@ -698,10 +698,35 @@ func (i *Integration) streamGeolocWorkaround(ctx context.Context, vars map[strin
 				return errors.Wrap(err, "handle das response error")
 			}
 		} else if p[0] == 0x08 {
-			// wifi
+			// wifi (legacy)
 			msg := das.UplinkMsgWifi{
 				MsgType:   "wifi",
 				Payload:   helpers.HEXBytes(append([]byte{0x01}, p[2:]...)),
+				Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
+			}
+
+			client := das.New(i.dasURI, i.config.DASToken)
+			resp, err := client.UplinkSend(ctx, das.UplinkRequest{
+				helpers.EUI64(devEUI): msg,
+			})
+			if err != nil {
+				return errors.Wrap(err, "das error")
+			}
+
+			err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl, common.LocationSource_GEO_RESOLVER_WIFI)
+			if err != nil {
+				return errors.Wrap(err, "handle das response error")
+			}
+		} else if p[0] == 0x0e {
+			// validate that p is at least 7 bytes we have to skip the tag, length + first 5 bytes
+			if len(p) < 7 {
+				continue
+			}
+
+			// wifi
+			msg := das.UplinkMsgWifi{
+				MsgType:   "wifi",
+				Payload:   helpers.HEXBytes(append([]byte{0x01}, p[7:]...)),
 				Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
 			}
 

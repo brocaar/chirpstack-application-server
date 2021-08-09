@@ -5,8 +5,8 @@ go 1.16
 require (
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
 	github.com/aws/aws-sdk-go v1.26.3
-	github.com/brocaar/chirpstack-api/go/v3 v3.11.0
-	github.com/brocaar/lorawan v0.0.0-20210629093152-95aaed5ba796
+	github.com/brocaar/chirpstack-api/go/v3 v3.11.1
+	github.com/brocaar/lorawan v0.0.0-20210809075358-95fc1667572e
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.3.1

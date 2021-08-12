@@ -29,7 +29,7 @@ type Config struct {
 	Headers          map[string]string `json:"headers"`
 	EventEndpointURL string            `json:"eventEndpointURL"`
 	Marshaler        string            `json:"marshaler"`
-	Timeout          int64             `json:"timeout"` // Milliseconds
+	Timeout          time.Duration     `json:"timeout"`
 
 	// For backwards compatibility.
 	DataUpURL                  string `json:"dataUpURL"`
@@ -72,7 +72,7 @@ func New(m marshaler.Type, conf Config) (*Integration, error) {
 	}
 
 	if conf.Timeout == 0 {
-		conf.Timeout = 10000
+		conf.Timeout = time.Second * 10
 	}
 
 	return &Integration{
@@ -103,7 +103,7 @@ func (i *Integration) send(u string, msg proto.Message) error {
 	}
 
 	client := &http.Client{
-		Timeout: time.Millisecond * time.Duration(i.config.Timeout),
+		Timeout: i.config.Timeout,
 	}
 
 	resp, err := client.Do(req)

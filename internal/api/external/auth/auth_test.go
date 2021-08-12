@@ -8,8 +8,8 @@ import (
 
 	"golang.org/x/net/context"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gofrs/uuid"
+	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"

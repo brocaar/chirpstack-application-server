@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	uuid "github.com/gofrs/uuid"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/stretchr/testify/require"
 
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"

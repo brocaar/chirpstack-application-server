@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
@@ -28,6 +29,7 @@ type Config struct {
 	Headers          map[string]string `json:"headers"`
 	EventEndpointURL string            `json:"eventEndpointURL"`
 	Marshaler        string            `json:"marshaler"`
+	Timeout          time.Duration     `json:"timeout"`
 
 	// For backwards compatibility.
 	DataUpURL                  string `json:"dataUpURL"`
@@ -69,6 +71,10 @@ func New(m marshaler.Type, conf Config) (*Integration, error) {
 		}
 	}
 
+	if conf.Timeout == 0 {
+		conf.Timeout = time.Second * 10
+	}
+
 	return &Integration{
 		marshaler: m,
 		config:    conf,
@@ -96,7 +102,11 @@ func (i *Integration) send(u string, msg proto.Message) error {
 		req.Header.Set(k, v)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	client := &http.Client{
+		Timeout: i.config.Timeout,
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return errors.Wrap(err, "http request error")
 	}

@@ -54,7 +54,7 @@ jobs:
   # Runs on pull request to ensure the docker build works,
   # but pushes only on commits to master and on PRs.
   docker:
-    # needs: test
+    needs: test
     runs-on: ubuntu-latest
     steps:
       -

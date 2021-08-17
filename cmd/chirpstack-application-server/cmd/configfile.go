@@ -32,8 +32,6 @@ grpc_default_resolver_scheme="{{ .General.GRPCDefaultResolverScheme }}"
 
 
 # PostgreSQL settings.
-#
-# Please note that PostgreSQL 9.5+ is required.
 [postgresql]
 # PostgreSQL dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable).
 #
@@ -86,8 +84,6 @@ max_idle_connections={{ .PostgreSQL.MaxIdleConnections }}
 
 
 # Redis settings
-#
-# Please note that Redis 2.6.0+ is required.
 [redis]
 
 # Server address or addresses.

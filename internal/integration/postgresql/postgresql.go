@@ -323,9 +323,18 @@ func (i *Integration) HandleJoinEvent(ctx context.Context, _ models.Integration,
 		return errors.Wrap(err, "new uuid error")
 	}
 
-	// TODO: refactor to use gateway provided time once RXInfo is available
-	// and timestamp is provided by gateway.
+	// get the rxTime either using the system-time or using one of the
+	// gateway provided timestamps.
 	rxTime := time.Now()
+	for _, rxInfo := range pl.RxInfo {
+		if rxInfo.Time != nil {
+			ts, err := ptypes.Timestamp(rxInfo.Time)
+			if err != nil {
+				return errors.Wrap(err, "protobuf timestamp error")
+			}
+			rxTime = ts
+		}
+	}
 
 	var devEUI lorawan.EUI64
 	var devAddr lorawan.DevAddr

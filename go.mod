@@ -23,7 +23,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.12.1
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/lib/pq v1.8.0
+	github.com/lib/pq v1.10.2
 	github.com/mmcloughlin/geohash v0.9.0
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pkg/errors v0.9.1

@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
 
+import { withStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -17,6 +18,16 @@ import MapTileLayer from "../../components/MapTileLayer";
 import GatewayStore from "../../stores/GatewayStore";
 import InternalStore from "../../stores/InternalStore";
 import theme from "../../theme";
+
+
+const styles = {
+  doughtnutChart: {
+    maxWidth: "350px",
+    padding: 0,
+    margin: "auto",
+    display: "block",
+  },
+};
 
 
 class ListGatewaysMap extends Component {
@@ -162,13 +173,15 @@ class DevicesActiveInactive extends Component {
       <Card>
         <CardHeader title="Active devices" />
         <CardContent>
-          {data && <Doughnut data={data} options={options} />}
+          {data && <Doughnut data={data} options={options} className={this.props.classes.doughtnutChart} />}
           {!data && <div>No data available.</div>}
         </CardContent>
       </Card>
     );
   }
 }
+
+DevicesActiveInactive = withStyles(styles)(DevicesActiveInactive);
 
 
 class GatewaysActiveInactive extends Component {
@@ -199,7 +212,7 @@ class GatewaysActiveInactive extends Component {
       <Card>
         <CardHeader title="Active gateways" />
         <CardContent>
-          {data && <Doughnut data={data} options={options} />}
+          {data && <Doughnut data={data} options={options} className={this.props.classes.doughtnutChart} />}
           {!data && <div>No data available.</div>}
         </CardContent>
       </Card>
@@ -207,6 +220,7 @@ class GatewaysActiveInactive extends Component {
   }
 }
 
+GatewaysActiveInactive = withStyles(styles)(GatewaysActiveInactive);
 
 
 class DevicesDataRates extends Component {
@@ -243,13 +257,15 @@ class DevicesDataRates extends Component {
       <Card>
         <CardHeader title="Device data-rate usage" />
         <CardContent>
-          {data && <Doughnut data={data} options={options} />}
+          {data && <Doughnut data={data} options={options} className={this.props.classes.doughtnutChart} />}
           {!data && <div>No data available.</div>}
         </CardContent>
       </Card>
     );
   }
 }
+
+DevicesDataRates = withStyles(styles)(DevicesDataRates);
 
 
 

@@ -3,6 +3,8 @@ package external
 import (
 	"database/sql"
 	"encoding/json"
+	"strconv"
+	"strings"
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
@@ -885,6 +887,82 @@ func (a *DeviceAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAd
 
 	return &pb.GetRandomDevAddrResponse{
 		DevAddr: devAddr.String(),
+	}, nil
+}
+
+// GetStats returns the device statistics.
+func (a *DeviceAPI) GetStats(ctx context.Context, req *pb.GetDeviceStatsRequest) (*pb.GetDeviceStatsResponse, error) {
+	var devEUI lorawan.EUI64
+	if err := devEUI.UnmarshalText([]byte(req.DevEui)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, "bad dev_eui: %s", err)
+	}
+
+	err := a.validator.Validate(ctx, auth.ValidateNodeAccess(devEUI, auth.Read))
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	start, err := ptypes.Timestamp(req.StartTimestamp)
+	if err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	end, err := ptypes.Timestamp(req.EndTimestamp)
+	if err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	_, ok := ns.AggregationInterval_value[strings.ToUpper(req.Interval)]
+	if !ok {
+		return nil, grpc.Errorf(codes.InvalidArgument, "bad interval: %s", req.Interval)
+	}
+
+	metrics, err := storage.GetMetrics(ctx, storage.AggregationInterval(strings.ToUpper(req.Interval)), "device:"+devEUI.String(), start, end)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	result := make([]*pb.DeviceStats, len(metrics))
+	for i, m := range metrics {
+		result[i] = &pb.DeviceStats{
+			RxPackets:             uint32(m.Metrics["rx_count"]),
+			RxPacketsPerFrequency: make(map[uint32]uint32),
+			RxPacketsPerDr:        make(map[uint32]uint32),
+			Errors:                make(map[string]uint32),
+		}
+
+		result[i].Timestamp, err = ptypes.TimestampProto(m.Time)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		if (m.Metrics["rx_count"]) != 0 {
+			result[i].GwRssi = float32(m.Metrics["gw_rssi_sum"] / m.Metrics["rx_count"])
+			result[i].GwSnr = float32(m.Metrics["gw_snr_sum"] / m.Metrics["rx_count"])
+		}
+
+		for k, v := range m.Metrics {
+			if strings.HasPrefix(k, "rx_freq_") {
+				if freq, err := strconv.ParseUint(strings.TrimPrefix(k, "rx_freq_"), 10, 32); err == nil {
+					result[i].RxPacketsPerFrequency[uint32(freq)] = uint32(v)
+				}
+			}
+
+			if strings.HasPrefix(k, "rx_dr_") {
+				if freq, err := strconv.ParseUint(strings.TrimPrefix(k, "rx_dr_"), 10, 32); err == nil {
+					result[i].RxPacketsPerDr[uint32(freq)] = uint32(v)
+				}
+			}
+
+			if strings.HasPrefix(k, "error_") {
+				e := strings.TrimPrefix(k, "error_")
+				result[i].Errors[e] = uint32(v)
+			}
+		}
+	}
+
+	return &pb.GetDeviceStatsResponse{
+		Result: result,
 	}, nil
 }
 

@@ -340,10 +340,16 @@ func (ts *APITestSuite) TestGateway() {
 			metrics := storage.MetricsRecord{
 				Time: now,
 				Metrics: map[string]float64{
-					"rx_count":    10,
-					"rx_ok_count": 5,
-					"tx_count":    11,
-					"tx_ok_count": 10,
+					"rx_count":           10,
+					"rx_ok_count":        5,
+					"tx_count":           11,
+					"tx_ok_count":        10,
+					"tx_freq_868100000":  10,
+					"rx_freq_868300000":  5,
+					"tx_dr_3":            10,
+					"rx_dr_2":            5,
+					"tx_status_OK":       10,
+					"tx_status_TOO_LATE": 1,
 				},
 			}
 			assert.NoError(storage.SaveMetricsForInterval(context.Background(), storage.AggregationMinute, "gw:0102030405060708", metrics))
@@ -367,6 +373,22 @@ func (ts *APITestSuite) TestGateway() {
 				RxPacketsReceivedOk: 5,
 				TxPacketsReceived:   11,
 				TxPacketsEmitted:    10,
+				TxPacketsPerFrequency: map[uint32]uint32{
+					868100000: 10,
+				},
+				RxPacketsPerFrequency: map[uint32]uint32{
+					868300000: 5,
+				},
+				TxPacketsPerDr: map[uint32]uint32{
+					3: 10,
+				},
+				RxPacketsPerDr: map[uint32]uint32{
+					2: 5,
+				},
+				TxPacketsPerStatus: map[string]uint32{
+					"OK":       10,
+					"TOO_LATE": 1,
+				},
 			}, *resp.Result[0])
 		})
 

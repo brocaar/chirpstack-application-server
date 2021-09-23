@@ -51,10 +51,11 @@ jobs:
         run: |
           aws s3 sync dist/upload s3://builds.loraserver.io/chirpstack-application-server
 
+  # Runs on pull request to ensure the docker build works,
+  # but pushes only on commits to master and on PRs.
   docker:
     needs: test
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       -
         name: Checkout
@@ -64,8 +65,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: |
-            chirpstack/chirpstack-application-server
+          images: chirpstack/${{ github.event.repository.name }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}
@@ -78,6 +78,7 @@ jobs:
         uses: docker/setup-buildx-action@v1
       -
         name: Login to DockerHub
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: docker/login-action@v1 
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -87,8 +88,8 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: .
-          push: true
+          platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6
+          push: ${{ startsWith(github.ref, 'refs/tags/v') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       -

@@ -283,6 +283,17 @@ func (a *ApplicationServerAPI) HandleError(ctx context.Context, req *as.HandleEr
 		return nil, grpc.Errorf(codes.Internal, errStr)
 	}
 
+	metrics := storage.MetricsRecord{
+		Time: time.Now(),
+		Metrics: map[string]float64{
+			fmt.Sprintf("error_%s", req.Type.String()): 1.0,
+		},
+	}
+
+	if err := storage.SaveMetrics(ctx, fmt.Sprintf("device:%s", d.DevEUI), metrics); err != nil {
+		return nil, errors.Wrap(err, "save metrics error")
+	}
+
 	return &empty.Empty{}, nil
 }
 
@@ -500,6 +511,27 @@ func (a *ApplicationServerAPI) HandleGatewayStats(ctx context.Context, req *as.H
 			"tx_ok_count": float64(req.TxPacketsEmitted),
 		},
 	}
+
+	for k, v := range req.TxPacketsPerFrequency {
+		metrics.Metrics[fmt.Sprintf("tx_freq_%d", k)] = float64(v)
+	}
+
+	for k, v := range req.RxPacketsPerFrequency {
+		metrics.Metrics[fmt.Sprintf("rx_freq_%d", k)] = float64(v)
+	}
+
+	for k, v := range req.TxPacketsPerDr {
+		metrics.Metrics[fmt.Sprintf("tx_dr_%d", k)] = float64(v)
+	}
+
+	for k, v := range req.RxPacketsPerDr {
+		metrics.Metrics[fmt.Sprintf("rx_dr_%d", k)] = float64(v)
+	}
+
+	for k, v := range req.TxPacketsPerStatus {
+		metrics.Metrics[fmt.Sprintf("tx_status_%s", k)] = float64(v)
+	}
+
 	if err := storage.SaveMetrics(ctx, fmt.Sprintf("gw:%s", gatewayID), metrics); err != nil {
 		return nil, helpers.ErrToRPCError(errors.Wrap(err, "save metrics error"))
 	}

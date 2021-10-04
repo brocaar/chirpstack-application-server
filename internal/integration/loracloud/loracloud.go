@@ -664,83 +664,97 @@ func (i *Integration) streamGeolocWorkaround(ctx context.Context, vars map[strin
 	}
 
 	for _, p := range payloads {
-		if len(p) < 2 {
-			continue
-		}
+		// there must be at least 2 bytes to read (tag and length)
+		for index := 0; len(p)-index >= 2; {
+			// get tag
+			t := p[index]
+			// get length
+			l := int(p[index+1])
 
-		if p[0] == 0x06 || p[0] == 0x07 {
-			// gnss with pcb || gnss with patch antenna
-			msg := das.UplinkMsgGNSS{
-				MsgType:   "gnss",
-				Payload:   helpers.HEXBytes(p[2:]),
-				Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
+			// validate that we can at least read 'l' data
+			if len(p)-index-2 < l {
+				return errors.New("invalid TLV payload")
 			}
+			// get v
+			v := p[index+2 : index+2+l]
 
-			// Note: we must rely on the embedded gnss timestamp, as the frame
-			// is de-fragmented and we can not assume the scan time from the
-			// rx timestamp.
+			// increment index (2 bytes for t and l bytes + length of v)
+			index = index + 2 + l
 
-			if loc := helpers.GetStartLocation(pl.RxInfo); loc != nil {
-				msg.GNSSAssistPosition = []float64{loc.Latitude, loc.Longitude}
-				msg.GNSSAssistAltitude = loc.Altitude
-			}
+			if t == 0x06 || t == 0x07 {
+				// gnss with pcb || gnss with patch antenna
+				msg := das.UplinkMsgGNSS{
+					MsgType:   "gnss",
+					Payload:   helpers.HEXBytes(v),
+					Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
+				}
 
-			client := das.New(i.dasURI, i.config.DASToken)
-			resp, err := client.UplinkSend(ctx, das.UplinkRequest{
-				helpers.EUI64(devEUI): msg,
-			})
-			if err != nil {
-				return errors.Wrap(err, "das error")
-			}
+				// Note: we must rely on the embedded gnss timestamp, as the frame
+				// is de-fragmented and we can not assume the scan time from the
+				// rx timestamp.
 
-			err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl, common.LocationSource_GEO_RESOLVER_GNSS)
-			if err != nil {
-				return errors.Wrap(err, "handle das response error")
-			}
-		} else if p[0] == 0x08 {
-			// wifi (legacy)
-			msg := das.UplinkMsgWifi{
-				MsgType:   "wifi",
-				Payload:   helpers.HEXBytes(append([]byte{0x01}, p[2:]...)),
-				Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
-			}
+				if loc := helpers.GetStartLocation(pl.RxInfo); loc != nil {
+					msg.GNSSAssistPosition = []float64{loc.Latitude, loc.Longitude}
+					msg.GNSSAssistAltitude = loc.Altitude
+				}
 
-			client := das.New(i.dasURI, i.config.DASToken)
-			resp, err := client.UplinkSend(ctx, das.UplinkRequest{
-				helpers.EUI64(devEUI): msg,
-			})
-			if err != nil {
-				return errors.Wrap(err, "das error")
-			}
+				client := das.New(i.dasURI, i.config.DASToken)
+				resp, err := client.UplinkSend(ctx, das.UplinkRequest{
+					helpers.EUI64(devEUI): msg,
+				})
+				if err != nil {
+					return errors.Wrap(err, "das error")
+				}
 
-			err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl, common.LocationSource_GEO_RESOLVER_WIFI)
-			if err != nil {
-				return errors.Wrap(err, "handle das response error")
-			}
-		} else if p[0] == 0x0e {
-			// validate that p is at least 7 bytes we have to skip the tag, length + first 5 bytes
-			if len(p) < 7 {
-				continue
-			}
+				err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl, common.LocationSource_GEO_RESOLVER_GNSS)
+				if err != nil {
+					return errors.Wrap(err, "handle das response error")
+				}
+			} else if t == 0x08 {
+				// wifi (legacy)
+				msg := das.UplinkMsgWifi{
+					MsgType:   "wifi",
+					Payload:   helpers.HEXBytes(append([]byte{0x01}, v...)),
+					Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
+				}
 
-			// wifi
-			msg := das.UplinkMsgWifi{
-				MsgType:   "wifi",
-				Payload:   helpers.HEXBytes(append([]byte{0x01}, p[7:]...)),
-				Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
-			}
+				client := das.New(i.dasURI, i.config.DASToken)
+				resp, err := client.UplinkSend(ctx, das.UplinkRequest{
+					helpers.EUI64(devEUI): msg,
+				})
+				if err != nil {
+					return errors.Wrap(err, "das error")
+				}
 
-			client := das.New(i.dasURI, i.config.DASToken)
-			resp, err := client.UplinkSend(ctx, das.UplinkRequest{
-				helpers.EUI64(devEUI): msg,
-			})
-			if err != nil {
-				return errors.Wrap(err, "das error")
-			}
+				err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl, common.LocationSource_GEO_RESOLVER_WIFI)
+				if err != nil {
+					return errors.Wrap(err, "handle das response error")
+				}
+			} else if t == 0x0e {
+				// we have to skip first 5 bytes
+				if len(v) < 5 {
+					continue
+				}
 
-			err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl, common.LocationSource_GEO_RESOLVER_WIFI)
-			if err != nil {
-				return errors.Wrap(err, "handle das response error")
+				// wifi
+				msg := das.UplinkMsgWifi{
+					MsgType:   "wifi",
+					Payload:   helpers.HEXBytes(append([]byte{0x01}, v[5:]...)),
+					Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
+				}
+
+				client := das.New(i.dasURI, i.config.DASToken)
+				resp, err := client.UplinkSend(ctx, das.UplinkRequest{
+					helpers.EUI64(devEUI): msg,
+				})
+				if err != nil {
+					return errors.Wrap(err, "das error")
+				}
+
+				err = i.handleDASResponse(ctx, vars, devEUI, resp, ii, pl, common.LocationSource_GEO_RESOLVER_WIFI)
+				if err != nil {
+					return errors.Wrap(err, "handle das response error")
+				}
 			}
 		}
 	}

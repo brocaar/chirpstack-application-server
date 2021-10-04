@@ -44,6 +44,7 @@ type EventLog struct {
 	Type        string
 	PublishedAt *timestamp.Timestamp
 	Payload     json.RawMessage
+	StreamID    string
 }
 
 // LogEventForDevice logs an event for the given device.
@@ -152,6 +153,7 @@ func GetEventLogForDevice(ctx context.Context, devEUI lorawan.EUI64, eventsChan 
 				Type:        event,
 				Payload:     json.RawMessage(jsonB),
 				PublishedAt: pl.GetPublishedAt(),
+				StreamID:    msg.ID,
 			}
 		}
 	}

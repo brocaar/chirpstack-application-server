@@ -848,6 +848,7 @@ func (a *DeviceAPI) StreamEventLogs(req *pb.StreamDeviceEventLogsRequest, srv pb
 			PublishedAt: el.PublishedAt,
 			Type:        el.Type,
 			PayloadJson: string(b),
+			StreamId:    el.StreamID,
 		}
 
 		err = srv.Send(&resp)

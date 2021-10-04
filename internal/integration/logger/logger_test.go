@@ -61,6 +61,8 @@ func (ts *LoggerTestSuite) TestHandleUplinkEvent() {
 	}
 	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, pl))
 	el := <-ts.logChannel
+	assert.NotEqual("", el.StreamID)
+	el.StreamID = ""
 	assert.Equal(toEventLog("up", &pl), el)
 }
 
@@ -71,6 +73,8 @@ func (ts *LoggerTestSuite) TestJoinEvent() {
 	}
 	assert.NoError(ts.integration.HandleJoinEvent(context.Background(), nil, nil, pl))
 	el := <-ts.logChannel
+	assert.NotEqual("", el.StreamID)
+	el.StreamID = ""
 	assert.Equal(toEventLog("join", &pl), el)
 }
 
@@ -81,6 +85,8 @@ func (ts *LoggerTestSuite) TestAckEvent() {
 	}
 	assert.NoError(ts.integration.HandleAckEvent(context.Background(), nil, nil, pl))
 	el := <-ts.logChannel
+	assert.NotEqual("", el.StreamID)
+	el.StreamID = ""
 	assert.Equal(toEventLog("ack", &pl), el)
 }
 
@@ -91,6 +97,8 @@ func (ts *LoggerTestSuite) TestErrorEvent() {
 	}
 	assert.NoError(ts.integration.HandleErrorEvent(context.Background(), nil, nil, pl))
 	el := <-ts.logChannel
+	assert.NotEqual("", el.StreamID)
+	el.StreamID = ""
 	assert.Equal(toEventLog("error", &pl), el)
 }
 
@@ -101,6 +109,8 @@ func (ts *LoggerTestSuite) TestStatusEvent() {
 	}
 	assert.NoError(ts.integration.HandleStatusEvent(context.Background(), nil, nil, pl))
 	el := <-ts.logChannel
+	assert.NotEqual("", el.StreamID)
+	el.StreamID = ""
 	assert.Equal(toEventLog("status", &pl), el)
 }
 
@@ -111,6 +121,8 @@ func (ts *LoggerTestSuite) TestLocationEvent() {
 	}
 	assert.NoError(ts.integration.HandleLocationEvent(context.Background(), nil, nil, pl))
 	el := <-ts.logChannel
+	assert.NotEqual("", el.StreamID)
+	el.StreamID = ""
 	assert.Equal(toEventLog("location", &pl), el)
 }
 
@@ -121,6 +133,8 @@ func (ts *LoggerTestSuite) TestTxAckEvent() {
 	}
 	assert.NoError(ts.integration.HandleTxAckEvent(context.Background(), nil, nil, pl))
 	el := <-ts.logChannel
+	assert.NotEqual("", el.StreamID)
+	el.StreamID = ""
 	assert.Equal(toEventLog("txack", &pl), el)
 }
 
@@ -131,6 +145,8 @@ func (ts *LoggerTestSuite) TestIntegrationEvent() {
 	}
 	assert.NoError(ts.integration.HandleIntegrationEvent(context.Background(), nil, nil, pl))
 	el := <-ts.logChannel
+	assert.NotEqual("", el.StreamID)
+	el.StreamID = ""
 	assert.Equal(toEventLog("integration", &pl), el)
 }
 

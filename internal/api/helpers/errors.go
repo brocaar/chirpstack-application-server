@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"reflect"
+
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -43,6 +45,13 @@ func ErrToRPCError(err error) error {
 	// return the error.
 	if code := status.Code(cause); code != codes.Unknown {
 		return cause
+	}
+
+	// Some error values (error returned by Otto) can not be hashed:
+	// https://github.com/brocaar/chirpstack-application-server/issues/631
+	k := reflect.TypeOf(cause).Kind()
+	if k == reflect.Slice {
+		return grpc.Errorf(codes.Unknown, cause.Error())
 	}
 
 	code, ok := errToCode[cause]

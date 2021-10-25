@@ -38,7 +38,7 @@ type DataUpPayload struct {
 	ApplicationName   string            `json:"applicationName"`
 	DeviceName        string            `json:"deviceName"`
 	DeviceProfileName string            `json:"deviceProfileName"`
-	DeviceProfileUUID string            `json:"deviceProfileUUID"`
+	DeviceProfileID   string            `json:"deviceProfileID"`
 	DevEUI            lorawan.EUI64     `json:"devEUI"`
 	RXInfo            []RXInfo          `json:"rxInfo,omitempty"`
 	TXInfo            TXInfo            `json:"txInfo"`

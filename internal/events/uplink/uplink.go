@@ -251,7 +251,7 @@ func handleIntegrations(ctx *uplinkContext) error {
 	pl := pb.UplinkEvent{
 		ApplicationId:     uint64(ctx.device.ApplicationID),
 		ApplicationName:   ctx.application.Name,
-		DeviceProfileUuid: ctx.device.DeviceProfileID.String(),
+		DeviceProfileId:   ctx.device.DeviceProfileID.String(),
 		DeviceProfileName: ctx.deviceProfile.Name,
 		DeviceName:        ctx.device.Name,
 		DevEui:            ctx.device.DevEUI[:],

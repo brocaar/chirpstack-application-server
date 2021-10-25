@@ -104,7 +104,7 @@ func jsonv3MarshalUplinkEvent(msg *integration.UplinkEvent) ([]byte, error) {
 		ApplicationName:   msg.ApplicationName,
 		DeviceName:        msg.DeviceName,
 		DeviceProfileName: msg.DeviceProfileName,
-		DeviceProfileUUID: msg.DeviceProfileUuid,
+		DeviceProfileID:   msg.DeviceProfileId,
 		TXInfo: models.TXInfo{
 			Frequency: int(msg.TxInfo.Frequency),
 			DR:        int(msg.Dr),

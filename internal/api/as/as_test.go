@@ -323,9 +323,11 @@ func (ts *ASTestSuite) TestApplicationServer() {
 					Tags: map[string]string{
 						"foo": "bar",
 					},
-					ConfirmedUplink: true,
-					DevAddr:         d.DevAddr[:],
-					PublishedAt:     pl.PublishedAt,
+					ConfirmedUplink:   true,
+					DevAddr:           d.DevAddr[:],
+					PublishedAt:       pl.PublishedAt,
+					DeviceProfileId:   dpID.String(),
+					DeviceProfileName: dp.Name,
 				}, pl)
 			})
 

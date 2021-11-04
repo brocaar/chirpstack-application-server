@@ -265,6 +265,7 @@ func handleIntegrations(ctx *uplinkContext) error {
 		ConfirmedUplink: ctx.uplinkDataReq.ConfirmedUplink,
 		DevAddr:         ctx.device.DevAddr[:],
 		PublishedAt:     ptypes.TimestampNow(),
+		Macdata:         ctx.uplinkDataReq.Macdata,
 	}
 
 	// set tags

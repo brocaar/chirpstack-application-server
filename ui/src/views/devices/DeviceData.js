@@ -224,11 +224,11 @@ class DeviceData extends Component {
     }
 
     let data = this.state.data;
+    const now = new Date();
 
-    // only append when stream id > last item.
-    if (data.length === 0 || parseInt(d.streamID.replace("-", "")) > parseInt(data[0].id.replace("-", ""))) {
+    if (data.length === 0 || moment(d.publishedAt).isAfter(data[0].publishedAt)) {
       data.unshift({
-        id: d.streamID,
+        id: now.getTime(),
         publishedAt: d.publishedAt,
         type: d.type,
         payload: JSON.parse(d.payloadJSON),

@@ -233,8 +233,9 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 			object,
 			tags,
 			confirmed_uplink,
-			dev_addr
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+			dev_addr,
+			macdata
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
 		id,
 		rxTime,
 		devEUI,
@@ -254,6 +255,7 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integratio
 		tagsToHstore(pl.Tags),
 		pl.ConfirmedUplink,
 		devAddr[:],
+		pl.Macdata,
 	)
 	if err != nil {
 		return errors.Wrap(err, "insert error")

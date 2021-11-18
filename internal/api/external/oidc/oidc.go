@@ -4,8 +4,10 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/coreos/go-oidc"
@@ -38,6 +40,38 @@ type User struct {
 	Email          string                 `json:"email"`
 	EmailVerified  bool                   `json:"email_verified"`
 	UserInfoClaims map[string]interface{} `json:"user_info_claims"`
+}
+
+func (u *User) UnmarshalJSON(data []byte) error {
+	tmp := &struct {
+		ExternalID     string                 `json:"sub"`
+		Name           string                 `json:"name"`
+		Email          string                 `json:"email"`
+		EmailVerified  interface{}            `json:"email_verified"`
+		UserInfoClaims map[string]interface{} `json:"user_info_claims"`
+	}{}
+
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+
+	u.ExternalID = tmp.ExternalID
+	u.Name = tmp.Name
+	u.Email = tmp.Email
+	u.UserInfoClaims = tmp.UserInfoClaims
+
+	switch v := tmp.EmailVerified.(type) {
+	case string:
+		t, err := strconv.ParseBool(v)
+		if err != nil {
+			return err
+		}
+		u.EmailVerified = t
+	case bool:
+		u.EmailVerified = v
+	}
+
+	return nil
 }
 
 // Setup configured the OpenID Connect endpoint handlers.

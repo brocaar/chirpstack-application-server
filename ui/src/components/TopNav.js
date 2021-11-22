@@ -9,7 +9,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
-import blue from "@material-ui/core/colors/blue";
 import Avatar from '@material-ui/core/Avatar';
 import Chip from '@material-ui/core/Chip';
 
@@ -44,20 +43,20 @@ const styles = {
   search: {
     marginRight: 3 * theme.spacing(1),
     color: theme.palette.common.white,
-    background: blue[400],
+    background: theme.palette.primary.light,
     width: 450,
     padding: 5,
     borderRadius: 3,
   },
   chip: {
-    background: blue[600],
+    background: theme.palette.primary.dark,
     color: theme.palette.common.white,
     marginRight: theme.spacing(1),
     "&:hover": {
-      background: blue[400],
+      background: theme.palette.primary.light,
     },
     "&:active": {
-      background: blue[400],
+      background: theme.palette.primary.light,
     },
   },
   iconButton: {

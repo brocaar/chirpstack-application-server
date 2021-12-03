@@ -46,10 +46,12 @@ func (ts *MarshalerTestSuite) GetUplinkEvent() integration.UplinkEvent {
 	tenSecondsPB := ptypes.DurationProto(tenSeconds)
 
 	return integration.UplinkEvent{
-		ApplicationId:   123,
-		ApplicationName: "test-application",
-		DeviceName:      "test-device",
-		DevEui:          []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+		ApplicationId:     123,
+		ApplicationName:   "test-application",
+		DeviceName:        "test-device",
+		DeviceProfileName: "test-profile",
+		DeviceProfileId:   "f293e453-6d9c-4a22-8c4d-99b2dbe4e94f",
+		DevEui:            []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
 		RxInfo: []*gw.UplinkRXInfo{
 			{
 				GatewayId:         []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
@@ -293,10 +295,12 @@ func (ts *MarshalerTestSuite) TestJSONV3() {
 		assert.NoError(json.Unmarshal(b, &pl))
 
 		assert.Equal(models.DataUpPayload{
-			ApplicationID:   123,
-			ApplicationName: "test-application",
-			DeviceName:      "test-device",
-			DevEUI:          lorawan.EUI64{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+			ApplicationID:     123,
+			ApplicationName:   "test-application",
+			DeviceName:        "test-device",
+			DeviceProfileName: "test-profile",
+			DeviceProfileID:   "f293e453-6d9c-4a22-8c4d-99b2dbe4e94f",
+			DevEUI:            lorawan.EUI64{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
 			RXInfo: []models.RXInfo{
 				{
 					GatewayID: lorawan.EUI64{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},

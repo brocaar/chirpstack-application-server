@@ -249,22 +249,31 @@ func handleCodec(ctx *uplinkContext) error {
 
 func handleIntegrations(ctx *uplinkContext) error {
 	pl := pb.UplinkEvent{
-		ApplicationId:   uint64(ctx.device.ApplicationID),
-		ApplicationName: ctx.application.Name,
-		DeviceName:      ctx.device.Name,
-		DevEui:          ctx.device.DevEUI[:],
-		RxInfo:          ctx.uplinkDataReq.RxInfo,
-		TxInfo:          ctx.uplinkDataReq.TxInfo,
-		Dr:              ctx.uplinkDataReq.Dr,
-		Adr:             ctx.uplinkDataReq.Adr,
-		FCnt:            ctx.uplinkDataReq.FCnt,
-		FPort:           ctx.uplinkDataReq.FPort,
-		Data:            ctx.data,
-		ObjectJson:      ctx.objectJSON,
-		Tags:            make(map[string]string),
-		ConfirmedUplink: ctx.uplinkDataReq.ConfirmedUplink,
-		DevAddr:         ctx.device.DevAddr[:],
-		PublishedAt:     ptypes.TimestampNow(),
+		ApplicationId:     uint64(ctx.device.ApplicationID),
+		ApplicationName:   ctx.application.Name,
+		DeviceProfileId:   ctx.device.DeviceProfileID.String(),
+		DeviceProfileName: ctx.deviceProfile.Name,
+		DeviceName:        ctx.device.Name,
+		DevEui:            ctx.device.DevEUI[:],
+		RxInfo:            ctx.uplinkDataReq.RxInfo,
+		TxInfo:            ctx.uplinkDataReq.TxInfo,
+		Dr:                ctx.uplinkDataReq.Dr,
+		Adr:               ctx.uplinkDataReq.Adr,
+		FCnt:              ctx.uplinkDataReq.FCnt,
+		FPort:             ctx.uplinkDataReq.FPort,
+		Data:              ctx.data,
+		ObjectJson:        ctx.objectJSON,
+		Tags:              make(map[string]string),
+		ConfirmedUplink:   ctx.uplinkDataReq.ConfirmedUplink,
+		DevAddr:           ctx.device.DevAddr[:],
+		PublishedAt:       ptypes.TimestampNow(),
+	}
+
+	//set device profile tags
+	for k, v := range ctx.deviceProfile.Tags.Map {
+		if v.Valid {
+			pl.Tags[k] = v.String
+		}
 	}
 
 	// set tags

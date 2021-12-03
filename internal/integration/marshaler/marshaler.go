@@ -100,9 +100,11 @@ func jsonv3MarshalUplinkEvent(msg *integration.UplinkEvent) ([]byte, error) {
 	}
 
 	m := models.DataUpPayload{
-		ApplicationID:   int64(msg.ApplicationId),
-		ApplicationName: msg.ApplicationName,
-		DeviceName:      msg.DeviceName,
+		ApplicationID:     int64(msg.ApplicationId),
+		ApplicationName:   msg.ApplicationName,
+		DeviceName:        msg.DeviceName,
+		DeviceProfileName: msg.DeviceProfileName,
+		DeviceProfileID:   msg.DeviceProfileId,
 		TXInfo: models.TXInfo{
 			Frequency: int(msg.TxInfo.Frequency),
 			DR:        int(msg.Dr),

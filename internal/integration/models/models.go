@@ -34,19 +34,21 @@ type TXInfo struct {
 
 // DataUpPayload represents a data-up payload.
 type DataUpPayload struct {
-	ApplicationID   int64             `json:"applicationID,string"`
-	ApplicationName string            `json:"applicationName"`
-	DeviceName      string            `json:"deviceName"`
-	DevEUI          lorawan.EUI64     `json:"devEUI"`
-	RXInfo          []RXInfo          `json:"rxInfo,omitempty"`
-	TXInfo          TXInfo            `json:"txInfo"`
-	ADR             bool              `json:"adr"`
-	FCnt            uint32            `json:"fCnt"`
-	FPort           uint8             `json:"fPort"`
-	Data            []byte            `json:"data"`
-	Object          interface{}       `json:"object,omitempty"`
-	Tags            map[string]string `json:"tags,omitempty"`
-	Variables       map[string]string `json:"-"`
+	ApplicationID     int64             `json:"applicationID,string"`
+	ApplicationName   string            `json:"applicationName"`
+	DeviceName        string            `json:"deviceName"`
+	DeviceProfileName string            `json:"deviceProfileName"`
+	DeviceProfileID   string            `json:"deviceProfileID"`
+	DevEUI            lorawan.EUI64     `json:"devEUI"`
+	RXInfo            []RXInfo          `json:"rxInfo,omitempty"`
+	TXInfo            TXInfo            `json:"txInfo"`
+	ADR               bool              `json:"adr"`
+	FCnt              uint32            `json:"fCnt"`
+	FPort             uint8             `json:"fPort"`
+	Data              []byte            `json:"data"`
+	Object            interface{}       `json:"object,omitempty"`
+	Tags              map[string]string `json:"tags,omitempty"`
+	Variables         map[string]string `json:"-"`
 }
 
 // DataDownPayload represents a data-down payload.

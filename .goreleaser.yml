@@ -3,6 +3,8 @@ project_name: chirpstack-application-server
 builds:
   - main: cmd/chirpstack-application-server/main.go
     binary: chirpstack-application-server
+    env:
+      - CGO_ENABLED=0
     goos:
       - windows
       - darwin
@@ -23,23 +25,28 @@ builds:
 release:
   disable: true
 
-nfpm:
-  vendor: ChirpStack
-  homepage: https://www.loraserver.io/
-  maintainer: Orne Brocaar <info@brocaar.com>
-  description: ChirpStack Application Server
-  license: MIT
-  formats:
-    - deb
-    - rpm
-  bindir: /usr/bin
-  files:
-    "packaging/files/chirpstack-application-server.rotate": "/etc/logrotate.d/chirpstack-application-server"
-    "packaging/files/chirpstack-application-server.init": "/usr/lib/chirpstack-application-server/scripts/chirpstack-application-server.init"
-    "packaging/files/chirpstack-application-server.service": "/usr/lib/chirpstack-application-server/scripts/chirpstack-application-server.service"
-  config_files:
-    "packaging/files/chirpstack-application-server.toml": "/etc/chirpstack-application-server/chirpstack-application-server.toml"
-  scripts:
-    preinstall: "packaging/scripts/pre-install.sh"
-    postinstall: "packaging/scripts/post-install.sh"
-    postremove: "packaging/scripts/post-remove.sh"
+nfpms:
+  - id: chirpstack-application-server
+    vendor: ChirpStack
+    homepage: https://www.chirpstack.io/
+    maintainer: Orne Brocaar <info@brocaar.com>
+    description: ChirpStack Application Server
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+    contents:
+      - src: "packaging/files/chirpstack-application-server.rotate"
+        dst: "/etc/logrotate.d/chirpstack-application-server"
+      - src: "packaging/files/chirpstack-application-server.init"
+        dst: "/usr/lib/chirpstack-application-server/scripts/chirpstack-application-server.init"
+      - src: "packaging/files/chirpstack-application-server.service"
+        dst: "/usr/lib/chirpstack-application-server/scripts/chirpstack-application-server.service"
+      - src: "packaging/files/chirpstack-application-server.toml"
+        dst: "/etc/chirpstack-application-server/chirpstack-application-server.toml"
+        type: config
+    scripts:
+      preinstall: "packaging/scripts/pre-install.sh"
+      postinstall: "packaging/scripts/post-install.sh"
+      postremove: "packaging/scripts/post-remove.sh"

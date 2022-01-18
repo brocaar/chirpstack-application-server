@@ -149,6 +149,9 @@ type Client struct {
 	GetVersionResponse ns.GetVersionResponse
 
 	GetADRAlgorithmsResponse ns.GetADRAlgorithmsResponse
+
+	ClearDeviceNoncesChan     chan ns.ClearDeviceNoncesRequest
+	ClearDeviceNoncesResponse empty.Empty
 }
 
 // NewClient creates a new Client.
@@ -199,6 +202,7 @@ func NewClient() *Client {
 		FlushMulticastQueueForMulticastGroupChan:    make(chan ns.FlushMulticastQueueForMulticastGroupRequest, 100),
 		GetMulticastQueueItemsForMulticastGroupChan: make(chan ns.GetMulticastQueueItemsForMulticastGroupRequest, 100),
 		GenerateGatewayClientCertificateChan:        make(chan ns.GenerateGatewayClientCertificateRequest, 100),
+		ClearDeviceNoncesChan:                       make(chan ns.ClearDeviceNoncesRequest, 100),
 	}
 }
 
@@ -490,4 +494,10 @@ func (n *Client) GenerateGatewayClientCertificate(ctx context.Context, in *ns.Ge
 // GetADRAlgorithms method.
 func (n *Client) GetADRAlgorithms(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ns.GetADRAlgorithmsResponse, error) {
 	return &n.GetADRAlgorithmsResponse, nil
+}
+
+// ClearDeviceNonces method.
+func (n *Client) ClearDeviceNonces(ctx context.Context, in *ns.ClearDeviceNoncesRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	n.ClearDeviceNoncesChan <- *in
+	return &n.ClearDeviceNoncesResponse, nil
 }

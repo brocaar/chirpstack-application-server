@@ -54,4 +54,4 @@ require (
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 )
 
-// replace github.com/brocaar/chirpstack-api/go/v3 => ../chirpstack-api/go
+replace github.com/brocaar/chirpstack-api/go/v3 => github.com/sagar-patel-sls/chirpstack-api-1/go/v3 v3.12.4-0.20220118060045-d63f79ed0de1

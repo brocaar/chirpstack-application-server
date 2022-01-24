@@ -1,9 +1,9 @@
 version: "2"
 services:
   chirpstack-application-server:
-    build: 
+    build:
       context: .
-      dockerfile: Dockerfile-devel
+      dockerfile: Dockerfile
     volumes:
       - ./:/chirpstack-application-server
       # - ../chirpstack-api:/chirpstack-api

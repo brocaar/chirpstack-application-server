@@ -1,41 +1,41 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: EONBrixSans,"Helvetica Neue",sans-serif !important;
+  font-family: EONBrixSans, "Helvetica Neue", sans-serif !important;
 }
 
 @font-face {
-    font-family: "EONBrixSans";
-    src: url("/fonts/brixsans/EON_BrixSansWeb-Black.eot");
-    src:
-        url("/fonts/brixsans/EON_BrixSansWeb-Black.eot?#iefix") format("embedded-opentype"),
-        url("/fonts/brixsans/EON_BrixSansWeb-Black.woff2") format("woff2"),
-        url("/fonts/brixsans/EON_BrixSansWeb-Black.woff") format("woff"),
-        url("/fonts/brixsans/EON_BrixSansWeb-Black.ttf") format("truetype");
-    font-weight: 900;
-    font-style: normal;
+  font-family: "EONBrixSans";
+  src: url("./fonts/brixsans/EON_BrixSansWeb-Black.eot");
+  src: url("./fonts/brixsans/EON_BrixSansWeb-Black.eot?#iefix")
+      format("embedded-opentype"),
+    url("./fonts/brixsans/EON_BrixSansWeb-Black.woff2") format("woff2"),
+    url("./fonts/brixsans/EON_BrixSansWeb-Black.woff") format("woff"),
+    url("./fonts/brixsans/EON_BrixSansWeb-Black.ttf") format("truetype");
+  font-weight: 900;
+  font-style: normal;
 }
 
 @font-face {
-    font-family: "EONBrixSans";
-    src: url("/fonts/brixsans/EON_BrixSansWeb-Regular.eot");
-    src:
-        url("/fonts/brixsans/EON_BrixSansWeb-Regular.eot?#iefix") format("embedded-opentype"),
-        url("/fonts/brixsans/EON_BrixSansWeb-Regular.woff2") format("woff2"),
-        url("/fonts/brixsans/EON_BrixSansWeb-Regular.woff") format("woff"),
-        url("/fonts/brixsans/EON_BrixSansWeb-Regular.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
+  font-family: "EONBrixSans";
+  src: url("./fonts/brixsans/EON_BrixSansWeb-Regular.eot");
+  src: url("./fonts/brixsans/EON_BrixSansWeb-Regular.eot?#iefix")
+      format("embedded-opentype"),
+    url("./fonts/brixsans/EON_BrixSansWeb-Regular.woff2") format("woff2"),
+    url("./fonts/brixsans/EON_BrixSansWeb-Regular.woff") format("woff"),
+    url("./fonts/brixsans/EON_BrixSansWeb-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
 }
 
 @font-face {
-    font-family: "EONBrixSans";
-    src: url("/fonts/brixsans/EON_BrixSansWeb-Bold.eot");
-    src:
-        url("/fonts/brixsans/EON_BrixSansWeb-Bold.eot?#iefix") format("embedded-opentype"),
-        url("/fonts/brixsans/EON_BrixSansWeb-Bold.woff2") format("woff2"),
-        url("/fonts/brixsans/EON_BrixSansWeb-Bold.woff") format("woff"),
-        url("/fonts/brixsans/EON_BrixSansWeb-Bold.ttf") format("truetype");
-    font-weight: 700;
-    font-style: normal;
+  font-family: "EONBrixSans";
+  src: url("./fonts/brixsans/EON_BrixSansWeb-Bold.eot");
+  src: url("./fonts/brixsans/EON_BrixSansWeb-Bold.eot?#iefix")
+      format("embedded-opentype"),
+    url("./fonts/brixsans/EON_BrixSansWeb-Bold.woff2") format("woff2"),
+    url("./fonts/brixsans/EON_BrixSansWeb-Bold.woff") format("woff"),
+    url("./fonts/brixsans/EON_BrixSansWeb-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
 }

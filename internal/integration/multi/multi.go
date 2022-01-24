@@ -1,91 +1,39 @@
 // Package multi implements a multi-integration handler.
-// This handler can be used to combine the handling of multiple integrations.
 package multi
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/integration"
-	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
-	"github.com/brocaar/chirpstack-application-server/internal/integration/awssns"
-	"github.com/brocaar/chirpstack-application-server/internal/integration/azureservicebus"
-	"github.com/brocaar/chirpstack-application-server/internal/integration/gcppubsub"
-	"github.com/brocaar/chirpstack-application-server/internal/integration/http"
-	"github.com/brocaar/chirpstack-application-server/internal/integration/influxdb"
-	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
-	"github.com/brocaar/chirpstack-application-server/internal/integration/mqtt"
-	"github.com/brocaar/chirpstack-application-server/internal/integration/postgresql"
-	"github.com/brocaar/chirpstack-application-server/internal/integration/thingsboard"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
 
 // Integration implements the multi integration.
 type Integration struct {
-	integrations []integration.Integrator
+	globalIntegrations []models.IntegrationHandler
+	appIntegrations    []models.IntegrationHandler
 }
 
-// New create a new multi integration.
-// The argument that must be given is a slice of configuration objects for
-// the handlers to setup.
-func New(m marshaler.Type, confs []interface{}) (*Integration, error) {
-	var integrations []integration.Integrator
-
-	for i := range confs {
-		conf := confs[i]
-		var ii integration.Integrator
-		var err error
-
-		switch v := conf.(type) {
-		case config.IntegrationAWSSNSConfig:
-			ii, err = awssns.New(m, v)
-		case config.IntegrationAzureConfig:
-			ii, err = azureservicebus.New(m, v)
-		case config.IntegrationGCPConfig:
-			ii, err = gcppubsub.New(m, v)
-		case http.Config:
-			ii, err = http.New(m, v)
-		case influxdb.Config:
-			ii, err = influxdb.New(v)
-		case config.IntegrationMQTTConfig:
-			ii, err = mqtt.New(m, storage.RedisPool(), v)
-		case config.IntegrationPostgreSQLConfig:
-			ii, err = postgresql.New(v)
-		case thingsboard.Config:
-			ii, err = thingsboard.New(v)
-		default:
-			return nil, fmt.Errorf("unknown configuration type %T", conf)
-		}
-
-		if err != nil {
-			return nil, errors.Wrap(err, "new integration error")
-		}
-
-		integrations = append(integrations, ii)
-	}
-
+// New creates a new multi-integration.
+func New(global, app []models.IntegrationHandler) *Integration {
 	return &Integration{
-		integrations: integrations,
-	}, nil
+		globalIntegrations: global,
+		appIntegrations:    app,
+	}
 }
 
-// Add appends a new integration to the list.
-func (i *Integration) Add(intg integration.Integrator) {
-	i.integrations = append(i.integrations, intg)
-}
+// HandleUplinkEvent sends an UplinkEvent.
+func (i *Integration) HandleUplinkEvent(ctx context.Context, vars map[string]string, pl pb.UplinkEvent) error {
+	for _, ii := range i.integrations() {
 
-// SendDataUp sends a data-up payload.
-func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl pb.UplinkEvent) error {
-	for _, ii := range i.integrations {
-		go func(i integration.Integrator) {
-			if err := i.SendDataUp(ctx, vars, pl); err != nil {
+		go func(ii models.IntegrationHandler) {
+			if err := ii.HandleUplinkEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
-					"integration": fmt.Sprintf("%T", i),
+					"integration": fmt.Sprintf("%T", ii),
 					"ctx_id":      ctx.Value(logging.ContextIDKey),
 				}).Error("integration/multi: integration error")
 			}
@@ -95,13 +43,13 @@ func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl
 	return nil
 }
 
-// SendJoinNotification sends a join notification.
-func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error {
-	for _, ii := range i.integrations {
-		go func(i integration.Integrator) {
-			if err := i.SendJoinNotification(ctx, vars, pl); err != nil {
+// HandleJoinEvent sends a JoinEvent.
+func (i *Integration) HandleJoinEvent(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error {
+	for _, ii := range i.integrations() {
+		go func(ii models.IntegrationHandler) {
+			if err := ii.HandleJoinEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
-					"integration": fmt.Sprintf("%T", i),
+					"integration": fmt.Sprintf("%T", ii),
 					"ctx_id":      ctx.Value(logging.ContextIDKey),
 				}).Error("integration/multi: integration error")
 			}
@@ -111,13 +59,13 @@ func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]
 	return nil
 }
 
-// SendACKNotification sends an ACK notification.
-func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]string, pl pb.AckEvent) error {
-	for _, ii := range i.integrations {
-		go func(i integration.Integrator) {
-			if err := i.SendACKNotification(ctx, vars, pl); err != nil {
+// HandleAckEvent sends an AckEvent.
+func (i *Integration) HandleAckEvent(ctx context.Context, vars map[string]string, pl pb.AckEvent) error {
+	for _, ii := range i.integrations() {
+		go func(ii models.IntegrationHandler) {
+			if err := ii.HandleAckEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
-					"integration": fmt.Sprintf("%T", i),
+					"integration": fmt.Sprintf("%T", ii),
 					"ctx_id":      ctx.Value(logging.ContextIDKey),
 				}).Error("integration/multi: integration error")
 			}
@@ -127,13 +75,14 @@ func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]s
 	return nil
 }
 
-// SendErrorNotification sends an error notification.
-func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error {
-	for _, ii := range i.integrations {
-		go func(i integration.Integrator) {
-			if err := i.SendErrorNotification(ctx, vars, pl); err != nil {
+// HandleErrorEvent sends an ErrorEvent.
+func (i *Integration) HandleErrorEvent(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error {
+
+	for _, ii := range i.integrations() {
+		go func(ii models.IntegrationHandler) {
+			if err := ii.HandleErrorEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
-					"integration": fmt.Sprintf("%T", i),
+					"integration": fmt.Sprintf("%T", ii),
 					"ctx_id":      ctx.Value(logging.ContextIDKey),
 				}).Error("integration/multi: integration error")
 			}
@@ -143,13 +92,13 @@ func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string
 	return nil
 }
 
-// SendStatusNotification sends a status notification.
-func (i *Integration) SendStatusNotification(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error {
-	for _, ii := range i.integrations {
-		go func(i integration.Integrator) {
-			if err := i.SendStatusNotification(ctx, vars, pl); err != nil {
+// HandleStatusEvent sends a StatusEvent.
+func (i *Integration) HandleStatusEvent(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error {
+	for _, ii := range i.integrations() {
+		go func(ii models.IntegrationHandler) {
+			if err := ii.HandleStatusEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
-					"integration": fmt.Sprintf("%T", i),
+					"integration": fmt.Sprintf("%T", ii),
 					"ctx_id":      ctx.Value(logging.ContextIDKey),
 				}).Error("integration/multi: integration error")
 			}
@@ -159,13 +108,45 @@ func (i *Integration) SendStatusNotification(ctx context.Context, vars map[strin
 	return nil
 }
 
-// SendLocationNotification sends a location notification.
-func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error {
-	for _, ii := range i.integrations {
-		go func(i integration.Integrator) {
-			if err := i.SendLocationNotification(ctx, vars, pl); err != nil {
+// HandleLocationEvent sends a LocationEvent.
+func (i *Integration) HandleLocationEvent(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error {
+	for _, ii := range i.integrations() {
+		go func(ii models.IntegrationHandler) {
+			if err := ii.HandleLocationEvent(ctx, i, vars, pl); err != nil {
 				log.WithError(err).WithFields(log.Fields{
-					"integration": fmt.Sprintf("%T", i),
+					"integration": fmt.Sprintf("%T", ii),
+					"ctx_id":      ctx.Value(logging.ContextIDKey),
+				}).Error("integration/multi: integration error")
+			}
+		}(ii)
+	}
+
+	return nil
+}
+
+// HandleTxAckEvent sends a TxAckEvent.
+func (i *Integration) HandleTxAckEvent(ctx context.Context, vars map[string]string, pl pb.TxAckEvent) error {
+	for _, ii := range i.integrations() {
+		go func(ii models.IntegrationHandler) {
+			if err := ii.HandleTxAckEvent(ctx, i, vars, pl); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"integration": fmt.Sprintf("%T", ii),
+					"ctx_id":      ctx.Value(logging.ContextIDKey),
+				}).Error("integration/multi: integration error")
+			}
+		}(ii)
+	}
+
+	return nil
+}
+
+// HandleIntegrationEvent sends an IntegrationEvent.
+func (i *Integration) HandleIntegrationEvent(ctx context.Context, vars map[string]string, pl pb.IntegrationEvent) error {
+	for _, ii := range i.integrations() {
+		go func(ii models.IntegrationHandler) {
+			if err := ii.HandleIntegrationEvent(ctx, i, vars, pl); err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"integration": fmt.Sprintf("%T", ii),
 					"ctx_id":      ctx.Value(logging.ContextIDKey),
 				}).Error("integration/multi: integration error")
 			}
@@ -176,22 +157,28 @@ func (i *Integration) SendLocationNotification(ctx context.Context, vars map[str
 }
 
 // DataDownChan returns the channel containing the received DataDownPayload.
-func (i *Integration) DataDownChan() chan integration.DataDownPayload {
-	for _, ii := range i.integrations {
+func (i *Integration) DataDownChan() chan models.DataDownPayload {
+	for _, ii := range i.globalIntegrations {
 		if c := ii.DataDownChan(); c != nil {
 			return c
 		}
 	}
+
 	return nil
 }
 
-// Close closes the handlers.
-func (i *Integration) Close() error {
-	for _, ii := range i.integrations {
-		if err := ii.Close(); err != nil {
-			return err
-		}
+// integrations returns a slice with the global and application-integrations
+// combined.
+func (i *Integration) integrations() []models.IntegrationHandler {
+	var ints []models.IntegrationHandler
+
+	for _, ii := range i.globalIntegrations {
+		ints = append(ints, ii)
 	}
 
-	return nil
+	for _, ii := range i.appIntegrations {
+		ints = append(ints, ii)
+	}
+
+	return ints
 }

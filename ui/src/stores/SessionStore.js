@@ -121,12 +121,31 @@ class SessionStore extends EventEmitter {
     });
   }
 
-  logout(callBackFunc) {
+  openidConnectLogin(code, state, callbackFunc) {
+    this.swagger.then(client => {
+      client.apis.InternalService.OpenIDConnectLogin({
+        code: code,
+        state: state,
+      })
+        .then(checkStatus)
+        .then(resp => {
+          this.setToken(resp.obj.jwtToken);
+          this.fetchProfile(callbackFunc);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  logout(emit, callBackFunc) {
     localStorage.clear();
     this.user = null;
     this.organizations = [];
     this.settings = {};
-    this.emit("change");
+
+    if (emit === true) {
+      this.emit("change");
+    }
+
     callBackFunc();
   }
 
@@ -165,17 +184,6 @@ class SessionStore extends EventEmitter {
       })
       .catch(errorHandler);
       });
-  }
-
-  getBranding(callbackFunc) {
-    this.swagger.then(client => {
-      client.apis.InternalService.Branding({})
-        .then(checkStatus)
-        .then(resp => {
-          callbackFunc(resp.obj);
-        })
-        .catch(errorHandler);
-    });
   }
 }
 

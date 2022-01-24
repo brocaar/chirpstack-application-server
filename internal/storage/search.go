@@ -2,9 +2,14 @@ package storage
 
 import (
 	"context"
+	"database/sql"
+	"regexp"
+	"strings"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq/hstore"
 
 	"github.com/brocaar/lorawan"
-	"github.com/jmoiron/sqlx"
 )
 
 // SearchResult defines a search result.
@@ -23,14 +28,23 @@ type SearchResult struct {
 
 // GlobalSearch performs a search on organizations, applications, gateways
 // and devices.
-func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalAdmin bool, search string, limit, offset int) ([]SearchResult, error) {
+func GlobalSearch(ctx context.Context, db sqlx.Queryer, userID int64, globalAdmin bool, search string, limit, offset int) ([]SearchResult, error) {
 	var result []SearchResult
-	query := "%" + search + "%"
+
+	query, tags := parseSearchQuery(search)
+	query = "%" + search + "%"
+
+	tagsHstore := hstore.Hstore{
+		Map: make(map[string]sql.NullString),
+	}
+	for k, v := range tags {
+		tagsHstore.Map[k] = sql.NullString{String: v, Valid: true}
+	}
 
 	err := sqlx.Select(db, &result, `
 		select
 			'device' as kind,
-			greatest(similarity(d.name, $1), similarity(encode(d.dev_eui, 'hex'), $1)) as score,
+			greatest(similarity(d.name, $1), similarity(encode(d.dev_eui, 'hex'), $1), similarity(encode(d.dev_addr, 'hex'), $1)) as score,
 			o.id as organization_id,
 			o.name as organization_name,
 			a.id as application_id,
@@ -49,8 +63,8 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalA
 		left join "user" u
 			on u.id = ou.user_id
 		where
-			($3 = true or u.username = $4)
-			and (d.name ilike $2 or encode(d.dev_eui, 'hex') ilike $2)
+			($3 = true or u.id = $4)
+			and (d.name ilike $2 or encode(d.dev_eui, 'hex') ilike $2 or encode(d.dev_addr, 'hex') ilike $2 or ($7 != hstore('') and d.tags @> $7))
 		union
 		select
 			'gateway' as kind,
@@ -72,8 +86,8 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalA
 		left join "user" u
 			on u.id = ou.user_id
 		where
-			($3 = true or u.username = $4)
-			and (g.name ilike $2 or encode(g.mac, 'hex') ilike $2)
+			($3 = true or u.id = $4)
+			and (g.name ilike $2 or encode(g.mac, 'hex') ilike $2 or ($7 != hstore('') and g.tags @> $7))
 		union
 		select
 			'organization' as kind,
@@ -93,7 +107,7 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalA
 		left join "user" u
 			on u.id = ou.user_id
 		where
-			($3 = true or u.username = $4)
+			($3 = true or u.id = $4)
 			and o.name ilike $2
 		union
 		select
@@ -116,7 +130,7 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalA
 		left join "user" u
 			on u.id = ou.user_id
 		where
-			($3 = true or u.username = $4)
+			($3 = true or u.id = $4)
 			and a.name ilike $2
 		order by
 			score desc
@@ -125,13 +139,38 @@ func GlobalSearch(ctx context.Context, db sqlx.Queryer, username string, globalA
 		search,
 		query,
 		globalAdmin,
-		username,
+		userID,
 		limit,
 		offset,
+		tagsHstore,
 	)
 	if err != nil {
 		return nil, handlePSQLError(Select, err, "select error")
 	}
 
 	return result, nil
+}
+
+var searchTagRegexp = regexp.MustCompile(`([^ ]+):([^ ]+)`)
+
+// parseSearchQuery returns the query and tags.
+// Example: "foo bar:test" will return the query "foo" with tags {"bar": "test"}.
+func parseSearchQuery(query string) (string, map[string]string) {
+	matches := searchTagRegexp.FindAllStringSubmatch(query, -1)
+	if len(matches) == 0 {
+		return query, nil
+	}
+
+	tags := make(map[string]string)
+	for _, t := range matches {
+		if len(t) != 3 {
+			continue
+		}
+
+		tags[t[1]] = t[2]
+	}
+
+	query = strings.TrimSpace(searchTagRegexp.ReplaceAllString(query, ""))
+
+	return query, tags
 }

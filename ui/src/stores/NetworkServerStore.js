@@ -97,6 +97,19 @@ class NetworkServerStore extends EventEmitter {
       .catch(errorHandler);
     });
   }
+
+  getADRAlgorithms(networkServerID, callbackFunc) {
+    this.swagger.then((client) => {
+      client.apis.NetworkServerService.GetADRAlgorithms({
+        network_server_id: networkServerID,
+      })
+      .then(checkStatus)
+      .then(resp => {
+        callbackFunc(resp.obj);
+      })
+      .catch(errorHandler);
+    });
+  }
 }
 
 const networkServerStore = new NetworkServerStore();

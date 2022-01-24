@@ -6,7 +6,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 
-	"github.com/brocaar/chirpstack-api/go/ns"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 )
 
 // Client is a test network-server client.
@@ -143,7 +143,12 @@ type Client struct {
 	GetMulticastQueueItemsForMulticastGroupChan     chan ns.GetMulticastQueueItemsForMulticastGroupRequest
 	GetMulticastQueueItemsForMulticastGroupResponse ns.GetMulticastQueueItemsForMulticastGroupResponse
 
+	GenerateGatewayClientCertificateChan     chan ns.GenerateGatewayClientCertificateRequest
+	GenerateGatewayClientCertificateResponse ns.GenerateGatewayClientCertificateResponse
+
 	GetVersionResponse ns.GetVersionResponse
+
+	GetADRAlgorithmsResponse ns.GetADRAlgorithmsResponse
 }
 
 // NewClient creates a new Client.
@@ -193,6 +198,7 @@ func NewClient() *Client {
 		EnqueueMulticastQueueItemChan:               make(chan ns.EnqueueMulticastQueueItemRequest, 100),
 		FlushMulticastQueueForMulticastGroupChan:    make(chan ns.FlushMulticastQueueForMulticastGroupRequest, 100),
 		GetMulticastQueueItemsForMulticastGroupChan: make(chan ns.GetMulticastQueueItemsForMulticastGroupRequest, 100),
+		GenerateGatewayClientCertificateChan:        make(chan ns.GenerateGatewayClientCertificateRequest, 100),
 	}
 }
 
@@ -383,94 +389,105 @@ func (n *Client) DeleteGatewayProfile(ctx context.Context, in *ns.DeleteGatewayP
 }
 
 // CreateDeviceQueueItem method.
-func (n Client) CreateDeviceQueueItem(ctx context.Context, in *ns.CreateDeviceQueueItemRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (n *Client) CreateDeviceQueueItem(ctx context.Context, in *ns.CreateDeviceQueueItemRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.CreateDeviceQueueItemChan <- *in
 	return &n.CreateDeviceQueueItemResponse, nil
 }
 
 // FlushDeviceQueueForDevEUI method.
-func (n Client) FlushDeviceQueueForDevEUI(ctx context.Context, in *ns.FlushDeviceQueueForDevEUIRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (n *Client) FlushDeviceQueueForDevEUI(ctx context.Context, in *ns.FlushDeviceQueueForDevEUIRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.FlushDeviceQueueForDevEUIChan <- *in
 	return &n.FlushDeviceQueueForDevEUIResponse, nil
 }
 
 // GetDeviceQueueItemsForDevEUI method.
-func (n Client) GetDeviceQueueItemsForDevEUI(ctx context.Context, in *ns.GetDeviceQueueItemsForDevEUIRequest, opts ...grpc.CallOption) (*ns.GetDeviceQueueItemsForDevEUIResponse, error) {
+func (n *Client) GetDeviceQueueItemsForDevEUI(ctx context.Context, in *ns.GetDeviceQueueItemsForDevEUIRequest, opts ...grpc.CallOption) (*ns.GetDeviceQueueItemsForDevEUIResponse, error) {
 	n.GetDeviceQueueItemsForDevEUIChan <- *in
 	return &n.GetDeviceQueueItemsForDevEUIResponse, nil
 }
 
 // GetNextDownlinkFCntForDevEUI method.
-func (n Client) GetNextDownlinkFCntForDevEUI(ctx context.Context, in *ns.GetNextDownlinkFCntForDevEUIRequest, opts ...grpc.CallOption) (*ns.GetNextDownlinkFCntForDevEUIResponse, error) {
+func (n *Client) GetNextDownlinkFCntForDevEUI(ctx context.Context, in *ns.GetNextDownlinkFCntForDevEUIRequest, opts ...grpc.CallOption) (*ns.GetNextDownlinkFCntForDevEUIResponse, error) {
 	n.GetNextDownlinkFCntForDevEUIChan <- *in
 	return &n.GetNextDownlinkFCntForDevEUIResponse, nil
 }
 
 // GetVersion method.
-func (n Client) GetVersion(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ns.GetVersionResponse, error) {
+func (n *Client) GetVersion(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ns.GetVersionResponse, error) {
 	return &n.GetVersionResponse, nil
 }
 
 // StreamFrameLogsForGateway method.
-func (n Client) StreamFrameLogsForGateway(ctx context.Context, in *ns.StreamFrameLogsForGatewayRequest, opts ...grpc.CallOption) (ns.NetworkServerService_StreamFrameLogsForGatewayClient, error) {
+func (n *Client) StreamFrameLogsForGateway(ctx context.Context, in *ns.StreamFrameLogsForGatewayRequest, opts ...grpc.CallOption) (ns.NetworkServerService_StreamFrameLogsForGatewayClient, error) {
 	panic("not implemented")
 }
 
 // StreamFrameLogsForDevice method.
-func (n Client) StreamFrameLogsForDevice(ctx context.Context, in *ns.StreamFrameLogsForDeviceRequest, opts ...grpc.CallOption) (ns.NetworkServerService_StreamFrameLogsForDeviceClient, error) {
+func (n *Client) StreamFrameLogsForDevice(ctx context.Context, in *ns.StreamFrameLogsForDeviceRequest, opts ...grpc.CallOption) (ns.NetworkServerService_StreamFrameLogsForDeviceClient, error) {
 	panic("not implemented")
 }
 
 // CreateMulticastGroup method.
-func (n Client) CreateMulticastGroup(ctx context.Context, in *ns.CreateMulticastGroupRequest, opts ...grpc.CallOption) (*ns.CreateMulticastGroupResponse, error) {
+func (n *Client) CreateMulticastGroup(ctx context.Context, in *ns.CreateMulticastGroupRequest, opts ...grpc.CallOption) (*ns.CreateMulticastGroupResponse, error) {
 	n.CreateMulticastGroupChan <- *in
 	return &n.CreateMulticastGroupResponse, nil
 }
 
 // GetMulticastGroup method.
-func (n Client) GetMulticastGroup(ctx context.Context, in *ns.GetMulticastGroupRequest, opts ...grpc.CallOption) (*ns.GetMulticastGroupResponse, error) {
+func (n *Client) GetMulticastGroup(ctx context.Context, in *ns.GetMulticastGroupRequest, opts ...grpc.CallOption) (*ns.GetMulticastGroupResponse, error) {
 	n.GetMulticastGroupChan <- *in
 	return &n.GetMulticastGroupResponse, nil
 }
 
 // UpdateMulticastGroup method.
-func (n Client) UpdateMulticastGroup(ctx context.Context, in *ns.UpdateMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (n *Client) UpdateMulticastGroup(ctx context.Context, in *ns.UpdateMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.UpdateMulticastGroupChan <- *in
 	return &n.UpdateMulticastGroupResponse, nil
 }
 
 // DeleteMulticastGroup method.
-func (n Client) DeleteMulticastGroup(ctx context.Context, in *ns.DeleteMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (n *Client) DeleteMulticastGroup(ctx context.Context, in *ns.DeleteMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.DeleteMulticastGroupChan <- *in
 	return &n.DeleteMulticastGroupResponse, nil
 }
 
 // AddDeviceToMulticastGroup method.
-func (n Client) AddDeviceToMulticastGroup(ctx context.Context, in *ns.AddDeviceToMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (n *Client) AddDeviceToMulticastGroup(ctx context.Context, in *ns.AddDeviceToMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.AddDeviceToMulticastGroupChan <- *in
 	return &n.AddDeviceToMulticastGroupResponse, nil
 }
 
 // RemoveDeviceFromMulticastGroup method.
-func (n Client) RemoveDeviceFromMulticastGroup(ctx context.Context, in *ns.RemoveDeviceFromMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (n *Client) RemoveDeviceFromMulticastGroup(ctx context.Context, in *ns.RemoveDeviceFromMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.RemoveDeviceFromMulticastGroupChan <- *in
 	return &n.RemoveDeviceFromMulticastGroupResponse, nil
 }
 
 // EnqueueMulticastQueueItem method.
-func (n Client) EnqueueMulticastQueueItem(ctx context.Context, in *ns.EnqueueMulticastQueueItemRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (n *Client) EnqueueMulticastQueueItem(ctx context.Context, in *ns.EnqueueMulticastQueueItemRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.EnqueueMulticastQueueItemChan <- *in
 	return &n.EnqueueMulticastQueueItemResponse, nil
 }
 
 // FlushMulticastQueueForMulticastGroup method.
-func (n Client) FlushMulticastQueueForMulticastGroup(ctx context.Context, in *ns.FlushMulticastQueueForMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (n *Client) FlushMulticastQueueForMulticastGroup(ctx context.Context, in *ns.FlushMulticastQueueForMulticastGroupRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	n.FlushMulticastQueueForMulticastGroupChan <- *in
 	return &n.FlushMulticastQueueForMulticastGroupResponse, nil
 }
 
 // GetMulticastQueueItemsForMulticastGroup method.
-func (n Client) GetMulticastQueueItemsForMulticastGroup(ctx context.Context, in *ns.GetMulticastQueueItemsForMulticastGroupRequest, opts ...grpc.CallOption) (*ns.GetMulticastQueueItemsForMulticastGroupResponse, error) {
+func (n *Client) GetMulticastQueueItemsForMulticastGroup(ctx context.Context, in *ns.GetMulticastQueueItemsForMulticastGroupRequest, opts ...grpc.CallOption) (*ns.GetMulticastQueueItemsForMulticastGroupResponse, error) {
 	n.GetMulticastQueueItemsForMulticastGroupChan <- *in
 	return &n.GetMulticastQueueItemsForMulticastGroupResponse, nil
+}
+
+// GenerateGatewayClientCertificate method.
+func (n *Client) GenerateGatewayClientCertificate(ctx context.Context, in *ns.GenerateGatewayClientCertificateRequest, opts ...grpc.CallOption) (*ns.GenerateGatewayClientCertificateResponse, error) {
+	n.GenerateGatewayClientCertificateChan <- *in
+	return &n.GenerateGatewayClientCertificateResponse, nil
+}
+
+// GetADRAlgorithms method.
+func (n *Client) GetADRAlgorithms(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ns.GetADRAlgorithmsResponse, error) {
+	return &n.GetADRAlgorithmsResponse, nil
 }

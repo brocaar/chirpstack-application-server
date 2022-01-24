@@ -2,18 +2,20 @@ package external
 
 import (
 	"testing"
+	"time"
 
 	uuid "github.com/gofrs/uuid"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/chirpstack-api/go/ns"
 )
 
 func (ts *APITestSuite) TestDeviceProfile() {
@@ -22,7 +24,7 @@ func (ts *APITestSuite) TestDeviceProfile() {
 	nsClient := mock.NewClient()
 	networkserver.SetPool(mock.NewPool(nsClient))
 
-	validator := &TestValidator{}
+	validator := &TestValidator{returnSubject: "user"}
 	api := NewDeviceProfileServiceAPI(validator)
 
 	n := storage.NetworkServer{
@@ -35,6 +37,13 @@ func (ts *APITestSuite) TestDeviceProfile() {
 		Name: "test-org",
 	}
 	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
+
+	user := storage.User{
+		Email:    "foo@bar.com",
+		IsActive: true,
+		IsAdmin:  true,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &user))
 
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
@@ -66,8 +75,11 @@ func (ts *APITestSuite) TestDeviceProfile() {
 				PayloadCodec:         "CUSTOM_JS",
 				PayloadEncoderScript: "Encode() {}",
 				PayloadDecoderScript: "Decode() {}",
-				GeolocBufferTtl:      60,
-				GeolocMinBufferSize:  3,
+				Tags: map[string]string{
+					"foo": "bar",
+				},
+				UplinkInterval: ptypes.DurationProto(10 * time.Second),
+				AdrAlgorithmId: "default",
 			},
 		}
 
@@ -99,31 +111,34 @@ func (ts *APITestSuite) TestDeviceProfile() {
 			assert := require.New(t)
 			updateReq := pb.UpdateDeviceProfileRequest{
 				DeviceProfile: &pb.DeviceProfile{
-					Id:                  createResp.Id,
-					OrganizationId:      org.ID,
-					NetworkServerId:     n.ID,
-					Name:                "updated-dp",
-					SupportsClassB:      true,
-					ClassBTimeout:       20,
-					PingSlotPeriod:      30,
-					PingSlotDr:          4,
-					PingSlotFreq:        868300000,
-					SupportsClassC:      true,
-					ClassCTimeout:       20,
-					MacVersion:          "1.1.0",
-					RegParamsRevision:   "C",
-					RxDelay_1:           2,
-					RxDrOffset_1:        3,
-					RxDatarate_2:        5,
-					RxFreq_2:            868500000,
-					FactoryPresetFreqs:  []uint32{868100000, 868300000, 868500000, 868700000},
-					MaxEirp:             17,
-					MaxDutyCycle:        1,
-					SupportsJoin:        true,
-					RfRegion:            "EU868",
-					Supports_32BitFCnt:  true,
-					GeolocBufferTtl:     120,
-					GeolocMinBufferSize: 6,
+					Id:                 createResp.Id,
+					OrganizationId:     org.ID,
+					NetworkServerId:    n.ID,
+					Name:               "updated-dp",
+					SupportsClassB:     true,
+					ClassBTimeout:      20,
+					PingSlotPeriod:     30,
+					PingSlotDr:         4,
+					PingSlotFreq:       868300000,
+					SupportsClassC:     true,
+					ClassCTimeout:      20,
+					MacVersion:         "1.1.0",
+					RegParamsRevision:  "C",
+					RxDelay_1:          2,
+					RxDrOffset_1:       3,
+					RxDatarate_2:       5,
+					RxFreq_2:           868500000,
+					FactoryPresetFreqs: []uint32{868100000, 868300000, 868500000, 868700000},
+					MaxEirp:            17,
+					MaxDutyCycle:       1,
+					SupportsJoin:       true,
+					RfRegion:           "EU868",
+					Supports_32BitFCnt: true,
+					Tags: map[string]string{
+						"alice": "bob",
+					},
+					UplinkInterval: ptypes.DurationProto(20 * time.Second),
+					AdrAlgorithmId: "custom-adr",
 				},
 			}
 
@@ -143,7 +158,7 @@ func (ts *APITestSuite) TestDeviceProfile() {
 		})
 
 		t.Run("Global admin user", func(t *testing.T) {
-			validator.returnIsAdmin = true
+			validator.returnUser = user
 
 			t.Run("List", func(t *testing.T) {
 				assert := require.New(t)
@@ -243,20 +258,23 @@ func (ts *APITestSuite) TestDeviceProfile() {
 		t.Run("Organization user", func(t *testing.T) {
 			assert := require.New(t)
 
-			userID, err := storage.CreateUser(context.Background(), storage.DB(), &storage.User{
-				Username: "testuser",
+			user1 := storage.User{
 				IsActive: true,
-				Email:    "foo@bar.com",
-			}, "testpassword")
-			assert.NoError(err)
+				Email:    "user1@bar.com",
+			}
+			assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &user1))
+			assert.NoError(storage.CreateOrganizationUser(context.Background(), storage.DB(), org.ID, user1.ID, false, false, false))
 
-			assert.NoError(storage.CreateOrganizationUser(context.Background(), storage.DB(), org.ID, userID, false, false, false))
+			user2 := storage.User{
+				IsActive: true,
+				Email:    "user2@bar.com",
+			}
+			assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &user2))
 
 			t.Run("List without org id returns all device-profiles for user", func(t *testing.T) {
 				assert := require.New(t)
 
-				validator.returnIsAdmin = false
-				validator.returnUsername = "testuser"
+				validator.returnUser = user1
 
 				listResp, err := api.List(context.Background(), &pb.ListDeviceProfileRequest{
 					Limit: 10,
@@ -269,8 +287,7 @@ func (ts *APITestSuite) TestDeviceProfile() {
 			t.Run("List with different user", func(t *testing.T) {
 				assert := require.New(t)
 
-				validator.returnIsAdmin = false
-				validator.returnUsername = "differentuser"
+				validator.returnUser = user2
 
 				listResp, err := api.List(context.Background(), &pb.ListDeviceProfileRequest{
 					Limit: 10,

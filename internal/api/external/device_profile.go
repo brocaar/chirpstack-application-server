@@ -1,18 +1,22 @@
 package external
 
 import (
+	"database/sql"
+	"time"
+
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/lib/pq/hstore"
 
-	"github.com/brocaar/chirpstack-api/go/ns"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/codec"
@@ -43,6 +47,15 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
+	var err error
+	var uplinkInterval time.Duration
+	if req.DeviceProfile.UplinkInterval != nil {
+		uplinkInterval, err = ptypes.Duration(req.DeviceProfile.UplinkInterval)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+	}
+
 	dp := storage.DeviceProfile{
 		OrganizationID:       req.DeviceProfile.OrganizationId,
 		NetworkServerID:      req.DeviceProfile.NetworkServerId,
@@ -50,34 +63,41 @@ func (a *DeviceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateDevi
 		PayloadCodec:         codec.Type(req.DeviceProfile.PayloadCodec),
 		PayloadEncoderScript: req.DeviceProfile.PayloadEncoderScript,
 		PayloadDecoderScript: req.DeviceProfile.PayloadDecoderScript,
-		DeviceProfile: ns.DeviceProfile{
-			SupportsClassB:      req.DeviceProfile.SupportsClassB,
-			ClassBTimeout:       req.DeviceProfile.ClassBTimeout,
-			PingSlotPeriod:      req.DeviceProfile.PingSlotPeriod,
-			PingSlotDr:          req.DeviceProfile.PingSlotDr,
-			PingSlotFreq:        req.DeviceProfile.PingSlotFreq,
-			SupportsClassC:      req.DeviceProfile.SupportsClassC,
-			ClassCTimeout:       req.DeviceProfile.ClassCTimeout,
-			MacVersion:          req.DeviceProfile.MacVersion,
-			RegParamsRevision:   req.DeviceProfile.RegParamsRevision,
-			RxDelay_1:           req.DeviceProfile.RxDelay_1,
-			RxDrOffset_1:        req.DeviceProfile.RxDrOffset_1,
-			RxDatarate_2:        req.DeviceProfile.RxDatarate_2,
-			RxFreq_2:            req.DeviceProfile.RxFreq_2,
-			MaxEirp:             req.DeviceProfile.MaxEirp,
-			MaxDutyCycle:        req.DeviceProfile.MaxDutyCycle,
-			SupportsJoin:        req.DeviceProfile.SupportsJoin,
-			RfRegion:            req.DeviceProfile.RfRegion,
-			Supports_32BitFCnt:  req.DeviceProfile.Supports_32BitFCnt,
-			FactoryPresetFreqs:  req.DeviceProfile.FactoryPresetFreqs,
-			GeolocBufferTtl:     req.DeviceProfile.GeolocBufferTtl,
-			GeolocMinBufferSize: req.DeviceProfile.GeolocMinBufferSize,
+		Tags: hstore.Hstore{
+			Map: make(map[string]sql.NullString),
 		},
+		UplinkInterval: uplinkInterval,
+		DeviceProfile: ns.DeviceProfile{
+			SupportsClassB:     req.DeviceProfile.SupportsClassB,
+			ClassBTimeout:      req.DeviceProfile.ClassBTimeout,
+			PingSlotPeriod:     req.DeviceProfile.PingSlotPeriod,
+			PingSlotDr:         req.DeviceProfile.PingSlotDr,
+			PingSlotFreq:       req.DeviceProfile.PingSlotFreq,
+			SupportsClassC:     req.DeviceProfile.SupportsClassC,
+			ClassCTimeout:      req.DeviceProfile.ClassCTimeout,
+			MacVersion:         req.DeviceProfile.MacVersion,
+			RegParamsRevision:  req.DeviceProfile.RegParamsRevision,
+			RxDelay_1:          req.DeviceProfile.RxDelay_1,
+			RxDrOffset_1:       req.DeviceProfile.RxDrOffset_1,
+			RxDatarate_2:       req.DeviceProfile.RxDatarate_2,
+			RxFreq_2:           req.DeviceProfile.RxFreq_2,
+			MaxEirp:            req.DeviceProfile.MaxEirp,
+			MaxDutyCycle:       req.DeviceProfile.MaxDutyCycle,
+			SupportsJoin:       req.DeviceProfile.SupportsJoin,
+			RfRegion:           req.DeviceProfile.RfRegion,
+			Supports_32BitFCnt: req.DeviceProfile.Supports_32BitFCnt,
+			FactoryPresetFreqs: req.DeviceProfile.FactoryPresetFreqs,
+			AdrAlgorithmId:     req.DeviceProfile.AdrAlgorithmId,
+		},
+	}
+
+	for k, v := range req.DeviceProfile.Tags {
+		dp.Tags.Map[k] = sql.NullString{Valid: true, String: v}
 	}
 
 	// as this also performs a remote call to create the device-profile
 	// on the network-server, wrap it in a transaction
-	err := storage.Transaction(func(tx sqlx.Ext) error {
+	err = storage.Transaction(func(tx sqlx.Ext) error {
 		return storage.CreateDeviceProfile(ctx, tx, &dp)
 	})
 	if err != nil {
@@ -140,8 +160,9 @@ func (a *DeviceProfileServiceAPI) Get(ctx context.Context, req *pb.GetDeviceProf
 			RfRegion:             dp.DeviceProfile.RfRegion,
 			Supports_32BitFCnt:   dp.DeviceProfile.Supports_32BitFCnt,
 			FactoryPresetFreqs:   dp.DeviceProfile.FactoryPresetFreqs,
-			GeolocBufferTtl:      dp.DeviceProfile.GeolocBufferTtl,
-			GeolocMinBufferSize:  dp.DeviceProfile.GeolocMinBufferSize,
+			Tags:                 make(map[string]string),
+			UplinkInterval:       ptypes.DurationProto(dp.UplinkInterval),
+			AdrAlgorithmId:       dp.DeviceProfile.AdrAlgorithmId,
 		},
 	}
 
@@ -152,6 +173,10 @@ func (a *DeviceProfileServiceAPI) Get(ctx context.Context, req *pb.GetDeviceProf
 	resp.UpdatedAt, err = ptypes.TimestampProto(dp.UpdatedAt)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
+	}
+
+	for k, v := range dp.Tags.Map {
+		resp.DeviceProfile.Tags[k] = v.String
 	}
 
 	return &resp, nil
@@ -183,33 +208,48 @@ func (a *DeviceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateDevi
 			return err
 		}
 
+		var uplinkInterval time.Duration
+		if req.DeviceProfile.UplinkInterval != nil {
+			uplinkInterval, err = ptypes.Duration(req.DeviceProfile.UplinkInterval)
+			if err != nil {
+				return err
+			}
+		}
+
 		dp.Name = req.DeviceProfile.Name
 		dp.PayloadCodec = codec.Type(req.DeviceProfile.PayloadCodec)
 		dp.PayloadEncoderScript = req.DeviceProfile.PayloadEncoderScript
 		dp.PayloadDecoderScript = req.DeviceProfile.PayloadDecoderScript
+		dp.Tags = hstore.Hstore{
+			Map: make(map[string]sql.NullString),
+		}
+		dp.UplinkInterval = uplinkInterval
 		dp.DeviceProfile = ns.DeviceProfile{
-			Id:                  dpID.Bytes(),
-			SupportsClassB:      req.DeviceProfile.SupportsClassB,
-			ClassBTimeout:       req.DeviceProfile.ClassBTimeout,
-			PingSlotPeriod:      req.DeviceProfile.PingSlotPeriod,
-			PingSlotDr:          req.DeviceProfile.PingSlotDr,
-			PingSlotFreq:        req.DeviceProfile.PingSlotFreq,
-			SupportsClassC:      req.DeviceProfile.SupportsClassC,
-			ClassCTimeout:       req.DeviceProfile.ClassCTimeout,
-			MacVersion:          req.DeviceProfile.MacVersion,
-			RegParamsRevision:   req.DeviceProfile.RegParamsRevision,
-			RxDelay_1:           req.DeviceProfile.RxDelay_1,
-			RxDrOffset_1:        req.DeviceProfile.RxDrOffset_1,
-			RxDatarate_2:        req.DeviceProfile.RxDatarate_2,
-			RxFreq_2:            req.DeviceProfile.RxFreq_2,
-			MaxEirp:             req.DeviceProfile.MaxEirp,
-			MaxDutyCycle:        req.DeviceProfile.MaxDutyCycle,
-			SupportsJoin:        req.DeviceProfile.SupportsJoin,
-			RfRegion:            req.DeviceProfile.RfRegion,
-			Supports_32BitFCnt:  req.DeviceProfile.Supports_32BitFCnt,
-			FactoryPresetFreqs:  req.DeviceProfile.FactoryPresetFreqs,
-			GeolocBufferTtl:     req.DeviceProfile.GeolocBufferTtl,
-			GeolocMinBufferSize: req.DeviceProfile.GeolocMinBufferSize,
+			Id:                 dpID.Bytes(),
+			SupportsClassB:     req.DeviceProfile.SupportsClassB,
+			ClassBTimeout:      req.DeviceProfile.ClassBTimeout,
+			PingSlotPeriod:     req.DeviceProfile.PingSlotPeriod,
+			PingSlotDr:         req.DeviceProfile.PingSlotDr,
+			PingSlotFreq:       req.DeviceProfile.PingSlotFreq,
+			SupportsClassC:     req.DeviceProfile.SupportsClassC,
+			ClassCTimeout:      req.DeviceProfile.ClassCTimeout,
+			MacVersion:         req.DeviceProfile.MacVersion,
+			RegParamsRevision:  req.DeviceProfile.RegParamsRevision,
+			RxDelay_1:          req.DeviceProfile.RxDelay_1,
+			RxDrOffset_1:       req.DeviceProfile.RxDrOffset_1,
+			RxDatarate_2:       req.DeviceProfile.RxDatarate_2,
+			RxFreq_2:           req.DeviceProfile.RxFreq_2,
+			MaxEirp:            req.DeviceProfile.MaxEirp,
+			MaxDutyCycle:       req.DeviceProfile.MaxDutyCycle,
+			SupportsJoin:       req.DeviceProfile.SupportsJoin,
+			RfRegion:           req.DeviceProfile.RfRegion,
+			Supports_32BitFCnt: req.DeviceProfile.Supports_32BitFCnt,
+			FactoryPresetFreqs: req.DeviceProfile.FactoryPresetFreqs,
+			AdrAlgorithmId:     req.DeviceProfile.AdrAlgorithmId,
+		}
+
+		for k, v := range req.DeviceProfile.Tags {
+			dp.Tags.Map[k] = sql.NullString{Valid: true, String: v}
 		}
 
 		return storage.UpdateDeviceProfile(ctx, tx, &dp)
@@ -262,61 +302,46 @@ func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDevicePr
 		}
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	filters := storage.DeviceProfileFilters{
+		Limit:          int(req.Limit),
+		Offset:         int(req.Offset),
+		OrganizationID: req.OrganizationId,
+		ApplicationID:  req.ApplicationId,
+	}
+
+	sub, err := a.validator.GetSubject(ctx)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	username, err := a.validator.GetUsername(ctx)
+	switch sub {
+	case auth.SubjectUser:
+		user, err := a.validator.GetUser(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		// Filter on user ID when org and app ID are not set and user is not
+		// global admin.
+		if !user.IsAdmin && filters.OrganizationID == 0 && filters.ApplicationID == 0 {
+			filters.UserID = user.ID
+		}
+	case auth.SubjectAPIKey:
+		// Nothing to do as the validator function already validated that the
+		// API key is either of type admin, org (for the req.OrganizationId) or
+		// app (for the req.ApplicationId).
+	default:
+		return nil, grpc.Errorf(codes.Unauthenticated, "invalid token subject: %s", sub)
+	}
+
+	count, err := storage.GetDeviceProfileCount(ctx, storage.DB(), filters)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	var count int
-	var dps []storage.DeviceProfileMeta
-
-	if req.ApplicationId != 0 {
-		dps, err = storage.GetDeviceProfilesForApplicationID(ctx, storage.DB(), req.ApplicationId, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-
-		count, err = storage.GetDeviceProfileCountForApplicationID(ctx, storage.DB(), req.ApplicationId)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-	} else if req.OrganizationId != 0 {
-		dps, err = storage.GetDeviceProfilesForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-
-		count, err = storage.GetDeviceProfileCountForOrganizationID(ctx, storage.DB(), req.OrganizationId)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-	} else {
-		if isAdmin {
-			dps, err = storage.GetDeviceProfiles(ctx, storage.DB(), int(req.Limit), int(req.Offset))
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-
-			count, err = storage.GetDeviceProfileCount(ctx, storage.DB())
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		} else {
-			dps, err = storage.GetDeviceProfilesForUser(ctx, storage.DB(), username, int(req.Limit), int(req.Offset))
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-
-			count, err = storage.GetDeviceProfileCountForUser(ctx, storage.DB(), username)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		}
+	dps, err := storage.GetDeviceProfiles(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
 	}
 
 	resp := pb.ListDeviceProfileResponse{
@@ -325,10 +350,11 @@ func (a *DeviceProfileServiceAPI) List(ctx context.Context, req *pb.ListDevicePr
 
 	for _, dp := range dps {
 		row := pb.DeviceProfileListItem{
-			Id:              dp.DeviceProfileID.String(),
-			Name:            dp.Name,
-			OrganizationId:  dp.OrganizationID,
-			NetworkServerId: dp.NetworkServerID,
+			Id:                dp.DeviceProfileID.String(),
+			Name:              dp.Name,
+			OrganizationId:    dp.OrganizationID,
+			NetworkServerId:   dp.NetworkServerID,
+			NetworkServerName: dp.NetworkServerName,
 		}
 
 		row.CreatedAt, err = ptypes.TimestampProto(dp.CreatedAt)

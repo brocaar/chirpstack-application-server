@@ -1,6 +1,9 @@
 # hidden files
 .*
 
+# hidden files except .docker-compose
+!.docker-compose/
+
 # logs
 *.log
 
@@ -13,9 +16,8 @@
 # builds
 /dist
 /build
-/internal/static/static_gen.go
-/internal/migrations/migrations_gen.go
 /static/logo
+/static/integrations
 /static/static
 /static/swagger/*.json
 /static/index.html

@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
@@ -199,34 +199,20 @@ func (a *NetworkServerAPI) List(ctx context.Context, req *pb.ListNetworkServerRe
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	filters := storage.NetworkServerFilters{
+		OrganizationID: req.OrganizationId,
+		Limit:          int(req.Limit),
+		Offset:         int(req.Offset),
+	}
+
+	count, err := storage.GetNetworkServerCount(ctx, storage.DB(), filters)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	var count int
-	var nss []storage.NetworkServer
-
-	if req.OrganizationId == 0 {
-		if isAdmin {
-			count, err = storage.GetNetworkServerCount(ctx, storage.DB())
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-			nss, err = storage.GetNetworkServers(ctx, storage.DB(), int(req.Limit), int(req.Offset))
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		}
-	} else {
-		count, err = storage.GetNetworkServerCountForOrganizationID(ctx, storage.DB(), req.OrganizationId)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-		nss, err = storage.GetNetworkServersForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
+	nss, err := storage.GetNetworkServers(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
 	}
 
 	resp := pb.ListNetworkServerResponse{
@@ -250,6 +236,40 @@ func (a *NetworkServerAPI) List(ctx context.Context, req *pb.ListNetworkServerRe
 		}
 
 		resp.Result = append(resp.Result, &row)
+	}
+
+	return &resp, nil
+}
+
+// GetADRAlgorithms returns the available ADR algorithms.
+func (a *NetworkServerAPI) GetADRAlgorithms(ctx context.Context, req *pb.GetADRAlgorithmsRequest) (*pb.GetADRAlgorithmsResponse, error) {
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNetworkServerAccess(auth.ADRAlgorithms, req.NetworkServerId),
+	); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	n, err := storage.GetNetworkServer(ctx, storage.DB(), req.NetworkServerId)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	nsResp, err := nsClient.GetADRAlgorithms(ctx, &empty.Empty{})
+	if err != nil {
+		return nil, err
+	}
+
+	var resp pb.GetADRAlgorithmsResponse
+	for _, adrAlgorithm := range nsResp.AdrAlgorithms {
+		resp.AdrAlgorithms = append(resp.AdrAlgorithms, &pb.ADRAlgorithm{
+			Id:   adrAlgorithm.Id,
+			Name: adrAlgorithm.Name,
+		})
 	}
 
 	return &resp, nil

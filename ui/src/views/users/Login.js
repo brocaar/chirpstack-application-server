@@ -7,11 +7,15 @@ import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
 import Typography from "@material-ui/core/Typography";
+import Button from "@material-ui/core/Button";
 import { withStyles } from "@material-ui/core/styles";
+
+import queryString from "query-string";
 
 import Form from "../../components/Form";
 import FormComponent from "../../classes/FormComponent";
 import SessionStore from "../../stores/SessionStore";
+import InternalStore from "../../stores/InternalStore";
 import theme from "../../theme";
 
 
@@ -40,10 +44,10 @@ class LoginForm extends FormComponent {
         onSubmit={this.onSubmit}
       >
         <TextField
-          id="username"
-          label="Username"
+          id="email"
+          label="Username / email"
           margin="normal"
-          value={this.state.object.username || ""}
+          value={this.state.object.email || ""}
           onChange={this.onChange}
           fullWidth
           required
@@ -63,28 +67,53 @@ class LoginForm extends FormComponent {
   }
 }
 
+class OpenIDConnectLogin extends Component {
+  render() {
+    return(
+      <div>
+        <a href={this.props.loginUrl}><Button variant="outlined">{this.props.loginLabel}</Button></a>
+      </div>
+    );
+  }
+}
+
 
 class Login extends Component {
   constructor() {
     super();
 
     this.state = {
-      registration: null,
+      loaded: false,
+      registration: "",
+      oidcEnabled: false,
+      oidcLoginlabel: "",
+      oidcLoginUrl: "",
     };
 
     this.onSubmit = this.onSubmit.bind(this);
   }
 
   componentDidMount() {
-    SessionStore.logout(() => {});
+    SessionStore.logout(true, () => {});
 
-    SessionStore.getBranding(resp => {
-      if (resp.registration !== "") {
-        this.setState({
-          registration: resp.registration,
-        });
-      }
+    InternalStore.settings(resp => {
+      this.setState({
+        loaded: true,
+        registration: resp.branding.registration,
+        oidcEnabled: resp.openidConnect.enabled,
+        oidcLoginUrl: resp.openidConnect.loginURL,
+        oidcLoginLabel: resp.openidConnect.loginLabel,
+      });
     });
+
+    // callback from openid provider
+    if (this.props.location.search !== "") {
+      let query = queryString.parse(this.props.location.search);
+  
+      SessionStore.openidConnectLogin(query.code, query.state, () => {
+        this.props.history.push("/");
+      });
+    }
   }
 
   onSubmit(login) {
@@ -94,20 +123,29 @@ class Login extends Component {
   }
 
   render() {
+    if (!this.state.loaded) {
+      return null;
+    }
+
     return(
       <Grid container justify="center">
         <Grid item xs={6} lg={4}>
           <Card>
             <CardHeader
-              title="Login"
+              title="ChirpStack Login"
             />
             <CardContent>
-              <LoginForm
+              {!this.state.oidcEnabled && <LoginForm
                 submitLabel="Login"
                 onSubmit={this.onSubmit}
-              />
+              />}
+
+              {this.state.oidcEnabled && <OpenIDConnectLogin
+                loginUrl={this.state.oidcLoginUrl}
+                loginLabel={this.state.oidcLoginLabel}
+              />}
             </CardContent>
-            {this.state.registration && <CardContent>
+            {this.state.registration !== "" && <CardContent>
               <Typography className={this.props.classes.link} dangerouslySetInnerHTML={{__html: this.state.registration}}></Typography>
              </CardContent>}
           </Card>

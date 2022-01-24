@@ -13,6 +13,7 @@ import TitleBarTitle from "../../components/TitleBarTitle";
 import TitleBarButton from "../../components/TitleBarButton";
 import DeviceAdmin from "../../components/DeviceAdmin";
 
+import ApplicationStore from "../../stores/ApplicationStore";
 import MulticastGroupStore from "../../stores/MulticastGroupStore";
 import SessionStore from "../../stores/SessionStore";
 import UpdateMulticastGroup from "./UpdateMulticastGroup";
@@ -44,6 +45,12 @@ class MulticastGroupLayout extends Component {
   }
 
   componentDidMount() {
+    ApplicationStore.get(this.props.match.params.applicationID, resp => {
+      this.setState({
+        application: resp,
+      });
+    });
+
     MulticastGroupStore.get(this.props.match.params.multicastGroupID, resp => {
       this.setState({
         multicastGroup: resp,
@@ -53,6 +60,7 @@ class MulticastGroupLayout extends Component {
     SessionStore.on("change", this.setIsAdmin);
     this.setIsAdmin();
   }
+
 
   componentWillUnmount() {
     SessionStore.removeListener("change", this.setIsAdmin);
@@ -92,19 +100,19 @@ class MulticastGroupLayout extends Component {
   deleteMulticastGroup() {
     if (window.confirm("Are you sure you want to delete this multicast-group?")) {
       MulticastGroupStore.delete(this.props.match.params.multicastGroupID, resp => {
-        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/multicast-groups`);
+        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/multicast-groups`);
       });
     }
   }
 
   render() {
-    if (this.state.multicastGroup === undefined) {
+    if (this.state.application === undefined || this.state.multicastGroup === undefined) {
       return null;
     }
 
     return(
       <Grid container spacing={4}>
-        <TitleBar
+      <TitleBar
           buttons={
             <DeviceAdmin organizationID={this.props.match.params.organizationID}>
               <TitleBarButton
@@ -116,7 +124,11 @@ class MulticastGroupLayout extends Component {
             </DeviceAdmin>
           }
         >
-          <TitleBarTitle to={`/organizations/${this.props.match.params.organizationID}/multicast-groups`} title="Multicast-groups" />
+          <TitleBarTitle title="Applications" to={`/organizations/${this.props.match.params.organizationID}/applications`} />
+          <TitleBarTitle title="/" />
+          <TitleBarTitle title={this.state.application.application.name} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`} />
+          <TitleBarTitle title="/" />
+          <TitleBarTitle title="Multicast groups" to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/multicast-groups`} />
           <TitleBarTitle title="/" />
           <TitleBarTitle title={this.state.multicastGroup.multicastGroup.name} />
         </TitleBar>
@@ -128,8 +140,8 @@ class MulticastGroupLayout extends Component {
             indicatorColor="primary"
             className={this.props.classes.tabs}
           >
-            <Tab label="Devices" component={Link} to={`/organizations/${this.props.match.params.organizationID}/multicast-groups/${this.props.match.params.multicastGroupID}`} />
-            {this.state.admin && <Tab label="Configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/multicast-groups/${this.props.match.params.multicastGroupID}/edit`} />}
+            <Tab label="Devices" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/multicast-groups/${this.props.match.params.multicastGroupID}`} />
+            {this.state.admin && <Tab label="Configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/multicast-groups/${this.props.match.params.multicastGroupID}/edit`} />}
           </Tabs>
         </Grid>
 

@@ -17,10 +17,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/integration"
-	"github.com/brocaar/chirpstack-api/go/common"
-	"github.com/brocaar/chirpstack-api/go/gw"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
+	"github.com/brocaar/chirpstack-api/go/v3/gw"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
 	"github.com/brocaar/lorawan"
@@ -40,8 +43,11 @@ type deviceUp struct {
 	FPort           int             `db:"f_port"`
 	Data            []byte          `db:"data"`
 	RXInfo          json.RawMessage `db:"rx_info"`
+	TXInfo          json.RawMessage `db:"tx_info"`
 	Object          json.RawMessage `db:"object"`
 	Tags            hstore.Hstore   `db:"tags"`
+	DevAddr         lorawan.DevAddr `db:"dev_addr"`
+	ConfirmedUplink bool            `db:"confirmed_uplink"`
 }
 
 type deviceStatus struct {
@@ -109,6 +115,19 @@ type deviceLocation struct {
 	Tags            hstore.Hstore `db:"tags"`
 }
 
+type txAck struct {
+	ID              uuid.UUID       `db:"id"`
+	ReceivedAt      time.Time       `db:"received_at"`
+	DevEUI          lorawan.EUI64   `db:"dev_eui"`
+	DeviceName      string          `db:"device_name"`
+	ApplicationID   int64           `db:"application_id"`
+	ApplicationName string          `db:"application_name"`
+	GatewayID       lorawan.EUI64   `db:"gateway_id"`
+	FCnt            int             `db:"f_cnt"`
+	Tags            hstore.Hstore   `db:"tags"`
+	TXInfo          json.RawMessage `db:"tx_info"`
+}
+
 func init() {
 	log.SetLevel(log.ErrorLevel)
 }
@@ -124,9 +143,11 @@ func (ts *PostgreSQLTestSuite) SetupSuite() {
 	assert := require.New(ts.T())
 	conf := test.GetConfig()
 	assert.NoError(storage.Setup(conf))
+	assert.NoError(storage.MigrateDown(storage.DB().DB))
+	assert.NoError(storage.MigrateUp(storage.DB().DB))
 
-	dsn := "postgres://localhost/chirpstack_as_test?sslmode=disable"
-	if v := os.Getenv("TEST_POSTGRES_DSN"); v != "" {
+	dsn := "postgres://localhost/chirpstack_integration?sslmode=disable"
+	if v := os.Getenv("TEST_POSTGRES_INTEGRATION_DSN"); v != "" {
 		dsn = v
 	}
 
@@ -136,13 +157,33 @@ func (ts *PostgreSQLTestSuite) SetupSuite() {
 		panic(err)
 	}
 
-	ts.integration, err = New(config.IntegrationPostgreSQLConfig{
+	ts.integration, err = New(marshaler.Protobuf, config.IntegrationPostgreSQLConfig{
 		DSN: dsn,
 	})
 	if err != nil {
 		panic(err)
 	}
 
+	nsClient := mock.NewClient()
+	networkserver.SetPool(mock.NewPool(nsClient))
+
+	ns := storage.NetworkServer{
+		Name: "test-ns",
+	}
+	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &ns))
+
+	org := storage.Organization{
+		Name: "test-org",
+	}
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
+
+	gw := storage.Gateway{
+		MAC:             lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
+		Name:            "test-gw",
+		OrganizationID:  org.ID,
+		NetworkServerID: ns.ID,
+	}
+	assert.NoError(storage.CreateGateway(context.Background(), storage.DB(), &gw))
 }
 
 func (ts *PostgreSQLTestSuite) TearDownSuite() {
@@ -152,151 +193,15 @@ func (ts *PostgreSQLTestSuite) TearDownSuite() {
 }
 
 func (ts *PostgreSQLTestSuite) SetupTest() {
-	_, err := ts.db.Exec("drop table if exists device_up")
-	if err != nil {
+	if err := MigrateDown(ts.db); err != nil {
 		panic(err)
 	}
-
-	_, err = ts.db.Exec("drop table if exists device_status")
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec("drop table if exists device_join")
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec("drop table if exists device_ack")
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec("drop table if exists device_error")
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec("drop table if exists device_location")
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec(`
-		create table device_up (
-			id uuid primary key,
-			received_at timestamp with time zone not null,
-			dev_eui bytea not null,
-			device_name varchar(100) not null,
-			application_id bigint not null,
-			application_name varchar(100) not null,
-			frequency bigint not null,
-			dr smallint not null,
-			adr boolean not null,
-			f_cnt bigint not null,
-			f_port smallint not null,
-			tags hstore not null,
-			data bytea not null,
-			rx_info jsonb not null,
-			object jsonb not null
-		)
-	`)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec(`
-		create table device_status (
-			id uuid primary key,
-			received_at timestamp with time zone not null,
-			dev_eui bytea not null,
-			device_name varchar(100) not null,
-			application_id bigint not null,
-			application_name varchar(100) not null,
-			margin smallint not null,
-			external_power_source boolean not null,
-			battery_level_unavailable boolean not null,
-			battery_level numeric(5, 2) not null,
-			tags hstore not null
-		)
-	`)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec(`
-		create table device_join (
-			id uuid primary key,
-			received_at timestamp with time zone not null,
-			dev_eui bytea not null,
-			device_name varchar(100) not null,
-			application_id bigint not null,
-			application_name varchar(100) not null,
-			dev_addr bytea not null,
-			tags hstore not null
-		)
-	`)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec(`
-		create table device_ack (
-			id uuid primary key,
-			received_at timestamp with time zone not null,
-			dev_eui bytea not null,
-			device_name varchar(100) not null,
-			application_id bigint not null,
-			application_name varchar(100) not null,
-			acknowledged boolean not null,
-			f_cnt bigint not null,
-			tags hstore not null
-		)
-	`)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec(`
-		create table device_error (
-			id uuid primary key,
-			received_at timestamp with time zone not null,
-			dev_eui bytea not null,
-			device_name varchar(100) not null,
-			application_id bigint not null,
-			application_name varchar(100) not null,
-			type varchar(100) not null,
-			error text not null,
-			f_cnt bigint not null,
-			tags hstore not null
-		)
-	`)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = ts.db.Exec(`
-		create table device_location (
-			id uuid primary key,
-			received_at timestamp with time zone not null,
-			dev_eui bytea not null,
-			device_name varchar(100) not null,
-			application_id bigint not null,
-			application_name varchar(100) not null,
-			altitude double precision not null,
-			latitude double precision not null,
-			longitude double precision not null,
-			geohash varchar(12) not null,
-			tags hstore not null,
-			accuracy smallint not null
-		)
-	`)
-	if err != nil {
+	if err := MigrateUp(ts.db); err != nil {
 		panic(err)
 	}
 }
 
-func (ts *PostgreSQLTestSuite) TestSendDataUp() {
+func (ts *PostgreSQLTestSuite) TestHandleUplinkEvent() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now().Round(time.Second).UTC()
@@ -331,9 +236,11 @@ func (ts *PostgreSQLTestSuite) TestSendDataUp() {
 		Tags: map[string]string{
 			"foo": "bar",
 		},
+		ConfirmedUplink: true,
+		DevAddr:         []byte{1, 2, 3, 4},
 	}
 
-	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, pl))
 
 	var up deviceUp
 	assert.NoError(ts.db.Get(&up, "select * from device_up"))
@@ -341,8 +248,10 @@ func (ts *PostgreSQLTestSuite) TestSendDataUp() {
 	up.ReceivedAt = up.ReceivedAt.UTC()
 
 	assert.NotEqual(json.RawMessage("null"), up.RXInfo)
+	assert.NotEqual(json.RawMessage("null"), up.TXInfo)
 	assert.NotEqual(json.RawMessage("null"), up.Object)
 	up.RXInfo = nil
+	up.TXInfo = nil
 	up.Object = nil
 
 	assert.NotEqual(uuid.Nil, up.ID)
@@ -365,10 +274,12 @@ func (ts *PostgreSQLTestSuite) TestSendDataUp() {
 				"foo": sql.NullString{String: "bar", Valid: true},
 			},
 		},
+		ConfirmedUplink: true,
+		DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
 	}, up)
 }
 
-func (ts *PostgreSQLTestSuite) TestSendDataUpNoObject() {
+func (ts *PostgreSQLTestSuite) TestHandleUplinkEventNoObject() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now().Round(time.Second).UTC()
@@ -399,9 +310,11 @@ func (ts *PostgreSQLTestSuite) TestSendDataUpNoObject() {
 		Tags: map[string]string{
 			"foo": "bar",
 		},
+		ConfirmedUplink: true,
+		DevAddr:         []byte{1, 2, 3, 4},
 	}
 
-	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, pl))
 
 	var up deviceUp
 	assert.NoError(ts.db.Get(&up, "select * from device_up"))
@@ -409,7 +322,9 @@ func (ts *PostgreSQLTestSuite) TestSendDataUpNoObject() {
 	up.ReceivedAt = up.ReceivedAt.UTC()
 
 	assert.NotEqual(json.RawMessage("null"), up.RXInfo)
+	assert.NotEqual(json.RawMessage("null"), up.TXInfo)
 	up.RXInfo = nil
+	up.TXInfo = nil
 
 	assert.NotEqual(uuid.Nil, up.ID)
 	up.ID = uuid.Nil
@@ -432,10 +347,12 @@ func (ts *PostgreSQLTestSuite) TestSendDataUpNoObject() {
 				"foo": sql.NullString{String: "bar", Valid: true},
 			},
 		},
+		ConfirmedUplink: true,
+		DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
 	}, up)
 }
 
-func (ts *PostgreSQLTestSuite) TestSendDataUpNoData() {
+func (ts *PostgreSQLTestSuite) TestUplinkEventNoData() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now().Round(time.Second).UTC()
@@ -465,9 +382,11 @@ func (ts *PostgreSQLTestSuite) TestSendDataUpNoData() {
 		Tags: map[string]string{
 			"foo": "bar",
 		},
+		ConfirmedUplink: false,
+		DevAddr:         []byte{1, 2, 3, 4},
 	}
 
-	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, pl))
 
 	var up deviceUp
 	assert.NoError(ts.db.Get(&up, "select * from device_up"))
@@ -475,7 +394,9 @@ func (ts *PostgreSQLTestSuite) TestSendDataUpNoData() {
 	up.ReceivedAt = up.ReceivedAt.UTC()
 
 	assert.NotEqual(json.RawMessage("null"), up.RXInfo)
+	assert.NotEqual(json.RawMessage("null"), up.TXInfo)
 	up.RXInfo = nil
+	up.TXInfo = nil
 
 	assert.NotEqual(uuid.Nil, up.ID)
 	up.ID = uuid.Nil
@@ -498,10 +419,12 @@ func (ts *PostgreSQLTestSuite) TestSendDataUpNoData() {
 				"foo": sql.NullString{String: "bar", Valid: true},
 			},
 		},
+		ConfirmedUplink: false,
+		DevAddr:         lorawan.DevAddr{1, 2, 3, 4},
 	}, up)
 }
 
-func (ts *PostgreSQLTestSuite) TestSendStatusNotification() {
+func (ts *PostgreSQLTestSuite) TestHandleStatusEvent() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now()
@@ -520,7 +443,7 @@ func (ts *PostgreSQLTestSuite) TestSendStatusNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendStatusNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleStatusEvent(context.Background(), nil, nil, pl))
 
 	var status deviceStatus
 	assert.NoError(ts.db.Get(&status, "select * from device_status"))
@@ -550,7 +473,7 @@ func (ts *PostgreSQLTestSuite) TestSendStatusNotification() {
 
 }
 
-func (ts *PostgreSQLTestSuite) TestJoinNotification() {
+func (ts *PostgreSQLTestSuite) TestHandleJoinEvent() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now()
@@ -566,7 +489,7 @@ func (ts *PostgreSQLTestSuite) TestJoinNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendJoinNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleJoinEvent(context.Background(), nil, nil, pl))
 
 	var join deviceJoin
 	assert.NoError(ts.db.Get(&join, "select * from device_join"))
@@ -592,7 +515,7 @@ func (ts *PostgreSQLTestSuite) TestJoinNotification() {
 	}, join)
 }
 
-func (ts *PostgreSQLTestSuite) TestAckNotification() {
+func (ts *PostgreSQLTestSuite) TestHandleAckEvent() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now()
@@ -609,7 +532,7 @@ func (ts *PostgreSQLTestSuite) TestAckNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendACKNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleAckEvent(context.Background(), nil, nil, pl))
 
 	var ack deviceAck
 	assert.NoError(ts.db.Get(&ack, "select * from device_ack"))
@@ -636,7 +559,7 @@ func (ts *PostgreSQLTestSuite) TestAckNotification() {
 	}, ack)
 }
 
-func (ts *PostgreSQLTestSuite) TestErrorNotification() {
+func (ts *PostgreSQLTestSuite) TestHandleErrorEvent() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now()
@@ -654,7 +577,7 @@ func (ts *PostgreSQLTestSuite) TestErrorNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendErrorNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleErrorEvent(context.Background(), nil, nil, pl))
 
 	var e deviceError
 	assert.NoError(ts.db.Get(&e, "select * from device_error"))
@@ -682,7 +605,7 @@ func (ts *PostgreSQLTestSuite) TestErrorNotification() {
 	}, e)
 }
 
-func (ts *PostgreSQLTestSuite) TestLocationNotification() {
+func (ts *PostgreSQLTestSuite) TestLocationEvent() {
 	assert := require.New(ts.T())
 
 	timestamp := time.Now()
@@ -702,7 +625,7 @@ func (ts *PostgreSQLTestSuite) TestLocationNotification() {
 		},
 	}
 
-	assert.NoError(ts.integration.SendLocationNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleLocationEvent(context.Background(), nil, nil, pl))
 
 	var loc deviceLocation
 	assert.NoError(ts.db.Get(&loc, "select * from device_location"))
@@ -729,6 +652,56 @@ func (ts *PostgreSQLTestSuite) TestLocationNotification() {
 			},
 		},
 	}, loc)
+}
+
+func (ts *PostgreSQLTestSuite) TestHandleTxAckEvent() {
+	assert := require.New(ts.T())
+
+	timestamp := time.Now()
+
+	pl := pb.TxAckEvent{
+		ApplicationId:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEui:          []byte{1, 2, 3, 4, 5, 6, 7, 8},
+		FCnt:            10,
+		GatewayId:       []byte{8, 7, 6, 5, 4, 3, 2, 1},
+		Tags: map[string]string{
+			"foo": "bar",
+		},
+		TxInfo: &gw.DownlinkTXInfo{
+			Frequency: 868100000,
+		},
+	}
+
+	assert.NoError(ts.integration.HandleTxAckEvent(context.Background(), nil, nil, pl))
+
+	var ack txAck
+	assert.NoError(ts.db.Get(&ack, "select * from device_txack"))
+
+	assert.True(ack.ReceivedAt.After(timestamp))
+	ack.ReceivedAt = timestamp
+
+	assert.NotEqual(uuid.Nil, ack.ID)
+	ack.ID = uuid.Nil
+
+	assert.NotEqual(json.RawMessage("null"), ack.TXInfo)
+	ack.TXInfo = nil
+
+	assert.Equal(txAck{
+		ReceivedAt:      timestamp,
+		ApplicationID:   1,
+		ApplicationName: "test-app",
+		DeviceName:      "test-device",
+		DevEUI:          lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
+		GatewayID:       lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1},
+		FCnt:            10,
+		Tags: hstore.Hstore{
+			Map: map[string]sql.NullString{
+				"foo": sql.NullString{String: "bar", Valid: true},
+			},
+		},
+	}, ack)
 }
 
 func TestPostgreSQL(t *testing.T) {

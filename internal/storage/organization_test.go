@@ -36,8 +36,10 @@ func (ts *StorageTestSuite) TestOrganization() {
 		assert := require.New(t)
 
 		org := Organization{
-			Name:        "test-organization",
-			DisplayName: "test organization",
+			Name:            "test-organization",
+			DisplayName:     "test organization",
+			MaxGatewayCount: 10,
+			MaxDeviceCount:  20,
 		}
 		assert.NoError(CreateOrganization(context.Background(), DB(), &org))
 		org.CreatedAt = org.CreatedAt.Truncate(time.Millisecond).UTC()
@@ -46,7 +48,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 		t.Run("Get", func(t *testing.T) {
 			assert := require.New(t)
 
-			o, err := GetOrganization(context.Background(), DB(), org.ID)
+			o, err := GetOrganization(context.Background(), DB(), org.ID, false)
 			assert.NoError(err)
 			o.CreatedAt = o.CreatedAt.Truncate(time.Millisecond).UTC()
 			o.UpdatedAt = o.UpdatedAt.Truncate(time.Millisecond).UTC()
@@ -56,7 +58,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 		t.Run("GetCount", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetOrganizationCount(context.Background(), DB(), "")
+			count, err := GetOrganizationCount(context.Background(), DB(), OrganizationFilters{})
 			assert.NoError(err)
 			assert.Equal(2, count) // first org is created by migration
 		})
@@ -64,7 +66,9 @@ func (ts *StorageTestSuite) TestOrganization() {
 		t.Run("GetOrganizations", func(t *testing.T) {
 			assert := require.New(t)
 
-			items, err := GetOrganizations(context.Background(), DB(), 10, 0, "")
+			items, err := GetOrganizations(context.Background(), DB(), OrganizationFilters{
+				Limit: 10,
+			})
 			assert.NoError(err)
 
 			assert.Len(items, 2)
@@ -93,7 +97,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 				u, err := GetOrganizationUser(context.Background(), DB(), org.ID, 1)
 				assert.NoError(err)
 				assert.EqualValues(1, u.UserID)
-				assert.Equal("admin", u.Username)
+				assert.Equal("admin", u.Email)
 				assert.False(u.IsAdmin)
 				assert.False(u.IsDeviceAdmin)
 				assert.False(u.IsGatewayAdmin)
@@ -120,7 +124,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 				assert.NoError(err)
 
 				assert.EqualValues(1, u.UserID)
-				assert.Equal("admin", u.Username)
+				assert.Equal("admin", u.Email)
 				assert.True(u.IsAdmin)
 				assert.True(u.IsDeviceAdmin)
 				assert.True(u.IsGatewayAdmin)
@@ -140,21 +144,25 @@ func (ts *StorageTestSuite) TestOrganization() {
 			assert := require.New(t)
 
 			user := User{
-				Username: "testuser",
 				IsActive: true,
 				Email:    "foo@bar.com",
 			}
-			_, err := CreateUser(context.Background(), DB(), &user, "password123")
+			err := CreateUser(context.Background(), DB(), &user)
 			assert.NoError(err)
 
 			t.Run("GetCountForUser", func(t *testing.T) {
 				assert := require.New(t)
 
-				c, err := GetOrganizationCountForUser(context.Background(), DB(), user.Username, "")
+				c, err := GetOrganizationCount(context.Background(), DB(), OrganizationFilters{
+					UserID: user.ID,
+				})
 				assert.NoError(err)
 				assert.Equal(0, c)
 
-				orgs, err := GetOrganizationsForUser(context.Background(), DB(), user.Username, 10, 0, "")
+				orgs, err := GetOrganizations(context.Background(), DB(), OrganizationFilters{
+					UserID: user.ID,
+					Limit:  10,
+				})
 				assert.NoError(err)
 				assert.Len(orgs, 0)
 			})
@@ -164,11 +172,16 @@ func (ts *StorageTestSuite) TestOrganization() {
 
 				assert.NoError(CreateOrganizationUser(context.Background(), DB(), org.ID, user.ID, false, true, true))
 
-				c, err := GetOrganizationCountForUser(context.Background(), DB(), user.Username, "")
+				c, err := GetOrganizationCount(context.Background(), DB(), OrganizationFilters{
+					UserID: user.ID,
+				})
 				assert.NoError(err)
 				assert.Equal(1, c)
 
-				orgs, err := GetOrganizationsForUser(context.Background(), DB(), user.Username, 10, 0, "")
+				orgs, err := GetOrganizations(context.Background(), DB(), OrganizationFilters{
+					UserID: user.ID,
+					Limit:  10,
+				})
 				assert.NoError(err)
 				assert.Len(orgs, 1)
 				assert.Equal(org.ID, orgs[0].ID)
@@ -181,12 +194,14 @@ func (ts *StorageTestSuite) TestOrganization() {
 			org.Name = "test-organization-updated"
 			org.DisplayName = "test organization updated"
 			org.CanHaveGateways = true
+			org.MaxGatewayCount = 30
+			org.MaxDeviceCount = 40
 			assert.NoError(UpdateOrganization(context.Background(), DB(), &org))
 
 			org.CreatedAt = org.CreatedAt.Truncate(time.Millisecond).UTC()
 			org.UpdatedAt = org.UpdatedAt.Truncate(time.Millisecond).UTC()
 
-			o, err := GetOrganization(context.Background(), DB(), org.ID)
+			o, err := GetOrganization(context.Background(), DB(), org.ID, false)
 			assert.NoError(err)
 			o.CreatedAt = o.CreatedAt.Truncate(time.Millisecond).UTC()
 			o.UpdatedAt = o.UpdatedAt.Truncate(time.Millisecond).UTC()
@@ -198,7 +213,7 @@ func (ts *StorageTestSuite) TestOrganization() {
 
 			assert.NoError(DeleteOrganization(context.Background(), DB(), org.ID))
 
-			_, err := GetOrganization(context.Background(), DB(), org.ID)
+			_, err := GetOrganization(context.Background(), DB(), org.ID, false)
 			assert.Equal(ErrDoesNotExist, errors.Cause(err))
 		})
 	})

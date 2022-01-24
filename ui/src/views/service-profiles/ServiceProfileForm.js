@@ -1,6 +1,5 @@
 import React from "react";
 
-import { withStyles } from "@material-ui/core/styles";
 import TextField from '@material-ui/core/TextField';
 import FormLabel from "@material-ui/core/FormLabel";
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -13,11 +12,6 @@ import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import NetworkServerStore from "../../stores/NetworkServerStore";
-
-
-const styles = {
-  fontSize: 12,
-};
 
 
 class ServiceProfileForm extends FormComponent {
@@ -58,11 +52,12 @@ class ServiceProfileForm extends FormComponent {
           value={this.state.object.name || ""}
           onChange={this.onChange}
           helperText="A name to identify the service-profile."
+          disabled={this.props.disabled}
           required
           fullWidth
         />
         {!this.props.update && <FormControl fullWidth margin="normal">
-          <FormLabel className={this.props.classes.FormLabel} required>Network-server</FormLabel>
+          <FormLabel required>Network-server</FormLabel>
           <AutocompleteSelect
             id="networkServerID"
             label="Network-server"
@@ -83,6 +78,7 @@ class ServiceProfileForm extends FormComponent {
                 id="addGWMetaData"
                 checked={!!this.state.object.addGWMetaData}
                 onChange={this.onChange}
+                disabled={this.props.disabled}
                 color="primary"
               />
             }
@@ -99,6 +95,7 @@ class ServiceProfileForm extends FormComponent {
                 id="nwkGeoLoc"
                 checked={!!this.state.object.nwkGeoLoc}
                 onChange={this.onChange}
+                disabled={this.props.disabled}
                 color="primary"
               />
             }
@@ -117,6 +114,7 @@ class ServiceProfileForm extends FormComponent {
           value={this.state.object.devStatusReqFreq || 0}
           onChange={this.onChange}
           helperText="Frequency to initiate an End-Device status request (request/day). Set to 0 to disable."
+          disabled={this.props.disabled}
           fullWidth
         />
         {this.state.object.devStatusReqFreq > 0 && <FormControl fullWidth margin="normal">
@@ -128,6 +126,7 @@ class ServiceProfileForm extends FormComponent {
                   id="reportDevStatusBattery"
                   checked={!!this.state.object.reportDevStatusBattery}
                   onChange={this.onChange}
+                  disabled={this.props.disabled}
                   color="primary"
                 />
               }
@@ -139,6 +138,7 @@ class ServiceProfileForm extends FormComponent {
                   id="reportDevStatusMargin"
                   checked={!!this.state.object.reportDevStatusMargin}
                   onChange={this.onChange}
+                  disabled={this.props.disabled}
                   color="primary"
                 />
               }
@@ -153,6 +153,7 @@ class ServiceProfileForm extends FormComponent {
           value={this.state.object.drMin || 0}
           onChange={this.onChange}
           helperText="Minimum allowed data rate. Used for ADR."
+          disabled={this.props.disabled}
           fullWidth
           required
         />
@@ -164,12 +165,30 @@ class ServiceProfileForm extends FormComponent {
           value={this.state.object.drMax || 0}
           onChange={this.onChange}
           helperText="Maximum allowed data rate. Used for ADR."
+          disabled={this.props.disabled}
           fullWidth
           required
         />
+        <FormControl fullWidth margin="normal">
+          <FormControlLabel
+            label="Private gateways"
+            control={
+              <Checkbox
+                id="gwsPrivate"
+                checked={!!this.state.object.gwsPrivate}
+                onChange={this.onChange}
+                disabled={this.props.disabled}
+                color="primary"
+              />
+            }
+          />
+          <FormHelperText>
+            Gateways under this service-profile are private. This means that these gateways can only be used by devices under the same service-profile.
+          </FormHelperText>
+        </FormControl>
       </Form>
     );
   }
 }
 
-export default withStyles(styles)(ServiceProfileForm);
+export default ServiceProfileForm;

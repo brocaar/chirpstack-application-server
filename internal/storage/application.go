@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
-	"github.com/brocaar/chirpstack-application-server/internal/codec"
-	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	uuid "github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/brocaar/chirpstack-application-server/internal/codec"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 )
 
 var applicationNameRegexp = regexp.MustCompile(`^[\w-]+$`)
@@ -25,6 +27,7 @@ type Application struct {
 	PayloadCodec         codec.Type `db:"payload_codec"`
 	PayloadEncoderScript string     `db:"payload_encoder_script"`
 	PayloadDecoderScript string     `db:"payload_decoder_script"`
+	MQTTTLSCert          []byte     `db:"mqtt_tls_cert"`
 }
 
 // ApplicationListItem devices the application as a list item.
@@ -56,8 +59,9 @@ func CreateApplication(ctx context.Context, db sqlx.Queryer, item *Application) 
 			service_profile_id,
 			payload_codec,
 			payload_encoder_script,
-			payload_decoder_script
-		) values ($1, $2, $3, $4, $5, $6, $7) returning id`,
+			payload_decoder_script,
+			mqtt_tls_cert
+		) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id`,
 		item.Name,
 		item.Description,
 		item.OrganizationID,
@@ -65,6 +69,7 @@ func CreateApplication(ctx context.Context, db sqlx.Queryer, item *Application) 
 		item.PayloadCodec,
 		item.PayloadEncoderScript,
 		item.PayloadDecoderScript,
+		item.MQTTTLSCert,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -90,193 +95,106 @@ func GetApplication(ctx context.Context, db sqlx.Queryer, id int64) (Application
 	return app, nil
 }
 
+// ApplicationFilters provides filters for filtering applications.
+type ApplicationFilters struct {
+	UserID         int64  `db:"user_id"`
+	OrganizationID int64  `db:"organization_id"`
+	Search         string `db:"search"`
+
+	// Limit and Offset are added for convenience so that this struct can
+	// be given as the arguments.
+	Limit  int `db:"limit"`
+	Offset int `db:"offset"`
+}
+
+// SQL returns the SQL filters.
+func (f ApplicationFilters) SQL() string {
+	var filters []string
+
+	if f.UserID != 0 {
+		filters = append(filters, "u.id = :user_id")
+	}
+
+	if f.OrganizationID != 0 {
+		filters = append(filters, "a.organization_id = :organization_id")
+	}
+
+	if f.Search != "" {
+		filters = append(filters, "(a.name ilike :search)")
+	}
+
+	if len(filters) == 0 {
+		return ""
+	}
+
+	return "where " + strings.Join(filters, " and ")
+}
+
 // GetApplicationCount returns the total number of applications.
-func GetApplicationCount(ctx context.Context, db sqlx.Queryer, search string) (int, error) {
-	var count int
-	if search != "" {
-		search = "%" + search + "%"
+func GetApplicationCount(ctx context.Context, db sqlx.Queryer, filters ApplicationFilters) (int, error) {
+	if filters.Search != "" {
+		filters.Search = "%" + filters.Search + "%"
 	}
 
-	err := sqlx.Get(db, &count, `
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
-			count(*)
-		from application
-		where
-			$1 = ''
-			or ($1 != '' and name ilike $1)`,
-		search,
-	)
-	if err != nil {
-		return 0, errors.Wrap(err, "select error")
-	}
-	return count, nil
-}
-
-// GetApplicationCountForUser returns the total number of applications
-// available for the given user.
-// When an organizationID is given, the results will be filtered by this
-// organization ID.
-func GetApplicationCountForUser(ctx context.Context, db sqlx.Queryer, username string, organizationID int64, search string) (int, error) {
-	var count int
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Get(db, &count, `
-		select
-			count(a.*)
-		from application a
-		inner join organization_user ou
+			count(distinct a.*)
+		from
+			application a
+		left join organization_user ou
 			on a.organization_id = ou.organization_id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.username = $1
-			and u.is_active = true
-			and (
-				$2 = 0
-				or a.organization_id = $2
-			)
-			and (
-				$3 = ''
-				or ($3 != '' and a.name ilike $3)
-			)
-	`, username, organizationID, search)
+		left join "user" u
+			on ou.user_id = u.id
+	`+filters.SQL(), filters)
 	if err != nil {
-		return 0, errors.Wrap(err, "select error")
+		return 0, errors.Wrap(err, "named query error")
 	}
-	return count, nil
-}
 
-// GetApplicationCountForOrganizationID returns the total number of
-// applications for the given organization.
-func GetApplicationCountForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, search string) (int, error) {
 	var count int
-	if search != "" {
-		search = "%" + search + "%"
+	err = sqlx.Get(db, &count, query, args...)
+	if err != nil {
+		return 0, handlePSQLError(Select, err, "select error")
 	}
 
-	err := sqlx.Get(db, &count, `
-		select
-			count(*)
-		from application
-		where
-			organization_id = $1
-			and (
-				$2 = ''
-				or ($2 != '' and name ilike $2)
-			)`,
-		organizationID,
-		search,
-	)
-	if err != nil {
-		return 0, errors.Wrap(err, "select error")
-	}
 	return count, nil
 }
 
 // GetApplications returns a slice of applications, sorted by name and
 // respecting the given limit and offset.
-func GetApplications(ctx context.Context, db sqlx.Queryer, limit, offset int, search string) ([]ApplicationListItem, error) {
-	var apps []ApplicationListItem
-	if search != "" {
-		search = "%" + search + "%"
+func GetApplications(ctx context.Context, db sqlx.Queryer, filters ApplicationFilters) ([]ApplicationListItem, error) {
+	if filters.Search != "" {
+		filters.Search = "%" + filters.Search + "%"
 	}
 
-	err := sqlx.Select(db, &apps, `
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
 			a.*,
 			sp.name as service_profile_name
-		from application a
+		from
+			application a
 		inner join service_profile sp
-			on sp.service_profile_id = a.service_profile_id
-		where
-			$3 = ''
-			or ($3 != '' and a.name ilike $3)
-		order by
-			name
-		limit $1
-		offset $2`,
-		limit,
-		offset,
-		search,
-	)
-	if err != nil {
-		return nil, errors.Wrap(err, "select error")
-	}
-	return apps, nil
-}
-
-// GetApplicationsForUser returns a slice of application of which the given
-// user is a member of.
-func GetApplicationsForUser(ctx context.Context, db sqlx.Queryer, username string, organizationID int64, limit, offset int, search string) ([]ApplicationListItem, error) {
-	var apps []ApplicationListItem
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Select(db, &apps, `
-		select
-			a.*,
-			sp.name as service_profile_name
-		from application a
-		inner join service_profile sp
-			on sp.service_profile_id = a.service_profile_id
-		inner join organization_user ou
+			on a.service_profile_id = sp.service_profile_id
+		left join organization_user ou
 			on a.organization_id = ou.organization_id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.username = $1
-			and u.is_active = true
-			and (
-				$2 = 0
-				or a.organization_id = $2
-			)
-			and (
-				$5 = ''
-				or ($5 != '' and a.name ilike $5)
-			)
-		order by a.name
-		limit $3 offset $4
-	`, username, organizationID, limit, offset, search)
+		left join "user" u
+			on ou.user_id = u.id
+	`+filters.SQL()+`
+		group by
+			a.id,
+			sp.name
+		order by
+			a.name
+		limit :limit
+		offset :offset
+	`, filters)
 	if err != nil {
-		return nil, errors.Wrap(err, "select error")
+		return nil, errors.Wrap(err, "named query error")
 	}
 
-	return apps, nil
-}
-
-// GetApplicationsForOrganizationID returns a slice of applications for the given
-// organization.
-func GetApplicationsForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, limit, offset int, search string) ([]ApplicationListItem, error) {
 	var apps []ApplicationListItem
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Select(db, &apps, `
-		select
-			a.*,
-			sp.name as service_profile_name
-		from application a
-		inner join service_profile sp
-			on sp.service_profile_id = a.service_profile_id
-		where
-			a.organization_id = $1
-			and (
-				$4 = ''
-				or ($4 != '' and a.name ilike $4)
-			)
-		order by a.name
-		limit $2 offset $3`,
-		organizationID,
-		limit,
-		offset,
-		search,
-	)
+	err = sqlx.Select(db, &apps, query, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
 
 	return apps, nil
@@ -297,7 +215,8 @@ func UpdateApplication(ctx context.Context, db sqlx.Execer, item Application) er
 			service_profile_id = $5,
 			payload_codec = $6,
 			payload_encoder_script = $7,
-			payload_decoder_script = $8
+			payload_decoder_script = $8,
+			mqtt_tls_cert = $9
 		where id = $1`,
 		item.ID,
 		item.Name,
@@ -307,6 +226,7 @@ func UpdateApplication(ctx context.Context, db sqlx.Execer, item Application) er
 		item.PayloadCodec,
 		item.PayloadEncoderScript,
 		item.PayloadDecoderScript,
+		item.MQTTTLSCert,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")

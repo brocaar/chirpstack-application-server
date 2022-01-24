@@ -32,7 +32,10 @@ class ListOrganizations extends Component {
     }
 
     return(
-      <TableRow key={obj.id}>
+      <TableRow
+        key={obj.id}
+        hover
+      >
         <TableCellLink to={`/organizations/${obj.id}`}>{obj.name}</TableCellLink>
         <TableCell>{obj.displayName}</TableCell>
         <TableCell>{icon}</TableCell>

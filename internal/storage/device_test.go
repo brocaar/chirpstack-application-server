@@ -10,11 +10,11 @@ import (
 	"github.com/lib/pq/hstore"
 	"github.com/stretchr/testify/require"
 
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/lorawan"
-	"github.com/brocaar/lorawan/backend"
+	"github.com/brocaar/lorawan/band"
 )
 
 func (ts *StorageTestSuite) TestDevice() {
@@ -67,6 +67,7 @@ func (ts *StorageTestSuite) TestDevice() {
 		NetworkServerID: n.ID,
 		OrganizationID:  org.ID,
 		Name:            "device-profile",
+		UplinkInterval:  time.Second * 10,
 		DeviceProfile: ns.DeviceProfile{
 			SupportsClassB:     true,
 			ClassBTimeout:      10,
@@ -85,7 +86,7 @@ func (ts *StorageTestSuite) TestDevice() {
 			MaxEirp:            14,
 			MaxDutyCycle:       10,
 			SupportsJoin:       true,
-			RfRegion:           string(backend.EU868),
+			RfRegion:           string(band.EU868),
 			Supports_32BitFCnt: true,
 		},
 	}
@@ -126,6 +127,7 @@ func (ts *StorageTestSuite) TestDevice() {
 					"foo": sql.NullString{String: "bar", Valid: true},
 				},
 			},
+			IsDisabled: true,
 		}
 		assert.NoError(CreateDevice(context.Background(), ts.Tx(), &d))
 		d.CreatedAt = d.CreatedAt.UTC().Truncate(time.Millisecond)
@@ -140,6 +142,7 @@ func (ts *StorageTestSuite) TestDevice() {
 				RoutingProfileId:  applicationServerID.Bytes(),
 				SkipFCntCheck:     true,
 				ReferenceAltitude: 5.6,
+				IsDisabled:        true,
 			},
 		}, createReq)
 
@@ -155,6 +158,18 @@ func (ts *StorageTestSuite) TestDevice() {
 			assert.Equal(1, count)
 		})
 
+		t.Run("List by OrganizationID", func(t *testing.T) {
+			assert := require.New(t)
+
+			devices, err := GetDevices(context.Background(), ts.Tx(), DeviceFilters{Limit: 10, OrganizationID: org.ID})
+			assert.NoError(err)
+			assert.Len(devices, 1)
+
+			count, err := GetDeviceCount(context.Background(), ts.Tx(), DeviceFilters{OrganizationID: org.ID})
+			assert.NoError(err)
+			assert.Equal(1, count)
+		})
+
 		t.Run("List by ApplicationID", func(t *testing.T) {
 			assert := require.New(t)
 
@@ -165,6 +180,26 @@ func (ts *StorageTestSuite) TestDevice() {
 			count, err := GetDeviceCount(context.Background(), ts.Tx(), DeviceFilters{ApplicationID: app.ID})
 			assert.NoError(err)
 			assert.Equal(1, count)
+		})
+
+		t.Run("List by Tags", func(t *testing.T) {
+			assert := require.New(t)
+
+			devices, err := GetDevices(context.Background(), ts.Tx(), DeviceFilters{Limit: 10, Tags: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{String: "bar", Valid: true},
+				},
+			}})
+			assert.NoError(err)
+			assert.Len(devices, 1)
+
+			devices, err = GetDevices(context.Background(), ts.Tx(), DeviceFilters{Limit: 10, Tags: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{String: "bas", Valid: true},
+				},
+			}})
+			assert.NoError(err)
+			assert.Len(devices, 0)
 		})
 
 		t.Run("Get", func(t *testing.T) {
@@ -205,6 +240,7 @@ func (ts *StorageTestSuite) TestDevice() {
 			d.DR = &dr
 			d.Variables.Map["var_2"] = sql.NullString{String: "test var 2", Valid: true}
 			d.Tags.Map["bar"] = sql.NullString{String: "foo", Valid: true}
+			d.IsDisabled = true
 
 			assert.NoError(UpdateDevice(context.Background(), ts.Tx(), &d, false))
 			d.UpdatedAt = d.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -218,6 +254,7 @@ func (ts *StorageTestSuite) TestDevice() {
 					RoutingProfileId:  applicationServerID.Bytes(),
 					SkipFCntCheck:     true,
 					ReferenceAltitude: 5.6,
+					IsDisabled:        true,
 				},
 			}, updateReq)
 
@@ -232,6 +269,70 @@ func (ts *StorageTestSuite) TestDevice() {
 			assert.Equal(d, deviceGet)
 		})
 
+		t.Run("GetDevicesActiveInactive", func(t *testing.T) {
+			assert := require.New(t)
+			ls := time.Now()
+
+			// device is never seen
+			d.LastSeenAt = nil
+			assert.NoError(UpdateDevice(context.Background(), ts.Tx(), &d, true))
+
+			ai, err := GetDevicesActiveInactive(context.Background(), ts.Tx(), org.ID)
+			assert.NoError(err)
+			assert.Equal(DevicesActiveInactive{
+				NeverSeenCount: 1,
+				ActiveCount:    0,
+				InactiveCount:  0,
+			}, ai)
+
+			// device is active
+			d.LastSeenAt = &ls
+			assert.NoError(UpdateDevice(context.Background(), ts.Tx(), &d, true))
+
+			ai, err = GetDevicesActiveInactive(context.Background(), ts.Tx(), org.ID)
+			assert.NoError(err)
+			assert.Equal(DevicesActiveInactive{
+				NeverSeenCount: 0,
+				ActiveCount:    1,
+				InactiveCount:  0,
+			}, ai)
+
+			// device is inactive
+			ls = ls.Add(time.Second * -11)
+			assert.NoError(UpdateDevice(context.Background(), ts.Tx(), &d, true))
+
+			ai, err = GetDevicesActiveInactive(context.Background(), ts.Tx(), org.ID)
+			assert.NoError(err)
+			assert.Equal(DevicesActiveInactive{
+				NeverSeenCount: 0,
+				ActiveCount:    0,
+				InactiveCount:  1,
+			}, ai)
+		})
+
+		t.Run("GetDevicesDataRates", func(t *testing.T) {
+			assert := require.New(t)
+
+			// no datarate set
+			d.DR = nil
+			assert.NoError(UpdateDevice(context.Background(), ts.Tx(), &d, true))
+
+			ddr, err := GetDevicesDataRates(context.Background(), ts.Tx(), org.ID)
+			assert.NoError(err)
+			assert.Equal(DevicesDataRates{}, ddr)
+
+			// dr 3
+			three := 3
+			d.DR = &three
+			assert.NoError(UpdateDevice(context.Background(), ts.Tx(), &d, true))
+
+			ddr, err = GetDevicesDataRates(context.Background(), ts.Tx(), org.ID)
+			assert.NoError(err)
+			assert.Equal(DevicesDataRates{
+				3: 1,
+			}, ddr)
+		})
+
 		t.Run("CreateDeviceKeys", func(t *testing.T) {
 			assert := require.New(t)
 
@@ -239,7 +340,6 @@ func (ts *StorageTestSuite) TestDevice() {
 				DevEUI:    d.DevEUI,
 				NwkKey:    lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
 				AppKey:    lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
-				GenAppKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 8, 7, 6, 5, 4, 3, 2, 1},
 				JoinNonce: 1234,
 			}
 			assert.NoError(CreateDeviceKeys(context.Background(), ts.Tx(), &dk))
@@ -262,7 +362,6 @@ func (ts *StorageTestSuite) TestDevice() {
 
 				dk.NwkKey = lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
 				dk.AppKey = lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1}
-				dk.GenAppKey = lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 1, 2, 3, 4, 5, 6, 7, 8}
 				dk.JoinNonce = 1235
 				assert.NoError(UpdateDeviceKeys(context.Background(), ts.Tx(), &dk))
 				dk.UpdatedAt = dk.UpdatedAt.UTC().Truncate(time.Millisecond)
@@ -281,40 +380,6 @@ func (ts *StorageTestSuite) TestDevice() {
 				assert.NoError(DeleteDeviceKeys(context.Background(), ts.Tx(), d.DevEUI))
 				_, err := GetDeviceKeys(context.Background(), ts.Tx(), d.DevEUI)
 				assert.Equal(ErrDoesNotExist, err)
-			})
-		})
-
-		t.Run("CreateDeviceActivation", func(t *testing.T) {
-			assert := require.New(t)
-
-			da := DeviceActivation{
-				DevEUI:  d.DevEUI,
-				DevAddr: lorawan.DevAddr{1, 2, 3, 4},
-				AppSKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-			}
-			assert.NoError(CreateDeviceActivation(context.Background(), ts.Tx(), &da))
-			da.CreatedAt = da.CreatedAt.UTC().Truncate(time.Millisecond)
-
-			daGet, err := GetLastDeviceActivationForDevEUI(context.Background(), ts.Tx(), d.DevEUI)
-			assert.NoError(err)
-			daGet.CreatedAt = daGet.CreatedAt.UTC().Truncate(time.Millisecond)
-			assert.Equal(da, daGet)
-
-			t.Run("GetLastDeviceActivationForDevEUI", func(t *testing.T) {
-				assert := require.New(t)
-
-				da2 := DeviceActivation{
-					DevEUI:  d.DevEUI,
-					DevAddr: lorawan.DevAddr{4, 3, 2, 1},
-					AppSKey: lorawan.AES128Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-				}
-				assert.NoError(CreateDeviceActivation(context.Background(), ts.Tx(), &da2))
-				da2.CreatedAt = da2.CreatedAt.UTC().Truncate(time.Millisecond)
-
-				daGet, err := GetLastDeviceActivationForDevEUI(context.Background(), ts.Tx(), d.DevEUI)
-				assert.NoError(err)
-				daGet.CreatedAt = daGet.CreatedAt.UTC().Truncate(time.Millisecond)
-				assert.Equal(da2, daGet)
 			})
 		})
 

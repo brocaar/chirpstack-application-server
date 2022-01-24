@@ -18,7 +18,9 @@ class EUI64HEXMask extends Component {
     return(
       <MaskedInput
         {...other}
-        ref={inputRef}
+        ref={(ref) => {
+          inputRef(ref ? ref.inputElement : null);
+        }}
         mask={[
           /[A-Fa-f0-9]/,
           /[A-Fa-f0-9]/,
@@ -74,12 +76,11 @@ class EUI64Field extends Component {
   }
 
   randomKey = () => {
-    let key = "";
-    const possible = 'abcdef0123456789';
+    let cryptoObj = window.crypto || window.msCrypto;
+    let b = new Uint8Array(8);
+    cryptoObj.getRandomValues(b);
 
-    for(let i = 0; i < 16; i++){
-      key += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
+    let key = Buffer.from(b).toString('hex');
     this.setState({
       value: key,
     });
@@ -90,8 +91,6 @@ class EUI64Field extends Component {
       str = bytes.reverse().join("");
     } else if (bytes !== null) {
       str = bytes.join("");
-    } else {
-      str = "";
     }
 
     this.props.onChange({
@@ -115,8 +114,6 @@ class EUI64Field extends Component {
       str = bytes.reverse().join("");
     } else if (bytes !== null) {
       str = bytes.join("");
-    } else {
-      str = "";
     }
 
     this.props.onChange({

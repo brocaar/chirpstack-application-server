@@ -16,14 +16,22 @@ const configTemplate = `[general]
 # debug=5, info=4, warning=3, error=2, fatal=1, panic=0
 log_level={{ .General.LogLevel }}
 
+# Log to syslog.
+#
+# When set to true, log messages are being written to syslog.
+log_to_syslog={{ .General.LogToSyslog }}
+
 # The number of times passwords must be hashed. A higher number is safer as
 # an attack takes more time to perform.
 password_hash_iterations={{ .General.PasswordHashIterations }}
 
+# gRPC default resolver scheme.
+#
+# Set this to "dns" for enabling dns round-robin load balancing.
+grpc_default_resolver_scheme="{{ .General.GRPCDefaultResolverScheme }}"
+
 
 # PostgreSQL settings.
-#
-# Please note that PostgreSQL 9.5+ is required.
 [postgresql]
 # PostgreSQL dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable).
 #
@@ -56,7 +64,7 @@ dsn="{{ .PostgreSQL.DSN }}"
 # Automatically apply database migrations.
 #
 # It is possible to apply the database-migrations by hand
-# (see https://github.com/brocaar/chirpstack-application-server/tree/master/migrations)
+# (see https://github.com/brocaar/chirpstack-application-server/tree/master/internal/storage/migrations)
 # or let ChirpStack Application Server migrate to the latest state automatically, by using
 # this setting. Make sure that you always make a backup when upgrading Lora
 # App Server and / or applying migrations.
@@ -76,24 +84,56 @@ max_idle_connections={{ .PostgreSQL.MaxIdleConnections }}
 
 
 # Redis settings
-#
-# Please note that Redis 2.6.0+ is required.
 [redis]
-# Redis url (e.g. redis://user:password@hostname/0)
-#
-# For more information about the Redis URL format, see:
-# https://www.iana.org/assignments/uri-schemes/prov/redis
-url="{{ .Redis.URL }}"
 
-# Max idle connections in the pool.
-max_idle={{ .Redis.MaxIdle }}
-
-# Idle timeout.
+# Server address or addresses.
 #
-# Close connections after remaining idle for this duration. If the value
-# is zero, then idle connections are not closed. You should set
-# the timeout to a value less than the server's timeout.
-idle_timeout="{{ .Redis.IdleTimeout }}"
+# Set multiple addresses when connecting to a cluster.
+servers=[{{ range $index, $elm := .Redis.Servers }}
+  "{{ $elm }}",{{ end }}
+]
+
+# Password.
+#
+# Set the password when connecting to Redis requires password authentication.
+password="{{ .Redis.Password }}"
+
+# Database index.
+#
+# By default, this can be a number between 0-15.
+database={{ .Redis.Database }}
+
+
+# Redis Cluster.
+#
+# Set this to true when the provided URLs are pointing to a Redis Cluster
+# instance.
+cluster={{ .Redis.Cluster }}
+
+# Master name.
+#
+# Set the master name when the provided URLs are pointing to a Redis Sentinel
+# instance.
+master_name="{{ .Redis.MasterName }}"
+
+# Connection pool size.
+#
+# Default (when set to 0) is 10 connections per every CPU.
+pool_size={{ .Redis.PoolSize }}
+
+# TLS enabled.
+#
+# Note: tis will enable TLS, but it will not validate the certificate
+# used by the server.
+tls_enabled={{ .Redis.TLSEnabled }}
+
+# Key prefix.
+#
+# A key prefix can be used to avoid key collisions when multiple deployments
+# are using the same Redis database and it is not possible to separate
+# keys by database index (e.g. when using Redis Cluster, which does not
+# support multiple databases).
+key_prefix="{{ .Redis.KeyPrefix }}"
 
 
 # Application-server settings.
@@ -104,6 +144,68 @@ idle_timeout="{{ .Redis.IdleTimeout }}"
 # ChirpStack Network Server as routing-profile id).
 # For now it is recommended to not change this id.
 id="{{ .ApplicationServer.ID }}"
+
+
+  # User authentication
+  [application_server.user_authentication]
+
+    # OpenID Connect.
+    [application_server.user_authentication.openid_connect]
+
+    # Enable OpenID Connect authentication.
+    #
+    # Enabling this option replaces password authentication.
+    enabled={{ .ApplicationServer.UserAuthentication.OpenIDConnect.Enabled }}
+
+    # Registration enabled.
+    #
+    # Enabling this will automatically register the user when it is not yet present
+    # in the ChirpStack Application Server database. There is no
+    # registration form as the user information is automatically received using the
+    # OpenID Connect provided information.
+    # The user will not be associated with any organization, but in order to
+    # facilitate the automatic onboarding of users, it is possible to configure a
+    # registration callback URL (next config option).
+    registration_enabled={{ .ApplicationServer.UserAuthentication.OpenIDConnect.RegistrationEnabled }}
+
+    # Registration callback URL.
+    #
+    # This (optional) endpoint will be called on the registration of the user and
+    # can implement the association of the user with an organization, create a new
+    # organization, ...
+    # ChirpStack Application Server will make a HTTP POST call to this endpoint,
+    # with the following URL parameters:
+    # - user_id, of the newly created user in ChirpStack Application Server.
+    # - oidc_claims, the claims returned by the OpenID Connect "UserInfo" call, JSON-encoded. Use this to find additional information, like the users organization.
+    registration_callback_url="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.RegistrationCallbackURL }}"
+
+    # Provider URL.
+    # This is the URL of the OpenID Connect provider.
+    # Example: https://auth.example.org
+    provider_url="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.ProviderURL }}"
+
+    # Client ID.
+    client_id="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.ClientID }}"
+
+    # Client secret.
+    client_secret="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.ClientSecret }}"
+
+    # Redirect URL.
+    #
+    # This must contain the ChirpStack Application Server web-interface hostname
+    # with '/auth/oidc/callback' path, e.g. https://example.com/auth/oidc/callback.
+    redirect_url="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.RedirectURL }}"
+
+    # Logout URL.
+    #
+    # When set, ChirpStack Application Server will redirect to this URL instead
+    # of redirecting to the login page.
+    logout_url="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.LogoutURL }}"
+
+    # Login label.
+    #
+    # The login label is used in the web-interface login form.
+    login_label="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.LoginLabel }}"
 
 
   # JavaScript codec settings.
@@ -134,45 +236,29 @@ id="{{ .ApplicationServer.ID }}"
   # Do not forget to configure the related configuration section below for
   # the enabled integrations. Integrations that can be enabled are:
   # * mqtt              - MQTT broker
+  # * amqp              - AMQP / RabbitMQ
   # * aws_sns           - AWS Simple Notification Service (SNS)
   # * azure_service_bus - Azure Service-Bus
   # * gcp_pub_sub       - Google Cloud Pub/Sub
+  # * kafka             - Kafka distributed streaming platform
   # * postgresql        - PostgreSQL database
   enabled=[{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}{{ range $index, $elm := .ApplicationServer.Integration.Enabled }}{{ if $index }}", "{{ end }}{{ $elm }}{{ end }}{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}]
 
 
   # MQTT integration backend.
   [application_server.integration.mqtt]
-  # MQTT topic templates for the different MQTT topics.
-  #
-  # The meaning of these topics are documented at:
-  # https://www.chirpstack.io/application-server/integrate/data/
-  #
-  # The following substitutions can be used:
-  # * "{{ "{{ .ApplicationID }}" }}" for the application id.
-  # * "{{ "{{ .DevEUI }}" }}" for the DevEUI of the device.
-  #
-  # Note: the downlink_topic_template must contain both the application id and
-  # DevEUI substitution!
-  uplink_topic_template="{{ .ApplicationServer.Integration.MQTT.UplinkTopicTemplate }}"
-  downlink_topic_template="{{ .ApplicationServer.Integration.MQTT.DownlinkTopicTemplate }}"
-  join_topic_template="{{ .ApplicationServer.Integration.MQTT.JoinTopicTemplate }}"
-  ack_topic_template="{{ .ApplicationServer.Integration.MQTT.AckTopicTemplate }}"
-  error_topic_template="{{ .ApplicationServer.Integration.MQTT.ErrorTopicTemplate }}"
-  status_topic_template="{{ .ApplicationServer.Integration.MQTT.StatusTopicTemplate }}"
-  location_topic_template="{{ .ApplicationServer.Integration.MQTT.LocationTopicTemplate }}"
+  # Event topic template.
+  event_topic_template="{{ .ApplicationServer.Integration.MQTT.EventTopicTemplate }}"
 
-  # Retained messages configuration.
+  # Command topic template.
+  command_topic_template="{{ .ApplicationServer.Integration.MQTT.CommandTopicTemplate }}"
+
+  # Retain events.
   #
-  # The MQTT broker will store the last publised message, when retained message is set
-  # to true. When a client subscribes to a topic with retained message set to true, it will
-  # always receive the last published message.
-  uplink_retained_message={{ .ApplicationServer.Integration.MQTT.UplinkRetainedMessage }}
-  join_retained_message={{ .ApplicationServer.Integration.MQTT.JoinRetainedMessage }}
-  ack_retained_message={{ .ApplicationServer.Integration.MQTT.AckRetainedMessage }}
-  error_retained_message={{ .ApplicationServer.Integration.MQTT.ErrorRetainedMessage }}
-  status_retained_message={{ .ApplicationServer.Integration.MQTT.StatusRetainedMessage }}
-  location_retained_message={{ .ApplicationServer.Integration.MQTT.LocationRetainedMessage }}
+  # The MQTT broker will store the last publised message, when retain events is set
+  # to true. When a MQTT client connects and subscribes, it will always receive the
+  # last published message.
+  retain_events={{ .ApplicationServer.Integration.MQTT.RetainEvents }}
 
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="{{ .ApplicationServer.Integration.MQTT.Server }}"
@@ -182,6 +268,10 @@ id="{{ .ApplicationServer.ID }}"
 
   # Connect with the given password (optional)
   password="{{ .ApplicationServer.Integration.MQTT.Password }}"
+
+  # Maximum interval that will be waited between reconnection attempts when connection is lost.
+  # Valid units are 'ms', 's', 'm', 'h'. Note that these values can be combined, e.g. '24h30m15s'.
+  max_reconnect_interval="{{ .ApplicationServer.Integration.MQTT.MaxReconnectInterval }}"
 
   # Quality of service level
   #
@@ -219,6 +309,37 @@ id="{{ .ApplicationServer.ID }}"
 
   # TLS key file (optional)
   tls_key="{{ .ApplicationServer.Integration.MQTT.TLSKey }}"
+
+    # Client configuration.
+    #
+    # This section contains configuration for end-applications connecting to the
+    # MQTT broker.
+    [application_server.integration.mqtt.client]
+
+    # CA certificate and key file (optional).
+    #
+    # When setting the CA certificate and key file options, ChirpStack Application Server
+    # will generate client certificates which can be used by the end-application for
+    # authentication and authorization with the MQTT broker. The Common Name of the
+    # certificate will be set to the application ID.
+    ca_cert="{{ .ApplicationServer.Integration.MQTT.Client.CACert }}"
+    ca_key="{{ .ApplicationServer.Integration.MQTT.Client.CAKey }}"
+    client_cert_lifetime="{{ .ApplicationServer.Integration.MQTT.Client.ClientCertLifetime }}"
+
+
+  # AMQP / RabbitMQ.
+  [application_server.integration.amqp]
+  # Server URL.
+  #
+  # See for a specification of all the possible options:
+  # https://www.rabbitmq.com/uri-spec.html
+  url="{{ .ApplicationServer.Integration.AMQP.URL }}"
+
+  # Event routing key template.
+  #
+  # This is the event routing-key template used when publishing device
+  # events. Messages will be published to the "amq.topic" exchange.
+  event_routing_key_template="{{ .ApplicationServer.Integration.AMQP.EventRoutingKeyTemplate }}"
 
 
   # AWS Simple Notification Service (SNS)
@@ -273,10 +394,54 @@ id="{{ .ApplicationServer.ID }}"
   topic_name="{{ .ApplicationServer.Integration.GCPPubSub.TopicName }}"
 
 
+  # Kafka integration.
+  [application_server.integration.kafka]
+  # Brokers, e.g.: localhost:9092.
+  brokers=[{{ range $index, $broker := .ApplicationServer.Integration.Kafka.Brokers }}{{ if $index }}, {{ end }}"{{ $broker }}"{{ end }}]
+
+  # TLS.
+  #
+  # Set this to true when the Kafka client must connect using TLS to the Broker.
+  tls={{ .ApplicationServer.Integration.Kafka.TLS }}
+
+  # Topic for events.
+  topic="{{ .ApplicationServer.Integration.Kafka.Topic }}"
+
+  # Template for keys included in Kafka messages. If empty, no key is included.
+  # Kafka uses the key for distributing messages over partitions. You can use
+  # this to ensure some subset of messages end up in the same partition, so
+  # they can be consumed in-order. And Kafka can use the key for data retention
+  # decisions.  A header "event" with the event type is included in each
+  # message. There is no need to parse it from the key.
+  event_key_template="{{ .ApplicationServer.Integration.Kafka.EventKeyTemplate }}"
+
+  # Username (optional).
+  username="{{ .ApplicationServer.Integration.Kafka.Username }}"
+
+  # Password (optional).
+  password="{{ .ApplicationServer.Integration.Kafka.Password }}"
+
+  # One of plain or scram
+  mechanism="{{ .ApplicationServer.Integration.Kafka.Mechanism }}"
+  
+  # Only used if mechanism == scram.
+  # SHA-256 or SHA-512 
+  algorithm="{{ .ApplicationServer.Integration.Kafka.Algorithm }}"
+
   # PostgreSQL database integration.
   [application_server.integration.postgresql]
   # PostgreSQL dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable).
   dsn="{{ .ApplicationServer.Integration.PostgreSQL.DSN }}"
+
+  # This sets the max. number of open connections that are allowed in the
+  # PostgreSQL connection pool (0 = unlimited).
+  max_open_connections={{ .ApplicationServer.Integration.PostgreSQL.MaxOpenConnections }}
+
+  # Max idle connections.
+  #
+  # This sets the max. number of idle connections in the PostgreSQL connection
+  # pool (0 = no idle connections are retained).
+  max_idle_connections={{ .ApplicationServer.Integration.PostgreSQL.MaxIdleConnections }}
 
 
   # Settings for the "internal api"
@@ -330,39 +495,10 @@ id="{{ .ApplicationServer.ID }}"
   # When left blank (default), CORS will not be used.
   cors_allow_origin="{{ .ApplicationServer.ExternalAPI.CORSAllowOrigin }}"
 
-  # when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)"
-  disable_assign_existing_users={{ .ApplicationServer.ExternalAPI.DisableAssignExistingUsers }}
 
-
-  # Settings for the remote multicast setup.
-  [application_server.remote_multicast_setup]
-  # Synchronization interval.
-  sync_interval="{{ .ApplicationServer.RemoteMulticastSetup.SyncInterval }}"
-
-  # Synchronization retries.
-  sync_retries={{ .ApplicationServer.RemoteMulticastSetup.SyncRetries }}
-
-  # Synchronization batch-size.
-  sync_batch_size={{ .ApplicationServer.RemoteMulticastSetup.SyncBatchSize }}
-
-
-  # Settings for the fragmentation-session setup.
-  [application_server.fragmentation_session]
-  # Synchronization interval.
-  sync_interval="{{ .ApplicationServer.FragmentationSession.SyncInterval }}"
-
-  # Synchronization retries.
-  sync_retries={{ .ApplicationServer.FragmentationSession.SyncRetries }}
-
-  # Synchronization batch-size.
-  sync_batch_size={{ .ApplicationServer.FragmentationSession.SyncBatchSize }}
-
-{{ if ne .ApplicationServer.Branding.Header  "" }}
+{{ if ne .ApplicationServer.Branding.Footer  "" }}
   # Branding configuration.
   [application_server.branding]
-  # Header
-  header="{{ .ApplicationServer.Branding.Header }}"
-
   # Footer
   footer="{{ .ApplicationServer.Branding.Footer }}"
 
@@ -480,6 +616,46 @@ timezone="{{ .Metrics.Timezone }}"
   # By setting this to true, the API request timing histogram will be enabled.
   # See also: https://github.com/grpc-ecosystem/go-grpc-prometheus#histograms
   api_timing_histogram={{ .Metrics.Prometheus.APITimingHistogram }}
+
+
+  # Monitoring settings.
+  #
+  # Note that this replaces the metrics.prometheus configuration. If a
+  # metrics.prometheus if found in the configuration then it will fall back
+  # to that and the monitoring section is ignored.
+  [monitoring]
+
+  # IP:port to bind the monitoring endpoint to.
+  #
+  # When left blank, the monitoring endpoint will be disabled.
+  bind="{{ .Monitoring.Bind }}"
+
+  # Prometheus metrics endpoint.
+  #
+  # When set to true, Prometheus metrics will be served at '/metrics'.
+  prometheus_endpoint={{ .Monitoring.PrometheusEndpoint }}
+
+  # Prometheus API timing histogram.
+  #
+  # By setting this to true, the API request timing histogram will be enabled.
+  # See also: https://github.com/grpc-ecosystem/go-grpc-prometheus#histograms
+  prometheus_api_timing_histogram={{ .Monitoring.PrometheusAPITimingHistogram }}
+
+  # Health check endpoint.
+  #
+  # When set to true, the healthcheck endpoint will be served at '/health'.
+  # When requesting, this endpoint will perform the following actions to
+  # determine the health of this service:
+  #   * Ping PostgreSQL database
+  #   * Ping Redis database
+  healthcheck_endpoint={{ .Monitoring.HealthcheckEndpoint }}
+
+  # Per device event-log max history.
+  #
+  # When set to > 0, ChirpStack Application Server will log events per device
+  # to a Redis Stream. This feature is used by the web-interface.
+  per_device_event_log_max_history={{ .Monitoring.PerDeviceEventLogMaxHistory }}
+
 `
 
 var configCmd = &cobra.Command{

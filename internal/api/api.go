@@ -9,6 +9,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/config"
 )
 
+// Setup configures the API endpoints.
 func Setup(conf config.Config) error {
 	if err := as.Setup(conf); err != nil {
 		return errors.Wrap(err, "setup application-server api error")

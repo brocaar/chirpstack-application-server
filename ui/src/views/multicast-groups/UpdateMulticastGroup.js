@@ -25,7 +25,7 @@ class UpdateMulticastGroup extends Component {
 
   onSubmit(multicastGroup) {
     MulticastGroupStore.update(multicastGroup, resp => {
-      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/multicast-groups/${this.props.match.params.multicastGroupID}`);
+      this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/multicast-groups/${this.props.match.params.multicastGroupID}`);
     });
   }
 

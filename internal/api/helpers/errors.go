@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"reflect"
+
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -25,10 +27,17 @@ var errToCode = map[error]codes.Code{
 	storage.ErrInvalidEmail:                    codes.InvalidArgument,
 	storage.ErrInvalidGatewayDiscoveryInterval: codes.InvalidArgument,
 	storage.ErrDeviceProfileInvalidName:        codes.InvalidArgument,
+	storage.ErrServiceProfileInvalidName:       codes.InvalidArgument,
+	storage.ErrMulticastGroupInvalidName:       codes.InvalidArgument,
+	storage.ErrOrganizationMaxDeviceCount:      codes.FailedPrecondition,
+	storage.ErrOrganizationMaxGatewayCount:     codes.FailedPrecondition,
+	storage.ErrNetworkServerInvalidName:        codes.InvalidArgument,
+	storage.ErrAPIKeyInvalidName:               codes.InvalidArgument,
 	http.ErrInvalidHeaderName:                  codes.InvalidArgument,
 	influxdb.ErrInvalidPrecision:               codes.InvalidArgument,
 }
 
+// ErrToRPCError converts the given error into a gRPC error.
 func ErrToRPCError(err error) error {
 	cause := errors.Cause(err)
 
@@ -36,6 +45,13 @@ func ErrToRPCError(err error) error {
 	// return the error.
 	if code := status.Code(cause); code != codes.Unknown {
 		return cause
+	}
+
+	// Some error values (error returned by Otto) can not be hashed:
+	// https://github.com/brocaar/chirpstack-application-server/issues/631
+	k := reflect.TypeOf(cause).Kind()
+	if k == reflect.Slice {
+		return grpc.Errorf(codes.Unknown, cause.Error())
 	}
 
 	code, ok := errToCode[cause]

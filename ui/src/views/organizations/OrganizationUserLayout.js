@@ -79,7 +79,7 @@ class OrganizationUserLayout extends Component {
         >
           <TitleBarTitle to={`/organizations/${this.props.match.params.organizationID}/users`} title="Organization users" />
           <TitleBarTitle title="/" />
-          <TitleBarTitle title={this.state.organizationUser.organizationUser.username} />
+          <TitleBarTitle title={this.state.organizationUser.organizationUser.email} />
         </TitleBar>
 
         <Grid item xs={12}>

@@ -7,11 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/require"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/integration"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/chirpstack-application-server/internal/test"
 	"github.com/brocaar/lorawan"
@@ -21,9 +22,12 @@ func TestEventLog(t *testing.T) {
 	assert := require.New(t)
 
 	conf := test.GetConfig()
+	conf.Monitoring.PerDeviceEventLogMaxHistory = 10
+	config.Set(conf)
+
 	assert.NoError(storage.Setup(conf))
 
-	test.MustFlushRedis(storage.RedisPool())
+	storage.RedisClient().FlushAll(context.Background())
 
 	upEvent := pb.UplinkEvent{
 		Data: []byte{0x01, 0x02, 0x03, 0x03},

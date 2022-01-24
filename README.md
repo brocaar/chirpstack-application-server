@@ -1,6 +1,6 @@
 # ChirpStack Application Server
 
-[![CircleCI](https://circleci.com/gh/brocaar/chirpstack-application-server.svg?style=svg)](https://circleci.com/gh/brocaar/chirpstack-application-server)
+![Tests](https://github.com/brocaar/chirpstack-application-server/actions/workflows/main.yml/badge.svg?branch=master)
 
 ChirpStack Application Server is an open-source LoRaWAN Application Server, part of the
 [ChirpStack](https://www.chirpstack.io/) open-source LoRaWAN Network Server stack. It is responsible
@@ -12,12 +12,12 @@ and payloads can be enqueued by using MQTT or the API.
 
 ## Architecture
 
-![architecture](https://www.chirpstack.io/img/graphs/architecture.png)
+![architecture](https://www.chirpstack.io/static/img/graphs/architecture.dot.png)
 
 ### Component links
 
 * [ChirpStack Gateway Bridge](https://www.chirpstack.io/gateway-bridge/)
-* [ChirpStack Network Server](https://www.chirpstack.io/application-server/)
+* [ChirpStack Network Server](https://www.chirpstack.io/network-server/)
 * [ChirpStack Application Server](https://www.chirpstack.io/application-server/)
 
 ## Links

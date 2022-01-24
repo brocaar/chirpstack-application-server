@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/integration"
-	"github.com/brocaar/chirpstack-api/go/common"
-	"github.com/brocaar/chirpstack-api/go/gw"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
+	"github.com/brocaar/chirpstack-api/go/v3/gw"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 )
 
 type testHTTPHandler struct {
@@ -31,7 +31,7 @@ func (h *testHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	integration integration.Integrator
+	integration models.IntegrationHandler
 	httpHandler *testHTTPHandler
 	server      *httptest.Server
 }
@@ -79,6 +79,12 @@ func (ts *IntegrationTestSuite) TestUplink() {
 				TxInfo: &gw.UplinkTXInfo{
 					Frequency: 868100000,
 				},
+				RxInfo: []*gw.UplinkRXInfo{
+					{
+						Rssi:    30,
+						LoraSnr: -5,
+					},
+				},
 				ObjectJson: `{
 					"temperature": 25.4,
 					"humidity":    20,
@@ -91,7 +97,7 @@ func (ts *IntegrationTestSuite) TestUplink() {
 			},
 			ExpectedBodies: map[string]string{
 				"/api/v1/verysecret/attributes": `{"application_id":"0","application_name":"test-app","dev_eui":"0102030405060708","device_name":"test-dev","foo":"bar"}`,
-				"/api/v1/verysecret/telemetry":  `{"data_active":true,"data_humidity":20,"data_status":"on","data_temperature":25.4}`,
+				"/api/v1/verysecret/telemetry":  `{"data_active":true,"data_humidity":20,"data_status":"on","data_temperature":25.4,"dr":2,"fcnt":10,"fport":20,"rssi":30,"snr":-5}`,
 			},
 		},
 		{
@@ -118,7 +124,7 @@ func (ts *IntegrationTestSuite) TestUplink() {
 			},
 			ExpectedBodies: map[string]string{
 				"/api/v1/verysecret/attributes": `{"application_id":"0","application_name":"test-app","dev_eui":"0102030405060708","device_name":"test-dev","foo":"bar"}`,
-				"/api/v1/verysecret/telemetry":  `{"data_active":true,"data_humidity":20,"data_status":"on"}`,
+				"/api/v1/verysecret/telemetry":  `{"data_active":true,"data_humidity":20,"data_status":"on","dr":2,"fcnt":10,"fport":20}`,
 			},
 		},
 		{
@@ -148,7 +154,7 @@ func (ts *IntegrationTestSuite) TestUplink() {
 			},
 			ExpectedBodies: map[string]string{
 				"/api/v1/verysecret/attributes": `{"application_id":"0","application_name":"test-app","dev_eui":"0102030405060708","device_name":"test-dev","foo":"bar"}`,
-				"/api/v1/verysecret/telemetry":  `{"data_active":true,"data_humidity":20,"data_status":"on","data_temperature_a":20.5,"data_temperature_b":33.3}`,
+				"/api/v1/verysecret/telemetry":  `{"data_active":true,"data_humidity":20,"data_status":"on","data_temperature_a":20.5,"data_temperature_b":33.3,"dr":2,"fcnt":10,"fport":20}`,
 			},
 		},
 	}
@@ -156,9 +162,9 @@ func (ts *IntegrationTestSuite) TestUplink() {
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.integration.SendDataUp(context.Background(), vars, tst.Payload))
+			assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, vars, tst.Payload))
 
-			for _, _ = range tst.ExpectedBodies {
+			for range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests
 				assert.Equal("application/json", req.Header.Get("Content-Type"))
 
@@ -202,9 +208,9 @@ func (ts *IntegrationTestSuite) TestDeviceStatus() {
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.integration.SendStatusNotification(context.Background(), vars, tst.Payload))
+			assert.NoError(ts.integration.HandleStatusEvent(context.Background(), nil, vars, tst.Payload))
 
-			for _, _ = range tst.ExpectedBodies {
+			for range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests
 				assert.Equal("application/json", req.Header.Get("Content-Type"))
 
@@ -251,9 +257,9 @@ func (ts *IntegrationTestSuite) TestLocation() {
 	for _, tst := range tests {
 		ts.T().Run(tst.Name, func(t *testing.T) {
 			assert := require.New(t)
-			assert.NoError(ts.integration.SendLocationNotification(context.Background(), vars, tst.Payload))
+			assert.NoError(ts.integration.HandleLocationEvent(context.Background(), nil, vars, tst.Payload))
 
-			for _, _ = range tst.ExpectedBodies {
+			for range tst.ExpectedBodies {
 				req := <-ts.httpHandler.requests
 				assert.Equal("application/json", req.Header.Get("Content-Type"))
 

@@ -11,11 +11,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/chirpstack-api/go/ns"
 )
 
 func (ts *APITestSuite) TestMulticastGroup() {
@@ -65,21 +65,35 @@ func (ts *APITestSuite) TestMulticastGroup() {
 	var dpID uuid.UUID
 	copy(dpID[:], dp.DeviceProfile.Id)
 
+	adminUser := storage.User{
+		Email:    "admin@user.com",
+		IsAdmin:  true,
+		IsActive: true,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &adminUser))
+
+	user := storage.User{
+		Email:    "some@user.com",
+		IsAdmin:  false,
+		IsActive: true,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &user))
+
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
 
 		createReq := pb.CreateMulticastGroupRequest{
 			MulticastGroup: &pb.MulticastGroup{
-				Name:             "test-mg",
-				McAddr:           "01020304",
-				McNwkSKey:        "01020304050607080102030405060708",
-				McAppSKey:        "08070605040302010807060504030201",
-				FCnt:             10,
-				GroupType:        pb.MulticastGroupType_CLASS_B,
-				Dr:               5,
-				Frequency:        868100000,
-				PingSlotPeriod:   32,
-				ServiceProfileId: spID.String(),
+				Name:           "test-mg",
+				McAddr:         "01020304",
+				McNwkSKey:      "01020304050607080102030405060708",
+				McAppSKey:      "08070605040302010807060504030201",
+				FCnt:           10,
+				GroupType:      pb.MulticastGroupType_CLASS_B,
+				Dr:             5,
+				Frequency:      868100000,
+				PingSlotPeriod: 32,
+				ApplicationId:  app.ID,
 			},
 		}
 
@@ -123,7 +137,7 @@ func (ts *APITestSuite) TestMulticastGroup() {
 
 			testTable := []struct {
 				Name             string
-				IsAdmin          bool
+				User             storage.User
 				Request          pb.ListMulticastGroupRequest
 				ExpectedResponse pb.ListMulticastGroupResponse
 				ExpectedError    error
@@ -136,8 +150,8 @@ func (ts *APITestSuite) TestMulticastGroup() {
 					ExpectedError: grpc.Errorf(codes.Unauthenticated, "client must be global admin for unfiltered request"),
 				},
 				{
-					Name:    "admin, list all",
-					IsAdmin: true,
+					Name: "admin, list all",
+					User: adminUser,
 					Request: pb.ListMulticastGroupRequest{
 						Limit: 10,
 					},
@@ -145,17 +159,17 @@ func (ts *APITestSuite) TestMulticastGroup() {
 						TotalCount: 1,
 						Result: []*pb.MulticastGroupListItem{
 							{
-								Id:                 createResp.Id,
-								Name:               createReq.MulticastGroup.Name,
-								ServiceProfileId:   spID.String(),
-								ServiceProfileName: sp.Name,
+								Id:              createResp.Id,
+								Name:            createReq.MulticastGroup.Name,
+								ApplicationId:   app.ID,
+								ApplicationName: app.Name,
 							},
 						},
 					},
 				},
 				{
-					Name:    "non-matching search",
-					IsAdmin: true,
+					Name: "non-matching search",
+					User: adminUser,
 					Request: pb.ListMulticastGroupRequest{
 						Limit:  10,
 						Search: "testing",
@@ -165,8 +179,8 @@ func (ts *APITestSuite) TestMulticastGroup() {
 					},
 				},
 				{
-					Name:    "matching search",
-					IsAdmin: true,
+					Name: "matching search",
+					User: adminUser,
 					Request: pb.ListMulticastGroupRequest{
 						Limit:  10,
 						Search: "tes",
@@ -175,16 +189,17 @@ func (ts *APITestSuite) TestMulticastGroup() {
 						TotalCount: 1,
 						Result: []*pb.MulticastGroupListItem{
 							{
-								Id:                 createResp.Id,
-								Name:               createReq.MulticastGroup.Name,
-								ServiceProfileId:   spID.String(),
-								ServiceProfileName: sp.Name,
+								Id:              createResp.Id,
+								Name:            createReq.MulticastGroup.Name,
+								ApplicationId:   app.ID,
+								ApplicationName: app.Name,
 							},
 						},
 					},
 				},
 				{
 					Name: "non-matching org id",
+					User: user,
 					Request: pb.ListMulticastGroupRequest{
 						Limit:          10,
 						OrganizationId: org.ID + 1,
@@ -195,6 +210,7 @@ func (ts *APITestSuite) TestMulticastGroup() {
 				},
 				{
 					Name: "matching org id",
+					User: user,
 					Request: pb.ListMulticastGroupRequest{
 						Limit:          10,
 						OrganizationId: org.ID,
@@ -203,44 +219,47 @@ func (ts *APITestSuite) TestMulticastGroup() {
 						TotalCount: 1,
 						Result: []*pb.MulticastGroupListItem{
 							{
-								Id:                 createResp.Id,
-								Name:               createReq.MulticastGroup.Name,
-								ServiceProfileId:   spID.String(),
-								ServiceProfileName: sp.Name,
+								Id:              createResp.Id,
+								Name:            createReq.MulticastGroup.Name,
+								ApplicationId:   app.ID,
+								ApplicationName: app.Name,
 							},
 						},
 					},
 				},
 				{
-					Name: "non-matching service-profile id",
+					Name: "non-matching application id",
+					User: user,
 					Request: pb.ListMulticastGroupRequest{
-						Limit:            10,
-						ServiceProfileId: uuid.Must(uuid.NewV4()).String(),
+						Limit:         10,
+						ApplicationId: app.ID + 1,
 					},
 					ExpectedResponse: pb.ListMulticastGroupResponse{
 						TotalCount: 0,
 					},
 				},
 				{
-					Name: "matching service-profile id",
+					Name: "matching application id",
+					User: user,
 					Request: pb.ListMulticastGroupRequest{
-						Limit:            10,
-						ServiceProfileId: spID.String(),
+						Limit:         10,
+						ApplicationId: app.ID,
 					},
 					ExpectedResponse: pb.ListMulticastGroupResponse{
 						TotalCount: 1,
 						Result: []*pb.MulticastGroupListItem{
 							{
-								Id:                 createResp.Id,
-								Name:               createReq.MulticastGroup.Name,
-								ServiceProfileId:   spID.String(),
-								ServiceProfileName: sp.Name,
+								Id:              createResp.Id,
+								Name:            createReq.MulticastGroup.Name,
+								ApplicationId:   app.ID,
+								ApplicationName: app.Name,
 							},
 						},
 					},
 				},
 				{
 					Name: "non-matching deveui",
+					User: user,
 					Request: pb.ListMulticastGroupRequest{
 						Limit:  10,
 						DevEui: "0807060504030201",
@@ -251,6 +270,7 @@ func (ts *APITestSuite) TestMulticastGroup() {
 				},
 				{
 					Name: "non-matching deveui",
+					User: user,
 					Request: pb.ListMulticastGroupRequest{
 						Limit:  10,
 						DevEui: "0102030405060708",
@@ -259,10 +279,10 @@ func (ts *APITestSuite) TestMulticastGroup() {
 						TotalCount: 1,
 						Result: []*pb.MulticastGroupListItem{
 							{
-								Id:                 createResp.Id,
-								Name:               createReq.MulticastGroup.Name,
-								ServiceProfileId:   spID.String(),
-								ServiceProfileName: sp.Name,
+								Id:              createResp.Id,
+								Name:            createReq.MulticastGroup.Name,
+								ApplicationId:   app.ID,
+								ApplicationName: app.Name,
 							},
 						},
 					},
@@ -273,7 +293,7 @@ func (ts *APITestSuite) TestMulticastGroup() {
 				t.Run(test.Name, func(t *testing.T) {
 					assert := require.New(t)
 
-					validator.returnIsAdmin = test.IsAdmin
+					validator.returnUser = test.User
 
 					resp, err := api.List(context.Background(), &test.Request)
 					assert.Equal(test.ExpectedError, err)
@@ -326,17 +346,17 @@ func (ts *APITestSuite) TestMulticastGroup() {
 
 			updateReq := pb.UpdateMulticastGroupRequest{
 				MulticastGroup: &pb.MulticastGroup{
-					Id:               createResp.Id,
-					Name:             "test-mg-updated",
-					McAddr:           "04030201",
-					McAppSKey:        "01020304050607080102030405060708",
-					McNwkSKey:        "08070605040302010807060504030201",
-					FCnt:             11,
-					GroupType:        pb.MulticastGroupType_CLASS_C,
-					Dr:               4,
-					Frequency:        868300000,
-					PingSlotPeriod:   64,
-					ServiceProfileId: spID.String(),
+					Id:             createResp.Id,
+					Name:           "test-mg-updated",
+					McAddr:         "04030201",
+					McAppSKey:      "01020304050607080102030405060708",
+					McNwkSKey:      "08070605040302010807060504030201",
+					FCnt:           11,
+					GroupType:      pb.MulticastGroupType_CLASS_C,
+					Dr:             4,
+					Frequency:      868300000,
+					PingSlotPeriod: 64,
+					ApplicationId:  app.ID,
 				},
 			}
 

@@ -9,13 +9,13 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/multicast"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/lorawan"
 )
 
@@ -39,19 +39,14 @@ func (a *MulticastGroupAPI) Create(ctx context.Context, req *pb.CreateMulticastG
 		return nil, grpc.Errorf(codes.InvalidArgument, "multicast_group must not be nil")
 	}
 
-	spID, err := uuid.FromString(req.MulticastGroup.ServiceProfileId)
-	if err != nil {
-		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	if err := a.validator.Validate(ctx,
+		auth.ValidateMulticastGroupsAccess(auth.Create, req.MulticastGroup.ApplicationId)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	sp, err := storage.GetServiceProfile(ctx, storage.DB(), spID, true) // local-only, as we only want to fetch the org. id
+	app, err := storage.GetApplication(ctx, storage.DB(), req.MulticastGroup.ApplicationId)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
-	}
-
-	if err = a.validator.Validate(ctx,
-		auth.ValidateMulticastGroupsAccess(auth.Create, sp.OrganizationID)); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
 	var mcAddr lorawan.DevAddr
@@ -65,8 +60,8 @@ func (a *MulticastGroupAPI) Create(ctx context.Context, req *pb.CreateMulticastG
 	}
 
 	mg := storage.MulticastGroup{
-		Name:             req.MulticastGroup.Name,
-		ServiceProfileID: spID,
+		Name:          req.MulticastGroup.Name,
+		ApplicationID: req.MulticastGroup.ApplicationId,
 		MulticastGroup: ns.MulticastGroup{
 			McAddr:           mcAddr[:],
 			McNwkSKey:        mcNwkSKey[:],
@@ -74,7 +69,7 @@ func (a *MulticastGroupAPI) Create(ctx context.Context, req *pb.CreateMulticastG
 			Dr:               req.MulticastGroup.Dr,
 			Frequency:        req.MulticastGroup.Frequency,
 			PingSlotPeriod:   req.MulticastGroup.PingSlotPeriod,
-			ServiceProfileId: spID.Bytes(),
+			ServiceProfileId: app.ServiceProfileID.Bytes(),
 			RoutingProfileId: a.routingProfileID.Bytes(),
 			FCnt:             req.MulticastGroup.FCnt,
 		},
@@ -126,17 +121,17 @@ func (a *MulticastGroupAPI) Get(ctx context.Context, req *pb.GetMulticastGroupRe
 
 	out := pb.GetMulticastGroupResponse{
 		MulticastGroup: &pb.MulticastGroup{
-			Id:               mgID.String(),
-			Name:             mg.Name,
-			McAddr:           mcAddr.String(),
-			McNwkSKey:        mcNwkSKey.String(),
-			McAppSKey:        mg.MCAppSKey.String(),
-			FCnt:             mg.MulticastGroup.FCnt,
-			GroupType:        pb.MulticastGroupType(mg.MulticastGroup.GroupType),
-			Dr:               mg.MulticastGroup.Dr,
-			Frequency:        mg.MulticastGroup.Frequency,
-			PingSlotPeriod:   mg.MulticastGroup.PingSlotPeriod,
-			ServiceProfileId: mg.ServiceProfileID.String(),
+			Id:             mgID.String(),
+			Name:           mg.Name,
+			McAddr:         mcAddr.String(),
+			McNwkSKey:      mcNwkSKey.String(),
+			McAppSKey:      mg.MCAppSKey.String(),
+			FCnt:           mg.MulticastGroup.FCnt,
+			GroupType:      pb.MulticastGroupType(mg.MulticastGroup.GroupType),
+			Dr:             mg.MulticastGroup.Dr,
+			Frequency:      mg.MulticastGroup.Frequency,
+			PingSlotPeriod: mg.MulticastGroup.PingSlotPeriod,
+			ApplicationId:  mg.ApplicationID,
 		},
 	}
 
@@ -240,6 +235,7 @@ func (a *MulticastGroupAPI) List(ctx context.Context, req *pb.ListMulticastGroup
 	var idFilter bool
 
 	filters := storage.MulticastGroupFilters{
+		ApplicationID:  req.ApplicationId,
 		OrganizationID: req.OrganizationId,
 		Search:         req.Search,
 		Limit:          int(req.Limit),
@@ -256,18 +252,13 @@ func (a *MulticastGroupAPI) List(ctx context.Context, req *pb.ListMulticastGroup
 		}
 	}
 
-	// if sp filter has been set, validate the client has access to the given sp
-	if req.ServiceProfileId != "" {
+	// if app filter has been set, validate the client has access to the given application
+	if req.ApplicationId != 0 {
 		idFilter = true
 
-		filters.ServiceProfileID, err = uuid.FromString(req.ServiceProfileId)
-		if err != nil {
-			return nil, grpc.Errorf(codes.InvalidArgument, "service_profile_id: %s", err)
-		}
-
 		if err = a.validator.Validate(ctx,
-			auth.ValidateServiceProfileAccess(auth.Read, filters.ServiceProfileID)); err != nil {
-			return nil, grpc.Errorf(codes.Unauthenticated, "authentication error: %s", err)
+			auth.ValidateApplicationAccess(req.ApplicationId, auth.Read)); err != nil {
+			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 		}
 	}
 
@@ -287,12 +278,12 @@ func (a *MulticastGroupAPI) List(ctx context.Context, req *pb.ListMulticastGroup
 
 	// listing all stored objects is for global admin only
 	if !idFilter {
-		isAdmin, err := a.validator.GetIsAdmin(ctx)
+		user, err := a.validator.GetUser(ctx)
 		if err != nil {
 			return nil, helpers.ErrToRPCError(err)
 		}
 
-		if !isAdmin {
+		if !user.IsAdmin {
 			return nil, grpc.Errorf(codes.Unauthenticated, "client must be global admin for unfiltered request")
 		}
 	}
@@ -313,10 +304,10 @@ func (a *MulticastGroupAPI) List(ctx context.Context, req *pb.ListMulticastGroup
 
 	for _, item := range items {
 		out.Result = append(out.Result, &pb.MulticastGroupListItem{
-			Id:                 item.ID.String(),
-			Name:               item.Name,
-			ServiceProfileId:   item.ServiceProfileID.String(),
-			ServiceProfileName: item.ServiceProfileName,
+			Id:              item.ID.String(),
+			Name:            item.Name,
+			ApplicationName: item.ApplicationName,
+			ApplicationId:   item.ApplicationID,
 		})
 	}
 
@@ -340,13 +331,8 @@ func (a *MulticastGroupAPI) AddDevice(ctx context.Context, req *pb.AddDeviceToMu
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	// validate that the device is under the same service-profile as the multicast-group
+	// validate that the device is under the same app as the multicast-group
 	dev, err := storage.GetDevice(ctx, storage.DB(), devEUI, false, true)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	app, err := storage.GetApplication(ctx, storage.DB(), dev.ApplicationID)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -356,8 +342,8 @@ func (a *MulticastGroupAPI) AddDevice(ctx context.Context, req *pb.AddDeviceToMu
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	if app.ServiceProfileID != mg.ServiceProfileID {
-		return nil, grpc.Errorf(codes.FailedPrecondition, "service-profile of device != service-profile of multicast-group")
+	if dev.ApplicationID != mg.ApplicationID {
+		return nil, grpc.Errorf(codes.FailedPrecondition, "device and multicast must be under the same application")
 	}
 
 	if err = storage.Transaction(func(tx sqlx.Ext) error {
@@ -490,7 +476,7 @@ func (a *MulticastGroupAPI) ListQueue(ctx context.Context, req *pb.ListMulticast
 	}
 
 	var resp pb.ListMulticastGroupQueueItemsResponse
-	for i, _ := range queueItems {
+	for i := range queueItems {
 		resp.MulticastQueueItems = append(resp.MulticastQueueItems, &queueItems[i])
 	}
 

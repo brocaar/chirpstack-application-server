@@ -4,18 +4,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/chirpstack-api/go/common"
-	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/lorawan"
 )
 
@@ -26,7 +27,9 @@ func (ts *APITestSuite) TestGateway() {
 	networkserver.SetPool(mock.NewPool(nsClient))
 
 	ctx := context.Background()
-	validator := &TestValidator{}
+	validator := &TestValidator{
+		returnSubject: "user",
+	}
 	api := NewGatewayAPI(validator)
 
 	n := storage.NetworkServer{
@@ -36,9 +39,75 @@ func (ts *APITestSuite) TestGateway() {
 	assert.NoError(storage.CreateNetworkServer(context.Background(), storage.DB(), &n))
 
 	org := storage.Organization{
-		Name: "test-org-gw",
+		Name:            "test-org-gw",
+		MaxGatewayCount: 1,
 	}
 	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
+
+	org2 := storage.Organization{
+		Name: "test-org-2",
+	}
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org2))
+
+	sp := storage.ServiceProfile{
+		NetworkServerID: n.ID,
+		OrganizationID:  org.ID,
+		Name:            "test-sp",
+	}
+	assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp))
+	var spID uuid.UUID
+	copy(spID[:], sp.ServiceProfile.Id)
+
+	sp2 := storage.ServiceProfile{
+		NetworkServerID: n.ID,
+		OrganizationID:  org2.ID,
+		Name:            "test-sp-2",
+	}
+	assert.NoError(storage.CreateServiceProfile(context.Background(), storage.DB(), &sp2))
+	var sp2ID uuid.UUID
+	copy(sp2ID[:], sp2.ServiceProfile.Id)
+
+	adminUser := storage.User{
+		Email:    "admin@user.com",
+		IsActive: true,
+		IsAdmin:  true,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &adminUser))
+
+	ts.T().Run("Create with service-profile under different org", func(t *testing.T) {
+		assert := require.New(t)
+
+		createReq := pb.CreateGatewayRequest{
+			Gateway: &pb.Gateway{
+				Id:          "0807060504030201",
+				Name:        "test-gateway",
+				Description: "test gateway",
+				Location: &common.Location{
+					Latitude:  1.1234,
+					Longitude: 1.1235,
+					Altitude:  5.5,
+				},
+				OrganizationId:   org.ID,
+				DiscoveryEnabled: true,
+				NetworkServerId:  n.ID,
+				Boards: []*pb.GatewayBoard{
+					{
+						FpgaId: "0102030405060708",
+					},
+					{
+						FineTimestampKey: "01020304050607080102030405060708",
+					},
+				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
+				Metadata:         make(map[string]string),
+				ServiceProfileId: sp2ID.String(),
+			},
+		}
+		_, err := api.Create(ctx, &createReq)
+		assert.Equal(codes.InvalidArgument, grpc.Code(err))
+	})
 
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
@@ -64,6 +133,11 @@ func (ts *APITestSuite) TestGateway() {
 						FineTimestampKey: "01020304050607080102030405060708",
 					},
 				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
+				Metadata:         make(map[string]string),
+				ServiceProfileId: spID.String(),
 			},
 		}
 		_, err := api.Create(ctx, &createReq)
@@ -74,6 +148,28 @@ func (ts *APITestSuite) TestGateway() {
 			Gateway: nsReq.Gateway,
 		}
 		assert.Equal(applicationServerID.Bytes(), nsReq.Gateway.RoutingProfileId)
+
+		t.Run("Create second exceeds max gateway count", func(t *testing.T) {
+			assert := require.New(t)
+
+			createReq := pb.CreateGatewayRequest{
+				Gateway: &pb.Gateway{
+					Id:          "0807060504030202",
+					Name:        "test-gateway-2",
+					Description: "test gateway",
+					Location: &common.Location{
+						Latitude:  1.1234,
+						Longitude: 1.1235,
+						Altitude:  5.5,
+					},
+					OrganizationId:  org.ID,
+					NetworkServerId: n.ID,
+				},
+			}
+			_, err := api.Create(ctx, &createReq)
+			assert.Equal(codes.FailedPrecondition, grpc.Code(err))
+			assert.Equal("rpc error: code = FailedPrecondition desc = organization reached max. gateway count", err.Error())
+		})
 
 		t.Run("Get", func(t *testing.T) {
 			assert := require.New(t)
@@ -106,7 +202,7 @@ func (ts *APITestSuite) TestGateway() {
 			t.Run("List all", func(t *testing.T) {
 				assert := require.New(t)
 
-				validator.returnIsAdmin = true
+				validator.returnUser = adminUser
 				gws, err := api.List(ctx, &pb.ListGatewayRequest{
 					Limit: 10,
 				})
@@ -117,13 +213,11 @@ func (ts *APITestSuite) TestGateway() {
 
 			t.Run("List as org user", func(t *testing.T) {
 				user := storage.User{
-					Username: "testuser",
-					Email:    "foo@bar.com",
+					Email: "foo@bar.com",
 				}
-				_, err := storage.CreateUser(context.Background(), storage.DB(), &user, "password123")
+				err := storage.CreateUser(context.Background(), storage.DB(), &user)
 				assert.NoError(err)
-				validator.returnIsAdmin = false
-				validator.returnUsername = user.Username
+				validator.returnUser = user
 
 				gws, err := api.List(ctx, &pb.ListGatewayRequest{
 					Limit: 10,
@@ -157,6 +251,40 @@ func (ts *APITestSuite) TestGateway() {
 			})
 		})
 
+		t.Run("Update with service-profile under different org", func(t *testing.T) {
+			assert := require.New(t)
+			updateReq := pb.UpdateGatewayRequest{
+				Gateway: &pb.Gateway{
+					Id:   "0807060504030201",
+					Name: "test-gateway-updated",
+					Description: "test gateway updated	",
+					Location: &common.Location{
+						Latitude:  2.1234,
+						Longitude: 2.1235,
+						Altitude:  6.5,
+					},
+					OrganizationId:   org.ID,
+					DiscoveryEnabled: true,
+					NetworkServerId:  n.ID,
+					Boards: []*pb.GatewayBoard{
+						{
+							FineTimestampKey: "02020304050607080102030405060708",
+						},
+						{
+							FpgaId: "0202030405060708",
+						},
+					},
+					Tags: map[string]string{
+						"bar": "foo",
+					},
+					Metadata:         make(map[string]string),
+					ServiceProfileId: sp2ID.String(),
+				},
+			}
+			_, err := api.Update(ctx, &updateReq)
+			assert.Equal(codes.InvalidArgument, grpc.Code(err))
+		})
+
 		t.Run("Update", func(t *testing.T) {
 			assert := require.New(t)
 			updateReq := pb.UpdateGatewayRequest{
@@ -180,6 +308,10 @@ func (ts *APITestSuite) TestGateway() {
 							FpgaId: "0202030405060708",
 						},
 					},
+					Tags: map[string]string{
+						"bar": "foo",
+					},
+					Metadata: make(map[string]string),
 				},
 			}
 			_, err := api.Update(ctx, &updateReq)
@@ -208,13 +340,19 @@ func (ts *APITestSuite) TestGateway() {
 			metrics := storage.MetricsRecord{
 				Time: now,
 				Metrics: map[string]float64{
-					"rx_count":    10,
-					"rx_ok_count": 5,
-					"tx_count":    11,
-					"tx_ok_count": 10,
+					"rx_count":           10,
+					"rx_ok_count":        5,
+					"tx_count":           11,
+					"tx_ok_count":        10,
+					"tx_freq_868100000":  10,
+					"rx_freq_868300000":  5,
+					"tx_dr_3":            10,
+					"rx_dr_2":            5,
+					"tx_status_OK":       10,
+					"tx_status_TOO_LATE": 1,
 				},
 			}
-			assert.NoError(storage.SaveMetricsForInterval(context.Background(), storage.RedisPool(), storage.AggregationMinute, "gw:0102030405060708", metrics))
+			assert.NoError(storage.SaveMetricsForInterval(context.Background(), storage.AggregationMinute, "gw:0102030405060708", metrics))
 
 			start, _ := ptypes.TimestampProto(now.Truncate(time.Minute))
 			end, _ := ptypes.TimestampProto(now)
@@ -235,6 +373,22 @@ func (ts *APITestSuite) TestGateway() {
 				RxPacketsReceivedOk: 5,
 				TxPacketsReceived:   11,
 				TxPacketsEmitted:    10,
+				TxPacketsPerFrequency: map[uint32]uint32{
+					868100000: 10,
+				},
+				RxPacketsPerFrequency: map[uint32]uint32{
+					868300000: 5,
+				},
+				TxPacketsPerDr: map[uint32]uint32{
+					3: 10,
+				},
+				RxPacketsPerDr: map[uint32]uint32{
+					2: 5,
+				},
+				TxPacketsPerStatus: map[string]uint32{
+					"OK":       10,
+					"TOO_LATE": 1,
+				},
 			}, *resp.Result[0])
 		})
 
@@ -327,6 +481,27 @@ func (ts *APITestSuite) TestGateway() {
 					Altitude:  11,
 				},
 			}, pingResp.PingRx)
+		})
+
+		t.Run("GenerateGatewayClientCertificate", func(t *testing.T) {
+			assert := require.New(t)
+
+			nsClient.GenerateGatewayClientCertificateResponse = ns.GenerateGatewayClientCertificateResponse{
+				TlsCert: []byte("foo"),
+				TlsKey:  []byte("bar"),
+				CaCert:  []byte("test"),
+			}
+
+			resp, err := api.GenerateGatewayClientCertificate(ctx, &pb.GenerateGatewayClientCertificateRequest{
+				GatewayId: createReq.Gateway.Id,
+			})
+			assert.NoError(err)
+			assert.Equal(&pb.GenerateGatewayClientCertificateResponse{
+				TlsCert: "foo",
+				TlsKey:  "bar",
+				CaCert:  "test",
+			}, resp)
+
 		})
 
 		t.Run("Delete", func(t *testing.T) {

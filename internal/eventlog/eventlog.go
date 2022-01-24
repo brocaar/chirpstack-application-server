@@ -3,62 +3,77 @@ package eventlog
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
-	"github.com/gomodule/redigo/redis"
+	"github.com/go-redis/redis/v8"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 
+	"github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
 const (
-	deviceEventUplinkPubSubKeyTempl = "lora:as:device:%s:pubsub:event"
+	deviceEventStreamKey = "lora:as:device:%s:stream:event"
 )
 
 // Event types.
 const (
-	Uplink   = "uplink"
-	ACK      = "ack"
-	Join     = "join"
-	Error    = "error"
-	Status   = "status"
-	Location = "location"
+	Uplink      = "up"
+	ACK         = "ack"
+	Join        = "join"
+	Error       = "error"
+	Status      = "status"
+	Location    = "location"
+	TxAck       = "txack"
+	Integration = "integration"
 )
+
+// PublishedAtMessage implements the proto.Message with PublishedAt getter.
+type PublishedAtMessage interface {
+	proto.Message
+	GetPublishedAt() *timestamp.Timestamp
+}
 
 // EventLog contains an event log.
 type EventLog struct {
-	Type    string
-	Payload json.RawMessage
+	Type        string
+	PublishedAt *timestamp.Timestamp
+	Payload     json.RawMessage
+	StreamID    string
 }
 
 // LogEventForDevice logs an event for the given device.
 func LogEventForDevice(devEUI lorawan.EUI64, t string, msg proto.Message) error {
-	c := storage.RedisPool().Get()
-	defer c.Close()
+	conf := config.Get()
 
-	b, err := marshaler.Marshal(marshaler.ProtobufJSON, msg)
-	if err != nil {
-		return errors.Wrap(err, "marshal protobuf json error")
-	}
+	if conf.Monitoring.PerDeviceEventLogMaxHistory > 0 {
+		b, err := proto.Marshal(msg)
+		if err != nil {
+			return errors.Wrap(err, "marshal event error")
+		}
 
-	el := EventLog{
-		Type:    t,
-		Payload: json.RawMessage(b),
-	}
+		key := storage.GetRedisKey(deviceEventStreamKey, devEUI)
+		pipe := storage.RedisClient().TxPipeline()
 
-	key := fmt.Sprintf(deviceEventUplinkPubSubKeyTempl, devEUI)
-	b, err = json.Marshal(el)
-	if err != nil {
-		return errors.Wrap(err, "json encode error")
-	}
+		pipe.XAdd(context.Background(), &redis.XAddArgs{
+			Stream: key,
+			MaxLen: conf.Monitoring.PerDeviceEventLogMaxHistory,
+			Values: map[string]interface{}{
+				"event": t,
+				"data":  b,
+			},
+		})
+		pipe.Expire(context.Background(), key, time.Hour*24*31)
 
-	if _, err := c.Do("PUBLISH", key, b); err != nil {
-		return errors.Wrap(err, "publish device event error")
+		_, err = pipe.Exec(context.Background())
+		if err != nil {
+			return errors.Wrap(err, "redis xadd error")
+		}
 	}
 
 	return nil
@@ -67,70 +82,80 @@ func LogEventForDevice(devEUI lorawan.EUI64, t string, msg proto.Message) error 
 // GetEventLogForDevice subscribes to the device events for the given DevEUI
 // and sends this to the given channel.
 func GetEventLogForDevice(ctx context.Context, devEUI lorawan.EUI64, eventsChan chan EventLog) error {
-	c := storage.RedisPool().Get()
-	defer c.Close()
+	key := storage.GetRedisKey(deviceEventStreamKey, devEUI)
+	lastID := "0"
 
-	key := fmt.Sprintf(deviceEventUplinkPubSubKeyTempl, devEUI)
-	psc := redis.PubSubConn{Conn: c}
-	if err := psc.Subscribe(key); err != nil {
-		return errors.Wrap(err, "subscribe error")
-	}
-
-	done := make(chan error, 1)
-
-	go func() {
-		for {
-			switch v := psc.Receive().(type) {
-			case redis.Message:
-				el, err := redisMessageToEventLog(v)
-				if err != nil {
-					log.WithError(err).Error("decode message errror")
-				} else {
-					eventsChan <- el
-				}
-			case redis.Subscription:
-				if v.Count == 0 {
-					done <- nil
-					return
-				}
-			case error:
-				done <- v
-				return
-			}
-		}
-	}()
-
-	// todo: make this a config value?
-	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
-
-loop:
 	for {
-		select {
-		case <-ticker.C:
-			if err := psc.Ping(""); err != nil {
-				log.WithError(err).Error("subscription ping error")
-				break loop
+		resp, err := storage.RedisClient().XRead(ctx, &redis.XReadArgs{
+			Streams: []string{key, lastID},
+			Count:   10,
+			Block:   0,
+		}).Result()
+		if err != nil {
+			if err == context.Canceled {
+				return nil
 			}
-		case <-ctx.Done():
-			break loop
-		case err := <-done:
-			return err
+
+			return errors.Wrap(err, "redis stream error")
+		}
+
+		if len(resp) != 1 {
+			return errors.New("exactly one stream response expected")
+		}
+
+		for _, msg := range resp[0].Messages {
+			lastID = msg.ID
+			var pl PublishedAtMessage
+
+			event, ok := msg.Values["event"].(string)
+			if !ok {
+				continue
+			}
+
+			switch event {
+			case Uplink:
+				pl = &integration.UplinkEvent{}
+			case ACK:
+				pl = &integration.AckEvent{}
+			case Join:
+				pl = &integration.JoinEvent{}
+			case Error:
+				pl = &integration.ErrorEvent{}
+			case Status:
+				pl = &integration.StatusEvent{}
+			case Location:
+				pl = &integration.LocationEvent{}
+			case TxAck:
+				pl = &integration.TxAckEvent{}
+			case Integration:
+				pl = &integration.IntegrationEvent{}
+			default:
+				continue
+			}
+
+			b, ok := msg.Values["data"].(string)
+			if !ok {
+				continue
+			}
+
+			// decode the binary data
+			if err := proto.Unmarshal([]byte(b), pl); err != nil {
+				return errors.Wrap(err, "unmarshal protobuf error")
+			}
+
+			// encode it to json for display purposes
+			jsonB, err := marshaler.Marshal(marshaler.ProtobufJSON, pl)
+			if err != nil {
+				return errors.Wrap(err, "marshal protobuf json error")
+			}
+
+			eventsChan <- EventLog{
+				Type:        event,
+				Payload:     json.RawMessage(jsonB),
+				PublishedAt: pl.GetPublishedAt(),
+				StreamID:    msg.ID,
+			}
 		}
 	}
 
-	if err := psc.Unsubscribe(); err != nil {
-		return errors.Wrap(err, "unsubscribe error")
-	}
-
-	return <-done
-}
-
-func redisMessageToEventLog(msg redis.Message) (EventLog, error) {
-	var el EventLog
-	if err := json.Unmarshal(msg.Data, &el); err != nil {
-		return el, errors.Wrap(err, "gob decode error")
-	}
-
-	return el, nil
 }

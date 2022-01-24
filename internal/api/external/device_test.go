@@ -7,15 +7,16 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
-	"github.com/brocaar/chirpstack-api/go/as/integration"
-	"github.com/brocaar/chirpstack-api/go/common"
-	"github.com/brocaar/chirpstack-api/go/ns"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/eventlog"
@@ -25,6 +26,9 @@ import (
 
 func (ts *APITestSuite) TestDevice() {
 	assert := require.New(ts.T())
+
+	assert.NoError(storage.SetAggregationIntervals([]storage.AggregationInterval{storage.AggregationMinute}))
+	storage.SetMetricsTTL(time.Minute, time.Minute, time.Minute, time.Minute)
 
 	nsClient := mock.NewClient()
 	networkserver.SetPool(mock.NewPool(nsClient))
@@ -50,9 +54,14 @@ func (ts *APITestSuite) TestDevice() {
 	api := pb.NewDeviceServiceClient(apiClient)
 
 	org := storage.Organization{
-		Name: "test-org",
+		Name:           "test-org",
+		MaxDeviceCount: 1,
 	}
 	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
+	org2 := storage.Organization{
+		Name: "test-org-2",
+	}
+	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org2))
 
 	n := storage.NetworkServer{
 		Name:   "test-ns",
@@ -107,6 +116,28 @@ func (ts *APITestSuite) TestDevice() {
 	assert.NoError(storage.CreateDeviceProfile(context.Background(), storage.DB(), &dp))
 	dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
 	assert.NoError(err)
+	dp2 := storage.DeviceProfile{
+		Name:            "test-dp",
+		OrganizationID:  org2.ID,
+		NetworkServerID: n.ID,
+	}
+	assert.NoError(storage.CreateDeviceProfile(context.Background(), storage.DB(), &dp2))
+	dpID2, err := uuid.FromBytes(dp2.DeviceProfile.Id)
+	assert.NoError(err)
+
+	adminUser := storage.User{
+		Email:    "admin@user.com",
+		IsActive: true,
+		IsAdmin:  true,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &adminUser))
+
+	user := storage.User{
+		Email:    "some@user.com",
+		IsActive: true,
+		IsAdmin:  false,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &user))
 
 	ts.T().Run("Create without name", func(t *testing.T) {
 		assert := require.New(t)
@@ -138,6 +169,30 @@ func (ts *APITestSuite) TestDevice() {
 		assert.NoError(err)
 	})
 
+	ts.T().Run("Create with device-profile under different organization", func(t *testing.T) {
+		assert := require.New(t)
+
+		createReq := pb.CreateDeviceRequest{
+			Device: &pb.Device{
+				ApplicationId:     app.ID,
+				Name:              "test-device",
+				Description:       "test device description",
+				DevEui:            "0807060504030201",
+				DeviceProfileId:   dpID2.String(),
+				SkipFCntCheck:     true,
+				ReferenceAltitude: 5.6,
+				Variables: map[string]string{
+					"var_1": "test var 1",
+				},
+				Tags: map[string]string{
+					"foo": "bar",
+				},
+			},
+		}
+		_, err := api.Create(context.Background(), &createReq)
+		assert.Equal(codes.InvalidArgument, grpc.Code(err))
+	})
+
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
 
@@ -150,6 +205,7 @@ func (ts *APITestSuite) TestDevice() {
 				DeviceProfileId:   dpID.String(),
 				SkipFCntCheck:     true,
 				ReferenceAltitude: 5.6,
+				IsDisabled:        true,
 				Variables: map[string]string{
 					"var_1": "test var 1",
 				},
@@ -165,6 +221,23 @@ func (ts *APITestSuite) TestDevice() {
 		nsClient.GetDeviceResponse = ns.GetDeviceResponse{
 			Device: nsReq.Device,
 		}
+
+		t.Run("Create second exceeds max device count", func(t *testing.T) {
+			assert := require.New(t)
+
+			createReq := pb.CreateDeviceRequest{
+				Device: &pb.Device{
+					ApplicationId:   app.ID,
+					Name:            "test-device-2",
+					Description:     "test device description",
+					DevEui:          "0807060504030202",
+					DeviceProfileId: dpID.String(),
+				},
+			}
+			_, err := api.Create(context.Background(), &createReq)
+			assert.Equal(codes.FailedPrecondition, grpc.Code(err))
+			assert.Equal("rpc error: code = FailedPrecondition desc = organization reached max. device count", err.Error())
+		})
 
 		t.Run("Get", func(t *testing.T) {
 			assert := require.New(t)
@@ -248,15 +321,37 @@ func (ts *APITestSuite) TestDevice() {
 						Latitude:  1.123,
 						Longitude: 2.123,
 						Altitude:  3.123,
-						Source:    common.LocationSource_GEO_RESOLVER,
 					}, d.Location)
 				})
 			})
 
 			t.Run("List", func(t *testing.T) {
+				t.Run("Filter by tag", func(t *testing.T) {
+					assert := require.New(t)
+					validator.returnUser = adminUser
+
+					devices, err := api.List(context.Background(), &pb.ListDeviceRequest{
+						Limit:  10,
+						Offset: 0,
+						Tags:   map[string]string{"foo": "bar"},
+					})
+					assert.NoError(err)
+					assert.EqualValues(1, devices.TotalCount)
+					assert.Len(devices.Result, 1)
+
+					devices, err = api.List(context.Background(), &pb.ListDeviceRequest{
+						Limit:  10,
+						Offset: 0,
+						Tags:   map[string]string{"foo": "bas"},
+					})
+					assert.NoError(err)
+					assert.EqualValues(0, devices.TotalCount)
+					assert.Len(devices.Result, 0)
+				})
+
 				t.Run("Global admin can list all devices", func(t *testing.T) {
 					assert := require.New(t)
-					validator.returnIsAdmin = true
+					validator.returnUser = adminUser
 
 					devices, err := api.List(context.Background(), &pb.ListDeviceRequest{
 						Limit:  10,
@@ -278,7 +373,7 @@ func (ts *APITestSuite) TestDevice() {
 
 				t.Run("Non-admin can not list the devices", func(t *testing.T) {
 					assert := require.New(t)
-					validator.returnIsAdmin = false
+					validator.returnUser = user
 
 					_, err := api.List(context.Background(), &pb.ListDeviceRequest{
 						Limit:  10,
@@ -289,7 +384,7 @@ func (ts *APITestSuite) TestDevice() {
 
 				t.Run("Non-admin can list devices by application id", func(t *testing.T) {
 					assert := require.New(t)
-					validator.returnIsAdmin = false
+					validator.returnUser = user
 
 					devices, err := api.List(context.Background(), &pb.ListDeviceRequest{
 						Limit:         10,
@@ -300,6 +395,31 @@ func (ts *APITestSuite) TestDevice() {
 					assert.EqualValues(1, devices.TotalCount)
 					assert.Len(devices.Result, 1)
 				})
+			})
+
+			t.Run("Update with device-profile under different organization", func(t *testing.T) {
+				assert := require.New(t)
+
+				updateReq := pb.UpdateDeviceRequest{
+					Device: &pb.Device{
+						ApplicationId:     app.ID,
+						DevEui:            "0807060504030201",
+						Name:              "test-device-updated",
+						Description:       "test device description updated",
+						DeviceProfileId:   dpID2.String(),
+						SkipFCntCheck:     true,
+						ReferenceAltitude: 6.7,
+						Variables: map[string]string{
+							"var_2": "test var 2",
+						},
+						Tags: map[string]string{
+							"bar": "foo",
+						},
+					},
+				}
+
+				_, err := api.Update(context.Background(), &updateReq)
+				assert.Equal(codes.InvalidArgument, grpc.Code(err))
 			})
 
 			t.Run("Update", func(t *testing.T) {
@@ -314,6 +434,7 @@ func (ts *APITestSuite) TestDevice() {
 						DeviceProfileId:   dpID.String(),
 						SkipFCntCheck:     true,
 						ReferenceAltitude: 6.7,
+						IsDisabled:        true,
 						Variables: map[string]string{
 							"var_2": "test var 2",
 						},
@@ -407,10 +528,9 @@ func (ts *APITestSuite) TestDevice() {
 					})
 					assert.NoError(err)
 					assert.Equal(&pb.DeviceKeys{
-						DevEui:    "0807060504030201",
-						NwkKey:    "01020304050607080807060504030201",
-						AppKey:    "00000000000000000000000000000000",
-						GenAppKey: "00000000000000000000000000000000",
+						DevEui: "0807060504030201",
+						NwkKey: "01020304050607080807060504030201",
+						AppKey: "00000000000000000000000000000000",
 					}, dk.DeviceKeys)
 				})
 
@@ -433,10 +553,9 @@ func (ts *APITestSuite) TestDevice() {
 					assert.NoError(err)
 
 					assert.Equal(&pb.DeviceKeys{
-						DevEui:    "0807060504030201",
-						NwkKey:    "08070605040302010102030405060708",
-						AppKey:    "00000000000000000000000000000000",
-						GenAppKey: "00000000000000000000000000000000",
+						DevEui: "0807060504030201",
+						NwkKey: "08070605040302010102030405060708",
+						AppKey: "00000000000000000000000000000000",
 					}, dk.DeviceKeys)
 				})
 
@@ -517,10 +636,10 @@ func (ts *APITestSuite) TestDevice() {
 				}, <-nsClient.ActivateDeviceChan)
 
 				// activation was stored
-				da, err := storage.GetLastDeviceActivationForDevEUI(context.Background(), storage.DB(), lorawan.EUI64{8, 7, 6, 5, 4, 3, 2, 1})
+				d, err := storage.GetDevice(context.Background(), storage.DB(), lorawan.EUI64{0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01}, false, true)
 				assert.NoError(err)
-				assert.Equal(lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}, da.AppSKey)
-				assert.Equal(lorawan.DevAddr{1, 2, 3, 4}, da.DevAddr)
+				assert.Equal(lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}, d.AppSKey)
+				assert.Equal(lorawan.DevAddr{1, 2, 3, 4}, d.DevAddr)
 			})
 
 			t.Run("StreamEventLogs", func(t *testing.T) {
@@ -550,6 +669,47 @@ func (ts *APITestSuite) TestDevice() {
 
 				resp := <-respChan
 				assert.Equal(eventlog.Join, resp.Type)
+			})
+
+			t.Run("GetStats", func(t *testing.T) {
+				assert := require.New(t)
+
+				metrics := storage.MetricsRecord{
+					Time: time.Now(),
+					Metrics: map[string]float64{
+						"rx_count":          2,
+						"gw_rssi_sum":       -120.0,
+						"gw_snr_sum":        10.0,
+						"rx_freq_868100000": 2,
+						"rx_dr_2":           2,
+						"error_TOO_LATE":    1,
+					},
+				}
+				assert.NoError(storage.SaveMetrics(context.Background(), "device:0807060504030201", metrics))
+
+				resp, err := api.GetStats(context.Background(), &pb.GetDeviceStatsRequest{
+					DevEui:         "0807060504030201",
+					Interval:       "MINUTE",
+					StartTimestamp: ptypes.TimestampNow(),
+					EndTimestamp:   ptypes.TimestampNow(),
+				})
+				assert.NoError(err)
+				assert.Len(resp.Result, 1)
+				resp.Result[0].Timestamp = nil
+				assert.Equal(&pb.DeviceStats{
+					RxPackets: 2,
+					GwRssi:    -60,
+					GwSnr:     5,
+					RxPacketsPerFrequency: map[uint32]uint32{
+						868100000: 2,
+					},
+					RxPacketsPerDr: map[uint32]uint32{
+						2: 2,
+					},
+					Errors: map[string]uint32{
+						"TOO_LATE": 1,
+					},
+				}, resp.Result[0])
 			})
 
 			t.Run("Delete", func(t *testing.T) {

@@ -5,182 +5,197 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-	. "github.com/smartystreets/goconvey/convey"
-
-	"github.com/brocaar/chirpstack-application-server/internal/test"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUser(t *testing.T) {
-	conf := test.GetConfig()
+	t.Run("admin", func(t *testing.T) {
+		assert := require.New(t)
 
+		u := User{Email: "admin"}
+		assert.NoError(u.Validate())
+	})
+
+	t.Run("non admin", func(t *testing.T) {
+
+		t.Run("invalid", func(t *testing.T) {
+			assert := require.New(t)
+
+			tests := []string{
+				"nonadmin",
+				"foo-bar.baz@example.com ",
+			}
+
+			for _, tst := range tests {
+				u := User{Email: tst}
+				assert.Equal(ErrInvalidEmail, u.Validate())
+			}
+
+		})
+
+		t.Run("valid", func(t *testing.T) {
+			assert := require.New(t)
+
+			tests := []string{
+				"foo-bar.baz@example.com",
+			}
+
+			for _, tst := range tests {
+				u := User{Email: tst}
+				assert.NoError(u.Validate())
+			}
+		})
+	})
+}
+
+func (ts *StorageTestSuite) TestUser() {
 	// Set a user secret so JWTs can be assigned
 	jwtsecret = []byte("DoWahDiddy")
 
-	// Note that a "clean" database includes the admin user.
+	ts.T().Run("Create with invalid password", func(t *testing.T) {
+		assert := require.New(t)
 
-	Convey("Given a clean database", t, func() {
-		if err := Setup(conf); err != nil {
-			t.Fatal(err)
+		user := User{
+			IsAdmin:    false,
+			SessionTTL: 40,
+			Email:      "foo@bar.com",
 		}
-		test.MustResetDB(DB().DB)
+		err := user.SetPasswordHash("bad")
+		assert.Equal(ErrUserPasswordLength, errors.Cause(err))
+	})
 
-		Convey("When creating a user with an invalid username", func() {
-			user := User{
-				Username: "bad characters %",
-				Email:    "foo@bar.com",
-			}
-			_, err := CreateUser(context.Background(), DB(), &user, "somepassword")
+	ts.T().Run("Create with invalid email", func(t *testing.T) {
+		assert := require.New(t)
 
-			Convey("Then an error is returned", func() {
-				So(err, ShouldNotBeNil)
-				So(errors.Cause(err), ShouldResemble, ErrUserInvalidUsername)
-			})
+		user := User{
+			IsAdmin:    false,
+			SessionTTL: 40,
+			Email:      "foobar.com",
+		}
+		err := CreateUser(context.Background(), DB(), &user)
+
+		assert.Equal(ErrInvalidEmail, errors.Cause(err))
+	})
+
+	ts.T().Run("Create", func(t *testing.T) {
+		assert := require.New(t)
+		externalID := "ext-123"
+
+		user := User{
+			IsAdmin:       false,
+			SessionTTL:    20,
+			Email:         "foo@bar.com",
+			EmailVerified: true,
+			ExternalID:    &externalID,
+		}
+		password := "somepassword"
+		assert.NoError(user.SetPasswordHash(password))
+
+		err := CreateUser(context.Background(), DB(), &user)
+		assert.NoError(err)
+
+		t.Run("GetUser", func(t *testing.T) {
+			assert := require.New(t)
+
+			user2, err := GetUser(context.Background(), DB(), user.ID)
+			assert.NoError(err)
+			assert.Equal(user.Email, user2.Email)
+			assert.Equal(user.IsAdmin, user2.IsAdmin)
+			assert.Equal(user.SessionTTL, user2.SessionTTL)
 		})
 
-		Convey("When creating a user with an invalid password", func() {
-			user := User{
-				Username:   "okcharacters",
-				IsAdmin:    false,
-				SessionTTL: 40,
-				Email:      "foo@bar.com",
-			}
-			_, err := CreateUser(context.Background(), DB(), &user, "bad")
+		t.Run("GetUserByEmail", func(t *testing.T) {
+			assert := require.New(t)
 
-			Convey("Then an error is returned", func() {
-				So(err, ShouldNotBeNil)
-				So(errors.Cause(err), ShouldResemble, ErrUserPasswordLength)
-			})
+			user2, err := GetUserByEmail(context.Background(), DB(), user.Email)
+			assert.NoError(err)
+			assert.Equal(user.Email, user2.Email)
+			assert.Equal(user.IsAdmin, user2.IsAdmin)
+			assert.Equal(user.SessionTTL, user2.SessionTTL)
 		})
 
-		Convey("When creating a user with an invalid e-mail", func() {
-			user := User{
-				Username:   "okcharacters",
-				IsAdmin:    false,
-				SessionTTL: 40,
-				Email:      "foobar.com",
-			}
-			_, err := CreateUser(context.Background(), DB(), &user, "somepassword")
+		t.Run("GetUserByExternalID", func(t *testing.T) {
+			assert := require.New(t)
 
-			Convey("Then an error is returned", func() {
-				So(err, ShouldNotBeNil)
-				So(errors.Cause(err), ShouldResemble, ErrInvalidEmail)
-			})
+			user2, err := GetUserByExternalID(context.Background(), DB(), externalID)
+			assert.NoError(err)
+			assert.Equal(user.Email, user2.Email)
+			assert.Equal(user.IsAdmin, user2.IsAdmin)
+			assert.Equal(user.SessionTTL, user2.SessionTTL)
 		})
 
-		Convey("When creating a user", func() {
-			user := User{
-				Username:   "goodusername111",
-				IsAdmin:    false,
-				SessionTTL: 20,
-				Email:      "foo@bar.com",
-			}
-			password := "somepassword"
+		t.Run("GetUsers", func(t *testing.T) {
+			assert := require.New(t)
 
-			userID, err := CreateUser(context.Background(), DB(), &user, password)
-			So(err, ShouldBeNil)
+			users, err := GetUsers(context.Background(), DB(), 10, 0)
+			assert.NoError(err)
+			assert.Len(users, 2)
 
-			Convey("It can be get by id", func() {
-				user2, err := GetUser(context.Background(), DB(), userID)
-				So(err, ShouldBeNil)
-				So(user2.Username, ShouldResemble, user.Username)
-				So(user2.IsAdmin, ShouldResemble, user.IsAdmin)
-				So(user2.SessionTTL, ShouldResemble, user.SessionTTL)
-			})
+			assert.Equal("admin", users[0].Email)
+			assert.Equal("foo@bar.com", users[1].Email)
+		})
 
-			Convey("It can be get by username", func() {
-				user2, err := GetUserByUsername(context.Background(), DB(), user.Username)
-				So(err, ShouldBeNil)
-				So(user2.Username, ShouldResemble, user.Username)
-				So(user2.IsAdmin, ShouldResemble, user.IsAdmin)
-				So(user2.SessionTTL, ShouldResemble, user.SessionTTL)
-			})
+		t.Run("GetUserCount", func(t *testing.T) {
+			assert := require.New(t)
 
-			Convey("Then get users returns 2 users", func() {
-				users, err := GetUsers(context.Background(), DB(), 10, 0, "")
-				So(err, ShouldBeNil)
-				So(users, ShouldHaveLength, 2)
-				checkUser := 0
-				if users[0].Username == "admin" {
-					// No, check entry 1
-					checkUser = 1
-				}
-				So(users[checkUser].Username, ShouldResemble, user.Username)
-				So(users[checkUser].IsAdmin, ShouldResemble, user.IsAdmin)
-				So(users[checkUser].SessionTTL, ShouldResemble, user.SessionTTL)
-			})
+			count, err := GetUserCount(context.Background(), DB())
+			assert.NoError(err)
+			assert.Equal(2, count)
+		})
 
-			Convey("Then get user count returns 2", func() {
-				count, err := GetUserCount(context.Background(), DB(), "")
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 2)
-			})
+		t.Run("LoginUserByPassword", func(t *testing.T) {
+			assert := require.New(t)
 
-			Convey("Then searching for 'good' returns a single item", func() {
-				count, err := GetUserCount(context.Background(), DB(), "good")
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 1)
+			jwt, err := LoginUserByPassword(context.Background(), DB(), user.Email, password)
+			assert.NoError(err)
+			assert.NotEqual("", jwt)
+		})
 
-				users, err := GetUsers(context.Background(), DB(), 10, 0, "good")
-				So(err, ShouldBeNil)
-				So(users, ShouldHaveLength, 1)
-			})
+		t.Run("GetUserToken", func(t *testing.T) {
+			assert := require.New(t)
 
-			Convey("Then searching for 'foo' returns 0 items", func() {
-				count, err := GetUserCount(context.Background(), DB(), "foo")
-				So(err, ShouldBeNil)
-				So(count, ShouldEqual, 0)
+			token, err := GetUserToken(user)
+			assert.NoError(err)
+			assert.NotEqual("", token)
+		})
 
-				users, err := GetUsers(context.Background(), DB(), 10, 0, "foo")
-				So(err, ShouldBeNil)
-				So(users, ShouldHaveLength, 0)
-			})
+		t.Run("Update password", func(t *testing.T) {
+			assert := require.New(t)
 
-			Convey("Then the user can log in", func() {
-				jwt, err := LoginUser(context.Background(), DB(), user.Username, password)
-				So(err, ShouldBeNil)
-				So(jwt, ShouldNotBeNil)
-			})
+			assert.NoError(user.SetPasswordHash("newrandompassword"))
+			assert.NoError(UpdateUser(context.Background(), DB(), &user))
 
-			Convey("When updating the user password", func() {
-				password = "newrandompassword2*&^"
-				So(UpdatePassword(context.Background(), DB(), user.ID, password), ShouldBeNil)
+			_, err := LoginUserByPassword(context.Background(), DB(), user.Email, password)
+			assert.Error(err)
 
-				Convey("Then the user can log in with the new password", func() {
-					jwt, err := LoginUser(context.Background(), DB(), user.Username, password)
-					So(err, ShouldBeNil)
-					So(jwt, ShouldNotBeNil)
-				})
-			})
+			jwt, err := LoginUserByPassword(context.Background(), DB(), user.Email, "newrandompassword")
+			assert.NoError(err)
+			assert.NotEqual("", jwt)
+		})
 
-			Convey("When updating the user", func() {
-				userUpdate := UserUpdate{
-					ID:         user.ID,
-					Username:   "newusername",
-					IsAdmin:    true,
-					SessionTTL: 30,
-					Email:      "bar@foo.com",
-				}
-				So(UpdateUser(context.Background(), DB(), userUpdate), ShouldBeNil)
+		t.Run("UpdateUser", func(t *testing.T) {
+			assert := require.New(t)
+			externalID := "test-123"
 
-				Convey("Then the user has been updated", func() {
-					user2, err := GetUser(context.Background(), DB(), user.ID)
-					So(err, ShouldBeNil)
-					So(user2.Username, ShouldResemble, userUpdate.Username)
-					So(user2.IsAdmin, ShouldResemble, userUpdate.IsAdmin)
-					So(user2.SessionTTL, ShouldResemble, userUpdate.SessionTTL)
-				})
-			})
+			user.Email = "updated@user.com"
+			user.EmailVerified = false
+			user.ExternalID = &externalID
 
-			Convey("When deleting the user", func() {
-				So(DeleteUser(context.Background(), DB(), user.ID), ShouldBeNil)
+			assert.NoError(UpdateUser(context.Background(), DB(), &user))
 
-				Convey("Then the user count returns 1", func() {
-					count, err := GetUserCount(context.Background(), DB(), "")
-					So(err, ShouldBeNil)
-					So(count, ShouldEqual, 1)
-				})
-			})
+			user2, err := GetUser(context.Background(), DB(), user.ID)
+			assert.NoError(err)
+			assert.Equal(user.Email, user2.Email)
+			assert.Equal(externalID, *user2.ExternalID)
+		})
 
+		t.Run("DeleteUser", func(t *testing.T) {
+			assert := require.New(t)
+
+			assert.NoError(DeleteUser(context.Background(), DB(), user.ID))
+
+			_, err := GetUser(context.Background(), DB(), user.ID)
+			assert.Equal(ErrDoesNotExist, errors.Cause(err))
 		})
 	})
 }

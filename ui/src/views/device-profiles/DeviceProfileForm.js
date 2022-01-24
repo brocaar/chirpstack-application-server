@@ -8,12 +8,16 @@ import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+import Typography from "@material-ui/core/Typography";
+import Button from "@material-ui/core/Button";
 
 import {Controlled as CodeMirror} from "react-codemirror2";
 import "codemirror/mode/javascript/javascript";
 
 import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
+import KVForm from "../../components/KVForm";
+import DurationField from "../../components/DurationField";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import NetworkServerStore from "../../stores/NetworkServerStore";
 import { FormLabel } from "../../../node_modules/@material-ui/core";
@@ -34,6 +38,7 @@ class DeviceProfileForm extends FormComponent {
     super();
     this.state = {
       tab: 0,
+      tags: [],
     };
 
     this.onTabChange = this.onTabChange.bind(this);
@@ -43,6 +48,19 @@ class DeviceProfileForm extends FormComponent {
     this.getPingSlotPeriodOptions = this.getPingSlotPeriodOptions.bind(this);
     this.getPayloadCodecOptions = this.getPayloadCodecOptions.bind(this);
     this.onCodeChange = this.onCodeChange.bind(this);
+  }
+
+  componentDidMount() {
+    super.componentDidMount();
+    this.setKVArray(this.props.object || {});
+  }
+
+  componentDidUpdate(prevProps) {
+    super.componentDidUpdate(prevProps);
+
+    if (prevProps.object !== this.props.object) {
+      this.setKVArray(this.props.object || {});
+    }
   }
 
   getNetworkServerOptions(search, callbackFunc) {
@@ -58,6 +76,7 @@ class DeviceProfileForm extends FormComponent {
       {value: "1.0.1", label: "1.0.1"},
       {value: "1.0.2", label: "1.0.2"},
       {value: "1.0.3", label: "1.0.3"},
+      {value: "1.0.4", label: "1.0.4"},
       {value: "1.1.0", label: "1.1.0"},
     ];
 
@@ -68,6 +87,9 @@ class DeviceProfileForm extends FormComponent {
     const regParamsOptions = [
       {value: "A", label: "A"},
       {value: "B", label: "B"},
+      {value: "RP002-1.0.0", label: "RP002-1.0.0"},
+      {value: "RP002-1.0.1", label: "RP002-1.0.1"},
+      {value: "RP002-1.0.2", label: "RP002-1.0.2"},
     ];
 
     callbackFunc(regParamsOptions);
@@ -98,6 +120,17 @@ class DeviceProfileForm extends FormComponent {
     callbackFunc(payloadCodecOptions);
   }
 
+  getADRAlgorithmsOptions = (search, callbackFunc) => {
+    if (this.state.object.networkServerID === undefined) {
+      callbackFunc([]);
+    } else {
+      NetworkServerStore.getADRAlgorithms(this.state.object.networkServerID, resp => {
+        const options = resp.adrAlgorithms.map((adr, i) => {return {value: adr.id, label: adr.name}});
+        callbackFunc(options);
+      })
+    }
+  }
+
   onCodeChange(field, editor, data, newCode) {
     let object = this.state.object;
     object[field] = newCode;
@@ -122,6 +155,20 @@ class DeviceProfileForm extends FormComponent {
         object: object,
       });
     }
+  }
+
+  setKVArray = (props) => {
+    let tags = [];
+
+    if (props.tags !== undefined) {
+      for (let key in props.tags) {
+        tags.push({key: key, value: props.tags[key]});
+      }
+    }
+
+    this.setState({
+      tags: tags,
+    });
   }
 
   render() {
@@ -149,8 +196,9 @@ class DeviceProfileForm extends FormComponent {
       payloadEncoderScript = `// Encode encodes the given object into an array of bytes.
 //  - fPort contains the LoRaWAN fPort number
 //  - obj is an object, e.g. {"temperature": 22.5}
+//  - variables contains the device variables e.g. {"calibration": "3.5"} (both the key / value are of type string)
 // The function must return an array of bytes, e.g. [225, 230, 255, 0]
-function Encode(fPort, obj) {
+function Encode(fPort, obj, variables) {
   return [];
 }`;
     }
@@ -159,11 +207,14 @@ function Encode(fPort, obj) {
       payloadDecoderScript = `// Decode decodes an array of bytes into an object.
 //  - fPort contains the LoRaWAN fPort number
 //  - bytes is an array of bytes, e.g. [225, 230, 255, 0]
+//  - variables contains the device variables e.g. {"calibration": "3.5"} (both the key / value are of type string)
 // The function must return an object, e.g. {"temperature": 22.5}
-function Decode(fPort, bytes) {
+function Decode(fPort, bytes, variables) {
   return {};
 }`;
     }
+
+    const tags = this.state.tags.map((obj, i) => <KVForm key={i} index={i} object={obj} onChange={this.onChangeKV("tags")} onDelete={this.onDeleteKV("tags")} />);
 
 
     return(
@@ -178,6 +229,7 @@ function Decode(fPort, bytes) {
           <Tab label="Class-B" />
           <Tab label="Class-C" />
           <Tab label="Codec" />
+          <Tab label="Tags" />
         </Tabs>
 
         {this.state.tab === 0 && <div>
@@ -230,6 +282,20 @@ function Decode(fPort, bytes) {
                 Revision of the Regional Parameters specification supported by the device.
             </FormHelperText>
           </FormControl>
+          <FormControl fullWidth margin="normal">
+            <FormLabel className={this.props.classes.formLabel} required>ADR algorithm</FormLabel>
+            <AutocompleteSelect
+              id="adrAlgorithmID"
+              label="Select ADR algorithm"
+              value={this.state.object.adrAlgorithmID || ""}
+              onChange={this.onChange}
+              getOptions={this.getADRAlgorithmsOptions}
+              triggerReload={this.state.object.networkServerID || ""}
+            />
+            <FormHelperText>
+                The ADR algorithm that will be used for controlling the device data-rate.
+            </FormHelperText>
+          </FormControl>
           <TextField
             id="maxEIRP"
             label="Max EIRP"
@@ -241,25 +307,12 @@ function Decode(fPort, bytes) {
             required
             fullWidth
           />
-          <TextField
-            id="geolocBufferTTL"
-            label="Geolocation buffer TTL (seconds)"
-            type="number"
-            margin="normal"
-            value={this.state.object.geolocBufferTTL || 0}
+          <DurationField
+            id="uplinkInterval"
+            label="Uplink interval (seconds)"
+            helperText="The expected interval in seconds in which the device sends uplink messages. This is used to determine if a device is active or inactive."
+            value={this.state.object.uplinkInterval}
             onChange={this.onChange}
-            helperText="The time in seconds that historical uplinks will be stored in the geolocation buffer."
-            fullWidth
-          />
-          <TextField
-            id="geolocMinBufferSize"
-            label="Geolocation minimum buffer size"
-            type="number"
-            margin="normal"
-            value={this.state.object.geolocMinBufferSize || 0}
-            onChange={this.onChange}
-            helperText="The minimum buffer size required before using geolocation (when enabled in the Service Profile). Using multiple uplinks for geolocation can increase the accuracy of the geolocation results."
-            fullWidth
           />
         </div>}
 
@@ -462,6 +515,16 @@ function Decode(fPort, bytes) {
               of bytes.
             </FormHelperText>
           </FormControl>}
+        </div>}
+
+        {this.state.tab === 5 && <div>
+          <FormControl fullWidth margin="normal">
+            <Typography variant="body1">
+              Tags can be used to store additional key/value data.
+            </Typography>
+            {tags}
+          </FormControl>
+          <Button variant="outlined" onClick={this.addKV("tags")}>Add tag</Button>
         </div>}
       </Form>
     );

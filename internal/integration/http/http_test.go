@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/integration"
-	"github.com/brocaar/chirpstack-api/go/common"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-api/go/v3/common"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 )
 
 type testHTTPHandler struct {
@@ -72,7 +72,7 @@ func TestHandlerConfig(t *testing.T) {
 type HandlerTestSuite struct {
 	suite.Suite
 
-	integration integration.Integrator
+	integration models.IntegrationHandler
 	httpHandler *testHTTPHandler
 	server      *httptest.Server
 }
@@ -90,12 +90,7 @@ func (ts *HandlerTestSuite) SetupSuite() {
 		Headers: map[string]string{
 			"Foo": "Bar",
 		},
-		DataUpURL:               ts.server.URL + "/dataup",
-		JoinNotificationURL:     ts.server.URL + "/join",
-		ACKNotificationURL:      ts.server.URL + "/ack",
-		ErrorNotificationURL:    ts.server.URL + "/error",
-		StatusNotificationURL:   ts.server.URL + "/status",
-		LocationNotificationURL: ts.server.URL + "/location",
+		EventEndpointURL: ts.server.URL + "/event?myToken=abc123",
 	}
 
 	var err error
@@ -113,10 +108,10 @@ func (ts *HandlerTestSuite) TestUplink() {
 	reqPL := pb.UplinkEvent{
 		Data: []byte{1, 2, 3, 4},
 	}
-	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, reqPL))
+	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, reqPL))
 
 	req := <-ts.httpHandler.requests
-	assert.Equal("/dataup", req.URL.Path)
+	assert.Equal("/event", req.URL.Path)
 
 	b, err := ioutil.ReadAll(req.Body)
 	assert.NoError(err)
@@ -126,6 +121,8 @@ func (ts *HandlerTestSuite) TestUplink() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
+	assert.Equal("up", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func (ts *HandlerTestSuite) TestJoin() {
@@ -134,10 +131,10 @@ func (ts *HandlerTestSuite) TestJoin() {
 	reqPL := pb.JoinEvent{
 		DevAddr: []byte{1, 2, 3, 4},
 	}
-	assert.NoError(ts.integration.SendJoinNotification(context.Background(), nil, reqPL))
+	assert.NoError(ts.integration.HandleJoinEvent(context.Background(), nil, nil, reqPL))
 
 	req := <-ts.httpHandler.requests
-	assert.Equal("/join", req.URL.Path)
+	assert.Equal("/event", req.URL.Path)
 
 	b, err := ioutil.ReadAll(req.Body)
 	assert.NoError(err)
@@ -147,6 +144,8 @@ func (ts *HandlerTestSuite) TestJoin() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
+	assert.Equal("join", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func (ts *HandlerTestSuite) TestAck() {
@@ -155,10 +154,10 @@ func (ts *HandlerTestSuite) TestAck() {
 	reqPL := pb.AckEvent{
 		DevEui: []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.integration.SendACKNotification(context.Background(), nil, reqPL))
+	assert.NoError(ts.integration.HandleAckEvent(context.Background(), nil, nil, reqPL))
 
 	req := <-ts.httpHandler.requests
-	assert.Equal("/ack", req.URL.Path)
+	assert.Equal("/event", req.URL.Path)
 
 	b, err := ioutil.ReadAll(req.Body)
 	assert.NoError(err)
@@ -168,6 +167,8 @@ func (ts *HandlerTestSuite) TestAck() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
+	assert.Equal("ack", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func (ts *HandlerTestSuite) TestError() {
@@ -176,10 +177,10 @@ func (ts *HandlerTestSuite) TestError() {
 	reqPL := pb.ErrorEvent{
 		Error: "boom!",
 	}
-	assert.NoError(ts.integration.SendErrorNotification(context.Background(), nil, reqPL))
+	assert.NoError(ts.integration.HandleErrorEvent(context.Background(), nil, nil, reqPL))
 
 	req := <-ts.httpHandler.requests
-	assert.Equal("/error", req.URL.Path)
+	assert.Equal("/event", req.URL.Path)
 
 	b, err := ioutil.ReadAll(req.Body)
 	assert.NoError(err)
@@ -189,6 +190,8 @@ func (ts *HandlerTestSuite) TestError() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
+	assert.Equal("error", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func (ts *HandlerTestSuite) TestStatus() {
@@ -197,10 +200,10 @@ func (ts *HandlerTestSuite) TestStatus() {
 	reqPL := pb.StatusEvent{
 		BatteryLevel: 55,
 	}
-	assert.NoError(ts.integration.SendStatusNotification(context.Background(), nil, reqPL))
+	assert.NoError(ts.integration.HandleStatusEvent(context.Background(), nil, nil, reqPL))
 
 	req := <-ts.httpHandler.requests
-	assert.Equal("/status", req.URL.Path)
+	assert.Equal("/event", req.URL.Path)
 
 	b, err := ioutil.ReadAll(req.Body)
 	assert.NoError(err)
@@ -210,6 +213,8 @@ func (ts *HandlerTestSuite) TestStatus() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
+	assert.Equal("status", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func (ts *HandlerTestSuite) TestLocation() {
@@ -222,10 +227,10 @@ func (ts *HandlerTestSuite) TestLocation() {
 			Altitude:  3.123,
 		},
 	}
-	assert.NoError(ts.integration.SendLocationNotification(context.Background(), nil, reqPL))
+	assert.NoError(ts.integration.HandleLocationEvent(context.Background(), nil, nil, reqPL))
 
 	req := <-ts.httpHandler.requests
-	assert.Equal("/location", req.URL.Path)
+	assert.Equal("/event", req.URL.Path)
 
 	b, err := ioutil.ReadAll(req.Body)
 	assert.NoError(err)
@@ -235,6 +240,54 @@ func (ts *HandlerTestSuite) TestLocation() {
 	assert.True(proto.Equal(&reqPL, &pl))
 	assert.Equal("Bar", req.Header.Get("Foo"))
 	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
+	assert.Equal("location", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
+}
+
+func (ts *HandlerTestSuite) TestTxAck() {
+	assert := require.New(ts.T())
+
+	reqPL := pb.TxAckEvent{
+		FCnt: 123,
+	}
+	assert.NoError(ts.integration.HandleTxAckEvent(context.Background(), nil, nil, reqPL))
+
+	req := <-ts.httpHandler.requests
+	assert.Equal("/event", req.URL.Path)
+
+	b, err := ioutil.ReadAll(req.Body)
+	assert.NoError(err)
+
+	var pl pb.TxAckEvent
+	assert.NoError(proto.Unmarshal(b, &pl))
+	assert.True(proto.Equal(&reqPL, &pl))
+	assert.Equal("Bar", req.Header.Get("Foo"))
+	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
+	assert.Equal("txack", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
+}
+
+func (ts *HandlerTestSuite) TestIntegration() {
+	assert := require.New(ts.T())
+
+	reqPL := pb.IntegrationEvent{
+		IntegrationName: "foo",
+	}
+	assert.NoError(ts.integration.HandleIntegrationEvent(context.Background(), nil, nil, reqPL))
+
+	req := <-ts.httpHandler.requests
+	assert.Equal("/event", req.URL.Path)
+
+	b, err := ioutil.ReadAll(req.Body)
+	assert.NoError(err)
+
+	var pl pb.IntegrationEvent
+	assert.NoError(proto.Unmarshal(b, &pl))
+	assert.True(proto.Equal(&reqPL, &pl))
+	assert.Equal("Bar", req.Header.Get("Foo"))
+	assert.Equal("application/octet-stream", req.Header.Get("Content-Type"))
+	assert.Equal("integration", req.URL.Query().Get("event"))
+	assert.Equal("abc123", req.URL.Query().Get("myToken"))
 }
 
 func TestHandler(t *testing.T) {

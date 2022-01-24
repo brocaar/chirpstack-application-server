@@ -3,22 +3,20 @@ package mqtt
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"os"
 	"testing"
 	"time"
 
 	paho "github.com/eclipse/paho.mqtt.golang"
 	"github.com/golang/protobuf/proto"
-	"github.com/gomodule/redigo/redis"
-	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/integration"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
+	"github.com/brocaar/chirpstack-application-server/internal/storage"
+	"github.com/brocaar/chirpstack-application-server/internal/test"
 	"github.com/brocaar/lorawan"
 )
 
@@ -26,34 +24,17 @@ type MQTTHandlerTestSuite struct {
 	suite.Suite
 
 	mqttClient  paho.Client
-	integration integration.Integrator
-	redisPool   *redis.Pool
+	integration models.IntegrationHandler
 }
 
 func (ts *MQTTHandlerTestSuite) SetupSuite() {
 	assert := require.New(ts.T())
+	conf := test.GetConfig()
+	assert.NoError(storage.Setup(conf))
 
-	log.SetLevel(log.ErrorLevel)
-
-	mqttServer := "tcp://127.0.0.1:1883"
-	redisServer := "redis://localhost:6379/1"
-	var username string
-	var password string
-
-	if v := os.Getenv("TEST_MQTT_SERVER"); v != "" {
-		mqttServer = v
-	}
-
-	if v := os.Getenv("TEST_MQTT_USERNAME"); v != "" {
-		username = v
-	}
-	if v := os.Getenv("TEST_MQTT_PASSWORD"); v != "" {
-		password = v
-	}
-
-	if v := os.Getenv("TEST_REDIS_URL"); v != "" {
-		redisServer = v
-	}
+	mqttServer := conf.ApplicationServer.Integration.MQTT.Server
+	username := conf.ApplicationServer.Integration.MQTT.Username
+	password := conf.ApplicationServer.Integration.MQTT.Password
 
 	opts := paho.NewClientOptions().AddBroker(mqttServer).SetUsername(username).SetPassword(password)
 	ts.mqttClient = paho.NewClient(opts)
@@ -61,32 +42,16 @@ func (ts *MQTTHandlerTestSuite) SetupSuite() {
 	token.Wait()
 	assert.NoError(token.Error())
 
-	ts.redisPool = &redis.Pool{
-		Dial: func() (redis.Conn, error) {
-			c, err := redis.DialURL(redisServer)
-			if err != nil {
-				return nil, fmt.Errorf("redis connection error: %s", err)
-			}
-			return c, err
-		},
-	}
-
 	var err error
 	ts.integration, err = New(
 		marshaler.Protobuf,
-		ts.redisPool,
 		config.IntegrationMQTTConfig{
-			Server:                mqttServer,
-			Username:              username,
-			Password:              password,
-			CleanSession:          true,
-			UplinkTopicTemplate:   "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/rx",
-			DownlinkTopicTemplate: "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/tx",
-			JoinTopicTemplate:     "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/join",
-			AckTopicTemplate:      "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/ack",
-			ErrorTopicTemplate:    "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error",
-			StatusTopicTemplate:   "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status",
-			LocationTopicTemplate: "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location",
+			Server:               mqttServer,
+			Username:             username,
+			Password:             password,
+			CleanSession:         true,
+			EventTopicTemplate:   "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/event/{{ .EventType }}",
+			CommandTopicTemplate: "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/command/{{ .CommandType }}",
 		},
 	)
 	assert.NoError(err)
@@ -99,20 +64,14 @@ func (ts *MQTTHandlerTestSuite) TearDownSuite() {
 }
 
 func (ts *MQTTHandlerTestSuite) SetupTest() {
-	assert := require.New(ts.T())
-
-	c := ts.redisPool.Get()
-	defer c.Close()
-
-	_, err := c.Do("FLUSHALL")
-	assert.NoError(err)
+	storage.RedisClient().FlushAll(context.Background())
 }
 
 func (ts *MQTTHandlerTestSuite) TestUplink() {
 	assert := require.New(ts.T())
 
 	uplinkChan := make(chan pb.UplinkEvent, 1)
-	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/rx", 0, func(c paho.Client, msg paho.Message) {
+	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/event/up", 0, func(c paho.Client, msg paho.Message) {
 		var pl pb.UplinkEvent
 		assert.NoError(proto.Unmarshal(msg.Payload(), &pl))
 		uplinkChan <- pl
@@ -124,7 +83,7 @@ func (ts *MQTTHandlerTestSuite) TestUplink() {
 		ApplicationId: 123,
 		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.integration.SendDataUp(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleUplinkEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-uplinkChan)
 }
 
@@ -132,7 +91,7 @@ func (ts *MQTTHandlerTestSuite) TestJoin() {
 	assert := require.New(ts.T())
 
 	joinChan := make(chan pb.JoinEvent, 1)
-	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/join", 0, func(c paho.Client, msg paho.Message) {
+	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/event/join", 0, func(c paho.Client, msg paho.Message) {
 		var pl pb.JoinEvent
 		assert.NoError(proto.Unmarshal(msg.Payload(), &pl))
 		joinChan <- pl
@@ -145,7 +104,7 @@ func (ts *MQTTHandlerTestSuite) TestJoin() {
 		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 		DevAddr:       []byte{1, 2, 3, 4},
 	}
-	assert.NoError(ts.integration.SendJoinNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleJoinEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-joinChan)
 }
 
@@ -153,7 +112,7 @@ func (ts *MQTTHandlerTestSuite) TestAck() {
 	assert := require.New(ts.T())
 
 	ackChan := make(chan pb.AckEvent, 1)
-	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/ack", 0, func(c paho.Client, msg paho.Message) {
+	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/event/ack", 0, func(c paho.Client, msg paho.Message) {
 		var pl pb.AckEvent
 		assert.NoError(proto.Unmarshal(msg.Payload(), &pl))
 		ackChan <- pl
@@ -165,7 +124,7 @@ func (ts *MQTTHandlerTestSuite) TestAck() {
 		ApplicationId: 123,
 		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.integration.SendACKNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleAckEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-ackChan)
 }
 
@@ -173,7 +132,7 @@ func (ts *MQTTHandlerTestSuite) TestError() {
 	assert := require.New(ts.T())
 
 	errChan := make(chan pb.ErrorEvent, 1)
-	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/error", 0, func(c paho.Client, msg paho.Message) {
+	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/event/error", 0, func(c paho.Client, msg paho.Message) {
 		var pl pb.ErrorEvent
 		assert.NoError(proto.Unmarshal(msg.Payload(), &pl))
 		errChan <- pl
@@ -185,7 +144,7 @@ func (ts *MQTTHandlerTestSuite) TestError() {
 		ApplicationId: 123,
 		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.integration.SendErrorNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleErrorEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-errChan)
 }
 
@@ -193,7 +152,7 @@ func (ts *MQTTHandlerTestSuite) TestStatus() {
 	assert := require.New(ts.T())
 
 	statusChan := make(chan pb.StatusEvent, 1)
-	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/status", 0, func(c paho.Client, msg paho.Message) {
+	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/event/status", 0, func(c paho.Client, msg paho.Message) {
 		var pl pb.StatusEvent
 		assert.NoError(proto.Unmarshal(msg.Payload(), &pl))
 		statusChan <- pl
@@ -206,7 +165,7 @@ func (ts *MQTTHandlerTestSuite) TestStatus() {
 		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
 
-	assert.NoError(ts.integration.SendStatusNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleStatusEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-statusChan)
 }
 
@@ -214,7 +173,7 @@ func (ts *MQTTHandlerTestSuite) TestLocation() {
 	assert := require.New(ts.T())
 
 	locationChan := make(chan pb.LocationEvent, 1)
-	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/location", 0, func(c paho.Client, msg paho.Message) {
+	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/event/location", 0, func(c paho.Client, msg paho.Message) {
 		var pl pb.LocationEvent
 		assert.NoError(proto.Unmarshal(msg.Payload(), &pl))
 		locationChan <- pl
@@ -226,14 +185,54 @@ func (ts *MQTTHandlerTestSuite) TestLocation() {
 		ApplicationId: 123,
 		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
 	}
-	assert.NoError(ts.integration.SendLocationNotification(context.Background(), nil, pl))
+	assert.NoError(ts.integration.HandleLocationEvent(context.Background(), nil, nil, pl))
 	assert.Equal(pl, <-locationChan)
+}
+
+func (ts *MQTTHandlerTestSuite) TestTxAck() {
+	assert := require.New(ts.T())
+
+	txAckChan := make(chan pb.TxAckEvent, 1)
+	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/event/txack", 0, func(c paho.Client, msg paho.Message) {
+		var pl pb.TxAckEvent
+		assert.NoError(proto.Unmarshal(msg.Payload(), &pl))
+		txAckChan <- pl
+	})
+	token.Wait()
+	assert.NoError(token.Error())
+
+	pl := pb.TxAckEvent{
+		ApplicationId: 123,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
+	}
+	assert.NoError(ts.integration.HandleTxAckEvent(context.Background(), nil, nil, pl))
+	assert.Equal(pl, <-txAckChan)
+}
+
+func (ts *MQTTHandlerTestSuite) TestIntegration() {
+	assert := require.New(ts.T())
+
+	eventChan := make(chan pb.IntegrationEvent, 1)
+	token := ts.mqttClient.Subscribe("application/123/device/0102030405060708/event/integration", 0, func(c paho.Client, msg paho.Message) {
+		var pl pb.IntegrationEvent
+		assert.NoError(proto.Unmarshal(msg.Payload(), &pl))
+		eventChan <- pl
+	})
+	token.Wait()
+	assert.NoError(token.Error())
+
+	pl := pb.IntegrationEvent{
+		ApplicationId: 123,
+		DevEui:        []byte{1, 2, 3, 4, 5, 6, 7, 8},
+	}
+	assert.NoError(ts.integration.HandleIntegrationEvent(context.Background(), nil, nil, pl))
+	assert.Equal(pl, <-eventChan)
 }
 
 func (ts *MQTTHandlerTestSuite) TestDownlink() {
 	assert := require.New(ts.T())
 
-	pl := integration.DataDownPayload{
+	pl := models.DataDownPayload{
 		Confirmed: false,
 		FPort:     1,
 		Data:      []byte("hello"),
@@ -242,10 +241,10 @@ func (ts *MQTTHandlerTestSuite) TestDownlink() {
 	b, err := json.Marshal(pl)
 	assert.NoError(err)
 
-	token := ts.mqttClient.Publish("application/123/device/0102030405060708/tx", 0, false, b)
+	token := ts.mqttClient.Publish("application/123/device/0102030405060708/command/down", 0, false, b)
 	token.Wait()
 	assert.NoError(token.Error())
-	assert.Equal(integration.DataDownPayload{
+	assert.Equal(models.DataDownPayload{
 		ApplicationID: 123,
 		DevEUI:        lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8},
 		Confirmed:     false,
@@ -262,7 +261,7 @@ func (ts *MQTTHandlerTestSuite) TestDownlink() {
 
 			b, err := json.Marshal(pl)
 			assert.NoError(err)
-			token := ts.mqttClient.Publish("application/123/device/0102030405060708/tx", 0, false, b)
+			token := ts.mqttClient.Publish("application/123/device/0102030405060708/command/down", 0, false, b)
 			token.Wait()
 			assert.NoError(token.Error())
 			assert.Len(ts.integration.DataDownChan(), 0)

@@ -11,80 +11,21 @@ import FormGroup from "@material-ui/core/FormGroup";
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Button from "@material-ui/core/Button";
-import Grid from "@material-ui/core/Grid";
-import IconButton from '@material-ui/core/IconButton';
 import Typography from "@material-ui/core/Typography";
-
-import Delete from "mdi-material-ui/Delete";
 
 import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
+import KVForm from "../../components/KVForm";
 import EUI64Field from "../../components/EUI64Field";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import DeviceProfileStore from "../../stores/DeviceProfileStore";
-
-import theme from "../../theme";
 
 
 const styles = {
   formLabel: {
     fontSize: 12,
   },
-  delete: {
-    marginTop: 3 * theme.spacing(1),
-  },
 };
-
-class DeviceKVForm extends FormComponent {
-  onChange(e) {
-    super.onChange(e);
-
-    this.props.onChange(this.props.index, this.state.object);
-  }
-
-  onDelete = (e) => {
-    e.preventDefault();
-    this.props.onDelete(this.props.index);
-  }
-
-  render() {
-    if (this.state.object === undefined) {
-      return null;
-    }
-
-    return(
-      <Grid container spacing={4}>
-        <Grid item xs={4}>
-          <TextField
-            id="key"
-            label="Name"
-            margin="normal"
-            value={this.state.object.key || ""}
-            onChange={this.onChange}
-            fullWidth
-          />
-        </Grid>
-        <Grid item xs={7}>
-          <TextField
-            id="value"
-            label="Value"
-            margin="normal"
-            value={this.state.object.value || ""}
-            onChange={this.onChange}
-            fullWidth
-          />
-        </Grid>
-        <Grid item xs={1} className={this.props.classes.delete}>
-          <IconButton aria-label="delete" onClick={this.onDelete}>
-            <Delete />
-          </IconButton>
-        </Grid>
-      </Grid>
-    );
-  }
-}
-
-DeviceKVForm = withStyles(styles)(DeviceKVForm);
 
 
 class DeviceForm extends FormComponent {
@@ -155,71 +96,13 @@ class DeviceForm extends FormComponent {
     });
   }
 
-  addKV = (name) => {
-    return (e) => {
-      e.preventDefault();
-
-      let kvs = this.state[name];
-      kvs.push({});
-
-      let obj = {};
-      obj[name] = kvs;
-
-      this.setState(obj);
-    };
-  }
-
-  onChangeKV = (name) => {
-    return (index, obj) => {
-      let kvs = this.state[name];
-      let object = this.state.object;
-
-      kvs[index] = obj;
-
-      object[name] = {};
-      kvs.forEach((obj, i) => {
-        object[name][obj.key] = obj.value;
-      });
-
-      let ss = {
-        object: object,
-      };
-      ss[name] = kvs;
-
-      console.log(ss);
-
-      this.setState(ss);
-    };
-  }
-
-  onDeleteKV = (name) => {
-    return (index) => {
-      let kvs = this.state[name];
-      let object = this.state.object;
-
-      kvs.splice(index, 1);
-
-      object[name] = {};
-      kvs.forEach((obj, i) => {
-        object[name][obj.key] = obj.value;
-      });
-
-      let ss = {
-        object: object,
-      };
-      ss[name] = kvs;
-
-      this.setState(ss);
-    };
-  }
-
   render() {
     if (this.state.object === undefined) {
       return null;
     }
 
-    const variables = this.state.variables.map((obj, i) => <DeviceKVForm key={i} index={i} object={obj} onChange={this.onChangeKV("variables")} onDelete={this.onDeleteKV("variables")} />);
-    const tags = this.state.tags.map((obj, i) => <DeviceKVForm key={i} index={i} object={obj} onChange={this.onChangeKV("tags")} onDelete={this.onDeleteKV("tags")} />);
+    const variables = this.state.variables.map((obj, i) => <KVForm key={i} index={i} object={obj} onChange={this.onChangeKV("variables")} onDelete={this.onDeleteKV("variables")} />);
+    const tags = this.state.tags.map((obj, i) => <KVForm key={i} index={i} object={obj} onChange={this.onChangeKV("tags")} onDelete={this.onDeleteKV("tags")} />);
 
     return(
       <Form
@@ -277,7 +160,7 @@ class DeviceForm extends FormComponent {
               getOptions={this.getDeviceProfileOptions}
             />
           </FormControl>
-          <FormControl margin="normal">
+          <FormControl fullWidth margin="normal">
             <FormGroup>
               <FormControlLabel
                 label="Disable frame-counter validation"
@@ -293,6 +176,24 @@ class DeviceForm extends FormComponent {
             </FormGroup>
             <FormHelperText>
               Note that disabling the frame-counter validation will compromise security as it enables people to perform replay-attacks.
+            </FormHelperText>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <FormGroup>
+              <FormControlLabel
+                label="Device is disabled"
+                control={
+                  <Checkbox
+                    id="isDisabled"
+                    checked={!!this.state.object.isDisabled}
+                    onChange={this.onChange}
+                    color="primary"
+                  />
+                }
+              />
+            </FormGroup>
+            <FormHelperText>
+              ChirpStack Network Server will ignore received uplink frames and join-requests from disabled devices.
             </FormHelperText>
           </FormControl>
         </div>}

@@ -10,11 +10,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
-	"github.com/brocaar/chirpstack-api/go/ns"
 )
 
 // ServiceProfileServiceAPI export the ServiceProfile related functions.
@@ -65,6 +65,7 @@ func (a *ServiceProfileServiceAPI) Create(ctx context.Context, req *pb.CreateSer
 			MinGwDiversity:         req.ServiceProfile.MinGwDiversity,
 			UlRatePolicy:           ns.RatePolicy(req.ServiceProfile.UlRatePolicy),
 			DlRatePolicy:           ns.RatePolicy(req.ServiceProfile.DlRatePolicy),
+			GwsPrivate:             req.ServiceProfile.GwsPrivate,
 		},
 	}
 
@@ -130,6 +131,7 @@ func (a *ServiceProfileServiceAPI) Get(ctx context.Context, req *pb.GetServicePr
 			MinGwDiversity:         sp.ServiceProfile.MinGwDiversity,
 			UlRatePolicy:           pb.RatePolicy(sp.ServiceProfile.UlRatePolicy),
 			DlRatePolicy:           pb.RatePolicy(sp.ServiceProfile.DlRatePolicy),
+			GwsPrivate:             sp.ServiceProfile.GwsPrivate,
 		},
 	}
 
@@ -189,6 +191,7 @@ func (a *ServiceProfileServiceAPI) Update(ctx context.Context, req *pb.UpdateSer
 		MinGwDiversity:         req.ServiceProfile.MinGwDiversity,
 		UlRatePolicy:           ns.RatePolicy(req.ServiceProfile.UlRatePolicy),
 		DlRatePolicy:           ns.RatePolicy(req.ServiceProfile.DlRatePolicy),
+		GwsPrivate:             req.ServiceProfile.GwsPrivate,
 	}
 
 	// as this also performs a remote call to create the service-profile
@@ -234,51 +237,46 @@ func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListService
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
+	filters := storage.ServiceProfileFilters{
+		Limit:           int(req.Limit),
+		Offset:          int(req.Offset),
+		OrganizationID:  req.OrganizationId,
+		NetworkServerID: req.NetworkServerId,
+	}
+
+	sub, err := a.validator.GetSubject(ctx)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	username, err := a.validator.GetUsername(ctx)
+	switch sub {
+	case auth.SubjectUser:
+		user, err := a.validator.GetUser(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		// Filter on user ID when OrganizationID is not set and the user is
+		// not a global admin.
+		if !user.IsAdmin && filters.OrganizationID == 0 {
+			filters.UserID = user.ID
+		}
+
+	case auth.SubjectAPIKey:
+		// Nothing to do as the validator function already validated that the
+		// API Key has access to the given OrganizationID.
+	default:
+		return nil, grpc.Errorf(codes.Unauthenticated, "invalid token subject: %s", sub)
+	}
+
+	sps, err := storage.GetServiceProfiles(ctx, storage.DB(), filters)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	var count int
-	var sps []storage.ServiceProfileMeta
-
-	if req.OrganizationId == 0 {
-		if isAdmin {
-			sps, err = storage.GetServiceProfiles(ctx, storage.DB(), int(req.Limit), int(req.Offset))
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-
-			count, err = storage.GetServiceProfileCount(ctx, storage.DB())
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		} else {
-			sps, err = storage.GetServiceProfilesForUser(ctx, storage.DB(), username, int(req.Limit), int(req.Offset))
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-
-			count, err = storage.GetServiceProfileCountForUser(ctx, storage.DB(), username)
-			if err != nil {
-				return nil, helpers.ErrToRPCError(err)
-			}
-		}
-	} else {
-		sps, err = storage.GetServiceProfilesForOrganizationID(ctx, storage.DB(), req.OrganizationId, int(req.Limit), int(req.Offset))
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-
-		count, err = storage.GetServiceProfileCountForOrganizationID(ctx, storage.DB(), req.OrganizationId)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
+	count, err := storage.GetServiceProfileCount(ctx, storage.DB(), filters)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
 	}
 
 	resp := pb.ListServiceProfileResponse{
@@ -286,10 +284,11 @@ func (a *ServiceProfileServiceAPI) List(ctx context.Context, req *pb.ListService
 	}
 	for _, sp := range sps {
 		row := pb.ServiceProfileListItem{
-			Id:              sp.ServiceProfileID.String(),
-			Name:            sp.Name,
-			OrganizationId:  sp.OrganizationID,
-			NetworkServerId: sp.NetworkServerID,
+			Id:                sp.ServiceProfileID.String(),
+			Name:              sp.Name,
+			OrganizationId:    sp.OrganizationID,
+			NetworkServerId:   sp.NetworkServerID,
+			NetworkServerName: sp.NetworkServerName,
 		}
 
 		row.CreatedAt, err = ptypes.TimestampProto(sp.CreatedAt)

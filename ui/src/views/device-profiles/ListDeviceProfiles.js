@@ -29,8 +29,12 @@ class ListDeviceProfiles extends Component {
 
   getRow(obj) {
     return(
-      <TableRow key={obj.id}>
+      <TableRow
+        key={obj.id}
+        hover
+      >
         <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/device-profiles/${obj.id}`}>{obj.name}</TableCellLink>
+        <TableCell>{obj.networkServerName}</TableCell>
       </TableRow>
     );
   }
@@ -56,6 +60,7 @@ class ListDeviceProfiles extends Component {
             header={
               <TableRow>
                 <TableCell>Name</TableCell>
+                <TableCell>Network Server</TableCell>
               </TableRow>
             }
             getPage={this.getPage}

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/go-redis/redis/v8"
 	"github.com/spf13/viper"
 
 	log "github.com/sirupsen/logrus"
@@ -36,13 +37,12 @@ func init() {
 	viper.BindPFlag("general.log_level", rootCmd.PersistentFlags().Lookup("log-level"))
 
 	// defaults
+	viper.SetDefault("general.grpc_default_resolver_scheme", "passthrough")
 	viper.SetDefault("general.password_hash_iterations", 100000)
 	viper.SetDefault("postgresql.dsn", "postgres://localhost/chirpstack_as?sslmode=disable")
 	viper.SetDefault("postgresql.automigrate", true)
 	viper.SetDefault("postgresql.max_idle_connections", 2)
-	viper.SetDefault("redis.url", "redis://localhost:6379")
-	viper.SetDefault("redis.max_idle", 10)
-	viper.SetDefault("redis.idle_timeout", 5*time.Minute)
+	viper.SetDefault("redis.servers", []string{"localhost:6379"})
 	viper.SetDefault("application_server.api.public_host", "localhost:8001")
 	viper.SetDefault("application_server.id", "6d5db27e-4ce2-4b2b-b5d7-91f069397978")
 	viper.SetDefault("application_server.api.bind", "0.0.0.0:8001")
@@ -50,24 +50,21 @@ func init() {
 	viper.SetDefault("join_server.bind", "0.0.0.0:8003")
 	viper.SetDefault("application_server.integration.marshaler", "json_v3")
 	viper.SetDefault("application_server.integration.mqtt.server", "tcp://localhost:1883")
-	viper.SetDefault("application_server.integration.mqtt.uplink_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/rx")
-	viper.SetDefault("application_server.integration.mqtt.downlink_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/tx")
-	viper.SetDefault("application_server.integration.mqtt.join_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/join")
-	viper.SetDefault("application_server.integration.mqtt.ack_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/ack")
-	viper.SetDefault("application_server.integration.mqtt.error_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error")
-	viper.SetDefault("application_server.integration.mqtt.status_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status")
-	viper.SetDefault("application_server.integration.mqtt.location_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location")
+	viper.SetDefault("application_server.integration.mqtt.max_reconnect_interval", time.Minute)
 	viper.SetDefault("application_server.integration.mqtt.clean_session", true)
+	viper.SetDefault("application_server.integration.mqtt.event_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/event/{{ .EventType }}")
+	viper.SetDefault("application_server.integration.mqtt.command_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/command/{{ .CommandType }}")
+	viper.SetDefault("application_server.integration.mqtt.client.client_cert_lifetime", time.Hour*24*365)
+	viper.SetDefault("application_server.integration.kafka.brokers", []string{"localhost:9092"})
+	viper.SetDefault("application_server.integration.kafka.topic", "chirpstack_as")
+	viper.SetDefault("application_server.integration.kafka.event_key_template", "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}")
+	viper.SetDefault("application_server.integration.kafka.mechanism", "plain")
+	viper.SetDefault("application_server.integration.kafka.algorithm", "SHA-512")
+	viper.SetDefault("application_server.integration.postgresql.max_idle_connections", 2)
+	viper.SetDefault("application_server.integration.amqp.url", "amqp://guest:guest@localhost:5672")
+	viper.SetDefault("application_server.integration.amqp.event_routing_key_template", "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}")
 	viper.SetDefault("application_server.integration.enabled", []string{"mqtt"})
 	viper.SetDefault("application_server.codec.js.max_execution_time", 100*time.Millisecond)
-
-	viper.SetDefault("application_server.remote_multicast_setup.sync_interval", time.Second)
-	viper.SetDefault("application_server.remote_multicast_setup.sync_retries", 3)
-	viper.SetDefault("application_server.remote_multicast_setup.sync_batch_size", 100)
-
-	viper.SetDefault("application_server.fragmentation_session.sync_interval", time.Second)
-	viper.SetDefault("application_server.fragmentation_session.sync_retries", 3)
-	viper.SetDefault("application_server.fragmentation_session.sync_batch_size", 100)
 
 	viper.SetDefault("metrics.timezone", "Local")
 	viper.SetDefault("metrics.redis.aggregation_intervals", []string{"MINUTE", "HOUR", "DAY", "MONTH"})
@@ -75,6 +72,8 @@ func init() {
 	viper.SetDefault("metrics.redis.hour_aggregation_ttl", time.Hour*48)
 	viper.SetDefault("metrics.redis.day_aggregation_ttl", time.Hour*24*90)
 	viper.SetDefault("metrics.redis.month_aggregation_ttl", time.Hour*24*730)
+
+	viper.SetDefault("monitoring.per_device_event_log_max_history", 10)
 
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(configCmd)
@@ -134,6 +133,17 @@ func initConfig() {
 	// backwards compatibility
 	if config.C.ApplicationServer.Integration.Backend != "" {
 		config.C.ApplicationServer.Integration.Enabled = []string{config.C.ApplicationServer.Integration.Backend}
+	}
+
+	if config.C.Redis.URL != "" {
+		opt, err := redis.ParseURL(config.C.Redis.URL)
+		if err != nil {
+			log.WithError(err).Fatal("redis url error")
+		}
+
+		config.C.Redis.Servers = []string{opt.Addr}
+		config.C.Redis.Database = opt.DB
+		config.C.Redis.Password = opt.Password
 	}
 }
 

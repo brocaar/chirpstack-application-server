@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
@@ -16,11 +16,6 @@ import (
 
 // UserAPI exports the User related functions.
 type UserAPI struct {
-	validator auth.Validator
-}
-
-// InternalUserAPI exports the internal User related functions.
-type InternalUserAPI struct {
 	validator auth.Validator
 }
 
@@ -42,17 +37,7 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.Cr
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	// validate if the client has admin rights for the given organizations
-	// to which the user must be linked
-	for _, org := range req.Organizations {
-		if err := a.validator.Validate(ctx,
-			auth.ValidateIsOrganizationAdmin(org.OrganizationId)); err != nil {
-			return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-		}
-	}
-
 	user := storage.User{
-		Username:   req.User.Username,
 		SessionTTL: req.User.SessionTtl,
 		IsAdmin:    req.User.IsAdmin,
 		IsActive:   req.User.IsActive,
@@ -60,28 +45,18 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.Cr
 		Note:       req.User.Note,
 	}
 
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
-	if err != nil {
+	if err := user.SetPasswordHash(req.Password); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	if !isAdmin {
-		// non-admin users are not able to modify the fields below
-		user.IsAdmin = false
-		user.IsActive = true
-		user.SessionTTL = 0
-	}
-
-	var userID int64
-
-	err = storage.Transaction(func(tx sqlx.Ext) error {
-		userID, err = storage.CreateUser(ctx, tx, &user, req.Password)
+	err := storage.Transaction(func(tx sqlx.Ext) error {
+		err := storage.CreateUser(ctx, tx, &user)
 		if err != nil {
 			return err
 		}
 
 		for _, org := range req.Organizations {
-			if err := storage.CreateOrganizationUser(ctx, tx, org.OrganizationId, userID, org.IsAdmin, org.IsDeviceAdmin, org.IsGatewayAdmin); err != nil {
+			if err := storage.CreateOrganizationUser(ctx, tx, org.OrganizationId, user.ID, org.IsAdmin, org.IsDeviceAdmin, org.IsGatewayAdmin); err != nil {
 				return err
 			}
 		}
@@ -92,7 +67,7 @@ func (a *UserAPI) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.Cr
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	return &pb.CreateUserResponse{Id: userID}, nil
+	return &pb.CreateUserResponse{Id: user.ID}, nil
 }
 
 // Get returns the user matching the given ID.
@@ -110,7 +85,6 @@ func (a *UserAPI) Get(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserR
 	resp := pb.GetUserResponse{
 		User: &pb.User{
 			Id:         user.ID,
-			Username:   user.Username,
 			SessionTtl: user.SessionTTL,
 			IsAdmin:    user.IsAdmin,
 			IsActive:   user.IsActive,
@@ -138,12 +112,12 @@ func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUs
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	users, err := storage.GetUsers(ctx, storage.DB(), int(req.Limit), int(req.Offset), req.Search)
+	users, err := storage.GetUsers(ctx, storage.DB(), int(req.Limit), int(req.Offset))
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	totalUserCount, err := storage.GetUserCount(ctx, storage.DB(), req.Search)
+	totalUserCount, err := storage.GetUserCount(ctx, storage.DB())
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -155,7 +129,7 @@ func (a *UserAPI) List(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUs
 	for _, u := range users {
 		row := pb.UserListItem{
 			Id:         u.ID,
-			Username:   u.Username,
+			Email:      u.Email,
 			SessionTtl: u.SessionTTL,
 			IsAdmin:    u.IsAdmin,
 			IsActive:   u.IsActive,
@@ -187,18 +161,18 @@ func (a *UserAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*empty
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	userUpdate := storage.UserUpdate{
-		ID:         req.User.Id,
-		Username:   req.User.Username,
-		IsAdmin:    req.User.IsAdmin,
-		IsActive:   req.User.IsActive,
-		SessionTTL: req.User.SessionTtl,
-		Email:      req.User.Email,
-		Note:       req.User.Note,
+	user, err := storage.GetUser(ctx, storage.DB(), req.User.Id)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
 	}
 
-	err := storage.UpdateUser(ctx, storage.DB(), userUpdate)
-	if err != nil {
+	user.IsAdmin = req.User.IsAdmin
+	user.IsActive = req.User.IsActive
+	user.SessionTTL = req.User.SessionTtl
+	user.Email = req.User.Email
+	user.Note = req.User.Note
+
+	if err := storage.UpdateUser(ctx, storage.DB(), &user); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
@@ -212,7 +186,23 @@ func (a *UserAPI) Delete(ctx context.Context, req *pb.DeleteUserRequest) (*empty
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.DeleteUser(ctx, storage.DB(), req.Id)
+	sub, err := a.validator.GetSubject(ctx)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if sub == auth.SubjectUser {
+		user, err := a.validator.GetUser(ctx)
+		if err != nil {
+			return nil, helpers.ErrToRPCError(err)
+		}
+
+		if user.ID == req.Id {
+			return nil, grpc.Errorf(codes.InvalidArgument, "you can not delete yourself from the user")
+		}
+	}
+
+	err = storage.DeleteUser(ctx, storage.DB(), req.Id)
 	if err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
@@ -227,166 +217,18 @@ func (a *UserAPI) UpdatePassword(ctx context.Context, req *pb.UpdateUserPassword
 		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
 	}
 
-	err := storage.UpdatePassword(ctx, storage.DB(), req.UserId, req.Password)
+	user, err := storage.GetUser(ctx, storage.DB(), req.UserId)
 	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if err := user.SetPasswordHash(req.Password); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	if err := storage.UpdateUser(ctx, storage.DB(), &user); err != nil {
 		return nil, helpers.ErrToRPCError(err)
 	}
 
 	return &empty.Empty{}, nil
-}
-
-// NewInternalUserAPI creates a new InternalUserAPI.
-func NewInternalUserAPI(validator auth.Validator) *InternalUserAPI {
-	return &InternalUserAPI{
-		validator: validator,
-	}
-}
-
-// Login validates the login request and returns a JWT token.
-func (a *InternalUserAPI) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	jwt, err := storage.LoginUser(ctx, storage.DB(), req.Username, req.Password)
-	if nil != err {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	return &pb.LoginResponse{Jwt: jwt}, nil
-}
-
-type claims struct {
-	Username string `json:"username"`
-}
-
-// Profile returns the user profile.
-func (a *InternalUserAPI) Profile(ctx context.Context, req *empty.Empty) (*pb.ProfileResponse, error) {
-	if err := a.validator.Validate(ctx,
-		auth.ValidateActiveUser()); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
-	username, err := a.validator.GetUsername(ctx)
-	if nil != err {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	// Get the user id based on the username.
-	user, err := storage.GetUserByUsername(ctx, storage.DB(), username)
-	if nil != err {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	prof, err := storage.GetProfile(ctx, storage.DB(), user.ID)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	resp := pb.ProfileResponse{
-		User: &pb.User{
-			Id:         prof.User.ID,
-			Username:   prof.User.Username,
-			SessionTtl: prof.User.SessionTTL,
-			IsAdmin:    prof.User.IsAdmin,
-			IsActive:   prof.User.IsActive,
-		},
-		Settings: &pb.ProfileSettings{
-			DisableAssignExistingUsers: auth.DisableAssignExistingUsers,
-		},
-	}
-
-	for _, org := range prof.Organizations {
-		row := pb.OrganizationLink{
-			OrganizationId:   org.ID,
-			OrganizationName: org.Name,
-			IsAdmin:          org.IsAdmin,
-			IsDeviceAdmin:    org.IsDeviceAdmin,
-			IsGatewayAdmin:   org.IsGatewayAdmin,
-		}
-
-		row.CreatedAt, err = ptypes.TimestampProto(org.CreatedAt)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-		row.UpdatedAt, err = ptypes.TimestampProto(org.UpdatedAt)
-		if err != nil {
-			return nil, helpers.ErrToRPCError(err)
-		}
-
-		resp.Organizations = append(resp.Organizations, &row)
-	}
-
-	return &resp, nil
-}
-
-// Branding returns UI branding.
-func (a *InternalUserAPI) Branding(ctx context.Context, req *empty.Empty) (*pb.BrandingResponse, error) {
-	resp := pb.BrandingResponse{
-		Logo:         brandingHeader,
-		Registration: brandingRegistration,
-		Footer:       brandingFooter,
-	}
-
-	return &resp, nil
-}
-
-// GlobalSearch performs a global search.
-func (a *InternalUserAPI) GlobalSearch(ctx context.Context, req *pb.GlobalSearchRequest) (*pb.GlobalSearchResponse, error) {
-	if err := a.validator.Validate(ctx,
-		auth.ValidateActiveUser()); err != nil {
-		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
-	}
-
-	isAdmin, err := a.validator.GetIsAdmin(ctx)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	username, err := a.validator.GetUsername(ctx)
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	results, err := storage.GlobalSearch(ctx, storage.DB(), username, isAdmin, req.Search, int(req.Limit), int(req.Offset))
-	if err != nil {
-		return nil, helpers.ErrToRPCError(err)
-	}
-
-	var out pb.GlobalSearchResponse
-
-	for _, r := range results {
-		res := pb.GlobalSearchResult{
-			Kind:  r.Kind,
-			Score: float32(r.Score),
-		}
-
-		if r.OrganizationID != nil {
-			res.OrganizationId = *r.OrganizationID
-		}
-		if r.OrganizationName != nil {
-			res.OrganizationName = *r.OrganizationName
-		}
-
-		if r.ApplicationID != nil {
-			res.ApplicationId = *r.ApplicationID
-		}
-		if r.ApplicationName != nil {
-			res.ApplicationName = *r.ApplicationName
-		}
-
-		if r.DeviceDevEUI != nil {
-			res.DeviceDevEui = r.DeviceDevEUI.String()
-		}
-		if r.DeviceName != nil {
-			res.DeviceName = *r.DeviceName
-		}
-
-		if r.GatewayMAC != nil {
-			res.GatewayMac = r.GatewayMAC.String()
-		}
-		if r.GatewayName != nil {
-			res.GatewayName = *r.GatewayName
-		}
-
-		out.Result = append(out.Result, &res)
-	}
-
-	return &out, nil
 }

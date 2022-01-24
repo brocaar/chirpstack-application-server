@@ -3,33 +3,50 @@ package postgresql
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"encoding/json"
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jmoiron/sqlx"
+
 	"github.com/lib/pq/hstore"
 	"github.com/mmcloughlin/geohash"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/integration"
-	"github.com/brocaar/chirpstack-api/go/gw"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/marshaler"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-application-server/internal/storage"
 	"github.com/brocaar/lorawan"
 )
 
+// Migrations
+//go:embed migrations/*
+var migrations embed.FS
+
 // Integration implements a PostgreSQL integration.
 type Integration struct {
-	db *sqlx.DB
+	db        *sqlx.DB
+	marshaler marshaler.Type
 }
 
 // New creates a new PostgreSQL integration.
-func New(conf config.IntegrationPostgreSQLConfig) (*Integration, error) {
+func New(m marshaler.Type, conf config.IntegrationPostgreSQLConfig) (*Integration, error) {
+	// In case of (binary) Protobuf marshaler, use JSON Protobuf mapping as we
+	// write the output to a jsonb field.
+	if m == marshaler.Protobuf {
+		m = marshaler.ProtobufJSON
+	}
+
 	log.Info("integration/postgresql: connecting to PostgreSQL database")
 	d, err := sqlx.Open("postgres", conf.DSN)
 	if err != nil {
@@ -44,8 +61,15 @@ func New(conf config.IntegrationPostgreSQLConfig) (*Integration, error) {
 		}
 	}
 
+	d.SetMaxOpenConns(conf.MaxOpenConnections)
+	d.SetMaxIdleConns(conf.MaxIdleConnections)
+
+	if err := MigrateUp(d); err != nil {
+		return nil, err
+	}
 	return &Integration{
-		db: d,
+		db:        d,
+		marshaler: m,
 	}, nil
 }
 
@@ -57,8 +81,82 @@ func (i *Integration) Close() error {
 	return nil
 }
 
-// SendDataUp stores the uplink data into the device_up table.
-func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl pb.UplinkEvent) error {
+// MigrateUp configure postgres-integration migration down
+func MigrateUp(db *sqlx.DB) error {
+	log.Info("integration/postgresql: applying PostgreSQL schema migrations")
+
+	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("integration/postgresql: migrate postgres driver error: %w", err)
+	}
+
+	src, err := httpfs.New(http.FS(migrations), "/migrations")
+	if err != nil {
+		return fmt.Errorf("new httpfs error: %w", err)
+	}
+
+	m, err := migrate.NewWithInstance("httpfs", src, "postgres", driver)
+	if err != nil {
+		return fmt.Errorf("integration/postgresql: new migrate instance error: %w", err)
+	}
+
+	oldVersion, _, _ := m.Version()
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("integration/postgresql: migrate up error: %w", err)
+	}
+
+	newVersion, _, _ := m.Version()
+
+	if oldVersion != newVersion {
+		log.WithFields(log.Fields{
+			"from_version": oldVersion,
+			"to_version":   newVersion,
+		}).Info("integration/postgresql: applied database migrations")
+	}
+
+	return nil
+}
+
+// MigrateDown configure postgres-integration migration down
+func MigrateDown(db *sqlx.DB) error {
+	log.Info("integration/postgresql: reverting PostgreSQL schema migrations")
+
+	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("integration/postgresql: migrate postgres driver error: %w", err)
+	}
+
+	src, err := httpfs.New(http.FS(migrations), "/migrations")
+	if err != nil {
+		return fmt.Errorf("new httpfs error: %w", err)
+	}
+
+	m, err := migrate.NewWithInstance("httpfs", src, "postgres", driver)
+	if err != nil {
+		return fmt.Errorf("integration/postgresql: new migrate instance error: %w", err)
+	}
+
+	oldVersion, _, _ := m.Version()
+
+	if err := m.Down(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("integration/postgresql: migrate down error: %w", err)
+	}
+
+	newVersion, _, _ := m.Version()
+
+	if oldVersion != newVersion {
+		log.WithFields(log.Fields{
+			"from_version": oldVersion,
+			"to_version":   newVersion,
+		}).Info("integration/postgresql: applied database migrations")
+	}
+
+	return nil
+}
+
+// HandleUplinkEvent writes an UplinkEvent into the database.
+func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.UplinkEvent) error {
 	// use an UUID here so that we can later refactor this for correlation
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -78,9 +176,25 @@ func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl
 		}
 	}
 
-	rxInfoJSON, err := getRXInfoJSON(pl.RxInfo)
+	var rxInfoItems []json.RawMessage
+	for ii := range pl.GetRxInfo() {
+		b, err := marshaler.Marshal(i.marshaler, pl.RxInfo[ii])
+		if err != nil {
+			return errors.Wrap(err, "marshal rx_info error")
+		}
+		rxInfoItems = append(rxInfoItems, json.RawMessage(b))
+	}
+	rxInfoB, err := json.Marshal(rxInfoItems)
 	if err != nil {
-		return errors.Wrap(err, "get rxInfo json error")
+		return errors.Wrap(err, "marshal json error")
+	}
+
+	txInfoB := []byte("null")
+	if txInfo := pl.GetTxInfo(); txInfo != nil {
+		txInfoB, err = marshaler.Marshal(i.marshaler, txInfo)
+		if err != nil {
+			return errors.Wrap(err, "marshal tx_info error")
+		}
 	}
 
 	objectJSON := json.RawMessage("null")
@@ -89,7 +203,9 @@ func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl
 	}
 
 	var devEUI lorawan.EUI64
+	var devAddr lorawan.DevAddr
 	copy(devEUI[:], pl.DevEui)
+	copy(devAddr[:], pl.DevAddr)
 
 	_, err = i.db.Exec(`
 		insert into device_up (
@@ -106,24 +222,31 @@ func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl
 			f_port,
 			data,
 			rx_info,
+			tx_info,
 			object,
-			tags
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+			tags,
+			confirmed_uplink,
+			dev_addr
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
 		id,
 		rxTime,
 		devEUI,
 		pl.DeviceName,
 		pl.ApplicationId,
 		pl.ApplicationName,
+		// TODO: deprecate this field, as it is part of tx_info.
 		pl.GetTxInfo().GetFrequency(),
 		pl.Dr,
 		pl.Adr,
 		pl.FCnt,
 		pl.FPort,
 		pl.Data,
-		rxInfoJSON,
+		json.RawMessage(rxInfoB),
+		json.RawMessage(txInfoB),
 		objectJSON,
 		tagsToHstore(pl.Tags),
+		pl.ConfirmedUplink,
+		devAddr[:],
 	)
 	if err != nil {
 		return errors.Wrap(err, "insert error")
@@ -138,8 +261,8 @@ func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl
 	return nil
 }
 
-// SendStatusNotification stores the device-status in the device_status table.
-func (i *Integration) SendStatusNotification(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error {
+// HandleStatusEvent writes a StatusEvent into the database.
+func (i *Integration) HandleStatusEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.StatusEvent) error {
 	// use an UUID here so that we can later refactor this for correlation
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -192,17 +315,26 @@ func (i *Integration) SendStatusNotification(ctx context.Context, vars map[strin
 	return nil
 }
 
-// SendJoinNotification stores the join in the device_join table.
-func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error {
+// HandleJoinEvent writes a JoinEvent into the database.
+func (i *Integration) HandleJoinEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.JoinEvent) error {
 	// use an UUID here so that we can later refactor this for correlation
 	id, err := uuid.NewV4()
 	if err != nil {
 		return errors.Wrap(err, "new uuid error")
 	}
 
-	// TODO: refactor to use gateway provided time once RXInfo is available
-	// and timestamp is provided by gateway.
+	// get the rxTime either using the system-time or using one of the
+	// gateway provided timestamps.
 	rxTime := time.Now()
+	for _, rxInfo := range pl.RxInfo {
+		if rxInfo.Time != nil {
+			ts, err := ptypes.Timestamp(rxInfo.Time)
+			if err != nil {
+				return errors.Wrap(err, "protobuf timestamp error")
+			}
+			rxTime = ts
+		}
+	}
 
 	var devEUI lorawan.EUI64
 	var devAddr lorawan.DevAddr
@@ -242,8 +374,8 @@ func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]
 	return nil
 }
 
-// SendACKNotification stores the ACK in the device_ack table.
-func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]string, pl pb.AckEvent) error {
+// HandleAckEvent writes an AckEvent into the database.
+func (i *Integration) HandleAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.AckEvent) error {
 	// use an UUID here so that we can later refactor this for correlation
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -292,8 +424,8 @@ func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]s
 	return nil
 }
 
-// SendErrorNotification stores the error in the device_error table.
-func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error {
+// HandleErrorEvent writes an ErrorEvent into the database.
+func (i *Integration) HandleErrorEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.ErrorEvent) error {
 	// use an UUID here so that we can later refactor this for correlation
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -344,8 +476,8 @@ func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string
 	return nil
 }
 
-// SendLocationNotification stores the location in the device_location table.
-func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error {
+// HandleLocationEvent writes a LocationEvent into the database.
+func (i *Integration) HandleLocationEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.LocationEvent) error {
 	// use an UUID here so that we can later refactor this for correlation
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -400,61 +532,75 @@ func (i *Integration) SendLocationNotification(ctx context.Context, vars map[str
 	return nil
 }
 
-// DataDownChan return nil.
-func (i *Integration) DataDownChan() chan integration.DataDownPayload {
+// HandleTxAckEvent writes TX events into postgres database.
+func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.TxAckEvent) error {
+	// use an UUID here so that we can later refactor this for correlation
+	id, err := uuid.NewV4()
+	if err != nil {
+		return errors.Wrap(err, "new uuid error")
+	}
+
+	var devEUI, gatewayID lorawan.EUI64
+	copy(devEUI[:], pl.DevEui)
+	copy(gatewayID[:], pl.GatewayId)
+
+	txInfoB := []byte("null")
+	if txInfo := pl.GetTxInfo(); txInfo != nil {
+		txInfoB, err = marshaler.Marshal(i.marshaler, txInfo)
+		if err != nil {
+			return errors.Wrap(err, "marshal tx_info error")
+		}
+	}
+
+	rxTime := time.Now()
+
+	_, err = i.db.Exec(`
+		insert into device_txack (
+			id,
+			received_at,
+			dev_eui,
+			device_name,
+			application_id,
+			application_name,
+		    gateway_id,
+		    f_cnt,
+			tags,
+			tx_info
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+		id,
+		rxTime,
+		devEUI,
+		pl.DeviceName,
+		pl.ApplicationId,
+		pl.ApplicationName,
+		gatewayID,
+		pl.FCnt,
+		tagsToHstore(pl.Tags),
+		json.RawMessage(txInfoB),
+	)
+	if err != nil {
+		return errors.Wrap(err, "insert error")
+	}
+
+	log.WithFields(log.Fields{
+		"event":      "txack",
+		"dev_eui":    devEUI,
+		"gateway_id": gatewayID,
+		"ctx_id":     ctx.Value(logging.ContextIDKey),
+	}).Info("integration/postgresql: event stored")
+
 	return nil
 }
 
-func getRXInfoJSON(rxInfo []*gw.UplinkRXInfo) (json.RawMessage, error) {
-	var out []integration.RXInfo
-	var gatewayIDs []lorawan.EUI64
+// HandleIntegrationEvent is not implemented.
+// TODO: implement this + schema migrations for the PostgreSQL database!
+func (i *Integration) HandleIntegrationEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.IntegrationEvent) error {
+	return nil
+}
 
-	for i := range rxInfo {
-		rx := integration.RXInfo{
-			RSSI:    int(rxInfo[i].Rssi),
-			LoRaSNR: rxInfo[i].LoraSnr,
-		}
-
-		copy(rx.GatewayID[:], rxInfo[i].GatewayId)
-		copy(rx.UplinkID[:], rxInfo[i].UplinkId)
-
-		if rxInfo[i].Time != nil {
-			ts, err := ptypes.Timestamp(rxInfo[i].Time)
-			if err != nil {
-				return nil, errors.Wrap(err, "proto timestamp error")
-			}
-
-			rx.Time = &ts
-		}
-
-		if rxInfo[i].Location != nil {
-			rx.Location = &integration.Location{
-				Latitude:  rxInfo[i].Location.Latitude,
-				Longitude: rxInfo[i].Location.Longitude,
-				Altitude:  rxInfo[i].Location.Altitude,
-			}
-		}
-
-		gatewayIDs = append(gatewayIDs, rx.GatewayID)
-		out = append(out, rx)
-	}
-
-	gws, err := storage.GetGatewaysForMACs(context.Background(), storage.DB(), gatewayIDs)
-	if err != nil {
-		return nil, errors.Wrap(err, "get gateways for ids error")
-	}
-	for i := range out {
-		if gw, ok := gws[out[i].GatewayID]; ok {
-			out[i].Name = gw.Name
-		}
-	}
-
-	b, err := json.Marshal(out)
-	if err != nil {
-		return nil, errors.Wrap(err, "marshal json error")
-	}
-
-	return json.RawMessage(b), nil
+// DataDownChan return nil.
+func (i *Integration) DataDownChan() chan models.DataDownPayload {
+	return nil
 }
 
 func tagsToHstore(tags map[string]string) hstore.Hstore {

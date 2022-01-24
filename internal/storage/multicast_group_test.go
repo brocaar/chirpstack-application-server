@@ -8,11 +8,47 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/chirpstack-api/go/ns"
 	"github.com/brocaar/lorawan"
 )
+
+func TestMulticastGroupValidate(t *testing.T) {
+	tests := []struct {
+		MulticastGroup MulticastGroup
+		Error          error
+	}{
+		{
+			MulticastGroup: MulticastGroup{
+				Name: "valid-name",
+			},
+		},
+		{
+			MulticastGroup: MulticastGroup{
+				Name: "",
+			},
+			Error: ErrMulticastGroupInvalidName,
+		},
+		{
+			MulticastGroup: MulticastGroup{
+				Name: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			},
+		},
+		{
+			MulticastGroup: MulticastGroup{
+				Name: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			},
+			Error: ErrMulticastGroupInvalidName,
+		},
+	}
+
+	assert := require.New(t)
+
+	for _, tst := range tests {
+		assert.Equal(tst.Error, tst.MulticastGroup.Validate())
+	}
+}
 
 func (ts *StorageTestSuite) TestMulticastGroup() {
 	assert := require.New(ts.T())
@@ -59,9 +95,9 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 
 		// create group
 		mg := MulticastGroup{
-			Name:      "test-mg",
-			MCAppSKey: lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
-			MCKey:     lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
+			Name:          "test-mg",
+			ApplicationID: app.ID,
+			MCAppSKey:     lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8},
 			MulticastGroup: ns.MulticastGroup{
 				McAddr:           []byte{1, 2, 3, 4},
 				McNwkSKey:        []byte{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1},
@@ -72,7 +108,6 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 				ServiceProfileId: sp.ServiceProfile.Id,
 			},
 		}
-		copy(mg.ServiceProfileID[:], sp.ServiceProfile.Id)
 		assert.NoError(CreateMulticastGroup(context.Background(), ts.Tx(), &mg))
 		mg.CreatedAt = mg.CreatedAt.Round(time.Second).UTC()
 		mg.UpdatedAt = mg.UpdatedAt.Round(time.Second).UTC()
@@ -106,7 +141,6 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 
 			mg.Name = "test-mg-updated"
 			mg.MCAppSKey = lorawan.AES128Key{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
-			mg.MCKey = lorawan.AES128Key{8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1}
 			mg.MulticastGroup = ns.MulticastGroup{
 				Id:               mg.MulticastGroup.Id,
 				McAddr:           []byte{4, 3, 2, 1},
@@ -207,10 +241,10 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 					},
 					Expected: []MulticastGroupListItem{
 						{
-							ID:                 mgID,
-							Name:               "test-mg-updated",
-							ServiceProfileID:   mg.ServiceProfileID,
-							ServiceProfileName: sp.Name,
+							ID:              mgID,
+							Name:            "test-mg-updated",
+							ApplicationID:   app.ID,
+							ApplicationName: app.Name,
 						},
 					},
 				},
@@ -222,10 +256,10 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 					},
 					Expected: []MulticastGroupListItem{
 						{
-							ID:                 mgID,
-							Name:               "test-mg-updated",
-							ServiceProfileID:   mg.ServiceProfileID,
-							ServiceProfileName: sp.Name,
+							ID:              mgID,
+							Name:            "test-mg-updated",
+							ApplicationID:   app.ID,
+							ApplicationName: app.Name,
 						},
 					},
 				},
@@ -236,25 +270,25 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 					},
 				},
 				{
-					Name: "service-profile filter",
+					Name: "application filter",
 					Filters: MulticastGroupFilters{
-						ServiceProfileID: mg.ServiceProfileID,
-						Limit:            10,
+						ApplicationID: app.ID,
+						Limit:         10,
 					},
 					Expected: []MulticastGroupListItem{
 						{
-							ID:                 mgID,
-							Name:               "test-mg-updated",
-							ServiceProfileID:   mg.ServiceProfileID,
-							ServiceProfileName: sp.Name,
+							ID:              mgID,
+							Name:            "test-mg-updated",
+							ApplicationID:   app.ID,
+							ApplicationName: app.Name,
 						},
 					},
 				},
 				{
-					Name: "non-matching service-profile filter",
+					Name: "non-matching application filter",
 					Filters: MulticastGroupFilters{
-						ServiceProfileID: uuid.Must(uuid.NewV4()),
-						Limit:            10,
+						ApplicationID: app.ID + 1,
+						Limit:         10,
 					},
 				},
 				{
@@ -265,10 +299,10 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 					},
 					Expected: []MulticastGroupListItem{
 						{
-							ID:                 mgID,
-							Name:               "test-mg-updated",
-							ServiceProfileID:   mg.ServiceProfileID,
-							ServiceProfileName: sp.Name,
+							ID:              mgID,
+							Name:            "test-mg-updated",
+							ApplicationID:   app.ID,
+							ApplicationName: app.Name,
 						},
 					},
 				},
@@ -287,10 +321,10 @@ func (ts *StorageTestSuite) TestMulticastGroup() {
 					},
 					Expected: []MulticastGroupListItem{
 						{
-							ID:                 mgID,
-							Name:               "test-mg-updated",
-							ServiceProfileID:   mg.ServiceProfileID,
-							ServiceProfileName: sp.Name,
+							ID:              mgID,
+							Name:            "test-mg-updated",
+							ApplicationID:   app.ID,
+							ApplicationName: app.Name,
 						},
 					},
 				},

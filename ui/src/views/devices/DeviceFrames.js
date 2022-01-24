@@ -20,6 +20,7 @@ import HelpCircleOutline from "mdi-material-ui/HelpCircleOutline";
 import AlertCircleOutline from "mdi-material-ui/AlertCircleOutline";
 
 import fileDownload from "js-file-download";
+import moment from "moment";
 
 import LoRaWANFrameLog from "../../components/LoRaWANFrameLog";
 import DeviceStore from "../../stores/DeviceStore";
@@ -83,8 +84,8 @@ class DeviceFrames extends Component {
   onDownload() {
     const dl = this.state.frames.map((frame, i) => {
       return {
-        uplinkMetaData: frame.uplinkMetaData,
-        downlinkMetaData: frame.downlinkMetaData,
+        rxInfo: frame.rxInfo,
+        txInfo: frame.txInfo,
         phyPayload: frame.phyPayload,
       };
     });
@@ -122,36 +123,37 @@ class DeviceFrames extends Component {
     }
 
     let frames = this.state.frames;
+    let f = {};
     const now = new Date();
 
     if (frame.uplinkFrame !== undefined) {
-      frames.unshift({
+      f = {
         id: now.getTime(),
-        receivedAt: now,
-        uplinkMetaData: {
-          rxInfo: frame.uplinkFrame.rxInfo,
-          txInfo: frame.uplinkFrame.txInfo,
-        },
+        publishedAt: frame.uplinkFrame.publishedAt,
+        rxInfo: frame.uplinkFrame.rxInfo,
+        txInfo: frame.uplinkFrame.txInfo,
         phyPayload: JSON.parse(frame.uplinkFrame.phyPayloadJSON),
-      });
+      };
     }
 
     if (frame.downlinkFrame !== undefined) {
-      frames.unshift({
+      delete frame.downlinkFrame.txInfo['gatewayID'];
+
+      f = {
         id: now.getTime(),
-        receivedAt: now,
-        downlinkMetaData: {
-          txInfo: frame.downlinkFrame.txInfo,
-        },
+        publishedAt: frame.downlinkFrame.publishedAt,
+        gatewayID: frame.downlinkFrame.gatewayID,
+        txInfo: frame.downlinkFrame.txInfo,
         phyPayload: JSON.parse(frame.downlinkFrame.phyPayloadJSON),
-      });
+      };
     }
 
-    console.log(frame);
-
-    this.setState({
-      frames: frames,
-    });
+    if (frames.length === 0 || moment(f.publishedAt).isAfter(moment(frames[0].publishedAt))) {
+      frames.unshift(f);
+      this.setState({
+        frames: frames,
+      });
+    }
   }
 
   render() {

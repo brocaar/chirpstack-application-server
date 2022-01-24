@@ -3,12 +3,14 @@ package storage
 import (
 	"context"
 	"regexp"
+	"strings"
 	"time"
 
-	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 )
 
 var organizationNameRegexp = regexp.MustCompile(`^[\w-]+$`)
@@ -21,6 +23,8 @@ type Organization struct {
 	Name            string    `db:"name"`
 	DisplayName     string    `db:"display_name"`
 	CanHaveGateways bool      `db:"can_have_gateways"`
+	MaxDeviceCount  int       `db:"max_device_count"`
+	MaxGatewayCount int       `db:"max_gateway_count"`
 }
 
 // Validate validates the data of the Organization.
@@ -34,7 +38,7 @@ func (o Organization) Validate() error {
 // OrganizationUser represents an organization user.
 type OrganizationUser struct {
 	UserID         int64     `db:"user_id"`
-	Username       string    `db:"username"`
+	Email          string    `db:"email"`
 	IsAdmin        bool      `db:"is_admin"`
 	IsDeviceAdmin  bool      `db:"is_device_admin"`
 	IsGatewayAdmin bool      `db:"is_gateway_admin"`
@@ -56,13 +60,17 @@ func CreateOrganization(ctx context.Context, db sqlx.Queryer, org *Organization)
 			updated_at,
 			name,
 			display_name,
-			can_have_gateways
-		) values ($1, $2, $3, $4, $5) returning id`,
+			can_have_gateways,
+			max_gateway_count,
+			max_device_count
+		) values ($1, $2, $3, $4, $5, $6, $7) returning id`,
 		now,
 		now,
 		org.Name,
 		org.DisplayName,
 		org.CanHaveGateways,
+		org.MaxGatewayCount,
+		org.MaxDeviceCount,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -78,125 +86,113 @@ func CreateOrganization(ctx context.Context, db sqlx.Queryer, org *Organization)
 }
 
 // GetOrganization returns the Organization for the given id.
-func GetOrganization(ctx context.Context, db sqlx.Queryer, id int64) (Organization, error) {
+// When forUpdate is set to true, then db must be a db transaction.
+func GetOrganization(ctx context.Context, db sqlx.Queryer, id int64, forUpdate bool) (Organization, error) {
+	var fu string
+	if forUpdate {
+		fu = " for update"
+	}
+
 	var org Organization
-	err := sqlx.Get(db, &org, "select * from organization where id = $1", id)
+	err := sqlx.Get(db, &org, "select * from organization where id = $1"+fu, id)
 	if err != nil {
 		return org, handlePSQLError(Select, err, "select error")
 	}
 	return org, nil
 }
 
+// OrganizationFilters provides filters for filtering organizations.
+type OrganizationFilters struct {
+	UserID int64  `db:"user_id"`
+	Search string `db:"search"`
+
+	// Limit and Offset are added for convenience so that this struct can
+	// be given as the arguments.
+	Limit  int `db:"limit"`
+	Offset int `db:"offset"`
+}
+
+// SQL returns the SQL filters.
+func (f OrganizationFilters) SQL() string {
+	var filters []string
+
+	if f.UserID != 0 {
+		filters = append(filters, "u.id = :user_id")
+	}
+
+	if f.Search != "" {
+		filters = append(filters, "o.display_name ilike :search")
+	}
+
+	if len(filters) == 0 {
+		return ""
+	}
+
+	return "where " + strings.Join(filters, " and ")
+}
+
 // GetOrganizationCount returns the total number of organizations.
-func GetOrganizationCount(ctx context.Context, db sqlx.Queryer, search string) (int, error) {
-	var count int
-
-	if search != "" {
-		search = "%" + search + "%"
+func GetOrganizationCount(ctx context.Context, db sqlx.Queryer, filters OrganizationFilters) (int, error) {
+	if filters.Search != "" {
+		filters.Search = "%" + filters.Search + "%"
 	}
 
-	err := sqlx.Get(db, &count, `
-		select count(*)
-		from organization
-		where
-			($1 != '' and display_name ilike $1)
-			or ($1 = '')`,
-		search,
-	)
-	if err != nil {
-		return count, handlePSQLError(Select, err, "select error")
-	}
-	return count, nil
-}
-
-// GetOrganizationCountForUser returns the number of organizations to which
-// the given user is member of.
-func GetOrganizationCountForUser(ctx context.Context, db sqlx.Queryer, username string, search string) (int, error) {
-	var count int
-
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Get(db, &count, `
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
-			count(o.*)
-		from organization o
-		inner join organization_user ou
-			on ou.organization_id = o.id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.username = $1
-			and (
-				($2 != '' and o.display_name ilike $2)
-				or ($2 = '')
-			)`,
-		username,
-		search,
-	)
+			count(distinct o.*)
+		from
+			organization o
+		left join organization_user ou
+			on o.id = ou.organization_id
+		left join "user" u
+			on ou.user_id = u.id
+	`+filters.SQL(), filters)
 	if err != nil {
-		return count, handlePSQLError(Select, err, "select error")
+		return 0, errors.Wrap(err, "named query error")
 	}
+
+	var count int
+	err = sqlx.Get(db, &count, query, args...)
+	if err != nil {
+		return 0, handlePSQLError(Select, err, "select error")
+	}
+
 	return count, nil
 }
 
-// GetOrganizations returns a slice of organizations, sorted by name and
-// respecting the given limit and offset.
-func GetOrganizations(ctx context.Context, db sqlx.Queryer, limit, offset int, search string) ([]Organization, error) {
-	var orgs []Organization
-
-	if search != "" {
-		search = "%" + search + "%"
+// GetOrganizations returns a slice of organizations, sorted by name.
+func GetOrganizations(ctx context.Context, db sqlx.Queryer, filters OrganizationFilters) ([]Organization, error) {
+	if filters.Search != "" {
+		filters.Search = "%" + filters.Search + "%"
 	}
 
-	err := sqlx.Select(db, &orgs, `
-		select *
-		from organization
-		where
-			($3 != '' and display_name ilike $3)
-			or ($3 = '')
-		order by display_name
-		limit $1 offset $2`, limit, offset, search)
-	if err != nil {
-		return nil, handlePSQLError(Select, err, "select error")
-	}
-	return orgs, nil
-}
-
-// GetOrganizationsForUser returns a slice of organizations to which the given
-// user is member of.
-func GetOrganizationsForUser(ctx context.Context, db sqlx.Queryer, username string, limit, offset int, search string) ([]Organization, error) {
-	var orgs []Organization
-
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Select(db, &orgs, `
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
 			o.*
-		from organization o
-		inner join organization_user ou
-			on ou.organization_id = o.id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.username = $1
-			and (
-				($4 != '' and o.display_name ilike $4)
-				or ($4 = '')
-			)
-		order by o.display_name
-		limit $2 offset $3`,
-		username,
-		limit,
-		offset,
-		search,
-	)
+		from
+			organization o
+		left join organization_user ou
+			on o.id = ou.organization_id
+		left join "user" u
+			on ou.user_id = u.id
+	`+filters.SQL()+`
+		group by
+			o.id
+		order by
+			o.display_name
+		limit :limit
+		offset :offset
+	`, filters)
+	if err != nil {
+		return nil, errors.Wrap(err, "named query error")
+	}
+
+	var orgs []Organization
+	err = sqlx.Select(db, &orgs, query, args...)
 	if err != nil {
 		return nil, handlePSQLError(Select, err, "select error")
 	}
+
 	return orgs, nil
 }
 
@@ -213,13 +209,17 @@ func UpdateOrganization(ctx context.Context, db sqlx.Execer, org *Organization) 
 			name = $2,
 			display_name = $3,
 			can_have_gateways = $4,
-			updated_at = $5
+			updated_at = $5,
+			max_gateway_count = $6,
+			max_device_count = $7
 		where id = $1`,
 		org.ID,
 		org.Name,
 		org.DisplayName,
 		org.CanHaveGateways,
 		now,
+		org.MaxGatewayCount,
+		org.MaxDeviceCount,
 	)
 
 	if err != nil {
@@ -318,7 +318,8 @@ func UpdateOrganizationUser(ctx context.Context, db sqlx.Execer, organizationID,
 		set
 			is_admin = $3,
 			is_device_admin = $4,
-			is_gateway_admin = $5
+			is_gateway_admin = $5,
+			updated_at = now()
 		where
 			organization_id = $1
 			and user_id = $2
@@ -373,7 +374,7 @@ func GetOrganizationUser(ctx context.Context, db sqlx.Queryer, organizationID, u
 	err := sqlx.Get(db, &u, `
 		select
 			u.id as user_id,
-			u.username as username,
+			u.email as email,
 			ou.created_at as created_at,
 			ou.updated_at as updated_at,
 			ou.is_admin as is_admin,
@@ -416,7 +417,7 @@ func GetOrganizationUsers(ctx context.Context, db sqlx.Queryer, organizationID i
 	err := sqlx.Select(db, &users, `
 		select
 			u.id as user_id,
-			u.username as username,
+			u.email as email,
 			ou.created_at as created_at,
 			ou.updated_at as updated_at,
 			ou.is_admin as is_admin,
@@ -427,7 +428,7 @@ func GetOrganizationUsers(ctx context.Context, db sqlx.Queryer, organizationID i
 			on u.id = ou.user_id
 		where
 			ou.organization_id = $1
-		order by u.username
+		order by u.email
 		limit $2 offset $3`,
 		organizationID,
 		limit,

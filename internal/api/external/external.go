@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -22,18 +21,23 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
 	"github.com/brocaar/chirpstack-application-server/internal/api/external/auth"
+	"github.com/brocaar/chirpstack-application-server/internal/api/external/oidc"
 	"github.com/brocaar/chirpstack-application-server/internal/api/helpers"
 	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/static"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
+	"github.com/brocaar/chirpstack-application-server/static"
 )
 
 var (
-	brandingHeader       string
-	brandingRegistration string
-	brandingFooter       string
+	brandingRegistration    string
+	brandingFooter          string
+	openIDLoginLabel        string
+	openIDConnectEnabled    bool
+	registrationEnabled     bool
+	registrationCallbackURL string
+	logoutURL               string
 
 	bind            string
 	tlsCert         string
@@ -47,20 +51,22 @@ var (
 // Setup configures the API package.
 func Setup(conf config.Config) error {
 	if conf.ApplicationServer.ExternalAPI.JWTSecret == "" {
-		return errors.New("jwt_secret must be set!")
+		return errors.New("jwt_secret must be set")
 	}
 
-	brandingHeader = conf.ApplicationServer.Branding.Header
 	brandingRegistration = conf.ApplicationServer.Branding.Registration
 	brandingFooter = conf.ApplicationServer.Branding.Footer
+	registrationEnabled = conf.ApplicationServer.UserAuthentication.OpenIDConnect.RegistrationEnabled
+	registrationCallbackURL = conf.ApplicationServer.UserAuthentication.OpenIDConnect.RegistrationCallbackURL
+	openIDConnectEnabled = conf.ApplicationServer.UserAuthentication.OpenIDConnect.Enabled
+	openIDLoginLabel = conf.ApplicationServer.UserAuthentication.OpenIDConnect.LoginLabel
+	logoutURL = conf.ApplicationServer.UserAuthentication.OpenIDConnect.LogoutURL
 
 	bind = conf.ApplicationServer.ExternalAPI.Bind
 	tlsCert = conf.ApplicationServer.ExternalAPI.TLSCert
 	tlsKey = conf.ApplicationServer.ExternalAPI.TLSKey
 	jwtSecret = conf.ApplicationServer.ExternalAPI.JWTSecret
 	corsAllowOrigin = conf.ApplicationServer.ExternalAPI.CORSAllowOrigin
-
-	auth.DisableAssignExistingUsers = conf.ApplicationServer.ExternalAPI.DisableAssignExistingUsers
 
 	if err := applicationServerID.UnmarshalText([]byte(conf.ApplicationServer.ID)); err != nil {
 		return errors.Wrap(err, "decode application_server.id error")
@@ -82,7 +88,7 @@ func setupAPI(conf config.Config) error {
 	pb.RegisterDeviceQueueServiceServer(grpcServer, NewDeviceQueueAPI(validator))
 	pb.RegisterDeviceServiceServer(grpcServer, NewDeviceAPI(validator))
 	pb.RegisterUserServiceServer(grpcServer, NewUserAPI(validator))
-	pb.RegisterInternalServiceServer(grpcServer, NewInternalUserAPI(validator))
+	pb.RegisterInternalServiceServer(grpcServer, NewInternalAPI(validator))
 	pb.RegisterGatewayServiceServer(grpcServer, NewGatewayAPI(validator))
 	pb.RegisterGatewayProfileServiceServer(grpcServer, NewGatewayProfileAPI(validator))
 	pb.RegisterOrganizationServiceServer(grpcServer, NewOrganizationAPI(validator))
@@ -90,7 +96,6 @@ func setupAPI(conf config.Config) error {
 	pb.RegisterServiceProfileServiceServer(grpcServer, NewServiceProfileServiceAPI(validator))
 	pb.RegisterDeviceProfileServiceServer(grpcServer, NewDeviceProfileServiceAPI(validator))
 	pb.RegisterMulticastGroupServiceServer(grpcServer, NewMulticastGroupAPI(validator, rpID))
-	pb.RegisterFUOTADeploymentServiceServer(grpcServer, NewFUOTADeploymentAPI(validator))
 
 	// setup the client http interface variable
 	// we need to start the gRPC service first, as it is used by the
@@ -164,7 +169,7 @@ func setupHTTPAPI(conf config.Config) (http.Handler, error) {
 
 	log.WithField("path", "/api").Info("api/external: registering rest api handler and documentation endpoint")
 	r.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
-		data, err := static.Asset("swagger/index.html")
+		data, err := static.FS.ReadFile("swagger/index.html")
 		if err != nil {
 			log.WithError(err).Error("get swagger template error")
 			w.WriteHeader(http.StatusInternalServerError)
@@ -174,13 +179,12 @@ func setupHTTPAPI(conf config.Config) (http.Handler, error) {
 	}).Methods("get")
 	r.PathPrefix("/api").Handler(jsonHandler)
 
+	if err := oidc.Setup(conf, r); err != nil {
+		return nil, errors.Wrap(err, "setup openid connect error")
+	}
+
 	// setup static file server
-	r.PathPrefix("/").Handler(http.FileServer(&assetfs.AssetFS{
-		Asset:     static.Asset,
-		AssetDir:  static.AssetDir,
-		AssetInfo: static.AssetInfo,
-		Prefix:    "",
-	}))
+	r.PathPrefix("/").Handler(http.FileServer(http.FS(static.FS)))
 
 	return wsproxy.WebsocketProxy(r), nil
 }
@@ -257,9 +261,6 @@ func getJSONGateway(ctx context.Context) (http.Handler, error) {
 	}
 	if err := pb.RegisterMulticastGroupServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
 		return nil, errors.Wrap(err, "register multicast-group handler error")
-	}
-	if err := pb.RegisterFUOTADeploymentServiceHandlerFromEndpoint(ctx, mux, apiEndpoint, grpcDialOpts); err != nil {
-		return nil, errors.Wrap(err, "register fuota deployment handler error")
 	}
 
 	return mux, nil

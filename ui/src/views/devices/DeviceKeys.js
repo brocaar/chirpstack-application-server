@@ -73,16 +73,6 @@ class LW10DeviceKeysForm extends FormComponent {
           required
           random
         />
-        <AESKeyField
-          id="genAppKey"
-          label="Gen Application key"
-          helperText="For LoRaWAN 1.0 devices. This key must only be set when the device implements the remote multicast setup specification / firmware updates over the air (FUOTA). Else leave this field blank."
-          onChange={this.onChange}
-          value={object.genAppKey || ""}
-          margin="normal"
-          fullWidth
-          random
-        />
       </Form>
     );
   }
@@ -118,13 +108,13 @@ class DeviceKeys extends Component {
   onSubmit(deviceKeys) {
     if (this.state.update) {
       DeviceStore.updateKeys(deviceKeys, resp => {
-        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
+        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}`);
       });
     } else {
       let keys = deviceKeys;
       keys.devEUI = this.props.match.params.devEUI;
       DeviceStore.createKeys(keys, resp => {
-        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
+        this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}`);
       });
     }
   }

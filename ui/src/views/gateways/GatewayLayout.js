@@ -18,6 +18,7 @@ import GatewayDetails from "./GatewayDetails";
 import UpdateGateway from "./UpdateGateway";
 import GatewayDiscovery from "./GatewayDiscovery";
 import GatewayFrames from "./GatewayFrames";
+import GatewayCertificate from "./GatewayCertificate";
 
 import theme from "../../theme";
 
@@ -88,10 +89,12 @@ class GatewayLayout extends Component {
 
     if (window.location.href.endsWith("/edit")) {
       tab = 1;
-    } else if (window.location.href.endsWith("/discovery")) {
+    } else if (window.location.href.endsWith("/certificate")) {
       tab = 2;
-    } else if (window.location.href.endsWith("/frames")) {
+    } else if (window.location.href.endsWith("/discovery")) {
       tab = 3;
+    } else if (window.location.href.endsWith("/frames")) {
+      tab = 4;
     }
 
     if (tab > 0 && !this.state.admin) {
@@ -143,6 +146,7 @@ class GatewayLayout extends Component {
           >
             <Tab label="Gateway details" component={Link} to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.gatewayID}`} />
             {this.state.admin && <Tab label="Gateway configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.gatewayID}/edit`} />}
+            {this.state.admin && <Tab label="Certificate" component={Link} to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.gatewayID}/certificate`} />}
             <Tab label="Gateway discovery" disabled={!this.state.gateway.gateway.discoveryEnabled} component={Link} to={`/organizations/${this.props.match.params.organizationID}/gateways/${this.props.match.params.gatewayID}/discovery`} />
             <Tab
               label="Live LoRaWAN frames"
@@ -156,6 +160,7 @@ class GatewayLayout extends Component {
         <Switch>
           <Route exact path={`${this.props.match.path}`} render={props => <GatewayDetails gateway={this.state.gateway.gateway} lastSeenAt={this.state.gateway.lastSeenAt} {...props} />} />
           <Route exact path={`${this.props.match.path}/edit`} render={props => <UpdateGateway gateway={this.state.gateway.gateway} {...props} />} />
+          <Route exact path={`${this.props.match.path}/certificate`} render={props => <GatewayCertificate gateway={this.state.gateway.gateway} {...props} />} />
           <Route exact path={`${this.props.match.path}/discovery`} render={props => <GatewayDiscovery gateway={this.state.gateway.gateway} {...props} />} />
           <Route exact path={`${this.props.match.path}/frames`} render={props => <GatewayFrames gateway={this.state.gateway.gateway} {...props} />} />
         </Switch>

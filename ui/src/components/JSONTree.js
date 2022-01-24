@@ -29,32 +29,42 @@ class JSONTree extends Component {
 
     // :(
     let data = JSON.parse(JSON.stringify(this.props.data));
+    let type = this.props.eventType;
 
-    if ("devEUI" in data) {
+    if ("devEUI" in data && data.devEUI !== null) {
       data.devEUI = base64ToHex(data.devEUI);
     }
 
-    if ("devAddr" in data) {
+    if ("devAddr" in data && data.devAddr !== null) {
       data.devAddr = base64ToHex(data.devAddr);
+    }
+
+    if ("gatewayID" in data && data.gatewayID !== null && type === "txack") {
+      data.gatewayID = base64ToHex(data.gatewayID);
     }
 
     if ("rxInfo" in data && data.rxInfo !== null) {
       for (let i = 0; i < data.rxInfo.length; i++) {
-        if ("gatewayID" in data.rxInfo[i]) {
+        if ("gatewayID" in data.rxInfo[i] && data.rxInfo[i].gatewayID !== null) {
           data.rxInfo[i].gatewayID = base64ToHex(data.rxInfo[i].gatewayID);
         }
 
-        if ("uplinkID" in data.rxInfo[i]) {
+        if ("uplinkID" in data.rxInfo[i] && data.rxInfo[i].uplinkID !== null) {
           const id = Buffer.from(data.rxInfo[i].uplinkID, 'base64');
           data.rxInfo[i].uplinkID = unparse(id);
         }
       }
     }
 
-    if ("txInfo" in data && data.txInfo !== null) {
-      if ("gatewayID" in data.txInfo) {
-        data.txInfo.gatewayID = base64ToHex(data.txInfo.gatewayID);
+    if ("uplinkIDs" in data && data.uplinkIDs !== null) {
+      for (let i = 0; i < data.uplinkIDs.length; i++) {
+        const id = Buffer.from(data.uplinkIDs[i], 'base64');
+        data.uplinkIDs[i] = unparse(id);
       }
+    }
+
+    if ("objectJSON" in data && data.objectJSON !== null && data.objectJSON !== "") {
+      data.objectJSON = JSON.parse(data.objectJSON);
     }
 
     return(

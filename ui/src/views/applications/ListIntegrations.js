@@ -1,18 +1,21 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
 
 import { withStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
-import TableCell from "@material-ui/core/TableCell";
-import TableRow from "@material-ui/core/TableRow";
-import Button from '@material-ui/core/Button';
 
-import Plus from "mdi-material-ui/Plus";
-
-import TableCellLink from "../../components/TableCellLink";
-import DataTable from "../../components/DataTable";
 import ApplicationStore from "../../stores/ApplicationStore";
 import theme from "../../theme";
+
+import GCPPubSubCard from "./integrations/GCPPubSub";
+import HTTPCard from "./integrations/HTTP";
+import AzureServiceBusCard from "./integrations/AzureServiceBusCard";
+import AWSSNSCard from "./integrations/AWSSNSCard";
+import InfluxDBCard from "./integrations/InfluxDBCard";
+import ThingsboardCard from "./integrations/ThingsboardCard";
+import LoRaCloudCard from "./integrations/LoRaCloudCard";
+import MyDevicesCard from "./integrations/MyDevicesCard";
+import PilotThingsCard from "./integrations/PilotThingsCard";
+import MQTTCard from "./integrations/MQTTCard";
 
 
 const styles = {
@@ -31,44 +34,130 @@ const styles = {
 class ListIntegrations extends Component {
   constructor() {
     super();
-    this.getPage = this.getPage.bind(this);
-    this.getRow = this.getRow.bind(this);
+
+    this.state = {
+      configured: [],
+      available: [],
+    };
   }
 
-  getPage(limit, offset, callbackFunc) {
-    ApplicationStore.listIntegrations(this.props.match.params.applicationID, callbackFunc);
+  componentDidMount() {
+    ApplicationStore.on("integration.delete", () => {
+      this.loadIntegrations(this.props.match.params.organizationID, this.props.match.params.applicationID);
+    });
+
+    this.loadIntegrations(this.props.match.params.organizationID, this.props.match.params.applicationID);
   }
 
-  getRow(obj) {
-    const kind = obj.kind.toLowerCase();
-
-    return(
-      <TableRow key={obj.kind}>
-        <TableCellLink to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations/${kind}`}>{obj.kind}</TableCellLink>
-      </TableRow>
-    );
+  componentWillUnmount() {
+    ApplicationStore.removeAllListeners("integration.delete");
   }
+
+  componentDidUpdate(prevProps) {
+    if (this.props === prevProps) {
+      return;
+    }
+
+    this.loadIntegrations(this.props.match.params.organizationID, this.props.match.params.applicationID);
+  }
+
+  loadIntegrations = (organizationID, applicationID) => {
+    ApplicationStore.listIntegrations(applicationID, (resp) => {
+      let configured = [];
+      let available = [];
+      const includes = (integrations, kind) => {
+        for (let x of integrations) {
+          if (x.kind === kind) {
+            return true;
+          } 
+        }
+
+        return false;
+      };
+
+      // AWS
+      if(includes(resp.result, "AWS_SNS")) {
+        configured.push(<AWSSNSCard organizationID={organizationID} applicationID={applicationID} />);
+      } else {
+        available.push(<AWSSNSCard organizationID={organizationID} applicationID={applicationID} add />);
+      }
+
+      // Azure
+      if(includes(resp.result, "AZURE_SERVICE_BUS")) {
+        configured.push(<AzureServiceBusCard organizationID={organizationID} applicationID={applicationID} />);
+      } else {
+        available.push(<AzureServiceBusCard organizationID={organizationID} applicationID={applicationID} add />);
+      }
+
+      // GCP
+      if(includes(resp.result, "GCP_PUBSUB")) {
+        configured.push(<GCPPubSubCard organizationID={organizationID} applicationID={applicationID} />);
+      } else {
+        available.push(<GCPPubSubCard organizationID={organizationID} applicationID={applicationID} add />);
+      }
+
+      // HTTP
+      if(includes(resp.result, "HTTP")) {
+        configured.push(<HTTPCard organizationID={organizationID} applicationID={applicationID} />);
+      } else {
+        available.push(<HTTPCard organizationID={organizationID} applicationID={applicationID} add />);
+      }
+
+      // InfluxDB
+      if(includes(resp.result, "INFLUXDB")) {
+        configured.push(<InfluxDBCard organizationID={organizationID} applicationID={applicationID} />);
+      } else {
+        available.push(<InfluxDBCard organizationID={organizationID} applicationID={applicationID} add />);
+      }
+
+      // MyDevices
+      if(includes(resp.result, "MYDEVICES")) {
+        configured.push(<MyDevicesCard organizationID={organizationID} applicationID={applicationID} />);
+      } else {
+        available.push(<MyDevicesCard organizationID={organizationID} applicationID={applicationID} add />);
+      }
+
+      // Global MQTT
+      if(includes(resp.result, "MQTT_GLOBAL")) {
+        configured.push(<MQTTCard organizationID={organizationID} applicationID={applicationID} />);
+      }
+
+      // Pilot Things
+      if (includes(resp.result, "PILOT_THINGS")) {
+        configured.push(<PilotThingsCard organizationID={organizationID} applicationID={applicationID} />);
+      } else {
+        available.push(<PilotThingsCard organizationID={organizationID} applicationID={applicationID} add />);
+      }
+
+      // Semtech LoRa Cloud
+      if(includes(resp.result, "LORACLOUD")) {
+        configured.push(<LoRaCloudCard organizationID={organizationID} applicationID={applicationID} />);
+      } else {
+        available.push(<LoRaCloudCard organizationID={organizationID} applicationID={applicationID} add />);
+      }
+
+      // Thingsboard
+      if(includes(resp.result, "THINGSBOARD")) {
+        configured.push(<ThingsboardCard organizationID={organizationID} applicationID={applicationID} />);
+      } else {
+        available.push(<ThingsboardCard organizationID={organizationID} applicationID={applicationID} add />);
+      }
+
+      this.setState({
+        configured: configured,
+        available: available,
+      });
+    });
+  } 
 
   render() {
+    let configured = this.state.configured.map((row, i) => <Grid key={`configured-${i}`} item xs={6} md={4} xl={3}>{row}</Grid>);
+    let available = this.state.available.map((row, i) => <Grid key={`available-${i}`} item xs={6} md={4} xl={3}>{row}</Grid>);
+
     return(
       <Grid container spacing={4}>
-        <Grid item xs={12} className={this.props.classes.buttons}>
-          <Button variant="outlined" className={this.props.classes.button} component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/integrations/create`}>
-            <Plus className={this.props.classes.icon} />
-            Create
-          </Button>
-        </Grid>
-        <Grid item xs={12}>
-          <DataTable
-            header={
-              <TableRow>
-                <TableCell>Kind</TableCell>
-              </TableRow>
-            }
-            getPage={this.getPage}
-            getRow={this.getRow}
-          />
-        </Grid>
+        {configured}
+        {available}
       </Grid>
     );
   }

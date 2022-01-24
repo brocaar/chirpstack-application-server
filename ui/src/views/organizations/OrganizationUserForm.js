@@ -23,12 +23,14 @@ class OrganizationUserForm extends FormComponent {
         onSubmit={this.onSubmit}
       >
           <TextField
-            label="Username"
+            label="Email"
+            id="email"
             margin="normal"
-            value={this.state.object.username || ""}
+            value={this.state.object.email || ""}
+            onChange={this.onChange}
             required
             fullWidth
-            disabled
+            disabled={this.props.update}
           />
           <Typography variant="body1">
             An user without additional permissions will be able to see all

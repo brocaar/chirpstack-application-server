@@ -10,14 +10,14 @@ import ListItemText from '@material-ui/core/ListItemText';
 
 import Divider from '@material-ui/core/Divider';
 import Domain from "mdi-material-ui/Domain";
+import Home from "mdi-material-ui/Home";
 import Account from "mdi-material-ui/Account";
 import Server from "mdi-material-ui/Server";
 import Apps from "mdi-material-ui/Apps";
 import RadioTower from "mdi-material-ui/RadioTower";
 import Tune from "mdi-material-ui/Tune";
-import Settings from "mdi-material-ui/Settings";
-import Rss from "mdi-material-ui/Rss";
 import AccountDetails from "mdi-material-ui/AccountDetails";
+import KeyVariant from "mdi-material-ui/KeyVariant";
 
 import AutocompleteSelect from "./AutocompleteSelect";
 import SessionStore from "../stores/SessionStore";
@@ -117,7 +117,7 @@ class SideNav extends Component {
   }
 
   onChange(e) {
-    this.props.history.push(`/organizations/${e.target.value}/applications`);
+    this.props.history.push(`/organizations/${e.target.value}`);
   }
 
   getOrganizationFromLocation() {
@@ -138,7 +138,7 @@ class SideNav extends Component {
   getOrganizationOptions(search, callbackFunc) {
     OrganizationStore.list(search, 10, 0, resp => {
       const options = resp.result.map((o, i) => {return {label: o.name, value: o.id}});
-      callbackFunc(options);
+      callbackFunc(options, resp.totalCount);
     });
   }
 
@@ -157,6 +157,12 @@ class SideNav extends Component {
       >
         <Admin>
           <List>
+            <ListItem button component={Link} to="/dashboard">
+              <ListItemIcon>
+                <Home />
+              </ListItemIcon>
+              <ListItemText primary="Dashboard" />
+            </ListItem>
             <ListItem button component={Link} to="/network-servers">
               <ListItemIcon>
                 <Server />
@@ -181,6 +187,12 @@ class SideNav extends Component {
               </ListItemIcon>
               <ListItemText primary="All users" />
             </ListItem>
+            <ListItem button component={Link} to="/api-keys">
+              <ListItemIcon>
+                <KeyVariant />
+              </ListItemIcon>
+              <ListItemText primary="API keys" />
+            </ListItem>
           </List>
           <Divider />
         </Admin>
@@ -199,20 +211,24 @@ class SideNav extends Component {
         </div>
 
         {this.state.organization && <List>
-          <Admin>
-            <ListItem button component={Link} to={`/organizations/${this.state.organization.id}/edit`}>
-              <ListItemIcon>
-                <Settings />
-              </ListItemIcon>
-              <ListItemText primary="Org. settings" />
-            </ListItem>
-          </Admin>
+          <ListItem button component={Link} to={`/organizations/${this.state.organization.id}`}>
+            <ListItemIcon>
+              <Home />
+            </ListItemIcon>
+            <ListItemText primary="Org. dashboard" />
+          </ListItem>
           <Admin organizationID={this.state.organization.id}>
             <ListItem button component={Link} to={`/organizations/${this.state.organization.id}/users`}>
               <ListItemIcon>
                 <Account />
               </ListItemIcon>
               <ListItemText primary="Org. users" />
+            </ListItem>
+            <ListItem button component={Link} to={`/organizations/${this.state.organization.id}/api-keys`}>
+              <ListItemIcon>
+                <KeyVariant />
+              </ListItemIcon>
+              <ListItemText primary="Org. API keys" />
             </ListItem>
           </Admin>
           <ListItem button component={Link} to={`/organizations/${this.state.organization.id}/service-profiles`}>
@@ -238,12 +254,6 @@ class SideNav extends Component {
               <Apps />
             </ListItemIcon>
             <ListItemText primary="Applications" />
-          </ListItem>
-          <ListItem button component={Link} to={`/organizations/${this.state.organization.id}/multicast-groups`}>
-            <ListItemIcon>
-              <Rss />
-            </ListItemIcon>
-            <ListItemText primary="Multicast-groups" />
           </ListItem>
         </List>}
       </Drawer>

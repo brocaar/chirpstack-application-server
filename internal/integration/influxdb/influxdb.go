@@ -19,8 +19,8 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/integration"
-	"github.com/brocaar/chirpstack-application-server/internal/integration"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/integration"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/models"
 	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/lorawan"
 )
@@ -29,17 +29,25 @@ var precisionValidator = regexp.MustCompile(`^(ns|u|ms|s|m|h)$`)
 
 // Config contains the configuration for the InfluxDB integration.
 type Config struct {
-	Endpoint            string `json:"endpoint"`
+	Endpoint string `json:"endpoint"`
+	Version  int    `json:"version"`
+
+	// v1 options
 	DB                  string `json:"db"`
 	Username            string `json:"username"`
 	Password            string `json:"password"`
 	RetentionPolicyName string `json:"retentionPolicyName"`
 	Precision           string `json:"precision"`
+
+	// v2 options
+	Token        string `json:"token"`
+	Organization string `json:"org"`
+	Bucket       string `json:"bucket"`
 }
 
 // Validate validates the HandlerConfig data.
 func (c Config) Validate() error {
-	if !precisionValidator.MatchString(c.Precision) {
+	if c.Precision != "" && !precisionValidator.MatchString(c.Precision) {
 		return ErrInvalidPrecision
 	}
 	return nil
@@ -126,9 +134,17 @@ func (i *Integration) send(measurements []measurement) error {
 	b := []byte(strings.Join(measStr, "\n"))
 
 	args := url.Values{}
-	args.Set("db", i.config.DB)
-	args.Set("precision", i.config.Precision)
-	args.Set("rp", i.config.RetentionPolicyName)
+
+	if i.config.Version == 2 {
+		args.Set("org", i.config.Organization)
+		args.Set("bucket", i.config.Bucket)
+	} else {
+		// Use else as version is a new field which might not be set.
+		// It is safe to assume that in this case v1 must be used.
+		args.Set("db", i.config.DB)
+		args.Set("precision", i.config.Precision)
+		args.Set("rp", i.config.RetentionPolicyName)
+	}
 
 	req, err := http.NewRequest("POST", i.config.Endpoint+"?"+args.Encode(), bytes.NewReader(b))
 	if err != nil {
@@ -137,8 +153,14 @@ func (i *Integration) send(measurements []measurement) error {
 
 	req.Header.Set("Content-Type", "text/plain")
 
-	if i.config.Username != "" || i.config.Password != "" {
-		req.SetBasicAuth(i.config.Username, i.config.Password)
+	if i.config.Version == 2 {
+		req.Header.Set("Authorization", "Token "+i.config.Token)
+	} else {
+		// Use else as version is a new field which might not be set.
+		// It is safe to assume that in this case v1 must be used.
+		if i.config.Username != "" || i.config.Password != "" {
+			req.SetBasicAuth(i.config.Username, i.config.Password)
+		}
 	}
 
 	resp, err := http.DefaultClient.Do(req)
@@ -161,8 +183,8 @@ func (i *Integration) Close() error {
 	return nil
 }
 
-// SendDataUp stores the uplink data into InfluxDB.
-func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl pb.UplinkEvent) error {
+// HandleUplinkEvent writes the uplink into InfluxDB.
+func (i *Integration) HandleUplinkEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.UplinkEvent) error {
 	if pl.ObjectJson == "" {
 		return nil
 	}
@@ -236,8 +258,8 @@ func (i *Integration) SendDataUp(ctx context.Context, vars map[string]string, pl
 	return nil
 }
 
-// SendStatusNotification writes the device-status.
-func (i *Integration) SendStatusNotification(ctx context.Context, vars map[string]string, pl pb.StatusEvent) error {
+// HandleStatusEvent writes the device-status into InfluxDB.
+func (i *Integration) HandleStatusEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.StatusEvent) error {
 	var devEUI lorawan.EUI64
 	copy(devEUI[:], pl.DevEui)
 
@@ -282,28 +304,38 @@ func (i *Integration) SendStatusNotification(ctx context.Context, vars map[strin
 	return nil
 }
 
-// SendJoinNotification is not implemented.
-func (i *Integration) SendJoinNotification(ctx context.Context, vars map[string]string, pl pb.JoinEvent) error {
+// HandleJoinEvent is not implemented.
+func (i *Integration) HandleJoinEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.JoinEvent) error {
 	return nil
 }
 
-// SendACKNotification is not implemented.
-func (i *Integration) SendACKNotification(ctx context.Context, vars map[string]string, pl pb.AckEvent) error {
+// HandleAckEvent is not implemented.
+func (i *Integration) HandleAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.AckEvent) error {
 	return nil
 }
 
-// SendErrorNotification is not implemented.
-func (i *Integration) SendErrorNotification(ctx context.Context, vars map[string]string, pl pb.ErrorEvent) error {
+// HandleErrorEvent is not implemented.
+func (i *Integration) HandleErrorEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.ErrorEvent) error {
 	return nil
 }
 
-// SendLocationNotification is not implemented.
-func (i *Integration) SendLocationNotification(ctx context.Context, vars map[string]string, pl pb.LocationEvent) error {
+// HandleLocationEvent is not implemented.
+func (i *Integration) HandleLocationEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.LocationEvent) error {
+	return nil
+}
+
+// HandleTxAckEvent is not implemented.
+func (i *Integration) HandleTxAckEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.TxAckEvent) error {
+	return nil
+}
+
+// HandleIntegrationEvent is not implemented.
+func (i *Integration) HandleIntegrationEvent(ctx context.Context, _ models.Integration, vars map[string]string, pl pb.IntegrationEvent) error {
 	return nil
 }
 
 // DataDownChan return nil.
-func (i *Integration) DataDownChan() chan integration.DataDownPayload {
+func (i *Integration) DataDownChan() chan models.DataDownPayload {
 	return nil
 }
 

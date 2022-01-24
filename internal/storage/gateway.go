@@ -7,20 +7,22 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
+	uuid "github.com/gofrs/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-
-	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
-	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-api/go/ns"
+	"github.com/lib/pq/hstore"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/brocaar/lorawan"
-	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 var gatewayNameRegexp = regexp.MustCompile(`^[\w-]+$`)
@@ -39,10 +41,30 @@ type Gateway struct {
 	LastPingID       *int64        `db:"last_ping_id"`
 	LastPingSentAt   *time.Time    `db:"last_ping_sent_at"`
 	NetworkServerID  int64         `db:"network_server_id"`
-	GatewayProfileID *string       `db:"gateway_profile_id"`
+	GatewayProfileID *uuid.UUID    `db:"gateway_profile_id"`
+	ServiceProfileID *uuid.UUID    `db:"service_profile_id"`
 	Latitude         float64       `db:"latitude"`
 	Longitude        float64       `db:"longitude"`
 	Altitude         float64       `db:"altitude"`
+	Tags             hstore.Hstore `db:"tags"`
+	Metadata         hstore.Hstore `db:"metadata"`
+}
+
+// GatewayListItem defines the gateway as list item.
+type GatewayListItem struct {
+	MAC               lorawan.EUI64 `db:"mac"`
+	Name              string        `db:"name"`
+	Description       string        `db:"description"`
+	CreatedAt         time.Time     `db:"created_at"`
+	UpdatedAt         time.Time     `db:"updated_at"`
+	FirstSeenAt       *time.Time    `db:"first_seen_at"`
+	LastSeenAt        *time.Time    `db:"last_seen_at"`
+	OrganizationID    int64         `db:"organization_id"`
+	NetworkServerID   int64         `db:"network_server_id"`
+	Latitude          float64       `db:"latitude"`
+	Longitude         float64       `db:"longitude"`
+	Altitude          float64       `db:"altitude"`
+	NetworkServerName string        `db:"network_server_name"`
 }
 
 // GatewayPing represents a gateway ping.
@@ -71,6 +93,13 @@ type GatewayPingRX struct {
 type GPSPoint struct {
 	Latitude  float64
 	Longitude float64
+}
+
+// GatewaysActiveInactive holds the avtive and inactive counts.
+type GatewaysActiveInactive struct {
+	NeverSeenCount uint32 `db:"never_seen_count"`
+	ActiveCount    uint32 `db:"active_count"`
+	InactiveCount  uint32 `db:"inactive_count"`
 }
 
 // Value implements the driver.Valuer interface.
@@ -124,8 +153,11 @@ func CreateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 			last_seen_at,
 			latitude,
 			longitude,
-			altitude
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+			altitude,
+			tags,
+			metadata,
+			service_profile_id
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
 		gw.MAC[:],
 		gw.CreatedAt,
 		gw.UpdatedAt,
@@ -142,6 +174,9 @@ func CreateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 		gw.Latitude,
 		gw.Longitude,
 		gw.Altitude,
+		gw.Tags,
+		gw.Metadata,
+		gw.ServiceProfileID,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -161,7 +196,7 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 		return errors.Wrap(err, "validate error")
 	}
 
-	now := time.Now()
+	gw.UpdatedAt = time.Now()
 
 	res, err := db.Exec(`
 		update gateway
@@ -178,11 +213,14 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 			last_seen_at = $12,
 			latitude = $13,
 			longitude = $14,
-			altitude = $15
+			altitude = $15,
+			tags = $16,
+			metadata = $17,
+			service_profile_id = $18
 		where
 			mac = $1`,
 		gw.MAC[:],
-		now,
+		gw.UpdatedAt,
 		gw.Name,
 		gw.Description,
 		gw.OrganizationID,
@@ -196,6 +234,9 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 		gw.Latitude,
 		gw.Longitude,
 		gw.Altitude,
+		gw.Tags,
+		gw.Metadata,
+		gw.ServiceProfileID,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")
@@ -208,7 +249,6 @@ func UpdateGateway(ctx context.Context, db sqlx.Execer, gw *Gateway) error {
 		return ErrDoesNotExist
 	}
 
-	gw.UpdatedAt = now
 	log.WithFields(log.Fields{
 		"id":     gw.MAC,
 		"name":   gw.Name,
@@ -272,65 +312,117 @@ func GetGateway(ctx context.Context, db sqlx.Queryer, mac lorawan.EUI64, forUpda
 	return gw, nil
 }
 
-// GetGatewayCount returns the total number of gateways.
-func GetGatewayCount(ctx context.Context, db sqlx.Queryer, search string) (int, error) {
-	var count int
-	if search != "" {
-		search = "%" + search + "%"
+// GatewayFilters provides filters for filtering gateways.
+type GatewayFilters struct {
+	OrganizationID int64  `db:"organization_id"`
+	UserID         int64  `db:"user_id"`
+	Search         string `db:"search"`
+
+	// Limit and Offset are added for convenience so that this struct can
+	// be given as the arguments.
+	Limit  int `db:"limit"`
+	Offset int `db:"offset"`
+}
+
+// SQL returns the SQL filters.
+func (f GatewayFilters) SQL() string {
+	var filters []string
+
+	if f.OrganizationID != 0 {
+		filters = append(filters, "g.organization_id = :organization_id")
 	}
 
-	err := sqlx.Get(db, &count, `
-		select
-			count(*)
-		from gateway
-		where
-			$1 = ''
-			or (
-				$1 != ''
-				and (
-					name ilike $1
-					or encode(mac, 'hex') ilike $1
-				)
-			)
-		`,
-		search,
-	)
-	if err != nil {
-		return 0, errors.Wrap(err, "select error")
+	if f.UserID != 0 {
+		filters = append(filters, "u.id = :user_id")
 	}
+
+	if f.Search != "" {
+		filters = append(filters, "(g.name ilike :search or encode(g.mac, 'hex') ilike :search)")
+	}
+
+	if len(filters) == 0 {
+		return ""
+	}
+
+	return "where " + strings.Join(filters, " and ")
+}
+
+// GetGatewayCount returns the total number of gateways.
+func GetGatewayCount(ctx context.Context, db sqlx.Queryer, filters GatewayFilters) (int, error) {
+	if filters.Search != "" {
+		filters.Search = "%" + filters.Search + "%"
+	}
+
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
+		select
+			count(distinct g.*)
+		from
+			gateway g
+		inner join organization o
+			on o.id = g.organization_id
+		left join organization_user ou
+			on o.id = ou.organization_id
+		left join "user" u
+			on ou.user_id = u.id
+	`+filters.SQL(), filters)
+	if err != nil {
+		return 0, errors.Wrap(err, "named query error")
+	}
+
+	var count int
+	err = sqlx.Get(db, &count, query, args...)
+	if err != nil {
+
+		return 0, errors.Wrap(err, "named query error")
+	}
+
 	return count, nil
 }
 
 // GetGateways returns a slice of gateways sorted by name.
-func GetGateways(ctx context.Context, db sqlx.Queryer, limit, offset int, search string) ([]Gateway, error) {
-	var gws []Gateway
-	if search != "" {
-		search = "%" + search + "%"
+func GetGateways(ctx context.Context, db sqlx.Queryer, filters GatewayFilters) ([]GatewayListItem, error) {
+	if filters.Search != "" {
+		filters.Search = "%" + filters.Search + "%"
 	}
 
-	err := sqlx.Select(db, &gws, `
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
-			*
-		from gateway
-		where
-			$3 = ''
-			or (
-				$3 != ''
-				and (
-					name ilike $3
-					or encode(mac, 'hex') ilike $3
-				)
-			)
+			distinct g.mac,
+			g.name,
+			g.description,
+			g.created_at,
+			g.updated_at,
+			g.first_seen_at,
+			g.last_seen_at,
+			g.organization_id,
+			g.network_server_id,
+			g.latitude,
+			g.longitude,
+			g.altitude,
+			n.name as network_server_name
+		from
+			gateway g
+		inner join organization o
+			on o.id = g.organization_id
+		inner join network_server n
+			on n.id = g.network_server_id
+		left join organization_user ou
+			on o.id = ou.organization_id
+		left join "user" u
+			on ou.user_id = u.id
+	`+filters.SQL()+`
 		order by
-			name
-		limit $1 offset $2`,
-		limit,
-		offset,
-		search,
-	)
+			g.name
+		limit :limit
+		offset :offset
+	`, filters)
+
+	var gws []GatewayListItem
+	err = sqlx.Select(db, &gws, query, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "select error")
+		return nil, handlePSQLError(Select, err, "select error")
 	}
+
 	return gws, nil
 }
 
@@ -361,160 +453,6 @@ func GetGatewaysForMACs(ctx context.Context, db sqlx.Queryer, macs []lorawan.EUI
 	}
 
 	return out, nil
-}
-
-// GetGatewayCountForOrganizationID returns the total number of gateways
-// given an organization ID.
-func GetGatewayCountForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, search string) (int, error) {
-	var count int
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Get(db, &count, `
-		select
-			count(*)
-		from gateway
-		where
-			organization_id = $1
-			and (
-				$2 = ''
-				or (
-					$2 != ''
-					and (
-						name ilike $2
-						or encode(mac, 'hex') ilike $2
-					)
-				)
-			)`,
-		organizationID,
-		search,
-	)
-	if err != nil {
-		return 0, errors.Wrap(err, "select error")
-	}
-	return count, nil
-}
-
-// GetGatewaysForOrganizationID returns a slice of gateways sorted by name
-// for the given organization ID.
-func GetGatewaysForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, limit, offset int, search string) ([]Gateway, error) {
-	var gws []Gateway
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Select(db, &gws, `
-		select
-			*
-		from gateway
-		where
-			organization_id = $1
-			and (
-				$4 = ''
-				or (
-					$4 != ''
-					and (
-						name ilike $4
-						or encode(mac, 'hex') ilike $4
-					)
-				)
-			)
-		order by
-			name
-		limit $2 offset $3`,
-		organizationID,
-		limit,
-		offset,
-		search,
-	)
-	if err != nil {
-		return nil, errors.Wrap(err, "select error")
-	}
-	return gws, nil
-}
-
-// GetGatewayCountForUser returns the total number of gateways to which the
-// given user has access.
-func GetGatewayCountForUser(ctx context.Context, db sqlx.Queryer, username string, search string) (int, error) {
-	var count int
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Get(db, &count, `
-		select
-			count(g.*)
-		from gateway g
-		inner join organization o
-			on o.id = g.organization_id
-		inner join organization_user ou
-			on ou.organization_id = o.id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.username = $1
-			and (
-				$2 = ''
-				or (
-					$2 != ''
-					and (
-						g.name ilike $2
-						or encode(g.mac, 'hex') ilike $2
-					)
-				)
-			)`,
-		username,
-		search,
-	)
-	if err != nil {
-		return 0, errors.Wrap(err, "select error")
-	}
-	return count, nil
-}
-
-// GetGatewaysForUser returns a slice of gateways sorted by name to which the
-// given user has access.
-func GetGatewaysForUser(ctx context.Context, db sqlx.Queryer, username string, limit, offset int, search string) ([]Gateway, error) {
-	var gws []Gateway
-	if search != "" {
-		search = "%" + search + "%"
-	}
-
-	err := sqlx.Select(db, &gws, `
-		select
-			g.*
-		from gateway g
-		inner join organization o
-			on o.id = g.organization_id
-		inner join organization_user ou
-			on ou.organization_id = o.id
-		inner join "user" u
-			on u.id = ou.user_id
-		where
-			u.username = $1
-			and (
-				$4 = ''
-				or (
-					$4 != ''
-					and (
-						g.name ilike $4
-						or encode(g.mac, 'hex') ilike $4
-					)
-				)
-			)
-		order by
-			g.name
-		limit $2 offset $3`,
-		username,
-		limit,
-		offset,
-		search,
-	)
-	if err != nil {
-		return nil, errors.Wrap(err, "select error")
-	}
-	return gws, nil
 }
 
 // CreateGatewayPing creates the given gateway ping.
@@ -647,4 +585,33 @@ func GetLastGatewayPingAndRX(ctx context.Context, db sqlx.Queryer, mac lorawan.E
 	}
 
 	return ping, rx, nil
+}
+
+// GetGatewaysActiveInactive returns the active / inactive gateways.
+func GetGatewaysActiveInactive(ctx context.Context, db sqlx.Queryer, organizationID int64) (GatewaysActiveInactive, error) {
+	var out GatewaysActiveInactive
+	err := sqlx.Get(db, &out, `
+		with gateway_active_inactive as (
+			select
+				g.last_seen_at as last_seen_at,
+				make_interval(secs => coalesce(gp.stats_interval / 1000000000, 30)) * 1.5 as stats_interval
+			from
+				gateway g
+			left join gateway_profile gp
+				on g.gateway_profile_id = gp.gateway_profile_id
+			where
+				$1 = 0 or g.organization_id = $1
+		)
+		select
+			coalesce(sum(case when last_seen_at is null then 1 end), 0) as never_seen_count,
+			coalesce(sum(case when (now() - stats_interval) > last_seen_at then 1 end), 0) as inactive_count,
+			coalesce(sum(case when (now() - stats_interval) <= last_seen_at then 1 end), 0) as active_count
+		from
+			gateway_active_inactive
+	`, organizationID)
+	if err != nil {
+		return out, errors.Wrap(err, "get gateway active/inactive count error")
+	}
+
+	return out, nil
 }

@@ -2,19 +2,19 @@ package storage
 
 import (
 	"context"
+	"strings"
 	"time"
 
-	"github.com/brocaar/lorawan"
 	uuid "github.com/gofrs/uuid"
-
-	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
-	"github.com/brocaar/chirpstack-application-server/internal/config"
-	"github.com/brocaar/chirpstack-application-server/internal/logging"
-	"github.com/brocaar/chirpstack-api/go/ns"
-
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
+	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
+	"github.com/brocaar/chirpstack-application-server/internal/config"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	"github.com/brocaar/lorawan"
 )
 
 // NetworkServer defines the information to connect to a network-server.
@@ -38,6 +38,10 @@ type NetworkServer struct {
 
 // Validate validates the network-server data.
 func (ns NetworkServer) Validate() error {
+	if strings.TrimSpace(ns.Name) == "" || len(ns.Name) > 100 {
+		return ErrNetworkServerInvalidName
+	}
+
 	if ns.GatewayDiscoveryEnabled && ns.GatewayDiscoveryInterval <= 0 {
 		return ErrInvalidGatewayDiscoveryInterval
 	}
@@ -261,80 +265,74 @@ func DeleteNetworkServer(ctx context.Context, db sqlx.Ext, id int64) error {
 	return nil
 }
 
-// GetNetworkServerCount returns the total number of network-servers.
-func GetNetworkServerCount(ctx context.Context, db sqlx.Queryer) (int, error) {
-	var count int
-	err := sqlx.Get(db, &count, "select count(*) from network_server")
-	if err != nil {
-		return 0, handlePSQLError(Select, err, "select error")
-	}
+// NetworkServerFilters provides filters for filtering network-servers.
+type NetworkServerFilters struct {
+	OrganizationID int64 `db:"organization_id"`
 
-	return count, nil
+	// Limit and Offset are added for convenience so that this struct can
+	// be given as the arguments.
+	Limit  int `db:"limit"`
+	Offset int `db:"offset"`
 }
 
-// GetNetworkServerCountForOrganizationID returns the total number of
-// network-servers accessible for the given organization id.
-// A network-server is accessible for an organization when it is used by one
-// of its service-profiles.
-func GetNetworkServerCountForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64) (int, error) {
-	var count int
-	err := sqlx.Get(db, &count, `
+// SQL returns the SQL filters.
+func (f NetworkServerFilters) SQL() string {
+	var filters []string
+
+	if f.OrganizationID != 0 {
+		filters = append(filters, "sp.organization_id = :organization_id")
+	}
+
+	if len(filters) == 0 {
+		return ""
+	}
+
+	return "where " + strings.Join(filters, " and ")
+}
+
+// GetNetworkServerCount returns the total number of network-servers.
+func GetNetworkServerCount(ctx context.Context, db sqlx.Queryer, filters NetworkServerFilters) (int, error) {
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
-			count (distinct ns.id)
+			count(distinct ns.id)
 		from
 			network_server ns
-		inner join service_profile sp
-			on sp.network_server_id = ns.id
-		where
-			sp.organization_id = $1`,
-		organizationID,
-	)
+		left join service_profile sp
+			on ns.id = sp.network_server_id
+	`+filters.SQL(), filters)
+	if err != nil {
+		return 0, errors.Wrap(err, "named query error")
+	}
+
+	var count int
+	err = sqlx.Get(db, &count, query, args...)
 	if err != nil {
 		return 0, handlePSQLError(Select, err, "select error")
 	}
+
 	return count, nil
 }
 
 // GetNetworkServers returns a slice of network-servers.
-func GetNetworkServers(ctx context.Context, db sqlx.Queryer, limit, offset int) ([]NetworkServer, error) {
-	var nss []NetworkServer
-	err := sqlx.Select(db, &nss, `
-		select *
-		from network_server
-		order by name
-		limit $1 offset $2`,
-		limit,
-		offset,
-	)
-	if err != nil {
-		return nil, handlePSQLError(Select, err, "select error")
-	}
-
-	return nss, nil
-}
-
-// GetNetworkServersForOrganizationID returns a slice of network-server
-// accessible for the given organization id.
-// A network-server is accessible for an organization when it is used by one
-// of its service-profiles.
-func GetNetworkServersForOrganizationID(ctx context.Context, db sqlx.Queryer, organizationID int64, limit, offset int) ([]NetworkServer, error) {
-	var nss []NetworkServer
-	err := sqlx.Select(db, &nss, `
+func GetNetworkServers(ctx context.Context, db sqlx.Queryer, filters NetworkServerFilters) ([]NetworkServer, error) {
+	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 		select
-			ns.*
+			distinct ns.*
 		from
 			network_server ns
-		inner join service_profile sp
-			on sp.network_server_id = ns.id
-		where
-			sp.organization_id = $1
-		group by ns.id
-		order by name
-		limit $2 offset $3`,
-		organizationID,
-		limit,
-		offset,
-	)
+		left join service_profile sp
+			on ns.id = sp.network_server_id
+	`+filters.SQL()+`
+		order by ns.name
+		limit :limit
+		offset :offset
+	`, filters)
+	if err != nil {
+		return nil, errors.Wrap(err, "named query error")
+	}
+
+	var nss []NetworkServer
+	err = sqlx.Select(db, &nss, query, args...)
 	if err != nil {
 		return nil, handlePSQLError(Select, err, "select error")
 	}
@@ -458,10 +456,34 @@ func GetNetworkServerForMulticastGroupID(ctx context.Context, db sqlx.Queryer, i
 			network_server ns
 		inner join service_profile sp
 			on sp.network_server_id = ns.id
+		inner join application a
+			on a.service_profile_id = sp.service_profile_id
 		inner join multicast_group mg
-			on mg.service_profile_id = sp.service_profile_id
+			on mg.application_id = a.id
 		where
 			mg.id = $1
+	`, id)
+	if err != nil {
+		return n, handlePSQLError(Select, err, "select error")
+	}
+	return n, nil
+}
+
+// GetNetworkServerForApplicationID returns the network-server for the given
+// application ID.
+func GetNetworkServerForApplicationID(ctx context.Context, db sqlx.Queryer, id int64) (NetworkServer, error) {
+	var n NetworkServer
+	err := sqlx.Get(db, &n, `
+		select
+			ns.*
+		from
+			network_server ns
+		inner join service_profile sp
+			on sp.network_server_id = ns.id
+		inner join application a
+			on a.service_profile_id = sp.service_profile_id
+		where
+			a.id = $1
 	`, id)
 	if err != nil {
 		return n, handlePSQLError(Select, err, "select error")

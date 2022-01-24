@@ -9,7 +9,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/brocaar/chirpstack-api/go/as/external/api"
+	pb "github.com/brocaar/chirpstack-api/go/v3/as/external/api"
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
@@ -28,6 +29,13 @@ func (ts *APITestSuite) TestNetworkServer() {
 		Name: "test-org",
 	}
 	assert.NoError(storage.CreateOrganization(context.Background(), storage.DB(), &org))
+
+	adminUser := storage.User{
+		Email:    "admin@user.com",
+		IsActive: true,
+		IsAdmin:  true,
+	}
+	assert.NoError(storage.CreateUser(context.Background(), storage.DB(), &adminUser))
 
 	ts.T().Run("Create", func(t *testing.T) {
 		assert := require.New(t)
@@ -82,22 +90,9 @@ func (ts *APITestSuite) TestNetworkServer() {
 			assert.Equal("RPTLSKEY", n.RoutingProfileTLSKey)
 		})
 
-		t.Run("List as non-admin", func(t *testing.T) {
+		t.Run("List", func(t *testing.T) {
 			assert := require.New(t)
-
-			listResp, err := api.List(context.Background(), &pb.ListNetworkServerRequest{
-				Limit:  10,
-				Offset: 0,
-			})
-			assert.NoError(err)
-
-			assert.EqualValues(0, listResp.TotalCount, 0)
-			assert.Len(listResp.Result, 0)
-		})
-
-		t.Run("List as admin", func(t *testing.T) {
-			assert := require.New(t)
-			validator.returnIsAdmin = true
+			validator.returnUser = adminUser
 
 			listResp, err := api.List(context.Background(), &pb.ListNetworkServerRequest{
 				Limit:  10,
@@ -202,6 +197,32 @@ func (ts *APITestSuite) TestNetworkServer() {
 			assert.Equal(4, n.GatewayDiscoveryDR)
 		})
 
+		t.Run("GetADRAlgorithms", func(t *testing.T) {
+			assert := require.New(t)
+
+			nsClient.GetADRAlgorithmsResponse = ns.GetADRAlgorithmsResponse{
+				AdrAlgorithms: []*ns.ADRAlgorithm{
+					{
+						Id:   "default",
+						Name: "Default ADR algorithm",
+					},
+				},
+			}
+
+			resp, err := api.GetADRAlgorithms(context.Background(), &pb.GetADRAlgorithmsRequest{
+				NetworkServerId: resp.Id,
+			})
+			assert.NoError(err)
+			assert.Equal(&pb.GetADRAlgorithmsResponse{
+				AdrAlgorithms: []*pb.ADRAlgorithm{
+					{
+						Id:   "default",
+						Name: "Default ADR algorithm",
+					},
+				},
+			}, resp)
+		})
+
 		t.Run("Delete", func(t *testing.T) {
 			assert := require.New(t)
 
@@ -216,4 +237,5 @@ func (ts *APITestSuite) TestNetworkServer() {
 			assert.Equal(codes.NotFound, grpc.Code(err))
 		})
 	})
+
 }

@@ -22,7 +22,10 @@ class ListNetworkServers extends Component {
 
   getRow(obj) {
     return(
-      <TableRow key={obj.id}>
+      <TableRow
+        key={obj.id}
+        hover
+      >
         <TableCellLink to={`/network-servers/${obj.id}`}>{obj.name}</TableCellLink>
         <TableCell>{obj.server}</TableCell>
       </TableRow>

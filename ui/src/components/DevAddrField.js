@@ -18,7 +18,9 @@ class DevAddrMask extends Component {
     return(
       <MaskedInput
         {...other}
-        ref={inputRef}
+        ref={(ref) => {
+          inputRef(ref ? ref.inputElement : null);
+        }}
         mask={[
           /[A-Fa-f0-9]/,
           /[A-Fa-f0-9]/,
@@ -95,9 +97,7 @@ class DevAddrField extends Component {
       str = bytes.reverse().join("");
     } else if (bytes !== null) {
       str = bytes.join("");
-    } else {
-      str = "";
-    }
+    } 
 
     this.props.onChange({
       target: {

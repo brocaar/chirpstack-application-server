@@ -2,17 +2,19 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/proto"
+	"github.com/lib/pq/hstore"
 	"github.com/stretchr/testify/require"
 
+	"github.com/brocaar/chirpstack-api/go/v3/ns"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver"
 	"github.com/brocaar/chirpstack-application-server/internal/backend/networkserver/mock"
-	"github.com/brocaar/chirpstack-api/go/ns"
-	"github.com/brocaar/lorawan/backend"
+	"github.com/brocaar/lorawan/band"
 )
 
 func TestDeviceProfileValidate(t *testing.T) {
@@ -28,6 +30,17 @@ func TestDeviceProfileValidate(t *testing.T) {
 		{
 			DeviceProfile: DeviceProfile{
 				Name: "",
+			},
+			Error: ErrDeviceProfileInvalidName,
+		},
+		{
+			DeviceProfile: DeviceProfile{
+				Name: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			},
+		},
+		{
+			DeviceProfile: DeviceProfile{
+				Name: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 			},
 			Error: ErrDeviceProfileInvalidName,
 		},
@@ -52,14 +65,13 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 	assert.NoError(CreateOrganization(context.Background(), ts.Tx(), &org))
 
 	u := User{
-		Username: "testuser",
 		IsAdmin:  false,
 		IsActive: true,
 		Email:    "foo@bar.com",
 	}
-	uID, err := CreateUser(context.Background(), ts.Tx(), &u, "testpassword")
+	err := CreateUser(context.Background(), ts.Tx(), &u)
 	assert.NoError(err)
-	assert.NoError(CreateOrganizationUser(context.Background(), ts.Tx(), org.ID, uID, false, false, false))
+	assert.NoError(CreateOrganizationUser(context.Background(), ts.Tx(), org.ID, u.ID, false, false, false))
 
 	n := NetworkServer{
 		Name:   "test-ns",
@@ -77,6 +89,12 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 			PayloadCodec:         "CUSTOM_JS",
 			PayloadEncoderScript: "Encode() {}",
 			PayloadDecoderScript: "Decode() {}",
+			Tags: hstore.Hstore{
+				Map: map[string]sql.NullString{
+					"foo": sql.NullString{Valid: true, String: "bar"},
+				},
+			},
+			UplinkInterval: 10 * time.Minute,
 			DeviceProfile: ns.DeviceProfile{
 				SupportsClassB:     true,
 				ClassBTimeout:      10,
@@ -95,7 +113,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 				MaxEirp:            14,
 				MaxDutyCycle:       10,
 				SupportsJoin:       true,
-				RfRegion:           string(backend.EU868),
+				RfRegion:           string(band.EU868),
 				Supports_32BitFCnt: true,
 			},
 		}
@@ -123,14 +141,16 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 			assert.Equal(dp, dpGet)
 		})
 
-		t.Run("GetDeviceProfiles", func(t *testing.T) {
+		t.Run("Get all", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetDeviceProfileCount(context.Background(), ts.Tx())
+			count, err := GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{})
 			assert.NoError(err)
 			assert.Equal(1, count)
 
-			dps, err := GetDeviceProfiles(context.Background(), ts.Tx(), 10, 0)
+			dps, err := GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
+				Limit: 10,
+			})
 			assert.NoError(err)
 			assert.Len(dps, 1)
 			assert.Equal(dp.Name, dps[0].Name)
@@ -139,42 +159,62 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 			assert.Equal(dpID, dps[0].DeviceProfileID)
 		})
 
-		t.Run("GetDeviceProfilesForOrganizationID", func(t *testing.T) {
+		t.Run("Get for organization ID", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetDeviceProfileCountForOrganizationID(context.Background(), ts.Tx(), org.ID)
+			count, err := GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
+				OrganizationID: org.ID,
+			})
 			assert.NoError(err)
 			assert.Equal(1, count)
 
-			count, err = GetDeviceProfileCountForOrganizationID(context.Background(), ts.Tx(), org.ID+1)
+			count, err = GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
+				OrganizationID: org.ID + 1,
+			})
 			assert.NoError(err)
 			assert.Equal(0, count)
 
-			dps, err := GetDeviceProfilesForOrganizationID(context.Background(), ts.Tx(), org.ID, 10, 0)
+			dps, err := GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
+				OrganizationID: org.ID,
+				Limit:          10,
+			})
 			assert.NoError(err)
 			assert.Len(dps, 1)
 
-			dps, err = GetDeviceProfilesForOrganizationID(context.Background(), ts.Tx(), org.ID+1, 10, 0)
+			dps, err = GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
+				OrganizationID: org.ID + 1,
+				Limit:          10,
+			})
 			assert.NoError(err)
 			assert.Len(dps, 0)
 		})
 
-		t.Run("GetDeviceProfilesForUser", func(t *testing.T) {
+		t.Run("Get for username", func(t *testing.T) {
 			assert := require.New(t)
 
-			count, err := GetDeviceProfileCountForUser(context.Background(), ts.Tx(), u.Username)
+			count, err := GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
+				UserID: u.ID,
+			})
 			assert.NoError(err)
 			assert.Equal(1, count)
 
-			count, err = GetDeviceProfileCountForUser(context.Background(), ts.Tx(), "fakeuser")
+			count, err = GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
+				UserID: u.ID + 999,
+			})
 			assert.NoError(err)
 			assert.Equal(0, count)
 
-			dps, err := GetDeviceProfilesForUser(context.Background(), ts.Tx(), u.Username, 10, 0)
+			dps, err := GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
+				UserID: u.ID,
+				Limit:  10,
+			})
 			assert.NoError(err)
 			assert.Len(dps, 1)
 
-			dps, err = GetDeviceProfilesForUser(context.Background(), ts.Tx(), "fakeuser", 10, 0)
+			dps, err = GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
+				UserID: u.ID + 999,
+				Limit:  10,
+			})
 			assert.NoError(err)
 			assert.Len(dps, 0)
 		})
@@ -222,23 +262,33 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 			}
 			assert.NoError(CreateApplication(context.Background(), ts.Tx(), &app2))
 
-			t.Run("GetDeviceProfilesForApplicationID", func(t *testing.T) {
+			t.Run("Get for application ID", func(t *testing.T) {
 				assert := require.New(t)
 
-				count, err := GetDeviceProfileCountForApplicationID(context.Background(), ts.Tx(), app1.ID)
+				count, err := GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
+					ApplicationID: app1.ID,
+				})
 				assert.NoError(err)
 				assert.Equal(1, count)
 
-				count, err = GetDeviceProfileCountForApplicationID(context.Background(), ts.Tx(), app2.ID)
+				count, err = GetDeviceProfileCount(context.Background(), ts.Tx(), DeviceProfileFilters{
+					ApplicationID: app2.ID,
+				})
 				assert.NoError(err)
 				assert.Equal(0, count)
 
-				dps, err := GetDeviceProfilesForApplicationID(context.Background(), ts.Tx(), app1.ID, 10, 0)
+				dps, err := GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
+					ApplicationID: app1.ID,
+					Limit:         10,
+				})
 				assert.NoError(err)
 				assert.Len(dps, 1)
 				assert.Equal(dpID, dps[0].DeviceProfileID)
 
-				dps, err = GetDeviceProfilesForApplicationID(context.Background(), ts.Tx(), app2.ID, 10, 0)
+				dps, err = GetDeviceProfiles(context.Background(), ts.Tx(), DeviceProfileFilters{
+					ApplicationID: app2.ID,
+					Limit:         10,
+				})
 				assert.NoError(err)
 				assert.Len(dps, 0)
 			})
@@ -248,6 +298,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 			assert := require.New(t)
 
 			dp.Name = "updated-device-profile"
+			dp.UplinkInterval = 20 * time.Minute
 			dp.DeviceProfile = ns.DeviceProfile{
 				Id:                 dp.DeviceProfile.Id,
 				SupportsClassB:     true,
@@ -267,7 +318,7 @@ func (ts *StorageTestSuite) TestDeviceProfile() {
 				MaxEirp:            17,
 				MaxDutyCycle:       1,
 				SupportsJoin:       true,
-				RfRegion:           string(backend.EU868),
+				RfRegion:           string(band.EU868),
 				Supports_32BitFCnt: true,
 			}
 			assert.NoError(UpdateDeviceProfile(context.Background(), ts.Tx(), &dp))

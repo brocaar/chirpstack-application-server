@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -60,8 +62,13 @@ func (c *Client) apiRequest(ctx context.Context, endpoint string, v, resp interf
 
 	reqCtx, cancel := context.WithTimeout(ctx, c.requestTimeout)
 	defer cancel()
-
 	req = req.WithContext(reqCtx)
+
+	log.WithFields(log.Fields{
+		"ctx_id":   ctx.Value(logging.ContextIDKey),
+		"endpoint": endpoint,
+	}).Debug("integration/das/das: making API request")
+
 	httpResp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return errors.Wrap(err, "http request error")

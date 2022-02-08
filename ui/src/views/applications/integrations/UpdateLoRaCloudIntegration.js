@@ -41,7 +41,7 @@ class UpdateLoRaCloudIntegration extends Component {
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Card>
-            <CardHeader title="Update Semtech LoRa Cloud integration" />
+            <CardHeader title="Update Semtech LoRa Cloud&trade; integration" />
             <CardContent>
               <LoRaCloudIntegrationForm submitLabel="Update integration" onSubmit={this.onSubmit} object={this.state.object} />
             </CardContent>

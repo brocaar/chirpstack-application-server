@@ -4,9 +4,8 @@ import RobustWebSocket from "robust-websocket";
 import Swagger from "swagger-client";
 
 import sessionStore from "./SessionStore";
-import {checkStatus, errorHandler, errorHandlerIgnoreNotFoundWithCallback } from "./helpers";
+import { checkStatus, errorHandler, errorHandlerIgnoreNotFoundWithCallback } from "./helpers";
 import dispatcher from "../dispatcher";
-
 
 class DeviceStore extends EventEmitter {
   constructor() {
@@ -25,187 +24,200 @@ class DeviceStore extends EventEmitter {
   }
 
   create(device, callbackFunc) {
-    this.swagger.then(client => {
+    this.swagger.then((client) => {
       client.apis.DeviceService.Create({
         body: {
           device: device,
         },
       })
-      .then(checkStatus)
-      .then(resp => {
-        this.notify("created");
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandler);
+        .then(checkStatus)
+        .then((resp) => {
+          this.notify("created");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
     });
   }
 
   get(id, callbackFunc) {
-    this.swagger.then(client => {
+    this.swagger.then((client) => {
       client.apis.DeviceService.Get({
         dev_eui: id,
       })
-      .then(checkStatus)
-      .then(resp => {
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandler);
+        .then(checkStatus)
+        .then((resp) => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
     });
   }
 
   update(device, callbackFunc) {
-    this.swagger.then(client => {
+    this.swagger.then((client) => {
       client.apis.DeviceService.Update({
         "device.dev_eui": device.devEUI,
         body: {
           device: device,
         },
       })
-      .then(checkStatus)
-      .then(resp => {
-        this.emit("update");
-        this.notify("updated");
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandler);
+        .then(checkStatus)
+        .then((resp) => {
+          this.emit("update");
+          this.notify("updated");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
     });
-
   }
 
   delete(id, callbackFunc) {
-    this.swagger.then(client => {
+    this.swagger.then((client) => {
       client.apis.DeviceService.Delete({
         dev_eui: id,
       })
-      .then(checkStatus)
-      .then(resp => {
-        this.notify("deleted");
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandler);
+        .then(checkStatus)
+        .then((resp) => {
+          this.notify("deleted");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
     });
   }
 
   list(filters, callbackFunc) {
-    this.swagger.then(client => {
+    this.swagger.then((client) => {
       client.apis.DeviceService.List(filters)
-      .then(checkStatus)
-      .then(resp => {
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandler);
+        .then(checkStatus)
+        .then((resp) => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
     });
   }
 
   getKeys(devEUI, callbackFunc) {
-    this.swagger.then(client => {
+    this.swagger.then((client) => {
       client.apis.DeviceService.GetKeys({
         dev_eui: devEUI,
       })
-      .then(checkStatus)
-      .then(resp => {
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandlerIgnoreNotFoundWithCallback(callbackFunc));
+        .then(checkStatus)
+        .then((resp) => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandlerIgnoreNotFoundWithCallback(callbackFunc));
     });
   }
 
   createKeys(deviceKeys, callbackFunc) {
-    this.swagger.then(client => {
+    this.swagger.then((client) => {
       client.apis.DeviceService.CreateKeys({
         "device_keys.dev_eui": deviceKeys.devEUI,
         body: {
           deviceKeys: deviceKeys,
         },
       })
-      .then(checkStatus)
-      .then(resp => {
-        this.notifyKeys("created");
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandler);
+        .then(checkStatus)
+        .then((resp) => {
+          this.notifyKeys("created");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
     });
   }
 
   updateKeys(deviceKeys, callbackFunc) {
-    this.swagger.then(client => {
+    this.swagger.then((client) => {
       client.apis.DeviceService.UpdateKeys({
         "device_keys.dev_eui": deviceKeys.devEUI,
         body: {
           deviceKeys: deviceKeys,
         },
       })
-      .then(checkStatus)
-      .then(resp => {
-        this.notifyKeys("updated");
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandler);
+        .then(checkStatus)
+        .then((resp) => {
+          this.notifyKeys("updated");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
     });
   }
 
   getActivation(devEUI, callbackFunc) {
-    this.swagger.then(client => {
+    this.swagger.then((client) => {
       client.apis.DeviceService.GetActivation({
-        "dev_eui": devEUI,
+        dev_eui: devEUI,
       })
-      .then(checkStatus)
-      .then(resp => {
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandlerIgnoreNotFoundWithCallback(callbackFunc));
+        .then(checkStatus)
+        .then((resp) => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandlerIgnoreNotFoundWithCallback(callbackFunc));
     });
   }
 
   activate(deviceActivation, callbackFunc) {
-    this.swagger.then(client => {
+    this.swagger.then((client) => {
       client.apis.DeviceService.Activate({
         "device_activation.dev_eui": deviceActivation.devEUI,
         body: {
           deviceActivation: deviceActivation,
         },
       })
-      .then(checkStatus)
-      .then(resp => {
-        dispatcher.dispatch({
-          type: "CREATE_NOTIFICATION",
-          notification: {
-            type: "success",
-            message: "device has been (re)activated",
-          },
-        });
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandler);
+        .then(checkStatus)
+        .then((resp) => {
+          dispatcher.dispatch({
+            type: "CREATE_NOTIFICATION",
+            notification: {
+              type: "success",
+              message: "device has been (re)activated",
+            },
+          });
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
     });
   }
 
   getRandomDevAddr(devEUI, callbackFunc) {
-    this.swagger.then(client => {
+    this.swagger.then((client) => {
       client.apis.DeviceService.GetRandomDevAddr({
         dev_eui: devEUI,
       })
-      .then(checkStatus)
-      .then(resp => {
-        callbackFunc(resp.obj);
-      })
-      .catch(errorHandler);
+        .then(checkStatus)
+        .then((resp) => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
     });
   }
 
   getStats(devEUI, start, end, callbackFunc) {
-    this.swagger.then(client => {
+    this.swagger.then((client) => {
       client.apis.DeviceService.GetStats({
         dev_eui: devEUI,
         interval: "DAY",
         startTimestamp: start,
         endTimestamp: end,
       })
-      .then(checkStatus)
-      .then(resp => {
-        callbackFunc(resp.obj);
+        .then(checkStatus)
+        .then((resp) => {
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
+    });
+  }
+
+  clearDevNonces(id, callbackFunc) {
+    this.swagger.then((client) => {
+      client.apis.DeviceService.ClearDeviceNonces({
+        dev_eui: id,
       })
-      .catch(errorHandler);
+        .then(checkStatus)
+        .then((resp) => {
+          this.notifyMsg("device devNonce deleted");
+          callbackFunc(resp.obj);
+        })
+        .catch(errorHandler);
     });
   }
 
@@ -223,7 +235,7 @@ class DeviceStore extends EventEmitter {
     const conn = new RobustWebSocket(wsURL, ["Bearer", sessionStore.getToken()], {});
 
     conn.addEventListener("open", () => {
-      console.log('connected to', wsURL);
+      console.log("connected to", wsURL);
       this.wsDataStatus = "CONNECTED";
       this.emit("ws.status.change");
     });
@@ -244,7 +256,7 @@ class DeviceStore extends EventEmitter {
     });
 
     conn.addEventListener("close", () => {
-      console.log('closing', wsURL);
+      console.log("closing", wsURL);
       this.wsDataStatus = null;
       this.emit("ws.status.change");
     });
@@ -272,7 +284,7 @@ class DeviceStore extends EventEmitter {
     const conn = new RobustWebSocket(wsURL, ["Bearer", sessionStore.getToken()], {});
 
     conn.addEventListener("open", () => {
-      console.log('connected to', wsURL);
+      console.log("connected to", wsURL);
       this.wsFramesStatus = "CONNECTED";
       this.emit("ws.status.change");
     });
@@ -293,7 +305,7 @@ class DeviceStore extends EventEmitter {
     });
 
     conn.addEventListener("close", () => {
-      console.log('closing', wsURL);
+      console.log("closing", wsURL);
       this.wsFramesStatus = null;
       this.emit("ws.status.change");
     });
@@ -323,6 +335,16 @@ class DeviceStore extends EventEmitter {
       notification: {
         type: "success",
         message: "device-keys have been " + action,
+      },
+    });
+  }
+
+  notifyMsg(action) {
+    dispatcher.dispatch({
+      type: "CREATE_NOTIFICATION",
+      notification: {
+        type: "success",
+        message: action,
       },
     });
   }

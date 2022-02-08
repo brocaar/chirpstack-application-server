@@ -967,6 +967,42 @@ func (a *DeviceAPI) GetStats(ctx context.Context, req *pb.GetDeviceStatsRequest)
 	}, nil
 }
 
+// ClearDeviceNonces deletes the device older activation records for the given DevEUI.
+// TODO: These are clear older DevNonce records from device activation records in Network Server
+// TODO: These clears all DevNonce records but keeps latest 20 records for maintain device activation status
+func (a *DeviceAPI) ClearDeviceNonces(ctx context.Context, req *pb.ClearDeviceNoncesRequest) (*empty.Empty, error) {
+	var eui lorawan.EUI64
+	if err := eui.UnmarshalText([]byte(req.DevEui)); err != nil {
+		return nil, grpc.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	if err := a.validator.Validate(ctx,
+		auth.ValidateNodeAccess(eui, auth.Update)); err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "authentication failed: %s", err)
+	}
+
+	d, err := storage.GetDevice(ctx, storage.DB(), eui, false, true)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	n, err := storage.GetNetworkServerForDevEUI(ctx, storage.DB(), d.DevEUI)
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	if err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	_, _ = nsClient.ClearDeviceNonces(ctx, &ns.ClearDeviceNoncesRequest{
+		DevEui: d.DevEUI[:],
+	})
+
+	return &empty.Empty{}, nil
+}
+
 func (a *DeviceAPI) returnList(count int, devices []storage.DeviceListItem) (*pb.ListDeviceResponse, error) {
 	resp := pb.ListDeviceResponse{
 		TotalCount: int64(count),

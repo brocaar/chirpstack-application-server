@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
@@ -61,9 +62,25 @@ type Integration struct {
 func New(conf Config) (*Integration, error) {
 	return &Integration{
 		config:         conf,
-		geolocationURI: "https://gls.loracloud.com",
-		dasURI:         "https://das.loracloud.com",
+		geolocationURI: os.Getenv("LORACLOUD_GEOLOCATION_URI"), // for testing
+		dasURI:         os.Getenv("LORACLOUD_DAS_URI"),         // for testing
 	}, nil
+}
+
+func (i *Integration) getGeolocationURI() string {
+	// for testing
+	if i.geolocationURI != "" {
+		return i.geolocationURI
+	}
+	return "https://gls.loracloud.com"
+}
+
+func (i *Integration) getDasURI() string {
+	// for testing
+	if i.dasURI != "" {
+		return i.dasURI
+	}
+	return "https://das.loracloud.com"
 }
 
 // HandleUplinkEvent handles the Uplinkevent.
@@ -72,46 +89,44 @@ func (i *Integration) HandleUplinkEvent(ctx context.Context, ii models.Integrati
 	copy(devEUI[:], pl.DevEui)
 
 	// handle geolocation
-	if i.config.Geolocation {
-		err := func() error {
-			// update and get geoloc buffer
-			geolocBuffer, err := i.updateGeolocBuffer(ctx, devEUI, pl)
-			if err != nil {
-				return errors.Wrap(err, "update geolocation buffer error")
-			}
-
-			// do geolocation
-			uplinkIDs, loc, err := i.geolocation(ctx, devEUI, geolocBuffer, pl)
-			if err != nil {
-				return errors.Wrap(err, "geolocation error")
-			}
-
-			// if it resolved to a location, send it to integrations
-			if loc != nil {
-				var fCnt uint32
-				if len(uplinkIDs) == 0 {
-					fCnt = pl.FCnt
-				}
-				if err := ii.HandleLocationEvent(ctx, vars, pb.LocationEvent{
-					ApplicationId:   pl.ApplicationId,
-					ApplicationName: pl.ApplicationName,
-					DeviceName:      pl.DeviceName,
-					DevEui:          pl.DevEui,
-					Tags:            pl.Tags,
-					Location:        loc,
-					UplinkIds:       uplinkIDs,
-					FCnt:            fCnt,
-					PublishedAt:     ptypes.TimestampNow(),
-				}); err != nil {
-					return errors.Wrap(err, "handle location event error")
-				}
-			}
-
-			return nil
-		}()
+	err := func() error {
+		// update and get geoloc buffer
+		geolocBuffer, err := i.updateGeolocBuffer(ctx, devEUI, pl)
 		if err != nil {
-			log.WithError(err).Error("integration/loracloud: geolocation error")
+			return errors.Wrap(err, "update geolocation buffer error")
 		}
+
+		// do geolocation
+		uplinkIDs, loc, err := i.geolocation(ctx, devEUI, geolocBuffer, pl)
+		if err != nil {
+			return errors.Wrap(err, "geolocation error")
+		}
+
+		// if it resolved to a location, send it to integrations
+		if loc != nil {
+			var fCnt uint32
+			if len(uplinkIDs) == 0 {
+				fCnt = pl.FCnt
+			}
+			if err := ii.HandleLocationEvent(ctx, vars, pb.LocationEvent{
+				ApplicationId:   pl.ApplicationId,
+				ApplicationName: pl.ApplicationName,
+				DeviceName:      pl.DeviceName,
+				DevEui:          pl.DevEui,
+				Tags:            pl.Tags,
+				Location:        loc,
+				UplinkIds:       uplinkIDs,
+				FCnt:            fCnt,
+				PublishedAt:     ptypes.TimestampNow(),
+			}); err != nil {
+				return errors.Wrap(err, "handle location event error")
+			}
+		}
+
+		return nil
+	}()
+	if err != nil {
+		log.WithError(err).Error("integration/loracloud: geolocation error")
 	}
 
 	// handle das
@@ -200,23 +215,20 @@ func (i *Integration) Close() error {
 }
 
 func (i *Integration) updateGeolocBuffer(ctx context.Context, devEUI lorawan.EUI64, pl pb.UplinkEvent) ([][]*gw.UplinkRXInfo, error) {
+	// Do not trigger geolocation if there are less than 3 gateways.
+	if len(pl.RxInfo) < 3 {
+		return nil, nil
+	}
+
 	// read the geoloc buffer
 	geolocBuffer, err := GetGeolocBuffer(ctx, devEUI, time.Duration(i.config.GeolocationBufferTTL)*time.Second)
 	if err != nil {
 		return nil, errors.Wrap(err, "get geoloc buffer error")
 	}
+	geolocBuffer = append(geolocBuffer, pl.RxInfo)
 
-	// if the uplink was received by at least 3 gateways, append the metadata
-	// to the buffer
-	if len(pl.RxInfo) >= 3 {
-		geolocBuffer = append(geolocBuffer, pl.RxInfo)
-	}
-
-	// Save the buffer when there are > 0 items.
-	if len(geolocBuffer) != 0 {
-		if err := SaveGeolocBuffer(ctx, devEUI, geolocBuffer, time.Duration(i.config.GeolocationBufferTTL)*time.Second); err != nil {
-			return nil, errors.Wrap(err, "save geoloc buffer error")
-		}
+	if err := SaveGeolocBuffer(ctx, devEUI, geolocBuffer, time.Duration(i.config.GeolocationBufferTTL)*time.Second); err != nil {
+		return nil, errors.Wrap(err, "save geoloc buffer error")
 	}
 
 	return geolocBuffer, nil
@@ -313,7 +325,14 @@ func (i *Integration) geolocation(ctx context.Context, devEUI lorawan.EUI64, geo
 }
 
 func (i *Integration) tdoaGeolocation(ctx context.Context, devEUI lorawan.EUI64, geolocBuffer [][]*gw.UplinkRXInfo) (*common.Location, error) {
-	client := geolocation.New(i.geolocationURI, i.config.GeolocationToken)
+	token := i.config.GeolocationToken
+	migrated := false
+	if i.config.DASToken != "" {
+		token = i.config.DASToken
+		migrated = true
+	}
+
+	client := geolocation.New(migrated, i.getGeolocationURI(), token)
 	start := time.Now()
 
 	var loc common.Location
@@ -342,7 +361,14 @@ func (i *Integration) tdoaGeolocation(ctx context.Context, devEUI lorawan.EUI64,
 }
 
 func (i *Integration) rssiGeolocation(ctx context.Context, devEUI lorawan.EUI64, geolocBuffer [][]*gw.UplinkRXInfo) (*common.Location, error) {
-	client := geolocation.New(i.geolocationURI, i.config.GeolocationToken)
+	token := i.config.GeolocationToken
+	migrated := false
+	if i.config.DASToken != "" {
+		token = i.config.DASToken
+		migrated = true
+	}
+
+	client := geolocation.New(migrated, i.getGeolocationURI(), token)
 	start := time.Now()
 
 	var loc common.Location
@@ -372,7 +398,14 @@ func (i *Integration) rssiGeolocation(ctx context.Context, devEUI lorawan.EUI64,
 }
 
 func (i *Integration) gnssLR1110Geolocation(ctx context.Context, devEUI lorawan.EUI64, rxInfo []*gw.UplinkRXInfo, pl []byte) (*common.Location, error) {
-	client := geolocation.New(i.geolocationURI, i.config.GeolocationToken)
+	token := i.config.GeolocationToken
+	migrated := false
+	if i.config.DASToken != "" {
+		token = i.config.DASToken
+		migrated = true
+	}
+
+	client := geolocation.New(migrated, i.getGeolocationURI(), token)
 	start := time.Now()
 
 	loc, err := client.GNSSLR1110SingleFrame(ctx, rxInfo, i.config.GeolocationGNSSUseRxTime, pl)
@@ -390,7 +423,14 @@ func (i *Integration) gnssLR1110Geolocation(ctx context.Context, devEUI lorawan.
 }
 
 func (i *Integration) wifiTDOAGeolocation(ctx context.Context, devEUI lorawan.EUI64, rxInfo []*gw.UplinkRXInfo, aps []geolocation.WifiAccessPoint) (*common.Location, error) {
-	client := geolocation.New(i.geolocationURI, i.config.GeolocationToken)
+	token := i.config.GeolocationToken
+	migrated := false
+	if i.config.DASToken != "" {
+		token = i.config.DASToken
+		migrated = true
+	}
+
+	client := geolocation.New(migrated, i.getGeolocationURI(), token)
 	start := time.Now()
 
 	loc, err := client.WifiTDOASingleFrame(ctx, rxInfo, aps)
@@ -413,7 +453,7 @@ func (i *Integration) dasJoin(ctx context.Context, devEUI lorawan.EUI64, pl pb.J
 		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/das: forwarding join notification")
 
-	client := das.New(i.dasURI, i.config.DASToken)
+	client := das.New(i.getDasURI(), i.config.DASToken)
 	start := time.Now()
 
 	_, err := client.UplinkSend(ctx, das.UplinkRequest{
@@ -439,7 +479,7 @@ func (i *Integration) dasModem(ctx context.Context, vars map[string]string, devE
 		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/loracloud: forwarding das modem message")
 
-	client := das.New(i.dasURI, i.config.DASToken)
+	client := das.New(i.getDasURI(), i.config.DASToken)
 	start := time.Now()
 
 	resp, err := client.UplinkSend(ctx, das.UplinkRequest{
@@ -472,7 +512,7 @@ func (i *Integration) dasGNSS(ctx context.Context, vars map[string]string, devEU
 		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/loracloud: forwarding das gnss message")
 
-	client := das.New(i.dasURI, i.config.DASToken)
+	client := das.New(i.getDasURI(), i.config.DASToken)
 	start := time.Now()
 
 	msg := das.UplinkMsgGNSS{
@@ -523,7 +563,7 @@ func (i *Integration) dasUplinkMetaData(ctx context.Context, vars map[string]str
 		"ctx_id":  ctx.Value(logging.ContextIDKey),
 	}).Info("integration/das: forwarding uplink meta-data to das")
 
-	client := das.New(i.dasURI, i.config.DASToken)
+	client := das.New(i.getDasURI(), i.config.DASToken)
 	start := time.Now()
 
 	resp, err := client.UplinkSend(ctx, das.UplinkRequest{
@@ -698,7 +738,7 @@ func (i *Integration) streamGeolocWorkaround(ctx context.Context, vars map[strin
 					msg.GNSSAssistAltitude = loc.Altitude
 				}
 
-				client := das.New(i.dasURI, i.config.DASToken)
+				client := das.New(i.getDasURI(), i.config.DASToken)
 				resp, err := client.UplinkSend(ctx, das.UplinkRequest{
 					helpers.EUI64(devEUI): msg,
 				})
@@ -718,7 +758,7 @@ func (i *Integration) streamGeolocWorkaround(ctx context.Context, vars map[strin
 					Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
 				}
 
-				client := das.New(i.dasURI, i.config.DASToken)
+				client := das.New(i.getDasURI(), i.config.DASToken)
 				resp, err := client.UplinkSend(ctx, das.UplinkRequest{
 					helpers.EUI64(devEUI): msg,
 				})
@@ -743,7 +783,7 @@ func (i *Integration) streamGeolocWorkaround(ctx context.Context, vars map[strin
 					Timestamp: float64(helpers.GetTimestamp(pl.RxInfo).UnixNano()) / float64(time.Second),
 				}
 
-				client := das.New(i.dasURI, i.config.DASToken)
+				client := das.New(i.getDasURI(), i.config.DASToken)
 				resp, err := client.UplinkSend(ctx, das.UplinkRequest{
 					helpers.EUI64(devEUI): msg,
 				})

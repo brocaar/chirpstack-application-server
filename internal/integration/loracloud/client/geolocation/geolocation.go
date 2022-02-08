@@ -14,6 +14,8 @@ import (
 
 	"github.com/brocaar/chirpstack-api/go/v3/common"
 	"github.com/brocaar/chirpstack-api/go/v3/gw"
+	"github.com/brocaar/chirpstack-application-server/internal/logging"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -35,21 +37,27 @@ type Client struct {
 	uri            string
 	token          string
 	requestTimeout time.Duration
+	migrated       bool
 }
 
 // New creates a new Geolocation client.
-func New(uri string, token string) *Client {
+func New(migrated bool, uri string, token string) *Client {
 	return &Client{
 		uri:            uri,
 		token:          token,
 		requestTimeout: time.Second,
+		migrated:       migrated,
 	}
 }
 
 // TDOASingleFrame request.
 func (c *Client) TDOASingleFrame(ctx context.Context, rxInfo []*gw.UplinkRXInfo) (common.Location, error) {
 	req := NewTDOASingleFrameRequest(rxInfo)
-	resp, err := c.apiRequest(ctx, tdoaSingleFrameEndpoint, req)
+	endpoint := tdoaSingleFrameEndpoint
+	if c.migrated {
+		endpoint = "%s/api/v1/solve/tdoa"
+	}
+	resp, err := c.apiRequest(ctx, endpoint, req)
 	if err != nil {
 		return common.Location{}, errors.Wrap(err, "api request error")
 	}
@@ -60,7 +68,11 @@ func (c *Client) TDOASingleFrame(ctx context.Context, rxInfo []*gw.UplinkRXInfo)
 // TDOAMultiFrame request.
 func (c *Client) TDOAMultiFrame(ctx context.Context, rxInfo [][]*gw.UplinkRXInfo) (common.Location, error) {
 	req := NewTDOAMultiFrameRequest(rxInfo)
-	resp, err := c.apiRequest(ctx, tdoaMultiFrameEndpoint, req)
+	endpoint := tdoaMultiFrameEndpoint
+	if c.migrated {
+		endpoint = "%s/api/v1/solve/tdoaMultiframe"
+	}
+	resp, err := c.apiRequest(ctx, endpoint, req)
 	if err != nil {
 		return common.Location{}, errors.Wrap(err, "api request error")
 	}
@@ -71,7 +83,11 @@ func (c *Client) TDOAMultiFrame(ctx context.Context, rxInfo [][]*gw.UplinkRXInfo
 // RSSISingleFrame request.
 func (c *Client) RSSISingleFrame(ctx context.Context, rxInfo []*gw.UplinkRXInfo) (common.Location, error) {
 	req := NewRSSISingleFrameRequest(rxInfo)
-	resp, err := c.apiRequest(ctx, rssiSingleFrameEndpoint, req)
+	endpoint := rssiSingleFrameEndpoint
+	if c.migrated {
+		endpoint = "%s/api/v1/solve/rssi"
+	}
+	resp, err := c.apiRequest(ctx, endpoint, req)
 	if err != nil {
 		return common.Location{}, errors.Wrap(err, "api request error")
 	}
@@ -82,7 +98,11 @@ func (c *Client) RSSISingleFrame(ctx context.Context, rxInfo []*gw.UplinkRXInfo)
 // RSSIMultiFrame request.
 func (c *Client) RSSIMultiFrame(ctx context.Context, rxInfo [][]*gw.UplinkRXInfo) (common.Location, error) {
 	req := NewRSSIMultiFrameRequest(rxInfo)
-	resp, err := c.apiRequest(ctx, rssiMultiFrameEndpoint, req)
+	endpoint := rssiMultiFrameEndpoint
+	if c.migrated {
+		endpoint = "%s/api/v1/solve/rssiMultiframe"
+	}
+	resp, err := c.apiRequest(ctx, endpoint, req)
 	if err != nil {
 		return common.Location{}, errors.Wrap(err, "api request error")
 	}
@@ -93,7 +113,11 @@ func (c *Client) RSSIMultiFrame(ctx context.Context, rxInfo [][]*gw.UplinkRXInfo
 // WifiTDOASingleFrame request.
 func (c *Client) WifiTDOASingleFrame(ctx context.Context, rxInfo []*gw.UplinkRXInfo, aps []WifiAccessPoint) (common.Location, error) {
 	req := NewWifiTDOASingleFrameRequest(rxInfo, aps)
-	resp, err := c.apiRequest(ctx, wifiTDOASingleFrameEndpoint, req)
+	endpoint := wifiTDOASingleFrameEndpoint
+	if c.migrated {
+		endpoint = "%s/api/v1/solve/loraWifi"
+	}
+	resp, err := c.apiRequest(ctx, endpoint, req)
 	if err != nil {
 		return common.Location{}, errors.Wrap(err, "api request error")
 	}
@@ -104,7 +128,11 @@ func (c *Client) WifiTDOASingleFrame(ctx context.Context, rxInfo []*gw.UplinkRXI
 // GNSSLR1110SingleFrame request.
 func (c *Client) GNSSLR1110SingleFrame(ctx context.Context, rxInfo []*gw.UplinkRXInfo, useRxTime bool, pl []byte) (common.Location, error) {
 	req := NewGNSSLR1110SingleFrameRequest(rxInfo, useRxTime, pl)
-	resp, err := c.v3APIRequest(ctx, gnssLR1110SingleFrameEndpoint, req)
+	endpoint := gnssLR1110SingleFrameEndpoint
+	if c.migrated {
+		endpoint = "%s/api/v1/solve/gnss_lr1110_singleframe"
+	}
+	resp, err := c.v3APIRequest(ctx, endpoint, req)
 	if err != nil {
 		return common.Location{}, errors.Wrap(err, "api request error")
 	}
@@ -167,12 +195,23 @@ func (c *Client) apiRequest(ctx context.Context, endpoint string, v interface{})
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Ocp-Apim-Subscription-Key", c.token)
+
+	if c.migrated {
+		req.Header.Set("Authorization", c.token)
+	} else {
+		req.Header.Set("Ocp-Apim-Subscription-Key", c.token)
+	}
 
 	reqCtx, cancel := context.WithTimeout(ctx, c.requestTimeout)
 	defer cancel()
-
 	req = req.WithContext(reqCtx)
+
+	log.WithFields(log.Fields{
+		"ctx_id":   ctx.Value(logging.ContextIDKey),
+		"endpoint": endpoint,
+		"migrated": c.migrated,
+	}).Debug("integration/das/geolocation: making API request")
+
 	httpResp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return resp, errors.Wrap(err, "http request error")
@@ -210,8 +249,14 @@ func (c *Client) v3APIRequest(ctx context.Context, endpoint string, v interface{
 
 	reqCtx, cancel := context.WithTimeout(ctx, c.requestTimeout)
 	defer cancel()
-
 	req = req.WithContext(reqCtx)
+
+	log.WithFields(log.Fields{
+		"ctx_id":   ctx.Value(logging.ContextIDKey),
+		"endpoint": endpoint,
+		"migrated": c.migrated,
+	}).Debug("integration/das/geolocation: making API request")
+
 	httpResp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return resp, errors.Wrap(err, "http request error")

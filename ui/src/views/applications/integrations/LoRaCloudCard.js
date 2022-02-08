@@ -37,10 +37,10 @@ class LoRaCloudCard extends Component {
         />
         <CardContent>
           <Typography gutterBottom variant="h5" component="h2">
-            Semtech LoRa Cloud
+            Semtech LoRa Cloud&trade;
           </Typography>
           <Typography variant="body2" color="textSecondary" component="p">
-            The Semtech LoRa Cloud integration provides Geolocation and Device & Application Services.
+            The Semtech LoRa Cloud integration provides Modem & Geolocation Services.
           </Typography>
         </CardContent>
         <CardActions>

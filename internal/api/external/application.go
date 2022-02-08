@@ -928,7 +928,12 @@ func (a *ApplicationAPI) UpdateLoRaCloudIntegration(ctx context.Context, in *pb.
 		return nil, helpers.ErrToRPCError(err)
 	}
 
-	conf := loracloud.Config{
+	var conf loracloud.Config
+	if err := json.Unmarshal(integration.Settings, &conf); err != nil {
+		return nil, helpers.ErrToRPCError(err)
+	}
+
+	conf = loracloud.Config{
 		Geolocation:                  in.GetIntegration().Geolocation,
 		GeolocationToken:             in.GetIntegration().GeolocationToken,
 		GeolocationBufferTTL:         int(in.GetIntegration().GeolocationBufferTtl),

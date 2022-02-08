@@ -29,7 +29,7 @@ type ClientTestSuite struct {
 
 func (ts *ClientTestSuite) SetupSuite() {
 	ts.server = httptest.NewServer(http.HandlerFunc(ts.apiHandler))
-	ts.client = New(ts.server.URL, "foobar")
+	ts.client = New(true, ts.server.URL, "foobar")
 }
 
 func (ts *ClientTestSuite) TearDownSuite() {

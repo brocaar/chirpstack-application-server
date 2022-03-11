@@ -72,7 +72,7 @@ func (i *Integration) getGeolocationURI() string {
 	if i.geolocationURI != "" {
 		return i.geolocationURI
 	}
-	return "https://gls.loracloud.com"
+	return "https://mgs.loracloud.com"
 }
 
 func (i *Integration) getDasURI() string {
@@ -80,7 +80,7 @@ func (i *Integration) getDasURI() string {
 	if i.dasURI != "" {
 		return i.dasURI
 	}
-	return "https://das.loracloud.com"
+	return "https://mgs.loracloud.com"
 }
 
 // HandleUplinkEvent handles the Uplinkevent.

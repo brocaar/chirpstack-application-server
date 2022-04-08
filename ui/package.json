@@ -17,7 +17,7 @@
     "leaflet.awesome-markers": "^2.0.5",
     "leaflet.markercluster": "^1.4.1",
     "mdi-material-ui": "^6.13.2",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "query-string": "^6.12.1",
     "react": "^16.13.1",
     "react-chartjs-2": "^3.0.4",

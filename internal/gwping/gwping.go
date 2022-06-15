@@ -53,10 +53,6 @@ func HandleReceivedPing(ctx context.Context, req *as.HandleProprietaryUplinkRequ
 		return errors.Wrap(err, "get ping lookup error")
 	}
 
-	if err = deletePingLookup(mic); err != nil {
-		log.Errorf("delete ping lookup error: %s", err)
-	}
-
 	ping, err := storage.GetGatewayPing(ctx, storage.DB(), id)
 	if err != nil {
 		return errors.Wrap(err, "get gateway ping error")
@@ -239,15 +235,4 @@ func getPingLookup(mic lorawan.MIC) (int64, error) {
 	}
 
 	return id, nil
-}
-
-func deletePingLookup(mic lorawan.MIC) error {
-	key := storage.GetRedisKey(micLookupTempl, mic)
-
-	err := storage.RedisClient().Del(context.Background(), key).Err()
-	if err != nil {
-		return errors.Wrap(err, "delete ping lookup error")
-	}
-
-	return nil
 }

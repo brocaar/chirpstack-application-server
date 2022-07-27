@@ -6,9 +6,9 @@ require (
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
 	github.com/aws/aws-sdk-go v1.26.3
 	github.com/brocaar/chirpstack-api/go/v3 v3.12.5
-	github.com/brocaar/lorawan v0.0.0-20211122090658-49524ce5fb5b
+	github.com/brocaar/lorawan v0.0.0-20220715134808-3b283dda1534
 	github.com/coreos/go-oidc v2.2.1+incompatible
-	github.com/eclipse/paho.mqtt.golang v1.3.1
+	github.com/eclipse/paho.mqtt.golang v1.4.1
 	github.com/go-redis/redis/v8 v8.8.3
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang-jwt/jwt/v4 v4.0.0
@@ -36,7 +36,7 @@ require (
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20201229170055-e5319fda7802
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b
-	golang.org/x/net v0.0.0-20201224014010-6772e930b67b
+	golang.org/x/net v0.0.0-20220726230323-06994584191e
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/tools v0.0.0-20210106214847-113979e3529a
 	google.golang.org/grpc v1.33.1
@@ -62,7 +62,7 @@ require (
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -99,9 +99,9 @@ require (
 	go.opentelemetry.io/otel/metric v0.20.0 // indirect
 	go.opentelemetry.io/otel/trace v0.20.0 // indirect
 	golang.org/x/mod v0.3.0 // indirect
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9 // indirect
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
-	golang.org/x/text v0.3.3 // indirect
+	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
+	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
+	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/genproto v0.0.0-20201030142918-24207fddd1c3 // indirect

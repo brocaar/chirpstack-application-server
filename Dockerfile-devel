@@ -13,5 +13,5 @@ RUN mkdir -p $PROJECT_PATH
 COPY . $PROJECT_PATH
 WORKDIR $PROJECT_PATH
 
-RUN git config --global --add safe.directory PROJECT_PATH
+RUN git config --global --add safe.directory $PROJECT_PATH
 RUN make dev-requirements

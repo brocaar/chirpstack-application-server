@@ -1,6 +1,6 @@
 module github.com/brocaar/chirpstack-application-server
 
-go 1.18
+go 1.17
 
 require (
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5

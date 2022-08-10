@@ -207,6 +207,20 @@ id="{{ .ApplicationServer.ID }}"
     # The login label is used in the web-interface login form.
     login_label="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.LoginLabel }}"
 
+    # Use UserInfo.
+    #
+    # Use a UserInfo call to retrieve the claim rather than extracting the claim from
+    # the idToken.
+    use_userinfo="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.UseUserInfo }}"
+
+    # Assume email_verified.
+    #
+    # Assume that the email_verified field is always true, regardless of whether it
+    # is included in the token.
+    #
+    # This is required for identity providers that don't supply this claim, such as
+    # Microsoft Azure AD.
+    use_userinfo="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.AssumeEmailVerified }}"
 
   # JavaScript codec settings.
   [application_server.codec.js]

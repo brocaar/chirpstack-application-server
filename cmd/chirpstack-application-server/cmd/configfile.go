@@ -211,7 +211,7 @@ id="{{ .ApplicationServer.ID }}"
     #
     # Use a UserInfo call to retrieve the claim rather than extracting the claim from
     # the idToken.
-    use_userinfo="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.UseUserInfo }}"
+    use_userinfo={{ .ApplicationServer.UserAuthentication.OpenIDConnect.UseUserInfo }}
 
     # Assume email_verified.
     #
@@ -220,7 +220,7 @@ id="{{ .ApplicationServer.ID }}"
     #
     # This is required for identity providers that don't supply this claim, such as
     # Microsoft Azure AD.
-    use_userinfo="{{ .ApplicationServer.UserAuthentication.OpenIDConnect.AssumeEmailVerified }}"
+    assume_email_verified={{ .ApplicationServer.UserAuthentication.OpenIDConnect.AssumeEmailVerified }}
 
   # JavaScript codec settings.
   [application_server.codec.js]

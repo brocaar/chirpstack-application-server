@@ -46,6 +46,8 @@ type Config struct {
 				RedirectURL             string `mapstructure:"redirect_url"`
 				LogoutURL               string `mapstructure:"logout_url"`
 				LoginLabel              string `mapstructure:"login_label"`
+				UseUserInfo             bool   `mapstructure:"use_userinfo"`
+				AssumeEmailVerified     bool   `mapstructure:"assume_email_verified"`
 			} `mapstructure:"openid_connect"`
 		} `mapstructure:"user_authentication"`
 

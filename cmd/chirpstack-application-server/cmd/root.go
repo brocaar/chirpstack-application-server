@@ -65,6 +65,8 @@ func init() {
 	viper.SetDefault("application_server.integration.amqp.event_routing_key_template", "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}")
 	viper.SetDefault("application_server.integration.enabled", []string{"mqtt"})
 	viper.SetDefault("application_server.codec.js.max_execution_time", 100*time.Millisecond)
+	viper.SetDefault("application_server.user_authentication.openid_connect.use_userinfo", true)
+	viper.SetDefault("application_server.user_authentication.openid_connect.assume_email_verified", false)
 
 	viper.SetDefault("metrics.timezone", "Local")
 	viper.SetDefault("metrics.redis.aggregation_intervals", []string{"MINUTE", "HOUR", "DAY", "MONTH"})
@@ -72,7 +74,6 @@ func init() {
 	viper.SetDefault("metrics.redis.hour_aggregation_ttl", time.Hour*48)
 	viper.SetDefault("metrics.redis.day_aggregation_ttl", time.Hour*24*90)
 	viper.SetDefault("metrics.redis.month_aggregation_ttl", time.Hour*24*730)
-
 	viper.SetDefault("monitoring.per_device_event_log_max_history", 10)
 
 	rootCmd.AddCommand(versionCmd)

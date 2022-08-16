@@ -26,6 +26,8 @@ var (
 	clientSecret string
 	redirectURL  string
 	jwtSecret    string
+	useUserInfo  bool
+	assumeEmailVerified bool
 
 	// MockGetUserUser contains a possible mocked GetUser User
 	MockGetUserUser *User
@@ -92,6 +94,8 @@ func Setup(conf config.Config, r *mux.Router) error {
 	clientSecret = oidcConfig.ClientSecret
 	redirectURL = oidcConfig.RedirectURL
 	jwtSecret = externalAPIConfig.JWTSecret
+	useUserInfo = oidcConfig.UseUserInfo
+	assumeEmailVerified = oidcConfig.AssumeEmailVerified
 
 	r.HandleFunc("/auth/oidc/login", loginHandler)
 	r.HandleFunc("/auth/oidc/callback", callbackHandler)
@@ -225,31 +229,49 @@ func GetUser(ctx context.Context, code string, state string) (User, error) {
 		ClientID: clientID,
 	}
 
-	if _, err := auth.provider.Verifier(oidcConfig).Verify(ctx, rawIDToken); err != nil {
+	idToken, err := auth.provider.Verifier(oidcConfig).Verify(ctx, rawIDToken)
+	if err != nil {
 		return User{}, errors.Wrap(err, "verify id token error")
 	}
 
 	var user User
 
-	// Request the claims through a UserInfo call to the OIDC server.
-	// We don't read claims from the "id_token" because most OIDC servers don't include
-	// claims in id_token by default. We would have to request claims to be included in
-	// id_token explicitly. But then servers don't have to implement/support that
-	// request. The UserInfo call does always include the claims.
-	userInfo, err := auth.provider.UserInfo(ctx, oauth2.StaticTokenSource(token))
-	if err != nil {
-		return User{}, errors.Wrap(err, "get userInfo error")
+	if useUserInfo {
+		// Request the claims through a UserInfo call to the OIDC server.
+		// We don't read claims from the "id_token" because most OIDC servers don't include
+		// claims in id_token by default. We would have to request claims to be included in
+		// id_token explicitly. But then servers don't have to implement/support that
+		// request. The UserInfo call does always include the claims.
+		userInfo, err := auth.provider.UserInfo(ctx, oauth2.StaticTokenSource(token))
+		if err != nil {
+			return User{}, errors.Wrap(err, "get userInfo error")
+		}
+
+		// Parse the well-known claims into user.
+		if err := userInfo.Claims(&user); err != nil {
+			return User{}, errors.Wrap(err, "get userInfo claims for user error")
+		}
+
+		// And also parse the claims in a map, so we can pass them on when calling the registration URL later on.
+		user.UserInfoClaims = map[string]interface{}{}
+		if err := userInfo.Claims(&user.UserInfoClaims); err != nil {
+			return User{}, errors.Wrap(err, "get userInfo claims for user claims map error")
+		}
+	} else {
+		// Parse the well-known claims into user.
+		if err := idToken.Claims(&user); err != nil {
+			return User{}, errors.Wrap(err, "get idToken claims for user error")
+		}
+
+		// And also parse the claims in a map, so we can pass them on when calling the registration URL later on.
+		user.UserInfoClaims = map[string]interface{}{}
+		if err := idToken.Claims(&user.UserInfoClaims); err != nil {
+			return User{}, errors.Wrap(err, "get idToken claims for user claims map error")
+		}
 	}
 
-	// Parse the well-known claims into user.
-	if err := userInfo.Claims(&user); err != nil {
-		return User{}, errors.Wrap(err, "get userInfo claims for user error")
-	}
-
-	// And also parse the claims in a map, so we can pass them on when calling the registration URL later on.
-	user.UserInfoClaims = map[string]interface{}{}
-	if err := userInfo.Claims(&user.UserInfoClaims); err != nil {
-		return User{}, errors.Wrap(err, "get userInfo claims for user claims map error")
+	if (assumeEmailVerified) {
+		user.EmailVerified = true
 	}
 
 	return user, nil

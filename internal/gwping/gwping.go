@@ -180,7 +180,7 @@ func getGatewayForPing(tx sqlx.Ext) (*storage.Gateway, error) {
 			ns.gateway_discovery_enabled = true
 			and g.ping = true
 			and (g.last_ping_sent_at is null or g.last_ping_sent_at <= (now() - (interval '24 hours' / ns.gateway_discovery_interval)))
-		order by last_ping_sent_at
+		order by last_ping_sent_at nulls first
 		limit 1
 		for update`,
 	)

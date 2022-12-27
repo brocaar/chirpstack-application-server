@@ -68,6 +68,7 @@ type Config struct {
 			Kafka           IntegrationKafkaConfig      `mapstructure:"kafka"`
 			PostgreSQL      IntegrationPostgreSQLConfig `mapstructure:"postgresql"`
 			AMQP            IntegrationAMQPConfig       `mapstructure:"amqp"`
+			Pulsar          IntegrationPulsarConfig     `mapstructure:"pulsar"`
 		} `mapstructure:"integration"`
 
 		API struct {
@@ -228,6 +229,35 @@ type IntegrationKafkaConfig struct {
 	Mechanism        string   `mapstructure:"mechanism"`
 	Algorithm        string   `mapstructure:"algorithm"`
 }
+
+// IntegrationPulsarConfig holds the Pulsar integration configuration.
+type IntegrationPulsarConfig struct {
+	Brokers                    string         `mapstructure:"brokers"`
+	AuthType                   PulsarAuthType `mapstructure:"auth_type"`
+	OAuth2                     PulsarOAuth2   `mapstructure:"oauth2"`
+	Topic                      string         `mapstructure:"topic"`
+	EventKeyTemplate           string         `mapstructure:"event_key_template"`
+	TLSTrustCertsFilePath      string         `mapstructure:"tls_trust_certs_file_path"`
+	TLSAllowInsecureConnection bool           `mapstructure:"tls_allow_insecure_connection"`
+	MaxConnectionsPerBroker    int            `mapstructure:"max_connections_per_broker"`
+}
+
+// PulsarOAuth2 holds the Pulsar integration configuration.
+type PulsarOAuth2 struct {
+	IssuerURL  string `mapstructure:"issuer_url"`
+	Audience   string `mapstructure:"audience"`
+	ClientID   string `mapstructure:"client_id"`
+	PrivateKey string `mapstructure:"private_key"`
+}
+
+// PulsarAuthType defines the authentication type.
+type PulsarAuthType string
+
+// Pulsar authentication types.
+const (
+	PulsarAuthTypeNone   PulsarAuthType = "none"
+	PulsarAuthTypeOAuth2 PulsarAuthType = "oauth2"
+)
 
 // AzurePublishMode defines the publish-mode type.
 type AzurePublishMode string

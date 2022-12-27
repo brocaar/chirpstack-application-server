@@ -27,6 +27,8 @@ func GetConfig() config.Config {
 	c.ApplicationServer.Integration.AMQP.EventRoutingKeyTemplate = "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}"
 	c.ApplicationServer.Integration.Kafka.Topic = "chirpstack_as"
 	c.ApplicationServer.Integration.Kafka.EventKeyTemplate = "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}"
+	c.ApplicationServer.Integration.Pulsar.Topic = "chirpstack_as"
+	c.ApplicationServer.Integration.Pulsar.EventKeyTemplate = "application.{{ .ApplicationID }}.device.{{ .DevEUI }}.event.{{ .EventType }}"
 
 	if v := os.Getenv("TEST_POSTGRES_DSN"); v != "" {
 		c.PostgreSQL.DSN = v
@@ -54,6 +56,10 @@ func GetConfig() config.Config {
 
 	if v := os.Getenv("TEST_KAFKA_BROKER"); v != "" {
 		c.ApplicationServer.Integration.Kafka.Brokers = []string{v}
+	}
+
+	if v := os.Getenv("TEST_PULSAR_BROKER"); v != "" {
+		c.ApplicationServer.Integration.Pulsar.Brokers = v
 	}
 
 	return c

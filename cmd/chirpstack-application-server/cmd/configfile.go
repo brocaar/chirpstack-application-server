@@ -442,6 +442,52 @@ id="{{ .ApplicationServer.ID }}"
   # SHA-256 or SHA-512 
   algorithm="{{ .ApplicationServer.Integration.Kafka.Algorithm }}"
 
+  # Pulsar integration.
+  [application_server.integration.pulsar]
+  # Brokers, (e.g. scheme://host:port where scheme is pulsar or pulsar+ssl)
+  brokers="{{ .ApplicationServer.Integration.Pulsar.Brokers }}"
+
+  # Topic for events.
+  topic="{{ .ApplicationServer.Integration.Pulsar.Topic }}"
+
+  # Template for keys included in Pulsar messages. If empty, no key is included.
+  # Pulsar can use this key for topic compaction.  
+  # A header "event" with the event type is included in each
+  # message. There is no need to parse it from the key.
+  event_key_template="{{ .ApplicationServer.Integration.Pulsar.EventKeyTemplate }}"
+
+  # TLSTrustCertsFilePath (optional)
+  # A file path to the trust chain e.g. "/etc/ssl/certs/ca-certificates.crt"
+  tls_trust_certs_file_path="{{ .ApplicationServer.Integration.Pulsar.TLSTrustCertsFilePath }}"
+
+  # TLSAllowInsecureConnection (optional)
+  # If set, no validation of certificate against trust chain is performed.
+  tls_allow_insecure_connection="{{ .ApplicationServer.Integration.Pulsar.TLSAllowInsecureConnection }}"
+
+  # MaxConnectionsPerBroker (optional)
+  max_connections_per_broker="{{ .ApplicationServer.Integration.Pulsar.MaxConnectionsPerBroker }}"
+
+  # AuthType sets the authentication method to be used
+  # Currently implemented values are:
+  #  none
+  #  oauth2
+  auth_type="{{ .ApplicationServer.Integration.Pulsar.AuthType }}"
+
+    # OAuth2 authentication, only mandatory if auth_type is oauth2
+    [application_server.integration.pulsar.oauth2]
+    # IssuerUrl
+    issuer_url="{{ .ApplicationServer.Integration.Pulsar.OAuth2.IssuerURL }}"
+
+    # Audience
+    audience="{{ .ApplicationServer.Integration.Pulsar.OAuth2.Audience }}"
+
+    # ClientID
+    client_id="{{ .ApplicationServer.Integration.Pulsar.OAuth2.ClientID }}"
+
+    # PrivateKey
+    # URL to credentials file e.g. "file://credentials.json"
+    private_key="{{ .ApplicationServer.Integration.Pulsar.OAuth2.PrivateKey }}"
+
   # PostgreSQL database integration.
   [application_server.integration.postgresql]
   # PostgreSQL dsn (e.g.: postgres://user:password@hostname/database?sslmode=disable).

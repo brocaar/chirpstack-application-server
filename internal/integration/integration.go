@@ -26,6 +26,7 @@ import (
 	"github.com/brocaar/chirpstack-application-server/internal/integration/mydevices"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/pilotthings"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/postgresql"
+	"github.com/brocaar/chirpstack-application-server/internal/integration/pulsar"
 	"github.com/brocaar/chirpstack-application-server/internal/integration/thingsboard"
 	"github.com/brocaar/chirpstack-application-server/internal/storage"
 )
@@ -96,6 +97,8 @@ func Setup(conf config.Config) error {
 			i, err = postgresql.New(marshalType, conf.ApplicationServer.Integration.PostgreSQL)
 		case "amqp":
 			i, err = amqp.New(marshalType, conf.ApplicationServer.Integration.AMQP)
+		case "pulsar":
+			i, err = pulsar.New(marshalType, conf.ApplicationServer.Integration.Pulsar)
 		default:
 			return fmt.Errorf("unknonwn integration type: %s", name)
 		}

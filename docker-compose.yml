@@ -14,6 +14,7 @@ services:
       - rabbitmq
       - zookeeper
       - kafka
+      - pulsar
     environment:
       - TEST_POSTGRES_DSN=postgres://chirpstack_as:chirpstack_as@postgres/chirpstack_as?sslmode=disable
       - TEST_POSTGRES_INTEGRATION_DSN=postgres://chirpstack_integration:chirpstack_integration@postgres/chirpstack_integration?sslmode=disable
@@ -21,6 +22,7 @@ services:
       - TEST_MQTT_SERVER=tcp://mosquitto:1883
       - TEST_RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
       - TEST_KAFKA_BROKER=kafka:9092
+      - TEST_PULSAR_BROKER=pulsar://pulsar:6650
 
   postgres:
     image: postgres:13-alpine
@@ -49,3 +51,6 @@ services:
       - ALLOW_PLAINTEXT_LISTENER=yes
     depends_on:
       - zookeeper
+  pulsar:
+    image: 'apachepulsar/pulsar:2.10.0'
+    command: ['bin/pulsar', 'standalone']

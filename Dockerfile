@@ -1,4 +1,4 @@
-FROM golang:1.19.3-alpine AS development
+FROM golang:1.19.3-alpine3.16 AS development
 
 ENV PROJECT_PATH=/chirpstack-application-server
 ENV PATH=$PATH:$PROJECT_PATH/build

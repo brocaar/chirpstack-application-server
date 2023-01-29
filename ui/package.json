@@ -27,7 +27,7 @@
     "react-leaflet": "^2.6.3",
     "react-leaflet-markercluster": "^2.0.0",
     "react-router-dom": "^5.1.2",
-    "react-scripts": "^3.4.1",
+    "react-scripts": "^5.0.1",
     "react-text-mask": "^5.4.3",
     "robust-websocket": "^1.0.0",
     "source-map-explorer": "^2.4.2",

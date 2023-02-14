@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/NickBall/go-aes-key-wrap v0.0.0-20170929221519-1c3aa3e4dfc5
-	github.com/aws/aws-sdk-go v1.26.3
+	github.com/aws/aws-sdk-go v1.34.0
 	github.com/brocaar/chirpstack-api/go/v3 v3.12.5
 	github.com/brocaar/lorawan v0.0.0-20220715134808-3b283dda1534
 	github.com/coreos/go-oidc v2.2.1+incompatible
@@ -69,7 +69,7 @@ require (
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jacobsa/crypto v0.0.0-20190317225127-9f44e2d11115 // indirect
-	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
+	github.com/jmespath/go-jmespath v0.3.0 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/kamilsk/retry/v4 v4.0.0 // indirect
 	github.com/klauspost/compress v1.9.8 // indirect

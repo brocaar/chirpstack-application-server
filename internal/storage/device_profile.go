@@ -111,6 +111,8 @@ func CreateDeviceProfile(ctx context.Context, db sqlx.Ext, dp *DeviceProfile) er
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.CreateDeviceProfile(ctx, &ns.CreateDeviceProfileRequest{
 		DeviceProfile: &dp.DeviceProfile,
 	})
@@ -189,6 +191,8 @@ func GetDeviceProfile(ctx context.Context, db sqlx.Queryer, id uuid.UUID, forUpd
 		return dp, errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	resp, err := nsClient.GetDeviceProfile(ctx, &ns.GetDeviceProfileRequest{
 		Id: id.Bytes(),
 	})
@@ -225,6 +229,8 @@ func UpdateDeviceProfile(ctx context.Context, db sqlx.Ext, dp *DeviceProfile) er
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.UpdateDeviceProfile(ctx, &ns.UpdateDeviceProfileRequest{
 		DeviceProfile: &dp.DeviceProfile,
 	})
@@ -297,6 +303,8 @@ func DeleteDeviceProfile(ctx context.Context, db sqlx.Ext, id uuid.UUID) error {
 		return ErrDoesNotExist
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.DeleteDeviceProfile(ctx, &ns.DeleteDeviceProfileRequest{
 		Id: id.Bytes(),
 	})

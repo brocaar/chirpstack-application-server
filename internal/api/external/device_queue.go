@@ -1,6 +1,8 @@
 package external
 
 import (
+	"time"
+
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
@@ -126,6 +128,8 @@ func (d *DeviceQueueAPI) Flush(ctx context.Context, req *pb.FlushDeviceQueueRequ
 		return nil, helpers.ErrToRPCError(err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.FlushDeviceQueueForDevEUI(ctx, &ns.FlushDeviceQueueForDevEUIRequest{
 		DevEui: devEUI[:],
 	})
@@ -163,6 +167,8 @@ func (d *DeviceQueueAPI) List(ctx context.Context, req *pb.ListDeviceQueueItemsR
 		return nil, helpers.ErrToRPCError(err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	queueItemsResp, err := nsClient.GetDeviceQueueItemsForDevEUI(ctx, &ns.GetDeviceQueueItemsForDevEUIRequest{
 		DevEui:    devEUI[:],
 		CountOnly: req.CountOnly,

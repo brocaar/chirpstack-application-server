@@ -93,6 +93,8 @@ func CreateServiceProfile(ctx context.Context, db sqlx.Ext, sp *ServiceProfile) 
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.CreateServiceProfile(ctx, &ns.CreateServiceProfileRequest{
 		ServiceProfile: &sp.ServiceProfile,
 	})
@@ -145,6 +147,8 @@ func GetServiceProfile(ctx context.Context, db sqlx.Queryer, id uuid.UUID, local
 		return sp, errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	resp, err := nsClient.GetServiceProfile(ctx, &ns.GetServiceProfileRequest{
 		Id: id.Bytes(),
 	})
@@ -204,6 +208,8 @@ func UpdateServiceProfile(ctx context.Context, db sqlx.Ext, sp *ServiceProfile) 
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.UpdateServiceProfile(ctx, &ns.UpdateServiceProfileRequest{
 		ServiceProfile: &sp.ServiceProfile,
 	})
@@ -243,6 +249,8 @@ func DeleteServiceProfile(ctx context.Context, db sqlx.Ext, id uuid.UUID) error 
 		return ErrDoesNotExist
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.DeleteServiceProfile(ctx, &ns.DeleteServiceProfileRequest{
 		Id: id.Bytes(),
 	})

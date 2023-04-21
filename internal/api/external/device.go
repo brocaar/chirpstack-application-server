@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
@@ -586,6 +587,8 @@ func (a *DeviceAPI) Deactivate(ctx context.Context, req *pb.DeactivateDeviceRequ
 		return nil, helpers.ErrToRPCError(err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, _ = nsClient.DeactivateDevice(ctx, &ns.DeactivateDeviceRequest{
 		DevEui: d.DevEUI[:],
 	})
@@ -645,6 +648,8 @@ func (a *DeviceAPI) Activate(ctx context.Context, req *pb.ActivateDeviceRequest)
 		return nil, helpers.ErrToRPCError(err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, _ = nsClient.DeactivateDevice(ctx, &ns.DeactivateDeviceRequest{
 		DevEui: d.DevEUI[:],
 	})
@@ -719,6 +724,8 @@ func (a *DeviceAPI) GetActivation(ctx context.Context, req *pb.GetDeviceActivati
 		return nil, helpers.ErrToRPCError(err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	devAct, err := nsClient.GetDeviceActivation(ctx, &ns.GetDeviceActivationRequest{
 		DevEui: d.DevEUI[:],
 	})
@@ -878,6 +885,8 @@ func (a *DeviceAPI) GetRandomDevAddr(ctx context.Context, req *pb.GetRandomDevAd
 		return nil, helpers.ErrToRPCError(err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	resp, err := nsClient.GetRandomDevAddr(ctx, &empty.Empty{})
 	if err != nil {
 		return nil, err
@@ -996,6 +1005,8 @@ func (a *DeviceAPI) ClearDeviceNonces(ctx context.Context, req *pb.ClearDeviceNo
 		return nil, helpers.ErrToRPCError(err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, _ = nsClient.ClearDeviceNonces(ctx, &ns.ClearDeviceNoncesRequest{
 		DevEui: d.DevEUI[:],
 	})

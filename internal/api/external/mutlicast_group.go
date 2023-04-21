@@ -1,6 +1,8 @@
 package external
 
 import (
+	"time"
+
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -448,6 +450,8 @@ func (a *MulticastGroupAPI) FlushQueue(ctx context.Context, req *pb.FlushMultica
 		return nil, helpers.ErrToRPCError(err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.FlushMulticastQueueForMulticastGroup(ctx, &ns.FlushMulticastQueueForMulticastGroupRequest{
 		MulticastGroupId: mgID.Bytes(),
 	})

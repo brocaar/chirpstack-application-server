@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
@@ -194,6 +195,8 @@ func (a *GatewayAPI) Create(ctx context.Context, req *pb.CreateGatewayRequest) (
 			return helpers.ErrToRPCError(err)
 		}
 
+		ctx, cancel := context.WithTimeout(ctx, time.Second)
+		defer cancel()
 		_, err = nsClient.CreateGateway(ctx, &createReq)
 		if err != nil && grpc.Code(err) != codes.AlreadyExists {
 			return err
@@ -235,6 +238,8 @@ func (a *GatewayAPI) Get(ctx context.Context, req *pb.GetGatewayRequest) (*pb.Ge
 		return nil, helpers.ErrToRPCError(err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	getResp, err := nsClient.GetGateway(ctx, &ns.GetGatewayRequest{
 		Id: mac[:],
 	})
@@ -552,6 +557,8 @@ func (a *GatewayAPI) Update(ctx context.Context, req *pb.UpdateGatewayRequest) (
 			return helpers.ErrToRPCError(err)
 		}
 
+		ctx, cancel := context.WithTimeout(ctx, time.Second)
+		defer cancel()
 		_, err = nsClient.UpdateGateway(ctx, &updateReq)
 		if err != nil {
 			return err
@@ -619,6 +626,8 @@ func (a *GatewayAPI) GenerateGatewayClientCertificate(ctx context.Context, req *
 		return nil, helpers.ErrToRPCError(err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	resp, err := nsClient.GenerateGatewayClientCertificate(ctx, &ns.GenerateGatewayClientCertificateRequest{
 		Id: id[:],
 	})

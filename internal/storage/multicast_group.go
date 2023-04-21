@@ -87,6 +87,8 @@ func CreateMulticastGroup(ctx context.Context, db sqlx.Ext, mg *MulticastGroup) 
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.CreateMulticastGroup(ctx, &ns.CreateMulticastGroupRequest{
 		MulticastGroup: &mg.MulticastGroup,
 	})
@@ -136,6 +138,8 @@ func GetMulticastGroup(ctx context.Context, db sqlx.Queryer, id uuid.UUID, forUp
 		return mg, errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	resp, err := nsClient.GetMulticastGroup(ctx, &ns.GetMulticastGroupRequest{
 		Id: id.Bytes(),
 	})
@@ -195,6 +199,8 @@ func UpdateMulticastGroup(ctx context.Context, db sqlx.Ext, mg *MulticastGroup) 
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.UpdateMulticastGroup(ctx, &ns.UpdateMulticastGroupRequest{
 		MulticastGroup: &mg.MulticastGroup,
 	})
@@ -235,6 +241,8 @@ func DeleteMulticastGroup(ctx context.Context, db sqlx.Ext, id uuid.UUID) error 
 		return ErrDoesNotExist
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.DeleteMulticastGroup(ctx, &ns.DeleteMulticastGroupRequest{
 		Id: id.Bytes(),
 	})
@@ -382,6 +390,8 @@ func AddDeviceToMulticastGroup(ctx context.Context, db sqlx.Ext, multicastGroupI
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.AddDeviceToMulticastGroup(ctx, &ns.AddDeviceToMulticastGroupRequest{
 		DevEui:           devEUI[:],
 		MulticastGroupId: multicastGroupID.Bytes(),
@@ -426,6 +436,8 @@ func RemoveDeviceFromMulticastGroup(ctx context.Context, db sqlx.Ext, multicastG
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.RemoveDeviceFromMulticastGroup(ctx, &ns.RemoveDeviceFromMulticastGroupRequest{
 		DevEui:           devEUI[:],
 		MulticastGroupId: multicastGroupID.Bytes(),

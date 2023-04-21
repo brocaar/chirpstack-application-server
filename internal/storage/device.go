@@ -148,6 +148,8 @@ func CreateDevice(ctx context.Context, db sqlx.Ext, d *Device) error {
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.CreateDevice(ctx, &ns.CreateDeviceRequest{
 		Device: &ns.Device{
 			DevEui:            d.DevEUI[:],
@@ -201,6 +203,8 @@ func GetDevice(ctx context.Context, db sqlx.Queryer, devEUI lorawan.EUI64, forUp
 		return d, errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	resp, err := nsClient.GetDevice(ctx, &ns.GetDeviceRequest{
 		DevEui: d.DevEUI[:],
 	})
@@ -416,6 +420,8 @@ func UpdateDevice(ctx context.Context, db sqlx.Ext, d *Device, localOnly bool) e
 			return errors.Wrap(err, "uuid from string error")
 		}
 
+		ctx, cancel := context.WithTimeout(ctx, time.Second)
+		defer cancel()
 		_, err = nsClient.UpdateDevice(ctx, &ns.UpdateDeviceRequest{
 			Device: &ns.Device{
 				DevEui:            d.DevEUI[:],
@@ -529,6 +535,8 @@ func DeleteDevice(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI64) error 
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.DeleteDevice(ctx, &ns.DeleteDeviceRequest{
 		DevEui: devEUI[:],
 	})
@@ -682,6 +690,8 @@ func EnqueueDownlinkPayload(ctx context.Context, db sqlx.Ext, devEUI lorawan.EUI
 	}
 
 	// get fCnt to use for encrypting and enqueueing
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	resp, err := nsClient.GetNextDownlinkFCntForDevEUI(context.Background(), &ns.GetNextDownlinkFCntForDevEUIRequest{
 		DevEui: devEUI[:],
 	})

@@ -104,6 +104,8 @@ func CreateGatewayProfile(ctx context.Context, db sqlx.Ext, gp *GatewayProfile) 
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.CreateGatewayProfile(ctx, &ns.CreateGatewayProfileRequest{
 		GatewayProfile: &gp.GatewayProfile,
 	})
@@ -147,6 +149,8 @@ func GetGatewayProfile(ctx context.Context, db sqlx.Queryer, id uuid.UUID) (Gate
 		return gp, errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	resp, err := nsClient.GetGatewayProfile(ctx, &ns.GetGatewayProfileRequest{
 		Id: id.Bytes(),
 	})
@@ -216,6 +220,8 @@ func UpdateGatewayProfile(ctx context.Context, db sqlx.Ext, gp *GatewayProfile) 
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.UpdateGatewayProfile(context.Background(), &ns.UpdateGatewayProfileRequest{
 		GatewayProfile: &gp.GatewayProfile,
 	})
@@ -256,6 +262,8 @@ func DeleteGatewayProfile(ctx context.Context, db sqlx.Ext, id uuid.UUID) error 
 		return errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.DeleteGatewayProfile(ctx, &ns.DeleteGatewayProfileRequest{
 		Id: id.Bytes(),
 	})

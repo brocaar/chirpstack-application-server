@@ -1,6 +1,8 @@
 package external
 
 import (
+	"time"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/jmoiron/sqlx"
@@ -84,6 +86,8 @@ func (a *NetworkServerAPI) Get(ctx context.Context, req *pb.GetNetworkServerRequ
 
 	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err == nil {
+		ctx, cancel := context.WithTimeout(ctx, time.Second)
+		defer cancel()
 		resp, err := nsClient.GetVersion(ctx, &empty.Empty{})
 		if err == nil {
 			region = resp.Region.String()
@@ -259,6 +263,8 @@ func (a *NetworkServerAPI) GetADRAlgorithms(ctx context.Context, req *pb.GetADRA
 		return nil, helpers.ErrToRPCError(err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	nsResp, err := nsClient.GetADRAlgorithms(ctx, &empty.Empty{})
 	if err != nil {
 		return nil, err

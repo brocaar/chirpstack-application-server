@@ -3,6 +3,7 @@ package multicast
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
@@ -54,6 +55,9 @@ func EnqueueMultiple(ctx context.Context, db sqlx.Ext, multicastGroupID uuid.UUI
 	copy(devAddr[:], mg.MulticastGroup.McAddr)
 	fCnt := mg.MulticastGroup.FCnt
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+
 	for _, pl := range payloads {
 		// encrypt payload
 		b, err := lorawan.EncryptFRMPayload(mg.MCAppSKey, false, devAddr, fCnt, pl)
@@ -98,6 +102,8 @@ func ListQueue(ctx context.Context, db sqlx.Ext, multicastGroupID uuid.UUID) ([]
 		return nil, errors.Wrap(err, "get network-server client error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	resp, err := nsClient.GetMulticastQueueItemsForMulticastGroup(ctx, &ns.GetMulticastQueueItemsForMulticastGroupRequest{
 		MulticastGroupId: multicastGroupID.Bytes(),
 	})

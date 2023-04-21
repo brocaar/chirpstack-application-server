@@ -105,6 +105,8 @@ func CreateNetworkServer(ctx context.Context, db sqlx.Queryer, n *NetworkServer)
 		return errors.Wrap(err, "uuid from string error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.CreateRoutingProfile(ctx, &ns.CreateRoutingProfileRequest{
 		RoutingProfile: &ns.RoutingProfile{
 			Id:      rpID.Bytes(),
@@ -200,6 +202,8 @@ func UpdateNetworkServer(ctx context.Context, db sqlx.Execer, n *NetworkServer) 
 		return errors.Wrap(err, "uuid from string error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.UpdateRoutingProfile(ctx, &ns.UpdateRoutingProfileRequest{
 		RoutingProfile: &ns.RoutingProfile{
 			Id:      rpID.Bytes(),
@@ -251,6 +255,8 @@ func DeleteNetworkServer(ctx context.Context, db sqlx.Ext, id int64) error {
 		return errors.Wrap(err, "uuid from string error")
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	_, err = nsClient.DeleteRoutingProfile(ctx, &ns.DeleteRoutingProfileRequest{
 		Id: rpID.Bytes(),
 	})

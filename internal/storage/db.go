@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 
 	// register postgresql driver
 	_ "github.com/lib/pq"

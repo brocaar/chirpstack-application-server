@@ -30,7 +30,7 @@ services:
       - ./.docker-compose/postgresql/initdb:/docker-entrypoint-initdb.d
 
   redis:
-    image: redis:6-alpine
+    image: redis:7-alpine
 
   mosquitto:
     image: eclipse-mosquitto:1.6
